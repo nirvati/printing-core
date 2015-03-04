@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+<!-- AccountingServiceImpl -->
+    <entry key="msg-amount-error">Bedrag "{0}" is ongeldig.</entry>
+    
+    <entry key="msg-voucher-redeem-number-invalid">De geleverde voucher-nummer is ongeldig. Vul het nummer exact in zoals weergegeven inclusief eventuele streepjes (-).</entry>
+    <entry key="msg-voucher-redeem-user-unknown">Gebruiker "{0}" is niet gevonden.</entry>    
+    <entry key="msg-voucher-redeem-trx-comment">Voucher "{0}" ingewisseld.</entry>
+
+    <entry key="msg-deposit-funds-user-unknown">Gebruiker "{0}" is niet gevonden.</entry>        
+    <entry key="msg-deposit-funds-amount-error">Bedrag is ongeldig.</entry>
+    <entry key="msg-deposit-funds-amount-invalid">Bedrag moet groter zijn dan nul.</entry>
+    
+    <entry key="msg-print-denied-no-balance">Opdracht geweigerd: uw saldo {0} is ontoereikend voor {1} kosten.</entry>
+    <entry key="msg-print-denied-no-credit">Opdracht geweigerd: uw bestedingslimiet {1} is ontoereikend voor {1} kosten en {2} saldo .</entry>
+    
+    
+<!-- AccountVoucherServiceImpl -->
+    <entry key="msg-voucher-batch-invalid">Batch ID "{0}" is ongeldig.</entry>
+    <entry key="msg-voucher-batch-exist">Batch ID "{0}" bestaat al.</entry>        
+    <entry key="msg-voucher-value-invalid">Waarde "{0}" is ongeldig.</entry>    
+    <entry key="msg-voucher-expiry-invalid">Vervaldatum "{0}" is ongeldig.</entry>
+    <entry key="msg-voucher-expiry-in-past">Vervaldatum ligt in het verleden.</entry>
+    <entry key="msg-voucher-batch-number-invalid">Aantal "{0}" is ongeldig.</entry>
+
+<!-- DocLogServiceImpl -->
+    <entry key="pub-user-print-in-success-one">Gebruiker "{0}" heeft {1} pagina afgedrukt op wachtrij "{2}" vanaf {3}</entry>
+    <entry key="pub-user-print-in-success-multiple">Gebruiker "{0}" heeft {1} pagina's afgedrukt op wachtrij "{2}" vanaf {3}</entry>
+    <entry key="pub-user-print-in-denied">Afdruk van gebruiker "{0}" op wachtrij "{1}" vanaf {2} geweigerd. Reden: {3}</entry>
+
+<!--  AbstractProxyPrintService -->
+    <entry key="msg-printer-connection-broken">Connection to Proxy Printers is broken.</entry>
+    <entry key="msg-user-print-out-disabled">Het is u niet toegestaan om af te drukken.</entry>
+    <entry key="msg-user-print-out-access-denied">Toegang tot printer geweigerd.</entry>
+
+<!--  ProxyPrintServiceImpl -->
+    <entry key="msg-printer-cost-error">Kosten "{0}" is ongeldig.</entry>
+    <entry key="msg-printer-media-error">Papierformaat "{0}" van "{1}" is ongeldig.</entry>
+
+<!--  OutboxServiceImpl -->
+    <entry key="msg-user-print-outbox">Afdruk opgeslagen voor vrijgave bij printer "{0}".</entry>
+    
+<!--  UserServiceImpl -->
+    <entry key="msg-user-userid-is-empty">Voer het ID van de gebruiker in.</entry>
+    <entry key="msg-username-reserved">"{0}" is a gereserveerde gebruikersnaam.</entry>
+    <entry key="msg-user-not-internal">"{0}" is geen interne gebruiker.</entry>
+    <entry key="msg-user-duplicate-userid">Gebruiker "{0}" bestaat al.</entry>
+    <entry key="msg-user-duplicate-user-id-number">ID Nummer "{0}" is al gekoppeld aan gebruiker "{1}".</entry>
+    <entry key="msg-user-duplicate-user-card-number">Kaart Nummer "{0}" is al gekoppeld aan gebruiker "{1}".</entry>
+    <entry key="msg-user-duplicate-user-email">E-mail "{0}" is al gekoppeld aan gebruiker "{1}".</entry>
+    <entry key="msg-user-email-used-as-primary">E-mail "{0}" is al in gebruik als primaire e-mail.</entry>    
+	<entry key="msg-user-not-found">Gebruiker "{0}" is niet gevonden.</entry>
+	<entry key="msg-password-length-error">Wachtwoord moet minstens {0} tekens bevatten.</entry>
+    <entry key="msg-email-invalid">E-mail "{0}" is ongeldig.</entry>
+    <entry key="msg-card-number-invalid">Ongeldig kaartnummer "{0}".</entry>
+    <entry key="msg-id-number-length-error">ID Nummer moet minimaal {0} tekens bevatten.</entry>
+    <entry key="msg-user-pin-not-numeric">PIN mag alleen cijfers bevatten.</entry>
+    <entry key="msg-user-pin-length-error-min">PIN moet minstens {0} cijfers bevatten.</entry>
+    <entry key="msg-user-pin-length-error-min-max">PIN moet tussen de {0} en {1} cijfers bevatten.</entry>
+    <entry key="msg-user-pin-length-error">PIN moet {0} cijfers bevatten.</entry>
+    <entry key="msg-user-deleted-ok">Gebruiker is met succes verwijderd.</entry>
+    <entry key="msg-user-deleted-ok-inc-safepages">Gebruiker is met succes verwijderd (inclusief {0} SafePages).</entry>
+    <entry key="msg-user-delete-safepages-error">Gebruiker "{0}" is niet verwijderd: fout bij verwijderen SafePages.</entry>
+
+<!--  UserGroupServiceImpl -->
+    <entry key="msg-usergroup-name-is-empty">Voer de naam van de gebruikersgroep in.</entry>
+    <entry key="msg-usergroup-accounting-is-empty">Voer de accounting data van de gebruikersgroep in.</entry>
+    <entry key="msg-usergroup-not-found">Gebruikersgroep "{0}" is niet gevonden.</entry>    
+
+    <!-- ========================================================= -->
+    <!-- User and Admin Messages.                                  -->
+    <!-- ========================================================= -->
+
+    <entry key="msg-printed">Afdruk-opdracht staat in wachtrij.</entry>
+    
+    <entry key="msg-printed-deleted-one">Afdruk-opdracht staat in de wachtrij: 1 SafePage verwijderd.</entry>
+    <entry key="msg-printed-deleted-multiple">Afdruk-opdracht staat in de wachtrij: {0} SafePages verwijderd.</entry>
+        
+    <entry key="msg-printed-for-admin">{0} Print op {1} door gebruiker "{2}": {3}, {4}, {5}.</entry>
+
+    <entry key="msg-printed-for-admin-single-page">{0} pagina</entry>
+    <entry key="msg-printed-for-admin-multiple-pages">{0} pagina's</entry>
+
+    <entry key="msg-printed-for-admin-single-copy">{0} kopie</entry>
+    <entry key="msg-printed-for-admin-multiple-copies">{0} kopieën</entry>
+    
+    <entry key="msg-printed-for-admin-single-sheet">{0} blad</entry>
+    <entry key="msg-printed-for-admin-multiple-sheets">{0} bladen</entry>
+    
+    <entry key="msg-printer-not-found">Proxy Printer "{0}" is niet gevonden.</entry>
+        
+
+    <!-- ========================================================= -->
+    <!-- General CUPS Printing Options, common to all printers. -->
+    <!-- ========================================================= -->
+
+    <!-- ========================================================= -->
+    <!-- Category -->
+
+    <entry key="cups-cat-general">General</entry>
+
+    <!-- ========================================================= -->
+    <!-- Section -->
+    <entry key="cups-sec-range">Range</entry>
+
+    <entry key="cups-all-pages">All Pages</entry>
+    <entry key="cups-opt-page-ranges">Pages</entry>
+
+    <!-- ========================================================= -->
+    <entry key="cups-sec-copies">Copies</entry>
+
+    <!-- ========================================================= -->
+    <entry key="cups-cat-page-setup">Page Setup</entry>
+
+    <!-- ========================================================= -->
+    <entry key="cups-sec-layout">Layout</entry>
+
+    <entry key="cups-opt-job-sides" />
+    <entry key="cups-opt-job-sides-one-sided" />
+    <entry key="cups-opt-job-sides-two-sided-long-edge">duplex (long-edge)</entry>
+    <entry key="cups-opt-job-sides-two-sided-short-edge">duplex (short-edge)</entry>
+
+    <entry key="cups-opt-number-up">Pages per side</entry>
+    <entry key="cups-opt-number-up-1">1-up</entry>
+    <entry key="cups-opt-number-up-2">2-up</entry>
+    <entry key="cups-opt-number-up-4">4-up</entry>
+
+    <entry key="cups-opt-page-set">Only print</entry>
+    <entry key="cups-opt-page-set-all">All sheets</entry>
+    <entry key="cups-opt-page-set-even">Even sheets</entry>
+    <entry key="cups-opt-page-set-odd">Odd sheets</entry>
+
+    <!-- ========================================================= -->
+    <entry key="cups-sec-media">Paper</entry>
+
+    <entry key="cups-opt-job-media.type">Paper type</entry>
+    <entry key="cups-opt-job-media.source">Paper source</entry>
+    <entry key="cups-opt-job-media.size">Paper size</entry>
+
+    <!-- TODO <entry key="cups-opt-orientation">portrait</entry> <entry key="cups-opt-orientation-landscape">landscape</entry> -->
+
+    <!-- ========================================================= -->
+    <entry key="cups-cat-job">Job</entry>
+
+    <!-- ========================================================= -->
+    <entry key="cups-sec-job-sheets">Add Cover Page</entry>
+
+    <entry key="cups-opt-job-sheets">Cover Page</entry>
+    <entry key="cups-opt-job-sheets-none">None</entry>
+    <entry key="cups-opt-job-sheets-classified">Classified</entry>
+    <entry key="cups-opt-job-sheets-confidential">Confidential</entry>
+    <entry key="cups-opt-job-sheets-secret">Secret</entry>
+    <entry key="cups-opt-job-sheets-standard">Standard</entry>
+    <entry key="cups-opt-job-sheets-topsecret">Top Secret</entry>
+    <entry key="cups-opt-job-sheets-unclassified">Unclassified</entry>
+
+    <!-- ========================================================= -->
+    <!-- TODO <entry key="cups-opt-brightness" /> <entry key="cups-opt-gamma" 
+        /> -->
+
+    <!-- ========================================================= -->
+    <!-- IPP attributes and values -->
+    <!-- ========================================================= -->
+    <entry key="ipp-cat-page-setup">Pagina-instelling</entry>
+    <entry key="ipp-cat-job">Opdracht</entry>
+    <entry key="ipp-cat-advanced">Geavanceerd</entry>
+    
+    
+    <entry key="ipp-attr-job-sheets">Cover Page</entry>
+    <entry key="ipp-attr-job-sheets-none">None</entry>
+    <entry key="ipp-attr-job-sheets-classified">Classified</entry>
+    <entry key="ipp-attr-job-sheets-confidential">Confidential</entry>
+    <entry key="ipp-attr-job-sheets-secret">Secret</entry>
+    <entry key="ipp-attr-job-sheets-standard">Standard</entry>
+    <entry key="ipp-attr-job-sheets-topsecret">Top Secret</entry>
+    <entry key="ipp-attr-job-sheets-unclassified">Unclassified</entry>
+
+    <entry key="ipp-attr-copies">Kopieën</entry>
+
+    <entry key="ipp-attr-finishings">Afwerking</entry>
+    <!-- none -->
+    <entry key="ipp-attr-finishings-3">geen</entry>
+    <!-- staple -->
+    <entry key="ipp-attr-finishings-4">Nieten</entry>
+    <!-- punch -->
+    <entry key="ipp-attr-finishings-5">Perforeren</entry>
+    <!-- cover -->
+    <entry key="ipp-attr-finishings-6">Voorblad</entry>
+    <!-- bind -->
+    <entry key="ipp-attr-finishings-7">Binden</entry>
+    <!-- saddle-stitch -->
+    <entry key="ipp-attr-finishings-8">Zadelsteek</entry>
+    <!-- edge-stitch -->
+    <entry key="ipp-attr-finishings-9">Kantsteek</entry>
+    <!-- staple-top-left -->
+    <entry key="ipp-attr-finishings-20">Nieten (linksboven)</entry>
+    <!-- staple-bottom-left -->
+    <entry key="ipp-attr-finishings-21">Nieten (linksonder)</entry>
+    <!-- staple-top-right -->
+    <entry key="ipp-attr-finishings-22">Nieten (rechtsboven)</entry>
+    <!-- staple-top-right -->
+    <entry key="ipp-attr-finishings-23">Nieten (rechtsboven)</entry>
+    <!-- edge-stitch-left -->
+    <entry key="ipp-attr-finishings-24">Kantsteek (links)</entry>
+    <!-- edge-stitch-top -->
+    <entry key="ipp-attr-finishings-25">Kantsteek (boven)</entry>
+    <!-- edge-stitch-right -->
+    <entry key="ipp-attr-finishings-26">Kantsteek (rechts)</entry>
+    <!-- edge-stitch-bottom -->
+    <entry key="ipp-attr-finishings-27">Kantsteek (onder)</entry>
+    <!-- staple-dual-left -->
+    <entry key="ipp-attr-finishings-28">Dubbel nieten (links)</entry>
+    <!-- staple-dual-top -->
+    <entry key="ipp-attr-finishings-29">Dubbel nieten (boven)</entry>
+    <!-- staple-dual-right -->
+    <entry key="ipp-attr-finishings-30">Dubbel nieten (rechts)</entry>
+    <!-- staple-dual-bottom -->
+    <entry key="ipp-attr-finishings-31">Dubbel nieten (onder)</entry>
+
+    <entry key="ipp-attr-sides">Dubbelzijdig afdrukken</entry>
+    <entry key="ipp-attr-sides-one-sided">Enkelzijdig</entry>
+    <entry key="ipp-attr-sides-two-sided-long-edge">Dubbelzijdig (lange kant)</entry>
+    <entry key="ipp-attr-sides-two-sided-short-edge">Dubbelzijdig (korte kant)</entry>
+
+    <entry key="ipp-attr-number-up">Pagina's per vel</entry>
+    <!-- <entry key="ipp-attr-number-up-1">1-up</entry> <entry key="ipp-attr-number-up-2">2-up</entry> 
+        <entry key="ipp-attr-number-up-4">4-up</entry> <entry key="ipp-attr-number-up-6">6-up</entry> 
+        <entry key="ipp-attr-number-up-8">8-up</entry> <entry key="ipp-attr-number-up-9">9-up</entry> 
+        <entry key="ipp-attr-number-up-16">16-up</entry> -->
+
+    <entry key="ipp-attr-orientation-requested">Afdrukstand</entry>
+    <entry key="ipp-attr-orientation-requested-3">Staand</entry>
+    <entry key="ipp-attr-orientation-requested-4">Liggend</entry>
+    <entry key="ipp-attr-orientation-requested-5">Liggend gedraaid</entry>
+    <entry key="ipp-attr-orientation-requested-6">Staand gedraaid</entry>
+
+    <entry key="ipp-attr-media">Papierformaat</entry>
+
+    <entry key="ipp-attr-media-iso-a0">A0</entry>
+    <entry key="ipp-attr-media-iso-a1">A1</entry>
+    <entry key="ipp-attr-media-iso-a2">A2</entry>
+    <entry key="ipp-attr-media-iso-a3">A3</entry>
+    <entry key="ipp-attr-media-iso-a4">A4</entry>
+    <entry key="ipp-attr-media-iso-a5">A5</entry>
+    <entry key="ipp-attr-media-iso-a6">A6</entry>
+    <entry key="ipp-attr-media-iso-a7">A7</entry>
+    <entry key="ipp-attr-media-iso-a8">A8</entry>
+    <entry key="ipp-attr-media-iso-a9">A9</entry>
+    <entry key="ipp-attr-media-iso-a10">A10</entry>
+    <entry key="ipp-attr-media-iso-b0">B0</entry>
+    <entry key="ipp-attr-media-iso-b1">B1</entry>
+    <entry key="ipp-attr-media-iso-b2">B2</entry>
+    <entry key="ipp-attr-media-iso-b3">B3</entry>
+    <entry key="ipp-attr-media-iso-b4">B4</entry>
+    <entry key="ipp-attr-media-iso-b5">B5</entry>
+    <entry key="ipp-attr-media-iso-b6">B6</entry>
+    <entry key="ipp-attr-media-iso-b7">B7</entry>
+    <entry key="ipp-attr-media-iso-b8">B8</entry>
+    <entry key="ipp-attr-media-iso-b9">B9</entry>
+    <entry key="ipp-attr-media-iso-b10">B10</entry>
+    <entry key="ipp-attr-media-jis-b0">B0 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b1">B1 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b2">B2 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b3">B3 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b4">B4 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b5">B5 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b6">B6 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b7">B7 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b8">B8 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b9">B9 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b10">B10 (JIS)</entry>
+    <entry key="ipp-attr-media-iso-c0">C0</entry>
+    <entry key="ipp-attr-media-iso-c1">C1</entry>
+    <entry key="ipp-attr-media-iso-c2">C2</entry>
+    <entry key="ipp-attr-media-iso-c3">C3</entry>
+    <entry key="ipp-attr-media-iso-c4">C4</entry>
+    <entry key="ipp-attr-media-iso-c5">C5</entry>
+    <entry key="ipp-attr-media-iso-c6">C6</entry>
+    <entry key="ipp-attr-media-na-letter">US Letter</entry>
+    <entry key="ipp-attr-media-na-legal">US Legal</entry>
+    <entry key="ipp-attr-media-executive">Exceutive</entry>
+    <entry key="ipp-attr-media-ledger">Ledger</entry>
+    <entry key="ipp-attr-media-tabloid">Tabloid</entry>
+    <entry key="ipp-attr-media-invoice">Invoice</entry>
+    <entry key="ipp-attr-media-folio">Folio</entry>
+    <entry key="ipp-attr-media-quarto">Quarto</entry>
+    <entry key="ipp-attr-media-japanese-postcard"></entry>
+    <entry key="ipp-attr-media-oufuko-postcard"></entry>
+    <entry key="ipp-attr-media-a">ANSI A</entry>
+    <entry key="ipp-attr-media-b">ANSI B</entry>
+    <entry key="ipp-attr-media-c">ANSI C</entry>
+    <entry key="ipp-attr-media-d">ANSI D</entry>
+    <entry key="ipp-attr-media-e">ANSI E</entry>
+    <entry key="ipp-attr-media-iso-designated-long">Designated Long</entry>
+    <entry key="ipp-attr-media-italian-envelope">Italiaanse Envelop</entry>
+    <entry key="ipp-attr-media-monarch-envelope">Monarch Envelop</entry>
+    <entry key="ipp-attr-media-personal-envelope">Persoonlijke Envelop</entry>
+    <entry key="ipp-attr-media-na-number-9-envelope">#9 Envelop</entry>
+    <entry key="ipp-attr-media-na-number-10-envelope">#10 Envelop</entry>
+    <entry key="ipp-attr-media-na-number-11-envelope">#11 Envelop</entry>
+    <entry key="ipp-attr-media-na-number-12-envelope">#12 Envelop</entry>
+    <entry key="ipp-attr-media-na-number-14-envelope">#14 Envelop</entry>
+    <entry key="ipp-attr-media-na-6x9-envelope">6x9 Envelop</entry>
+    <entry key="ipp-attr-media-na-7x9-envelope">7x9 Envelop</entry>
+    <entry key="ipp-attr-media-na-9x11-envelope">9x11 Envelop</entry>
+    <entry key="ipp-attr-media-na-9x12-envelope">9x12 Envelop</entry>
+    <entry key="ipp-attr-media-na-10x13-envelope">10x13 Envelop</entry>
+    <entry key="ipp-attr-media-na-10x14-envelope">10x14 Envelop</entry>
+    <entry key="ipp-attr-media-na-10x15-envelope">10x15 Envelop</entry>
+    <entry key="ipp-attr-media-na-5x7">5x7</entry>
+    <entry key="ipp-attr-media-na-8x10">8x10</entry>
+
+    <entry key="ipp-attr-media-source">Papierinvoer</entry>
+    <entry key="ipp-attr-media-source-auto">Automatisch</entry>
+    <entry key="ipp-attr-media-source-top">Bovenlade</entry>
+    <entry key="ipp-attr-media-source-middle">Middenlade</entry>
+    <entry key="ipp-attr-media-source-bottom">Onderlade</entry>
+    <entry key="ipp-attr-media-source-by-pass-tray">Multi-purpose lade</entry>
+    <entry key="ipp-attr-media-source-manual">Handmatige invoer</entry>
+
+    <entry key="ipp-attr-output-bin">Uitvoerlade</entry>
+
+    <entry key="ipp-attr-printer-resolution">Resolutie</entry>
+
+    <entry key="ipp-attr-print-quality">Afdrukkwaliteit</entry>
+    <entry key="ipp-attr-print-quality-3">Klad</entry>
+    <entry key="ipp-attr-print-quality-4">Normaal</entry>
+    <entry key="ipp-attr-print-quality-5">Hoog</entry>
+
+    <entry key="ipp-attr-print-color-mode">Kleurmodus</entry>
+    <entry key="ipp-attr-print-color-mode-bi-level">Bi-Level</entry>
+    <entry key="ipp-attr-print-color-mode-color">Kleur</entry>
+    <entry key="ipp-attr-print-color-mode-highlight">Highlight</entry>
+    <entry key="ipp-attr-print-color-mode-monochrome">Grijswaarden</entry>
+    <entry key="ipp-attr-print-color-mode-process-bi-level">Process Bi-Level</entry>
+    <entry key="ipp-attr-print-color-mode-process-monochrome">Process Monochrome</entry>
+    
+</properties>

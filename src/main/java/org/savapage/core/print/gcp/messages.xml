@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <entry key="gcp-user-not-found">Google user "{0}" unknown: print job cancelled.</entry>
+    <entry key="gcp-user-not-authorized">Google user "{0}", "{1}" not authorized: print job cancelled.</entry>
+    
+    <entry key="gcp-disabled">Disabled</entry>
+    <entry key="gcp-online">Online</entry>
+    <entry key="gcp-offline">Offline</entry>
+    <entry key="gcp-not-found">Not found</entry>    
+    <entry key="gcp-not-configured">Not configured</entry>
+    
+</properties>

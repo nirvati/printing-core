@@ -1,0 +1,108 @@
+/*
+ * This file is part of the SavaPage project <http://savapage.org>.
+ * Copyright (c) 2011-2015 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * For more information, please contact Datraverse B.V. at this
+ * address: info@datraverse.com
+ */
+package org.savapage.core.job;
+
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.UnableToInterruptJobException;
+import org.savapage.core.cometd.AdminPublisher;
+import org.savapage.core.cometd.PubLevelEnum;
+import org.savapage.core.cometd.PubTopicEnum;
+import org.savapage.core.community.CommunityDictEnum;
+import org.savapage.core.community.MemberCard;
+import org.savapage.core.concurrent.ReadWriteLockEnum;
+import org.savapage.core.dao.DaoContext;
+import org.savapage.core.services.ServiceContext;
+import org.savapage.core.util.AppLogHelper;
+import org.savapage.core.util.Messages;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Checks the state of the Membership Card registration.
+ *
+ * @author Datraverse B.V.
+ */
+public final class MemberCardCheckJob extends AbstractJob {
+
+    @Override
+    protected void onInterrupt() throws UnableToInterruptJobException {
+        // noop
+    }
+
+    @Override
+    protected void onInit(final JobExecutionContext ctx) {
+        ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
+    }
+
+    @Override
+    protected void onExit(final JobExecutionContext ctx) {
+        ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+    }
+
+    @Override
+    public void onExecute(final JobExecutionContext ctx)
+            throws JobExecutionException {
+
+        String msg = null;
+        PubLevelEnum level = PubLevelEnum.INFO;
+
+        final DaoContext daoContext = ServiceContext.getDaoContext();
+
+        daoContext.beginTransaction();
+
+        boolean committed = false;
+
+        try {
+            MemberCard.instance().init();
+
+            daoContext.commit();
+            committed = true;
+
+            msg =
+                    Messages.getMessage(
+                            getClass(),
+                            "MemberCardCheckJob.success",
+                            new String[] {
+                                    CommunityDictEnum.MEMBERSHIP.getWord(),
+                                    MemberCard.instance().getCommunityNotice() });
+
+        } catch (Exception e) {
+
+            level = PubLevelEnum.ERROR;
+
+            msg =
+                    AppLogHelper.logError(getClass(),
+                            "MemberCardCheckJob.error",
+                            CommunityDictEnum.MEMBERSHIP.getWord(),
+                            e.getMessage());
+
+            LoggerFactory.getLogger(this.getClass()).error(e.getMessage(), e);
+
+        } finally {
+            if (!committed) {
+                daoContext.rollback();
+            }
+        }
+        AdminPublisher.instance().publish(PubTopicEnum.MEMBERSHIP, level, msg);
+    }
+
+}

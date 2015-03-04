@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <entry key="some-message">{0}</entry>
+    <entry key="no-connections">No connections available.</entry>
+
+    <entry key="printer-media-not-foud">Printer {0} has no media-source with media {1}.</entry>
+    
+    <entry key="print-cancelled">SmartSchool Print cancelled for document "{0}" : {1}</entry>
+    <entry key="print-error">SmartSchool Print error for document "{0}" : {1}</entry>
+    
+    <entry key="account-trx-comment">{0} (by "{1}", {2}).</entry>
+
+    <entry key="copies-single">{0} copy</entry>
+    <entry key="copies-multiple">{0} copies</entry>
+
+</properties>

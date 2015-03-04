@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <entry key="gcp-user-not-found">Google gebruiker "{0}" is onbekend: afdruk opdracht is geannuleerd.</entry>
+    <entry key="gcp-user-not-authorized">Google gebruiker "{0}", "{1}" is niet geautoriseerd: afdruk opdracht is geannuleerd.</entry>
+
+    <entry key="gcp-disabled">Uitgeschakeld</entry>
+    <entry key="gcp-online">Online</entry>
+    <entry key="gcp-offline">Offline</entry>
+    <entry key="gcp-not-found">Niet gevonden</entry>
+    <entry key="gcp-not-configured">Niet geconfigureerd</entry>
+    
+</properties>

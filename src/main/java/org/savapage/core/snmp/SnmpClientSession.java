@@ -1,0 +1,352 @@
+/*
+ * This file is part of the SavaPage project <http://savapage.org>.
+ * Copyright (c) 2011-2014 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * For more information, please contact Datraverse B.V. at this
+ * address: info@datraverse.com
+ */
+package org.savapage.core.snmp;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.snmp4j.CommunityTarget;
+import org.snmp4j.PDU;
+import org.snmp4j.Snmp;
+import org.snmp4j.TransportMapping;
+import org.snmp4j.event.ResponseEvent;
+import org.snmp4j.mp.SnmpConstants;
+import org.snmp4j.smi.Address;
+import org.snmp4j.smi.GenericAddress;
+import org.snmp4j.smi.OID;
+import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.Variable;
+import org.snmp4j.smi.VariableBinding;
+import org.snmp4j.transport.DefaultUdpTransportMapping;
+import org.snmp4j.util.DefaultPDUFactory;
+import org.snmp4j.util.TableEvent;
+import org.snmp4j.util.TableUtils;
+
+/**
+ * Based on this short <a
+ * href="http://www.jayway.com/2010/05/21/introduction-to-snmp4j/"> Introduction
+ * to snmp4j</a>.
+ *
+ * @author Datraverse B.V.
+ *
+ */
+public final class SnmpClientSession {
+
+    /**
+     * .
+     */
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(SnmpClientSession.class);
+
+    /**
+     * .
+     */
+    private Snmp snmp = null;
+
+    /**
+     * information about where the data should be fetched and how.
+     */
+    private final CommunityTarget target = new CommunityTarget();
+
+    private static final int TARGET_RETRIES = 2;
+
+    /**
+     * Time-out in milliseconds.
+     */
+    private static final int TARGET_TIMEOUT = 1500;
+
+    /**
+     * Default SNMP port for Read and Other operations.
+     */
+    public static final int DEFAULT_PORT_READ = 161;
+
+    /**
+     * Default SNMP port for the trap generation.
+     */
+    public static final int DEFAULT_PORT_TRAP = 162;
+
+    /**
+     * The default community.
+     */
+    public static final String DEFAULT_COMMUNITY = "public";
+
+    /**
+     * Constructor for {@code public} community.
+     *
+     * @param address
+     *            Port 161 is used for Read and Other operations Port 162 is
+     *            used for the trap generation. For example:
+     *            {@code "udp:10.10.3.38/161"}
+     */
+    public SnmpClientSession(final String address) {
+        this(address, DEFAULT_COMMUNITY);
+    }
+
+    /**
+     * Constructor typically used when using <a
+     * href="http://snmpsim.sourceforge.net/">SNMP Agent Simulator</a>.
+     *
+     * @param address
+     *            A simulator address like {@code "udp:192.168.1.54/1161"}
+     * @param community
+     *            The community like {@code "recorded/printer.10.10.3.38"}
+     */
+    public SnmpClientSession(final String address, final String community) {
+
+        final Address targetAddress = GenericAddress.parse(address);
+
+        this.target.setCommunity(new OctetString(community));
+        this.target.setAddress(targetAddress);
+        this.target.setRetries(TARGET_RETRIES);
+        this.target.setTimeout(TARGET_TIMEOUT);
+        this.target.setVersion(SnmpConstants.version2c);
+    }
+
+    /**
+     * Starts the Snmp session.
+     *
+     * @throws IOException
+     *             When listening on {@link TransportMapping} fails.
+     */
+    public void init() throws IOException {
+
+        if (this.snmp != null) {
+            exit();
+        }
+
+        final TransportMapping transport = new DefaultUdpTransportMapping();
+        this.snmp = new Snmp(transport);
+
+        /*
+         * If you forget the listen() method you will not get any answers
+         * because the communication is asynchronous and the listen() method
+         * listens for answers.
+         */
+        transport.listen();
+    }
+
+    /**
+     *
+     * @throws IOException
+     *             When closing {@link Snmp} fails.
+     */
+    public void exit() throws IOException {
+        if (this.snmp != null) {
+            this.snmp.close();
+            this.snmp = null;
+        }
+    }
+
+    /**
+     * Method which takes a single OID and returns the response from the agent
+     * as a String.
+     *
+     * @param oid
+     * @return {@code null} when OID is not found.
+     * @throws SnmpConnectException
+     */
+    public String getAsString(final OID oid) throws SnmpConnectException {
+        final VariableBinding binding = this.getResponse(oid);
+        if (binding == null) {
+            return null;
+        }
+        return binding.getVariable().toString();
+    }
+
+    /**
+     * Method which takes a single OID and returns the response from the agent
+     * as an integer.
+     *
+     * @param oid
+     * @return {@code null} when OID is not found.
+     * @throws SnmpConnectException
+     */
+    public Integer getAsInt(final OID oid) throws SnmpConnectException {
+        final VariableBinding binding = this.getResponse(oid);
+        if (binding == null) {
+            return null;
+        }
+        return Integer.valueOf(binding.getVariable().toInt());
+    }
+
+    /**
+     * Method which takes a single OID and returns the response from the agent
+     * as an integer.
+     *
+     * @param oid
+     * @return {@code null} when OID is not found.
+     * @throws SnmpConnectException
+     */
+    public OctetString getAsOctetString(final OID oid)
+            throws SnmpConnectException {
+        final VariableBinding binding = this.getResponse(oid);
+        if (binding == null) {
+            return null;
+        }
+        return new OctetString(binding.toValueString());
+    }
+
+    /**
+     * Method which takes a single OID and returns the response from the agent
+     * as a long.
+     *
+     * @param oid
+     * @return {@code null} when OID is not found.
+     * @throws SnmpConnectException
+     */
+    public Long getAsLong(final OID oid) throws SnmpConnectException {
+        final VariableBinding binding = this.getResponse(oid);
+        if (binding == null) {
+            return null;
+        }
+        return Long.valueOf(binding.getVariable().toLong());
+    }
+
+    /**
+     *
+     * @return
+     * @throws SnmpConnectException
+     */
+    public SnmpPrinterVendorEnum getVendor() throws SnmpConnectException {
+
+        final String systemOID = this.getAsString(SnmpMibDict.OID_SYSTEM_OID);
+
+        if (systemOID == null) {
+            return null;
+        }
+
+        for (final SnmpPrinterVendorEnum enumVal : SnmpPrinterVendorEnum
+                .values()) {
+            if (systemOID.startsWith(String.format("%s%s",
+                    SnmpMibDict.PFX_ENTERPRISES, enumVal.getEnterprise()))) {
+                return enumVal;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * This method is capable of handling multiple OIDs
+     *
+     * @param oid
+     *            The {@link OID}.
+     * @return The {@link PDU} response or {@code null} when OID is not found.
+     * @throws SnmpConnectException
+     */
+    private VariableBinding getResponse(final OID oid)
+            throws SnmpConnectException {
+        final PDU response = this.getResponse(new OID[] { oid });
+
+        if (oid.toString().equals(response.get(0).getOid().toString())) {
+            return response.get(0);
+        }
+        return null;
+    }
+
+    /**
+     * This method is capable of handling multiple OIDs
+     *
+     * @param oids
+     * @return The {@link PDU} response.
+     * @throws SnmpConnectException
+     */
+    private PDU getResponse(final OID oids[]) throws SnmpConnectException {
+
+        final PDU pdu = new PDU();
+
+        for (final OID oid : oids) {
+            pdu.add(new VariableBinding(oid));
+        }
+
+        pdu.setType(PDU.GET);
+
+        ResponseEvent event;
+        try {
+            event = snmp.send(pdu, this.target, null);
+        } catch (IOException e) {
+            throw new SnmpConnectException(e.getMessage(), e);
+        }
+
+        if (event == null) {
+            throw new SnmpConnectException("GET timed out");
+        }
+
+        final Exception ex = event.getError();
+
+        if (ex != null) {
+            throw new SnmpConnectException(ex.getMessage(), ex);
+        }
+
+        if (event.getResponse() == null) {
+            throw new SnmpConnectException(String.format(
+                    "no response from [%s]", this.target.getAddress()
+                            .toString()));
+        }
+
+        return event.getResponse();
+    }
+
+    /**
+     *
+     */
+    public List<List<String>> getTableAsStrings(final OID[] oids) {
+
+        final TableUtils tUtils = new TableUtils(snmp, new DefaultPDUFactory());
+
+        @SuppressWarnings("unchecked")
+        final List<TableEvent> events =
+                tUtils.getTable(this.target, oids, null, null);
+
+        final List<List<String>> list = new ArrayList<List<String>>();
+
+        for (final TableEvent event : events) {
+
+            if (event.isError()) {
+                throw new RuntimeException(event.getErrorMessage());
+            }
+
+            final List<String> strList = new ArrayList<String>();
+
+            for (final VariableBinding vb : event.getColumns()) {
+
+                if (vb != null) {
+
+                    final Variable variable = vb.getVariable();
+
+                    if (variable != null) {
+                        strList.add(variable.toString());
+                    }
+                }
+            }
+
+            if (!strList.isEmpty()) {
+                list.add(strList);
+            }
+
+        }
+        return list;
+    }
+
+}

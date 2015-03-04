@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <entry key="pub-user-print-in-denied">Afdruk van gebruiker "{0}" op wachtrij "{1}" vanaf {2} geweigerd. Reden: {3}</entry>
+    <entry key="pub-user-print-in-not-authorized">niet geautoriseerd</entry>    
+
+    <entry key="print-in-denied-drm-restricted">DRM beperkingen</entry>
+    <entry key="print-in-denied-unknown">onbekend</entry>
+
+</properties>

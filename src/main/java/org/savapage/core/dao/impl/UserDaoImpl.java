@@ -1,0 +1,431 @@
+/*
+ * This file is part of the SavaPage project <http://savapage.org>.
+ * Copyright (c) 2011-2014 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * For more information, please contact Datraverse B.V. at this
+ * address: info@datraverse.com
+ */
+package org.savapage.core.dao.impl;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.NoResultException;
+import javax.persistence.Query;
+
+import org.savapage.core.dao.UserDao;
+import org.savapage.core.jpa.User;
+import org.savapage.core.services.ServiceContext;
+
+/**
+ *
+ * @author Datraverse B.V.
+ *
+ */
+public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
+
+    /**
+     *
+     */
+    public UserDaoImpl() {
+    }
+
+    @Override
+    public User findByAccount(final Long accountId) {
+
+        final String jpql =
+                "SELECT UA.user FROM UserAccount UA "
+                        + "JOIN UA.account A WHERE A.id = :accountId";
+
+        final Query query = getEntityManager().createQuery(jpql.toString());
+
+        query.setParameter("accountId", accountId);
+
+        User user;
+
+        try {
+            user = (User) query.getSingleResult();
+        } catch (NoResultException e) {
+            user = null;
+        }
+        return user;
+    }
+
+    @Override
+    public User lockByUserId(final String userId) {
+        User user = findActiveUserByUserId(userId);
+        if (user != null) {
+            user = lock(user.getId());
+        }
+        return user;
+    }
+
+    @Override
+    public long getListCount(final ListFilter filter) {
+
+        final StringBuilder jpql =
+                new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
+
+        jpql.append("SELECT COUNT(U.id) FROM User U");
+
+        if (filter.getContainingEmailText() != null) {
+            jpql.append(" JOIN U.emails E");
+        }
+
+        applyListFilter(jpql, filter);
+
+        final Query query = createListQuery(jpql, filter);
+        final Number countResult = (Number) query.getSingleResult();
+
+        return countResult.longValue();
+    }
+
+    @Override
+    public List<User> getListChunk(final ListFilter filter,
+            final Integer startPosition, final Integer maxResults,
+            final Field orderBy, final boolean sortAscending) {
+
+        final StringBuilder jpql =
+                new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
+
+        /*
+         * NOTE: We need a DISTINCT to prevent a User/UserEmail cartesian
+         * product.
+         */
+        jpql.append("SELECT DISTINCT U FROM User U");
+
+        if (filter.getContainingEmailText() == null) {
+            /*
+             * Since when we do NOT filter on email address we ALSO want the
+             * Users WITHOUT an email address.
+             */
+            jpql.append(" LEFT");
+        }
+
+        /*
+         * Since the UserEmail is JPA annotated as LAZY fetch, we ALWAYS want to
+         * explicitly FETCH the emails, so the caller of the method has access
+         * to the emails out of JPA session context.
+         *
+         * BEWARE that, in case of an email filter the emails list is filled
+         * with the selected UserEmail objects only !!!!
+         */
+        jpql.append(" JOIN FETCH U.emails E");
+
+        //
+        applyListFilter(jpql, filter);
+
+        //
+        jpql.append(" ORDER BY ");
+
+        if (orderBy == Field.USERID) {
+            jpql.append("U.userId");
+        } else {
+            jpql.append("E.address");
+        }
+
+        if (!sortAscending) {
+            jpql.append(" DESC");
+        }
+
+        //
+        final Query query = createListQuery(jpql, filter);
+
+        //
+        if (startPosition != null) {
+            query.setFirstResult(startPosition);
+        }
+        if (maxResults != null) {
+            query.setMaxResults(maxResults);
+        }
+        return query.getResultList();
+    }
+
+    /**
+     * Applies the list filter to the JPQL string.
+     *
+     * @param jpql
+     *            The StringBuilder to append to.
+     * @param filter
+     *            The filter.
+     */
+    private void applyListFilter(final StringBuilder jpql,
+            final ListFilter filter) {
+
+        StringBuilder where = new StringBuilder();
+
+        int nWhere = 0;
+
+        if (filter.getContainingIdText() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" lower(U.userId) like :containingIdText");
+        }
+
+        if (filter.getContainingNameText() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" lower(U.fullName) like :containingNameText");
+        }
+
+        if (filter.getContainingEmailText() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" lower(E.address) like :containingEmailText");
+        }
+
+        if (filter.getInternal() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" U.internal = :selInternal");
+        }
+
+        if (filter.getAdmin() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" U.admin = :selAdmin");
+        }
+
+        if (filter.getPerson() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" U.person = :selPerson");
+        }
+
+        if (filter.getDisabled() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" U.disabledPrintIn = :selDisabled");
+        }
+
+        if (filter.getDeleted() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" U.deleted = :selDeleted");
+        }
+
+        if (nWhere > 0) {
+            jpql.append(" WHERE ").append(where.toString());
+        }
+
+    }
+
+    /**
+     * Creates the List Query and sets the filter parameters.
+     *
+     * @param jpql
+     * @param filter
+     * @return The query.
+     */
+    private Query createListQuery(final StringBuilder jpql,
+            final ListFilter filter) {
+
+        final Query query = getEntityManager().createQuery(jpql.toString());
+
+        if (filter.getContainingIdText() != null) {
+            query.setParameter("containingIdText", "%"
+                    + filter.getContainingIdText().toLowerCase() + "%");
+        }
+        if (filter.getContainingNameText() != null) {
+            query.setParameter("containingNameText", "%"
+                    + filter.getContainingNameText().toLowerCase() + "%");
+        }
+        if (filter.getContainingEmailText() != null) {
+            query.setParameter("containingEmailText", "%"
+                    + filter.getContainingEmailText().toLowerCase() + "%");
+        }
+        if (filter.getInternal() != null) {
+            query.setParameter("selInternal", filter.getInternal());
+        }
+        if (filter.getAdmin() != null) {
+            query.setParameter("selAdmin", filter.getAdmin());
+        }
+        if (filter.getPerson() != null) {
+            query.setParameter("selPerson", filter.getPerson());
+        }
+        if (filter.getDisabled() != null) {
+            query.setParameter("selDisabled", filter.getDisabled());
+        }
+        if (filter.getDeleted() != null) {
+            query.setParameter("selDeleted", filter.getDeleted());
+        }
+
+        return query;
+    }
+
+    @Override
+    public void resetTotals(final Date resetDate, final String resetBy) {
+
+        final String jpql =
+                "UPDATE User U SET " + "U.numberOfPrintInJobs = 0, "
+                        + "U.numberOfPrintInPages = 0, "
+                        + "U.numberOfPrintInBytes = 0, "
+                        + "U.numberOfPdfOutJobs = 0, "
+                        + "U.numberOfPdfOutPages = 0, "
+                        + "U.numberOfPdfOutBytes = 0,"
+                        + "U.numberOfPrintOutJobs = 0, "
+                        + "U.numberOfPrintOutPages = 0, "
+                        + "U.numberOfPrintOutSheets = 0, "
+                        + "U.numberOfPrintOutEsu = 0, "
+                        + "U.numberOfPrintOutBytes = 0,"
+                        + "U.resetDate = :resetDate, U.resetBy = :resetBy";
+
+        final Query query = getEntityManager().createQuery(jpql);
+
+        query.setParameter("resetDate", resetDate);
+        query.setParameter("resetBy", resetBy);
+
+        query.executeUpdate();
+    }
+
+    @Override
+    public int pruneUsers() {
+        /*
+         * NOTE: We do NOT use bulk delete with JPQL since we want the option to
+         * roll back the deletions as part of a transaction, and we want to use
+         * cascade deletion. Therefore we use the remove() method in
+         * EntityManager to delete individual records instead (so cascaded
+         * deleted are triggered).
+         */
+        int nCount = 0;
+
+        final String jpql =
+                "SELECT U FROM User U WHERE U.deleted = true "
+                        + "AND U.docLog IS EMPTY";
+
+        final Query query = getEntityManager().createQuery(jpql);
+
+        @SuppressWarnings("unchecked")
+        final List<User> list = query.getResultList();
+
+        for (final User user : list) {
+            this.delete(user);
+            nCount++;
+        }
+
+        return nCount;
+    }
+
+    @Override
+    public long countActiveUsers() {
+        final Query query =
+                getEntityManager().createQuery(
+                        "SELECT COUNT(U.id) FROM User U"
+                                + " WHERE U.deleted = false");
+        final Number countResult = (Number) query.getSingleResult();
+        return countResult.longValue();
+    }
+
+    @Override
+    public User findActiveUserByUserId(final String userId) {
+        return readUser(userId, null, null, null);
+    }
+
+    @Override
+    public User findActiveUserByUserIdInsert(final String userId) {
+
+        final User userToInsert = new User();
+        userToInsert.setUserId(userId);
+
+        return findActiveUserByUserIdInsert(userToInsert,
+                ServiceContext.getTransactionDate(), ServiceContext.getActor());
+    }
+
+    @Override
+    public User findActiveUserByUserIdInsert(final User user,
+            final Date insertDate, final String insertedBy) {
+
+        if (user.getUserId().equals(INTERNAL_ADMIN_USERID)) {
+            return null;
+        }
+
+        return readUser(user.getUserId(), user, insertDate, insertedBy);
+    }
+
+    /**
+     * Reads the user from database, when not found (or logically deleted) the
+     * value of userToInsert determines how to proceed.
+     *
+     * @param userId
+     *            The unique name of the user.
+     * @param userToInsert
+     *            When NOT {@code null}, ad hoc insert of this user instance
+     *            into the database when userId does not exist.
+     * @param insertDate
+     *            The date.
+     * @param insertedBy
+     *            The actor.
+     * @return The user instance from the database, or null when not found (or
+     *         logically deleted).
+     */
+    private User readUser(final String userId, final User userToInsert,
+            final Date insertDate, final String insertedBy) {
+
+        final boolean lazyInsertRow = userToInsert != null;
+
+        /*
+         * Find the user by unique name
+         */
+        final String jpql =
+                "SELECT U FROM User U WHERE U.userId = :userId "
+                        + "AND U.deleted = false";
+
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("userId", userId);
+
+        User user = null;
+
+        try {
+
+            user = (User) query.getSingleResult();
+
+        } catch (NoResultException e) {
+
+            if (lazyInsertRow) {
+
+                user = userToInsert;
+
+                user.setCreatedBy(insertedBy);
+                user.setCreatedDate(insertDate);
+
+                if (user.getExternalUserName() == null) {
+                    user.setExternalUserName(user.getUserId());
+                }
+
+                this.create(user);
+            }
+        }
+        return user;
+    }
+
+}

@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+<!-- AccountingServiceImpl -->
+    <entry key="msg-amount-error">Amount "{0}" is not valid.</entry>
+    
+    <entry key="msg-voucher-redeem-number-invalid">The supplied voucher number is invalid. Please enter the number exactly as listed including any dashes (-).</entry>
+    <entry key="msg-voucher-redeem-user-unknown">User "{0}" is not found.</entry>        
+    <entry key="msg-voucher-redeem-trx-comment">Redeemed voucher "{0}".</entry>
+
+    <entry key="msg-deposit-funds-user-unknown">User "{0}" is not found.</entry>        
+    <entry key="msg-deposit-funds-amount-error">Amount is invalid.</entry>
+    <entry key="msg-deposit-funds-amount-invalid">Amount must be greater that zero.</entry>
+
+    <entry key="msg-print-denied-no-balance">Print job denied: your balance {0} is insufficient for {1} costs.</entry>
+    <entry key="msg-print-denied-no-credit">Print job denied: your credit limit {0} is insufficient for {1} costs and {2} balance.</entry>
+
+
+<!-- AccountVoucherServiceImpl -->
+    <entry key="msg-voucher-batch-invalid">Batch ID "{0}" is not valid.</entry>
+    <entry key="msg-voucher-batch-exist">Batch ID "{0}" already exists.</entry>    
+    <entry key="msg-voucher-value-invalid">Value "{0}" is not valid.</entry>
+    <entry key="msg-voucher-expiry-invalid">Expiry "{0}" is not valid.</entry>
+    <entry key="msg-voucher-expiry-in-past">Expiry is in the past.</entry>
+    <entry key="msg-voucher-batch-number-invalid">Number "{0}" is not valid.</entry>
+
+<!-- DocLogServiceImpl -->
+    <entry key="pub-user-print-in-success-one">User "{0}" printed {1} page on queue "{2}" from {3}</entry>
+    <entry key="pub-user-print-in-success-multiple">User "{0}" printed {1} pages on queue "{2}" from {3}</entry>
+    <entry key="pub-user-print-in-denied">User "{0}" print on queue "{1}" from {2} denied. Reason: {3}</entry>
+
+<!--  AbstractProxyPrintService -->
+    <entry key="msg-printer-connection-broken">Connection to Proxy Printers is broken.</entry>
+    <entry key="msg-user-print-out-disabled">You are not allowed to print.</entry>
+    <entry key="msg-user-print-out-access-denied">Access to printer denied.</entry>
+    
+<!--  ProxyPrintServiceImpl -->
+    <entry key="msg-printer-cost-error">Cost "{0}" is not valid.</entry>
+    <entry key="msg-printer-media-error">Media size "{0}" of "{1}" is not valid.</entry>
+
+<!--  OutboxServiceImpl -->
+    <entry key="msg-user-print-outbox">Print stored for release at printer "{0}".</entry>
+
+<!--  UserServiceImpl -->
+    <entry key="msg-user-userid-is-empty">Please enter ID of the user.</entry>
+    <entry key="msg-username-reserved">"{0}" is a reserved username.</entry>
+    <entry key="msg-user-not-internal">"{0}" is not an internal user.</entry>
+    <entry key="msg-user-duplicate-userid">User "{0}" already exists.</entry>
+    <entry key="msg-user-duplicate-user-id-number">ID Number "{0}" is already associated with user "{1}".</entry>
+    <entry key="msg-user-duplicate-user-card-number">Card Number "{0}" is already associated with user "{1}".</entry>
+    <entry key="msg-user-duplicate-user-email">Email "{0}" is already associated with user "{1}".</entry>
+    <entry key="msg-user-email-used-as-primary">Email "{0}" is already in use as primary email.</entry>
+	<entry key="msg-user-not-found">User "{0}" is not found.</entry>
+    <entry key="msg-password-length-error">Password should be at least {0} characters long.</entry>
+    <entry key="msg-email-invalid">Email "{0}" is invalid.</entry>
+    <entry key="msg-card-number-invalid">Invalid card number "{0}".</entry>
+    <entry key="msg-id-number-length-error">ID Number should be at least {0} characters long.</entry>
+    <entry key="msg-user-pin-not-numeric">PIN must have digits only.</entry>
+    <entry key="msg-user-pin-length-error-min">PIN should be at least {0} digits long.</entry>
+    <entry key="msg-user-pin-length-error-min-max">PIN should be between {0} and {1} digits long.</entry>
+    <entry key="msg-user-pin-length-error">PIN should be {0} digits long.</entry>
+    <entry key="msg-user-deleted-ok">User successfully deleted.</entry>
+    <entry key="msg-user-deleted-ok-inc-safepages">User successfully deleted (including {0} SafePages).</entry>
+    <entry key="msg-user-delete-safepages-error">User "{0}" not deleted: error when removing SafePages.</entry>
+
+<!--  UserGroupServiceImpl -->
+    <entry key="msg-usergroup-name-is-empty">Please enter name of the user group.</entry>
+    <entry key="msg-usergroup-accounting-is-empty">Please enter accounting data for the user group.</entry>
+    <entry key="msg-usergroup-not-found">User group "{0}" is not found.</entry>
+    
+    <!-- ========================================================= -->
+    <!-- User and Admin Messages.                                  -->
+    <!-- ========================================================= -->
+
+    <entry key="msg-printed">Print job is queued.</entry>
+    
+    <entry key="msg-printed-deleted-one">Print job queued: 1 SafePage deleted.</entry>
+    <entry key="msg-printed-deleted-multiple">Print job queued: {0} SafePages deleted.</entry>
+    
+    <entry key="msg-printed-for-admin">{0} Print on {1} by user "{2}": {3}, {4}, {5}.</entry>
+
+    <entry key="msg-printed-for-admin-single-page">{0} page</entry>
+    <entry key="msg-printed-for-admin-multiple-pages">{0} pages</entry>
+
+    <entry key="msg-printed-for-admin-single-copy">{0} copy</entry>
+    <entry key="msg-printed-for-admin-multiple-copies">{0} copies</entry>
+
+    <entry key="msg-printed-for-admin-single-sheet">{0} sheet</entry>
+    <entry key="msg-printed-for-admin-multiple-sheets">{0} sheets</entry>
+       
+    <entry key="msg-printer-not-found">Proxy Printer "{0}" is not found.</entry>
+    
+
+    <!-- ========================================================= -->
+    <!-- General CUPS Printing Options, common to all printers.    -->
+    <!-- ========================================================= -->
+
+    <!-- ========================================================= -->
+    <!-- Category -->
+
+    <entry key="cups-cat-general">General</entry>
+
+    <!-- ========================================================= -->
+    <!-- Section -->
+    <entry key="cups-sec-range">Range</entry>
+
+    <entry key="cups-all-pages">All Pages</entry>
+    <entry key="cups-opt-page-ranges">Pages</entry>
+
+    <!-- ========================================================= -->
+    <entry key="cups-sec-copies">Copies</entry>
+
+    <!-- ========================================================= -->
+    <entry key="cups-cat-page-setup">Page Setup</entry>
+
+    <!-- ========================================================= -->
+    <entry key="cups-sec-layout">Layout</entry>
+
+    <entry key="cups-opt-job-sides" />
+    <entry key="cups-opt-job-sides-one-sided" />
+    <entry key="cups-opt-job-sides-two-sided-long-edge">duplex (long-edge)</entry>
+    <entry key="cups-opt-job-sides-two-sided-short-edge">duplex (short-edge)</entry>
+
+    <entry key="cups-opt-number-up">Pages per side</entry>
+    <entry key="cups-opt-number-up-1">1-up</entry>
+    <entry key="cups-opt-number-up-2">2-up</entry>
+    <entry key="cups-opt-number-up-4">4-up</entry>
+
+    <entry key="cups-opt-page-set">Only print</entry>
+    <entry key="cups-opt-page-set-all">All sheets</entry>
+    <entry key="cups-opt-page-set-even">Even sheets</entry>
+    <entry key="cups-opt-page-set-odd">Odd sheets</entry>
+
+    <!-- ========================================================= -->
+    <entry key="cups-sec-media">Paper</entry>
+
+    <entry key="cups-opt-job-media.type">Paper type</entry>
+    <entry key="cups-opt-job-media.source">Paper source</entry>
+    <entry key="cups-opt-job-media.size">Paper size</entry>
+
+    <!-- TODO <entry key="cups-opt-orientation">portrait</entry> <entry key="cups-opt-orientation-landscape">landscape</entry> -->
+
+    <!-- ========================================================= -->
+    <entry key="cups-cat-job">Job</entry>
+
+    <!-- ========================================================= -->
+    <entry key="cups-sec-job-sheets">Add Cover Page</entry>
+
+    <entry key="cups-opt-job-sheets">Cover Page</entry>
+    <entry key="cups-opt-job-sheets-none">None</entry>
+    <entry key="cups-opt-job-sheets-classified">Classified</entry>
+    <entry key="cups-opt-job-sheets-confidential">Confidential</entry>
+    <entry key="cups-opt-job-sheets-secret">Secret</entry>
+    <entry key="cups-opt-job-sheets-standard">Standard</entry>
+    <entry key="cups-opt-job-sheets-topsecret">Top Secret</entry>
+    <entry key="cups-opt-job-sheets-unclassified">Unclassified</entry>
+
+    <!-- ========================================================= -->
+    <!-- TODO <entry key="cups-opt-brightness" /> <entry key="cups-opt-gamma" 
+        /> -->
+
+    <!-- ========================================================= -->
+    <!-- IPP attributes and values -->
+    <!-- ========================================================= -->
+    
+    <!-- ========================================================= -->
+    <entry key="ipp-cat-page-setup">Page Setup</entry>
+    <entry key="ipp-cat-job">Job</entry>
+    <entry key="ipp-cat-advanced">Advanced</entry>
+    
+    <entry key="ipp-attr-job-sheets">Cover Page</entry>
+    <entry key="ipp-attr-job-sheets-none">None</entry>
+    <entry key="ipp-attr-job-sheets-classified">Classified</entry>
+    <entry key="ipp-attr-job-sheets-confidential">Confidential</entry>
+    <entry key="ipp-attr-job-sheets-secret">Secret</entry>
+    <entry key="ipp-attr-job-sheets-standard">Standard</entry>
+    <entry key="ipp-attr-job-sheets-topsecret">Top Secret</entry>
+    <entry key="ipp-attr-job-sheets-unclassified">Unclassified</entry>
+
+    <entry key="ipp-attr-copies">Copies</entry>
+
+    <entry key="ipp-attr-finishings">Finishings</entry>
+    <!-- none -->
+    <entry key="ipp-attr-finishings-3">none</entry>
+    <!-- staple -->
+    <entry key="ipp-attr-finishings-4">Staple</entry>
+    <!-- punch -->
+    <entry key="ipp-attr-finishings-5">Punch</entry>
+    <!-- cover -->
+    <entry key="ipp-attr-finishings-6">Cover</entry>
+    <!-- bind -->
+    <entry key="ipp-attr-finishings-7">Bind</entry>
+    <!-- saddle-stitch -->
+    <entry key="ipp-attr-finishings-8">Saddle stitch</entry>
+    <!-- edge-stitch -->
+    <entry key="ipp-attr-finishings-9">Edge stitch</entry>
+    <!-- staple-top-left -->
+    <entry key="ipp-attr-finishings-20">Staple (top left)</entry>
+    <!-- staple-bottom-left -->
+    <entry key="ipp-attr-finishings-21">Staple (bottom left)</entry>
+    <!-- staple-top-right -->
+    <entry key="ipp-attr-finishings-22">Staple (top right)</entry>
+    <!-- staple-bottom-right -->
+    <entry key="ipp-attr-finishings-23">Staple (bottom right)</entry>
+    <!-- edge-stitch-left -->
+    <entry key="ipp-attr-finishings-24">Edge stitch (left)</entry>
+    <!-- edge-stitch-top -->
+    <entry key="ipp-attr-finishings-25">Edge stitch (top)</entry>
+    <!-- edge-stitch-right -->
+    <entry key="ipp-attr-finishings-26">Edge stitch (right)</entry>
+    <!-- edge-stitch-bottom -->
+    <entry key="ipp-attr-finishings-27">Edge stitch (bottom)</entry>
+    <!-- staple-dual-left -->
+    <entry key="ipp-attr-finishings-28">Staple dual (left)</entry>
+    <!-- staple-dual-top -->
+    <entry key="ipp-attr-finishings-29">Staple dual (top)</entry>
+    <!-- staple-dual-right -->
+    <entry key="ipp-attr-finishings-30">Staple dual (right)</entry>
+    <!-- staple-dual-bottom -->
+    <entry key="ipp-attr-finishings-31">Staple dual (bottom)</entry>
+
+    <entry key="ipp-attr-sides">Double-sided printing</entry>
+    <entry key="ipp-attr-sides-one-sided">One-sided</entry>
+    <entry key="ipp-attr-sides-two-sided-long-edge">Two-sided (long edge)</entry>
+    <entry key="ipp-attr-sides-two-sided-short-edge">Two-sided (short edge)</entry>
+
+    <entry key="ipp-attr-number-up">Pages per side</entry>
+    <!-- <entry key="ipp-attr-number-up-1">1-up</entry> <entry key="ipp-attr-number-up-2">2-up</entry> 
+        <entry key="ipp-attr-number-up-4">4-up</entry> <entry key="ipp-attr-number-up-6">6-up</entry> 
+        <entry key="ipp-attr-number-up-8">8-up</entry> <entry key="ipp-attr-number-up-9">9-up</entry> 
+        <entry key="ipp-attr-number-up-16">16-up</entry> -->
+
+    <entry key="ipp-attr-orientation-requested">Orientation</entry>
+    <entry key="ipp-attr-orientation-requested-3">Portrait</entry>
+    <entry key="ipp-attr-orientation-requested-4">Landscape</entry>
+    <entry key="ipp-attr-orientation-requested-5">Reverse landscape</entry>
+    <entry key="ipp-attr-orientation-requested-6">Reverse portrait</entry>
+
+    <entry key="ipp-attr-media">Media Size</entry>
+
+    <entry key="ipp-attr-media-iso-a0">A0</entry>
+    <entry key="ipp-attr-media-iso-a1">A1</entry>
+    <entry key="ipp-attr-media-iso-a2">A2</entry>
+    <entry key="ipp-attr-media-iso-a3">A3</entry>
+    <entry key="ipp-attr-media-iso-a4">A4</entry>
+    <entry key="ipp-attr-media-iso-a5">A5</entry>
+    <entry key="ipp-attr-media-iso-a6">A6</entry>
+    <entry key="ipp-attr-media-iso-a7">A7</entry>
+    <entry key="ipp-attr-media-iso-a8">A8</entry>
+    <entry key="ipp-attr-media-iso-a9">A9</entry>
+    <entry key="ipp-attr-media-iso-a10">A10</entry>
+    <entry key="ipp-attr-media-iso-b0">B0</entry>
+    <entry key="ipp-attr-media-iso-b1">B1</entry>
+    <entry key="ipp-attr-media-iso-b2">B2</entry>
+    <entry key="ipp-attr-media-iso-b3">B3</entry>
+    <entry key="ipp-attr-media-iso-b4">B4</entry>
+    <entry key="ipp-attr-media-iso-b5">B5</entry>
+    <entry key="ipp-attr-media-iso-b6">B6</entry>
+    <entry key="ipp-attr-media-iso-b7">B7</entry>
+    <entry key="ipp-attr-media-iso-b8">B8</entry>
+    <entry key="ipp-attr-media-iso-b9">B9</entry>
+    <entry key="ipp-attr-media-iso-b10">B10</entry>
+    <entry key="ipp-attr-media-jis-b0">B0 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b1">B1 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b2">B2 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b3">B3 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b4">B4 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b5">B5 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b6">B6 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b7">B7 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b8">B8 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b9">B9 (JIS)</entry>
+    <entry key="ipp-attr-media-jis-b10">B10 (JIS)</entry>
+    <entry key="ipp-attr-media-iso-c0">C0</entry>
+    <entry key="ipp-attr-media-iso-c1">C1</entry>
+    <entry key="ipp-attr-media-iso-c2">C2</entry>
+    <entry key="ipp-attr-media-iso-c3">C3</entry>
+    <entry key="ipp-attr-media-iso-c4">C4</entry>
+    <entry key="ipp-attr-media-iso-c5">C5</entry>
+    <entry key="ipp-attr-media-iso-c6">C6</entry>
+    <entry key="ipp-attr-media-na-letter">US Letter</entry>
+    <entry key="ipp-attr-media-na-legal">US Legal</entry>
+    <entry key="ipp-attr-media-executive">Exceutive</entry>
+    <entry key="ipp-attr-media-ledger">Ledger</entry>
+    <entry key="ipp-attr-media-tabloid">Tabloid</entry>
+    <entry key="ipp-attr-media-invoice">Invoice</entry>
+    <entry key="ipp-attr-media-folio">Folio</entry>
+    <entry key="ipp-attr-media-quarto">Quarto</entry>
+    <entry key="ipp-attr-media-japanese-postcard"></entry>
+    <entry key="ipp-attr-media-oufuko-postcard"></entry>
+    <entry key="ipp-attr-media-a">ANSI A</entry>
+    <entry key="ipp-attr-media-b">ANSI B</entry>
+    <entry key="ipp-attr-media-c">ANSI C</entry>
+    <entry key="ipp-attr-media-d">ANSI D</entry>
+    <entry key="ipp-attr-media-e">ANSI E</entry>
+    <entry key="ipp-attr-media-iso-designated-long">Designated Long</entry>
+    <entry key="ipp-attr-media-italian-envelope">Italian Envelope</entry>
+    <entry key="ipp-attr-media-monarch-envelope">Monarch Envelope</entry>
+    <entry key="ipp-attr-media-personal-envelope">Personal Envelope</entry>
+    <entry key="ipp-attr-media-na-number-9-envelope">#9 Envelope</entry>
+    <entry key="ipp-attr-media-na-number-10-envelope">#10 Envelope</entry>
+    <entry key="ipp-attr-media-na-number-11-envelope">#11 Envelope</entry>
+    <entry key="ipp-attr-media-na-number-12-envelope">#12 Envelope</entry>
+    <entry key="ipp-attr-media-na-number-14-envelope">#14 Envelope</entry>
+    <entry key="ipp-attr-media-na-6x9-envelope">6x9 Envelope</entry>
+    <entry key="ipp-attr-media-na-7x9-envelope">7x9 Envelope</entry>
+    <entry key="ipp-attr-media-na-9x11-envelope">9x11 Envelope</entry>
+    <entry key="ipp-attr-media-na-9x12-envelope">9x12 Envelope</entry>
+    <entry key="ipp-attr-media-na-10x13-envelope">10x13 Envelope</entry>
+    <entry key="ipp-attr-media-na-10x14-envelope">10x14 Envelope</entry>
+    <entry key="ipp-attr-media-na-10x15-envelope">10x15 Envelope</entry>
+    <entry key="ipp-attr-media-na-5x7">5x7</entry>
+    <entry key="ipp-attr-media-na-8x10">8x10</entry>
+
+    <entry key="ipp-attr-media-source">Media Source</entry>
+    <entry key="ipp-attr-media-source-auto">Automatic</entry>
+    <entry key="ipp-attr-media-source-top">Upper Tray</entry>
+    <entry key="ipp-attr-media-source-middle">Middle Tray</entry>
+    <entry key="ipp-attr-media-source-bottom">Lower Tray</entry>
+    <entry key="ipp-attr-media-source-by-pass-tray">Multipurpose Tray</entry>
+    <entry key="ipp-attr-media-source-manual">Manual Feeder</entry>
+
+    <entry key="ipp-attr-output-bin">Output Bin</entry>
+
+    <entry key="ipp-attr-printer-resolution">Resolution</entry>
+
+    <entry key="ipp-attr-print-quality">Quality</entry>
+    <entry key="ipp-attr-print-quality-3">Draft</entry>
+    <entry key="ipp-attr-print-quality-4">Normal</entry>
+    <entry key="ipp-attr-print-quality-5">High</entry>
+
+    <entry key="ipp-attr-print-color-mode">Color Mode</entry>
+    <entry key="ipp-attr-print-color-mode-bi-level">Bi-Level</entry>
+    <entry key="ipp-attr-print-color-mode-color">Color</entry>
+    <entry key="ipp-attr-print-color-mode-highlight">Highlight</entry>
+    <entry key="ipp-attr-print-color-mode-monochrome">Grayscale</entry>
+    <entry key="ipp-attr-print-color-mode-process-bi-level">Process Bi-Level</entry>
+    <entry key="ipp-attr-print-color-mode-process-monochrome">Process Monochrome</entry>
+        
+</properties>

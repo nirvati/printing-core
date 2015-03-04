@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <entry key="pub-user-print-in-denied">User "{0}" print on queue "{1}" from {2} denied. Reason: {3}</entry>
+    <entry key="pub-user-print-in-not-authorized">not authorized</entry>
+
+    <entry key="print-in-denied-drm-restricted">DRM restricted</entry>
+    <entry key="print-in-denied-unknown">unknown</entry>
+    
+</properties>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="gcp.job-owner-unknown.cancel-mail.subject">Google Cloud Print: opdracht geannuleerd</entry>
+	<entry key="gcp.job-owner-unknown.cancel-mail.body">
+<![CDATA[Er is een afdruktaak ontvangen vanaf dit e-mailadres.
+
+Echter, deze kon niet worden geaccepteerd omdat dit e-mailadres nog niet is geconfigureerd voor afdrukken.
+
+Neem contact op met de IT help desk om dit e-mailadres in te schakelen voor Google Cloud Printing.
+]]>
+	</entry>
+
+	<entry key="financial.voucher.card-header">Pre-Paid Print Kaart</entry>
+
+	<!-- Circuit messages -->
+
+    <entry key="circuit-cups-local-connection-closed">CUPS connectie hersteld.</entry>
+    <entry key="circuit-cups-local-connection-opened">CUPS connectie verbroken.</entry>
+    <entry key="circuit-cups-local-connection-damaged">CUPS connectie defect.</entry>
+    <entry key="circuit-cups-local-connection-exception">CUPS connectie fout: {0}</entry>
+
+    <entry key="circuit-cups-remote-connection-exception">Remote CUPS connectie fout: {0}</entry>
+
+    <entry key="circuit-gcp-connection-closed">Google Cloud Print connectie hersteld.</entry>
+    <entry key="circuit-gcp-connection-opened">Google Cloud Print connectie verbroken.</entry>
+    <entry key="circuit-gcp-connection-damaged">Google Cloud Print connectie defect.</entry>
+    <entry key="circuit-gcp-connection-exception">Google Cloud Print fout: {0}</entry>
+
+	<entry key="circuit-mailprint-connection-closed">MailPrint connectie hersteld.</entry>
+	<entry key="circuit-mailprint-connection-opened">MailPrint connectie verbroken.</entry>
+    <entry key="circuit-mailprint-connection-damaged">MailPrint connectie defect.</entry>
+    <entry key="circuit-mailprint-connection-exception">MailPrint fout: {0}</entry>
+
+    <entry key="circuit-smartschool-connection-closed">SmartSchool connectie hersteld.</entry>
+    <entry key="circuit-smartschool-connection-opened">SmartSchool connectie verbroken.</entry>
+    <entry key="circuit-smartschool-connection-damaged">SmartSchool connectie defect.</entry>
+    <entry key="circuit-smartschool-connection-exception">SmartSchool fout: {0}</entry>
+
+    <entry key="circuit-papercut-connection-closed">PaperCut connectie hersteld.</entry>
+    <entry key="circuit-papercut-connection-opened">PaperCut connectie verbroken.</entry>
+    <entry key="circuit-papercut-connection-damaged">PaperCut connectie defect.</entry>
+    <entry key="circuit-papercut-connection-exception">PaperCut fout: {0}</entry>
+    
+    <entry key="circuit-smtp-connection-closed">SMTP connectie hersteld.</entry>
+    <entry key="circuit-smtp-connection-opened">SMTP connectie verbroken.</entry>
+    <entry key="circuit-smtp-connection-damaged">SMTP connectie defect.</entry>
+    <entry key="circuit-smtp-connection-exception">SMTP connectie fout: {0}</entry>
+    
+    <entry key="circuit-url-connection-closed">Internet connectie hersteld.</entry>
+    <entry key="circuit-url-connection-opened">Internet connectie verbroken.</entry>
+    <entry key="circuit-url-connection-damaged">Internet connectie defect.</entry>
+    <entry key="circuit-url-connection-exception">Internet connectie fout: {0}</entry>
+
+</properties>

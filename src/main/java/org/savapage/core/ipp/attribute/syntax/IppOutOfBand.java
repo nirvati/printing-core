@@ -1,0 +1,105 @@
+/*
+ * This file is part of the SavaPage project <http://savapage.org>.
+ * Copyright (c) 2011-2014 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * For more information, please contact Datraverse B.V. at this
+ * address: info@datraverse.com
+ */
+package org.savapage.core.ipp.attribute.syntax;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
+
+import org.savapage.core.SpException;
+import org.savapage.core.ipp.encoding.IppEncoder;
+import org.savapage.core.ipp.encoding.IppValueTag;
+
+/**
+ *
+ * @author Datraverse B.V.
+ *
+ */
+public class IppOutOfBand extends AbstractIppAttrSyntax {
+
+    private IppValueTag valueTag;
+
+    @SuppressWarnings("unused")
+    private IppOutOfBand() {
+        // no code intended
+    }
+
+    /**
+     *
+     * @param valueTag
+     */
+    public IppOutOfBand(final IppValueTag valueTag) {
+        switch (valueTag) {
+        case UNKNOWN:
+        case UNSUPPORTED:
+        case NONE:
+            this.valueTag = valueTag;
+            break;
+        default:
+            throw new SpException(valueTag.toString()
+                    + " is no valid out-of-band value");
+        }
+
+    }
+
+    @Override
+    public IppValueTag getValueTag() {
+        return valueTag;
+    }
+
+    @Override
+    public final void write(final OutputStream ostr, final String value,
+            final Charset charset) throws IOException {
+        /*
+         * For "out-of-band" "value-tag" fields defined in this document, such
+         * as "unsupported", the "value-length" MUST be 0 and the "value" empty;
+         *
+         * the "value" has no meaning when the "value-tag" has one of these
+         * "out-of-band" values.
+         *
+         * For future "out-of-band" "value-tag" fields, the same rule holds
+         * unless the definition explicitly states that the "value-length" MAY
+         * be non-zero and the "value" non-empty.
+         */
+
+        /**
+         * <pre>
+         *   0x05          start unsupported-attributes  unsupported-attributes tag
+         *
+         *   0x21          integer type                  value-tag
+         *   0x0006                                      name-length
+         *   copies        copies                        name
+         *   0x0004                                      value-length
+         *   0x00000014    20                            value
+         *
+         *   0x10          unsupported  (type)           value-tag
+         *   0x0005                                      name-length
+         *   sides         sides                         name
+         *   0x0000                                      value-length
+         *
+         * </pre>
+         */
+
+        IppEncoder.writeInt16(ostr, 0);
+    }
+
+}

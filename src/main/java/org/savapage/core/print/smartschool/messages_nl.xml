@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <entry key="some-message">{0}</entry>
+    <entry key="no-connections">Geen connecties beschikbaar.</entry>
+
+    <entry key="printer-media-not-foud">Printer {0} heeft geen media-source met media {1}.</entry>
+
+    <entry key="print-cancelled">SmartSchool Print van document "{0}" is geannuleerd: {1}</entry>
+    <entry key="print-error">SmartSchool Print fout voor document "{0}" : {1}</entry>
+
+    <entry key="account-trx-comment">{0} (door "{1}", {2}).</entry>
+
+    <entry key="copies-single">{0} kopie</entry>
+    <entry key="copies-multiple">{0} kopieën</entry>
+
+    <entry key="students-single">{0} leerling</entry>
+    <entry key="students-multiple">{0} leerlingen</entry>
+
+</properties>

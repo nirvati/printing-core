@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version last-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="UserList" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6b8622d7-e334-4e46-b14d-5733f54c66d8">
+	<style name="Base" isDefault="true" fontName="DejaVu Sans"/>
+	<parameter name="SP_REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA[Report Title]]></parameterDescription>
+	</parameter>
+	<parameter name="SP_REPORT_ACTOR" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SP_REPORT_DATE" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new Date();]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SP_APP_VERSION" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SP_REPORT_IMAGE" class="java.net.URL"/>
+	<parameter name="SP_DATA_SELECTION" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="USER_NAME" class="java.lang.String"/>
+	<field name="FULL_NAME" class="java.lang.String"/>
+	<field name="BALANCE" class="java.lang.String"/>
+	<field name="HAS_CREDIT" class="java.lang.String"/>
+	<field name="PAGE_TOTAL" class="java.lang.Integer"/>
+	<field name="JOB_TOTAL" class="java.lang.Integer"/>
+	<field name="EMAIL" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="100" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<image scaleImage="RealSize">
+				<reportElement x="0" y="0" width="72" height="72" uuid="34095ee6-8044-4ee2-bdc9-0ee98a34196e">
+					<property name="local_mesure_unitx" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[$P{SP_REPORT_IMAGE}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="180" y="15" width="621" height="42" uuid="05775f5e-704b-4505-9e48-4d4163035375">
+					<property name="local_mesure_unity" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font size="30"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{userlist.title}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="1" y="75" width="801" height="1" uuid="ddf177ba-d707-4409-9150-26d96ab6af37">
+					<property name="local_mesure_unity" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+			</line>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="80" width="802" height="16" uuid="8f530644-fd25-44e0-8cd6-c6d54f5bac0b">
+					<property name="local_mesure_unitx" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="local_mesure_unity" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$P{SP_DATA_SELECTION}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="25" splitType="Stretch">
+			<textField>
+				<reportElement mode="Opaque" x="0" y="0" width="100" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="31f3c6cf-0bde-47f2-baa0-7ee2ecb1c046"/>
+				<box padding="3"/>
+				<textFieldExpression><![CDATA[$R{userlist.username}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="100" y="0" width="200" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="750b353c-9ce1-4fce-bfa9-cf61c448426d"/>
+				<box padding="3"/>
+				<textFieldExpression><![CDATA[$R{userlist.full-name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="300" y="0" width="75" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="dfc4e9ba-1c47-488c-8f47-b25af78ba5b0"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$R{userlist.balance}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="375" y="0" width="50" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="aecfedf3-937c-470c-9726-5d9348ab6730"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$R{userlist.credit}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="425" y="0" width="75" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="f306ca0b-559a-4985-bc47-01a3fc9c0b64"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$R{userlist.page-total}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="500" y="0" width="75" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="48346ede-98da-46e9-8199-8b01b41515c7"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{userlist.job-total}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="575" y="0" width="225" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="e8cc7697-18ac-4738-9e42-897fffdde095"/>
+				<box padding="3"/>
+				<textFieldExpression><![CDATA[$R{userlist.email}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="25" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="100" height="20" uuid="ed3fc4d1-96c4-4e17-b949-5e6b3640bcfb"/>
+				<box padding="3"/>
+				<textElement markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{USER_NAME}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="0" width="200" height="20" uuid="cf9a98c6-c905-4d54-accb-ddad768217eb"/>
+				<box padding="3"/>
+				<textElement markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{FULL_NAME}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="300" y="0" width="75" height="20" uuid="81224532-ed53-425e-97ad-94a925b1578d"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{BALANCE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="375" y="0" width="50" height="20" uuid="1b659231-b340-4d8e-92c4-98fccb6d2f7f"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{HAS_CREDIT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###">
+				<reportElement x="425" y="0" width="75" height="20" uuid="786029a1-19cc-4674-b5aa-2f98c6b76ce1"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PAGE_TOTAL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.###">
+				<reportElement x="500" y="0" width="75" height="20" uuid="2fec96a4-6ec7-4cfe-8ac3-02218af74c3f"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{JOB_TOTAL}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="575" y="0" width="225" height="20" uuid="37c428ab-91b0-4ce3-9f89-d30754490990"/>
+				<box padding="3"/>
+				<textElement markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{EMAIL}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="60" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="640" y="0" width="120" height="20" uuid="bfdf5e4b-947a-4bd2-bd1c-7438931387a1"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[msg($R{common.page-number},$V{PAGE_NUMBER})]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="760" y="0" width="40" height="20" uuid="c3b61ba9-4515-4d97-83af-072e163f0786"/>
+				<box leftPadding="2" rightPadding="0"/>
+				<textElement textAlignment="Left">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="30" width="180" height="17" uuid="3eb6a6cb-914c-4690-a665-266560d618ff"/>
+				<textFieldExpression><![CDATA[msg($R{common.run-by}, $P{SP_REPORT_ACTOR})]]></textFieldExpression>
+			</textField>
+			<textField pattern="MMM d, yyyy h:mm:ss a">
+				<reportElement x="580" y="30" width="222" height="17" uuid="e025b67a-8d7c-4c97-8e66-3046746b1047"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$P{SP_REPORT_DATE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="180" y="30" width="400" height="20" uuid="f6f9901f-7c34-4948-a7f0-5e19b6552516"/>
+				<textElement textAlignment="Center">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SP_APP_VERSION}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

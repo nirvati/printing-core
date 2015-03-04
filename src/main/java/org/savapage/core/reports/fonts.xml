@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fontFamilies>
+
+    <fontFamily name="DejaVu Sans">
+        <normal>org/savapage/core/fonts/truetype/dejavu/DejaVuSans.ttf</normal>
+        <bold>org/savapage/core/fonts/truetype/dejavu/DejaVuSans-Bold.ttf</bold>
+        <italic>org/savapage/core/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf</italic>
+        <boldItalic>org/savapage/core/fonts/truetype/dejavu/DejaVuSans-BoldOblique.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+
+    <fontFamily name="DejaVu Sans ExtraLight">
+        <normal>org/savapage/core/fonts/truetype/dejavu/DejaVuSans-ExtraLight.ttf</normal>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+
+    <fontFamily name="DejaVu Sans Mono">
+        <normal>org/savapage/core/fonts/truetype/dejavu/DejaVuSansMono.ttf</normal>
+        <bold>org/savapage/core/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf</bold>
+        <italic>org/savapage/core/fonts/truetype/dejavu/DejaVuSansMono-Oblique.ttf</italic>
+        <boldItalic>org/savapage/core/fonts/truetype/dejavu/DejaVuSansMono-BoldOblique.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+  
+    <fontFamily name="Droid Sans Fallback">
+        <normal>org/savapage/core/fonts/truetype/droid/DroidSansFallbackFull.ttf</normal>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+
+    <fontFamily name="Unifont">
+        <normal>org/savapage/core/fonts/truetype/misc/unifont.ttf</normal>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+
+</fontFamilies>
