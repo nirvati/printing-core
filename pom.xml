@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>savapage-core</artifactId>
     <groupId>org.savapage</groupId>
-    <version>0.9.7</version>
+    <version>0.9.8</version>
 	<name>SavaPage Core Library</name>
     <properties>
         <LICENSE_NAME>GNU Affero General Public License (AGPL)</LICENSE_NAME>
@@ -211,7 +211,7 @@
 		<dependency>
 			<groupId>org.cometd.java</groupId>
 			<artifactId>cometd-java-client</artifactId>
-			<version>2.9.1</version>
+			<version>3.0.4</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-net</groupId>
@@ -345,7 +345,7 @@
         <dependency>
             <groupId>org.savapage</groupId>
             <artifactId>savapage-common</artifactId>
-            <version>0.9.7</version>
+            <version>0.9.8</version>
         </dependency>		
 	</dependencies>
 	<description>SavaPage is an Enterprise Printing Solution with a Web App for Print Preview, Editing, PDF Creation and Proxy Printing.</description>

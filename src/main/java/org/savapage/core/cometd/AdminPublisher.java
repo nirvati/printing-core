@@ -107,7 +107,6 @@ public class AdminPublisher extends CometdClientMixin {
         /*
          * Here setup Jetty's HttpClient
          */
-
         // httpClient.setMaxConnectionsPerAddress(2);
 
         try {
@@ -121,7 +120,7 @@ public class AdminPublisher extends CometdClientMixin {
          */
         final Map<String, Object> options = new HashMap<String, Object>();
         final ClientTransport transport =
-                LongPollingTransport.create(options, httpClient);
+                new LongPollingTransport(options, httpClient);
 
         myClientSession =
                 new BayeuxClient("http://localhost:" + serverPort + "/cometd",
