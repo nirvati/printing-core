@@ -32,47 +32,57 @@ public enum CommunityDictEnum {
     /**
      * The single word (tm) community name: DO NOT CHANGE THIS NAME.
      */
-    SAVAPAGE("SavaPage", false),
+    SAVAPAGE("SavaPage"),
 
     /**
      * .
      */
-    COMMUNITY("Community", false),
+    COMMUNITY_SOURCE_CODE_URL("https://gitlab.com/savapage"),
 
     /**
      * .
      */
-    DATRAVERVE_BV("Datraverse B.V.", false),
+    COMMUNITY("Community"),
 
     /**
      * .
      */
-    SAVAPAGE_SUPPORT("SavaPage Support", false),
+    DATRAVERSE_BV("Datraverse B.V."),
 
     /**
      * .
      */
-    FELLOW("Fellow", false),
+    DATRAVERSE_BV_URL("http://www.datraverse.com/en"),
 
     /**
      * .
      */
-    FELLOWSHIP("Fellowship", false),
+    SAVAPAGE_SUPPORT("SavaPage Support"),
 
     /**
      * .
      */
-    MEMBER("Member", false),
+    FELLOW("Fellow"),
 
     /**
      * .
      */
-    MEMBER_CARD("Member Card", false),
+    FELLOWSHIP("Fellowship"),
 
     /**
      * .
      */
-    MEMBERSHIP("Membership", false),
+    MEMBER("Member"),
+
+    /**
+     * .
+     */
+    MEMBER_CARD("Member Card"),
+
+    /**
+     * .
+     */
+    MEMBERSHIP("Membership"),
 
     /**
      * .
@@ -87,12 +97,12 @@ public enum CommunityDictEnum {
     /**
      * .
      */
-    VISITOR("Visitor", false),
+    VISITOR("Visitor"),
 
     /**
      * .
      */
-    VISITOR_EDITION("Visitor Edition", false);
+    VISITOR_EDITION("Visitor Edition");
 
     /**
      * .
@@ -103,6 +113,17 @@ public enum CommunityDictEnum {
      *
      */
     private final boolean translatable;
+
+    /**
+     * Constructor.
+     *
+     * @param word
+     *            The unique non-translatable word for the dictionary entry.
+     */
+    private CommunityDictEnum(final String word) {
+        this.word = word;
+        this.translatable = false;
+    }
 
     /**
      * Constructor.
