@@ -731,7 +731,7 @@ public interface IConfigProp {
         /**
          * The port to connect to on the IMAP server.
          */
-        PRINT_IMAP_PORT("print.imap.port", IP_PORT_VALIDATOR, "993"),
+        PRINT_IMAP_PORT("print.imap.port", IP_PORT_VALIDATOR, "143"),
 
         /**
          * Socket connection timeout value in milliseconds. Default is infinite
@@ -751,7 +751,7 @@ public interface IConfigProp {
         /**
          *
          */
-        PRINT_IMAP_SECURITY("print.imap.security", IMAP_SECURITY_V_SSL),
+        PRINT_IMAP_SECURITY("print.imap.security", IMAP_SECURITY_V_STARTTLS),
 
         /**
          * Username for IMAP authentication.
@@ -965,15 +965,14 @@ public interface IConfigProp {
          * The port to connect to on the SMTP server. Common ports include 25 or
          * 587 for STARTTLS, and 465 for SMTPS.
          */
-        MAIL_SMTP_PORT("mail.smtp.port", IP_PORT_VALIDATOR, "465"),
+        MAIL_SMTP_PORT("mail.smtp.port", IP_PORT_VALIDATOR, "25"),
 
         /**
-         * Set to Y to enable STARTTLS, or N to disable it. STARTTLS is for
-         * connecting to an SMTP server port using a plain (non-encrypted)
-         * connection, then elevating to an encrypted connection on the same
-         * port.
+         * STARTTLS is for connecting to an SMTP server port using a plain
+         * (non-encrypted) connection, then elevating to an encrypted connection
+         * on the same port.
          */
-        MAIL_SMTP_SECURITY("mail.smtp.security", SMTP_SECURITY_V_SSL),
+        MAIL_SMTP_SECURITY("mail.smtp.security", SMTP_SECURITY_V_NONE),
 
         /**
          * Username for SMTP authentication. Commonly an email address.
