@@ -33,9 +33,10 @@ import org.apache.log4j.BasicConfigurator;
 import org.junit.Before;
 import org.junit.Test;
 import org.savapage.core.inbox.InboxInfoDto;
-import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
+import org.savapage.core.inbox.RangeAtom;
+import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkInfo;
 import org.savapage.core.services.InboxService;
@@ -53,6 +54,7 @@ public final class InboxInfoTest {
     */
     private static final InboxService INBOX_SERVICE = ServiceContext
             .getServiceFactory().getInboxService();
+
 
     @Before
     public void initTest() {
@@ -1018,6 +1020,202 @@ public final class InboxInfoTest {
         RangeAtom atom = chunkInfo.getChunks().get(0).getRanges().get(0);
 
         assertTrue(atom.pageBegin == 2 && atom.pageEnd == 2);
+    }
+
+    @Test
+    public void testPrintJobChunkInfo7() {
+
+        /*
+         * Prepare.
+         */
+        final InboxInfoDto inboxInfo = new InboxInfoDto();
+
+        int iJob = 0;
+
+        // Job 0
+        InboxJob job = new InboxJob();
+        inboxInfo.getJobs().add(job);
+
+        String name = "file_" + iJob;
+        job.setFile(name + ".pdf");
+        job.setTitle(name);
+        job.setMedia(MediaSizeName.ISO_A4.toString());
+
+        job.setPages(5);
+
+        // Job 1
+        iJob++;
+        job = new InboxJob();
+        inboxInfo.getJobs().add(job);
+
+        name = "file_" + iJob;
+        job.setFile(name + ".pdf");
+        job.setTitle(name);
+        job.setMedia(MediaSizeName.ISO_A4.toString());
+
+        job.setPages(10);
+
+        // Job 2
+        iJob++;
+        job = new InboxJob();
+        inboxInfo.getJobs().add(job);
+
+        name = "file_" + iJob;
+        job.setFile(name + ".pdf");
+        job.setTitle(name);
+        job.setMedia(MediaSizeName.ISO_A4.toString());
+
+        job.setPages(3);
+
+        //------------
+        // Ranges
+        //------------
+        InboxJobRange jobRange ;
+
+        // 0
+        jobRange = new InboxInfoDto.InboxJobRange();
+        inboxInfo.getPages().add(jobRange);
+        jobRange.setJob(0);
+        jobRange.setRange("");
+
+        // 1
+        jobRange = new InboxInfoDto.InboxJobRange();
+        inboxInfo.getPages().add(jobRange);
+        jobRange.setJob(1);
+        jobRange.setRange("");
+
+        // 2
+        jobRange = new InboxInfoDto.InboxJobRange();
+        inboxInfo.getPages().add(jobRange);
+        jobRange.setJob(2);
+        jobRange.setRange("");
+
+        //------------
+        // TEST
+        //------------
+        ProxyPrintJobChunkInfo chunkInfo;
+        try {
+            chunkInfo = new ProxyPrintJobChunkInfo(inboxInfo);
+        } catch (ProxyPrintException e) {
+            chunkInfo = null;
+        }
+
+        assertTrue(chunkInfo != null);
+
+        assertTrue(chunkInfo.getInboxInfo().getJobs().size() == 3);
+        assertTrue(chunkInfo.getChunks().size() == 3);
+
+        //
+        ProxyPrintJobChunk chunk;
+        RangeAtom atom;
+
+        //
+        chunk = chunkInfo.getChunks().get(0);
+        assertTrue(chunk.getMediaSizeName() == MediaSizeName.ISO_A4);
+        assertTrue(chunk.getRanges().size() == 1);
+
+        atom = chunk.getRanges().get(0);
+        assertTrue(atom.pageBegin == 1 && atom.pageEnd == 5);
+
+        //
+        chunk = chunkInfo.getChunks().get(1);
+        assertTrue(chunk.getMediaSizeName() == MediaSizeName.ISO_A4);
+
+        assertTrue(chunk.getRanges().size() == 1);
+
+        atom = chunk.getRanges().get(0);
+        assertTrue(atom.pageBegin == 1 && atom.pageEnd == 10);
+
+        //
+        chunk = chunkInfo.getChunks().get(2);
+        assertTrue(chunk.getMediaSizeName() == MediaSizeName.ISO_A4);
+        assertTrue(chunk.getRanges().size() == 1);
+
+        atom = chunk.getRanges().get(0);
+        assertTrue(atom.pageBegin == 1 && atom.pageEnd == 3);
+
+    }
+
+    @Test
+    public void testPrintJobChunkInfo8() {
+
+        /*
+         * Prepare.
+         */
+        final InboxInfoDto inboxInfo = new InboxInfoDto();
+
+        int iJob = 0;
+
+        // Job 0
+        InboxJob job = new InboxJob();
+        inboxInfo.getJobs().add(job);
+
+        String name = "file_" + iJob;
+        job.setFile(name + ".pdf");
+        job.setTitle(name);
+        job.setMedia(MediaSizeName.ISO_A4.toString());
+
+        job.setPages(5);
+
+        // Job 1
+        iJob++;
+        job = new InboxJob();
+        inboxInfo.getJobs().add(job);
+
+        name = "file_" + iJob;
+        job.setFile(name + ".pdf");
+        job.setTitle(name);
+        job.setMedia(MediaSizeName.ISO_A3.toString());
+
+        job.setPages(10);
+
+        // Job 2
+        iJob++;
+        job = new InboxJob();
+        inboxInfo.getJobs().add(job);
+
+        name = "file_" + iJob;
+        job.setFile(name + ".pdf");
+        job.setTitle(name);
+        job.setMedia(MediaSizeName.ISO_A4.toString());
+
+        job.setPages(5);
+
+        //------------
+        // Ranges
+        //------------
+        InboxJobRange jobRange ;
+
+        // 0
+        jobRange = new InboxInfoDto.InboxJobRange();
+        inboxInfo.getPages().add(jobRange);
+        jobRange.setJob(0);
+        jobRange.setRange("");
+
+        // 1
+        jobRange = new InboxInfoDto.InboxJobRange();
+        inboxInfo.getPages().add(jobRange);
+        jobRange.setJob(1);
+        jobRange.setRange("6-10");
+
+        // 2
+        jobRange = new InboxInfoDto.InboxJobRange();
+        inboxInfo.getPages().add(jobRange);
+        jobRange.setJob(2);
+        jobRange.setRange("");
+
+        //------------
+        // TEST
+        //------------
+        boolean thrown = false;
+        try {
+            new ProxyPrintJobChunkInfo(inboxInfo);
+        } catch (ProxyPrintException e) {
+            thrown = true;
+        }
+
+        assertTrue(thrown);
+
     }
 
 }

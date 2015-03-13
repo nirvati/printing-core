@@ -183,7 +183,7 @@ public final class ProxyPrintInboxReqChunker {
 
     /**
      * Chunks the {@link ProxyPrintInboxReq} in separate print jobs per
-     * media-source.
+     * media-source or per vanilla inbox job.
      * <p>
      * As a result the original request parameters "media", "media-source" and
      * "fit-to-page" are set or corrected, and
@@ -191,11 +191,16 @@ public final class ProxyPrintInboxReqChunker {
      * {@link ProxyPrintJobChunk}.
      * </p>
      *
+     * @param chunkVanillaJobs
+     *            When {@code true} a {@link ProxyPrintJobChunk} is created for
+     *            each job (of a vanilla inbox)
      * @throws ProxyPrintException
      *             When proxy printer is not fully configured to support this
-     *             request.
+     *             request, or when vanilla job chunking is requested and the
+     *             inbox is not vanilla.
      */
-    public void chunk() throws ProxyPrintException {
+    public void chunk(final boolean chunkVanillaJobs)
+            throws ProxyPrintException {
 
         final PrinterDao printerDao =
                 ServiceContext.getDaoContext().getPrinterDao();
@@ -319,8 +324,16 @@ public final class ProxyPrintInboxReqChunker {
         final IppMediaSourceCostDto determinedMediaSource;
         final IppMediaSizeEnum determinedMedia;
 
-        final ProxyPrintJobChunkInfo printJobChunkInfo =
-                new ProxyPrintJobChunkInfo(inboxInfo, request.getPageRanges());
+        //
+        final ProxyPrintJobChunkInfo printJobChunkInfo;
+
+        if (chunkVanillaJobs) {
+            printJobChunkInfo = new ProxyPrintJobChunkInfo(inboxInfo);
+        } else {
+            printJobChunkInfo =
+                    new ProxyPrintJobChunkInfo(inboxInfo,
+                            request.getPageRanges());
+        }
 
         request.setJobChunkInfo(printJobChunkInfo);
 

@@ -63,6 +63,7 @@ import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.services.helpers.PageScalingEnum;
+import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.snmp.SnmpConnectException;
 
 /**
@@ -569,6 +570,19 @@ public interface ProxyPrintService {
             Locale locale);
 
     /**
+     * Checks if a {@link Printer} is fully configured to be used.
+     *
+     * @param cupsPrinter
+     *            The {@link JsonProxyPrinter} CUPS definition.
+     * @param lookup
+     *            The corresponding {@link PrinterAttrLookup} with the Printer
+     *            configuration.
+     * @return {@code true} when printer can be used.
+     */
+    boolean isPrinterConfigured(JsonProxyPrinter cupsPrinter,
+            PrinterAttrLookup lookup);
+
+    /**
      * Checks if printer is a color printer.
      *
      * @param printerName
@@ -629,7 +643,7 @@ public interface ProxyPrintService {
 
     /**
      * Chunks the {@link ProxyPrintInboxReq} in separate print jobs per
-     * media-source.
+     * media-source or per vanilla inbox job.
      * <p>
      * As a result the original request parameters "media", "media-source" and
      * "fit-to-page" are set or corrected, and
@@ -643,12 +657,17 @@ public interface ProxyPrintService {
      *            The {@link ProxyPrintInboxReq} to be chunked.
      * @param pageScaling
      *            The preferred {@link PageScalingEnum}.
+     * @param chunkVanillaJobs
+     *            When {@code true} a chunk is created for each job (of a
+     *            vanilla inbox)
      * @throws ProxyPrintException
-     *             When the requested proxy printer is not configured to support
-     *             this request.
+     *             When proxy printer is not fully configured to support this
+     *             request, or when vanilla job chunking is requested and the
+     *             inbox is not vanilla.
      */
     void chunkProxyPrintRequest(User lockedUser, ProxyPrintInboxReq request,
-            PageScalingEnum pageScaling) throws ProxyPrintException;
+            PageScalingEnum pageScaling, boolean chunkVanillaJobs)
+            throws ProxyPrintException;
 
     /**
      * Reads SNMP printer info.

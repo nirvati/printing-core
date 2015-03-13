@@ -593,6 +593,74 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
+    public boolean isPrinterConfigured(final JsonProxyPrinter cupsPrinter,
+            final PrinterAttrLookup lookup) {
+
+        /*
+         * Any media sources defined in CUPS printer?
+         */
+        List<JsonProxyPrinterOptChoice> mediaSourceChoices = null;
+
+        for (final JsonProxyPrinterOptGroup optGroup : cupsPrinter
+                .getGroups()) {
+
+            for (final JsonProxyPrinterOpt option : optGroup
+                    .getOptions()) {
+
+                if (option.getKeyword().equals(
+                        IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE)) {
+                    mediaSourceChoices = option.getChoices();
+                    break;
+                }
+            }
+
+            if (mediaSourceChoices != null) {
+                break;
+            }
+        }
+
+        /*
+         * There MUST be media source(s) defines in CUPS printer.
+         */
+        if (mediaSourceChoices == null) {
+            return false;
+        }
+
+        /*
+         * Count the number of configured media sources.
+         */
+        int nMediaSources = 0;
+
+        for (final JsonProxyPrinterOptChoice optChoice : mediaSourceChoices) {
+
+            final PrinterDao.MediaSourceAttr mediaSourceAttr =
+                    new PrinterDao.MediaSourceAttr(
+                            optChoice.getChoice());
+
+            final String json = lookup.get(mediaSourceAttr.getKey());
+
+            if (json != null) {
+
+                try {
+
+                    final IppMediaSourceCostDto dto =
+                            IppMediaSourceCostDto.create(json);
+
+                    if (dto.getActive() && dto.getMedia() != null) {
+                        nMediaSources++;
+                    }
+
+                } catch (IOException e) {
+                    // be forgiving
+                    LOGGER.error(e.getMessage());
+                }
+            }
+        }
+
+        return nMediaSources > 0;
+    }
+
+    @Override
     public final boolean isColorPrinter(final String printerName) {
         return getCachedCupsPrinter(printerName).getColorDevice()
                 .booleanValue();
@@ -1675,7 +1743,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
             /*
              * Chunk!
              */
-            this.chunkProxyPrintRequest(user, printReq, PageScalingEnum.CROP);
+            this.chunkProxyPrintRequest(user, printReq, PageScalingEnum.CROP,
+                    false);
 
             final ProxyPrintCostParms costParms = new ProxyPrintCostParms();
 
@@ -1979,12 +2048,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public final void
-            chunkProxyPrintRequest(final User lockedUser,
-                    final ProxyPrintInboxReq request,
-                    final PageScalingEnum pageScaling)
-                    throws ProxyPrintException {
-        new ProxyPrintInboxReqChunker(lockedUser, request, pageScaling).chunk();
+    public final void chunkProxyPrintRequest(final User lockedUser,
+            final ProxyPrintInboxReq request,
+            final PageScalingEnum pageScaling, final boolean chunkVanillaJobs)
+            throws ProxyPrintException {
+        new ProxyPrintInboxReqChunker(lockedUser, request, pageScaling)
+                .chunk(chunkVanillaJobs);
     }
 
     @Override

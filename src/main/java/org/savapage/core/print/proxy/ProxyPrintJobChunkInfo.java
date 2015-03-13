@@ -28,9 +28,9 @@ import java.util.List;
 import javax.print.attribute.standard.MediaSizeName;
 
 import org.savapage.core.inbox.InboxInfoDto;
-import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
+import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.MediaUtils;
@@ -73,11 +73,63 @@ public final class ProxyPrintJobChunkInfo {
     }
 
     /**
+     * Creates an ordinal list of {@link ProxyPrintJobChunk} with all inbox
+     * jobs. Each entry on the list represents a chunk of pages that correspond
+     * with a single inbox job.
+     *
+     * @param inboxInfoIn
+     *            The {@link InboxInfoDto}.
+     * @throws ProxyPrintException
+     *             When the {@link InboxInfoDto} is NOT vanilla.
+     */
+    public ProxyPrintJobChunkInfo(final InboxInfoDto inboxInfoIn)
+            throws ProxyPrintException {
+
+        if (!INBOX_SERVICE.isInboxVanilla(inboxInfoIn)) {
+            throw new ProxyPrintException("Inbox was edited by user");
+        }
+
+        this.inboxInfo =
+                INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
+                        InboxJobRange.FULL_PAGE_RANGE);
+
+        for (final InboxJobRange jobRange : this.inboxInfo.getPages()) {
+
+            final int iJob = jobRange.getJob().intValue();
+            final InboxJob inboxJob = inboxInfo.getJobs().get(iJob);
+            final int nJobPages = inboxJob.getPages().intValue();
+
+            final MediaSizeName mediaSizeNameWlk =
+                    MediaUtils.getMediaSizeFromInboxMedia(inboxJob.getMedia());
+
+            final ProxyPrintJobChunk printJobChunkWlk =
+                    new ProxyPrintJobChunk();
+
+            printJobChunkWlk.setMediaSizeName(mediaSizeNameWlk);
+
+            this.addChunk(printJobChunkWlk);
+
+            for (final RangeAtom rangeAtom : INBOX_SERVICE
+                    .createSortedRangeArray(jobRange.getRange())) {
+
+                final ProxyPrintJobChunkRange atom =
+                        new ProxyPrintJobChunkRange();
+
+                atom.pageBegin = rangeAtom.calcPageFrom();
+                atom.pageEnd = rangeAtom.calcPageTo(nJobPages);
+                atom.setJob(iJob);
+
+                printJobChunkWlk.getRanges().add(atom);
+            }
+        }
+    }
+
+    /**
      * Creates an ordinal list of {@link ProxyPrintJobChunk} of the selected
      * pages of an inbox. Each entry on the list represents a chunk of pages
      * with the same media size.
      *
-     * @param inboxInfo
+     * @param inboxInfoIn
      *            The {@link InboxInfoDto}.
      * @param selectedPageRanges
      *            The page ranges, e.g. "1-2,4,12-".
