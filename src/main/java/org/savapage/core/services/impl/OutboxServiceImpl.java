@@ -37,6 +37,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.savapage.core.LetterheadNotFoundException;
@@ -52,9 +53,9 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.LocaleInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
+import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
-import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
@@ -209,6 +210,7 @@ public final class OutboxServiceImpl extends AbstractService implements
          * replaced by chunk values. So, we save the original request parameters
          * here, and restore them afterwards.
          */
+        final String orgJobName = request.getJobName();
         final int orgNumberOfPages = request.getNumberOfPages();
         final Boolean orgFitToPage = request.getFitToPage();
         final String orgMediaOption = request.getMediaOption();
@@ -248,6 +250,10 @@ public final class OutboxServiceImpl extends AbstractService implements
                             .getSource());
                     request.setCost(chunk.getCost());
 
+                    if (StringUtils.isBlank(orgJobName)) {
+                        request.setJobName(chunk.getJobName());
+                    }
+
                     /*
                      * Save the original pages.
                      */
@@ -279,6 +285,7 @@ public final class OutboxServiceImpl extends AbstractService implements
             /*
              * Restore the original request parameters.
              */
+            request.setJobName(orgJobName);
             request.setNumberOfPages(orgNumberOfPages);
             request.setFitToPage(orgFitToPage);
             request.setMediaOption(orgMediaOption);

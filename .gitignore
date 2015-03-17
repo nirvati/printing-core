@@ -44,3 +44,4 @@ release.properties
 /.checkstyle
 /.eclipse-pmd
 /derby.log
+/target

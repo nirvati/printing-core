@@ -28,9 +28,9 @@ import java.io.IOException;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.Before;
 import org.junit.Test;
-import org.savapage.core.PageMover;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
+import org.savapage.core.inbox.RangeAtom;
 
 /**
  *
@@ -38,7 +38,6 @@ import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
  *
  */
 public class PageMoverTest {
-
 
     @Before
     public final void initTest() {
@@ -71,7 +70,7 @@ public class PageMoverTest {
 
             InboxInfoDto.InboxJobRange range = new InboxInfoDto.InboxJobRange();
             range.setJob(i++);
-            range.setRange(InboxJobRange.FULL_PAGE_RANGE); // all pages
+            range.setRange(RangeAtom.FULL_PAGE_RANGE); // all pages
 
             jobinfo.getPages().add(range); // append
 

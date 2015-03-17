@@ -194,12 +194,18 @@ public final class ProxyPrintInboxReqChunker {
      * @param chunkVanillaJobs
      *            When {@code true} a {@link ProxyPrintJobChunk} is created for
      *            each job (of a vanilla inbox)
+     * @param iVanillaJob
+     *            The zero-based ordinal of the single vanilla job to print. If
+     *            {@code null}, all vanilla jobs are printed.
+     * @param vanillaJobPageRanges
+     *            The job scope page ranges, e.g. "1-2,4,12-".
      * @throws ProxyPrintException
      *             When proxy printer is not fully configured to support this
      *             request, or when vanilla job chunking is requested and the
      *             inbox is not vanilla.
      */
-    public void chunk(final boolean chunkVanillaJobs)
+    public void chunk(final boolean chunkVanillaJobs,
+            final Integer iVanillaJob, final String vanillaJobPageRanges)
             throws ProxyPrintException {
 
         final PrinterDao printerDao =
@@ -324,11 +330,20 @@ public final class ProxyPrintInboxReqChunker {
         final IppMediaSourceCostDto determinedMediaSource;
         final IppMediaSizeEnum determinedMedia;
 
-        //
+        /*
+         * Create the chunks depending on "vanilla" requirements.
+         */
         final ProxyPrintJobChunkInfo printJobChunkInfo;
 
         if (chunkVanillaJobs) {
-            printJobChunkInfo = new ProxyPrintJobChunkInfo(inboxInfo);
+
+            if (iVanillaJob == null) {
+                printJobChunkInfo = new ProxyPrintJobChunkInfo(inboxInfo);
+            } else {
+                printJobChunkInfo =
+                        new ProxyPrintJobChunkInfo(inboxInfo,
+                                iVanillaJob.intValue(), vanillaJobPageRanges);
+            }
         } else {
             printJobChunkInfo =
                     new ProxyPrintJobChunkInfo(inboxInfo,

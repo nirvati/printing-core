@@ -70,4 +70,21 @@ public final class DateUtil {
         return new SimpleDateFormat("yyyyMMdd'T'HHmmss").format(date);
     }
 
+    /**
+     * Formats a {@link Date} to a user friendly formatted date-time string.
+     * <p>
+     * Example: {@code 2014-12-06T12:43:25}
+     * </p>
+     *
+     * @param date
+     *            The date to convert.
+     * @return The formatted date string.
+     */
+    public static String formattedDateTime(final Date date) {
+        if (date == null) {
+            return "";
+        }
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(date);
+    }
+
 }

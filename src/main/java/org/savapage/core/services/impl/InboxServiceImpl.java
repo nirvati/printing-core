@@ -53,11 +53,11 @@ import org.savapage.core.dao.UserDao;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.img.ImageUrl;
 import org.savapage.core.inbox.InboxInfoDto;
+import org.savapage.core.inbox.InboxInfoDto.InboxJob;
+import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.inbox.LetterheadInfo;
 import org.savapage.core.inbox.PageImages;
 import org.savapage.core.inbox.RangeAtom;
-import org.savapage.core.inbox.InboxInfoDto.InboxJob;
-import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintIn;
@@ -331,7 +331,7 @@ public final class InboxServiceImpl implements InboxService {
                 final InboxJobRange range = new InboxInfoDto.InboxJobRange();
 
                 range.setJob(i);
-                range.setRange(InboxJobRange.FULL_PAGE_RANGE);
+                range.setRange(RangeAtom.FULL_PAGE_RANGE);
 
                 jobinfo.getPages().add(range); // append
             }
@@ -489,6 +489,64 @@ public final class InboxServiceImpl implements InboxService {
                 nPagesStart + jobCandidate.getPages().intValue() - 1;
 
         return rangeAtom;
+    }
+
+    @Override
+    public String toVanillaJobInboxRange(final InboxInfoDto jobInfo,
+            final int iVanillaJobIndex,
+            final List<RangeAtom> sortedRangeArrayJob) {
+
+        /*
+         * INVARIANT: jobInfo must be vanilla.
+         */
+        if (!this.isInboxVanilla(jobInfo)) {
+            throw new IllegalArgumentException("Inbox is edited, job page "
+                    + "Scope cannot be converted to inbox scope.");
+        }
+
+        final List<RangeAtom> rangeArrayInbox = new ArrayList<>();
+
+        int iJob = 0;
+        int nPagesWlk = 1;
+
+        for (final InboxJob job : jobInfo.getJobs()) {
+
+            final int nJobPages = job.getPages().intValue();
+
+            if (iJob == iVanillaJobIndex) {
+
+                for (final RangeAtom jobAtom : sortedRangeArrayJob) {
+
+                    final RangeAtom inboxAtom = new RangeAtom();
+
+                    if (jobAtom.pageBegin == null) {
+                        inboxAtom.pageBegin = Integer.valueOf(nPagesWlk);
+                    } else {
+                        inboxAtom.pageBegin =
+                                Integer.valueOf(nPagesWlk + jobAtom.pageBegin
+                                        - 1);
+                    }
+
+                    if (jobAtom.pageEnd == null) {
+                        inboxAtom.pageEnd =
+                                Integer.valueOf(nPagesWlk + nJobPages - 1);
+                    } else {
+                        inboxAtom.pageEnd =
+                                Integer.valueOf(inboxAtom.pageBegin.intValue()
+                                        + jobAtom.calcPageTo(nJobPages)
+                                        - jobAtom.calcPageFrom());
+                    }
+
+                    rangeArrayInbox.add(inboxAtom);
+                }
+                break;
+            }
+
+            nPagesWlk += nJobPages;
+            iJob++;
+        }
+
+        return RangeAtom.asText(rangeArrayInbox);
     }
 
     @Override
@@ -1593,7 +1651,7 @@ public final class InboxServiceImpl implements InboxService {
                 if (range.getJob() == iJob) {
 
                     if (first) {
-                        range.setRange(InboxJobRange.FULL_PAGE_RANGE);
+                        range.setRange(RangeAtom.FULL_PAGE_RANGE);
                         first = false;
                         jobPagesNew.add(range);
                     }
@@ -2182,36 +2240,41 @@ public final class InboxServiceImpl implements InboxService {
     @Override
     public boolean isInboxVanilla(final InboxInfoDto jobInfo) {
 
-        boolean isVanilla = true;
-
         /*
          * Vanilla MUST have one (1) page range per job.
          */
         if (jobInfo.getJobs().size() != jobInfo.getPages().size()) {
-
-            isVanilla = false;
-
-        } else {
-
-            /*
-             * For Vanilla each page range MUST include all pages and be in line
-             * with job ordinal.
-             */
-            int iJobRange = 0;
-
-            for (final InboxJobRange jobRange : jobInfo.getPages()) {
-
-                if (jobRange.getJob().intValue() != iJobRange
-                        || !jobRange.getRange().equals(
-                                InboxJobRange.FULL_PAGE_RANGE)) {
-                    isVanilla = false;
-                    break;
-                }
-
-                iJobRange++;
-            }
+            return false;
         }
-        return isVanilla;
+
+        /*
+         * For Vanilla each page range MUST include all pages and be in line
+         * with job ordinal.
+         */
+        int iJobRange = 0;
+
+        for (final InboxJobRange jobRange : jobInfo.getPages()) {
+
+            if (jobRange.getJob().intValue() != iJobRange) {
+                return false;
+            }
+
+            final RangeAtom atom = RangeAtom.fromText(jobRange.getRange());
+
+            if (atom.pageBegin != null && atom.pageBegin.intValue() > 1) {
+                return false;
+            }
+
+            if (atom.pageEnd != null
+                    && atom.pageEnd.intValue() != jobInfo.getJobs()
+                            .get(iJobRange).getPages().intValue()) {
+                return false;
+            }
+
+            iJobRange++;
+        }
+
+        return true;
     }
 
     @Override
@@ -2313,7 +2376,7 @@ public final class InboxServiceImpl implements InboxService {
                     final InboxJobRange range = new InboxJobRange();
 
                     range.setJob(Integer.valueOf(iJobRange));
-                    range.setRange(InboxJobRange.FULL_PAGE_RANGE);
+                    range.setRange(RangeAtom.FULL_PAGE_RANGE);
 
                     fastPages.add(range);
                 }

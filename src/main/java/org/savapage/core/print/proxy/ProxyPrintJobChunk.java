@@ -48,6 +48,8 @@ public final class ProxyPrintJobChunk {
 
     private BigDecimal cost;
 
+    private String jobName;
+
     /**
      *
      * @return
@@ -80,7 +82,8 @@ public final class ProxyPrintJobChunk {
         return assignedMediaSource;
     }
 
-    public void setAssignedMediaSource(IppMediaSourceCostDto assignedMediaSource) {
+    public void
+            setAssignedMediaSource(IppMediaSourceCostDto assignedMediaSource) {
         this.assignedMediaSource = assignedMediaSource;
     }
 
@@ -106,6 +109,14 @@ public final class ProxyPrintJobChunk {
 
     public void setCost(BigDecimal cost) {
         this.cost = cost;
+    }
+
+    public String getJobName() {
+        return jobName;
+    }
+
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
     }
 
 }

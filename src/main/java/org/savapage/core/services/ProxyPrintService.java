@@ -660,14 +660,18 @@ public interface ProxyPrintService {
      * @param chunkVanillaJobs
      *            When {@code true} a chunk is created for each job (of a
      *            vanilla inbox)
+     * @param iVanillaJob
+     *            The zero-based ordinal of the single vanilla job to print. If
+     *            {@code null}, all vanilla jobs are printed.
+     *
      * @throws ProxyPrintException
      *             When proxy printer is not fully configured to support this
      *             request, or when vanilla job chunking is requested and the
      *             inbox is not vanilla.
      */
     void chunkProxyPrintRequest(User lockedUser, ProxyPrintInboxReq request,
-            PageScalingEnum pageScaling, boolean chunkVanillaJobs)
-            throws ProxyPrintException;
+            PageScalingEnum pageScaling, boolean chunkVanillaJobs,
+            Integer iVanillaJob) throws ProxyPrintException;
 
     /**
      * Reads SNMP printer info.

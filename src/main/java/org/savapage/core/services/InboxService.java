@@ -33,11 +33,11 @@ import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.cli.AppDb;
 import org.savapage.core.inbox.InboxInfoDto;
+import org.savapage.core.inbox.InboxInfoDto.InboxJob;
+import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.inbox.LetterheadInfo;
 import org.savapage.core.inbox.PageImages;
 import org.savapage.core.inbox.RangeAtom;
-import org.savapage.core.inbox.InboxInfoDto.InboxJob;
-import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.job.DocLogClean;
 import org.savapage.core.jpa.DocIn;
@@ -392,10 +392,29 @@ public interface InboxService {
      * </p>
      *
      * @param jobInfo
-     *            Tthe {@link InboxInfoDto} to check.
+     *            The {@link InboxInfoDto} to check.
      * @return {@code true} if the {@link InboxInfoDto} is vanilla.
      */
     boolean isInboxVanilla(InboxInfoDto jobInfo);
+
+    /**
+     * Converts a sorted {@link RangeAtom} list with page numbers in job context
+     * to an inbox context range string.
+     * <p>
+     * Note: the jobInfo must be vanilla.
+     * </p>
+     *
+     * @param jobInfo
+     *            The {@link InboxInfoDto}.
+     * @param iVanillaJobIndex
+     *            The zero-based vanilla job index in the jobInfo.
+     * @param sortedRangeArrayJob
+     *            The sorted {@link RangeAtom} list with page numbers in job
+     *            context.
+     * @return The range string.
+     */
+    String toVanillaJobInboxRange(InboxInfoDto jobInfo, int iVanillaJobIndex,
+            List<RangeAtom> sortedRangeArrayJob);
 
     /**
      * Prunes the print-in jobs which are not referenced anymore and deletes the

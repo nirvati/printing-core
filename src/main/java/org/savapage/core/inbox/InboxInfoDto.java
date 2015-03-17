@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  */
 @JsonInclude(Include.NON_NULL)
-public class InboxInfoDto {
+public final class InboxInfoDto {
 
     /**
      *
@@ -137,11 +137,6 @@ public class InboxInfoDto {
      *
      */
     public static class InboxJobRange {
-
-        /**
-         * The full page range (comprising all job pages).
-         */
-        public static final String FULL_PAGE_RANGE = "";
 
         private Integer myJob;
         private String myRange;

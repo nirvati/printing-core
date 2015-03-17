@@ -601,11 +601,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         List<JsonProxyPrinterOptChoice> mediaSourceChoices = null;
 
-        for (final JsonProxyPrinterOptGroup optGroup : cupsPrinter
-                .getGroups()) {
+        for (final JsonProxyPrinterOptGroup optGroup : cupsPrinter.getGroups()) {
 
-            for (final JsonProxyPrinterOpt option : optGroup
-                    .getOptions()) {
+            for (final JsonProxyPrinterOpt option : optGroup.getOptions()) {
 
                 if (option.getKeyword().equals(
                         IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE)) {
@@ -634,8 +632,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         for (final JsonProxyPrinterOptChoice optChoice : mediaSourceChoices) {
 
             final PrinterDao.MediaSourceAttr mediaSourceAttr =
-                    new PrinterDao.MediaSourceAttr(
-                            optChoice.getChoice());
+                    new PrinterDao.MediaSourceAttr(optChoice.getChoice());
 
             final String json = lookup.get(mediaSourceAttr.getKey());
 
@@ -1744,7 +1741,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
              * Chunk!
              */
             this.chunkProxyPrintRequest(user, printReq, PageScalingEnum.CROP,
-                    false);
+                    false, null);
 
             final ProxyPrintCostParms costParms = new ProxyPrintCostParms();
 
@@ -2050,10 +2047,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
     @Override
     public final void chunkProxyPrintRequest(final User lockedUser,
             final ProxyPrintInboxReq request,
-            final PageScalingEnum pageScaling, final boolean chunkVanillaJobs)
-            throws ProxyPrintException {
-        new ProxyPrintInboxReqChunker(lockedUser, request, pageScaling)
-                .chunk(chunkVanillaJobs);
+            final PageScalingEnum pageScaling, final boolean chunkVanillaJobs,
+            final Integer iVanillaJob) throws ProxyPrintException {
+        new ProxyPrintInboxReqChunker(lockedUser, request, pageScaling).chunk(
+                chunkVanillaJobs, iVanillaJob, request.getPageRanges());
     }
 
     @Override
@@ -2065,6 +2062,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          * replaced by chunk values. So, we save the original request parameters
          * here, and restore them afterwards.
          */
+        final String orgJobName = request.getJobName();
         final boolean orgClearPages = request.isClearPages();
         final Boolean orgFitToPage = request.getFitToPage();
         final String orgMediaOption = request.getMediaOption();
@@ -2116,6 +2114,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                     request.setCost(chunk.getCost());
 
+                    if (StringUtils.isBlank(orgJobName)) {
+                        request.setJobName(chunk.getJobName());
+                    }
+
                     /*
                      * Save the original pages.
                      */
@@ -2139,6 +2141,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             /*
              * Restore the original request parameters.
              */
+            request.setJobName(orgJobName);
             request.setClearPages(orgClearPages);
             request.setFitToPage(orgFitToPage);
             request.setMediaOption(orgMediaOption);

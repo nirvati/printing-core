@@ -42,6 +42,7 @@ import javax.print.attribute.standard.MediaSizeName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrinterDao;
@@ -98,6 +99,7 @@ import org.savapage.core.print.proxy.JsonProxyPrinterOptGroup;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
+import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -836,12 +838,27 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             throw new SpException(e.getMessage());
         }
 
+        /*
+         * Constuct
+         */
+        final String jobNameWork;
+        if (StringUtils.isBlank(jobName)) {
+            jobNameWork =
+                    String.format("%s-%s",
+                            CommunityDictEnum.SAVAPAGE.getWord(), DateUtil
+                                    .formattedDateTime(ServiceContext
+                                            .getTransactionDate()));
+        } else {
+            jobNameWork = jobName;
+        }
+
+        // Print
         final List<IppAttrGroup> response =
                 ippClient.send(
                         urlCupsServer,
                         IppOperationId.PRINT_JOB,
-                        reqPrintJob(filePdf, uriPrinter, user, jobName,
-                                jobName, copies, fitToPage, optionValues),
+                        reqPrintJob(filePdf, uriPrinter, user, jobNameWork,
+                                jobNameWork, copies, fitToPage, optionValues),
                         filePdf);
 
         final IppAttrGroup group = response.get(1);
