@@ -1,5 +1,6 @@
 # savapage-core
-    
+
+Core library.    
  
 ### License
 

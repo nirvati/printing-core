@@ -251,7 +251,7 @@
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
-			<version>5.5.1</version>
+			<version>5.6.1</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>bcmail-jdk14</artifactId>
@@ -355,6 +355,6 @@
 		<name>Datraverse B.V.</name>
 	</organization>
 	<issueManagement>
-		<url>https://secure.datraverse.nl/mantis/</url>
+		<url>https://secure.datraverse.nl/issues/</url>
 	</issueManagement>
 </project>
