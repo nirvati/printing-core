@@ -598,8 +598,29 @@ public final class ConfigManager {
     }
 
     /**
-     * Gets the "real" IPv4 address (no loop back address) of the host system
-     * this application is running on.
+     * Returns the loop back address or the assigned IPv4 address of the host
+     * system this application is running on, depending on the IP address of the
+     * remote client that connected to this host.
+     *
+     * @param clientIpAddress
+     *            IP address of remote client that connected to this host.
+     * @return The client IP address parameter if it is the loop back address,
+     *         or the assigned (static or dynamic) IPv4 address of the local
+     *         host.
+     * @throws UnknownHostException
+     *             When the assigned non-loop IPv4 address could not be found.
+     */
+    public static String getServerHostAddress(final String clientIpAddress)
+            throws UnknownHostException {
+        if (clientIpAddress.startsWith(IP_LOOP_BACK_ADDR_PREFIX)) {
+            return clientIpAddress;
+        }
+        return getServerHostAddress();
+    }
+
+    /**
+     * Gets the assigned (static or dynamic) IPv4 address (no loop back address)
+     * of the host system this application is running on.
      *
      * @return The local host IPv4 address.
      * @throws UnknownHostException
