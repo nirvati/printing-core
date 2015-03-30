@@ -154,6 +154,11 @@ public final class ConfigManager {
     /**
      *
      */
+    private static final String IP_LOOP_BACK_ADDR = "127.0.0.1";
+
+    /**
+     *
+     */
     private static final String USER_TEMP_RELATIVE_PATH = ".temp";
 
     /**
@@ -598,33 +603,14 @@ public final class ConfigManager {
     }
 
     /**
-     * Returns the loop back address or the assigned IPv4 address of the host
-     * system this application is running on, depending on the IP address of the
-     * remote client that connected to this host.
-     *
-     * @param clientIpAddress
-     *            IP address of remote client that connected to this host.
-     * @return The client IP address parameter if it is the loop back address,
-     *         or the assigned (static or dynamic) IPv4 address of the local
-     *         host.
-     * @throws UnknownHostException
-     *             When the assigned non-loop IPv4 address could not be found.
-     */
-    public static String getServerHostAddress(final String clientIpAddress)
-            throws UnknownHostException {
-        if (clientIpAddress.startsWith(IP_LOOP_BACK_ADDR_PREFIX)) {
-            return clientIpAddress;
-        }
-        return getServerHostAddress();
-    }
-
-    /**
      * Gets the assigned (static or dynamic) IPv4 address (no loop back address)
-     * of the host system this application is running on.
+     * of the host system this application is running on, or the loop back
+     * address when no assigned address is found.
      *
      * @return The local host IPv4 address.
      * @throws UnknownHostException
-     *             When non-loop IPv4 address could not be found.
+     *             When non-loop IPv4 address could not be found or I/O errors
+     *             are encountered when. getting the network interfaces.
      */
     public static String getServerHostAddress() throws UnknownHostException {
 
@@ -642,10 +628,10 @@ public final class ConfigManager {
         try {
             networkEnum = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException e) {
-            throw new UnknownHostException(IP_LOOP_BACK_ADDR_PREFIX);
+            throw new UnknownHostException(e.getMessage());
         }
 
-        while (networkEnum.hasMoreElements()) {
+        while (networkEnum != null && networkEnum.hasMoreElements()) {
 
             final NetworkInterface inter = networkEnum.nextElement();
 
@@ -677,9 +663,9 @@ public final class ConfigManager {
         }
 
         /*
-         * No non-loop back IP v4 addresses found.
+         * No non-loop back IP v4 addresses found: return loop back address.
          */
-        throw new UnknownHostException(IP_LOOP_BACK_ADDR_PREFIX);
+        return IP_LOOP_BACK_ADDR;
     }
 
     /**
