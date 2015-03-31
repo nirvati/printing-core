@@ -480,6 +480,10 @@ public final class ProxyPrintInboxReqChunker {
 
             fitToPage = false;
 
+        } else if (printJobChunk.getMediaSizeName() == null) {
+
+            fitToPage = true;
+
         } else {
 
             final int compare =
