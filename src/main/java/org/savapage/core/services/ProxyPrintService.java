@@ -287,7 +287,8 @@ public interface ProxyPrintService {
      * <ul>
      * <li>Terminal {@link Device} restriction and {@link UserGroup} Access
      * Control are applied.</li>
-     * <li>Disabled and deleted printers are not included.</li>
+     * <li>Disabled and deleted printers, as well as printers that are not
+     * (fully) configured, are not included.</li>
      * </ul>
      * <p>
      * Note: CUPS is checked for printers changes.

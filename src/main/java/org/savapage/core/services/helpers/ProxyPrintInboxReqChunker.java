@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.print.attribute.standard.MediaSizeName;
+
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.inbox.InboxInfoDto;
@@ -105,8 +107,8 @@ public final class ProxyPrintInboxReqChunker {
      * @return The standard prefix for error messages.
      */
     private String getErrorMessagePfx() {
-        return "User [" + this.lockedUser.getUserId() + "], Printer ["
-                + this.request.getPrinterName() + "] ";
+        return String.format("Print for user \"%s\" on printer \"%s\"",
+                this.lockedUser.getUserId(), this.request.getPrinterName());
     }
 
     /**
@@ -377,8 +379,18 @@ public final class ProxyPrintInboxReqChunker {
             for (final ProxyPrintJobChunk printJobChunk : printJobChunkInfo
                     .getChunks()) {
 
+                final MediaSizeName mediaSizeNameWlk =
+                        printJobChunk.getMediaSizeName();
+
+                /*
+                 * Skip chunks with custom media size.
+                 */
+                if (mediaSizeNameWlk == null) {
+                    continue;
+                }
+
                 final IppMediaSizeEnum ippMediaSize =
-                        IppMediaSizeEnum.find(printJobChunk.getMediaSizeName());
+                        IppMediaSizeEnum.find(mediaSizeNameWlk);
 
                 final IppMediaSourceCostDto ippMediaSourceCostWlk =
                         getMediaSourceForMedia(printerAttrLookup, ippMediaSize);
@@ -395,10 +407,9 @@ public final class ProxyPrintInboxReqChunker {
              */
             if (collectedMediaSources.isEmpty()) {
 
-                throw new ProxyPrintException(getErrorMessagePfx() + "["
-                        + printJobChunkInfo.getChunks().size()
-                        + "] page-size chunks checked: "
-                        + "no unique media-sources found.");
+                throw new ProxyPrintException(String.format(
+                        "%s: no media-source matches.",
+                        getErrorMessagePfx()));
             }
 
             if (collectedMediaSources.size() == 1) {

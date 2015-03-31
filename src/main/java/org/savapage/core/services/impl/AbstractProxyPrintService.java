@@ -525,6 +525,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
             final Printer dbPrinterWlk =
                     printerDAO().findById(printer.getDbPrinter().getId());
 
+            /*
+             * Skip printer that is not configured.
+             */
+            if (!this.isPrinterConfigured(printer, new PrinterAttrLookup(
+                    dbPrinterWlk))) {
+                continue;
+            }
+
             if (isPrinterGrantedOnTerminal(terminal, userName, dbPrinterWlk,
                     terminalSecuredWlk, readerSecuredWlk, terminalDevicesWlk,
                     readerDevicesWlk)) {
@@ -1599,6 +1607,20 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final Printer printer =
                 getValidateSingleProxyPrinterAccess(reader, cardUser);
 
+        /*
+         * Printer must be properly configured.
+         */
+        if (!this.isPrinterConfigured(
+                this.getCachedCupsPrinter(printer.getPrinterName()),
+                new PrinterAttrLookup(printer))) {
+
+            throw new ProxyPrintException(String.format(
+                    "Print for user \"%s\" denied: %s \"%s\" %s",
+                    cardUser.getUserId(), "printer", printer.getPrinterName(),
+                    "is not configured."));
+        }
+
+        //
         this.getValidateProxyPrinterAccess(cardUser, printer.getPrinterName(),
                 ServiceContext.getTransactionDate());
 
