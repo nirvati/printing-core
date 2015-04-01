@@ -250,7 +250,7 @@ public final class AppDb extends AbstractApp {
              */
             if (cmd.hasOption(CLI_SWITCH_DBINIT)) {
 
-                DbTools.initDb(listener);
+                DbTools.initDb(listener, false);
 
             } else if (cmd.hasOption(CLI_OPTION_DB_DEL_LOGS)) {
 

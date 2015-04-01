@@ -657,7 +657,7 @@ public final class DbTools implements ServiceEntryPoint {
      */
     public static void generateDbSchema(final DatabaseTypeEnum databaseType,
             final File fileDropSql, final File fileCreateSql) {
-        exportDbSchema(getAppSchemaVersion(), fileDropSql, fileCreateSql);
+        exportDbSchema(getAppSchemaVersion(), fileDropSql, fileCreateSql, null);
     }
 
     /**
@@ -706,10 +706,14 @@ public final class DbTools implements ServiceEntryPoint {
      *
      * @param listener
      *            The {@link DbProcessListener}.
+     * @param createNew
+     *            If {@code true} a new database is created, if {@code false} an
+     *            existing database initialized.
      */
-    public static void initDb(final DbProcessListener listener) {
+    public static void initDb(final DbProcessListener listener,
+            final boolean createNew) {
 
-        initDb(getAppSchemaVersion(), listener);
+        initDb(getAppSchemaVersion(), listener, createNew);
 
         ConfigManager cm = ConfigManager.instance();
 
@@ -810,14 +814,17 @@ public final class DbTools implements ServiceEntryPoint {
      *            The schema version.
      * @param listener
      *            The {@link DbProcessListener}.
+     * @param createNew
+     *            If {@code true} a new database is created, if {@code false} an
+     *            existing database initialized.
      */
     private static void initDb(final String schemaVersion,
-            final DbProcessListener listener) {
+            final DbProcessListener listener, final boolean createNew) {
 
         listener.onLogEvent("Initializing database version ["
                 + getAppSchemaVersion() + "] ...");
 
-        exportDbSchema(schemaVersion, null, null);
+        exportDbSchema(schemaVersion, null, null, createNew);
     }
 
     /**
@@ -835,9 +842,13 @@ public final class DbTools implements ServiceEntryPoint {
      *            If null, create file is NOT created.
      * @param fileDropSql
      *            If null, drop file is NOT created.
+     * @param createNew
+     *            If {@code true} a new database is created, if {@code false} an
+     *            existing database initialized.
      */
     private static void exportDbSchema(final String schemaVersion,
-            final File fileDropSql, final File fileCreateSql) {
+            final File fileDropSql, final File fileCreateSql,
+            final Boolean createNew) {
 
         final boolean applyToDatabase =
                 (fileDropSql == null && fileCreateSql == null);
@@ -919,8 +930,13 @@ public final class DbTools implements ServiceEntryPoint {
 
         if (applyToDatabase) {
 
-            // drop + create statements (clean of current database)
-            schema.create(showOnStdout, applyToDatabase);
+            if (createNew) {
+                // Execute just create statements (create of new database).
+                schema.execute(showOnStdout, applyToDatabase, false, true);
+            } else {
+                // Execute drop + create statements (clean of current database).
+                schema.create(showOnStdout, applyToDatabase);
+            }
 
         } else {
 
@@ -1374,8 +1390,8 @@ public final class DbTools implements ServiceEntryPoint {
      * </p>
      *
      * <p>
-     * The value of {@link Key#COMMUNITY_VISITOR_START_DATE} is saved
-     * before the import and restore after.
+     * The value of {@link Key#COMMUNITY_VISITOR_START_DATE} is saved before the
+     * import and restore after.
      * </p>
      *
      * @param exportedFile
@@ -1470,7 +1486,7 @@ public final class DbTools implements ServiceEntryPoint {
              * Initialize the database with the schema version of the import
              * file.
              */
-            initDb(xmlSchemaVersion, listener);
+            initDb(xmlSchemaVersion, listener, false);
 
             /**
              *
