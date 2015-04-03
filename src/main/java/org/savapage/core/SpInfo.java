@@ -21,6 +21,9 @@
  */
 package org.savapage.core;
 
+import java.util.Calendar;
+
+import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.community.MemberCard;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.jpa.tools.DbVersionInfo;
@@ -48,10 +51,15 @@ public class SpInfo {
         LOGGER.info("\n"
                 + DELIM
                 //
-                + "\n" + "| "
+                + "\n| "
                 + ConfigManager.getAppNameVersionBuild()
                 //
-                + "\n" + "| "
+                + "\n| Copyright (c) 2011-"
+                + Calendar.getInstance().get(Calendar.YEAR)
+                + " by "
+                + CommunityDictEnum.DATRAVERSE_BV.getWord()
+                //
+                + "\n| "
                 + VersionInfo.LICENSE_NAME
                 //
                 + "\n| " + System.getProperty("java.vm.name") + " ("
