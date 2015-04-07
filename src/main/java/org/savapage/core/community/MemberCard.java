@@ -898,11 +898,11 @@ public final class MemberCard {
     }
 
     /**
-     * Is the Admin WebApp blocked because of Membership status?
+     * Is membership desirable because of Member Card status?
      *
-     * @return {@code true} when clocked.
+     * @return {@code true} when desirable.
      */
-    public boolean isAdminAppBlocked() {
+    public boolean isMembershipDesirable() {
         boolean ret = false;
         switch (myMembershipStat) {
         case VISITOR_EXPIRED:
@@ -1201,7 +1201,7 @@ public final class MemberCard {
             switch (myMembershipStat) {
 
             case VISITOR_EDITION:
-                ret.append(CommunityDictEnum.VISITOR_EDITION.getWord()).append(
+                ret.append(CommunityDictEnum.VISITING_GUEST.getWord()).append(
                         ".");
                 break;
 

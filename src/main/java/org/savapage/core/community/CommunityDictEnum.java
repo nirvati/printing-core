@@ -102,7 +102,7 @@ public enum CommunityDictEnum {
     /**
      * .
      */
-    VISITOR_EDITION("Visitor Edition");
+    VISITING_GUEST("Visiting Guest");
 
     /**
      * .

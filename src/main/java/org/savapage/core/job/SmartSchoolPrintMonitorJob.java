@@ -283,7 +283,7 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
     protected void onExecute(final JobExecutionContext ctx)
             throws JobExecutionException {
 
-        this.isAdminAppBlocked = MemberCard.instance().isAdminAppBlocked();
+        this.isAdminAppBlocked = MemberCard.instance().isMembershipDesirable();
 
         if (this.isAdminAppBlocked) {
             return;
