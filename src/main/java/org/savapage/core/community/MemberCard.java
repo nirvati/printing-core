@@ -30,6 +30,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -46,6 +47,7 @@ import org.savapage.core.dao.DaoContext;
 import org.savapage.core.jpa.Entity;
 import org.savapage.core.jpa.tools.DbTools;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -903,7 +905,6 @@ public final class MemberCard {
      * @return {@code true} when desirable.
      */
     public boolean isMembershipDesirable() {
-        boolean ret = false;
         switch (myMembershipStat) {
         case VISITOR_EXPIRED:
         case WRONG_COMMUNITY:
@@ -911,13 +912,10 @@ public final class MemberCard {
         case WRONG_VERSION:
         case EXPIRED:
         case EXCEEDED:
-            ret = true;
-            break;
+            return true;
         default:
-            ret = false;
-            break;
+            return false;
         }
-        return ret;
     }
 
     /**
@@ -1005,8 +1003,93 @@ public final class MemberCard {
 
     }
 
+    /**
+     *
+     * @return The {@link Stat}.
+     */
     public Stat getStatus() {
         return myMembershipStat;
+    }
+
+    /**
+     * Return a localized message string.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param key
+     *            The key of the message.
+     * @param args
+     *            The placeholder arguments for the message template.
+     *
+     * @return The message text.
+     */
+    private String localize(final Locale locale, final String key,
+            final String... args) {
+        return Messages.getMessage(getClass(), locale, key, args);
+    }
+
+    /**
+     * @param locale
+     *            The {@link Locale} for the text.
+     * @return The short status text to be displayed to end users.
+     */
+    public String getStatusUserText(final Locale locale) {
+
+        final String txtStatus;
+
+        switch (this.getStatus()) {
+
+        case WRONG_MODULE:
+        case WRONG_COMMUNITY:
+        case WRONG_VERSION:
+        case WRONG_VERSION_WITH_GRACE:
+            txtStatus =
+                    localize(locale, "membership-status-invalid",
+                            CommunityDictEnum.MEMBERSHIP.getWord());
+            break;
+
+        case VALID:
+
+            if (this.isVisitorCard()) {
+                txtStatus = CommunityDictEnum.VISITOR.getWord();
+            } else {
+                txtStatus = CommunityDictEnum.FELLOW.getWord();
+            }
+
+            break;
+
+        case EXCEEDED:
+            txtStatus =
+                    localize(locale, "membership-status-exceeded",
+                            CommunityDictEnum.MEMBERSHIP.getWord());
+            break;
+
+        case EXPIRED:
+            txtStatus =
+                    localize(locale, "membership-status-expired",
+                            CommunityDictEnum.MEMBERSHIP.getWord());
+            break;
+
+        case VISITOR_EDITION:
+            txtStatus = CommunityDictEnum.VISITING_GUEST.getWord();
+            break;
+
+        case VISITOR:
+            txtStatus = CommunityDictEnum.VISITOR.getWord();
+            break;
+
+        case VISITOR_EXPIRED:
+            txtStatus =
+                    localize(locale, "membership-status-expired",
+                            CommunityDictEnum.VISITOR.getWord());
+            break;
+
+        default:
+            throw new SpException("Enum [" + this.getStatus()
+                    + "] not handled.");
+        }
+
+        return txtStatus;
     }
 
     /**
@@ -1182,16 +1265,6 @@ public final class MemberCard {
             default:
                 throw new SpException(String.format("%s status unknown",
                         CommunityDictEnum.MEMBERSHIP.getWord()));
-            }
-
-            final Date now = new Date();
-
-            final Long daysLeftInVisit = getDaysLeftInVisitorPeriod(now);
-
-            if (daysLeftInVisit != null) {
-                ret.append("\n").append(linePfx).append("[")
-                        .append(daysLeftInVisit)
-                        .append("] days remaining to correct this issue.");
             }
 
         } else {
