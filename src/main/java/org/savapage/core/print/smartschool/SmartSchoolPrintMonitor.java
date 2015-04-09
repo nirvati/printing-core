@@ -116,11 +116,11 @@ import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.Element;
-import com.lowagie.text.FontFactory;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.pdf.PdfWriter;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.FontFactory;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
 
 /**
  *
@@ -628,8 +628,8 @@ public final class SmartSchoolPrintMonitor {
         final File downloadFile =
                 SMARTSCHOOL_SERVICE.getDownloadFile(document.getName(), uuid);
 
-        final com.lowagie.text.Document pdfDoc =
-                new com.lowagie.text.Document();
+        final com.itextpdf.text.Document pdfDoc =
+                new com.itextpdf.text.Document();
 
         try {
 

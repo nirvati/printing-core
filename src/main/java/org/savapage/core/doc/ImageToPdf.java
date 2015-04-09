@@ -31,18 +31,18 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
 import org.savapage.core.SpException;
-import org.savapage.core.pdf.ITextCreator;
+import org.savapage.core.pdf.ITextPdfCreator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.ImgWMF;
-import com.lowagie.text.Rectangle;
-import com.lowagie.text.pdf.PdfWriter;
-import com.lowagie.text.pdf.RandomAccessFileOrArray;
-import com.lowagie.text.pdf.codec.GifImage;
-import com.lowagie.text.pdf.codec.TiffImage;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.ImgWMF;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.RandomAccessFileOrArray;
+import com.itextpdf.text.pdf.codec.GifImage;
+import com.itextpdf.text.pdf.codec.TiffImage;
 
 /**
  *
@@ -95,13 +95,13 @@ public class ImageToPdf implements IStreamConverter {
 
         try {
             document =
-                    new Document(ITextCreator.getDefaultPageSize(), marginLeft,
-                            marginRight, marginTop, marginBottom);
+                    new Document(ITextPdfCreator.getDefaultPageSize(),
+                            marginLeft, marginRight, marginTop, marginBottom);
 
             PdfWriter.getInstance(document, ostrPdf);
             document.open();
 
-            com.lowagie.text.Image image;
+            com.itextpdf.text.Image image;
 
             switch (contentType) {
 
@@ -109,7 +109,7 @@ public class ImageToPdf implements IStreamConverter {
             case JPEG:
             case PNG:
                 java.awt.Image awtImage = ImageIO.read(istrImage);
-                image = com.lowagie.text.Image.getInstance(awtImage, null);
+                image = com.itextpdf.text.Image.getInstance(awtImage, null);
                 addImagePage(document, marginLeft, marginRight, image);
                 break;
 
@@ -185,7 +185,7 @@ public class ImageToPdf implements IStreamConverter {
      * @throws DocumentException
      */
     private void addImagePage(final Document document, final float marginLeft,
-            final float marginRight, final com.lowagie.text.Image image)
+            final float marginRight, final com.itextpdf.text.Image image)
             throws DocumentException {
 
         final boolean landscape = image.getWidth() > image.getHeight();

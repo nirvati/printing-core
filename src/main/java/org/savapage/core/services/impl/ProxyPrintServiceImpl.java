@@ -1890,12 +1890,28 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                         IppOperationId.GET_SUBSCRIPTIONS,
                         reqGetPrinterSubscriptions(SUBSCRIPTION_PRINTER_URI,
                                 requestingUser), response);
+
         /*
          * NOTE: it is possible that there are NO subscriptions for the user,
-         * this will given an IPP_NOT_FOUND.
+         * this will result in status IppStatusCode.CLI_NOTFND or
+         * IppStatusCode.CLI_NOTPOS.
+         *
+         * This occurs when the installation was not fully completed, i.e. some
+         * scripts must be executed as root (one of them installing the CUPS
+         * notifier).
          */
+        if (statusCode == IppStatusCode.CLI_NOTFND
+                || statusCode != IppStatusCode.CLI_NOTPOS) {
+            LOGGER.error(String.format(
+                    "Failed to get CUPS subscriptions [%s] : "
+                            + "did you install the %s CUPS notifier?",
+                    statusCode.toString(), CommunityDictEnum.SAVAPAGE.getWord()));
+            return;
+        }
+
         if (statusCode != IppStatusCode.OK
-                && statusCode != IppStatusCode.CLI_NOTFND) {
+                && statusCode != IppStatusCode.CLI_NOTFND
+                && statusCode != IppStatusCode.CLI_NOTPOS) {
             throw new IppSyntaxException(statusCode.toString());
         }
 
@@ -1904,7 +1920,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          */
         boolean isRenewed = false;
 
-        for (IppAttrGroup group : response) {
+        for (final IppAttrGroup group : response) {
 
             if (group.getDelimiterTag() != IppDelimiterTag.SUBSCRIPTION_ATTR) {
                 continue;
@@ -1922,7 +1938,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 continue;
             }
 
-            String subscriptionId =
+            final String subscriptionId =
                     group.getAttrSingleValue(IppDictSubscriptionAttr.ATTR_NOTIFY_SUBSCRIPTION_ID);
 
             ippClient.send(

@@ -73,16 +73,26 @@ public abstract class AbstractPdfCreator {
     protected String userhome;
     protected String tmpdir;
     protected String pdfFile;
-    protected boolean myForPrinting = false;
+
+    private boolean isForPrinting = false;
+
     protected String myPdfFileLetterhead = null;
     protected LetterheadInfo.LetterheadJob myLetterheadJob = null;
+
+    /**
+     *
+     * @return {@code true} when PDF is created for proxy printing.
+     */
+    protected boolean isForPrinting() {
+        return this.isForPrinting;
+    }
 
     /**
      *
      * @return
      */
     public static AbstractPdfCreator create() {
-        return new ITextCreator();
+        return new ITextPdfCreator();
     }
 
     public static int pageCountInPdfFile(final String filePathPdf) {
@@ -131,11 +141,11 @@ public abstract class AbstractPdfCreator {
     /**
      *
      * @param jobPfdName
-     * @param rotate
+     * @param rotation
      * @throws Exception
      */
     protected abstract void onInitJob(final String jobPfdName,
-            final String rotate) throws Exception;
+            final String rotation) throws Exception;
 
     /**
      *
@@ -279,7 +289,7 @@ public abstract class AbstractPdfCreator {
         }
 
         this.pdfFile = pdfFile;
-        this.myForPrinting = forPrinting;
+        this.isForPrinting = forPrinting;
 
         /*
          *

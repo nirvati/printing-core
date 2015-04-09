@@ -45,7 +45,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.bouncycastle.asn1.ASN1Object;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -236,9 +236,9 @@ public final class AppSSLKeystore extends AbstractApp {
          */
         byte[] publickeyb = keyPair.getPublic().getEncoded();
 
-        SubjectPublicKeyInfo subPubKeyInfo =
-                new SubjectPublicKeyInfo(
-                        (ASN1Sequence) ASN1Object.fromByteArray(publickeyb));
+        SubjectPublicKeyInfo subPubKeyInfo = new SubjectPublicKeyInfo(
+        // (ASN1Sequence) ASN1Object.fromByteArray(publickeyb));
+                (ASN1Sequence) ASN1ObjectIdentifier.fromByteArray(publickeyb));
 
         final X500Name holder = new X500Name("CN=" + holderCommonName);
         final X500Name issuer =

@@ -26,14 +26,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 import org.savapage.core.fonts.InternalFontFamilyEnum;
-import org.savapage.core.pdf.ITextCreator;
+import org.savapage.core.pdf.ITextPdfCreator;
 
-import com.lowagie.text.Chunk;
-import com.lowagie.text.Document;
-import com.lowagie.text.Font;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.pdf.BaseFont;
-import com.lowagie.text.pdf.PdfWriter;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfWriter;
 
 /**
  *
@@ -71,13 +71,13 @@ public class TextToPdf implements IStreamConverter {
         try {
 
             document =
-                    new Document(ITextCreator.getDefaultPageSize(), marginLeft,
+                    new Document(ITextPdfCreator.getDefaultPageSize(), marginLeft,
                             marginRight, marginTop, marginBottom);
 
             /*
              * Get the font: for now fixed to DejaVu.
              */
-            final BaseFont bf = ITextCreator.createFont(this.internalFont);
+            final BaseFont bf = ITextPdfCreator.createFont(this.internalFont);
 
             /*
              * Use default font size, instead of e.g. new Font(bf, 20);
