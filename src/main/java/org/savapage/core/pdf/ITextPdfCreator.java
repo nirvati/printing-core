@@ -25,7 +25,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,7 +36,6 @@ import java.util.List;
 import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.MediaSize;
 
-import org.apache.tika.metadata.DublinCore;
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
@@ -72,11 +70,6 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.parser.ContentByteUtils;
 import com.itextpdf.text.pdf.parser.FilteredTextRenderListener;
 import com.itextpdf.text.pdf.parser.PdfContentStreamProcessor;
-import com.itextpdf.text.xml.xmp.DublinCoreSchema;
-import com.itextpdf.text.xml.xmp.PdfSchema;
-import com.itextpdf.text.xml.xmp.XmpArray;
-import com.itextpdf.text.xml.xmp.XmpSchema;
-import com.itextpdf.text.xml.xmp.XmpWriter;
 
 /**
  * PDF Creator using the iText AGPL version.
@@ -106,6 +99,10 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     private String jobRotationWlk = null;
 
     private boolean isRemoveGraphics = false;
+
+    /**
+     * Create URL links by default.
+     */
     private final boolean isAnnotateUrls = true;
 
     /**
@@ -599,111 +596,11 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
     }
 
-    @SuppressWarnings("unchecked")
-    /**
-     * UNDER CONSTRUCTION - Mantis #113 - NOT working, why ??
-     *
-     * @param now
-     * @param propPdf
-     */
-    protected void onStampMetaDataForExport_TEST(final Calendar now,
-            final PdfProperties propPdf) {
-
-        /*
-         * Mantis #113
-         */
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        XmpWriter xmp = null;
-
-        try {
-
-            xmp = new XmpWriter(os);
-
-            XmpSchema dc = new DublinCoreSchema();
-
-            /*
-             * Title
-             */
-            XmpArray title = new XmpArray(XmpArray.UNORDERED);
-            title.add(propPdf.getDesc().getSubject());
-            title.add("XMP");
-            title.add("XMP & Metadata");
-            dc.setProperty(DublinCore.TITLE.toString(), title);
-
-            /*
-             * Subject
-             */
-            if (propPdf.getApply().getSubject()) {
-                XmpArray subject = new XmpArray(XmpArray.UNORDERED);
-                subject.add(propPdf.getDesc().getSubject());
-                subject.add("XMP & Metadata");
-                subject.add("Metadata");
-                dc.setProperty(DublinCore.SUBJECT.toString(), subject);
-            }
-
-            /*
-             * Creator
-             */
-            XmpArray creator = new XmpArray(XmpArray.UNORDERED);
-            creator.add(CommunityDictEnum.SAVAPAGE.getWord() + " "
-                    + ConfigManager.getAppVersion());
-            creator.add("XMP & Metadata");
-            creator.add("Metadata");
-            // dc.setProperty(DublinCore.CREATOR, creator);
-
-            /*
-             *
-             */
-            xmp.addRdfDescription(dc);
-
-            /*
-             * Author ?
-             */
-
-            // info.put("Author", propPdf.getDesc().getAuthor());
-
-            PdfSchema pdf = new PdfSchema();
-
-            pdf.setProperty(PdfSchema.VERSION, "1.4");
-
-            pdf.setProperty(
-                    PdfSchema.PRODUCER,
-                    CommunityDictEnum.SAVAPAGE.getWord() + " "
-                            + ConfigManager.getAppVersion());
-
-            if (propPdf.getApply().getKeywords()) {
-                pdf.setProperty(PdfSchema.KEYWORDS, propPdf.getDesc()
-                        .getKeywords());
-            }
-
-            xmp.addRdfDescription(pdf);
-
-            /*
-             *
-             */
-            xmp.close();
-            this.targetStamper.setXmpMetadata(os.toByteArray());
-            xmp = null;
-
-        } catch (IOException e) {
-            throw new SpException(e);
-        } finally {
-            if (xmp != null) {
-                try {
-                    xmp.close();
-                } catch (IOException e) {
-                    // no code intended
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     protected void onStampMetaDataForPrinting(final Calendar now,
             final PdfProperties propPdf) {
 
-        java.util.HashMap info = this.readerWlk.getInfo();
+        java.util.HashMap<String,String> info = this.readerWlk.getInfo();
 
         info.put("Title", propPdf.getDesc().getTitle());
         info.put("Subject", "FOR PRINTING PURPOSES ONLY");
