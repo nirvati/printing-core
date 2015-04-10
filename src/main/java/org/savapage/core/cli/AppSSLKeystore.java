@@ -45,7 +45,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -167,24 +167,6 @@ public final class AppSSLKeystore extends AbstractApp {
     }
 
     /**
-     * Creates the default keystore if it does not exist.
-     *
-     * @return {@code true} if the keystore was ad-hoc created.
-     * @throws Exception
-     *             When things went wrong.
-     */
-    private synchronized boolean lazyCreateDefaultKeystore() throws Exception {
-
-        File file = new File(myKeystoreDefault);
-        final boolean exists = !file.exists();
-        if (!exists) {
-            createKeystore(file, myHostnameDefault, myKeystorePassword,
-                    myKeyEntryPassword);
-        }
-        return !exists;
-    }
-
-    /**
      * Creates a keystore with a self-signed SSL certificate.
      *
      * http://www.bouncycastle.org/wiki/display/JA1/BC+Version+2+APIs
@@ -236,9 +218,9 @@ public final class AppSSLKeystore extends AbstractApp {
          */
         byte[] publickeyb = keyPair.getPublic().getEncoded();
 
-        SubjectPublicKeyInfo subPubKeyInfo = new SubjectPublicKeyInfo(
-        // (ASN1Sequence) ASN1Object.fromByteArray(publickeyb));
-                (ASN1Sequence) ASN1ObjectIdentifier.fromByteArray(publickeyb));
+        SubjectPublicKeyInfo subPubKeyInfo =
+                new SubjectPublicKeyInfo(
+                        (ASN1Sequence) ASN1Primitive.fromByteArray(publickeyb));
 
         final X500Name holder = new X500Name("CN=" + holderCommonName);
         final X500Name issuer =
