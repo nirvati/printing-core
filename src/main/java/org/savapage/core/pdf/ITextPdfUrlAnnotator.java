@@ -358,11 +358,15 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
         final Rectangle rectangle = getRectangle(info);
 
         if (this.textRenderInfoStartWlk != null
+        // same line
                 && rectangle.getBottom() == this.rectangleFirstWlk.getBottom()
+                // same font
                 && info.getFont()
                         .getPostscriptFontName()
                         .equals(this.textRenderInfoStartWlk.getFont()
-                                .getPostscriptFontName())) {
+                                .getPostscriptFontName())
+        // how to check same word consistently for all kind of PDF's?
+        ) {
 
             this.collectedTextWlk.append(text);
 
