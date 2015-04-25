@@ -32,8 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
-import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.PosPurchaseDao.ReceiptNumberPrefixEnum;
+import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
 import org.savapage.core.dto.AccountDisplayInfoDto;
 import org.savapage.core.dto.AccountVoucherRedeemDto;
@@ -44,7 +44,9 @@ import org.savapage.core.dto.MediaPageCostDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
 import org.savapage.core.dto.UserAccountingDto;
+import org.savapage.core.dto.UserPaymentGatewayDto;
 import org.savapage.core.jpa.Account;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.AccountVoucher;
 import org.savapage.core.jpa.DocLog;
@@ -53,7 +55,6 @@ import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.UserGroup;
-import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ResultPosDeposit;
@@ -1007,6 +1008,104 @@ public final class AccountingServiceImpl extends AbstractService implements
     }
 
     @Override
+    public void acceptFundsFromGateway(final UserPaymentGatewayDto dto,
+            final Account orphanedPaymentAccount) {
+
+        /*
+         * Find the account to add the amount on.
+         */
+        final Account account;
+
+        final User user = userDAO().findActiveUserByUserId(dto.getUserId());
+
+        if (user == null) {
+            account = orphanedPaymentAccount;
+        } else {
+            account =
+                    this.lazyGetUserAccount(user, AccountTypeEnum.USER)
+                            .getAccount();
+        }
+        /*
+         * Create a unique receipt number.
+         */
+        final String receiptNumber =
+                String.format("%s-%s-%s", ReceiptNumberPrefixEnum.GATEWAY, dto
+                        .getGatewayId().toUpperCase(), dto.getTransactionId());
+
+        //
+        addFundsToAccount(account, AccountTrxTypeEnum.GATEWAY,
+                dto.getPaymentType(), receiptNumber, dto.getAmount(),
+                dto.getComment());
+    }
+
+    /**
+     * Add funds to an {@link Account}.
+     *
+     * @param account
+     *            The {@link Account}.
+     * @param accountTrxType
+     *            The {@link AccountTrxTypeEnum}.
+     * @param paymentType
+     *            The payment type.
+     * @param receiptNumber
+     *            The receipt number.
+     * @param amount
+     *            The funds amount.
+     * @param comment
+     *            The comment set in {@link PosPurchase} and {@link AccountTrx}.
+     * @return The {@link AbstractJsonRpcMethodResponse}.
+     */
+    private AbstractJsonRpcMethodResponse addFundsToAccount(
+            final Account account, final AccountTrxTypeEnum accountTrxType,
+            final String paymentType, final String receiptNumber,
+            final BigDecimal amount, final String comment) {
+
+        account.setBalance(account.getBalance().add(amount));
+        account.setModifiedBy(ServiceContext.getActor());
+        account.setModifiedDate(ServiceContext.getTransactionDate());
+
+        /*
+         * Create PosPurchase.
+         */
+        final PosPurchase purchase = new PosPurchase();
+
+        purchase.setComment(comment);
+        purchase.setPaymentType(paymentType);
+        purchase.setTotalCost(amount);
+        purchase.setReceiptNumber(receiptNumber);
+
+        /*
+         * Create transaction.
+         */
+        final AccountTrx accountTrx =
+                this.createAccountTrx(account, accountTrxType, amount,
+                        account.getBalance(), comment);
+
+        // Set references.
+        accountTrx.setPosPurchase(purchase);
+        purchase.setAccountTrx(accountTrx);
+
+        /*
+         * Database update/persist.
+         */
+        accountDAO().update(account);
+        accountTrxDAO().create(accountTrx);
+        purchaseDAO().create(purchase);
+
+        //
+        final JsonRpcMethodResult methodResult =
+                JsonRpcMethodResult.createOkResult();
+
+        final ResultPosDeposit resultData = new ResultPosDeposit();
+        resultData.setAccountTrxDbId(accountTrx.getId());
+
+        methodResult.getResult().setData(resultData);
+
+        return methodResult;
+
+    }
+
+    @Override
     public AbstractJsonRpcMethodResponse depositFunds(final PosDepositDto dto) {
 
         /*
@@ -1039,55 +1138,20 @@ public final class AccountingServiceImpl extends AbstractService implements
         }
 
         /*
-         * Update account.
+         * Deposit amount into Account.
          */
         final Account account =
                 this.lazyGetUserAccount(user, AccountTypeEnum.USER)
                         .getAccount();
 
-        account.setBalance(account.getBalance().add(depositAmount));
-        account.setModifiedBy(ServiceContext.getActor());
-        account.setModifiedDate(ServiceContext.getTransactionDate());
+        final String receiptNumber =
+                purchaseDAO().getNextReceiptNumber(
+                        ReceiptNumberPrefixEnum.DEPOSIT);
 
-        /*
-         * Create PosPurchase.
-         */
-        final PosPurchase purchase = new PosPurchase();
+        return addFundsToAccount(account, AccountTrxTypeEnum.DEPOSIT,
+                dto.getPaymentType(), receiptNumber, depositAmount,
+                dto.getComment());
 
-        purchase.setComment(dto.getComment());
-        purchase.setPaymentType(dto.getPaymentType());
-        purchase.setTotalCost(depositAmount);
-        purchase.setReceiptNumber(purchaseDAO().getNextReceiptNumber(
-                ReceiptNumberPrefixEnum.DEPOSIT));
-
-        /*
-         * Create transaction.
-         */
-        final AccountTrx accountTrx =
-                this.createAccountTrx(account, AccountTrxTypeEnum.DEPOSIT,
-                        depositAmount, account.getBalance(), dto.getComment());
-
-        // Set references.
-        accountTrx.setPosPurchase(purchase);
-        purchase.setAccountTrx(accountTrx);
-
-        /*
-         * Database update/persist.
-         */
-        accountDAO().update(account);
-        accountTrxDAO().create(accountTrx);
-        purchaseDAO().create(purchase);
-
-        //
-        final JsonRpcMethodResult methodResult =
-                JsonRpcMethodResult.createOkResult();
-
-        ResultPosDeposit resultData = new ResultPosDeposit();
-        resultData.setAccountTrxDbId(accountTrx.getId());
-
-        methodResult.getResult().setData(resultData);
-
-        return methodResult;
     }
 
     @Override

@@ -809,6 +809,14 @@ public final class ConfigManager {
 
     /**
      *
+     * @return The directory with the server extension (plug-in) property files.
+     */
+    public static File getServerExtHome() {
+        return new File(String.format("%s/ext", getServerHome()));
+    }
+
+    /**
+     *
      * @return
      */
     public static boolean isOsArch64Bit() {

@@ -44,7 +44,12 @@ public interface PosPurchaseDao extends GenericDao<PosPurchase> {
         /**
          *
          */
-        DEPOSIT("D");
+        DEPOSIT("D"),
+        /**
+         *
+         */
+        GATEWAY("G");
+
 
         final private String prefix;
 

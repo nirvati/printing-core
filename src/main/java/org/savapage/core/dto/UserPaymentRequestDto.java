@@ -1,7 +1,7 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
  * Copyright (c) 2011-2014 Datraverse B.V.
- * Author: Rijk Ravestein.
+ * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -19,65 +19,55 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.helpers;
+package org.savapage.core.dto;
+
+import org.savapage.core.jpa.PosPurchase;
 
 /**
- * The trigger (reason why) for a credit assigment or change.
+ * Information for an {@link PosPurchase} deposit.
  *
  * @author Datraverse B.V.
  *
  */
-public enum AccountTrxTypeEnum {
+public class UserPaymentRequestDto extends AbstractDto {
 
     /**
-     * "Initial allocation".
+     * The user who requested the payment.
      */
-    INITIAL,
+    private String userId;
 
     /**
-     * "Manual adjustment".
+     * The deposited main amount.
      */
-    ADJUST,
+    private String amountMain;
 
     /**
-     * "Manual transaction" (deposit funds at point-of-sales).
+     * The deposited amount cents.
      */
-    DEPOSIT,
+    private String amountCents;
 
-    /**
-     * "Voucher use".
-     */
-    VOUCHER,
+    public String getUserId() {
+        return userId;
+    }
 
-    /**
-     * Funds transferred via a Payment Gateway.
-     */
-    GATEWAY,
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
-    /**
-     * The "send" part of a "move" transaction: a user transferring (part of)
-     * his balance to the balance of a fellow user.
-     */
-    SEND,
+    public String getAmountMain() {
+        return amountMain;
+    }
 
-    /**
-     * The "receive" part of a "move" transaction: a user transferring (part of)
-     * his balance to the balance of a fellow user.
-     */
-    RECEIVE,
+    public void setAmountMain(String amountMain) {
+        this.amountMain = amountMain;
+    }
 
-    /**
-     *
-     */
-    PRINT_IN,
+    public String getAmountCents() {
+        return amountCents;
+    }
 
-    /**
-     * A proxy print.
-     */
-    PRINT_OUT,
+    public void setAmountCents(String amountCents) {
+        this.amountCents = amountCents;
+    }
 
-    /**
-     * PDF download.
-     */
-    PDF_OUT
 }

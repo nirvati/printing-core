@@ -31,13 +31,14 @@ import org.savapage.core.dto.AccountVoucherRedeemDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
 import org.savapage.core.dto.UserAccountingDto;
+import org.savapage.core.dto.UserPaymentGatewayDto;
 import org.savapage.core.jpa.Account;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
-import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.JsonRpcResult;
@@ -359,6 +360,18 @@ public interface AccountingService {
      *         {@link ResultPosDeposit} to get the result data.
      */
     AbstractJsonRpcMethodResponse depositFunds(PosDepositDto dto);
+
+    /**
+     * Accepts funds from a Payment Gateway.
+     *
+     * @param dto
+     *            The {@link UserPaymentGatewayDto}
+     * @param orphanedPaymentAccount
+     *            The {@link Account} to add funds on when the requesting
+     *            {@link User} of the transaction is not found.
+     */
+    void acceptFundsFromGateway(UserPaymentGatewayDto dto,
+            Account orphanedPaymentAccount);
 
     /**
      * Creates the DTO of a {@link AccountTrx.AccountTrxTypeEnum#DEPOSIT}
