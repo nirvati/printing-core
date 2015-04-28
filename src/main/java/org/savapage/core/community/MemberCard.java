@@ -730,9 +730,11 @@ public final class MemberCard {
 
             } else {
 
-                LOGGER.error(CommunityDictEnum.MEMBERSHIP.getWord()
-                        + " is expired since [" + myMembershipExpDateString
-                        + "]");
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(CommunityDictEnum.MEMBERSHIP.getWord()
+                            + " expired since [" + myMembershipExpDateString
+                            + "]");
+                }
             }
         }
 
