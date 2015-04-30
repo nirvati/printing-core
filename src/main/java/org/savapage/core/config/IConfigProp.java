@@ -35,6 +35,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
+import org.savapage.core.dao.helpers.DeviceTypeEnum;
 import org.savapage.core.dao.helpers.ReservedIppQueueEnum;
 import org.savapage.core.dao.impl.DaoBatchCommitterImpl;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
@@ -412,6 +413,12 @@ public interface IConfigProp {
          * A value of {@code -1} is interpreted as {@code null}.
          */
         DELETE_DOC_LOG_DAYS("delete.doc-log.days", NUMBER_VALIDATOR, "365"),
+
+        /**
+         * The default port for {@link DeviceTypeEnum#CARD_READER}.
+         */
+        DEVICE_CARD_READER_DEFAULT_PORT("device.card-reader.default-port",
+                NUMBER_VALIDATOR, "7772"),
 
         /**
          *
