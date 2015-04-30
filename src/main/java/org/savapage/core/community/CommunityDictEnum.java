@@ -35,6 +35,16 @@ public enum CommunityDictEnum {
     SAVAPAGE("SavaPage"),
 
     /**
+     * A short slogan.
+     */
+    LIBRE_PRINT_MANAGEMENT("Libre Print Management"),
+
+    /**
+     *
+     */
+    SAVAPAGE_DOT_ORG("savapage.org"),
+
+    /**
      * .
      */
     COMMUNITY_SOURCE_CODE_URL("https://gitlab.com/savapage"),

@@ -564,6 +564,18 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         new File(this.targetPdfCopyFilePath).delete();
     }
 
+    /**
+     *
+     * @return The Creator string visible in the PDF properties of PDF Reader.
+     */
+    private String getCreatorString() {
+        return String.format("%s %s • %s • %s",
+                CommunityDictEnum.SAVAPAGE.getWord(),
+                ConfigManager.getAppVersion(),
+                CommunityDictEnum.LIBRE_PRINT_MANAGEMENT.getWord(),
+                CommunityDictEnum.SAVAPAGE_DOT_ORG.getWord());
+    }
+
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
     protected void onStampMetaDataForExport(final Calendar now,
@@ -585,8 +597,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
          * info.setModificationDate(now);
          */
 
-        info.put("Creator", CommunityDictEnum.SAVAPAGE.getWord() + " "
-                + ConfigManager.getAppVersion());
+        info.put("Creator", this.getCreatorString());
 
         if (propPdf.getApply().getKeywords()) {
             info.put("Keywords", propPdf.getDesc().getKeywords());
@@ -600,14 +611,13 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     protected void onStampMetaDataForPrinting(final Calendar now,
             final PdfProperties propPdf) {
 
-        java.util.HashMap<String,String> info = this.readerWlk.getInfo();
+        java.util.HashMap<String, String> info = this.readerWlk.getInfo();
 
         info.put("Title", propPdf.getDesc().getTitle());
         info.put("Subject", "FOR PRINTING PURPOSES ONLY");
         info.put("Author", CommunityDictEnum.SAVAPAGE.getWord());
 
-        info.put("Creator", CommunityDictEnum.SAVAPAGE.getWord() + " "
-                + ConfigManager.getAppVersion());
+        info.put("Creator", this.getCreatorString());
 
         // info.setModificationDate(now);
         if (propPdf.getApply().getKeywords()) {
