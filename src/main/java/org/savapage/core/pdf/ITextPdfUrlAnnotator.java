@@ -35,6 +35,7 @@ import com.itextpdf.awt.geom.Rectangle2D;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfAction;
 import com.itextpdf.text.pdf.PdfAnnotation;
+import com.itextpdf.text.pdf.PdfBorderDictionary;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.parser.ImageRenderInfo;
 import com.itextpdf.text.pdf.parser.TextExtractionStrategy;
@@ -85,9 +86,14 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
             "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
 
     /**
+     * No border by default.
+     */
+    private final boolean addBorderStyle = false;
+
+    /**
      * Helper class.
      */
-    private static class AnnotationMatch {
+    public static class AnnotationMatch {
 
         private final String text;
         private final int start;
@@ -188,11 +194,23 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
     private void addAnnotation(final float llx, final float lly,
             final float urx, final float ury, final URL url) {
 
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(String.format(
+                    "PDF url [%s] at x|y lower %f|%f upper %f|%f",
+                    url.toExternalForm(), llx, lly, urx, ury));
+        }
+
         final PdfAction action = new PdfAction(url);
 
         final PdfAnnotation annLink =
                 new PdfAnnotation(stamper.getWriter(), llx, lly, urx, ury,
                         action);
+
+        if (this.addBorderStyle) {
+            annLink.setBorderStyle(new PdfBorderDictionary(0.5f,
+                    PdfBorderDictionary.STYLE_SOLID));
+        }
+
         stamper.addAnnotation(annLink, this.nStamperPage);
     }
 
@@ -252,47 +270,59 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
      *            The input string to search.
      * @return A list of {@link AnnotationMatch} instances.
      */
-    private static List<AnnotationMatch> findLinks(final String text) {
+    public static List<AnnotationMatch> findLinks(final String text) {
 
         final List<AnnotationMatch> matchListTot = new ArrayList<>();
 
         List<AnnotationMatch> matchList;
 
         //
-        matchList = findLinks(Pattern.compile(PATTERN_URL), text, "%s");
+        String searchText = text;
 
-        byte[] textAsBytes = text.getBytes();
+        matchList = findLinks(Pattern.compile(PATTERN_URL), searchText, "%s");
+
+        char[] textAsChars = searchText.toCharArray();
+
         for (final AnnotationMatch match : matchList) {
             /*
              * Wipe to prevent duplicate matches.
              */
             for (int i = match.getStart(); i < match.getEnd(); i++) {
-                textAsBytes[i] = ' ';
+                textAsChars[i] = ' ';
             }
         }
         matchListTot.addAll(matchList);
 
         //
-        matchList = findLinks(Pattern.compile(PATTERN_WWW), text, "http://%s");
-        matchListTot.addAll(matchList);
+        searchText = new String(textAsChars);
 
-        //
-        matchList = findLinks(Pattern.compile(PATTERN_MAILTO), text, "%s");
-        textAsBytes = text.getBytes();
-        for (final AnnotationMatch match : matchList) {
-            /*
-             * Wipe to prevent duplicate matches.
-             */
-            for (int i = match.getStart(); i < match.getEnd(); i++) {
-                textAsBytes[i] = ' ';
-            }
-        }
-
+        matchList =
+                findLinks(Pattern.compile(PATTERN_WWW), searchText, "http://%s");
         matchListTot.addAll(matchList);
 
         //
         matchList =
-                findLinks(Pattern.compile(PATTERN_EMAIL), text, "mailto:%s");
+                findLinks(Pattern.compile(PATTERN_MAILTO), searchText, "%s");
+
+        textAsChars = searchText.toCharArray();
+
+        for (final AnnotationMatch match : matchList) {
+            /*
+             * Wipe to prevent duplicate matches.
+             */
+            for (int i = match.getStart(); i < match.getEnd(); i++) {
+                textAsChars[i] = ' ';
+            }
+        }
+
+        matchListTot.addAll(matchList);
+
+        //
+        searchText = new String(textAsChars);
+
+        matchList =
+                findLinks(Pattern.compile(PATTERN_EMAIL), searchText,
+                        "mailto:%s");
         matchListTot.addAll(matchList);
 
         return matchListTot;
@@ -310,9 +340,11 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
         final TextRenderInfo info = this.textRenderInfoStartWlk;
         final String text = this.collectedTextWlk.toString();
 
-        final float widthTextTotal = info.getFont().getWidth(text);
+        // System.out.println("[" + text + "]");
 
-        final Rectangle textRectWlk =
+        final float fontWidthTotal = info.getFont().getWidth(text);
+
+        final Rectangle infoRectTotal =
                 new Rectangle(this.rectangleFirstWlk.getLeft(),
                         this.rectangleFirstWlk.getBottom(),
                         this.rectangleLastWlk.getRight(),
@@ -323,29 +355,43 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
 
             final String prefix = text.substring(0, match.getStart());
 
-            final float widthTextPrefix = info.getFont().getWidth(prefix);
+            /*
+             * Get the font width of text parts.
+             */
+            final float fontWidthPrefix = info.getFont().getWidth(prefix);
 
-            final float widthTextAnnotation =
+            final float fontWidthAnnotation =
                     info.getFont().getWidth(match.getText());
 
-            final float rectLeft = textRectWlk.getLeft();
-            final float rectWidth = textRectWlk.getWidth();
+            /*
+             * Convert text font width to PDF info width.
+             */
+            final float infoWidthPrefix =
+                    infoRectTotal.getWidth() * fontWidthPrefix / fontWidthTotal;
 
-            final float factorPrefix = widthTextPrefix / widthTextTotal;
+            final float infoWidthAnnotation =
+                    infoRectTotal.getWidth() * fontWidthAnnotation
+                            / fontWidthTotal;
 
-            textRectWlk.setLeft(rectLeft + rectWidth * factorPrefix);
+            /*
+             * Calculate info x-left x-right of the annotation.
+             */
+            final float infoLeftWlk = infoRectTotal.getLeft() + infoWidthPrefix;
 
-            final float factorPrefixAnnotation =
-                    (widthTextPrefix + widthTextAnnotation) / widthTextTotal;
+            final float infoRightWlk = infoLeftWlk + infoWidthAnnotation;
 
-            textRectWlk.setRight(rectLeft + rectWidth * factorPrefixAnnotation);
-
-            final Rectangle2D.Float rectBase =
+            /*
+             * The y-baseline.
+             */
+            final Rectangle2D.Float infoRectBaseline =
                     info.getBaseline().getBoundingRectange();
 
-            this.addAnnotation(textRectWlk.getLeft(), rectBase.y,
-                    textRectWlk.getRight(),
-                    rectBase.y + textRectWlk.getHeight(), match.getUrl());
+            /*
+             * Add the annotation.
+             */
+            this.addAnnotation(infoLeftWlk, infoRectBaseline.y, infoRightWlk,
+                    infoRectBaseline.y + infoRectTotal.getHeight(),
+                    match.getUrl());
         }
 
         this.textRenderInfoStartWlk = null;
@@ -357,28 +403,46 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
         final String text = info.getText();
         final Rectangle rectangle = getRectangle(info);
 
-        if (this.textRenderInfoStartWlk != null
-        // same line
+        final boolean checkCollectedText;
+
+        if (this.textRenderInfoStartWlk != null //
+                // same line
                 && rectangle.getBottom() == this.rectangleFirstWlk.getBottom()
                 // same font
                 && info.getFont()
                         .getPostscriptFontName()
                         .equals(this.textRenderInfoStartWlk.getFont()
                                 .getPostscriptFontName())
-        // how to check same word consistently for all kind of PDF's?
+        //
         ) {
 
-            this.collectedTextWlk.append(text);
+            /*
+             * How to check same word consistently for all kind of PDFs?
+             *
+             * For now, if x-left of this rendered text is less then half a
+             * space of x-right of the previous rendered text, we consider same
+             * word.
+             */
+            final boolean sameWord =
+                    (rectangle.getLeft() - rectangleLastWlk.getRight()) < info
+                            .getSingleSpaceWidth() / 2;
+
+            checkCollectedText = !sameWord;
 
         } else {
+            checkCollectedText = true;
+        }
+
+        if (checkCollectedText) {
 
             this.checkCollectedText();
 
             this.textRenderInfoStartWlk = info;
-            this.collectedTextWlk = new StringBuilder(text);
+            this.collectedTextWlk = new StringBuilder();
             this.rectangleFirstWlk = rectangle;
-            this.rectangleLastWlk = rectangle;
         }
+
+        this.collectedTextWlk.append(text);
 
         this.rectangleLastWlk = rectangle;
 
