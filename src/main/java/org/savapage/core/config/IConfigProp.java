@@ -449,6 +449,20 @@ public interface IConfigProp {
         ENV_WATT_HOURS_PER_SHEET("environment.watt-hours-per-sheet", "12.5"),
 
         /**
+         * The base URL, i.e. "protocol://authority" <i>without</i> the path, of
+         * the Web API callback interface (no trailing slash).
+         */
+        EXT_WEBAPI_CALLBACK_URL_BASE("ext.webapi.callback.url-base",
+                URL_VALIDATOR_OPT, ""),
+
+        /**
+         * The URL of the User Web App used by the Web API to redirect to after
+         * remote Web App dialog is done.
+         */
+        EXT_WEBAPI_REDIRECT_URL_WEBAPP_USER(
+                "ext.webapi.redirect.url-webapp-user", URL_VALIDATOR_OPT, ""),
+
+        /**
          * Google Cloud Print enabled (boolean).
          */
         GCP_ENABLE("gcp.enable", BOOLEAN_VALIDATOR, V_NO),
@@ -1769,15 +1783,32 @@ public interface IConfigProp {
     */
     static class UrlValidator implements Validator {
 
+        /**
+         * {@code true} if value is optional.
+         */
+        private final boolean isOptional;
+
+        /**
+         * @param optional
+         *            {@code true} if value is optional.
+         */
+        public UrlValidator(final boolean optional) {
+            super();
+            this.isOptional = optional;
+        }
+
         @Override
-        public ValidationResult validate(String value) {
+        public ValidationResult validate(final String value) {
 
             ValidationResult res = new ValidationResult(value);
 
-            try {
-                new URL(value);
-            } catch (MalformedURLException e) {
-                res.setStatus(ValidationStatusEnum.ERROR_SYNTAX);
+            if (!this.isOptional || !value.isEmpty()) {
+
+                try {
+                    new URL(value);
+                } catch (MalformedURLException e) {
+                    res.setStatus(ValidationStatusEnum.ERROR_SYNTAX);
+                }
             }
 
             if (!res.isValid()) {
@@ -1960,7 +1991,12 @@ public interface IConfigProp {
     /**
      * .
      */
-    UrlValidator URL_VALIDATOR = new UrlValidator();
+    UrlValidator URL_VALIDATOR = new UrlValidator(false);
+
+    /**
+     * URL is not required (may be empty).
+     */
+    UrlValidator URL_VALIDATOR_OPT = new UrlValidator(true);
 
     /**
      * .
