@@ -195,7 +195,7 @@ public final class AppPrivate extends AbstractApp {
      */
     private XmlRpcClient createClient() throws IOException {
 
-        Properties serverProps = ConfigManager.readServerProperties();
+        Properties serverProps = ConfigManager.loadServerProperties();
 
         XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
         config.setServerURL(new URL("http://localhost:"

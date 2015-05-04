@@ -72,6 +72,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
@@ -737,13 +738,14 @@ public final class ConfigManager {
     }
 
     /**
-     * Reads the server properties from file {@link #FILENAME_SERVER_PROPERTIES}
+     * Loads the server properties from file {@link #FILENAME_SERVER_PROPERTIES}
      * .
      *
-     * @return
+     * @return The {@link Properties}.
      * @throws IOException
+     *             When error loading properties file.
      */
-    public static Properties readServerProperties() throws IOException {
+    public static Properties loadServerProperties() throws IOException {
 
         Properties serverProps = null;
 
@@ -758,20 +760,12 @@ public final class ConfigManager {
             fis = new FileInputStream(path);
 
             serverProps = new Properties();
-
             serverProps.load(fis);
 
             return serverProps;
 
         } finally {
-
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
+            IOUtils.closeQuietly(fis);
         }
     }
 

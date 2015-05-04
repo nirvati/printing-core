@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,15 +21,17 @@
  */
 package org.savapage.core.dto;
 
-import org.savapage.core.jpa.PosPurchase;
-
 /**
- * Information for an {@link PosPurchase} deposit.
+ * Information for a {@link PosPurchase} deposit.
  *
  * @author Datraverse B.V.
  *
  */
-public class UserPaymentRequestDto extends AbstractDto {
+/**
+ * @author rijk
+ *
+ */
+public final class MoneyTransferDto extends AbstractDto {
 
     /**
      * The user who requested the payment.
@@ -46,6 +48,15 @@ public class UserPaymentRequestDto extends AbstractDto {
      */
     private String amountCents;
 
+    /**
+     * The WebApp URL of the sender.
+     */
+    private String senderUrl;
+
+    /**
+     *
+     * @return
+     */
     public String getUserId() {
         return userId;
     }
@@ -68,6 +79,23 @@ public class UserPaymentRequestDto extends AbstractDto {
 
     public void setAmountCents(String amountCents) {
         this.amountCents = amountCents;
+    }
+
+    /**
+     *
+     * @return The WebApp URL of the sender.
+     */
+    public String getSenderUrl() {
+        return senderUrl;
+    }
+
+    /**
+     *
+     * @param senderUrl
+     *            The WebApp URL of the sender.
+     */
+    public void setSenderUrl(final String senderUrl) {
+        this.senderUrl = senderUrl;
     }
 
 }

@@ -216,7 +216,7 @@ public final class AppDb extends AbstractApp {
 
         try {
 
-            ConfigManager.setServerProps(ConfigManager.readServerProperties());
+            ConfigManager.setServerProps(ConfigManager.loadServerProperties());
 
             if (cmd.hasOption(CLI_SWITCH_DBINIT)
                     || cmd.hasOption(CLI_OPTION_DBIMPORT)) {

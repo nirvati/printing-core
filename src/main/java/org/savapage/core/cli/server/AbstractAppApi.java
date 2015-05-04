@@ -167,7 +167,7 @@ public abstract class AbstractAppApi extends AbstractApp {
      */
     protected AbstractAppApi() {
         try {
-            serverProps = ConfigManager.readServerProperties();
+            serverProps = ConfigManager.loadServerProperties();
         } catch (Exception e) {
             throw new SpException(e);
         }
