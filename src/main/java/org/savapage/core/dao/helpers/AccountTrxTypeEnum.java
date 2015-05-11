@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,8 +21,14 @@
  */
 package org.savapage.core.dao.helpers;
 
+import org.savapage.core.jpa.AccountTrx;
+
 /**
- * The trigger (reason why) for a credit assigment or change.
+ * The trigger (reason why) for a credit assignment or change.
+ * <p>
+ * The string value of this enum is stored in the database. Therefore the length
+ * of the enum value is limited. See {@link AccountTrx#setTrxType(String)}.
+ * </p>
  *
  * @author Datraverse B.V.
  *

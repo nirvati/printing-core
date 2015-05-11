@@ -1184,7 +1184,7 @@ public final class ConfigManager {
             /*
              *
              */
-            Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
+            Runtime.getRuntime().addShutdownHook(new CoreShutdownHook(this));
 
             /*
              * Last statement

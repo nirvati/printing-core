@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <!-- AccountTrxList -->    
+    <entry key="accounttrxlist-sel-userid">Gebruiker "{0}"</entry>
+    <entry key="accounttrxlist-sel-accounttype">{0} account</entry>
+    <entry key="accounttrxlist-sel-comment">Commentaar "{0}"</entry>
+    <entry key="accounttrxlist-sel-date-from">Van {0}</entry>
+    <entry key="accounttrxlist-sel-date-to">Tot {0}</entry>
+    
+    <!-- UserList -->    
+    <entry key="userlist-sel-username">Gebruikersnaam "{0}"</entry>
+    <entry key="userlist-sel-email">E-mail "{0}"</entry>
+    <entry key="userlist-sel-internal-users">Interne Gebruikers</entry>
+    <entry key="userlist-sel-external-users">Externe Gebruikers</entry>
+    <entry key="userlist-sel-admins">Beheerders</entry>
+    <entry key="userlist-sel-non-admins">Niet-Beheerders</entry>
+    <entry key="userlist-sel-persons">Personen</entry>
+    <entry key="userlist-sel-abstract-users">Abstracte Gebruikers</entry>
+    <entry key="userlist-sel-enabled-users">Ingeschakelde Gebruikers</entry>
+    <entry key="userlist-sel-disabled-users">Uitgeschakelde Gebruikers</entry>
+    <entry key="userlist-sel-deleted-users">Verwijderde Gebruikers</entry>
+    <entry key="userlist-sel-active-users">Actieve Gebruikers</entry>
+                
+</properties>

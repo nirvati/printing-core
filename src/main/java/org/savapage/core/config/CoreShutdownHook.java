@@ -30,13 +30,13 @@ import org.slf4j.LoggerFactory;
  * @author Datraverse B.V.
  *
  */
-public class ShutdownHook extends Thread {
+public final class CoreShutdownHook extends Thread {
 
     /**
      *
      */
     private static final Logger LOGGER = LoggerFactory
-            .getLogger(ShutdownHook.class);
+            .getLogger(CoreShutdownHook.class);
 
     /**
      *
@@ -48,19 +48,19 @@ public class ShutdownHook extends Thread {
      * @param manager
      *            The {@link ConfigManager}.
      */
-    public ShutdownHook(final ConfigManager manager) {
+    public CoreShutdownHook(final ConfigManager manager) {
         super("CoreShutdownHook");
         myManager = manager;
     }
 
     @Override
-    public final void run() {
+    public void run() {
 
-        SpInfo.instance().log("Shutting down application ...");
+        SpInfo.instance().log("Shutting down Application ...");
 
         try {
             myManager.exit();
-            SpInfo.instance().log("Application shutdown.");
+            SpInfo.instance().log("... Application shutdown completed.");
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         }

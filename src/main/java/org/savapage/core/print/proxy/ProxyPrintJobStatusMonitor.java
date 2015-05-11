@@ -595,8 +595,9 @@ public class ProxyPrintJobStatusMonitor extends Thread {
             }
         }
 
-        SpInfo.instance().log(
-                String.format("%s shutdown completed.", OBJECT_NAME_FOR_LOG));
+        SpInfo.instance()
+                .log(String.format("... %s shutdown completed.",
+                        OBJECT_NAME_FOR_LOG));
 
     }
 

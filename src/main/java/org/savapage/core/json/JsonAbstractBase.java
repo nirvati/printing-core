@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -104,6 +104,22 @@ public abstract class JsonAbstractBase {
     }
 
     /**
+     * Returns a pretty printed version of a plain JSON string.
+     *
+     * @param plainJson
+     *            The plain JSON string.
+     * @return The pretty-printed JSON.
+     * @throws IOException
+     *             When serialization fails.
+     */
+    public static String prettyPrint(final String json) throws IOException {
+        final Object obj = mapper.readValue(json, Object.class);
+        return prettyPrinted(obj);
+    }
+
+    /**
+     * Gets the pretty printed string of a POJO.
+     *
      * @param pojo
      *            The POJO.
      * @return The pretty-printed JSON String.
@@ -111,8 +127,10 @@ public abstract class JsonAbstractBase {
      *             When serialization fails.
      */
     private static String prettyPrinted(final Object pojo) throws IOException {
-        StringWriter sw = new StringWriter();
-        JsonGenerator jg = jsonFactory.createJsonGenerator(sw);
+
+        final StringWriter sw = new StringWriter();
+        final JsonGenerator jg = jsonFactory.createJsonGenerator(sw);
+
         jg.useDefaultPrettyPrinter();
         mapper.writeValue(jg, pojo);
         return sw.toString();

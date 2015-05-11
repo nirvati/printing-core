@@ -34,6 +34,11 @@ package org.savapage.core.dto;
 public final class MoneyTransferDto extends AbstractDto {
 
     /**
+     * .
+     */
+    private String gatewayId;
+
+    /**
      * The user who requested the payment.
      */
     private String userId;
@@ -55,7 +60,27 @@ public final class MoneyTransferDto extends AbstractDto {
 
     /**
      *
-     * @return
+     * @return The unique ID of the Payment Gateway. See
+     *         {@link PaymentGatewayPlugin#getId()}.
+     */
+    public String getGatewayId() {
+        return gatewayId;
+    }
+
+    /**
+     * Sets the unique ID of the Payment Gateway. See
+     * {@link PaymentGatewayPlugin#getId()}.
+     *
+     * @param gatewayId
+     *            The gateway ID.
+     */
+    public void setGatewayId(String gatewayId) {
+        this.gatewayId = gatewayId;
+    }
+
+    /**
+     *
+     * @return The user ID.
      */
     public String getUserId() {
         return userId;

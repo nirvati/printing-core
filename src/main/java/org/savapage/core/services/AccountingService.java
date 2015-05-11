@@ -364,14 +364,16 @@ public interface AccountingService {
     /**
      * Accepts funds from a Payment Gateway.
      *
+     * @param lockedUser
+     *            The {@link User} as locked by the caller.
      * @param dto
      *            The {@link UserPaymentGatewayDto}
      * @param orphanedPaymentAccount
      *            The {@link Account} to add funds on when the requesting
      *            {@link User} of the transaction is not found.
      */
-    void acceptFundsFromGateway(UserPaymentGatewayDto dto,
-            Account orphanedPaymentAccount);
+    void acceptFundsFromGateway(final User lockedUser,
+            UserPaymentGatewayDto dto, Account orphanedPaymentAccount);
 
     /**
      * Creates the DTO of a {@link AccountTrx.AccountTrxTypeEnum#DEPOSIT}

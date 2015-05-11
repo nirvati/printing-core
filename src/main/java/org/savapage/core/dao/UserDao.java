@@ -152,10 +152,12 @@ public interface UserDao extends GenericDao<User> {
             Integer maxResults, Field orderBy, boolean sortAscending);
 
     /**
-     * Locks pessimistic.
+     * Finds the active {@link User} and locks pessimistic. See
+     * {@link #findActiveUserByUserId(String)}.
      *
      * @param userId
-     * @return
+     *            The unique user id.
+     * @return {@code null} when not found (or logically deleted).
      */
     User lockByUserId(String userId);
 

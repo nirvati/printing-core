@@ -19,7 +19,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.reports;
+package org.savapage.core.reports.impl;
 
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +29,7 @@ import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.helpers.UserPagerReq;
 import org.savapage.core.dto.AccountDisplayInfoDto;
 import org.savapage.core.jpa.User;
+import org.savapage.core.reports.AbstractJrDataSource;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 
@@ -41,7 +42,7 @@ import net.sf.jasperreports.engine.JRField;
  * @author Datraverse B.V.
  *
  */
-public class JrUserDataSource extends AbstractJrDataSource implements JRDataSource {
+public class UserDataSource extends AbstractJrDataSource implements JRDataSource {
 
     private static final int CHUNK_SIZE = 100;
 
@@ -64,7 +65,7 @@ public class JrUserDataSource extends AbstractJrDataSource implements JRDataSour
      *
      * @param req
      */
-    public JrUserDataSource(final UserPagerReq req, final Locale locale) {
+    public UserDataSource(final UserPagerReq req, final Locale locale) {
 
         super(locale);
 

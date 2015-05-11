@@ -85,6 +85,11 @@ public enum PubTopicEnum {
     PAPERCUT("papercut"),
 
     /**
+     * PaperCut.
+     */
+    PAYMENT_GATEWAY("payment-gateway"),
+
+    /**
      * Proxy Print.
      */
     PROXY_PRINT("proxyprint"),

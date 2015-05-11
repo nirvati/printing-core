@@ -450,14 +450,14 @@ public interface IConfigProp {
 
         /**
          * The base URL, i.e. "protocol://authority" <i>without</i> the path, of
-         * the Web API callback interface (no trailing slash).
+         * the Web API callback interface (no trailing slash) (optional).
          */
         EXT_WEBAPI_CALLBACK_URL_BASE("ext.webapi.callback.url-base",
                 URL_VALIDATOR_OPT, ""),
 
         /**
          * The URL of the User Web App used by the Web API to redirect to after
-         * remote Web App dialog is done.
+         * remote Web App dialog is done (optional).
          */
         EXT_WEBAPI_REDIRECT_URL_WEBAPP_USER(
                 "ext.webapi.redirect.url-webapp-user", URL_VALIDATOR_OPT, ""),

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Generic message loader and parser. This class looks for
+ * Generic XML message loader and parser. This class looks for
  * {@code message_<locale>.xml} files in the same directory as the reference
  * class, which is passed as parameter to all public methods.
  * <p>
@@ -42,8 +42,11 @@ import org.slf4j.LoggerFactory;
  * @author Datraverse B.V.
  *
  */
-public final class Messages {
+public final class Messages extends MessagesBundleMixin {
 
+    /**
+     * .
+     */
     private static final Logger LOGGER = LoggerFactory
             .getLogger(Messages.class);
 
@@ -55,15 +58,7 @@ public final class Messages {
     /**
      *
      */
-    private static final String DEFAULT_LOCALE_LANGUAGE = "en";
-
-    /**
-     *
-     */
-    private static final Locale LOCALE_NO_LANGUAGE = new Locale("");
-
     private Messages() {
-
     }
 
     /**
@@ -73,27 +68,11 @@ public final class Messages {
      * @param locale
      * @return
      */
-    public static ResourceBundle loadResource(Class<? extends Object> klasse,
-            final String xmlResource, Locale locale) {
-
-        final String bundleName =
-                klasse.getPackage().getName() + "." + xmlResource;
-
-        Locale localeWrk = locale;
-
-        if (locale == null) {
-            localeWrk = Locale.getDefault();
-        }
-
-        /*
-         * Make sure the default locale language falls back to 'message.xml'
-         */
-        if (DEFAULT_LOCALE_LANGUAGE.equalsIgnoreCase(localeWrk.getLanguage())) {
-            localeWrk = LOCALE_NO_LANGUAGE;
-        }
-
-        return ResourceBundle.getBundle(bundleName, localeWrk,
-                klasse.getClassLoader(), new XMLResourceBundleControl());
+    public static ResourceBundle loadXmlResource(
+            Class<? extends Object> klasse, final String xmlResource,
+            Locale locale) {
+        return loadResource(klasse, xmlResource, locale,
+                new XMLResourceBundleControl());
     }
 
     /**
@@ -105,8 +84,8 @@ public final class Messages {
      */
     private static String loadMessagePattern(Class<? extends Object> klasse,
             Locale locale, String key) {
-        return loadResource(klasse, DEFAULT_XML_RESOURCE, locale)
-                .getString(key);
+        return loadXmlResource(klasse, DEFAULT_XML_RESOURCE, locale).getString(
+                key);
     }
 
     public static String getMessage(Class<? extends Object> klasse, String key,
@@ -164,8 +143,8 @@ public final class Messages {
      */
     public static boolean
             containsKey(Class<? extends Object> klasse, String key) {
-        return loadResource(klasse, DEFAULT_XML_RESOURCE, null)
-                .containsKey(key);
+        return loadXmlResource(klasse, DEFAULT_XML_RESOURCE, null).containsKey(
+                key);
     }
 
     /**
@@ -176,8 +155,8 @@ public final class Messages {
      */
     public static boolean containsKey(Class<? extends Object> klasse,
             String key, Locale locale) {
-        return loadResource(klasse, DEFAULT_XML_RESOURCE, locale).containsKey(
-                key);
+        return loadXmlResource(klasse, DEFAULT_XML_RESOURCE, locale)
+                .containsKey(key);
     }
 
 }

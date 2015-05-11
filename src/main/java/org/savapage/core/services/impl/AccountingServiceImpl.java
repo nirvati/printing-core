@@ -899,7 +899,7 @@ public final class AccountingServiceImpl extends AbstractService implements
                 formattedCreditLimit =
                         BigDecimalUtil.localize(creditLimit,
                                 ConfigManager.getUserBalanceDecimals(),
-                                ServiceContext.getLocale(), currencySymbolWrk,
+                                locale, currencySymbolWrk,
                                 true);
             } catch (ParseException e) {
                 throw new SpException(e);
@@ -1008,15 +1008,14 @@ public final class AccountingServiceImpl extends AbstractService implements
     }
 
     @Override
-    public void acceptFundsFromGateway(final UserPaymentGatewayDto dto,
+    public void acceptFundsFromGateway(final User user,
+            final UserPaymentGatewayDto dto,
             final Account orphanedPaymentAccount) {
 
         /*
          * Find the account to add the amount on.
          */
         final Account account;
-
-        final User user = userDAO().findActiveUserByUserId(dto.getUserId());
 
         if (user == null) {
             account = orphanedPaymentAccount;

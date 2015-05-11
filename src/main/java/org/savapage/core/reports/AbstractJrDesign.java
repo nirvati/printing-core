@@ -26,9 +26,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Locale;
 
-import org.savapage.core.dto.JrPageLayoutDto;
-import org.savapage.core.fonts.InternalFontFamilyEnum;
-
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
@@ -39,6 +36,9 @@ import net.sf.jasperreports.engine.design.JRDesignTextField;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.type.HorizontalAlignEnum;
 import net.sf.jasperreports.engine.type.VerticalAlignEnum;
+
+import org.savapage.core.dto.JrPageLayoutDto;
+import org.savapage.core.fonts.InternalFontFamilyEnum;
 
 /**
  *
@@ -80,8 +80,9 @@ public abstract class AbstractJrDesign {
      *
      * @return The name of the JasperReports resource bundle.
      */
-    public static String getResourceBundleBaseName() {
-        return AbstractJrDesign.class.getPackage().getName() + ".JrMessages";
+    protected static String getResourceBundleBaseName() {
+        return AbstractJrDesign.class.getPackage().getName()
+                + ".JrMessages";
     }
 
     /**
