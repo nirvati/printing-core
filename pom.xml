@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>savapage-core</artifactId>
     <groupId>org.savapage</groupId>
-    <version>0.9.8</version>
+    <version>0.9.9</version>
 	<name>SavaPage Core Library</name>
     <properties>
         <LICENSE_NAME>GNU Affero General Public License (AGPL)</LICENSE_NAME>
@@ -231,7 +231,7 @@
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
-			<version>6.0.3</version>
+			<version>6.0.4</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>bcmail-jdk14</artifactId>
@@ -320,7 +320,7 @@
         <dependency>
             <groupId>org.savapage</groupId>
             <artifactId>savapage-common</artifactId>
-            <version>0.9.8</version>
+            <version>0.9.9</version>
         </dependency>
         <dependency>
         	<groupId>org.bouncycastle</groupId>
