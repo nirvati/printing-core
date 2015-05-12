@@ -33,66 +33,37 @@ import java.util.PropertyResourceBundle;
 public final class MessagesBundleProp extends MessagesBundleMixin {
 
     /**
-     * @param packagz
-     *            The {@link Package} as container of the resource bundle file.
-     * @param resourceName
-     *            The name of the resource bundle file.
-     *
-     * @return The name of the resource bundle.
-     */
-    protected static String getResourceBundleBaseName(final Package packagz,
-            final String resourceName) {
-        final StringBuilder name = new StringBuilder(128);
-        name.append(packagz.getName()).append('.').append(resourceName);
-        return name.toString();
-    }
-
-    /**
      * Gets a best match {@link PropertyResourceBundle}.
      *
      * @param packagz
      *            The {@link Package} as container of the resource bundle file.
      * @param resourceName
-     *            The name of the resource bundle file.
-     * @param locale
-     *            The {@link Locale} to match.
+     *            The name of the resource bundle without the locale suffix and
+     *            file extension.
+     * @param candidate
+     *            The {@link Locale} candidate to match.
      * @return The best match {@link PropertyResourceBundle}.
      */
     public static PropertyResourceBundle getResourceBundle(
             final Package packagz, final String resourceName,
-            final Locale locale) {
+            final Locale candidate) {
 
         final String resourceBundleBaseName =
                 getResourceBundleBaseName(packagz, resourceName);
 
-        Locale localeUsed = locale;
+        Locale locale = determineLocale(candidate);
 
-        /*
-         * Make sure the base locale language falls back to the bundle basename.
-         */
-        if (BASE_MESSAGE_LANGUAGE.equalsIgnoreCase(localeUsed.getLanguage())) {
-            localeUsed = LOCALE_NO_LANGUAGE;
-        }
-
-        // First match.
         PropertyResourceBundle resourceBundle =
                 (PropertyResourceBundle) PropertyResourceBundle.getBundle(
-                        resourceBundleBaseName, localeUsed);
+                        resourceBundleBaseName, locale);
 
-        /*
-         * If the language of the ResourceBundle found is different from the
-         * language of the requested locale, we switch to the default resource
-         * bundle, i.e. the one without a locale.
-         */
-        if (!localeUsed.getLanguage().equals(
-                resourceBundle.getLocale().getLanguage())) {
+        locale = checkAlternative(locale, resourceBundle);
 
-            localeUsed = LOCALE_NO_LANGUAGE;
+        if (locale != null) {
 
-            // Second trial.
             resourceBundle =
                     (PropertyResourceBundle) PropertyResourceBundle.getBundle(
-                            resourceBundleBaseName, localeUsed);
+                            resourceBundleBaseName, locale);
         }
 
         return resourceBundle;

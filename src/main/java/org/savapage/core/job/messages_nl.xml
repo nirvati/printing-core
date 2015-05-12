@@ -11,7 +11,7 @@
     <entry key="SyncUserGroupsJob.start">Starten gebruikersgroepen synchronisatie...</entry>
 	<entry key="SyncUserGroup.success">Gebruikersgroep "{0}" met succes gesynchroniseerd.</entry>	
     <entry key="SyncUserGroupsJob.success">{0} Gebruikersgroepen met succes gesynchroniseerd.</entry>
-    <entry key="SyncUserGroupsJob.error">{0} Gebruikergroep synchronisatie fout: {1}.</entry>
+    <entry key="SyncUserGroupsJob.error">{0} Gebruikersgroep synchronisatie fout: {1}.</entry>
 	
 	<entry key="MemberCardCheckJob.success">{0}: {1}.</entry>
 	<entry key="MemberCardCheckJob.error">{0} fout: {1}.</entry>

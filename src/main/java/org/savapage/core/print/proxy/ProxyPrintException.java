@@ -26,12 +26,17 @@ package org.savapage.core.print.proxy;
  *
  * @author Datraverse B.V.
  */
-public class ProxyPrintException extends Exception {
+public final class ProxyPrintException extends Exception {
 
     /**
      *
      */
     private static final long serialVersionUID = 1L;
+
+    /**
+     *
+     */
+    private final String logFileMessage;
 
     /**
      * Constructs a new {@link ProxyPrintException}.
@@ -41,6 +46,7 @@ public class ProxyPrintException extends Exception {
      */
     public ProxyPrintException(final Throwable cause) {
         super(cause);
+        logFileMessage = null;
     }
 
     /**
@@ -51,6 +57,20 @@ public class ProxyPrintException extends Exception {
      */
     public ProxyPrintException(final String message) {
         super(message);
+        logFileMessage = message;
+    }
+
+    /**
+     * Constructs a new {@link ProxyPrintException}.
+     *
+     * @param message
+     *            The detail message.
+     * @param logFileMsg
+     *            Localized message used for log files.
+     */
+    public ProxyPrintException(final String message, final String logFileMsg) {
+        super(message);
+        this.logFileMessage = logFileMsg;
     }
 
     /**
@@ -63,6 +83,15 @@ public class ProxyPrintException extends Exception {
      */
     public ProxyPrintException(final String message, final Throwable cause) {
         super(message, cause);
+        logFileMessage = message;
+    }
+
+    /**
+     *
+     * @return Localized message used for log files.
+     */
+    public String getLogFileMessage() {
+        return logFileMessage;
     }
 
 }

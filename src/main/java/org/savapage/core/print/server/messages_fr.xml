@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <entry key="pub-user-print-in-denied">Utilisateur "{0}" imprimer sur la file d'attente "{1}" de {2} nié. Raison: {3}</entry>
+    <entry key="pub-user-print-in-not-authorized">non autorisé</entry>
+
+    <entry key="print-in-denied-drm-restricted">DRM limité</entry>
+    <entry key="print-in-denied-unknown">inconnu</entry>
+    
+</properties>

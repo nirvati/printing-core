@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
+ * Common methods for handling {@link ResourceBundle}.
  *
  * @author Datraverse B.V.
  *
@@ -42,22 +43,18 @@ public abstract class MessagesBundleMixin {
     protected static final Locale LOCALE_NO_LANGUAGE = new Locale("");
 
     /**
+     * Determines the {@link Locale} to be used for the {@link ResourceBundle}.
      *
-     * @param klasse
-     * @param xmlResource
-     * @param locale
-     * @return
+     * @param candidate
+     *            The {@link Locale} candidate. If {@code null} the
+     *            {@link Locale#getDefault()} is used.
+     * @return The {@link Locale} to be used for the {@link ResourceBundle}.
      */
-    protected static ResourceBundle loadResource(
-            Class<? extends Object> klasse, final String xmlResource,
-            final Locale locale, final XMLResourceBundleControl control) {
+    protected static Locale determineLocale(final Locale candidate) {
 
-        final String bundleName =
-                klasse.getPackage().getName() + "." + xmlResource;
+        Locale localeWrk = candidate;
 
-        Locale localeWrk = locale;
-
-        if (locale == null) {
+        if (candidate == null) {
             localeWrk = Locale.getDefault();
         }
 
@@ -68,20 +65,49 @@ public abstract class MessagesBundleMixin {
             localeWrk = LOCALE_NO_LANGUAGE;
         }
 
-        ResourceBundle bundle =
-                ResourceBundle.getBundle(bundleName, localeWrk,
-                        klasse.getClassLoader(), control);
+        return localeWrk;
+    }
 
-        if (!localeWrk.getLanguage().equals(bundle.getLocale().getLanguage())) {
+    /**
+     * @param packagz
+     *            The {@link Package} as container of the resource bundle file.
+     * @param resourceName
+     *            The name of the resource bundle without the locale suffix and
+     *            file extension.
+     * @return The name of the resource bundle.
+     */
+    protected static String getResourceBundleBaseName(final Package packagz,
+            final String resourceName) {
 
-            localeWrk = LOCALE_NO_LANGUAGE;
+        final StringBuilder name = new StringBuilder(128);
+        name.append(packagz.getName()).append('.').append(resourceName);
+        return name.toString();
+    }
 
-            bundle =
-                    ResourceBundle.getBundle(bundleName, localeWrk,
-                            klasse.getClassLoader(), control);
+    /**
+     * Checks if the language of the {@link Locale} candidate matches the
+     * language of the {@link ResourceBundle} candidate.
+     *
+     * @param localeCandidate
+     *            The {@link Locale} candidate.
+     * @param bundleCandidate
+     *            The {@link ResourceBundle} candidate.
+     * @return The alternative {@link Locale} to be used, or {@code null} when
+     *         the candidates match.
+     */
+    protected static Locale checkAlternative(final Locale localeCandidate,
+            final ResourceBundle bundleCandidate) {
+
+        if (localeCandidate.getLanguage().equals(
+                bundleCandidate.getLocale().getLanguage())) {
+            return null;
         }
-
-        return bundle;
+        /*
+         * The language of the ResourceBundle candiadate is different from the
+         * language of the candidate locale, we switch to the default resource
+         * bundle, i.e. the one without a locale.
+         */
+        return LOCALE_NO_LANGUAGE;
     }
 
 }
