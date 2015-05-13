@@ -24,6 +24,7 @@ package org.savapage.core.config;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Currency;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
@@ -154,6 +155,12 @@ public interface IConfigProp {
          */
         FINANCIAL_GLOBAL_CREDIT_LIMIT("financial.global.credit-limit",
                 KeyType.BIG_DECIMAL, "0.00"),
+
+        /**
+         * ISO 4217 codes, like EUR, USD, JPY, ...
+         */
+        FINANCIAL_GLOBAL_CURRENCY_CODE(
+                "financial.global.currency-code", CURRENCY_VALIDATOR),
 
         /**
          * A comma separated list of Point-of-Sale payment methods.
@@ -1676,6 +1683,10 @@ public interface IConfigProp {
          */
         ERROR_LOCALE,
         /**
+         * .
+         */
+        ERROR_CURRENCY,
+        /**
          *
          */
         ERROR_NOT_NUMERIC,
@@ -1844,6 +1855,27 @@ public interface IConfigProp {
     /**
      *
      */
+    static class CurrencyCodeValidator implements Validator {
+
+        @Override
+        public ValidationResult validate(String value) {
+            ValidationResult res = new ValidationResult(value);
+
+            try {
+                if (!value.isEmpty()) {
+                    Currency.getInstance(value);
+                }
+            } catch (Exception e) {
+                res.setStatus(ValidationStatusEnum.ERROR_CURRENCY);
+                res.setMessage(e.getMessage());
+            }
+            return res;
+        }
+    }
+
+    /**
+    *
+    */
     static class LocaleValidator implements Validator {
 
         @Override
@@ -1982,6 +2014,11 @@ public interface IConfigProp {
      * .
      */
     LocaleValidator LOCALE_VALIDATOR = new LocaleValidator();
+
+    /**
+     * .
+     */
+    CurrencyCodeValidator CURRENCY_VALIDATOR = new CurrencyCodeValidator();
 
     /**
      * .

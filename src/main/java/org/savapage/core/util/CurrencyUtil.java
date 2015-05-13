@@ -44,6 +44,86 @@ public class CurrencyUtil {
             .getLogger(CurrencyUtil.class);
 
     /**
+     * Gets the {@link Currency}.
+     *
+     * @param locale
+     *            The {@link Locale} used as default when no currency symbol is
+     *            set.
+     * @return The {@link Currency}.
+     */
+    private static Currency getCurrency(final Locale locale) {
+
+        Currency currency = null;
+
+        try {
+
+            currency = Currency.getInstance(locale);
+
+        } catch (IllegalArgumentException e1) {
+
+            /*
+             * Locale is NOT a supported ISO 3166 country. Try the default
+             * locale instead.
+             */
+            final Locale standardLocale = Locale.getDefault();
+
+            LOGGER.debug("Country [" + locale.getCountry() + "] of Locale ["
+                    + locale.getDisplayName()
+                    + "] is NOT a supported ISO 3166 country."
+                    + " Using Country [" + standardLocale.getCountry()
+                    + "] from Default Locale ["
+                    + standardLocale.getDisplayName() + "]");
+
+            try {
+
+                currency = Currency.getInstance(standardLocale);
+
+            } catch (IllegalArgumentException e2) {
+
+                LOGGER.warn("Country [" + standardLocale.getCountry()
+                        + "] of Default Locale ["
+                        + standardLocale.getDisplayName()
+                        + "] is NOT a supported ISO 3166 country.");
+            }
+        }
+        return currency;
+    }
+
+    /**
+     * Gets the ISO 4217 currency code, like EUR, USD, JPY, ...
+     *
+     * @param locale
+     *            The {@link Locale} used as default when no currency symbol is
+     *            set.
+     * @return The currency code.
+     */
+    public static String getCurrencyCode(final Locale locale) {
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        String currencySymbol =
+                cm.getConfigValue(Key.FINANCIAL_GLOBAL_CURRENCY_CODE);
+
+        if (StringUtils.isNotBlank(currencySymbol)) {
+            return currencySymbol;
+        }
+
+        final Currency currency = getCurrency(locale);
+
+        if (currency == null) {
+            /*
+             * This locale does not have a currency (like Antartica) or an
+             * IllegalArgumentException occurred.
+             */
+            currencySymbol = null;
+        } else {
+            currencySymbol = currency.getSymbol();
+        }
+
+        return currencySymbol;
+    }
+
+    /**
      * Gets the Currency symbol, i.e:
      * <ul>
      * <li>An EMPTY string when currency may NOT be shown</li>
@@ -54,6 +134,9 @@ public class CurrencyUtil {
      * available.</li>
      * </ul>
      *
+     * @param locale
+     *            The {@link Locale} used as default when no currency symbol is
+     *            set.
      * @return The currency symbol.
      */
     public static String getCurrencySymbol(final Locale locale) {
@@ -69,40 +152,7 @@ public class CurrencyUtil {
 
             if (StringUtils.isBlank(currencySymbol)) {
 
-                Currency currency = null;
-
-                try {
-
-                    currency = Currency.getInstance(locale);
-
-                } catch (IllegalArgumentException e1) {
-                    /*
-                     * Locale is NOT a supported ISO 3166 country. Try the
-                     * default locale instead.
-                     */
-                    final Locale standardLocale = Locale.getDefault();
-
-                    LOGGER.debug("Country [" + locale.getCountry()
-                            + "] of Locale [" + locale.getDisplayName()
-                            + "] is NOT a supported ISO 3166 country."
-                            + " Using Country [" + standardLocale.getCountry()
-                            + "] from Default Locale ["
-                            + standardLocale.getDisplayName() + "]");
-
-                    try {
-
-                        currency = Currency.getInstance(standardLocale);
-
-                    } catch (IllegalArgumentException e2) {
-
-                        LOGGER.warn("Country [" + standardLocale.getCountry()
-                                + "] of Default Locale ["
-                                + standardLocale.getDisplayName()
-                                + "] is NOT a supported ISO 3166 country."
-                                + " Using currency symbol ["
-                                + UNKNOWN_CURRENCY_SYMBOL + "]");
-                    }
-                }
+                final Currency currency = getCurrency(locale);
 
                 if (currency == null) {
                     /*
@@ -113,7 +163,6 @@ public class CurrencyUtil {
                 } else {
                     currencySymbol = currency.getSymbol();
                 }
-
             }
 
         }

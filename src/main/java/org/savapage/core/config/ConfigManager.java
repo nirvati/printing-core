@@ -119,6 +119,7 @@ import org.savapage.core.users.LdapUserSource;
 import org.savapage.core.users.NoUserSource;
 import org.savapage.core.users.UnixUserSource;
 import org.savapage.core.users.UserAliasList;
+import org.savapage.core.util.CurrencyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -889,6 +890,16 @@ public final class ConfigManager {
         return String.format("%s.%s.%s (Build %s)",
                 VersionInfo.VERSION_A_MAJOR, VersionInfo.VERSION_B_MINOR,
                 VersionInfo.VERSION_C_REVISION, VersionInfo.VERSION_D_BUILD);
+    }
+
+    /**
+     *
+     * @return The {@link Currency} used in this application, or {@code null}
+     *         when not defined.
+     */
+    public static Currency getAppCurrency() {
+        return Currency.getInstance(CurrencyUtil.getCurrencyCode(ConfigManager
+                .getDefaultLocale()));
     }
 
     /**
