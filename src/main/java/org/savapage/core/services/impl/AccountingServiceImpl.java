@@ -1033,7 +1033,7 @@ public final class AccountingServiceImpl extends AbstractService implements
 
         //
         addFundsToAccount(account, AccountTrxTypeEnum.GATEWAY,
-                dto.getPaymentType(), receiptNumber, dto.getAmount(),
+                dto.getPaymentMethod(), receiptNumber, dto.getAmount(),
                 dto.getComment());
     }
 

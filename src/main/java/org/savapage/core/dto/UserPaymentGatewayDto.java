@@ -35,7 +35,7 @@ public class UserPaymentGatewayDto extends AbstractDto {
 
     private String gatewayId;
     private String transactionId;
-    private String paymentType;
+    private String paymentMethod;
 
     /**
      * The user who requested the payment.
@@ -72,12 +72,12 @@ public class UserPaymentGatewayDto extends AbstractDto {
         this.transactionId = transactionId;
     }
 
-    public String getPaymentType() {
-        return paymentType;
+    public String getPaymentMethod() {
+        return paymentMethod;
     }
 
-    public void setPaymentType(String paymentType) {
-        this.paymentType = paymentType;
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     public String getUserId() {
