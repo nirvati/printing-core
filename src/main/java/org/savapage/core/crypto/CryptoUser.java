@@ -364,14 +364,14 @@ public class CryptoUser {
         String digest;
 
         if (sha1) {
-            digest = DigestUtils.shaHex(bytes);
+            digest = DigestUtils.sha1Hex(bytes);
         } else {
             digest = DigestUtils.md5Hex(bytes);
         }
 
         bytes = (digest + hmacKey).getBytes("UTF-8");
         if (sha1) {
-            return DigestUtils.shaHex(bytes);
+            return DigestUtils.sha1Hex(bytes);
         } else {
             return DigestUtils.md5Hex(bytes);
         }
@@ -408,7 +408,7 @@ public class CryptoUser {
         } catch (UnsupportedEncodingException uee) {
             bytes = input.getBytes();
         }
-        return DigestUtils.shaHex(bytes);
+        return DigestUtils.sha1Hex(bytes);
     }
 
     /**
