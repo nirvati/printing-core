@@ -38,6 +38,8 @@ import net.sf.jasperreports.engine.JasperReport;
 
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.fonts.FontLocation;
+import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.reports.AbstractJrDesign;
 import org.savapage.core.util.MessagesBundleProp;
 
@@ -91,10 +93,6 @@ public abstract class ReportCreator {
      */
     public final void create(final File pdfFile) throws JRException {
 
-        final String fontName =
-                ConfigManager.getConfigFontFamily(
-                        Key.REPORTS_PDF_INTERNAL_FONT_FAMILY).getJrName();
-
         /*
          * Find the best match resource bundle for the report.
          */
@@ -120,7 +118,14 @@ public abstract class ReportCreator {
         final JasperReport jasperReport =
                 JasperCompileManager.compileReport(istr);
 
-        jasperReport.getDefaultStyle().setFontName(fontName);
+        final InternalFontFamilyEnum internalFont =
+                ConfigManager
+                        .getConfigFontFamily(Key.REPORTS_PDF_INTERNAL_FONT_FAMILY);
+
+        if (FontLocation.isFontPresent(internalFont)) {
+            jasperReport.getDefaultStyle()
+                    .setFontName(internalFont.getJrName());
+        }
 
         final Map<String, Object> reportParameters = new HashMap<>();
 

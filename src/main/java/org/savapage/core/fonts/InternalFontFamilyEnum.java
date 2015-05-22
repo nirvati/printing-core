@@ -21,11 +21,11 @@
  */
 package org.savapage.core.fonts;
 
-import org.savapage.core.services.ServiceContext;
-import org.savapage.core.util.Messages;
-
 import net.sf.jasperreports.engine.design.JRDesignStyle;
 import net.sf.jasperreports.engine.design.JRDesignTextField;
+
+import org.savapage.core.services.ServiceContext;
+import org.savapage.core.util.Messages;
 
 /**
  * Internal Fonts packaged with SavaPage.
@@ -58,18 +58,18 @@ public enum InternalFontFamilyEnum {
     /**
      * File name relative to the font directory.
      */
-    private final String fileName;
+    private final String relativePath;
 
     /**
      *
-     * @param fontName
+     * @param name
      *            The font name.
      * @param fileName
      *            The file name relative to the font directory.
      */
-    private InternalFontFamilyEnum(final String fontName, final String fileName) {
-        this.fontName = fontName;
-        this.fileName = fileName;
+    private InternalFontFamilyEnum(final String name, final String fileName) {
+        this.fontName = name;
+        this.relativePath = fileName;
     }
 
     /**
@@ -101,7 +101,15 @@ public enum InternalFontFamilyEnum {
      * @return The path of the font file.
      */
     public String fontFilePath() {
-        return FontLocation.getClassPath() + this.fileName;
+        return FontLocation.getClassPath() + this.relativePath;
+    }
+
+    /**
+     *
+     * @return The relative path of the font file.
+     */
+    public String getRelativePath() {
+        return this.relativePath;
     }
 
 }

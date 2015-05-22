@@ -25,6 +25,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
+import org.savapage.core.fonts.FontLocation;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.pdf.ITextPdfCreator;
 
@@ -71,18 +72,26 @@ public class TextToPdf implements IStreamConverter {
         try {
 
             document =
-                    new Document(ITextPdfCreator.getDefaultPageSize(), marginLeft,
-                            marginRight, marginTop, marginBottom);
+                    new Document(ITextPdfCreator.getDefaultPageSize(),
+                            marginLeft, marginRight, marginTop, marginBottom);
 
-            /*
-             * Get the font: for now fixed to DejaVu.
-             */
-            final BaseFont bf = ITextPdfCreator.createFont(this.internalFont);
+            final Font fontWrk;
 
-            /*
-             * Use default font size, instead of e.g. new Font(bf, 20);
-             */
-            final Font fontWrk = new Font(bf);
+            if (this.internalFont != null
+                    && FontLocation.isFontPresent(this.internalFont)) {
+                /*
+                 * Get the font: for now fixed to DejaVu.
+                 */
+                final BaseFont bf =
+                        ITextPdfCreator.createFont(this.internalFont);
+                /*
+                 * Use default font size, instead of e.g. new Font(bf, 20);
+                 */
+                fontWrk = new Font(bf);
+            } else {
+                fontWrk = null;
+            }
+
             /*
              *
              */
@@ -97,6 +106,9 @@ public class TextToPdf implements IStreamConverter {
             while (line != null) {
                 if (line.isEmpty()) {
                     document.add(Chunk.NEWLINE);
+                } else if (fontWrk == null) {
+                    // Fall-back to default PDF font (Helvetica).
+                    document.add(new Paragraph(line));
                 } else {
                     document.add(new Paragraph(line, fontWrk));
                 }
@@ -111,5 +123,4 @@ public class TextToPdf implements IStreamConverter {
 
         return istr.getBytesRead();
     }
-
 }

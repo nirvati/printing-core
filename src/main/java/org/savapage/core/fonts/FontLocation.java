@@ -30,6 +30,8 @@ import java.io.File;
  */
 public class FontLocation {
 
+    private static final String TRUETYPE_DIRECTORY = "truetype";
+
     /**
      * The {@link FontLocation} is loaded on first access of
      * {@link SingletonHolder#INSTANCE}, not before.
@@ -46,31 +48,48 @@ public class FontLocation {
     }
 
     /**
-     * @return The absolute classpath of the font base directory with '/'
-     *         appended.
+     * @return The absolute classpath of the truetype font base directory with
+     *         '/' appended.
      */
     public static String getClassPath() {
         return SingletonHolder.INSTANCE.createClassPath();
     }
 
     /**
-     * @return The absolute classpath of the font base directory with '/'
-     *         appended.
+     * @return The absolute classpath of the truetype font base directory with
+     *         '/' appended.
      */
     private String createClassPath() {
 
         final Class<?> referenceClass = FontLocation.class;
 
-        final StringBuilder buffer = new StringBuilder();
+        final StringBuilder path = new StringBuilder();
 
-        buffer.append(File.separatorChar);
-        buffer.append(referenceClass.getPackage().getName()
+        path.append(File.separatorChar);
+        path.append(referenceClass.getPackage().getName()
                 .replace('.', File.separatorChar));
-        buffer.append(File.separatorChar);
-        buffer.append("truetype");
-        buffer.append(File.separatorChar);
+        path.append(File.separatorChar);
+        path.append(TRUETYPE_DIRECTORY);
+        path.append(File.separatorChar);
 
-        return buffer.toString();
+        return path.toString();
+    }
+
+    /**
+     * Checks if font file is present.
+     *
+     * @param font
+     *            The {@link InternalFontFamilyEnum}.
+     * @return {@code true} if the font file is present.
+     */
+    public static boolean isFontPresent(final InternalFontFamilyEnum font) {
+
+        final StringBuilder path = new StringBuilder();
+
+        path.append(TRUETYPE_DIRECTORY).append(File.separatorChar)
+                .append(font.getRelativePath());
+
+        return FontLocation.class.getResource(path.toString()) != null;
     }
 
 }

@@ -29,17 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import org.savapage.core.SpException;
-import org.savapage.core.dao.AccountVoucherDao;
-import org.savapage.core.dao.AccountVoucherDao.DbVoucherType;
-import org.savapage.core.dto.JrPageLayoutDto;
-import org.savapage.core.dto.JrPageSizeDto;
-import org.savapage.core.dto.JrVoucherPageLayoutDto;
-import org.savapage.core.fonts.InternalFontFamilyEnum;
-import org.savapage.core.jpa.AccountVoucher;
-import org.savapage.core.services.ServiceContext;
-import org.savapage.core.util.BigDecimalUtil;
-
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
@@ -53,6 +42,18 @@ import net.sf.jasperreports.engine.type.HorizontalAlignEnum;
 import net.sf.jasperreports.engine.type.ModeEnum;
 import net.sf.jasperreports.engine.type.PrintOrderEnum;
 import net.sf.jasperreports.engine.type.VerticalAlignEnum;
+
+import org.savapage.core.SpException;
+import org.savapage.core.dao.AccountVoucherDao;
+import org.savapage.core.dao.AccountVoucherDao.DbVoucherType;
+import org.savapage.core.dto.JrPageLayoutDto;
+import org.savapage.core.dto.JrPageSizeDto;
+import org.savapage.core.dto.JrVoucherPageLayoutDto;
+import org.savapage.core.fonts.FontLocation;
+import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.jpa.AccountVoucher;
+import org.savapage.core.services.ServiceContext;
+import org.savapage.core.util.BigDecimalUtil;
 
 /**
  *
@@ -401,7 +402,11 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
         JRDesignStyle baseStyle = new JRDesignStyle();
         baseStyle.setDefault(true);
         baseStyle.setName("Base");
-        baseStyle.setFontName(defaultFontName.getJrName());
+
+        if (FontLocation.isFontPresent(defaultFontName)) {
+            baseStyle.setFontName(defaultFontName.getJrName());
+        }
+
         jasperDesign.addStyle(baseStyle);
 
         // Parameters

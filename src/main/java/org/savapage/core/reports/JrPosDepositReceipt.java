@@ -46,6 +46,7 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dto.JrPageLayoutDto;
 import org.savapage.core.dto.JrPageSizeDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
+import org.savapage.core.fonts.FontLocation;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
@@ -261,7 +262,9 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
         jasperDesign.setPrintOrder(layout.getPrintOrder());
 
         // Default Style
-        jasperDesign.addStyle(createDefaultBaseStyle(defaultFontName));
+        if (FontLocation.isFontPresent(defaultFontName)) {
+            jasperDesign.addStyle(createDefaultBaseStyle(defaultFontName));
+        }
 
         // Parameters
         addParameters(jasperDesign, new String[] { PARM_APP_VERSION,
