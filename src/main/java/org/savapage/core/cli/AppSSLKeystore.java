@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.math.BigInteger;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -44,6 +45,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -93,45 +95,51 @@ public final class AppSSLKeystore extends AbstractApp {
     private static final String CLI_OPTION_SYSTEM_NAME = "system-name";
 
     /** */
-    private final String myKeystoreDefault;
+    private final String keystorePathDefault;
 
     /** */
-    private final String myHostnameDefault;
-
-    /** */
-    private String myKeystorePassword;
-
-    /** */
-    private String myKeyEntryPassword;
+    private final String hostnameDefault;
 
     /**
-     * @throws Exception
-     *
+     * Password of the keystore.
      */
-    private AppSSLKeystore() throws Exception {
+    private String keystorePassword;
+
+    /**
+     * Password for the SSL certificate key entry in the keystore.
+     */
+    private String keyEntryPassword;
+
+    /**
+     *
+     * @throws UnknownHostException
+     *             If the default hostname could not be determined
+     */
+    private AppSSLKeystore() throws UnknownHostException {
 
         final String relPath = "data/default-ssl-keystore";
 
         if (ConfigManager.getServerHome() == null) {
-            myKeystoreDefault = relPath;
+            this.keystorePathDefault = relPath;
         } else {
-            myKeystoreDefault = ConfigManager.getServerHome() + "/" + relPath;
+            this.keystorePathDefault =
+                    ConfigManager.getServerHome() + "/" + relPath;
         }
-        myHostnameDefault = InetAddress.getLocalHost().getHostName();
-
+        this.hostnameDefault = InetAddress.getLocalHost().getHostName();
     }
 
     /**
-     * @throws IOException
      *
+     * @throws IOException
+     *             When password file could not be read or written.
      */
-    synchronized private void lazyCreateDefaultPasswords() throws IOException {
+    private synchronized void lazyCreateDefaultPasswords() throws IOException {
 
         final int pwLength = 48;
         final String propKeyPassword = "password";
 
-        Properties props = new Properties();
-        File filePw =
+        final Properties props = new Properties();
+        final File filePw =
                 new File(ConfigManager.getServerHome()
                         + "/data/default-ssl-keystore.pw");
 
@@ -154,16 +162,12 @@ public final class AppSSLKeystore extends AbstractApp {
             }
 
         } finally {
-            if (writer != null) {
-                writer.close();
-            }
-            if (istr != null) {
-                istr.close();
-            }
+            IOUtils.closeQuietly(writer);
+            IOUtils.closeQuietly(istr);
         }
 
-        myKeystorePassword = pw;
-        myKeyEntryPassword = pw;
+        this.keystorePassword = pw;
+        this.keyEntryPassword = pw;
     }
 
     /**
@@ -178,17 +182,12 @@ public final class AppSSLKeystore extends AbstractApp {
      *            The keystore file.
      * @param holderCommonName
      *            CN name of the holder.
-     * @param keystorePassword
-     *            Password for the keystore.
-     * @param keyPassword
-     *            Password for the SSL certificate key entry in the keystore.
      *
      * @throws Exception
      *             When things went wrong.
      */
     private void createKeystore(final File keystoreFile,
-            final String holderCommonName, final String keystorePassword,
-            final String keyPassword) throws Exception {
+            final String holderCommonName) throws Exception {
 
         /*
          * GENERATE THE PUBLIC/PRIVATE RSA KEY PAIR
@@ -216,17 +215,19 @@ public final class AppSSLKeystore extends AbstractApp {
         /*
          * GENERATE THE X509 CERTIFICATE
          */
-        byte[] publickeyb = keyPair.getPublic().getEncoded();
+        final byte[] publickeyb = keyPair.getPublic().getEncoded();
 
-        SubjectPublicKeyInfo subPubKeyInfo =
+        final SubjectPublicKeyInfo subPubKeyInfo =
                 new SubjectPublicKeyInfo(
                         (ASN1Sequence) ASN1Primitive.fromByteArray(publickeyb));
 
+        // Mantis #560
         final X500Name holder = new X500Name("CN=" + holderCommonName);
-        final X500Name issuer =
-                new X500Name("CN=" + CommunityDictEnum.SAVAPAGE.getWord()
-                        + " Self-Signed Certificate");
-        final BigInteger serial = BigInteger.ONE;
+        final X500Name issuer = holder;
+
+        // Mantis #560
+        final BigInteger serial =
+                BigInteger.valueOf(System.currentTimeMillis());
 
         /*
          * SAMPLE:
@@ -260,20 +261,22 @@ public final class AppSSLKeystore extends AbstractApp {
                 new X509v3CertificateBuilder(issuer, serial, dateNotBefore,
                         dateNotAfter, holder, subPubKeyInfo);
 
-        ContentSigner contentSigner =
-                new JcaContentSignerBuilder("SHA1withRSA").setProvider("BC")
+        // Mantis #561
+        final ContentSigner contentSigner =
+                new JcaContentSignerBuilder("SHA256WithRSA").setProvider("BC")
                         .build(keyPair.getPrivate());
 
-        X509CertificateHolder certHolder = certBuilder.build(contentSigner);
+        final X509CertificateHolder certHolder =
+                certBuilder.build(contentSigner);
 
-        X509Certificate cert =
+        final X509Certificate cert =
                 new JcaX509CertificateConverter().setProvider("BC")
                         .getCertificate(certHolder);
 
         /*
          * Create empty keystore
          */
-        KeyStore ks = KeyStore.getInstance("JKS");
+        final KeyStore ks = KeyStore.getInstance("JKS");
         ks.load(null);
 
         /*
@@ -281,15 +284,17 @@ public final class AppSSLKeystore extends AbstractApp {
          */
         final String alias = CommunityDictEnum.SAVAPAGE.getWord();
 
-        ks.setKeyEntry(alias, keyPair.getPrivate(), keyPassword.toCharArray(),
+        ks.setKeyEntry(alias, keyPair.getPrivate(),
+                this.keyEntryPassword.toCharArray(),
                 new X509Certificate[] { cert });
 
         /*
          * Write keystore
          */
-        FileOutputStream ostr = new FileOutputStream(keystoreFile);
-        ks.store(ostr, keystorePassword.toCharArray());
-        ostr.close();
+        final FileOutputStream ostr = new FileOutputStream(keystoreFile);
+        ks.store(ostr, this.keystorePassword.toCharArray());
+
+        IOUtils.closeQuietly(ostr);
     }
 
     /**
@@ -297,14 +302,17 @@ public final class AppSSLKeystore extends AbstractApp {
      * @param ksFile
      *            The keystore file.
      * @param password
+     *            The keystore password
      * @throws Exception
+     *             When IO errors or certificate errors.
      */
     @SuppressWarnings("unused")
     private void displayKeystore(final File ksFile, final String password)
             throws Exception {
 
-        KeyStore ks = KeyStore.getInstance("JKS");
+        final KeyStore ks = KeyStore.getInstance("JKS");
         ks.load(new FileInputStream(ksFile), password.toCharArray());
+
         final String alias = ks.aliases().nextElement();
         X509Certificate t = (X509Certificate) ks.getCertificate(alias);
 
@@ -327,9 +335,9 @@ public final class AppSSLKeystore extends AbstractApp {
     }
 
     @Override
-    protected final Options createCliOptions() throws Exception {
+    protected Options createCliOptions() throws Exception {
 
-        Options options = new Options();
+        final Options options = new Options();
 
         //
         options.addOption(CLI_SWITCH_HELP, CLI_SWITCH_HELP_LONG, false,
@@ -338,7 +346,8 @@ public final class AppSSLKeystore extends AbstractApp {
         //
         options.addOption(CLI_SWITCH_DEFAULT, CLI_SWITCH_DEFAULT_LONG, false,
                 "Creates the default keystore file '"
-                        + new File(myKeystoreDefault).getAbsolutePath() + "'.");
+                        + new File(this.keystorePathDefault).getAbsolutePath()
+                        + "'.");
 
         //
         OptionBuilder.hasArg(true);
@@ -354,7 +363,9 @@ public final class AppSSLKeystore extends AbstractApp {
         OptionBuilder
                 .withDescription("The name of the computer/server used for the "
                         + "SSL Certificate. If not set the current "
-                        + "computer name '" + myHostnameDefault + "' is used.");
+                        + "computer name '"
+                        + this.hostnameDefault
+                        + "' is used.");
         options.addOption(OptionBuilder.create());
 
         //
@@ -373,8 +384,8 @@ public final class AppSSLKeystore extends AbstractApp {
         // ......................................................
         // Parse parameters from CLI
         // ......................................................
-        Options options = createCliOptions();
-        CommandLineParser parser = new PosixParser();
+        final Options options = createCliOptions();
+        final CommandLineParser parser = new PosixParser();
         CommandLine cmd = null;
 
         try {
@@ -412,12 +423,11 @@ public final class AppSSLKeystore extends AbstractApp {
         if (cmd.hasOption(CLI_SWITCH_DEFAULT)
                 || cmd.hasOption(CLI_SWITCH_DEFAULT_LONG)) {
 
-            File file = new File(myKeystoreDefault);
+            File file = new File(this.keystorePathDefault);
             final boolean exists = file.exists();
 
             if (forceCreate || !exists) {
-                createKeystore(file, myHostnameDefault, myKeystorePassword,
-                        myKeyEntryPassword);
+                createKeystore(file, this.hostnameDefault);
             }
 
             if (!forceCreate && exists) {
@@ -432,11 +442,11 @@ public final class AppSSLKeystore extends AbstractApp {
          * Create the custom key store
          */
         final String systemName =
-                cmd.getOptionValue(CLI_OPTION_SYSTEM_NAME, myHostnameDefault);
+                cmd.getOptionValue(CLI_OPTION_SYSTEM_NAME, this.hostnameDefault);
 
         final File keystore =
                 new File(cmd.getOptionValue(CLI_OPTION_CREATE,
-                        myKeystoreDefault));
+                        this.keystorePathDefault));
 
         if (keystore.isDirectory()) {
             getErrorDisplayStream().println(
@@ -453,18 +463,17 @@ public final class AppSSLKeystore extends AbstractApp {
             return EXIT_CODE_ERROR;
         }
 
-        createKeystore(keystore, systemName, myKeystorePassword,
-                myKeyEntryPassword);
+        createKeystore(keystore, systemName);
 
         return EXIT_CODE_OK;
     }
 
-    /**
-     * Initialize as basic library. See
-     * {@link ConfigManager#initAsBasicLibrary(Properties)}.
-     */
     @Override
     protected void onInit() throws Exception {
+        /*
+         * Initialize as basic library. See {@link
+         * ConfigManager#initAsBasicLibrary(Properties)}.
+         */
         ConfigManager.instance().init(RunMode.LIB, DatabaseTypeEnum.Internal);
     }
 
