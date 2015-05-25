@@ -8,6 +8,8 @@
     <properties>
         <LICENSE_NAME>GNU Affero General Public License (AGPL)</LICENSE_NAME>
         <LICENSE_URL>http://www.gnu.org/licenses/agpl-3.0.txt</LICENSE_URL>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
     <licenses>
       <license>
@@ -50,7 +52,7 @@
 						<id>version-info</id>
 						<phase>generate-sources</phase>
 						<configuration>
-							<tasks>
+							<target>
 								<echo message="*** GENERATING VersionInfo.java ***" />
 								<property name="_src.dir" value="${project.build.sourceDirectory}" />
 								<property name="_product.package" value="org.savapage.core" />
@@ -63,7 +65,7 @@
 								<ant antfile="${basedir}/build.xml">
 									<target name="versioninfo" />
 								</ant>
-							</tasks>
+							</target>
 						</configuration>
 						<goals>
 							<goal>run</goal>
