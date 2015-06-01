@@ -1892,23 +1892,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                                 requestingUser), response);
 
         /*
-         * NOTE: it is possible that there are NO subscriptions for the user,
-         * this will result in status IppStatusCode.CLI_NOTFND or
-         * IppStatusCode.CLI_NOTPOS.
-         *
-         * This occurs when the installation was not fully completed, i.e. some
-         * scripts must be executed as root (one of them installing the CUPS
-         * notifier).
+         * NOTE: When this is a first-time subscription it is possible that
+         * there are NO subscriptions for the user, this will result in status
+         * IppStatusCode.CLI_NOTFND or IppStatusCode.CLI_NOTPOS.
          */
-        if (statusCode == IppStatusCode.CLI_NOTFND
-                || statusCode != IppStatusCode.CLI_NOTPOS) {
-            LOGGER.error(String.format(
-                    "Failed to get CUPS subscriptions [%s] : "
-                            + "did you install the %s CUPS notifier?",
-                    statusCode.toString(), CommunityDictEnum.SAVAPAGE.getWord()));
-            return;
-        }
-
         if (statusCode != IppStatusCode.OK
                 && statusCode != IppStatusCode.CLI_NOTFND
                 && statusCode != IppStatusCode.CLI_NOTPOS) {
