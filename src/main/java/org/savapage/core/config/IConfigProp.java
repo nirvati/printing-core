@@ -24,6 +24,7 @@ package org.savapage.core.config;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.Currency;
 import java.util.Date;
 import java.util.Locale;
@@ -159,8 +160,8 @@ public interface IConfigProp {
         /**
          * ISO 4217 codes, like EUR, USD, JPY, ...
          */
-        FINANCIAL_GLOBAL_CURRENCY_CODE(
-                "financial.global.currency-code", CURRENCY_VALIDATOR),
+        FINANCIAL_GLOBAL_CURRENCY_CODE("financial.global.currency-code",
+                CURRENCY_VALIDATOR),
 
         /**
          * A comma separated list of Point-of-Sale payment methods.
@@ -206,6 +207,34 @@ public interface IConfigProp {
                         .toString()),
 
         /**
+         * URL of external user page with information about the Bitcoin
+         * transaction hash. The value is in {@link MessageFormat} pattern where
+         * {0} is the hash. E.g.
+         *
+         * <pre>
+         * https://blockchain.info/tx-index/{0}
+         * https://blockexplorer.com/tx/{0}
+         * </pre>
+         */
+        FINANCIAL_BITCOIN_USER_PAGE_URL_PATTERN_TRX(
+                "financial.bitcoin.user-page.url-pattern.trx",
+                URL_VALIDATOR_OPT),
+
+        /**
+         * URL of external user page with information about the Bitcoin address.
+         * The value is in {@link MessageFormat} pattern where {0} is the
+         * address. E.g.
+         *
+         * <pre>
+         * https://blockchain.info/address/{0}
+         * https://blockexplorer.com/address/{0}
+         * </pre>
+         */
+        FINANCIAL_BITCOIN_USER_PAGE_URL_PATTERN_ADDRESS(
+                "financial.bitcoin.user-page.url-pattern.address",
+                URL_VALIDATOR_OPT),
+
+        /**
          * E.g.: €.
          */
         USER_FIN_CURRENCY_SYMBOL_CUSTOM("user.fin.currency-symbol.custom"),
@@ -213,7 +242,7 @@ public interface IConfigProp {
         /**
          *
          */
-        USER_FIN_CURRENTCY_SYMBOL_SHOWS("user.fin.currency-symbol.show",
+        USER_FIN_CURRENCY_SYMBOL_SHOWS("user.fin.currency-symbol.show",
                 BOOLEAN_VALIDATOR, V_YES),
 
         /**
@@ -1452,6 +1481,14 @@ public interface IConfigProp {
                 V_NO),
 
         /**
+         * Number of seconds after which cached Bitcoin wallet information
+         * expires.
+         */
+        WEBAPP_ADMIN_BITCOIN_WALLET_CACHE_EXPIRY_SECS(
+                "webapp.admin.bitcoin.wallet.cache-expiry-secs",
+                NUMBER_VALIDATOR, "3600"),
+
+        /**
          * User WebApp: Max. copies for proxy printing.
          */
         WEBAPP_USER_PROXY_PRINT_MAX_COPIES(
@@ -1857,12 +1894,26 @@ public interface IConfigProp {
      */
     static class CurrencyCodeValidator implements Validator {
 
+        /**
+         * {@code true} if value is optional.
+         */
+        private final boolean isOptional;
+
+        /**
+         * @param optional
+         *            {@code true} if value is optional.
+         */
+        public CurrencyCodeValidator(final boolean optional) {
+            super();
+            this.isOptional = optional;
+        }
+
         @Override
         public ValidationResult validate(String value) {
             ValidationResult res = new ValidationResult(value);
 
             try {
-                if (!value.isEmpty()) {
+                if (!this.isOptional || !value.isEmpty()) {
                     Currency.getInstance(value);
                 }
             } catch (Exception e) {
@@ -2018,7 +2069,7 @@ public interface IConfigProp {
     /**
      * .
      */
-    CurrencyCodeValidator CURRENCY_VALIDATOR = new CurrencyCodeValidator();
+    CurrencyCodeValidator CURRENCY_VALIDATOR = new CurrencyCodeValidator(false);
 
     /**
      * .

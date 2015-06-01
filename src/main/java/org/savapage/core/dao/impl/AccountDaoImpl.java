@@ -21,12 +21,14 @@
  */
 package org.savapage.core.dao.impl;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.savapage.core.dao.AccountDao;
+import org.savapage.core.dao.helpers.AggregateResult;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 
@@ -142,6 +144,47 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
         this.create(account);
 
         return account;
+    }
+
+    @Override
+    public AggregateResult<BigDecimal> getBalanceStats(
+            final boolean userAccounts, final boolean debit) {
+
+        final StringBuilder jpql = new StringBuilder();
+
+        jpql.append("SELECT count(*), sum(A.balance), "
+                + "min(A.balance), max(A.balance), avg(A.balance) "
+                + "FROM Account A WHERE A.deleted = false AND A.accountType ");
+
+        if (userAccounts) {
+            jpql.append("is not");
+        } else {
+            jpql.append("=");
+        }
+
+        jpql.append(" :accountType AND A.balance ");
+
+        if (debit) {
+            jpql.append("> 0");
+        } else {
+            jpql.append("< 0");
+        }
+
+        final Query query = getEntityManager().createQuery(jpql.toString());
+
+        query.setParameter("accountType", AccountTypeEnum.SHARED.toString());
+
+        try {
+            final Object[] result = (Object[]) query.getSingleResult();
+
+            return new AggregateResult<BigDecimal>((Long) result[0],
+                    (BigDecimal) result[1], (BigDecimal) result[2],
+                    (BigDecimal) result[3], (Double) result[4]);
+
+        } catch (NoResultException e) {
+            return new AggregateResult<BigDecimal>();
+        }
+
     }
 
 }

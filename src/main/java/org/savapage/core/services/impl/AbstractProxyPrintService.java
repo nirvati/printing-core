@@ -1533,7 +1533,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         accountingService().validateProxyPrintUserCost(lockedUser, totCost,
-                ServiceContext.getLocale(), ServiceContext.getCurrencySymbol());
+                ServiceContext.getLocale(),
+                ServiceContext.getAppCurrencySymbol());
 
         int nTotWlk = 0;
 
@@ -2028,7 +2029,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final BigDecimal cost =
                 accountingService().calcProxyPrintCost(
                         ServiceContext.getLocale(),
-                        ServiceContext.getCurrencySymbol(), lockedUser,
+                        ServiceContext.getAppCurrencySymbol(), lockedUser,
                         printer, costParms, request.getJobChunkInfo());
 
         request.setCost(cost);

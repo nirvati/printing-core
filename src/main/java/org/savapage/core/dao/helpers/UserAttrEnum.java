@@ -35,6 +35,13 @@ import org.savapage.core.jpa.UserAttr;
 public enum UserAttrEnum {
 
     /**
+     * The pending bitcoin address created for a {@link User} payment
+     * transaction. This address is deleted when consumed, i.e. upon first
+     * confirmation.
+     */
+    BITCOIN_PAYMENT_ADDRESS("bitcoin.payment.address"),
+
+    /**
      * Password of an Internal user.
      */
     INTERNAL_PASSWORD("internal-password"),
@@ -189,8 +196,8 @@ public enum UserAttrEnum {
             + "-month.bytes");
 
     /**
-         *
-         */
+     * Lookup {@link UserAttrEnum} by database name.
+     */
     private static class Lookup {
 
         /**
@@ -220,8 +227,8 @@ public enum UserAttrEnum {
     }
 
     /**
-         *
-         */
+     * The name used in the database.
+     */
     private final String name;
 
     /**
@@ -231,6 +238,12 @@ public enum UserAttrEnum {
         public static final Lookup INSTANCE = new Lookup();
     }
 
+    /**
+     *
+     * @param name
+     *            The database name.
+     * @return The {@link UserAttrEnum}.
+     */
     public static UserAttrEnum asEnum(final String name) {
         return LookupHolder.INSTANCE.get(name);
     }
@@ -238,6 +251,7 @@ public enum UserAttrEnum {
     /**
      *
      * @param name
+     *            The database name.
      */
     private UserAttrEnum(final String name) {
         this.name = name;
@@ -245,7 +259,7 @@ public enum UserAttrEnum {
 
     /**
      *
-     * @return
+     * @return The database name.
      */
     public final String getName() {
         return this.name;

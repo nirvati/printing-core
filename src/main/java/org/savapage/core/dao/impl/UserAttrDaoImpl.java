@@ -71,6 +71,30 @@ public final class UserAttrDaoImpl extends GenericDaoImpl<UserAttr> implements
     }
 
     @Override
+    public UserAttr
+            findByNameValue(final UserAttrEnum name, final String value) {
+
+        final String jpql =
+                "SELECT A FROM UserAttr A "
+                        + "WHERE A.name = :name AND A.value = :value";
+
+        final Query query = getEntityManager().createQuery(jpql);
+
+        query.setParameter("name", name.getName());
+        query.setParameter("value", value);
+
+        UserAttr result = null;
+
+        try {
+            result = (UserAttr) query.getSingleResult();
+        } catch (NoResultException e) {
+            result = null;
+        }
+
+        return result;
+    }
+
+    @Override
     public void deleteRollingStats() {
         final String jpql = "DELETE UserAttr A WHERE A.name LIKE :name";
         final Query query = getEntityManager().createQuery(jpql);

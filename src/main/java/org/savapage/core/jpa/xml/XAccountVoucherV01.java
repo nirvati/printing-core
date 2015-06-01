@@ -66,6 +66,14 @@ public class XAccountVoucherV01 extends XEntityVersion {
     private BigDecimal valueAmount;
 
     /**
+     * Currency Code: EUR, USD, etc.
+     *
+     * @since 0.9.9
+     */
+    @Column(name = "currency_code", length = 3, nullable = true)
+    private String currencyCode;
+
+    /**
      * CARD | TRX
      */
     @Column(name = "voucher_type", length = 16, nullable = false)
@@ -315,6 +323,14 @@ public class XAccountVoucherV01 extends XEntityVersion {
 
     public void setRedeemedDate(Date redeemedDate) {
         this.redeemedDate = redeemedDate;
+    }
+
+    public String getCurrencyCode() {
+        return currencyCode;
+    }
+
+    public void setCurrencyCode(String currencyCode) {
+        this.currencyCode = currencyCode;
     }
 
 }

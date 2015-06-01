@@ -21,9 +21,12 @@
  */
 package org.savapage.core.dao;
 
+import java.math.BigDecimal;
+
+import org.savapage.core.dao.helpers.AggregateResult;
 import org.savapage.core.jpa.Account;
-import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
+import org.savapage.core.jpa.AccountTrx;
 
 /**
  *
@@ -79,5 +82,19 @@ public interface AccountDao extends GenericDao<Account> {
      * @return The number of removed {@link Account} instances.
      */
     int pruneAccounts();
+
+    /**
+     * Gets balance statistics.
+     *
+     * @param userAccounts
+     *            If {@code true} user accounts are totaled, if {@code false}
+     *            shared accounts are totaled.
+     * @param debit
+     *            If {@code true} balances GT zero are totaled, if {@code false}
+     *            balances LT zero are totaled.
+     * @return The {@link AggregateResult}.
+     */
+    AggregateResult<BigDecimal> getBalanceStats(boolean userAccounts,
+            boolean debit);
 
 }

@@ -112,11 +112,14 @@ public class BigDecimalUtil {
     public static String localize(final BigDecimal decimal, int fractionDigits,
             final Locale locale, boolean currency, boolean groupingUsed)
             throws ParseException {
+
         final DecimalFormat df = getDecimalFormat(locale, currency);
+
         df.setParseBigDecimal(true);
         df.setGroupingUsed(groupingUsed);
         df.setMinimumFractionDigits(fractionDigits);
         df.setMaximumFractionDigits(fractionDigits);
+
         return df.format(decimal);
     }
 
@@ -134,8 +137,8 @@ public class BigDecimalUtil {
     public static String localize(final BigDecimal decimal, int fractionDigits,
             final Locale locale, final String currencySymbol,
             boolean groupingUsed) throws ParseException {
-        return currencySymbol
-                + localize(decimal, fractionDigits, locale, groupingUsed);
+        return String.format("%s %s", currencySymbol,
+                localize(decimal, fractionDigits, locale, groupingUsed));
     }
 
     /**
@@ -148,7 +151,7 @@ public class BigDecimalUtil {
      */
     private static DecimalFormat getDecimalFormat(final Locale locale,
             boolean currency) {
-        NumberFormat numberFormat;
+        final NumberFormat numberFormat;
         if (currency) {
             numberFormat = NumberFormat.getCurrencyInstance(locale);
         } else {
@@ -165,9 +168,6 @@ public class BigDecimalUtil {
      *            The localized decimal.
      * @param locale
      *            The {@link Locale} of the localized decimal.
-     * @param currency
-     *            {@code true} when localized decimal contains a currency
-     *            symbol.
      * @param groupingUsed
      *            {@code true} when grouping is used (like {@code 1,000.00} in
      *            {@code en-US}).
@@ -176,7 +176,7 @@ public class BigDecimalUtil {
      *             When format of localized decimal is invalid.
      */
     public static String toPlainString(final String localizedDecimal,
-            final Locale locale, boolean currency, boolean groupingUsed)
+            final Locale locale, final boolean groupingUsed)
             throws ParseException {
         return BigDecimalUtil.toPlainString(BigDecimalUtil.parse(
                 localizedDecimal, locale, false, groupingUsed));

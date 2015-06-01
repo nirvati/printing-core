@@ -24,7 +24,6 @@ package org.savapage.core.reports;
 import java.util.Locale;
 
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.util.CurrencyUtil;
 import org.savapage.core.util.Messages;
 
 /**
@@ -37,7 +36,7 @@ public abstract class AbstractJrDataSource {
     private final Locale locale;
 
     private int userBalanceDecimals;
-    private String currencySymbol;
+    //private String currencySymbol;
 
     /**
      *
@@ -46,7 +45,7 @@ public abstract class AbstractJrDataSource {
     protected AbstractJrDataSource(Locale locale) {
         this.locale = locale;
         this.setUserBalanceDecimals(ConfigManager.getUserBalanceDecimals());
-        this.setCurrencySymbol(CurrencyUtil.getCurrencySymbol(this.locale));
+        //this.setCurrencySymbol(CurrencyUtil.getCurrencySymbol(this.locale));
     }
 
     /**
@@ -72,14 +71,6 @@ public abstract class AbstractJrDataSource {
 
     public void setUserBalanceDecimals(int userBalanceDecimals) {
         this.userBalanceDecimals = userBalanceDecimals;
-    }
-
-    public String getCurrencySymbol() {
-        return currencySymbol;
-    }
-
-    public void setCurrencySymbol(String currencySymbol) {
-        this.currencySymbol = currencySymbol;
     }
 
 }

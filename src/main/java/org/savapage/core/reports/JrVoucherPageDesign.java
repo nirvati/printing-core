@@ -54,6 +54,7 @@ import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.jpa.AccountVoucher;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
+import org.savapage.core.util.CurrencyUtil;
 
 /**
  *
@@ -146,9 +147,13 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
                 return voucherWlk.getCardNumber();
             case FIELD_CARD_VALUE:
                 try {
-                    return BigDecimalUtil.localize(voucherWlk.getValueAmount(),
-                            getUserBalanceDecimals(), this.getLocale(),
-                            getCurrencySymbol(), false);
+                    return BigDecimalUtil.localize(
+                            voucherWlk.getValueAmount(),
+                            getUserBalanceDecimals(),
+                            this.getLocale(),
+                            CurrencyUtil.getCurrencySymbol(
+                                    voucherWlk.getCurrencyCode(),
+                                    voucherWlk.getCurrencyCode()), false);
                 } catch (ParseException e) {
                     throw new SpException(e);
                 }

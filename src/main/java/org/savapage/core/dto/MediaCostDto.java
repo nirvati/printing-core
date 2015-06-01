@@ -96,9 +96,9 @@ public final class MediaCostDto extends AbstractDto {
         oldCost = dto.getCostOneSided();
 
         newCost.setCostColor(BigDecimalUtil.toPlainString(
-                oldCost.getCostColor(), locale, false, false));
+                oldCost.getCostColor(), locale, false));
         newCost.setCostGrayscale(BigDecimalUtil.toPlainString(
-                oldCost.getCostGrayscale(), locale, false, false));
+                oldCost.getCostGrayscale(), locale, false));
 
         //
         newCost = new MediaPageCostDto();
@@ -107,9 +107,9 @@ public final class MediaCostDto extends AbstractDto {
         oldCost = dto.getCostTwoSided();
 
         newCost.setCostColor(BigDecimalUtil.toPlainString(
-                oldCost.getCostColor(), locale, false, false));
+                oldCost.getCostColor(), locale, false));
         newCost.setCostGrayscale(BigDecimalUtil.toPlainString(
-                oldCost.getCostGrayscale(), locale, false, false));
+                oldCost.getCostGrayscale(), locale, false));
 
         //
         return obj;

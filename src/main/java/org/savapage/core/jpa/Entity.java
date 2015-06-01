@@ -49,10 +49,10 @@ import org.savapage.core.jpa.tools.DbTools;
  */
 public class Entity {
 
-    public final static String ACTOR_ADMIN = "[admin]";
-    public final static String ACTOR_SYSTEM = "[system]";
-    public final static String ACTOR_INSTALL = "[install]";
-    public final static String ACTOR_SYSTEM_API = ACTOR_SYSTEM + " (api)";
+    public static final String ACTOR_ADMIN = "[admin]";
+    public static final String ACTOR_SYSTEM = "[system]";
+    public static final String ACTOR_INSTALL = "[install]";
+    public static final String ACTOR_SYSTEM_API = ACTOR_SYSTEM + " (api)";
 
     protected static final int DECIMAL_PRECISION_6 = 6;
     protected static final int DECIMAL_PRECISION_8 = 8;
@@ -61,6 +61,7 @@ public class Entity {
 
     protected static final int DECIMAL_SCALE_2 = 2;
     protected static final int DECIMAL_SCALE_6 = 6;
+    protected static final int DECIMAL_SCALE_8 = 8;
 
     protected Entity() {
     }

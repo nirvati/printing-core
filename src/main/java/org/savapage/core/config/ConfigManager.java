@@ -119,7 +119,6 @@ import org.savapage.core.users.LdapUserSource;
 import org.savapage.core.users.NoUserSource;
 import org.savapage.core.users.UnixUserSource;
 import org.savapage.core.users.UserAliasList;
-import org.savapage.core.util.CurrencyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -893,13 +892,34 @@ public final class ConfigManager {
     }
 
     /**
-     *
      * @return The {@link Currency} used in this application, or {@code null}
      *         when not defined.
      */
     public static Currency getAppCurrency() {
-        return Currency.getInstance(CurrencyUtil.getCurrencyCode(ConfigManager
-                .getDefaultLocale()));
+
+        final String currencyCode =
+                instance().getConfigValue(Key.FINANCIAL_GLOBAL_CURRENCY_CODE);
+
+        if (StringUtils.isBlank(currencyCode)) {
+            return null;
+        }
+
+        return Currency.getInstance(currencyCode);
+    }
+
+    /**
+     * @return The ISO currency code used in this application, or an empty
+     *         string when not defined.
+     */
+    public static String getAppCurrencyCode() {
+
+        final Currency currency = getAppCurrency();
+
+        if (currency == null) {
+            return "";
+        }
+
+        return currency.getCurrencyCode();
     }
 
     /**

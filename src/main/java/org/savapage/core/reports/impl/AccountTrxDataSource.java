@@ -24,6 +24,7 @@ package org.savapage.core.reports.impl;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -34,10 +35,12 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.helpers.AccountTrxPagerReq;
+import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
@@ -47,7 +50,6 @@ import org.savapage.core.reports.AbstractJrDataSource;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
-import org.savapage.core.util.CurrencyUtil;
 
 /**
  *
@@ -77,9 +79,7 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
 
     private final int balanceDecimals = ConfigManager.getUserBalanceDecimals();
 
-    private final String currencySymbol;
-
-    private final DateFormat dfMediumDatetime;
+    private final SimpleDateFormat dfMediumDatetime;
 
     private final User user;
 
@@ -93,11 +93,8 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
 
         super(locale);
 
-        this.currencySymbol = CurrencyUtil.getCurrencySymbol(locale);
-
         this.dfMediumDatetime =
-                DateFormat.getDateTimeInstance(DateFormat.SHORT,
-                        DateFormat.SHORT, locale);
+                new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z", locale);
 
         this.accountingService =
                 ServiceContext.getServiceFactory().getAccountingService();
@@ -165,7 +162,7 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
             where.append(user.getFullName());
         }
 
-        // Not now
+        // Not yet...
         if (false && filter.getAccountType() != null) {
             if (nSelect > 0) {
                 where.append(", ");
@@ -234,7 +231,7 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
     private String formattedCurrency(final BigDecimal decimal) {
         try {
             return BigDecimalUtil.localize(decimal, this.balanceDecimals,
-                    this.getLocale(), this.currencySymbol, true);
+                    this.getLocale(), "", true);
         } catch (ParseException e) {
             return "?";
         }
@@ -245,6 +242,9 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
 
         final DocLog docLog = this.accountTrxWlk.getDocLog();
         final PosPurchase posPurchase = this.accountTrxWlk.getPosPurchase();
+
+        final AccountTrxTypeEnum trxType =
+                AccountTrxTypeEnum.valueOf(this.accountTrxWlk.getTrxType());
 
         final StringBuilder value = new StringBuilder(128);
 
@@ -257,6 +257,11 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
 
         case "TRX_TYPE":
             value.append(this.accountTrxWlk.getTrxType());
+            break;
+
+        case "CURRENCY":
+            value.append(StringUtils.defaultString(accountTrxWlk
+                    .getCurrencyCode()));
             break;
 
         case "AMOUNT":
@@ -277,20 +282,63 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
             if (posPurchase != null) {
                 value.append(posPurchase.getReceiptNumber());
             }
+            if (trxType == AccountTrxTypeEnum.GATEWAY) {
+                value.append(this.accountTrxWlk.getExtMethod());
+            }
             break;
 
-        case "COMMENT":
+        case "DESCRIPTION":
+
             if (docLog == null) {
                 value.append(StringUtils.defaultString(accountTrxWlk
                         .getComment()));
             } else {
                 value.append(StringUtils.defaultString(docLog.getTitle()));
             }
+
             if (posPurchase != null) {
                 value.append(" (")
                         .append(StringUtils.defaultString(posPurchase
                                 .getPaymentType())).append(')');
             }
+
+            if (trxType == AccountTrxTypeEnum.GATEWAY
+                    && this.accountTrxWlk.getExtAmount() != null) {
+
+                try {
+                    value.append(" • ");
+                    value.append(this.accountTrxWlk.getExtCurrencyCode())
+                            .append(" ");
+                    value.append(BigDecimalUtil.localize(
+                            this.accountTrxWlk.getExtAmount(), balanceDecimals,
+                            this.getLocale(), "", true));
+
+                    if (this.accountTrxWlk.getExtFee() != null) {
+
+                        value.append(" -/- ");
+
+                        value.append(BigDecimalUtil.localize(
+                                this.accountTrxWlk.getExtFee(),
+                                balanceDecimals, this.getLocale(), "", true));
+                    }
+
+                } catch (ParseException e) {
+                    throw new SpException(e);
+                }
+
+                if (StringUtils.isNotBlank(this.accountTrxWlk
+                        .getExtMethodAddress())) {
+                    value.append(" • ").append(
+                            this.accountTrxWlk.getExtMethodAddress());
+                }
+
+                if (StringUtils.isNotBlank(this.accountTrxWlk.getExtDetails())) {
+                    value.append(" • ").append(
+                            this.accountTrxWlk.getExtDetails());
+                }
+
+            }
+
             break;
 
         default:

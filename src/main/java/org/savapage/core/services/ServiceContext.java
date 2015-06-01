@@ -24,11 +24,11 @@ package org.savapage.core.services;
 import java.util.Date;
 import java.util.Locale;
 
+import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.impl.DaoContextImpl;
 import org.savapage.core.jpa.Entity;
 import org.savapage.core.services.impl.ServiceFactoryImpl;
-import org.savapage.core.util.CurrencyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -207,8 +207,8 @@ public final class ServiceContext {
      *
      * @return The currency symbol.
      */
-    public static String getCurrencySymbol() {
-        return CurrencyUtil.getCurrencySymbol(getLocale());
+    public static String getAppCurrencySymbol() {
+        return ConfigManager.getAppCurrencyCode();
     }
 
     /**

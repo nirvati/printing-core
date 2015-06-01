@@ -21,6 +21,7 @@
  */
 package org.savapage.core.dto;
 
+import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.PosPurchase;
 
 /**
@@ -30,6 +31,8 @@ import org.savapage.core.jpa.PosPurchase;
  *
  */
 public class PosDepositReceiptDto extends PosDepositDto {
+
+    private AccountTrx accountTrx;
 
     private String userFullName;
 
@@ -79,6 +82,14 @@ public class PosDepositReceiptDto extends PosDepositDto {
 
     public void setTransactedBy(String transactedBy) {
         this.transactedBy = transactedBy;
+    }
+
+    public AccountTrx getAccountTrx() {
+        return accountTrx;
+    }
+
+    public void setAccountTrx(AccountTrx accountTrx) {
+        this.accountTrx = accountTrx;
     }
 
 }

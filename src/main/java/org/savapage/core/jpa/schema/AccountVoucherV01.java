@@ -97,6 +97,14 @@ public class AccountVoucherV01 extends org.savapage.core.jpa.Entity implements
     private BigDecimal valueAmount;
 
     /**
+     * Currency Code: EUR, USD, etc.
+     *
+     * @since 0.9.9
+     */
+    @Column(name = "currency_code", length = 3, nullable = true)
+    private String currencyCode;
+
+    /**
      * CARD | TRX
      */
     @Column(name = "voucher_type", length = 16, nullable = false)
@@ -361,6 +369,14 @@ public class AccountVoucherV01 extends org.savapage.core.jpa.Entity implements
 
     public void setAccountTrx(AccountTrxV01 accountTrx) {
         this.accountTrx = accountTrx;
+    }
+
+    public String getCurrencyCode() {
+        return currencyCode;
+    }
+
+    public void setCurrencyCode(String currencyCode) {
+        this.currencyCode = currencyCode;
     }
 
 }

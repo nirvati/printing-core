@@ -90,62 +90,49 @@ public class CurrencyUtil {
     }
 
     /**
-     * Gets the ISO 4217 currency code, like EUR, USD, JPY, ...
+     * Gets the currency symbol from the ISO currency code using the default
+     * {@link Locale}.
      *
-     * @param locale
-     *            The {@link Locale} used as default when no currency symbol is
-     *            set.
-     * @return The currency code.
+     * @param currencyCode
+     *            The ISO currency code.
+     * @param dfaultSymbol
+     *            The default symbol when no symbol found.
+     * @return The currency symbol.
      */
-    public static String getCurrencyCode(final Locale locale) {
+    public static String getCurrencySymbol(final String currencyCode,
+            final String dfaultSymbol) {
 
-        final ConfigManager cm = ConfigManager.instance();
-
-        String currencySymbol =
-                cm.getConfigValue(Key.FINANCIAL_GLOBAL_CURRENCY_CODE);
-
-        if (StringUtils.isNotBlank(currencySymbol)) {
-            return currencySymbol;
+        try {
+            return Currency.getInstance(currencyCode).getSymbol();
+        } catch (Exception e) {
+            return StringUtils.defaultString(dfaultSymbol);
         }
-
-        final Currency currency = getCurrency(locale);
-
-        if (currency == null) {
-            /*
-             * This locale does not have a currency (like Antartica) or an
-             * IllegalArgumentException occurred.
-             */
-            currencySymbol = null;
-        } else {
-            currencySymbol = currency.getSymbol();
-        }
-
-        return currencySymbol;
     }
 
     /**
-     * Gets the Currency symbol, i.e:
-     * <ul>
-     * <li>An EMPTY string when currency may NOT be shown</li>
-     * <li>A custom symbol as set in
-     * {@link IConfigProp.Key#USER_FIN_CURRENCY_SYMBOL_CUSTOM}</li>
-     * <li>The currency belonging to {@link Locale#getCountry()}</li>
-     * <li>{@link #UNKNOWN_CURRENCY_SYMBOL} when currency symbol is not
-     * available.</li>
-     * </ul>
+     * @deprecated Gets the Currency symbol, i.e:
+     *             <ul>
+     *             <li>An EMPTY string when currency may NOT be shown</li>
+     *             <li>A custom symbol as set in
+     *             {@link IConfigProp.Key#USER_FIN_CURRENCY_SYMBOL_CUSTOM}</li>
+     *             <li>The currency belonging to {@link Locale#getCountry()}</li>
+     *             <li>{@link #UNKNOWN_CURRENCY_SYMBOL} when currency symbol is
+     *             not available.</li>
+     *             </ul>
      *
      * @param locale
      *            The {@link Locale} used as default when no currency symbol is
      *            set.
      * @return The currency symbol.
      */
+    @Deprecated
     public static String getCurrencySymbol(final Locale locale) {
 
         String currencySymbol = "";
 
         final ConfigManager cm = ConfigManager.instance();
 
-        if (cm.isConfigValue(Key.USER_FIN_CURRENTCY_SYMBOL_SHOWS)) {
+        if (cm.isConfigValue(Key.USER_FIN_CURRENCY_SYMBOL_SHOWS)) {
 
             currencySymbol =
                     cm.getConfigValue(Key.USER_FIN_CURRENCY_SYMBOL_CUSTOM);

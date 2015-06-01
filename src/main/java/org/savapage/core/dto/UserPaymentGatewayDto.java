@@ -23,19 +23,33 @@ package org.savapage.core.dto;
 
 import java.math.BigDecimal;
 
-import org.savapage.core.jpa.PosPurchase;
-
 /**
- * Information for an {@link PosPurchase} deposit.
+ * Information for an user payment using a Payment Gateway.
  *
  * @author Datraverse B.V.
  *
  */
 public class UserPaymentGatewayDto extends AbstractDto {
 
+    /**
+     *
+     */
     private String gatewayId;
+
+    /**
+     *
+     */
     private String transactionId;
+
+    /**
+     * The payment method according to the Payment Gateway Enum.
+     */
     private String paymentMethod;
+
+    /**
+     * Details of the other payment method.
+     */
+    private String paymentMethodOther;
 
     /**
      * The user who requested the payment.
@@ -48,14 +62,50 @@ public class UserPaymentGatewayDto extends AbstractDto {
     private BigDecimal amount;
 
     /**
+     * .
+     */
+    private Integer confirmations;
+
+    /**
      *
      */
     private String comment;
 
     /**
-     *
-     * @return
+     * The ISO currency code of the amount.
      */
+    private String currencyCode;
+
+    /**
+     *
+     */
+    private String paymentMethodAddress;
+
+    /**
+     * Currency Code of the payment method: BTC, EUR, USD, etc.
+     */
+    private String paymentMethodCurrency;
+
+    /**
+     * Exchange rate.
+     */
+    private BigDecimal exchangeRate;
+
+    /**
+     * The amount of the transaction in external currency.
+     */
+    private BigDecimal paymentMethodAmount;
+
+    /**
+     * The fee.
+     */
+    private BigDecimal paymentMethodFee;
+
+    /**
+     * Free format details.
+     */
+    private String paymentMethodDetails;
+
     public String getGatewayId() {
         return gatewayId;
     }
@@ -80,6 +130,14 @@ public class UserPaymentGatewayDto extends AbstractDto {
         this.paymentMethod = paymentMethod;
     }
 
+    public String getPaymentMethodOther() {
+        return paymentMethodOther;
+    }
+
+    public void setPaymentMethodOther(String paymentMethodOther) {
+        this.paymentMethodOther = paymentMethodOther;
+    }
+
     public String getUserId() {
         return userId;
     }
@@ -102,6 +160,70 @@ public class UserPaymentGatewayDto extends AbstractDto {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getCurrencyCode() {
+        return currencyCode;
+    }
+
+    public void setCurrencyCode(String currencyCode) {
+        this.currencyCode = currencyCode;
+    }
+
+    public String getPaymentMethodAddress() {
+        return paymentMethodAddress;
+    }
+
+    public void setPaymentMethodAddress(String paymentMethodAddress) {
+        this.paymentMethodAddress = paymentMethodAddress;
+    }
+
+    public String getPaymentMethodCurrency() {
+        return paymentMethodCurrency;
+    }
+
+    public void setPaymentMethodCurrency(String paymentMethodCurrency) {
+        this.paymentMethodCurrency = paymentMethodCurrency;
+    }
+
+    public BigDecimal getExchangeRate() {
+        return exchangeRate;
+    }
+
+    public void setExchangeRate(BigDecimal exchangeRate) {
+        this.exchangeRate = exchangeRate;
+    }
+
+    public BigDecimal getPaymentMethodAmount() {
+        return paymentMethodAmount;
+    }
+
+    public void setPaymentMethodAmount(BigDecimal paymentMethodAmount) {
+        this.paymentMethodAmount = paymentMethodAmount;
+    }
+
+    public BigDecimal getPaymentMethodFee() {
+        return paymentMethodFee;
+    }
+
+    public void setPaymentMethodFee(BigDecimal paymentMethodFee) {
+        this.paymentMethodFee = paymentMethodFee;
+    }
+
+    public String getPaymentMethodDetails() {
+        return paymentMethodDetails;
+    }
+
+    public void setPaymentMethodDetails(String paymentMethodDetails) {
+        this.paymentMethodDetails = paymentMethodDetails;
+    }
+
+    public Integer getConfirmations() {
+        return confirmations;
+    }
+
+    public void setConfirmations(Integer confirmations) {
+        this.confirmations = confirmations;
     }
 
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@ package org.savapage.core.services.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,8 +36,10 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PosPurchaseDao.ReceiptNumberPrefixEnum;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
+import org.savapage.core.dao.helpers.AggregateResult;
 import org.savapage.core.dto.AccountDisplayInfoDto;
 import org.savapage.core.dto.AccountVoucherRedeemDto;
+import org.savapage.core.dto.FinancialDisplayInfoDto;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.MediaCostDto;
@@ -61,6 +64,7 @@ import org.savapage.core.json.rpc.impl.ResultPosDeposit;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkInfo;
+import org.savapage.core.services.AccountingException;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfo;
@@ -386,9 +390,10 @@ public final class AccountingServiceImpl extends AbstractService implements
             final AccountTrxTypeEnum trxType, final BigDecimal amount,
             final BigDecimal accountBalance, final String comment) {
 
-        AccountTrx trx = new AccountTrx();
+        final AccountTrx trx = new AccountTrx();
         trx.setAccount(account);
 
+        trx.setCurrencyCode(ConfigManager.getAppCurrency().getCurrencyCode());
         trx.setAmount(amount);
         trx.setBalance(accountBalance);
         trx.setComment(comment);
@@ -498,6 +503,7 @@ public final class AccountingServiceImpl extends AbstractService implements
         trx.setAccount(account);
         trx.setDocLog(docLog);
 
+        trx.setCurrencyCode(ConfigManager.getAppCurrency().getCurrencyCode());
         trx.setAmount(trxAmount);
         trx.setBalance(account.getBalance());
         trx.setComment("");
@@ -864,14 +870,120 @@ public final class AccountingServiceImpl extends AbstractService implements
         }
     }
 
+    /**
+     * Creates display statistics from aggregate result.
+     *
+     * @param aggr
+     *            The {@link AggregateResult}.
+     * @param locale
+     *            The {@link Locale}.
+     * @param currencySymbol
+     *            The currency symbol.
+     * @param multiplicand
+     *            Either 1 or -1.
+     * @return The {@link FinancialDisplayInfoDto.Stats}.
+     */
+    private FinancialDisplayInfoDto.Stats createFinancialDisplayInfoStats(
+            final AggregateResult<BigDecimal> aggr, final Locale locale,
+            final String currencySymbol, final BigDecimal multiplicand) {
+
+        final int balanceDecimals = ConfigManager.getUserBalanceDecimals();
+        final NumberFormat fmNumber = NumberFormat.getInstance(locale);
+
+        final FinancialDisplayInfoDto.Stats stats =
+                new FinancialDisplayInfoDto.Stats();
+
+        final String valueEmpty = "";
+
+        String valueWlk;
+
+        try {
+
+            //
+            valueWlk = valueEmpty;
+
+            if (aggr.getCount() != 0) {
+                valueWlk = fmNumber.format(aggr.getCount());
+            }
+            stats.setCount(valueWlk);
+
+            //
+            valueWlk = valueEmpty;
+
+            if (aggr.getAvg() != null) {
+                valueWlk =
+                        BigDecimalUtil.localize(
+                                aggr.getAvg().multiply(multiplicand),
+                                balanceDecimals, locale, currencySymbol, true);
+            }
+            stats.setAvg(valueWlk);
+
+            //
+            valueWlk = valueEmpty;
+            if (aggr.getMax() != null) {
+                valueWlk =
+                        BigDecimalUtil.localize(
+                                aggr.getMax().multiply(multiplicand),
+                                balanceDecimals, locale, currencySymbol, true);
+            }
+            stats.setMax(valueWlk);
+
+            //
+            valueWlk = valueEmpty;
+            if (aggr.getMin() != null) {
+                valueWlk =
+                        BigDecimalUtil.localize(
+                                aggr.getMin().multiply(multiplicand),
+                                balanceDecimals, locale, currencySymbol, true);
+            }
+            stats.setMin(valueWlk);
+
+            //
+            valueWlk = valueEmpty;
+            if (aggr.getSum() != null) {
+                valueWlk =
+                        BigDecimalUtil.localize(
+                                aggr.getSum().multiply(multiplicand),
+                                balanceDecimals, locale, currencySymbol, true);
+            }
+            stats.setSum(valueWlk);
+
+        } catch (ParseException e) {
+            throw new SpException(e);
+        }
+        return stats;
+    }
+
+    @Override
+    public FinancialDisplayInfoDto getFinancialDisplayInfo(final Locale locale,
+            final String currencySymbol) {
+
+        final String currencySymbolWrk =
+                StringUtils.defaultString(currencySymbol);
+
+        final FinancialDisplayInfoDto dto = new FinancialDisplayInfoDto();
+
+        dto.setLocale(locale.getDisplayLanguage());
+
+        dto.setUserCredit(createFinancialDisplayInfoStats(accountDAO()
+                .getBalanceStats(true, false), locale, currencySymbolWrk,
+                BigDecimal.ONE.negate()));
+
+        dto.setUserDebit(createFinancialDisplayInfoStats(accountDAO()
+                .getBalanceStats(true, true), locale, currencySymbolWrk,
+                BigDecimal.ONE));
+
+        return dto;
+    }
+
     @Override
     public AccountDisplayInfoDto getAccountDisplayInfo(final User user,
             final Locale locale, final String currencySymbol) {
 
-        String currencySymbolWrk = currencySymbol;
-        if (currencySymbolWrk == null) {
-            currencySymbolWrk = "";
-        }
+        final String currencySymbolWrk =
+                StringUtils.defaultString(currencySymbol);
+
+        final int balanceDecimals = ConfigManager.getUserBalanceDecimals();
 
         AccountDisplayInfoDto dto = new AccountDisplayInfoDto();
 
@@ -897,10 +1009,8 @@ public final class AccountingServiceImpl extends AbstractService implements
 
             try {
                 formattedCreditLimit =
-                        BigDecimalUtil.localize(creditLimit,
-                                ConfigManager.getUserBalanceDecimals(),
-                                locale, currencySymbolWrk,
-                                true);
+                        BigDecimalUtil.localize(creditLimit, balanceDecimals,
+                                locale, currencySymbolWrk, true);
             } catch (ParseException e) {
                 throw new SpException(e);
             }
@@ -926,8 +1036,7 @@ public final class AccountingServiceImpl extends AbstractService implements
 
         try {
             dto.setBalance(BigDecimalUtil.localize(account.getBalance(),
-                    ConfigManager.getUserBalanceDecimals(), locale,
-                    currencySymbolWrk, true));
+                    balanceDecimals, locale, currencySymbolWrk, true));
         } catch (ParseException e) {
             throw new SpException(e);
         }
@@ -1007,6 +1116,101 @@ public final class AccountingServiceImpl extends AbstractService implements
         return JsonRpcMethodResult.createOkResult();
     }
 
+    /**
+     * Fills an account transaction from dto.
+     *
+     * @param trx
+     *            The {@link AccountTrx}.
+     * @param dto
+     *            The {@link {@link UserPaymentGatewayDto}.
+     */
+    private static void fillTrxFromDto(final AccountTrx trx,
+            final UserPaymentGatewayDto dto) {
+
+        trx.setCurrencyCode(dto.getCurrencyCode());
+
+        trx.setExtCurrencyCode(dto.getPaymentMethodCurrency());
+        trx.setExtAmount(dto.getPaymentMethodAmount());
+        trx.setExtFee(dto.getPaymentMethodFee());
+        trx.setExtExchangeRate(dto.getExchangeRate());
+
+        trx.setExtConfirmations(dto.getConfirmations());
+
+        trx.setExtSource(dto.getGatewayId());
+        trx.setExtId(dto.getTransactionId());
+        trx.setExtMethod(dto.getPaymentMethod());
+        trx.setExtMethodOther(dto.getPaymentMethodOther());
+        trx.setExtMethodAddress(dto.getPaymentMethodAddress());
+        trx.setExtDetails(dto.getPaymentMethodDetails());
+    }
+
+    @Override
+    public void acceptPendingFundsFromGateway(final User user,
+            final UserPaymentGatewayDto dto) {
+        /*
+         * Find the account to add the amount on.
+         */
+        final Account account =
+                this.lazyGetUserAccount(user, AccountTypeEnum.USER)
+                        .getAccount();
+
+        /*
+         * Create and fill transaction.
+         */
+        final AccountTrx trx =
+                this.createAccountTrx(account, AccountTrxTypeEnum.GATEWAY,
+                        BigDecimal.ZERO, BigDecimal.ZERO, null);
+
+        fillTrxFromDto(trx, dto);
+        accountTrxDAO().create(trx);
+    }
+
+    @Override
+    public void updatePendingFundsFromGateway(final AccountTrx trx,
+            final UserPaymentGatewayDto dto) throws AccountingException {
+
+        /*
+         * INVARIANT: transaction must be pending.
+         */
+        if (trx.getAmount().compareTo(BigDecimal.ZERO) != 0) {
+            throw new AccountingException(String.format(
+                    "Transaction %s update failed: already acknowledged.",
+                    dto.getTransactionId()));
+        }
+
+        fillTrxFromDto(trx, dto);
+        accountTrxDAO().update(trx);
+    }
+
+    @Override
+    public void acknowledgePendingFundsFromGateway(final AccountTrx trx,
+            final UserPaymentGatewayDto dto) throws AccountingException {
+
+        /*
+         * INVARIANT: transaction must be pending.
+         */
+        if (trx.getAmount().compareTo(BigDecimal.ZERO) != 0) {
+            throw new AccountingException(String.format(
+                    "Transaction %s is already acknowledged.",
+                    dto.getTransactionId()));
+        }
+
+        final Account account = trx.getAccount();
+
+        account.setBalance(account.getBalance().add(dto.getAmount()));
+        account.setModifiedBy(ServiceContext.getActor());
+        account.setModifiedDate(ServiceContext.getTransactionDate());
+
+        fillTrxFromDto(trx, dto);
+
+        trx.setAmount(dto.getAmount());
+        trx.setBalance(account.getBalance());
+        trx.setComment(dto.getComment());
+
+        accountDAO().update(account);
+        accountTrxDAO().update(trx);
+    }
+
     @Override
     public void acceptFundsFromGateway(final User user,
             final UserPaymentGatewayDto dto,
@@ -1024,17 +1228,25 @@ public final class AccountingServiceImpl extends AbstractService implements
                     this.lazyGetUserAccount(user, AccountTypeEnum.USER)
                             .getAccount();
         }
-        /*
-         * Create a unique receipt number.
-         */
-        final String receiptNumber =
-                String.format("%s-%s-%s", ReceiptNumberPrefixEnum.GATEWAY, dto
-                        .getGatewayId().toUpperCase(), dto.getTransactionId());
 
-        //
-        addFundsToAccount(account, AccountTrxTypeEnum.GATEWAY,
-                dto.getPaymentMethod(), receiptNumber, dto.getAmount(),
-                dto.getComment());
+        account.setBalance(account.getBalance().add(dto.getAmount()));
+        account.setModifiedBy(ServiceContext.getActor());
+        account.setModifiedDate(ServiceContext.getTransactionDate());
+
+        /*
+         * Create and fill transaction.
+         */
+        final AccountTrx trx =
+                this.createAccountTrx(account, AccountTrxTypeEnum.GATEWAY,
+                        dto.getAmount(), account.getBalance(), dto.getComment());
+
+        fillTrxFromDto(trx, dto);
+
+        /*
+         * Database update/persist.
+         */
+        accountDAO().update(account);
+        accountTrxDAO().create(trx);
     }
 
     /**
@@ -1176,6 +1388,8 @@ public final class AccountingServiceImpl extends AbstractService implements
 
         //
         final PosDepositReceiptDto receipt = new PosDepositReceiptDto();
+
+        receipt.setAccountTrx(accountTrx);
 
         receipt.setComment(purchase.getComment());
         receipt.setPlainAmount(BigDecimalUtil.toPlainString(accountTrx

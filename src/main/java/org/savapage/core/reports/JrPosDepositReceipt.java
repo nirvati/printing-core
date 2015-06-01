@@ -50,6 +50,7 @@ import org.savapage.core.fonts.FontLocation;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
+import org.savapage.core.util.CurrencyUtil;
 import org.savapage.core.util.LocaleHelper;
 
 /**
@@ -171,10 +172,12 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
         parms.put(PARM_RECEIPT_USERNAME, receipt.getUserFullName());
 
         try {
+            // final String currencyCode =
             parms.put(PARM_RECEIPT_AMOUNT, helper.getCurrencyDecimal(
                     BigDecimalUtil.valueOf(receipt.getPlainAmount()),
-                    ConfigManager.getUserBalanceDecimals(),
-                    ServiceContext.getCurrencySymbol()));
+                    ConfigManager.getUserBalanceDecimals(), CurrencyUtil
+                            .getCurrencySymbol(receipt.getAccountTrx()
+                                    .getCurrencyCode(), "")));
         } catch (ParseException e) {
             throw new SpException(e);
         }

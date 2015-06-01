@@ -17,11 +17,12 @@
 	</queryString>
 	<field name="TRX_DATE" class="java.lang.String"/>
 	<field name="TRX_TYPE" class="java.lang.String"/>
+	<field name="CURRENCY" class="java.lang.String"/>
 	<field name="AMOUNT" class="java.lang.String"/>
 	<field name="BALANCE" class="java.lang.String"/>
 	<field name="PAGE_TOTAL" class="java.lang.String"/>
 	<field name="RECEIPT" class="java.lang.String"/>
-	<field name="COMMENT" class="java.lang.String"/>
+	<field name="DESCRIPTION" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -69,52 +70,58 @@
 	<columnHeader>
 		<band height="25" splitType="Stretch">
 			<textField>
-				<reportElement mode="Opaque" x="0" y="0" width="100" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="31f3c6cf-0bde-47f2-baa0-7ee2ecb1c046"/>
+				<reportElement mode="Opaque" x="0" y="0" width="135" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="31f3c6cf-0bde-47f2-baa0-7ee2ecb1c046"/>
 				<box padding="3"/>
 				<textFieldExpression><![CDATA[$R{accounttrxlist.date}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement mode="Opaque" x="100" y="0" width="100" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="750b353c-9ce1-4fce-bfa9-cf61c448426d"/>
+				<reportElement mode="Opaque" x="135" y="0" width="75" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="750b353c-9ce1-4fce-bfa9-cf61c448426d"/>
 				<box padding="3"/>
 				<textFieldExpression><![CDATA[$R{accounttrxlist.type}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement mode="Opaque" x="200" y="0" width="75" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="dfc4e9ba-1c47-488c-8f47-b25af78ba5b0"/>
+				<reportElement mode="Opaque" x="210" y="0" width="25" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="11dedaf0-23be-4167-bff0-846234cde09c"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$R{accounttrxlist.currency}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="235" y="0" width="50" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="dfc4e9ba-1c47-488c-8f47-b25af78ba5b0"/>
 				<box padding="3"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$R{accounttrxlist.amount}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement mode="Opaque" x="275" y="0" width="50" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="aecfedf3-937c-470c-9726-5d9348ab6730"/>
+				<reportElement mode="Opaque" x="285" y="0" width="50" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="aecfedf3-937c-470c-9726-5d9348ab6730"/>
 				<box padding="3"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$R{accounttrxlist.balance}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement mode="Opaque" x="325" y="0" width="75" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="f306ca0b-559a-4985-bc47-01a3fc9c0b64"/>
+				<reportElement mode="Opaque" x="335" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="f306ca0b-559a-4985-bc47-01a3fc9c0b64"/>
 				<box padding="3"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA[$R{accounttrxlist.page-total}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement mode="Opaque" x="400" y="0" width="75" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="48346ede-98da-46e9-8199-8b01b41515c7"/>
+				<reportElement mode="Opaque" x="375" y="0" width="75" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="48346ede-98da-46e9-8199-8b01b41515c7"/>
 				<box padding="3"/>
-				<textElement textAlignment="Right" markup="none">
+				<textElement textAlignment="Left" markup="none">
 					<font size="10"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$R{accounttrxlist.receipt}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement mode="Opaque" x="475" y="0" width="325" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="e8cc7697-18ac-4738-9e42-897fffdde095"/>
+				<reportElement mode="Opaque" x="450" y="0" width="350" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="e8cc7697-18ac-4738-9e42-897fffdde095"/>
 				<box padding="3"/>
-				<textFieldExpression><![CDATA[$R{accounttrxlist.comment}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$R{accounttrxlist.description}]]></textFieldExpression>
 			</textField>
 		</band>
 	</columnHeader>
 	<detail>
 		<band height="25" splitType="Stretch">
 			<textField>
-				<reportElement x="0" y="0" width="100" height="20" uuid="ed3fc4d1-96c4-4e17-b949-5e6b3640bcfb"/>
+				<reportElement x="0" y="0" width="135" height="20" uuid="ed3fc4d1-96c4-4e17-b949-5e6b3640bcfb"/>
 				<box padding="3"/>
 				<textElement markup="none">
 					<font size="10"/>
@@ -122,7 +129,7 @@
 				<textFieldExpression><![CDATA[$F{TRX_DATE}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="100" y="0" width="100" height="20" uuid="cf9a98c6-c905-4d54-accb-ddad768217eb"/>
+				<reportElement x="135" y="0" width="75" height="20" uuid="cf9a98c6-c905-4d54-accb-ddad768217eb"/>
 				<box padding="3"/>
 				<textElement markup="none">
 					<font size="10"/>
@@ -130,7 +137,15 @@
 				<textFieldExpression><![CDATA[$F{TRX_TYPE}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="200" y="0" width="75" height="20" uuid="81224532-ed53-425e-97ad-94a925b1578d"/>
+				<reportElement x="210" y="0" width="25" height="20" uuid="53ab20b6-15f5-43f8-b142-23dbc80c0d82"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CURRENCY}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="235" y="0" width="50" height="20" uuid="81224532-ed53-425e-97ad-94a925b1578d"/>
 				<box padding="3"/>
 				<textElement textAlignment="Right" markup="none">
 					<font size="10"/>
@@ -138,7 +153,7 @@
 				<textFieldExpression><![CDATA[$F{AMOUNT}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="275" y="0" width="50" height="20" uuid="1b659231-b340-4d8e-92c4-98fccb6d2f7f"/>
+				<reportElement x="285" y="0" width="50" height="20" uuid="1b659231-b340-4d8e-92c4-98fccb6d2f7f"/>
 				<box padding="3"/>
 				<textElement textAlignment="Right" markup="none">
 					<font size="10"/>
@@ -146,7 +161,7 @@
 				<textFieldExpression><![CDATA[$F{BALANCE}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.###">
-				<reportElement x="325" y="0" width="75" height="20" uuid="786029a1-19cc-4674-b5aa-2f98c6b76ce1"/>
+				<reportElement x="335" y="0" width="40" height="20" uuid="786029a1-19cc-4674-b5aa-2f98c6b76ce1"/>
 				<box padding="3"/>
 				<textElement textAlignment="Right" markup="none">
 					<font size="10"/>
@@ -154,20 +169,20 @@
 				<textFieldExpression><![CDATA[$F{PAGE_TOTAL}]]></textFieldExpression>
 			</textField>
 			<textField pattern="#,##0.###">
-				<reportElement x="400" y="0" width="75" height="20" uuid="2fec96a4-6ec7-4cfe-8ac3-02218af74c3f"/>
+				<reportElement x="375" y="0" width="75" height="20" uuid="2fec96a4-6ec7-4cfe-8ac3-02218af74c3f"/>
 				<box padding="3"/>
-				<textElement textAlignment="Right" markup="none">
+				<textElement textAlignment="Left" markup="none">
 					<font size="10"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{RECEIPT}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement x="475" y="0" width="325" height="20" uuid="37c428ab-91b0-4ce3-9f89-d30754490990"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="450" y="0" width="350" height="20" uuid="37c428ab-91b0-4ce3-9f89-d30754490990"/>
 				<box padding="3"/>
 				<textElement markup="none">
 					<font size="10"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{COMMENT}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{DESCRIPTION}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>

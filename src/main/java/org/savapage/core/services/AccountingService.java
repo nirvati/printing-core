@@ -28,6 +28,7 @@ import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
 import org.savapage.core.dto.AccountDisplayInfoDto;
 import org.savapage.core.dto.AccountVoucherRedeemDto;
+import org.savapage.core.dto.FinancialDisplayInfoDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
 import org.savapage.core.dto.UserAccountingDto;
@@ -152,6 +153,18 @@ public interface AccountingService {
      * @return The {@link AccountDisplayInfoDto} object.
      */
     AccountDisplayInfoDto getAccountDisplayInfo(User user, Locale locale,
+            String currencySymbol);
+
+    /**
+     * Gets global financial information meant for display.
+     *
+     * @param locale
+     *            The {@link Locale} used for formatting financial data.
+     * @param currencySymbol
+     *            {@code null} or empty when not applicable.
+     * @return The {@link FinancialDisplayInfoDto} object.
+     */
+    FinancialDisplayInfoDto getFinancialDisplayInfo(Locale locale,
             String currencySymbol);
 
     /**
@@ -371,9 +384,50 @@ public interface AccountingService {
      * @param orphanedPaymentAccount
      *            The {@link Account} to add funds on when the requesting
      *            {@link User} of the transaction is not found.
+     * @since 0.9.9
      */
     void acceptFundsFromGateway(final User lockedUser,
             UserPaymentGatewayDto dto, Account orphanedPaymentAccount);
+
+    /**
+     * Accepts pending funds from a Payment Gateway.
+     *
+     * @param lockedUser
+     *            The {@link User} as locked by the caller.
+     * @param dto
+     *            The {@link UserPaymentGatewayDto}
+     * @since 0.9.9
+     */
+    void acceptPendingFundsFromGateway(User lockedUser,
+            UserPaymentGatewayDto dto);
+
+    /**
+     * Updates pending funds from a Payment Gateway.
+     *
+     * @param trx
+     *            The {@link AccountTrx} to update.
+     * @param dto
+     *            The {@link UserPaymentGatewayDto}
+     * @throws AccountingException
+     *             When invariant is violated.
+     * @since 0.9.9
+     */
+    void updatePendingFundsFromGateway(final AccountTrx trx,
+            UserPaymentGatewayDto dto) throws AccountingException;
+
+    /**
+     * Acknowledges pending funds from a Payment Gateway.
+     *
+     * @param trx
+     *            The {@link AccountTrx} to acknowledge.
+     * @param dto
+     *            The {@link UserPaymentGatewayDto}
+     * @throws AccountingException
+     *             When invariant is violated.
+     * @since 0.9.9
+     */
+    void acknowledgePendingFundsFromGateway(final AccountTrx trx,
+            UserPaymentGatewayDto dto) throws AccountingException;
 
     /**
      * Creates the DTO of a {@link AccountTrx.AccountTrxTypeEnum#DEPOSIT}

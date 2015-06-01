@@ -24,6 +24,7 @@ package org.savapage.core.dao.impl;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.savapage.core.dao.AccountTrxDao;
@@ -236,6 +237,43 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         }
         return nDeleted;
 
+    }
+
+    @Override
+    public AccountTrx findByExtId(final String extId) {
+
+        final String jpql = "SELECT T FROM AccountTrx T WHERE extId = :extId";
+
+        final Query query = getEntityManager().createQuery(jpql);
+
+        query.setParameter("extId", extId);
+
+        AccountTrx result = null;
+
+        try {
+            result = (AccountTrx) query.getSingleResult();
+        } catch (NoResultException e) {
+            result = null;
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<AccountTrx> findByExtMethodAddress(final String address) {
+
+        final String jpql =
+                "SELECT T FROM AccountTrx T "
+                        + "WHERE extMethodAddress = :extMethodAddress";
+
+        final Query query = getEntityManager().createQuery(jpql);
+
+        query.setParameter("extMethodAddress", address);
+
+        @SuppressWarnings("unchecked")
+        final List<AccountTrx> list = query.getResultList();
+
+        return list;
     }
 
 }

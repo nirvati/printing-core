@@ -38,7 +38,7 @@ public interface UserAttrDao extends GenericDao<UserAttr> {
     String STATS_ROLLING = "stats.rolling";
 
     /**
-     * Finds a {@link UserAttr} for a {@link User} by attribute id.
+     * Finds a {@link UserAttr} of a {@link User} by attribute id.
      *
      * @param user
      *            The {@link User}.
@@ -47,6 +47,18 @@ public interface UserAttrDao extends GenericDao<UserAttr> {
      * @return The {@link UserAttr} or {@code null} when not found.
      */
     UserAttr findByName(User user, UserAttrEnum name);
+
+    /**
+     * Finds the unique {@link UserAttr} combination of a {@link UserAttrEnum}
+     * and value.
+     *
+     * @param name
+     *            The {@link UserAttrEnum}.
+     * @param value
+     *            The unique value.
+     * @return The {@link UserAttr} or {@code null} when not found.
+     */
+    UserAttr findByNameValue(UserAttrEnum name, String value);
 
     /**
      * Deletes rolling statistics for users.

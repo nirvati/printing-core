@@ -25,9 +25,10 @@ import java.util.Date;
 import java.util.List;
 
 import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.AccountVoucher;
-import org.savapage.core.jpa.Account.AccountTypeEnum;
+import org.savapage.core.jpa.User;
 
 /**
  *
@@ -114,9 +115,29 @@ public interface AccountTrxDao extends GenericDao<AccountTrx> {
     }
 
     /**
+     * Finds a {@link AccountTrx} external id.
+     *
+     * @param extId
+     *            The external id. The {@link User}.
+     * @return The {@link AccountTrx} or {@code null} when not found.
+     */
+    AccountTrx findByExtId(String extId);
+
+    /**
+     * Finds a list of {@link AccountTrx} instances with the same external
+     * method address. See {@link AccountTrx#getExtMethodAddress()}.
+     *
+     * @param address
+     *            The address.
+     * @return The list.
+     */
+    List<AccountTrx> findByExtMethodAddress(String address);
+
+    /**
      *
      * @param filter
-     * @return
+     *            The {@link ListFilter}.
+     * @return The number of filtered instances.
      */
     long getListCount(final ListFilter filter);
 
