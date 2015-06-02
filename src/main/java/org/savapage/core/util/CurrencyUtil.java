@@ -24,6 +24,8 @@ package org.savapage.core.util;
 import java.util.Currency;
 import java.util.Locale;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  *
  * @author Datraverse B.V.
@@ -50,14 +52,16 @@ public final class CurrencyUtil {
     public static String getCurrencySymbol(final String currencyCode,
             final Locale locale) {
 
-        if (currencyCode.equals("BTC")) {
+        final String currencyCodeWrk = StringUtils.defaultString(currencyCode);
+
+        if (currencyCodeWrk.equals("BTC")) {
             return "Ƀ";
         }
 
         try {
-            return Currency.getInstance(currencyCode).getSymbol(locale);
+            return Currency.getInstance(currencyCodeWrk).getSymbol(locale);
         } catch (Exception e) {
-            return currencyCode;
+            return currencyCodeWrk;
         }
     }
 

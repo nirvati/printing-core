@@ -43,11 +43,18 @@ public class ProxyPrinterMediaSourcesDto extends AbstractDto {
     private Long id;
 
     /**
-     * The locale (languageTag) of the cost strings (e.g. {@code en-US}) See
+     * The locale (languageTag) of the cost strings (e.g. {@code en}) See
      * {@link Locale#toLanguageTag()}.
      */
-    @JsonProperty("locale")
-    private String locale;
+    @JsonProperty("language")
+    private String language;
+
+    /**
+     * The locale (country) of the cost strings (e.g. {@code US}) See
+     * {@link Locale#getCountry()}.
+     */
+    @JsonProperty("country")
+    private String country;
 
     @JsonProperty("sources")
     private List<IppMediaSourceCostDto> sources;
@@ -81,24 +88,6 @@ public class ProxyPrinterMediaSourcesDto extends AbstractDto {
         this.id = id;
     }
 
-    /**
-     * Gets {@link #locale}.
-     *
-     * @return
-     */
-    public String getLocale() {
-        return locale;
-    }
-
-    /**
-     * Sets {@link #locale}.
-     *
-     * @param locale
-     */
-    public void setLocale(String locale) {
-        this.locale = locale;
-    }
-
     public List<IppMediaSourceCostDto> getSources() {
         return sources;
     }
@@ -129,6 +118,22 @@ public class ProxyPrinterMediaSourcesDto extends AbstractDto {
 
     public void setDefaultMonochrome(Boolean defaultMonochrome) {
         this.defaultMonochrome = defaultMonochrome;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
     }
 
 }

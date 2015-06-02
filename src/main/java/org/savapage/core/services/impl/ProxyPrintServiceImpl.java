@@ -2737,7 +2737,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final Printer printer, final ProxyPrinterCostDto dto) {
 
         final Locale locale =
-                new Locale.Builder().setLanguageTag(dto.getLocale()).build();
+                new Locale.Builder().setLanguageTag(dto.getLanguage())
+                        .setRegion(dto.getCountry()).build();
 
         if (dto.getChargeType() == Printer.ChargeType.SIMPLE) {
             return setPrinterSimpleCost(printer, dto.getDefaultCost(), locale);
@@ -2753,7 +2754,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         final Locale locale =
                 new Locale.Builder()
-                        .setLanguageTag(dtoMediaSources.getLocale()).build();
+                        .setLanguageTag(dtoMediaSources.getLanguage())
+                        .setRegion(dtoMediaSources.getCountry()).build();
 
         /*
          * Put into map for easy lookup of objects to handle. Validate along the

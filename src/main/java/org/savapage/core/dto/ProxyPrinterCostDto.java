@@ -51,11 +51,18 @@ public class ProxyPrinterCostDto extends AbstractDto {
     private Printer.ChargeType chargeType;
 
     /**
-     * The locale (languageTag) of the cost strings (e.g. {@code en-US}) See
+     * The locale (languageTag) of the cost strings (e.g. {@code en}) See
      * {@link Locale#toLanguageTag()}.
      */
-    @JsonProperty("locale")
-    private String locale;
+    @JsonProperty("language")
+    private String language;
+
+    /**
+     * The locale (country) of the cost strings (e.g. {@code US}) See
+     * {@link Locale#getCountry()}.
+     */
+    @JsonProperty("country")
+    private String country;
 
     /**
      * (FinAmount) formatted according to Locale.
@@ -86,22 +93,20 @@ public class ProxyPrinterCostDto extends AbstractDto {
         this.chargeType = chargeType;
     }
 
-    /**
-     * Gets {@link #locale}.
-     *
-     * @return
-     */
-    public String getLocale() {
-        return locale;
+    public String getLanguage() {
+        return language;
     }
 
-    /**
-     * Sets {@link #locale}.
-     *
-     * @param locale
-     */
-    public void setLocale(String locale) {
-        this.locale = locale;
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     public String getDefaultCost() {
