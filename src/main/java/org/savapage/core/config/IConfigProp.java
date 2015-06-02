@@ -235,17 +235,6 @@ public interface IConfigProp {
                 URL_VALIDATOR_OPT),
 
         /**
-         * E.g.: €.
-         */
-        USER_FIN_CURRENCY_SYMBOL_CUSTOM("user.fin.currency-symbol.custom"),
-
-        /**
-         *
-         */
-        USER_FIN_CURRENCY_SYMBOL_SHOWS("user.fin.currency-symbol.show",
-                BOOLEAN_VALIDATOR, V_YES),
-
-        /**
          *
          */
         AUTH_MODE_NAME("auth-mode.name", BOOLEAN_VALIDATOR, V_YES),

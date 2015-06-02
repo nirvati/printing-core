@@ -172,12 +172,11 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
         parms.put(PARM_RECEIPT_USERNAME, receipt.getUserFullName());
 
         try {
-            // final String currencyCode =
             parms.put(PARM_RECEIPT_AMOUNT, helper.getCurrencyDecimal(
                     BigDecimalUtil.valueOf(receipt.getPlainAmount()),
                     ConfigManager.getUserBalanceDecimals(), CurrencyUtil
                             .getCurrencySymbol(receipt.getAccountTrx()
-                                    .getCurrencyCode(), "")));
+                                    .getCurrencyCode(), locale)));
         } catch (ParseException e) {
             throw new SpException(e);
         }

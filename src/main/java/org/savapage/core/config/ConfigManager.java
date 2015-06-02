@@ -119,6 +119,7 @@ import org.savapage.core.users.LdapUserSource;
 import org.savapage.core.users.NoUserSource;
 import org.savapage.core.users.UnixUserSource;
 import org.savapage.core.users.UserAliasList;
+import org.savapage.core.util.CurrencyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -920,6 +921,17 @@ public final class ConfigManager {
         }
 
         return currency.getCurrencyCode();
+    }
+
+    /**
+     *
+     * @param locale
+     * @return
+     */
+    public static String getAppCurrencySymbol(final Locale locale) {
+        final String symbol =
+                CurrencyUtil.getCurrencySymbol(getAppCurrencyCode(), locale);
+        return symbol;
     }
 
     /**

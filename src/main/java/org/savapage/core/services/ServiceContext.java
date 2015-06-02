@@ -208,7 +208,7 @@ public final class ServiceContext {
      * @return The currency symbol.
      */
     public static String getAppCurrencySymbol() {
-        return ConfigManager.getAppCurrencyCode();
+        return ConfigManager.getAppCurrencySymbol(getLocale());
     }
 
     /**

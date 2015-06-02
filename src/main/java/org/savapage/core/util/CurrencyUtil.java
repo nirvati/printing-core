@@ -24,136 +24,41 @@ package org.savapage.core.util;
 import java.util.Currency;
 import java.util.Locale;
 
-import org.apache.commons.lang3.StringUtils;
-import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.IConfigProp;
-import org.savapage.core.config.IConfigProp.Key;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  *
  * @author Datraverse B.V.
  *
  */
-public class CurrencyUtil {
-
-    private final static String UNKNOWN_CURRENCY_SYMBOL = "?";
-
-    private final static Logger LOGGER = LoggerFactory
-            .getLogger(CurrencyUtil.class);
+public final class CurrencyUtil {
 
     /**
-     * Gets the {@link Currency}.
-     *
-     * @param locale
-     *            The {@link Locale} used as default when no currency symbol is
-     *            set.
-     * @return The {@link Currency}.
+     * Hide constructor.
      */
-    private static Currency getCurrency(final Locale locale) {
-
-        Currency currency = null;
-
-        try {
-
-            currency = Currency.getInstance(locale);
-
-        } catch (IllegalArgumentException e1) {
-
-            /*
-             * Locale is NOT a supported ISO 3166 country. Try the default
-             * locale instead.
-             */
-            final Locale standardLocale = Locale.getDefault();
-
-            LOGGER.debug("Country [" + locale.getCountry() + "] of Locale ["
-                    + locale.getDisplayName()
-                    + "] is NOT a supported ISO 3166 country."
-                    + " Using Country [" + standardLocale.getCountry()
-                    + "] from Default Locale ["
-                    + standardLocale.getDisplayName() + "]");
-
-            try {
-
-                currency = Currency.getInstance(standardLocale);
-
-            } catch (IllegalArgumentException e2) {
-
-                LOGGER.warn("Country [" + standardLocale.getCountry()
-                        + "] of Default Locale ["
-                        + standardLocale.getDisplayName()
-                        + "] is NOT a supported ISO 3166 country.");
-            }
-        }
-        return currency;
+    private CurrencyUtil() {
     }
 
     /**
-     * Gets the currency symbol from the ISO currency code using the default
-     * {@link Locale}.
+     * Gets the currency symbol for the ISO currency code according to a
+     * {@link Locale}, or for the non-ISO "BTC" bitcoin currency code.
      *
      * @param currencyCode
-     *            The ISO currency code.
-     * @param dfaultSymbol
-     *            The default symbol when no symbol found.
-     * @return The currency symbol.
+     *            The currency code.
+     * @param locale
+     *            The {@link Locale}.
+     * @return The currency symbol (or code).
      */
     public static String getCurrencySymbol(final String currencyCode,
-            final String dfaultSymbol) {
+            final Locale locale) {
+
+        if (currencyCode.equals("BTC")) {
+            return "Ƀ";
+        }
 
         try {
-            return Currency.getInstance(currencyCode).getSymbol();
+            return Currency.getInstance(currencyCode).getSymbol(locale);
         } catch (Exception e) {
-            return StringUtils.defaultString(dfaultSymbol);
+            return currencyCode;
         }
-    }
-
-    /**
-     * @deprecated Gets the Currency symbol, i.e:
-     *             <ul>
-     *             <li>An EMPTY string when currency may NOT be shown</li>
-     *             <li>A custom symbol as set in
-     *             {@link IConfigProp.Key#USER_FIN_CURRENCY_SYMBOL_CUSTOM}</li>
-     *             <li>The currency belonging to {@link Locale#getCountry()}</li>
-     *             <li>{@link #UNKNOWN_CURRENCY_SYMBOL} when currency symbol is
-     *             not available.</li>
-     *             </ul>
-     *
-     * @param locale
-     *            The {@link Locale} used as default when no currency symbol is
-     *            set.
-     * @return The currency symbol.
-     */
-    @Deprecated
-    public static String getCurrencySymbol(final Locale locale) {
-
-        String currencySymbol = "";
-
-        final ConfigManager cm = ConfigManager.instance();
-
-        if (cm.isConfigValue(Key.USER_FIN_CURRENCY_SYMBOL_SHOWS)) {
-
-            currencySymbol =
-                    cm.getConfigValue(Key.USER_FIN_CURRENCY_SYMBOL_CUSTOM);
-
-            if (StringUtils.isBlank(currencySymbol)) {
-
-                final Currency currency = getCurrency(locale);
-
-                if (currency == null) {
-                    /*
-                     * This territory does not have a currency (like Antartica)
-                     * or an IllegalArgumentException occurred.
-                     */
-                    currencySymbol = UNKNOWN_CURRENCY_SYMBOL;
-                } else {
-                    currencySymbol = currency.getSymbol();
-                }
-            }
-
-        }
-        return currencySymbol;
     }
 
 }
