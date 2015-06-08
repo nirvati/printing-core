@@ -57,6 +57,16 @@ public interface AppLogService {
     long countWarnings(Date dateAfter);
 
     /**
+     * Inserts an {@link AppLog} row in the database.
+     *
+     * @param level
+     *            the log level.
+     * @param message
+     *            The message.
+     */
+    void logMessage(AppLogLevelEnum level, String message);
+
+    /**
      * Logs a application message and inserts an {@link AppLog} row in the
      * database.
      * <p>

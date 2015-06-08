@@ -40,7 +40,7 @@ import org.savapage.core.papercut.PaperCutException;
  * Identification and configuration for {@link CircuitBreaker} instances as used
  * in {@link CircuitBreakerRegistry}.
  * <p>
- * For each breaker an {@link AbstractCircuitBreakerListener} is specified.
+ * For each breaker an {@link CircuitBreakerListenerMixin} is specified.
  * </p>
  *
  * @author Datraverse B.V.
@@ -56,7 +56,7 @@ public enum CircuitBreakerEnum {
      * </p>
      *
      */
-    CUPS_LOCAL_IPP_CONNECTION(1, 10000, new AbstractCircuitBreakerListener() {
+    CUPS_LOCAL_IPP_CONNECTION(1, 10000, new CircuitBreakerListenerMixin() {
 
         @Override
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
@@ -87,7 +87,7 @@ public enum CircuitBreakerEnum {
      * </p>
      *
      */
-    CUPS_REMOTE_IPP_CONNECTIONS(1, 0, new AbstractCircuitBreakerListener() {
+    CUPS_REMOTE_IPP_CONNECTIONS(1, 0, new CircuitBreakerListenerMixin() {
 
         @Override
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
@@ -149,7 +149,7 @@ public enum CircuitBreakerEnum {
      * are handled.
      * </p>
      */
-    GCP_CONNECTION(1, 60000, new AbstractCircuitBreakerListener() {
+    GCP_CONNECTION(1, 60000, new CircuitBreakerListenerMixin() {
 
         @Override
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
@@ -176,7 +176,7 @@ public enum CircuitBreakerEnum {
      * are handled.
      * </p>
      */
-    INTERNET_URL_CONNECTION(1, 60000, new AbstractCircuitBreakerListener() {
+    INTERNET_URL_CONNECTION(1, 60000, new CircuitBreakerListenerMixin() {
 
         @Override
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
@@ -204,7 +204,7 @@ public enum CircuitBreakerEnum {
      * are handled.
      * </p>
      */
-    MAILPRINT_CONNECTION(1, 60000, new AbstractCircuitBreakerListener() {
+    MAILPRINT_CONNECTION(1, 60000, new CircuitBreakerListenerMixin() {
 
         @Override
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
@@ -232,7 +232,7 @@ public enum CircuitBreakerEnum {
      * are handled.
      * </p>
      */
-    PAPERCUT_CONNECTION(1, 60000, new AbstractCircuitBreakerListener() {
+    PAPERCUT_CONNECTION(1, 60000, new CircuitBreakerListenerMixin() {
 
         @Override
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
@@ -260,7 +260,7 @@ public enum CircuitBreakerEnum {
      * are handled.
      * </p>
      */
-    SMARTSCHOOL_CONNECTION(1, 60000, new AbstractCircuitBreakerListener() {
+    SMARTSCHOOL_CONNECTION(1, 60000, new CircuitBreakerListenerMixin() {
 
         @Override
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
@@ -288,7 +288,7 @@ public enum CircuitBreakerEnum {
      * are handled.
      * </p>
      */
-    SMTP_CONNECTION(1, 30000, new AbstractCircuitBreakerListener() {
+    SMTP_CONNECTION(1, 30000, new CircuitBreakerListenerMixin() {
 
         @Override
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,

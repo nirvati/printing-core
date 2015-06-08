@@ -80,6 +80,31 @@ public class AppLogServiceImpl extends AbstractService implements AppLogService 
     }
 
     @Override
+    public final void logMessage(final AppLogLevelEnum level,
+            final String message) {
+
+        final EntityManager em = ConfigManager.instance().createEntityManager();
+
+        try {
+
+            em.getTransaction().begin();
+            em.persist(createAppLog(level, message));
+            em.getTransaction().commit();
+
+        } catch (SpException e) {
+
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
+            LOGGER.error("Failed to write log to database");
+
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
     public final String logMessage(final AppLogLevelEnum level,
             final Class<? extends Object> callingClass,
             final String messageKey, final String... args) {
@@ -96,27 +121,8 @@ public class AppLogServiceImpl extends AbstractService implements AppLogService 
             LOGGER.error(msgLog);
         }
 
-        String msg = Messages.getMessage(callingClass, messageKey, args);
-
-        final EntityManager em = ConfigManager.instance().createEntityManager();
-
-        try {
-
-            em.getTransaction().begin();
-            em.persist(createAppLog(level, msg));
-            em.getTransaction().commit();
-
-        } catch (SpException e) {
-
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-
-            LOGGER.error("Failed to write log to database");
-
-        } finally {
-            em.close();
-        }
+        final String msg = Messages.getMessage(callingClass, messageKey, args);
+        this.logMessage(level, msg);
         return msg;
     }
 

@@ -37,7 +37,7 @@ import org.savapage.core.util.Messages;
  * @author Datraverse B.V.
  *
  */
-public abstract class AbstractCircuitBreakerListener implements
+public abstract class CircuitBreakerListenerMixin implements
         CircuitBreakerListener {
 
     private static final String MSG_SUFFIX_CLOSED = "-closed";

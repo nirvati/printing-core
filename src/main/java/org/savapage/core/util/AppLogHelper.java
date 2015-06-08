@@ -31,7 +31,7 @@ import org.savapage.core.services.ServiceContext;
  * @author Datraverse B.V.
  *
  */
-public class AppLogHelper {
+public final class AppLogHelper {
 
     /**
      *
@@ -55,29 +55,35 @@ public class AppLogHelper {
      * @param args
      *            Variable string list used to fill the placeholders in the
      *            message template.
+     * @return The message.
      */
-    public static String logInfo(Class<? extends Object> callingClass,
-            String messageKey, String... args) {
+    public static String logInfo(final Class<? extends Object> callingClass,
+            final String messageKey, final String... args) {
         return APPL_LOG_SERVICE.logMessage(AppLogLevelEnum.INFO, callingClass,
                 messageKey, args);
     }
 
-    public static String logWarning(Class<? extends Object> callingClass,
-            String messageKey, String... args) {
+    public static String logWarning(final Class<? extends Object> callingClass,
+            final String messageKey, final String... args) {
         return APPL_LOG_SERVICE.logMessage(AppLogLevelEnum.WARN, callingClass,
                 messageKey, args);
     }
 
-    public static String logError(Class<? extends Object> callingClass,
-            String messageKey, String... args) {
+    public static String logError(final Class<? extends Object> callingClass,
+            final String messageKey, final String... args) {
         return APPL_LOG_SERVICE.logMessage(AppLogLevelEnum.ERROR, callingClass,
                 messageKey, args);
     }
 
-    public static String log(Class<? extends Object> callingClass,
-            AppLogLevelEnum level, String messageKey, String... args) {
+    public static String log(final Class<? extends Object> callingClass,
+            final AppLogLevelEnum level, final String messageKey, final String... args) {
         return APPL_LOG_SERVICE.logMessage(level, callingClass, messageKey,
                 args);
+    }
+
+    public static void log(final AppLogLevelEnum level,
+            final String message) {
+        APPL_LOG_SERVICE.logMessage(level, message);
     }
 
 }
