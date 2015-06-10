@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -205,10 +206,8 @@ public final class IppClient {
      * "http://hc.apache.org/httpcomponents-client-4.3.x/tutorial/html/connmgmt.html#d5e380"
      * >remarks</a> about {@link PoolingHttpClientConnectionManager}.
      * </p>
-     *
-     * @throws Exception
      */
-    public void init() throws Exception {
+    public void init() {
 
         /*
          * Clumsy attempt to be unique over server restarts :-)
@@ -280,10 +279,9 @@ public final class IppClient {
 
     /**
      *
-     * @throws Exception
      */
-    public void shutdown() throws Exception {
-        httpclientApache.close();
+    public void shutdown() {
+        IOUtils.closeQuietly(httpclientApache);
     }
 
     /**

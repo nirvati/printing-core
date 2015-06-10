@@ -38,6 +38,7 @@ import org.savapage.core.dto.ProxyPrinterCostDto;
 import org.savapage.core.dto.ProxyPrinterDto;
 import org.savapage.core.dto.ProxyPrinterMediaSourcesDto;
 import org.savapage.core.inbox.InboxInfoDto;
+import org.savapage.core.ipp.IppSyntaxException;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.operation.IppStatusCode;
 import org.savapage.core.jpa.Device;
@@ -134,9 +135,8 @@ public interface ProxyPrintService {
      * Gets the CUPS API version.
      *
      * @return {@code null} when not found (unknown).
-     * @throws Exception
      */
-    String getCupsApiVersion() throws Exception;
+    String getCupsApiVersion();
 
     /**
      * Gets the CUPS URL for a printer.
@@ -173,23 +173,23 @@ public interface ProxyPrintService {
      * @param response
      *            The output response.
      * @return The IPP status code after sending the request.
-     * @throws Exception
-     *             When an error occurs.
+     * @throws IppConnectException
+     *             When an connection error occurs.
      */
     IppStatusCode getNotifications(String requestingUser,
             String subscriptionId, List<IppAttrGroup> response)
-            throws Exception;
+            throws IppConnectException;
 
     /**
      *
      * @param printerName
      * @param jobId
      * @return {@code null} when NOT found.
-     * @throws Exception
-     *             When an error occurs.
+     * @throws IppConnectException
+     *             When a connection error occurs.
      */
     JsonProxyPrintJob retrievePrintJob(String printerName, Integer jobId)
-            throws Exception;
+            throws IppConnectException;
 
     /**
      * Gets the JsonCupsPrinter from the printer cache.
@@ -301,11 +301,11 @@ public interface ProxyPrintService {
      * @param userName
      *            The unique name of the requesting user.
      * @return The {@link JsonPrinterList}.
-     * @throws Exception
-     *             When unrecoverable error.
+     * @throws IppConnectException
+     * @throws IppSyntaxException
      */
     JsonPrinterList getUserPrinterList(Device terminal, String userName)
-            throws Exception;
+            throws IppConnectException, IppSyntaxException;
 
     /**
      * Initializes the service.
@@ -326,18 +326,16 @@ public interface ProxyPrintService {
      * CUPS event subscription in {@link #updatePrinterCache()}.
      * </p>
      *
-     * @throws Exception
-     *             When an error occurs.
      */
-    void init() throws Exception;
+    void init();
 
     /**
      * Closes the service.
      *
-     * @throws Exception
-     *             When an error occurs.
+     * @throws IppConnectException
+     * @throws IppSyntaxException
      */
-    void exit() throws Exception;
+    void exit() throws IppConnectException, IppSyntaxException;
 
     /**
      * Updates the cached JsonCupsPrinter with Database Printer Object.
@@ -354,16 +352,22 @@ public interface ProxyPrintService {
     /**
      * Initializes the CUPS printer cache when it does not exist.
      *
-     * @throws Exception
+     * @throws IppConnectException
+     *             When a connection error occurs.
+     * @throws IppSyntaxException
+     *             When a syntax error.
      */
-    void lazyInitPrinterCache() throws Exception;
+    void lazyInitPrinterCache() throws IppConnectException, IppSyntaxException;
 
     /**
      * Initializes the CUPS printer cache (clearing any existing one).
      *
-     * @throws Exception
+     * @throws IppConnectException
+     *             When a connection error occurs.
+     * @throws IppSyntaxException
+     *             When a syntax error.
      */
-    void initPrinterCache() throws Exception;
+    void initPrinterCache() throws IppConnectException, IppSyntaxException;
 
     /**
      * Synchronizes (updates) the PrintOut jobs with the CUPS job state (if the
@@ -380,10 +384,10 @@ public interface ProxyPrintService {
      *         this could be due to an off-line or disabled printer, or a
      *         printer that has been removed.</li>
      *         </ul>
-     * @throws Exception
-     *             When an error occurs.
+     * @throws IppConnectException
+     *             When a connection error occurs.
      */
-    int[] syncPrintJobs() throws Exception;
+    int[] syncPrintJobs() throws IppConnectException;
 
     /**
      * Gets the {@link Printer} object while validating {@link User} access.
@@ -511,10 +515,12 @@ public interface ProxyPrintService {
      * @param requestingUserName
      *            The requesting user. If {@code null} the current CUPS user is
      *            used.
-     * @throws Exception
-     *             When an error occurs.
+     *
+     * @throws IppConnectException
+     * @throws IppSyntaxException
      */
-    void startSubscription(String requestingUserName) throws Exception;
+    void startSubscription(String requestingUserName)
+            throws IppConnectException, IppSyntaxException;
 
     /**
      * Cancels a CUPS event subscription. This is an idempotent operation: when
@@ -523,10 +529,11 @@ public interface ProxyPrintService {
      * @param requestingUserName
      *            The requesting user. If {@code null} the current CUPS user is
      *            used.
-     * @throws Exception
-     *             When an error occurs.
+     * @throws IppConnectException
+     * @throws IppSyntaxException
      */
-    void stopSubscription(String requestingUserName) throws Exception;
+    void stopSubscription(String requestingUserName)
+            throws IppConnectException, IppSyntaxException;
 
     /**
      * Checks if the printer URI resides on local CUPS.

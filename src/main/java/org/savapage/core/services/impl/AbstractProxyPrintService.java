@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -70,6 +71,7 @@ import org.savapage.core.dto.PrinterSnmpDto;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
+import org.savapage.core.ipp.IppSyntaxException;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.job.SpJobScheduler;
@@ -232,7 +234,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             createCommonCupsOptions();
 
     @Override
-    public void init() throws Exception {
+    public void init() {
 
         /*
          * We have never contacted CUPS at this point.
@@ -249,18 +251,17 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
     }
 
-    /**
-     * Closes the CUPS services.
-     * <p>
-     * The subscription to CUPS events is stopped. However, when this method is
-     * called as a reaction to a <i>Linux OS shutdown</i>, CUPS probably is
-     * stopped before SavaPage. In that case we encounter an exception because
-     * the CUPS API fails in {@link #CUPS_BIN}. The exception is catched and
-     * logged at INFO level.
-     * </p>
-     */
     @Override
-    public void exit() throws Exception {
+    public void exit() throws IppConnectException, IppSyntaxException {
+        /*
+         * Closes the CUPS services.
+         *
+         * The subscription to CUPS events is stopped. However, when this method
+         * is called as a reaction to a <i>Linux OS shutdown</i>, CUPS probably
+         * is stopped before SavaPage. In that case we encounter an exception
+         * because the CUPS API fails in {@link #CUPS_BIN}. The exception is
+         * catched and logged at INFO level.
+         */
         try {
             stopSubscription(null);
         } catch (SpException e) {
@@ -495,7 +496,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
     @Override
     public final JsonPrinterList getUserPrinterList(final Device terminal,
-            final String userName) throws Exception {
+            final String userName) throws IppConnectException,
+            IppSyntaxException {
 
         lazyInitPrinterCache();
 
@@ -866,10 +868,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * Retrieves printer details from CUPS.
      *
      * @return A list of {@link JsonProxyPrinter} objects.
-     * @throws Exception
+     * @throws IppConnectException
+     * @throws URISyntaxException
+     * @throws MalformedURLException
      */
     protected abstract List<JsonProxyPrinter> retrieveCupsPrinters()
-            throws Exception;
+            throws IppConnectException, URISyntaxException,
+            MalformedURLException;
 
     /**
      * Retrieves the printer details. Note that the details are a subset of all
@@ -894,14 +899,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * @param jobIds
      *            The job ids.
      * @return A list of print job objects.
-     * @throws Exception
+     * @throws IppConnectException
+     *             When a connection error occurs.
      */
     protected abstract List<JsonProxyPrintJob> retrievePrintJobs(
-            String printerName, List<Integer> jobIds) throws Exception;
+            String printerName, List<Integer> jobIds)
+            throws IppConnectException;
 
     @Override
     public final JsonProxyPrintJob retrievePrintJob(final String printerName,
-            final Integer jobId) throws Exception {
+            final Integer jobId) throws IppConnectException {
 
         JsonProxyPrintJob printJob = null;
 
@@ -918,7 +925,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public final int[] syncPrintJobs() throws Exception {
+    public final int[] syncPrintJobs() throws IppConnectException {
 
         final int[] stats = new int[3];
 
@@ -1141,45 +1148,64 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
     @Override
     public final void startSubscription(final String requestingUser)
-            throws Exception {
+            throws IppConnectException, IppSyntaxException {
         startSubscription(getSubscrRequestingUser(requestingUser),
                 getSubscrNotifyLeaseSeconds(), getSubscrNotifyRecipientUri());
     }
 
     @Override
     public final void stopSubscription(final String requestingUser)
-            throws Exception {
+            throws IppConnectException, IppSyntaxException {
         stopSubscription(getSubscrRequestingUser(requestingUser),
                 getSubscrNotifyRecipientUri());
     }
 
+    /**
+     *
+     * @param requestingUser
+     * @param recipientUri
+     * @throws IppConnectException
+     * @throws IppSyntaxException
+     */
     abstract protected void stopSubscription(final String requestingUser,
-            String recipientUri) throws Exception;
+            String recipientUri) throws IppConnectException, IppSyntaxException;
 
     /**
      *
      * @param requestingUser
      * @param leaseSeconds
      * @param recipientUri
-     * @throws Exception
+     * @throws IppConnectException
+     * @throws IppSyntaxException
      */
     abstract protected void startSubscription(final String requestingUser,
-            String leaseSeconds, String recipientUri) throws Exception;
+            String leaseSeconds, String recipientUri)
+            throws IppConnectException, IppSyntaxException;
 
     @Override
-    public final void lazyInitPrinterCache() throws Exception {
+    public final void lazyInitPrinterCache() throws IppConnectException,
+            IppSyntaxException {
 
         if (!this.isFirstTimeCupsContact.get()) {
             return;
         }
 
-        updatePrinterCache();
+        try {
+            updatePrinterCache();
+        } catch (MalformedURLException | URISyntaxException e) {
+            throw new IppConnectException(e);
+        }
     }
 
     @Override
-    public final void initPrinterCache() throws Exception {
+    public final void initPrinterCache() throws IppConnectException,
+            IppSyntaxException {
 
-        updatePrinterCache();
+        try {
+            updatePrinterCache();
+        } catch (MalformedURLException | URISyntaxException e) {
+            throw new IppConnectException(e);
+        }
     }
 
     /**
@@ -1200,10 +1226,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * re-activated.</li>
      * </ul>
      *
-     * @throws Exception
-     *             When an error occurs.
+     * @throws URISyntaxException
+     * @throws MalformedURLException
+     * @throws IppConnectException
+     *             When a connection error occurs.
+     * @throws IppSyntaxException
+     *             When a syntax error.
      */
-    protected synchronized final void updatePrinterCache() throws Exception {
+    protected synchronized final void updatePrinterCache()
+            throws MalformedURLException, IppConnectException,
+            URISyntaxException, IppSyntaxException {
 
         final boolean firstTimeCupsContact =
                 this.isFirstTimeCupsContact.getAndSet(false);

@@ -142,13 +142,13 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     @Override
-    public void init() throws Exception {
+    public void init() {
         super.init();
         ippClient.init();
     }
 
     @Override
-    public void exit() throws Exception {
+    public void exit() throws IppConnectException, IppSyntaxException {
         super.exit();
         ippClient.shutdown();
     }
@@ -776,7 +776,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     @Override
     protected List<JsonProxyPrintJob> retrievePrintJobs(
             final String printerName, final List<Integer> jobIds)
-            throws Exception {
+            throws IppConnectException {
 
         final List<JsonProxyPrintJob> jobs = new ArrayList<>();
 
@@ -787,8 +787,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
             final String printerUri = proxyPrinter.getPrinterUri().toString();
 
-            final URL urlCupsServer =
-                    this.getCupsServerUrl(proxyPrinter.getPrinterUri());
+            final URL urlCupsServer;
+
+            try {
+                urlCupsServer =
+                        this.getCupsServerUrl(proxyPrinter.getPrinterUri());
+            } catch (MalformedURLException e) {
+                throw new IppConnectException(e);
+            }
 
             for (final Integer jobId : jobIds) {
                 final JsonProxyPrintJob job =
@@ -1020,14 +1026,15 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
     @Override
     protected void stopSubscription(final String requestingUser,
-            final String recipientUri) throws Exception {
+            final String recipientUri) throws IppConnectException,
+            IppSyntaxException {
 
         /*
          * Step 1: Get the existing printer subscriptions for requestingUser.
          */
-        List<IppAttrGroup> response = new ArrayList<>();
+        final List<IppAttrGroup> response = new ArrayList<>();
 
-        IppStatusCode statusCode =
+        final IppStatusCode statusCode =
                 ippClient.send(
                         getUrlDefaultServer(),
                         IppOperationId.GET_SUBSCRIPTIONS,
@@ -1045,7 +1052,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         /*
          * Step 2: Cancel only our OWN printer subscription.
          */
-        for (IppAttrGroup group : response) {
+        for (final IppAttrGroup group : response) {
 
             if (group.getDelimiterTag() != IppDelimiterTag.SUBSCRIPTION_ATTR) {
                 continue;
@@ -1063,7 +1070,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 continue;
             }
 
-            String subscriptionId =
+            final String subscriptionId =
                     group.getAttrSingleValue(IppDictSubscriptionAttr.ATTR_NOTIFY_SUBSCRIPTION_ID);
 
             ippClient
@@ -1078,7 +1085,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     @Override
     protected void startSubscription(final String requestingUser,
             final String leaseSeconds, final String recipientUri)
-            throws Exception {
+            throws IppConnectException, IppSyntaxException {
 
         if (ConfigManager.isCupsPushNotification()) {
 
@@ -1821,14 +1828,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     @Override
-    public String getCupsApiVersion() throws Exception {
+    public String getCupsApiVersion() {
         return null;
     }
 
     @Override
     public IppStatusCode getNotifications(final String requestingUser,
             final String subscriptionId, final List<IppAttrGroup> response)
-            throws Exception {
+            throws IppConnectException {
 
         List<IppAttrGroup> request = new ArrayList<>();
 
@@ -1872,12 +1879,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      *            The recipient uri.
      * @param leaseSeconds
      *            The lease seconds.
-     *
-     * @throws Exception
+     * @throws IppConnectException
+     * @throws IppSyntaxException
      */
     private void startPushSubscription(final String requestingUser,
             final String recipientUri, final String leaseSeconds)
-            throws Exception {
+            throws IppConnectException, IppSyntaxException {
 
         /*
          * Step 1: Get the existing printer subscriptions for requestingUser.
@@ -1960,10 +1967,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @param leaseSeconds
      *            The lease seconds.
      * @return
-     * @throws Exception
+     * @throws IppConnectException
+     * @throws IppSyntaxException
      */
     private String startPullSubscription(final String requestingUser,
-            final String leaseSeconds) throws Exception {
+            final String leaseSeconds) throws IppConnectException,
+            IppSyntaxException {
 
         String subscriptionId = null;
 
@@ -1972,7 +1981,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          */
         List<IppAttrGroup> response = new ArrayList<>();
 
-        IppStatusCode statusCode =
+        final IppStatusCode statusCode =
                 ippClient.send(
                         getUrlDefaultServer(),
                         IppOperationId.GET_SUBSCRIPTIONS,
@@ -1992,7 +2001,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          */
         boolean isRenewed = false;
 
-        for (IppAttrGroup group : response) {
+        for (final IppAttrGroup group : response) {
 
             if (group.getDelimiterTag() != IppDelimiterTag.SUBSCRIPTION_ATTR) {
                 continue;
