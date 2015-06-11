@@ -1197,13 +1197,14 @@ public final class AccountingServiceImpl extends AbstractService implements
 
         final Account account = trx.getAccount();
 
-        account.setBalance(account.getBalance().add(dto.getAmount()));
+        account.setBalance(account.getBalance()
+                .add(dto.getAmountAcknowledged()));
         account.setModifiedBy(ServiceContext.getActor());
         account.setModifiedDate(ServiceContext.getTransactionDate());
 
         fillTrxFromDto(trx, dto);
 
-        trx.setAmount(dto.getAmount());
+        trx.setAmount(dto.getAmountAcknowledged());
         trx.setBalance(account.getBalance());
         trx.setComment(dto.getComment());
 
@@ -1229,7 +1230,8 @@ public final class AccountingServiceImpl extends AbstractService implements
                             .getAccount();
         }
 
-        account.setBalance(account.getBalance().add(dto.getAmount()));
+        account.setBalance(account.getBalance()
+                .add(dto.getAmountAcknowledged()));
         account.setModifiedBy(ServiceContext.getActor());
         account.setModifiedDate(ServiceContext.getTransactionDate());
 
@@ -1238,7 +1240,8 @@ public final class AccountingServiceImpl extends AbstractService implements
          */
         final AccountTrx trx =
                 this.createAccountTrx(account, AccountTrxTypeEnum.GATEWAY,
-                        dto.getAmount(), account.getBalance(), dto.getComment());
+                        dto.getAmountAcknowledged(), account.getBalance(),
+                        dto.getComment());
 
         fillTrxFromDto(trx, dto);
 

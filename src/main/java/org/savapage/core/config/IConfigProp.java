@@ -218,7 +218,7 @@ public interface IConfigProp {
          */
         FINANCIAL_BITCOIN_USER_PAGE_URL_PATTERN_TRX(
                 "financial.bitcoin.user-page.url-pattern.trx",
-                URL_VALIDATOR_OPT),
+                URL_VALIDATOR_OPT, "https://blockchain.info/tx-index/{0}"),
 
         /**
          * URL of external user page with information about the Bitcoin address.
@@ -232,7 +232,7 @@ public interface IConfigProp {
          */
         FINANCIAL_BITCOIN_USER_PAGE_URL_PATTERN_ADDRESS(
                 "financial.bitcoin.user-page.url-pattern.address",
-                URL_VALIDATOR_OPT),
+                URL_VALIDATOR_OPT, "https://blockchain.info/address/{0}"),
 
         /**
          *

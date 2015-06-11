@@ -57,6 +57,11 @@ public class UserPaymentGatewayDto extends AbstractDto {
     private String userId;
 
     /**
+     * The acknowledged amount.
+     */
+    private BigDecimal amountAcknowledged;
+
+    /**
      * The amount.
      */
     private BigDecimal amount;
@@ -146,10 +151,36 @@ public class UserPaymentGatewayDto extends AbstractDto {
         this.userId = userId;
     }
 
+    /**
+     *
+     * @return The acknowledged amount.
+     */
+    public BigDecimal getAmountAcknowledged() {
+        return amountAcknowledged;
+    }
+
+    /**
+     *
+     * @param amount
+     *            The acknowledged amount.
+     */
+    public void setAmountAcknowledged(BigDecimal amount) {
+        this.amountAcknowledged = amount;
+    }
+
+    /**
+     *
+     * @return The amount.
+     */
     public BigDecimal getAmount() {
         return amount;
     }
 
+    /**
+     *
+     * @param amount
+     *            The amount.
+     */
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
