@@ -22,6 +22,7 @@
 package org.savapage.core.dao;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.savapage.core.dao.helpers.AggregateResult;
 import org.savapage.core.jpa.Account;
@@ -34,6 +35,45 @@ import org.savapage.core.jpa.AccountTrx;
  *
  */
 public interface AccountDao extends GenericDao<Account> {
+
+    /**
+     * Field identifiers used for select and sort.
+     */
+    enum Field {
+
+        /**
+         * Account type.
+         */
+        ACCOUNT_TYPE
+    }
+
+    /**
+     * Empty placeholder for now.
+     */
+    class ListFilter {
+
+    }
+
+    /**
+     *
+     * @param filter
+     *            The {@link ListFilter}.
+     * @return The number of filtered instances.
+     */
+    long getListCount(final ListFilter filter);
+
+    /**
+     *
+     * @param filter
+     * @param startPosition
+     * @param maxResults
+     * @param orderBy
+     * @param sortAscending
+     * @return The list.
+     */
+    List<Account> getListChunk(final ListFilter filter,
+            final Integer startPosition, final Integer maxResults,
+            final Field orderBy, final boolean sortAscending);
 
     /**
      * Finds an active (i.e. not logically deleted)

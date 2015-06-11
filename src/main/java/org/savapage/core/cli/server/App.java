@@ -97,6 +97,8 @@ public final class App extends AbstractApp {
             //
             new CliAddUserGroup(),
             //
+            new CliChangeBaseCurrency(),
+            //
             new CliDeleteUser(),
             //
             new CliDeleteUserGroup(),
@@ -266,7 +268,7 @@ public final class App extends AbstractApp {
     }
 
     @Override
-    protected void onInit() throws Exception  {
+    protected void onInit() throws Exception {
         CryptoUser.init();
     }
 

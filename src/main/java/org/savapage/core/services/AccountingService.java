@@ -22,10 +22,13 @@
 package org.savapage.core.services;
 
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.Locale;
 
+import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.AccountDisplayInfoDto;
 import org.savapage.core.dto.AccountVoucherRedeemDto;
 import org.savapage.core.dto.FinancialDisplayInfoDto;
@@ -451,4 +454,25 @@ public interface AccountingService {
      */
     boolean isBalanceSufficient(Account account, BigDecimal cost);
 
+    /**
+     * Changes the base application currency. This action creates financial
+     * transactions to align each account to the new currency.
+     * <p>
+     * NOTE: Use {@link ReadWriteLockEnum#DATABASE_READONLY} and
+     * {@link ReadWriteLockEnum#setWriteLock(boolean)} scope for this method.
+     * </p>
+     *
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
+     * @param currencyFrom
+     *            The current base {@link Currency}.
+     * @param currencyTo
+     *            The new base {@link Currency}.
+     * @param exchangeRate
+     *            The exchange rate.
+     * @return The JSON-RPC Return message (either a result or an error);
+     */
+    AbstractJsonRpcMethodResponse changeBaseCurrency(
+            DaoBatchCommitter batchCommitter, Currency currencyFrom,
+            Currency currencyTo, double exchangeRate);
 }

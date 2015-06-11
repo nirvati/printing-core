@@ -187,4 +187,88 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
 
     }
 
+    /**
+     * Applies the list filter to the JPQL string.
+     *
+     * @param jpql
+     *            The JPA query string.
+     * @param filter
+     *            The {@link ListFilter}.
+     */
+    private void applyListFilter(final StringBuilder jpql,
+            final ListFilter filter) {
+    }
+
+    /**
+     * Creates the List Query and sets the filter parameters.
+     *
+     * @param jpql
+     *            The JPA query string.
+     * @param filter
+     *            The {@link ListFilter}.
+     * @return The {@link Query}.
+     */
+    private Query createListQuery(final StringBuilder jpql,
+            final ListFilter filter) {
+
+        final Query query = getEntityManager().createQuery(jpql.toString());
+
+        return query;
+    }
+
+    @Override
+    public long getListCount(final ListFilter filter) {
+
+        final StringBuilder jpql =
+                new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
+
+        jpql.append("SELECT COUNT(ACC.id) FROM Account ACC");
+
+        applyListFilter(jpql, filter);
+
+        final Query query = createListQuery(jpql, filter);
+        final Number countResult = (Number) query.getSingleResult();
+
+        return countResult.longValue();
+    }
+
+    @Override
+    public List<Account> getListChunk(ListFilter filter, Integer startPosition,
+            Integer maxResults, Field orderBy, boolean sortAscending) {
+
+        final StringBuilder jpql =
+                new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
+
+        jpql.append("SELECT ACC FROM Account ACC");
+
+        applyListFilter(jpql, filter);
+
+        //
+        jpql.append(" ORDER BY ");
+
+        if (orderBy == Field.ACCOUNT_TYPE) {
+            jpql.append("ACC.accountType");
+        } else {
+            jpql.append("ACC.accountType");
+        }
+
+        if (!sortAscending) {
+            jpql.append(" DESC");
+        }
+
+        jpql.append(", ACC.id DESC");
+
+        //
+        final Query query = createListQuery(jpql, filter);
+
+        if (startPosition != null) {
+            query.setFirstResult(startPosition);
+        }
+        if (maxResults != null) {
+            query.setMaxResults(maxResults);
+        }
+
+        return query.getResultList();
+    }
+
 }

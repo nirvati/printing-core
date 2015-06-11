@@ -26,17 +26,21 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.PosPurchaseDao.ReceiptNumberPrefixEnum;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
 import org.savapage.core.dao.helpers.AggregateResult;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.AccountDisplayInfoDto;
 import org.savapage.core.dto.AccountVoucherRedeemDto;
 import org.savapage.core.dto.FinancialDisplayInfoDto;
@@ -59,6 +63,8 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.UserGroup;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
+import org.savapage.core.json.rpc.JsonRpcError.Code;
+import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ResultPosDeposit;
 import org.savapage.core.print.proxy.ProxyPrintException;
@@ -1407,4 +1413,78 @@ public final class AccountingServiceImpl extends AbstractService implements
         return receipt;
     }
 
+    @Override
+    public AbstractJsonRpcMethodResponse changeBaseCurrency(
+            final DaoBatchCommitter batchCommitter,
+            final Currency currencyFrom, final Currency currencyTo,
+            final double exchangeRate) {
+
+        int nAccounts = 0;
+        int nTrx = 0;
+
+        /*
+         * INVARIANT: currencyFrom must match current currency.
+         */
+        if (!ConfigManager.getAppCurrencyCode().equals(
+                currencyFrom.getCurrencyCode())) {
+
+            final String err =
+                    String.format("Currency %s does not match current "
+                            + "base currency %s.",
+                            currencyFrom.getCurrencyCode(),
+                            ConfigManager.getAppCurrencyCode());
+
+            return JsonRpcMethodError.createBasicError(Code.INVALID_REQUEST,
+                    err, null);
+        }
+
+        /*
+         * INVARIANT: currencyFrom and currencyTo must differ.
+         */
+        if (currencyFrom.getCurrencyCode().equals(currencyTo.getCurrencyCode())) {
+            return JsonRpcMethodError.createBasicError(Code.INVALID_REQUEST,
+                    "Currency codes must differ.", null);
+        }
+
+        /*
+         * INVARIANT: exchange rate must be GT zero.
+         */
+        if (exchangeRate <= 0.0) {
+            return JsonRpcMethodError.createBasicError(Code.INVALID_REQUEST,
+                    "Exchange rate must be greater than zero.", null);
+        }
+
+        /*
+         * Batch process.
+         */
+        final AccountDao.ListFilter filter = new AccountDao.ListFilter();
+
+        final Integer maxResults =
+                Integer.valueOf(batchCommitter.getCommitThreshold());
+
+        int startPosition = 0;
+
+        final List<Account> list =
+                accountDAO().getListChunk(filter,
+                        Integer.valueOf(startPosition), maxResults,
+                        AccountDao.Field.ACCOUNT_TYPE, true);
+
+        for (final Account account : list) {
+            //System.out.println(account.getName()); // TEST
+        }
+
+        /*
+         * Return result.
+         */
+        final StringBuilder result =
+                new StringBuilder().append("Changed base currency from ")
+                        .append(currencyFrom.getCurrencyCode()).append(" to ")
+                        .append(currencyTo.getCurrencyCode())
+                        .append(" using exchange rate ").append(exchangeRate)
+                        .append(": created [").append(nTrx)
+                        .append("] transactions for [").append(nAccounts)
+                        .append("] accounts.");
+
+        return JsonRpcMethodResult.createOkResult(result.toString());
+    }
 }

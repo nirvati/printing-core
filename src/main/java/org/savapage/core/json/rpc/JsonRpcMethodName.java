@@ -42,6 +42,11 @@ public enum JsonRpcMethodName {
     ADD_USER_GROUP("addUserGroup"),
 
     /**
+    *
+    */
+    CHANGE_BASE_CURRENCY("changeBaseCurrency"),
+
+    /**
      *
      */
     DELETE_USER("deleteUser"),

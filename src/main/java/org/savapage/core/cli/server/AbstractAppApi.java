@@ -197,6 +197,14 @@ public abstract class AbstractAppApi extends AbstractApp {
 
     /**
      *
+     * @return The long description of the CLI method.
+     */
+    protected String getLongDecription() {
+        return null;
+    }
+
+    /**
+     *
      * @return
      */
     protected abstract Object[][] getOptionDictionary();
@@ -689,11 +697,11 @@ public abstract class AbstractAppApi extends AbstractApp {
      * key.
      * </p>
      *
-     * @param jsonIn
+     * @param request
      * @return
      * @throws Exception
      */
-    final protected String send(final JsonRpcMethod request) throws Exception {
+    protected final String send(final JsonRpcMethod request) throws Exception {
 
         request.getParams().setApiKey(
                 "302c02145da35d18d85dcc724aabcb237b63092802e7ec"
@@ -837,7 +845,7 @@ public abstract class AbstractAppApi extends AbstractApp {
      *
      * @return
      */
-    private final String getUsageCmdLineSyntax() {
+    private String getUsageCmdLineSyntax() {
         return "--" + getCliMethodName() + " [OPTION]...";
     }
 
@@ -851,15 +859,26 @@ public abstract class AbstractAppApi extends AbstractApp {
      *
      * @return
      */
-    private final String getUsageDescript() {
+    private String getUsageDescript() {
+
         final String eol = System.lineSeparator();
-        return getApiDescriptHeader() + "Method  : " + getMethodName() + eol
-                + "Version : " + getApiVersion() + eol + eol
-                + getShortDecription();
+
+        final StringBuilder txt =
+                new StringBuilder().append(getApiDescriptHeader())
+                        .append("Method  : ").append(getMethodName())
+                        .append(eol).append("Version : ")
+                        .append(getApiVersion()).append(eol).append(eol)
+                        .append(getShortDecription());
+
+        if (getLongDecription() != null) {
+            txt.append(eol).append(eol).append(getLongDecription());
+        }
+
+        return txt.toString();
     }
 
     @Override
-    protected int run(String[] args) throws Exception {
+    protected final int run(final String[] args) throws Exception {
 
         // ......................................................
         // Parse parameters from CLI

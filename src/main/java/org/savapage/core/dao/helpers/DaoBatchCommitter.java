@@ -41,8 +41,9 @@ public interface DaoBatchCommitter {
 
     /**
      * Increments the batch item counter, starts a new the database transaction
-     * when needed, and performs a {@link #commit()} when the counter reaches a
-     * max value.
+     * when needed, and performs a {@link #commit()} when the counter reaches
+     * the commit threshold.
+     *
      *
      * @return The counter value after the increment.
      */
@@ -57,5 +58,11 @@ public interface DaoBatchCommitter {
      * Rolls back the current transaction (if present).
      */
     void rollback();
+
+    /**
+     *
+     * @return The commit threshold.
+     */
+    int getCommitThreshold();
 
 }

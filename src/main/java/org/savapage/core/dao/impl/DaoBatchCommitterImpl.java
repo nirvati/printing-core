@@ -34,7 +34,7 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     /**
      * The number of items the chunk holds before it gets committed.
      */
-    private final int chunkCommitSize;
+    private final int commitThreshold;
 
     /**
      *
@@ -60,12 +60,12 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
      *
      * @param ctx
      *            The {@link DaoContext} .
-     * @param commitSize
+     * @param commitThreshold
      *            The number of increments after which a commit takes place.
      */
-    public DaoBatchCommitterImpl(final DaoContext ctx, final int commitSize) {
+    public DaoBatchCommitterImpl(final DaoContext ctx, final int commitThreshold) {
 
-        this.chunkCommitSize = commitSize;
+        this.commitThreshold = commitThreshold;
         this.daoCtx = ctx;
         this.chunkItemCounter = 0;
         this.itemCounter = 0;
@@ -79,7 +79,7 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
             beginTransaction();
         }
 
-        if (++chunkItemCounter >= chunkCommitSize) {
+        if (++chunkItemCounter >= commitThreshold) {
             commit();
         }
 
@@ -116,6 +116,11 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     @Override
     public void setTest(final boolean test) {
         this.testMode = test;
+    }
+
+    @Override
+    public int getCommitThreshold() {
+        return this.commitThreshold;
     }
 
 }
