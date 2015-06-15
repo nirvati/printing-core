@@ -137,8 +137,14 @@ public class BigDecimalUtil {
     public static String localize(final BigDecimal decimal, int fractionDigits,
             final Locale locale, final String currencySymbol,
             boolean groupingUsed) throws ParseException {
-        return String.format("%s %s", currencySymbol,
-                localize(decimal, fractionDigits, locale, groupingUsed));
+        final StringBuilder txt = new StringBuilder();
+
+        if (StringUtils.isNotBlank(currencySymbol)) {
+            txt.append(currencySymbol).append(" ");
+        }
+        return txt.append(
+                localize(decimal, fractionDigits, locale, groupingUsed))
+                .toString();
     }
 
     /**

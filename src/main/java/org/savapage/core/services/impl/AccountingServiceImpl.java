@@ -1151,7 +1151,7 @@ public final class AccountingServiceImpl extends AbstractService implements
     }
 
     @Override
-    public void acceptPendingFundsFromGateway(final User user,
+    public void createPendingFundsFromGateway(final User user,
             final UserPaymentGatewayDto dto) {
         /*
          * Find the account to add the amount on.
@@ -1172,32 +1172,15 @@ public final class AccountingServiceImpl extends AbstractService implements
     }
 
     @Override
-    public void updatePendingFundsFromGateway(final AccountTrx trx,
+    public void acceptPendingFundsFromGateway(final AccountTrx trx,
             final UserPaymentGatewayDto dto) throws AccountingException {
 
         /*
-         * INVARIANT: transaction must be pending.
+         * INVARIANT: transaction must not be accepted.
          */
         if (trx.getAmount().compareTo(BigDecimal.ZERO) != 0) {
             throw new AccountingException(String.format(
-                    "Transaction %s update failed: already acknowledged.",
-                    dto.getTransactionId()));
-        }
-
-        fillTrxFromDto(trx, dto);
-        accountTrxDAO().update(trx);
-    }
-
-    @Override
-    public void acknowledgePendingFundsFromGateway(final AccountTrx trx,
-            final UserPaymentGatewayDto dto) throws AccountingException {
-
-        /*
-         * INVARIANT: transaction must be pending.
-         */
-        if (trx.getAmount().compareTo(BigDecimal.ZERO) != 0) {
-            throw new AccountingException(String.format(
-                    "Transaction %s is already acknowledged.",
+                    "Transaction %s is already accepted.",
                     dto.getTransactionId()));
         }
 

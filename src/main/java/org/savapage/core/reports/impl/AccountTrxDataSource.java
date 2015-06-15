@@ -50,6 +50,8 @@ import org.savapage.core.reports.AbstractJrDataSource;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
+import org.savapage.core.util.BitcoinUtil;
+import org.savapage.core.util.CurrencyUtil;
 
 /**
  *
@@ -305,21 +307,39 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
             if (trxType == AccountTrxTypeEnum.GATEWAY
                     && this.accountTrxWlk.getExtAmount() != null) {
 
-                try {
+                final boolean isExtBitcoin =
+                        this.accountTrxWlk.getExtCurrencyCode().equals(
+                                CurrencyUtil.BITCOIN_CURRENCY_CODE);
+
+                final int decimalsWrk;
+
+                if (isExtBitcoin) {
+                    decimalsWrk = BitcoinUtil.BTC_DECIMALS;
+                } else {
+                    decimalsWrk = balanceDecimals;
+                }
+
+                if (value.length() > 0) {
                     value.append(" • ");
-                    value.append(this.accountTrxWlk.getExtCurrencyCode())
-                            .append(" ");
+                }
+
+                value.append(this.accountTrxWlk.getExtCurrencyCode()).append(
+                        " ");
+
+                try {
                     value.append(BigDecimalUtil.localize(
-                            this.accountTrxWlk.getExtAmount(), balanceDecimals,
+                            this.accountTrxWlk.getExtAmount(), decimalsWrk,
                             this.getLocale(), "", true));
 
-                    if (this.accountTrxWlk.getExtFee() != null) {
+                    if (this.accountTrxWlk.getExtFee() != null
+                            && this.accountTrxWlk.getExtFee().compareTo(
+                                    BigDecimal.ZERO) != 0) {
 
-                        value.append(" -/- ");
+                        value.append("-/-");
 
                         value.append(BigDecimalUtil.localize(
                                 this.accountTrxWlk.getExtFee(),
-                                balanceDecimals, this.getLocale(), "", true));
+                                decimalsWrk, this.getLocale(), "", true));
                     }
 
                 } catch (ParseException e) {

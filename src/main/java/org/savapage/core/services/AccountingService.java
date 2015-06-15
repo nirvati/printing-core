@@ -378,7 +378,8 @@ public interface AccountingService {
     AbstractJsonRpcMethodResponse depositFunds(PosDepositDto dto);
 
     /**
-     * Accepts funds from a Payment Gateway.
+     * Accepts funds from a Payment Gateway: an {@link AccountTrx} is created
+     * and the user {@link Account} is incremented.
      *
      * @param lockedUser
      *            The {@link User} as locked by the caller.
@@ -393,7 +394,8 @@ public interface AccountingService {
             UserPaymentGatewayDto dto, Account orphanedPaymentAccount);
 
     /**
-     * Accepts pending funds from a Payment Gateway.
+     * Creates pending funds from a Payment Gateway: an {@link AccountTrx} is
+     * created but the user {@link Account} is <i>not</i> incremented.
      *
      * @param lockedUser
      *            The {@link User} as locked by the caller.
@@ -401,25 +403,12 @@ public interface AccountingService {
      *            The {@link UserPaymentGatewayDto}
      * @since 0.9.9
      */
-    void acceptPendingFundsFromGateway(User lockedUser,
+    void createPendingFundsFromGateway(User lockedUser,
             UserPaymentGatewayDto dto);
 
     /**
-     * Updates pending funds from a Payment Gateway.
-     *
-     * @param trx
-     *            The {@link AccountTrx} to update.
-     * @param dto
-     *            The {@link UserPaymentGatewayDto}
-     * @throws AccountingException
-     *             When invariant is violated.
-     * @since 0.9.9
-     */
-    void updatePendingFundsFromGateway(final AccountTrx trx,
-            UserPaymentGatewayDto dto) throws AccountingException;
-
-    /**
-     * Acknowledges pending funds from a Payment Gateway.
+     * Accepts pending funds from a Payment Gateway: the {@link AccountTrx} is
+     * updated <i>and</i> the user {@link Account} is incremented.
      *
      * @param trx
      *            The {@link AccountTrx} to acknowledge.
@@ -429,7 +418,7 @@ public interface AccountingService {
      *             When invariant is violated.
      * @since 0.9.9
      */
-    void acknowledgePendingFundsFromGateway(final AccountTrx trx,
+    void acceptPendingFundsFromGateway(final AccountTrx trx,
             UserPaymentGatewayDto dto) throws AccountingException;
 
     /**

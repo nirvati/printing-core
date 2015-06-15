@@ -34,6 +34,11 @@ import org.apache.commons.lang3.StringUtils;
 public final class CurrencyUtil {
 
     /**
+     * The Bitcoin currency code.
+     */
+    public static final String BITCOIN_CURRENCY_CODE = "BTC";
+
+    /**
      * Hide constructor.
      */
     private CurrencyUtil() {
@@ -54,7 +59,7 @@ public final class CurrencyUtil {
 
         final String currencyCodeWrk = StringUtils.defaultString(currencyCode);
 
-        if (currencyCodeWrk.equals("BTC")) {
+        if (currencyCodeWrk.equals(BITCOIN_CURRENCY_CODE)) {
             return "Ƀ";
         }
 

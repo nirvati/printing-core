@@ -28,6 +28,11 @@ package org.savapage.core.util;
 public final class BitcoinUtil {
 
     /**
+     * The BTC precision (number of decimals).
+     */
+    public static final int BTC_DECIMALS = 8;
+
+    /**
      * The number of satoshi in one (1) BTC.
      */
     public static final long SATOSHIS_IN_BTC = 100000000L;
@@ -41,7 +46,6 @@ public final class BitcoinUtil {
      * The number of mBTC (milli-bitcoin) in one (1) BTC.
      */
     public static final long MILLI_IN_BTC = 1000L;
-
 
     /**
      *
