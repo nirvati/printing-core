@@ -630,9 +630,12 @@ public final class IppClient {
             statusCode =
                     send(urlServer, isLocalUrlServer, operationId, request,
                             file, response);
-            if (statusCode != IppStatusCode.OK) {
+
+            if (statusCode != IppStatusCode.OK
+                    && statusCode != IppStatusCode.CLI_NOTFND) {
                 throw new IppSyntaxException(statusCode.toString());
             }
+
         } catch (InterruptedException | CircuitBreakerException
                 | IppSyntaxException e) {
             throw new IppConnectException(e);

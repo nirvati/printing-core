@@ -1274,7 +1274,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final Map<String, Boolean> printersPresent = new HashMap<>();
 
         for (final String key : this.cupsPrinterCache.keySet()) {
-            printersPresent.put(key, false);
+            printersPresent.put(key, Boolean.FALSE);
         }
 
         /*
@@ -1301,7 +1301,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             /*
              * Mark as present.
              */
-            printersPresent.put(cupsPrinterKey, true);
+            printersPresent.put(cupsPrinterKey, Boolean.TRUE);
 
             /*
              * Get the cached replicate.
@@ -1379,7 +1379,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          * Remove printers from cache which are no longer present in CUPS.
          */
         for (Map.Entry<String, Boolean> entry : printersPresent.entrySet()) {
-            if (!entry.getValue()) {
+            if (!entry.getValue().booleanValue()) {
                 JsonProxyPrinter removed =
                         this.cupsPrinterCache.remove(entry.getKey());
                 LOGGER.info("removed CUPS printer [" + removed.getName()
