@@ -25,6 +25,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRField;
+
+import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.helpers.UserPagerReq;
 import org.savapage.core.dto.AccountDisplayInfoDto;
@@ -33,16 +38,13 @@ import org.savapage.core.reports.AbstractJrDataSource;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRField;
-
 /**
  *
  * @author Datraverse B.V.
  *
  */
-public class UserDataSource extends AbstractJrDataSource implements JRDataSource {
+public final class UserDataSource extends AbstractJrDataSource implements
+        JRDataSource {
 
     private static final int CHUNK_SIZE = 100;
 
@@ -90,7 +92,16 @@ public class UserDataSource extends AbstractJrDataSource implements JRDataSource
 
     /**
      *
-     * @return
+     * @return The Balance header text with the currency code.
+     */
+    public String getBalanceHeaderText() {
+        return localized("userlist-header-balance",
+                ConfigManager.getAppCurrencyCode());
+    }
+
+    /**
+     *
+     * @return The selection info.
      */
     public String getSelectionInfo() {
 
@@ -199,7 +210,7 @@ public class UserDataSource extends AbstractJrDataSource implements JRDataSource
     }
 
     @Override
-    public Object getFieldValue(JRField jrField) throws JRException {
+    public Object getFieldValue(final JRField jrField) throws JRException {
 
         switch (jrField.getName()) {
         case "USER_NAME":

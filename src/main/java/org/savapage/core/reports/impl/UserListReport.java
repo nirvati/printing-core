@@ -62,11 +62,13 @@ public final class UserListReport extends ReportCreator {
 
         final UserPagerReq request = UserPagerReq.read(inputData);
 
-        final UserDataSource dataSource =
-                new UserDataSource(request, locale);
+        final UserDataSource dataSource = new UserDataSource(request, locale);
 
         reportParameters
                 .put("SP_DATA_SELECTION", dataSource.getSelectionInfo());
+
+        reportParameters.put("SP_COL_HEADER_BALANCE",
+                dataSource.getBalanceHeaderText());
 
         return dataSource;
     }

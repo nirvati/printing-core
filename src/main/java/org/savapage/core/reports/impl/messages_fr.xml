@@ -10,6 +10,7 @@
     <entry key="accounttrxlist-sel-date-to">á {0}</entry>    
     
     <!-- UserList -->    
+    <entry key="userlist-header-balance">{0} Balance</entry>
     <entry key="userlist-sel-username">Nom d'utilisateur "{0}"</entry>
     <entry key="userlist-sel-email">Email "{0}"</entry>
     <entry key="userlist-sel-internal-users">Utilisateurs Internes</entry>

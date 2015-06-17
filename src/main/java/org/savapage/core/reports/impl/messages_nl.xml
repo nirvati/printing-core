@@ -9,7 +9,8 @@
     <entry key="accounttrxlist-sel-date-from">Van {0}</entry>
     <entry key="accounttrxlist-sel-date-to">Tot {0}</entry>
     
-    <!-- UserList -->    
+    <!-- UserList -->
+    <entry key="userlist-header-balance">{0} Saldo</entry>    
     <entry key="userlist-sel-username">Gebruikersnaam "{0}"</entry>
     <entry key="userlist-sel-email">E-mail "{0}"</entry>
     <entry key="userlist-sel-internal-users">Interne Gebruikers</entry>

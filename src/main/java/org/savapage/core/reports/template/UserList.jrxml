@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version last-->
+<!-- Created with Jaspersoft Studio version 6.1.0.final using JasperReports Library version 6.1.0  -->
+<!-- 2015-06-17T18:18:08 -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="UserList" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6b8622d7-e334-4e46-b14d-5733f54c66d8">
 	<style name="Base" isDefault="true"/>
 	<parameter name="SP_REPORT_TITLE" class="java.lang.String" isForPrompting="false">
@@ -12,6 +13,7 @@
 	<parameter name="SP_APP_VERSION" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="SP_REPORT_IMAGE" class="java.net.URL"/>
 	<parameter name="SP_DATA_SELECTION" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SP_COL_HEADER_BALANCE" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
@@ -82,7 +84,7 @@
 				<reportElement mode="Opaque" x="300" y="0" width="75" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="dfc4e9ba-1c47-488c-8f47-b25af78ba5b0"/>
 				<box padding="3"/>
 				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA[$R{userlist.balance}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{SP_COL_HEADER_BALANCE}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement mode="Opaque" x="375" y="0" width="50" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="aecfedf3-937c-470c-9726-5d9348ab6730"/>

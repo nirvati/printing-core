@@ -9,7 +9,8 @@
     <entry key="accounttrxlist-sel-date-from">Von {0}</entry>
     <entry key="accounttrxlist-sel-date-to">Bis {0}</entry>    
     
-    <!-- UserList -->    
+    <!-- UserList -->
+    <entry key="userlist-header-balance">{0} Kontostand</entry>
     <entry key="userlist-sel-username">Benutzer "{0}"</entry>
     <entry key="userlist-sel-email">E-mail "{0}"</entry>
     <entry key="userlist-sel-internal-users">Interne Benutzer</entry>
