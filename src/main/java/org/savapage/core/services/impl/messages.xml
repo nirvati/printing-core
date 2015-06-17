@@ -16,6 +16,8 @@
     <entry key="msg-print-denied-no-balance">Print job denied: your balance {0} is insufficient for {1} costs.</entry>
     <entry key="msg-print-denied-no-credit">Print job denied: your credit limit {0} is insufficient for {1} costs and {2} balance.</entry>
 
+    <entry key="msg-changed-base-currency">Changed base currency from {0} to {1} with exchange rate {2}: [{3}] transactions for [{4}] accounts.</entry>        
+
 <!-- AccountVoucherServiceImpl -->
     <entry key="msg-voucher-batch-invalid">Batch ID "{0}" is not valid.</entry>
     <entry key="msg-voucher-batch-exist">Batch ID "{0}" already exists.</entry>    

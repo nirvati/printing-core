@@ -56,22 +56,27 @@ public final class CliChangeBaseCurrency extends AbstractAppApi {
      */
     private static final String METHOD_LONG_DESCRIPT =
             "WARNING: This action creates financial transactions to align "
-                    + "each account to the\nnew currency. Please create a "
-                    + "database back-up before executing this command.";
+                    + "each account to \nthe new currency. Create a "
+                    + "database back-up before executing this command!";
     /**
-     *
+     * .
      */
     private static final String CLI_OPT_CURRENCY_FROM = "from";
 
     /**
-    *
-    */
+     * .
+     */
     private static final String CLI_OPT_CURRENCY_TO = "to";
 
     /**
-   *
-   */
+     * .
+     */
     private static final String CLI_OPT_EXCHANGE_RATE = "exchange-rate";
+
+    /**
+     * .
+     */
+    private static final String CLI_SWITCH_TEST = "test";
 
     /**
      *
@@ -85,7 +90,9 @@ public final class CliChangeBaseCurrency extends AbstractAppApi {
                     "The new currency code (ISO 4217).", Boolean.TRUE },
             //
             { ARG_DECIMAL, CLI_OPT_EXCHANGE_RATE, "The exchange rate.",
-                    Boolean.TRUE }
+                    Boolean.TRUE },
+            //
+            { null, CLI_SWITCH_TEST, "Dry run, changes are not committed." },
     //
             };
 
@@ -163,6 +170,7 @@ public final class CliChangeBaseCurrency extends AbstractAppApi {
         parms.setCurrencyCodeTo(cmd.getOptionValue(CLI_OPT_CURRENCY_TO));
         parms.setExchangeRate(Double.valueOf(cmd
                 .getOptionValue(CLI_OPT_EXCHANGE_RATE)));
+        parms.setTest(cmd.hasOption(CLI_SWITCH_TEST));
 
         return parms;
     }
@@ -192,6 +200,10 @@ public final class CliChangeBaseCurrency extends AbstractAppApi {
 
     @Override
     protected boolean isSwitchOption(final String optionName) {
+        switch (optionName) {
+        case CLI_SWITCH_TEST:
+            return true;
+        }
         return false;
     }
 

@@ -16,6 +16,8 @@
     <entry key="msg-print-denied-no-balance">Opdracht geweigerd: uw saldo {0} is ontoereikend voor {1} kosten.</entry>
     <entry key="msg-print-denied-no-credit">Opdracht geweigerd: uw bestedingslimiet {0} is ontoereikend voor {1} kosten en {2} saldo.</entry>
         
+    <entry key="msg-changed-base-currency">Basis valuta veranderd van {0} naar {1} met exchange rate {2}: [{3}] transacties voor [{4}] accounts.</entry>        
+        
 <!-- AccountVoucherServiceImpl -->
     <entry key="msg-voucher-batch-invalid">Batch ID "{0}" is ongeldig.</entry>
     <entry key="msg-voucher-batch-exist">Batch ID "{0}" bestaat al.</entry>        

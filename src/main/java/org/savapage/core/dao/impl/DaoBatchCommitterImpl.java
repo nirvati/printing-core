@@ -119,6 +119,11 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     }
 
     @Override
+    public boolean isTest() {
+        return this.testMode;
+    }
+
+    @Override
     public int getCommitThreshold() {
         return this.commitThreshold;
     }

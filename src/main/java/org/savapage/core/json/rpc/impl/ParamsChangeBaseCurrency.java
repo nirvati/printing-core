@@ -33,24 +33,38 @@ public class ParamsChangeBaseCurrency extends AbstractJsonRpcMethodParms {
     private String currencyCodeFrom;
     private String currencyCodeTo;
     private Double exchangeRate;
+    private boolean test;
 
     public String getCurrencyCodeFrom() {
         return currencyCodeFrom;
     }
+
     public void setCurrencyCodeFrom(String currencyCodeFrom) {
         this.currencyCodeFrom = currencyCodeFrom;
     }
+
     public String getCurrencyCodeTo() {
         return currencyCodeTo;
     }
+
     public void setCurrencyCodeTo(String currencyCodeTo) {
         this.currencyCodeTo = currencyCodeTo;
     }
+
     public Double getExchangeRate() {
         return exchangeRate;
     }
+
     public void setExchangeRate(Double exchangeRate) {
         this.exchangeRate = exchangeRate;
+    }
+
+    public boolean isTest() {
+        return test;
+    }
+
+    public void setTest(boolean test) {
+        this.test = test;
     }
 
 }

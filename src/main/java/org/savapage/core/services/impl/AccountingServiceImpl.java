@@ -1426,7 +1426,7 @@ public final class AccountingServiceImpl extends AbstractService implements
          */
         if (currencyFrom.getCurrencyCode().equals(currencyTo.getCurrencyCode())) {
             return JsonRpcMethodError.createBasicError(Code.INVALID_REQUEST,
-                    "Currency codes must differ.", null);
+                    "Currency codes must be different.", null);
         }
 
         /*
@@ -1452,21 +1452,93 @@ public final class AccountingServiceImpl extends AbstractService implements
                         Integer.valueOf(startPosition), maxResults,
                         AccountDao.Field.ACCOUNT_TYPE, true);
 
+        final BigDecimal exchangeDecimal = BigDecimal.valueOf(exchangeRate);
+
         for (final Account account : list) {
-            //System.out.println(account.getName()); // TEST
+
+            int nChanges = 0;
+
+            // Overdraft
+            if (account.getOverdraft().compareTo(BigDecimal.ZERO) != 0) {
+                account.setOverdraft(account.getOverdraft().multiply(
+                        exchangeDecimal));
+                nChanges++;
+            }
+
+            final BigDecimal balance = account.getBalance();
+
+            // Balance
+            if (balance.compareTo(BigDecimal.ZERO) != 0) {
+
+                // Reverse current balance currency.
+                final AccountTrx trxReversal =
+                        this.createAccountTrx(account,
+                                AccountTrxTypeEnum.ADJUST, balance.negate(),
+                                BigDecimal.ZERO, null);
+
+                trxReversal.setCurrencyCode(currencyFrom.getCurrencyCode());
+
+                accountTrxDAO().create(trxReversal);
+
+                nChanges++;
+                nTrx++;
+
+                // Initialize with new balance currency.
+                final StringBuilder comment = new StringBuilder();
+
+                comment.append(currencyFrom.getCurrencyCode()).append(" ")
+                        .append(balance.toPlainString()).append(" * ")
+                        .append(exchangeDecimal.toPlainString());
+
+                final BigDecimal balanceInit =
+                        balance.multiply(exchangeDecimal);
+
+                final AccountTrx trxInit =
+                        this.createAccountTrx(account,
+                                AccountTrxTypeEnum.ADJUST, balanceInit,
+                                balanceInit, comment.toString());
+
+                trxInit.setCurrencyCode(currencyTo.getCurrencyCode());
+
+                accountTrxDAO().create(trxInit);
+
+                nChanges++;
+                nTrx++;
+
+                //
+                account.setBalance(balanceInit);
+            }
+
+            if (nChanges > 0) {
+
+                accountDAO().update(account);
+
+                batchCommitter.increment();
+                nAccounts++;
+            }
         }
+
+        //
+        ConfigManager.instance().updateConfigKey(
+                Key.FINANCIAL_GLOBAL_CURRENCY_CODE,
+                currencyTo.getCurrencyCode(), ServiceContext.getActor());
+
+        batchCommitter.increment();
+        batchCommitter.commit();
 
         /*
          * Return result.
          */
-        final StringBuilder result =
-                new StringBuilder().append("Changed base currency from ")
-                        .append(currencyFrom.getCurrencyCode()).append(" to ")
-                        .append(currencyTo.getCurrencyCode())
-                        .append(" using exchange rate ").append(exchangeRate)
-                        .append(": created [").append(nTrx)
-                        .append("] transactions for [").append(nAccounts)
-                        .append("] accounts.");
+        final StringBuilder result = new StringBuilder();
+
+        if (batchCommitter.isTest()) {
+            result.append("[TEST] ");
+        }
+
+        result.append(localize("msg-changed-base-currency", currencyFrom
+                .getCurrencyCode(), currencyTo.getCurrencyCode(), Double
+                .valueOf(exchangeRate).toString(), Integer.valueOf(nTrx)
+                .toString(), Integer.valueOf(nAccounts).toString()));
 
         return JsonRpcMethodResult.createOkResult(result.toString());
     }

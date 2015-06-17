@@ -100,6 +100,11 @@ public enum PubTopicEnum {
     SCHEDULER("scheduler"),
 
     /**
+     *
+     */
+    SERVER_COMMAND("server-command"),
+
+    /**
      * SmartSchool.
      */
     SMARTSCHOOL("smartschool"),
