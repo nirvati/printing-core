@@ -33,11 +33,15 @@ import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.cometd.AdminPublisher;
+import org.savapage.core.cometd.PubLevelEnum;
+import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.PosPurchaseDao.ReceiptNumberPrefixEnum;
 import org.savapage.core.dao.PrinterDao;
+import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
 import org.savapage.core.dao.helpers.AggregateResult;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
@@ -51,6 +55,7 @@ import org.savapage.core.dto.MediaPageCostDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
 import org.savapage.core.dto.UserAccountingDto;
+import org.savapage.core.dto.UserCreditTransferDto;
 import org.savapage.core.dto.UserPaymentGatewayDto;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
@@ -77,6 +82,7 @@ import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 import org.savapage.core.util.BigDecimalUtil;
+import org.savapage.core.util.Messages;
 
 /**
  *
@@ -1541,5 +1547,90 @@ public final class AccountingServiceImpl extends AbstractService implements
                 .toString(), Integer.valueOf(nAccounts).toString()));
 
         return JsonRpcMethodResult.createOkResult(result.toString());
+    }
+
+    @Override
+    public AbstractJsonRpcMethodResponse transferUserCredit(
+            final UserCreditTransferDto dto) {
+
+        /*
+         * INVARIANT: Amount MUST be valid.
+         */
+        final String plainAmount =
+                dto.getAmountMain() + "." + dto.getAmountCents();
+
+        if (!BigDecimalUtil.isValid(plainAmount)) {
+
+            return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
+                    localize("msg-amount-error", plainAmount));
+        }
+
+        final BigDecimal paymentAmount = BigDecimalUtil.valueOf(plainAmount);
+
+        /*
+         * INVARIANT: Amount MUST be GT zero.
+         */
+        if (paymentAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
+                    localize("msg-amount-must-be-positive"));
+        }
+
+        /*
+         * INVARIANT: MUST transfer to another user.
+         */
+        if (dto.getUserIdFrom().equalsIgnoreCase(dto.getUserIdTo())) {
+            return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
+                    localize("msg-user-credit-transfer-err-user-same"));
+        }
+
+        /*
+         * INVARIANT: target user MUST exist.
+         */
+        final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
+
+        final User lockedUserTo = userDao.lockByUserId(dto.getUserIdTo());
+
+        if (lockedUserTo == null) {
+            return JsonRpcMethodError.createBasicError(
+                    Code.INVALID_PARAMS,
+                    localize("msg-user-credit-transfer-err-user-unknown",
+                            dto.getUserIdTo()));
+        }
+
+        /*
+         * TODO: transfer funds.
+         */
+
+
+        /*
+         * Notifications.
+         */
+        try {
+            final String userNotification =
+                    localize(
+                            "msg-user-credit-transfer-for-user",
+                            BigDecimalUtil.localize(paymentAmount,
+                                    ConfigManager.getUserBalanceDecimals(),
+                                    ServiceContext.getLocale(),
+                                    ServiceContext.getAppCurrencySymbol(), true),
+                            dto.getUserIdTo());
+            AdminPublisher.instance().publish(
+                    PubTopicEnum.USER,
+                    PubLevelEnum.INFO,
+                    Messages.getSystemMessage(getClass(),
+                            "msg-user-credit-transfer-for-system", dto
+                                    .getUserIdFrom(), BigDecimalUtil.localize(
+                                    paymentAmount,
+                                    ConfigManager.getUserBalanceDecimals(),
+                                    ConfigManager.getDefaultLocale(),
+                                    ConfigManager.getAppCurrencyCode(), true),
+                            dto.getUserIdTo()));
+
+            return JsonRpcMethodResult.createOkResult(userNotification);
+
+        } catch (ParseException e) {
+            throw new SpException(e.getMessage(), e);
+        }
+
     }
 }

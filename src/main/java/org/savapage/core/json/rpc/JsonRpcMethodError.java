@@ -34,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  */
 @JsonPropertyOrder({ "error" })
 @JsonInclude(Include.NON_NULL)
-public class JsonRpcMethodError extends AbstractJsonRpcMethodResponse {
+public final class JsonRpcMethodError extends AbstractJsonRpcMethodResponse {
 
     @Override
     @JsonIgnore
@@ -55,8 +55,22 @@ public class JsonRpcMethodError extends AbstractJsonRpcMethodResponse {
 
     @SuppressWarnings("unchecked")
     @JsonIgnore
-    public <T extends JsonRpcError> T error(Class<T> jsonClass) {
+    public <T extends JsonRpcError> T error(final Class<T> jsonClass) {
         return (T) this.error;
+    }
+
+    /**
+     * Creates a {@link JsonRpcMethodError} with {@link ErrorDataBasic} data.
+     *
+     * @param code
+     *            The code.
+     * @param reason
+     *            The error reason.
+     * @return The JSON-RPC error message.
+     */
+    public static JsonRpcMethodError createBasicError(
+            final JsonRpcError.Code code, final String reason) {
+        return createBasicError(code, null, reason);
     }
 
     /**
@@ -70,15 +84,16 @@ public class JsonRpcMethodError extends AbstractJsonRpcMethodResponse {
      *            A more elaborate explanation. Can be {@code null}.
      * @return The JSON-RPC error message.
      */
-    public static JsonRpcMethodError createBasicError(JsonRpcError.Code code,
-            String message, String reason) {
+    public static JsonRpcMethodError createBasicError(
+            final JsonRpcError.Code code, final String message,
+            final String reason) {
 
-        JsonRpcMethodError methodError = new JsonRpcMethodError();
+        final JsonRpcMethodError methodError = new JsonRpcMethodError();
 
-        JsonRpcError error = new JsonRpcError();
+        final JsonRpcError error = new JsonRpcError();
         methodError.setError(error);
 
-        ErrorDataBasic data = new ErrorDataBasic();
+        final ErrorDataBasic data = new ErrorDataBasic();
         error.setData(data);
 
         error.setCode(code.asInt());

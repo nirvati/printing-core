@@ -35,6 +35,7 @@ import org.savapage.core.dto.FinancialDisplayInfoDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
 import org.savapage.core.dto.UserAccountingDto;
+import org.savapage.core.dto.UserCreditTransferDto;
 import org.savapage.core.dto.UserPaymentGatewayDto;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
@@ -464,4 +465,14 @@ public interface AccountingService {
     AbstractJsonRpcMethodResponse changeBaseCurrency(
             DaoBatchCommitter batchCommitter, Currency currencyFrom,
             Currency currencyTo, double exchangeRate);
+
+    /**
+     * Transfers credit from one user account to another.
+     *
+     * @param dto
+     *            The {@link UserCreditTransferDto}.
+     * @return The JSON-RPC Return message (either a result or an error);
+     */
+    AbstractJsonRpcMethodResponse transferUserCredit(UserCreditTransferDto dto);
+
 }

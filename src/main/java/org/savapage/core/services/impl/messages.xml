@@ -4,6 +4,7 @@
 
 <!-- AccountingServiceImpl -->
     <entry key="msg-amount-error">Amount "{0}" is not valid.</entry>
+    <entry key="msg-amount-must-be-positive">Amount must be greater that zero.</entry>
     
     <entry key="msg-voucher-redeem-number-invalid">The supplied voucher number is invalid. Please enter the number exactly as listed including any dashes (-).</entry>
     <entry key="msg-voucher-redeem-user-unknown">User "{0}" is not found.</entry>        
@@ -17,6 +18,12 @@
     <entry key="msg-print-denied-no-credit">Print job denied: your credit limit {0} is insufficient for {1} costs and {2} balance.</entry>
 
     <entry key="msg-changed-base-currency">Changed base currency from {0} to {1} with exchange rate {2}: [{3}] transactions for [{4}] accounts.</entry>        
+
+    <entry key="msg-user-credit-transfer-for-user">{0} succesfully transferred to user account "{1}".</entry>
+    <entry key="msg-user-credit-transfer-for-system">User "{0}" transferred {1} to user account "{2}".</entry>
+    <entry key="msg-user-credit-transfer-err-user-same">You cannot transfer an amount to yourself.</entry>
+    <entry key="msg-user-credit-transfer-err-user-unknown">User "{0}" is unknown.</entry>
+
 
 <!-- AccountVoucherServiceImpl -->
     <entry key="msg-voucher-batch-invalid">Batch ID "{0}" is not valid.</entry>

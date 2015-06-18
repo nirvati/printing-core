@@ -360,7 +360,7 @@ public final class ConfigManager {
     /**
      * Checks if application is properly initialized.
      *
-     * @return {@code true) when properly initialized.
+     * @return {@code true} when properly initialized.
 
      */
     public boolean isInitialized() {

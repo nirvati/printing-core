@@ -112,6 +112,93 @@ public interface IConfigProp {
     InternalFontFamilyEnum DEFAULT_INTERNAL_FONT_FAMILY =
             InternalFontFamilyEnum.DEFAULT;
 
+    final String V_YES = "Y";
+    final String V_NO = "N";
+
+    /**
+     * Null value for numerics.
+     */
+    final String V_NULL = "-1";
+
+    final String AUTH_METHOD_V_LDAP = "ldap";
+    final String AUTH_METHOD_V_UNIX = "unix";
+    final String AUTH_METHOD_V_NONE = "none";
+
+    final String AUTH_MODE_V_NAME = UserAuth.MODE_NAME;
+    final String AUTH_MODE_V_ID = UserAuth.MODE_ID;
+    final String AUTH_MODE_V_CARD_LOCAL = UserAuth.MODE_CARD_LOCAL;
+    final String AUTH_MODE_V_CARD_IP = UserAuth.MODE_CARD_IP;
+
+    final String LDAP_TYPE_V_APPLE = "APPLE_OPENDIR";
+    final String LDAP_TYPE_V_OPEN_LDAP = "OPEN_LDAP";
+    final String LDAP_TYPE_V_E_DIR = "NOVELL_EDIRECTORY";
+    final String LDAP_TYPE_V_ACTIV = "ACTIVE_DIRECTORY";
+
+    final String PAPERSIZE_V_SYSTEM = "";
+    final String PAPERSIZE_V_A4 = MediaSizeName.ISO_A4.toString();
+    final String PAPERSIZE_V_LETTER = MediaSizeName.NA_LETTER.toString();
+
+    /**
+     *
+     */
+    final String SMTP_SECURITY_V_NONE = "";
+
+    /**
+     * Set to Y to enable STARTTLS, or N to disable it. STARTTLS is for
+     * connecting to an SMTP server port using a plain (non-encrypted)
+     * connection, then elevating to an encrypted connection on the same port.
+     */
+    final String SMTP_SECURITY_V_STARTTLS = "starttls";
+    /**
+     *
+     */
+    final String SMTP_SECURITY_V_SSL = "ssl";
+
+    /**
+     *
+     */
+    final String IMAP_SECURITY_V_NONE = "";
+
+    /**
+     *
+     */
+    final String IMAP_SECURITY_V_STARTTLS = "starttls";
+
+    /**
+     *
+     */
+    final String IMAP_SECURITY_V_SSL = "ssl";
+
+    /**
+     *
+     */
+    final Integer IMAP_CONNECTION_TIMEOUT_V_DEFAULT = 10000;
+    final Integer IMAP_TIMEOUT_V_DEFAULT = 10000;
+
+    final Long IMAP_MAX_FILE_MB_V_DEFAULT = 5L;
+    final Integer IMAP_MAX_FILES_V_DEFAULT = 1;
+
+    /**
+     *
+     */
+    final Long WEBPRINT_MAX_FILE_MB_V_DEFAULT = 5L;
+
+    /**
+     *
+     */
+    final Integer WEBAPP_MAX_IDLE_SECS_V_NONE = 0;
+
+    final String CARD_NUMBER_FORMAT_V_DEC = "DEC";
+    final String CARD_NUMBER_FORMAT_V_HEX = "HEX";
+
+    final String CARD_NUMBER_FIRSTBYTE_V_LSB = "LSB";
+    final String CARD_NUMBER_FIRSTBYTE_V_MSB = "MSB";
+
+    /**
+     *
+     */
+    final Integer NUMBER_V_NONE = 0;
+
     /**
      * @author Datraverse B.V.
      */
@@ -186,6 +273,52 @@ public interface IConfigProp {
         FINANCIAL_USER_BALANCE_DECIMALS("financial.user.balance-decimals",
                 ACCOUNTING_DECIMAL_VALIDATOR,
                 DEFAULT_FINANCIAL_USER_BALANCE_DECIMALS),
+
+        /**
+         * .
+         */
+        FINANCIAL_USER_TRANSFER_ENABLE("financial.user.transfers.enable",
+                BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * .
+         */
+        FINANCIAL_USER_TRANSFER_ENABLE_COMMENTS(
+                "financial.user.transfers.enable-comments", BOOLEAN_VALIDATOR,
+                V_YES),
+
+        /**
+         * .
+         */
+        FINANCIAL_USER_TRANSFER_AMOUNT_MIN(
+                "financial.user.transfers.amount-min", KeyType.BIG_DECIMAL,
+                "0.01"),
+
+        /**
+         * .
+         */
+        FINANCIAL_USER_TRANSFER_AMOUNT_MAX(
+                "financial.user.transfers.amount-max", KeyType.BIG_DECIMAL,
+                "999999999.99"),
+
+        /**
+         * .
+         */
+        FINANCIAL_USER_TRANSFER_ENABLE_LIMIT_GROUP(
+                "financial.user.transfers.enable-limit-group",
+                BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * .
+         */
+        FINANCIAL_USER_TRANSFER_LIMIT_GROUP(
+                "financial.user.transfers.limit-group"),
+
+        /**
+         * .
+         */
+        FINANCIAL_USER_VOUCHERS_ENABLE("financial.user.vouchers.enable",
+                BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
@@ -2296,93 +2429,6 @@ public interface IConfigProp {
         }
 
     };
-
-    final String V_YES = "Y";
-    final String V_NO = "N";
-
-    /**
-     * Null value for numerics.
-     */
-    final String V_NULL = "-1";
-
-    final String AUTH_METHOD_V_LDAP = "ldap";
-    final String AUTH_METHOD_V_UNIX = "unix";
-    final String AUTH_METHOD_V_NONE = "none";
-
-    final String AUTH_MODE_V_NAME = UserAuth.MODE_NAME;
-    final String AUTH_MODE_V_ID = UserAuth.MODE_ID;
-    final String AUTH_MODE_V_CARD_LOCAL = UserAuth.MODE_CARD_LOCAL;
-    final String AUTH_MODE_V_CARD_IP = UserAuth.MODE_CARD_IP;
-
-    final String LDAP_TYPE_V_APPLE = "APPLE_OPENDIR";
-    final String LDAP_TYPE_V_OPEN_LDAP = "OPEN_LDAP";
-    final String LDAP_TYPE_V_E_DIR = "NOVELL_EDIRECTORY";
-    final String LDAP_TYPE_V_ACTIV = "ACTIVE_DIRECTORY";
-
-    final String PAPERSIZE_V_SYSTEM = "";
-    final String PAPERSIZE_V_A4 = MediaSizeName.ISO_A4.toString();
-    final String PAPERSIZE_V_LETTER = MediaSizeName.NA_LETTER.toString();
-
-    /**
-     *
-     */
-    final String SMTP_SECURITY_V_NONE = "";
-
-    /**
-     * Set to Y to enable STARTTLS, or N to disable it. STARTTLS is for
-     * connecting to an SMTP server port using a plain (non-encrypted)
-     * connection, then elevating to an encrypted connection on the same port.
-     */
-    final String SMTP_SECURITY_V_STARTTLS = "starttls";
-    /**
-     *
-     */
-    final String SMTP_SECURITY_V_SSL = "ssl";
-
-    /**
-     *
-     */
-    final String IMAP_SECURITY_V_NONE = "";
-
-    /**
-     *
-     */
-    final String IMAP_SECURITY_V_STARTTLS = "starttls";
-
-    /**
-     *
-     */
-    final String IMAP_SECURITY_V_SSL = "ssl";
-
-    /**
-     *
-     */
-    final Integer IMAP_CONNECTION_TIMEOUT_V_DEFAULT = 10000;
-    final Integer IMAP_TIMEOUT_V_DEFAULT = 10000;
-
-    final Long IMAP_MAX_FILE_MB_V_DEFAULT = 5L;
-    final Integer IMAP_MAX_FILES_V_DEFAULT = 1;
-
-    /**
-     *
-     */
-    final Long WEBPRINT_MAX_FILE_MB_V_DEFAULT = 5L;
-
-    /**
-     *
-     */
-    final Integer WEBAPP_MAX_IDLE_SECS_V_NONE = 0;
-
-    final String CARD_NUMBER_FORMAT_V_DEC = "DEC";
-    final String CARD_NUMBER_FORMAT_V_HEX = "HEX";
-
-    final String CARD_NUMBER_FIRSTBYTE_V_LSB = "LSB";
-    final String CARD_NUMBER_FIRSTBYTE_V_MSB = "MSB";
-
-    /**
-     *
-     */
-    final Integer NUMBER_V_NONE = 0;
 
     /**
      *
