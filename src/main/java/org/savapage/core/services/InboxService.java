@@ -322,36 +322,39 @@ public interface InboxService {
     /**
      * Deletes ALL SafePages.
      *
-     * @param user
+     * @param userId
      *            The unique user id.
      * @return The number of deleted pages.
      */
-    int deleteAllPages(String user);
+    int deleteAllPages(String userId);
 
     /**
      * Deletes pages from virtual document.
      *
-     * @param user
+     * @param userId
+     *            The unique user id.
      * @param ranges
-     *            string with lpr style (1-based) page ranges.
+     *            String with lpr style (1-based) page ranges.
      * @return The number of deleted pages.
+     * @throws IllegalArgumentException
+     *             When page range syntax error.
      */
-    int deletePages(String user, String ranges);
+    int deletePages(String userId, String ranges);
 
     /**
      * Deletes a job.
      *
-     * @param user
+     * @param userId
      *            The unique user id.
      * @param iJob
      *            Zero-based index of the job.
      */
-    void deleteJob(String user, int iJob);
+    void deleteJob(String userId, int iJob);
 
     /**
      * Edits (rotates, undeletes) a job.
      *
-     * @param user
+     * @param userId
      *            The unique user id.
      * @param iJob
      *            Zero-based index of the job.
@@ -362,12 +365,12 @@ public interface InboxService {
      *            page instance, all subsequent pages are discarded, so any
      *            inter-job ordering is gone.
      */
-    void editJob(String user, int iJob, boolean rotate, boolean undelete);
+    void editJob(String userId, int iJob, boolean rotate, boolean undelete);
 
     /**
      * Moves page ranges to a page position.
      *
-     * @param user
+     * @param userId
      *            The unique user id.
      * @param nRanges
      *            string with lpr style (1-based) page ranges.
@@ -377,7 +380,7 @@ public interface InboxService {
      * @return dictionary $result['result'], $result['msg'],
      *         $result['values'][0]
      */
-    int movePages(String user, String nRanges, int nPage2Move2);
+    int movePages(String userId, String nRanges, int nPage2Move2);
 
     /**
      * Checks if the {@link InboxInfoDto} is vanilla, i.e. user did not edit the
@@ -425,13 +428,13 @@ public interface InboxService {
      *
      * @param homedir
      *            The SafePages directory.
-     * @param user
+     * @param userId
      *            The unique user id.
      * @param jobs
      *            The jobs to prune.
      * @return The pruned jobs.
      */
-    InboxInfoDto pruneJobs(String homedir, String user, InboxInfoDto jobs);
+    InboxInfoDto pruneJobs(String homedir, String userId, InboxInfoDto jobs);
 
     /**
      * Prunes the print-in jobs which are orphaned, i.e. jobs that are absent in
@@ -567,8 +570,8 @@ public interface InboxService {
     /**
      * Finds the job (base file name) belonging to the SafePages page index.
      *
-     * @param user
-     *            The user.
+     * @param userId
+     *            The unique user id.
      * @param iPage
      *            The zero-based page number of the accumulated SafePages.
      * @return Object array with 3 elements or zero (0) elements when the job is
@@ -577,7 +580,7 @@ public interface InboxService {
      *         WITHIN the job file. Element 3 is a String with the rotation to
      *         apply to the page. landscape format.
      */
-    Object[] findJob(String user, int iPage);
+    Object[] findJob(String userId, int iPage);
 
     /**
      * Gets the {@link IppMediaSizeEnum} of media used in {@link InboxInfoDto}.

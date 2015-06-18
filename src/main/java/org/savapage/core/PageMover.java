@@ -27,8 +27,8 @@ import java.util.List;
 
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.inbox.InboxInfoDto;
-import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
+import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.impl.InboxServiceImpl;
@@ -226,6 +226,8 @@ public final class PageMover {
      *            1-based page ordinal to move at. If this ordinal is negative,
      *            the move is NOT executed, and this method works as a DELETE.
      * @return The number of moved pages.
+     * @throws IllegalArgumentException
+     *             When page range syntax error.
      */
     public static int movePages(final String user, final InboxInfoDto jobinfo,
             final String nRanges, final int nPage2Move2) {
@@ -250,6 +252,8 @@ public final class PageMover {
      * @param nRanges
      *            string with lpr style (1-based) page ranges.
      * @return The number of deleted pages.
+     * @throws IllegalArgumentException
+     *             When page range syntax error.
      */
     public static int deletePages(final String user,
             final InboxInfoDto jobinfo, final String nRanges) {
@@ -420,7 +424,8 @@ public final class PageMover {
     }
 
     /**
-     *
+     * @throws IllegalArgumentException
+     *             When page range syntax error.
      */
     private void onInit() {
 
@@ -439,6 +444,10 @@ public final class PageMover {
 
         this.nPagesTot = INBOX_SERVICE.calcNumberOfPagesInJobs(this.jobinfo);
         this.moveRanges = INBOX_SERVICE.createSortedRangeArray(nRanges);
+
+        if (this.moveRanges == null) {
+            throw new IllegalArgumentException();
+        }
 
         /*
          * Read first moveRange.
@@ -617,7 +626,8 @@ public final class PageMover {
     }
 
     /**
-     *
+     * @throws IllegalArgumentException
+     *             When page range syntax error.
      */
     private void exec() {
 
