@@ -301,6 +301,24 @@ public final class UserMsgIndicator {
     }
 
     /**
+     * Notifies a {@link Msg#ACCOUNT_INFO} event.
+     *
+     * @param userId
+     *            The unique user id.
+     */
+    public static void notifyAccountInfoEvent(final String userId) {
+
+        if (UserMsgIndicator.isSafePagesDirPresent(userId)) {
+            try {
+                UserMsgIndicator.writeMsg(userId, System.currentTimeMillis(),
+                        UserMsgIndicator.Msg.ACCOUNT_INFO, null);
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
      * Saves (writes) the date-time and type of the last user message.
      *
      * @param userId
@@ -318,13 +336,34 @@ public final class UserMsgIndicator {
     public static void write(final String userId, final Date date,
             final Msg msg, final String senderId) throws IOException {
 
+        writeMsg(userId, date.getTime(), msg, senderId);
+    }
+
+    /**
+     * Saves (writes) the date-time and type of the last user message.
+     *
+     * @param userId
+     *            The user_name.
+     * @param time
+     *            The date-time of the user message.
+     * @param msg
+     *            The {@link UserMsgIndicator.Msg} type.
+     * @param senderId
+     *            Any ID the sender wants to add (can be {@code null}).
+     * @throws IOException
+     *             When message could not be written, e.g. because the User
+     *             safapages directory does not exist (yet).
+     */
+    private static void writeMsg(final String userId, final long time,
+            final Msg msg, final String senderId) throws IOException {
+
         FileOutputStream fos = null;
 
         try {
 
             Properties props = new Properties();
 
-            props.put(PROP_DATE, String.valueOf(date.getTime()));
+            props.put(PROP_DATE, String.valueOf(time));
             props.put(PROP_MSG, msg.toString());
 
             if (senderId != null) {

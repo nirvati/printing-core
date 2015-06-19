@@ -37,6 +37,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
 
 /**
@@ -49,6 +50,8 @@ import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
 public class AccountTrx extends org.savapage.core.jpa.Entity {
 
     public static final String TABLE_NAME = "tbl_account_trx";
+
+    public static final int COL_COMMENT_LENGTH = 255;
 
     @Id
     @Column(name = "account_trx_id")
@@ -146,10 +149,9 @@ public class AccountTrx extends org.savapage.core.jpa.Entity {
     private String transactedBy;
 
     /**
-     * An optional comment. E.g: "Bulk credit adjustment" |
-     * "from custom PHP application".
+     * An optional comment.
      */
-    @Column(name = "trx_comment", length = 255, nullable = true)
+    @Column(name = "trx_comment", length = COL_COMMENT_LENGTH, nullable = true)
     private String comment;
 
     /**
@@ -353,8 +355,14 @@ public class AccountTrx extends org.savapage.core.jpa.Entity {
         return comment;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
+    /**
+     * Truncate, to protect overflow (when user input is used).
+     *
+     * @param rawComment
+     *            The raw comment.
+     */
+    public void setComment(final String rawComment) {
+        this.comment = StringUtils.abbreviate(rawComment, COL_COMMENT_LENGTH);
     }
 
     public String getTrxType() {

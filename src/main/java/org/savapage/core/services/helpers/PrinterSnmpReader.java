@@ -103,7 +103,8 @@ public final class PrinterSnmpReader {
             throw new SnmpConnectException(e.getMessage(), e);
         }
 
-        OID oidWlk = null;
+        // ----- Printer Status
+        OID oidWlk = SnmpMibDict.OID_PRINTER_STATUS;;
 
         try {
             Integer intValue;

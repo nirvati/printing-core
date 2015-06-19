@@ -556,16 +556,9 @@ public final class OutputProducer {
      * Sends an email with an optional file attachment.
      *
      * <p>
-     * See these links for <a href=
-     * "http://www.mkyong.com/java/javamail-api-sending-email-via-gmail-smtp-example/"
-     * >SSL and TLS</a> and <a href=
-     * "http://www.codejava.net/java-ee/javamail/send-e-mail-with-attachment-in-java"
-     * >attachments</a>.
-     * </p>
-     * <p>
-     * Or, see the <a href=
+     * See the <a href=
      * "https://javamail.java.net/nonav/docs/api/com/sun/mail/smtp/package-summary.html"
-     * >JavaDocs</a>.
+     * >JavaMail API documentation</a>.
      * </p>
      *
      * @param toAddress
@@ -647,8 +640,6 @@ public final class OutputProducer {
                     "javax.net.ssl.SSLSocketFactory");
         }
 
-        // "mail.smtp.connectiontimeout" ??
-
         /*
          * Get a new session instance. Do NOT use the getDefaultInstance().
          */
@@ -705,9 +696,6 @@ public final class OutputProducer {
         final MimeBodyPart mbp1 = new MimeBodyPart();
         mbp1.setText(body);
 
-        // create and fill the second message part
-        final MimeBodyPart mbp2 = new MimeBodyPart();
-
         // Use setText(text, charset), to show it off !
         // mbp2.setText(strFileAttach, "us-ascii");
 
@@ -717,6 +705,9 @@ public final class OutputProducer {
 
         //
         if (fileAttach != null) {
+
+            final MimeBodyPart mbp2 = new MimeBodyPart();
+
             /*
              * (1) attach
              */

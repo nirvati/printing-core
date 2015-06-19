@@ -72,6 +72,7 @@ import org.savapage.core.json.rpc.JsonRpcError.Code;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ResultPosDeposit;
+import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkInfo;
@@ -381,7 +382,7 @@ public final class AccountingServiceImpl extends AbstractService implements
     }
 
     /**
-     * Creates a transaction.
+     * Creates a {@link AccountTrx} object with base Application Currency.
      * <p>
      * Transaction Actor and Date are retrieved from the {@link ServiceContext}.
      * </p>
@@ -396,16 +397,47 @@ public final class AccountingServiceImpl extends AbstractService implements
      *            The balance of the account AFTER this transaction.
      * @param comment
      *            The transaction comment.
-     * @return The created transaction.
+     * @return The created {@link AccountTrx} object.
      */
     private AccountTrx createAccountTrx(final Account account,
             final AccountTrxTypeEnum trxType, final BigDecimal amount,
             final BigDecimal accountBalance, final String comment) {
 
+        return createAccountTrx(account, trxType, ConfigManager
+                .getAppCurrency().getCurrencyCode(), amount, accountBalance,
+                comment);
+    }
+
+    /**
+     * Creates a {@link AccountTrx} object.
+     * <p>
+     * Transaction Actor and Date are retrieved from the {@link ServiceContext}.
+     * </p>
+     *
+     * @param account
+     *            The {@link Account} the transaction is executed on.
+     * @param trxType
+     *            The {@link AccountTrxTypeEnum}.
+     * @param currencyCode
+     *            The ISO currency code.
+     * @param amount
+     *            The transaction amount.
+     * @param accountBalance
+     *            The balance of the account AFTER this transaction.
+     * @param comment
+     *            The transaction comment.
+     * @return The created {@link AccountTrx} object.
+     */
+    private AccountTrx createAccountTrx(final Account account,
+            final AccountTrxTypeEnum trxType, final String currencyCode,
+            final BigDecimal amount, final BigDecimal accountBalance,
+            final String comment) {
+
         final AccountTrx trx = new AccountTrx();
+
         trx.setAccount(account);
 
-        trx.setCurrencyCode(ConfigManager.getAppCurrency().getCurrencyCode());
+        trx.setCurrencyCode(currencyCode);
         trx.setAmount(amount);
         trx.setBalance(accountBalance);
         trx.setComment(comment);
@@ -1248,7 +1280,7 @@ public final class AccountingServiceImpl extends AbstractService implements
     }
 
     /**
-     * Add funds to an {@link Account}.
+     * Deposits funds to an {@link Account}.
      *
      * @param account
      *            The {@link Account}.
@@ -1264,7 +1296,7 @@ public final class AccountingServiceImpl extends AbstractService implements
      *            The comment set in {@link PosPurchase} and {@link AccountTrx}.
      * @return The {@link AbstractJsonRpcMethodResponse}.
      */
-    private AbstractJsonRpcMethodResponse addFundsToAccount(
+    private AbstractJsonRpcMethodResponse depositFundsToAccount(
             final Account account, final AccountTrxTypeEnum accountTrxType,
             final String paymentType, final String receiptNumber,
             final BigDecimal amount, final String comment) {
@@ -1357,7 +1389,7 @@ public final class AccountingServiceImpl extends AbstractService implements
                 purchaseDAO().getNextReceiptNumber(
                         ReceiptNumberPrefixEnum.DEPOSIT);
 
-        return addFundsToAccount(account, AccountTrxTypeEnum.DEPOSIT,
+        return depositFundsToAccount(account, AccountTrxTypeEnum.DEPOSIT,
                 dto.getPaymentType(), receiptNumber, depositAmount,
                 dto.getComment());
 
@@ -1549,6 +1581,65 @@ public final class AccountingServiceImpl extends AbstractService implements
         return JsonRpcMethodResult.createOkResult(result.toString());
     }
 
+    /**
+     * Adds an {@link AccountTrx} and updates the {@link Account}.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param accountType
+     *            The {@link AccountTypeEnum}.
+     * @param trxType
+     *            The {@link AccountTrxTypeEnum}.
+     * @param currencyCode
+     *            The ISO currency code.
+     * @param amount
+     *            The amount (can be negative).
+     * @param trxComment
+     *            The transaction comment.
+     */
+    private void addAccountTrx(final User user,
+            final AccountTypeEnum accountType,
+            final AccountTrxTypeEnum trxType, final String currencyCode,
+            final BigDecimal amount, final String trxComment) {
+
+        final Account account =
+                this.lazyGetUserAccount(user, accountType).getAccount();
+
+        account.setBalance(account.getBalance().add(amount));
+        account.setModifiedBy(ServiceContext.getActor());
+        account.setModifiedDate(ServiceContext.getTransactionDate());
+
+        final AccountTrx trx =
+                this.createAccountTrx(account, trxType, currencyCode, amount,
+                        account.getBalance(), trxComment);
+
+        accountDAO().update(account);
+        accountTrxDAO().create(trx);
+    }
+
+    /**
+     * Checks if balance is sufficient to make a payment. We allow for a
+     * non-significant overdraft beyond the balance precision.
+     *
+     * @param balance
+     *            The balance amount.
+     * @param payment
+     *            The payment (a positive value).
+     * @param balancePrecision
+     *            The balance precision (number of decimals).
+     * @return {@code true} if payment is within balance.
+     */
+    private static boolean isPaymentWithinBalance(final BigDecimal balance,
+            final BigDecimal payment, final int balancePrecision) {
+
+        final BigDecimal balanceMin =
+                BigDecimal.valueOf(-5 / Math.pow(10, balancePrecision + 1));
+
+        final BigDecimal balanceAfter = balance.subtract(payment);
+
+        return balanceAfter.compareTo(balanceMin) >= 0;
+    }
+
     @Override
     public AbstractJsonRpcMethodResponse transferUserCredit(
             final UserCreditTransferDto dto) {
@@ -1565,12 +1656,12 @@ public final class AccountingServiceImpl extends AbstractService implements
                     localize("msg-amount-error", plainAmount));
         }
 
-        final BigDecimal paymentAmount = BigDecimalUtil.valueOf(plainAmount);
+        final BigDecimal transferAmount = BigDecimalUtil.valueOf(plainAmount);
 
         /*
          * INVARIANT: Amount MUST be GT zero.
          */
-        if (paymentAmount.compareTo(BigDecimal.ZERO) <= 0) {
+        if (transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
             return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
                     localize("msg-amount-must-be-positive"));
         }
@@ -1584,53 +1675,147 @@ public final class AccountingServiceImpl extends AbstractService implements
         }
 
         /*
-         * INVARIANT: target user MUST exist.
+         * INVARIANT: Source and target user MUST exist.
          */
         final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
 
         final User lockedUserTo = userDao.lockByUserId(dto.getUserIdTo());
+        final User lockedUserFrom = userDao.lockByUserId(dto.getUserIdFrom());
 
-        if (lockedUserTo == null) {
-            return JsonRpcMethodError.createBasicError(
-                    Code.INVALID_PARAMS,
-                    localize("msg-user-credit-transfer-err-user-unknown",
-                            dto.getUserIdTo()));
+        if (lockedUserFrom == null || lockedUserTo == null) {
+
+            final String msg;
+
+            if (lockedUserFrom != null) {
+                msg =
+                        localize("msg-user-credit-transfer-err-unknown-user",
+                                dto.getUserIdTo());
+            } else if (lockedUserTo != null) {
+                msg =
+                        localize("msg-user-credit-transfer-err-unknown-user",
+                                dto.getUserIdFrom());
+            } else {
+                msg =
+                        localize("msg-user-credit-transfer-err-unknown-users",
+                                dto.getUserIdFrom(), dto.getUserIdTo());
+            }
+
+            return JsonRpcMethodError
+                    .createBasicError(Code.INVALID_PARAMS, msg);
         }
 
         /*
-         * TODO: transfer funds.
+         * INVARIANT: User balance MUST be sufficient.
          */
+        final int userBalanceDecimals = ConfigManager.getUserBalanceDecimals();
 
+        final AccountTypeEnum accountTypeTransfer = AccountTypeEnum.USER;
+
+        final Account accountFrom =
+                this.lazyGetUserAccount(lockedUserFrom, accountTypeTransfer)
+                        .getAccount();
+
+        if (!isPaymentWithinBalance(accountFrom.getBalance(), transferAmount,
+                userBalanceDecimals)) {
+            return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
+                    localize("msg-user-credit-transfer-err-amount-greater"));
+        }
+
+        /*
+         * INVARIANT: transfer amount MUST be GT/EQ to minimum and LT/EQ
+         * maximum.
+         */
+        try {
+            final BigDecimal minimalTransfer =
+                    ConfigManager.instance().getConfigBigDecimal(
+                            Key.FINANCIAL_USER_TRANSFER_AMOUNT_MIN);
+
+            if (minimalTransfer != null
+                    && transferAmount.compareTo(minimalTransfer) < 0) {
+
+                return JsonRpcMethodError.createBasicError(
+                        Code.INVALID_PARAMS,
+                        localize("msg-amount-must-be-gt-eq", BigDecimalUtil
+                                .localize(minimalTransfer, userBalanceDecimals,
+                                        ServiceContext.getLocale(),
+                                        ServiceContext.getAppCurrencySymbol(),
+                                        true)));
+            }
+
+            final BigDecimal maximalTransfer =
+                    ConfigManager.instance().getConfigBigDecimal(
+                            Key.FINANCIAL_USER_TRANSFER_AMOUNT_MAX);
+
+            if (maximalTransfer != null
+                    && transferAmount.compareTo(maximalTransfer) > 0) {
+
+                return JsonRpcMethodError.createBasicError(
+                        Code.INVALID_PARAMS,
+                        localize("msg-amount-must-be-lt-eq", BigDecimalUtil
+                                .localize(maximalTransfer, userBalanceDecimals,
+                                        ServiceContext.getLocale(),
+                                        ServiceContext.getAppCurrencySymbol(),
+                                        true)));
+            }
+        } catch (ParseException e) {
+            throw new SpException(e.getMessage(), e);
+        }
+
+        /*
+         * Transfer funds.
+         */
+        final String currencyCode = ConfigManager.getAppCurrencyCode();
+
+        final StringBuilder trxComment =
+                new StringBuilder().append(Messages.getSystemMessage(
+                        getClass(), "msg-user-credit-transfer-comment",
+                        dto.getUserIdFrom(), dto.getUserIdTo()));
+
+        if (StringUtils.isNotBlank(dto.getComment())) {
+            trxComment.append(" - ").append(dto.getComment());
+        }
+
+        addAccountTrx(lockedUserFrom, accountTypeTransfer,
+                AccountTrxTypeEnum.TRANSFER, currencyCode,
+                transferAmount.negate(), trxComment.toString());
+
+        addAccountTrx(lockedUserTo, accountTypeTransfer,
+                AccountTrxTypeEnum.TRANSFER, currencyCode, transferAmount,
+                trxComment.toString());
 
         /*
          * Notifications.
          */
+        final String userNotification;
+
         try {
-            final String userNotification =
+            userNotification =
                     localize(
                             "msg-user-credit-transfer-for-user",
-                            BigDecimalUtil.localize(paymentAmount,
-                                    ConfigManager.getUserBalanceDecimals(),
+                            BigDecimalUtil.localize(transferAmount,
+                                    userBalanceDecimals,
                                     ServiceContext.getLocale(),
                                     ServiceContext.getAppCurrencySymbol(), true),
                             dto.getUserIdTo());
+
             AdminPublisher.instance().publish(
                     PubTopicEnum.USER,
                     PubLevelEnum.INFO,
                     Messages.getSystemMessage(getClass(),
                             "msg-user-credit-transfer-for-system", dto
                                     .getUserIdFrom(), BigDecimalUtil.localize(
-                                    paymentAmount,
-                                    ConfigManager.getUserBalanceDecimals(),
+                                    transferAmount, userBalanceDecimals,
                                     ConfigManager.getDefaultLocale(),
                                     ConfigManager.getAppCurrencyCode(), true),
                             dto.getUserIdTo()));
 
-            return JsonRpcMethodResult.createOkResult(userNotification);
+            UserMsgIndicator.notifyAccountInfoEvent(dto.getUserIdFrom());
+            UserMsgIndicator.notifyAccountInfoEvent(dto.getUserIdTo());
 
         } catch (ParseException e) {
             throw new SpException(e.getMessage(), e);
         }
 
+        return JsonRpcMethodResult.createOkResult(userNotification);
     }
 }

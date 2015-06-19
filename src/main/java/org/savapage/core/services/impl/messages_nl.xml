@@ -5,6 +5,8 @@
 <!-- AccountingServiceImpl -->
     <entry key="msg-amount-error">Bedrag "{0}" is ongeldig.</entry>
     <entry key="msg-amount-must-be-positive">Bedrag moet groter zijn dan nul.</entry>
+    <entry key="msg-amount-must-be-gt-eq">Bedrag moet groter of gelijk zijn aan {0}</entry>
+    <entry key="msg-amount-must-be-lt-eq">Bedrag moet kleiner of gelijk zijn aan {0}</entry>   
     
     <entry key="msg-voucher-redeem-number-invalid">De geleverde voucher-nummer is ongeldig. Vul het nummer exact in zoals weergegeven inclusief eventuele streepjes (-).</entry>
     <entry key="msg-voucher-redeem-user-unknown">Gebruiker "{0}" is niet gevonden.</entry>    
@@ -19,10 +21,14 @@
         
     <entry key="msg-changed-base-currency">Basis valuta veranderd van {0} naar {1} met exchange rate {2}: [{3}] transacties voor [{4}] accounts.</entry>        
 
+    <entry key="msg-user-credit-transfer-comment">Overdracht van gebruiker "{0}" naar gebruiker "{1}"</entry>    
     <entry key="msg-user-credit-transfer-for-user">{0} met success overgedragen naar gebruikersaccount "{1}".</entry>
     <entry key="msg-user-credit-transfer-for-system">Gebruiker "{0}" heeft {1} overgedragen naar gebruikersaccount "{2}".</entry>    
+    
     <entry key="msg-user-credit-transfer-err-user-same">U kunt geen bedrag overmaken naar uzelf.</entry>
-    <entry key="msg-user-credit-transfer-err-user-unknown">Gebruiker "{0}" is onbekend.</entry>
+    <entry key="msg-user-credit-transfer-err-unknown-user">Gebruiker "{0}" is onbekend.</entry>
+    <entry key="msg-user-credit-transfer-err-unknown-users">Gebruikers "{0}" en "{1}" zijn onbekend.</entry>
+    <entry key="msg-user-credit-transfer-err-amount-greater">Bedrag is groter dan het beschikbare saldo.</entry>
 
         
 <!-- AccountVoucherServiceImpl -->

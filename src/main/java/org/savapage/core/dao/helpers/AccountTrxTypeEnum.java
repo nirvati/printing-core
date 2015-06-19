@@ -61,16 +61,11 @@ public enum AccountTrxTypeEnum {
     GATEWAY,
 
     /**
-     * The "send" part of a "move" transaction: a user transferring (part of)
-     * his balance to the balance of a fellow user.
+     * Used for both the "send" and "receive" part of a "move" transaction: a
+     * user transferring (part of) his account balance to the account of a
+     * fellow user.
      */
-    SEND,
-
-    /**
-     * The "receive" part of a "move" transaction: a user transferring (part of)
-     * his balance to the balance of a fellow user.
-     */
-    RECEIVE,
+    TRANSFER,
 
     /**
      *

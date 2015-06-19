@@ -26,8 +26,7 @@ import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Information for a {@link AccountTrxTypeEnum#SEND} and
- * {@link AccountTrxTypeEnum#RECEIVE} deposit.
+ * Information for a {@link AccountTrxTypeEnum#TRANSFER}.
  *
  * @author Datraverse B.V.
  *
