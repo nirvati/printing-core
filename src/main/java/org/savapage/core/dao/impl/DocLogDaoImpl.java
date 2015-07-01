@@ -27,7 +27,6 @@ import java.util.List;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
-import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.jpa.DocLog;
 import org.slf4j.Logger;
@@ -265,11 +264,6 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog> implements
         }
 
         return query;
-    }
-
-    @Override
-    public String abbreviateComment(final String comment) {
-        return StringUtils.abbreviate(comment, DocLog.LOG_COMMENT_LENGTH);
     }
 
 }

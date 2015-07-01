@@ -39,6 +39,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.services.helpers.ExternalSupplierEnum;
 
 /**
@@ -59,7 +60,12 @@ public class DocLog extends org.savapage.core.jpa.Entity {
     /**
      * .
      */
-    public static final int LOG_COMMENT_LENGTH = 255;
+    public static final int COL_TITLE_LENGTH = 255;
+
+    /**
+     * .
+     */
+    public static final int COL_LOG_COMMENT_LENGTH = 255;
 
     @Id
     @Column(name = "doc_id")
@@ -99,8 +105,8 @@ public class DocLog extends org.savapage.core.jpa.Entity {
      * Length is maximized according to IPP "job-name" (name(MAX)).
      * </p>
      */
-    @Column(name = "title", length = 255, nullable = true, insertable = true,
-            updatable = true)
+    @Column(name = "title", length = COL_TITLE_LENGTH, nullable = true,
+            insertable = true, updatable = true)
     private String title;
 
     @Column(name = "protocol", length = 16, nullable = false,
@@ -180,7 +186,7 @@ public class DocLog extends org.savapage.core.jpa.Entity {
     /**
      *
      */
-    @Column(name = "log_comment", length = LOG_COMMENT_LENGTH)
+    @Column(name = "log_comment", length = COL_LOG_COMMENT_LENGTH)
     private String logComment;
 
     /**
@@ -275,8 +281,18 @@ public class DocLog extends org.savapage.core.jpa.Entity {
         return title;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    /**
+     * Sets the document title.
+     * <p>
+     * Note: the title is truncated, to protect overflow (when user print input
+     * is used).
+     * </p>
+     *
+     * @param rawTitle
+     *            The raw title.
+     */
+    public final void setTitle(final String rawTitle) {
+        this.title = StringUtils.abbreviate(rawTitle, COL_TITLE_LENGTH);
     }
 
     /**
@@ -369,8 +385,19 @@ public class DocLog extends org.savapage.core.jpa.Entity {
         return logComment;
     }
 
-    public void setLogComment(String logComment) {
-        this.logComment = logComment;
+    /**
+     * Sets the log comment.
+     * <p>
+     * Note: the comment is truncated, to protect overflow (when user input is
+     * used, or comment is provided by external supplier).
+     * </p>
+     *
+     * @param rawComment
+     *            The raw log comment.
+     */
+    public final void setLogComment(final String rawComment) {
+        this.logComment =
+                StringUtils.abbreviate(rawComment, COL_LOG_COMMENT_LENGTH);
     }
 
     public Boolean getInvoiced() {

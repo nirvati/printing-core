@@ -177,14 +177,4 @@ public interface DocLogDao extends GenericDao<DocLog> {
      */
     int cleanDocInHistory(Date dateBackInTime);
 
-    /**
-     * Abbreviates a {@link DocLog} comment to the maximum database filed
-     * length.
-     *
-     * @param comment
-     *            The raw comment.
-     * @return The abbreviated comment.
-     */
-    String abbreviateComment(String comment);
-
 }

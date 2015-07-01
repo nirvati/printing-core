@@ -1880,14 +1880,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         docLog.setRefunded(false);
         docLog.setInvoiced(true);
 
-        /*
-         * We need to abbreviate the comment since it can be provided by an
-         * external supplier.
-         */
-        final String comment =
-                docLogDAO().abbreviateComment(request.getComment());
-
-        docLog.setLogComment(comment);
+        docLog.setLogComment(request.getComment());
 
         /*
          * External supplier.

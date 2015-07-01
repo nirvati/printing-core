@@ -266,10 +266,23 @@ public class IppPrintJobRsp extends AbstractIppResponse {
              * n/a (because WebApp is not open, otherwise we would not be at
              * this point)
              */
-            requestStatus = IppStatusCode.CLI_FORBID;
+            final boolean askForAuthentication = false; // work in progress...
 
-            jobState = IppJobState.STATE_ABORTED;
-            jobStateReasons = "job-aborted-by-system";
+            if (askForAuthentication) {
+
+                /*
+                 * Work in progress...
+                 */
+                requestStatus = IppStatusCode.CLI_NOAUTH;
+                // jobState = IppJobState.STATE_CANCELED;
+                // jobStateReasons = "job-aborted-by-system";
+
+            } else {
+                requestStatus = IppStatusCode.CLI_FORBID;
+                jobState = IppJobState.STATE_ABORTED;
+                jobStateReasons = "job-aborted-by-system";
+            }
+
         }
 
         /**

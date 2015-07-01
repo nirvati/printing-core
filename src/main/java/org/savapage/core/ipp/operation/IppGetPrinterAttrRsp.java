@@ -28,6 +28,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.ipp.attribute.IppAttr;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
@@ -540,10 +541,18 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
                     ConfigManager.getServerPort()));
             value.addValue(getPrinterUriSupported(printerUri, "https",
                     ConfigManager.getServerSslPort()));
+            value.addValue(getPrinterUriSupported(printerUri, "ipps",
+                    ConfigManager.getServerSslPort()));
             break;
 
         case IppDictPrinterDescAttr.ATTR_URI_AUTH_SUPPORTED:
             /*
+             * This REQUIRED Printer attribute MUST have the same cardinality
+             * (contain the same number of values) as the
+             * "printer-uri-supported" attribute. This attribute identifies the
+             * Client Authentication mechanism associated with each URI listed
+             * in the "printer-uri- supported" attribute.
+             *
              * 'none': There is no authentication mechanism associated with the
              * URI. The Printer object assumes that the authenticated user is
              * "anonymous".
@@ -575,15 +584,25 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
              * certificate.
              */
             value.addValue("requesting-user-name");
+            value.addValue("requesting-user-name");
+            value.addValue("requesting-user-name");
+            value.addValue("requesting-user-name");
             break;
 
         case IppDictPrinterDescAttr.ATTR_URI_SECURITY_SUPPORTED:
+            /*
+             * This REQUIRED Printer attribute MUST have the same cardinality
+             * (contain the same number of values) as the
+             * "printer-uri-supported" attribute.
+             */
             value.addValue("none");
-            value.addValue("ssl3");
+            value.addValue("none");
+            value.addValue("tls");
+            value.addValue("tls");
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_NAME:
-            value.addValue("SavaPage");
+            value.addValue(CommunityDictEnum.SAVAPAGE.getWord());
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_STATE:
@@ -684,7 +703,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO_MANUFACTURER:
-            value.addValue("http://savapage.org");
+            value.addValue(CommunityDictEnum.SAVAPAGE_DOT_ORG_URL.getWord());
             break;
 
         case IppDictPrinterDescAttr.ATTR_PAGES_PER_MIN:
@@ -735,16 +754,16 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     private static String getPrinterUriSupported(final URI uri,
             final String uriScheme, final String port) {
 
-        String jobUri = uriScheme + "://" + uri.getHost();
-        jobUri += ":" + port;
+        final StringBuilder jobUri =
+                new StringBuilder().append(uriScheme).append("://")
+                        .append(uri.getHost()).append(":").append(port);
 
         final String path = uri.getPath();
 
         if (path != null) {
-            jobUri += path;
+            jobUri.append(path);
         }
 
-        return jobUri;
+        return jobUri.toString();
     }
-
 }

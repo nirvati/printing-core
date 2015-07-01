@@ -95,8 +95,9 @@ public class IppValidateJobRsp extends AbstractIppResponse {
         value.addValue("utf-8");
         group.addAttribute(value);
 
-        attr = new IppAttr("attributes-natural-language",
-                new IppNaturalLanguage());
+        attr =
+                new IppAttr("attributes-natural-language",
+                        new IppNaturalLanguage());
         value = new IppAttrValue(attr);
         value.addValue("en-us");
         group.addAttribute(value);
@@ -116,8 +117,7 @@ public class IppValidateJobRsp extends AbstractIppResponse {
             /*
              *
              */
-            attr = new IppAttr("detailed-status-message",
-                    new IppText());
+            attr = new IppAttr("detailed-status-message", new IppText());
             value = new IppAttrValue(attr);
             value.addValue("You are printing to an untrusted SavaPage Queue. "
                     + "Make sure you are logged into the SavaPage WebApp, "
@@ -139,8 +139,7 @@ public class IppValidateJobRsp extends AbstractIppResponse {
              */
             String msg = request.getDeferredException().getMessage();
             if (StringUtils.isNotBlank(msg)) {
-                attr = new IppAttr("detailed-status-message",
-                        new IppText());
+                attr = new IppAttr("detailed-status-message", new IppText());
                 value = new IppAttrValue(attr);
                 value.addValue(msg);
                 group.addAttribute(value);

@@ -31,7 +31,7 @@ import org.savapage.core.jpa.IppQueue;
  *
  * @author Datraverse B.V.
  */
-public class IppPrintJobOperation extends AbstractIppOperation {
+public final class IppPrintJobOperation extends AbstractIppOperation {
 
     /**
      *
@@ -88,18 +88,15 @@ public class IppPrintJobOperation extends AbstractIppOperation {
     }
 
     /**
-     * Gets the originator's IP address.
-     *
-     * @return
+     * @return The originator's IP address.
      */
     public String getOriginatorIp() {
         return this.originatorIp;
     }
 
     @Override
-    protected final void
-            process(final InputStream istr, final OutputStream ostr)
-                    throws Exception {
+    protected void process(final InputStream istr, final OutputStream ostr)
+            throws Exception {
 
         /*
          * IMPORTANT: we want to give a response in ALL cases. When an exception
@@ -167,10 +164,18 @@ public class IppPrintJobOperation extends AbstractIppOperation {
         return authWebAppUser;
     }
 
+    /**
+     *
+     * @return {@code true} if printed to trusted queue.
+     */
     public boolean isTrustedQueue() {
-        return (queue == null) ? false : queue.getTrusted();
+        return queue != null && queue.getTrusted();
     }
 
+    /**
+     *
+     * @return {@code true} if remote client IP address has access to queue.
+     */
     public boolean hasClientIpAccessToQueue() {
         return clientIpAccessToQueue;
     }
