@@ -655,7 +655,7 @@ public final class AccountingServiceImpl extends AbstractService implements
 
             final BigDecimal balanceAfter = account.getBalance().subtract(cost);
 
-            isChargeable = balanceAfter.compareTo(creditLimit) >= 0;
+            isChargeable = balanceAfter.compareTo(creditLimit.negate()) >= 0;
         }
         return isChargeable;
     }
@@ -789,7 +789,7 @@ public final class AccountingServiceImpl extends AbstractService implements
                 creditLimit = account.getOverdraft();
             }
 
-            if (balanceAfter.compareTo(creditLimit) < 0) {
+            if (balanceAfter.compareTo(creditLimit.negate()) < 0) {
 
                 if (creditLimit.compareTo(BigDecimal.ZERO) == 0) {
 
