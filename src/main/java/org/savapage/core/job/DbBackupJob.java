@@ -142,7 +142,7 @@ public final class DbBackupJob extends AbstractJob {
             daoContext.beginTransaction();
 
             cm.updateConfigKey(IConfigProp.Key.SYS_BACKUP_LAST_RUN_TIME,
-                    new Date().getTime(), Entity.ACTOR_SYSTEM);
+                    System.currentTimeMillis(), Entity.ACTOR_SYSTEM);
 
             daoContext.commit();
 

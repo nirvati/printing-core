@@ -299,8 +299,6 @@ public class DocContentPrintProcessor {
 
         this.requestingUserId = requestingUserId;
 
-        final Date dateNow = new Date();
-
         String uid = null;
 
         if (requestingUserId == null) {
@@ -379,6 +377,8 @@ public class DocContentPrintProcessor {
         } else {
 
             if (this.userDb.getPerson()) {
+
+                final Date dateNow = new Date();
 
                 if (USER_SERVICE.isUserPrintInDisabled(this.userDb, dateNow)) {
                     reason = "is DISABLED for printing";
@@ -604,12 +604,12 @@ public class DocContentPrintProcessor {
                                         + StringUtils
                                                 .defaultString(this.signatureString)
                                         + "] unknown");
+
                 if (SAVE_UNSUPPORTED_CONTENT) {
-                    Date now = new Date();
                     fostr =
                             new FileOutputStream(ConfigManager.getAppTmpDir()
-                                    + "/" + delivery + "_" + now.getTime()
-                                    + ".unknown");
+                                    + "/" + delivery + "_"
+                                    + System.currentTimeMillis() + ".unknown");
                     fostr.write(readAheadInputBytes);
                     saveBinary(content, fostr);
                 }

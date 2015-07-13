@@ -324,7 +324,7 @@ public final class GcpPrinter {
      *
      */
     synchronized public static boolean isAccessTokenExpired() {
-        final long now = new Date().getTime();
+        final long now = System.currentTimeMillis();
         return theAccessToken == null || theAccessTokenExpiry == null
                 || theAccessTokenExpiry.getTime() <= now;
     }

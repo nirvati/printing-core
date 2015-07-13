@@ -26,7 +26,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Currency;
-import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
@@ -1388,7 +1387,7 @@ public interface IConfigProp {
          *
          */
         STATS_TOTAL_RESET_DATE("stats.total.reset-date", String
-                .valueOf(new Date().getTime())),
+                .valueOf(System.currentTimeMillis())),
 
         /**
          *

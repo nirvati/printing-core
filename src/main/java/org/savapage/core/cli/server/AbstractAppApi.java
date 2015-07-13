@@ -29,7 +29,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
@@ -940,7 +939,7 @@ public abstract class AbstractAppApi extends AbstractApp {
          */
         while (performMethod && exitCode == EXIT_CODE_OK) {
 
-            request.setId(String.valueOf(new Date().getTime()));
+            request.setId(String.valueOf(System.currentTimeMillis()));
             request.setParams(createMethodParms(cmd));
 
             final String jsonOut = send(request);

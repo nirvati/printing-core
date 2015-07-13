@@ -27,21 +27,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.Date;
-
 import org.junit.Test;
 import org.savapage.core.dto.UserDto;
-import org.savapage.core.json.rpc.ErrorDataBasic;
-import org.savapage.core.json.rpc.JsonRpcConfig;
-import org.savapage.core.json.rpc.JsonRpcError;
-import org.savapage.core.json.rpc.JsonRpcErrorDataMixin;
-import org.savapage.core.json.rpc.JsonRpcMethod;
-import org.savapage.core.json.rpc.JsonRpcMethodName;
-import org.savapage.core.json.rpc.JsonRpcMethodParser;
-import org.savapage.core.json.rpc.JsonRpcResponseParser;
-import org.savapage.core.json.rpc.JsonRpcResult;
-import org.savapage.core.json.rpc.JsonRpcResultDataMixin;
-import org.savapage.core.json.rpc.ResultDataBasic;
 import org.savapage.core.json.rpc.impl.ParamsAddInternalUser;
 
 /**
@@ -67,7 +54,7 @@ public class JsonRpcTest {
 
         JsonRpcMethod request = new JsonRpcMethod();
         request.setMethod(JsonRpcMethodName.ADD_INTERNAL_USER.getMethodName());
-        request.setId(String.valueOf(new Date().getTime()));
+        request.setId(String.valueOf(System.currentTimeMillis()));
         request.setParams(user);
 
         // System.out.println(request.stringifyPrettyPrinted());

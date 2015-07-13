@@ -112,6 +112,7 @@ import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.SmartSchoolConnection;
 import org.savapage.core.users.IUserSource;
+import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -438,7 +439,8 @@ public final class SmartSchoolPrintMonitor {
         try {
 
             final long sessionEndTime =
-                    new Date().getTime() + 1000 * sessionDurationSecs;
+                    System.currentTimeMillis() + DateUtil.DURATION_MSEC_SECOND
+                            * sessionDurationSecs;
 
             final Date sessionEndDate = new Date(sessionEndTime);
 
@@ -711,7 +713,7 @@ public final class SmartSchoolPrintMonitor {
         final Document document = new Document();
         documentList.add(document);
 
-        document.setId(Long.toString(new Date().getTime()));
+        document.setId(Long.toString(System.currentTimeMillis()));
         document.setComment("Simulation Document (simulation).");
         document.setName("simulate & test.pdf");
 

@@ -215,7 +215,7 @@ public final class OutputProducer {
          * Create a unique temp image filename (remember images are retrieved
          * concurrently by a browser).
          */
-        long time = new Date().getTime();
+        long time = System.currentTimeMillis();
 
         final StringBuilder imgFileBuilder = new StringBuilder(128);
 
@@ -311,8 +311,7 @@ public final class OutputProducer {
         /*
          * Make filename unique.
          */
-        Date now = new Date();
-        long time = now.getTime();
+        long time = System.currentTimeMillis();
 
         String imgFile =
                 ConfigManager.getAppTmpDir() + "/" + user + "_" + job + "_"

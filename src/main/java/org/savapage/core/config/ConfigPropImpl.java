@@ -299,8 +299,10 @@ public final class ConfigPropImpl implements IConfigProp {
 
             myDbCache.put(name, prop);
 
-            LOGGER.debug("Ad-hoc: Insert Db -> Dict: " + name + " [" + value
-                    + "]");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Ad-hoc: Insert Db -> Dict: " + name + " ["
+                        + value + "]");
+            }
 
         } else {
 
@@ -355,7 +357,9 @@ public final class ConfigPropImpl implements IConfigProp {
 
             myDbCache.put(name, prop);
 
-            LOGGER.debug("Ad-hoc: Dict -> Db: " + name + " [" + value + "]");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Ad-hoc: Dict -> Db: " + name + " [" + value + "]");
+            }
 
         } else {
 

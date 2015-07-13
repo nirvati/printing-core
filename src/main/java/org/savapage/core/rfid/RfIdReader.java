@@ -21,7 +21,6 @@
  */
 package org.savapage.core.rfid;
 
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -141,14 +140,13 @@ public class RfIdReader {
              */
             if (this.lastEvent != null) {
 
-                final Date now = new Date();
-
                 final long expiryMsec =
                         ConfigManager.instance().getConfigLong(
                                 Key.AUTH_MODE_CARD_IP_EXPIRY_MSECS);
 
                 final boolean eventExpired =
-                        (now.getTime() - this.lastEvent.getDate().getTime()) > expiryMsec;
+                        (System.currentTimeMillis() - this.lastEvent.getDate()
+                                .getTime()) > expiryMsec;
 
                 if (eventExpired) {
 

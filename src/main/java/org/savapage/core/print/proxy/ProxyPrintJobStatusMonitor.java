@@ -377,7 +377,7 @@ public class ProxyPrintJobStatusMonitor extends Thread {
 
         while (this.keepProcessing) {
 
-            final long timeNow = new Date().getTime();
+            final long timeNow = System.currentTimeMillis();
 
             final Iterator<Integer> iter =
                     this.jobStatusMap.keySet().iterator();

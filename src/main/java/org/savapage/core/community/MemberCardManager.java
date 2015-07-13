@@ -686,8 +686,8 @@ public final class MemberCardManager {
      * @return The properties.
      */
     public Map<String, String> getMemberCardProperties() {
-        Map<String, String> map = new HashMap<String, String>();
-        map.put(CARD_PROP_UNIQUE_ID, String.valueOf(new Date().getTime()));
+        final Map<String, String> map = new HashMap<String, String>();
+        map.put(CARD_PROP_UNIQUE_ID, String.valueOf(System.currentTimeMillis()));
         return map;
     }
 
