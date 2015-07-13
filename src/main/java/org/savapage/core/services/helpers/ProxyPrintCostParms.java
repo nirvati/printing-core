@@ -24,13 +24,14 @@ package org.savapage.core.services.helpers;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 
 /**
-*
-* @author Datraverse B.V.
-*/
+ *
+ * @author Datraverse B.V.
+ */
 public class ProxyPrintCostParms {
 
     private int numberOfCopies;
     private int numberOfPages;
+    private int pagesPerSide;
 
     private IppMediaSourceCostDto mediaSourceCost;
 
@@ -41,40 +42,57 @@ public class ProxyPrintCostParms {
     public int getNumberOfCopies() {
         return numberOfCopies;
     }
+
     public void setNumberOfCopies(int numberOfCopies) {
         this.numberOfCopies = numberOfCopies;
     }
+
     public int getNumberOfPages() {
         return numberOfPages;
     }
+
     public void setNumberOfPages(int numberOfPages) {
         this.numberOfPages = numberOfPages;
     }
+
+    public int getPagesPerSide() {
+        return pagesPerSide;
+    }
+
+    public void setPagesPerSide(int pagesPerSide) {
+        this.pagesPerSide = pagesPerSide;
+    }
+
     public String getIppMediaOption() {
         return ippMediaOption;
     }
+
     public void setIppMediaOption(String ippMediaOption) {
         this.ippMediaOption = ippMediaOption;
     }
+
     public boolean isGrayscale() {
         return grayscale;
     }
+
     public void setGrayscale(boolean grayscale) {
         this.grayscale = grayscale;
     }
+
     public boolean isDuplex() {
         return duplex;
     }
+
     public void setDuplex(boolean duplex) {
         this.duplex = duplex;
     }
+
     public IppMediaSourceCostDto getMediaSourceCost() {
         return mediaSourceCost;
     }
+
     public void setMediaSourceCost(IppMediaSourceCostDto mediaSourceCost) {
         this.mediaSourceCost = mediaSourceCost;
     }
-
-
 
 }

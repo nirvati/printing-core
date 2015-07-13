@@ -1807,6 +1807,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             costParms.setDuplex(printReq.isDuplex());
             costParms.setGrayscale(printReq.isGrayscale());
             costParms.setNumberOfCopies(printReq.getNumberOfCopies());
+            costParms.setPagesPerSide(printReq.getNup());
 
             printReq.setCost(accountingService().calcProxyPrintCost(
                     ServiceContext.getLocale(), currencySymbol, user, printer,
@@ -2044,6 +2045,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         costParms.setDuplex(request.isDuplex());
         costParms.setGrayscale(request.isGrayscale());
         costParms.setNumberOfCopies(request.getNumberOfCopies());
+        costParms.setPagesPerSide(request.getNup());
 
         /*
          * Set the parameters for this single PDF file.

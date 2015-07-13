@@ -583,6 +583,8 @@ public final class AccountingServiceImpl extends AbstractService implements
      *
      * @param nPages
      *            The number of pages.
+     * @param nPagesPerSide
+     *            the number of pages per side (n-up).
      * @param nCopies
      *            the number of copies.
      * @param duplex
@@ -594,8 +596,9 @@ public final class AccountingServiceImpl extends AbstractService implements
      * @return The {@link BigDecimal}.
      */
     public static BigDecimal
-            calcPrintJobCost(final int nPages, final int nCopies,
-                    final boolean duplex, final BigDecimal pageCostOneSided,
+            calcPrintJobCost(final int nPages, final int nPagesPerSide,
+                    final int nCopies, final boolean duplex,
+                    final BigDecimal pageCostOneSided,
                     final BigDecimal pageCostTwoSided) {
 
         final BigDecimal copies = BigDecimal.valueOf(nCopies);
@@ -603,11 +606,17 @@ public final class AccountingServiceImpl extends AbstractService implements
         BigDecimal pagesOneSided = BigDecimal.ZERO;
         BigDecimal pagesTwoSided = BigDecimal.ZERO;
 
+        int nSides = nPages / nPagesPerSide;
+
+        if (nPages % nPagesPerSide > 0) {
+            nSides++;
+        }
+
         if (duplex) {
-            pagesTwoSided = new BigDecimal((nPages / 2) * 2);
-            pagesOneSided = new BigDecimal(nPages % 2);
+            pagesTwoSided = new BigDecimal((nSides / 2) * 2);
+            pagesOneSided = new BigDecimal(nSides % 2);
         } else {
-            pagesOneSided = new BigDecimal(nPages);
+            pagesOneSided = new BigDecimal(nSides);
         }
 
         return pageCostOneSided.multiply(pagesOneSided).multiply(copies)
@@ -720,8 +729,9 @@ public final class AccountingServiceImpl extends AbstractService implements
         }
 
         return calcPrintJobCost(costParms.getNumberOfPages(),
-                costParms.getNumberOfCopies(), costParms.isDuplex(),
-                pageCostOneSided, pageCostTwoSided);
+                costParms.getPagesPerSide(),
+                costParms.getNumberOfCopies(),
+                costParms.isDuplex(), pageCostOneSided, pageCostTwoSided);
     }
 
     /**
