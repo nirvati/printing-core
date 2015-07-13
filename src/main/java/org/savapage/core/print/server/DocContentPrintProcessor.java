@@ -313,8 +313,10 @@ public class DocContentPrintProcessor {
             uid = UserAliasList.instance().getUserName(this.requestingUserId);
 
             if (!uid.equals(this.requestingUserId)) {
-                LOGGER.debug("using user [" + uid + "] for alias ["
-                        + this.requestingUserId + "]");
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("using user [" + uid + "] for alias ["
+                            + this.requestingUserId + "]");
+                }
             }
 
             ConfigManager cm = ConfigManager.instance();
@@ -395,11 +397,15 @@ public class DocContentPrintProcessor {
         if (isAuthorized) {
 
             if (!this.uidTrusted.equals(uid)) {
-                LOGGER.debug("Requesting user [" + uid + "] is unknown:"
-                        + " using WebApp user [" + uidTrusted + "]");
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Requesting user [" + uid + "] is unknown:"
+                            + " using WebApp user [" + uidTrusted + "]");
+                }
             }
 
-            LOGGER.info("job-name: [" + getJobName() + "]");
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("job-name: [" + getJobName() + "]");
+            }
 
         } else {
 
@@ -410,13 +416,18 @@ public class DocContentPrintProcessor {
 
                 if (this.uidTrusted != null && !this.uidTrusted.equals(uid)) {
 
-                    LOGGER.info("Requesting user [" + uid
-                            + "] is unknown -> WebApp user [" + this.uidTrusted
-                            + "] " + reason + ": print denied");
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("Requesting user [" + uid
+                                + "] is unknown -> WebApp user ["
+                                + this.uidTrusted + "] " + reason
+                                + ": print denied");
+                    }
 
                 } else {
-                    LOGGER.info("Requesting user [" + uid + "] " + reason
-                            + ": print denied");
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("Requesting user [" + uid + "] " + reason
+                                + ": print denied");
+                    }
                 }
             }
 
@@ -490,8 +501,10 @@ public class DocContentPrintProcessor {
         switch (PostScriptFilter.process(reader, writer, respectDRM)) {
         case DRM_NEGLECTED:
             setDrmRestricted(true);
-            LOGGER.debug("DRM protected PostScript from user [" + uidTrusted
-                    + "] accepted");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("DRM protected PostScript from user ["
+                        + uidTrusted + "] accepted");
+            }
             break;
         case DRM_NO:
             break;
@@ -678,7 +691,9 @@ public class DocContentPrintProcessor {
          * Skip CUPS_COMMAND for now.
          */
         if (inputType == DocContentTypeEnum.CUPS_COMMAND) {
-            LOGGER.debug(CupsCommandFile.FIRST_LINE_SIGNATURE + " ignored");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(CupsCommandFile.FIRST_LINE_SIGNATURE + " ignored");
+            }
             return;
         }
 
@@ -860,8 +875,10 @@ public class DocContentPrintProcessor {
                 setDrmRestricted(true);
                 setDrmViolationDetected(true);
 
-                LOGGER.debug("DRM protected PostScript from user ["
-                        + uidTrusted + "] REJECTED");
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("DRM protected PostScript from user ["
+                            + uidTrusted + "] REJECTED");
+                }
 
                 /*
                  * We also need to log the rejected print-in, since we want to
@@ -1103,22 +1120,28 @@ public class DocContentPrintProcessor {
 
             if (exception instanceof PostScriptDrmException) {
 
-                LOGGER.warn("Distilling PostScript to PDF from user [" + userid
-                        + "] FAILED: " + exception.getMessage());
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Distilling PostScript to PDF from user ["
+                            + userid + "] FAILED: " + exception.getMessage());
+                }
 
                 setDeferredException(null);
 
             } else if (exception instanceof PdfSecurityException) {
 
-                LOGGER.warn("Opening PDF from user [" + userid + "] FAILED: "
-                        + exception.getMessage());
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Opening PDF from user [" + userid
+                            + "] FAILED: " + exception.getMessage());
+                }
 
                 setDeferredException(null);
 
             } else if (exception instanceof UnsupportedPrintJobContent) {
 
-                LOGGER.warn("Unsupported Print Job content from user ["
-                        + userid + "] : " + exception.getMessage());
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Unsupported Print Job content from user ["
+                            + userid + "] : " + exception.getMessage());
+                }
 
                 setDeferredException(null);
 

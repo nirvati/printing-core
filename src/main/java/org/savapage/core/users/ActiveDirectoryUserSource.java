@@ -233,8 +233,10 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
 
         final InitialLdapContext ctx = createLdapContextForAdmin();
 
-        LOGGER.debug("getUsersInGroup(" + groupName + ") from [" + providerUrl
-                + "] : ");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("getUsersInGroup(" + groupName + ") from ["
+                    + providerUrl + "] : ");
+        }
 
         final Set<String> nestedGroups = new TreeSet<>();
 
@@ -519,8 +521,10 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
 
         final InitialLdapContext ctx = createLdapContextForAdmin();
 
-        LOGGER.debug("getGroupHierachy(" + groupName + ") from [" + providerUrl
-                + "] : ");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("getGroupHierachy(" + groupName + ") from ["
+                    + providerUrl + "] : ");
+        }
 
         NamingEnumeration<SearchResult> results = null;
 

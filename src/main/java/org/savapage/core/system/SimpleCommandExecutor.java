@@ -85,18 +85,21 @@ public class SimpleCommandExecutor implements ICommandExecutor {
         int exitValue = -99;
 
         int i = 0;
-        for (String cmd : commandInformation) {
-            LOGGER.trace("arg [" + i + "] " + cmd);
-            i++;
+
+        if (LOGGER.isTraceEnabled()) {
+            for (String cmd : commandInformation) {
+                LOGGER.trace("arg [" + i + "] " + cmd);
+                i++;
+            }
         }
 
-        ProcessBuilder pb = new ProcessBuilder(commandInformation);
-        Process p = pb.start();
+        final ProcessBuilder pb = new ProcessBuilder(commandInformation);
+        final Process p = pb.start();
 
-        BufferedReader stdInput =
+        final BufferedReader stdInput =
                 new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-        BufferedReader stdError =
+        final BufferedReader stdError =
                 new BufferedReader(new InputStreamReader(p.getErrorStream()));
 
         // TODO a better way to do this?

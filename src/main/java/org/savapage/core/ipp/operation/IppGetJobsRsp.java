@@ -135,10 +135,15 @@ public class IppGetJobsRsp extends AbstractIppResponse {
          * 'client-error-attributes-or-values-not-supported' status code.
          */
         final String whichJobs = request.getWhichJobs();
+
         if (!whichJobs.equals(IppGetJobsReq.JOB_COMPLETED)
                 && !whichJobs.equals(IppGetJobsReq.JOB_NOT_COMPLETED)) {
+
             statusCode = IppStatusCode.CLI_NOTSUP;
-            LOGGER.debug("[" + whichJobs + "] is not supported");
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("[" + whichJobs + "] is not supported");
+            }
             // TODO
         }
 

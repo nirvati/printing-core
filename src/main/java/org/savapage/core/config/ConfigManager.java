@@ -361,7 +361,6 @@ public final class ConfigManager {
      * Checks if application is properly initialized.
      *
      * @return {@code true} when properly initialized.
-
      */
     public boolean isInitialized() {
         return (runMode != null);
@@ -1196,10 +1195,14 @@ public final class ConfigManager {
              * Database access can start from here...
              */
             if (myConfigProp.isRunnable()) {
-                LOGGER.info("configuration is ready to run");
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("configuration is ready to run");
+                }
             } else {
-                LOGGER.warn("configuration is NOT ready to run: "
-                        + "administration needed");
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("configuration is NOT ready to run: "
+                            + "administration needed");
+                }
             }
 
             MemberCard.instance().init();
@@ -1549,8 +1552,10 @@ public final class ConfigManager {
 
                 if (group == null) {
                     isNonSecure = true;
-                    LOGGER.warn("Printer Group [" + groupName
-                            + "] is NOT found.");
+                    if (LOGGER.isWarnEnabled()) {
+                        LOGGER.warn("Printer Group [" + groupName
+                                + "] is NOT found.");
+                    }
                 } else {
 
                     final PrinterService printerService =

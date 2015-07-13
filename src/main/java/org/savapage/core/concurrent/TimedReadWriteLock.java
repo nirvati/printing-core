@@ -241,7 +241,10 @@ public class TimedReadWriteLock {
                             msg.append("\t").append(element).append("\n");
                         }
 
-                        LOGGER.debug(msg.toString());
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug(msg.toString());
+                        }
+
                     }
                     return;
                 }

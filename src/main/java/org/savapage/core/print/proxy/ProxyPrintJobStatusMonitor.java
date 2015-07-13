@@ -334,7 +334,9 @@ public class ProxyPrintJobStatusMonitor extends Thread {
                     .append("] [").append(jobUpdate.getStatusSource())
                     .append("]");
 
-            LOGGER.debug(msg.toString());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(msg.toString());
+            }
         }
 
         /*
@@ -515,7 +517,9 @@ public class ProxyPrintJobStatusMonitor extends Thread {
                     Thread.sleep(POLLING_MSEC);
                 }
             } catch (InterruptedException e) {
-                LOGGER.info(e.getMessage());
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info(e.getMessage());
+                }
             }
         }
 

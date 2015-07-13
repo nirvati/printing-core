@@ -203,10 +203,14 @@ public class GcpListener {
                 xmppConnection.createPacketCollector(new MessageTypeFilter(
                         Type.normal));
 
-        LOGGER.trace("Created packet collector for incoming"
-                + " job notifications.");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Created packet collector for incoming"
+                    + " job notifications.");
+        }
 
-        LOGGER.info("Connection is ready to use.");
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Connection is ready to use.");
+        }
     }
 
     /**
@@ -337,8 +341,10 @@ public class GcpListener {
 
                 final String rejectedReason = e.getMessage();
 
-                LOGGER.info("File [" + job.getTitle() + "] rejected. Reason: "
-                        + rejectedReason);
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("File [" + job.getTitle()
+                            + "] rejected. Reason: " + rejectedReason);
+                }
 
                 final String subject =
                         CommunityDictEnum.SAVAPAGE.getWord()
@@ -374,9 +380,14 @@ public class GcpListener {
             final String body) {
 
         try {
+
             OutputProducer.sendEmail(toAddress, subject, body);
-            LOGGER.trace("Sent email to [" + toAddress + "] subject ["
-                    + subject + "]");
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Sent email to [" + toAddress + "] subject ["
+                        + subject + "]");
+            }
+
         } catch (MessagingException | IOException | InterruptedException
                 | CircuitBreakerException e) {
             LOGGER.error("Sending email to [" + toAddress + "] failed: "
@@ -510,7 +521,10 @@ public class GcpListener {
      */
     public void onNotification(Packet p) throws IOException,
             MessagingException, GcpPrinterNotFoundException, GcpAuthException {
-        LOGGER.trace("XMPP notification: " + p.toXML());
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("XMPP notification: " + p.toXML());
+        }
         processQueue();
     }
 

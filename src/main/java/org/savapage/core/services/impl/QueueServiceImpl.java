@@ -307,8 +307,9 @@ public final class QueueServiceImpl extends AbstractService implements
         final InternalFontFamilyEnum preferredOutputFont =
                 printReq.getPreferredOutputFont();
 
-        //
-        LOGGER.debug("Printing [" + fileName + "] ...");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Printing [" + fileName + "] ...");
+        }
 
         final DocContentPrintRsp printRsp = new DocContentPrintRsp();
         final IppQueue queue;

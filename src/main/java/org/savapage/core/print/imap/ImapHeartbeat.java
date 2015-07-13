@@ -153,7 +153,10 @@ public class ImapHeartbeat implements Runnable {
                     noopFailureAlarm = true;
                     LOGGER.warn("IMAP connection lost ...");
                 }
-                LOGGER.trace(e.getMessage());
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace(e.getMessage());
+                }
 
             }
         }

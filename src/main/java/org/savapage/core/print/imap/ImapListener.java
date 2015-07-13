@@ -250,8 +250,10 @@ public final class ImapListener extends MessageCountAdapter {
 
     @Override
     public void messagesRemoved(final MessageCountEvent ev) {
-        LOGGER.trace("IMAP notification: [" + ev.getMessages().length
-                + "] message(s) REMOVED from [" + this.inboxFolder + "]");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("IMAP notification: [" + ev.getMessages().length
+                    + "] message(s) REMOVED from [" + this.inboxFolder + "]");
+        }
     }
 
     /**
@@ -263,8 +265,11 @@ public final class ImapListener extends MessageCountAdapter {
      */
     @Override
     public void messagesAdded(final MessageCountEvent ev) {
-        LOGGER.trace("IMAP notification: [" + ev.getMessages().length
-                + "] message(s) ADDED to [" + this.inboxFolder + "]");
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("IMAP notification: [" + ev.getMessages().length
+                    + "] message(s) ADDED to [" + this.inboxFolder + "]");
+        }
 
         boolean hasException = true;
 
@@ -320,14 +325,18 @@ public final class ImapListener extends MessageCountAdapter {
 
         this.store = session.getStore(this.protocol);
 
-        LOGGER.debug("Connecting to " + this.protocol.toUpperCase() + " ["
-                + username + "]@" + this.host + ":" + this.port + " (timeout "
-                + this.connectionTimeout + " millis) ...");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Connecting to " + this.protocol.toUpperCase() + " ["
+                    + username + "]@" + this.host + ":" + this.port
+                    + " (timeout " + this.connectionTimeout + " millis) ...");
+        }
 
         this.store.connect(this.host, this.port, username, password);
-        LOGGER.debug("Connected.");
 
-        LOGGER.debug("Opening folders ...");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Connected.");
+            LOGGER.debug("Opening folders ...");
+        }
 
         /*
          * Get Inbox folder.
@@ -363,7 +372,9 @@ public final class ImapListener extends MessageCountAdapter {
                     + "] is not an IMAP folder.");
         }
 
-        LOGGER.debug("Folders opened.");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Folders opened.");
+        }
     }
 
     /**
@@ -381,16 +392,22 @@ public final class ImapListener extends MessageCountAdapter {
         boolean waiting = this.isProcessing;
 
         if (waiting) {
-            LOGGER.trace("waiting for processing to finish ...");
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("waiting for processing to finish ...");
+            }
         }
 
         while (this.isProcessing) {
             Thread.sleep(millisInterval);
-            LOGGER.trace("processing ...");
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("processing ...");
+            }
         }
 
         if (waiting) {
-            LOGGER.trace("processing finished.");
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("processing finished.");
+            }
         }
     }
 
@@ -446,15 +463,25 @@ public final class ImapListener extends MessageCountAdapter {
         final boolean expungeDeleted = true; // needed !!!
 
         if (this.inbox != null && this.inbox.isOpen()) {
+
             this.inbox.close(expungeDeleted);
-            LOGGER.trace("Closed folder [" + this.inboxFolder + "]");
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Closed folder [" + this.inboxFolder + "]");
+            }
+
             this.inbox = null;
             nActions++;
         }
 
         if (this.trash != null && this.trash.isOpen()) {
+
             this.trash.close(expungeDeleted);
-            LOGGER.trace("Closed folder [" + this.trashFolder + "]");
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Closed folder [" + this.trashFolder + "]");
+            }
+
             this.trash = null;
             nActions++;
         }
@@ -463,8 +490,12 @@ public final class ImapListener extends MessageCountAdapter {
          * Close the IMAP store.
          */
         if (this.store != null && this.store.isConnected()) {
+
             this.store.close();
-            LOGGER.trace("Closed the store.");
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Closed the store.");
+            }
             this.store = null;
             nActions++;
         }
@@ -564,16 +595,20 @@ public final class ImapListener extends MessageCountAdapter {
                 }
 
                 if (!ConfigManager.isPrintImapEnabled()) {
-                    LOGGER.trace("Mail Print disabled by administrator.");
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Mail Print disabled by administrator.");
+                    }
                     break;
                 }
 
-                LOGGER.trace("Waiting ["
-                        + (++nInterval)
-                        + "] next ["
-                        + dateFormat.format(DateUtils.addSeconds(now,
-                                sessionHeartbeatSecs)) + "] till ["
-                        + dateFormat.format(dateMax) + "] ...");
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Waiting ["
+                            + (++nInterval)
+                            + "] next ["
+                            + dateFormat.format(DateUtils.addSeconds(now,
+                                    sessionHeartbeatSecs)) + "] till ["
+                            + dateFormat.format(dateMax) + "] ...");
+                }
 
                 /*
                  * This call returns when a Message[] arrives or when an IMAP
@@ -653,8 +688,10 @@ public final class ImapListener extends MessageCountAdapter {
     private void moveToTrash(final Message[] messages)
             throws MessagingException {
 
-        LOGGER.debug("Moving " + messages.length
-                + " message(s) to TRASH folder ...");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Moving " + messages.length
+                    + " message(s) to TRASH folder ...");
+        }
 
         this.inbox.copyMessages(messages, trash);
 
@@ -676,13 +713,20 @@ public final class ImapListener extends MessageCountAdapter {
 
                 try {
                     if (message.isSet(Flags.Flag.DELETED)) {
-                        LOGGER.trace("Message # " + nMsg + " deleted");
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Message # " + nMsg + " deleted");
+                        }
                     } else {
                         message.setFlag(Flags.Flag.DELETED, true);
-                        LOGGER.trace("Message # " + nMsg + " AD-HOC deleted");
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("Message # " + nMsg
+                                    + " AD-HOC deleted");
+                        }
                     }
                 } catch (MessageRemovedException e) {
-                    LOGGER.warn("Message # " + nMsg + " ALREADY removed");
+                    if (LOGGER.isWarnEnabled()) {
+                        LOGGER.warn("Message # " + nMsg + " ALREADY removed");
+                    }
                 }
             }
         }
@@ -710,7 +754,9 @@ public final class ImapListener extends MessageCountAdapter {
 
             for (Message message : messages) {
 
-                LOGGER.debug("Message #" + (++nMsg));
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Message #" + (++nMsg));
+                }
 
                 array[0] = message;
 
@@ -784,12 +830,16 @@ public final class ImapListener extends MessageCountAdapter {
                 AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
                         PubLevelEnum.WARN, localize("pub-no-user-found", from));
 
-                LOGGER.warn("No user found for [" + from + "]");
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("No user found for [" + from + "]");
+                }
 
             } else {
 
-                LOGGER.trace("User [" + user.getUserId() + "] belongs to ["
-                        + from + "]");
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("User [" + user.getUserId() + "] belongs to ["
+                            + from + "]");
+                }
 
                 /*
                  * Iterate the attachments.
@@ -813,8 +863,10 @@ public final class ImapListener extends MessageCountAdapter {
                     }
 
                 } else {
-                    LOGGER.warn("\t*** UNSUPPORTED: " + content.getClass()
-                            + " ***");
+                    if (LOGGER.isWarnEnabled()) {
+                        LOGGER.warn("\t*** UNSUPPORTED: " + content.getClass()
+                                + " ***");
+                    }
                 }
             }
 
@@ -940,8 +992,10 @@ public final class ImapListener extends MessageCountAdapter {
          */
         if (rejectedReason != null) {
 
-            LOGGER.info("File [" + fileName + "] rejected. Reason: "
-                    + rejectedReason);
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("File [" + fileName + "] rejected. Reason: "
+                        + rejectedReason);
+            }
 
             final String subject =
                     CommunityDictEnum.SAVAPAGE.getWord()
@@ -967,8 +1021,12 @@ public final class ImapListener extends MessageCountAdapter {
 
         try {
             OutputProducer.sendEmail(toAddress, subject, body);
-            LOGGER.trace("Sent email to [" + toAddress + "] subject ["
-                    + subject + "]");
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Sent email to [" + toAddress + "] subject ["
+                        + subject + "]");
+            }
+
         } catch (MessagingException | IOException | InterruptedException
                 | CircuitBreakerException e) {
             LOGGER.error("Sending email to [" + toAddress + "] failed: "

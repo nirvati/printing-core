@@ -134,10 +134,15 @@ public final class InboxServiceImpl implements InboxService {
             if (file.exists()) {
 
                 try {
+
                     jobinfo = mapper.readValue(file, InboxInfoDto.class);
+
                 } catch (JsonMappingException e) {
-                    LOGGER.debug("Error mapping from file [" + filename
-                            + "]: create new.");
+
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Error mapping from file [" + filename
+                                + "]: create new.");
+                    }
                     /*
                      * There has been a change in layout of the JSON file, so
                      * create a new default and store it.
@@ -261,6 +266,7 @@ public final class InboxServiceImpl implements InboxService {
                      */
                     LOGGER.error("file [" + files[i].getAbsolutePath()
                             + "] NOT found in DocLog.");
+
                     throw new SpException("File [" + files[i].getName()
                             + "] has NO log entry.");
                 }
@@ -710,13 +716,17 @@ public final class InboxServiceImpl implements InboxService {
         final int MAX_DETAIL_PAGES = 5; // number of pages to show in detail
 
         // ----------------------------------------------------------------
-        LOGGER.trace("MAX_PAGE_CHUNKS  [" + MAX_PAGE_CHUNKS + "]");
-        LOGGER.trace("MAX_DETAIL_PAGES [" + MAX_DETAIL_PAGES + "]");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("MAX_PAGE_CHUNKS  [" + MAX_PAGE_CHUNKS + "]");
+            LOGGER.trace("MAX_DETAIL_PAGES [" + MAX_DETAIL_PAGES + "]");
+        }
 
         InboxInfoDto jobs = getInboxInfo(user);
         int nPagesTot = calcNumberOfPagesInJobs(jobs);
 
-        LOGGER.trace("nPagesTot [" + nPagesTot + "]");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("nPagesTot [" + nPagesTot + "]");
+        }
 
         // ----------------------------
         if (null == nFirstDetailPage || nFirstDetailPage <= 0) {
@@ -725,8 +735,10 @@ public final class InboxServiceImpl implements InboxService {
                 nFirstDetailPage = 1;
             }
         }
-        LOGGER.trace("nFirstDetailPage [" + nFirstDetailPage + "]");
 
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("nFirstDetailPage [" + nFirstDetailPage + "]");
+        }
         // ----------------------------
         int nPagesInChunkPre = MAX_DETAIL_PAGES;
 
@@ -734,7 +746,9 @@ public final class InboxServiceImpl implements InboxService {
             nPagesInChunkPre = nFirstDetailPage - 1;
         }
 
-        LOGGER.trace("nPagesInChunkPre [" + nPagesInChunkPre + "]");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("nPagesInChunkPre [" + nPagesInChunkPre + "]");
+        }
 
         // ----------------------------
         int nPagesInChunkPost = MAX_DETAIL_PAGES;
@@ -744,27 +758,39 @@ public final class InboxServiceImpl implements InboxService {
                     nPagesTot - (nFirstDetailPage + MAX_DETAIL_PAGES - 1);
         }
 
-        LOGGER.trace("nPagesInChunkPost [" + nPagesInChunkPost + "]");
-
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("nPagesInChunkPost [" + nPagesInChunkPost + "]");
+        }
         // ----------------------------
         int nStartChunkPre = nFirstDetailPage - nPagesInChunkPre;
-        LOGGER.trace("nStartChunkPre [" + nStartChunkPre + "]");
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("nStartChunkPre [" + nStartChunkPre + "]");
+        }
 
         int nStartChunkPost = nFirstDetailPage + MAX_DETAIL_PAGES;
-        LOGGER.trace("nStartChunkPost [" + nStartChunkPost + "]");
 
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("nStartChunkPost [" + nStartChunkPost + "]");
+        }
         // ----------------------------------------------------------------
         // Calculate number of pages in regular chunk
         // Algorithm UNDER CONSTRUCTION
         // ----------------------------------------------------------------
         int nPagesToChunk = nPagesTot - nPagesInChunkPre - nPagesInChunkPost;
-        LOGGER.trace("nPagesToChunk [" + nPagesToChunk + "]");
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("nPagesToChunk [" + nPagesToChunk + "]");
+        }
 
         int nPagesInChunk = nPagesToChunk / MAX_PAGE_CHUNKS;
         if (nPagesInChunk < MAX_DETAIL_PAGES) {
             nPagesInChunk = MAX_DETAIL_PAGES;
         }
-        LOGGER.trace("nPagesInChunk [" + nPagesInChunk + "]");
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("nPagesInChunk [" + nPagesInChunk + "]");
+        }
 
         /*
          * Create and initialize return object.
@@ -1018,7 +1044,9 @@ public final class InboxServiceImpl implements InboxService {
         /*
          * Exit batch
          */
-        LOGGER.trace(chunks);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(chunks);
+        }
 
         return pagesOut;
     }
@@ -1551,7 +1579,10 @@ public final class InboxServiceImpl implements InboxService {
                 try {
                     info = mapper.readValue(file, LetterheadInfo.class);
                 } catch (JsonMappingException e) {
-                    LOGGER.debug("Error mapping from file [" + filename + "]");
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Error mapping from file [" + filename
+                                + "]");
+                    }
                 }
             }
 
@@ -1812,7 +1843,11 @@ public final class InboxServiceImpl implements InboxService {
             File file = new File(filename);
 
             if (file.exists()) {
-                LOGGER.trace("PRUNE/DELETE [" + filename + "]");
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("PRUNE/DELETE [" + filename + "]");
+                }
+
                 try {
                     FileUtils.forceDelete(file);
                 } catch (IOException e) {
@@ -1822,7 +1857,10 @@ public final class InboxServiceImpl implements InboxService {
                 nFilesDeleted++;
             }
         }
-        LOGGER.trace("[" + nFilesDeleted + "] job file(s) PRUNED/DELETED");
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("[" + nFilesDeleted + "] job file(s) PRUNED/DELETED");
+        }
 
         return pruned;
     }

@@ -125,8 +125,11 @@ public class DbUpgManager {
                     + "running now. Contact support for assistance.");
         }
 
-        LOGGER.debug("Current database version [" + schemaVersionDb
-                + "] Application supports version [" + schemaVersionApp + "]");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Current database version [" + schemaVersionDb
+                    + "] Application supports version [" + schemaVersionApp
+                    + "]");
+        }
 
         /*
          *
@@ -169,11 +172,15 @@ public class DbUpgManager {
                     cm.getConfigValue(Key.SYS_SCHEMA_VERSION_MINOR);
 
             if (minorDb.equals(minorApp)) {
-                LOGGER.debug("database schema is up-to-date");
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("database schema is up-to-date");
+                }
             } else {
-                LOGGER.warn("Database minor version mismatch: "
-                        + "application [" + minorApp + "] - database ["
-                        + minorDb + "]");
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Database minor version mismatch: "
+                            + "application [" + minorApp + "] - database ["
+                            + minorDb + "]");
+                }
             }
         }
     }
@@ -233,8 +240,9 @@ public class DbUpgManager {
     private void doSchemaUpgrade(final long targetVersion) {
 
         try {
-            LOGGER.info("Upgrading to schema version: " + targetVersion);
-
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Upgrading to schema version: " + targetVersion);
+            }
             runSqlScript(DaoContextImpl.peekEntityManager(),
                     getDbUpgradeScript(String.valueOf(targetVersion)));
 
@@ -277,7 +285,9 @@ public class DbUpgManager {
             throw new SpException("Cannot find SQL file: " + sqlFileName);
         }
 
-        LOGGER.info("Running script: " + sqlFileName);
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Running script: " + sqlFileName);
+        }
 
         BufferedReader reader = null;
         List<String> statements = new ArrayList<>();
@@ -337,7 +347,9 @@ public class DbUpgManager {
     public static void runSqlStatement(final EntityManager em,
             final String statement) {
 
-        LOGGER.info("Running statement: " + statement);
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Running statement: " + statement);
+        }
 
         try {
             /*
@@ -347,8 +359,10 @@ public class DbUpgManager {
             Query query = em.createNativeQuery(statement);
             int affected = query.executeUpdate();
 
-            if (affected > 0) {
-                LOGGER.info("Rows affected: " + affected);
+            if (LOGGER.isInfoEnabled()) {
+                if (affected > 0) {
+                    LOGGER.info("Rows affected: " + affected);
+                }
             }
 
         } catch (Exception e) {

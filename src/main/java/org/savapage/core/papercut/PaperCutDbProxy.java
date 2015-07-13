@@ -220,7 +220,9 @@ public final class PaperCutDbProxy {
             try {
                 this.connection.close();
             } catch (SQLException e) {
-                LOGGER.warn(e.getMessage());
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(e.getMessage());
+                }
             }
             this.connection = null;
         }
@@ -241,14 +243,18 @@ public final class PaperCutDbProxy {
             try {
                 resultset.close();
             } catch (SQLException e) {
-                LOGGER.warn(e.getMessage());
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(e.getMessage());
+                }
             }
         }
         if (statement != null) {
             try {
                 statement.close();
             } catch (SQLException e) {
-                LOGGER.warn(e.getMessage());
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(e.getMessage());
+                }
             }
         }
     }

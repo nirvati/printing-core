@@ -952,7 +952,9 @@ public final class SmartSchoolPrintMonitor {
                 msg.append("No account found in DocLog supplier data for [")
                         .append(papercutLog.getDocumentName()).append("].");
 
-                LOGGER.warn(msg.toString());
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(msg.toString());
+                }
 
                 if (SmartSchoolLogger.getLogger().isDebugEnabled()) {
                     SmartSchoolLogger.logDebug(msg.toString());
@@ -968,7 +970,9 @@ public final class SmartSchoolPrintMonitor {
                         .append("] of [").append(papercutLog.getDocumentName())
                         .append("].");
 
-                LOGGER.warn(msg.toString());
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(msg.toString());
+                }
 
                 if (SmartSchoolLogger.getLogger().isDebugEnabled()) {
                     SmartSchoolLogger.logDebug(msg.toString());
@@ -1712,9 +1716,10 @@ public final class SmartSchoolPrintMonitor {
             final boolean simulationMode, final Document document)
             throws SmartSchoolException, SOAPException {
 
-        LOGGER.warn("Document [" + document.getId() + "] ["
-                + document.getName() + "] skipped: no copies identified.");
-
+        if (LOGGER.isWarnEnabled()) {
+            LOGGER.warn("Document [" + document.getId() + "] ["
+                    + document.getName() + "] skipped: no copies identified.");
+        }
         publishAdminMsg(PubLevelEnum.WARN,
                 "SmartSchool document [" + document.getName() + "]: "
                         + MSG_COMMENT_PRINT_ERROR_NO_COPIES);
@@ -1857,8 +1862,10 @@ public final class SmartSchoolPrintMonitor {
              * INVARIANT: Role MUST be specified.
              */
             if (StringUtils.isBlank(role)) {
-                LOGGER.warn("Account [" + userName
-                        + "] skipped: no role specified.");
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Account [" + userName
+                            + "] skipped: no role specified.");
+                }
                 continue;
             }
 
@@ -1869,8 +1876,10 @@ public final class SmartSchoolPrintMonitor {
              * INVARIANT: Role MUST be known.
              */
             if (roleEnum == null) {
-                LOGGER.warn("Account [" + userName
-                        + "] skipped: unknown role [" + role + "].");
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Account [" + userName
+                            + "] skipped: unknown role [" + role + "].");
+                }
                 continue;
             }
 
@@ -1883,8 +1892,10 @@ public final class SmartSchoolPrintMonitor {
              * INVARIANT: Student MUST have a class.
              */
             if (personalAccount && roleEnum == SmartSchoolRoleEnum.STUDENT) {
-                LOGGER.warn("Account [" + userName
-                        + "] skipped: no class specified.");
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Account [" + userName
+                            + "] skipped: no class specified.");
+                }
                 continue;
             }
 
@@ -1950,8 +1961,10 @@ public final class SmartSchoolPrintMonitor {
              * INVARIANT: Copies MUST be more zero.
              */
             if (nCopies == 0) {
-                LOGGER.warn("Account [" + userName
-                        + "] skipped: no (extra) copies.");
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Account [" + userName
+                            + "] skipped: no (extra) copies.");
+                }
                 continue;
             }
 

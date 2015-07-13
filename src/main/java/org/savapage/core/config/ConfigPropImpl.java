@@ -561,9 +561,11 @@ public final class ConfigPropImpl implements IConfigProp {
                 /*
                  * REMOVE property that is NOT present in dictionary
                  */
-                LOGGER.warn("ConfigProperty [" + name
-                        + "] REMOVED from Database, because "
-                        + "NOT found in dictionary.");
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("ConfigProperty [" + name
+                            + "] REMOVED from Database, because "
+                            + "NOT found in dictionary.");
+                }
 
                 dao.delete(propDb);
 
@@ -577,8 +579,10 @@ public final class ConfigPropImpl implements IConfigProp {
                  */
                 propDict.setValue(value);
 
-                LOGGER.debug("Db: ConfigProperty [" + name + "] [" + value
-                        + "]");
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Db: ConfigProperty [" + name + "] [" + value
+                            + "]");
+                }
             }
         }
     }
@@ -614,8 +618,10 @@ public final class ConfigPropImpl implements IConfigProp {
 
             if (!res.isValid()) {
                 isValid = false;
-                LOGGER.warn("" + prop.getName() + " [" + res.getMessage()
-                        + "] is NOT valid");
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("" + prop.getName() + " [" + res.getMessage()
+                            + "] is NOT valid");
+                }
             }
 
             /*
@@ -630,10 +636,12 @@ public final class ConfigPropImpl implements IConfigProp {
                 final String valueDict = prop.valueAsString();
                 final String valueDb = myDbCache.get(prop.getName()).getValue();
 
-                if (valueDb != null && valueDb.equals(valueDict)) {
-                    LOGGER.debug("Dict == Db: " + msg);
-                } else {
-                    LOGGER.debug("Dict <> Db: " + msg);
+                if (LOGGER.isDebugEnabled()) {
+                    if (valueDb != null && valueDb.equals(valueDict)) {
+                        LOGGER.debug("Dict == Db: " + msg);
+                    } else {
+                        LOGGER.debug("Dict <> Db: " + msg);
+                    }
                 }
 
             } else {
@@ -650,7 +658,9 @@ public final class ConfigPropImpl implements IConfigProp {
 
                 myDbCache.put(prop.getName(), dao.findByNameInsert(configProp));
 
-                LOGGER.debug("Dict -> Db: " + msg);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Dict -> Db: " + msg);
+                }
             }
         }
 

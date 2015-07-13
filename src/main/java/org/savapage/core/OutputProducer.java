@@ -363,7 +363,10 @@ public final class OutputProducer {
      */
     public void releasePdf(final File pdf) {
         if (pdf.delete()) {
-            LOGGER.trace("deleted temp file [" + pdf.getAbsolutePath() + "]");
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("deleted temp file [" + pdf.getAbsolutePath()
+                        + "]");
+            }
         } else {
             LOGGER.error("delete of temp file [" + pdf.getAbsolutePath()
                     + "] FAILED");

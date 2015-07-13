@@ -1068,8 +1068,10 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
             } catch (ExceptionConverter e) {
                 // TODO
-                LOGGER.warn(String.format("%s [%s]", e.getClass()
-                        .getSimpleName(), e.getMessage()));
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(String.format("%s [%s]", e.getClass()
+                            .getSimpleName(), e.getMessage()));
+                }
             }
 
             // Flush remaining text

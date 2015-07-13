@@ -265,7 +265,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
         try {
             stopSubscription(null);
         } catch (SpException e) {
-            LOGGER.info(e.getMessage());
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info(e.getMessage());
+            }
         }
     }
 
@@ -1024,11 +1026,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
                             && !printOutWlk.getCupsCreationTime().equals(
                                     cupsJob.getCreationTime())) {
 
-                        LOGGER.trace("MISMATCH printer [" + printerPrv
-                                + "] job [" + cupsJob.getJobId() + "] state ["
-                                + cupsJob.getJobState() + "] created in CUPS ["
-                                + cupsJob.getCreationTime() + "] in log ["
-                                + printOutWlk.getCupsCreationTime() + "]");
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("MISMATCH printer [" + printerPrv
+                                    + "] job [" + cupsJob.getJobId()
+                                    + "] state [" + cupsJob.getJobState()
+                                    + "] created in CUPS ["
+                                    + cupsJob.getCreationTime() + "] in log ["
+                                    + printOutWlk.getCupsCreationTime() + "]");
+                        }
 
                     } else if (!printOutWlk.getCupsJobState().equals(
                             cupsJob.getJobState())) {
@@ -1042,11 +1047,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                         printOutDAO().update(printOutWlk);
 
-                        LOGGER.trace("printer [" + printerPrv + "] job ["
-                                + cupsJob.getJobId() + "] state ["
-                                + cupsJob.getJobState() + "] completed ["
-                                + cupsJob.getCompletedTime() + "]");
-
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("printer [" + printerPrv + "] job ["
+                                    + cupsJob.getJobId() + "] state ["
+                                    + cupsJob.getJobState() + "] completed ["
+                                    + cupsJob.getCompletedTime() + "]");
+                        }
                         stats[1]++;
                     }
 
@@ -1057,10 +1063,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
         }
 
-        LOGGER.debug("Syncing [" + stats[0] + "] active PrintOut jobs "
-                + "with CUPS : updated [" + stats[1] + "], not found ["
-                + stats[2] + "]");
-
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Syncing [" + stats[0] + "] active PrintOut jobs "
+                    + "with CUPS : updated [" + stats[1] + "], not found ["
+                    + stats[2] + "]");
+        }
         return stats;
     }
 
@@ -1317,8 +1324,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 /*
                  * New cached object.
                  */
-                LOGGER.info("CUPS printer [" + cupsPrinter.getName()
-                        + "] detected");
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("CUPS printer [" + cupsPrinter.getName()
+                            + "] detected");
+                }
                 /*
                  * Add the extra groups.
                  */
@@ -1379,11 +1388,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
          * Remove printers from cache which are no longer present in CUPS.
          */
         for (Map.Entry<String, Boolean> entry : printersPresent.entrySet()) {
+
             if (!entry.getValue().booleanValue()) {
-                JsonProxyPrinter removed =
+
+                final JsonProxyPrinter removed =
                         this.cupsPrinterCache.remove(entry.getKey());
-                LOGGER.info("removed CUPS printer [" + removed.getName()
-                        + "] detected");
+
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("removed CUPS printer [" + removed.getName()
+                            + "] detected");
+                }
             }
         }
 
@@ -2254,8 +2268,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
         } finally {
 
             if (pdfFileToPrint != null && pdfFileToPrint.exists()) {
+
                 if (pdfFileToPrint.delete()) {
-                    LOGGER.trace("deleted temp file [" + pdfFileToPrint + "]");
+
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("deleted temp file [" + pdfFileToPrint
+                                + "]");
+                    }
+
                 } else {
                     LOGGER.error("delete of temp file [" + pdfFileToPrint
                             + "] FAILED");

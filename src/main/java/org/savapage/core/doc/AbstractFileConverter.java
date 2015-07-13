@@ -80,7 +80,8 @@ public abstract class AbstractFileConverter implements IFileConverter {
      *            The content type if the sibling.
      * @return The sibling File object.
      */
-    public static File getFileSibling(File file, DocContentTypeEnum contentType) {
+    public static File
+            getFileSibling(File file, DocContentTypeEnum contentType) {
         return new File(file.getParent() + File.separator
                 + FilenameUtils.getBaseName(file.getAbsolutePath()) + "."
                 + DocContent.getFileExtension(contentType));
@@ -122,25 +123,26 @@ public abstract class AbstractFileConverter implements IFileConverter {
 
                 pdfCreated = true;
 
-                final String stdout = exec.getStandardOutputFromCommand()
-                        .toString();
+                final String stdout =
+                        exec.getStandardOutputFromCommand().toString();
 
                 if (StringUtils.isNotBlank(stdout)) {
                     LOGGER.debug(stdout);
                 }
 
                 if (filePdf.exists()) {
-                    LOGGER.debug("[" + pdfName + "] created.");
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("[" + pdfName + "] created.");
+                    }
                 } else {
                     LOGGER.error("[" + pdfName + "] NOT created.");
-                    throw new DocContentToPdfException(
-                            "PDF is not created");
+                    throw new DocContentToPdfException("PDF is not created");
                 }
 
             } else {
 
-                final String stderr = exec.getStandardErrorFromCommand()
-                        .toString();
+                final String stderr =
+                        exec.getStandardErrorFromCommand().toString();
 
                 String reason = "";
 

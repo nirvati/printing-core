@@ -252,8 +252,10 @@ public final class IppEncoder {
             bytes = new byte[nBytes];
             istr.read(bytes);
 
+            if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("IPP value tag [" + valueTag.toString()
                     + "] is NOT implemented");
+            }
         }
 
         return str;

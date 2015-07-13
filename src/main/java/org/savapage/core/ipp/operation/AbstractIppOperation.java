@@ -135,11 +135,13 @@ public abstract class AbstractIppOperation {
         // -----------------------------------------------
         final int requestId = IppEncoder.readInt32(istr);
 
-        LOGGER.trace("+---------------------------------"
-                + "-------------------------------------+");
-        LOGGER.debug("| " + IppOperationId.asEnum(operationId).toString());
-        LOGGER.trace("+---------------------------"
-                + "-------------------------------------------+");
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("+---------------------------------"
+                    + "-------------------------------------+");
+            LOGGER.trace("| " + IppOperationId.asEnum(operationId).toString());
+            LOGGER.trace("+---------------------------"
+                    + "-------------------------------------------+");
+        }
         /*
          *
          */
@@ -168,7 +170,10 @@ public abstract class AbstractIppOperation {
 
         if (operation == null) {
 
-            LOGGER.warn("operationId [" + operationId + "] is NOT supported");
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("operationId [" + operationId
+                        + "] is NOT supported");
+            }
 
             ippOperationId = null;
 

@@ -171,8 +171,12 @@ public final class OutboxServiceImpl extends AbstractService implements
                     outboxInfo = mapper.readValue(file, OutboxInfoDto.class);
 
                 } catch (JsonMappingException e) {
-                    LOGGER.debug("Error mapping from file ["
-                            + file.getAbsolutePath() + "]: create new.");
+
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Error mapping from file ["
+                                + file.getAbsolutePath() + "]: create new.");
+                    }
+
                     /*
                      * There has been a change in layout of the JSON file, so
                      * create a new default and store it.
@@ -371,7 +375,9 @@ public final class OutboxServiceImpl extends AbstractService implements
             if (!fileCreated && pdfFileToPrint != null
                     && pdfFileToPrint.exists()) {
                 if (pdfFileToPrint.delete()) {
-                    LOGGER.trace("deleted file [" + pdfFileToPrint + "]");
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("deleted file [" + pdfFileToPrint + "]");
+                    }
                 } else {
                     LOGGER.error("delete of file [" + pdfFileToPrint
                             + "] FAILED");

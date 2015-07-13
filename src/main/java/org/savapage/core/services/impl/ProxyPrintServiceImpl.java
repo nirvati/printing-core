@@ -810,9 +810,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
              * Remote printer might not be present when remote CUPS is down, or
              * when connection is refused.
              */
-            LOGGER.warn("Proxy printer [" + printerName
-                    + "] not found in cache: possibly due "
-                    + "to remote CUPS connection problem.");
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("Proxy printer [" + printerName
+                        + "] not found in cache: possibly due "
+                        + "to remote CUPS connection problem.");
+            }
         }
 
         return jobs;
@@ -2278,9 +2280,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     iterAttr.remove();
 
                     //
-                    LOGGER.warn("Auto-correct: removed invalid attribute ["
-                            + key + "] " + "from printer ["
-                            + printer.getPrinterName() + "]");
+                    if (LOGGER.isWarnEnabled()) {
+                        LOGGER.warn("Auto-correct: removed invalid attribute ["
+                                + key + "] " + "from printer ["
+                                + printer.getPrinterName() + "]");
+                    }
                     continue;
                 }
 
@@ -2350,9 +2354,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     iterAttr.remove();
 
                     //
-                    LOGGER.warn("Auto-correct: removed invalid attribute ["
-                            + key + "] " + "from printer ["
-                            + printer.getPrinterName() + "]");
+                    if (LOGGER.isWarnEnabled()) {
+                        LOGGER.warn("Auto-correct: removed invalid attribute ["
+                                + key + "] " + "from printer ["
+                                + printer.getPrinterName() + "]");
+                    }
                     continue;
                 }
 
@@ -2591,7 +2597,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final String mediaKey = dto.getMedia();
 
             if (!dto.isDefault() && IppMediaSizeEnum.find(mediaKey) == null) {
-                LOGGER.debug("Media [" + mediaKey + "] is invalid.");
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Media [" + mediaKey + "] is invalid.");
+                }
                 continue;
             }
 

@@ -465,9 +465,10 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
          */
         final String ldapFilterExpression = getUserNameSearchExpression(uid);
 
-        LOGGER.debug("authenticate user [" + uid + "] at [" + providerUrl
-                + "] : " + ldapFilterExpression);
-
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("authenticate user [" + uid + "] at [" + providerUrl
+                    + "] : " + ldapFilterExpression);
+        }
         /*
          * To verify that someone has an account is first search for their uid
          * (or cn or whatever) then log in as them with there userdn (which you
@@ -535,7 +536,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
                     user = createUser(attributes);
 
                 } catch (AuthenticationException authEx) {
-                    LOGGER.debug("Authentication for [" + uid + "] failed!");
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Authentication for [" + uid + "] failed!");
+                    }
                 } catch (NamingException namEx) {
                     throw new SpException("LDAP NamingException", namEx);
                 }
@@ -715,9 +718,10 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
             searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
             searchControls.setCountLimit(0);
 
-            LOGGER.debug("get groups at [" + providerUrl + "] : "
-                    + ldapFilterExpression);
-
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("get groups at [" + providerUrl + "] : "
+                        + ldapFilterExpression);
+            }
             /*
              * Paging the results.
              */
@@ -818,8 +822,10 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
         final String providerUrl = getProviderUrlBaseDn();
 
-        LOGGER.debug("getUsers() from [" + providerUrl + "] : "
-                + ldapFilterExpression);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("getUsers() from [" + providerUrl + "] : "
+                    + ldapFilterExpression);
+        }
 
         final SortedSet<CommonUser> sset =
                 new TreeSet<>(new CommonUserComparator());
@@ -899,8 +905,10 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
         final InitialLdapContext ctx = createLdapContextForAdmin();
 
-        LOGGER.debug("getUsersInGroup() from [" + providerUrl + "] : "
-                + ldapFilterExpression);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("getUsersInGroup() from [" + providerUrl + "] : "
+                    + ldapFilterExpression);
+        }
 
         try {
 
@@ -1045,7 +1053,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
         CommonUser cuser = null;
 
-        LOGGER.debug("member [" + member + "]");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("member [" + member + "]");
+        }
 
         NamingEnumeration<SearchResult> results = null;
 
@@ -1060,7 +1070,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
                 String ldapFilterExpression =
                         "(" + ldapUserFullNameField + "=" + member + ")";
 
-                LOGGER.debug("filter [" + ldapFilterExpression + "]");
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("filter [" + ldapFilterExpression + "]");
+                }
 
                 SearchControls controls = new SearchControls();
                 controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -1090,7 +1102,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
             if (attributes != null && isUserGroupMember(attributes)) {
                 cuser = createCommonUser(attributes);
-                LOGGER.debug("member [" + cuser.getUserName() + "]");
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("member [" + cuser.getUserName() + "]");
+                }
             }
 
         } finally {
@@ -1108,8 +1122,10 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
         final String ldapFilterExpression = getUserNameSearchExpression(uid);
 
-        LOGGER.debug("find user [" + uid + "] at [" + providerUrl + "] : "
-                + ldapFilterExpression);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("find user [" + uid + "] at [" + providerUrl + "] : "
+                    + ldapFilterExpression);
+        }
 
         final DirContext ctx = createLdapContextForAdmin();
 
@@ -1383,9 +1399,11 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
         if (attr == null) {
 
-            LOGGER.warn("[" + LDAP_ATTRID_SUPPORTED_CONTROL
-                    + "] field NOT found: do you have  "
-                    + "permission to query the controls?");
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("[" + LDAP_ATTRID_SUPPORTED_CONTROL
+                        + "] field NOT found: do you have  "
+                        + "permission to query the controls?");
+            }
 
         } else {
 
@@ -1414,7 +1432,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
             try {
                 enumeration.close();
             } catch (NamingException e) {
-                LOGGER.debug(e.getMessage(), e);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(e.getMessage(), e);
+                }
             }
         }
     }

@@ -253,8 +253,10 @@ public final class GcpListenerJob extends AbstractJob implements
             SpJobScheduler.instance().scheduleOneShotImapListener(
                     this.millisUntilNextInvocation);
 
-            LOGGER.debug("Starting again after ["
-                    + this.millisUntilNextInvocation + "] milliseconds");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Starting again after ["
+                        + this.millisUntilNextInvocation + "] milliseconds");
+            }
         }
 
     }

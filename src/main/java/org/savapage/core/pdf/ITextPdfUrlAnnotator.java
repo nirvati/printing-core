@@ -256,7 +256,9 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
                         .start(), matcher.end(), url));
             } catch (MalformedURLException e) {
                 // Log and ignore
-                LOGGER.warn(e.getMessage());
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(e.getMessage());
+                }
             }
         }
 
