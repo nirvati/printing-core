@@ -75,15 +75,22 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
             + REGEX_EMAIL_ADDRESS;
 
     /**
+     * Note: suffix punctuation {@code :,.;} is ignored.
+     */
+    private static final String REGEX_URL_WITHOUT_SCHEME =
+            "[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+
+    /**
      * URL pattern for www.*.
      */
-    private static final String PATTERN_WWW = "\\b(www\\.\\S+|WWW\\.\\S+)";
+    private static final String PATTERN_WWW = "\\b(www|WWW)\\."
+            + REGEX_URL_WITHOUT_SCHEME;
 
     /**
      * Full URL pattern.
      */
-    private static final String PATTERN_URL =
-            "\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+    private static final String PATTERN_URL = "\\b(https?|ftp|file)://"
+            + REGEX_URL_WITHOUT_SCHEME;
 
     /**
      * No border by default.

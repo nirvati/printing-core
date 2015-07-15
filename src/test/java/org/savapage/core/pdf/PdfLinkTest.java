@@ -41,8 +41,7 @@ public final class PdfLinkTest {
     /**
      * .
      */
-    @Test
-    public void testMatched() {
+    public void testMatched(final String textAfterLink) {
 
         final Set<String> linkSet = new HashSet<>();
 
@@ -53,6 +52,10 @@ public final class PdfLinkTest {
                         "http://example.com/index.php?x=1&2=5",
                         //
                         "http://www.example.com/",
+                        //
+                        "www.example.com/path",
+                        //
+                        "http://www.example.com/path",
                         //
                         "http://WWW.example.com/",
                         //
@@ -75,7 +78,7 @@ public final class PdfLinkTest {
 
         for (final String link : links) {
             linkSet.add(link);
-            builder.append(" some text ").append(link);
+            builder.append(textAfterLink).append(link);
         }
 
         /*
@@ -107,11 +110,25 @@ public final class PdfLinkTest {
      * .
      */
     @Test
+    public void testMatched() {
+        testMatched(" some text in between ");
+        testMatched(". A new sentence ");
+        testMatched(", a clause, ");
+        testMatched(": a statement. ");
+        testMatched("; some text. ");
+    }
+
+    /**
+     * .
+     */
+    @Test
     public void testNonMatched() {
 
         final String[] links = new String[] { //
                 //
                         "xxxx://example.com/index.php?x=1&2=5",
+                        //
+                        "example.com/index.php?x=1&2=5",
                         //
                         "info$example.com",
                         //
@@ -193,6 +210,56 @@ public final class PdfLinkTest {
                 match.getStart() == urlA.length() + nSpacing);
         assertTrue("match [1] ends on position",
                 match.getEnd() == text.length());
+
+    }
+
+    /**
+     * .
+     */
+    @Test
+    public void testSuffixPunctuation() {
+
+        final Set<String> linkSet = new HashSet<>();
+
+        final String[] links = new String[] {
+                //
+                //"www.example.com/path",
+                //
+                "http://www.example.com/path"
+                };
+
+        /*
+         * Build text, embed links in noise words.
+         */
+        final StringBuilder builder = new StringBuilder(512);
+
+        for (final String link : links) {
+            linkSet.add(link);
+            builder.append(". some text ").append(link);
+        }
+
+        /*
+         * Every match must match entry in the linkSet.
+         */
+        final Set<String> matchSet = new HashSet<>();
+
+        for (final AnnotationMatch match : ITextPdfUrlAnnotator
+                .findLinks(builder.toString())) {
+            final String link = match.getText();
+            matchSet.add(link);
+            assertTrue(String.format("[%s] must be found", link),
+                    linkSet.contains(link));
+        }
+
+        /*
+         * Every entry in the link Set must be matched.
+         */
+        assertTrue("All links are matched", matchSet.size() == linkSet.size());
+
+        for (final String link : linkSet.toArray(new String[0])) {
+            assertTrue(String.format("[%s] is matched", link),
+                    matchSet.contains(link));
+        }
 
     }
 
