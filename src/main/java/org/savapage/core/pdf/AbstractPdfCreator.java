@@ -240,8 +240,6 @@ public abstract class AbstractPdfCreator {
      *
      * Generates PDF file from the edited jobs for a user.
      *
-     * This method uses Apache PDFBox and in-memory objects.
-     *
      * @param userObj
      *            The user object.
      * @param pdfFile
