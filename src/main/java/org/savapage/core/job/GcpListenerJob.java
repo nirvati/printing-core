@@ -22,6 +22,9 @@
 package org.savapage.core.job;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.util.Locale;
 
 import javax.mail.MessagingException;
 
@@ -29,7 +32,9 @@ import org.jivesoftware.smack.XMPPException;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
+import org.savapage.core.SpException;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
+import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.circuitbreaker.CircuitBreakerOperation;
 import org.savapage.core.circuitbreaker.CircuitDamagingException;
 import org.savapage.core.circuitbreaker.CircuitNonTrippingException;
@@ -46,6 +51,8 @@ import org.savapage.core.print.gcp.GcpListener;
 import org.savapage.core.print.gcp.GcpPrinter;
 import org.savapage.core.print.gcp.GcpPrinterNotFoundException;
 import org.savapage.core.print.server.DocContentPrintException;
+import org.savapage.core.util.BigDecimalUtil;
+import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,9 +69,19 @@ public final class GcpListenerJob extends AbstractJob implements
             .getLogger(GcpListenerJob.class);
 
     /**
+     * Number of seconds after restarting this job after an exception occurs.
+     */
+    private static final int RESTART_SECS_AFTER_EXCEPTION = 60;
+
+    /**
      * Milliseconds to wait before starting this job again.
      */
     private long millisUntilNextInvocation;
+
+    /**
+     * The {@link CircuitBreaker}.
+     */
+    private CircuitBreaker breaker;
 
     /**
      *
@@ -73,6 +90,11 @@ public final class GcpListenerJob extends AbstractJob implements
 
     @Override
     protected void onInit(final JobExecutionContext ctx) {
+
+        this.breaker =
+                ConfigManager
+                        .getCircuitBreaker(CircuitBreakerEnum.GCP_CONNECTION);
+
         GcpPrinter.reset();
         GcpPrinter.setOnline(true);
     }
@@ -149,16 +171,25 @@ public final class GcpListenerJob extends AbstractJob implements
             throws JobExecutionException {
 
         try {
-            final CircuitBreaker breaker =
-                    ConfigManager
-                            .getCircuitBreaker(CircuitBreakerEnum.GCP_CONNECTION);
 
-            this.millisUntilNextInvocation = breaker.getMillisUntilRetry();
-            breaker.execute(this);
-            this.millisUntilNextInvocation = 1000L;
+            this.breaker.execute(this);
+            this.millisUntilNextInvocation = 1 * DateUtil.DURATION_MSEC_SECOND;
 
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage());
+        } catch (CircuitBreakerException t) {
+
+            this.millisUntilNextInvocation = this.breaker.getMillisUntilRetry();
+
+        } catch (Exception t) {
+
+            this.millisUntilNextInvocation =
+                    RESTART_SECS_AFTER_EXCEPTION
+                            * DateUtil.DURATION_MSEC_SECOND;
+
+            AdminPublisher.instance().publish(PubTopicEnum.GCP_PRINT,
+                    PubLevelEnum.ERROR,
+                    localizeSysMsg("GcpListener.error", t.getMessage()));
+
+            LOGGER.error(t.getMessage(), t);
         }
 
     }
@@ -227,34 +258,74 @@ public final class GcpListenerJob extends AbstractJob implements
                         ConfigManager.instance().getConfigInt(
                                 Key.GCP_EVENT_TIMEOUT_SECS));
 
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info(localizeLogMsg("GcpListener.stopped"));
-        }
-
-        AdminPublisher.instance().publish(PubTopicEnum.GCP_PRINT,
-                PubLevelEnum.INFO, localizeSysMsg("GcpListener.stopped"));
-
         return isExpired;
     }
 
     @Override
     protected void onExit(final JobExecutionContext ctx) {
 
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(localizeLogMsg("GcpListener.stopped"));
+        }
+
         GcpPrinter.setOnline(false);
 
-        //
-        if (!isInterrupted()
-                && ConfigManager.isGcpEnabled()
-                && !ConfigManager.getCircuitBreaker(
-                        CircuitBreakerEnum.GCP_CONNECTION).isCircuitDamaged()) {
+        final AdminPublisher publisher = AdminPublisher.instance();
 
-            SpJobScheduler.instance().scheduleOneShotImapListener(
-                    this.millisUntilNextInvocation);
+        if (this.isInterrupted() || !ConfigManager.isGcpEnabled()) {
+
+            publisher.publish(PubTopicEnum.GCP_PRINT, PubLevelEnum.INFO,
+                    localizeSysMsg("GcpListener.stopped"));
+
+        } else if (this.breaker.isCircuitDamaged()) {
+
+            publisher.publish(PubTopicEnum.GCP_PRINT, PubLevelEnum.ERROR,
+                    localizeSysMsg("GcpListener.stopped"));
+
+        } else {
+
+            final PubLevelEnum pubLevel;
+            final String pubMsg;
+
+            if (this.breaker.isCircuitClosed()) {
+                pubLevel = PubLevelEnum.INFO;
+            } else {
+                pubLevel = PubLevelEnum.WARN;
+                this.millisUntilNextInvocation =
+                        this.breaker.getMillisUntilRetry();
+            }
+
+            if (this.millisUntilNextInvocation > DateUtil.DURATION_MSEC_SECOND) {
+
+                try {
+
+                    final double seconds =
+                            (double) this.millisUntilNextInvocation
+                                    / DateUtil.DURATION_MSEC_SECOND;
+
+                    pubMsg =
+                            localizeSysMsg(
+                                    "GcpListener.restart",
+                                    BigDecimalUtil.localize(
+                                            BigDecimal.valueOf(seconds),
+                                            Locale.getDefault(), false));
+                } catch (ParseException e) {
+                    throw new SpException(e.getMessage());
+                }
+
+            } else {
+                pubMsg = localizeSysMsg("GcpListener.stopped");
+            }
+
+            publisher.publish(PubTopicEnum.GCP_PRINT, pubLevel, pubMsg);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Starting again after ["
                         + this.millisUntilNextInvocation + "] milliseconds");
             }
+
+            SpJobScheduler.instance().scheduleOneShotGcpListener(
+                    this.millisUntilNextInvocation);
         }
 
     }
