@@ -67,7 +67,7 @@ public final class EmailOutboxMonitor extends AbstractJob {
             .getLogger(EmailOutboxMonitor.class);
 
     /**
-     * Number of seconds after restarting this job after an exception occurred.
+     * Number of seconds after restarting this job after an exception occurs.
      */
     private static final int RESTART_SECS_AFTER_EXCEPTION = 60;
 
@@ -133,6 +133,7 @@ public final class EmailOutboxMonitor extends AbstractJob {
             AdminPublisher.instance().publish(PubTopicEnum.SMTP,
                     PubLevelEnum.ERROR,
                     localizeSysMsg("EmailOutboxMonitor.error", t.getMessage()));
+
             LOGGER.error(t.getMessage(), t);
         }
     }
@@ -140,20 +141,26 @@ public final class EmailOutboxMonitor extends AbstractJob {
     @Override
     protected void onExit(final JobExecutionContext ctx) {
 
-        final PubLevelEnum pubLevel;
-        final String pubMsg;
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(localizeLogMsg("EmailOutboxMonitor.stopped"));
+        }
+
+        final AdminPublisher publisher = AdminPublisher.instance();
 
         if (this.isInterrupted()) {
 
-            pubLevel = PubLevelEnum.INFO;
-            pubMsg = localizeSysMsg("EmailOutboxMonitor.stopped");
+            publisher.publish(PubTopicEnum.SMTP, PubLevelEnum.INFO,
+                    localizeSysMsg("EmailOutboxMonitor.stopped"));
 
         } else if (this.breaker.isCircuitDamaged()) {
 
-            pubLevel = PubLevelEnum.ERROR;
-            pubMsg = localizeSysMsg("EmailOutboxMonitor.stopped");
+            publisher.publish(PubTopicEnum.SMTP, PubLevelEnum.ERROR,
+                    localizeSysMsg("EmailOutboxMonitor.stopped"));
 
         } else {
+
+            final PubLevelEnum pubLevel;
+            final String pubMsg;
 
             if (this.breaker.isCircuitClosed()) {
                 pubLevel = PubLevelEnum.INFO;
@@ -185,16 +192,16 @@ public final class EmailOutboxMonitor extends AbstractJob {
                 pubMsg = localizeSysMsg("EmailOutboxMonitor.stopped");
             }
 
-            SpJobScheduler.instance().scheduleOneShotEmailOutboxMonitor(
-                    this.millisUntilNextInvocation);
+            publisher.publish(PubTopicEnum.SMTP, pubLevel, pubMsg);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Starting again after ["
                         + this.millisUntilNextInvocation + "] milliseconds");
             }
-        }
 
-        AdminPublisher.instance().publish(PubTopicEnum.SMTP, pubLevel, pubMsg);
+            SpJobScheduler.instance().scheduleOneShotEmailOutboxMonitor(
+                    this.millisUntilNextInvocation);
+        }
 
     }
 

@@ -86,8 +86,10 @@
     <entry key="IppGetNotifications.error">Fout bij ophalen IPP notificaties: {0}</entry>
     <entry key="IppGetNotifications.warn.job.notfound">Notificatie van opdracht {0} voor printer "{1}": opdracht NIET gevonden.</entry>
 
+    <entry key="ImapListener.error">Mail Print fout: {0}</entry>
     <entry key="ImapListener.started">Mail Print toezicht gestart.</entry>
     <entry key="ImapListener.stopped">Mail Print toezicht gestopt.</entry>
+    <entry key="ImapListener.restart">Mail Print toezicht gestopt: herstart na {0} seconden.</entry>
     <entry key="ImapListener.idle-not-supported">"{0}" ondersteunt de IDLE extensie niet.</entry>
 
     <entry key="PrinterGroupClean.success.single">Printer Groepen opgeruimd: 1 groep verwijderd.</entry>
@@ -97,6 +99,7 @@
     <entry key="GcpListener.error">Google Cloud Print fout: {0}</entry>
     <entry key="GcpListener.started">Google Cloud Print toezicht gestart.</entry>
     <entry key="GcpListener.stopped">Google Cloud Print toezicht gestopt.</entry>
+    <entry key="GcpListener.restart">Google Cloud Print toezicht gestopt: herstart na {0} seconden.</entry>
     <entry key="GcpListener.printer-not-found">Google Cloud Printer is niet gevonden.</entry>
     
     <entry key="GcpRegister.error">Google Cloud Print Registratie fout: {0}</entry>
@@ -110,7 +113,9 @@
     <entry key="SmartSchoolMonitor.started">SmartSchool Print toezicht gestart.</entry>
     <entry key="SmartSchoolMonitor.started.simulation">SmartSchool Print toezicht gestart (simulatie).</entry>
     <entry key="SmartSchoolMonitor.stopped">SmartSchool Print toezicht gestopt.</entry>
+    <entry key="SmartSchoolMonitor.restart">SmartSchool Print toezicht gestopt: herstart na {0} seconden.</entry>
     <entry key="SmartSchoolMonitor.stopped.simulation">SmartSchool Print toezicht gestopt (simulatie).</entry>
+    <entry key="SmartSchoolMonitor.restart.simulation">SmartSchool Print toezicht gestopt (simulatie): herstart na {0} seconden.</entry>
 
     <entry key="EmailOutboxMonitor.error">Email outbox toezicht fout: {0}</entry>
     <entry key="EmailOutboxMonitor.started">Email outbox toezicht gestart.</entry>

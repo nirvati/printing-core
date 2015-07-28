@@ -89,8 +89,10 @@
 	<entry key="IppGetNotifications.warn.job.notfound">Notification of job {0} from printer "{1}": job NOT
 		found.</entry>
 
+    <entry key="ImapListener.error">Mail Print error: {0}</entry>
 	<entry key="ImapListener.started">Mail Print monitoring started.</entry>
 	<entry key="ImapListener.stopped">Mail Print monitoring stopped.</entry>
+    <entry key="ImapListener.restart">Mail Print monitoring stopped: restart after {0} seconds.</entry>
 	<entry key="ImapListener.idle-not-supported">"{0}" does not support the IDLE extension.</entry>
 
 	<entry key="PrinterGroupClean.success.single">Cleaned up Printer Groups: 1 group deleted.</entry>
@@ -100,6 +102,7 @@
 	<entry key="GcpListener.error">Google Cloud Print error: {0}</entry>
 	<entry key="GcpListener.started">Google Cloud Print monitoring started.</entry>
 	<entry key="GcpListener.stopped">Google Cloud Print monitoring stopped.</entry>
+    <entry key="GcpListener.restart">Google Cloud Print monitoring stopped: restart after {0} seconds.</entry>
 	<entry key="GcpListener.printer-not-found">Google Cloud Printer is not found.</entry>
 
 	<entry key="GcpRegister.error">Google Cloud Print Registration error: {0}</entry>
@@ -113,7 +116,9 @@
 	<entry key="SmartSchoolMonitor.started">SmartSchool Print monitoring started.</entry>
     <entry key="SmartSchoolMonitor.started.simulation">SmartSchool Print monitoring started (simulation).</entry>
 	<entry key="SmartSchoolMonitor.stopped">SmartSchool Print monitoring stopped.</entry>
+    <entry key="SmartSchoolMonitor.restart">SmartSchool Print monitoring stopped: restart after {0} seconds.</entry>
     <entry key="SmartSchoolMonitor.stopped.simulation">SmartSchool Print monitoring stopped (simulation).</entry>
+    <entry key="SmartSchoolMonitor.restart.simulation">SmartSchool Print monitoring stopped (simulation): restart after {0} seconds.</entry>
 
     <entry key="EmailOutboxMonitor.error">Email outbox monitoring error: {0}</entry>
     <entry key="EmailOutboxMonitor.started">Email outbox monitoring started.</entry>

@@ -44,6 +44,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.print.gcp.GcpPrinter;
+import org.savapage.core.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -420,7 +421,7 @@ public class SpJobScheduler {
                         .withIdentity(SpJobType.SYNC_USERS.toString(),
                                 JOB_GROUP_ONESHOT).usingJobData(data).build();
 
-        scheduleOneShotJob(job, 1000L);
+        scheduleOneShotJob(job, DateUtil.DURATION_MSEC_SECOND);
     }
 
     /**
@@ -437,28 +438,30 @@ public class SpJobScheduler {
                         .withIdentity(SpJobType.SYNC_USER_GROUPS.toString(),
                                 JOB_GROUP_ONESHOT).usingJobData(data).build();
 
-        scheduleOneShotJob(job, 1000L);
+        scheduleOneShotJob(job, DateUtil.DURATION_MSEC_SECOND);
     }
 
     /**
      *
      * @param requestingUser
      * @param subscriptionId
+     * @param secondsFromNow
      */
     public void scheduleOneShotIppNotifications(String requestingUser,
             String subscriptionId, long secondsFromNow) {
 
-        JobDataMap data = new JobDataMap();
+        final JobDataMap data = new JobDataMap();
         data.put(IppGetNotifications.ATTR_REQUESTING_USER, requestingUser);
         data.put(IppGetNotifications.ATTR_SUBSCRIPTION_ID, subscriptionId);
 
-        JobDetail job =
+        final JobDetail job =
                 newJob(org.savapage.core.job.IppGetNotifications.class)
                         .withIdentity(
                                 SpJobType.IPP_GET_NOTIFICATIONS.toString(),
                                 JOB_GROUP_ONESHOT).usingJobData(data).build();
 
-        rescheduleOneShotJob(job, secondsFromNow * 1000L);
+        rescheduleOneShotJob(job, secondsFromNow
+                * DateUtil.DURATION_MSEC_SECOND);
     }
 
     /**
@@ -467,9 +470,9 @@ public class SpJobScheduler {
      */
     public void scheduleOneShotEmailOutboxMonitor(long milliSecondsFromNow) {
 
-        JobDataMap data = new JobDataMap();
+        final JobDataMap data = new JobDataMap();
 
-        JobDetail job =
+        final JobDetail job =
                 newJob(org.savapage.core.job.EmailOutboxMonitor.class)
                         .withIdentity(
                                 SpJobType.EMAIL_OUTBOX_MONITOR.toString(),
@@ -506,7 +509,7 @@ public class SpJobScheduler {
         data.put(SmartSchoolPrintMonitorJob.ATTR_SIMULATION,
                 Boolean.valueOf(simulate));
 
-        JobDetail job =
+        final JobDetail job =
                 newJob(org.savapage.core.job.SmartSchoolPrintMonitorJob.class)
                         .withIdentity(
                                 SpJobType.SMARTSCHOOL_PRINT_MONITOR_JOB
@@ -518,39 +521,39 @@ public class SpJobScheduler {
 
     /**
      *
-     * @param secondsFromNow
+     * @param milliSecondsFromNow
      */
-    public void scheduleOneShotGcpListener(long secondsFromNow) {
+    public void scheduleOneShotGcpListener(long milliSecondsFromNow) {
 
-        JobDataMap data = new JobDataMap();
+        final JobDataMap data = new JobDataMap();
 
-        JobDetail job =
+        final JobDetail job =
                 newJob(org.savapage.core.job.GcpListenerJob.class)
                         .withIdentity(SpJobType.GCP_LISTENER_JOB.toString(),
                                 JOB_GROUP_ONESHOT).usingJobData(data).build();
 
-        rescheduleOneShotJob(job, secondsFromNow * 1000L);
+        rescheduleOneShotJob(job, milliSecondsFromNow);
     }
 
     /**
      *
-     * @param secondsFromNow
+     * @param milliSecondsFromNow
      */
     public void scheduleOneShotGcpPollForAuthCode(final String pollingUrl,
-            final Integer tokenDuration, long secondsFromNow) {
+            final Integer tokenDuration, long milliSecondsFromNow) {
 
-        JobDataMap data = new JobDataMap();
+        final JobDataMap data = new JobDataMap();
 
         data.put(GcpRegisterJob.KEY_POLLING_URL, pollingUrl);
         data.put(GcpRegisterJob.KEY_TOKEN_DURATION, tokenDuration);
 
-        JobDetail job =
+        final JobDetail job =
                 newJob(org.savapage.core.job.GcpRegisterJob.class)
                         .withIdentity(
                                 SpJobType.GCP_POLL_FOR_AUTH_CODE.toString(),
                                 JOB_GROUP_ONESHOT).usingJobData(data).build();
 
-        rescheduleOneShotJob(job, secondsFromNow * 1000L);
+        rescheduleOneShotJob(job, milliSecondsFromNow);
     }
 
     /**
@@ -595,7 +598,7 @@ public class SpJobScheduler {
             final long secondsFromNow) {
 
         scheduleOneShotJob(createJob(typeOfJob, JOB_GROUP_ONESHOT),
-                secondsFromNow * 1000L);
+                secondsFromNow * DateUtil.DURATION_MSEC_SECOND);
     }
 
     /**

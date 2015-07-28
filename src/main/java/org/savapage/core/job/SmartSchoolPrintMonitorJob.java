@@ -21,7 +21,10 @@
  */
 package org.savapage.core.job;
 
+import java.math.BigDecimal;
 import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.util.Locale;
 
 import javax.mail.MessagingException;
 import javax.xml.soap.SOAPException;
@@ -31,7 +34,9 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
 import org.savapage.core.ShutdownException;
+import org.savapage.core.SpException;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
+import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.circuitbreaker.CircuitBreakerOperation;
 import org.savapage.core.circuitbreaker.CircuitDamagingException;
 import org.savapage.core.circuitbreaker.CircuitNonTrippingException;
@@ -51,6 +56,8 @@ import org.savapage.core.papercut.PaperCutServerProxy;
 import org.savapage.core.print.smartschool.SmartSchoolException;
 import org.savapage.core.print.smartschool.SmartSchoolPrintMonitor;
 import org.savapage.core.util.AppLogHelper;
+import org.savapage.core.util.BigDecimalUtil;
+import org.savapage.core.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,24 +69,25 @@ import org.slf4j.LoggerFactory;
 public final class SmartSchoolPrintMonitorJob extends AbstractJob {
 
     /**
-     * 1 seconds.
+     * The logger.
      */
-    public static final long WAIT_MSEC_TILL_NEXT = 1000L;
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(SmartSchoolPrintMonitorJob.class);
 
     /**
-     * 60 seconds.
+     * Number of seconds after restarting this job after an exception occurs.
      */
-    public static final long WAIT_MSEC_TILL_NEXT_AFTER_EXCEPTION = 60 * 1000L;
+    private static final int RESTART_SECS_AFTER_EXCEPTION = 60;
 
     /**
      * .
      */
     public static final String ATTR_SIMULATION = "simulation";
 
+    /**
+     * Simulation flag.
+     */
     private boolean isSimulation = false;
-
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SmartSchoolPrintMonitorJob.class);
 
     /**
      * {@code true} when Admin App is blocked due to membership status.
@@ -87,7 +95,7 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
     private boolean isAdminAppBlocked = true;
 
     /**
-     *
+     * The {@link CircuitBreaker}.
      */
     private CircuitBreaker breaker;
 
@@ -109,13 +117,20 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
     private static class SmartSchoolCircuitOperation implements
             CircuitBreakerOperation {
 
+        /**
+         * .
+         */
         private final SmartSchoolPrintMonitorJob parentJob;
 
+        /**
+         * .
+         */
         private SmartSchoolPrintMonitor printMonitor = null;
 
         /**
          *
-         * @param theJob
+         * @param parentJob
+         *            The parent {@link SmartSchoolPrintMonitorJob}.
          */
         public SmartSchoolCircuitOperation(
                 final SmartSchoolPrintMonitorJob parentJob) {
@@ -303,12 +318,24 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
 
             this.breaker.execute(this.circuitOperation);
 
-            this.millisUntilNextInvocation = WAIT_MSEC_TILL_NEXT;
+            this.millisUntilNextInvocation = 1 * DateUtil.DURATION_MSEC_SECOND;
 
-        } catch (Exception e) {
+        } catch (CircuitBreakerException t) {
+
+            this.millisUntilNextInvocation = this.breaker.getMillisUntilRetry();
+
+        } catch (Exception t) {
 
             this.millisUntilNextInvocation =
-                    WAIT_MSEC_TILL_NEXT_AFTER_EXCEPTION;
+                    RESTART_SECS_AFTER_EXCEPTION
+                            * DateUtil.DURATION_MSEC_SECOND;
+
+            AdminPublisher.instance().publish(PubTopicEnum.SMARTSCHOOL,
+                    PubLevelEnum.ERROR,
+                    localizeSysMsg("SmartSchoolMonitor.error", t.getMessage()));
+
+            LOGGER.error(t.getMessage(), t);
+
         }
 
     }
@@ -327,33 +354,78 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
             return;
         }
 
-        final String msgKey;
+        final String msgKeyStopped;
+        final String msgKeyRestart;
 
         if (this.isSimulation) {
-            msgKey = "SmartSchoolMonitor.stopped.simulation";
+            msgKeyStopped = "SmartSchoolMonitor.stopped.simulation";
+            msgKeyRestart = "SmartSchoolMonitor.restart.simulation";
         } else {
-            msgKey = "SmartSchoolMonitor.stopped";
+            msgKeyStopped = "SmartSchoolMonitor.stopped";
+            msgKeyRestart = "SmartSchoolMonitor.restart";
         }
 
-        AdminPublisher.instance().publish(PubTopicEnum.SMARTSCHOOL,
-                PubLevelEnum.INFO, localizeSysMsg(msgKey));
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(localizeLogMsg(msgKeyStopped));
+        }
 
-        if (!isInterrupted()
-                && ConfigManager.isSmartSchoolPrintActiveAndEnabled()
-                && !this.breaker.isCircuitDamaged()) {
+        final AdminPublisher publisher = AdminPublisher.instance();
 
-            if (!this.breaker.isCircuitClosed()) {
+        if (this.isInterrupted()
+                || !ConfigManager.isSmartSchoolPrintActiveAndEnabled()) {
+
+            publisher.publish(PubTopicEnum.SMARTSCHOOL, PubLevelEnum.INFO,
+                    localizeSysMsg(msgKeyStopped));
+
+        } else if (this.breaker.isCircuitDamaged()) {
+
+            publisher.publish(PubTopicEnum.SMARTSCHOOL, PubLevelEnum.ERROR,
+                    localizeSysMsg(msgKeyStopped));
+
+        } else {
+
+            final PubLevelEnum pubLevel;
+            final String pubMsg;
+
+            if (this.breaker.isCircuitClosed()) {
+                pubLevel = PubLevelEnum.INFO;
+            } else {
+                pubLevel = PubLevelEnum.WARN;
                 this.millisUntilNextInvocation =
-                        WAIT_MSEC_TILL_NEXT_AFTER_EXCEPTION;
+                        this.breaker.getMillisUntilRetry();
             }
 
-            SpJobScheduler.instance().scheduleOneShotSmartSchoolPrintMonitor(
-                    isSimulation, this.millisUntilNextInvocation);
+            if (this.millisUntilNextInvocation > DateUtil.DURATION_MSEC_SECOND) {
+
+                try {
+
+                    final double seconds =
+                            (double) this.millisUntilNextInvocation
+                                    / DateUtil.DURATION_MSEC_SECOND;
+
+                    pubMsg =
+                            localizeSysMsg(
+                                    msgKeyRestart,
+                                    BigDecimalUtil.localize(
+                                            BigDecimal.valueOf(seconds),
+                                            Locale.getDefault(), false));
+                } catch (ParseException e) {
+                    throw new SpException(e.getMessage());
+                }
+
+            } else {
+                pubMsg = localizeSysMsg(msgKeyStopped);
+            }
+
+            publisher.publish(PubTopicEnum.SMARTSCHOOL, pubLevel, pubMsg);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Starting again after ["
                         + this.millisUntilNextInvocation + "] milliseconds");
             }
+
+            SpJobScheduler.instance().scheduleOneShotSmartSchoolPrintMonitor(
+                    isSimulation, this.millisUntilNextInvocation);
         }
     }
 
