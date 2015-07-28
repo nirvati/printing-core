@@ -111,5 +111,11 @@
     <entry key="SmartSchoolMonitor.started.simulation">SmartSchool Print toezicht gestart (simulatie).</entry>
     <entry key="SmartSchoolMonitor.stopped">SmartSchool Print toezicht gestopt.</entry>
     <entry key="SmartSchoolMonitor.stopped.simulation">SmartSchool Print toezicht gestopt (simulatie).</entry>
+
+    <entry key="EmailOutboxMonitor.error">Email outbox toezicht fout: {0}</entry>
+    <entry key="EmailOutboxMonitor.started">Email outbox toezicht gestart.</entry>
+    <entry key="EmailOutboxMonitor.stopped">Email outbox toezicht gestopt.</entry>
+    <entry key="EmailOutboxMonitor.restart">Email outbox toezicht gestopt: herstart na {0} seconden.</entry>
+    <entry key="EmailOutboxMonitor.mailsent">E-mail "{0}" verzonden naar "{1}" ({2}).</entry>
     
 </properties>

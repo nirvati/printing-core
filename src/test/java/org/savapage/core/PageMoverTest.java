@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.inbox.RangeAtom;
+import org.savapage.core.services.helpers.InboxPageMover;
 
 /**
  *
@@ -90,7 +91,7 @@ public class PageMoverTest {
          */
         String nRanges = "1,2";
 
-        pages = PageMover.deletePages(null, jobinfo, nRanges);
+        pages = InboxPageMover.deletePages(null, jobinfo, nRanges);
         // System.out.println(jobinfo.prettyPrinted());
         assertTrue(pages == 2);
         assertTrue(jobinfo.getPages().get(0).getRange().equals("3-5"));
@@ -100,7 +101,7 @@ public class PageMoverTest {
          * Delete pages 1,2
          */
         nRanges = "1,2";
-        pages = PageMover.deletePages(null, jobinfo, nRanges);
+        pages = InboxPageMover.deletePages(null, jobinfo, nRanges);
         assertTrue(pages == 2);
         assertTrue(jobinfo.getPages().get(0).getRange().equals("5-5"));
         assertTrue(jobinfo.getPages().get(1).getRange().equals("1-5"));
@@ -109,7 +110,7 @@ public class PageMoverTest {
          * Delete pages 2
          */
         nRanges = "2";
-        pages = PageMover.deletePages(null, jobinfo, nRanges);
+        pages = InboxPageMover.deletePages(null, jobinfo, nRanges);
         assertTrue(pages == 1);
         assertTrue(jobinfo.getPages().get(0).getRange().equals("5-5"));
         assertTrue(jobinfo.getPages().get(1).getRange().equals("2-5"));
@@ -125,7 +126,7 @@ public class PageMoverTest {
          */
         String nRanges = "1,2";
         int nPage2Move2 = 3;
-        int pages = PageMover.movePages(null, jobinfo, nRanges, nPage2Move2);
+        int pages = InboxPageMover.movePages(null, jobinfo, nRanges, nPage2Move2);
         assertTrue(pages == 2);
 
         InboxJobRange range;

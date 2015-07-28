@@ -64,6 +64,13 @@ public interface ServiceFactory {
     DocLogService getDocLogService();
 
     /**
+     * Gets the {@link EmailService} singleton.
+     *
+     * @return The singleton.
+     */
+    EmailService getEmailService();
+
+    /**
      * Gets the {@link InboxService} singleton.
      *
      * @return The singleton.

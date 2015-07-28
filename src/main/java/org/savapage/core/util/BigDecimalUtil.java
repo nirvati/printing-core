@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author Datraverse B.V.
  *
  */
-public class BigDecimalUtil {
+public final class BigDecimalUtil {
 
     /**
      * Translates a formatted decimal value to a {@link BigDecimal}.

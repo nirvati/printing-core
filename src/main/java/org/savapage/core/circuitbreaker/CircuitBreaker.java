@@ -56,7 +56,7 @@ import org.slf4j.LoggerFactory;
  * @author Datraverse B.V.
  *
  */
-public class CircuitBreaker {
+public final class CircuitBreaker {
 
     /**
      * The logger.
@@ -103,12 +103,12 @@ public class CircuitBreaker {
     private int openCount;
 
     /**
-     *
+     * .
      */
     private Class<? extends Exception>[] nonTrippingExceptions;
 
     /**
-     *
+     * .
      */
     private Class<? extends Exception>[] damagingExceptions;
 
@@ -265,8 +265,13 @@ public class CircuitBreaker {
     /**
      *
      * @param operation
+     *            The {@link CircuitBreakerOperation}.
+     * @return The object returned from
+     *         {@link CircuitBreakerOperation#execute(CircuitBreaker)}.
      * @throws CircuitBreakerException
+     *             When circuit is not closed.
      * @throws InterruptedException
+     *             When the thread is interrupted.
      */
     public Object execute(final CircuitBreakerOperation operation)
             throws CircuitBreakerException, InterruptedException {

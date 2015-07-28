@@ -106,7 +106,7 @@ public final class ImapListenerJob extends AbstractJob {
 
                 AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
                         PubLevelEnum.INFO,
-                        this.parentJob.localizeMsg("ImapListener.started"));
+                        this.parentJob.localizeSysMsg("ImapListener.started"));
 
                 this.listener.processInbox();
 
@@ -228,7 +228,7 @@ public final class ImapListenerJob extends AbstractJob {
     protected void onExit(final JobExecutionContext ctx) {
 
         AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
-                PubLevelEnum.INFO, localizeMsg("ImapListener.stopped"));
+                PubLevelEnum.INFO, localizeSysMsg("ImapListener.stopped"));
 
         if (!isInterrupted()
                 && ConfigManager.isPrintImapEnabled()
@@ -241,7 +241,6 @@ public final class ImapListenerJob extends AbstractJob {
 
             LOGGER.debug("Starting again after ["
                     + this.millisUntilNextInvocation + "] milliseconds");
-
         }
 
     }

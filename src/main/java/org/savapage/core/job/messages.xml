@@ -115,4 +115,10 @@
 	<entry key="SmartSchoolMonitor.stopped">SmartSchool Print monitoring stopped.</entry>
     <entry key="SmartSchoolMonitor.stopped.simulation">SmartSchool Print monitoring stopped (simulation).</entry>
 
+    <entry key="EmailOutboxMonitor.error">Email outbox monitoring error: {0}</entry>
+    <entry key="EmailOutboxMonitor.started">Email outbox monitoring started.</entry>
+    <entry key="EmailOutboxMonitor.stopped">Email outbox monitoring stopped.</entry>
+    <entry key="EmailOutboxMonitor.restart">Email outbox monitoring stopped: restart after {0} seconds.</entry>
+    <entry key="EmailOutboxMonitor.mailsent">Email "{0}" sent to "{1}" ({2}).</entry>
+
 </properties>

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ import java.util.Locale;
  * @author Datraverse B.V.
  *
  */
-public class LocaleHelper {
+public final class LocaleHelper {
 
     private final Locale locale;
 
@@ -52,7 +52,7 @@ public class LocaleHelper {
      *            The date.
      * @return The localized date string.
      */
-    public final String getShortDate(final Date date) {
+    public String getShortDate(final Date date) {
         return DateFormat.getDateInstance(DateFormat.SHORT, this.locale)
                 .format(date);
     }
@@ -64,7 +64,7 @@ public class LocaleHelper {
      *            The date.
      * @return The localized date string.
      */
-    public final String getMediumDate(final Date date) {
+    public String getMediumDate(final Date date) {
         return DateFormat.getDateInstance(DateFormat.MEDIUM, this.locale)
                 .format(date);
     }
@@ -76,7 +76,7 @@ public class LocaleHelper {
      *            The date.
      * @return The localized date string.
      */
-    public final String getLongDate(final Date date) {
+    public String getLongDate(final Date date) {
         return DateFormat.getDateInstance(DateFormat.LONG, this.locale).format(
                 date);
     }
@@ -87,7 +87,7 @@ public class LocaleHelper {
      * @param number
      * @return The localized string.
      */
-    public final String getNumber(final long number) {
+    public String getNumber(final long number) {
         return NumberFormat.getInstance(this.locale).format(number);
     }
 
@@ -98,7 +98,7 @@ public class LocaleHelper {
      *            The date.
      * @return The localized short date/time string.
      */
-    public final String getShortDateTime(final Date date) {
+    public String getShortDateTime(final Date date) {
         return DateFormat.getDateTimeInstance(DateFormat.SHORT,
                 DateFormat.SHORT, this.locale).format(date);
     }
@@ -110,7 +110,7 @@ public class LocaleHelper {
      *            The date.
      * @return The localized date/time string.
      */
-    public final String getLongMediumDateTime(final Date date) {
+    public String getLongMediumDateTime(final Date date) {
         return DateFormat.getDateTimeInstance(DateFormat.LONG,
                 DateFormat.MEDIUM, this.locale).format(date);
     }
@@ -123,7 +123,7 @@ public class LocaleHelper {
      * @return
      * @throws ParseException
      */
-    public final String getCurrencyDecimal(final BigDecimal decimal,
+    public String getCurrencyDecimal(final BigDecimal decimal,
             int fractionDigits, final String currencySymbol)
             throws ParseException {
         return BigDecimalUtil.localize(decimal, fractionDigits, this.locale,
@@ -137,9 +137,8 @@ public class LocaleHelper {
      * @return
      * @throws ParseException
      */
-    public final String
-            getDecimal(final BigDecimal decimal, int fractionDigits)
-                    throws ParseException {
+    public String getDecimal(final BigDecimal decimal, int fractionDigits)
+            throws ParseException {
         return getCurrencyDecimal(decimal, fractionDigits, "");
     }
 

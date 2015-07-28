@@ -50,6 +50,11 @@ public enum SpJobType {
     DB_DERBY_OPTIMIZE,
 
     /**
+     * Monitors the email outbox.
+     */
+    EMAIL_OUTBOX_MONITOR,
+
+    /**
      * Synchronize users.
      */
     SYNC_USERS,

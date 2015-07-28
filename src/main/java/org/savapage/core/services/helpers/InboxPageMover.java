@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core;
+package org.savapage.core.services.helpers;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -36,17 +36,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Moves and deletes SafePages.
  *
  * @author Datraverse B.V.
  *
  */
-public final class PageMover {
+public final class InboxPageMover {
 
     /**
      * The logger.
      */
     private static final Logger LOGGER = LoggerFactory
-            .getLogger(PageMover.class);
+            .getLogger(InboxPageMover.class);
 
     /**
     *
@@ -165,7 +166,7 @@ public final class PageMover {
     /**
      *
      */
-    private PageMover() {
+    private InboxPageMover() {
     }
 
     /**
@@ -175,7 +176,7 @@ public final class PageMover {
      * @param jobinfo
      * @param nRanges
      */
-    private PageMover(final String user, final InboxInfoDto jobinfo,
+    private InboxPageMover(final String user, final InboxInfoDto jobinfo,
             final String nRanges) {
 
         this.user = user;
@@ -232,7 +233,7 @@ public final class PageMover {
     public static int movePages(final String user, final InboxInfoDto jobinfo,
             final String nRanges, final int nPage2Move2) {
 
-        PageMover mover = new PageMover(user, jobinfo, nRanges);
+        InboxPageMover mover = new InboxPageMover(user, jobinfo, nRanges);
         mover.deleteRanges = false;
         mover.nPage2Move2 = nPage2Move2;
         mover.exec();
@@ -258,7 +259,7 @@ public final class PageMover {
     public static int deletePages(final String user,
             final InboxInfoDto jobinfo, final String nRanges) {
 
-        PageMover mover = new PageMover(user, jobinfo, nRanges);
+        InboxPageMover mover = new InboxPageMover(user, jobinfo, nRanges);
         mover.deleteRanges = true;
         mover.nPage2Move2 = -1;
         mover.exec();

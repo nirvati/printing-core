@@ -164,6 +164,13 @@ public final class ConfigManager {
     private static final String USER_TEMP_RELATIVE_PATH = ".temp";
 
     /**
+     * The relative path of the email outbox folder (relative to the
+     * {@code server} directory).
+     */
+    private static final String SERVER_RELATIVE_EMAIL_OUTBOX_PATH =
+            "data/email-outbox";
+
+    /**
      *
      */
     private static final String REL_PATH_USERALIAS_LIST =
@@ -681,6 +688,15 @@ public final class ConfigManager {
      */
     public static String getServerHome() {
         return System.getProperty(SYS_PROP_SERVER_HOME);
+    }
+
+    /**
+     *
+     * @return The relative path of the email outbox folder (relative to the
+     *         {@code server} directory).
+     */
+    public static String getServerRelativeEmailOutboxPath() {
+        return SERVER_RELATIVE_EMAIL_OUTBOX_PATH;
     }
 
     /**

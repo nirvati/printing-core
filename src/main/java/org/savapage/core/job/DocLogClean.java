@@ -255,7 +255,7 @@ public final class DocLogClean extends AbstractJob {
 
         if (docClean != null) {
             publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeMsg("AccountTrxClean.start"));
+                    docClean.localizeSysMsg("AccountTrxClean.start"));
         }
 
         final DaoContext daoContext = ServiceContext.getDaoContext();
@@ -270,7 +270,7 @@ public final class DocLogClean extends AbstractJob {
         if (docClean != null) {
             if (nDeleted == 0) {
                 publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                        docClean.localizeMsg("AccountTrxClean.success.zero"));
+                        docClean.localizeSysMsg("AccountTrxClean.success.zero"));
             } else if (nDeleted == 1) {
                 final String msg =
                         AppLogHelper.logInfo(docClean.getClass(),
@@ -309,7 +309,7 @@ public final class DocLogClean extends AbstractJob {
 
         if (docClean != null) {
             publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeMsg("DocOutLogClean.start"));
+                    docClean.localizeSysMsg("DocOutLogClean.start"));
         }
 
         final DaoContext daoContext = ServiceContext.getDaoContext();
@@ -325,7 +325,7 @@ public final class DocLogClean extends AbstractJob {
 
             if (nDeleted == 0) {
                 publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                        docClean.localizeMsg("DocOutLogClean.success.zero"));
+                        docClean.localizeSysMsg("DocOutLogClean.success.zero"));
             } else if (nDeleted == 1) {
                 final String msg =
                         AppLogHelper.logInfo(docClean.getClass(),
@@ -364,7 +364,7 @@ public final class DocLogClean extends AbstractJob {
 
         if (docClean != null) {
             publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeMsg("DocInLogClean.start"));
+                    docClean.localizeSysMsg("DocInLogClean.start"));
         }
 
         final DaoContext daoContext = ServiceContext.getDaoContext();
@@ -379,7 +379,7 @@ public final class DocLogClean extends AbstractJob {
         if (docClean != null) {
             if (nDeleted == 0) {
                 publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                        docClean.localizeMsg("DocInLogClean.success.zero"));
+                        docClean.localizeSysMsg("DocInLogClean.success.zero"));
             } else if (nDeleted == 1) {
                 final String msg =
                         AppLogHelper.logInfo(docClean.getClass(),
@@ -406,7 +406,7 @@ public final class DocLogClean extends AbstractJob {
 
         if (docClean != null) {
             publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeMsg("DeletedUserClean.start"));
+                    docClean.localizeSysMsg("DeletedUserClean.start"));
         }
 
         final DaoContext daoContext = ServiceContext.getDaoContext();
@@ -420,7 +420,7 @@ public final class DocLogClean extends AbstractJob {
         if (docClean != null) {
             if (nDeleted == 0) {
                 publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                        docClean.localizeMsg("DeletedUserClean.success.zero"));
+                        docClean.localizeSysMsg("DeletedUserClean.success.zero"));
             } else if (nDeleted == 1) {
                 final String msg =
                         AppLogHelper.logInfo(docClean.getClass(),
@@ -448,7 +448,7 @@ public final class DocLogClean extends AbstractJob {
 
         if (docClean != null) {
             publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeMsg("DeletedPrinterClean.start"));
+                    docClean.localizeSysMsg("DeletedPrinterClean.start"));
         }
 
         final DaoContext daoContext = ServiceContext.getDaoContext();
@@ -462,7 +462,7 @@ public final class DocLogClean extends AbstractJob {
         if (docClean != null) {
             if (nDeleted == 0) {
                 publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, docClean
-                        .localizeMsg("DeletedPrinterClean.success.zero"));
+                        .localizeSysMsg("DeletedPrinterClean.success.zero"));
             } else if (nDeleted == 1) {
                 final String msg =
                         AppLogHelper.logInfo(docClean.getClass(),
@@ -489,7 +489,7 @@ public final class DocLogClean extends AbstractJob {
 
         if (docClean != null) {
             publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeMsg("DeletedQueueClean.start"));
+                    docClean.localizeSysMsg("DeletedQueueClean.start"));
         }
 
         final DaoContext daoContext = ServiceContext.getDaoContext();
@@ -503,7 +503,7 @@ public final class DocLogClean extends AbstractJob {
         if (docClean != null) {
             if (nDeleted == 0) {
                 publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                        docClean.localizeMsg("DeletedQueueClean.success.zero"));
+                        docClean.localizeSysMsg("DeletedQueueClean.success.zero"));
             } else if (nDeleted == 1) {
                 final String msg =
                         AppLogHelper.logInfo(docClean.getClass(),
@@ -531,7 +531,7 @@ public final class DocLogClean extends AbstractJob {
 
         if (docClean != null) {
             publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeMsg("AccountClean.start"));
+                    docClean.localizeSysMsg("AccountClean.start"));
         }
 
         final DaoContext daoContext = ServiceContext.getDaoContext();
@@ -543,7 +543,7 @@ public final class DocLogClean extends AbstractJob {
         if (docClean != null) {
             if (nDeleted == 0) {
                 publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                        docClean.localizeMsg("AccountClean.success.zero"));
+                        docClean.localizeSysMsg("AccountClean.success.zero"));
             } else if (nDeleted == 1) {
                 final String msg =
                         AppLogHelper.logInfo(docClean.getClass(),

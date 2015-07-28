@@ -26,6 +26,7 @@ import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.AppLogService;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
+import org.savapage.core.services.EmailService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.PaperCutService;
@@ -79,6 +80,10 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private static class DocLogServiceHolder {
         public static final DocLogService SERVICE = new DocLogServiceImpl();
+    }
+
+    private static class EmailServiceHolder {
+        public static final EmailService SERVICE = new EmailServiceImpl();
     }
 
     private static class InboxServiceHolder {
@@ -154,6 +159,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public DocLogService getDocLogService() {
         return DocLogServiceHolder.SERVICE;
+    }
+
+    @Override
+    public EmailService getEmailService() {
+        return EmailServiceHolder.SERVICE;
     }
 
     @Override

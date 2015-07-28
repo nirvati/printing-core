@@ -192,7 +192,8 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
                 }
 
                 AdminPublisher.instance().publish(PubTopicEnum.SMARTSCHOOL,
-                        PubLevelEnum.INFO, this.parentJob.localizeMsg(msgKey));
+                        PubLevelEnum.INFO,
+                        this.parentJob.localizeSysMsg(msgKey));
 
                 /*
                  * At this point we can inform the breaker we are up and
@@ -335,7 +336,7 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
         }
 
         AdminPublisher.instance().publish(PubTopicEnum.SMARTSCHOOL,
-                PubLevelEnum.INFO, localizeMsg(msgKey));
+                PubLevelEnum.INFO, localizeSysMsg(msgKey));
 
         if (!isInterrupted()
                 && ConfigManager.isSmartSchoolPrintActiveAndEnabled()

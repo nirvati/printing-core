@@ -19,41 +19,23 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core;
+package org.savapage.core.inbox;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.LinkedHashMap;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.PasswordAuthentication;
-import javax.mail.SendFailedException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-
 import org.apache.commons.lang3.StringUtils;
-import org.savapage.core.circuitbreaker.CircuitBreaker;
-import org.savapage.core.circuitbreaker.CircuitBreakerException;
-import org.savapage.core.circuitbreaker.CircuitBreakerOperation;
-import org.savapage.core.circuitbreaker.CircuitNonTrippingException;
-import org.savapage.core.circuitbreaker.CircuitTrippingException;
+import org.savapage.core.LetterheadNotFoundException;
+import org.savapage.core.PostScriptDrmException;
+import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
-import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.IConfigProp;
-import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.img.ImageUrl;
 import org.savapage.core.img.PdfToImgCommand;
 import org.savapage.core.img.PopplerPdfToImgCommand;
-import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
@@ -121,27 +103,6 @@ public final class OutputProducer {
      */
     public static OutputProducer instance() {
         return SingletonHolder.INSTANCE;
-    }
-
-    /**
-     * Performs a file move as an ATOMIC_MOVE file operation. If the file system
-     * does not support an atomic move, an exception is thrown. With an
-     * ATOMIC_MOVE you can move a file into a directory and be guaranteed that
-     * any process watching the directory accesses a complete file.
-     *
-     * @param source
-     *            The source path.
-     * @param target
-     *            The target path.
-     * @throws IOException
-     *             If any IO error occurs.
-     */
-    public static void doAtomicFileMove(final Path source, final Path target)
-            throws IOException {
-
-        java.nio.file.Files.move(source, target,
-                StandardCopyOption.ATOMIC_MOVE,
-                StandardCopyOption.REPLACE_EXISTING);
     }
 
     /**
@@ -533,245 +494,4 @@ public final class OutputProducer {
         return file;
     }
 
-    /**
-     * Sends an email.
-     *
-     * @param toAddress
-     *            The email address.
-     * @param subject
-     *            The subject of the message.
-     * @param body
-     *            The body text with optional newline {@code \n} characters.
-     * @throws MessagingException
-     * @throws IOException
-     * @throws CircuitBreakerException
-     * @throws InterruptedException
-     */
-    public static void sendEmail(final String toAddress, final String subject,
-            final String body) throws MessagingException, IOException,
-            InterruptedException, CircuitBreakerException {
-
-        instance().sendEmail(toAddress, null, subject, body, null, null);
-    }
-
-    /**
-     * Sends an email with an optional file attachment.
-     *
-     * <p>
-     * See the <a href=
-     * "https://javamail.java.net/nonav/docs/api/com/sun/mail/smtp/package-summary.html"
-     * >JavaMail API documentation</a>.
-     * </p>
-     *
-     * @param toAddress
-     *            The email address.
-     * @param toName
-     *            The personal name of the recipient (can be {@code null}).
-     * @param subject
-     *            The subject of the message.
-     * @param body
-     *            The body text with optional newline {@code \n} characters.
-     * @param fileAttach
-     *            The file to attach (can be {@code null}).
-     * @param fileName
-     *            The name of the attachment.
-     * @throws MessagingException
-     * @throws IOException
-     * @throws CircuitBreakerException
-     * @throws InterruptedException
-     */
-    public void sendEmail(final String toAddress, final String toName,
-            final String subject, final String body, final File fileAttach,
-            final String fileName) throws IOException, MessagingException,
-            InterruptedException, CircuitBreakerException {
-
-        final ConfigManager conf = ConfigManager.instance();
-
-        final String host = conf.getConfigValue(IConfigProp.Key.MAIL_SMTP_HOST);
-        final String port = conf.getConfigValue(IConfigProp.Key.MAIL_SMTP_PORT);
-
-        final String username =
-                conf.getConfigValue(IConfigProp.Key.MAIL_SMTP_USER_NAME);
-
-        final String password =
-                conf.getConfigValue(IConfigProp.Key.MAIL_SMTP_PASSWORD);
-
-        final String security =
-                conf.getConfigValue(IConfigProp.Key.MAIL_SMTP_SECURITY);
-
-        final boolean debug =
-                conf.isConfigValue(IConfigProp.Key.MAIL_SMTP_DEBUG);
-
-        /*
-         * Create properties and get the default Session
-         */
-        final java.util.Properties props = new java.util.Properties();
-
-        /*
-         * Timeout (in milliseconds) for establishing the SMTP connection.
-         */
-        props.put("mail.smtp.connectiontimeout",
-                conf.getConfigInt(Key.MAIL_SMTP_CONNECTIONTIMEOUT));
-
-        /*
-         * The timeout (milliseconds) for sending the mail messages.
-         */
-        props.put("mail.smtp.timeout", conf.getConfigInt(Key.MAIL_SMTP_TIMEOUT));
-
-        //
-        props.put("mail.smtp.host", host);
-        props.put("mail.smtp.port", port);
-
-        javax.mail.Authenticator authenticator = null;
-
-        if (StringUtils.isNotBlank(username)) {
-            props.put("mail.smtp.auth", "true");
-            authenticator = new javax.mail.Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(username, password);
-                }
-            };
-        }
-
-        if (security.equalsIgnoreCase(IConfigProp.SMTP_SECURITY_V_STARTTLS)) {
-            props.put("mail.smtp.starttls.enable", "true");
-        } else if (security.equalsIgnoreCase(IConfigProp.SMTP_SECURITY_V_SSL)) {
-            props.put("mail.smtp.socketFactory.port", port);
-            props.put("mail.smtp.socketFactory.class",
-                    "javax.net.ssl.SSLSocketFactory");
-        }
-
-        /*
-         * Get a new session instance. Do NOT use the getDefaultInstance().
-         */
-        final javax.mail.Session session =
-                javax.mail.Session.getInstance(props, authenticator);
-
-        session.setDebug(debug);
-
-        /*
-         * Create a message
-         */
-        final MimeMessage msg = new MimeMessage(session);
-
-        // from
-        final InternetAddress addrFrom = new InternetAddress();
-        addrFrom.setAddress(conf
-                .getConfigValue(IConfigProp.Key.MAIL_FROM_ADDRESS));
-        addrFrom.setPersonal(conf
-                .getConfigValue(IConfigProp.Key.MAIL_FROM_NAME));
-        msg.setFrom(addrFrom);
-
-        // reply-to
-        if (conf.getConfigValue(IConfigProp.Key.MAIL_REPLY_TO_ADDRESS) != null) {
-            final InternetAddress addrReplyTo = new InternetAddress();
-            addrReplyTo.setAddress(conf
-                    .getConfigValue(IConfigProp.Key.MAIL_REPLY_TO_ADDRESS));
-            final String name =
-                    conf.getConfigValue(IConfigProp.Key.MAIL_REPLY_TO_NAME);
-            if (name != null) {
-                addrReplyTo.setPersonal(name);
-            }
-            final InternetAddress[] addressReplyTo = { addrReplyTo };
-            msg.setReplyTo(addressReplyTo);
-        }
-
-        // to
-        final InternetAddress addrTo = new InternetAddress();
-        addrTo.setAddress(toAddress);
-
-        if (toName != null) {
-            addrTo.setPersonal(toName);
-        }
-
-        final InternetAddress[] address = { addrTo };
-        msg.setRecipients(Message.RecipientType.TO, address);
-
-        // subject
-        msg.setSubject(subject);
-
-        // date
-        msg.setSentDate(new java.util.Date());
-
-        // create and fill the first message part
-        final MimeBodyPart mbp1 = new MimeBodyPart();
-        mbp1.setText(body);
-
-        // Use setText(text, charset), to show it off !
-        // mbp2.setText(strFileAttach, "us-ascii");
-
-        // create the Multipart and its parts to it
-        final Multipart mp = new MimeMultipart();
-        mp.addBodyPart(mbp1);
-
-        //
-        if (fileAttach != null) {
-
-            final MimeBodyPart mbp2 = new MimeBodyPart();
-
-            /*
-             * (1) attach
-             */
-            mbp2.attachFile(fileAttach);
-            /*
-             * (2) set the filename
-             */
-            if (fileName != null) {
-                mbp2.setFileName(fileName);
-            }
-            /*
-             * (3) add
-             */
-            mp.addBodyPart(mbp2);
-        }
-
-        // add the Multipart to the message
-        msg.setContent(mp);
-
-        // send the message
-        sendMimeMessage(msg);
-    }
-
-    /**
-     * Sends a {@link MimeMessage} using the
-     * {@link CircuitBreakerEnum#SMTP_CONNECTION}.
-     *
-     * @param msg
-     *            The a {@link MimeMessage}.
-     * @throws CircuitBreakerException
-     * @throws InterruptedException
-     */
-    private static void sendMimeMessage(final MimeMessage msg)
-            throws InterruptedException, CircuitBreakerException {
-
-        final CircuitBreakerOperation operation =
-                new CircuitBreakerOperation() {
-
-                    @Override
-                    public Object execute(final CircuitBreaker circuitBreaker) {
-
-                        if (!ConfigManager.isConnectedToInternet()) {
-                            throw new CircuitTrippingException(
-                                    "Not connected to the Internet.");
-                        }
-
-                        try {
-                            javax.mail.Transport.send(msg);
-                        } catch (SendFailedException e) {
-                            throw new CircuitNonTrippingException(e);
-                        } catch (MessagingException e) {
-                            throw new CircuitTrippingException(e);
-                        }
-                        return null;
-                    }
-                };
-
-        final CircuitBreaker breaker =
-                ConfigManager
-                        .getCircuitBreaker(CircuitBreakerEnum.SMTP_CONNECTION);
-
-        breaker.execute(operation);
-
-    }
 }

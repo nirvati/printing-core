@@ -82,7 +82,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
         boolean rollback = true;
 
         publisher.publish(PubTopicEnum.CUPS, PubLevelEnum.INFO,
-                localizeMsg("CupsSyncPrintJobs.start"));
+                localizeSysMsg("CupsSyncPrintJobs.start"));
 
         try {
 
@@ -100,7 +100,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
                                 String.valueOf(stats[2]));
             } else {
                 msg =
-                        localizeMsg("CupsSyncPrintJobs.success",
+                        localizeSysMsg("CupsSyncPrintJobs.success",
                                 String.valueOf(stats[0]),
                                 String.valueOf(stats[1]),
                                 String.valueOf(stats[2]));

@@ -80,10 +80,8 @@ public final class GcpRegisterJob extends AbstractJob {
             final String pollingUrl = map.getString(KEY_POLLING_URL);
             final Integer tokenDuration = map.getIntValue(KEY_TOKEN_DURATION);
 
-            // ConfigManager cm = ConfigManager.instance();
-
             adminPub.publish(PubTopicEnum.GCP_REGISTER, PubLevelEnum.INFO,
-                    localizeMsg("GcpPollForAuthCode.started"));
+                    localizeSysMsg("GcpPollForAuthCode.started"));
 
             final GcpClient gcp = GcpClient.instance();
 
@@ -133,7 +131,7 @@ public final class GcpRegisterJob extends AbstractJob {
             if (pollRsp != null && pollRsp.isSuccess()) {
 
                 adminPub.publish(PubTopicEnum.GCP_REGISTER, PubLevelEnum.INFO,
-                        localizeMsg("GcpPollForAuthCode.success"));
+                        localizeSysMsg("GcpPollForAuthCode.success"));
 
                 GcpPrinter.store(pollRsp);
 
@@ -144,7 +142,7 @@ public final class GcpRegisterJob extends AbstractJob {
                         gcp.getAuthTokens(pollRsp.getAuthorizationCode());
 
                 adminPub.publish(PubTopicEnum.GCP_REGISTER, PubLevelEnum.INFO,
-                        localizeMsg("GcpGetAuthTokens.success"));
+                        localizeSysMsg("GcpGetAuthTokens.success"));
                 /*
                  * Note: next statement throws an exception when authentication
                  * failed.
@@ -153,7 +151,7 @@ public final class GcpRegisterJob extends AbstractJob {
 
             } else {
                 adminPub.publish(PubTopicEnum.GCP_REGISTER, PubLevelEnum.WARN,
-                        localizeMsg("GcpPollForAuthCode.timeout"));
+                        localizeSysMsg("GcpPollForAuthCode.timeout"));
             }
 
         } catch (GcpAuthException e) {

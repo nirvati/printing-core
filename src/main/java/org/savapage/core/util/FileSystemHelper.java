@@ -21,49 +21,41 @@
  */
 package org.savapage.core.util;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  *
  * @author Datraverse B.V.
  */
-public final class EmailValidator {
+public final class FileSystemHelper {
 
     /**
      *
      */
-    private final Pattern pattern;
-
-    /**
-     *
-     */
-    private Matcher matcher;
-
-    /**
-     *
-     */
-    private static final String EMAIL_PATTERN =
-            "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
-                    + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
-
-    /**
-     *
-     */
-    public EmailValidator() {
-        pattern = Pattern.compile(EMAIL_PATTERN);
+    private FileSystemHelper() {
     }
 
     /**
-     * Validate the email address.
+     * Performs a file move as an ATOMIC_MOVE file operation. If the file system
+     * does not support an atomic move, an exception is thrown. With an
+     * ATOMIC_MOVE you can move a file into a directory and be guaranteed that
+     * any process watching the directory accesses a complete file.
      *
-     * @param emailAddress
-     *            Email address for validation
-     * @return {@code true} when valid.
+     * @param source
+     *            The source path.
+     * @param target
+     *            The target path.
+     * @throws IOException
+     *             If any IO error occurs.
      */
-    public boolean validate(final String emailAddress) {
-        matcher = pattern.matcher(emailAddress);
-        return matcher.matches();
+    public static void doAtomicFileMove(final Path source, final Path target)
+            throws IOException {
+
+        java.nio.file.Files.move(source, target,
+                StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING);
     }
 
 }

@@ -21,7 +21,6 @@
  */
 package org.savapage.core.services.impl;
 
-import org.savapage.core.OutputProducer;
 import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.AccountVoucherDao;
@@ -46,6 +45,7 @@ import org.savapage.core.dao.UserEmailDao;
 import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.UserGroupMemberDao;
 import org.savapage.core.dao.UserNumberDao;
+import org.savapage.core.inbox.OutputProducer;
 import org.savapage.core.json.rpc.JsonRpcError;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;

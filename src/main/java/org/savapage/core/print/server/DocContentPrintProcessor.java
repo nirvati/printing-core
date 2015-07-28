@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.savapage.core.OutputProducer;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
@@ -62,6 +61,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.users.UserAliasList;
+import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -860,7 +860,7 @@ public class DocContentPrintProcessor {
              */
             this.logPrintIn(protocol);
 
-            OutputProducer.doAtomicFileMove(//
+            FileSystemHelper.doAtomicFileMove(//
                     // source
                     FileSystems.getDefault().getPath(tempPathPdf),
                     // target

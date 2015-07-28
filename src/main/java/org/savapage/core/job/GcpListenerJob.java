@@ -201,11 +201,12 @@ public final class GcpListenerJob extends AbstractJob implements
         listener = new GcpListener();
         listener.connect();
 
-        String msg = localizeMsg("GcpListener.started");
-        LOGGER.info(msg);
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(localizeLogMsg("GcpListener.started"));
+        }
 
         AdminPublisher.instance().publish(PubTopicEnum.GCP_PRINT,
-                PubLevelEnum.INFO, msg);
+                PubLevelEnum.INFO, localizeSysMsg("GcpListener.started"));
 
         /*
          * At this point we can inform the breaker we are up and running.
@@ -226,16 +227,13 @@ public final class GcpListenerJob extends AbstractJob implements
                         ConfigManager.instance().getConfigInt(
                                 Key.GCP_EVENT_TIMEOUT_SECS));
 
-        //
-        msg = localizeMsg("GcpListener.stopped");
-        LOGGER.info(msg);
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(localizeLogMsg("GcpListener.stopped"));
+        }
 
         AdminPublisher.instance().publish(PubTopicEnum.GCP_PRINT,
-                PubLevelEnum.INFO, msg);
+                PubLevelEnum.INFO, localizeSysMsg("GcpListener.stopped"));
 
-        /*
-         *
-         */
         return isExpired;
     }
 

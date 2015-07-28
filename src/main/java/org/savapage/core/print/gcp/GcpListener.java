@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,9 +38,7 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.MessageTypeFilter;
 import org.jivesoftware.smack.packet.Message.Type;
 import org.jivesoftware.smack.packet.Packet;
-import org.savapage.core.OutputProducer;
 import org.savapage.core.SpException;
-import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
@@ -54,6 +52,7 @@ import org.savapage.core.print.server.DocContentPrintException;
 import org.savapage.core.print.server.PrintInResultEnum;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
+import org.savapage.core.services.helpers.EmailMsgParms;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +64,7 @@ import org.slf4j.LoggerFactory;
  * @author Datraverse B.V.
  *
  */
-public class GcpListener {
+public final class GcpListener {
 
     private static final String XMPP_SERVICENAME = "gmail.com";
 
@@ -381,15 +380,21 @@ public class GcpListener {
 
         try {
 
-            OutputProducer.sendEmail(toAddress, subject, body);
+            final EmailMsgParms emailParms = new EmailMsgParms();
+
+            emailParms.setToAddress(toAddress);
+            emailParms.setSubject(subject);
+            emailParms.setBody(body);
+
+            ServiceContext.getServiceFactory().getEmailService()
+                    .writeEmail(emailParms);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Sent email to [" + toAddress + "] subject ["
                         + subject + "]");
             }
 
-        } catch (MessagingException | IOException | InterruptedException
-                | CircuitBreakerException e) {
+        } catch (MessagingException | IOException e) {
             LOGGER.error("Sending email to [" + toAddress + "] failed: "
                     + e.getMessage());
         }

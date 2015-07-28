@@ -145,6 +145,11 @@ public class SpJobScheduler {
             scheduleOneShotJob(SpJobType.PRINTER_GROUP_CLEAN, 1L);
 
             /*
+             * Monitor email outbox unconditionally.
+             */
+            scheduleOneShotEmailOutboxMonitor(1L);
+
+            /*
              * Mail Print enabled?
              */
             if (ConfigManager.isPrintImapEnabled()) {
@@ -211,6 +216,11 @@ public class SpJobScheduler {
             try {
 
                 /*
+                 * Wait for EmailOutputMonitor to finish...
+                 */
+                interruptEmailOutputMonitor();
+
+                /*
                  * Wait for ImapListener to finish...
                  */
                 interruptImapListener();
@@ -226,7 +236,8 @@ public class SpJobScheduler {
                 interruptSmartSchoolPoller();
 
                 /*
-                 * The 'true' parameters waits till all jobs are finished.
+                 * The 'true' parameters makes the shutdown call block till all
+                 * jobs are finished.
                  */
                 myScheduler.shutdown(true);
 
@@ -271,6 +282,10 @@ public class SpJobScheduler {
 
         case DB_DERBY_OPTIMIZE:
             jobClass = org.savapage.core.job.DbDerbyOptimize.class;
+            break;
+
+        case EMAIL_OUTBOX_MONITOR:
+            jobClass = org.savapage.core.job.EmailOutboxMonitor.class;
             break;
 
         case SYNC_USERS:
@@ -342,12 +357,14 @@ public class SpJobScheduler {
         //
         myHourlyJobs.add(createJob(SpJobType.CUPS_SUBS_RENEW,
                 JOB_GROUP_SCHEDULED));
+
         //
         myWeeklyJobs.add(createJob(SpJobType.DB_BACKUP, JOB_GROUP_SCHEDULED));
+
         //
         myDailyJobs.add(createJob(SpJobType.SYNC_USERS, JOB_GROUP_SCHEDULED));
-        myDailyJobs
-                .add(createJob(SpJobType.CHECK_MEMBERSHIP_CARD, JOB_GROUP_SCHEDULED));
+        myDailyJobs.add(createJob(SpJobType.CHECK_MEMBERSHIP_CARD,
+                JOB_GROUP_SCHEDULED));
         myDailyJobs.add(createJob(SpJobType.PRINTER_GROUP_CLEAN,
                 JOB_GROUP_SCHEDULED));
     }
@@ -448,6 +465,23 @@ public class SpJobScheduler {
      *
      * @param milliSecondsFromNow
      */
+    public void scheduleOneShotEmailOutboxMonitor(long milliSecondsFromNow) {
+
+        JobDataMap data = new JobDataMap();
+
+        JobDetail job =
+                newJob(org.savapage.core.job.EmailOutboxMonitor.class)
+                        .withIdentity(
+                                SpJobType.EMAIL_OUTBOX_MONITOR.toString(),
+                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+
+        rescheduleOneShotJob(job, milliSecondsFromNow);
+    }
+
+    /**
+     *
+     * @param milliSecondsFromNow
+     */
     public void scheduleOneShotImapListener(long milliSecondsFromNow) {
 
         JobDataMap data = new JobDataMap();
@@ -517,6 +551,14 @@ public class SpJobScheduler {
                                 JOB_GROUP_ONESHOT).usingJobData(data).build();
 
         rescheduleOneShotJob(job, secondsFromNow * 1000L);
+    }
+
+    /**
+     * .
+     */
+    public static void interruptEmailOutputMonitor() {
+        instance().interruptJob(SpJobType.EMAIL_OUTBOX_MONITOR,
+                JOB_GROUP_ONESHOT);
     }
 
     /**

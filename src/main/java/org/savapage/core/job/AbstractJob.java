@@ -21,6 +21,8 @@
  */
 package org.savapage.core.job;
 
+import java.util.Locale;
+
 import org.quartz.InterruptableJob;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -63,12 +65,16 @@ public abstract class AbstractJob implements InterruptableJob,
      */
     private boolean interrupted = false;
 
-    protected boolean isInterrupted() {
+    /**
+     *
+     * @return {@code true} when this job was interrupted.
+     */
+    protected final boolean isInterrupted() {
         return this.interrupted;
     }
 
     @Override
-    public void interrupt() throws UnableToInterruptJobException {
+    public final void interrupt() throws UnableToInterruptJobException {
 
         this.interrupted = true;
 
@@ -100,17 +106,63 @@ public abstract class AbstractJob implements InterruptableJob,
         }
     }
 
-    abstract protected void onInterrupt() throws UnableToInterruptJobException;
+    /**
+     *
+     * @throws UnableToInterruptJobException
+     *             When unable to interrupt.
+     */
+    protected abstract void onInterrupt() throws UnableToInterruptJobException;
 
-    abstract protected void onInit(final JobExecutionContext ctx);
+    /**
+     *
+     * @param ctx
+     *            The {@link JobExecutionContext}.
+     */
+    protected abstract void onInit(final JobExecutionContext ctx);
 
-    abstract protected void onExecute(final JobExecutionContext ctx)
+    /**
+     *
+     * @param ctx
+     *            The {@link JobExecutionContext}.
+     * @throws JobExecutionException
+     *             When an error occurred while executing.
+     */
+    protected abstract void onExecute(final JobExecutionContext ctx)
             throws JobExecutionException;
 
-    abstract protected void onExit(final JobExecutionContext ctx);
+    /**
+     *
+     * @param ctx
+     *            The {@link JobExecutionContext}.
+     */
+    protected abstract void onExit(final JobExecutionContext ctx);
 
-    protected String localizeMsg(String key, final String... args) {
+    /**
+     * Localizes a system message.
+     *
+     * @param key
+     *            The message key.
+     * @param args
+     *            The message arguments.
+     * @return The localized message.
+     */
+    protected final String localizeSysMsg(final String key,
+            final String... args) {
         return Messages.getMessage(this.getClass(), key, args);
+    }
+
+    /**
+     * Localizes a message to English for logging.
+     *
+     * @param key
+     *            The message key.
+     * @param args
+     *            The message arguments.
+     * @return The English message.
+     */
+    protected final String localizeLogMsg(final String key,
+            final String... args) {
+        return Messages.getMessage(this.getClass(), Locale.ENGLISH, key, args);
     }
 
 }

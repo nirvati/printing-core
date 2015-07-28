@@ -44,9 +44,7 @@ import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.time.DateUtils;
-import org.savapage.core.OutputProducer;
 import org.savapage.core.SpException;
-import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
@@ -64,6 +62,7 @@ import org.savapage.core.print.server.DocContentPrintException;
 import org.savapage.core.print.server.DocContentPrintReq;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.EmailMsgParms;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
@@ -1020,15 +1019,22 @@ public final class ImapListener extends MessageCountAdapter {
             final String body) {
 
         try {
-            OutputProducer.sendEmail(toAddress, subject, body);
+
+            final EmailMsgParms emailParms = new EmailMsgParms();
+
+            emailParms.setToAddress(toAddress);
+            emailParms.setSubject(subject);
+            emailParms.setBody(body);
+
+            ServiceContext.getServiceFactory().getEmailService()
+                    .writeEmail(emailParms);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Sent email to [" + toAddress + "] subject ["
                         + subject + "]");
             }
 
-        } catch (MessagingException | IOException | InterruptedException
-                | CircuitBreakerException e) {
+        } catch (MessagingException | IOException e) {
             LOGGER.error("Sending email to [" + toAddress + "] failed: "
                     + e.getMessage());
         }

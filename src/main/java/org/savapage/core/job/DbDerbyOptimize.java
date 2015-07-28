@@ -68,7 +68,7 @@ public final class DbDerbyOptimize extends AbstractJob {
          *
          */
         publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                localizeMsg("DbDerbyOptimize.start"));
+                localizeSysMsg("DbDerbyOptimize.start"));
 
         String msg = null;
         PubLevelEnum level = PubLevelEnum.INFO;

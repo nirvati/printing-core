@@ -71,7 +71,7 @@ public final class CupsSubsRenew extends AbstractJob {
              * Success is not logged in the AppLog, but echoed to the Admin
              * Dashboard.
              */
-            msg = localizeMsg("CupsSubsRenew.success");
+            msg = localizeSysMsg("CupsSubsRenew.success");
 
         } catch (Exception e) {
 
