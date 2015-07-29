@@ -56,6 +56,7 @@ import javax.persistence.Query;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.dom4j.Document;
@@ -994,33 +995,38 @@ public final class DbTools implements ServiceEntryPoint {
 
         int nFilesDeleted = 0;
 
-        Path backupPath =
+        final Path backupPath =
                 FileSystems.getDefault().getPath(
                         ConfigManager.getDbBackupHome());
 
-        DirectoryStream<Path> ds =
+        final DirectoryStream<Path> ds =
                 Files.newDirectoryStream(backupPath, "savapage*.zip");
-        /*
-         * Iterate over the paths in the directory and print filenames
-         */
-        for (Path p : ds) {
+
+        try {
             /*
-             * Check if file or directory
+             * Iterate over the paths in the directory and print filenames
              */
-            BasicFileAttributes attrs =
-                    Files.readAttributes(p, BasicFileAttributes.class);
+            for (Path p : ds) {
+                /*
+                 * Check if file or directory
+                 */
+                BasicFileAttributes attrs =
+                        Files.readAttributes(p, BasicFileAttributes.class);
 
-            if (attrs.isRegularFile()
-                    && attrs.creationTime().toMillis() < msecBackInTime) {
+                if (attrs.isRegularFile()
+                        && attrs.creationTime().toMillis() < msecBackInTime) {
 
-                Files.delete(p);
+                    Files.delete(p);
 
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("deleted [" + p + "]");
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("deleted [" + p + "]");
+                    }
+
+                    nFilesDeleted++;
                 }
-
-                nFilesDeleted++;
             }
+        } finally {
+            IOUtils.closeQuietly(ds);
         }
 
         return nFilesDeleted;
