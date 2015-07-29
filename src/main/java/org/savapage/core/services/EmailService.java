@@ -24,7 +24,6 @@ package org.savapage.core.services;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 
 import javax.mail.MessagingException;
@@ -45,11 +44,15 @@ public interface EmailService {
     /**
      * Gets the MIME files from the email outbox.
      *
-     * @return The {@link DirectoryStream} with {@link Path} objects;
-     * @throws IOException
-     *             When IO error retrieving the MIME files.
+     * @return The with {@link Path} of the email outbox objects;
      */
-    DirectoryStream<Path> getOutboxMimeFiles() throws IOException;
+    Path getOutboxMimeFilesPath();
+
+    /**
+     *
+     * @return The GLOB for retrieving the email outbox MIME files.
+     */
+    String getOutboxMimeFileGlob();
 
     /**
      * Writes an email MIME file (RFC822 formatted) in the email outbox (the

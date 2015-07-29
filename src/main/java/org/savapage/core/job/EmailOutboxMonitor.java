@@ -23,6 +23,7 @@ package org.savapage.core.job;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchService;
@@ -34,6 +35,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.io.IOUtils;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
@@ -202,7 +204,75 @@ public final class EmailOutboxMonitor extends AbstractJob {
             SpJobScheduler.instance().scheduleOneShotEmailOutboxMonitor(
                     this.millisUntilNextInvocation);
         }
+    }
 
+    /**
+     * Sends all email MIME messages in the {@link DirectoryStream}.
+     *
+     * @param emailService
+     *            The {@link EmailService}.
+     * @param dirStream
+     *            The {@link DirectoryStream}..
+     * @throws IOException
+     *             When IO errors occur.
+     * @throws CircuitBreakerException
+     *             When SMTP circuit is broken.
+     */
+    private void sendMimeFiles(final EmailService emailService,
+            final DirectoryStream<Path> dirStream) throws IOException,
+            CircuitBreakerException {
+        /*
+         * Iterate over the paths in the directory and print filenames.
+         */
+        for (final Path p : dirStream) {
+
+            if (this.isInterrupted()) {
+                break;
+            }
+
+            final BasicFileAttributes attrs =
+                    Files.readAttributes(p, BasicFileAttributes.class);
+
+            if (!attrs.isRegularFile()) {
+                continue;
+            }
+
+            try {
+                // Send email.
+                final MimeMessage mimeMsg = emailService.sendEmail(p.toFile());
+
+                // Logging.
+                final String msgKey = "EmailOutboxMonitor.mailsent";
+                final String subject = mimeMsg.getSubject();
+                final String sendTo =
+                        mimeMsg.getRecipients(Message.RecipientType.TO)[0]
+                                .toString();
+                final String mailSize =
+                        NumberUtil.humanReadableByteCount(mimeMsg.getSize(),
+                                true);
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(localizeLogMsg(msgKey, subject, sendTo,
+                            mailSize));
+                }
+
+                AdminPublisher.instance().publish(PubTopicEnum.SMTP,
+                        PubLevelEnum.INFO,
+                        localizeSysMsg(msgKey, subject, sendTo, mailSize));
+
+            } catch (MessagingException e) {
+
+                LOGGER.error(e.getMessage(), e);
+
+                AdminPublisher.instance().publish(PubTopicEnum.SMTP,
+                        PubLevelEnum.ERROR, e.getMessage());
+
+            } catch (InterruptedException e) {
+                break;
+            }
+
+            Files.delete(p);
+        }
     }
 
     /**
@@ -213,7 +283,7 @@ public final class EmailOutboxMonitor extends AbstractJob {
      * </p>
      *
      * @throws IOException
-     *             When retrieving outbox files fails.
+     *             When IO errors occur.
      * @throws CircuitBreakerException
      *             When SMTP circuit is broken.
      */
@@ -244,58 +314,15 @@ public final class EmailOutboxMonitor extends AbstractJob {
                 LOGGER.trace(String.format("Email Watch [%d]", i));
             }
 
-            /*
-             * Iterate over the paths in the directory and print filenames.
-             */
-            for (final Path p : emailService.getOutboxMimeFiles()) {
+            final DirectoryStream<Path> dirStream =
+                    Files.newDirectoryStream(
+                            emailService.getOutboxMimeFilesPath(),
+                            emailService.getOutboxMimeFileGlob());
 
-                if (this.isInterrupted()) {
-                    break;
-                }
-
-                final BasicFileAttributes attrs =
-                        Files.readAttributes(p, BasicFileAttributes.class);
-
-                if (!attrs.isRegularFile()) {
-                    continue;
-                }
-
-                try {
-                    // Send email.
-                    final MimeMessage mimeMsg =
-                            emailService.sendEmail(p.toFile());
-
-                    // Logging.
-                    final String msgKey = "EmailOutboxMonitor.mailsent";
-                    final String subject = mimeMsg.getSubject();
-                    final String sendTo =
-                            mimeMsg.getRecipients(Message.RecipientType.TO)[0]
-                                    .toString();
-                    final String mailSize =
-                            NumberUtil.humanReadableByteCount(
-                                    mimeMsg.getSize(), true);
-
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(localizeLogMsg(msgKey, subject, sendTo,
-                                mailSize));
-                    }
-
-                    AdminPublisher.instance().publish(PubTopicEnum.SMTP,
-                            PubLevelEnum.INFO,
-                            localizeSysMsg(msgKey, subject, sendTo, mailSize));
-
-                } catch (MessagingException e) {
-
-                    LOGGER.error(e.getMessage(), e);
-
-                    AdminPublisher.instance().publish(PubTopicEnum.SMTP,
-                            PubLevelEnum.ERROR, e.getMessage());
-
-                } catch (InterruptedException e) {
-                    break;
-                }
-
-                Files.delete(p);
+            try {
+                this.sendMimeFiles(emailService, dirStream);
+            } finally {
+                IOUtils.closeQuietly(dirStream);
             }
 
             /*

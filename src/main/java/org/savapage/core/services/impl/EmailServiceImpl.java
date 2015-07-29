@@ -26,8 +26,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
@@ -377,13 +375,14 @@ public final class EmailServiceImpl extends AbstractService implements
     }
 
     @Override
-    public DirectoryStream<Path> getOutboxMimeFiles() throws IOException {
+    public Path getOutboxMimeFilesPath() {
+        return Paths.get(ConfigManager.getServerHome(),
+                ConfigManager.getServerRelativeEmailOutboxPath());
+    }
 
-        final Path outboxPath =
-                Paths.get(ConfigManager.getServerHome(),
-                        ConfigManager.getServerRelativeEmailOutboxPath());
-
-        return Files.newDirectoryStream(outboxPath, MIME_FILE_GLOB);
+    @Override
+    public String getOutboxMimeFileGlob() {
+        return MIME_FILE_GLOB;
     }
 
 }
