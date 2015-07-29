@@ -23,7 +23,9 @@ package org.savapage.core.job;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Locale;
 
 import javax.mail.MessagingException;
@@ -62,9 +64,11 @@ import org.slf4j.LoggerFactory;
  * @author Datraverse B.V.
  *
  */
-public final class GcpListenerJob extends AbstractJob implements
-        CircuitBreakerOperation {
+public final class GcpListenerJob extends AbstractJob {
 
+    /**
+     * The logger.
+     */
     private static final Logger LOGGER = LoggerFactory
             .getLogger(GcpListenerJob.class);
 
@@ -84,9 +88,158 @@ public final class GcpListenerJob extends AbstractJob implements
     private CircuitBreaker breaker;
 
     /**
+     * .
+     */
+    private GcpCircuitOperation circuitOperation = null;
+
+    /**
+     *
+     * @author Datraverse B.V.
      *
      */
-    private GcpListener listener;
+    private static class GcpCircuitOperation implements CircuitBreakerOperation {
+
+        /**
+         *
+         */
+        private final GcpListenerJob parentJob;
+
+        /**
+         * .
+         */
+        private GcpListener listener;
+
+        /**
+         *
+         * @param theJob
+         */
+        public GcpCircuitOperation(final GcpListenerJob parentJob) {
+            this.parentJob = parentJob;
+        }
+
+        @Override
+        public Object execute(CircuitBreaker circuitBreaker) {
+
+            try {
+
+                this.listen(circuitBreaker);
+
+            } catch (GcpAuthException e) {
+
+                throw new CircuitDamagingException(
+                        "Failed to refresh Access Token (" + e.getMessage()
+                                + ")");
+
+            } catch (GcpPrinterNotFoundException e) {
+
+                throw new CircuitDamagingException(
+                        this.parentJob
+                                .localizedMessage("GcpListener.printer-not-found"));
+
+            } catch (MessagingException | IOException | XMPPException e) {
+
+                GcpPrinter.reset();
+
+                throw new CircuitTrippingException(e);
+
+            } catch (InterruptedException e) {
+
+                throw new CircuitNonTrippingException(e);
+
+            } catch (Exception t) {
+
+                throw new CircuitDamagingException(t);
+
+            }
+
+            return null;
+        }
+
+        /**
+         * @param circuitBreaker
+         * @throws Exception
+         * @return {@code true} when session expired (i.e. was NOT interrupted,
+         *         e.g. by setting the GCP Printer OFFLINE).
+         * @throws IOException
+         * @throws GcpPrinterNotFoundException
+         * @throws XMPPException
+         * @throws MessagingException
+         * @throws InterruptedException
+         * @throws DocContentPrintException
+         * @throws GcpAuthException
+         */
+        private boolean listen(final CircuitBreaker circuitBreaker)
+                throws IOException, GcpPrinterNotFoundException, XMPPException,
+                MessagingException, InterruptedException,
+                DocContentPrintException, GcpAuthException {
+
+            /*
+             * "As a first step whenever the printer comes online, it should
+             * check in with the CloudPrint service and sync the printer's
+             * status and capabilities with the listing in the cloud.
+             *
+             * This way the client does not need to maintain state with regard
+             * to what has been registered, and needs to retain only the Auth
+             * token provided when the user authenticated."
+             *
+             * Note: next statement throws an exception when the printer is NOT
+             * found.
+             */
+            GcpPrinter.store(GcpClient.instance().getPrinterDetails());
+
+            /*
+             * Start the listener and connect.
+             */
+            this.listener = new GcpListener();
+            this.listener.connect();
+
+            /*
+             * At this point we can inform the breaker we are up and running.
+             */
+            circuitBreaker.closeCircuit();
+
+            /*
+             * Initial processing: catch up with queued print jobs.
+             */
+            this.listener.processQueue();
+
+            /*
+             * Logging and messages
+             */
+            final Date tokenExpiryDate = GcpPrinter.getAccessTokenExpiry();
+
+            final String restartTime =
+                    DateFormat.getTimeInstance(DateFormat.SHORT,
+                            Locale.getDefault()).format(tokenExpiryDate);
+
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info(this.parentJob.localizeLogMsg(
+                        "GcpListener.started", restartTime));
+            }
+
+            AdminPublisher.instance().publish(
+                    PubTopicEnum.GCP_PRINT,
+                    PubLevelEnum.INFO,
+                    this.parentJob.localizeSysMsg("GcpListener.started",
+                            restartTime));
+
+            /*
+             * Start listening ...
+             */
+            return listener.listen(tokenExpiryDate, ConfigManager.instance()
+                    .getConfigInt(Key.GCP_EVENT_TIMEOUT_SECS));
+        }
+
+        /**
+         * @throws InterruptedException
+         */
+        public void onInterrupt() throws InterruptedException {
+            if (this.listener != null) {
+                this.listener.disconnect();
+            }
+        }
+
+    }
 
     @Override
     protected void onInit(final JobExecutionContext ctx) {
@@ -104,52 +257,13 @@ public final class GcpListenerJob extends AbstractJob implements
 
         LOGGER.debug("Interrupted.");
 
-        if (listener != null) {
+        if (this.circuitOperation != null) {
             try {
-                listener.disconnect();
+                this.circuitOperation.onInterrupt();
             } catch (Exception e) {
                 LOGGER.error(e.getMessage());
             }
         }
-    }
-
-    @Override
-    public Object execute(final CircuitBreaker circuitBreaker) {
-
-        try {
-            /*
-             * Endless loop till exception or expired session...
-             */
-            while (listen(circuitBreaker))
-                ;
-
-        } catch (GcpAuthException e) {
-
-            throw new CircuitDamagingException(
-                    "Failed to refresh Access Token (" + e.getMessage() + ")");
-
-        } catch (GcpPrinterNotFoundException e) {
-
-            throw new CircuitDamagingException(
-                    localizedMessage("GcpListener.printer-not-found"));
-
-        } catch (MessagingException | IOException | XMPPException e) {
-
-            GcpPrinter.reset();
-
-            throw new CircuitTrippingException(e);
-
-        } catch (InterruptedException e) {
-
-            throw new CircuitNonTrippingException(e);
-
-        } catch (Exception t) {
-
-            throw new CircuitDamagingException(t);
-
-        }
-
-        return null;
     }
 
     /**
@@ -171,8 +285,8 @@ public final class GcpListenerJob extends AbstractJob implements
             throws JobExecutionException {
 
         try {
-
-            this.breaker.execute(this);
+            this.circuitOperation = new GcpCircuitOperation(this);
+            this.breaker.execute(this.circuitOperation);
             this.millisUntilNextInvocation = 1 * DateUtil.DURATION_MSEC_SECOND;
 
         } catch (CircuitBreakerException t) {
@@ -192,73 +306,6 @@ public final class GcpListenerJob extends AbstractJob implements
             LOGGER.error(t.getMessage(), t);
         }
 
-    }
-
-    /**
-     * @param circuitBreaker
-     * @throws Exception
-     * @return {@code true} when session expired (i.e. was NOT interrupted, e.g.
-     *         by setting the GCP Printer OFFLINE).
-     * @throws IOException
-     * @throws GcpPrinterNotFoundException
-     * @throws XMPPException
-     * @throws MessagingException
-     * @throws InterruptedException
-     * @throws DocContentPrintException
-     * @throws GcpAuthException
-     */
-    private boolean listen(final CircuitBreaker circuitBreaker)
-            throws IOException, GcpPrinterNotFoundException, XMPPException,
-            MessagingException, InterruptedException, DocContentPrintException,
-            GcpAuthException {
-
-        /*
-         * "As a first step whenever the printer comes online, it should check
-         * in with the CloudPrint service and sync the printer's status and
-         * capabilities with the listing in the cloud.
-         *
-         * This way the client does not need to maintain state with regard to
-         * what has been registered, and needs to retain only the Auth token
-         * provided when the user authenticated."
-         *
-         * Note: next statement throws an exception when the printer is NOT
-         * found.
-         */
-        GcpPrinter.store(GcpClient.instance().getPrinterDetails());
-
-        /*
-         * Start the listener and connect.
-         */
-        listener = new GcpListener();
-        listener.connect();
-
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info(localizeLogMsg("GcpListener.started"));
-        }
-
-        AdminPublisher.instance().publish(PubTopicEnum.GCP_PRINT,
-                PubLevelEnum.INFO, localizeSysMsg("GcpListener.started"));
-
-        /*
-         * At this point we can inform the breaker we are up and running.
-         */
-        circuitBreaker.closeCircuit();
-
-        /*
-         * Initial processing of queued print jobs.
-         */
-        listener.processQueue();
-
-        /*
-         * Start listening ...
-         */
-        final boolean isExpired =
-                listener.listen(
-                        GcpPrinter.getAccessTokenExpiry(),
-                        ConfigManager.instance().getConfigInt(
-                                Key.GCP_EVENT_TIMEOUT_SECS));
-
-        return isExpired;
     }
 
     @Override

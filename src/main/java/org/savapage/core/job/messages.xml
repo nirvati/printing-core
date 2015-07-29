@@ -100,7 +100,7 @@
 	<entry key="PrinterGroupClean.error">Error cleaning up Printer Groups: {0}.</entry>
 
 	<entry key="GcpListener.error">Google Cloud Print error: {0}</entry>
-	<entry key="GcpListener.started">Google Cloud Print monitoring started.</entry>
+	<entry key="GcpListener.started">Google Cloud Print monitoring started (restart at {0}).</entry>
 	<entry key="GcpListener.stopped">Google Cloud Print monitoring stopped.</entry>
     <entry key="GcpListener.restart">Google Cloud Print monitoring stopped: restart after {0} seconds.</entry>
 	<entry key="GcpListener.printer-not-found">Google Cloud Printer is not found.</entry>

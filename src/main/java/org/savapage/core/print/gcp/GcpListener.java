@@ -53,6 +53,7 @@ import org.savapage.core.print.server.PrintInResultEnum;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.EmailMsgParms;
+import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +72,15 @@ public final class GcpListener {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(GcpListener.class);
 
+    /**
+     * The {@link XMPPConnection}: {@code null} if disconnected (GCP printer is
+     * offline).
+     */
     private XMPPConnection xmppConnection = null;
+
+    /**
+     * .
+     */
     private PacketCollector jobCollector;
 
     /**
@@ -141,7 +150,7 @@ public final class GcpListener {
         connConfig.setSendPresence(false);
         connConfig.setReconnectionAllowed(false);
 
-        xmppConnection = new XMPPConnection(connConfig);
+        this.xmppConnection = new XMPPConnection(connConfig);
 
         /*
          * Register OAuth2 support for XMPP authentication.
@@ -157,8 +166,9 @@ public final class GcpListener {
          * server is used as a probe to check if the server can be reached.
          */
         final String urlSpec =
-                "http://" + xmppConnection.getHost() + ":"
-                        + xmppConnection.getPort();
+                "http://" + this.xmppConnection.getHost() + ":"
+                        + this.xmppConnection.getPort();
+
         final URL url = new URL(urlSpec);
 
         final HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -171,25 +181,25 @@ public final class GcpListener {
          * Connect.
          */
         LOGGER.debug("Connecting...");
-        xmppConnection.connect();
+        this.xmppConnection.connect();
         LOGGER.debug("Connected.");
 
         /*
          * Login.
          */
         LOGGER.debug("Login...");
-        xmppConnection.login(googleId, accessToken, resourceName);
+        this.xmppConnection.login(googleId, accessToken, resourceName);
         LOGGER.debug("Logged in.");
 
         /*
          * Subscribe to Google Cloud Print notifications
          */
-        xmppConnection.sendPacket(new GcpSubscriptionIQ(googleId));
+        this.xmppConnection.sendPacket(new GcpSubscriptionIQ(googleId));
 
         /*
          * Subscription successful?
          */
-        if (xmppConnection.isAuthenticated()) {
+        if (this.xmppConnection.isAuthenticated()) {
             LOGGER.debug("Subscribed to Print notifications.");
         } else {
             throw new SpException("Authenticated failed.");
@@ -199,8 +209,9 @@ public final class GcpListener {
          * Setup a packet collector for incoming job notifications.
          */
         this.jobCollector =
-                xmppConnection.createPacketCollector(new MessageTypeFilter(
-                        Type.normal));
+                this.xmppConnection
+                        .createPacketCollector(new MessageTypeFilter(
+                                Type.normal));
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Created packet collector for incoming"
@@ -417,12 +428,14 @@ public final class GcpListener {
      * duration is reached. A {@link #disconnect()} is called before returning.
      * </p>
      *
-     * @param maxDateSnapshot
+     * @param maxDate
      *            The timeout date/time after which this method returns.
      * @param waitForEventTimeoutSecs
      *            The interval in seconds to wait for GCP (printer) events
      *            within the session.
-     * @return {@code true} when session is expired (maxDate was reached).
+     * @return {@code true} when session is expired (maxDate was reached),
+     *         {@code false} when {@link XMPPConnection} was closed, i.e.
+     *         GCP was put off-line.
      * @throws InterruptedException
      * @throws MessagingException
      * @throws IOException
@@ -439,7 +452,9 @@ public final class GcpListener {
         final Date maxDateSnapshot = new Date(maxDate.getTime());
 
         final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-        final long nextResultTimeOut = waitForEventTimeoutSecs * 1000;
+
+        final long nextResultTimeOut =
+                waitForEventTimeoutSecs * DateUtil.DURATION_MSEC_SECOND;
 
         boolean isExpired = false;
 
@@ -449,7 +464,7 @@ public final class GcpListener {
 
             final long maxTime = maxDateSnapshot.getTime();
 
-            while (xmppConnection != null) {
+            while (this.xmppConnection != null) {
 
                 if (Thread.interrupted()) {
                     break;
@@ -494,7 +509,7 @@ public final class GcpListener {
                 /*
                  * Wait for processing to finish.
                  */
-                waitForProcessing(1000L);
+                waitForProcessing(1 * DateUtil.DURATION_MSEC_SECOND);
             }
 
         } finally {
@@ -555,12 +570,12 @@ public final class GcpListener {
         /*
          * Wait for processing to finish.
          */
-        waitForProcessing(1000L);
+        waitForProcessing(DateUtil.DURATION_MSEC_SECOND);
 
-        if (xmppConnection != null) {
+        if (this.xmppConnection != null) {
 
-            xmppConnection.disconnect();
-            xmppConnection = null;
+            this.xmppConnection.disconnect();
+            this.xmppConnection = null;
 
             LOGGER.trace("disconnected");
         }

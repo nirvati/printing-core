@@ -97,7 +97,7 @@
     <entry key="PrinterGroupClean.error">Fout bij opruimen Printer Groepen: {0}.</entry>
 
     <entry key="GcpListener.error">Google Cloud Print fout: {0}</entry>
-    <entry key="GcpListener.started">Google Cloud Print toezicht gestart.</entry>
+    <entry key="GcpListener.started">Google Cloud Print toezicht gestart (herstart op {0}).</entry>
     <entry key="GcpListener.stopped">Google Cloud Print toezicht gestopt.</entry>
     <entry key="GcpListener.restart">Google Cloud Print toezicht gestopt: herstart na {0} seconden.</entry>
     <entry key="GcpListener.printer-not-found">Google Cloud Printer is niet gevonden.</entry>
