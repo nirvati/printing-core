@@ -52,7 +52,7 @@ import org.savapage.core.print.server.DocContentPrintException;
 import org.savapage.core.print.server.PrintInResultEnum;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
-import org.savapage.core.services.helpers.EmailMsgParms;
+import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
@@ -309,10 +309,10 @@ public final class GcpListener {
             final ConfigManager cm = ConfigManager.instance();
             final String subject =
                     cm.getConfigValue(Key.GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_SUBJECT);
-            final String body =
+            final String content =
                     cm.getConfigValue(Key.GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_BODY);
 
-            this.sendEmail(emailFrom, subject, body);
+            this.sendEmail(emailFrom, subject, content);
 
         } else {
 
@@ -383,11 +383,12 @@ public final class GcpListener {
      *            The email address.
      * @param subject
      *            The subject of the message.
-     * @param body
-     *            The body text with optional newline {@code \n} characters.
+     * @param content
+     *            The body content text with optional newline {@code \n}
+     *            characters.
      */
     private void sendEmail(final String toAddress, final String subject,
-            final String body) {
+            final String content) {
 
         try {
 
@@ -395,7 +396,8 @@ public final class GcpListener {
 
             emailParms.setToAddress(toAddress);
             emailParms.setSubject(subject);
-            emailParms.setBody(body);
+            emailParms.setBodyFromTemplate(subject,
+                    content.replace("\n", "<br/>"));
 
             ServiceContext.getServiceFactory().getEmailService()
                     .writeEmail(emailParms);
@@ -434,8 +436,8 @@ public final class GcpListener {
      *            The interval in seconds to wait for GCP (printer) events
      *            within the session.
      * @return {@code true} when session is expired (maxDate was reached),
-     *         {@code false} when {@link XMPPConnection} was closed, i.e.
-     *         GCP was put off-line.
+     *         {@code false} when {@link XMPPConnection} was closed, i.e. GCP
+     *         was put off-line.
      * @throws InterruptedException
      * @throws MessagingException
      * @throws IOException

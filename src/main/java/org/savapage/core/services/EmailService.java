@@ -31,7 +31,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.config.CircuitBreakerEnum;
-import org.savapage.core.services.helpers.EmailMsgParms;
+import org.savapage.core.services.helpers.email.EmailMsgParms;
 
 /**
  *

@@ -62,7 +62,7 @@ import org.savapage.core.print.server.DocContentPrintException;
 import org.savapage.core.print.server.DocContentPrintReq;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
-import org.savapage.core.services.helpers.EmailMsgParms;
+import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
@@ -986,9 +986,7 @@ public final class ImapListener extends MessageCountAdapter {
             rejectedReason = "max files [" + maxPrintedAllowed + "] reached.";
         }
 
-        /*
-         *
-         */
+        //
         if (rejectedReason != null) {
 
             if (LOGGER.isInfoEnabled()) {
@@ -997,11 +995,16 @@ public final class ImapListener extends MessageCountAdapter {
             }
 
             final String subject =
-                    CommunityDictEnum.SAVAPAGE.getWord()
-                            + " Mail Print: rejected file [" + fileName + "]";
-            final String body = "Reason: " + rejectedReason;
+                    String.format("%s Mail Print rejected file [%s]",
+                            CommunityDictEnum.SAVAPAGE.getWord(), fileName);
 
-            this.sendEmail(originatorEmail, subject, body);
+            final String content =
+                    String.format("File: %s<p>Reason: %s</p>", fileName,
+                            rejectedReason);
+
+            this.sendEmail(originatorEmail, subject, String.format(
+                    "%s Mail Print rejected",
+                    CommunityDictEnum.SAVAPAGE.getWord()), content);
         }
     }
 
@@ -1016,7 +1019,7 @@ public final class ImapListener extends MessageCountAdapter {
      *            The body text with optional newline {@code \n} characters.
      */
     private void sendEmail(final String toAddress, final String subject,
-            final String body) {
+            final String headerText, final String content) {
 
         try {
 
@@ -1024,7 +1027,7 @@ public final class ImapListener extends MessageCountAdapter {
 
             emailParms.setToAddress(toAddress);
             emailParms.setSubject(subject);
-            emailParms.setBody(body);
+            emailParms.setBodyFromTemplate(headerText, content);
 
             ServiceContext.getServiceFactory().getEmailService()
                     .writeEmail(emailParms);

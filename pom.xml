@@ -344,6 +344,11 @@
         	<artifactId>itext-pdfa</artifactId>
         	<version>5.5.6-1</version>
         </dependency>
+        <dependency>
+        	<groupId>org.antlr</groupId>
+        	<artifactId>ST4</artifactId>
+        	<version>4.0.8</version>
+        </dependency>
 	</dependencies>
 	<description>SavaPage is an Enterprise Printing Solution with a Web App for Print Preview, Editing, PDF Creation and Proxy Printing.</description>
 	<url>http://savapage.org</url>

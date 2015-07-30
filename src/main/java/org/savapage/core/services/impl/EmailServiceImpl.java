@@ -28,9 +28,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
 import javax.inject.Singleton;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -54,7 +57,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.services.EmailService;
-import org.savapage.core.services.helpers.EmailMsgParms;
+import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.FileSystemHelper;
 
 /**
@@ -240,9 +243,7 @@ public final class EmailServiceImpl extends AbstractService implements
         // create and fill the first message part
         final MimeBodyPart mbp1 = new MimeBodyPart();
         mbp1.setText(msgParms.getBody());
-
-        // Use setText(text, charset), to show it off !
-        // mbp2.setText(strFileAttach, "us-ascii");
+        mbp1.setHeader("Content-Type", msgParms.getContentType());
 
         // create the Multipart and its parts to it
         final Multipart mp = new MimeMultipart();
@@ -267,6 +268,18 @@ public final class EmailServiceImpl extends AbstractService implements
              * (3) add
              */
             mp.addBodyPart(mbp2);
+        }
+
+        // Add CIDs to the multipart.
+        for (final Entry<String, DataSource> entry : msgParms.getCidMap()
+                .entrySet()) {
+
+            final MimeBodyPart mbp = new MimeBodyPart();
+
+            mbp.setDataHandler(new DataHandler(entry.getValue()));
+            mbp.setContentID(String.format("<%s>", entry.getKey()));
+
+            mp.addBodyPart(mbp);
         }
 
         // add the Multipart to the message
