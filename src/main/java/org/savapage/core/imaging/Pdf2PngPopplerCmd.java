@@ -19,9 +19,9 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.img;
+package org.savapage.core.imaging;
 
-import org.savapage.core.doc.DocContent;
+import java.io.File;
 
 /**
  * Command using Poppler.
@@ -33,40 +33,45 @@ import org.savapage.core.doc.DocContent;
  * @author Datraverse B.V.
  *
  */
-public class PopplerPdfToImgCommand implements PdfToImgCommand {
+public final class Pdf2PngPopplerCmd implements Pdf2ImgCommandExt {
 
     /**
-     *
+     * Advised resolution for display on screen.
+     */
+    public static final int RESOLUTION_FOR_SCREEN = 72;
+
+    /**
+     * .
      */
     private static final int STRINGBUILDER_CAPACITY = 256;
 
     @Override
-    public final String createCommand(final Integer pageOrdinal,
-            final boolean isThumbnail, final String rotate2Apply,
-            final String pdfFile, final String imgFile) {
+    public String createCommand(final File pdfFile, final File imgFile,
+            final int pageOrdinal, final String rotate2Apply,
+            final int resolution) {
 
-        final Integer pageOneBased = pageOrdinal + 1;
+        return this.createCommand(pdfFile, imgFile, pageOrdinal, rotate2Apply,
+                resolution, null);
+    }
+
+    @Override
+    public String createCommand(final File pdfFile, final File imgFile,
+            final int pageOrdinal, final String rotate2Apply,
+            final int resolution, final Integer imgWidth) {
+
+        final int pageOneBased = pageOrdinal + 1;
 
         final StringBuilder cmdBuffer =
                 new StringBuilder(STRINGBUILDER_CAPACITY);
 
-        cmdBuffer.append("pdftoppm -r 72 -f ").append(pageOneBased)
-                .append(" -l ").append(pageOneBased).append(" -scale-to ");
+        cmdBuffer.append("pdftoppm -png -r ").append(resolution).append(" -f ")
+                .append(pageOneBased).append(" -l ").append(pageOneBased);
 
-        if (isThumbnail) {
-            cmdBuffer.append(ImageUrl.THUMBNAIL_WIDTH);
-        } else {
-            cmdBuffer.append(ImageUrl.BROWSER_PAGE_WIDTH);
+        if (imgWidth != null) {
+            cmdBuffer.append(" -scale-to ").append(imgWidth);
         }
 
-        if (ImageUrl.FILENAME_EXT_IMAGE
-                .equalsIgnoreCase(DocContent.FILENAME_EXT_JPG)) {
-            cmdBuffer.append(" -jpeg ");
-        } else {
-            cmdBuffer.append(" -png ");
-        }
-
-        cmdBuffer.append("\"").append(pdfFile).append("\"");
+        cmdBuffer.append(" \"").append(pdfFile.getAbsolutePath()).append("\"");
 
         /*
          * Apply rotate?
@@ -77,11 +82,10 @@ public class PopplerPdfToImgCommand implements PdfToImgCommand {
             cmdBuffer.append(" | convert -rotate ").append(rotate2Apply)
                     .append(" - ");
         }
-        cmdBuffer.append("\"").append(imgFile).append("\"");
+        cmdBuffer.append("\"").append(imgFile.getAbsolutePath()).append("\"");
 
         final String command = cmdBuffer.toString();
 
         return command;
     }
-
 }

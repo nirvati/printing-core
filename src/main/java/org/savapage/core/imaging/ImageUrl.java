@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.img;
+package org.savapage.core.imaging;
 
 import org.savapage.core.doc.DocContent;
 
@@ -27,7 +27,7 @@ import org.savapage.core.doc.DocContent;
  *
  * @author Datraverse B.V.
  */
-public class ImageUrl {
+public final class ImageUrl {
 
     /**
      * Width in pixels of a SafePage thumbnail.
@@ -42,28 +42,32 @@ public class ImageUrl {
     public static final Integer BROWSER_PAGE_WIDTH = 800;
 
     /**
-     * The global fromat used to generate (thumbnail and browser) images for
+     * The global format used to generate (thumbnail and browser) images for
      * SafePages.
      * <p>
      * NOTE: Even if JPEG is approximately 30% of PNG size, we use PNG anyway
-     * because {@link PopplerPdfToImgCommand} is dependent on PNG.
+     * because {@link Pdf2PngPopplerCmd} is dependent on PNG.
      * </p>
      */
     public static final String FILENAME_EXT_IMAGE = DocContent.FILENAME_EXT_PNG;
 
     /**
-     *
+     * .
      */
     private static final String IMG_FILENAME = "a." + FILENAME_EXT_IMAGE;
+
+    /**
+     * .
+     */
     private static final String IMG_FILENAME_B64 = "a.b64";
 
     /**
-     *
+     * .
      */
     public static final String MOUNT_PATH = "/page-image";
 
     /**
-     * Boolean
+     * Boolean.
      */
     private static final String PARM_BASE64 = "b";
 
@@ -78,7 +82,7 @@ public class ImageUrl {
     private static final String PARM_JOB = "j";
 
     /**
-     * String: 0 | 90 | 180 | 270 | -90 | -180
+     * String: 0 | 90 | 180 | 270 | -90 | -180.
      */
     private static final String PARM_ROTATE = "r";
 
@@ -187,10 +191,12 @@ public class ImageUrl {
     }
 
     /**
-     * Sets an URL parameter.
+     * Sets an URL parameter value.
      *
      * @param parm
+     *            The URL parameter.
      * @param value
+     *            The URL parameter value.
      */
     public void setParm(final String parm, final String value) {
         switch (parm) {
@@ -253,7 +259,7 @@ public class ImageUrl {
      * "https://cwiki.apache.org/confluence/display/WICKET/Request+mapping">this
      * page</a>.
      *
-     * @return
+     * @return The composed image URL.
      */
     public String composeImageUrl() {
 

@@ -33,9 +33,9 @@ import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.doc.DocContent;
-import org.savapage.core.img.ImageUrl;
-import org.savapage.core.img.PdfToImgCommand;
-import org.savapage.core.img.PopplerPdfToImgCommand;
+import org.savapage.core.imaging.ImageUrl;
+import org.savapage.core.imaging.Pdf2ImgCommandExt;
+import org.savapage.core.imaging.Pdf2PngPopplerCmd;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
@@ -77,8 +77,7 @@ public final class OutputProducer {
     /**
      *
      */
-    private final PdfToImgCommand pdfToImgCommand =
-            new PopplerPdfToImgCommand();
+    private final Pdf2ImgCommandExt pdf2PngCommand = new Pdf2PngPopplerCmd();
 
     /**
      *
@@ -228,12 +227,22 @@ public final class OutputProducer {
         /*
          * Create image.
          */
-        final String srcFile = srcFileBuilder.toString();
-        final String imgFile = imgFileBuilder.toString();
+        final File srcFile = new File(srcFileBuilder.toString());
+        final File imgFile = new File(imgFileBuilder.toString());
+
+        final int imgWidth;
+
+        if (thumbnail) {
+            imgWidth = ImageUrl.THUMBNAIL_WIDTH;
+        } else {
+            imgWidth = ImageUrl.BROWSER_PAGE_WIDTH;
+        }
 
         final String command =
-                pdfToImgCommand.createCommand(Integer.parseInt(page),
-                        thumbnail, rotate2Apply, srcFile, imgFile);
+                pdf2PngCommand.createCommand(srcFile, imgFile,
+                        Integer.parseInt(page), rotate2Apply,
+                        Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN,
+                        Integer.valueOf(imgWidth));
 
         LOGGER.trace(command);
 
@@ -250,7 +259,7 @@ public final class OutputProducer {
             throw new SpException(e);
         }
 
-        return new File(imgFile);
+        return imgFile;
     }
 
     /**

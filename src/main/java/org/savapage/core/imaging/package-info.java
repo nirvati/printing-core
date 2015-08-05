@@ -23,4 +23,4 @@
 /**
  *
  */
-package org.savapage.core.img;
+package org.savapage.core.imaging;

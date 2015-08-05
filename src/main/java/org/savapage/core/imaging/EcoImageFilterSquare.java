@@ -1,0 +1,276 @@
+/*
+ * This file is part of the SavaPage project <http://savapage.org>.
+ * Copyright (c) 2011-2015 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * For more information, please contact Datraverse B.V. at this
+ * address: info@datraverse.com
+ */
+package org.savapage.core.imaging;
+
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+
+/**
+ * A filter for creating an Eco-friendly image for printing.
+ * <p>
+ * This filter scans image pixels one by one, horizontally by pixel line from
+ * left to right, top down. For each traversed pixel the largest filter square
+ * is calculated that exclusively contains filterable pixels with the traversed
+ * pixel as top-left corner. This square is colored white (less the border).
+ * </p>
+ *
+ * @author Datraverse B.V.
+ * @since 0.9.9
+ */
+public final class EcoImageFilterSquare extends EcoImageFilterMixin {
+
+    /**
+     * Shadow matrix to administer the image pixels that were handled in
+     * filtered squares. When a cell value is {@code true} the image pixel was
+     * processed in a filtered square.
+     */
+    private boolean[][] filterSquarePixels;
+
+    /**
+     * The image width in pixels.
+     */
+    private int imageWidth;
+
+    /**
+     * The image height in pixels.
+     */
+    private int imageHeight;
+
+    /**
+     * No anti-aliasing check.
+     */
+    private static final int ANTI_ALIASING_RGB_THRESHOLD_NONE = 0;
+
+    /**
+     * A light gray.
+     */
+    private static final int ANTI_ALIASING_RGB_THRESHOLD_LIGHT =
+            247 * 247 * 247;
+
+    /**
+     *
+     */
+    private final int antiAliasingRgbThreshold =
+            ANTI_ALIASING_RGB_THRESHOLD_LIGHT;
+
+    /**
+     * The minimum width of a filter square.
+     */
+    private final int filterSquareWidthMin = 4;
+
+    /**
+     * The maximum width of a filter square.
+     */
+    private final int filterSquareWidthMax = 12;
+
+    /**
+     * The fraction of a filter square width used as border.
+     */
+    private final double filterSquareBorderFraction = 0.25;
+
+    /**
+     * Processes a pixel.
+     *
+     * @param image
+     *            The {@link Buffered} to filter.
+     * @param x
+     *            X-coordinate of pixel.
+     * @param y
+     *            Y-coordinate of pixel.
+     * @return {@code true} when a filter square was applied.
+     */
+    private boolean
+            process(final BufferedImage image, final int x, final int y) {
+
+        int filterSquareWidth = 0;
+
+        boolean search = true;
+
+        /*
+         * Find the largest square that exclusively contains filter square
+         * candidate pixels, on the diagonal starting at (x,y).
+         */
+        for (int iX = x, iY = y; search
+                && filterSquareWidth <= this.filterSquareWidthMax
+                && iX < this.imageWidth && iY < this.imageHeight; iX++, iY++, filterSquareWidth++) {
+
+            for (int i = 0; search && i <= filterSquareWidth; i++) {
+
+                if (!this.isFilterSquarePixel(image, x + i, iY)
+                        || !this.isFilterSquarePixel(image, iX, y + i)) {
+                    filterSquareWidth--;
+                    search = false;
+                }
+            }
+        }
+
+        int filterRightX = x + filterSquareWidth;
+        int filterBottomY = y + filterSquareWidth;
+
+        if (filterSquareWidth < this.filterSquareWidthMin) {
+            return false;
+        }
+
+        final int filterSquareBorder =
+                Double.valueOf(
+                        filterSquareWidth * this.filterSquareBorderFraction
+                                + 0.5).intValue();
+
+        for (int iY = y; iY < filterBottomY; iY++) {
+
+            final boolean borderHorz =
+                    iY < y + filterSquareBorder
+                            || iY >= filterBottomY - filterSquareBorder;
+
+            for (int iX = x; iX < filterRightX; iX++) {
+
+                this.filterSquarePixels[iX][iY] = true;
+
+                final boolean borderVert =
+                        iX < x + filterSquareBorder
+                                || iX >= filterRightX - filterSquareBorder;
+
+                if (borderHorz || borderVert) {
+                    continue;
+                }
+
+                image.setRGB(iX, iY, RGB_WHITE);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks whether an image pixel is a candidate for a filter square.
+     *
+     * @param image
+     *            The image to check.
+     * @param x
+     *            X-coordinate of pixel.
+     * @param y
+     *            Y-coordinate of pixel.
+     * @return {@code true} when pixel is a candidate for a filter square.
+     */
+    private boolean isFilterSquarePixel(final BufferedImage image, final int x,
+            final int y) {
+
+        // Already filtered?
+        if (this.filterSquarePixels[x][y]) {
+            return false;
+
+        }
+        final int rgb = image.getRGB(x, y);
+
+        // Definitely no.
+        if (rgb == RGB_WHITE) {
+            return false;
+        }
+
+        // Definitely yes.
+        if (rgb == RGB_BLACK) {
+            return true;
+        }
+
+        // Maybe, depending on aliasing threshold.
+
+        if (this.antiAliasingRgbThreshold == ANTI_ALIASING_RGB_THRESHOLD_NONE) {
+            return true;
+        }
+
+        final Color color = new Color(rgb);
+        final int antiAliasingIndex =
+                color.getRed() * color.getGreen() * color.getBlue();
+
+        return antiAliasingIndex <= this.antiAliasingRgbThreshold;
+    }
+
+    @Override
+    protected void filter(final BufferedImage imageIn,
+            final BufferedImage imageOut) {
+
+        this.imageWidth = imageOut.getWidth();
+        this.imageHeight = imageOut.getHeight();
+
+        this.filterSquarePixels =
+                new boolean[this.imageWidth][this.imageHeight];
+
+        /*
+         * Copy ahead a couple of max filter squares to imageOut.
+         */
+        int yCopy = 0;
+        int xCopy = 0;
+
+        for (yCopy = 0; yCopy < 5 * this.filterSquareWidthMax
+                && yCopy < this.imageHeight; yCopy++) {
+            for (xCopy = 0; xCopy < this.imageWidth; xCopy++) {
+                imageOut.setRGB(xCopy, yCopy, imageIn.getRGB(xCopy, yCopy));
+            }
+        }
+
+        //
+        for (int y = 0; y < this.imageHeight; y++, yCopy++) {
+
+            xCopy = 0;
+
+            int x = 0;
+
+            while (x < this.imageWidth) {
+
+                /*
+                 * Advance to next filter square pixel and copy ahead on current
+                 * to imageOut ahead-line in one go.
+                 */
+                for (; x < this.imageWidth
+                        && !this.isFilterSquarePixel(imageOut, x, y); x++, xCopy++) {
+
+                    if (xCopy < this.imageWidth && yCopy < this.imageHeight
+                            && !this.filterSquarePixels[xCopy][yCopy]) {
+
+                        imageOut.setRGB(xCopy, yCopy,
+                                imageIn.getRGB(xCopy, yCopy));
+                    }
+                }
+
+                if (x == this.imageWidth) {
+                    continue;
+                }
+
+                this.process(imageOut, x, y);
+
+                x++;
+
+                /*
+                 * Copy ahead on (rest of) current to imageOut ahead-line.
+                 */
+                if (xCopy < this.imageWidth && yCopy < this.imageHeight
+                        && !this.filterSquarePixels[xCopy][yCopy]) {
+
+                    imageOut.setRGB(xCopy, yCopy, imageIn.getRGB(xCopy, yCopy));
+                    xCopy++;
+                }
+
+            }
+        }
+
+    }
+}

@@ -432,7 +432,7 @@ public final class AppSSLKeystore extends AbstractApp {
 
             if (!forceCreate && exists) {
                 getDisplayStream().println(
-                        "SSL key store not created. " + "File already exist.");
+                        "SSL key store not created. File already exists.");
             }
 
             return EXIT_CODE_OK;
@@ -458,7 +458,7 @@ public final class AppSSLKeystore extends AbstractApp {
         if (keystore.exists() && !forceCreate) {
             getErrorDisplayStream().println(
                     "Error: SSL key store " + keystore.getAbsolutePath()
-                            + " already exist. "
+                            + " already exists. "
                             + "Use the force option to overwrite");
             return EXIT_CODE_ERROR;
         }

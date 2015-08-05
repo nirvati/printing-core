@@ -19,33 +19,37 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.img;
+package org.savapage.core.imaging;
+
+import java.io.File;
 
 /**
  *
  * @author Datraverse B.V.
  *
  */
-public interface PdfToImgCommand {
+public interface Pdf2ImgCommandExt extends Pdf2ImgCommand {
 
     /**
      * Creates an OS command for creating an (graphic) image of a page in a PDF
      * document.
      *
+     * @param pdfFile
+     *            The PDF source {@link File}.
+     * @param imgFile
+     *            The image target {@link File}.
      * @param pageOrdinal
      *            The zero-based ordinal page number in the PDF document.
-     * @param isThumbnail
-     *            {@code true} is image is a thumbnail.
      * @param rotate2Apply
      *            The rotation to be applied for this page. If {@code null}, no
      *            rotation is applied.
-     * @param pdfFile
-     *            The PDF source file.
-     * @param imgFile
-     *            The image target file.
-     * @return The command string.
+     * @param resolution
+     *            The resolution (density) in DPI (e.g. 72, 150, 300, 600).
+     * @param imgWidth
+     *            The image width in pixels. If {@code null} width is calculated
+     *            by the command.
+     * @return The OS command string.
      */
-    String createCommand(final Integer pageOrdinal, final boolean isThumbnail,
-            final String rotate2Apply, final String pdfFile,
-            final String imgFile);
+    String createCommand(File pdfFile, File imgFile, int pageOrdinal,
+            String rotate2Apply, int resolution, Integer imgWidth);
 }

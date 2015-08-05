@@ -49,7 +49,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.doc.DocContent;
-import org.savapage.core.img.ImageUrl;
+import org.savapage.core.imaging.ImageUrl;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
