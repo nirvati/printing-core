@@ -28,10 +28,12 @@ import java.awt.print.Paper;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.MediaSize;
@@ -41,8 +43,15 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.doc.ImageToPdf;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.imaging.EcoImageFilter;
+import org.savapage.core.imaging.EcoImageFilterSquare;
+import org.savapage.core.imaging.Pdf2ImgCommandExt;
+import org.savapage.core.imaging.Pdf2PngPopplerCmd;
 import org.savapage.core.json.PdfProperties;
+import org.savapage.core.system.CommandExecutor;
+import org.savapage.core.system.ICommandExecutor;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,16 +96,18 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(ITextPdfCreator.class);
 
-    private String targetPdfCopyFilePath = null;
-    private Document targetDocument = null;
-    private PdfCopy targetPdfCopy = null;
-    private PdfStamper targetStamper = null;
+    private String targetPdfCopyFilePath;
+    private Document targetDocument;
+    private PdfCopy targetPdfCopy;
+    private PdfStamper targetStamper;
 
-    private PdfReader readerWlk = null;
-    private PdfReader letterheadReader = null;
+    private PdfReader readerWlk;
+    private PdfReader letterheadReader;
 
-    private String jobRangesWlk = null;
-    private String jobRotationWlk = null;
+    private String jobRangesWlk;
+    private String jobRotationWlk;
+
+    private File jobPdfFileWlk;
 
     private boolean isRemoveGraphics = false;
 
@@ -374,11 +385,23 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         this.targetPdfCopyFilePath = pdfFile + ".tmp";
 
         try {
-            this.targetDocument = new Document();
-            this.targetPdfCopy =
-                    new PdfCopy(this.targetDocument, new FileOutputStream(
-                            this.targetPdfCopyFilePath));
+
+            final OutputStream ostr =
+                    new FileOutputStream(this.targetPdfCopyFilePath);
+
+            if (this.isEcoPdf()) {
+
+                this.targetDocument = new Document(PageSize.A4, 0, 0, 0, 0); // TODO
+                PdfWriter.getInstance(this.targetDocument, ostr);
+
+            } else {
+
+                this.targetDocument = new Document();
+                this.targetPdfCopy = new PdfCopy(this.targetDocument, ostr);
+            }
+
             this.targetDocument.open();
+
         } catch (Exception e) {
             throw new SpException(e);
         }
@@ -391,7 +414,13 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onInitJob(final String jobPfdName, final String rotation)
             throws Exception {
-        this.readerWlk = new PdfReader(jobPfdName);
+
+        if (this.isEcoPdf()) {
+            this.jobPdfFileWlk = new File(jobPfdName);
+        } else {
+            this.readerWlk = new PdfReader(jobPfdName);
+        }
+
         this.jobRotationWlk = rotation;
         this.jobRangesWlk = "";
     }
@@ -400,21 +429,92 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     protected void onProcessJobPages(final int nPageFrom, final int nPageTo,
             final boolean removeGraphics) throws Exception {
 
-        if (!this.jobRangesWlk.isEmpty()) {
-            this.jobRangesWlk += ",";
-        }
-
-        this.jobRangesWlk += String.valueOf(nPageFrom);
-
-        if (nPageFrom != nPageTo) {
-            this.jobRangesWlk += "-" + String.valueOf(nPageTo);
-        }
-
         this.isRemoveGraphics = removeGraphics;
+
+        if (this.isEcoPdf()) {
+
+            onProcessJobPagesEco(nPageFrom, nPageTo, removeGraphics);
+
+        } else {
+
+            if (!this.jobRangesWlk.isEmpty()) {
+                this.jobRangesWlk += ",";
+            }
+
+            this.jobRangesWlk += String.valueOf(nPageFrom);
+
+            if (nPageFrom != nPageTo) {
+                this.jobRangesWlk += "-" + String.valueOf(nPageTo);
+            }
+        }
+
+    }
+
+    /**
+     *
+     * @param nPageFrom
+     * @param nPageTo
+     * @param removeGraphics
+     * @throws InterruptedException
+     * @throws IOException
+     * @throws DocumentException
+     */
+    protected void onProcessJobPagesEco(final int nPageFrom, final int nPageTo,
+            final boolean removeGraphics) throws IOException,
+            InterruptedException, DocumentException {
+
+        final Pdf2ImgCommandExt pdf2ImgCmd = new Pdf2PngPopplerCmd();
+
+        final EcoImageFilter filter = new EcoImageFilterSquare();
+        final int resolution = 300; // TODO
+
+        final File imageFile =
+                new File(String.format("%s/%s.png", this.tmpdir, UUID
+                        .randomUUID().toString()));
+
+        try {
+
+            for (int i = nPageFrom - 1; i < nPageTo; i++) {
+
+                final String command =
+                        pdf2ImgCmd.createCommand(this.jobPdfFileWlk, imageFile,
+                                i, this.jobRotationWlk, resolution);
+
+                final ICommandExecutor exec =
+                        CommandExecutor.createSimple(command);
+
+                if (exec.executeCommand() != 0) {
+                    LOGGER.error(command);
+                    LOGGER.error(exec.getStandardErrorFromCommand().toString());
+                    throw new SpException("image ["
+                            + imageFile.getAbsolutePath()
+                            + "] could not be created.");
+                }
+
+                final com.itextpdf.text.Image image =
+                        com.itextpdf.text.Image.getInstance(
+                                filter.filter(imageFile), Color.WHITE);
+
+                ImageToPdf.addImagePage(this.targetDocument, 0, 0, image);
+
+                imageFile.delete();
+            }
+
+        } finally {
+
+            if (imageFile.exists()) {
+                imageFile.delete();
+            }
+        }
+
     }
 
     @Override
     protected void onExitJob() throws Exception {
+
+        if (this.isEcoPdf()) {
+            return;
+        }
 
         this.readerWlk.selectPages(this.jobRangesWlk);
         int pages = this.readerWlk.getNumberOfPages();
@@ -436,8 +536,10 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
             final PdfImportedPage page =
                     this.targetPdfCopy.getImportedPage(this.readerWlk, i);
+
             this.targetPdfCopy.addPage(page);
         }
+
         this.targetPdfCopy.freeReader(this.readerWlk);
         this.readerWlk.close();
         this.readerWlk = null;
@@ -1079,4 +1181,5 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         }
 
     }
+
 }

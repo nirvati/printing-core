@@ -39,6 +39,7 @@ import org.savapage.core.imaging.Pdf2PngPopplerCmd;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
+import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
@@ -389,38 +390,30 @@ public final class OutputProducer {
     public File createLetterhead(final String directory, final User user)
             throws LetterheadNotFoundException, PostScriptDrmException {
 
-        final Date now = new Date();
+        final StringBuilder pdfFile =
+                new StringBuilder().append(directory).append("/letterhead-")
+                        .append(System.currentTimeMillis()).append(".")
+                        .append(DocContent.FILENAME_EXT_PDF);
 
-        final String pdfFile =
-                directory + "/letterhead-" + now.getTime() + "."
-                        + DocContent.FILENAME_EXT_PDF;
+        final PdfCreateRequest pdfRequest = new PdfCreateRequest();
 
-        return generatePdf(user, pdfFile,
-                INBOX_SERVICE.getInboxInfo(user.getUserId()), false, false,
-                false, false, null, null);
+        pdfRequest.setUserObj(user);
+        pdfRequest.setPdfFile(pdfFile.toString());
+        pdfRequest.setInboxInfo(INBOX_SERVICE.getInboxInfo(user.getUserId()));
+        pdfRequest.setRemoveGraphics(false);
+        pdfRequest.setApplyPdfProps(false);
+        pdfRequest.setApplyLetterhead(false);
+        pdfRequest.setForPrinting(false);
+
+        return generatePdf(pdfRequest, null, null);
     }
 
     /**
      *
      * Generates PDF file from the edited jobs for a user.
      *
-     * @param userObj
-     *            The requesting user.
-     * @param pdfFile
-     *            The name of the PDF file to generate.
-     * @param inboxInfo
-     *            The {@link InboxInfoDto} (with the filtered jobs).
-     * @param removeGraphics
-     *            If <code>true</code> graphics are removed (minified to
-     *            one-pixel).
-     * @param applyPdfProps
-     *            If <code>true</code> the stored PDF properties for 'user'
-     *            should be applied.
-     * @param applyLetterhead
-     *            If <code>true</code> the selected letterhead should be
-     *            applied.
-     * @param forPrinting
-     *            <code>true</code> if this is a PDF generated for printing.
+     * @param createReq
+     *            The {@link PdfCreateRequest}.
      * @param uuidPageCount
      *            This object will be filled with the number of selected pages
      *            per input file UUID. A value of {@code null} is allowed. Note:
@@ -430,19 +423,17 @@ public final class OutputProducer {
      *            is allowed: in that case no data is collected.
      * @return File object with generated PDF.
      * @throws PostScriptDrmException
+     *             When source is DRM restricted.
      * @throws LetterheadNotFoundException
+     *             When letterhead is not found.
      */
-    public File generatePdf(final User userObj, final String pdfFile,
-            final InboxInfoDto inboxInfo, boolean removeGraphics,
-            boolean applyPdfProps, boolean applyLetterhead,
-            boolean forPrinting,
+    public File generatePdf(final PdfCreateRequest createReq,
             final LinkedHashMap<String, Integer> uuidPageCount,
             final DocLog docLog) throws LetterheadNotFoundException,
             PostScriptDrmException {
 
-        return AbstractPdfCreator.create().generate(userObj, pdfFile,
-                inboxInfo, removeGraphics, applyPdfProps, applyLetterhead,
-                forPrinting, uuidPageCount, docLog);
+        return AbstractPdfCreator.create().generate(createReq, uuidPageCount,
+                docLog);
     }
 
     /**
@@ -469,6 +460,8 @@ public final class OutputProducer {
      * @param removeGraphics
      *            If <code>true</code> graphics are removed (minified to
      *            one-pixel).
+     * @param ecoPdf
+     *            <code>true</code> if Eco PDF is to be generated.
      * @param docLog
      *            The document log to update.
      * @return File object with generated PDF.
@@ -476,8 +469,8 @@ public final class OutputProducer {
      * @throws LetterheadNotFoundException
      */
     public File generatePdfForExport(final User user, final String pdfFile,
-            final String documentPageRangeFilter, boolean removeGraphics,
-            final DocLog docLog) throws IOException,
+            final String documentPageRangeFilter, final boolean removeGraphics,
+            final boolean ecoPdf, final DocLog docLog) throws IOException,
             LetterheadNotFoundException, PostScriptDrmException {
 
         final LinkedHashMap<String, Integer> uuidPageCount =
@@ -494,9 +487,18 @@ public final class OutputProducer {
                             documentPageRangeFilter);
         }
 
-        final File file =
-                generatePdf(user, pdfFile, inboxInfo, removeGraphics, true,
-                        true, false, uuidPageCount, docLog);
+        final PdfCreateRequest pdfRequest = new PdfCreateRequest();
+
+        pdfRequest.setUserObj(user);
+        pdfRequest.setPdfFile(pdfFile);
+        pdfRequest.setInboxInfo(inboxInfo);
+        pdfRequest.setRemoveGraphics(removeGraphics);
+        pdfRequest.setApplyPdfProps(true);
+        pdfRequest.setApplyLetterhead(true);
+        pdfRequest.setForPrinting(false);
+        pdfRequest.setEcoPdf(ecoPdf);
+
+        final File file = generatePdf(pdfRequest, uuidPageCount, docLog);
 
         DOCLOG_SERVICE.collectData4DocOut(user, docLog, file, uuidPageCount);
 

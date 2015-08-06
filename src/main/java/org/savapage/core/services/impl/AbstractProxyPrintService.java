@@ -68,9 +68,9 @@ import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.IppMediaSourceMappingDto;
 import org.savapage.core.dto.PrinterSnmpDto;
 import org.savapage.core.inbox.InboxInfoDto;
-import org.savapage.core.inbox.OutputProducer;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
+import org.savapage.core.inbox.OutputProducer;
 import org.savapage.core.ipp.IppSyntaxException;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
@@ -98,6 +98,7 @@ import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
 import org.savapage.core.json.rpc.impl.ResultAttribute;
 import org.savapage.core.json.rpc.impl.ResultPrinterSnmp;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
+import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.IppConnectException;
 import org.savapage.core.print.proxy.IppNotificationRecipient;
@@ -1595,6 +1596,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printReq.setNumberOfCopies(job.getCopies());
             printReq.setPrinterName(job.getPrinterName());
             printReq.setRemoveGraphics(job.isRemoveGraphics());
+            printReq.setEcoPrint(job.isEcoPrint());
             printReq.setLocale(ServiceContext.getLocale());
             printReq.setIdUser(lockedUser.getId());
             printReq.putOptionValues(job.getOptionValues());
@@ -2244,15 +2246,25 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             final String pdfFileName =
                     OutputProducer.createUniqueTempPdfName(lockedUser,
-                            "printjob-" + nChunk + "-");
+                            String.format("printjob-%d-", nChunk));
 
             final LinkedHashMap<String, Integer> uuidPageCount =
                     new LinkedHashMap<>();
 
+            final PdfCreateRequest pdfRequest = new PdfCreateRequest();
+
+            pdfRequest.setUserObj(lockedUser);
+            pdfRequest.setPdfFile(pdfFileName);
+            pdfRequest.setInboxInfo(inboxInfo);
+            pdfRequest.setRemoveGraphics(request.isRemoveGraphics());
+            pdfRequest.setEcoPdf(request.isEcoPrint());
+            pdfRequest.setApplyPdfProps(false);
+            pdfRequest.setApplyLetterhead(true);
+            pdfRequest.setForPrinting(true);
+
             pdfFileToPrint =
-                    outputProducer().generatePdf(lockedUser, pdfFileName,
-                            inboxInfo, request.isRemoveGraphics(), false, true,
-                            true, uuidPageCount, docLog);
+                    outputProducer().generatePdf(pdfRequest, uuidPageCount,
+                            docLog);
 
             docLogService().collectData4DocOut(lockedUser, docLog,
                     pdfFileToPrint, uuidPageCount);

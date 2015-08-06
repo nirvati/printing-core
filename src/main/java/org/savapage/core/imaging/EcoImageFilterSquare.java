@@ -61,10 +61,22 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
     private static final int ANTI_ALIASING_RGB_THRESHOLD_NONE = 0;
 
     /**
+     * Gray.
+     */
+    // private static final int ANTI_ALIASING_RGB_THRESHOLD_GRAY =
+    // 128 * 128 * 128;
+
+    /**
      * A light gray.
      */
     private static final int ANTI_ALIASING_RGB_THRESHOLD_LIGHT =
-            247 * 247 * 247;
+            218 * 218 * 218;
+
+    /**
+     * A lighter gray.
+     */
+    // private static final int ANTI_ALIASING_RGB_THRESHOLD_LIGHTER =
+    // 247 * 247 * 247;
 
     /**
      *
@@ -72,20 +84,128 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
     private final int antiAliasingRgbThreshold =
             ANTI_ALIASING_RGB_THRESHOLD_LIGHT;
 
-    /**
-     * The minimum width of a filter square.
-     */
-    private final int filterSquareWidthMin = 4;
+    private final Parms parms;
 
     /**
-     * The maximum width of a filter square.
+     *
+     * @author Rijk Ravestein
+     *
      */
-    private final int filterSquareWidthMax = 12;
+    public static final class Parms {
+
+        /**
+         * The minimum width of a filter square.
+         */
+        private int filterSquareWidthMin;
+
+        /**
+         * The maximum width of a filter square.
+         */
+        private int filterSquareWidthMax;
+
+        /**
+         * The minimal border width of a filter square.
+         */
+        private int filterSquareBorderWidthMin = 1;
+
+        /**
+         * The fraction of a filter square width used as border.
+         */
+        private double filterSquareBorderFraction;
+
+        /**
+         *
+         * @return The minimum width of a filter square.
+         */
+        public int getFilterSquareWidthMin() {
+            return filterSquareWidthMin;
+        }
+
+        /**
+         *
+         * @param minWidth
+         *            The minimum width of a filter square.
+         */
+        public void setFilterSquareWidthMin(int minWidth) {
+            this.filterSquareWidthMin = minWidth;
+        }
+
+        /**
+         *
+         * @return The maximum width of a filter square.
+         */
+        public int getFilterSquareWidthMax() {
+            return filterSquareWidthMax;
+        }
+
+        /**
+         *
+         * @param maxWidth
+         *            The maximum width of a filter square.
+         */
+        public void setFilterSquareWidthMax(final int maxWidth) {
+            this.filterSquareWidthMax = maxWidth;
+        }
+
+        /**
+         *
+         * @return The minimal border width of a filter square.
+         */
+        public int getFilterSquareBorderWidthMin() {
+            return filterSquareBorderWidthMin;
+        }
+
+        /**
+         *
+         * @param minWidth
+         *            The minimal border width of a filter square.
+         */
+        public void setFilterSquareBorderWidthMin(final int minWidth) {
+            this.filterSquareBorderWidthMin = minWidth;
+        }
+
+        /**
+         * @return The fraction of a filter square width used as border.
+         */
+        public double getFilterSquareBorderFraction() {
+            return filterSquareBorderFraction;
+        }
+
+        public void setFilterSquareBorderFraction(final double fraction) {
+            this.filterSquareBorderFraction = fraction;
+        }
+
+        /**
+         *
+         * @return The default {@link Parms}.
+         */
+        public static Parms createDefault() {
+
+            final Parms parms = new Parms();
+
+            parms.setFilterSquareWidthMin(4);
+            parms.setFilterSquareWidthMax(12);
+            parms.setFilterSquareBorderWidthMin(1);
+            parms.setFilterSquareBorderFraction(0.25);
+
+            return parms;
+        }
+    }
 
     /**
-     * The fraction of a filter square width used as border.
+     *
      */
-    private final double filterSquareBorderFraction = 0.25;
+    public EcoImageFilterSquare() {
+        this.parms = Parms.createDefault();
+    }
+
+    /**
+     *
+     * @param parms The {@link Parms}.
+     */
+    public EcoImageFilterSquare(final Parms parms) {
+        this.parms = parms;
+    }
 
     /**
      * Processes a pixel.
@@ -110,7 +230,7 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
          * candidate pixels, on the diagonal starting at (x,y).
          */
         for (int iX = x, iY = y; search
-                && filterSquareWidth <= this.filterSquareWidthMax
+                && filterSquareWidth <= this.parms.getFilterSquareWidthMax()
                 && iX < this.imageWidth && iY < this.imageHeight; iX++, iY++, filterSquareWidth++) {
 
             for (int i = 0; search && i <= filterSquareWidth; i++) {
@@ -126,14 +246,23 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
         int filterRightX = x + filterSquareWidth;
         int filterBottomY = y + filterSquareWidth;
 
-        if (filterSquareWidth < this.filterSquareWidthMin) {
+        if (filterSquareWidth < this.parms.getFilterSquareWidthMin()) {
             return false;
         }
 
-        final int filterSquareBorder =
+        int filterSquareBorder =
                 Double.valueOf(
-                        filterSquareWidth * this.filterSquareBorderFraction
+                        filterSquareWidth
+                                * this.parms.getFilterSquareBorderFraction()
                                 + 0.5).intValue();
+
+        if (filterSquareBorder < this.parms.getFilterSquareBorderWidthMin()) {
+            filterSquareBorder = this.parms.getFilterSquareBorderWidthMin();
+            if (filterSquareWidth - 2
+                    * this.parms.getFilterSquareBorderWidthMin() < 1) {
+                return false;
+            }
+        }
 
         for (int iY = y; iY < filterBottomY; iY++) {
 
@@ -220,7 +349,7 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
         int yCopy = 0;
         int xCopy = 0;
 
-        for (yCopy = 0; yCopy < 5 * this.filterSquareWidthMax
+        for (yCopy = 0; yCopy < 5 * this.parms.getFilterSquareWidthMax()
                 && yCopy < this.imageHeight; yCopy++) {
             for (xCopy = 0; xCopy < this.imageWidth; xCopy++) {
                 imageOut.setRGB(xCopy, yCopy, imageIn.getRGB(xCopy, yCopy));

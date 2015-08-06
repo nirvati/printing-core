@@ -49,6 +49,7 @@ import org.savapage.core.services.UserService;
 import org.savapage.core.services.impl.InboxServiceImpl;
 
 /**
+ * Strategy for creating PDF document from inbox.
  *
  * @author Datraverse B.V.
  *
@@ -76,6 +77,8 @@ public abstract class AbstractPdfCreator {
 
     private boolean isForPrinting = false;
 
+    private boolean isEcoPdf = false;
+
     protected String myPdfFileLetterhead = null;
     protected LetterheadInfo.LetterheadJob myLetterheadJob = null;
 
@@ -85,6 +88,14 @@ public abstract class AbstractPdfCreator {
      */
     protected boolean isForPrinting() {
         return this.isForPrinting;
+    }
+
+    /**
+     *
+     * @return {@code true} when PDF is created with EcoImages.
+     */
+    protected boolean isEcoPdf() {
+        return this.isEcoPdf;
     }
 
     /**
@@ -240,20 +251,8 @@ public abstract class AbstractPdfCreator {
      *
      * Generates PDF file from the edited jobs for a user.
      *
-     * @param userObj
-     *            The user object.
-     * @param pdfFile
-     *            The name of the PDF file to generate.
-     * @param inboxInfo
-     *            The {@link InboxInfoDto} (with the filtered jobs).
-     * @param removeGraphics
-     *            If <code>true</code> graphics are removed (minified to
-     *            one-pixel).
-     * @param applyPdfProps
-     *            If <code>true</code> the stored PDF properties for 'user'
-     *            should be applied.
-     * @param forPrinting
-     *            <code>true</code> if this is a PDF generated for printing.
+     * @param createReq
+     *            The {@link PdfCreateRequest}.
      * @param uuidPageCount
      *            This object will be filled with the number of selected pages
      *            per input file UUID. A value of {@code null} is allowed.
@@ -267,15 +266,11 @@ public abstract class AbstractPdfCreator {
      *             When the generated PDF is for export (i.e. not for printing)
      *             and one of the SafePages is DRM-restricted.
      */
-    public File generate(final User userObj, final String pdfFile,
-            final InboxInfoDto inboxInfo, boolean removeGraphics,
-            boolean applyPdfProps, boolean applyLetterhead,
-            boolean forPrinting, final Map<String, Integer> uuidPageCount,
-            final DocLog docLog) throws LetterheadNotFoundException,
-            PostScriptDrmException {
-        /*
-         *
-         */
+    public File generate(final PdfCreateRequest createReq,
+            final Map<String, Integer> uuidPageCount, final DocLog docLog)
+            throws LetterheadNotFoundException, PostScriptDrmException {
+
+        // Prepare document logging.
         final DocOut docOut;
 
         if (docLog == null) {
@@ -286,20 +281,23 @@ public abstract class AbstractPdfCreator {
             docOut.setDocLog(docLog);
         }
 
-        this.pdfFile = pdfFile;
-        this.isForPrinting = forPrinting;
+        //
+        this.pdfFile = createReq.getPdfFile();
+        this.isForPrinting = createReq.isForPrinting();
+        this.isEcoPdf = createReq.isEcoPdf();
 
-        /*
-         *
-         */
-        user = userObj.getUserId();
-        userhome = ConfigManager.getUserHomeDir(user);
-        tmpdir = ConfigManager.getUserTempDir(user);
+        //
+        this.user = createReq.getUserObj().getUserId();
+        this.userhome = ConfigManager.getUserHomeDir(this.user);
+        this.tmpdir = ConfigManager.getUserTempDir(this.user);
+
+        //
+        final InboxInfoDto inboxInfo = createReq.getInboxInfo();
 
         /*
          * If PDF is meant for export, check if DRM-restricted.
          */
-        if (!forPrinting) {
+        if (!createReq.isForPrinting()) {
 
             for (final InboxInfoDto.InboxJob wlk : inboxInfo.getJobs()) {
                 if (wlk.getDrm()) {
@@ -313,25 +311,32 @@ public abstract class AbstractPdfCreator {
         /*
          *
          */
-        myPdfFileLetterhead = null;
+        this.myPdfFileLetterhead = null;
 
-        if (applyLetterhead) {
+        if (createReq.isApplyLetterhead()) {
 
             final InboxInfoDto.InboxLetterhead lh = inboxInfo.getLetterhead();
 
             if (lh != null) {
 
-                final User userWrk = lh.isPublic() ? null : userObj;
-                final String location =
-                        lh.isPublic() ? INBOX_SERVICE
-                                .getLetterheadLocation(null) : INBOX_SERVICE
-                                .getLetterheadsDir(user);
+                final User userWrk;
+                final String location;
 
-                myPdfFileLetterhead = location + "/" + lh.getId();
-                myLetterheadJob =
+                if (lh.isPublic()) {
+                    userWrk = null;
+                    location = INBOX_SERVICE.getLetterheadLocation(null);
+                } else {
+                    userWrk = createReq.getUserObj();
+                    location = INBOX_SERVICE.getLetterheadsDir(this.user);
+                }
+
+                this.myPdfFileLetterhead =
+                        String.format("%s/%s", location, lh.getId());
+
+                this.myLetterheadJob =
                         INBOX_SERVICE.getLetterhead(userWrk, lh.getId());
 
-                if (myLetterheadJob == null) {
+                if (this.myLetterheadJob == null) {
                     throw LetterheadNotFoundException.create(lh.isPublic(),
                             lh.getId());
                 }
@@ -359,11 +364,11 @@ public abstract class AbstractPdfCreator {
                  * Type of job?
                  */
                 if (InboxServiceImpl.isScanJobFilename(file)) {
-                    throw new SpException("scan job type NOT supported yet");
+                    throw new SpException("Scan job type NOT supported yet.");
                 }
 
                 /*
-                 * The basename of the file is the UUID as registered in the
+                 * The base name of the file is the UUID as registered in the
                  * database (DocIn table).
                  */
                 String uuid = null;
@@ -379,7 +384,9 @@ public abstract class AbstractPdfCreator {
                 /*
                  *
                  */
-                final String filePath = userhome + "/" + file;
+                final String filePath =
+                        String.format("%s/%s", this.userhome, file);
+
                 String jobPfdName = null;
 
                 if (InboxServiceImpl.isPdfJobFilename(file)) {
@@ -387,16 +394,20 @@ public abstract class AbstractPdfCreator {
                     jobPfdName = filePath;
 
                 } else if (InboxServiceImpl.isPsJobFilename(file)) {
+
+                    final String regexReplace =
+                            "\\." + DocContent.FILENAME_EXT_PS;
+                    final String replacement =
+                            "." + DocContent.FILENAME_EXT_PDF;
+
                     jobPfdName =
-                            tmpdir
-                                    + "/"
-                                    + FilenameUtils
-                                            .getName(filePath)
-                                            .replaceFirst(
-                                                    "\\."
-                                                            + DocContent.FILENAME_EXT_PS,
-                                                    "."
-                                                            + DocContent.FILENAME_EXT_PDF);
+                            String.format(
+                                    "%s/%s",
+                                    this.tmpdir,
+                                    FilenameUtils.getName(filePath)
+                                            .replaceFirst(regexReplace,
+                                                    replacement));
+
                 } else {
                     throw new SpException("unknown input job type");
                 }
@@ -407,8 +418,6 @@ public abstract class AbstractPdfCreator {
                         INBOX_SERVICE.createSortedRangeArray(page.getRange());
 
                 for (RangeAtom rangeAtom : ranges) {
-
-                    // pdfdocExtract = null;
 
                     int nPageFrom =
                             (rangeAtom.pageBegin == null ? 1
@@ -422,7 +431,8 @@ public abstract class AbstractPdfCreator {
 
                     int nPageTo = rangeAtom.pageEnd;
 
-                    onProcessJobPages(nPageFrom, nPageTo, removeGraphics);
+                    onProcessJobPages(nPageFrom, nPageTo,
+                            createReq.isRemoveGraphics());
 
                     if (uuidPageCount != null) {
                         totUuidPages += nPageTo - nPageFrom + 1;
@@ -447,13 +457,13 @@ public abstract class AbstractPdfCreator {
             Calendar now = new GregorianCalendar();
 
             final PdfProperties propPdf =
-                    USER_SERVICE.getPdfProperties(userObj);
+                    USER_SERVICE.getPdfProperties(createReq.getUserObj());
 
             if (docLog != null) {
                 docLog.setTitle(propPdf.getDesc().getTitle());
             }
 
-            if (applyPdfProps) {
+            if (createReq.isApplyPdfProps()) {
                 onStampMetaDataForExport(now, propPdf);
 
                 if (docOut != null) {
@@ -473,7 +483,7 @@ public abstract class AbstractPdfCreator {
                     out.setDocOut(docOut);
                 }
 
-            } else if (forPrinting) {
+            } else if (createReq.isForPrinting()) {
 
                 onStampMetaDataForPrinting(now, propPdf);
 
@@ -487,7 +497,7 @@ public abstract class AbstractPdfCreator {
             // --------------------------------------------------------
             // Encryption
             // --------------------------------------------------------
-            if (applyPdfProps) {
+            if (createReq.isApplyPdfProps()) {
 
                 final boolean applyPasswords =
                         propPdf.getApply().getPasswords();
@@ -540,7 +550,7 @@ public abstract class AbstractPdfCreator {
                     }
                 }
 
-            } else if (forPrinting) {
+            } else if (createReq.isForPrinting()) {
 
                 onStampEncryptionForPrinting();
 
@@ -572,14 +582,14 @@ public abstract class AbstractPdfCreator {
             // --------------------------------------------------------
             // Make sure everything is printed in portrait
             // --------------------------------------------------------
-            if (forPrinting) {
+            if (createReq.isForPrinting()) {
                 onStampRotateForPrinting();
             }
 
             // --------------------------------------------------------
             // Compress
             // --------------------------------------------------------
-            if (!forPrinting) {
+            if (!createReq.isForPrinting()) {
                 onCompress();
             }
 
@@ -599,5 +609,4 @@ public abstract class AbstractPdfCreator {
 
         return new File(pdfFile);
     }
-
 }

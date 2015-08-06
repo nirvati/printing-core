@@ -92,6 +92,7 @@ public abstract class AbstractProxyPrintReq {
     private int numberOfCopies;
     private int numberOfPages;
     private boolean removeGraphics;
+    private boolean ecoPrint;
 
     private Locale locale = Locale.getDefault();
 
@@ -168,6 +169,14 @@ public abstract class AbstractProxyPrintReq {
 
     public void setRemoveGraphics(boolean removeGraphics) {
         this.removeGraphics = removeGraphics;
+    }
+
+    public boolean isEcoPrint() {
+        return ecoPrint;
+    }
+
+    public void setEcoPrint(boolean ecoPrint) {
+        this.ecoPrint = ecoPrint;
     }
 
     public int getNumberOfCopies() {

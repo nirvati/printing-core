@@ -26,11 +26,15 @@ import java.io.File;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Command using GhostScript.
+ * @deprecated Use {@link Pdf2PngPopplerCmd}. See Mantis #326.
+ *             <p>
+ *             Command using GhostScript.
+ *             <p>
  *
  * @author Datraverse B.V.
  *
  */
+@Deprecated
 public final class Pdf2PngGhostScriptCmd implements Pdf2ImgCommand {
 
     /**

@@ -102,6 +102,7 @@ public final class OutboxInfoDto extends AbstractDto {
         private int pages;
         private int sheets;
         private boolean removeGraphics;
+        private boolean ecoPrint;
         private BigDecimal cost;
         private long submitTime;
         private long expiryTime;
@@ -169,6 +170,14 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setRemoveGraphics(boolean removeGraphics) {
             this.removeGraphics = removeGraphics;
+        }
+
+        public boolean isEcoPrint() {
+            return ecoPrint;
+        }
+
+        public void setEcoPrint(boolean ecoPrint) {
+            this.ecoPrint = ecoPrint;
         }
 
         public BigDecimal getCost() {

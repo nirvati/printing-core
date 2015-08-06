@@ -1386,8 +1386,8 @@ public interface IConfigProp {
         /**
          *
          */
-        STATS_TOTAL_RESET_DATE("stats.total.reset-date", String
-                .valueOf(System.currentTimeMillis())),
+        STATS_TOTAL_RESET_DATE("stats.total.reset-date", String.valueOf(System
+                .currentTimeMillis())),
 
         /**
          *
@@ -1562,6 +1562,11 @@ public interface IConfigProp {
          */
         CLIAPP_AUTH_TRUST_WEBAPP_USER_AUTH(
                 "cliapp.auth.trust-webapp-user-auth", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * .
+         */
+        ECO_PRINT_ENABLE("eco-print.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * Trust authenticated user in Client App on same IP address as User Web
