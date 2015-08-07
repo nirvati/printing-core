@@ -177,8 +177,11 @@ public class ImageToPdf implements IStreamConverter {
     }
 
     /**
-     * Adds a page with an image to a PDF {@link Document}. The image is scaled
-     * to the document width.
+     * Adds an image to the current a page of an PDF {@link Document}.
+     * <ul>
+     * <li>A landscape image is rotated when PDF Document page is portrait.</li>
+     * <li>The image is scaled to the document width.</li>
+     * </ul>
      *
      * @param document
      *            a PDF {@link Document} to add the image to.
@@ -195,9 +198,12 @@ public class ImageToPdf implements IStreamConverter {
             final float marginLeft, final float marginRight,
             final com.itextpdf.text.Image image) throws DocumentException {
 
-        final boolean landscape = image.getWidth() > image.getHeight();
+        final boolean landscapeImg = image.getWidth() > image.getHeight();
+        final boolean landscapePdf =
+                document.getPageSize().getWidth() > document.getPageSize()
+                        .getHeight();
 
-        if (landscape) {
+        if (landscapeImg && !landscapePdf) {
             image.setRotation((float) (Math.PI * .5));
         }
 

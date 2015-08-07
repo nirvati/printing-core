@@ -85,7 +85,7 @@ public enum ReadWriteLockEnum {
      * The vice-versa case is also possible of course.
      * </p>
      */
-    LETTERHEAD_STORE("letterhead", 10 * 1000L),
+    LETTERHEAD_STORE("letterhead", 60 * 1000L),
 
     /**
      * This R/W lock is used to serialize access to history of the

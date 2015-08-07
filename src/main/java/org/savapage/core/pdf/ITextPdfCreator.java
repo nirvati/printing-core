@@ -38,6 +38,7 @@ import java.util.UUID;
 import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.MediaSize;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
@@ -104,7 +105,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     private PdfReader readerWlk;
     private PdfReader letterheadReader;
 
-    private String jobRangesWlk;
+    private StringBuilder jobRangesWlk;
     private String jobRotationWlk;
 
     private File jobPdfFileWlk;
@@ -382,7 +383,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onInit() {
 
-        this.targetPdfCopyFilePath = pdfFile + ".tmp";
+        this.targetPdfCopyFilePath = String.format("%s.tmp", this.pdfFile);
 
         try {
 
@@ -391,16 +392,20 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
             if (this.isEcoPdf()) {
 
-                this.targetDocument = new Document(PageSize.A4, 0, 0, 0, 0); // TODO
+                this.targetDocument = new Document();
                 PdfWriter.getInstance(this.targetDocument, ostr);
+
+                /*
+                 * Do not open the target document yet, but lazy open it when
+                 * page size of first page is known.
+                 */
 
             } else {
 
                 this.targetDocument = new Document();
                 this.targetPdfCopy = new PdfCopy(this.targetDocument, ostr);
+                this.targetDocument.open();
             }
-
-            this.targetDocument.open();
 
         } catch (Exception e) {
             throw new SpException(e);
@@ -415,14 +420,14 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     protected void onInitJob(final String jobPfdName, final String rotation)
             throws Exception {
 
+        this.readerWlk = new PdfReader(jobPfdName);
+
         if (this.isEcoPdf()) {
             this.jobPdfFileWlk = new File(jobPfdName);
-        } else {
-            this.readerWlk = new PdfReader(jobPfdName);
         }
 
         this.jobRotationWlk = rotation;
-        this.jobRangesWlk = "";
+        this.jobRangesWlk = new StringBuilder();
     }
 
     @Override
@@ -437,17 +442,16 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         } else {
 
-            if (!this.jobRangesWlk.isEmpty()) {
-                this.jobRangesWlk += ",";
+            if (this.jobRangesWlk.length() > 0) {
+                this.jobRangesWlk.append(",");
             }
 
-            this.jobRangesWlk += String.valueOf(nPageFrom);
+            this.jobRangesWlk.append(nPageFrom);
 
             if (nPageFrom != nPageTo) {
-                this.jobRangesWlk += "-" + String.valueOf(nPageTo);
+                this.jobRangesWlk.append("-").append(nPageTo);
             }
         }
-
     }
 
     /**
@@ -466,7 +470,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         final Pdf2ImgCommandExt pdf2ImgCmd = new Pdf2PngPopplerCmd();
 
         final EcoImageFilter filter = new EcoImageFilterSquare();
-        final int resolution = 300; // TODO
 
         final File imageFile =
                 new File(String.format("%s/%s.png", this.tmpdir, UUID
@@ -475,6 +478,41 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         try {
 
             for (int i = nPageFrom - 1; i < nPageTo; i++) {
+
+                /*
+                 * First, set page size and margins.
+                 */
+                final boolean rotatePdfPage;
+
+                if (StringUtils.defaultString(this.jobRotationWlk, "0").equals(
+                        "0")) {
+                    rotatePdfPage = false;
+                } else {
+                    final int rotate = Integer.valueOf(this.jobRotationWlk);
+                    // Rotate when odd multiple of 90.
+                    rotatePdfPage = (rotate / 90) % 2 != 0;
+                }
+
+                final Rectangle pageSize = this.readerWlk.getPageSize(i + 1);
+
+                if (rotatePdfPage) {
+                    this.targetDocument.setPageSize(pageSize.rotate());
+                } else {
+                    this.targetDocument.setPageSize(pageSize);
+                }
+                this.targetDocument.setMargins(0, 0, 0, 0);
+
+                /*
+                 * Then, open document or add new page.
+                 */
+                if (!this.targetDocument.isOpen()) {
+                    this.targetDocument.open();
+                } else {
+                    this.targetDocument.newPage();
+                }
+
+                // TODO: optimize resolution to PDF page size?
+                final int resolution = 300;
 
                 final String command =
                         pdf2ImgCmd.createCommand(this.jobPdfFileWlk, imageFile,
@@ -495,6 +533,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                         com.itextpdf.text.Image.getInstance(
                                 filter.filter(imageFile), Color.WHITE);
 
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace(String.format("Width x Height = %f x %f",
+                            this.targetDocument.getPageSize().getWidth(),
+                            this.targetDocument.getPageSize().getHeight()));
+                }
+
                 ImageToPdf.addImagePage(this.targetDocument, 0, 0, image);
 
                 imageFile.delete();
@@ -512,42 +556,46 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onExitJob() throws Exception {
 
-        if (this.isEcoPdf()) {
-            return;
-        }
+        if (!this.isEcoPdf()) {
 
-        this.readerWlk.selectPages(this.jobRangesWlk);
-        int pages = this.readerWlk.getNumberOfPages();
+            this.readerWlk.selectPages(this.jobRangesWlk.toString());
+            int pages = this.readerWlk.getNumberOfPages();
 
-        for (int i = 0; i < pages;) {
+            for (int i = 0; i < pages;) {
 
-            ++i;
+                ++i;
 
-            /*
-             * Rotate for BOTH export and printing.
-             */
-            if (this.jobRotationWlk != null) {
-                final int rotate = Integer.valueOf(this.jobRotationWlk);
-                if (rotate != 0) {
-                    PdfDictionary pageDict = this.readerWlk.getPageN(i);
-                    pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
+                /*
+                 * Rotate for BOTH export and printing.
+                 */
+                if (this.jobRotationWlk != null) {
+                    final int rotate = Integer.valueOf(this.jobRotationWlk);
+                    if (rotate != 0) {
+                        PdfDictionary pageDict = this.readerWlk.getPageN(i);
+                        pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
+                    }
                 }
+
+                final PdfImportedPage page =
+                        this.targetPdfCopy.getImportedPage(this.readerWlk, i);
+
+                this.targetPdfCopy.addPage(page);
             }
 
-            final PdfImportedPage page =
-                    this.targetPdfCopy.getImportedPage(this.readerWlk, i);
-
-            this.targetPdfCopy.addPage(page);
+            this.targetPdfCopy.freeReader(this.readerWlk);
         }
 
-        this.targetPdfCopy.freeReader(this.readerWlk);
         this.readerWlk.close();
         this.readerWlk = null;
     }
 
     @Override
     protected void onExitJobs() throws Exception {
-        this.targetDocument.close();
+
+        if (this.targetDocument.isOpen()) {
+            this.targetDocument.close();
+        }
+
         this.targetDocument = null;
     }
 
@@ -561,7 +609,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     protected void onCompress() throws Exception {
         /*
          * iText uses compression by default, but you can set full compression,
-         * which make it PDF 1.5 version.
+         * which make it a PDF 1.5 version.
          */
         this.targetStamper.setFullCompression();
     }
@@ -1125,6 +1173,9 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
                             if (maskImage != null) {
                                 writer.addDirectImageSimple(maskImage);
+                            } else {
+                                // When this happens, the original image is
+                                // still visible.
                             }
 
                             writer.addDirectImageSimple(imgPixel,
