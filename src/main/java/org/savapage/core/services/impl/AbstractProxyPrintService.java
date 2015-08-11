@@ -661,8 +661,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     }
 
                 } catch (IOException e) {
-                    // be forgiving
-                    LOGGER.error(e.getMessage());
+                    // Be forgiving when old JSON format.
+                    LOGGER.debug(e.getMessage());
                 }
             }
         }

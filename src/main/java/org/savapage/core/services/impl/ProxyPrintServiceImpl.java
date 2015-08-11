@@ -222,6 +222,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final JsonProxyPrinter proxyPrinterFromGroup =
                     createUserPrinter(defaultPrinter, group);
 
+            if (proxyPrinterFromGroup == null) {
+                continue;
+            }
             // proxyPrinterToAdd.setPrinterUri(uriPrinter);
 
             /*
@@ -369,37 +372,38 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      *            {@code null} when default printer is unknown.
      * @param group
      *            The (raw) IPP printer options.
-     * @return the {@link JsonProxyPrinter}.
+     * @return the {@link JsonProxyPrinter} or {@code null} when printer
+     *         definition is not valid somehow.
      */
     private JsonProxyPrinter createUserPrinter(
             final JsonProxyPrinter defaultPrinter, final IppAttrGroup group) {
 
         final JsonProxyPrinter printer = new JsonProxyPrinter();
 
-        // Printer URI
-        final URI printerUri;
+        /*
+         * Mantis #403: Cache CUPS printer-name internally as upper-case.
+         */
+        printer.setName(ProxyPrinterName.getDaoName(group
+                .getAttrSingleValue(IppDictPrinterDescAttr.ATTR_PRINTER_NAME)));
 
-        try {
-            printerUri =
-                    new URI(
-                            group.getAttrSingleValue(IppDictPrinterDescAttr.ATTR_PRINTER_URI_SUPPORTED));
-        } catch (URISyntaxException e) {
-            throw new SpException(e.getMessage());
-        }
-
-        printer.setPrinterUri(printerUri);
+        printer.setManufacturer(group
+                .getAttrSingleValue(IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO_MANUFACTURER));
+        printer.setModelName(group
+                .getAttrSingleValue(IppDictPrinterDescAttr.ATTR_PRINTER_MAKE_MODEL));
 
         // Device URI
         final URI deviceUri;
 
+        final String deviceUriValue;
+
         try {
-            final String uriValue =
+            deviceUriValue =
                     group.getAttrSingleValue(IppDictPrinterDescAttr.ATTR_DEVICE_URI);
 
-            if (uriValue == null) {
+            if (deviceUriValue == null) {
                 deviceUri = null;
             } else {
-                deviceUri = new URI(uriValue);
+                deviceUri = new URI(deviceUriValue);
             }
         } catch (URISyntaxException e) {
             throw new SpException(e.getMessage());
@@ -407,11 +411,28 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         printer.setDeviceUri(deviceUri);
 
-        /*
-         * Mantis #403: Cache CUPS printer-name internally as upper-case.
-         */
-        printer.setName(ProxyPrinterName.getDaoName(group
-                .getAttrSingleValue(IppDictPrinterDescAttr.ATTR_PRINTER_NAME)));
+        // Printer URI
+        final URI printerUri;
+
+        try {
+            final String uriValue =
+                    group.getAttrSingleValue(IppDictPrinterDescAttr.ATTR_PRINTER_URI_SUPPORTED);
+            if (uriValue == null) {
+                // Mantis #585
+                LOGGER.warn(String.format(
+                        "Skipping printer [%s] model [%s] device URI [%s]"
+                                + ": no printer URI", printer.getName(),
+                        StringUtils.defaultString(printer.getModelName(), ""),
+                        StringUtils.defaultString(deviceUriValue, "")));
+                return null;
+            } else {
+                printerUri = new URI(uriValue);
+            }
+        } catch (URISyntaxException e) {
+            throw new SpException(e.getMessage());
+        }
+
+        printer.setPrinterUri(printerUri);
 
         //
         printer.setInfo(group
@@ -433,11 +454,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         printer.setColorDevice(group.getAttrSingleValue(
                 IppDictPrinterDescAttr.ATTR_COLOR_SUPPORTED, IppBoolean.FALSE)
                 .equals(IppBoolean.TRUE));
-
-        printer.setManufacturer(group
-                .getAttrSingleValue(IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO_MANUFACTURER));
-        printer.setModelName(group
-                .getAttrSingleValue(IppDictPrinterDescAttr.ATTR_PRINTER_MAKE_MODEL));
 
         printer.setDuplexDevice(Boolean.FALSE);
 
@@ -953,7 +969,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         final JsonProxyPrinter printer =
                 createUserPrinter(null, response.get(1));
 
-        printer.setDfault(true);
+        if (printer != null) {
+            printer.setDfault(true);
+        }
 
         return printer;
     }
