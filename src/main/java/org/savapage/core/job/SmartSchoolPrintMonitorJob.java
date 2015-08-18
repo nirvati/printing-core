@@ -55,6 +55,7 @@ import org.savapage.core.papercut.PaperCutDbProxy;
 import org.savapage.core.papercut.PaperCutServerProxy;
 import org.savapage.core.print.smartschool.SmartSchoolException;
 import org.savapage.core.print.smartschool.SmartSchoolPrintMonitor;
+import org.savapage.core.print.smartschool.SmartSchoolPrinter;
 import org.savapage.core.util.AppLogHelper;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
@@ -88,11 +89,6 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
      * Simulation flag.
      */
     private boolean isSimulation = false;
-
-    /**
-     * {@code true} when Admin App is blocked due to membership status.
-     */
-    private boolean isAdminAppBlocked = true;
 
     /**
      * The {@link CircuitBreaker}.
@@ -299,9 +295,10 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
     protected void onExecute(final JobExecutionContext ctx)
             throws JobExecutionException {
 
-        this.isAdminAppBlocked = MemberCard.instance().isMembershipDesirable();
+        SmartSchoolPrinter.setBlocked(MemberCard.instance()
+                .isMembershipDesirable());
 
-        if (this.isAdminAppBlocked) {
+        if (SmartSchoolPrinter.isBlocked() || !SmartSchoolPrinter.isOnline()) {
             return;
         }
 
@@ -343,7 +340,7 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
     @Override
     protected void onExit(final JobExecutionContext ctx) {
 
-        if (this.isAdminAppBlocked) {
+        if (SmartSchoolPrinter.isBlocked()) {
             final String error =
                     AppLogHelper.logError(this.getClass(),
                             "SmartSchoolMonitor.membership.error",
@@ -351,6 +348,9 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
                             CommunityDictEnum.MEMBERSHIP.getWord());
             AdminPublisher.instance().publish(PubTopicEnum.SMARTSCHOOL,
                     PubLevelEnum.ERROR, error);
+
+            SmartSchoolPrinter.setOnline(false);
+
             return;
         }
 
@@ -371,7 +371,7 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
 
         final AdminPublisher publisher = AdminPublisher.instance();
 
-        if (this.isInterrupted()
+        if (this.isInterrupted() || !SmartSchoolPrinter.isOnline()
                 || !ConfigManager.isSmartSchoolPrintActiveAndEnabled()) {
 
             publisher.publish(PubTopicEnum.SMARTSCHOOL, PubLevelEnum.INFO,

@@ -186,11 +186,14 @@ public final class PaperCutDbProxy {
             @Override
             public Object execute() throws PaperCutException {
                 try {
+
+                    Class.forName("org.postgresql.Driver");
+
                     this.dbProxy.connection =
                             DriverManager.getConnection(this.dbProxy.dbUrl,
                                     this.dbProxy.dbUser,
                                     this.dbProxy.dbPassword);
-                } catch (SQLException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     throw new PaperCutConnectException(e.getMessage(), e);
                 }
                 return this;

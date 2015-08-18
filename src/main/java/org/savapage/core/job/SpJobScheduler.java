@@ -44,6 +44,8 @@ import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.print.gcp.GcpPrinter;
+import org.savapage.core.print.imap.ImapPrinter;
+import org.savapage.core.print.smartschool.SmartSchoolPrinter;
 import org.savapage.core.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -495,6 +497,8 @@ public class SpJobScheduler {
                                 JOB_GROUP_ONESHOT).usingJobData(data).build();
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
+
+        ImapPrinter.setOnline(true);
     }
 
     /**
@@ -517,6 +521,8 @@ public class SpJobScheduler {
                                 JOB_GROUP_ONESHOT).usingJobData(data).build();
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
+
+        SmartSchoolPrinter.setOnline(true);
     }
 
     /**
@@ -558,31 +564,41 @@ public class SpJobScheduler {
 
     /**
      * .
+     *
+     * @return {@code true} if at least one instance of the identified job was
+     *         found and interrupted.
      */
-    public static void interruptEmailOutputMonitor() {
-        instance().interruptJob(SpJobType.EMAIL_OUTBOX_MONITOR,
+    public static boolean interruptEmailOutputMonitor() {
+        return instance().interruptJob(SpJobType.EMAIL_OUTBOX_MONITOR,
                 JOB_GROUP_ONESHOT);
     }
 
     /**
-     *
+     * @return {@code true} if at least one instance of the identified job was
+     *         found and interrupted.
      */
-    public static void interruptImapListener() {
-        instance().interruptJob(SpJobType.IMAP_LISTENER_JOB, JOB_GROUP_ONESHOT);
+    public static boolean interruptImapListener() {
+        ImapPrinter.setOnline(false);
+        return instance().interruptJob(SpJobType.IMAP_LISTENER_JOB,
+                JOB_GROUP_ONESHOT);
     }
 
     /**
-     *
+     * @return {@code true} if at least one instance of the identified job was
+     *         found and interrupted.
      */
-    public static void interruptGcpListener() {
-        instance().interruptJob(SpJobType.GCP_LISTENER_JOB, JOB_GROUP_ONESHOT);
+    public static boolean interruptGcpListener() {
+        return instance().interruptJob(SpJobType.GCP_LISTENER_JOB,
+                JOB_GROUP_ONESHOT);
     }
 
     /**
-    *
-    */
-    public static void interruptSmartSchoolPoller() {
-        instance().interruptJob(SpJobType.SMARTSCHOOL_PRINT_MONITOR_JOB,
+     * @return {@code true} if at least one instance of the identified job was
+     *         found and interrupted.
+     */
+    public static boolean interruptSmartSchoolPoller() {
+        SmartSchoolPrinter.setOnline(false);
+        return instance().interruptJob(SpJobType.SMARTSCHOOL_PRINT_MONITOR_JOB,
                 JOB_GROUP_ONESHOT);
     }
 
@@ -648,10 +664,13 @@ public class SpJobScheduler {
      *
      * @param typeOfJob
      * @param group
+     * @return {@code true} if at least one instance of the identified job was
+     *         found and interrupted.
      */
-    public void interruptJob(final SpJobType typeOfJob, final String group) {
+    public boolean interruptJob(final SpJobType typeOfJob, final String group) {
         try {
-            myScheduler.interrupt(new JobKey(typeOfJob.toString(), group));
+            return myScheduler
+                    .interrupt(new JobKey(typeOfJob.toString(), group));
         } catch (SchedulerException e) {
             throw new SpException(e.getMessage(), e);
         }

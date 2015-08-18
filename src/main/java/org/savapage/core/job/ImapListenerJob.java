@@ -45,6 +45,7 @@ import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.print.imap.ImapListener;
+import org.savapage.core.print.imap.ImapPrinter;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
@@ -236,6 +237,10 @@ public final class ImapListenerJob extends AbstractJob {
     protected void onExecute(final JobExecutionContext ctx)
             throws JobExecutionException {
 
+        if (!ImapPrinter.isOnline()) {
+            return;
+        }
+
         try {
 
             this.circuitOperation = new MailPrintCircuitOperation(this);
@@ -268,7 +273,8 @@ public final class ImapListenerJob extends AbstractJob {
 
         final AdminPublisher publisher = AdminPublisher.instance();
 
-        if (this.isInterrupted() || !ConfigManager.isPrintImapEnabled()) {
+        if (this.isInterrupted() || !ImapPrinter.isOnline()
+                || !ConfigManager.isPrintImapEnabled()) {
 
             publisher.publish(PubTopicEnum.MAILPRINT, PubLevelEnum.INFO,
                     localizeSysMsg("ImapListener.stopped"));
