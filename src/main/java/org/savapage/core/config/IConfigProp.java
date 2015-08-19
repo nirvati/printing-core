@@ -862,6 +862,11 @@ public interface IConfigProp {
                 DEFAULT_COMMUNITY_HELPDESK_URL),
 
         /**
+         * PaperCut Database JDBC driver, like "org.postgresql.Driver".
+         */
+        PAPERCUT_DB_JDBC_DRIVER("papercut.db.jdbc-driver"),
+
+        /**
          * PaperCut Database JDBC url.
          */
         PAPERCUT_DB_JDBC_URL("papercut.db.jdbc-url"),

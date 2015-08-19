@@ -78,6 +78,10 @@ public final class PaperCutDbProxy {
     private final boolean useCircuitBreaker;
 
     /**
+     * E.g. {@code "org.postgresql.Driver"}.
+     */
+    private final String dbDriver;
+    /**
      * E.g. {@code "jdbc:postgresql://localhost/papercut"}.
      */
     private final String dbUrl;
@@ -140,15 +144,18 @@ public final class PaperCutDbProxy {
     /**
      * Constructor.
      *
+     * @param driver
+     *            The JDBC driver like "org.postgresql.Driver".
      * @param url
      * @param user
      * @param password
      * @param useCircuitBreaker
      *            If {@code true} a {@link CircuitBreakerOperation} is used.
      */
-    private PaperCutDbProxy(final String url, final String user,
-            final String password, final boolean useCircuitBreaker) {
-
+    private PaperCutDbProxy(final String driver, final String url,
+            final String user, final String password,
+            final boolean useCircuitBreaker) {
+        this.dbDriver = driver;
         this.dbUrl = url;
         this.dbUser = user;
         this.dbPassword = password;
@@ -158,6 +165,8 @@ public final class PaperCutDbProxy {
     /**
      * Creates a {@link PaperCutDbProxy} instance.
      *
+     * @param dbDriver
+     *            The JDBC driver like "org.postgresql.Driver".
      * @param dbUrl
      *            The JDBC url.
      * @param user
@@ -166,11 +175,12 @@ public final class PaperCutDbProxy {
      *            If {@code true} a {@link CircuitBreakerOperation} is used.
      * @return The {@link PaperCutDbProxy} instance.
      */
-    public static final PaperCutDbProxy create(final String dbUrl,
-            final String user, final String password,
+    public static final PaperCutDbProxy create(final String dbDriver,
+            final String dbUrl, final String user, final String password,
             final boolean useCircuitBreaker) {
 
-        return new PaperCutDbProxy(dbUrl, user, password, useCircuitBreaker);
+        return new PaperCutDbProxy(dbDriver, dbUrl, user, password,
+                useCircuitBreaker);
     }
 
     /**
@@ -187,7 +197,12 @@ public final class PaperCutDbProxy {
             public Object execute() throws PaperCutException {
                 try {
 
-                    Class.forName("org.postgresql.Driver");
+                    /*
+                     * Before you can connect to a PostgreSQL database, you need
+                     * to load the JDBC driver. We use the Class.forName()
+                     * construct.
+                     */
+                    Class.forName(this.dbProxy.dbDriver);
 
                     this.dbProxy.connection =
                             DriverManager.getConnection(this.dbProxy.dbUrl,

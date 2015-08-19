@@ -242,6 +242,10 @@ public final class ConfigManager {
             "smartschool.print";
 
     private static final String SERVER_PROP_DB_TYPE = "database.type";
+    /**
+     * The JDBC driver, like "org.postgresql.Driver".
+     */
+    private static final String SERVER_PROP_DB_DRIVER = "database.driver";
     private static final String SERVER_PROP_DB_URL = "database.url";
     private static final String SERVER_PROP_DB_USER = "database.user";
     private static final String SERVER_PROP_DB_PASS = "database.password";
@@ -2291,19 +2295,30 @@ public final class ConfigManager {
      */
     private void initHibernatePostgreSQL(final Map<String, Object> properties) {
 
-        properties
-                .put("javax.persistence.jdbc.driver", "org.postgresql.Driver");
         properties.put("hibernate.dialect",
                 "org.hibernate.dialect.PostgreSQLDialect");
 
+        final String jdbcDriverDefault = "org.postgresql.Driver";
+        final String jdbcDriver;
+
         if (theServerProps != null) {
+
             properties.put("javax.persistence.jdbc.user",
                     theServerProps.getProperty(SERVER_PROP_DB_USER));
             properties.put("javax.persistence.jdbc.password",
                     getDbUserPassword());
             properties.put("javax.persistence.jdbc.url",
                     theServerProps.getProperty(SERVER_PROP_DB_URL));
+
+            jdbcDriver =
+                    theServerProps.getProperty(SERVER_PROP_DB_DRIVER,
+                            jdbcDriverDefault);
+
+        } else {
+            jdbcDriver = jdbcDriverDefault;
         }
+
+        properties.put("javax.persistence.jdbc.driver", jdbcDriver);
     }
 
     /**
