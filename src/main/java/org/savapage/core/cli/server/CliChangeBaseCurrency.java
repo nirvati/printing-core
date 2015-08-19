@@ -55,9 +55,17 @@ public final class CliChangeBaseCurrency extends AbstractAppApi {
      * .
      */
     private static final String METHOD_LONG_DESCRIPT =
-            "WARNING: This action creates financial transactions to align "
-                    + "each account to \nthe new currency. Create a "
-                    + "database back-up before executing this command!";
+            "This action creates financial transactions to align each account "
+                    + "to the new \n"
+                    + "currency: the current account balance is nullified by a "
+                    + "debit transaction\n"
+                    + "and replaced with the new currency according to the "
+                    + "exchange rate via a\n"
+                    + "credit transaction.\n\n"
+                    + "Individual credit limits are converted as well, default "
+                    + "credit limits are not.\n\n"
+                    + "WARNING: Create a database back-up before executing "
+                    + "this command!";
     /**
      * .
      */
