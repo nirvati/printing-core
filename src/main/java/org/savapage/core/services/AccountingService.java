@@ -383,12 +383,13 @@ public interface AccountingService {
      * and the user {@link Account} is incremented.
      *
      * @param lockedUser
-     *            The {@link User} as locked by the caller.
+     *            The requesting {@link User} as locked by the caller (can be
+     *            {@code null} when user is unknown).
      * @param dto
      *            The {@link UserPaymentGatewayDto}
      * @param orphanedPaymentAccount
      *            The {@link Account} to add funds on when the requesting
-     *            {@link User} of the transaction is not found.
+     *            {@link User} of the transaction is unknown.
      * @since 0.9.9
      */
     void acceptFundsFromGateway(final User lockedUser,
