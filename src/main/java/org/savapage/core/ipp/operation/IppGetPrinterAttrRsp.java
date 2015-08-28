@@ -28,6 +28,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.ipp.attribute.IppAttr;
@@ -114,6 +115,19 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     IppDictPrinterDescAttr.ATTR_PAGES_PER_MIN_COLOR,
     /* OPTIONAL */
     IppDictPrinterDescAttr.ATTR_COLOR_SUPPORTED,
+
+    /* OPTIONAL: but needed for IPP Everywhere */
+    IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO,
+    /* OPTIONAL: but needed for IPP Everywhere */
+    IppDictPrinterDescAttr.ATTR_PRINTER_UUID,
+    /* OPTIONAL: but needed for IPP Everywhere */
+    IppDictPrinterDescAttr.ATTR_DOC_PASSWORD_SUPPORTED,
+    /* OPTIONAL: but needed for IPP Everywhere */
+    IppDictPrinterDescAttr.ATTR_PRINTER_STATE_MESSAGE,
+    /* OPTIONAL: but needed for IPP Everywhere */
+    IppDictPrinterDescAttr.ATTR_PRINTER_STATE_CHANGE_TIME,
+    /* OPTIONAL: but needed for IPP Everywhere */
+    IppDictPrinterDescAttr.ATTR_PRINTER_MAKE_MODEL
     //
             };
 
@@ -216,8 +230,15 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         final IppAttrGroup groupAttrSupp =
                 new IppAttrGroup(IppDelimiterTag.PRINTER_ATTR);
 
-        final URI printerUri =
-                new URI(request.getAttrValue("printer-uri").getValues().get(0));
+        final IppAttrValue printerUriAttr = request.getAttrValue("printer-uri");
+
+        final URI printerUri;
+
+        if (printerUriAttr == null || printerUriAttr.getValues().isEmpty()) {
+            printerUri = null;
+        } else {
+            printerUri = new URI(printerUriAttr.getValues().get(0));
+        }
 
         if (operation.getRequestedAttributes() == null) {
             /*
@@ -228,8 +249,13 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
              * If the client omits this attribute, the Printer MUST respond as
              * if this attribute had been supplied with a value of 'all'.
              */
-            LOGGER.trace("Client requested NO attributes: using ["
-                    + IppGetPrinterAttrOperation.ATTR_GRP_ALL + "] attributes");
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Client requested NO attributes: using ["
+                        + IppGetPrinterAttrOperation.ATTR_GRP_ALL
+                        + "] attributes");
+            }
+
             handleRequestedAttr(printerUri, groupAttrSupp, groupAttrUnsupp,
                     IppGetPrinterAttrOperation.ATTR_GRP_ALL);
 
@@ -535,14 +561,17 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         switch (name) {
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_URI_SUPPORTED:
-            value.addValue(getPrinterUriSupported(printerUri, "ipp",
-                    ConfigManager.getServerPort()));
-            value.addValue(getPrinterUriSupported(printerUri, "http",
-                    ConfigManager.getServerPort()));
-            value.addValue(getPrinterUriSupported(printerUri, "https",
-                    ConfigManager.getServerSslPort()));
-            value.addValue(getPrinterUriSupported(printerUri, "ipps",
-                    ConfigManager.getServerSslPort()));
+
+            if (printerUri != null) {
+                value.addValue(getPrinterUriSupported(printerUri, "ipp",
+                        ConfigManager.getServerPort()));
+                value.addValue(getPrinterUriSupported(printerUri, "http",
+                        ConfigManager.getServerPort()));
+                value.addValue(getPrinterUriSupported(printerUri, "https",
+                        ConfigManager.getServerSslPort()));
+                value.addValue(getPrinterUriSupported(printerUri, "ipps",
+                        ConfigManager.getServerSslPort()));
+            }
             break;
 
         case IppDictPrinterDescAttr.ATTR_URI_AUTH_SUPPORTED:
@@ -616,6 +645,8 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         case IppDictPrinterDescAttr.ATTR_IPP_VERSIONS_SUPP:
             value.addValue("1.0");
             value.addValue("1.1");
+            // value.addValue("2.0");
+            // value.addValue("2.1");
             break;
 
         case IppDictPrinterDescAttr.ATTR_OPERATIONS_SUPPORTED:
@@ -645,12 +676,21 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_DOC_FORMAT_SUPPORTED:
+
             value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_PDF);
             value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_POSTSCRIPT);
+
+            /**
+             * TODO: Required for IPP Everywhere
+             */
+            // value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_JPEG);
+            // value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_PWG_RASTER);
+
             /*
              * IMPORTANT: image/urf MUST be present for iOS printing !!!!
              */
             value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_URF);
+
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_IS_ACCEPTING_JOBS:
@@ -694,12 +734,34 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             value.addValue("SavaPage is ready!");
             break;
 
+        case IppDictPrinterDescAttr.ATTR_PRINTER_STATE_CHANGE_TIME:
+            value.addValue("0"); // TODO
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINTER_MAKE_MODEL:
+            value.addValue(ConfigManager.getAppNameVersionBuild());
+            break;
+
         case IppDictPrinterDescAttr.ATTR_PRINTER_LOCATION:
             value.addValue("SavaPage Print Server");
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_INFO:
             value.addValue("SavaPage Virtual Printer");
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO:
+            value.addValue(StringUtils.defaultString(ConfigManager
+                    .getWebAppAdminSslUrl().toString()));
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINTER_UUID:
+            value.addValue(String.format("urn:uuid:%s",
+                    ConfigManager.getIppPrinterUuid()));
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_DOC_PASSWORD_SUPPORTED:
+            value.addValue("0");
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO_MANUFACTURER:

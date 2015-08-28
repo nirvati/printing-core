@@ -133,6 +133,21 @@ public enum IppOperationId {
      */
     GET_NOTIFICATIONS(0x1C),
 
+    /**
+     * PWG 5100.11: IPP Everywhere Required operation.
+     */
+    CANCEL_MY_JOBS(0x39),
+
+    /**
+     * PWG 5100.11: IPP Everywhere Required operation.
+     */
+    CLOSE_JOB(0x3B),
+
+    /**
+     * PWG 5100.11: IPP Everywhere Required operation.
+     */
+    IDENTIFY_PRINTER(0x3C),
+
     /*
      * 0x4000-0x8FFF
      *
@@ -195,20 +210,31 @@ public enum IppOperationId {
     /**
     *
     */
-    private static IppOperationId[] required = new IppOperationId[] {
-            //
+    private static IppOperationId[] supported = new IppOperationId[] {
+            // ---------------------------------------
+            // REQUIRED
             GET_PRINTER_ATTR,
-            //
+            // REQUIRED
             PRINT_JOB,
-            //
+            // REQUIRED
             GET_JOB_ATTR,
-            //
+            // REQUIRED
             GET_JOBS,
-            //
+            // REQUIRED
             CANCEL_JOB,
-            //
-            VALIDATE_JOB
-    //
+            // REQUIRED
+            VALIDATE_JOB,
+    // ---------------------------------------
+    // IPP Everywhere
+    // TODO CREATE_JOB,
+    // IPP Everywhere
+    // TODO SEND_DOC,
+    // IPP Everywhere
+    // TODO CANCEL_MY_JOBS,
+    // IPP Everywhere
+    // TODO CLOSE_JOB,
+    // IPP Everywhere
+    // TODO IDENTIFY_PRINTER
             };
 
     /**
@@ -276,7 +302,14 @@ public enum IppOperationId {
             return RESUME_PRINTER;
         } else if (value == IppOperationId.PURGE_JOBS.asInt()) {
             return PURGE_JOBS;
+        } else if (value == IppOperationId.CANCEL_MY_JOBS.asInt()) {
+            return CANCEL_MY_JOBS;
+        } else if (value == IppOperationId.CLOSE_JOB.asInt()) {
+            return CLOSE_JOB;
+        } else if (value == IppOperationId.IDENTIFY_PRINTER.asInt()) {
+            return IDENTIFY_PRINTER;
         }
+
         throw new SpException("value [" + value
                 + "] can not be converted to enum");
     }
@@ -285,24 +318,8 @@ public enum IppOperationId {
      *
      * @return
      */
-    public static IppOperationId[] required() {
-        return required;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public static IppOperationId[] optional() {
-        return optional;
-    }
-
-    /**
-     *
-     * @return
-     */
     public static IppOperationId[] supported() {
-        return required();
+        return supported;
     }
 
     /**

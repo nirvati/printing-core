@@ -31,7 +31,7 @@ public enum ExternalSupplierEnum {
     /**
      * .
      */
-    SMARTSCHOOL("SmartSchool");
+    SMARTSCHOOL("Smartschool");
 
     private final String uiText;
 

@@ -34,8 +34,10 @@ import java.lang.management.ManagementFactory;
 import java.math.BigDecimal;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -96,6 +98,7 @@ import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.impl.DaoContextImpl;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.ipp.client.IppClient;
 import org.savapage.core.jmx.CoreConfig;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.jpa.ConfigProperty;
@@ -106,7 +109,6 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.tools.DatabaseTypeEnum;
 import org.savapage.core.jpa.tools.DbUpgManager;
 import org.savapage.core.jpa.tools.DbVersionInfo;
-import org.savapage.core.print.proxy.IppClient;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
@@ -275,6 +277,9 @@ public final class ConfigManager {
     public static final String SERVER_PROP_PRINTER_RAW_PORT =
             "server.print.port.raw";
     public static final String PRINTER_RAW_PORT_DEFAULT = "9100";
+
+    private static final String SERVER_PROP_IPP_PRINTER_UUID =
+            "ipp.printer-uuid";
 
     // ========================================================================
     // Undocumented ad-hoc properties for testing purposes.
@@ -736,6 +741,14 @@ public final class ConfigManager {
     }
 
     /**
+     *
+     * @return
+     */
+    public static String getIppPrinterUuid() {
+        return theServerProps.getProperty(SERVER_PROP_IPP_PRINTER_UUID, "");
+    }
+
+    /**
      * Gets the password of the database user.
      *
      * @return the password or an empty string when not specified or not found.
@@ -975,6 +988,40 @@ public final class ConfigManager {
      */
     public static void setServerProps(final Properties props) {
         theServerProps = props;
+    }
+
+    /**
+     * The SSL URL of the Admin WebApp.
+     */
+    private static URL theWebAppAdminSslUrl;
+
+    /**
+     * Sets the path of the Admin WebApp.
+     * <p>
+     * This method must be called after {@link #setServerProps(Properties)} .
+     * </p>
+     *
+     * @param path
+     *            The path of the Admin WebApp.
+     */
+    public static void setWebAppAdminPath(final String path) {
+        try {
+            theWebAppAdminSslUrl =
+                    new URL("https", getServerHostAddress(), Integer.valueOf(
+                            getServerSslPort()).intValue(), path);
+        } catch (NumberFormatException | MalformedURLException
+                | UnknownHostException e) {
+            throw new SpException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     *
+     * @param url
+     *            The The SSL {@link URL} of the Admin WebApp.
+     */
+    public static URL getWebAppAdminSslUrl() {
+        return theWebAppAdminSslUrl;
     }
 
     /**

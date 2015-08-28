@@ -28,8 +28,8 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
 
+import org.savapage.core.ipp.IppResponseHeader;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
-import org.savapage.core.print.proxy.IppResponseHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

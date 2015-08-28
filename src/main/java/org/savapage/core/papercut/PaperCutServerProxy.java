@@ -70,7 +70,7 @@ public final class PaperCutServerProxy {
      * INVARIANT: PaperCut is configured with Multiple Personal Accounts, and
      * this is the account name to use.
      */
-    private static final String USER_ACCOUNT_NAME = "SmartSchool";
+    private static final String USER_ACCOUNT_NAME = "Smartschool";
 
     /**
      * .

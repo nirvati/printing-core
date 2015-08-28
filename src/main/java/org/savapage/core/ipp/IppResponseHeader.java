@@ -19,7 +19,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.print.proxy;
+package org.savapage.core.ipp;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +32,7 @@ import org.savapage.core.ipp.operation.IppStatusCode;
  * @author Datraverse B.V.
  *
  */
-public class IppResponseHeader {
+public final class IppResponseHeader {
 
     private int versionMajor;
     private int versionMinor;
@@ -44,10 +44,9 @@ public class IppResponseHeader {
      *
      * @param istr
      *            The input stream.
-     * @param traceLog
-     *            {@code null} when no trace is active.
      * @return The IPP status-code.
      * @throws IOException
+     *             When IO errors.
      */
     public IppStatusCode read(final InputStream istr) throws IOException {
 
@@ -71,6 +70,9 @@ public class IppResponseHeader {
         return statusCode;
     }
 
+    /**
+     * @return The IPP major version.
+     */
     public int getVersionMajor() {
         return versionMajor;
     }
@@ -83,14 +85,27 @@ public class IppResponseHeader {
         this.statusCode = statusCode;
     }
 
+    /**
+     *
+     * @param versionMajor
+     *            The IPP major version.
+     */
     public void setVersionMajor(int versionMajor) {
         this.versionMajor = versionMajor;
     }
 
+    /**
+     * @return The IPP minor version.
+     */
     public int getVersionMinor() {
         return versionMinor;
     }
 
+    /**
+     *
+     * @param versionMinor
+     *            The IPP minor version.
+     */
     public void setVersionMinor(int versionMinor) {
         this.versionMinor = versionMinor;
     }

@@ -51,6 +51,16 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     public static final String DOCUMENT_FORMAT_URF = "image/urf";
 
     /**
+     * A document format required by IPP everywhere.
+     */
+    public static final String DOCUMENT_FORMAT_JPEG = "image/jpeg";
+
+    /**
+     * A document format required by IPP everywhere.
+     */
+    public static final String DOCUMENT_FORMAT_PWG_RASTER = "image/pwg-raster";
+
+    /**
      * The document format is used by Linux.
      */
     public static final String DOCUMENT_FORMAT_PDF = "application/pdf";
@@ -91,17 +101,22 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
             "uri-authentication-supported";
     public static final String ATTR_PRINTER_NAME = "printer-name";
     public static final String ATTR_PRINTER_LOCATION = "printer-location";
+
     public static final String ATTR_PRINTER_INFO = "printer-info";
-    public static final String ATTR_PRINTER_MORE_INFO = "printer-more-info";
     public static final String ATTR_PRINTER_DRIVER_INSTALLER =
             "printer-driver-installer";
     public static final String ATTR_PRINTER_MAKE_MODEL =
             "printer-make-and-model";
-    public static final String ATTR_PRINTER_MORE_INFO_MANUFACTURER =
-            "printer-more-info-manufacturer";
     public static final String ATTR_PRINTER_STATE = "printer-state";
+
+    /**
+     * Required for IPP everywhere: <a
+     * href="https://tools.ietf.org/html/rfc3995#section-6.1">RFC 3995</a> :
+     * (dateTime).
+     */
     public static final String ATTR_PRINTER_STATE_CHANGE_TIME =
             "printer-state-change-time";
+
     public static final String ATTR_PRINTER_STATE_REASONS =
             "printer-state-reasons";
     public static final String ATTR_PRINTER_STATE_MESSAGE =
@@ -122,6 +137,7 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
             "document-format-default";
     public static final String ATTR_DOC_FORMAT_SUPPORTED =
             "document-format-supported";
+
     public static final String ATTR_PRINTER_IS_ACCEPTING_JOBS =
             "printer-is-accepting-jobs";
     public static final String ATTR_QUEUES_JOB_COUNT = "queued-job-count";
@@ -167,6 +183,41 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
      */
     public static final String ATTR_JOB_SETTABLE_ATTRIBUTES_SUPPORTED =
             "job-settable-attributes-supported";
+
+    /**
+     *
+     */
+    public static final String ATTR_PRINTER_MORE_INFO_MANUFACTURER =
+            "printer-more-info-manufacturer";
+
+    // =========================================================================
+    // Added for IPP everywhere
+    // =========================================================================
+    /**
+     * Required for IPP everywhere.
+     */
+    public static final String ATTR_PRINTER_MORE_INFO = "printer-more-info";
+
+    /**
+     * Required for IPP everywhere.
+     */
+    public static final String ATTR_PRINTER_UUID = "printer-uuid";
+
+    /**
+     * Required for IPP everywhere.
+     */
+    public static final String ATTR_DOC_PASSWORD_SUPPORTED =
+            "document-password-supported";
+
+    /**
+     * Required for IPP everywhere: <a
+     * href="https://tools.ietf.org/html/rfc3995#section-6.2">RFC 3995</a> :
+     * (integer(1:MAX)).
+     */
+    public static final String ATTR_PRINTER_STATE_CHANGE_DATE_TIME =
+            "printer-state-change-date-time";
+
+    // =========================================================================
 
     /**
      * CUPS extension.
@@ -419,6 +470,12 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
                             IppMimeMediaType.instance()),
 
                     /*
+                     * PWG 5100.13 'document-password-supported'
+                     * (integer(0:1023))
+                     */
+                    new IppAttr(ATTR_DOC_PASSWORD_SUPPORTED, new IppInteger(0)),
+
+                    /*
                      * 4.4.23 printer-is-accepting-jobs (boolean)
                      */
                     new IppAttr(ATTR_PRINTER_IS_ACCEPTING_JOBS,
@@ -514,7 +571,12 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
                             IppInteger.MAX)),
 
                     /*
-                     * CUPS extenstion
+                     *
+                     */
+                    new IppAttr(ATTR_PRINTER_UUID, IppUri.instance()),
+
+                    /*
+                     * CUPS extension
                      */
                     new IppAttr(ATTR_CUPS_VERSION, IppText.instance())
 

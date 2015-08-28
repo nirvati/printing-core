@@ -1051,6 +1051,14 @@ public interface IConfigProp {
                 "smartschool.1.soap.print.proxy-printer"),
 
         /**
+         * {@code true} if costs are charged to individual students,
+         * {@code false} if costs are charged to shared "Klas" accounts only.
+         */
+        SMARTSCHOOL_1_SOAP_PRINT_CHARGE_TO_STUDENTS(
+                "smartschool.1.soap.print.charge-to-students",
+                BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * SOAP endpoint URL of SmartSchool Print Center (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_URL(
@@ -1072,6 +1080,14 @@ public interface IConfigProp {
          */
         SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER(
                 "smartschool.2.soap.print.proxy-printer"),
+
+        /**
+         * {@code true} if costs are charged to individual students,
+         * {@code false} if costs are charged to shared "Klas" accounts only.
+         */
+        SMARTSCHOOL_2_SOAP_PRINT_CHARGE_TO_STUDENTS(
+                "smartschool.2.soap.print.charge-to-students",
+                BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * SOAP endpoint URL of SmartSchool Print Center (2).

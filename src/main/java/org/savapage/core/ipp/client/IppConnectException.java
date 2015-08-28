@@ -19,7 +19,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.print.proxy;
+package org.savapage.core.ipp.client;
 
 /**
  *
