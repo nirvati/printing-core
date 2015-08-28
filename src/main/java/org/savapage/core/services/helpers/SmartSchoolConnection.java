@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -92,23 +92,38 @@ public class SmartSchoolConnection {
     private final char[] password;
 
     /**
+     *
+     */
+    private final boolean chargeToStudents;
+
+    /**
+    *
+    */
+    private final String proxyPrinterName;
+
+    /**
      * .
      *
      */
     private volatile boolean shutdownRequested = false;
 
-    private final String proxyPrinterName;
-
     /**
      *
      * @param endpoint
+     *            The SOAP endpoint.
      * @param password
+     *            Password for the Smartschool Afdrukcentrum.
      * @param proxyPrinterName
      *            Name of the proxy printer, can be {@code null} or empty.
+     * @param chargeToStudents
+     *            {@code true} if costs are charged to individual students,
+     *            {@code false} if costs are charged to shared "Klas" accounts
+     *            only.
      * @throws SOAPException
      */
     public SmartSchoolConnection(final String endpoint, final char[] password,
-            final String proxyPrinterName) throws SOAPException {
+            final String proxyPrinterName, final boolean chargeToStudents)
+            throws SOAPException {
 
         try {
             this.endpointUri = new URI(endpoint);
@@ -123,6 +138,8 @@ public class SmartSchoolConnection {
             throw new SOAPException(String.format("%s: %s", e.getClass()
                     .getSimpleName(), e.getMessage()), e);
         }
+
+        this.chargeToStudents = chargeToStudents;
 
         this.accountName =
                 StringUtils.substringBefore(this.endpointUrl.getHost(), ".");
@@ -198,5 +215,15 @@ public class SmartSchoolConnection {
 
     public String getProxyPrinterName() {
         return proxyPrinterName;
+    }
+
+    /**
+     *
+     * @return {@code true} if costs are charged to individual students,
+     *         {@code false} if costs are charged to shared "Klas" accounts
+     *         only.
+     */
+    public boolean isChargeToStudents() {
+        return chargeToStudents;
     }
 }

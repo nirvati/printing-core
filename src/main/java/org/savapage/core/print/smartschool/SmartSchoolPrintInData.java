@@ -112,4 +112,15 @@ public final class SmartSchoolPrintInData extends JsonAbstractBase implements
         }
     };
 
+    /**
+     * Creates an object from data string.s
+     *
+     * @param data
+     *            The serialized data.
+     * @return The {@link SmartSchoolPrintInData} object.
+     */
+    public static SmartSchoolPrintInData createFromData(final String data) {
+        return SmartSchoolPrintInData
+                .create(SmartSchoolPrintInData.class, data);
+    }
 }

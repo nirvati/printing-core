@@ -65,10 +65,10 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.helpers.ReservedIppQueueEnum;
 import org.savapage.core.jpa.Account;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
-import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.print.smartschool.SmartSchoolException;
 import org.savapage.core.print.smartschool.SmartSchoolLogger;
 import org.savapage.core.print.smartschool.SmartSchoolPrintStatusEnum;
@@ -103,7 +103,7 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
     /**
      * The name of the parent {@link Account} for all child "klas" accounts.
      */
-    private static final String SHARED_PARENT_ACCOUNT_NAME = "SmartSchool";
+    private static final String SHARED_PARENT_ACCOUNT_NAME = "Smartschool";
 
     /**
      * The name of the child {@link Account} for all SmartScholl Jobs.
@@ -136,7 +136,8 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
                             cm.getConfigValue(
                                     Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD)
                                     .toCharArray(),
-                            cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER));
+                            cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER),
+                            cm.isConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_CHARGE_TO_STUDENTS));
 
             connectionMap.put(connection.getAccountName(), connection);
         }
@@ -149,7 +150,8 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
                             cm.getConfigValue(
                                     Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD)
                                     .toCharArray(),
-                            cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER));
+                            cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER),
+                            cm.isConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_CHARGE_TO_STUDENTS));
             connectionMap.put(connection.getAccountName(), connection);
         }
 

@@ -63,6 +63,7 @@ import org.savapage.core.dao.helpers.PrintModeEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
+import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.job.AbstractJob;
 import org.savapage.core.job.SmartSchoolPrintMonitorJob;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
@@ -80,7 +81,6 @@ import org.savapage.core.papercut.PaperCutServerProxy;
 import org.savapage.core.papercut.PaperCutUser;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.SpPdfPageProps;
-import org.savapage.core.print.proxy.IppConnectException;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
@@ -373,7 +373,7 @@ public final class SmartSchoolPrintMonitor {
         /*
          * Wait for processing to finish.
          */
-        waitForProcessing(this, 1000L);
+        waitForProcessing(this, DateUtil.DURATION_MSEC_SECOND);
 
         int nActions = 0;
 
@@ -505,7 +505,7 @@ public final class SmartSchoolPrintMonitor {
                                         heartbeatSecs)) + "] till ["
                                 + dateFormat.format(sessionEndDate) + "] ...");
                     }
-                    Thread.sleep(heartbeatSecs * 1000);
+                    Thread.sleep(heartbeatSecs * DateUtil.DURATION_MSEC_SECOND);
 
                 } else if (this.isConnected) {
 
@@ -619,13 +619,14 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
+     * Simulates the download of a one-page document.
      *
      * @param document
      * @param uuid
-     * @return
+     * @return The simulated download {@link File}.
      */
-    private static File
-            downloadDocumentSimulation(Document document, UUID uuid) {
+    private static File downloadDocumentSimulation(final Document document,
+            final UUID uuid) {
 
         final File downloadFile =
                 SMARTSCHOOL_SERVICE.getDownloadFile(document.getName(), uuid);
@@ -1083,25 +1084,14 @@ public final class SmartSchoolPrintMonitor {
         }
 
         /*
-         * Accumulate the total AccountTrx weight.
+         * Get total number of copies from the external data and use as weight
+         * total.
          */
-        int weightTotal = 0;
+        final SmartSchoolPrintInData externalPrintInData =
+                SmartSchoolPrintInData.createFromData(docLogIn
+                        .getExternalData());
 
-        for (final AccountTrx trx : trxList) {
-
-            final org.savapage.core.jpa.Account account = trx.getAccount();
-
-            final AccountTypeEnum accountType =
-                    AccountTypeEnum.valueOf(account.getAccountType());
-
-            /*
-             * Weights of personal and shared accounts are NOT mutually
-             * exclusive: add user account totals only.
-             */
-            if (accountType != AccountTypeEnum.SHARED) {
-                weightTotal += trx.getTransactionWeight().intValue();
-            }
-        }
+        final int weightTotal = externalPrintInData.getCopies().intValue();
 
         /*
          * Total printing cost reported by PaperCut.
@@ -1787,10 +1777,75 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
+     * Checks if user account exists in SavaPage and (optionally) PaperCut.
+     *
+     * @param monitor
+     *            The {@link SmartSchoolPrintMonitor} instance.
+     * @param userName
+     *            The unique user id.
+     * @param lazyInsertUser
+     *            {@code true} if user may be lazy inserted.
+     * @param userSource
+     *            The {@link IUserSource}.
+     * @param userSourceGroup
+     *            The user group of the The {@link IUserSource}.
+     *
+     * @return {@code true} if checked OK.
+     */
+    private static boolean collectCopyInfoUserCheck(
+            final SmartSchoolPrintMonitor monitor, final String userName,
+            final boolean lazyInsertUser, final IUserSource userSource,
+            final String userSourceGroup) {
+
+        final PaperCutUser papercutUser;
+        final Boolean userExistPaperCut;
+
+        if (monitor.isIntegratedWithPaperCut()) {
+            papercutUser = monitor.papercutServerProxy.getUser(userName);
+            userExistPaperCut = papercutUser != null;
+        } else {
+            userExistPaperCut = null;
+        }
+
+        final User user =
+                findActiveUser(userName, lazyInsertUser, userSource,
+                        userSourceGroup);
+
+        final boolean userExistSavaPage = user != null;
+
+        final String msg;
+
+        if (!userExistSavaPage && userExistPaperCut != null
+                && !userExistPaperCut) {
+            msg =
+                    String.format("Account [%s] skipped: onbekend "
+                            + "in %s en PaperCut.", userName,
+                            CommunityDictEnum.SAVAPAGE.getWord());
+        } else if (!userExistSavaPage) {
+            msg =
+                    String.format("Account [%s] skipped: onbekend in %s.",
+                            userName, CommunityDictEnum.SAVAPAGE.getWord());
+        } else if (userExistPaperCut != null && !userExistPaperCut) {
+            msg =
+                    String.format("Account [%s] skipped: "
+                            + "onbekend in PaperCut.", userName);
+        } else {
+            msg = null;
+        }
+
+        if (msg != null) {
+            LOGGER.warn(msg);
+        }
+
+        return msg == null;
+    }
+
+    /**
      * Collects info about the number of copies to be printed.
      * <p>
-     * Copies are counted for accounts that exist in SavaPage and (optionally)
-     * PaperCut.
+     * If copies are charged to personal accounts these accounts (users) MUST
+     * exist in SavaPage and (optionally) PaperCut: if these accounts do not
+     * exist copies for these accounts are NOT counted.
      * </p>
      *
      * @param monitor
@@ -1816,6 +1871,9 @@ public final class SmartSchoolPrintMonitor {
             final Map<String, Integer> userCopies,
             final boolean lazyInsertUser, final IUserSource userSource,
             final String userSourceGroup) {
+
+        final boolean chargeToStudents =
+                monitor.processingConnection.isChargeToStudents();
 
         int nTotCopies = 0;
 
@@ -1886,12 +1944,12 @@ public final class SmartSchoolPrintMonitor {
             // Clazz
             final String clazz = account.getClazz();
 
-            final boolean personalAccount = StringUtils.isBlank(clazz);
+            final boolean teacherAccount = StringUtils.isBlank(clazz);
 
             /*
              * INVARIANT: Student MUST have a class.
              */
-            if (personalAccount && roleEnum == SmartSchoolRoleEnum.STUDENT) {
+            if (teacherAccount && roleEnum == SmartSchoolRoleEnum.STUDENT) {
                 if (LOGGER.isWarnEnabled()) {
                     LOGGER.warn("Account [" + userName
                             + "] skipped: no class specified.");
@@ -1899,52 +1957,22 @@ public final class SmartSchoolPrintMonitor {
                 continue;
             }
 
+            final boolean chargeCopiesToUser =
+                    teacherAccount || chargeToStudents;
+
             /*
-             * INVARIANT: Account MUST exist in SavaPage and (optionally)
-             * PaperCut.
+             * INVARIANT: If copies are charged to an individual user, this user
+             * MUST exist in SavaPage and (optionally) PaperCut.
              */
-            final PaperCutUser papercutUser;
-            final Boolean userExistPaperCut;
-
-            if (monitor.isIntegratedWithPaperCut()) {
-                papercutUser = monitor.papercutServerProxy.getUser(userName);
-                userExistPaperCut = papercutUser != null;
-            } else {
-                userExistPaperCut = null;
-            }
-
-            final User user =
-                    findActiveUser(userName, lazyInsertUser, userSource,
-                            userSourceGroup);
-
-            final boolean userExistSavaPage = user != null;
-
-            final String msg;
-
-            if (!userExistSavaPage && userExistPaperCut != null
-                    && !userExistPaperCut) {
-                msg =
-                        String.format("Account [%s] skipped: onbekend "
-                                + "in %s en PaperCut.", userName,
-                                CommunityDictEnum.SAVAPAGE.getWord());
-            } else if (!userExistSavaPage) {
-                msg =
-                        String.format("Account [%s] skipped: onbekend in %s.",
-                                userName, CommunityDictEnum.SAVAPAGE.getWord());
-            } else if (userExistPaperCut != null && !userExistPaperCut) {
-                msg =
-                        String.format("Account [%s] skipped: "
-                                + "onbekend in PaperCut.", userName);
-            } else {
-                msg = null;
-            }
-
-            if (msg != null) {
-                LOGGER.warn(msg);
+            if (chargeCopiesToUser
+                    && !collectCopyInfoUserCheck(monitor, userName,
+                            lazyInsertUser, userSource, userSourceGroup)) {
                 continue;
             }
 
-            // Copies + extra
+            /*
+             * Calculate number of copies + extra.
+             */
             final Integer copies = account.getCopies();
             final Integer extra = account.getExtra();
 
@@ -1977,18 +2005,20 @@ public final class SmartSchoolPrintMonitor {
             Integer collectedSumNew;
 
             // User copies
-            collectedSum = userCopies.get(userName);
+            if (chargeCopiesToUser) {
+                collectedSum = userCopies.get(userName);
 
-            if (collectedSum == null) {
-                collectedSumNew = Integer.valueOf(nCopies);
-            } else {
-                collectedSumNew =
-                        Integer.valueOf(collectedSum.intValue() + nCopies);
+                if (collectedSum == null) {
+                    collectedSumNew = Integer.valueOf(nCopies);
+                } else {
+                    collectedSumNew =
+                            Integer.valueOf(collectedSum.intValue() + nCopies);
+                }
+                userCopies.put(userName, collectedSumNew);
             }
-            userCopies.put(userName, collectedSumNew);
 
             // Class copies.
-            if (!personalAccount) {
+            if (!teacherAccount) {
 
                 collectedSum = klasCopies.get(clazz);
 
