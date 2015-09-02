@@ -45,6 +45,32 @@ public final class Pdf2PngPopplerCmd implements Pdf2ImgCommandExt {
      */
     private static final int STRINGBUILDER_CAPACITY = 256;
 
+    /**
+     * Enable or disable font anti-aliasing.
+     */
+    private final boolean antiAliasingFont;
+
+    /**
+     * Enable or disable vector anti-aliasing.
+     */
+    private final boolean antiAliasingVector;
+
+    /**
+     *
+     */
+    public Pdf2PngPopplerCmd() {
+        this.antiAliasingFont = true;
+        this.antiAliasingVector = true;
+    }
+
+    /**
+     *
+     */
+    public Pdf2PngPopplerCmd(final boolean antiAliasing) {
+        this.antiAliasingFont = antiAliasing;
+        this.antiAliasingVector = true;
+    }
+
     @Override
     public String createCommand(final File pdfFile, final File imgFile,
             final int pageOrdinal, final String rotate2Apply,
@@ -69,6 +95,14 @@ public final class Pdf2PngPopplerCmd implements Pdf2ImgCommandExt {
 
         if (imgWidth != null) {
             cmdBuffer.append(" -scale-to ").append(imgWidth);
+        }
+
+        if (!this.antiAliasingFont) {
+            cmdBuffer.append(" -aa no ");
+        }
+
+        if (!this.antiAliasingVector) {
+            cmdBuffer.append(" -aaVector no ");
         }
 
         cmdBuffer.append(" \"").append(pdfFile.getAbsolutePath()).append("\"");
