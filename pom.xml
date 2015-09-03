@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>savapage-core</artifactId>
     <groupId>org.savapage</groupId>
-    <version>0.9.9</version>
+    <version>0.9.10</version>
 	<name>SavaPage Core Library</name>
     <properties>
         <LICENSE_NAME>GNU Affero General Public License (AGPL)</LICENSE_NAME>
@@ -322,7 +322,7 @@
         <dependency>
             <groupId>org.savapage</groupId>
             <artifactId>savapage-common</artifactId>
-            <version>0.9.9</version>
+            <version>0.9.10</version>
         </dependency>
         <dependency>
         	<groupId>org.bouncycastle</groupId>
