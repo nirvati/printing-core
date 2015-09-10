@@ -25,6 +25,9 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
+import org.savapage.core.cometd.AdminPublisher;
+import org.savapage.core.cometd.PubLevelEnum;
+import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.papercut.PaperCutDbProxy;
 import org.savapage.core.papercut.PaperCutException;
 import org.savapage.core.papercut.PaperCutPrinterUsageLog;
@@ -67,18 +70,27 @@ public final class PaperCutServiceImpl extends AbstractService implements
 
         } catch (PaperCutException e) {
 
+            final String composedSharedAccountName =
+                    papercut.composeSharedAccountName(topAccountName,
+                            subAccountName);
+
             if (LOGGER.isInfoEnabled()) {
 
                 LOGGER.info(String.format(
                         "Shared account [%s] does not exist: added new.",
-                        papercut.composeSharedAccountName(topAccountName,
-                                subAccountName)));
+                        composedSharedAccountName));
             }
 
             papercut.addNewSharedAccount(topAccountName, subAccountName);
 
             papercut.adjustSharedAccountAccountBalance(topAccountName,
                     subAccountName, adjustment.doubleValue(), comment);
+
+            AdminPublisher.instance().publish(
+                    PubTopicEnum.PAPERCUT,
+                    PubLevelEnum.CLEAR,
+                    String.format("PaperCut account '%s' created.",
+                            composedSharedAccountName));
         }
 
     }
