@@ -350,10 +350,13 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
     }
 
     /**
+     * Creates a {@link User} from LDAP {@link Attributes}.
      *
      * @param attributes
      *            The attributes.
-     * @return The {@link User}.
+     * @return The {@link User} or {@code null} when identifying UserName is not
+     *         found in the LDAP {@link Attributes}.
+     *
      * @throws NamingException
      *             When LDAP error.
      */
@@ -373,37 +376,41 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
             throws NamingException;
 
     /**
+     * Creates a {@link CommonUser} from LDAP {@link Attributes}.
      *
      * @param attributes
      *            The attributes.
-     * @return The {@link CommonUser}.
+     * @return The {@link CommonUser} or {@code null} when identifying UserName
+     *         is not found in the LDAP {@link Attributes}.
      * @throws NamingException
      *             When LDAP error.
      */
     private CommonUser createCommonUser(final Attributes attributes)
             throws NamingException {
 
-        final CommonUser user = new CommonUser();
-
-        Attribute attr;
-        String attrValue;
-
         /*
          * User Name.
          */
-        attr = attributes.get(this.attrIdUserName);
-        attrValue = attr.get().toString();
+        Attribute attrWlk = attributes.get(this.attrIdUserName);
 
-        user.setExternalUserName(attrValue);
-        user.setUserName(asDbUserId(attrValue));
+        if (attrWlk == null || attrWlk.get() == null) {
+            return null;
+        }
+
+        final CommonUser user = new CommonUser();
+
+        String attrValueWlk = attrWlk.get().toString();
+
+        user.setExternalUserName(attrValueWlk);
+        user.setUserName(asDbUserId(attrValueWlk));
 
         /*
          * Email, multiple values ...
          */
-        attr = attributes.get(this.attrIdUserEmail);
+        attrWlk = attributes.get(this.attrIdUserEmail);
 
-        if (attr != null) {
-            NamingEnumeration<?> values = attr.getAll();
+        if (attrWlk != null) {
+            NamingEnumeration<?> values = attrWlk.getAll();
             while (values.hasMore()) {
                 user.setEmail(values.next().toString());
             }
@@ -412,19 +419,19 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
         /*
          * Full Name
          */
-        attr = attributes.get(this.attrIdUserFullName);
+        attrWlk = attributes.get(this.attrIdUserFullName);
 
-        if (attr != null) {
-            user.setFullName(attr.get().toString());
+        if (attrWlk != null && attrWlk.get() != null) {
+            user.setFullName(attrWlk.get().toString());
         }
 
         /*
          * ID Number
          */
         if (isIdNumberProvided()) {
-            attr = attributes.get(this.attrIdUserIdNumber);
-            if (attr != null) {
-                user.setIdNumber(attr.get().toString());
+            attrWlk = attributes.get(this.attrIdUserIdNumber);
+            if (attrWlk != null && attrWlk.get() != null) {
+                user.setIdNumber(attrWlk.get().toString());
             }
         }
 
@@ -432,9 +439,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
          * Card Number
          */
         if (isCardNumberProvided()) {
-            attr = attributes.get(this.attrIdUserCardNumber);
-            if (attr != null) {
-                user.setCardNumber(attr.get().toString());
+            attrWlk = attributes.get(this.attrIdUserCardNumber);
+            if (attrWlk != null && attrWlk.get() != null) {
+                user.setCardNumber(attrWlk.get().toString());
             }
         }
 
@@ -862,7 +869,11 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
                         final Attributes attributes =
                                 searchResult.getAttributes();
 
-                        sset.add(createCommonUser(attributes));
+                        final CommonUser cuser = createCommonUser(attributes);
+
+                        if (cuser != null) {
+                            sset.add(cuser);
+                        }
                     }
 
                 } finally {
@@ -1102,7 +1113,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
             if (attributes != null && isUserGroupMember(attributes)) {
                 cuser = createCommonUser(attributes);
-                if (LOGGER.isDebugEnabled()) {
+                if (cuser != null && LOGGER.isDebugEnabled()) {
                     LOGGER.debug("member [" + cuser.getUserName() + "]");
                 }
             }
