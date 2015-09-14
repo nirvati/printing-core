@@ -1109,16 +1109,17 @@ public interface IConfigProp {
                 "2"),
 
         /**
-         * The number of heartbeats within a SmartSchool print polling after
-         * which an actual poll to SmartSchool is executed.
+         * The number of heartbeats within a SmartSchool print polling session
+         * after which an actual poll to SmartSchool is executed.
          * <p>
-         * SmartSchool tech support advises a poll frequency between 60 and 120
-         * seconds.
+         * SmartSchool has a rate-limit of one (1) poll per 2 minutes. When
+         * limit is exceeded an error message is returned. Note: status
+         * updates can be send unlimited.
          * </p>
          */
         SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEATS(
                 "smartschool.soap.print.poll.heartbeats", NUMBER_VALIDATOR,
-                "60"),
+                "61"),
 
         /**
          * The duration (seconds) of a SmartSchool print polling session.

@@ -413,7 +413,8 @@ public final class SmartSchoolPrintMonitor {
      * @param heartbeatSecs
      *            Number of seconds of a heartbeat.
      * @param pollingHeartbeats
-     *            The polling interval in seconds.
+     *            The number of heartbeats after which Smartschool is contacted
+     *            for waiting print jobs.
      * @param sessionDurationSecs
      *            The duration after which this method returns.
      * @throws InterruptedException
