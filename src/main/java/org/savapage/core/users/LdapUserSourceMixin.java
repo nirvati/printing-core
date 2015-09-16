@@ -1108,7 +1108,21 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
                  *
                  * cn=Folkert Ravestein,ou=Studenten
                  */
-                attributes = ctx.getAttributes(ldapRdnFromDn(member));
+                final LdapName ldapName = ldapRdnFromDn(member);
+
+                try {
+                    attributes = ctx.getAttributes(ldapName);
+                } catch (NamingException e) {
+                    /*
+                     * When member is outside the BaseDN scope.
+                     */
+                    if (LOGGER.isWarnEnabled()) {
+                        LOGGER.warn(String.format(
+                                "BaseDN [%s]: failed to get attributes "
+                                        + "for member [%s] : %s",
+                                this.getBaseDN(), member, e.getMessage()));
+                    }
+                }
             }
 
             if (attributes != null && isUserGroupMember(attributes)) {
