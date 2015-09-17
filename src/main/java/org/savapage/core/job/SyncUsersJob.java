@@ -360,15 +360,16 @@ public final class SyncUsersJob extends AbstractJob {
     }
 
     /**
-     * Gets the next database User.
+     * Gets the next database User and load it into the session context.
      *
      * @param iter
-     *            The {@link Iterator}/
+     *            The {@link Iterator}.
      * @return {@code null} when EOF.
      */
     private User nextDb(final Iterator<User> iter) {
         if (iter.hasNext()) {
-            return iter.next();
+            return ServiceContext.getDaoContext().getUserDao()
+                    .findById(iter.next().getId());
         }
         return null;
     }
