@@ -1078,14 +1078,14 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
                 /*
                  * Group member field contains the user's username.
                  */
-                String ldapFilterExpression =
-                        "(" + ldapUserFullNameField + "=" + member + ")";
+                final String ldapFilterExpression =
+                        String.format("(%s=%s)", ldapUserFullNameField, member);
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("filter [" + ldapFilterExpression + "]");
                 }
 
-                SearchControls controls = new SearchControls();
+                final SearchControls controls = new SearchControls();
                 controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
                 controls.setCountLimit(0);
 
