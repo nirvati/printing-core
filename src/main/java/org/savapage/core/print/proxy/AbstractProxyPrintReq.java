@@ -412,6 +412,14 @@ public abstract class AbstractProxyPrintReq {
     }
 
     /**
+     * Set to one-sided printing.
+     */
+    public void setSinglex() {
+        this.getOptionValues().put(IppDictJobTemplateAttr.ATTR_SIDES,
+                IppKeyword.SIDES_ONE_SIDED);
+    }
+
+    /**
     *
     */
     public void setDuplexLongEdge() {
@@ -453,6 +461,11 @@ public abstract class AbstractProxyPrintReq {
     public void setGrayscale() {
         getOptionValues().put(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
                 IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
+    }
+
+    public void setColor() {
+        getOptionValues().put(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
+                IppKeyword.PRINT_COLOR_MODE_COLOR);
     }
 
     public Boolean getFitToPage() {

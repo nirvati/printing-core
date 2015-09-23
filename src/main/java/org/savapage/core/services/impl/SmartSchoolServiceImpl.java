@@ -137,6 +137,7 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
                                     Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD)
                                     .toCharArray(),
                             cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER),
+                            cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE),
                             cm.isConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_CHARGE_TO_STUDENTS));
 
             connectionMap.put(connection.getAccountName(), connection);
@@ -151,6 +152,7 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
                                     Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD)
                                     .toCharArray(),
                             cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER),
+                            cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE),
                             cm.isConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_CHARGE_TO_STUDENTS));
             connectionMap.put(connection.getAccountName(), connection);
         }

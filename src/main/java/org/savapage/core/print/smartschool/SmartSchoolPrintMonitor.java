@@ -117,8 +117,10 @@ import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -635,17 +637,28 @@ public final class SmartSchoolPrintMonitor {
         final com.itextpdf.text.Document pdfDoc =
                 new com.itextpdf.text.Document();
 
+        final Font font = FontFactory.getFont("Courier", 42f);
+        Paragraph para;
+
         try {
+            final String text = "\n\n\n\nSmartSchool Simulation";
 
             PdfWriter.getInstance(pdfDoc, new FileOutputStream(downloadFile));
             pdfDoc.open();
 
-            final Paragraph para =
-                    new Paragraph("\n\n\n\nSmartSchool Simulation",
-                            FontFactory.getFont("Courier", 42f));
 
+            // Page #1
+            font.setColor(BaseColor.GREEN);
+            para = new Paragraph(text, font);
             para.setAlignment(Element.ALIGN_CENTER);
+            pdfDoc.add(para);
 
+            // Page #2
+            pdfDoc.newPage();
+
+            font.setColor(BaseColor.BLACK);
+            para = new Paragraph(text, font);
+            para.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.add(para);
 
         } catch (DocumentException de) {
@@ -732,8 +745,12 @@ public final class SmartSchoolPrintMonitor {
         document.setProcessinfo(processinfo);
 
         processinfo.setPapersize("a4");
+
         processinfo.setDuplex("off");
+        //processinfo.setDuplex("on");
+
         processinfo.setRendermode("grayscale");
+        //processinfo.setRendermode("color");
 
         //
         final Billinginfo billinginfo = new Billinginfo();
@@ -2081,6 +2098,9 @@ public final class SmartSchoolPrintMonitor {
         final String proxyPrinterName =
                 monitor.processingConnection.getProxyPrinterName();
 
+        final String proxyPrinterGrayscaleName =
+                monitor.processingConnection.getProxyPrinterGrayscaleName();
+
         final boolean isDirectProxyPrint =
                 StringUtils.isNotBlank(proxyPrinterName);
 
@@ -2168,8 +2188,9 @@ public final class SmartSchoolPrintMonitor {
                 printInInfo.setAccountTrxInfoSet(accountTrxInfoSet);
             }
 
-            processJobProxyPrint(monitor, user, proxyPrinterName, document,
-                    downloadedFile, printInInfo, externalSupplierInfo);
+            processJobProxyPrint(monitor, user, proxyPrinterName,
+                    proxyPrinterGrayscaleName, document, downloadedFile,
+                    printInInfo, externalSupplierInfo);
 
         } else {
 
@@ -2240,7 +2261,8 @@ public final class SmartSchoolPrintMonitor {
      *             When printer has no media-source for media size.
      */
     private static void addProxyPrintJobChunk(final ProxyPrintDocReq printReq,
-            final IppMediaSizeEnum ippMediaSize) throws ProxyPrintException {
+            final IppMediaSizeEnum ippMediaSize,
+            final boolean hasMediaSourceAuto) throws ProxyPrintException {
 
         final PrinterDao printerDao =
                 ServiceContext.getDaoContext().getPrinterDao();
@@ -2268,8 +2290,18 @@ public final class SmartSchoolPrintMonitor {
         final ProxyPrintJobChunk jobChunk = new ProxyPrintJobChunk();
 
         jobChunk.setAssignedMedia(ippMediaSize);
-        jobChunk.setAssignedMediaSource(assignedMediaSource);
 
+        /*
+         * If printer supports the "auto" "media-source" we do NOT set the
+         * media-source.
+         */
+        if (!hasMediaSourceAuto) {
+            jobChunk.setAssignedMediaSource(assignedMediaSource);
+        }
+
+        /*
+         * Chunk range begins at first page.
+         */
         final ProxyPrintJobChunkRange chunkRange =
                 new ProxyPrintJobChunkRange();
 
@@ -2280,7 +2312,6 @@ public final class SmartSchoolPrintMonitor {
         jobChunk.getRanges().add(chunkRange);
 
         printReq.setJobChunkInfo(new ProxyPrintJobChunkInfo(jobChunk));
-
     }
 
     /**
@@ -2350,7 +2381,9 @@ public final class SmartSchoolPrintMonitor {
      * @param user
      *            The locked user
      * @param printerName
-     *            The unique printer name.
+     *            The unique printer name for all jobs.
+     * @param printerGrayscaleName
+     *            The unique printer name for grayscale jobs.
      * @param document
      *            The {@link Document}.
      * @param downloadedFile
@@ -2366,11 +2399,30 @@ public final class SmartSchoolPrintMonitor {
      */
     private static void processJobProxyPrint(
             final SmartSchoolPrintMonitor monitor, final User user,
-            final String printerName, final Document document,
-            final File downloadedFile, final DocContentPrintInInfo printInInfo,
+            final String printerName, final String printerGrayscaleName,
+            final Document document, final File downloadedFile,
+            final DocContentPrintInInfo printInInfo,
             final ExternalSupplierInfo externalSupplierInfo)
             throws ProxyPrintException, IppConnectException {
 
+        /*
+         * Get SmartSchool process info from the supplier data.
+         */
+        final SmartSchoolPrintInData supplierData =
+                (SmartSchoolPrintInData) externalSupplierInfo.getData();
+
+        final String printerNameSelected;
+
+        if (supplierData.getColor()
+                || StringUtils.isBlank(printerGrayscaleName)) {
+            printerNameSelected = printerName;
+        } else {
+            printerNameSelected = printerGrayscaleName;
+        }
+
+        /*
+         * Create print request.
+         */
         final ProxyPrintDocReq printReq =
                 new ProxyPrintDocReq(PrintModeEnum.AUTO);
 
@@ -2380,40 +2432,52 @@ public final class SmartSchoolPrintMonitor {
         printReq.setComment(document.getComment());
 
         printReq.setNumberOfPages(printInInfo.getPageProps().getNumberOfPages());
-        printReq.setPrinterName(printerName);
-        printReq.setRemoveGraphics(false);
+        printReq.setPrinterName(printerNameSelected);
+
         printReq.setLocale(ServiceContext.getLocale());
         printReq.setIdUser(user.getId());
+
+        printReq.setRemoveGraphics(false);
         printReq.setClearPages(false);
 
         final Map<String, String> ippOptions =
-                PROXY_PRINT_SERVICE.getDefaultPrinterCostOptions(printerName);
+                PROXY_PRINT_SERVICE
+                        .getDefaultPrinterCostOptions(printerNameSelected);
 
         printReq.setOptionValues(ippOptions);
 
-        /*
-         * Get SmartSchool process info from the supplier data.
-         */
-        SmartSchoolPrintInData supplierData =
-                (SmartSchoolPrintInData) externalSupplierInfo.getData();
-
+        // copies
         printReq.setNumberOfCopies(supplierData.getCopies());
 
         // media
         printReq.setMediaOption(supplierData.getMediaSize().getIppKeyword());
 
+        final boolean isDuplexPrinter =
+                PROXY_PRINT_SERVICE.isDuplexPrinter(printerNameSelected);
+
         // duplex
-        if (supplierData.getDuplex() && ProxyPrintDocReq.hasDuplex(ippOptions)) {
-            printReq.setDuplexLongEdge();
+        if (isDuplexPrinter) {
+            if (supplierData.getDuplex()) {
+                printReq.setDuplexLongEdge();
+            } else {
+                printReq.setSinglex();
+            }
         }
 
-        // grayscale
-        if (!supplierData.getColor()
-                && !ProxyPrintDocReq.isGrayscale(ippOptions)) {
-            printReq.setGrayscale();
+        // color
+        final boolean isColorPrinter =
+                PROXY_PRINT_SERVICE.isColorPrinter(printerNameSelected);
+
+        if (isColorPrinter) {
+            if (supplierData.getColor()) {
+                printReq.setColor();
+            } else {
+                printReq.setGrayscale();
+            }
         }
 
-        addProxyPrintJobChunk(printReq, supplierData.getMediaSize());
+        addProxyPrintJobChunk(printReq, supplierData.getMediaSize(),
+                PROXY_PRINT_SERVICE.hasMediaSourceAuto(printerNameSelected));
 
         /*
          * At this point we do NOT need the external data anymore.
@@ -2447,8 +2511,17 @@ public final class SmartSchoolPrintMonitor {
                     .append(printReq.getJobChunkInfo().getChunks().size())
                     .append(" chunk(s), ").append(printReq.getNumberOfPages())
                     .append(" page(s), ").append(printReq.getNumberOfCopies())
-                    .append(" copies on ").append(printerName).append(" by [")
-                    .append(user.getUserId()).append("]");
+                    .append(" copies on ").append(printerNameSelected)
+                    .append(" by [").append(user.getUserId()).append("]");
+
+            msg.append(" Color printer [").append(isColorPrinter)
+                    .append("] color [").append(supplierData.getColor())
+                    .append("]");
+
+            msg.append(" Duplex printer [").append(isDuplexPrinter)
+                    .append("] duplex [").append(supplierData.getDuplex())
+                    .append("]");
+
             LOGGER.debug(msg.toString());
         }
 

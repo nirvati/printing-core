@@ -97,9 +97,14 @@ public class SmartSchoolConnection {
     private final boolean chargeToStudents;
 
     /**
-    *
-    */
+     * The default proxy printer (can be {@code null} or empty).
+     */
     private final String proxyPrinterName;
+
+    /**
+     * The proxy printer for grayscale printing (can be {@code null} or empty).
+     */
+    private final String proxyPrinterGrayscaleName;
 
     /**
      * .
@@ -115,6 +120,9 @@ public class SmartSchoolConnection {
      *            Password for the Smartschool Afdrukcentrum.
      * @param proxyPrinterName
      *            Name of the proxy printer, can be {@code null} or empty.
+     * @param proxyPrinterGrayscaleName
+     *            Name of the grayscale proxy printer, can be {@code null} or
+     *            empty.
      * @param chargeToStudents
      *            {@code true} if costs are charged to individual students,
      *            {@code false} if costs are charged to shared "Klas" accounts
@@ -122,8 +130,9 @@ public class SmartSchoolConnection {
      * @throws SOAPException
      */
     public SmartSchoolConnection(final String endpoint, final char[] password,
-            final String proxyPrinterName, final boolean chargeToStudents)
-            throws SOAPException {
+            final String proxyPrinterName,
+            final String proxyPrinterGrayscaleName,
+            final boolean chargeToStudents) throws SOAPException {
 
         try {
             this.endpointUri = new URI(endpoint);
@@ -156,6 +165,7 @@ public class SmartSchoolConnection {
         this.httpClient = builder.build();
 
         this.proxyPrinterName = proxyPrinterName;
+        this.proxyPrinterGrayscaleName = proxyPrinterGrayscaleName;
     }
 
     public SOAPConnection getConnection() {
@@ -213,8 +223,21 @@ public class SmartSchoolConnection {
         return httpClient;
     }
 
+    /**
+     *
+     * @return The default proxy printer (can be {@code null} or empty).
+     */
     public String getProxyPrinterName() {
         return proxyPrinterName;
+    }
+
+    /**
+     *
+     * @return The proxy printer for grayscale printing (can be {@code null} or
+     *         empty).
+     */
+    public String getProxyPrinterGrayscaleName() {
+        return proxyPrinterGrayscaleName;
     }
 
     /**
@@ -226,4 +249,5 @@ public class SmartSchoolConnection {
     public boolean isChargeToStudents() {
         return chargeToStudents;
     }
+
 }

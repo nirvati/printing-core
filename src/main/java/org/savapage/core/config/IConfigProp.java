@@ -1051,6 +1051,12 @@ public interface IConfigProp {
                 "smartschool.1.soap.print.proxy-printer"),
 
         /**
+         * Printer name for SmartSchool direct proxy grayscale printing (1).
+         */
+        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE(
+                "smartschool.1.soap.print.proxy-printer-grayscale"),
+
+        /**
          * {@code true} if costs are charged to individual students,
          * {@code false} if costs are charged to shared "Klas" accounts only.
          */
@@ -1080,6 +1086,12 @@ public interface IConfigProp {
          */
         SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER(
                 "smartschool.2.soap.print.proxy-printer"),
+
+        /**
+         * Printer name for SmartSchool direct proxy grayscale printing (2).
+         */
+        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE(
+                "smartschool.2.soap.print.proxy-printer-grayscale"),
 
         /**
          * {@code true} if costs are charged to individual students,
@@ -1113,8 +1125,8 @@ public interface IConfigProp {
          * after which an actual poll to SmartSchool is executed.
          * <p>
          * SmartSchool has a rate-limit of one (1) poll per 2 minutes. When
-         * limit is exceeded an error message is returned. Note: status
-         * updates can be send unlimited.
+         * limit is exceeded an error message is returned. Note: status updates
+         * can be send unlimited.
          * </p>
          */
         SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEATS(
