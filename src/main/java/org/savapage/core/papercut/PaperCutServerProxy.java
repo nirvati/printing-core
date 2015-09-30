@@ -404,6 +404,13 @@ public final class PaperCutServerProxy {
     }
 
     /**
+     * Disconnects from PaperCut.
+     */
+    public void disconnect() {
+        // no code intended
+    }
+
+    /**
      * Tests the PaperCut server connection.
      * <p>
      * Note: No {@link CircuitBreakerOperation} is used.

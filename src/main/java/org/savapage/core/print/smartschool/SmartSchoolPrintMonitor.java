@@ -448,9 +448,11 @@ public final class SmartSchoolPrintMonitor {
             final Date sessionEndDate = new Date(sessionEndTime);
 
             /*
-             * Initial poll.
+             * Do an initial poll when in simulation mode. When in production
+             * the minimal polling frequency enforced by Smartschool must be
+             * respected.
              */
-            if (this.isConnected) {
+            if (simulationMode && this.isConnected) {
                 processJobs(this);
             }
 
@@ -646,7 +648,6 @@ public final class SmartSchoolPrintMonitor {
             PdfWriter.getInstance(pdfDoc, new FileOutputStream(downloadFile));
             pdfDoc.open();
 
-
             // Page #1
             font.setColor(BaseColor.GREEN);
             para = new Paragraph(text, font);
@@ -747,10 +748,10 @@ public final class SmartSchoolPrintMonitor {
         processinfo.setPapersize("a4");
 
         processinfo.setDuplex("off");
-        //processinfo.setDuplex("on");
+        // processinfo.setDuplex("on");
 
         processinfo.setRendermode("grayscale");
-        //processinfo.setRendermode("color");
+        // processinfo.setRendermode("color");
 
         //
         final Billinginfo billinginfo = new Billinginfo();

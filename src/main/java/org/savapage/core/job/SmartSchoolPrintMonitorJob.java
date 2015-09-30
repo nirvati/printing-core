@@ -136,6 +136,9 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
         @Override
         public Object execute(final CircuitBreaker circuitBreaker) {
 
+            PaperCutServerProxy papercutServerProxy = null;
+            PaperCutDbProxy papercutDbProxy = null;
+
             try {
 
                 final ConfigManager cm = ConfigManager.instance();
@@ -143,8 +146,6 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
                 /*
                  *
                  */
-                final PaperCutServerProxy papercutServerProxy;
-                final PaperCutDbProxy papercutDbProxy;
 
                 if (cm.isConfigValue(Key.SMARTSCHOOL_PAPERCUT_ENABLE)) {
 
@@ -168,10 +169,6 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
 
                     papercutServerProxy.connect();
                     papercutDbProxy.connect();
-
-                } else {
-                    papercutServerProxy = null;
-                    papercutDbProxy = null;
                 }
 
                 /*
@@ -252,6 +249,15 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
                         LOGGER.error(e.getMessage(), e);
                     }
                 }
+
+                if (papercutDbProxy != null) {
+                    papercutDbProxy.disconnect();
+                }
+
+                if (papercutServerProxy != null) {
+                    papercutServerProxy.disconnect();
+                }
+
             }
             //
             return null;
