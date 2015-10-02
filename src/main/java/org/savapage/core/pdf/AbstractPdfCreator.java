@@ -78,6 +78,7 @@ public abstract class AbstractPdfCreator {
     private boolean isForPrinting = false;
 
     private boolean isEcoPdf = false;
+    private boolean isGrayscalePdf = false;
 
     protected String myPdfFileLetterhead = null;
     protected LetterheadInfo.LetterheadJob myLetterheadJob = null;
@@ -94,8 +95,16 @@ public abstract class AbstractPdfCreator {
      *
      * @return {@code true} when PDF is created with EcoImages.
      */
-    protected boolean isEcoPdf() {
+    protected final boolean isEcoPdf() {
         return this.isEcoPdf;
+    }
+
+    /**
+     *
+     * @return {@code true} when Grayscale PDF is to be created .
+     */
+    protected final boolean isGrayscalePdf() {
+        return this.isGrayscalePdf;
     }
 
     /**
@@ -147,6 +156,11 @@ public abstract class AbstractPdfCreator {
      */
     protected abstract void onInit();
 
+    /**
+     * .
+     *
+     * @throws Exception
+     */
     protected abstract void onExit() throws Exception;
 
     /**
@@ -214,6 +228,14 @@ public abstract class AbstractPdfCreator {
      *
      */
     protected abstract void onProcessFinally();
+
+    /**
+     *
+     * @param pdfFile
+     *            The generated PDF file.
+     * @throws Exception
+     */
+    protected abstract void onPdfGenerated(File pdfFile) throws Exception;
 
     /**
      *
@@ -285,6 +307,7 @@ public abstract class AbstractPdfCreator {
         this.pdfFile = createReq.getPdfFile();
         this.isForPrinting = createReq.isForPrinting();
         this.isEcoPdf = createReq.isEcoPdf();
+        this.isGrayscalePdf = createReq.isGrayscale();
 
         //
         this.user = createReq.getUserObj().getUserId();
@@ -607,6 +630,14 @@ public abstract class AbstractPdfCreator {
             onProcessFinally();
         }
 
-        return new File(pdfFile);
+        final File generatedPdf = new File(pdfFile);
+
+        try {
+            onPdfGenerated(generatedPdf);
+        } catch (Exception e) {
+            throw new SpException(e.getMessage(), e);
+        }
+
+        return generatedPdf;
     }
 }
