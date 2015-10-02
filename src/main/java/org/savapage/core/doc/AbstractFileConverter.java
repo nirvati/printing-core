@@ -39,9 +39,15 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractFileConverter implements IFileConverter {
 
+    /**
+     * The logger.
+     */
     private static final Logger LOGGER = LoggerFactory
             .getLogger(AbstractFileConverter.class);
 
+    /**
+     * .
+     */
     protected static enum ExecMode {
         /**
          * ONE call to {@link ICommandExecutor#executeCommand()} can be
@@ -56,15 +62,29 @@ public abstract class AbstractFileConverter implements IFileConverter {
         MULTI_THREADED
     }
 
+    /**
+     * .
+     */
     protected final ExecMode execMode;
 
-    protected AbstractFileConverter(ExecMode execMode) {
+    /**
+     *
+     * @param execMode
+     *            The {@link ExecMode}.
+     */
+    protected AbstractFileConverter(final ExecMode execMode) {
         this.execMode = execMode;
     }
 
     /**
      * Returns the OS shell command to perform the conversion.
      *
+     * @param contentType
+     *            The {@link DocContentTypeEnum} of the input file.
+     * @param fileIn
+     *            The input {@link File}.
+     * @param filePdf
+     *            The output PDF {@link File}.
      * @return The shell command.
      */
     protected abstract String getOsCommand(DocContentTypeEnum contentType,
@@ -80,23 +100,29 @@ public abstract class AbstractFileConverter implements IFileConverter {
      *            The content type if the sibling.
      * @return The sibling File object.
      */
-    public static File
-            getFileSibling(File file, DocContentTypeEnum contentType) {
-        return new File(file.getParent() + File.separator
-                + FilenameUtils.getBaseName(file.getAbsolutePath()) + "."
-                + DocContent.getFileExtension(contentType));
+    public static File getFileSibling(final File file,
+            final DocContentTypeEnum contentType) {
+
+        final StringBuilder builder = new StringBuilder(128);
+
+        builder.append(file.getParent()).append(File.separator)
+                .append(FilenameUtils.getBaseName(file.getAbsolutePath()))
+                .append(".").append(DocContent.getFileExtension(contentType));
+
+        return new File(builder.toString());
     }
 
     /**
      *
      * @param fileIn
-     * @return
+     *            The input {@link File}.
+     * @return The output {@link File}.
      */
     protected abstract File getOutputFile(File fileIn);
 
     @Override
-    public File convert(DocContentTypeEnum contentType, File fileIn)
-            throws DocContentToPdfException {
+    public final File convert(final DocContentTypeEnum contentType,
+            final File fileIn) throws DocContentToPdfException {
 
         final File filePdf = getOutputFile(fileIn);
 
@@ -151,6 +177,7 @@ public abstract class AbstractFileConverter implements IFileConverter {
                 }
 
                 LOGGER.error("Command [" + command + "] failed." + reason);
+
                 throw new DocContentToPdfException("PDF could not be created"
                         + reason);
             }

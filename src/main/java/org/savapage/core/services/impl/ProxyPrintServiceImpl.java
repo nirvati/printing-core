@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -48,6 +48,7 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.helpers.DocLogProtocolEnum;
 import org.savapage.core.dao.helpers.PrintModeEnum;
+import org.savapage.core.dao.helpers.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
@@ -106,7 +107,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
@@ -2882,9 +2883,36 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         final Iterator<PrinterAttr> iterAttr =
                 printer.getAttributes().iterator();
 
+        Boolean clientSideMonochrome =
+                dtoMediaSources.getClientSideMonochrome();
+
         while (iterAttr.hasNext()) {
 
             final PrinterAttr printerAttr = iterAttr.next();
+
+            /*
+             * Client-side grayscale conversion?
+             */
+            if (printerAttr.getName().equalsIgnoreCase(
+                    PrinterAttrEnum.CLIENT_SIDE_MONOCHROME.getDbName())) {
+
+                if (clientSideMonochrome != null
+                        && clientSideMonochrome.booleanValue()) {
+
+                    printerAttr.setValue(clientSideMonochrome.toString());
+                    clientSideMonochrome = null;
+
+                } else {
+                    /*
+                     * Remove non-active entry.
+                     */
+                    // (1)
+                    printerAttrDAO().delete(printerAttr);
+                    // (2)
+                    iterAttr.remove();
+                }
+                continue;
+            }
 
             /*
              * IppKeywordAttr: force monochrome default (update/delete).
@@ -3028,6 +3056,23 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
+         * Client-side grayscale conversion (add).
+         */
+        if (clientSideMonochrome != null && clientSideMonochrome.booleanValue()) {
+            final PrinterAttr printerAttr = new PrinterAttr();
+
+            printerAttr.setPrinter(printer);
+            printerAttr.setName(PrinterAttrEnum.CLIENT_SIDE_MONOCHROME
+                    .getDbName());
+            printerAttr.setValue(clientSideMonochrome.toString());
+
+            // (1)
+            printerAttrDAO().create(printerAttr);
+            // (2)
+            printer.getAttributes().add(printerAttr);
+        }
+
+        /*
          * Update the printer.
          */
         printer.setModifiedDate(ServiceContext.getTransactionDate());
@@ -3038,7 +3083,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         updateCachedPrinter(printer);
 
         /*
-         * We are ok.
+         * We are OK.
          */
         return JsonRpcMethodResult.createOkResult();
     }

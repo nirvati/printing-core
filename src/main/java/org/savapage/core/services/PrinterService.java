@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -169,6 +169,19 @@ public interface PrinterService {
      * @return {@code null} when no default override is found.
      */
     String getPrintColorModeDefault(final Printer printer);
+
+    /**
+     * Checks if monochrome conversion is performed client-side (locally).
+     * <p>
+     * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
+     * find the value of {@link PrinterAttrEnum#CLIENT_SIDE_MONOCHROME}.
+     * </p>
+     *
+     * @param printer
+     *            The {@link Printer}.
+     * @return {@code true} if monochrome conversion is performed client-side.
+     */
+    boolean isClientSideMonochrome(Printer printer);
 
     /**
      * Sets printer instance as logically deleted (database is NOT updated).

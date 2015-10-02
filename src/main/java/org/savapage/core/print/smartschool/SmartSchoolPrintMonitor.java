@@ -61,6 +61,10 @@ import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.helpers.DocLogProtocolEnum;
 import org.savapage.core.dao.helpers.PrintModeEnum;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.doc.DocContentToPdfException;
+import org.savapage.core.doc.DocContentTypeEnum;
+import org.savapage.core.doc.IFileConverter;
+import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.client.IppConnectException;
@@ -100,6 +104,7 @@ import org.savapage.core.print.smartschool.xml.SmartSchoolRoleEnum;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.PaperCutService;
+import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.SmartSchoolService;
@@ -247,6 +252,12 @@ public final class SmartSchoolPrintMonitor {
      */
     private static final ProxyPrintService PROXY_PRINT_SERVICE = ServiceContext
             .getServiceFactory().getProxyPrintService();
+
+    /**
+     * .
+     */
+    private static final PrinterService PRINTER_SERVICE = ServiceContext
+            .getServiceFactory().getPrinterService();
 
     /**
      * .
@@ -428,12 +439,13 @@ public final class SmartSchoolPrintMonitor {
      * @throws SmartSchoolException
      *             When SmartSchool return a fault.
      * @throws PaperCutException
+     * @throws DocContentToPdfException
      *
      */
     public void monitor(final int heartbeatSecs, final int pollingHeartbeats,
             final int sessionDurationSecs) throws InterruptedException,
             SOAPException, ShutdownException, SmartSchoolException,
-            PaperCutException {
+            PaperCutException, DocContentToPdfException {
 
         final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -593,7 +605,8 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Downloads a document for printing.
+     * Downloads a document for printing into the application's temp directory.
+     * See {@link ConfigManager#getAppTmpDir()}.
      *
      * @param connection
      * @param user
@@ -606,9 +619,10 @@ public final class SmartSchoolPrintMonitor {
      *             {@link SmartSchoolConnection#setShutdownRequested(boolean)}
      *             request.
      */
-    private static File downloadDocument(SmartSchoolConnection connection,
-            User user, Document document, UUID uuid,
-            final boolean simulationMode) throws IOException, ShutdownException {
+    private static File downloadDocument(
+            final SmartSchoolConnection connection, final User user,
+            Document document, final UUID uuid, final boolean simulationMode)
+            throws IOException, ShutdownException {
 
         if (simulationMode) {
 
@@ -815,10 +829,11 @@ public final class SmartSchoolPrintMonitor {
      * @throws ShutdownException
      *             When interrupted by a shutdown request.
      * @throws PaperCutException
+     * @throws DocContentToPdfException
      */
     private static void processJobs(final SmartSchoolPrintMonitor monitor)
             throws SOAPException, SmartSchoolException, ShutdownException,
-            PaperCutException {
+            PaperCutException, DocContentToPdfException {
 
         /*
          * Any progress on the PaperCut front?
@@ -1527,10 +1542,11 @@ public final class SmartSchoolPrintMonitor {
      *             When SmartSchool reported an error.
      * @throws ShutdownException
      *             When interrupted by a shutdown request.
+     * @throws DocContentToPdfException
      */
     private static void processJob(SmartSchoolPrintMonitor monitor,
             final Document document) throws SmartSchoolException,
-            SOAPException, ShutdownException {
+            SOAPException, ShutdownException, DocContentToPdfException {
 
         ServiceContext.resetTransactionDate();
 
@@ -2080,6 +2096,7 @@ public final class SmartSchoolPrintMonitor {
      * @throws IppConnectException
      * @throws SmartSchoolException
      * @throws SOAPException
+     * @throws DocContentToPdfException
      */
     private static void processJobFile(final SmartSchoolPrintMonitor monitor,
             final Document document, final User user,
@@ -2088,7 +2105,7 @@ public final class SmartSchoolPrintMonitor {
             final ExternalSupplierInfo externalSupplierInfo)
             throws IOException, DocContentPrintException, ShutdownException,
             ProxyPrintException, IppConnectException, SmartSchoolException,
-            SOAPException {
+            SOAPException, DocContentToPdfException {
 
         final boolean isIntegratedWithPaperCut =
                 monitor.isIntegratedWithPaperCut();
@@ -2254,6 +2271,8 @@ public final class SmartSchoolPrintMonitor {
      * Adds a "pro-forma" {@link ProxyPrintJobChunk} object to the
      * {@link ProxyPrintDocReq}.
      *
+     * @param printer
+     *            The {@link Printer}.
      * @param printReq
      *            The {@link ProxyPrintDocReq}.
      * @param ippMediaSize
@@ -2261,16 +2280,12 @@ public final class SmartSchoolPrintMonitor {
      * @throws ProxyPrintException
      *             When printer has no media-source for media size.
      */
-    private static void addProxyPrintJobChunk(final ProxyPrintDocReq printReq,
+    private static void addProxyPrintJobChunk(final Printer printer,
+            final ProxyPrintDocReq printReq,
             final IppMediaSizeEnum ippMediaSize,
             final boolean hasMediaSourceAuto) throws ProxyPrintException {
 
-        final PrinterDao printerDao =
-                ServiceContext.getDaoContext().getPrinterDao();
-
         final String printerName = printReq.getPrinterName();
-
-        final Printer printer = printerDao.findByName(printerName);
 
         final PrinterAttrLookup printerAttrLookup =
                 new PrinterAttrLookup(printer);
@@ -2397,6 +2412,8 @@ public final class SmartSchoolPrintMonitor {
      *             When logical proxy print errors.
      * @throws IppConnectException
      *             When connection to CUPS fails.
+     * @throws DocContentToPdfException
+     *             When monochrome conversion failed.
      */
     private static void processJobProxyPrint(
             final SmartSchoolPrintMonitor monitor, final User user,
@@ -2404,7 +2421,8 @@ public final class SmartSchoolPrintMonitor {
             final Document document, final File downloadedFile,
             final DocContentPrintInInfo printInInfo,
             final ExternalSupplierInfo externalSupplierInfo)
-            throws ProxyPrintException, IppConnectException {
+            throws ProxyPrintException, IppConnectException,
+            DocContentToPdfException {
 
         /*
          * Get SmartSchool process info from the supplier data.
@@ -2477,7 +2495,12 @@ public final class SmartSchoolPrintMonitor {
             }
         }
 
-        addProxyPrintJobChunk(printReq, supplierData.getMediaSize(),
+        final PrinterDao printerDao =
+                ServiceContext.getDaoContext().getPrinterDao();
+
+        final Printer printer = printerDao.findByName(printerNameSelected);
+
+        addProxyPrintJobChunk(printer, printReq, supplierData.getMediaSize(),
                 PROXY_PRINT_SERVICE.hasMediaSourceAuto(printerNameSelected));
 
         /*
@@ -2527,6 +2550,32 @@ public final class SmartSchoolPrintMonitor {
         }
 
         /*
+         * Client-side monochrome filtering?
+         */
+        final File fileToPrint;
+
+        File downloadedFileConverted = null;
+
+        if (isColorPrinter && printReq.isGrayscale()
+                && PRINTER_SERVICE.isClientSideMonochrome(printer)) {
+
+            final IFileConverter converter = new PdfToGrayscale();
+
+            downloadedFileConverted =
+                    converter.convert(DocContentTypeEnum.PDF, downloadedFile);
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(String.format("[%s] converted to grayscale.",
+                        printReq.getJobName()));
+            }
+
+            fileToPrint = downloadedFileConverted;
+
+        } else {
+            fileToPrint = downloadedFile;
+        }
+
+        /*
          * Proxy Print Transaction.
          */
         ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
@@ -2547,7 +2596,7 @@ public final class SmartSchoolPrintMonitor {
             final User lockedUser = userDao.lock(user.getId());
 
             PROXY_PRINT_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                    downloadedFile);
+                    fileToPrint);
 
             daoContext.commit();
 
@@ -2557,8 +2606,14 @@ public final class SmartSchoolPrintMonitor {
             }
 
         } finally {
+
             daoContext.rollback();
             ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+
+            if (downloadedFileConverted != null
+                    && downloadedFileConverted.exists()) {
+                downloadedFileConverted.delete();
+            }
         }
     }
 

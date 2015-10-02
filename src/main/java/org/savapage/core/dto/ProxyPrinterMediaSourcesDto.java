@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,10 +34,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  */
 @JsonInclude(Include.NON_NULL)
-public class ProxyPrinterMediaSourcesDto extends AbstractDto {
+public final class ProxyPrinterMediaSourcesDto extends AbstractDto {
 
     /**
-     * primary key
+     * Primary key.
      */
     @JsonProperty("id")
     private Long id;
@@ -56,6 +56,9 @@ public class ProxyPrinterMediaSourcesDto extends AbstractDto {
     @JsonProperty("country")
     private String country;
 
+    /**
+     * .
+     */
     @JsonProperty("sources")
     private List<IppMediaSourceCostDto> sources;
 
@@ -75,6 +78,11 @@ public class ProxyPrinterMediaSourcesDto extends AbstractDto {
     *
     */
     private Boolean defaultMonochrome;
+
+    /**
+     * {@code true} if client-side monochrome conversion.
+     */
+    private Boolean clientSideMonochrome;
 
     /**
      *
@@ -118,6 +126,25 @@ public class ProxyPrinterMediaSourcesDto extends AbstractDto {
 
     public void setDefaultMonochrome(Boolean defaultMonochrome) {
         this.defaultMonochrome = defaultMonochrome;
+    }
+
+    /**
+     *
+     * @return {@code true} if monochrome conversion is performed client-side
+     *         (locally).
+     */
+    public Boolean getClientSideMonochrome() {
+        return clientSideMonochrome;
+    }
+
+    /**
+     *
+     * @param clientSideMonochrome
+     *            {@code true} if monochrome conversion is performed client-side
+     *            (locally).
+     */
+    public void setClientSideMonochrome(Boolean clientSideMonochrome) {
+        this.clientSideMonochrome = clientSideMonochrome;
     }
 
     public String getLanguage() {

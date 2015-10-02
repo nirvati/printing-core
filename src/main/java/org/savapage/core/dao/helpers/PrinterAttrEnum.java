@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -66,7 +66,13 @@ public enum PrinterAttrEnum {
      * {"scope":"allow","groups":["Staff","ICT"]}
      * </p>
      */
-    ACCESS_USER_GROUPS("access.user-groups");
+    ACCESS_USER_GROUPS("access.user-groups"),
+
+    /**
+     * Is monochrome conversion performed client-side (locally)? Boolean:
+     * {@code true|false}.
+     */
+    CLIENT_SIDE_MONOCHROME("filter.monochrome.client-side");
 
     /**
      *

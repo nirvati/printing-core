@@ -29,10 +29,11 @@ import java.util.UUID;
 import javax.xml.soap.SOAPException;
 
 import org.savapage.core.ShutdownException;
+import org.savapage.core.config.ConfigManager;
 import org.savapage.core.jpa.Account;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.User;
-import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.print.smartschool.SmartSchoolException;
 import org.savapage.core.print.smartschool.SmartSchoolPrintStatusEnum;
 import org.savapage.core.print.smartschool.xml.Document;
@@ -88,7 +89,8 @@ public interface SmartSchoolService {
     File getDownloadFile(String documentName, UUID uuid);
 
     /**
-     * Downloads a document for printing.
+     * Downloads a document for printing into the application's temp directory.
+     * See {@link ConfigManager#getAppTmpDir()}.
      *
      * @param connection
      *            The {@link SmartSchoolConnection }.
