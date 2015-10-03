@@ -346,6 +346,7 @@ public final class OutboxServiceImpl extends AbstractService implements
             pdfRequest.setInboxInfo(inboxInfo);
             pdfRequest.setRemoveGraphics(request.isRemoveGraphics());
             pdfRequest.setEcoPdf(request.isEcoPrint());
+            pdfRequest.setGrayscale(request.isConvertToGrayscale());
             pdfRequest.setApplyPdfProps(!APPLY_PDF_PROPS);
             pdfRequest.setApplyLetterhead(APPLY_LETTERHEAD);
             pdfRequest.setForPrinting(PDF_FOR_PRINTING);

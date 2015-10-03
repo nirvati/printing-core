@@ -94,6 +94,12 @@ public abstract class AbstractProxyPrintReq {
     private boolean removeGraphics;
     private boolean ecoPrint;
 
+    /**
+     * <code>true</code> if PDF needs to be converted to grayscale before proxy
+     * printing.
+     */
+    private boolean convertToGrayscale;
+
     private Locale locale = Locale.getDefault();
 
     private String userMsg;
@@ -177,6 +183,14 @@ public abstract class AbstractProxyPrintReq {
 
     public void setEcoPrint(boolean ecoPrint) {
         this.ecoPrint = ecoPrint;
+    }
+
+    public boolean isConvertToGrayscale() {
+        return convertToGrayscale;
+    }
+
+    public void setConvertToGrayscale(boolean convertToGrayscale) {
+        this.convertToGrayscale = convertToGrayscale;
     }
 
     public int getNumberOfCopies() {

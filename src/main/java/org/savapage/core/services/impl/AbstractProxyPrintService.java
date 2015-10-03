@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -111,6 +111,7 @@ import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
+import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
@@ -139,6 +140,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private static final Logger LOGGER = LoggerFactory
             .getLogger(AbstractProxyPrintService.class);
+
+    /**
+     * .
+     */
+    private static final PrinterService PRINTER_SERVICE = ServiceContext
+            .getServiceFactory().getPrinterService();
 
     /**
      *
@@ -1679,6 +1686,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final Map<String, String> printerOptionValues =
                 getDefaultPrinterCostOptions(printer.getPrinterName());
 
+        final boolean isConvertToGrayscale =
+                AbstractProxyPrintReq.isGrayscale(printerOptionValues)
+                        && isColorPrinter(printer.getPrinterName())
+                        && PRINTER_SERVICE.isClientSideMonochrome(printer);
+
         /*
          * Lock the user.
          */
@@ -1749,6 +1761,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printReq.setPrinterName(printer.getPrinterName());
                 printReq.setNumberOfCopies(Integer.valueOf(1));
                 printReq.setRemoveGraphics(false);
+                printReq.setConvertToGrayscale(isConvertToGrayscale);
                 printReq.setLocale(ServiceContext.getLocale());
                 printReq.setIdUser(user.getId());
                 printReq.putOptionValues(printerOptionValues);
@@ -1784,6 +1797,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printReq.setPrinterName(printer.getPrinterName());
             printReq.setNumberOfCopies(Integer.valueOf(1));
             printReq.setRemoveGraphics(false);
+            printReq.setConvertToGrayscale(isConvertToGrayscale);
             printReq.setLocale(ServiceContext.getLocale());
             printReq.setIdUser(user.getId());
             printReq.putOptionValues(printerOptionValues);
@@ -2258,6 +2272,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             pdfRequest.setInboxInfo(inboxInfo);
             pdfRequest.setRemoveGraphics(request.isRemoveGraphics());
             pdfRequest.setEcoPdf(request.isEcoPrint());
+            pdfRequest.setGrayscale(request.isConvertToGrayscale());
             pdfRequest.setApplyPdfProps(false);
             pdfRequest.setApplyLetterhead(true);
             pdfRequest.setForPrinting(true);
