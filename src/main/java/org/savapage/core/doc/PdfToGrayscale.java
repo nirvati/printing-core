@@ -62,10 +62,15 @@ public class PdfToGrayscale extends AbstractFileConverter {
         final StringBuilder cmd = new StringBuilder(128);
 
         try {
-            cmd.append("gs -sOutputFile=\"").append(fileOut.getCanonicalPath())
+            cmd.append("gs -sOutputFile=\"")
+                    .append(fileOut.getCanonicalPath())
                     .append("\" -sDEVICE=pdfwrite")
                     .append(" -sColorConversionStrategy=Gray")
                     .append(" -sProcessColorModel=DeviceGray")
+                    // Needed for gs 9.10
+                    // http://bugs.ghostscript.com/show_bug.cgi?id=694608
+                    .append(" -dPDFUseOldCMS=false")
+                    //
                     .append(" -dCompatibilityLevel=1.4 \"")
                     .append(fileIn.getCanonicalPath()).append("\" < /dev/null");
         } catch (IOException e) {
