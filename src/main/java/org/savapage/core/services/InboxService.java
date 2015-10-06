@@ -659,4 +659,13 @@ public interface InboxService {
     ArrayList<InboxJobRange> replaceInboxInfoPages(InboxInfoDto inboxInfo,
             List<ProxyPrintJobChunkRange> chunkRanges);
 
+    /**
+     * Starts task to create a shadow EcoPrint PDF file.
+     *
+     * @param homedir
+     *            The SafePages directory.
+     * @param pdfIn
+     *            The PDF input file.
+     */
+    void startEcoPrintPdfTask(String homedir, File pdfIn);
 }

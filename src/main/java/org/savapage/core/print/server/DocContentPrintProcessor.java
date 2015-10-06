@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -57,6 +58,7 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.services.DocLogService;
+import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
@@ -87,6 +89,11 @@ public class DocContentPrintProcessor {
     private static final DocLogService DOC_LOG_SERVICE = ServiceContext
             .getServiceFactory().getDocLogService();
 
+    /**
+    *
+    */
+    private static final InboxService INBOX_SERVICE = ServiceContext
+            .getServiceFactory().getInboxService();
     /**
      *
      */
@@ -860,13 +867,22 @@ public class DocContentPrintProcessor {
              */
             this.logPrintIn(protocol);
 
+            /*
+             * Move to user safepages home.
+             */
+            final Path pathTarget =
+                    FileSystems.getDefault().getPath(homeDir, jobFileBasePdf);
+
             FileSystemHelper.doAtomicFileMove(//
-                    // source
-                    FileSystems.getDefault().getPath(tempPathPdf),
-                    // target
-                    FileSystems.getDefault().getPath(homeDir, jobFileBasePdf)
-            //
-                    );
+                    FileSystems.getDefault().getPath(tempPathPdf), pathTarget);
+
+            /*
+             * Start task to create the shadow EcoPrint PDF file?
+             */
+            if (ConfigManager.isEcoPrintEnabled()) {
+                // INBOX_SERVICE
+                // .startEcoPrintPdfTask(homeDir, pathTarget.toFile());
+            }
 
         } catch (Exception e) {
 

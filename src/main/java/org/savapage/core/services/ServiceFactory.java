@@ -64,6 +64,13 @@ public interface ServiceFactory {
     DocLogService getDocLogService();
 
     /**
+     * Gets the {@link EcoPrintPdfTaskService} singleton.
+     *
+     * @return The singleton.
+     */
+    EcoPrintPdfTaskService getEcoPrintPdfTaskService();
+
+    /**
      * Gets the {@link EmailService} singleton.
      *
      * @return The singleton.

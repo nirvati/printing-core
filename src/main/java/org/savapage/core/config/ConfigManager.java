@@ -1947,6 +1947,14 @@ public final class ConfigManager {
 
     /**
      *
+     * @return {@code true} is Eco Print is enabled
+     */
+    public static boolean isEcoPrintEnabled() {
+        return instance().isConfigValue(Key.ECO_PRINT_ENABLE);
+    }
+
+    /**
+     *
      * @return
      */
     public static boolean isSmartSchoolPrintEnabled() {

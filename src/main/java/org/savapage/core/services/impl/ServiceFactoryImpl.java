@@ -26,6 +26,7 @@ import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.AppLogService;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
+import org.savapage.core.services.EcoPrintPdfTaskService;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.OutboxService;
@@ -80,6 +81,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private static class DocLogServiceHolder {
         public static final DocLogService SERVICE = new DocLogServiceImpl();
+    }
+
+    private static class EcoPrintPdfTaskServiceHolder {
+        public static final EcoPrintPdfTaskService SERVICE =
+                new EcoPrintPdfTaskServiceImpl();
     }
 
     private static class EmailServiceHolder {
@@ -159,6 +165,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public DocLogService getDocLogService() {
         return DocLogServiceHolder.SERVICE;
+    }
+
+    @Override
+    public EcoPrintPdfTaskService getEcoPrintPdfTaskService() {
+        return EcoPrintPdfTaskServiceHolder.SERVICE;
     }
 
     @Override

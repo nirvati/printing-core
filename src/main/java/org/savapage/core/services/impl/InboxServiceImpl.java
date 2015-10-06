@@ -24,6 +24,8 @@ package org.savapage.core.services.impl;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -46,9 +48,11 @@ import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.imaging.EcoPrintPdfTaskInfo;
 import org.savapage.core.imaging.ImageUrl;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
@@ -63,6 +67,7 @@ import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
+import org.savapage.core.services.EcoPrintPdfTaskService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.InboxPageMover;
@@ -87,6 +92,12 @@ public final class InboxServiceImpl implements InboxService {
      */
     private static final Logger LOGGER = LoggerFactory
             .getLogger(InboxServiceImpl.class);
+
+    /**
+     * .
+     */
+    private static final EcoPrintPdfTaskService ECOPRINT_SERVICE =
+            ServiceContext.getServiceFactory().getEcoPrintPdfTaskService();
 
     /**
      *
@@ -2552,6 +2563,35 @@ public final class InboxServiceImpl implements InboxService {
             jobRange.setRange(chunkRange.asText());
         }
         return orgPages;
+    }
+
+    @Override
+    public void startEcoPrintPdfTask(final String homedir, final File pdfIn) {
+
+        final EcoPrintPdfTaskInfo info =
+                new EcoPrintPdfTaskInfo(pdfIn.getName());
+
+        info.setPdfIn(pdfIn);
+
+        final Path pathTargetEco =
+                FileSystems.getDefault().getPath(homedir,
+                        String.format("%s.eco", pdfIn.getName()));
+
+        info.setPdfOut(pathTargetEco.toFile());
+
+        /*
+         * Use the application's temp dir, since it is cleaned when the
+         * application is started.
+         */
+        info.setPathTmpDir(FileSystems.getDefault().getPath(
+                ConfigManager.getAppTmpDir()));
+
+        info.setResolution(Integer.valueOf(ConfigManager.instance()
+                .getConfigInt(Key.ECO_PRINT_RESOLUTION_DPI)));
+
+        info.setRotation("0");
+
+        ECOPRINT_SERVICE.submitTask(info);
     }
 
 }

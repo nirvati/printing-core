@@ -1603,6 +1603,12 @@ public interface IConfigProp {
         ECO_PRINT_ENABLE("eco-print.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
+         * .
+         */
+        ECO_PRINT_RESOLUTION_DPI("eco-print.resolution-dpi", NUMBER_VALIDATOR,
+                "300"),
+
+        /**
          * Trust authenticated user in Client App on same IP address as User Web
          * App (Boolean, default TRUE).
          */
