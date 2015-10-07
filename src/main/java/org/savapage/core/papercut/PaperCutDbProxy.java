@@ -378,11 +378,15 @@ public final class PaperCutDbProxy {
         int nCounter = 0;
 
         while (iterUniqueTitle.hasNext()) {
+
             if (nCounter > 0) {
                 sql.append(", ");
             }
-            sql.append('\'');
-            sql.append(iterUniqueTitle.next()).append('\'');
+
+            final String escapedTitle =
+                    iterUniqueTitle.next().replaceAll("'", "''");
+
+            sql.append('\'').append(escapedTitle).append('\'');
             nCounter++;
         }
 
@@ -396,6 +400,8 @@ public final class PaperCutDbProxy {
 
         Statement statement = null;
         ResultSet resultset = null;
+
+        boolean finished = false;
 
         try {
 
@@ -427,8 +433,15 @@ public final class PaperCutDbProxy {
                 usageLogList.add(usageLog);
             }
 
+            finished = true;
+
         } finally {
+
             silentClose(resultset, statement);
+
+            if (!finished) {
+                LOGGER.error(sql.toString());
+            }
         }
 
         return usageLogList;
