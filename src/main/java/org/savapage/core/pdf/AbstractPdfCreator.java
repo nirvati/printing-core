@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,6 +33,8 @@ import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.imaging.EcoPrintPdfTask;
+import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
@@ -57,19 +59,19 @@ import org.savapage.core.services.impl.InboxServiceImpl;
 public abstract class AbstractPdfCreator {
 
     /**
-    *
-    */
+     * .
+     */
     private static final InboxService INBOX_SERVICE = ServiceContext
             .getServiceFactory().getInboxService();
     /**
-    *
-    */
+     * .
+     */
     private static final UserService USER_SERVICE = ServiceContext
             .getServiceFactory().getUserService();
 
     /**
-    *
-    */
+     * .
+     */
     protected String user;
     protected String userhome;
     protected String tmpdir;
@@ -77,10 +79,29 @@ public abstract class AbstractPdfCreator {
 
     private boolean isForPrinting = false;
 
-    private boolean isEcoPdf = false;
+    /**
+     * {@code true} when PDF is converted on the fly to EcoImages.
+     */
+    private boolean convertToEcoPdf = false;
+
+    /**
+     * {@code true} when PDF EcoPrint shadow files are used.
+     */
+    private boolean useEcoPdfShadow = false;
+
+    /**
+     * {@code true} when Grayscale PDF is to be created.
+     */
     private boolean isGrayscalePdf = false;
 
+    /**
+     *
+     */
     protected String myPdfFileLetterhead = null;
+
+    /**
+     *
+     */
     protected LetterheadInfo.LetterheadJob myLetterheadJob = null;
 
     /**
@@ -93,15 +114,24 @@ public abstract class AbstractPdfCreator {
 
     /**
      *
-     * @return {@code true} when PDF is created with EcoImages.
+     * @param convert
+     *            {@code true} when PDF is converted on the fly to EcoImages.
      */
-    protected final boolean isEcoPdf() {
-        return this.isEcoPdf;
+    protected final void setConvertToEcoPdf(final boolean convert) {
+        this.convertToEcoPdf = convert;
     }
 
     /**
      *
-     * @return {@code true} when Grayscale PDF is to be created .
+     * @return {@code true} when PDF is converted on the fly to EcoImages.
+     */
+    protected final boolean isConvertToEcoPdf() {
+        return this.convertToEcoPdf;
+    }
+
+    /**
+     *
+     * @return {@code true} when Grayscale PDF is to be created.
      */
     protected final boolean isGrayscalePdf() {
         return this.isGrayscalePdf;
@@ -124,7 +154,7 @@ public abstract class AbstractPdfCreator {
         return create().getPageProps(filePathPdf);
     }
 
-    public abstract int getNumberOfPagesInPdfFile(final String filePathPdf);
+    protected abstract int getNumberOfPagesInPdfFile(final String filePathPdf);
 
     /**
      * Creates the {@link SpPdfPageProps} of an PDF document.
@@ -135,7 +165,7 @@ public abstract class AbstractPdfCreator {
      * @throws PdfSecurityException
      *             When encrypted or password protected PDF document.
      */
-    public abstract SpPdfPageProps getPageProps(final String filePathPdf)
+    protected abstract SpPdfPageProps getPageProps(final String filePathPdf)
             throws PdfSecurityException;
 
     /**
@@ -287,28 +317,14 @@ public abstract class AbstractPdfCreator {
      * @throws PostScriptDrmException
      *             When the generated PDF is for export (i.e. not for printing)
      *             and one of the SafePages is DRM-restricted.
+     * @throws EcoPrintPdfTaskPendingException
+     *             When {@link EcoPrintPdfTask} objects needed for this PDF are
+     *             pending.
      */
     public File generate(final PdfCreateRequest createReq,
             final Map<String, Integer> uuidPageCount, final DocLog docLog)
-            throws LetterheadNotFoundException, PostScriptDrmException {
-
-        // Prepare document logging.
-        final DocOut docOut;
-
-        if (docLog == null) {
-            docOut = null;
-        } else {
-            docOut = new DocOut();
-            docLog.setDocOut(docOut);
-            docOut.setDocLog(docLog);
-        }
-
-        //
-        this.pdfFile = createReq.getPdfFile();
-        this.isForPrinting = createReq.isForPrinting();
-        this.isEcoPdf = createReq.isEcoPdf();
-        this.isGrayscalePdf = createReq.isGrayscale();
-
+            throws LetterheadNotFoundException, PostScriptDrmException,
+            EcoPrintPdfTaskPendingException {
         //
         this.user = createReq.getUserObj().getUserId();
         this.userhome = ConfigManager.getUserHomeDir(this.user);
@@ -317,8 +333,19 @@ public abstract class AbstractPdfCreator {
         //
         final InboxInfoDto inboxInfo = createReq.getInboxInfo();
 
+        this.useEcoPdfShadow = createReq.isEcoPdfShadow();
+
+        this.convertToEcoPdf =
+                !createReq.isEcoPdfShadow() && createReq.isEcoPdf();
+
+        this.pdfFile = createReq.getPdfFile();
+        this.isForPrinting = createReq.isForPrinting();
+
+        this.isGrayscalePdf = createReq.isGrayscale();
+
         /*
-         * If PDF is meant for export, check if DRM-restricted.
+         * INVARIANT: if PDF is meant for export, DRM-restricted content is not
+         * allowed.
          */
         if (!createReq.isForPrinting()) {
 
@@ -332,7 +359,7 @@ public abstract class AbstractPdfCreator {
         }
 
         /*
-         *
+         * INVARIANT: if letterhead is selected the PDF must be present.
          */
         this.myPdfFileLetterhead = null;
 
@@ -363,6 +390,19 @@ public abstract class AbstractPdfCreator {
                     throw LetterheadNotFoundException.create(lh.isPublic(),
                             lh.getId());
                 }
+            }
+        }
+
+        /*
+         * INVARIANT: if Eco Print shadow PDFs are used they must be present.
+         */
+        if (this.useEcoPdfShadow) {
+            final int nTasksWaiting =
+                    INBOX_SERVICE.lazyStartEcoPrintPdfTasks(this.userhome,
+                            inboxInfo);
+            if (nTasksWaiting > 0) {
+                throw new EcoPrintPdfTaskPendingException(String.format(
+                        "%d EcoPrint conversion(s) waiting", nTasksWaiting));
             }
         }
 
@@ -435,6 +475,11 @@ public abstract class AbstractPdfCreator {
                     throw new SpException("unknown input job type");
                 }
 
+                if (this.useEcoPdfShadow) {
+                    jobPfdName =
+                            INBOX_SERVICE.createEcoPdfShadowPath(jobPfdName);
+                }
+
                 onInitJob(jobPfdName, job.getRotate());
 
                 final List<RangeAtom> ranges =
@@ -473,6 +518,19 @@ public abstract class AbstractPdfCreator {
             onExitJobs();
 
             onInitStamp();
+
+            // --------------------------------------------------------
+            // Prepare document logging.
+            // --------------------------------------------------------
+            final DocOut docOut;
+
+            if (docLog == null) {
+                docOut = null;
+            } else {
+                docOut = new DocOut();
+                docLog.setDocOut(docOut);
+                docOut.setDocLog(docLog);
+            }
 
             // --------------------------------------------------------
             // Document Information

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface InboxService {
@@ -666,6 +666,33 @@ public interface InboxService {
      *            The SafePages directory.
      * @param pdfIn
      *            The PDF input file.
+     * @param uuid
+     *            The {@link UUID} of the task.
      */
-    void startEcoPrintPdfTask(String homedir, File pdfIn);
+    void startEcoPrintPdfTask(String homedir, File pdfIn, UUID uuid);
+
+    /**
+     * Lazy starts EcoPrint PDF conversion for the jobs that are referred to in
+     * the pages of the {@link InboxInfoDto}.
+     * <p>
+     * See {@link InboxInfoDto#getPages()}.
+     * </p>
+     *
+     * @param homedir
+     *            The SafePages directory.
+     * @param inboxInfo
+     *            The {@link InboxInfoDto} with the job pages to be Eco Printed.
+     * @return The number of tasks that are busy or lazy started. If {@code 0}
+     *         (zero), all shadow EcoPrint files are present.
+     */
+    int lazyStartEcoPrintPdfTasks(String homedir, InboxInfoDto inboxInfo);
+
+    /**
+     * Creates the EcoPrint shadow file path for a PDF file.
+     *
+     * @param pdfPath
+     *            The path of the main PDF file.
+     * @return The file path of the PDF EcoPrint shadow.
+     */
+    String createEcoPdfShadowPath(String pdfPath);
 }

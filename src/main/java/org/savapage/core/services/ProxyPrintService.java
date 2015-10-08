@@ -37,6 +37,8 @@ import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.ProxyPrinterCostDto;
 import org.savapage.core.dto.ProxyPrinterDto;
 import org.savapage.core.dto.ProxyPrinterMediaSourcesDto;
+import org.savapage.core.imaging.EcoPrintPdfTask;
+import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.ipp.IppSyntaxException;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
@@ -504,9 +506,12 @@ public interface ProxyPrintService {
      *            The {@link ProxyPrintInboxReq}.
      * @throws IppConnectException
      *             When CUPS connection is broken.
+     * @throws EcoPrintPdfTaskPendingException
+     *             When {@link EcoPrintPdfTask} objects needed for this PDF are
+     *             pending.
      */
     void proxyPrintInbox(User lockedUser, ProxyPrintInboxReq request)
-            throws IppConnectException;
+            throws IppConnectException, EcoPrintPdfTaskPendingException;
 
     /**
      * Creates a CUPS event subscription. This is an idempotent operation: when

@@ -67,6 +67,8 @@ import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.IppMediaSourceMappingDto;
 import org.savapage.core.dto.PrinterSnmpDto;
+import org.savapage.core.imaging.EcoPrintPdfTask;
+import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
@@ -1603,7 +1605,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printReq.setNumberOfCopies(job.getCopies());
             printReq.setPrinterName(job.getPrinterName());
             printReq.setRemoveGraphics(job.isRemoveGraphics());
-            printReq.setEcoPrint(job.isEcoPrint());
+            printReq.setEcoPrintShadow(job.isEcoPrint());
             printReq.setLocale(ServiceContext.getLocale());
             printReq.setIdUser(lockedUser.getId());
             printReq.putOptionValues(job.getOptionValues());
@@ -2135,7 +2137,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
     @Override
     public final void proxyPrintInbox(final User lockedUser,
-            final ProxyPrintInboxReq request) throws IppConnectException {
+            final ProxyPrintInboxReq request) throws IppConnectException,
+            EcoPrintPdfTaskPendingException {
 
         /*
          * When printing the chunks, the container request parameters are
@@ -2243,11 +2246,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The chunk ordinal (used to compose a unique PDF filename).
      * @throws IppConnectException
      *             When CUPS connection is broken.
-     *
+     * @throws EcoPrintPdfTaskPendingException
+     *             When {@link EcoPrintPdfTask} objects needed for this PDF are
+     *             pending.
      */
     private void proxyPrintInboxChunk(final User lockedUser,
             final ProxyPrintInboxReq request, final InboxInfoDto inboxInfo,
-            final int nChunk) throws IppConnectException {
+            final int nChunk) throws IppConnectException,
+            EcoPrintPdfTaskPendingException {
 
         final DocLog docLog = this.createProxyPrintDocLog(request);
 
@@ -2271,7 +2277,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
             pdfRequest.setPdfFile(pdfFileName);
             pdfRequest.setInboxInfo(inboxInfo);
             pdfRequest.setRemoveGraphics(request.isRemoveGraphics());
+
             pdfRequest.setEcoPdf(request.isEcoPrint());
+            pdfRequest.setEcoPdfShadow(request.isEcoPrintShadow());
+
             pdfRequest.setGrayscale(request.isConvertToGrayscale());
             pdfRequest.setApplyPdfProps(false);
             pdfRequest.setApplyLetterhead(true);

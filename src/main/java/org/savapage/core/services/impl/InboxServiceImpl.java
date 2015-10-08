@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -53,6 +53,7 @@ import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.imaging.EcoPrintPdfTaskInfo;
+import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.imaging.ImageUrl;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
@@ -83,7 +84,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * TODO: Make this class a "real" {@link AbstractService}.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class InboxServiceImpl implements InboxService {
 
@@ -98,6 +100,11 @@ public final class InboxServiceImpl implements InboxService {
      */
     private static final EcoPrintPdfTaskService ECOPRINT_SERVICE =
             ServiceContext.getServiceFactory().getEcoPrintPdfTaskService();
+
+    /**
+     * File extension for EcoPrint shadow PDF file.
+     */
+    public static final String FILENAME_EXT_ECO = "eco";
 
     /**
      *
@@ -1171,11 +1178,17 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public File createLetterhead(final User user) throws PostScriptDrmException {
+    public File createLetterhead(final User user)
+            throws PostScriptDrmException, LetterheadNotFoundException {
 
-        File file =
-                OutputProducer.instance().createLetterhead(
-                        getLetterheadsDir(user.getUserId()), user);
+        File file;
+        try {
+            file =
+                    OutputProducer.instance().createLetterhead(
+                            getLetterheadsDir(user.getUserId()), user);
+        } catch (EcoPrintPdfTaskPendingException e) {
+            throw new SpException(e.getMessage(), e);
+        }
 
         attachLetterhead(user, file.getName(), false);
 
@@ -1860,7 +1873,7 @@ public final class InboxServiceImpl implements InboxService {
                 }
 
                 try {
-                    FileUtils.forceDelete(file);
+                    this.deleteJobFileAndRelated(file);
                 } catch (IOException e) {
                     throw new SpException("File [" + filename
                             + "] could not be deleted", e);
@@ -1874,6 +1887,53 @@ public final class InboxServiceImpl implements InboxService {
         }
 
         return pruned;
+    }
+
+    @Override
+    public String createEcoPdfShadowPath(final String pdfPath) {
+        return String.format("%s.%s", pdfPath, FILENAME_EXT_ECO);
+    }
+
+    /**
+     * Deletes a job file and its related shadow files.
+     *
+     * @param file
+     *            The main job file.
+     * @throws IOException
+     *             When IO error occurs.
+     */
+    private void deleteJobFileAndRelated(final File file) throws IOException {
+        /*
+         * Delete the main job file.
+         */
+        FileUtils.forceDelete(file);
+
+        /*
+         * Stop a running EcoPrint task.
+         */
+        final UUID uuid = getUuidFromInboxFile(file);
+
+        if (ECOPRINT_SERVICE.stopTask(uuid)) {
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Stopped [" + uuid.toString() + "] EcoPrint task.");
+            }
+
+        } else {
+
+            final File ecoFile =
+                    new File(createEcoPdfShadowPath(file.getCanonicalPath()));
+
+            if (ecoFile.exists()) {
+
+                ecoFile.delete();
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Deleted [" + ecoFile.getCanonicalPath()
+                            + "] file.");
+                }
+            }
+        }
     }
 
     @Override
@@ -2565,17 +2625,30 @@ public final class InboxServiceImpl implements InboxService {
         return orgPages;
     }
 
-    @Override
-    public void startEcoPrintPdfTask(final String homedir, final File pdfIn) {
+    /**
+     * Get the {@link UUID} from the inbox file, which is the file basename.
+     *
+     * @param file
+     *            The inbox file.
+     * @return The {@link UUID}.
+     */
+    private UUID getUuidFromInboxFile(final File file) {
+        return UUID.fromString(FilenameUtils.getBaseName(file.getName()));
+    }
 
-        final EcoPrintPdfTaskInfo info =
-                new EcoPrintPdfTaskInfo(pdfIn.getName());
+    @Override
+    public void startEcoPrintPdfTask(final String homedir, final File pdfIn,
+            final UUID uuid) {
+
+        final EcoPrintPdfTaskInfo info = new EcoPrintPdfTaskInfo(uuid);
 
         info.setPdfIn(pdfIn);
 
         final Path pathTargetEco =
-                FileSystems.getDefault().getPath(homedir,
-                        String.format("%s.eco", pdfIn.getName()));
+                FileSystems.getDefault().getPath(
+                        homedir,
+                        String.format("%s.%s", pdfIn.getName(),
+                                FILENAME_EXT_ECO));
 
         info.setPdfOut(pathTargetEco.toFile());
 
@@ -2592,6 +2665,60 @@ public final class InboxServiceImpl implements InboxService {
         info.setRotation("0");
 
         ECOPRINT_SERVICE.submitTask(info);
+    }
+
+    @Override
+    public int lazyStartEcoPrintPdfTasks(final String homedir,
+            final InboxInfoDto inboxInfo) {
+        /*
+         * Traverse the page ranges to collect the unique jobs.
+         */
+        final Set<Integer> jobsSet = new HashSet<>();
+
+        for (InboxJobRange page : inboxInfo.getPages()) {
+            jobsSet.add(page.getJob());
+        }
+
+        /*
+         * Check presence of EcoPrint shadow.
+         */
+        int nTasksBusy = 0;
+        int nTasksStarted = 0;
+
+        final Iterator<Integer> iter = jobsSet.iterator();
+
+        while (iter.hasNext()) {
+
+            final InboxJob job =
+                    inboxInfo.getJobs().get(iter.next().intValue());
+            /*
+             * The base name of the file is the UUID as registered in the
+             * database (DocIn table).
+             */
+            final String uuid = FilenameUtils.getBaseName(job.getFile());
+
+            final Path pdfPath =
+                    FileSystems.getDefault().getPath(
+                            homedir,
+                            String.format("%s.%s", uuid,
+                                    DocContent.FILENAME_EXT_PDF));
+
+            final File fileEco =
+                    new File(this.createEcoPdfShadowPath(pdfPath.toString()));
+
+            /*
+             * Is EcoPrint task in queue or busy executing?
+             */
+            if (ECOPRINT_SERVICE.hasTask(UUID.fromString(uuid))) {
+                nTasksBusy++;
+            } else if (!fileEco.exists()) {
+                this.startEcoPrintPdfTask(homedir, pdfPath.toFile(),
+                        UUID.fromString(uuid));
+                nTasksStarted++;
+            }
+        }
+
+        return nTasksBusy + nTasksStarted;
     }
 
 }

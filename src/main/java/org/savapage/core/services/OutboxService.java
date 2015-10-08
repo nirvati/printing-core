@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.savapage.core.imaging.EcoPrintPdfTask;
+import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
@@ -141,8 +143,12 @@ public interface OutboxService {
      *            The requesting {@link User}, which should be locked.
      * @param request
      *            The {@link ProxyPrintInboxReq}.
+     * @throws EcoPrintPdfTaskPendingException
+     *             When {@link EcoPrintPdfTask} objects needed for this PDF are
+     *             pending.
      */
-    void proxyPrintInbox(User lockedUser, ProxyPrintInboxReq request);
+    void proxyPrintInbox(User lockedUser, ProxyPrintInboxReq request)
+            throws EcoPrintPdfTaskPendingException;
 
     /**
      * Gets the {@link OutboxJob} candidate objects for proxy printing.

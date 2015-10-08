@@ -33,6 +33,8 @@ import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.imaging.EcoPrintPdfTask;
+import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.imaging.ImageUrl;
 import org.savapage.core.imaging.Pdf2ImgCommandExt;
 import org.savapage.core.imaging.Pdf2PngPopplerCmd;
@@ -386,9 +388,13 @@ public final class OutputProducer {
      * @return The letterhead file.
      * @throws PostScriptDrmException
      * @throws LetterheadNotFoundException
+     * @throws EcoPrintPdfTaskPendingException
+     *             When {@link EcoPrintPdfTask} objects needed for this PDF are
+     *             pending.
      */
     public File createLetterhead(final String directory, final User user)
-            throws LetterheadNotFoundException, PostScriptDrmException {
+            throws LetterheadNotFoundException, PostScriptDrmException,
+            EcoPrintPdfTaskPendingException {
 
         final StringBuilder pdfFile =
                 new StringBuilder().append(directory).append("/letterhead-")
@@ -426,11 +432,14 @@ public final class OutputProducer {
      *             When source is DRM restricted.
      * @throws LetterheadNotFoundException
      *             When letterhead is not found.
+     * @throws EcoPrintPdfTaskPendingException
+     *             When {@link EcoPrintPdfTask} objects needed for this PDF are
+     *             pending.
      */
     public File generatePdf(final PdfCreateRequest createReq,
             final LinkedHashMap<String, Integer> uuidPageCount,
             final DocLog docLog) throws LetterheadNotFoundException,
-            PostScriptDrmException {
+            PostScriptDrmException, EcoPrintPdfTaskPendingException {
 
         return AbstractPdfCreator.create().generate(createReq, uuidPageCount,
                 docLog);
@@ -469,12 +478,15 @@ public final class OutputProducer {
      * @return File object with generated PDF.
      * @throws PostScriptDrmException
      * @throws LetterheadNotFoundException
+     * @throws EcoPrintPdfTaskPendingException
+     *             When {@link EcoPrintPdfTask} objects needed for this PDF are
+     *             pending.
      */
     public File generatePdfForExport(final User user, final String pdfFile,
             final String documentPageRangeFilter, final boolean removeGraphics,
             final boolean ecoPdf, final boolean grayscale, final DocLog docLog)
             throws IOException, LetterheadNotFoundException,
-            PostScriptDrmException {
+            PostScriptDrmException, EcoPrintPdfTaskPendingException {
 
         final LinkedHashMap<String, Integer> uuidPageCount =
                 new LinkedHashMap<>();
@@ -499,7 +511,7 @@ public final class OutputProducer {
         pdfRequest.setApplyPdfProps(true);
         pdfRequest.setApplyLetterhead(true);
         pdfRequest.setForPrinting(false);
-        pdfRequest.setEcoPdf(ecoPdf);
+        pdfRequest.setEcoPdfShadow(ecoPdf);
         pdfRequest.setGrayscale(grayscale);
 
         final File file = generatePdf(pdfRequest, uuidPageCount, docLog);

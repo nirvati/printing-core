@@ -1603,6 +1603,14 @@ public interface IConfigProp {
         ECO_PRINT_ENABLE("eco-print.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
+         * Threshold for automatically creating an EcoPrint shadow file when PDF
+         * arrives in SafePages inbox: if number of PDF pages is GT threshold
+         * the shadow is not created.
+         */
+        ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT(
+                "eco-print.auto-threshold.page-count", NUMBER_VALIDATOR, "0"),
+
+        /**
          * .
          */
         ECO_PRINT_RESOLUTION_DPI("eco-print.resolution-dpi", NUMBER_VALIDATOR,

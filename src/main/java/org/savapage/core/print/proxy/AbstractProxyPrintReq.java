@@ -92,7 +92,10 @@ public abstract class AbstractProxyPrintReq {
     private int numberOfCopies;
     private int numberOfPages;
     private boolean removeGraphics;
+
     private boolean ecoPrint;
+
+    private boolean ecoPrintShadow;
 
     /**
      * <code>true</code> if PDF needs to be converted to grayscale before proxy
@@ -177,12 +180,38 @@ public abstract class AbstractProxyPrintReq {
         this.removeGraphics = removeGraphics;
     }
 
+    /**
+     *
+     * @return {@code true} if Eco PDF is to be created.
+     */
     public boolean isEcoPrint() {
         return ecoPrint;
     }
 
+    /**
+     *
+     * @param ecoPrint
+     *            {@code true} if Eco PDF is to be created.
+     */
     public void setEcoPrint(boolean ecoPrint) {
         this.ecoPrint = ecoPrint;
+    }
+
+    /**
+     *
+     * @return {@code true} if Eco PDF shadow is to be used.
+     */
+    public boolean isEcoPrintShadow() {
+        return ecoPrintShadow;
+    }
+
+    /**
+     *
+     * @param ecoPrintShadow
+     *            {@code true} if Eco PDF shadow is to be used.
+     */
+    public void setEcoPrintShadow(boolean ecoPrintShadow) {
+        this.ecoPrintShadow = ecoPrintShadow;
     }
 
     public boolean isConvertToGrayscale() {

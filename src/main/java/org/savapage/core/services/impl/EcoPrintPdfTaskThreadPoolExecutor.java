@@ -43,8 +43,7 @@ import org.savapage.core.imaging.EcoPrintPdfTaskInfo;
  * @author Rijk Ravestein
  *
  */
-public final class EcoPrintPdfTaskThreadPoolExecutor extends
-        ThreadPoolExecutor {
+public final class EcoPrintPdfTaskThreadPoolExecutor extends ThreadPoolExecutor {
 
     /**
      * .
@@ -185,4 +184,25 @@ public final class EcoPrintPdfTaskThreadPoolExecutor extends
 
         return isStopped;
     }
+
+    /**
+     * Checks if a task is running.
+     *
+     * @param id
+     *            The id of the task.
+     * @return {@code true} if the task is running.
+     */
+    public boolean isTaskRunning(final EcoPrintPdfTaskInfo taskInfo) {
+
+        final EcoPrintPdfTask task = new EcoPrintPdfTask(taskInfo, this);
+
+        boolean isRunning = false;
+
+        synchronized (this.running) {
+            isRunning = this.running.indexOf(task) >= 0;
+        }
+
+        return isRunning;
+    }
+
 }

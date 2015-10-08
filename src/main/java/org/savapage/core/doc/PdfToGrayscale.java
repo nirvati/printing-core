@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -62,9 +62,12 @@ public class PdfToGrayscale extends AbstractFileConverter {
         final StringBuilder cmd = new StringBuilder(128);
 
         try {
+            /*
+             * See #598
+             */
             cmd.append("gs -sOutputFile=\"")
                     .append(fileOut.getCanonicalPath())
-                    .append("\" -sDEVICE=pdfwrite")
+                    .append("\" -sDEVICE=pdfwrite -dNOPAUSE -dBATCH")
                     .append(" -sColorConversionStrategy=Gray")
                     .append(" -sProcessColorModel=DeviceGray")
                     // Needed for gs 9.10

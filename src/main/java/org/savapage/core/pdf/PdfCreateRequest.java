@@ -25,19 +25,19 @@ import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.jpa.User;
 
 /**
- * Page Properties of a PDF file.
+ * A request to create a PDF file.
  *
  * @author Datraverse B.V.
  */
-public class PdfCreateRequest {
+public final class PdfCreateRequest {
 
     /**
-     * The user object.
+     * The {@link User} to create the PDF for.
      */
     private User userObj;
 
     /**
-     * pdfFile The name of the PDF file to generate.
+     * pdfFile The name of the PDF file to create.
      */
     private String pdfFile;
 
@@ -47,14 +47,12 @@ public class PdfCreateRequest {
     private InboxInfoDto inboxInfo;
 
     /**
-     * If <code>true</code> graphics are removed (minified to
-     * one-pixel).
+     * If {@code true} graphics are to be removed (minified to one-pixel).
      */
     private boolean removeGraphics;
 
     /**
-     * If <code>true</code> the stored PDF properties for 'user'
-     * should be applied.
+     * If {@code true} the stored PDF properties for 'user' should be applied.
      */
     private boolean applyPdfProps;
 
@@ -64,21 +62,24 @@ public class PdfCreateRequest {
     private boolean applyLetterhead;
 
     /**
-     * <code>true</code> if this is a PDF generated for
-     * printing.
+     * {@code true} if this is a PDF created for printing.
      */
     private boolean forPrinting;
 
     /**
-     * <code>true</code> if Eco PDF is to be generated.
+     * {@code true} if Eco PDF is to be created.
      */
     private boolean ecoPdf;
 
     /**
-     * <code>true</code> if grayscale PDF is to be generated.
+     * {@code true} if Eco PDF shadow is to be used.
+     */
+    private boolean ecoPdfShadow;
+
+    /**
+     * {@code true} if grayscale PDF is to be created.
      */
     private boolean grayscale;
-
 
     public User getUserObj() {
         return userObj;
@@ -136,12 +137,35 @@ public class PdfCreateRequest {
         this.forPrinting = forPrinting;
     }
 
+    /**
+     * @return {@code true} if Eco PDF is to be created.
+     */
     public boolean isEcoPdf() {
         return ecoPdf;
     }
 
+    /**
+     *
+     * @param ecoPdf {@code true} if Eco PDF is to be created.
+     */
     public void setEcoPdf(boolean ecoPdf) {
         this.ecoPdf = ecoPdf;
+    }
+
+    /**
+     * @return {@code true} if Eco PDF shadow is to be used.
+     */
+    public boolean isEcoPdfShadow() {
+        return ecoPdfShadow;
+    }
+
+    /**
+     *
+     * @param ecoPdfShadow
+     *            {@code true} if Eco PDF shadow is to be used.
+     */
+    public void setEcoPdfShadow(boolean ecoPdfShadow) {
+        this.ecoPdfShadow = ecoPdfShadow;
     }
 
     public boolean isGrayscale() {

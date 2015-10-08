@@ -860,7 +860,7 @@ public class DocContentPrintProcessor {
             /*
              * Calculate number of pages, etc...
              */
-            setPageProps(SpPdfPageProps.create(tempPathPdf));
+            this.setPageProps(SpPdfPageProps.create(tempPathPdf));
 
             /*
              * Logging in Database: this should be done BEFORE the file MOVE.
@@ -879,9 +879,13 @@ public class DocContentPrintProcessor {
             /*
              * Start task to create the shadow EcoPrint PDF file?
              */
-            if (ConfigManager.isEcoPrintEnabled()) {
-                // INBOX_SERVICE
-                // .startEcoPrintPdfTask(homeDir, pathTarget.toFile());
+            if (ConfigManager.isEcoPrintEnabled()
+                    && this.getPageProps().getNumberOfPages() < ConfigManager
+                            .instance()
+                            .getConfigInt(
+                                    Key.ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT)) {
+                INBOX_SERVICE.startEcoPrintPdfTask(homeDir,
+                        pathTarget.toFile(), this.uuidJob);
             }
 
         } catch (Exception e) {

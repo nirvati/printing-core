@@ -156,7 +156,8 @@ public final class EcoPrintPdfTask implements Runnable,
 
             if (this.stopRequest && LOGGER.isInfoEnabled()) {
                 LOGGER.info(String.format("[%s] %s : STOPPED", this.taskInfo
-                        .getId(), this.taskInfo.getPdfIn().getName()));
+                        .getUuid().toString(), this.taskInfo.getPdfIn()
+                        .getName()));
             }
 
             throw new InterruptedException();
@@ -175,8 +176,10 @@ public final class EcoPrintPdfTask implements Runnable,
         final EcoImageFilter filter = new EcoImageFilterSquare();
 
         final Path pathPdfOutTemp =
-                FileSystems.getDefault().getPath(pathTmpDir,
-                        String.format("%s.eco", UUID.randomUUID().toString()));
+                FileSystems.getDefault().getPath(
+                        pathTmpDir,
+                        String.format("%s.pdf.eco", UUID.randomUUID()
+                                .toString()));
 
         /*
          * Create target document, but lazy open it when page size of first page
@@ -346,14 +349,14 @@ public final class EcoPrintPdfTask implements Runnable,
 
     @Override
     public int hashCode() {
-        return this.taskInfo.getId().hashCode();
+        return this.taskInfo.getUuid().hashCode();
     }
 
     @Override
     public boolean equals(final Object object) {
-        return this.taskInfo.getId() != null
-                && this.taskInfo.getId().equals(
-                        ((EcoPrintPdfTask) object).taskInfo.getId());
+        return this.taskInfo.getUuid() != null
+                && this.taskInfo.getUuid().equals(
+                        ((EcoPrintPdfTask) object).taskInfo.getUuid());
     }
 
     @Override

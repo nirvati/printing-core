@@ -46,6 +46,8 @@ import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.imaging.EcoPrintPdfTask;
+import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.jpa.DocLog;
@@ -198,7 +200,8 @@ public final class OutboxServiceImpl extends AbstractService implements
 
     @Override
     public void proxyPrintInbox(final User lockedUser,
-            final ProxyPrintInboxReq request) {
+            final ProxyPrintInboxReq request)
+            throws EcoPrintPdfTaskPendingException {
 
         final Date submitDate = ServiceContext.getTransactionDate();
         final Date expiryDate =
@@ -315,11 +318,14 @@ public final class OutboxServiceImpl extends AbstractService implements
      *            The data the proxy print was submitted.
      * @param expiryDate
      *            The data the proxy print expires.
+     * @throws EcoPrintPdfTaskPendingException
+     *             When {@link EcoPrintPdfTask} objects needed for this PDF are
+     *             pending.
      */
     private void proxyPrintInboxChunk(final User lockedUser,
             final ProxyPrintInboxReq request, final InboxInfoDto inboxInfo,
             final OutboxInfoDto outboxInfo, final Date submitDate,
-            final Date expiryDate) {
+            final Date expiryDate) throws EcoPrintPdfTaskPendingException {
 
         final DocLog docLog = null;
 
@@ -345,7 +351,10 @@ public final class OutboxServiceImpl extends AbstractService implements
             pdfRequest.setPdfFile(pdfFileName);
             pdfRequest.setInboxInfo(inboxInfo);
             pdfRequest.setRemoveGraphics(request.isRemoveGraphics());
+
             pdfRequest.setEcoPdf(request.isEcoPrint());
+            pdfRequest.setEcoPdfShadow(request.isEcoPrintShadow());
+
             pdfRequest.setGrayscale(request.isConvertToGrayscale());
             pdfRequest.setApplyPdfProps(!APPLY_PDF_PROPS);
             pdfRequest.setApplyLetterhead(APPLY_LETTERHEAD);

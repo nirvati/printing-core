@@ -395,7 +395,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     protected void onInit() {
 
         this.onExitConvertToGrayscale =
-                this.isGrayscalePdf() && !this.isEcoPdf();
+                this.isGrayscalePdf() && !this.isConvertToEcoPdf();
 
         this.targetPdfCopyFilePath = String.format("%s.tmp", this.pdfFile);
 
@@ -404,7 +404,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             final OutputStream ostr =
                     new FileOutputStream(this.targetPdfCopyFilePath);
 
-            if (this.isEcoPdf()) {
+            if (this.isConvertToEcoPdf()) {
 
                 this.targetDocument = new Document();
                 PdfWriter.getInstance(this.targetDocument, ostr);
@@ -459,7 +459,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         this.readerWlk = new PdfReader(jobPfdName);
 
-        if (this.isEcoPdf()) {
+        if (this.isConvertToEcoPdf()) {
             this.jobPdfFileWlk = new File(jobPfdName);
         }
 
@@ -473,7 +473,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         this.isRemoveGraphics = removeGraphics;
 
-        if (this.isEcoPdf()) {
+        if (this.isConvertToEcoPdf()) {
 
             onProcessJobPagesEco(nPageFrom, nPageTo, removeGraphics);
 
@@ -598,7 +598,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onExitJob() throws Exception {
 
-        if (!this.isEcoPdf()) {
+        if (!this.isConvertToEcoPdf()) {
 
             this.readerWlk.selectPages(this.jobRangesWlk.toString());
             int pages = this.readerWlk.getNumberOfPages();

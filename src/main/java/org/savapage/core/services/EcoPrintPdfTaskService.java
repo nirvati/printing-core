@@ -21,6 +21,8 @@
  */
 package org.savapage.core.services;
 
+import java.util.UUID;
+
 import org.savapage.core.imaging.EcoPrintPdfTaskInfo;
 
 /**
@@ -54,12 +56,23 @@ public interface EcoPrintPdfTaskService {
      * Stops a task, either by removing it from the queue or by aborting it when
      * running.
      *
-     * @param id
-     *            The id of the task, see {@link EcoPrintPdfTaskInfo#getId()} .
+     * @param uuid
+     *            The {@link UUID} of the task, see
+     *            {@link EcoPrintPdfTaskInfo#getUuid()} .
      * @return {@code true} when task was found and stopped, {@code false} when
      *         task was not found.
      */
-    boolean stopTask(final String id);
+    boolean stopTask(UUID uuid);
+
+    /**
+     * Checks if a task is in queue or running.
+     *
+     * @param uuid
+     *            The {@link UUID} of the task, see
+     *            {@link EcoPrintPdfTaskInfo#getUuid()} .
+     * @return {@code true} when task is in queue or running.
+     */
+    boolean hasTask(UUID uuid);
 
     /**
      * Shuts the service down and blocks till is has terminated. Current running

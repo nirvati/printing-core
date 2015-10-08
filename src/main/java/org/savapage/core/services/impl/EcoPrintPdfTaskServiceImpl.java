@@ -22,6 +22,7 @@
 package org.savapage.core.services.impl;
 
 import java.util.Iterator;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -88,8 +89,8 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
                     final EcoPrintPdfTaskInfo info =
                             ((EcoPrintPdfTask) r).getTaskInfo();
 
-                    LOGGER.error(String.format("[%s] %s is REJECTED",
-                            info.getId(), info.getPdfIn().getName()));
+                    LOGGER.error(String.format("[%s] %s is REJECTED", info
+                            .getUuid().toString(), info.getPdfIn().getName()));
                 }
             };
 
@@ -128,7 +129,7 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
     }
 
     @Override
-    public boolean stopTask(final String id) {
+    public boolean stopTask(final UUID uuid) {
 
         boolean isStopped = false;
 
@@ -138,7 +139,7 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
 
             final EcoPrintPdfTask task = (EcoPrintPdfTask) iter.next();
 
-            if (task.getTaskInfo().getId().equals(id)) {
+            if (task.getTaskInfo().getUuid().equals(uuid)) {
                 task.stop();
                 isStopped = true;
                 break;
@@ -147,10 +148,37 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
         }
 
         if (!isStopped) {
-            isStopped = this.executorPool.stopTask(new EcoPrintPdfTaskInfo(id));
+            isStopped =
+                    this.executorPool.stopTask(new EcoPrintPdfTaskInfo(uuid));
         }
 
         return isStopped;
+    }
+
+    @Override
+    public boolean hasTask(final UUID uuid) {
+
+        boolean isPresent = false;
+
+        final Iterator<Runnable> iter = this.executorPool.getQueue().iterator();
+
+        while (iter.hasNext()) {
+
+            final EcoPrintPdfTask task = (EcoPrintPdfTask) iter.next();
+
+            if (task.getTaskInfo().getUuid().equals(uuid)) {
+                isPresent = true;
+                break;
+            }
+        }
+
+        if (!isPresent) {
+            isPresent =
+                    this.executorPool.isTaskRunning(new EcoPrintPdfTaskInfo(
+                            uuid));
+        }
+
+        return isPresent;
     }
 
     @Override

@@ -23,6 +23,7 @@ package org.savapage.core.imaging;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.UUID;
 
 /**
  * Information for a {@link EcoPrintPdfTask}.
@@ -32,7 +33,7 @@ import java.nio.file.Path;
  */
 public final class EcoPrintPdfTaskInfo {
 
-    private final String id;
+    private final UUID uuid;
 
     private Path pathTmpDir;
 
@@ -43,12 +44,12 @@ public final class EcoPrintPdfTaskInfo {
 
     private String rotation;
 
-    public EcoPrintPdfTaskInfo(final String id) {
-        this.id = id;
+    public EcoPrintPdfTaskInfo(final UUID uuid) {
+        this.uuid = uuid;
     }
 
-    public String getId() {
-        return id;
+    public UUID getUuid() {
+        return uuid;
     }
 
     public Path getPathTmpDir() {
