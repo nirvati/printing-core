@@ -98,7 +98,7 @@ public abstract class EcoImageFilterMixin implements EcoImageFilter {
     }
 
     @Override
-    public final void filter(final URL imageURL, final File fileOut)
+    public final double filter(final URL imageURL, final File fileOut)
             throws IOException {
 
         this.startTime = System.currentTimeMillis();
@@ -116,6 +116,8 @@ public abstract class EcoImageFilterMixin implements EcoImageFilter {
 
         //
         this.totalTime = System.currentTimeMillis() - this.startTime;
+
+        return getFractionFiltered();
     }
 
     /**

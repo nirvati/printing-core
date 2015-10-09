@@ -29,6 +29,17 @@ package org.savapage.core.services;
 public interface ServiceFactory {
 
     /**
+     * Starts all {@link StatefulService} instances.
+     */
+    void start();
+
+    /**
+     * Shuts down all {@link StatefulService} instances and blocks till they are
+     * all terminated.
+     */
+    void shutdown();
+
+    /**
      * Gets the {@link AccountingService} singleton.
      *
      * @return The singleton.

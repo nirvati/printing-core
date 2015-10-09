@@ -41,10 +41,11 @@ public interface EcoImageFilter {
      *            The {@link URL} of the input image.
      * @param imageOut
      *            The filtered output {@link File}.
+     * @return The fraction of non-white pixels that were filtered.
      * @throws IOException
      *             When IO errors.
      */
-    void filter(URL imageIn, File imageOut) throws IOException;
+    double filter(URL imageIn, File imageOut) throws IOException;
 
     /**
      * Filters an image {@link File} to a {@link BufferedImage}.
@@ -68,8 +69,8 @@ public interface EcoImageFilter {
     long getFilterTime();
 
     /**
-     * @return The processing time (milliseconds) for writing the output
-     *         image to file.
+     * @return The processing time (milliseconds) for writing the output image
+     *         to file.
      */
     long getWriteTime();
 
@@ -77,5 +78,10 @@ public interface EcoImageFilter {
      * @return The total processing time (milliseconds) of the filter operation.
      */
     long getTotalTime();
+
+    /**
+     * @return The fraction of non-white pixels that were filtered.
+     */
+    double getFractionFiltered();
 
 }

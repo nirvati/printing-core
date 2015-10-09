@@ -1838,6 +1838,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
              */
             costParms.setDuplex(printReq.isDuplex());
             costParms.setGrayscale(printReq.isGrayscale());
+            costParms.setEcoPrint(printReq.isEcoPrintShadow()
+                    || printReq.isEcoPrint());
             costParms.setNumberOfCopies(printReq.getNumberOfCopies());
             costParms.setPagesPerSide(printReq.getNup());
 
@@ -2076,6 +2078,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         costParms.setDuplex(request.isDuplex());
         costParms.setGrayscale(request.isGrayscale());
+        costParms.setEcoPrint(request.isEcoPrintShadow()
+                || request.isEcoPrint());
         costParms.setNumberOfCopies(request.getNumberOfCopies());
         costParms.setPagesPerSide(request.getNup());
 

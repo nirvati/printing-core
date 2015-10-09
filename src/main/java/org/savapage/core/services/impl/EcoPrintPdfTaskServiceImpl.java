@@ -30,6 +30,7 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.savapage.core.SpInfo;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskInfo;
 import org.savapage.core.services.EcoPrintPdfTaskService;
@@ -129,9 +130,9 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
     }
 
     @Override
-    public boolean stopTask(final UUID uuid) {
+    public boolean cancelTask(final UUID uuid) {
 
-        boolean isStopped = false;
+        boolean isCancelled = false;
 
         final Iterator<Runnable> iter = this.executorPool.getQueue().iterator();
 
@@ -141,18 +142,18 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
 
             if (task.getTaskInfo().getUuid().equals(uuid)) {
                 task.stop();
-                isStopped = true;
+                isCancelled = true;
                 break;
             }
 
         }
 
-        if (!isStopped) {
-            isStopped =
+        if (!isCancelled) {
+            isCancelled =
                     this.executorPool.stopTask(new EcoPrintPdfTaskInfo(uuid));
         }
 
-        return isStopped;
+        return isCancelled;
     }
 
     @Override
@@ -182,16 +183,28 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
     }
 
     @Override
+    public void start() {
+        // noop
+    }
+
+    @Override
     public void shutdown() {
 
+        if (this.executorPool.isShutdown()) {
+            return;
+        }
+
         this.executorPool.shutdown();
+        SpInfo.instance().log("Shutting down Eco Print Service...");
 
         try {
             while (!this.executorPool.awaitTermination(1, TimeUnit.SECONDS))
                 ;
+            SpInfo.instance().log("... Eco Print Service shutdown completed.");
         } catch (InterruptedException e) {
-            // noop
+            SpInfo.instance().log("... Eco Print Service interrupted.");
         }
+
     }
 
 }

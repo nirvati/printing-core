@@ -1617,6 +1617,12 @@ public interface IConfigProp {
                 "300"),
 
         /**
+         * Discount percentage for EcoPrint proxy printing.
+         */
+        ECO_PRINT_DISCOUNT_PERC("eco-print.discount-percent", NUMBER_VALIDATOR,
+                "15"),
+
+        /**
          * Trust authenticated user in Client App on same IP address as User Web
          * App (Boolean, default TRUE).
          */

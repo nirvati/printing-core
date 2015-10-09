@@ -1913,7 +1913,7 @@ public final class InboxServiceImpl implements InboxService {
          */
         final UUID uuid = getUuidFromInboxFile(file);
 
-        if (ECOPRINT_SERVICE.stopTask(uuid)) {
+        if (ECOPRINT_SERVICE.cancelTask(uuid)) {
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Stopped [" + uuid.toString() + "] EcoPrint task.");

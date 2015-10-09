@@ -38,6 +38,7 @@ public class ProxyPrintCostParms {
     private String ippMediaOption;
     private boolean grayscale;
     private boolean duplex;
+    private boolean ecoPrint;
 
     public int getNumberOfCopies() {
         return numberOfCopies;
@@ -85,6 +86,14 @@ public class ProxyPrintCostParms {
 
     public void setDuplex(boolean duplex) {
         this.duplex = duplex;
+    }
+
+    public boolean isEcoPrint() {
+        return ecoPrint;
+    }
+
+    public void setEcoPrint(boolean ecoPrint) {
+        this.ecoPrint = ecoPrint;
     }
 
     public IppMediaSourceCostDto getMediaSourceCost() {

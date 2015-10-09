@@ -32,7 +32,7 @@ import org.savapage.core.imaging.EcoPrintPdfTaskInfo;
  * @author Rijk Ravestein
  *
  */
-public interface EcoPrintPdfTaskService {
+public interface EcoPrintPdfTaskService extends StatefulService {
 
     /**
      * Submits a task.
@@ -53,16 +53,16 @@ public interface EcoPrintPdfTaskService {
     void resume();
 
     /**
-     * Stops a task, either by removing it from the queue or by aborting it when
-     * running.
+     * Cancels a task, either by removing it from the queue or by aborting it
+     * when running.
      *
      * @param uuid
      *            The {@link UUID} of the task, see
      *            {@link EcoPrintPdfTaskInfo#getUuid()} .
-     * @return {@code true} when task was found and stopped, {@code false} when
-     *         task was not found.
+     * @return {@code true} when task was found and cancelled, {@code false}
+     *         when task was not found.
      */
-    boolean stopTask(UUID uuid);
+    boolean cancelTask(UUID uuid);
 
     /**
      * Checks if a task is in queue or running.
@@ -78,5 +78,6 @@ public interface EcoPrintPdfTaskService {
      * Shuts the service down and blocks till is has terminated. Current running
      * tasks are aborted.
      */
+    @Override
     void shutdown();
 }

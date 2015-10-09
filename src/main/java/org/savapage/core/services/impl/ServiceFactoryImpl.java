@@ -38,6 +38,7 @@ import org.savapage.core.services.QueueService;
 import org.savapage.core.services.RfIdReaderService;
 import org.savapage.core.services.ServiceFactory;
 import org.savapage.core.services.SmartSchoolService;
+import org.savapage.core.services.StatefulService;
 import org.savapage.core.services.UserGroupService;
 import org.savapage.core.services.UserService;
 
@@ -142,6 +143,9 @@ public final class ServiceFactoryImpl implements ServiceFactory {
                 new SmartSchoolServiceImpl();
     }
 
+    private final static StatefulService statefullServices[] =
+            new StatefulService[] { EcoPrintPdfTaskServiceHolder.SERVICE };
+
     @Override
     public AccountingService getAccountingService() {
         return AccountingServiceHolder.SERVICE;
@@ -230,6 +234,20 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public SmartSchoolService getSmartSchoolService() {
         return SmartSchoolServiceHolder.SERVICE;
+    }
+
+    @Override
+    public void start() {
+        for (final StatefulService service : statefullServices) {
+            service.start();
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        for (final StatefulService service : statefullServices) {
+            service.shutdown();
+        }
     }
 
 }

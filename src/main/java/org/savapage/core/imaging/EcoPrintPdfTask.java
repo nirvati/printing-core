@@ -115,15 +115,16 @@ public final class EcoPrintPdfTask implements Runnable,
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace(String.format("%s : Tot %.2f | Read %.2f | "
-                    + "Proc %.2f | Write %.2f secs", imageIn.getName(),
-                    (double) filter.getTotalTime()
+                    + "Proc %.2f | Write %.2f secs | Saved %.2f perc",
+                    imageIn.getName(), (double) filter.getTotalTime()
                             / DateUtil.DURATION_MSEC_SECOND,
                     (double) filter.getReadTime()
                             / DateUtil.DURATION_MSEC_SECOND,
                     (double) filter.getFilterTime()
                             / DateUtil.DURATION_MSEC_SECOND,
                     (double) filter.getWriteTime()
-                            / DateUtil.DURATION_MSEC_SECOND));
+                            / DateUtil.DURATION_MSEC_SECOND,
+                    filter.getFractionFiltered() * 100));
         }
         return imageOut;
     }
@@ -193,6 +194,7 @@ public final class EcoPrintPdfTask implements Runnable,
 
         int nPagesTot = 0;
         int nPagesMax = 0;
+        double fractionFilteredTot = 0.0;
 
         try {
 
@@ -287,6 +289,7 @@ public final class EcoPrintPdfTask implements Runnable,
 
                 ImageToPdf.addImagePage(targetDocument, 0, 0, image);
                 nPagesTot++;
+                fractionFilteredTot += filter.getFractionFiltered();
 
                 imageOut.delete();
                 imageOut = null;
@@ -333,12 +336,15 @@ public final class EcoPrintPdfTask implements Runnable,
 
             final StringBuilder msg = new StringBuilder();
 
-            msg.append(String.format("%s | %d page(s) | %.2f secs.", taskInfo
+            msg.append(String.format("%s | %d page(s) | %.2f secs", taskInfo
                     .getPdfOut().getName(), nPagesMax,
                     (double) (System.currentTimeMillis() - startTime)
                             / DateUtil.DURATION_MSEC_SECOND));
 
-            if (!finished) {
+            if (finished) {
+                msg.append(String.format(" | Saved %.2f perc", 100
+                        * fractionFilteredTot / nPagesTot));
+            } else {
                 msg.append(" | ABORTED after ").append(nPagesTot)
                         .append(" page(s).");
             }

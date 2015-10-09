@@ -1144,6 +1144,8 @@ public final class ConfigManager {
             throw new SpException("mode [" + mode + "] is not supported");
         }
 
+        ServiceContext.getServiceFactory().start();
+
         runMode = mode;
     }
 
@@ -1830,6 +1832,22 @@ public final class ConfigManager {
     }
 
     /**
+     *
+     * @param key
+     *            The key.
+     * @param dfault
+     *            The default value when property is not found.
+     * @return The value.
+     */
+    public long getConfigLong(final IConfigProp.Key key, final long dfault) {
+        final String value = getConfigValue(key);
+        if (StringUtils.isBlank(value)) {
+            return dfault;
+        }
+        return Long.parseLong(value);
+    }
+
+    /**
      * If the key is not present an empty {@link Set} is returned.
      *
      * @param key
@@ -2017,6 +2035,8 @@ public final class ConfigManager {
     public synchronized void exit() throws Exception {
 
         setShutdownInProgress();
+
+        ServiceContext.getServiceFactory().shutdown();
 
         final boolean isServerRunMode =
                 runMode != null && runMode == RunMode.SERVER;

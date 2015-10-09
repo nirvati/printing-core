@@ -57,60 +57,69 @@ public class AccountingServiceTest {
     public void testPrintCost(final int nPages, final int nPagesPerSide,
             final int nCopies, final boolean duplex,
             final String pageCostOneSided, final String pageCostTwoSided,
-            final String expectedPrintCost) {
+            final String discountPerc, final String expectedPrintCost) {
 
         assertTrue(AccountingServiceImpl.calcPrintJobCost(nPages,
                 nPagesPerSide, nCopies, duplex,
                 new BigDecimal(pageCostOneSided),
-                new BigDecimal(pageCostTwoSided)).equals(
-                new BigDecimal(expectedPrintCost)));
+                new BigDecimal(pageCostTwoSided), new BigDecimal(discountPerc))
+                .compareTo(new BigDecimal(expectedPrintCost)) == 0);
     }
 
     @Test
-    public void test() {
+    public void testA() {
+        // Discount
+        testPrintCost(1, N_UP_1, 1, SINGLEX, "0.10", "0.07", "0.10", "0.09");
+        testPrintCost(1, N_UP_1, 1, SINGLEX, "0.10", "0.07", "0.20", "0.08");
+        testPrintCost(1, N_UP_1, 1, SINGLEX, "0.10", "0.07", "0.25", "0.075");
+        testPrintCost(1, N_UP_1, 1, SINGLEX, "0.12", "0.07", "0.25", "0.09");
+    }
 
-        testPrintCost(1, N_UP_1, 1, SINGLEX, "0.10", "0.07", "0.10");
-        testPrintCost(1, N_UP_2, 1, SINGLEX, "0.10", "0.07", "0.10");
-        testPrintCost(2, N_UP_2, 1, SINGLEX, "0.10", "0.07", "0.10");
-        testPrintCost(1, N_UP_4, 1, SINGLEX, "0.10", "0.07", "0.10");
-        testPrintCost(4, N_UP_4, 1, SINGLEX, "0.10", "0.07", "0.10");
+    @Test
+    public void testB() {
 
-        testPrintCost(2, N_UP_1, 1, SINGLEX, "0.10", "0.07", "0.20");
-        testPrintCost(3, N_UP_2, 1, SINGLEX, "0.10", "0.07", "0.20");
-        testPrintCost(10, N_UP_6, 1, SINGLEX, "0.10", "0.07", "0.20");
-
-        testPrintCost(2, N_UP_1, 2, SINGLEX, "0.10", "0.07", "0.40");
-        testPrintCost(3, N_UP_2, 2, SINGLEX, "0.10", "0.07", "0.40");
-        testPrintCost(4, N_UP_2, 2, SINGLEX, "0.10", "0.07", "0.40");
-        testPrintCost(10, N_UP_9, 2, SINGLEX, "0.10", "0.07", "0.40");
-        testPrintCost(18, N_UP_9, 2, SINGLEX, "0.10", "0.07", "0.40");
+        testPrintCost(1, N_UP_1, 1, SINGLEX, "0.10", "0.07", "0.00", "0.10");
+        testPrintCost(1, N_UP_2, 1, SINGLEX, "0.10", "0.07", "0.00", "0.10");
+        testPrintCost(2, N_UP_2, 1, SINGLEX, "0.10", "0.07", "0.00", "0.10");
+        testPrintCost(1, N_UP_4, 1, SINGLEX, "0.10", "0.07", "0.00", "0.10");
+        testPrintCost(4, N_UP_4, 1, SINGLEX, "0.10", "0.07", "0.00", "0.10");
 
         //
-        testPrintCost(1, N_UP_1, 1, DUPLEX, "0.10", "0.07", "0.10");
-        testPrintCost(1, N_UP_2, 1, DUPLEX, "0.10", "0.07", "0.10");
-        testPrintCost(2, N_UP_2, 1, DUPLEX, "0.10", "0.07", "0.10");
-        testPrintCost(1, N_UP_4, 1, DUPLEX, "0.10", "0.07", "0.10");
-        testPrintCost(4, N_UP_4, 1, DUPLEX, "0.10", "0.07", "0.10");
+        testPrintCost(2, N_UP_1, 1, SINGLEX, "0.10", "0.07", "0.00", "0.20");
+        testPrintCost(3, N_UP_2, 1, SINGLEX, "0.10", "0.07", "0.00", "0.20");
+        testPrintCost(10, N_UP_6, 1, SINGLEX, "0.10", "0.07", "0.00", "0.20");
 
-        testPrintCost(2, N_UP_1, 1, DUPLEX, "0.10", "0.07", "0.14");
-        testPrintCost(3, N_UP_2, 1, DUPLEX, "0.10", "0.07", "0.14");
-        testPrintCost(10, N_UP_6, 1, DUPLEX, "0.10", "0.07", "0.14");
+        testPrintCost(2, N_UP_1, 2, SINGLEX, "0.10", "0.07", "0.00", "0.40");
+        testPrintCost(3, N_UP_2, 2, SINGLEX, "0.10", "0.07", "0.00", "0.40");
+        testPrintCost(4, N_UP_2, 2, SINGLEX, "0.10", "0.07", "0.00", "0.40");
+        testPrintCost(10, N_UP_9, 2, SINGLEX, "0.10", "0.07", "0.00", "0.40");
+        testPrintCost(18, N_UP_9, 2, SINGLEX, "0.10", "0.07", "0.00", "0.40");
 
-        testPrintCost(2, N_UP_1, 2, DUPLEX, "0.10", "0.07", "0.28");
-        testPrintCost(3, N_UP_2, 2, DUPLEX, "0.10", "0.07", "0.28");
-        testPrintCost(4, N_UP_2, 2, DUPLEX, "0.10", "0.07", "0.28");
-        testPrintCost(10, N_UP_9, 2, DUPLEX, "0.10", "0.07", "0.28");
-        testPrintCost(18, N_UP_9, 2, DUPLEX, "0.10", "0.07", "0.28");
+        //
+        testPrintCost(1, N_UP_1, 1, DUPLEX, "0.10", "0.07", "0.00", "0.10");
+        testPrintCost(1, N_UP_2, 1, DUPLEX, "0.10", "0.07", "0.00", "0.10");
+        testPrintCost(2, N_UP_2, 1, DUPLEX, "0.10", "0.07", "0.00", "0.10");
+        testPrintCost(1, N_UP_4, 1, DUPLEX, "0.10", "0.07", "0.00", "0.10");
+        testPrintCost(4, N_UP_4, 1, DUPLEX, "0.10", "0.07", "0.00", "0.10");
 
+        testPrintCost(2, N_UP_1, 1, DUPLEX, "0.10", "0.07", "0.00", "0.14");
+        testPrintCost(3, N_UP_2, 1, DUPLEX, "0.10", "0.07", "0.00", "0.14");
+        testPrintCost(10, N_UP_6, 1, DUPLEX, "0.10", "0.07", "0.00", "0.14");
 
-        testPrintCost(3, N_UP_1, 1, DUPLEX, "0.10", "0.07", "0.24");
-        testPrintCost(9, N_UP_4, 1, DUPLEX, "0.10", "0.07", "0.24");
+        testPrintCost(2, N_UP_1, 2, DUPLEX, "0.10", "0.07", "0.00", "0.28");
+        testPrintCost(3, N_UP_2, 2, DUPLEX, "0.10", "0.07", "0.00", "0.28");
+        testPrintCost(4, N_UP_2, 2, DUPLEX, "0.10", "0.07", "0.00", "0.28");
+        testPrintCost(10, N_UP_9, 2, DUPLEX, "0.10", "0.07", "0.00", "0.28");
+        testPrintCost(18, N_UP_9, 2, DUPLEX, "0.10", "0.07", "0.00", "0.28");
 
-        testPrintCost(3, N_UP_1, 2, DUPLEX, "0.10", "0.07", "0.48");
-        testPrintCost(9, N_UP_4, 2, DUPLEX, "0.10", "0.07", "0.48");
+        testPrintCost(3, N_UP_1, 1, DUPLEX, "0.10", "0.07", "0.00", "0.24");
+        testPrintCost(9, N_UP_4, 1, DUPLEX, "0.10", "0.07", "0.00", "0.24");
 
-        testPrintCost(3, N_UP_1, 1, DUPLEX, "0.100", "0.075", "0.250");
-        testPrintCost(20, N_UP_9, 1, DUPLEX, "0.100", "0.075", "0.250");
+        testPrintCost(3, N_UP_1, 2, DUPLEX, "0.10", "0.07", "0.00", "0.48");
+        testPrintCost(9, N_UP_4, 2, DUPLEX, "0.10", "0.07", "0.00", "0.48");
+
+        testPrintCost(3, N_UP_1, 1, DUPLEX, "0.100", "0.075", "0.00", "0.250");
+        testPrintCost(20, N_UP_9, 1, DUPLEX, "0.100", "0.075", "0.00", "0.250");
     }
 
 }

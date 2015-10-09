@@ -61,6 +61,16 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
     private int imageHeight;
 
     /**
+     * The total number of non-white pixels in the image.
+     */
+    private int totPixelsNonWhite;
+
+    /**
+     * The total number of eco filtered pixels in the image.
+     */
+    private int totPixelsFiltered;
+
+    /**
      * The number of copy ahead max filter squares to imageOut.
      */
     private static final int INITIAL_COPY_AHEAD_MAX_FILTER_SQUARES = 5;
@@ -350,6 +360,8 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
                 }
 
                 image.setRGB(iX, iY, RGB_WHITE);
+
+                this.totPixelsFiltered++;
             }
         }
 
@@ -400,14 +412,6 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
     }
 
     /**
-     * Converts an RGB value to grayscale.
-     *
-     * @param rgb
-     *            The RGB value to convert.
-     * @return The grayscale RGB value.
-     */
-
-    /**
      * Copies and optionally converts a pixel to grayscale from input to output
      * image.
      *
@@ -431,6 +435,10 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
 
         int rgb = imageIn.getRGB(x, y);
 
+        if (rgb != RGB_WHITE) {
+            this.totPixelsNonWhite++;
+        }
+
         if (this.parms.isConvertToGrayscale()) {
 
             color = new Color(rgb);
@@ -450,6 +458,9 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
     @Override
     protected void filter(final BufferedImage imageIn,
             final BufferedImage imageOut) {
+
+        this.totPixelsNonWhite = 0;
+        this.totPixelsFiltered = 0;
 
         this.imageWidth = imageOut.getWidth();
         this.imageHeight = imageOut.getHeight();
@@ -513,6 +524,10 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
 
             }
         }
+    }
 
+    @Override
+    public double getFractionFiltered() {
+        return (double) this.totPixelsFiltered / this.totPixelsNonWhite;
     }
 }
