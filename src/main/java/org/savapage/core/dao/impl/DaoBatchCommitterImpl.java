@@ -58,6 +58,11 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
 
     /**
      *
+     */
+    private boolean commitAtNextIncrement = false;
+
+    /**
+     *
      * @param ctx
      *            The {@link DaoContext} .
      * @param commitThreshold
@@ -68,6 +73,7 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
         this.commitThreshold = commitThreshold;
         this.daoCtx = ctx;
         this.chunkItemCounter = 0;
+        this.commitAtNextIncrement = false;
         this.itemCounter = 0;
         this.testMode = false;
     }
@@ -79,7 +85,7 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
             beginTransaction();
         }
 
-        if (++chunkItemCounter >= commitThreshold) {
+        if (commitAtNextIncrement || ++chunkItemCounter >= commitThreshold) {
             commit();
         }
 
@@ -94,6 +100,7 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
             rollback();
         } else {
             chunkItemCounter = 0;
+            commitAtNextIncrement = false;
             daoCtx.commit();
         }
     }
@@ -110,6 +117,7 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     @Override
     public void rollback() {
         chunkItemCounter = 0;
+        commitAtNextIncrement = false;
         daoCtx.rollback();
     }
 
@@ -126,6 +134,11 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     @Override
     public int getCommitThreshold() {
         return this.commitThreshold;
+    }
+
+    @Override
+    public void commitAtNextIncrement() {
+        commitAtNextIncrement = true;
     }
 
 }

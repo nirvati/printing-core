@@ -50,10 +50,15 @@ public interface DaoBatchCommitter {
      * when needed, and performs a {@link #commit()} when the counter reaches
      * the commit threshold.
      *
-     *
      * @return The counter value after the increment.
      */
     int increment();
+
+    /**
+     * Forces a commit at the next increment. This is a one-shot
+     * instruction: after the commit this setting is wiped.
+     */
+    void commitAtNextIncrement();
 
     /**
      * Commits the current transaction (if present).

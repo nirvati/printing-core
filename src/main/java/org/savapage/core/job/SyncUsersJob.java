@@ -383,17 +383,17 @@ public final class SyncUsersJob extends AbstractJob {
      * </p>
      * <p>
      * IMPORTANT: This method MUST guard the <i>unique constraint</i> on card
-     * number, since the enforcing index only gets updated <i>after</i> the
-     * commit of the current transaction. Note: the UserCard query <i>does</i>
-     * take into account the pending changes held in the current transaction.
+     * number, since the enforcing index only gets updated <i>after</i> a
+     * commit, a commit is forced when {@link UserCard} is attached or detached
+     * from any User.
      * </p>
      * <p>
      * This algorithm assures that no duplicates exist at commit time:
      * </p>
      * <ul>
      * <li>If a duplicate card number is identified for a User to be processed
-     * in a <i>next</i> call to this method, we can safely attach the card to
-     * the current User.</li>
+     * in a <i>next</i> call to this method, we <i>must</i> detach it from the
+     * next User and attach it to the current User.</li>
      * <li>If a duplicate is identified for a User processed in a
      * <i>previous</i> method call, we <i>must</i> detach the card for the
      * current User.</li>
@@ -407,14 +407,27 @@ public final class SyncUsersJob extends AbstractJob {
      * @param cardNumberSrc
      *            The card number from the User source (can be {@code null} when
      *            not present.
+     * @param trxDate
+     *            The transaction date.
+     * @param trxBy
+     *            The transaction actor.
      * @return {@code true} if UserCard of the User was updated (card attach or
      *         detach).
      */
     private boolean handlePrimaryCardNumber(final User user,
-            final boolean isExistingUser, final String cardNumberSrc) {
+            final boolean isExistingUser, final String cardNumberSrc,
+            final Date trxDate, final String trxBy) {
 
         if (!this.userSource.isCardNumberProvided()) {
             return false;
+        }
+
+        if (this.isTest) {
+            return !isExistingUser
+                    || !StringUtils.defaultString(
+                            USER_SERVICE.getPrimaryCardNumber(user))
+                            .equalsIgnoreCase(
+                                    StringUtils.defaultString(cardNumberSrc));
         }
 
         final UserCardDao userCardDao =
@@ -454,6 +467,12 @@ public final class SyncUsersJob extends AbstractJob {
         boolean isUpdated = false;
 
         /*
+         * Assume NO commit is needed to update the unique index on card number
+         * address in the CardNumber table.
+         */
+        boolean commitAtNextIncrement = false;
+
+        /*
          * Card offered?
          */
         if (StringUtils.isBlank(primaryCardNumber)) {
@@ -488,6 +507,7 @@ public final class SyncUsersJob extends AbstractJob {
                         userCardDao.delete(card);
                         iter.remove();
                         isUpdated = true;
+                        commitAtNextIncrement = true;
                         break;
                     }
                 }
@@ -505,7 +525,7 @@ public final class SyncUsersJob extends AbstractJob {
 
             if (userCard == null) {
                 /*
-                 * Card is NOT present.
+                 * Card is NOT present, and can be used.
                  */
                 attachPrimaryCard = true;
 
@@ -513,6 +533,11 @@ public final class SyncUsersJob extends AbstractJob {
                     LOGGER.trace(msgTestPfx + " New Card [" + primaryCardNumber
                             + "]");
                 }
+
+                // This commit prevents that a single card number linked to
+                // different users in the source leads to index constraint
+                // violations.
+                commitAtNextIncrement = true;
 
             } else if (userCard.getUser().getInternal()) {
 
@@ -580,13 +605,39 @@ public final class SyncUsersJob extends AbstractJob {
                  */
                 if (currentUserId.compareTo(otherUserId) < 0) {
                     /*
-                     * OTHER User IS a NEXT User: attach.
+                     * OTHER User IS a NEXT User: detach from next user and
+                     * attach to current.
                      */
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace(msgTestPfx + " Card [" + primaryCardNumber
-                                + "] Attached to Next User [" + otherUserId
+                                + "] Detach from Next User [" + otherUserId
                                 + "]. Attach to Current User [" + currentUserId
                                 + "]");
+                    }
+
+                    /*
+                     * Detaching CardNumber from next user.
+                     */
+                    final User userDb =
+                            ServiceContext.getDaoContext().getUserDao()
+                                    .findById(userCard.getUser().getId());
+
+                    if (detachCardFromUser(userCardDao, userDb,
+                            primaryCardNumber)) {
+
+                        userDb.setModifiedBy(trxBy);
+                        userDb.setModifiedDate(trxDate);
+
+                        ServiceContext.getDaoContext().getUserDao()
+                                .update(userDb);
+
+                        commitAtNextIncrement = true;
+
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace(msgTestPfx + " Detached Card ["
+                                    + primaryCardNumber + "] from Next User ["
+                                    + otherUserId + "]");
+                        }
                     }
 
                     attachPrimaryCard = true;
@@ -595,42 +646,28 @@ public final class SyncUsersJob extends AbstractJob {
                     /*
                      * OTHER User is a PREVIOUS User: detach or ignore.
                      */
-                    final List<UserCard> cards = user.getCards();
+                    isUpdated =
+                            detachCardFromUser(userCardDao, user,
+                                    primaryCardNumber);
 
-                    if (cards != null) {
+                    if (isUpdated) {
 
-                        final Iterator<UserCard> iter = cards.iterator();
+                        commitAtNextIncrement = true;
 
-                        while (iter.hasNext()) {
-
-                            final UserCard card = iter.next();
-
-                            if (card.getNumber().equals(primaryCardNumber)) {
-                                userCardDao.delete(card);
-                                iter.remove();
-                                isUpdated = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (LOGGER.isTraceEnabled()) {
-
-                        if (isUpdated) {
+                        if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace(msgTestPfx + " Card ["
                                     + primaryCardNumber
                                     + "] Attached to Previous User ["
                                     + otherUserId
                                     + "]. Detached from Current User ["
                                     + currentUserId + "]");
-                        } else {
-                            LOGGER.trace(msgTestPfx + " Card ["
-                                    + primaryCardNumber
-                                    + "] Attached to Previous User ["
-                                    + otherUserId
-                                    + "]. Ignored Attach to Current User ["
-                                    + currentUserId + "]");
                         }
+
+                    } else if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace(msgTestPfx + " Card [" + primaryCardNumber
+                                + "] Attached to Previous User [" + otherUserId
+                                + "]. Ignored Attach to Current User ["
+                                + currentUserId + "]");
                     }
 
                     attachPrimaryCard = false;
@@ -640,7 +677,7 @@ public final class SyncUsersJob extends AbstractJob {
         }
 
         /*
-         * (Re) Attach the primary email address.
+         * (Re) Attach the primary card.
          */
         if (attachPrimaryCard) {
 
@@ -670,6 +707,9 @@ public final class SyncUsersJob extends AbstractJob {
             }
         }
 
+        if (commitAtNextIncrement) {
+            this.batchCommitter.commitAtNextIncrement();
+        }
         return isUpdated;
     }
 
@@ -682,17 +722,17 @@ public final class SyncUsersJob extends AbstractJob {
      * </p>
      * <p>
      * IMPORTANT: This method MUST guard the <i>unique constraint</i> on ID
-     * number, since the enforcing index only gets updated <i>after</i> the
-     * commit of the current transaction. Note: the UserNumber query <i>does</i>
-     * take into account the pending changes held in the current transaction.
+     * number, since the enforcing index only gets updated <i>after</i> a
+     * commit, a commit is forced when {@link UserNumber} is attached or
+     * detached from any User..
      * </p>
      * <p>
      * This algorithm assures that no duplicates exist at commit time:
      * </p>
      * <ul>
      * <li>If a duplicate ID number is identified for a User to be processed in
-     * a <i>next</i> call to this method, we can safely attach the ID to the
-     * current User.</li>
+     * a <i>next</i> call to this method, we <i>must</i> detach it from the next
+     * User and attach it to the current User.</li>
      * <li>If a duplicate is identified for a User processed in a
      * <i>previous</i> method call, we <i>must</i> detach the ID for the current
      * User.</li>
@@ -706,14 +746,27 @@ public final class SyncUsersJob extends AbstractJob {
      * @param idNumberSrc
      *            The ID number from the User source (can be {@code null} when
      *            not present.
+     * @param trxDate
+     *            The transaction date.
+     * @param trxBy
+     *            The transaction actor.
      * @return {@code true} if UserNumber of the User was updated (ID attach or
      *         detach).
      */
     private boolean handlePrimaryIdNumber(final User user,
-            final boolean isExistingUser, final String idNumberSrc) {
+            final boolean isExistingUser, final String idNumberSrc,
+            final Date trxDate, final String trxBy) {
 
         if (!this.userSource.isIdNumberProvided()) {
             return false;
+        }
+
+        if (this.isTest) {
+            return !isExistingUser
+                    || !StringUtils.defaultString(
+                            USER_SERVICE.getPrimaryIdNumber(user))
+                            .equalsIgnoreCase(
+                                    StringUtils.defaultString(idNumberSrc));
         }
 
         final UserNumberDao userNumberDao =
@@ -750,6 +803,12 @@ public final class SyncUsersJob extends AbstractJob {
         boolean isUpdated = false;
 
         /*
+         * Assume NO commit is needed to update the unique index on ID number
+         * address in the UserNumber table.
+         */
+        boolean commitAtNextIncrement = false;
+
+        /*
          * ID offered?
          */
         if (StringUtils.isBlank(primaryIdNumber)) {
@@ -781,6 +840,7 @@ public final class SyncUsersJob extends AbstractJob {
                         userNumberDao.delete(number);
                         iter.remove();
                         isUpdated = true;
+                        commitAtNextIncrement = true;
                         break;
                     }
                 }
@@ -806,6 +866,11 @@ public final class SyncUsersJob extends AbstractJob {
                     LOGGER.trace(msgTestPfx + " New ID [" + primaryIdNumber
                             + "]");
                 }
+
+                // This commit prevents that a single User ID linked to
+                // different users in the source leads to index constraint
+                // violations.
+                commitAtNextIncrement = true;
 
             } else if (userNumber.getUser().getInternal()) {
 
@@ -873,13 +938,40 @@ public final class SyncUsersJob extends AbstractJob {
                  */
                 if (currentUserId.compareTo(otherUserId) < 0) {
                     /*
-                     * OTHER User IS a NEXT User: attach.
+                     * OTHER User IS a NEXT User: detach from next user and
+                     * attach to current.
                      */
+
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace(msgTestPfx + " ID [" + primaryIdNumber
-                                + "] Attached to Next User [" + otherUserId
+                                + "] Detach from Next User [" + otherUserId
                                 + "]. Attach to Current User [" + currentUserId
                                 + "]");
+                    }
+
+                    /*
+                     * Detaching ID number from next user.
+                     */
+                    final User userDb =
+                            ServiceContext.getDaoContext().getUserDao()
+                                    .findById(userNumber.getUser().getId());
+
+                    if (detachIdNumberFromUser(userNumberDao, userDb,
+                            primaryIdNumber)) {
+
+                        userDb.setModifiedBy(trxBy);
+                        userDb.setModifiedDate(trxDate);
+
+                        ServiceContext.getDaoContext().getUserDao()
+                                .update(userDb);
+
+                        commitAtNextIncrement = true;
+
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace(msgTestPfx + " Detached Primary ID ["
+                                    + primaryIdNumber + "] from Next User ["
+                                    + otherUserId + "]");
+                        }
                     }
 
                     attachPrimaryId = true;
@@ -888,39 +980,26 @@ public final class SyncUsersJob extends AbstractJob {
                     /*
                      * OTHER User is a PREVIOUS User: detach or ignore.
                      */
-                    final List<UserNumber> numbers = user.getIdNumbers();
+                    isUpdated =
+                            detachIdNumberFromUser(userNumberDao, user,
+                                    primaryIdNumber);
 
-                    if (numbers != null) {
+                    if (isUpdated) {
 
-                        final Iterator<UserNumber> iter = numbers.iterator();
+                        commitAtNextIncrement = true;
 
-                        while (iter.hasNext()) {
-
-                            final UserNumber number = iter.next();
-
-                            if (number.getNumber().equals(primaryIdNumber)) {
-                                userNumberDao.delete(number);
-                                iter.remove();
-                                isUpdated = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (LOGGER.isTraceEnabled()) {
-                        if (isUpdated) {
+                        if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace(msgTestPfx + " ID [" + primaryIdNumber
                                     + "] Attached to Previous User ["
                                     + otherUserId
                                     + "]. Detached from Current User ["
                                     + currentUserId + "]");
-                        } else {
-                            LOGGER.trace(msgTestPfx + " ID [" + primaryIdNumber
-                                    + "] Attached to Previous User ["
-                                    + otherUserId
-                                    + "]. Ignored Attach to Current User ["
-                                    + currentUserId + "]");
                         }
+                    } else if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace(msgTestPfx + " ID [" + primaryIdNumber
+                                + "] Attached to Previous User [" + otherUserId
+                                + "]. Ignored Attach to Current User ["
+                                + currentUserId + "]");
                     }
 
                     attachPrimaryId = false;
@@ -956,6 +1035,10 @@ public final class SyncUsersJob extends AbstractJob {
             }
         }
 
+        if (commitAtNextIncrement) {
+            this.batchCommitter.commitAtNextIncrement();
+        }
+
         return isUpdated;
     }
 
@@ -968,17 +1051,17 @@ public final class SyncUsersJob extends AbstractJob {
      * </p>
      * <p>
      * IMPORTANT: This method MUST guard the <i>unique constraint</i> on Email
-     * address, since the enforcing index only gets updated <i>after</i> the
-     * commit of the current transaction. Note: the UserEmail query <i>does</i>
-     * take into account the pending changes held in the current transaction.
+     * address, since the enforcing index only gets updated <i>after</i> a
+     * commit, a commit is forced when {@link UserEmail} is attached or detached
+     * from any User.
      * </p>
      * <p>
      * This algorithm assures that no duplicates exist at commit time:
      * </p>
      * <ul>
      * <li>If a duplicate Email address is identified for a User to be processed
-     * in a <i>next</i> call to this method, we can safely attach the Email
-     * address to the current User.</li>
+     * in a <i>next</i> call to this method, we <i>must</i> detach it from the
+     * next User and attach it to the current User.</li>
      * <li>If a duplicate is identified for a User processed in a
      * <i>previous</i> method call, we <i>must</i> detach the Email address for
      * the current User.</li>
@@ -992,14 +1075,27 @@ public final class SyncUsersJob extends AbstractJob {
      * @param emailAddressSrc
      *            The Email from the User source (can be {@code null} when not
      *            present.
+     * @param trxDate
+     *            The transaction date.
+     * @param trxBy
+     *            The transaction actor.
      * @return {@code true} if {@link UserEmail} of the User was updated (Email
      *         attach or detach).
      */
     private boolean handlePrimaryEmail(final User user,
-            final boolean isExistingUser, final String emailAddressSrc) {
+            final boolean isExistingUser, final String emailAddressSrc,
+            final Date trxDate, final String trxBy) {
 
         if (!this.userSource.isEmailProvided()) {
             return false;
+        }
+
+        if (this.isTest) {
+            return !isExistingUser
+                    || !StringUtils.defaultString(
+                            USER_SERVICE.getPrimaryEmailAddress(user))
+                            .equalsIgnoreCase(
+                                    StringUtils.defaultString(emailAddressSrc));
         }
 
         final UserEmailDao userEmailDao =
@@ -1038,6 +1134,12 @@ public final class SyncUsersJob extends AbstractJob {
         boolean isUpdated = false;
 
         /*
+         * Assume NO commit is needed to update the unique index on email
+         * address in the UserEmail table.
+         */
+        boolean commitAtNextIncrement = false;
+
+        /*
          * Primary Email offered?
          */
         if (StringUtils.isBlank(primaryEmailAddress)) {
@@ -1072,6 +1174,7 @@ public final class SyncUsersJob extends AbstractJob {
                         userEmailDao.delete(email);
                         iter.remove();
                         isUpdated = true;
+                        commitAtNextIncrement = true;
                         break;
                     }
                 }
@@ -1096,6 +1199,11 @@ public final class SyncUsersJob extends AbstractJob {
                     LOGGER.trace(msgTestPfx + " New Email ["
                             + primaryEmailAddress + "]");
                 }
+
+                // This commit prevents that a single email address linked to
+                // different users in the source leads to index constraint
+                // violations.
+                commitAtNextIncrement = true;
 
             } else if (userEmail.getUser().getInternal()) {
 
@@ -1163,14 +1271,42 @@ public final class SyncUsersJob extends AbstractJob {
                  */
                 if (currentUserId.compareTo(otherUserId) < 0) {
                     /*
-                     * OTHER User IS a NEXT User: attach.
+                     * OTHER User IS a NEXT User: detach from next user and
+                     * attach to current.
                      */
+
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace(msgTestPfx + " Email ["
                                 + primaryEmailAddress
-                                + "] Attached to Next User [" + otherUserId
+                                + "] Detach from Next User [" + otherUserId
                                 + "]. Attach to Current User [" + currentUserId
                                 + "]");
+                    }
+
+                    /*
+                     * Detaching email from next user.
+                     */
+                    final User userDb =
+                            ServiceContext.getDaoContext().getUserDao()
+                                    .findById(userEmail.getUser().getId());
+
+                    if (detachEmailFromUser(userEmailDao, userDb,
+                            primaryEmailAddress)) {
+
+                        userDb.setModifiedBy(trxBy);
+                        userDb.setModifiedDate(trxDate);
+
+                        ServiceContext.getDaoContext().getUserDao()
+                                .update(userDb);
+
+                        commitAtNextIncrement = true;
+
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace(msgTestPfx
+                                    + " Detached Primary Email ["
+                                    + primaryEmailAddress
+                                    + "] from Next User [" + otherUserId + "]");
+                        }
                     }
 
                     attachPrimaryEmail = true;
@@ -1180,41 +1316,29 @@ public final class SyncUsersJob extends AbstractJob {
                     /*
                      * OTHER User is a PREVIOUS User: detach or ignore.
                      */
-                    final List<UserEmail> emails = user.getEmails();
+                    isUpdated =
+                            detachEmailFromUser(userEmailDao, user,
+                                    primaryEmailAddress);
 
-                    if (emails != null) {
+                    if (isUpdated) {
 
-                        final Iterator<UserEmail> iter = emails.iterator();
+                        commitAtNextIncrement = true;
 
-                        while (iter.hasNext()) {
-
-                            final UserEmail email = iter.next();
-
-                            if (email.getAddress().equals(primaryEmailAddress)) {
-                                userEmailDao.delete(email);
-                                iter.remove();
-                                isUpdated = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (LOGGER.isTraceEnabled()) {
-                        if (isUpdated) {
+                        if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace(msgTestPfx + " Email ["
                                     + primaryEmailAddress
                                     + "] Attached to Previous User ["
                                     + otherUserId
                                     + "]. Detached from Current User ["
                                     + currentUserId + "]");
-                        } else {
-                            LOGGER.trace(msgTestPfx + " Email ["
-                                    + primaryEmailAddress
-                                    + "] Attached to Previous User ["
-                                    + otherUserId
-                                    + "]. Ignored Attach to Current User ["
-                                    + currentUserId + "]");
                         }
+                    } else if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace(msgTestPfx + " Email ["
+                                + primaryEmailAddress
+                                + "] Attached to Previous User [" + otherUserId
+                                + "]. Ignored Attach to Current User ["
+                                + currentUserId + "]");
+
                     }
 
                     attachPrimaryEmail = false;
@@ -1253,7 +1377,123 @@ public final class SyncUsersJob extends AbstractJob {
             }
         }
 
+        if (commitAtNextIncrement) {
+            this.batchCommitter.commitAtNextIncrement();
+        }
+
         return isUpdated;
+    }
+
+    /**
+     * Detaches an {@link UserEmail} from a {@link User}.
+     *
+     * @param userEmailDao
+     *            The {@link UserEmailDao}.
+     * @param user
+     *            The {@link User}.
+     * @param addressToDetach
+     *            The email address to detach.
+     * @return {@code true} when successfully detached.
+     */
+    private static boolean detachEmailFromUser(final UserEmailDao userEmailDao,
+            final User user, final String addressToDetach) {
+
+        boolean isDetached = false;
+
+        final List<UserEmail> emails = user.getEmails();
+
+        if (emails != null) {
+
+            final Iterator<UserEmail> iter = emails.iterator();
+
+            while (iter.hasNext()) {
+
+                final UserEmail email = iter.next();
+
+                if (email.getAddress().equals(addressToDetach)) {
+                    userEmailDao.delete(email);
+                    iter.remove();
+                    isDetached = true;
+                    break;
+                }
+            }
+        }
+        return isDetached;
+    }
+
+    /**
+     * Detaches an {@link User} from a {@link User}.
+     *
+     * @param userCardDao
+     *            The {@link UserCardDao}.
+     * @param user
+     *            The {@link User}.
+     * @param cardToDetach
+     *            The card number to detach.
+     * @return {@code true} when successfully detached.
+     */
+    private static boolean detachCardFromUser(final UserCardDao userCardDao,
+            final User user, final String cardNumberToDetach) {
+
+        boolean isDetached = false;
+
+        final List<UserCard> cards = user.getCards();
+
+        if (cards != null) {
+
+            final Iterator<UserCard> iter = cards.iterator();
+
+            while (iter.hasNext()) {
+
+                final UserCard card = iter.next();
+
+                if (card.getNumber().equals(cardNumberToDetach)) {
+                    userCardDao.delete(card);
+                    iter.remove();
+                    isDetached = true;
+                    break;
+                }
+            }
+        }
+        return isDetached;
+    }
+
+    /**
+     * Detaches an {@link UserEmail} from a {@link User}.
+     *
+     * @param userNumberDao
+     *            The {@link UserNumberDao}.
+     * @param user
+     *            The {@link User}.
+     * @param idNumberToDetach
+     *            The ID number to detach.
+     * @return {@code true} when successfully detached.
+     */
+    private static boolean detachIdNumberFromUser(
+            final UserNumberDao userNumberDao, final User user,
+            final String idNumberToDetach) {
+
+        boolean isDetached = false;
+
+        final List<UserNumber> numbers = user.getIdNumbers();
+
+        if (numbers != null) {
+
+            final Iterator<UserNumber> iter = numbers.iterator();
+
+            while (iter.hasNext()) {
+
+                final UserNumber number = iter.next();
+
+                if (number.getNumber().equals(idNumberToDetach)) {
+                    userNumberDao.delete(number);
+                    iter.remove();
+                    isDetached = true;
+                    break;
+                }
+            }
+        }
+        return isDetached;
     }
 
     /**
@@ -1287,9 +1527,12 @@ public final class SyncUsersJob extends AbstractJob {
             userDb.setCreatedBy(createdBy);
             userDb.setCreatedDate(createdDate);
 
-            handlePrimaryEmail(userDb, false, user.getEmail());
-            handlePrimaryCardNumber(userDb, false, user.getCardNumber());
-            handlePrimaryIdNumber(userDb, false, user.getIdNumber());
+            handlePrimaryEmail(userDb, false, user.getEmail(), createdDate,
+                    createdBy);
+            handlePrimaryCardNumber(userDb, false, user.getCardNumber(),
+                    createdDate, createdBy);
+            handlePrimaryIdNumber(userDb, false, user.getIdNumber(),
+                    createdDate, createdBy);
 
             ServiceContext.getDaoContext().getUserDao().create(userDb);
 
@@ -1318,15 +1561,18 @@ public final class SyncUsersJob extends AbstractJob {
 
         boolean updated = false;
 
-        if (handlePrimaryEmail(userDb, true, user.getEmail())) {
+        if (handlePrimaryEmail(userDb, true, user.getEmail(), modifiedDate,
+                modifiedBy)) {
             updated = true;
         }
 
-        if (handlePrimaryCardNumber(userDb, true, user.getCardNumber())) {
+        if (handlePrimaryCardNumber(userDb, true, user.getCardNumber(),
+                modifiedDate, modifiedBy)) {
             updated = true;
         }
 
-        if (handlePrimaryIdNumber(userDb, true, user.getIdNumber())) {
+        if (handlePrimaryIdNumber(userDb, true, user.getIdNumber(),
+                modifiedDate, modifiedBy)) {
             updated = true;
         }
 
@@ -1365,6 +1611,16 @@ public final class SyncUsersJob extends AbstractJob {
      *            The {@link User} from the database.
      */
     private void deleteUser(final User userDb) {
+
+        final List<UserEmail> emails = userDb.getEmails();
+        final List<UserCard> cards = userDb.getCards();
+        final List<UserNumber> numbers = userDb.getIdNumbers();
+
+        if ((emails != null && !emails.isEmpty())
+                || (cards != null && !cards.isEmpty())
+                || (numbers != null && !numbers.isEmpty())) {
+            this.batchCommitter.commitAtNextIncrement();
+        }
 
         USER_SERVICE.performLogicalDelete(userDb);
 
