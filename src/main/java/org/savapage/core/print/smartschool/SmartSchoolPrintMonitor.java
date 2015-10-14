@@ -744,8 +744,8 @@ public final class SmartSchoolPrintMonitor {
         documentList.add(document);
 
         document.setId(Long.toString(System.currentTimeMillis()));
-        document.setComment("Simulation Document (simulation).");
-        document.setName("simulate & test.pdf");
+        document.setComment("Simulátiön Document • 'simulation'");
+        document.setName("simulatë•'doc' & 'tést.pdf");
 
         //
         final Requester requester = new Requester();
@@ -881,6 +881,28 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
+     * Converts a unicode to 7-bit ascii character string. Latin-1 diacritics
+     * are flattened and chars > 127 are replaced by '?'.
+     *
+     * @param unicode
+     *            The unicode string.
+     * @return The 7-bit ascii character string.
+     */
+    public static String unicodeToAscii(final String unicode) {
+
+        final String stripped = StringUtils.stripAccents(unicode);
+        final StringBuilder output = new StringBuilder(stripped.length());
+
+        for (char a : stripped.toCharArray()) {
+            if (a > 127) {
+                a = '?';
+            }
+            output.append(a);
+        }
+        return output.toString();
+    }
+
+    /**
      * Monitors the print job status in PaperCut for
      * {@link SmartSchoolPrintStatusEnum#PENDING_EXT} SmartSchool jobs (i.e jobs
      * that were proxy printed to a PaperCut managed printer).
@@ -905,23 +927,24 @@ public final class SmartSchoolPrintMonitor {
         final DocLogDao doclogDao =
                 ServiceContext.getDaoContext().getDocLogDao();
 
-        final Map<String, DocLog> uniqueDocNames = new HashMap<>();
+        final Map<String, DocLog> uniquePaperCutDocNames = new HashMap<>();
 
         for (final DocLog docLog : doclogDao.getListChunk(listFilterPendingExt)) {
-            uniqueDocNames.put(docLog.getTitle(), docLog);
+            uniquePaperCutDocNames.put(docLog.getTitle(), docLog);
         }
 
-        if (uniqueDocNames.isEmpty()) {
+        if (uniquePaperCutDocNames.isEmpty()) {
             return;
         }
 
         for (final PaperCutPrinterUsageLog papercutLog : PAPERCUT_SERVICE
-                .getPrinterUsageLog(papercutDbProxy, uniqueDocNames.keySet())) {
+                .getPrinterUsageLog(papercutDbProxy,
+                        uniquePaperCutDocNames.keySet())) {
 
             debugLog(papercutLog);
 
             final DocLog docLog =
-                    uniqueDocNames.get(papercutLog.getDocumentName());
+                    uniquePaperCutDocNames.get(papercutLog.getDocumentName());
 
             final SmartSchoolPrintStatusEnum printStatus;
             final String comment;
@@ -2334,6 +2357,11 @@ public final class SmartSchoolPrintMonitor {
      * Encodes the job name of the proxy printed {@link Document} to a unique
      * name that can be used to query the PaperCut's tbl_printer_usage_log table
      * about the print status.
+     * <p>
+     * Note: {@link #unicodeToAscii(String)} is applied to the document name,
+     * since PaperCut converts the job name to 7-bit ascii. So we better do the
+     * convert ourselves.
+     * </p>
      *
      * @param connection
      *            The {@link SmartSchoolConnection}.
@@ -2353,9 +2381,9 @@ public final class SmartSchoolPrintMonitor {
             throw new RuntimeException("length exceeded");
         }
 
-        return String.format("%s%s", StringUtils.abbreviate(document.getName(),
-                PaperCutDbProxy.COL_LEN_DOCUMENT_NAME - suffix.length()),
-                suffix);
+        return unicodeToAscii(String.format("%s%s", StringUtils.abbreviate(
+                document.getName(), PaperCutDbProxy.COL_LEN_DOCUMENT_NAME
+                        - suffix.length()), suffix));
     }
 
     /**
@@ -2595,8 +2623,8 @@ public final class SmartSchoolPrintMonitor {
 
             final User lockedUser = userDao.lock(user.getId());
 
-            PROXY_PRINT_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                    fileToPrint);
+            PROXY_PRINT_SERVICE
+                    .proxyPrintPdf(lockedUser, printReq, fileToPrint);
 
             daoContext.commit();
 
