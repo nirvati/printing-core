@@ -864,7 +864,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
-         * Constuct
+         * Construct.
          */
         final String jobNameWork;
         if (StringUtils.isBlank(jobName)) {
@@ -1519,6 +1519,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          */
 
         /*
+         * No full bleed for now.
+         */
+        final boolean isFullBleed = false;
+
+        /*
          * TODO: dependent on CUPS version. When was it implemented?
          */
         final boolean usePWG5100_13 = false;
@@ -1604,7 +1609,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     IppDictJobTemplateAttr.CUPS_ATTR_PAGE_LEFT,
                     IppDictJobTemplateAttr.CUPS_ATTR_PAGE_RIGHT,
                     IppDictJobTemplateAttr.CUPS_ATTR_PAGE_TOP }) {
-                group.add(keyword, syntax, "0");
+
+                if (isFullBleed) {
+                    group.add(keyword, syntax, "0");
+                }
+
             }
         }
 
@@ -1661,10 +1670,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                         IppDictJobTemplateAttr.ATTR_MEDIA_RIGHT_MARGIN,
                         IppDictJobTemplateAttr.ATTR_MEDIA_TOP_MARGIN }) {
 
-                    /*
-                     * NOT for now...
-                     */
-                    // collection.add(keyword, syntax, "0");
+                    if (isFullBleed) {
+                        collection.add(keyword, syntax, "0");
+                    }
                 }
             }
         }
