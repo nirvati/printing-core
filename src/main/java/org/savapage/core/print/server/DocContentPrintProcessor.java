@@ -880,7 +880,7 @@ public class DocContentPrintProcessor {
              * Start task to create the shadow EcoPrint PDF file?
              */
             if (ConfigManager.isEcoPrintEnabled()
-                    && this.getPageProps().getNumberOfPages() < ConfigManager
+                    && this.getPageProps().getNumberOfPages() <= ConfigManager
                             .instance()
                             .getConfigInt(
                                     Key.ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT)) {
