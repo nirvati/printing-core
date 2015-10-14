@@ -2194,7 +2194,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     request.setMediaOption(chunk.getAssignedMedia()
                             .getIppKeyword());
 
-                    if (chunk.getAssignedMediaSource() != null) {
+                    /*
+                     * Take the media-source from the print request, unless it
+                     * is assigned in the chunk.
+                     */
+                    if (chunk.getAssignedMediaSource() == null) {
+                        request.setMediaSourceOption(orgMediaSourceOption);
+                    } else {
                         request.setMediaSourceOption(chunk
                                 .getAssignedMediaSource().getSource());
                     }

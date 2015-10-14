@@ -67,6 +67,7 @@ import org.savapage.core.doc.IFileConverter;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
+import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.job.AbstractJob;
 import org.savapage.core.job.SmartSchoolPrintMonitorJob;
@@ -2331,10 +2332,13 @@ public final class SmartSchoolPrintMonitor {
         jobChunk.setAssignedMedia(ippMediaSize);
 
         /*
-         * If printer supports the "auto" "media-source" we do NOT set the
-         * media-source.
+         * Set "media-source" to "auto" in the Print Request if printer supports
+         * it, otherwise set the assigned media-source in the Job Chunk.
          */
-        if (!hasMediaSourceAuto) {
+        if (hasMediaSourceAuto) {
+            printReq.setMediaSourceOption(IppKeyword.MEDIA_SOURCE_AUTO);
+            jobChunk.setAssignedMediaSource(null);
+        } else {
             jobChunk.setAssignedMediaSource(assignedMediaSource);
         }
 
