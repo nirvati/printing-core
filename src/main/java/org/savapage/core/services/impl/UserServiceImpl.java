@@ -921,8 +921,9 @@ public final class UserServiceImpl extends AbstractService implements
             dto.setFullName(user.getFullName());
             dto.setAdmin(user.getAdmin());
             dto.setPerson(user.getPerson());
-            // dto.setCard(card);
-            // dto.setEmail(email);
+            dto.setCard(getPrimaryIdNumber(user));
+            dto.setEmail(getPrimaryEmailAddress(user));
+            dto.setId(getPrimaryIdNumber(user));
 
             items.add(dto);
         }
