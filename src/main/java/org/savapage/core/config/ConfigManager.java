@@ -1144,8 +1144,6 @@ public final class ConfigManager {
             throw new SpException("mode [" + mode + "] is not supported");
         }
 
-        ServiceContext.getServiceFactory().start();
-
         runMode = mode;
     }
 
@@ -1318,6 +1316,7 @@ public final class ConfigManager {
         }
 
         //
+        ServiceContext.getServiceFactory().start();
         ProxyPrintJobStatusMonitor.init();
     }
 
@@ -2036,12 +2035,12 @@ public final class ConfigManager {
 
         setShutdownInProgress();
 
-        ServiceContext.getServiceFactory().shutdown();
-
         final boolean isServerRunMode =
                 runMode != null && runMode == RunMode.SERVER;
 
         if (isServerRunMode) {
+
+            ServiceContext.getServiceFactory().shutdown();
 
             /*
              * Wait for current database access to finish.
