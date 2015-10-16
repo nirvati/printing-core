@@ -31,6 +31,7 @@ import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
 import org.savapage.core.json.rpc.impl.ResultAttribute;
 import org.savapage.core.json.rpc.impl.ResultPrinterSnmp;
 import org.savapage.core.snmp.SnmpClientSession;
+import org.savapage.core.snmp.SnmpVersion;
 
 /**
  *
@@ -42,7 +43,7 @@ public class CliPrinterSnmp extends AbstractAppApi {
     /**
      *
      */
-    private static final String API_VERSION = "0.10";
+    private static final String API_VERSION = "0.20";
 
     /**
      *
@@ -69,6 +70,16 @@ public class CliPrinterSnmp extends AbstractAppApi {
     *
     */
     private static final String CLI_OPT_COMMUNITY = "community";
+
+    /**
+    *
+    */
+    private static final String CLI_OPT_VERSION = "version";
+
+    /**
+     *
+     */
+    private static final SnmpVersion SNMP_VERSION_DEFAULT = SnmpVersion.V1;
 
     /**
      *
@@ -103,7 +114,13 @@ public class CliPrinterSnmp extends AbstractAppApi {
                             String.format("SNMP community (default \"%s\").",
                                     SnmpClientSession.DEFAULT_COMMUNITY),
                             Boolean.FALSE },
-            //
+
+                    {
+                            SnmpVersion.formattedCmdLineOptions(),
+                            CLI_OPT_VERSION,
+                            String.format("SNMP version (default \"%s\").",
+                                    SNMP_VERSION_DEFAULT.getCmdLineOption()),
+                            Boolean.FALSE }, //
             };
 
     @Override
@@ -164,7 +181,13 @@ public class CliPrinterSnmp extends AbstractAppApi {
         /*
          * Other.
          */
+        if (cmd.hasOption(CLI_OPT_VERSION)
+                && SnmpVersion.enumFromCmdLineOption(cmd
+                        .getOptionValue(CLI_OPT_VERSION)) == null) {
+            return false;
+        }
 
+        //
         return true;
     }
 
@@ -178,6 +201,13 @@ public class CliPrinterSnmp extends AbstractAppApi {
         parms.setHost(cmd.getOptionValue(CLI_OPT_HOST));
         parms.setPort(cmd.getOptionValue(CLI_OPT_PORT));
         parms.setCommunity(cmd.getOptionValue(CLI_OPT_COMMUNITY));
+
+        if (cmd.hasOption(CLI_OPT_VERSION)) {
+            parms.setVersion(SnmpVersion.enumFromCmdLineOption(cmd
+                    .getOptionValue(CLI_OPT_VERSION)));
+        } else {
+            parms.setVersion(SNMP_VERSION_DEFAULT);
+        }
 
         return parms;
     }

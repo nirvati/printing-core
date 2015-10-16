@@ -139,7 +139,7 @@ public final class SnmpMibDict {
      * </p>
      */
     public static final OID OID_SYSTEM_DESCR_RFC2790 = new OID(PFX_HOST
-            + ".3.2.1.3");
+            + ".3.2.1.3.1");
 
     /**
      * RFC2790: <a href="http://oid-info.com/get/1.3.6.1.2.1.25.3.5.1.1">
@@ -231,15 +231,22 @@ public final class SnmpMibDict {
      * Attributes of a marker supply. Entries may exist in the table for each
      * device index whose device type is printer.
      */
+    public static final String PRT_MARKER_SUPPLIES_ENTRY = PFX_PRINTERS
+            + ".11.1.1";
+
+    /**
+     * Attributes of a marker supply. Entries may exist in the table for each
+     * device index whose device type is printer.
+     */
     public static final OID OID_PRT_MARKER_SUPPLIES_ENTRY = new OID(
-            PFX_PRINTERS + ".11.1.1");
+            PRT_MARKER_SUPPLIES_ENTRY);
 
     /**
      * The value of prtMarkerIndex corresponding to the marking sub-unit with
      * which this marker supply sub-unit is associated.
      */
     public static final OID OID_PRT_MARKER_SUPPLIES_MARKER_INDEX = new OID(
-            OID_PRT_MARKER_SUPPLIES_ENTRY + ".2");
+            PRT_MARKER_SUPPLIES_ENTRY + ".2");
 
     /**
      * The value of prtMarkerColorantIndex corresponding to the colorant with
@@ -247,7 +254,7 @@ public final class SnmpMibDict {
      * there is no colorant table.
      */
     public static final OID OID_PRT_MARKER_SUPPLIES_COLORANT_INDEX = new OID(
-            OID_PRT_MARKER_SUPPLIES_ENTRY + ".3");
+            PRT_MARKER_SUPPLIES_ENTRY + ".3");
 
     /**
      * prtMarkerSuppliesClass
@@ -259,7 +266,7 @@ public final class SnmpMibDict {
      *
      */
     public static final OID OID_PRT_MARKER_SUPPLIES_CLASS = new OID(
-            OID_PRT_MARKER_SUPPLIES_ENTRY + ".4");
+            PRT_MARKER_SUPPLIES_ENTRY + ".4");
 
     /**
      * prtMarkerSuppliesType
@@ -271,7 +278,7 @@ public final class SnmpMibDict {
      * The type of this supply.
      */
     public static final OID OID_PRT_MARKER_SUPPLIES_TYPE = new OID(
-            OID_PRT_MARKER_SUPPLIES_ENTRY + ".5");
+            PRT_MARKER_SUPPLIES_ENTRY + ".5");
 
     /**
      * prtMarkerSuppliesDescription
@@ -280,7 +287,7 @@ public final class SnmpMibDict {
      * specified by prtGeneralCurrentLocalization."
      */
     public static final OID OID_PRT_MARKER_SUPPLIES_DESCRIPTION = new OID(
-            OID_PRT_MARKER_SUPPLIES_ENTRY + ".6");
+            PRT_MARKER_SUPPLIES_ENTRY + ".6");
 
     /**
      * prtMarkerSuppliesSupplyUnit
@@ -292,7 +299,7 @@ public final class SnmpMibDict {
      * "Unit of this marker supply container/receptacle.
      */
     public static final OID OID_PRT_MARKER_SUPPLIES_SUPPLY_UNIT = new OID(
-            OID_PRT_MARKER_SUPPLIES_ENTRY + ".7");
+            PRT_MARKER_SUPPLIES_ENTRY + ".7");
 
     /**
      * prtMarkerSuppliesMaxCapacity
@@ -306,7 +313,7 @@ public final class SnmpMibDict {
      * means unknown.
      */
     public static final OID OID_PRT_MARKER_SUPPLIES_MAX_CAPACITY = new OID(
-            OID_PRT_MARKER_SUPPLIES_ENTRY + ".8");
+            PRT_MARKER_SUPPLIES_ENTRY + ".8");
 
     /**
      * (-1) means other and specifically indicates that the sub-unit places no
@@ -332,7 +339,7 @@ public final class SnmpMibDict {
      * that there is some supply/remaining space, respectively.
      */
     public static final OID OID_PRT_MARKER_SUPPLIES_LEVEL = new OID(
-            OID_PRT_MARKER_SUPPLIES_ENTRY + ".9");
+            PRT_MARKER_SUPPLIES_ENTRY + ".9");
 
     /**
      * (-1) means other and specifically indicates that the sub-unit places no
@@ -357,8 +364,8 @@ public final class SnmpMibDict {
      * Attributes of a colorant available on the printer. Entries may exist in
      * the table for each device index whos device type is `printer.
      */
-    private static final OID OID_PRT_MARKER_COLORANT_ENTRY = new OID(
-            PFX_PRINTERS + ".12.1.1");
+    private static final String PRT_MARKER_COLORANT_ENTRY = PFX_PRINTERS
+            + ".12.1.1";
 
     /**
      * prtMarkerColorantMarkerIndex
@@ -367,7 +374,7 @@ public final class SnmpMibDict {
      * which this colorant entry is associated.
      */
     public static final OID OID_PRT_MARKER_COLORANT_MARKER_INDEX = new OID(
-            OID_PRT_MARKER_COLORANT_ENTRY + ".2");
+            PRT_MARKER_COLORANT_ENTRY + ".2");
 
     /**
      * prtMarkerColorantRole
@@ -377,7 +384,7 @@ public final class SnmpMibDict {
      * The role played by this colorant.
      */
     public static final OID OID_PRT_MARKER_COLORANT_ROLE = new OID(
-            OID_PRT_MARKER_COLORANT_ENTRY + ".3");
+            PRT_MARKER_COLORANT_ENTRY + ".3");
 
     /**
      * prtMarkerColorantValue
@@ -392,7 +399,7 @@ public final class SnmpMibDict {
      * ISO 9070 are recommended in order to avoid potential name clashes
      */
     public static final OID OID_PRT_MARKER_COLORANT_VALUE = new OID(
-            OID_PRT_MARKER_COLORANT_ENTRY + ".4");
+            PRT_MARKER_COLORANT_ENTRY + ".4");
 
     /**
      * prtMarkerColorantTonality
@@ -403,7 +410,7 @@ public final class SnmpMibDict {
      * half toning. This value must be at least 2.
      */
     public static final OID OID_PRT_MARKER_COLORANT_TONALITY = new OID(
-            OID_PRT_MARKER_COLORANT_ENTRY + ".5");
+            PRT_MARKER_COLORANT_ENTRY + ".5");
 
     /**
      * .

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,19 +22,21 @@
 package org.savapage.core.json.rpc.impl;
 
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodParms;
+import org.savapage.core.snmp.SnmpVersion;
 
 /**
  *
  * @author Datraverse B.V.
  *
  */
-public class ParamsPrinterSnmp extends AbstractJsonRpcMethodParms {
+public final class ParamsPrinterSnmp extends AbstractJsonRpcMethodParms {
 
     private String printerName;
     private String host;
     private String port;
     private String community;
     private String locale;
+    private SnmpVersion version;
 
     public String getPrinterName() {
         return printerName;
@@ -74,6 +76,14 @@ public class ParamsPrinterSnmp extends AbstractJsonRpcMethodParms {
 
     public void setLocale(String locale) {
         this.locale = locale;
+    }
+
+    public SnmpVersion getVersion() {
+        return version;
+    }
+
+    public void setVersion(SnmpVersion version) {
+        this.version = version;
     }
 
 }

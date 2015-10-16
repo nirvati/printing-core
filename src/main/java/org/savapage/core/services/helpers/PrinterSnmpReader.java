@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,6 +35,7 @@ import org.savapage.core.snmp.SnmpPrinterStatusEnum;
 import org.savapage.core.snmp.SnmpPrtMarkerColorantEntry;
 import org.savapage.core.snmp.SnmpPrtMarkerCounterUnitEnum;
 import org.savapage.core.snmp.SnmpPrtMarkerSuppliesEntry;
+import org.savapage.core.snmp.SnmpVersion;
 import org.savapage.core.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +73,7 @@ public final class PrinterSnmpReader {
     public static PrinterSnmpDto read(final String ipAddress)
             throws SnmpConnectException {
         return read(ipAddress, SnmpClientSession.DEFAULT_PORT_READ,
-                SnmpClientSession.DEFAULT_COMMUNITY);
+                SnmpClientSession.DEFAULT_COMMUNITY, null);
     }
 
     /**
@@ -84,18 +85,21 @@ public final class PrinterSnmpReader {
      *            The SNMP port.
      * @param community
      *            The SNMP community.
+     * @param version
+     *            The {@link SnmpVersion} ({@code null} when undetermined).
      * @return The {@link PrinterSnmpDto}.
      * @throws SnmpConnectException
      *             When connection errors occur.
      */
     public static PrinterSnmpDto read(final String ipAddress, final int port,
-            final String community) throws SnmpConnectException {
+            final String community, final SnmpVersion version)
+            throws SnmpConnectException {
 
         final PrinterSnmpDto info = new PrinterSnmpDto();
 
         final SnmpClientSession client =
                 new SnmpClientSession(String.format("udp:%s/%d", ipAddress,
-                        port), community);
+                        port), community, version);
 
         try {
             client.init();
@@ -104,7 +108,7 @@ public final class PrinterSnmpReader {
         }
 
         // ----- Printer Status
-        OID oidWlk = SnmpMibDict.OID_PRINTER_STATUS;;
+        OID oidWlk = SnmpMibDict.OID_PRINTER_STATUS;
 
         try {
             Integer intValue;
@@ -152,11 +156,11 @@ public final class PrinterSnmpReader {
                     info.getMarkerColorants()));
 
             // -----
-            oidWlk = SnmpMibDict.OID_SYSTEM_DESCR_RFC1213;
+            oidWlk = SnmpMibDict.OID_SYSTEM_DESCR_RFC2790;
             strValue = client.getAsString(oidWlk);
 
             if (StringUtils.isBlank(strValue)) {
-                oidWlk = SnmpMibDict.OID_SYSTEM_DESCR_RFC2790;
+                oidWlk = SnmpMibDict.OID_SYSTEM_DESCR_RFC1213;
                 strValue = client.getAsString(oidWlk);
             }
 

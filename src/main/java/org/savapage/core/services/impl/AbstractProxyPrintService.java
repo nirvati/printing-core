@@ -2767,7 +2767,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
                                 .equalsIgnoreCase("ipp"))) {
                     host = printerUri.getHost();
                 }
-
             }
 
         } else {
@@ -2800,10 +2799,29 @@ public abstract class AbstractProxyPrintService extends AbstractService
             community = params.getCommunity();
         }
 
-        final ResultPrinterSnmp data = new ResultPrinterSnmp();
-        PrinterSnmpDto dto = PrinterSnmpReader.read(host, port, community);
-        data.setAttributes(dto.asAttributes());
+        //
+        final PrinterSnmpDto dto =
+                PrinterSnmpReader.read(host, port, community,
+                        params.getVersion());
 
+        final ResultPrinterSnmp data = new ResultPrinterSnmp();
+
+        // data.setAttributes(dto.asAttributes());
+        data.setAttributes(new ArrayList<ResultAttribute>());
+
+        try {
+            data.getAttributes().add(0,
+                    new ResultAttribute("json", dto.stringifyPrettyPrinted()));
+        } catch (IOException e) {
+            throw new SpException(e.getMessage());
+        }
+
+        if (params.getVersion() != null) {
+            data.getAttributes().add(
+                    0,
+                    new ResultAttribute("SNMP Version", params.getVersion()
+                            .getCmdLineOption()));
+        }
         data.getAttributes()
                 .add(0, new ResultAttribute("Community", community));
         data.getAttributes().add(0,

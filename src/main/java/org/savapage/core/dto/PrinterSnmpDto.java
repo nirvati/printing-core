@@ -280,8 +280,8 @@ public final class PrinterSnmpDto extends AbstractDto {
                                 .toString()));
                     }
 
-                    builder.append(String.format(" %s", supplies
-                            .getSuppliesClass().toString()));
+                    // builder.append(String.format(" [IS %s]", supplies
+                    // .getSuppliesClass().toString()));
 
                     list.add(new ResultAttribute(supplies.getDescription(),
                             builder.toString()));

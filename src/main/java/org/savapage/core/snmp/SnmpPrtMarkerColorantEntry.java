@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.snmp4j.smi.OID;
 
@@ -110,11 +111,12 @@ public final class SnmpPrtMarkerColorantEntry {
             final Integer index = Integer.valueOf(++i);
 
             /*
-             * INVARIANT: all OID values MUST be a number.
+             * INVARIANT: all OID values (except the last) MUST be a number.
              */
             boolean isValid = true;
 
-            for (int j = 0; j < oids.length; j++) {
+            for (int j = 0; j < oids.length - 1; j++) {
+
                 if (!NumberUtils.isDigits(list.get(j))) {
                     isValid = false;
                     break;
@@ -125,6 +127,20 @@ public final class SnmpPrtMarkerColorantEntry {
                 break;
 
             }
+
+            //
+            final String colorantValueUpper = list.get(3).toUpperCase();
+            final SnmpPrtMarkerColorantValueEnum colorantValue;
+
+            if (EnumUtils.isValidEnum(SnmpPrtMarkerColorantValueEnum.class,
+                    colorantValueUpper)) {
+                colorantValue =
+                        SnmpPrtMarkerColorantValueEnum
+                                .valueOf(colorantValueUpper);
+            } else {
+                colorantValue = SnmpPrtMarkerColorantValueEnum.UNKNOWN;
+            }
+
             final SnmpPrtMarkerColorantEntry entry =
                     new SnmpPrtMarkerColorantEntry(index.intValue(),
                     //
@@ -135,8 +151,7 @@ public final class SnmpPrtMarkerColorantEntry {
                             //
                             Integer.valueOf(list.get(2)).intValue(),
                             //
-                            SnmpPrtMarkerColorantValueEnum.valueOf(list.get(3)
-                                    .toUpperCase()));
+                            colorantValue);
 
             colorantMap.put(index, entry);
         }

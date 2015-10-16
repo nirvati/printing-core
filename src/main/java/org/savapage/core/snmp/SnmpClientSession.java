@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -101,7 +101,7 @@ public final class SnmpClientSession {
      *            {@code "udp:10.10.3.38/161"}
      */
     public SnmpClientSession(final String address) {
-        this(address, DEFAULT_COMMUNITY);
+        this(address, DEFAULT_COMMUNITY, null);
     }
 
     /**
@@ -112,8 +112,11 @@ public final class SnmpClientSession {
      *            A simulator address like {@code "udp:192.168.1.54/1161"}
      * @param community
      *            The community like {@code "recorded/printer.10.10.3.38"}
+     * @param version
+     *            The {@link SnmpVersion} ({@code null} when undetermined).
      */
-    public SnmpClientSession(final String address, final String community) {
+    public SnmpClientSession(final String address, final String community,
+            final SnmpVersion version) {
 
         final Address targetAddress = GenericAddress.parse(address);
 
@@ -121,7 +124,10 @@ public final class SnmpClientSession {
         this.target.setAddress(targetAddress);
         this.target.setRetries(TARGET_RETRIES);
         this.target.setTimeout(TARGET_TIMEOUT);
-        this.target.setVersion(SnmpConstants.version2c);
+
+        if (version != null) {
+            this.target.setVersion(version.getVersion());
+        }
     }
 
     /**
@@ -258,6 +264,10 @@ public final class SnmpClientSession {
     private VariableBinding getResponse(final OID oid)
             throws SnmpConnectException {
         final PDU response = this.getResponse(new OID[] { oid });
+
+        if (response.getErrorStatus() != SnmpConstants.SNMP_ERROR_SUCCESS) {
+            return null;
+        }
 
         if (oid.toString().equals(response.get(0).getOid().toString())) {
             return response.get(0);
