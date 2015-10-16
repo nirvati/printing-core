@@ -31,16 +31,26 @@ public enum ExternalSupplierEnum {
     /**
      * .
      */
-    SMARTSCHOOL("Smartschool");
+    SMARTSCHOOL("Smartschool", "smartschool.jpg");
 
     private final String uiText;
+    private final String imageFileName;
 
-    private ExternalSupplierEnum(final String uiText) {
+    private ExternalSupplierEnum(final String uiText, final String imageFileName) {
         this.uiText = uiText;
+        this.imageFileName = imageFileName;
     }
 
     public String getUiText() {
         return uiText;
+    }
+
+    /**
+     *
+     * @return The image filename.
+     */
+    public String getImageFileName() {
+        return imageFileName;
     }
 
 }
