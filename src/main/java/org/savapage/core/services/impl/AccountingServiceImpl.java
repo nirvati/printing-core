@@ -456,7 +456,7 @@ public final class AccountingServiceImpl extends AbstractService implements
     @Override
     public void createAccountTrx(final Account account, final DocLog docLog,
             final AccountTrxTypeEnum trxType) {
-        createAccountTrx(account, docLog, trxType, 1, 1);
+        createAccountTrx(account, docLog, trxType, 1, 1, null);
     }
 
     @Override
@@ -469,7 +469,7 @@ public final class AccountingServiceImpl extends AbstractService implements
                 .getAccountTrxInfoList()) {
 
             createAccountTrx(trxInfo.getAccount(), docLog, trxType,
-                    nTotalWeight, trxInfo.getWeight());
+                    nTotalWeight, trxInfo.getWeight(), trxInfo.getExtDetails());
         }
     }
 
@@ -510,10 +510,12 @@ public final class AccountingServiceImpl extends AbstractService implements
      * @param weight
      *            The mathematical weight of the transaction in the context of a
      *            transaction set.
+     * @param extDetails
+     *            Free format details from external source.
      */
     private void createAccountTrx(final Account account, final DocLog docLog,
             final AccountTrxTypeEnum trxType, final int weightTotal,
-            final int weight) {
+            final int weight, final String extDetails) {
 
         final String actor = ServiceContext.getActor();
         final Date trxDate = ServiceContext.getTransactionDate();
@@ -559,6 +561,8 @@ public final class AccountingServiceImpl extends AbstractService implements
 
         trx.setTransactedBy(ServiceContext.getActor());
         trx.setTransactionDate(ServiceContext.getTransactionDate());
+
+        trx.setExtDetails(extDetails);
 
         accountTrxDAO().create(trx);
 

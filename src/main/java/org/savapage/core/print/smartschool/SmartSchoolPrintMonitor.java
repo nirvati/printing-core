@@ -789,6 +789,7 @@ public final class SmartSchoolPrintMonitor {
         account.setExtra(2);
         account.setUsername(ConfigManager.instance().getConfigValue(
                 Key.SMARTSCHOOL_SIMULATION_STUDENT_1));
+
         account.setRole(SmartSchoolRoleEnum.STUDENT.getXmlValue());
 
         // Account #2
@@ -1169,6 +1170,7 @@ public final class SmartSchoolPrintMonitor {
 
         final StringBuilder classCopiesComment = new StringBuilder();
 
+        // user | copies
         classCopiesComment.append(JOBS_COMMENT_FIELD_SEPARATOR_FIRST)
                 .append(requestingUserId).append(JOBS_COMMENT_FIELD_SEPARATOR)
                 .append(weightTotal);
@@ -1215,8 +1217,10 @@ public final class SmartSchoolPrintMonitor {
                  * Adjust Shared SmartSchool/klas Account.
                  */
                 final String topAccountName = account.getParent().getName();
-
                 final String subAccountName = account.getName();
+                final String klasName =
+                        SMARTSCHOOL_SERVICE
+                                .getKlasFromComposedAccountName(subAccountName);
 
                 if (SmartSchoolLogger.getLogger().isDebugEnabled()) {
 
@@ -1232,16 +1236,36 @@ public final class SmartSchoolPrintMonitor {
                         topAccountName, subAccountName, papercutAdjustment,
                         comment);
 
-                classCopiesComment
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                // ... | user@class-n | copies-n
+                classCopiesComment.append(JOBS_COMMENT_FIELD_SEPARATOR)
                         .append(requestingUserId)
                         .append(JOBS_COMMENT_USER_CLASS_SEPARATOR)
-                        .append(SMARTSCHOOL_SERVICE
-                                .getKlasFromComposedAccountName(subAccountName))
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR).append(weight);
+                        .append(klasName).append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(weight);
 
             } else {
 
+                final StringBuilder userCopiesComment = new StringBuilder();
+
+                // class | requester | copies | document | comment
+                userCopiesComment
+                        .append(JOBS_COMMENT_FIELD_SEPARATOR_FIRST)
+                        .append(StringUtils.defaultString(trx.getExtDetails(),
+                                "-"))
+                        //
+                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(requestingUserId)
+                        //
+                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(weight)
+                        //
+                        .append(docLogIn.getTitle())
+                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        //
+                        .append(docLogIn.getLogComment())
+                        .append(JOBS_COMMENT_FIELD_SEPARATOR_LAST);
+
+                //
                 final UserAccountDao userAccountDao =
                         ServiceContext.getDaoContext().getUserAccountDao();
 
@@ -1264,7 +1288,8 @@ public final class SmartSchoolPrintMonitor {
                 }
 
                 PAPERCUT_SERVICE.adjustUserAccountBalance(papercutServerProxy,
-                        user.getUserId(), papercutAdjustment, comment);
+                        user.getUserId(), papercutAdjustment,
+                        userCopiesComment.toString());
             }
 
             /*
@@ -1292,6 +1317,8 @@ public final class SmartSchoolPrintMonitor {
          * Create a transaction in the shared Jobs account with a comment of
          * formatted job data.
          */
+
+        // ... | document | comment
         classCopiesComment.append(JOBS_COMMENT_FIELD_SEPARATOR)
                 .append(docLogIn.getTitle())
                 .append(JOBS_COMMENT_FIELD_SEPARATOR)
@@ -1320,7 +1347,7 @@ public final class SmartSchoolPrintMonitor {
          * Publish admin message.
          */
         publishAdminMsg(
-                PubLevelEnum.INFO,
+                PubLevelEnum.CLEAR,
                 "PaperCut print of SmartSchool document ["
                         + papercutLog.getDocumentName() + "] " + printStatus);
 
@@ -1359,12 +1386,15 @@ public final class SmartSchoolPrintMonitor {
      *            The collected "klas" copies.
      * @param userCopies
      *            The collected user copies.
+     * @param userKlas
+     *            Klas lookup for a user.
      * @return The {@link AccountTrxInfoSet}.
      */
     private static AccountTrxInfoSet createAccountTrxInfoSet(
             final SmartSchoolConnection connection,
             final Map<String, Integer> klasCopies,
-            final Map<String, Integer> userCopies) {
+            final Map<String, Integer> userCopies,
+            final Map<String, String> userKlas) {
 
         final AccountTrxInfoSet infoSet;
 
@@ -1386,7 +1416,7 @@ public final class SmartSchoolPrintMonitor {
             infoSet =
                     SMARTSCHOOL_SERVICE.createPrintInAccountTrxInfoSet(
                             connection, sharedParentAccount, klasCopies,
-                            userCopies);
+                            userCopies, userKlas);
 
             daoContext.commit();
 
@@ -1638,11 +1668,12 @@ public final class SmartSchoolPrintMonitor {
 
                 final Map<String, Integer> klasCopies = new HashMap<>();
                 final Map<String, Integer> userCopies = new HashMap<>();
+                final Map<String, String> userKlas = new HashMap<>();
 
                 final int nTotCopies =
                         collectCopyInfo(monitor, document, klasCopies,
-                                userCopies, lazyInsertUser, userSource,
-                                userSourceGroup);
+                                userCopies, userKlas, lazyInsertUser,
+                                userSource, userSourceGroup);
 
                 if (nTotCopies == 0) {
 
@@ -1674,7 +1705,7 @@ public final class SmartSchoolPrintMonitor {
                     final AccountTrxInfoSet accountTrxInfoSet =
                             createAccountTrxInfoSet(
                                     monitor.processingConnection, klasCopies,
-                                    userCopies);
+                                    userCopies, userKlas);
                     /*
                      * Create PrintIn info.
                      */
@@ -1928,8 +1959,8 @@ public final class SmartSchoolPrintMonitor {
     private static int collectCopyInfo(final SmartSchoolPrintMonitor monitor,
             final Document document, final Map<String, Integer> klasCopies,
             final Map<String, Integer> userCopies,
-            final boolean lazyInsertUser, final IUserSource userSource,
-            final String userSourceGroup) {
+            final Map<String, String> userKlas, final boolean lazyInsertUser,
+            final IUserSource userSource, final String userSourceGroup) {
 
         final boolean chargeToStudents =
                 monitor.processingConnection.isChargeToStudents();
@@ -2065,6 +2096,7 @@ public final class SmartSchoolPrintMonitor {
 
             // User copies
             if (chargeCopiesToUser) {
+
                 collectedSum = userCopies.get(userName);
 
                 if (collectedSum == null) {
@@ -2073,7 +2105,12 @@ public final class SmartSchoolPrintMonitor {
                     collectedSumNew =
                             Integer.valueOf(collectedSum.intValue() + nCopies);
                 }
+
                 userCopies.put(userName, collectedSumNew);
+
+                if (roleEnum == SmartSchoolRoleEnum.STUDENT) {
+                    userKlas.put(userName, clazz);
+                }
             }
 
             // Class copies.

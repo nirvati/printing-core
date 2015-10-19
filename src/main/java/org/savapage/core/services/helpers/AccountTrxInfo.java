@@ -41,6 +41,11 @@ public class AccountTrxInfo {
      */
     private Integer weight;
 
+    /**
+     * Free format details from external source.
+     */
+    private String extDetails;
+
     public Account getAccount() {
         return account;
     }
@@ -55,6 +60,14 @@ public class AccountTrxInfo {
 
     public void setWeight(Integer weight) {
         this.weight = weight;
+    }
+
+    public String getExtDetails() {
+        return extDetails;
+    }
+
+    public void setExtDetails(String extDetails) {
+        this.extDetails = extDetails;
     }
 
 }

@@ -199,9 +199,12 @@ public interface SmartSchoolService {
      * @param userCopies
      *            The number of copies per user. Each user MUST exist as active
      *            {@link User}.
+     * @param userKlas
+     *            Klas lookup for a user.
      * @return The {@link AccountTrxInfoSet}.
      */
     AccountTrxInfoSet createPrintInAccountTrxInfoSet(
             SmartSchoolConnection connection, Account parent,
-            Map<String, Integer> klasCopies, Map<String, Integer> userCopies);
+            Map<String, Integer> klasCopies, Map<String, Integer> userCopies,
+            Map<String, String> userKlas);
 }

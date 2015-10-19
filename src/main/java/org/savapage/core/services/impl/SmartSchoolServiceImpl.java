@@ -738,24 +738,28 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
      *            The {@link Account}.
      * @param copies
      *            The number of copies to print.
+     * @param extDetails
+     *            Free format details from external source.
      * @return The {@link AccountTrxInfo}.
      */
     private static AccountTrxInfo createAccountTrxInfo(final Account account,
-            final Integer copies) {
+            final Integer copies, final String extDetails) {
 
         final AccountTrxInfo accountTrxInfo = new AccountTrxInfo();
 
         accountTrxInfo.setWeight(copies);
         accountTrxInfo.setAccount(account);
+        accountTrxInfo.setExtDetails(extDetails);
 
         return accountTrxInfo;
     }
 
     @Override
     public AccountTrxInfoSet createPrintInAccountTrxInfoSet(
-            SmartSchoolConnection connection, final Account parent,
+            final SmartSchoolConnection connection, final Account parent,
             final Map<String, Integer> klasCopies,
-            final Map<String, Integer> userCopies) {
+            final Map<String, Integer> userCopies,
+            final Map<String, String> userKlas) {
 
         final AccountTrxInfoSet infoSet = new AccountTrxInfoSet();
 
@@ -776,7 +780,7 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
                             accountTemplate);
 
             accountTrxInfoList.add(createAccountTrxInfo(account,
-                    entry.getValue()));
+                    entry.getValue(), null));
         }
 
         /*
@@ -784,14 +788,16 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
          */
         for (final Entry<String, Integer> entry : userCopies.entrySet()) {
 
-            final User user = userDAO().findActiveUserByUserId(entry.getKey());
+            final String userId = entry.getKey();
+            final User user = userDAO().findActiveUserByUserId(userId);
 
             final UserAccount userAccount =
                     accountingService().lazyGetUserAccount(user,
                             AccountTypeEnum.USER);
 
             accountTrxInfoList.add(createAccountTrxInfo(
-                    userAccount.getAccount(), entry.getValue()));
+                    userAccount.getAccount(), entry.getValue(),
+                    userKlas.get(userId)));
         }
 
         return infoSet;
