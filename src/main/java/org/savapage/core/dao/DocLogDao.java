@@ -56,7 +56,7 @@ public interface DocLogDao extends GenericDao<DocLog> {
      * Identifiers for Job State select
      */
     enum JobState {
-        ALL, ACTIVE, COMPLETED
+        ALL, ACTIVE, COMPLETED, UNFINISHED
     }
 
     /**

@@ -28,9 +28,6 @@ import java.util.Date;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.dao.DocLogDao;
-import org.savapage.core.dao.DocLogDao.FieldEnum;
-import org.savapage.core.dao.DocLogDao.JobState;
-import org.savapage.core.dao.DocLogDao.Type;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -322,6 +319,8 @@ public class DocLogPagerReq extends AbstractPagerReq {
             case 1:
                 return DocLogDao.JobState.ACTIVE;
             case 2:
+                return DocLogDao.JobState.UNFINISHED;
+            case 3:
                 return DocLogDao.JobState.COMPLETED;
             default:
                 return DocLogDao.JobState.ALL;
