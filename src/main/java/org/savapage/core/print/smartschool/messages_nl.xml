@@ -10,12 +10,4 @@
     <entry key="print-cancelled">SmartSchool Print van document "{0}" is geannuleerd: {1}</entry>
     <entry key="print-error">SmartSchool Print fout voor document "{0}" : {1}</entry>
 
-    <entry key="account-trx-comment">{0} (door "{1}", {2}).</entry>
-
-    <entry key="copies-single">{0} kopie</entry>
-    <entry key="copies-multiple">{0} kopieën</entry>
-
-    <entry key="students-single">{0} leerling</entry>
-    <entry key="students-multiple">{0} leerlingen</entry>
-
 </properties>

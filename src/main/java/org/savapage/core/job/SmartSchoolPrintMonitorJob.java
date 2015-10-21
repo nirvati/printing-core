@@ -86,7 +86,7 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
     public static final String ATTR_SIMULATION = "simulation";
 
     /**
-     * Simulation flag.
+     * {@code true} when running in simulation mode.
      */
     private boolean isSimulation = false;
 
@@ -171,15 +171,25 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
                     papercutDbProxy.connect();
                 }
 
-                /*
-                 *
-                 */
+                //
                 final int pollingHeartbeatSecs =
                         cm.getConfigInt(IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEAT_SECS);
 
-                final int sessionHeartbeatSecs =
-                        cm.getConfigInt(IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEATS);
+                //
+                final IConfigProp.Key sessionHeartbeatSecsKey;
 
+                if (this.parentJob.isSimulation) {
+                    sessionHeartbeatSecsKey =
+                            IConfigProp.Key.SMARTSCHOOL_SIMULATION_SOAP_PRINT_POLL_HEARTBEATS;
+                } else {
+                    sessionHeartbeatSecsKey =
+                            IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEATS;
+                }
+
+                final int sessionHeartbeatSecs =
+                        cm.getConfigInt(sessionHeartbeatSecsKey);
+
+                //
                 final int sessionDurationSecs =
                         cm.getConfigInt(IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_SESSION_DURATION_SECS);
 

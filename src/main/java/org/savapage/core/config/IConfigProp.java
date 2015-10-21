@@ -1018,6 +1018,14 @@ public interface IConfigProp {
                 DEFAULT_SMARTSCHOOL_SIMULATION_STUDENT_2),
 
         /**
+         * The simulation variant of
+         * {@link #SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEATS}.
+         */
+        SMARTSCHOOL_SIMULATION_SOAP_PRINT_POLL_HEARTBEATS(
+                "smartschool.simulation.soap.print.poll.heartbeats",
+                NUMBER_VALIDATOR, "15"),
+
+        /**
          * Is PaperCut integration for SmartSchool component enabled?
          */
         SMARTSCHOOL_PAPERCUT_ENABLE("smartschool.papercut.enable",

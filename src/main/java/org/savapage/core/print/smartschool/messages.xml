@@ -10,9 +10,4 @@
     <entry key="print-cancelled">SmartSchool Print cancelled for document "{0}" : {1}</entry>
     <entry key="print-error">SmartSchool Print error for document "{0}" : {1}</entry>
     
-    <entry key="account-trx-comment">{0} (by "{1}", {2}).</entry>
-
-    <entry key="copies-single">{0} copy</entry>
-    <entry key="copies-multiple">{0} copies</entry>
-
 </properties>
