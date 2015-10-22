@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,16 +21,23 @@
  */
 package org.savapage.core.papercut;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.circuitbreaker.CircuitBreakerOperation;
@@ -38,8 +45,13 @@ import org.savapage.core.circuitbreaker.CircuitNonTrippingException;
 import org.savapage.core.circuitbreaker.CircuitTrippingException;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.print.smartschool.SmartSchoolCommentSyntax;
+import org.savapage.core.print.smartschool.SmartSchoolCostPeriodDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.com.bytecode.opencsv.CSVWriter;
 
 /**
  *
@@ -92,16 +104,23 @@ public final class PaperCutDbProxy {
 
     /**
      *
+     * @author Rijk Ravestein
+     *
      */
-    private static abstract class PaperCutDbExecutor {
+    private abstract static class PaperCutDbExecutor {
 
         protected final PaperCutDbProxy dbProxy;
 
-        public PaperCutDbExecutor(PaperCutDbProxy dbProxy) {
+        public PaperCutDbExecutor(final PaperCutDbProxy dbProxy) {
             this.dbProxy = dbProxy;
         }
 
-        abstract Object execute() throws PaperCutException;
+        /**
+         *
+         * @return
+         * @throws PaperCutException
+         */
+        public abstract Object execute() throws PaperCutException;
 
     }
 
@@ -163,6 +182,25 @@ public final class PaperCutDbProxy {
     }
 
     /**
+     * Creates a {@link PaperCutDbProxy} instance from the application
+     * configuration.
+     *
+     * @param cm
+     *            The {@link ConfigManager}.
+     * @param useCircuitBreaker
+     *            If {@code true} a {@link CircuitBreakerOperation} is used.
+     * @return The {@link PaperCutDbProxy} instance.
+     */
+    public static PaperCutDbProxy create(final ConfigManager cm,
+            final boolean useCircuitBreaker) {
+
+        return create(cm.getConfigValue(Key.PAPERCUT_DB_JDBC_DRIVER),
+                cm.getConfigValue(Key.PAPERCUT_DB_JDBC_URL),
+                cm.getConfigValue(Key.PAPERCUT_DB_USER),
+                cm.getConfigValue(Key.PAPERCUT_DB_PASSWORD), useCircuitBreaker);
+    }
+
+    /**
      * Creates a {@link PaperCutDbProxy} instance.
      *
      * @param dbDriver
@@ -170,12 +208,14 @@ public final class PaperCutDbProxy {
      * @param dbUrl
      *            The JDBC url.
      * @param user
+     *            The database user.
      * @param password
+     *            The user password.
      * @param useCircuitBreaker
      *            If {@code true} a {@link CircuitBreakerOperation} is used.
      * @return The {@link PaperCutDbProxy} instance.
      */
-    public static final PaperCutDbProxy create(final String dbDriver,
+    public static PaperCutDbProxy create(final String dbDriver,
             final String dbUrl, final String user, final String password,
             final boolean useCircuitBreaker) {
 
@@ -311,6 +351,17 @@ public final class PaperCutDbProxy {
     }
 
     /**
+     * Escapes a string for usage in SQL statement.
+     *
+     * @param input
+     *            The input string.
+     * @return The escaped result.
+     */
+    private static String escapeForSql(final String input) {
+        return input.replaceAll("'", "''");
+    }
+
+    /**
      * Gets the {@link PaperCutPrinterUsageLog} for unique document names.
      *
      * @param uniqueDocNames
@@ -355,7 +406,8 @@ public final class PaperCutDbProxy {
     }
 
     /**
-     * Gets the {@link PaperCutPrinterUsageLog} for unique document names.
+     * Gets the {@link PaperCutPrinterUsageLog} for unique document names using
+     * SQL query.
      *
      * @param uniqueDocNames
      *            A set with document names.
@@ -383,8 +435,7 @@ public final class PaperCutDbProxy {
                 sql.append(", ");
             }
 
-            final String escapedTitle =
-                    iterUniqueTitle.next().replaceAll("'", "''");
+            final String escapedTitle = escapeForSql(iterUniqueTitle.next());
 
             sql.append('\'').append(escapedTitle).append('\'');
             nCounter++;
@@ -445,5 +496,175 @@ public final class PaperCutDbProxy {
         }
 
         return usageLogList;
+    }
+
+    /**
+     * Creates a CSV file with Smartschool student cost.
+     *
+     * @param file
+     *            The CSV file to create.
+     * @param dto
+     *            The {@link SmartSchoolCostPeriodDto}.
+     * @throws IOException
+     *             When IO errors occur while writing the file.
+     */
+    public void createSmartschoolStudentCostCsv(final File file,
+            final SmartSchoolCostPeriodDto dto) throws IOException {
+
+        final PaperCutDbExecutor exec = new PaperCutDbExecutor(this) {
+
+            @Override
+            public Object execute() throws PaperCutException {
+                try {
+                    this.dbProxy.createSmartschoolStudentCostCsvSql(file, dto);
+                } catch (SQLException e) {
+                    throw new PaperCutConnectException(e.getMessage(), e);
+                } catch (IOException e) {
+                    throw new PaperCutException(e.getMessage(), e);
+                }
+                return null;
+            }
+        };
+
+        final Object result;
+
+        try {
+            this.connect();
+
+            if (this.useCircuitBreaker) {
+                result =
+                        CIRCUIT_BREAKER
+                                .execute(new PaperCutCircuitBreakerOperation(
+                                        exec));
+            } else {
+                result = exec.execute();
+            }
+        } catch (PaperCutException e) {
+            throw new PaperCutConnectException(e.getMessage(), e);
+        } catch (InterruptedException | CircuitBreakerException e) {
+            throw new PaperCutConnectException(e.getMessage(), e);
+        } finally {
+            this.disconnect();
+        }
+
+    }
+
+    /**
+     * Creates a CSV file with Smartschool student cost using SQL query.
+     *
+     * @param file
+     *            The CSV file to create.
+     * @param dto
+     *            The {@link SmartSchoolCostPeriodDto}.
+     * @throws IOException
+     *             When IO errors occur while writing the file.
+     * @throws SQLException
+     *             When an SQL error occurs.
+     */
+    private void createSmartschoolStudentCostCsvSql(final File file,
+            final SmartSchoolCostPeriodDto dto) throws IOException,
+            SQLException {
+
+        final StringBuilder sql = new StringBuilder(256);
+
+        sql.append("SELECT");
+
+        sql.append(" ACC.account_name_lower as Userid");
+        sql.append(", U.full_name as Name");
+
+        sql.append(", CASE WHEN "
+                + "length(split_part(MAX(TRX.txn_comment), '"
+                + SmartSchoolCommentSyntax.FIELD_SEPARATOR
+                + "', 1)) < 25 "
+                + "THEN split_part(MAX(TRX.txn_comment), '"
+                + SmartSchoolCommentSyntax.FIELD_SEPARATOR
+                + "', 1) "
+                + "ELSE '' END as Klas");
+
+        sql.append(", SUM(TRX.amount) as Amount");
+        sql.append(", COUNT(Trx.amount) as Transactions");
+        sql.append(", MIN(TRX.transaction_date) as Date_From");
+        sql.append(", MAX(TRX.transaction_date) as Date_To");
+
+        sql.append(" FROM tbl_account_transaction as TRX"
+                + " LEFT JOIN tbl_account as ACC"
+                + " ON ACC.account_id = TRX.account_id"
+                + " LEFT JOIN tbl_user_account as UACC"
+                + " ON UACC.account_id = ACC.account_id"
+                + " LEFT JOIN tbl_user as U" + " ON UACC.user_id = U.user_id");
+
+        sql.append(" WHERE TRX.transaction_type = 'ADJUST'"
+                + " and ACC.account_type LIKE 'USER-%'");
+
+        // select students only.
+        sql.append(" and LEFT(TRX.txn_comment, 1) != '")
+                .append(SmartSchoolCommentSyntax.DUMMY_KLAS).append("'");
+
+        final List<String> klassen = dto.getKlassen();
+
+        if (klassen != null && !klassen.isEmpty()) {
+
+            sql.append(" and (");
+            int i = 0;
+            for (final String klas : klassen) {
+                if (i > 0) {
+                    sql.append(" OR ");
+                }
+                sql.append("TRX.txn_comment like '")
+                        .append(escapeForSql(klas))
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
+                        .append("%'");
+                i++;
+            }
+            sql.append(")");
+        }
+
+        if (dto.getTimeFrom() != null) {
+            sql.append(" and TRX.transaction_date >= '")
+                    .append(new java.sql.Date(dto.getTimeFrom().longValue())
+                            .toString()).append("'::DATE");
+        }
+
+        if (dto.getTimeTo() != null) {
+            // next day 0:00
+            final Date dateTo =
+                    DateUtils.truncate(DateUtils.addDays(new Date(dto
+                            .getTimeTo().longValue()), 1),
+                            Calendar.DAY_OF_MONTH);
+
+            sql.append(" and TRX.transaction_date < '")
+                    .append(new java.sql.Date(dateTo.getTime()))
+                    .append("'::DATE");
+        }
+
+        sql.append(" GROUP BY ACC.account_name_lower, U.full_name"
+                + " ORDER BY ACC.account_name_lower");
+
+        //
+        final FileWriter writer = new FileWriter(file);
+        final CSVWriter csvWriter = new CSVWriter(writer);
+
+        Statement statement = null;
+        ResultSet resultset = null;
+        boolean finished = false;
+
+        try {
+            statement = this.connection.createStatement();
+            resultset = statement.executeQuery(sql.toString());
+            csvWriter.writeAll(resultset, true);
+            finished = true;
+
+        } finally {
+
+            IOUtils.closeQuietly(csvWriter);
+            IOUtils.closeQuietly(writer);
+
+            silentClose(resultset, statement);
+
+            if (!finished) {
+                LOGGER.error(sql.toString());
+            }
+        }
+
     }
 }

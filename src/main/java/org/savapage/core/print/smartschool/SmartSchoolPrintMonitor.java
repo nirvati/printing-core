@@ -144,28 +144,6 @@ public final class SmartSchoolPrintMonitor {
     private static int getJobTickerCounter = 0;
 
     /**
-     * .
-     */
-    private static final String JOB_NAME_INFO_SEPARATOR = ".";
-
-    /**
-     * Symbol for a dummy klas.
-     */
-    private static final String DUMMY_KLAS = "-";
-
-    /**
-     * .
-     */
-    private static final String JOBS_COMMENT_FIELD_SEPARATOR = " | ";
-    private static final String JOBS_COMMENT_FIELD_SEPARATOR_FIRST = "";
-    private static final String JOBS_COMMENT_FIELD_SEPARATOR_LAST = "";
-
-    /**
-     * .
-     */
-    private static final char JOBS_COMMENT_USER_CLASS_SEPARATOR = '@';
-
-    /**
      * Fixed values for simulation "klassen".
      */
     private static final String SIMULATION_CLASS_1 = "simulatie.1A1";
@@ -1134,6 +1112,29 @@ public final class SmartSchoolPrintMonitor {
         final DocLog docLogIn =
                 docInOutDao.findDocOutSource(docLogOut.getDocOut().getId());
 
+        final PrintOut printOutLog = docLogOut.getDocOut().getPrintOut();
+
+        //
+        final String duplexIndicator;
+
+        if (printOutLog.getDuplex().booleanValue()) {
+            duplexIndicator = SmartSchoolCommentSyntax.INDICATOR_DUPLEX_ON;
+        } else {
+            duplexIndicator = SmartSchoolCommentSyntax.INDICATOR_DUPLEX_OFF;
+        }
+
+        //
+        final String colorIndicator;
+
+        if (printOutLog.getGrayscale().booleanValue()) {
+            colorIndicator = SmartSchoolCommentSyntax.INDICATOR_COLOR_OFF;
+        } else {
+            colorIndicator = SmartSchoolCommentSyntax.INDICATOR_COLOR_ON;
+        }
+
+        final String paperSizeIndicator = printOutLog.getPaperSize();
+        final String externalIdIndicator = docLogOut.getExternalId();
+
         /*
          * Any transactions?
          */
@@ -1183,12 +1184,14 @@ public final class SmartSchoolPrintMonitor {
         final StringBuilder jobTrxComment = new StringBuilder();
 
         // user | copies | pages
-        jobTrxComment.append(JOBS_COMMENT_FIELD_SEPARATOR_FIRST)
+        jobTrxComment
+                .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR_FIRST)
                 .append(requestingUserId)
                 //
-                .append(JOBS_COMMENT_FIELD_SEPARATOR).append(weightTotal)
+                .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
+                .append(weightTotal)
                 //
-                .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                 .append(numberOfDocumentPages);
 
         /*
@@ -1231,22 +1234,22 @@ public final class SmartSchoolPrintMonitor {
                 final StringBuilder klasTrxComment = new StringBuilder();
 
                 klasTrxComment
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR_FIRST)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR_FIRST)
                         .append(requestingUserId)
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(weight)
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(docLogIn.getNumberOfPages())
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(docLogIn.getTitle())
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(docLogIn.getLogComment())
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR_LAST);
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR_LAST);
 
                 if (SmartSchoolLogger.getLogger().isDebugEnabled()) {
 
@@ -1264,13 +1267,15 @@ public final class SmartSchoolPrintMonitor {
                         klasTrxComment.toString());
 
                 // ... | user@class-n | copies-n
-                jobTrxComment.append(JOBS_COMMENT_FIELD_SEPARATOR)
+                jobTrxComment
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(requestingUserId)
                         //
-                        .append(JOBS_COMMENT_USER_CLASS_SEPARATOR)
+                        .append(SmartSchoolCommentSyntax.USER_CLASS_SEPARATOR)
                         .append(klasName)
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR).append(weight);
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
+                        .append(weight);
 
                 weightTotalJobTrx += weight;
 
@@ -1280,26 +1285,26 @@ public final class SmartSchoolPrintMonitor {
 
                 // class | requester | copies | pages | document | comment
                 userCopiesComment
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR_FIRST)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR_FIRST)
                         .append(StringUtils.defaultString(trx.getExtDetails(),
-                                DUMMY_KLAS))
+                                SmartSchoolCommentSyntax.DUMMY_KLAS))
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(requestingUserId)
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(weight)
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(docLogIn.getNumberOfPages())
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(docLogIn.getTitle())
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(docLogIn.getLogComment())
                         //
-                        .append(JOBS_COMMENT_FIELD_SEPARATOR_LAST);
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR_LAST);
 
                 //
                 final UserAccountDao userAccountDao =
@@ -1360,24 +1365,24 @@ public final class SmartSchoolPrintMonitor {
         if (weightTotalJobTrx != weightTotal) {
 
             jobTrxComment
-                    .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                    .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                     .append(requestingUserId)
                     //
-                    .append(JOBS_COMMENT_USER_CLASS_SEPARATOR)
-                    .append(DUMMY_KLAS)
+                    .append(SmartSchoolCommentSyntax.USER_CLASS_SEPARATOR)
+                    .append(SmartSchoolCommentSyntax.DUMMY_KLAS)
                     //
-                    .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                    .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                     .append(weightTotal - weightTotalJobTrx);
         }
 
         // ... | document | comment
-        jobTrxComment.append(JOBS_COMMENT_FIELD_SEPARATOR)
+        jobTrxComment.append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                 .append(docLogIn.getTitle())
                 //
-                .append(JOBS_COMMENT_FIELD_SEPARATOR)
+                .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                 .append(docLogIn.getLogComment())
                 //
-                .append(JOBS_COMMENT_FIELD_SEPARATOR_LAST);
+                .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR_LAST);
 
         PAPERCUT_SERVICE.lazyAdjustSharedAccount(papercutServerProxy,
                 SMARTSCHOOL_SERVICE.getSharedParentAccountName(),
@@ -2477,8 +2482,10 @@ public final class SmartSchoolPrintMonitor {
             final SmartSchoolConnection connection, final Document document) {
 
         final String suffix =
-                String.format("%s%s%s%s", JOB_NAME_INFO_SEPARATOR,
-                        connection.getAccountName(), JOB_NAME_INFO_SEPARATOR,
+                String.format("%s%s%s%s",
+                        SmartSchoolCommentSyntax.JOB_NAME_INFO_SEPARATOR,
+                        connection.getAccountName(),
+                        SmartSchoolCommentSyntax.JOB_NAME_INFO_SEPARATOR,
                         document.getId());
 
         if (suffix.length() > PaperCutDbProxy.COL_LEN_DOCUMENT_NAME) {
@@ -2499,7 +2506,8 @@ public final class SmartSchoolPrintMonitor {
     private static String getAccountFromProxyPrintJobName(final String jobName) {
 
         final String[] parts =
-                StringUtils.split(jobName, JOB_NAME_INFO_SEPARATOR);
+                StringUtils.split(jobName,
+                        SmartSchoolCommentSyntax.JOB_NAME_INFO_SEPARATOR);
 
         if (parts.length < 3) {
             return null;

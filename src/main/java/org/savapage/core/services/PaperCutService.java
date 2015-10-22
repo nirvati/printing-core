@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,8 @@
  */
 package org.savapage.core.services;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
@@ -30,6 +32,7 @@ import org.savapage.core.papercut.PaperCutException;
 import org.savapage.core.papercut.PaperCutPrinterUsageLog;
 import org.savapage.core.papercut.PaperCutServerProxy;
 import org.savapage.core.papercut.PaperCutUser;
+import org.savapage.core.print.smartschool.SmartSchoolCostPeriodDto;
 
 /**
  * Services for PaperCut Print Management Server.
@@ -120,4 +123,18 @@ public interface PaperCutService {
     List<PaperCutPrinterUsageLog> getPrinterUsageLog(PaperCutDbProxy papercut,
             Set<String> uniqueDocNames);
 
+    /**
+     * Creates a CSV file with Smartschool student cost.
+     *
+     * @param papercut
+     *            The {@link PaperCutDbProxy}.
+     * @param file
+     *            The CSV file to create.
+     * @param dto
+     *            The {@link SmartSchoolCostPeriodDto}.
+     * @throws IOException
+     *             When IO errors occur while writing the file.
+     */
+    void createSmartschoolStudentCostCsv(final PaperCutDbProxy papercut,
+            File file, SmartSchoolCostPeriodDto dto) throws IOException;
 }

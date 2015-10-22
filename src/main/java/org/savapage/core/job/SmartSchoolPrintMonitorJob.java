@@ -143,29 +143,10 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
 
                 final ConfigManager cm = ConfigManager.instance();
 
-                /*
-                 *
-                 */
-
                 if (cm.isConfigValue(Key.SMARTSCHOOL_PAPERCUT_ENABLE)) {
 
-                    papercutServerProxy =
-                            PaperCutServerProxy
-                                    .create(cm
-                                            .getConfigValue(Key.PAPERCUT_SERVER_HOST),
-                                            cm.getConfigInt(Key.PAPERCUT_SERVER_PORT),
-                                            cm.getConfigValue(Key.PAPERCUT_XMLRPC_URL_PATH),
-                                            cm.getConfigValue(Key.PAPERCUT_SERVER_AUTH_TOKEN),
-                                            true);
-
-                    papercutDbProxy =
-                            PaperCutDbProxy
-                                    .create(cm
-                                            .getConfigValue(Key.PAPERCUT_DB_JDBC_DRIVER),
-                                            cm.getConfigValue(Key.PAPERCUT_DB_JDBC_URL),
-                                            cm.getConfigValue(Key.PAPERCUT_DB_USER),
-                                            cm.getConfigValue(Key.PAPERCUT_DB_PASSWORD),
-                                            true);
+                    papercutServerProxy = PaperCutServerProxy.create(cm, true);
+                    papercutDbProxy = PaperCutDbProxy.create(cm, true);
 
                     papercutServerProxy.connect();
                     papercutDbProxy.connect();
