@@ -253,8 +253,8 @@ public final class IppEncoder {
             istr.read(bytes);
 
             if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("IPP value tag [" + valueTag.toString()
-                    + "] is NOT implemented");
+                LOGGER.debug("IPP value tag [" + valueTag.toString()
+                        + "] is NOT implemented");
             }
         }
 
@@ -300,11 +300,13 @@ public final class IppEncoder {
         }
 
         /*
-         * A temporary fix for Mantis #394 "NumberFormatException for IPP 4-byte
-         * integer 0xFFFFFFFF".
+         * A temporary fix for Mantis #394 and #609: NumberFormatException for
+         * IPP 4-byte integer 0xFFFFFFFF and 0xFFFFFFFD
          */
         if (strHex.equalsIgnoreCase("FFFFFFFF")) {
             return -1;
+        } else if (strHex.equalsIgnoreCase("FFFFFFFD")) {
+            return -3;
         } else {
             return Integer.parseInt(strHex, 16);
         }
@@ -549,9 +551,8 @@ public final class IppEncoder {
 
                 if (traceLog != null) {
                     traceLog.append("\n")
-                            .append(StringUtils
-                                    .repeat(INDENT_UNIT, nTraceLogIndent))
-                            .append("[")
+                            .append(StringUtils.repeat(INDENT_UNIT,
+                                    nTraceLogIndent)).append("[")
                             .append(IppValueTag.MEMBERATTRNAME.toString())
                             .append("] ").append(collectionName);
                 }
