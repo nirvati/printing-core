@@ -175,6 +175,11 @@ public final class SmartSchoolPrintMonitor {
     private static final String MSG_COMMENT_PRINT_EXPIRED =
             "Afdrukopdracht is verlopen.";
 
+    private static final String MSG_COMMENT_PRINT_DOCUMENT_TOO_LARGE =
+            "De omvang van de afdrukopdracht is te groot "
+                    + "om in één keer verwerkt te worden: "
+                    + "splits uw verzoek op in kleinere opdrachten.";
+
     private static final String MSG_COMMENT_PRINT_CANCELLED_DOC_TYPE =
             "Afdrukopdracht is geannuleerd: "
                     + "document type kan niet worden afgedrukt.";
@@ -963,6 +968,12 @@ public final class SmartSchoolPrintMonitor {
 
                         printStatus = SmartSchoolPrintStatusEnum.EXPIRED;
                         comment = MSG_COMMENT_PRINT_EXPIRED;
+
+                    } else if (papercutLog.getDeniedReason().contains(
+                            "DOCUMENT_TOO_LARGE")) {
+
+                        printStatus = SmartSchoolPrintStatusEnum.CANCELLED;
+                        comment = MSG_COMMENT_PRINT_DOCUMENT_TOO_LARGE;
 
                     } else {
 
