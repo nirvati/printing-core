@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,7 +39,8 @@ import org.savapage.core.services.helpers.ExternalSupplierInfo;
  * @author Datraverse B.V.
  *
  */
-public abstract class AbstractProxyPrintReq {
+public abstract class AbstractProxyPrintReq implements
+        ProxyPrintSheetsCalcParms {
 
     /**
      * Proxy Print Request Status.
@@ -96,6 +97,11 @@ public abstract class AbstractProxyPrintReq {
     private boolean ecoPrint;
 
     private boolean ecoPrintShadow;
+
+    /**
+     * Collate pages.
+     */
+    private boolean collate;
 
     /**
      * <code>true</code> if PDF needs to be converted to grayscale before proxy
@@ -214,6 +220,14 @@ public abstract class AbstractProxyPrintReq {
         this.ecoPrintShadow = ecoPrintShadow;
     }
 
+    public boolean isCollate() {
+        return collate;
+    }
+
+    public void setCollate(boolean collate) {
+        this.collate = collate;
+    }
+
     public boolean isConvertToGrayscale() {
         return convertToGrayscale;
     }
@@ -222,6 +236,7 @@ public abstract class AbstractProxyPrintReq {
         this.convertToGrayscale = convertToGrayscale;
     }
 
+    @Override
     public int getNumberOfCopies() {
         return numberOfCopies;
     }
@@ -230,6 +245,7 @@ public abstract class AbstractProxyPrintReq {
         this.numberOfCopies = numberOfCopies;
     }
 
+    @Override
     public int getNumberOfPages() {
         return numberOfPages;
     }
@@ -349,14 +365,19 @@ public abstract class AbstractProxyPrintReq {
         return isGrayscale(getOptionValues());
     }
 
+    /**
+     * @return {@code true} if <u>printer</u> is capable of duplex printing.
+     */
     public boolean hasDuplex() {
         return hasDuplex(getOptionValues());
     }
 
+    @Override
     public boolean isDuplex() {
         return isDuplex(getOptionValues());
     }
 
+    @Override
     public int getNup() {
         return getNup(getOptionValues());
     }
@@ -400,37 +421,24 @@ public abstract class AbstractProxyPrintReq {
                 mediaSource);
     }
 
-    /**
-     * Not supported yet: always returns false.
-     *
-     * @return {@code false}.
-     */
+    @Override
     public boolean isOddOrEvenSheets() {
         return isOddOrEvenSheets(getOptionValues());
     }
 
-    /**
-     * Not supported yet: always returns false.
-     *
-     * @return {@code false}.
-     */
+    @Override
     public boolean isCoverPageBefore() {
         return isCoverPageBefore(getOptionValues());
     }
 
-    /**
-     * Not supported yet: always returns false.
-     *
-     * @return {@code false}.
-     */
+    @Override
     public boolean isCoverPageAfter() {
         return isCoverPageAfter(getOptionValues());
     }
 
     /**
-     *
      * @param optionValues
-     * @return
+     * @return {@code true} if <u>printer</u> is capable of duplex printing.
      */
     public static boolean hasDuplex(Map<String, String> optionValues) {
         return optionValues.get(IppDictJobTemplateAttr.ATTR_SIDES) != null;
@@ -479,7 +487,7 @@ public abstract class AbstractProxyPrintReq {
     /**
      *
      * @param optionValues
-     * @return
+     * @return {@code true} if <u>this job</u> is printed in duplex.
      */
     public static boolean isDuplex(Map<String, String> optionValues) {
         boolean duplex = false;

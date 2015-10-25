@@ -707,7 +707,14 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     @Override
-    protected void onStampEncryptionForPrinting() {
+    protected boolean onStampEncryptionForPrinting() {
+
+        boolean encrypt = false;     // TODO
+
+        if (!encrypt) {
+            return encrypt;
+        }
+
         /*
          * For security reasons, just printing is allowed.
          */
@@ -723,6 +730,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         } catch (DocumentException e) {
             throw new SpException(e);
         }
+        return true;
     }
 
     @Override

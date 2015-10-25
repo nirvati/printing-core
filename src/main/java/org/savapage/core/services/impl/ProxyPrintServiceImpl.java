@@ -47,7 +47,6 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.helpers.DocLogProtocolEnum;
-import org.savapage.core.dao.helpers.PrintModeEnum;
 import org.savapage.core.dao.helpers.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaCostDto;
@@ -82,6 +81,8 @@ import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.ipp.operation.IppStatusCode;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.DocOut;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
 import org.savapage.core.jpa.PrinterGroup;
@@ -92,6 +93,8 @@ import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcError.Code;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
+import org.savapage.core.pdf.PdfCollator;
+import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
@@ -847,11 +850,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     @Override
-    protected void printPdf(final PrintModeEnum printMode,
+    protected void printPdf(final AbstractProxyPrintReq request,
             final JsonProxyPrinter printer, final String user,
-            final File filePdf, final String jobName, final int copies,
-            final Boolean fitToPage, final Map<String, String> optionValues,
-            final DocLog docLog) throws IppConnectException {
+            final File filePdf, final DocLog docLog) throws IppConnectException {
 
         final String uriPrinter = printer.getPrinterUri().toString();
 
@@ -867,25 +868,92 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          * Construct.
          */
         final String jobNameWork;
-        if (StringUtils.isBlank(jobName)) {
+
+        if (StringUtils.isBlank(request.getJobName())) {
             jobNameWork =
                     String.format("%s-%s",
                             CommunityDictEnum.SAVAPAGE.getWord(), DateUtil
                                     .formattedDateTime(ServiceContext
                                             .getTransactionDate()));
         } else {
-            jobNameWork = jobName;
+            jobNameWork = request.getJobName();
         }
 
-        // Print
-        final List<IppAttrGroup> response =
-                ippClient.send(
-                        urlCupsServer,
-                        IppOperationId.PRINT_JOB,
-                        reqPrintJob(filePdf, uriPrinter, user, jobNameWork,
-                                jobNameWork, copies, fitToPage, optionValues),
-                        filePdf);
+        /*
+         * If collate for more then one (1) copy we need to print one (1) copy
+         * of a PDF with collated copies.
+         */
 
+        // Save number of copies.
+        final int numberOfCopiesSaved = request.getNumberOfCopies();
+
+        final boolean collatePdf =
+                request.isCollate() && PdfCollator.isCollatable(request);
+
+        /*
+         * Send the IPP Print Job request.
+         */
+        File pdfFileCollated = null;
+        final List<IppAttrGroup> response;
+
+        try {
+
+            final File pdfFileToPrint;
+
+            if (collatePdf) {
+
+                pdfFileCollated =
+                        new File(String.format("%s-collated",
+                                filePdf.getCanonicalPath()));
+
+                final int nTotCollatedPages =
+                        PdfCollator.collate(request, filePdf, pdfFileCollated);
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(String.format("Collated PDF [%s] pages [%d], "
+                            + "copies [%d], n-up [%d], duplex [%s] "
+                            + "-> pages [%d]", request.getJobName(),
+                            request.getNumberOfPages(),
+                            request.getNumberOfCopies(), request.getNup(),
+                            Boolean.toString(request.isDuplex()),
+                            nTotCollatedPages));
+                }
+
+                pdfFileToPrint = pdfFileCollated;
+
+                // Trick the request so IPP Print Job request sets the number of
+                // copies to one (1).
+                request.setNumberOfCopies(1);
+
+            } else {
+                pdfFileCollated = null;
+                pdfFileToPrint = filePdf;
+            }
+
+            response =
+                    ippClient
+                            .send(urlCupsServer, IppOperationId.PRINT_JOB, this
+                                    .reqPrintJob(request, pdfFileToPrint,
+                                            uriPrinter, user, jobNameWork,
+                                            jobNameWork), pdfFileToPrint);
+
+        } catch (IOException e) {
+
+            throw new SpException(e.getMessage(), e);
+
+        } finally {
+
+            if (pdfFileCollated != null) {
+                pdfFileCollated.delete();
+            }
+        }
+
+        // Restore number of copies.
+        request.setNumberOfCopies(numberOfCopiesSaved);
+
+        /*
+         * Collect the PrintOut data.
+         */
         final IppAttrGroup group = response.get(1);
 
         // The job-uri can be null.
@@ -919,30 +987,82 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          */
         printJob.setUser(user); // needed??
 
-        // ------------------
-        final boolean duplex = ProxyPrintInboxReq.isDuplex(optionValues);
-        final boolean grayscale = ProxyPrintInboxReq.isGrayscale(optionValues);
-        final int nUp = ProxyPrintInboxReq.getNup(optionValues);
+        collectPrintOutData(request, docLog, printer, printJob);
+    }
 
-        final boolean oddOrEvenSheets =
-                ProxyPrintInboxReq.isOddOrEvenSheets(optionValues);
-        final boolean coverPageBefore =
-                ProxyPrintInboxReq.isCoverPageBefore(optionValues);
-        final boolean coverPageAfter =
-                ProxyPrintInboxReq.isCoverPageAfter(optionValues);
+    /**
+     * Collects data of the print event in the {@link DocLog} object.
+     *
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
+     * @param docLog
+     *            The documentation object to log the event.
+     * @param printer
+     *            The printer object.
+     * @param printJob
+     *            The job object.
+     */
+    private void collectPrintOutData(final AbstractProxyPrintReq request,
+            final DocLog docLog, final JsonProxyPrinter printer,
+            final JsonProxyPrintJob printJob) {
+
+        // ------------------
+        final boolean duplex =
+                ProxyPrintInboxReq.isDuplex(request.getOptionValues());
+
+        final boolean grayscale =
+                ProxyPrintInboxReq.isGrayscale(request.getOptionValues());
+
+        final int nUp = ProxyPrintInboxReq.getNup(request.getOptionValues());
 
         final String cupsPageSet = "all";
         final String cupsJobSheets = "";
 
-        // ------------------
         final MediaSizeName mediaSizeName =
-                IppMediaSizeEnum.findMediaSizeName(optionValues
+                IppMediaSizeEnum.findMediaSizeName(request.getOptionValues()
                         .get(IppDictJobTemplateAttr.ATTR_MEDIA));
 
-        collectPrintOutData(docLog, DocLogProtocolEnum.IPP, printMode, printer,
-                printJob, jobName, copies, duplex, grayscale, nUp, cupsPageSet,
-                oddOrEvenSheets, cupsJobSheets, coverPageBefore,
-                coverPageAfter, mediaSizeName);
+        // ------------------
+        int numberOfSheets = PdfCollator.calcNumberOfPrintedSheets(request);
+
+        // ------------------
+        final DocOut docOut = docLog.getDocOut();
+
+        docLog.setDeliveryProtocol(DocLogProtocolEnum.IPP.getDbName());
+        docOut.setDestination(printer.getName());
+        docLog.setTitle(request.getJobName());
+
+        final PrintOut printOut = new PrintOut();
+        printOut.setDocOut(docOut);
+
+        printOut.setPrintMode(request.getPrintMode().toString());
+        printOut.setCupsJobId(printJob.getJobId());
+        printOut.setCupsJobState(printJob.getJobState());
+        printOut.setCupsCreationTime(printJob.getCreationTime());
+
+        printOut.setDuplex(duplex);
+
+        printOut.setGrayscale(grayscale);
+
+        printOut.setCupsJobSheets(cupsJobSheets);
+        printOut.setCupsNumberUp(String.valueOf(nUp));
+        printOut.setCupsPageSet(cupsPageSet);
+
+        printOut.setNumberOfCopies(request.getNumberOfCopies());
+        printOut.setNumberOfSheets(numberOfSheets);
+
+        printOut.setPaperSize(mediaSizeName.toString());
+
+        int[] size = MediaUtils.getMediaWidthHeight(mediaSizeName);
+        printOut.setPaperWidth(size[0]);
+        printOut.setPaperHeight(size[1]);
+
+        printOut.setNumberOfEsu(calcNumberOfEsu(numberOfSheets,
+                printOut.getPaperWidth(), printOut.getPaperHeight()));
+
+        printOut.setPrinter(printer.getDbPrinter());
+
+        docOut.setPrintOut(printOut);
     }
 
     /**
@@ -1447,15 +1567,23 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     /**
-     * Creates a Print Job IPP request.
+     * Creates an IPP request for a print job.
      *
+     * @param request
+     * @param fileToPrint
      * @param uriPrinter
-     * @throws IOException
+     * @param reqUser
+     * @param docName
+     * @param jobName
+     * @return
      */
-    private List<IppAttrGroup> reqPrintJob(final File fileToPrint,
-            final String uriPrinter, final String reqUser,
-            final String docName, final String jobName, int copies,
-            final Boolean fitToPage, Map<String, String> optionValues) {
+    private List<IppAttrGroup> reqPrintJob(final AbstractProxyPrintReq request,
+            final File fileToPrint, final String uriPrinter,
+            final String reqUser, final String docName, final String jobName) {
+
+        final int copies = request.getNumberOfCopies();
+        final Boolean fitToPage = request.getFitToPage();
+        final Map<String, String> optionValues = request.getOptionValues();
 
         final List<IppAttrGroup> attrGroups = new ArrayList<>();
 

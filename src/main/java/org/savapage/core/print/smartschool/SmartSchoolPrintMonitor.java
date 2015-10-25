@@ -2628,6 +2628,8 @@ public final class SmartSchoolPrintMonitor {
         final ProxyPrintDocReq printReq =
                 new ProxyPrintDocReq(PrintModeEnum.AUTO);
 
+        printReq.setCollate(true);
+
         printReq.setDocumentUuid(printInInfo.getUuidJob().toString());
 
         printReq.setAccountTrxInfoSet(printInInfo.getAccountTrxInfoSet());

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,11 +24,11 @@ package org.savapage.core.print.proxy;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.savapage.core.services.impl.AbstractProxyPrintService;
+import org.savapage.core.pdf.PdfCollator;
 
 /**
  * Test cases for
- * {@link AbstractProxyPrintService#calcNumberOfPrintedSheets(int, int, boolean, int, boolean, boolean, boolean)}
+ * {@link PdfCollator#calcNumberOfPrintedSheets(int, int, boolean, int, boolean, boolean, boolean)}
  * .
  * <p>
  * References:
@@ -57,10 +57,9 @@ public class CalcSheetsTest {
         int copies = 1;
 
         // ----------------
-        assertEquals("1 page, 1-up", 1,
-                AbstractProxyPrintService.calcNumberOfPrintedSheets(
-                        numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
-                        coverPageBefore, coverPageAfter));
+        assertEquals("1 page, 1-up", 1, PdfCollator.calcNumberOfPrintedSheets(
+                numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
+                coverPageBefore, coverPageAfter));
     }
 
     @Test
@@ -75,10 +74,9 @@ public class CalcSheetsTest {
         int nUp = 4;
         int copies = 1;
 
-        assertEquals("2 pages, 4-up", 1,
-                AbstractProxyPrintService.calcNumberOfPrintedSheets(
-                        numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
-                        coverPageBefore, coverPageAfter));
+        assertEquals("2 pages, 4-up", 1, PdfCollator.calcNumberOfPrintedSheets(
+                numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
+                coverPageBefore, coverPageAfter));
     }
 
     @Test
@@ -93,10 +91,9 @@ public class CalcSheetsTest {
         int nUp = 2;
         int copies = 1;
 
-        assertEquals("2 pages, 2-up", 1,
-                AbstractProxyPrintService.calcNumberOfPrintedSheets(
-                        numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
-                        coverPageBefore, coverPageAfter));
+        assertEquals("2 pages, 2-up", 1, PdfCollator.calcNumberOfPrintedSheets(
+                numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
+                coverPageBefore, coverPageAfter));
     }
 
     @Test
@@ -111,10 +108,9 @@ public class CalcSheetsTest {
         int nUp = 2;
         int copies = 1;
 
-        assertEquals("3 pages, 2-up", 2,
-                AbstractProxyPrintService.calcNumberOfPrintedSheets(
-                        numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
-                        coverPageBefore, coverPageAfter));
+        assertEquals("3 pages, 2-up", 2, PdfCollator.calcNumberOfPrintedSheets(
+                numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
+                coverPageBefore, coverPageAfter));
     }
 
     @Test
@@ -130,9 +126,9 @@ public class CalcSheetsTest {
         int copies = 2;
 
         assertEquals("3 pages, 4-up, 2 copies", 2,
-                AbstractProxyPrintService.calcNumberOfPrintedSheets(
-                        numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
-                        coverPageBefore, coverPageAfter));
+                PdfCollator.calcNumberOfPrintedSheets(numberOfPages, copies,
+                        duplex, nUp, oddOrEvenSheets, coverPageBefore,
+                        coverPageAfter));
     }
 
 }

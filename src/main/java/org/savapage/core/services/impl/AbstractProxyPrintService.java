@@ -61,7 +61,6 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.helpers.DeviceTypeEnum;
-import org.savapage.core.dao.helpers.DocLogProtocolEnum;
 import org.savapage.core.dao.helpers.PrintModeEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaSourceCostDto;
@@ -1967,10 +1966,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Print the PDF file.
          */
-        if (print(userid, request.getPrintMode(), request.getPrinterName(),
-                pdfFileToPrint, request.getJobName(),
-                request.getNumberOfCopies(), request.getFitToPage(),
-                request.getOptionValues(), docLog)) {
+        if (print(request, userid, pdfFileToPrint, docLog)) {
 
             if (request.isClearPages()) {
                 request.setClearedPages(inboxService().deleteAllPages(userid));
@@ -2338,35 +2334,26 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * PDF document.
      * </p>
      *
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
      * @param user
      *            The user (owner of the print job).
-     * @param printMode
-     *            The {@link PrintModeEnum}.
-     * @param printerName
-     *            Name of the printer, used as key in the printer cache.
      * @param filePdf
      *            The PDF file to print.
-     * @param jobName
-     *            Name of the job.
-     * @param copies
-     *            Number of copies.
-     * @param optionValues
-     *            Options with values.
      * @param docLog
      *            The object to collect print data on.
      * @return {@code true} when printer was found, {@code false} when printer
      *         is no longer valid (because not found in cache, or when it is
      *         logically deleted or disabled).
      * @throws IppConnectException
+     *             When IPP connect error.
      */
-    protected boolean print(final String user, final PrintModeEnum printMode,
-            final String printerName, final File filePdf, final String jobName,
-            final int copies, final Boolean fitToPage,
-            final Map<String, String> optionValues, final DocLog docLog)
+    private boolean print(final AbstractProxyPrintReq request,
+            final String user, final File filePdf, final DocLog docLog)
             throws IppConnectException {
 
         final JsonProxyPrinter printer =
-                this.getJsonProxyPrinterCopy(printerName);
+                this.getJsonProxyPrinterCopy(request.getPrinterName());
 
         if (printer == null) {
             return false;
@@ -2377,8 +2364,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             return false;
         }
 
-        printPdf(printMode, printer, user, filePdf, jobName, copies, fitToPage,
-                optionValues, docLog);
+        printPdf(request, printer, user, filePdf, docLog);
 
         return true;
     }
@@ -2386,176 +2372,22 @@ public abstract class AbstractProxyPrintService extends AbstractService
     /**
      * Prints a file and logs the event.
      *
-     * @param printMode
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
      * @param printer
      *            The printer object.
      * @param user
      *            The requesting user.
      * @param filePdf
      *            The file to print.
-     * @param jobName
-     *            The name of the job.
-     * @param copies
-     *            Number of copies.
-     * @param optionValues
-     *            The printer options.
      * @param docLog
      *            The documentation object to log the event.
+     * @throws IppConnectException
+     *             When IPP connection error.
      */
-    abstract protected void printPdf(final PrintModeEnum printMode,
+    protected abstract void printPdf(final AbstractProxyPrintReq request,
             final JsonProxyPrinter printer, final String user,
-            final File filePdf, final String jobName, final int copies,
-            final Boolean fitToPage, final Map<String, String> optionValues,
-            final DocLog docLog) throws IppConnectException;
-
-    /**
-     * Collects data of the print event in the {@link DocLog} object.
-     *
-     * @param docLog
-     *            The documentation object to log the event.
-     * @param protocol
-     *            {@link DocLog.DocLogProtocolEnum#LPR} or
-     *            {@link DocLog.DocLogProtocolEnum#IPP}
-     * @param printMode
-     * @param printer
-     *            The printer object.
-     * @param printJob
-     *            The job object.
-     * @param jobName
-     *            The name of the job.
-     * @param copies
-     *            Number of copies.
-     * @param duplex
-     *            ({@code true} if duplex.
-     * @param grayscale
-     *            ({@code true} if grayscale (not color).
-     * @param nUp
-     * @param cupsPageSet
-     * @param oddOrEvenSheets
-     * @param cupsJobSheets
-     * @param coverPageBefore
-     * @param coverPageAfter
-     * @param ippMediaSize
-     *            The media size of the print output.
-     */
-    protected void collectPrintOutData(final DocLog docLog,
-            final DocLogProtocolEnum protocol, final PrintModeEnum printMode,
-            final JsonProxyPrinter printer, final JsonProxyPrintJob printJob,
-            final String jobName, int copies, final boolean duplex,
-            final boolean grayscale, final int nUp, String cupsPageSet,
-            final boolean oddOrEvenSheets, final String cupsJobSheets,
-            final boolean coverPageBefore, final boolean coverPageAfter,
-            final MediaSizeName ippMediaSize) {
-
-        int numberOfSheets =
-                calcNumberOfPrintedSheets(docLog.getNumberOfPages(), copies,
-                        duplex, nUp, oddOrEvenSheets, coverPageBefore,
-                        coverPageAfter);
-
-        final DocOut docOut = docLog.getDocOut();
-
-        docLog.setDeliveryProtocol(protocol.getDbName());
-        docOut.setDestination(printer.getName());
-        docLog.setTitle(jobName);
-
-        final PrintOut printOut = new PrintOut();
-        printOut.setDocOut(docOut);
-
-        printOut.setPrintMode(printMode.toString());
-        printOut.setCupsJobId(printJob.getJobId());
-        printOut.setCupsJobState(printJob.getJobState());
-        printOut.setCupsCreationTime(printJob.getCreationTime());
-
-        printOut.setDuplex(duplex);
-
-        printOut.setGrayscale(grayscale);
-
-        printOut.setCupsJobSheets(cupsJobSheets);
-        printOut.setCupsNumberUp(String.valueOf(nUp));
-        printOut.setCupsPageSet(cupsPageSet);
-
-        printOut.setNumberOfCopies(copies);
-        printOut.setNumberOfSheets(numberOfSheets);
-
-        printOut.setPaperSize(ippMediaSize.toString());
-
-        int[] size = MediaUtils.getMediaWidthHeight(ippMediaSize);
-        printOut.setPaperWidth(size[0]);
-        printOut.setPaperHeight(size[1]);
-
-        printOut.setNumberOfEsu(calcNumberOfEsu(numberOfSheets,
-                printOut.getPaperWidth(), printOut.getPaperHeight()));
-
-        printOut.setPrinter(printer.getDbPrinter());
-
-        docOut.setPrintOut(printOut);
-
-    }
-
-    /**
-     * Calculates the number of printed sheets.
-     *
-     * @param numberOfPages
-     * @param copies
-     * @param duplex
-     * @param nUp
-     * @param oddOrEvenSheets
-     * @param coverPageBefore
-     * @param coverPageAfter
-     * @return
-     */
-    public static int calcNumberOfPrintedSheets(int numberOfPages, int copies,
-            boolean duplex, int nUp, boolean oddOrEvenSheets,
-            boolean coverPageBefore, boolean coverPageAfter) {
-
-        int nPages = numberOfPages;
-
-        // NOTE: the order of handling the print options is important.
-
-        if (nPages <= nUp) {
-            nPages = 1;
-        } else if (nUp != 1) {
-            nPages = (nPages / nUp) + (nPages % nUp);
-        }
-
-        /*
-         * (2) Odd or even pages?
-         */
-        if (oddOrEvenSheets) {
-            nPages /= 2;
-        }
-
-        /*
-         * Sheets
-         */
-        int nSheets = nPages;
-
-        /*
-         * (3) Duplex
-         */
-        if (duplex) {
-            nSheets = (nSheets / 2) + (nSheets % 2);
-        }
-
-        /*
-         * (4) Copies
-         */
-        nSheets *= copies;
-
-        /*
-         * (5) Jobs Sheets
-         */
-        if (coverPageBefore) {
-            // cover page (before)
-            nSheets++;
-        }
-        if (coverPageAfter) {
-            // cover page (after)
-            nSheets++;
-        }
-
-        return nSheets;
-    }
+            final File filePdf, final DocLog docLog) throws IppConnectException;
 
     /**
      * Return a localized string.
