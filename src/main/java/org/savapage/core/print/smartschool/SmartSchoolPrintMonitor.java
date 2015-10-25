@@ -1126,25 +1126,28 @@ public final class SmartSchoolPrintMonitor {
         final PrintOut printOutLog = docLogOut.getDocOut().getPrintOut();
 
         //
-        final String duplexIndicator;
+        final String indicatorDuplex;
 
         if (printOutLog.getDuplex().booleanValue()) {
-            duplexIndicator = SmartSchoolCommentSyntax.INDICATOR_DUPLEX_ON;
+            indicatorDuplex = SmartSchoolCommentSyntax.INDICATOR_DUPLEX_ON;
         } else {
-            duplexIndicator = SmartSchoolCommentSyntax.INDICATOR_DUPLEX_OFF;
+            indicatorDuplex = SmartSchoolCommentSyntax.INDICATOR_DUPLEX_OFF;
         }
 
         //
-        final String colorIndicator;
+        final String indicatorColor;
 
         if (printOutLog.getGrayscale().booleanValue()) {
-            colorIndicator = SmartSchoolCommentSyntax.INDICATOR_COLOR_OFF;
+            indicatorColor = SmartSchoolCommentSyntax.INDICATOR_COLOR_OFF;
         } else {
-            colorIndicator = SmartSchoolCommentSyntax.INDICATOR_COLOR_ON;
+            indicatorColor = SmartSchoolCommentSyntax.INDICATOR_COLOR_ON;
         }
 
-        final String paperSizeIndicator = printOutLog.getPaperSize();
-        final String externalIdIndicator = docLogOut.getExternalId();
+        final String indicatorPaperSize =
+                SmartSchoolCommentSyntax
+                        .convertToPaperSizeIndicator(printOutLog.getPaperSize());
+
+        final String indicatorExternalId = docLogOut.getExternalId();
 
         /*
          * Any transactions?
@@ -1205,6 +1208,13 @@ public final class SmartSchoolPrintMonitor {
                 .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                 .append(numberOfDocumentPages);
 
+        // ... | A4 | S | G | id
+        jobTrxComment.append(SmartSchoolCommentSyntax.FIELD_SEPARATOR);
+
+        SmartSchoolCommentSyntax.appendIndicatorFields(jobTrxComment,
+                indicatorPaperSize, indicatorDuplex, indicatorColor,
+                indicatorExternalId);
+
         /*
          * Adjust the Personal and Shared Accounts in PaperCut and update the
          * SavaPage AccountTrx's.
@@ -1241,7 +1251,7 @@ public final class SmartSchoolPrintMonitor {
                         SMARTSCHOOL_SERVICE
                                 .getKlasFromComposedAccountName(subAccountName);
 
-                // requester | copies | pages | document | comment
+                // requester | copies | pages
                 final StringBuilder klasTrxComment = new StringBuilder();
 
                 klasTrxComment
@@ -1252,7 +1262,17 @@ public final class SmartSchoolPrintMonitor {
                         .append(weight)
                         //
                         .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
-                        .append(docLogIn.getNumberOfPages())
+                        .append(docLogIn.getNumberOfPages());
+
+                // ... | A4 | S | G | id
+                klasTrxComment.append(SmartSchoolCommentSyntax.FIELD_SEPARATOR);
+
+                SmartSchoolCommentSyntax.appendIndicatorFields(klasTrxComment,
+                        indicatorPaperSize, indicatorDuplex, indicatorColor,
+                        indicatorExternalId);
+
+                // ... | document | comment
+                klasTrxComment
                         //
                         .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(docLogIn.getTitle())
@@ -1294,7 +1314,7 @@ public final class SmartSchoolPrintMonitor {
 
                 final StringBuilder userCopiesComment = new StringBuilder();
 
-                // class | requester | copies | pages | document | comment
+                // class | requester | copies | pages
                 userCopiesComment
                         .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR_FIRST)
                         .append(StringUtils.defaultString(trx.getExtDetails(),
@@ -1307,7 +1327,19 @@ public final class SmartSchoolPrintMonitor {
                         .append(weight)
                         //
                         .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
-                        .append(docLogIn.getNumberOfPages())
+                        .append(docLogIn.getNumberOfPages());
+
+                //
+                // ... | A4 | S | G | id
+                userCopiesComment
+                        .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR);
+
+                SmartSchoolCommentSyntax.appendIndicatorFields(
+                        userCopiesComment, indicatorPaperSize, indicatorDuplex,
+                        indicatorColor, indicatorExternalId);
+
+                // ... | document | comment
+                userCopiesComment
                         //
                         .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append(docLogIn.getTitle())

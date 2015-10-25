@@ -21,6 +21,8 @@
  */
 package org.savapage.core.print.smartschool;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Syntax used for Smartschool transaction comment in PaperCut.
  *
@@ -47,8 +49,8 @@ public final class SmartSchoolCommentSyntax {
     /**
      * .
      */
-    public static final String FIELD_SEPARATOR = " "
-            + FIELD_SEPARATOR_CHAR + " ";
+    public static final String FIELD_SEPARATOR = " " + FIELD_SEPARATOR_CHAR
+            + " ";
 
     /**
      * .
@@ -85,11 +87,64 @@ public final class SmartSchoolCommentSyntax {
      */
     public static final String INDICATOR_COLOR_OFF = "G";
 
-
     /**
      * Hide instantiation.
      */
     private SmartSchoolCommentSyntax() {
 
+    }
+
+    /**
+     * Returns a short upper-case indicator of a paper size description.
+     *
+     * <pre>
+     * "aa-bb"      --> "BB"
+     * "aa"         --> "AA"
+     * "is-a4"      --> "A4"
+     * "na-letter"  --> "LETTER"
+     * </pre>
+     *
+     * @param papersize
+     *            The full paper size description.
+     * @return The paper size indicator.
+     */
+    public static String convertToPaperSizeIndicator(final String papersize) {
+
+        int index = StringUtils.indexOf(papersize, '-');
+
+        if (index == StringUtils.INDEX_NOT_FOUND) {
+            return papersize.toUpperCase();
+        }
+        index++;
+        if (index == papersize.length()) {
+            return "";
+        }
+        return StringUtils.substring(papersize, index).toUpperCase();
+    }
+
+    /**
+     * Appends indicator fields to {@link StringBuilder} without leading and
+     * trailing field separator. Example:
+     * <p>
+     * {@code "A4 | D | C | 243"}
+     * </p>
+     *
+     * @param str
+     *            The {@link StringBuilder} to append to.
+     * @param indicatorPaperSize
+     * @param indicatorDuplex
+     * @param indicatorColor
+     * @param indicatorExternalId
+     * @return The {@link StringBuilder} that was appended to.
+     */
+    public static StringBuilder appendIndicatorFields(final StringBuilder str,
+            final String indicatorPaperSize, final String indicatorDuplex,
+            final String indicatorColor, final String indicatorExternalId) {
+
+        str.append(indicatorPaperSize).append(FIELD_SEPARATOR)
+                .append(indicatorDuplex).append(FIELD_SEPARATOR)
+                .append(indicatorColor).append(FIELD_SEPARATOR)
+                .append(indicatorExternalId);
+        return str;
     }
 }
