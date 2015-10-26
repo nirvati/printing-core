@@ -132,21 +132,6 @@ public final class PdfCollator {
     }
 
     /**
-     * Check whether {@link ProxyPrintSheetsCalcParms} will give collation in
-     * {@link #collate(ProxyPrintSheetsCalcParms, File, File)}.
-     *
-     * @param calcParms
-     *            The {@link ProxyPrintSheetsCalcParms}.
-     * @return {@code true} when input parameter will give collation.
-     */
-    public static boolean
-            isCollatable(final ProxyPrintSheetsCalcParms calcParms) {
-
-        return calcParms.getNumberOfCopies() > 1
-                && (calcParms.isDuplex() || calcParms.getNup() > 1);
-    }
-
-    /**
      * Calculates the extra blank pages to append to a single PDF copy in a
      * collated sequence of copies.
      * <p>

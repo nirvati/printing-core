@@ -888,7 +888,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         final int numberOfCopiesSaved = request.getNumberOfCopies();
 
         final boolean collatePdf =
-                request.isCollate() && PdfCollator.isCollatable(request);
+                request.isCollate() && request.getNumberOfCopies() > 1;
 
         /*
          * Send the IPP Print Job request.
