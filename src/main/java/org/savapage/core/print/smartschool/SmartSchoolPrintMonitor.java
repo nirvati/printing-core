@@ -652,9 +652,13 @@ public final class SmartSchoolPrintMonitor {
             PdfWriter.getInstance(pdfDoc, new FileOutputStream(downloadFile));
             pdfDoc.open();
 
+            int nPage = 0;
+
             // Page #1
             font.setColor(BaseColor.GREEN);
-            para = new Paragraph(text, font);
+            para =
+                    new Paragraph(String.format("%s\n\nPage %d", text, ++nPage),
+                            font);
             para.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.add(para);
 
@@ -662,9 +666,22 @@ public final class SmartSchoolPrintMonitor {
             pdfDoc.newPage();
 
             font.setColor(BaseColor.BLACK);
-            para = new Paragraph(text, font);
+            para =
+                    new Paragraph(String.format("%s\n\nPage %d", text, ++nPage),
+                            font);
             para.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.add(para);
+
+            // Page #3
+            pdfDoc.newPage();
+
+            font.setColor(BaseColor.BLACK);
+            para =
+                    new Paragraph(String.format("%s\n\nPage %d", text, ++nPage),
+                            font);
+            para.setAlignment(Element.ALIGN_CENTER);
+            pdfDoc.add(para);
+
 
         } catch (DocumentException de) {
             System.err.println(de.getMessage());
@@ -751,8 +768,8 @@ public final class SmartSchoolPrintMonitor {
 
         processinfo.setPapersize("a4");
 
-        processinfo.setDuplex("off");
-        // processinfo.setDuplex("on");
+        // processinfo.setDuplex("off");
+        processinfo.setDuplex("on");
 
         processinfo.setRendermode("grayscale");
         // processinfo.setRendermode("color");

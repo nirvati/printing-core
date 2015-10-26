@@ -21,17 +21,26 @@
  */
 package org.savapage.core.pdf;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.savapage.core.print.proxy.ProxyPrintSheetsCalcParms;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfCopy;
+import com.itextpdf.text.pdf.PdfDictionary;
+import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfWriter;
 
 /**
  *
@@ -41,10 +50,63 @@ import com.itextpdf.text.pdf.PdfReader;
 public final class PdfCollator {
 
     /**
-     * No instance allowed.
+     * The logger.
+     */
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(PdfCollator.class);
+
+    /**
+     * The {@link PdfReader} containing a single blank page to be used to insert
+     * into the collated result.
+     */
+    private PdfReader singleBlankPagePdfReader;
+
+    /**
+     * Private instance only.
      */
     private PdfCollator() {
+    }
 
+    /**
+     * Lazy creates a 1-page {@link PdfReader} with one (1) blank page.
+     * <p>
+     * Note: in-memory size of the document is approx. 886 bytes.
+     * </p>
+     *
+     * @param pageSize
+     *            The size of the page.
+     * @return The {@link PdfReader}.
+     * @throws DocumentException
+     *             When error creating the PDF document.
+     * @throws IOException
+     *             When IO errors creating the reader.
+     */
+    private PdfReader getBlankPageReader(final Rectangle pageSize)
+            throws DocumentException, IOException {
+
+        if (this.singleBlankPagePdfReader == null) {
+
+            final ByteArrayOutputStream ostr = new ByteArrayOutputStream();
+
+            final Document document = new Document(pageSize);
+
+            PdfWriter.getInstance(document, ostr);
+            document.open();
+
+            /*
+             * IMPORTANT: Paragraph MUST have content (if not, a close() of the
+             * document throws an exception because no pages are detected):
+             * therefore we use a single space as content.
+             */
+            document.add(new Paragraph(" "));
+
+            document.close();
+
+            this.singleBlankPagePdfReader =
+                    new PdfReader(new ByteArrayInputStream(ostr.toByteArray()));
+        }
+
+        return this.singleBlankPagePdfReader;
     }
 
     /**
@@ -170,6 +232,53 @@ public final class PdfCollator {
     }
 
     /**
+     * Checks if a page in {@link PdfReader} has {@link PdfName#CONTENTS}.
+     *
+     * @param reader
+     *            The {@link PdfReader}.
+     * @param nPage
+     *            The 1-based page ordinal.
+     * @return {@code true} when page has content
+     */
+    private static boolean isPageContentsPresent(final PdfReader reader,
+            final int nPage) {
+        final PdfDictionary pageDict = reader.getPageN(nPage);
+        return pageDict != null && pageDict.get(PdfName.CONTENTS) != null;
+    }
+
+    /**
+     * Closes resources.
+     */
+    private void close() {
+        if (this.singleBlankPagePdfReader != null) {
+            this.singleBlankPagePdfReader.close();
+            this.singleBlankPagePdfReader = null;
+        }
+    }
+
+    /**
+     * Adds a blank page to the {@link PdfCopy}.
+     * <p>
+     * NOTE: {@link PdfCopy#addPage(Rectangle, int)} is <b>not</b> used to add
+     * the blank page, since CUPS 1.7.2 (qpdf 5.1.1-1) will report 'Exception:
+     * unknown object type inspecting /Contents key in page dictionary': this
+     * error is fixed in qpdf 5.1.2-3.
+     * </p>
+     *
+     * @param collatedPdfCopy
+     *            The {@link PdfCopy} append the blank page to.
+     * @throws DocumentException
+     *             When error creating the PDF document.
+     * @throws IOException
+     *             When IO errors creating the reader.
+     */
+    private void addBlankPage(final PdfCopy collatedPdfCopy)
+            throws IOException, DocumentException {
+        collatedPdfCopy.addPage(collatedPdfCopy.getImportedPage(
+                this.getBlankPageReader(collatedPdfCopy.getPageSize()), 1));
+    }
+
+    /**
      * Collates multiple copies of a single PDF input file into a single PDF
      * output file.
      *
@@ -179,6 +288,7 @@ public final class PdfCollator {
      *            The PDF input file.
      * @param fileOut
      *            The PDF output file.
+     * @return The number of pages in the collated document.
      * @throws IOException
      *             When IO errors.
      */
@@ -189,6 +299,8 @@ public final class PdfCollator {
 
         final Document targetDocument = new Document();
 
+        final PdfCollator pdfCollator = new PdfCollator();
+
         try {
 
             final PdfCopy collatedPdfCopy =
@@ -196,10 +308,10 @@ public final class PdfCollator {
 
             targetDocument.open();
 
-            final PdfReader readerWlk =
+            final PdfReader pdfReader =
                     new PdfReader(new FileInputStream(fileIn));
 
-            final int nPagesMax = readerWlk.getNumberOfPages();
+            final int nPagesMax = pdfReader.getNumberOfPages();
 
             final int nBlankPagesToAppend =
                     calcBlankCollatePagesToAppend(calcParms);
@@ -207,16 +319,37 @@ public final class PdfCollator {
             for (int j = 0; j < calcParms.getNumberOfCopies(); j++) {
 
                 if (j > 0) {
+
                     for (int k = 0; k < nBlankPagesToAppend; k++) {
-                        collatedPdfCopy.addPage(collatedPdfCopy.getPageSize(),
-                                0);
+                        pdfCollator.addBlankPage(collatedPdfCopy);
                         nTotalOutPages++;
                     }
                 }
 
-                for (int i = 0; i < nPagesMax; i++) {
-                    collatedPdfCopy.addPage(collatedPdfCopy.getImportedPage(
-                            readerWlk, i + 1));
+                for (int nPage = 1; nPage <= nPagesMax; nPage++) {
+
+                    if (isPageContentsPresent(pdfReader, nPage)) {
+
+                        collatedPdfCopy.addPage(collatedPdfCopy
+                                .getImportedPage(pdfReader, nPage));
+
+                    } else {
+                        /*
+                         * Replace page without /Contents with our own blank
+                         * content. Reason: CUPS 1.7.2 (qpdf 5.1.1-1) will
+                         * report: 'Exception: unknown object type inspecting
+                         * /Contents key in page dictionary': this error is
+                         * fixed in qpdf 5.1.2-3.
+                         */
+                        pdfCollator.addBlankPage(collatedPdfCopy);
+
+                        if (LOGGER.isInfoEnabled()) {
+                            LOGGER.info(String.format(
+                                    "File [%s] page [%d] has NO /Contents: "
+                                            + "replaced by blank content.",
+                                    fileIn.getName(), nPage));
+                        }
+                    }
                     nTotalOutPages++;
                 }
             }
@@ -225,6 +358,8 @@ public final class PdfCollator {
 
         } catch (DocumentException e) {
             throw new IOException(e.getMessage(), e);
+        } finally {
+            pdfCollator.close();
         }
 
         return nTotalOutPages;
