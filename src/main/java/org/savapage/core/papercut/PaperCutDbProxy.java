@@ -549,6 +549,41 @@ public final class PaperCutDbProxy {
 
     }
 
+    /*
+     * SUM(case when LENGTH(split_part(TRX.txn_comment, ' | ', 8) ) > 0 then
+     * cast(split_part(TRX.txn_comment, ' | ', 3) AS INT) else 0 end) as
+     * Tot_Copies, SUM(case when LENGTH(split_part(TRX.txn_comment, ' | ', 8) )
+     * > 0 then CAST(split_part(TRX.txn_comment, ' | ', 3) AS INT) *
+     * CAST(split_part(TRX.txn_comment, ' | ', 4) AS INT) else 0 end) as
+     * Tot_Pages,
+     *
+     * SUM(case when LENGTH(split_part(TRX.txn_comment, ' | ', 8) ) > 0 AND
+     * split_part(TRX.txn_comment, ' | ', 5) = 'A4' then
+     * CAST(split_part(TRX.txn_comment, ' | ', 3) AS INT) *
+     * CAST(split_part(TRX.txn_comment, ' | ', 4) AS INT) else 0 end) as
+     * A4_pages, SUM(case when LENGTH(split_part(TRX.txn_comment, ' | ', 8) ) >
+     * 0 AND split_part(TRX.txn_comment, ' | ', 5) = 'A3' then
+     * CAST(split_part(TRX.txn_comment, ' | ', 3) AS INT) *
+     * CAST(split_part(TRX.txn_comment, ' | ', 4) AS INT) else 0 end) as
+     * A3_pages, SUM(case when LENGTH(split_part(TRX.txn_comment, ' | ', 8) ) >
+     * 0 AND split_part(TRX.txn_comment, ' | ', 6) = 'S' then
+     * CAST(split_part(TRX.txn_comment, ' | ', 3) AS INT) *
+     * CAST(split_part(TRX.txn_comment, ' | ', 4) AS INT) else 0 end) as
+     * Singlex_pages, SUM(case when LENGTH(split_part(TRX.txn_comment, ' | ', 8)
+     * ) > 0 AND split_part(TRX.txn_comment, ' | ', 6) = 'D' then
+     * CAST(split_part(TRX.txn_comment, ' | ', 3) AS INT) *
+     * CAST(split_part(TRX.txn_comment, ' | ', 4) AS INT) else 0 end) as
+     * Duplex_pages, SUM(case when LENGTH(split_part(TRX.txn_comment, ' | ', 8)
+     * ) > 0 AND split_part(TRX.txn_comment, ' | ', 7) = 'G' then
+     * CAST(split_part(TRX.txn_comment, ' | ', 3) AS INT) *
+     * CAST(split_part(TRX.txn_comment, ' | ', 4) AS INT) else 0 end) as
+     * bw_pages, SUM(case when LENGTH(split_part(TRX.txn_comment, ' | ', 8) ) >
+     * 0 AND split_part(TRX.txn_comment, ' | ', 7) = 'C' then
+     * CAST(split_part(TRX.txn_comment, ' | ', 3) AS INT) *
+     * CAST(split_part(TRX.txn_comment, ' | ', 4) AS INT) else 0 end) as
+     * color_pages,
+     */
+
     /**
      * Creates a CSV file with Smartschool student cost using SQL query.
      *
@@ -572,20 +607,61 @@ public final class PaperCutDbProxy {
         sql.append(" ACC.account_name_lower as Userid");
         sql.append(", U.full_name as Name");
 
-        sql.append(", CASE WHEN "
-                + "length(split_part(MAX(TRX.txn_comment), '"
-                + SmartSchoolCommentSyntax.FIELD_SEPARATOR
-                + "', 1)) < 25 "
+        sql.append(", CASE WHEN " + "length(split_part(MAX(TRX.txn_comment), '"
+                + SmartSchoolCommentSyntax.FIELD_SEPARATOR + "', 1)) < 25 "
                 + "THEN split_part(MAX(TRX.txn_comment), '"
-                + SmartSchoolCommentSyntax.FIELD_SEPARATOR
-                + "', 1) "
+                + SmartSchoolCommentSyntax.FIELD_SEPARATOR + "', 1) "
                 + "ELSE '' END as Klas");
 
         sql.append(", SUM(TRX.amount) as Amount");
-        sql.append(", COUNT(Trx.amount) as Transactions");
+        sql.append(", COUNT(Trx.amount) as prints");
+
+        //
+        final String syntaxVersionTestClause =
+                "LENGTH(split_part(TRX.txn_comment, ' | ', 8) ) > 0 ";
+
+        final String calcTotalPagesClause =
+                "CAST(split_part(TRX.txn_comment, " + "' | ', 3) AS INT)"
+                        + " * CAST(split_part(TRX.txn_comment, "
+                        + "' | ', 4) AS INT)" + " ELSE 0 END)";
+
+        // Copies.
+        sql.append(", SUM(case when ")
+                .append(syntaxVersionTestClause)
+                .append(" THEN CAST(split_part(TRX.txn_comment, "
+                        + "' | ', 3) AS INT) " + "ELSE 0 END) as copies");
+
+        // Pages.
+        sql.append(", SUM(case when ").append(syntaxVersionTestClause)
+                .append(" THEN ").append(calcTotalPagesClause)
+                .append(" as pages");
+
+        // Indicator Totals.
+        final String[][] sumColInfo =
+                {
+                        { "5", "A4", "pages_a4" },
+                        { "5", "A3", "pages_a3" },
+                        { "6", SmartSchoolCommentSyntax.INDICATOR_DUPLEX_OFF,
+                                "pages_singlex" },
+                        { "6", SmartSchoolCommentSyntax.INDICATOR_DUPLEX_ON,
+                                "pages_duplex" },
+                        { "7", SmartSchoolCommentSyntax.INDICATOR_COLOR_OFF,
+                                "pages_bw" },
+                        { "7", SmartSchoolCommentSyntax.INDICATOR_COLOR_ON,
+                                "pages_color" } };
+
+        for (final String[] info : sumColInfo) {
+            sql.append(", SUM(case when ").append(syntaxVersionTestClause)
+                    .append(" AND split_part(TRX.txn_comment, ' | ', ")
+                    .append(info[0]).append(") = '").append(info[1])
+                    .append("' then ").append(calcTotalPagesClause)
+                    .append(" as ").append(info[2]);
+        }
+
         sql.append(", MIN(TRX.transaction_date) as Date_From");
         sql.append(", MAX(TRX.transaction_date) as Date_To");
 
+        //
         sql.append(" FROM tbl_account_transaction as TRX"
                 + " LEFT JOIN tbl_account as ACC"
                 + " ON ACC.account_id = TRX.account_id"
@@ -610,8 +686,7 @@ public final class PaperCutDbProxy {
                 if (i > 0) {
                     sql.append(" OR ");
                 }
-                sql.append("TRX.txn_comment like '")
-                        .append(escapeForSql(klas))
+                sql.append("TRX.txn_comment like '").append(escapeForSql(klas))
                         .append(SmartSchoolCommentSyntax.FIELD_SEPARATOR)
                         .append("%'");
                 i++;
