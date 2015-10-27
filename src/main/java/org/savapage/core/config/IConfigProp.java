@@ -1059,10 +1059,23 @@ public interface IConfigProp {
                 "smartschool.1.soap.print.proxy-printer"),
 
         /**
+         * Printer name for SmartSchool direct duplex proxy printing (1).
+         */
+        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_DUPLEX(
+                "smartschool.1.soap.print.proxy-printer-duplex"),
+
+        /**
          * Printer name for SmartSchool direct proxy grayscale printing (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE(
                 "smartschool.1.soap.print.proxy-printer-grayscale"),
+
+        /**
+         * Printer name for SmartSchool direct proxy grayscale duplex printing
+         * (1).
+         */
+        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX(
+                "smartschool.1.soap.print.proxy-printer-grayscale-duplex"),
 
         /**
          * {@code true} if costs are charged to individual students,
@@ -1096,10 +1109,23 @@ public interface IConfigProp {
                 "smartschool.2.soap.print.proxy-printer"),
 
         /**
+         * Printer name for SmartSchool direct duplex proxy printing (1).
+         */
+        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_DUPLEX(
+                "smartschool.2.soap.print.proxy-printer-duplex"),
+
+        /**
          * Printer name for SmartSchool direct proxy grayscale printing (2).
          */
         SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE(
                 "smartschool.2.soap.print.proxy-printer-grayscale"),
+
+        /**
+         * Printer name for SmartSchool direct proxy grayscale duplex printing
+         * (2).
+         */
+        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX(
+                "smartschool.2.soap.print.proxy-printer-grayscale-duplex"),
 
         /**
          * {@code true} if costs are charged to individual students,

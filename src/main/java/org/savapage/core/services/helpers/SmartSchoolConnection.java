@@ -102,10 +102,21 @@ public class SmartSchoolConnection {
     private final String proxyPrinterName;
 
     /**
+     * The default proxy printer for duplex printing (can be {@code null} or
+     * empty).
+     */
+    private final String proxyPrinterDuplexName;
+
+    /**
      * The proxy printer for grayscale printing (can be {@code null} or empty).
      */
     private final String proxyPrinterGrayscaleName;
 
+    /**
+     * The proxy printer for grayscale duplex printing (can be {@code null} or
+     * empty).
+     */
+    private final String proxyPrinterGrayscaleDuplexName;
     /**
      * .
      *
@@ -120,9 +131,15 @@ public class SmartSchoolConnection {
      *            Password for the Smartschool Afdrukcentrum.
      * @param proxyPrinterName
      *            Name of the proxy printer, can be {@code null} or empty.
+     * @param proxyPrinterDuplexName
+     *            Name of the duplex proxy printer, can be {@code null} or
+     *            empty.
      * @param proxyPrinterGrayscaleName
      *            Name of the grayscale proxy printer, can be {@code null} or
      *            empty.
+     * @param proxyPrinterGrayscaleDuplexName
+     *            Name of the grayscale duplex proxy printer, can be
+     *            {@code null} or empty.
      * @param chargeToStudents
      *            {@code true} if costs are charged to individual students,
      *            {@code false} if costs are charged to shared "Klas" accounts
@@ -130,8 +147,9 @@ public class SmartSchoolConnection {
      * @throws SOAPException
      */
     public SmartSchoolConnection(final String endpoint, final char[] password,
-            final String proxyPrinterName,
+            final String proxyPrinterName, final String proxyPrinterDuplexName,
             final String proxyPrinterGrayscaleName,
+            final String proxyPrinterGrayscaleDuplexName,
             final boolean chargeToStudents) throws SOAPException {
 
         try {
@@ -165,7 +183,10 @@ public class SmartSchoolConnection {
         this.httpClient = builder.build();
 
         this.proxyPrinterName = proxyPrinterName;
+        this.proxyPrinterDuplexName = proxyPrinterDuplexName;
+
         this.proxyPrinterGrayscaleName = proxyPrinterGrayscaleName;
+        this.proxyPrinterGrayscaleDuplexName = proxyPrinterGrayscaleDuplexName;
     }
 
     public SOAPConnection getConnection() {
@@ -224,11 +245,18 @@ public class SmartSchoolConnection {
     }
 
     /**
-     *
      * @return The default proxy printer (can be {@code null} or empty).
      */
     public String getProxyPrinterName() {
         return proxyPrinterName;
+    }
+
+    /**
+     * @return The default proxy printer for duplex printing (can be
+     *         {@code null} or empty).
+     */
+    public String getProxyPrinterDuplexName() {
+        return proxyPrinterDuplexName;
     }
 
     /**
@@ -238,6 +266,15 @@ public class SmartSchoolConnection {
      */
     public String getProxyPrinterGrayscaleName() {
         return proxyPrinterGrayscaleName;
+    }
+
+    /**
+     *
+     * @return The proxy printer for grayscale duplex printing (can be
+     *         {@code null} or empty).
+     */
+    public String getProxyPrinterGrayscaleDuplexName() {
+        return proxyPrinterGrayscaleDuplexName;
     }
 
     /**

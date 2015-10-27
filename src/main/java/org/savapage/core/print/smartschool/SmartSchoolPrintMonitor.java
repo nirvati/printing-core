@@ -778,8 +778,8 @@ public final class SmartSchoolPrintMonitor {
 
         processinfo.setPapersize("a4");
 
-        // processinfo.setDuplex("off");
-        processinfo.setDuplex("on");
+        processinfo.setDuplex("off");
+        // processinfo.setDuplex("on");
 
         processinfo.setRendermode("grayscale");
         // processinfo.setRendermode("color");
@@ -2336,16 +2336,12 @@ public final class SmartSchoolPrintMonitor {
                 monitor.isIntegratedWithPaperCut();
 
         /*
-         * Find the configured printer name for Direct Printing.
+         * We have Direct Proxy Print if printer name for Direct Printing is
+         * configured.
          */
-        final String proxyPrinterName =
-                monitor.processingConnection.getProxyPrinterName();
-
-        final String proxyPrinterGrayscaleName =
-                monitor.processingConnection.getProxyPrinterGrayscaleName();
-
         final boolean isDirectProxyPrint =
-                StringUtils.isNotBlank(proxyPrinterName);
+                StringUtils.isNotBlank(monitor.processingConnection
+                        .getProxyPrinterName());
 
         /*
          * Determine (initial) print status.
@@ -2431,8 +2427,7 @@ public final class SmartSchoolPrintMonitor {
                 printInInfo.setAccountTrxInfoSet(accountTrxInfoSet);
             }
 
-            processJobProxyPrint(monitor, user, proxyPrinterName,
-                    proxyPrinterGrayscaleName, document, downloadedFile,
+            processJobProxyPrint(monitor, user, document, downloadedFile,
                     printInInfo, externalSupplierInfo);
 
         } else {
@@ -2628,14 +2623,62 @@ public final class SmartSchoolPrintMonitor {
     /**
      * Proxy Prints the SmartSchool document.
      *
+     * @param connection
+     *            The {@link SmartSchoolConnection} instance.
+     * @param supplierData
+     *            The {@link SmartSchoolPrintInData}.
+     * @return The selected proxy printer name.
+     */
+    private static String selectProxyPrinter(
+            final SmartSchoolConnection connection,
+            final SmartSchoolPrintInData supplierData) {
+
+        // The unique printer name for all jobs.
+        final String printerName = connection.getProxyPrinterName();
+
+        // The unique printer name for grayscale jobs.
+        final String printerGrayscaleName =
+                connection.getProxyPrinterGrayscaleName();
+
+        //
+        final String printerNameSelected;
+
+        if (supplierData.getColor()
+                || StringUtils.isBlank(printerGrayscaleName)) {
+
+            final String printerDuplexName =
+                    connection.getProxyPrinterDuplexName();
+
+            if (supplierData.getDuplex()
+                    && StringUtils.isNotBlank(printerDuplexName)) {
+                printerNameSelected = printerDuplexName;
+            } else {
+                printerNameSelected = printerName;
+            }
+
+        } else {
+
+            final String printerDuplexName =
+                    connection.getProxyPrinterGrayscaleDuplexName();
+
+            if (supplierData.getDuplex()
+                    && StringUtils.isNotBlank(printerDuplexName)) {
+                printerNameSelected = printerDuplexName;
+            } else {
+                printerNameSelected = printerGrayscaleName;
+            }
+        }
+
+        return printerNameSelected;
+    }
+
+    /**
+     * Proxy Prints the SmartSchool document.
+     *
      * @param monitor
      *            The {@link SmartSchoolPrintMonitor} instance.
      * @param user
      *            The locked user
-     * @param printerName
-     *            The unique printer name for all jobs.
-     * @param printerGrayscaleName
-     *            The unique printer name for grayscale jobs.
      * @param document
      *            The {@link Document}.
      * @param downloadedFile
@@ -2653,7 +2696,6 @@ public final class SmartSchoolPrintMonitor {
      */
     private static void processJobProxyPrint(
             final SmartSchoolPrintMonitor monitor, final User user,
-            final String printerName, final String printerGrayscaleName,
             final Document document, final File downloadedFile,
             final DocContentPrintInInfo printInInfo,
             final ExternalSupplierInfo externalSupplierInfo)
@@ -2666,22 +2708,17 @@ public final class SmartSchoolPrintMonitor {
         final SmartSchoolPrintInData supplierData =
                 (SmartSchoolPrintInData) externalSupplierInfo.getData();
 
-        final String printerNameSelected;
-
-        if (supplierData.getColor()
-                || StringUtils.isBlank(printerGrayscaleName)) {
-            printerNameSelected = printerName;
-        } else {
-            printerNameSelected = printerGrayscaleName;
-        }
+        /*
+         * Select the proxy printer.
+         */
+        final String printerNameSelected =
+                selectProxyPrinter(monitor.processingConnection, supplierData);
 
         /*
          * Create print request.
          */
         final ProxyPrintDocReq printReq =
                 new ProxyPrintDocReq(PrintModeEnum.AUTO);
-
-        printReq.setCollate(true);
 
         printReq.setDocumentUuid(printInInfo.getUuidJob().toString());
 
@@ -2693,6 +2730,8 @@ public final class SmartSchoolPrintMonitor {
 
         printReq.setLocale(ServiceContext.getLocale());
         printReq.setIdUser(user.getId());
+
+        printReq.setCollate(true);
 
         printReq.setRemoveGraphics(false);
         printReq.setClearPages(false);
