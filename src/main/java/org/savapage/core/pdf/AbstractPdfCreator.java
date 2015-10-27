@@ -150,7 +150,7 @@ public abstract class AbstractPdfCreator {
     }
 
     public static SpPdfPageProps pageProps(final String filePathPdf)
-            throws PdfSecurityException {
+            throws PdfSecurityException, PdfValidityException {
         return create().getPageProps(filePathPdf);
     }
 
@@ -164,9 +164,11 @@ public abstract class AbstractPdfCreator {
      * @return The {@link SpPdfPageProps}.
      * @throws PdfSecurityException
      *             When encrypted or password protected PDF document.
+     * @throws PdfValidityException
+     *             When the document isn't a valid PDF document.
      */
     protected abstract SpPdfPageProps getPageProps(final String filePathPdf)
-            throws PdfSecurityException;
+            throws PdfSecurityException, PdfValidityException;
 
     /**
      * Creates an ordinal list of {@link SpPdfPageProps} of an PDF document.

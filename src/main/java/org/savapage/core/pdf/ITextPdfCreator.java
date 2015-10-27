@@ -70,6 +70,7 @@ import com.itextpdf.text.ExceptionConverter;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.exceptions.InvalidPdfException;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PRIndirectReference;
 import com.itextpdf.text.pdf.PdfContentByte;
@@ -357,14 +358,16 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
     @Override
     public SpPdfPageProps getPageProps(final String filePathPdf)
-            throws PdfSecurityException {
+            throws PdfSecurityException, PdfValidityException {
 
         SpPdfPageProps pageProps = null;
         PdfReader reader = null;
 
         try {
             /*
-             * Instantiating/opening can throw a BadPasswordException.
+             * Instantiating/opening can throw a BadPasswordException or
+             * InvalidPdfException, which are subclasses of IOException: map
+             * these exception to our own variants.
              */
             reader = new PdfReader(filePathPdf);
 
@@ -378,11 +381,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         } catch (com.itextpdf.text.exceptions.BadPasswordException e) {
             throw new PdfSecurityException(
                     "Password protected PDF not supported.");
+        } catch (InvalidPdfException e) {
+            throw new PdfValidityException(e.getMessage());
         } catch (IOException e) {
             throw new SpException(e);
 
         } finally {
-
             if (reader != null) {
                 reader.close();
             }
@@ -709,7 +713,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected boolean onStampEncryptionForPrinting() {
 
-        boolean encrypt = false;     // TODO
+        boolean encrypt = false; // TODO
 
         if (!encrypt) {
             return encrypt;

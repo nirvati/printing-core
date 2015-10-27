@@ -21,6 +21,7 @@
  */
 package org.savapage.core.pdf;
 
+
 /**
  * Page Properties of a PDF file.
  *
@@ -86,9 +87,11 @@ public class SpPdfPageProps {
      * @return The {@link SpPdfPageProps}.
      * @throws PdfSecurityException
      *             When encrypted or password protected PDF document.
+     * @throws PdfValidityException
+     *             When the document isn't a valid PDF document.
      */
     public static SpPdfPageProps create(final String filePathPdf)
-            throws PdfSecurityException {
+            throws PdfSecurityException, PdfValidityException {
         return AbstractPdfCreator.pageProps(filePathPdf);
     }
 }

@@ -85,6 +85,7 @@ import org.savapage.core.papercut.PaperCutPrinterUsageLog;
 import org.savapage.core.papercut.PaperCutServerProxy;
 import org.savapage.core.papercut.PaperCutUser;
 import org.savapage.core.pdf.PdfSecurityException;
+import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintException;
@@ -129,6 +130,7 @@ import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.exceptions.InvalidPdfException;
 import com.itextpdf.text.pdf.PdfWriter;
 
 /**
@@ -180,9 +182,18 @@ public final class SmartSchoolPrintMonitor {
                     + "om in één keer verwerkt te worden: "
                     + "splits uw verzoek op in kleinere opdrachten.";
 
+    private static final String MSG_COMMENT_PRINT_CANCELLED_PFX =
+            "Afdrukopdracht is geannuleerd: ";
+
     private static final String MSG_COMMENT_PRINT_CANCELLED_DOC_TYPE =
-            "Afdrukopdracht is geannuleerd: "
-                    + "document type kan niet worden afgedrukt.";
+            MSG_COMMENT_PRINT_CANCELLED_PFX
+                    + "document kan niet worden afgedrukt.";
+
+    private static final String MSG_COMMENT_PRINT_CANCELLED_PDF_INVALID =
+            MSG_COMMENT_PRINT_CANCELLED_PFX + "PDF document is ongeldig.";
+
+    private static final String MSG_COMMENT_PRINT_CANCELLED_PDF_ENCRYPTED =
+            MSG_COMMENT_PRINT_CANCELLED_PFX + "PDF document is versleuteld.";
 
     private static final String MSG_COMMENT_PRINT_ERROR_NO_COPIES =
             "Geen kopieen gespecificeerd.";
@@ -657,8 +668,8 @@ public final class SmartSchoolPrintMonitor {
             // Page #1
             font.setColor(BaseColor.GREEN);
             para =
-                    new Paragraph(String.format("%s\n\nPage %d", text, ++nPage),
-                            font);
+                    new Paragraph(
+                            String.format("%s\n\nPage %d", text, ++nPage), font);
             para.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.add(para);
 
@@ -667,8 +678,8 @@ public final class SmartSchoolPrintMonitor {
 
             font.setColor(BaseColor.BLACK);
             para =
-                    new Paragraph(String.format("%s\n\nPage %d", text, ++nPage),
-                            font);
+                    new Paragraph(
+                            String.format("%s\n\nPage %d", text, ++nPage), font);
             para.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.add(para);
 
@@ -677,11 +688,10 @@ public final class SmartSchoolPrintMonitor {
 
             font.setColor(BaseColor.BLACK);
             para =
-                    new Paragraph(String.format("%s\n\nPage %d", text, ++nPage),
-                            font);
+                    new Paragraph(
+                            String.format("%s\n\nPage %d", text, ++nPage), font);
             para.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.add(para);
-
 
         } catch (DocumentException de) {
             System.err.println(de.getMessage());
@@ -1627,13 +1637,15 @@ public final class SmartSchoolPrintMonitor {
      *            The SavaPage assigned {@link UUID} for the downloaded
      *            document.
      * @return The {@link DocContentPrintInInfo}.
-     * @throws DocContentPrintException
+     * @throws PdfSecurityException
      *             When the PDF file has security restrictions.
+     * @throws InvalidPdfException
+     *             When the document isn't a valid PDF document.
      */
     private static DocContentPrintInInfo createPrintInInfo(
             final SmartSchoolConnection connection, final Document document,
             final File downloadedFile, final int nTotCopies, final UUID uuid)
-            throws DocContentPrintException {
+            throws PdfSecurityException, PdfValidityException {
 
         /*
          * Get the PDF properties to check security issues.
@@ -1642,8 +1654,8 @@ public final class SmartSchoolPrintMonitor {
 
         try {
             pdfProps = SpPdfPageProps.create(downloadedFile.getCanonicalPath());
-        } catch (PdfSecurityException e) {
-            throw new DocContentPrintException(e.getMessage(), e);
+        } catch (PdfSecurityException | PdfValidityException e) {
+            throw e;
         } catch (IOException e) {
             throw new SpException(e.getMessage());
         }
@@ -1855,6 +1867,30 @@ public final class SmartSchoolPrintMonitor {
             reportDocumentStatus(monitor.processingConnection,
                     document.getId(), SmartSchoolPrintStatusEnum.CANCELLED,
                     MSG_COMMENT_PRINT_CANCELLED_DOC_TYPE,
+                    monitor.simulationMode);
+
+        } catch (PdfSecurityException e) {
+
+            publishAdminMsg(
+                    PubLevelEnum.WARN,
+                    localizedMsg("print-cancelled", document.getName(),
+                            e.getMessage()));
+
+            reportDocumentStatus(monitor.processingConnection,
+                    document.getId(), SmartSchoolPrintStatusEnum.CANCELLED,
+                    MSG_COMMENT_PRINT_CANCELLED_PDF_ENCRYPTED,
+                    monitor.simulationMode);
+
+        } catch (PdfValidityException e) {
+
+            publishAdminMsg(
+                    PubLevelEnum.WARN,
+                    localizedMsg("print-cancelled", document.getName(),
+                            e.getMessage()));
+
+            reportDocumentStatus(monitor.processingConnection,
+                    document.getId(), SmartSchoolPrintStatusEnum.CANCELLED,
+                    MSG_COMMENT_PRINT_CANCELLED_PDF_INVALID,
                     monitor.simulationMode);
 
         } catch (ProxyPrintException e) {
