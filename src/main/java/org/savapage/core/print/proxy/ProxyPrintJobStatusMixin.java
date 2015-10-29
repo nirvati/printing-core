@@ -123,7 +123,8 @@ public abstract class ProxyPrintJobStatusMixin {
     }
 
     public boolean isCompleted() {
-        return this.cupsCompletedTime != null;
+        return this.cupsCompletedTime != null
+                && this.cupsCompletedTime.intValue() != 0;
     }
 
     public StatusSource getStatusSource() {

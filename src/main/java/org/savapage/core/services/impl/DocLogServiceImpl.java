@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -51,6 +51,7 @@ import org.savapage.core.dao.helpers.DocLogProtocolEnum;
 import org.savapage.core.dao.helpers.PrintInDeniedReasonEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.ipp.IppJobStateEnum;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocInOut;
 import org.savapage.core.jpa.DocLog;
@@ -63,7 +64,6 @@ import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
-import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.json.JsonRollingTimeSeries;
 import org.savapage.core.json.TimeSeriesInterval;
 import org.savapage.core.msg.UserMsgIndicator;
@@ -155,11 +155,14 @@ public final class DocLogServiceImpl extends AbstractService implements
          */
         if (printOut != null) {
 
+            final IppJobStateEnum jobState =
+                    IppJobStateEnum.asEnum(printOut.getCupsJobState());
+
             final ProxyPrintJobStatusPrintOut jobStatus =
                     new ProxyPrintJobStatusPrintOut(printOut.getPrinter()
                             .getPrinterName(), printOut.getCupsJobId(),
                             printOut.getDocOut().getDocLog().getTitle(),
-                            IppJobStateEnum.asEnum(printOut.getCupsJobState()));
+                            jobState);
 
             jobStatus.setCupsCreationTime(printOut.getCupsCreationTime());
             jobStatus.setCupsCompletedTime(printOut.getCupsCompletedTime());

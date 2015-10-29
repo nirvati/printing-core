@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,39 +31,47 @@ import org.savapage.core.SpException;
 public enum IppJobStateEnum {
 
     /** Job is waiting to be printed. */
-    IPP_JOB_PENDING(0x03),
+    IPP_JOB_PENDING(0x03, "PENDING"),
 
     /** Job is held for printing. */
-    IPP_JOB_HELD(0x04),
+    IPP_JOB_HELD(0x04, "HELD"),
 
     /** Job is currently printing. */
-    IPP_JOB_PROCESSING(0x05),
+    IPP_JOB_PROCESSING(0x05, "PROCESSING"),
 
     /** Job has been stopped. */
-    IPP_JOB_STOPPED(0x06),
+    IPP_JOB_STOPPED(0x06, "STOPPED"),
 
     /** Job has been canceled. */
-    IPP_JOB_CANCELED(0x07),
+    IPP_JOB_CANCELED(0x07, "CANCELED"),
 
     /** Job has aborted due to error. */
-    IPP_JOB_ABORTED(0x08),
+    IPP_JOB_ABORTED(0x08, "ABORTED"),
 
     /** Job has completed successfully. */
-    IPP_JOB_COMPLETED(0x09);
+    IPP_JOB_COMPLETED(0x09, "COMPLETED");
 
     /**
      *
      */
-    private int bitPattern = 0;
+    private final int bitPattern;
+
+    /**
+     * Text to be used in user interface.
+     */
+    private final String uiText;
 
     /**
      * Creates an enum value from an integer.
      *
      * @param value
      *            The integer.
+     * @param text
+     *            Text to be used in user interface.
      */
-    IppJobStateEnum(final int value) {
+    IppJobStateEnum(final int value, final String text) {
         this.bitPattern = value;
+        this.uiText = text;
     }
 
     /**
@@ -75,12 +83,21 @@ public enum IppJobStateEnum {
         return this.bitPattern;
     }
 
-    public boolean isActive() {
-        return bitPattern < IppJobStateEnum.IPP_JOB_STOPPED.asInt();
+    /**
+     *
+     * @return Text string to be used in user interface.
+     */
+    public String asUiText() {
+        return this.uiText;
     }
 
-    public boolean isCompleted() {
-        return !isActive();
+    /**
+     * Checks if status means a job is present on queue.
+     *
+     * @return {@code true} when state is PENDING, HELD, PROCESSING or STOPPED.
+     */
+    public boolean isPresentOnQueue() {
+        return bitPattern <= IppJobStateEnum.IPP_JOB_STOPPED.asInt();
     }
 
     /**

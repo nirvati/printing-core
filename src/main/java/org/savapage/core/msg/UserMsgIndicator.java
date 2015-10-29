@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -45,6 +45,7 @@ import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -428,29 +429,31 @@ public final class UserMsgIndicator {
         JsonUserMsgNotification data = new JsonUserMsgNotification();
         data.setMsgTime(lastDate.getTime());
 
-        String jpql =
-                "SELECT D FROM DocLog D" + " JOIN D.user U"
-                        + " LEFT JOIN D.docIn DI" + " LEFT JOIN D.docOut DO"
-                        + " LEFT JOIN DI.printIn PI"
-                        + " LEFT JOIN DO.printOut PO"
-                        + " WHERE U.userId = :userid";
+        final StringBuilder jpql = new StringBuilder();
+
+        jpql.append("SELECT D FROM DocLog D" + " JOIN D.user U"
+                + " LEFT JOIN D.docIn DI" + " LEFT JOIN D.docOut DO"
+                + " LEFT JOIN DI.printIn PI" + " LEFT JOIN DO.printOut PO"
+                + " WHERE U.userId = :userid");
 
         if (singleTime) {
-            jpql +=
-                    " AND ( (D.createdDate = :lastDate AND PI.printed = false)"
-                            + " OR (PO.cupsCompletedTime = :lastSeconds))";
+
+            jpql.append(" AND ("
+                    + " (D.createdDate = :lastDate AND PI.printed = false)"
+                    + " OR (PO.cupsCompletedTime = :lastSeconds))");
         } else {
-            jpql +=
-                    " AND ( (D.createdDate > :prevDate"
-                            + " AND D.createdDate <= :lastDate AND PI.printed = false)"
-                            + " OR (PO.cupsCompletedTime > :prevSeconds"
-                            + " AND PO.cupsCompletedTime <= :lastSeconds))";
+            jpql.append(" AND ( (D.createdDate > :prevDate"
+                    + " AND D.createdDate <= :lastDate AND PI.printed = false)"
+                    + " OR (PO.cupsCompletedTime > :prevSeconds"
+                    + " AND PO.cupsCompletedTime <= :lastSeconds))");
         }
 
-        Integer lastSeconds = (int) (lastDate.getTime() / 1000L);
-        Integer prevSeconds = (int) (prevDate.getTime() / 1000L);
+        final Integer lastSeconds =
+                (int) (lastDate.getTime() / DateUtil.DURATION_MSEC_SECOND);
+        final Integer prevSeconds =
+                (int) (prevDate.getTime() / DateUtil.DURATION_MSEC_SECOND);
 
-        Query query = em.createQuery(jpql);
+        Query query = em.createQuery(jpql.toString());
 
         query.setParameter("userid", userId);
         query.setParameter("lastDate", lastDate);
@@ -462,9 +465,9 @@ public final class UserMsgIndicator {
         }
 
         @SuppressWarnings("unchecked")
-        List<DocLog> list = query.getResultList();
+        final List<DocLog> list = query.getResultList();
 
-        for (DocLog docLog : list) {
+        for (final DocLog docLog : list) {
 
             JsonUserMsg msg = null;
 
