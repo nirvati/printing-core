@@ -6,6 +6,6 @@
     <entry key="msg-print-out-stopped">Opdracht {0} op "{1}" is gestopt.</entry>
     <entry key="msg-print-out-canceled">Opdracht {0} op "{1}" is geannuleerd.</entry>
     <entry key="msg-print-out-aborted">Opdracht {0} op "{1}" is afgebroken vanwege een fout.</entry>
-    <entry key="msg-print-out-completed">Opdracht {0} op "{1}" wordt afgedrukt...</entry>
+    <entry key="msg-print-out-completed">Opdracht {0} op "{1}" is voltooid.</entry>
      
 </properties>

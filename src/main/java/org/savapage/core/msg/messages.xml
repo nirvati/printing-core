@@ -6,6 +6,6 @@
     <entry key="msg-print-out-stopped">Job {0} on "{1}" has stopped.</entry>
     <entry key="msg-print-out-canceled">Job {0} on "{1}" has been canceled.</entry>
     <entry key="msg-print-out-aborted">Job {0} on "{1}" has aborted due to error.</entry>
-    <entry key="msg-print-out-completed">Job {0} on "{1}" started printing...</entry>
+    <entry key="msg-print-out-completed">Job {0} on "{1}" is complete.</entry>
            
 </properties>
