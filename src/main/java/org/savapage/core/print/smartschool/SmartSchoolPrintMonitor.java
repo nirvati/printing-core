@@ -1093,10 +1093,14 @@ public final class SmartSchoolPrintMonitor {
         final DocLogDao doclogDao =
                 ServiceContext.getDaoContext().getDocLogDao();
 
-        publishAdminMsg(
-                PubLevelEnum.WARN,
-                "PaperCut print of SmartSchool document ["
-                        + papercutLog.getDocumentName() + "] " + printStatus);
+        final StringBuilder msg = new StringBuilder();
+
+        msg.append("PaperCut print of SmartSchool document [")
+                .append(papercutLog.getDocumentName()).append("] ")
+                .append(printStatus).append(" because \"")
+                .append(papercutLog.getDeniedReason()).append("\"");
+
+        publishAdminMsg(PubLevelEnum.WARN, msg.toString());
 
         docLog.setExternalStatus(printStatus.toString());
         doclogDao.update(docLog);
