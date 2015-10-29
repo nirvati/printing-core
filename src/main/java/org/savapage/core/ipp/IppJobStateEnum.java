@@ -97,7 +97,16 @@ public enum IppJobStateEnum {
      * @return {@code true} when state is PENDING, HELD, PROCESSING or STOPPED.
      */
     public boolean isPresentOnQueue() {
-        return bitPattern <= IppJobStateEnum.IPP_JOB_STOPPED.asInt();
+        return bitPattern < getFirstAbsentOnQueueOrdinal().asInt();
+    }
+
+    /**
+     *
+     * @return The {@link IppJobStateEnum} that is the first ordinal indicating
+     *         a status that job is absent on queue.
+     */
+    public static IppJobStateEnum getFirstAbsentOnQueueOrdinal() {
+        return IppJobStateEnum.IPP_JOB_CANCELED;
     }
 
     /**

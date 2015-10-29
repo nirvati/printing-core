@@ -74,10 +74,12 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut> implements
         final String jpql =
                 "SELECT O FROM PrintOut O JOIN O.printer P "
                         + "WHERE O.cupsJobId > 0 "
-                        + "AND O.cupsCompletedTime IS NULL "
+                        + "AND O.cupsJobState < :cupsJobState "
                         + "ORDER BY P.printerName, O.cupsJobId";
 
         final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("cupsJobState", Integer.valueOf(IppJobStateEnum
+                .getFirstAbsentOnQueueOrdinal().asInt()));
 
         @SuppressWarnings("unchecked")
         final List<PrintOut> jobs = query.getResultList();
