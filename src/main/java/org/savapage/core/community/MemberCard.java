@@ -960,10 +960,10 @@ public final class MemberCard {
     }
 
     /**
-     * Gets the name of the membership organization or, when no Member Card is
-     * present, an empty string.
+     * Gets the name of the membership organization.
      *
-     * @return
+     * @return The membership organization or, when no Member Card is present,
+     *         an empty string.
      */
     public String getMemberOrganisation() {
         if (hasMemberCardFile()) {

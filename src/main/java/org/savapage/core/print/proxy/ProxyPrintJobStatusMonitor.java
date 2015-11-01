@@ -399,9 +399,6 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
             throw new SpException("[" + jobUpdate.getStatusSource()
                     + "] is not supported");
         }
-
-        this.jobStatusMap.put(jobCurrent.getJobId(), jobCurrent); // TEST
-
     }
 
     /**
