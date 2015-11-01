@@ -21,8 +21,6 @@
  */
 package org.savapage.core.pdf;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -34,13 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfCopy;
-import com.itextpdf.text.pdf.PdfDictionary;
-import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfWriter;
 
 /**
  *
@@ -85,25 +79,8 @@ public final class PdfCollator {
             throws DocumentException, IOException {
 
         if (this.singleBlankPagePdfReader == null) {
-
-            final ByteArrayOutputStream ostr = new ByteArrayOutputStream();
-
-            final Document document = new Document(pageSize);
-
-            PdfWriter.getInstance(document, ostr);
-            document.open();
-
-            /*
-             * IMPORTANT: Paragraph MUST have content (if not, a close() of the
-             * document throws an exception because no pages are detected):
-             * therefore we use a single space as content.
-             */
-            document.add(new Paragraph(" "));
-
-            document.close();
-
             this.singleBlankPagePdfReader =
-                    new PdfReader(new ByteArrayInputStream(ostr.toByteArray()));
+                    ITextPdfCreator.createBlankPageReader(pageSize);
         }
 
         return this.singleBlankPagePdfReader;
@@ -232,21 +209,6 @@ public final class PdfCollator {
     }
 
     /**
-     * Checks if a page in {@link PdfReader} has {@link PdfName#CONTENTS}.
-     *
-     * @param reader
-     *            The {@link PdfReader}.
-     * @param nPage
-     *            The 1-based page ordinal.
-     * @return {@code true} when page has content
-     */
-    private static boolean isPageContentsPresent(final PdfReader reader,
-            final int nPage) {
-        final PdfDictionary pageDict = reader.getPageN(nPage);
-        return pageDict != null && pageDict.get(PdfName.CONTENTS) != null;
-    }
-
-    /**
      * Closes resources.
      */
     private void close() {
@@ -262,7 +224,7 @@ public final class PdfCollator {
      * NOTE: {@link PdfCopy#addPage(Rectangle, int)} is <b>not</b> used to add
      * the blank page, since CUPS 1.7.2 (qpdf 5.1.1-1) will report 'Exception:
      * unknown object type inspecting /Contents key in page dictionary': this
-     * error is fixed in qpdf 5.1.2-3.
+     * error is fixed in qpdf 5.1.2-3. See Mantis #614.
      * </p>
      *
      * @param collatedPdfCopy
@@ -328,7 +290,11 @@ public final class PdfCollator {
 
                 for (int nPage = 1; nPage <= nPagesMax; nPage++) {
 
-                    if (isPageContentsPresent(pdfReader, nPage)) {
+                    final boolean pageContentsPresent =
+                            ITextPdfCreator.isPageContentsPresent(pdfReader,
+                                    nPage);
+
+                    if (pageContentsPresent) {
 
                         collatedPdfCopy.addPage(collatedPdfCopy
                                 .getImportedPage(pdfReader, nPage));
@@ -336,10 +302,7 @@ public final class PdfCollator {
                     } else {
                         /*
                          * Replace page without /Contents with our own blank
-                         * content. Reason: CUPS 1.7.2 (qpdf 5.1.1-1) will
-                         * report: 'Exception: unknown object type inspecting
-                         * /Contents key in page dictionary': this error is
-                         * fixed in qpdf 5.1.2-3.
+                         * content. See Mantis #614.
                          */
                         pdfCollator.addBlankPage(collatedPdfCopy);
 

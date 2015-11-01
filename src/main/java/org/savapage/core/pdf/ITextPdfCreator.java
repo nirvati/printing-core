@@ -25,6 +25,8 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -69,6 +71,7 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.ExceptionConverter;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.exceptions.InvalidPdfException;
 import com.itextpdf.text.pdf.BaseFont;
@@ -118,6 +121,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     private File jobPdfFileWlk;
 
     private boolean isRemoveGraphics = false;
+
+    /**
+     * The {@link PdfReader} containing a single blank page to be used to
+     * replace a page with no /Contents.
+     */
+    private PdfReader singleBlankPagePdfReader;
 
     /**
      * Create URL links by default.
@@ -178,6 +187,57 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             pageSize = null;
         }
         return pageSize;
+    }
+
+    /**
+     * Checks if a page in {@link PdfReader} has {@link PdfName#CONTENTS}.
+     *
+     * @param reader
+     *            The {@link PdfReader}.
+     * @param nPage
+     *            The 1-based page ordinal.
+     * @return {@code true} when page has contents.
+     */
+    public static boolean isPageContentsPresent(final PdfReader reader,
+            final int nPage) {
+        final PdfDictionary pageDict = reader.getPageN(nPage);
+        return pageDict != null && pageDict.get(PdfName.CONTENTS) != null;
+    }
+
+    /**
+     * Creates a 1-page {@link PdfReader} with one (1) blank page.
+     * <p>
+     * Note: in-memory size of the document is approx. 886 bytes.
+     * </p>
+     *
+     * @param pageSize
+     *            The size of the page.
+     * @return The {@link PdfReader}.
+     * @throws DocumentException
+     *             When error creating the PDF document.
+     * @throws IOException
+     *             When IO errors creating the reader.
+     */
+    public static PdfReader createBlankPageReader(final Rectangle pageSize)
+            throws DocumentException, IOException {
+
+        final ByteArrayOutputStream ostr = new ByteArrayOutputStream();
+
+        final Document document = new Document(pageSize);
+
+        PdfWriter.getInstance(document, ostr);
+        document.open();
+
+        /*
+         * IMPORTANT: Paragraph MUST have content (if not, a close() of the
+         * document throws an exception because no pages are detected):
+         * therefore we use a single space as content.
+         */
+        document.add(new Paragraph(" "));
+
+        document.close();
+
+        return new PdfReader(new ByteArrayInputStream(ostr.toByteArray()));
     }
 
     /**
@@ -408,9 +468,10 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             final OutputStream ostr =
                     new FileOutputStream(this.targetPdfCopyFilePath);
 
+            this.targetDocument = new Document();
+
             if (this.isConvertToEcoPdf()) {
 
-                this.targetDocument = new Document();
                 PdfWriter.getInstance(this.targetDocument, ostr);
 
                 /*
@@ -420,7 +481,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
             } else {
 
-                this.targetDocument = new Document();
                 this.targetPdfCopy = new PdfCopy(this.targetDocument, ostr);
                 this.targetDocument.open();
             }
@@ -461,11 +521,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     protected void onInitJob(final String jobPfdName, final String rotation)
             throws Exception {
 
+        this.jobPdfFileWlk = new File(jobPfdName);
         this.readerWlk = new PdfReader(jobPfdName);
-
-        if (this.isConvertToEcoPdf()) {
-            this.jobPdfFileWlk = new File(jobPfdName);
-        }
 
         this.jobRotationWlk = rotation;
         this.jobRangesWlk = new StringBuilder();
@@ -599,6 +656,30 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
     }
 
+    /**
+     * Lazy creates a 1-page {@link PdfReader} with one (1) blank page.
+     * <p>
+     * Note: in-memory size of the document is approx. 886 bytes.
+     * </p>
+     *
+     * @param pageSize
+     *            The size of the page.
+     * @return The {@link PdfReader}.
+     * @throws DocumentException
+     *             When error creating the PDF document.
+     * @throws IOException
+     *             When IO errors creating the reader.
+     */
+    private PdfReader getBlankPageReader(final Rectangle pageSize)
+            throws DocumentException, IOException {
+
+        if (this.singleBlankPagePdfReader == null) {
+            this.singleBlankPagePdfReader =
+                    ITextPdfCreator.createBlankPageReader(pageSize);
+        }
+        return this.singleBlankPagePdfReader;
+    }
+
     @Override
     protected void onExitJob() throws Exception {
 
@@ -615,17 +696,41 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                  * Rotate for BOTH export and printing.
                  */
                 if (this.jobRotationWlk != null) {
+
                     final int rotate = Integer.valueOf(this.jobRotationWlk);
+
                     if (rotate != 0) {
-                        PdfDictionary pageDict = this.readerWlk.getPageN(i);
+                        final PdfDictionary pageDict =
+                                this.readerWlk.getPageN(i);
                         pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
                     }
                 }
 
-                final PdfImportedPage page =
-                        this.targetPdfCopy.getImportedPage(this.readerWlk, i);
+                final PdfImportedPage importedPage;
 
-                this.targetPdfCopy.addPage(page);
+                if (isPageContentsPresent(this.readerWlk, i)) {
+                    importedPage =
+                            this.targetPdfCopy.getImportedPage(this.readerWlk,
+                                    i);
+                } else {
+                    /*
+                     * Replace page without /Contents with our own blank
+                     * content. See Mantis #614.
+                     */
+                    importedPage =
+                            this.targetPdfCopy.getImportedPage(this
+                                    .getBlankPageReader(this.targetPdfCopy
+                                            .getPageSize()), 1);
+
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info(String.format(
+                                "File [%s] page [%d] has NO /Contents: "
+                                        + "replaced by blank content.",
+                                this.jobPdfFileWlk.getName(), i));
+                    }
+                }
+
+                this.targetPdfCopy.addPage(importedPage);
             }
 
             this.targetPdfCopy.freeReader(this.readerWlk);
