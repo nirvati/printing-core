@@ -21,9 +21,13 @@
  */
 package org.savapage.core.print.smartschool;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -73,6 +77,29 @@ public class SmartSchoolLogger {
 
     public static void logDebug(final String msg) {
         LOGGER.debug(msg);
+    }
+
+    /**
+     *
+     * @param soapMsg
+     * @param msg
+     */
+    public static void logError(final SOAPMessage soapMsg, final String error) {
+        final ByteArrayOutputStream ostr = new ByteArrayOutputStream();
+        try {
+            soapMsg.writeTo(ostr);
+            LOGGER.error(String.format(
+                    "|________________ SOAP Message ________________|\n\n%s\n",
+                    formatXml(ostr.toString())));
+            LOGGER.error(error);
+        } catch (SOAPException | IOException e) {
+            LOGGER.error(e.getMessage());
+        }
+
+    }
+
+    public static void logError(final String msg) {
+        LOGGER.error(msg);
     }
 
     public static boolean isEnabled() {

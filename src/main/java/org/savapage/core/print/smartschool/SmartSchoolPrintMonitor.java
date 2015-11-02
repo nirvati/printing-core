@@ -31,8 +31,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.xml.soap.SOAPConnection;
@@ -144,6 +146,12 @@ public final class SmartSchoolPrintMonitor {
      *
      */
     private static int getJobTickerCounter = 0;
+
+    /**
+     * Days after which a Smartschool print to PaperCut is set to error when the
+     * PaperCut print log is not found.
+     */
+    private static final int MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG = 5;
 
     /**
      * Fixed values for simulation "klassen".
@@ -545,13 +553,15 @@ public final class SmartSchoolPrintMonitor {
      * @return The job ticket.
      * @throws SmartSchoolException
      *             When SmartSchool reported an error.
+     * @throws SmartSchoolTooManyRequestsException
+     *             When HTTP status 429 "Too Many Requests" occurred.
      * @throws ShutdownException
      *             When interrupted by a shutdown request.
      */
     private static Jobticket
             getJobticket(final SmartSchoolConnection connection,
                     final boolean simulationMode) throws SmartSchoolException,
-                    SOAPException {
+                    SmartSchoolTooManyRequestsException, SOAPException {
 
         if (simulationMode) {
 
@@ -871,8 +881,18 @@ public final class SmartSchoolPrintMonitor {
             /*
              * Any jobs to print?
              */
-            final Jobticket jobTicket =
-                    getJobticket(connection, monitor.simulationMode);
+            final Jobticket jobTicket;
+
+            try {
+
+                jobTicket = getJobticket(connection, monitor.simulationMode);
+
+            } catch (SmartSchoolTooManyRequestsException e) {
+                final String msg = "Smartschool reports \"too many request\".";
+                publishAdminMsg(PubLevelEnum.WARN, msg);
+                LOGGER.warn(msg);
+                continue;
+            }
 
             /*
              * Logging.
@@ -956,9 +976,15 @@ public final class SmartSchoolPrintMonitor {
             return;
         }
 
-        for (final PaperCutPrinterUsageLog papercutLog : PAPERCUT_SERVICE
-                .getPrinterUsageLog(papercutDbProxy,
-                        uniquePaperCutDocNames.keySet())) {
+        final List<PaperCutPrinterUsageLog> papercutLogList =
+                PAPERCUT_SERVICE.getPrinterUsageLog(papercutDbProxy,
+                        uniquePaperCutDocNames.keySet());
+
+        final Set<String> paperCutDocNamesHandled = new HashSet<>();
+
+        for (final PaperCutPrinterUsageLog papercutLog : papercutLogList) {
+
+            paperCutDocNamesHandled.add(papercutLog.getDocumentName());
 
             debugLog(papercutLog);
 
@@ -1042,7 +1068,7 @@ public final class SmartSchoolPrintMonitor {
                 if (SmartSchoolLogger.getLogger().isDebugEnabled()) {
                     SmartSchoolLogger.logDebug(msg.toString());
                 }
-                return;
+                continue;
             }
 
             final SmartSchoolConnection connection = connectionMap.get(account);
@@ -1060,7 +1086,7 @@ public final class SmartSchoolPrintMonitor {
                 if (SmartSchoolLogger.getLogger().isDebugEnabled()) {
                     SmartSchoolLogger.logDebug(msg.toString());
                 }
-                return;
+                continue;
             }
 
             /*
@@ -1069,6 +1095,84 @@ public final class SmartSchoolPrintMonitor {
              */
             reportDocumentStatus(connection, docLog.getExternalId(),
                     printStatus, comment, simulationMode);
+
+        } // end-for
+
+        processPaperCutNotFound(uniquePaperCutDocNames, paperCutDocNamesHandled);
+
+    }
+
+    /**
+     * Processes SmartSchool print jobs that cannot be found in PaperCut: status
+     * is set to {@link SmartSchoolPrintStatusEnum#ERROR} when Smartschool job
+     * is more then {@link #MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG} old.
+     *
+     * @param papercutDocNamesToFind
+     *            The PaperCut documents to find.
+     * @param papercutDocNamesFound
+     *            The PaperCut documents found.
+     */
+    private static void processPaperCutNotFound(
+            final Map<String, DocLog> papercutDocNamesToFind,
+            final Set<String> papercutDocNamesFound) {
+
+        final DocLogDao doclogDao =
+                ServiceContext.getDaoContext().getDocLogDao();
+
+        for (final String docName : papercutDocNamesToFind.keySet()) {
+
+            if (papercutDocNamesFound.contains(docName)) {
+                continue;
+            }
+
+            final DocLog docLog = papercutDocNamesToFind.get(docName);
+
+            final long docAge =
+                    ServiceContext.getTransactionDate().getTime()
+                            - docLog.getCreatedDate().getTime();
+
+            if (docAge < MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG
+                    * DateUtil.DURATION_MSEC_DAY) {
+                continue;
+            }
+
+            final StringBuilder msg = new StringBuilder();
+
+            msg.append("PaperCut print log of ")
+                    .append(MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG)
+                    .append(" days old SmartSchool document [").append(docName)
+                    .append("] not found.");
+
+            publishAdminMsg(PubLevelEnum.ERROR, msg.toString());
+
+            LOGGER.error(msg.toString());
+
+            /*
+             * Database transaction.
+             */
+            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
+
+            final DaoContext daoContext = ServiceContext.getDaoContext();
+
+            try {
+
+                if (!daoContext.isTransactionActive()) {
+                    daoContext.beginTransaction();
+                }
+
+                docLog.setExternalStatus(SmartSchoolPrintStatusEnum.ERROR
+                        .toString());
+
+                doclogDao.update(docLog);
+
+                daoContext.commit();
+
+            } finally {
+
+                daoContext.rollback();
+
+                ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+            }
         }
     }
 
@@ -2939,9 +3043,12 @@ public final class SmartSchoolPrintMonitor {
      *             When SOAP connection fails.
      * @throws SmartSchoolException
      *             When SmartSchool returns errors.
+     * @throws SmartSchoolTooManyRequestsException
+     *             When HTTP status 429 "Too Many Requests" occurred.
      */
     public static void testConnection(final MutableInt nMessagesInbox)
-            throws SOAPException, SmartSchoolException {
+            throws SOAPException, SmartSchoolException,
+            SmartSchoolTooManyRequestsException {
 
         final Map<String, SmartSchoolConnection> connections =
                 SMARTSCHOOL_SERVICE.createConnections();

@@ -72,6 +72,7 @@ import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.print.smartschool.SmartSchoolException;
 import org.savapage.core.print.smartschool.SmartSchoolLogger;
 import org.savapage.core.print.smartschool.SmartSchoolPrintStatusEnum;
+import org.savapage.core.print.smartschool.SmartSchoolTooManyRequestsException;
 import org.savapage.core.print.smartschool.xml.Document;
 import org.savapage.core.print.smartschool.xml.Jobticket;
 import org.savapage.core.services.ServiceContext;
@@ -99,6 +100,12 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
      */
     private static final Logger LOGGER = LoggerFactory
             .getLogger(SmartSchoolServiceImpl.class);
+
+    /**
+     * The user has sent too many requests in a given amount of time. Intended
+     * for use with rate limiting schemes (RFC 6585).
+     */
+    private final static String HTTP_STATUS_TOO_MANY_REQUESTS = "429";
 
     /**
      * The name of the parent {@link Account} for all child "klas" accounts.
@@ -166,11 +173,27 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
 
     @Override
     public Jobticket getJobticket(final SmartSchoolConnection connection)
-            throws SmartSchoolException, SOAPException {
+            throws SmartSchoolException, SmartSchoolTooManyRequestsException,
+            SOAPException {
 
-        final SOAPElement returnElement =
-                sendMessage(connection,
-                        createPrintJobsRequest(connection.getPassword()));
+        final SOAPElement returnElement;
+
+        try {
+            returnElement =
+                    sendMessage(connection,
+                            createPrintJobsRequest(connection.getPassword()));
+        } catch (SOAPException e) {
+            /*
+             * This is a weak solution, but there is no other way to find out
+             * the HTTP status. Is this a flaw in the
+             * javax.xml.soap.SOAPConnection class or the Smartschool SOAP
+             * interface design?
+             */
+            if (e.getMessage().contains(HTTP_STATUS_TOO_MANY_REQUESTS)) {
+                throw new SmartSchoolTooManyRequestsException(e);
+            }
+            throw e;
+        }
 
         final Jobticket jobTicket;
 
@@ -601,9 +624,19 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
             final SOAPMessage message) throws SmartSchoolException,
             SOAPException {
 
-        final SOAPMessage response =
-                connection.getConnection().call(message,
-                        connection.getEndpointUrl());
+        final SOAPMessage response;
+
+        try {
+            response =
+                    connection.getConnection().call(message,
+                            connection.getEndpointUrl());
+
+        } catch (SOAPException e) {
+            if (SmartSchoolLogger.isEnabled()) {
+                SmartSchoolLogger.logError(message, e.getMessage());
+            }
+            throw e;
+        }
 
         final SOAPBody responseBody = response.getSOAPBody();
 

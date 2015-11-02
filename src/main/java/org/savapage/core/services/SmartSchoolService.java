@@ -36,6 +36,7 @@ import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.User;
 import org.savapage.core.print.smartschool.SmartSchoolException;
 import org.savapage.core.print.smartschool.SmartSchoolPrintStatusEnum;
+import org.savapage.core.print.smartschool.SmartSchoolTooManyRequestsException;
 import org.savapage.core.print.smartschool.xml.Document;
 import org.savapage.core.print.smartschool.xml.Jobticket;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
@@ -71,11 +72,14 @@ public interface SmartSchoolService {
      *            The {@link SmartSchoolConnection}.
      * @return Tthe {@link Jobticket}.
      * @throws SmartSchoolException
+     * @throws SmartSchoolTooManyRequestsException
+     *             When HTTP status 429 "Too Many Requests" occurred.
      * @throws SOAPException
      *             When SOAP connection error.
      */
     Jobticket getJobticket(SmartSchoolConnection connection)
-            throws SmartSchoolException, SOAPException;
+            throws SmartSchoolException, SmartSchoolTooManyRequestsException,
+            SOAPException;
 
     /**
      * Creates the {@link File} object to be used as document download target.
