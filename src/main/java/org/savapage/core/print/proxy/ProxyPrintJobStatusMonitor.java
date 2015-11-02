@@ -422,7 +422,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
             final Iterator<Integer> iter =
                     this.jobStatusMap.keySet().iterator();
 
-            while (iter.hasNext()) {
+            while (iter.hasNext() && this.keepProcessing) {
 
                 final PrintJobStatus jobIter =
                         this.jobStatusMap.get(iter.next());
@@ -513,15 +513,33 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
                     } else {
 
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug(String.format(
+                                    "PrintOut [%s], Cups [%s], "
+                                            + "CupsUpdate [%s]", jobIter
+                                            .getJobStatePrintOut().toString(),
+                                    jobIter.getJobStateCups().toString(),
+                                    jobIter.getJobStateCupsUpdate().toString()));
+                        }
+
                         final IppJobStateEnum jobStateCups;
 
-                        if (jobIter.getJobStateCupsUpdate() == null) {
+                        if (jobIter.getJobStateCupsUpdate() == null
+                                && jobIter.getJobStateCups() == null) {
+
+                            jobStateCups = jobIter.getJobStatePrintOut();
+                            jobIter.setJobStateCupsUpdate(jobStateCups);
+
+                        } else if (jobIter.getJobStateCupsUpdate() == null) {
 
                             jobStateCups = jobIter.getJobStateCups();
                             jobIter.setJobStateCupsUpdate(jobStateCups);
 
-                        } else {
+                        } else if (jobIter.getJobStateCups() == null) {
 
+                            jobStateCups = jobIter.getJobStateCupsUpdate();
+
+                        } else {
                             /*
                              * Change of status?
                              */
@@ -532,7 +550,6 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
                             jobStateCups = jobIter.getJobStateCupsUpdate();
                         }
-
                         //
                         final PubLevelEnum pubLevel;
                         switch (jobStateCups) {
@@ -600,7 +617,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                 if (removeJobIter) {
                     iter.remove();
                 }
-            }
+
+            } // end-while iter.
 
             try {
                 if (this.keepProcessing) {
@@ -614,7 +632,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                     LOGGER.info(e.getMessage());
                 }
             }
-        }
+
+        } // end-while endless loop.
 
         this.isProcessing = false;
     }

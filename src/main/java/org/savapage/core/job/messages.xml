@@ -81,7 +81,7 @@
 	<entry key="CupsSubsRenew.error">Error renewing CUPS subscription.</entry>
 
 	<entry key="CupsSyncPrintJobs.start">Start CUPS job synchronization...</entry>
-	<entry key="CupsSyncPrintJobs.success">CUPS job synchronization: {0} active, {1} update, {2}
+	<entry key="CupsSyncPrintJobs.success">CUPS job synchronization: {0} active, {1} updated, {2}
 		not found.</entry>
 	<entry key="CupsSyncPrintJobs.error">Error synchronizing CUPS jobs.</entry>
 

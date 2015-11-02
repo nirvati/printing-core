@@ -74,8 +74,14 @@ import org.slf4j.LoggerFactory;
  */
 public final class DaoContextImpl implements DaoContext {
 
+    /**
+     * The number of open DaoContexts.
+     */
     private static int openCount = 0;
 
+    /**
+     * @return The number of open {@link DaoContext} objects.
+     */
     public static int getOpenCount() {
         synchronized (DaoContextImpl.class) {
             return openCount;
