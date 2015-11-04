@@ -46,14 +46,17 @@ public final class AccountTrxListReport extends ReportCreator {
      *
      * @param requestingUser
      *            The requesting user.
+     * @param requestingUserAdmin
+     *            {@code true} if requesting user is an administrator.
      * @param inputData
      *            The input data for the report.
      * @param locale
      *            {@link Locale} of the report.
      */
     public AccountTrxListReport(final String requestingUser,
-            final String inputData, final Locale locale) {
-        super(requestingUser, inputData, locale);
+            final boolean requestingUserAdmin, final String inputData,
+            final Locale locale) {
+        super(requestingUser, requestingUserAdmin, inputData, locale);
     }
 
     @Override
@@ -61,6 +64,8 @@ public final class AccountTrxListReport extends ReportCreator {
             final Locale locale, final Map<String, Object> reportParameters) {
 
         final AccountTrxPagerReq request = AccountTrxPagerReq.read(inputData);
+
+        this.onUserAuthentication(request.getSelect().getUserId());
 
         final AccountTrxDataSource dataSource =
                 new AccountTrxDataSource(request, locale);

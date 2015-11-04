@@ -36,11 +36,14 @@ import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 
+import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.fonts.FontLocation;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.jpa.User;
 import org.savapage.core.reports.AbstractJrDesign;
+import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.MessagesBundleProp;
 
 /**
@@ -57,6 +60,11 @@ public abstract class ReportCreator {
     private final String requestingUser;
 
     /**
+     * {@code true} if {@link #requestingUser} is an administrator.
+     */
+    private final boolean requestingUserAdmin;
+
+    /**
      * The input data for the report.
      */
     private final String inputData;
@@ -71,16 +79,76 @@ public abstract class ReportCreator {
      *
      * @param requestingUser
      *            The requesting user.
+     * @param requestingUserAdmin
+     *            {@code true} if requesting user is an administrator.
      * @param inputData
      *            The input data for the report.
      * @param locale
      *            {@link Locale} of the report.
      */
     protected ReportCreator(final String requestingUser,
-            final String inputData, final Locale locale) {
+            final boolean requestingUserAdmin, final String inputData,
+            final Locale locale) {
         this.requestingUser = requestingUser;
+        this.requestingUserAdmin = requestingUserAdmin;
         this.inputData = inputData;
         this.locale = locale;
+    }
+
+    /**
+     * @return {@code true} if {@link #requestingUser} is an administrator.
+     */
+    public final boolean isRequestingUserAdmin() {
+        return this.requestingUserAdmin;
+    }
+
+    /**
+     * Checks if requesting user is authenticated for generating a report of a
+     * requested user (or all users).
+     *
+     * @param requestedUserKey
+     *            Database key of the requested user. Is {@code null} if all
+     *            users are requested.
+     * @throws SpException
+     *             When authentication fails.
+     */
+    protected final void onUserAuthentication(final Long requestedUserKey) {
+
+        /*
+         * Administrator can generate all reports.
+         */
+        if (this.isRequestingUserAdmin()) {
+            return;
+        }
+
+        /*
+         * INVARIANT: A non-admin user can NOT generate a report of all users.
+         */
+        if (requestedUserKey == null) {
+            this.throwAuthenticationFailed();
+        }
+
+        /*
+         * INVARIANT: A non-admin user can NOT generate a report of another
+         * user.
+         */
+        final User requestedUser =
+                ServiceContext.getDaoContext().getUserDao()
+                        .findById(requestedUserKey);
+
+        if (requestedUser == null
+                || !requestedUser.getUserId().equals(this.requestingUser)) {
+            throwAuthenticationFailed();
+        }
+    }
+
+    /**
+     * Throws an exception.
+     *
+     * @throws SpException
+     */
+    protected final void throwAuthenticationFailed() {
+        throw new SpException("Authentication failed.");
     }
 
     /**

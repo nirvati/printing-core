@@ -46,14 +46,17 @@ public final class UserListReport extends ReportCreator {
      *
      * @param requestingUser
      *            The requesting user.
+     * @param requestingUserAdmin
+     *            {@code true} if requesting user is an administrator.
      * @param inputData
      *            The input data for the report.
      * @param locale
      *            {@link Locale} of the report.
      */
-    public UserListReport(final String requestingUser, final String inputData,
+    public UserListReport(final String requestingUser,
+            final boolean requestingUserAdmin, final String inputData,
             final Locale locale) {
-        super(requestingUser, inputData, locale);
+        super(requestingUser, requestingUserAdmin, inputData, locale);
     }
 
     @Override
@@ -61,6 +64,8 @@ public final class UserListReport extends ReportCreator {
             final Locale locale, final Map<String, Object> reportParameters) {
 
         final UserPagerReq request = UserPagerReq.read(inputData);
+
+        this.onUserAuthentication(null);
 
         final UserDataSource dataSource = new UserDataSource(request, locale);
 
