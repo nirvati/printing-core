@@ -37,6 +37,7 @@ import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.helpers.AccountTrxPagerReq;
@@ -85,6 +86,8 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
 
     private final User user;
 
+    final boolean showDocLogTitle;
+
     /**
      *
      * @param req
@@ -132,6 +135,11 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
         this.userDao = ServiceContext.getDaoContext().getUserDao();
 
         this.user = this.userDao.findById(req.getSelect().getUserId());
+
+        this.showDocLogTitle =
+                ConfigManager.instance().isConfigValue(
+                        Key.WEBAPP_DOCLOG_SHOW_DOC_TITLE);
+
     }
 
     /**
@@ -294,7 +302,7 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
             if (docLog == null) {
                 value.append(StringUtils.defaultString(accountTrxWlk
                         .getComment()));
-            } else {
+            } else if (this.showDocLogTitle) {
                 value.append(StringUtils.defaultString(docLog.getTitle()));
             }
 
@@ -338,8 +346,8 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
                         value.append("-/-");
 
                         value.append(BigDecimalUtil.localize(
-                                this.accountTrxWlk.getExtFee(),
-                                decimalsWrk, this.getLocale(), "", true));
+                                this.accountTrxWlk.getExtFee(), decimalsWrk,
+                                this.getLocale(), "", true));
                     }
 
                 } catch (ParseException e) {
