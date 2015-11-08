@@ -65,7 +65,8 @@ public class CryptoUser {
 
     private static final String PROP_CIPHER_PASSWORD = "cipher.password";
     private static final String PROP_CIPHER_SALT = "cipher.salt";
-    private static final String PROP_CIPHER_INTERATION_COUNT = "cipher.iteration-count";
+    private static final String PROP_CIPHER_INTERATION_COUNT =
+            "cipher.iteration-count";
     private static final String PROP_HMAC_KEY = "hmac.key";
 
     private static String cipherPassword = null;
@@ -124,18 +125,20 @@ public class CryptoUser {
             /*
              * Create the key
              */
-            KeySpec keySpec = new PBEKeySpec(cipherPassword.toCharArray(),
-                    cipherSalt, cipherIterationCount);
-            SecretKey key = SecretKeyFactory.getInstance("PBEWithMD5AndDES")
-                    .generateSecret(keySpec);
+            KeySpec keySpec =
+                    new PBEKeySpec(cipherPassword.toCharArray(), cipherSalt,
+                            cipherIterationCount);
+            SecretKey key =
+                    SecretKeyFactory.getInstance("PBEWithMD5AndDES")
+                            .generateSecret(keySpec);
             cipherEncrypt = Cipher.getInstance(key.getAlgorithm());
             cipherDecrypt = Cipher.getInstance(key.getAlgorithm());
 
             /*
              * Prepare the parameter to the ciphers
              */
-            AlgorithmParameterSpec paramSpec = new PBEParameterSpec(cipherSalt,
-                    cipherIterationCount);
+            AlgorithmParameterSpec paramSpec =
+                    new PBEParameterSpec(cipherSalt, cipherIterationCount);
 
             /*
              * Create the ciphers
@@ -158,8 +161,9 @@ public class CryptoUser {
         final int pwLength = 48;
 
         Properties props = new Properties();
-        File fileProp = new File(ConfigManager.getServerHome()
-                + "/data/encryption.properties");
+        File fileProp =
+                new File(ConfigManager.getServerHome()
+                        + "/data/encryption.properties");
 
         InputStream istr = null;
         Writer writer = null;
@@ -181,8 +185,9 @@ public class CryptoUser {
                 istr.close();
                 istr = null;
                 cipherPassword = props.getProperty(PROP_CIPHER_PASSWORD);
-                cipherIterationCount = Integer.valueOf(props
-                        .getProperty(PROP_CIPHER_INTERATION_COUNT));
+                cipherIterationCount =
+                        Integer.valueOf(props
+                                .getProperty(PROP_CIPHER_INTERATION_COUNT));
                 cipherSaltTxt = props.getProperty(PROP_CIPHER_SALT);
                 hmacKey = props.getProperty(PROP_HMAC_KEY);
             }
@@ -222,8 +227,8 @@ public class CryptoUser {
                 writer = null;
 
                 final FileSystem fs = FileSystems.getDefault();
-                final Set<PosixFilePermission> permissions = EnumSet.of(
-                        OWNER_READ, OWNER_WRITE);
+                final Set<PosixFilePermission> permissions =
+                        EnumSet.of(OWNER_READ, OWNER_WRITE);
 
                 Files.setPosixFilePermissions(
                         fs.getPath(fileProp.getAbsolutePath()), permissions);
@@ -291,19 +296,20 @@ public class CryptoUser {
     }
 
     /**
-     * Encrypts a PIN for a User.
+     * Encrypts a User attribute value.
      * <p>
-     * NOTE: When PIN to encrypt is null or empty an empty String is returned.
+     * NOTE: When the attribute value to encrypt is null or empty an empty
+     * String is returned.
      * <p>
      *
-     * @see {@link #decryptUserPin(Long, String)}
+     * @see {@link #decryptUserAttr(Long, String)}
      * @param userKey
      *            The primary key of the User.
      * @param pin
      *            The PIN to encrypt.
      * @return The encrypted PIN.
      */
-    public static String encryptUserPin(final Long userKey, final String pin) {
+    public static String encryptUserAttr(final Long userKey, final String pin) {
         if (StringUtils.isBlank(pin)) {
             return "";
         }
@@ -311,20 +317,20 @@ public class CryptoUser {
     }
 
     /**
-     * Decrypts a PIN for a User.
+     * Decrypts a User attribute value.
      * <p>
-     * NOTE: When the encrypted PIN is null or empty an empty String is
-     * returned.
+     * NOTE: When the encrypted attribute value is null or empty an empty String
+     * is returned.
      * <p>
      *
-     * @see {@link #encryptUserPin(Long, String)}
+     * @see {@link #encryptUserAttr(Long, String)}
      * @param userKey
      *            The primary key of the User.
      * @param encrypted
-     *            The encrypted PIN.
-     * @return The decrypted PIN.
+     *            The encrypted attribute value .
+     * @return The decrypted attribute value .
      */
-    public static String decryptUserPin(final Long userKey,
+    public static String decryptUserAttr(final Long userKey,
             final String encrypted) {
 
         if (StringUtils.isBlank(encrypted)) {

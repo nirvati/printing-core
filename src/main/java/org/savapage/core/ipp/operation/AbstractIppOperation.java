@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,6 @@ package org.savapage.core.ipp.operation;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 
 import org.savapage.core.ipp.encoding.IppEncoder;
 import org.savapage.core.jpa.IppQueue;
@@ -43,7 +42,6 @@ public abstract class AbstractIppOperation {
     private int versionMajor;
     private int versionMinor;
     private int requestId;
-    private URI requestUri;
 
     public int getVersionMajor() {
         return versionMajor;
@@ -69,14 +67,6 @@ public abstract class AbstractIppOperation {
         this.requestId = requestId;
     }
 
-    public URI getRequestUri() {
-        return requestUri;
-    }
-
-    public void setRequestUri(URI requestUri) {
-        this.requestUri = requestUri;
-    }
-
     /**
      *
      * @param reader
@@ -91,8 +81,6 @@ public abstract class AbstractIppOperation {
      *
      * @param remoteAddr
      *            The client IP address.
-     * @param uriRequest
-     *            The URI of the originating request.
      * @param queue
      *            The print queue. Can be {@code null} is no queue matches the
      *            URI.
@@ -105,18 +93,19 @@ public abstract class AbstractIppOperation {
      * @param hasPrintAccessToQueue
      *            Indicates if client has access to printing. When {@code false}
      *            , printing is NOT allowed.
-     * @param authenticatedWebAppUser
-     *            The authenticated SavaPage WebApp user on the IPP client. If
-     *            {@code null} NO user is present.
+     * @param trustedIppClientUserId
+     *            The trusted user id on the IPP client. If {@code null} there
+     *            is NO trusted user.
      * @return The {@link IppOperationId}, or {@code null} when requested
      *         operation is not supported.
      * @throws Exception
+     *             When an error occurred.
      */
     public static IppOperationId handle(final String remoteAddr,
-            final URI uriRequest, final IppQueue queue,
-            final String requestedQueueUrlPath, final InputStream istr,
-            final OutputStream ostr, final boolean hasPrintAccessToQueue,
-            final String authenticatedWebAppUser) throws Exception {
+            final IppQueue queue, final String requestedQueueUrlPath,
+            final InputStream istr, final OutputStream ostr,
+            final boolean hasPrintAccessToQueue,
+            final String trustedIppClientUserId) throws Exception {
 
         // -----------------------------------------------
         // | version-number (2 bytes - required)
@@ -145,17 +134,17 @@ public abstract class AbstractIppOperation {
         /*
          *
          */
-        AbstractIppOperation operation = null;
+        final AbstractIppOperation operation;
 
         if (operationId == IppOperationId.PRINT_JOB.asInt()) {
             operation =
                     new IppPrintJobOperation(remoteAddr, queue,
-                            hasPrintAccessToQueue, authenticatedWebAppUser);
+                            hasPrintAccessToQueue, trustedIppClientUserId);
         } else if (operationId == IppOperationId.VALIDATE_JOB.asInt()) {
             operation =
                     new IppValidateJobOperation(remoteAddr, queue,
                             requestedQueueUrlPath, hasPrintAccessToQueue,
-                            authenticatedWebAppUser);
+                            trustedIppClientUserId);
         } else if (operationId == IppOperationId.GET_PRINTER_ATTR.asInt()) {
             operation = new IppGetPrinterAttrOperation();
         } else if (operationId == IppOperationId.GET_JOBS.asInt()) {
@@ -164,6 +153,8 @@ public abstract class AbstractIppOperation {
             operation = new IppCancelJobOperation();
         } else if (operationId == IppOperationId.GET_JOB_ATTR.asInt()) {
             operation = new IppGetJobAttrOperation();
+        } else {
+            operation = null;
         }
 
         final IppOperationId ippOperationId;
@@ -179,10 +170,12 @@ public abstract class AbstractIppOperation {
 
         } else {
 
-            operation.setRequestUri(uriRequest);
+            // Set attributes.
             operation.setVersionMajor(versionMajor);
             operation.setVersionMinor(versionMinor);
             operation.setRequestId(requestId);
+
+            // Process the IPP printing request.
             operation.process(istr, ostr);
 
             ippOperationId = IppOperationId.asEnum(operationId);

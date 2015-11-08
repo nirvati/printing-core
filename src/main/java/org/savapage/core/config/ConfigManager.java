@@ -21,7 +21,6 @@
  */
 package org.savapage.core.config;
 
-import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
@@ -32,20 +31,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.math.BigDecimal;
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -57,7 +48,6 @@ import java.security.cert.CertificateException;
 import java.util.Currency;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -122,6 +112,8 @@ import org.savapage.core.users.NoUserSource;
 import org.savapage.core.users.UnixUserSource;
 import org.savapage.core.users.UserAliasList;
 import org.savapage.core.util.CurrencyUtil;
+import org.savapage.core.util.FileSystemHelper;
+import org.savapage.core.util.InetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,20 +137,6 @@ public final class ConfigManager {
      *
      */
     private RunMode runMode = null;
-
-    /**
-     * Prefix of local-loop IP addresses.
-     * <p>
-     * Note: Debian based distros have 127.0.0.1 (localhost) and 127.0.1.1
-     * (linuxlnx) defined in {@code /etc/hosts}
-     * </p>
-     */
-    private static final String IP_LOOP_BACK_ADDR_PREFIX = "127.0.";
-
-    /**
-     *
-     */
-    private static final String IP_LOOP_BACK_ADDR = "127.0.0.1";
 
     /**
      *
@@ -302,7 +280,7 @@ public final class ConfigManager {
 
     /**
      * For convenience we use ConfigPropImp instead of ConfigProp (because of
-     * easy Eclipse hyperlinking.
+     * easy Eclipse hyperlinking).
      */
     private final ConfigPropImpl myConfigProp = new ConfigPropImpl();
 
@@ -606,86 +584,6 @@ public final class ConfigManager {
     }
 
     /**
-     * Gets the {@code hostname} of the host system this application is running
-     * on.
-     *
-     * @return The hostname.
-     */
-    public static String getServerHostName() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            throw new SpException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Gets the assigned (static or dynamic) IPv4 address (no loop back address)
-     * of the host system this application is running on, or the loop back
-     * address when no assigned address is found.
-     *
-     * @return The local host IPv4 address.
-     * @throws UnknownHostException
-     *             When non-loop IPv4 address could not be found or I/O errors
-     *             are encountered when. getting the network interfaces.
-     */
-    public static String getServerHostAddress() throws UnknownHostException {
-
-        final String ipAddress = InetAddress.getLocalHost().getHostAddress();
-
-        if (!ipAddress.startsWith(IP_LOOP_BACK_ADDR_PREFIX)) {
-            return ipAddress;
-        }
-
-        /*
-         * Traverse all network interfaces on this machine.
-         */
-        final Enumeration<NetworkInterface> networkEnum;
-
-        try {
-            networkEnum = NetworkInterface.getNetworkInterfaces();
-        } catch (SocketException e) {
-            throw new UnknownHostException(e.getMessage());
-        }
-
-        while (networkEnum != null && networkEnum.hasMoreElements()) {
-
-            final NetworkInterface inter = networkEnum.nextElement();
-
-            /*
-             * Traverse all addresses for this interface.
-             */
-            final Enumeration<InetAddress> enumAddr = inter.getInetAddresses();
-
-            while (enumAddr.hasMoreElements()) {
-
-                final InetAddress addr = enumAddr.nextElement();
-
-                /*
-                 * IPv4 addresses only.
-                 */
-                if (addr instanceof Inet4Address) {
-
-                    if (!addr.getHostAddress().startsWith(
-                            IP_LOOP_BACK_ADDR_PREFIX)) {
-                        /*
-                         * Bingo, this is a non-loop back address.
-                         */
-                        return addr.getHostAddress();
-                    }
-
-                }
-
-            }
-        }
-
-        /*
-         * No non-loop back IP v4 addresses found: return loop back address.
-         */
-        return IP_LOOP_BACK_ADDR;
-    }
-
-    /**
      * Dynamically gets the {@code server.home} system property as passed to the
      * JVM or set internally.
      * <p>
@@ -824,14 +722,14 @@ public final class ConfigManager {
      * @return
      */
     public static String getServerBinHome() {
-
-        String home = getServerHome() + "/bin/linux-";
+        final StringBuilder home = new StringBuilder();
+        home.append(getServerHome()).append("/bin/linux-");
         if (isOsArch64Bit()) {
-            home += "x64";
+            home.append("x64");
         } else {
-            home += "i686";
+            home.append("i686");
         }
-        return home;
+        return home.toString();
     }
 
     /**
@@ -1007,8 +905,8 @@ public final class ConfigManager {
     public static void setWebAppAdminPath(final String path) {
         try {
             theWebAppAdminSslUrl =
-                    new URL("https", getServerHostAddress(), Integer.valueOf(
-                            getServerSslPort()).intValue(), path);
+                    new URL("https", InetUtils.getServerHostAddress(), Integer
+                            .valueOf(getServerSslPort()).intValue(), path);
         } catch (NumberFormatException | MalformedURLException
                 | UnknownHostException e) {
             throw new SpException(e.getMessage(), e);
@@ -1191,14 +1089,14 @@ public final class ConfigManager {
         /*
          * Get the MBean server.
          */
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 
         /*
          * Register the MBean(s)
          */
-        CoreConfig mBean = new CoreConfig();
+        final CoreConfig mBean = new CoreConfig();
 
-        ObjectName name = new ObjectName("org.savapage:type=Core");
+        final ObjectName name = new ObjectName("org.savapage:type=Core");
 
         mbs.registerMBean(mBean, name);
     }
@@ -2096,40 +1994,8 @@ public final class ConfigManager {
         final Path path =
                 FileSystems.getDefault().getPath(getUserHomeDir(user));
         if (path.toFile().exists()) {
-            removeDir(path);
+            FileSystemHelper.removeDir(path);
         }
-    }
-
-    /**
-     * Removes a directory by recursively deleting files and sub directories.
-     *
-     * @param path
-     * @throws IOException
-     */
-    private static void removeDir(final Path path) throws IOException {
-
-        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-
-            @Override
-            public FileVisitResult visitFile(Path file,
-                    BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult
-                    postVisitDirectory(Path dir, IOException exc)
-                            throws IOException {
-
-                if (exc == null) {
-                    Files.delete(dir);
-                    return CONTINUE;
-                } else {
-                    throw exc;
-                }
-            }
-        });
     }
 
     /**
@@ -2145,36 +2011,10 @@ public final class ConfigManager {
         final MutableLong size = new MutableLong();
         File file = new File(getUserHomeDir(user));
         if (file.exists()) {
-            calcDirSize(FileSystems.getDefault()
+            FileSystemHelper.calcDirSize(FileSystems.getDefault()
                     .getPath(file.getAbsolutePath()), size);
         }
         return size.longValue();
-    }
-
-    /**
-     *
-     * @param path
-     *            The directory path.
-     * @param size
-     *            The size in bytes.
-     * @throws IOException
-     *             When IO error occurs.
-     */
-    public static void calcDirSize(final Path path, final MutableLong size)
-            throws IOException {
-        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file,
-                    BasicFileAttributes attrs) throws IOException {
-
-                if (attrs.isDirectory()) {
-                    calcDirSize(file, size); // recurse
-                } else {
-                    size.add(attrs.size());
-                }
-                return CONTINUE;
-            }
-        });
     }
 
     /**
@@ -2189,9 +2029,7 @@ public final class ConfigManager {
         final File dir = new File(dirName);
 
         if (dir.exists()) {
-
             removeAppTmpDir();
-
         }
 
         final FileSystem fs = FileSystems.getDefault();
@@ -2219,7 +2057,7 @@ public final class ConfigManager {
             FileSystem fs = FileSystems.getDefault();
             Path p = fs.getPath(dirName);
             try {
-                removeDir(p);
+                FileSystemHelper.removeDir(p);
             } catch (IOException e) {
                 throw new SpException(e.getMessage(), e);
             }

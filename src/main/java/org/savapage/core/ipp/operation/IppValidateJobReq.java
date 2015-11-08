@@ -61,7 +61,7 @@ public class IppValidateJobReq extends AbstractIppRequest {
         printInReqHandler =
                 new DocContentPrintProcessor(operation.getQueue(),
                         operation.getRemoteAddr(), null,
-                        operation.getAuthWebAppUser());
+                        operation.getTrustedIppClientUserId());
 
         /*
          * Read the IPP attributes.

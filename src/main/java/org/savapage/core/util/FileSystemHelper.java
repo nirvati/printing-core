@@ -21,9 +21,17 @@
  */
 package org.savapage.core.util;
 
+import static java.nio.file.FileVisitResult.CONTINUE;
+
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+
+import org.apache.commons.lang3.mutable.MutableLong;
 
 /**
  *
@@ -56,6 +64,66 @@ public final class FileSystemHelper {
         java.nio.file.Files.move(source, target,
                 StandardCopyOption.ATOMIC_MOVE,
                 StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    /**
+     * Removes a directory by recursively deleting files and sub directories.
+     *
+     * @param path
+     *            The {@link Path} of the directory to remove.
+     * @throws IOException
+     *             When IO errors.
+     */
+    public static void removeDir(final Path path) throws IOException {
+
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult visitFile(final Path file,
+                    final BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(final Path dir,
+                    final IOException exc) throws IOException {
+
+                if (exc == null) {
+                    Files.delete(dir);
+                    return CONTINUE;
+                } else {
+                    throw exc;
+                }
+            }
+        });
+    }
+
+    /**
+     *
+     * @param path
+     *            The directory path.
+     * @param size
+     *            The returned size in bytes.
+     * @throws IOException
+     *             When IO error occurs.
+     */
+    public static void calcDirSize(final Path path, final MutableLong size)
+            throws IOException {
+
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(final Path file,
+                    final BasicFileAttributes attrs) throws IOException {
+
+                if (attrs.isDirectory()) {
+                    calcDirSize(file, size); // recurse
+                } else {
+                    size.add(attrs.size());
+                }
+                return CONTINUE;
+            }
+        });
     }
 
 }

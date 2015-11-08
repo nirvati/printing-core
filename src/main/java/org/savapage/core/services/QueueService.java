@@ -303,13 +303,14 @@ public interface QueueService {
      *
      * @param queue
      *            The queue.
-     * @param uri
-     *            The print request URI (used for logging).
+     * @param printerNameForLogging
+     *            The printer name used for logging when errors are encountered.
      * @param clientIpAddr
      *            The IP address of the requesting user.
      * @return {@code true} when access to queue is allowed, {@code false} when
      *         not.
      */
-    boolean hasClientIpAccessToQueue(IppQueue queue, String uri,
+    boolean hasClientIpAccessToQueue(IppQueue queue,
+            String printerNameForLogging,
             String clientIpAddr);
 }

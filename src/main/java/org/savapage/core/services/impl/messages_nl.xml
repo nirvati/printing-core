@@ -74,6 +74,7 @@
     <entry key="msg-user-pin-length-error-min">PIN moet minstens {0} cijfers bevatten.</entry>
     <entry key="msg-user-pin-length-error-min-max">PIN moet tussen de {0} en {1} cijfers bevatten.</entry>
     <entry key="msg-user-pin-length-error">PIN moet {0} cijfers bevatten.</entry>
+    <entry key="msg-user-uuid-invalid">UUID is ongeldig.</entry>    
     <entry key="msg-user-deleted-ok">Gebruiker is met succes verwijderd.</entry>
     <entry key="msg-user-deleted-ok-inc-safepages">Gebruiker is met succes verwijderd (inclusief {0} SafePages).</entry>
     <entry key="msg-user-delete-safepages-error">Gebruiker "{0}" is niet verwijderd: fout bij verwijderen SafePages.</entry>

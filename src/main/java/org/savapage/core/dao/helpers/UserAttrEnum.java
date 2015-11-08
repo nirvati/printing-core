@@ -47,7 +47,8 @@ public enum UserAttrEnum {
     INTERNAL_PASSWORD("internal-password"),
 
     /**
-     * PIN optionally to be used in combination with ID number and Card(s).
+     * Encrypted PIN optionally to be used in combination with ID number and
+     * Card(s).
      */
     PIN("pin"),
 
@@ -55,6 +56,12 @@ public enum UserAttrEnum {
      *
      */
     PDF_PROPS("pdf-properties"),
+
+    /**
+     * The Encrypted PIN {@link UUID} used for identification when printing from
+     * the internet. See {@link ReservedIppQueueEnum#IPP_PRINT_INTERNET}.
+     */
+    UUID("uuid"),
 
     /**
      * Statistic time series. Example:

@@ -104,6 +104,7 @@ import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
+import org.savapage.core.util.InetUtils;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -3237,7 +3238,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         try {
             url =
-                    new URL("https", ConfigManager.getServerHostAddress(),
+                    new URL("https", InetUtils.getServerHostAddress(),
                             Integer.parseInt(ConfigManager.getCupsPort()), path);
 
         } catch (MalformedURLException | UnknownHostException e) {

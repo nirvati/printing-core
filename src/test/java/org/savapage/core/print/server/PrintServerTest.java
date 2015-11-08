@@ -25,7 +25,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.savapage.core.services.helpers.InetUtils;
+import org.savapage.core.util.InetUtils;
 
 /**
  *

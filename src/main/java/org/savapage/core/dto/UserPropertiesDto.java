@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *
  */
 @JsonPropertyOrder({ "removeEmail", "removeEmailOther", "removeCard",
-        "removeId", "removePassword", "removePin" })
+        "removeId", "removePassword", "removePin", "removeUuid" })
 @JsonInclude(Include.NON_NULL)
 public class UserPropertiesDto extends UserDto {
 
@@ -53,6 +53,9 @@ public class UserPropertiesDto extends UserDto {
 
     @JsonProperty("removePin")
     private Boolean removePin = false;
+
+    @JsonProperty("removeUuid")
+    private Boolean removeUuid = false;
 
     /**
      *
@@ -114,6 +117,14 @@ public class UserPropertiesDto extends UserDto {
 
     public void setRemovePin(Boolean removePin) {
         this.removePin = removePin;
+    }
+
+    public Boolean getRemoveUuid() {
+        return removeUuid;
+    }
+
+    public void setRemoveUuid(Boolean removeUuid) {
+        this.removeUuid = removeUuid;
     }
 
 }

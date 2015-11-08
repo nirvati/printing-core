@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -76,7 +76,7 @@ public class IppValidateJobOperation extends AbstractIppOperation {
     private final IppQueue queue;
     private final String requestedQueueUrlPath;
     private final boolean clientIpAccessToQueue;
-    private final String authWebAppUser;
+    private final String trustedIppClientUserId;
     private final String remoteAddr;
 
     private static final Logger LOGGER = LoggerFactory
@@ -89,18 +89,24 @@ public class IppValidateJobOperation extends AbstractIppOperation {
      * @param queue
      *            The print queue. Can be {@code null} is no queue matches the
      *            URI.
+     * @param requestedQueueUrlPath
      * @param clientIpAccessToQueue
-     * @param authWebAppUser
+     *            Indicates if client has access to printing. When {@code false}
+     *            , printing is NOT allowed.
+     * @param trustedIppClientUserId
+     *            The user id of the trusted on the IPP client. If {@code null}
+     *            there is NO trusted user.
      */
     public IppValidateJobOperation(final String remoteAddr,
             final IppQueue queue, final String requestedQueueUrlPath,
-            final boolean clientIpAccessToQueue, final String authWebAppUser) {
+            final boolean clientIpAccessToQueue,
+            final String trustedIppClientUserId) {
 
         this.remoteAddr = remoteAddr;
         this.queue = queue;
         this.requestedQueueUrlPath = requestedQueueUrlPath;
         this.clientIpAccessToQueue = clientIpAccessToQueue;
-        this.authWebAppUser = authWebAppUser;
+        this.trustedIppClientUserId = trustedIppClientUserId;
     }
 
     public IppQueue getQueue() {
@@ -200,7 +206,7 @@ public class IppValidateJobOperation extends AbstractIppOperation {
      */
     public boolean isAuthorized() {
         return hasClientIpAccessToQueue()
-                && (isTrustedQueue() || getAuthWebAppUser() != null)
+                && (isTrustedQueue() || getTrustedIppClientUserId() != null)
                 && request.isTrustedUser();
     }
 
@@ -210,8 +216,8 @@ public class IppValidateJobOperation extends AbstractIppOperation {
      *
      * @return {@code null} if no user is authenticated.
      */
-    public String getAuthWebAppUser() {
-        return authWebAppUser;
+    public String getTrustedIppClientUserId() {
+        return trustedIppClientUserId;
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,8 +23,8 @@ package org.savapage.core.cli.server;
 
 import org.apache.commons.cli.CommandLine;
 import org.savapage.core.dto.UserAccountingDto;
-import org.savapage.core.dto.UserPropertiesDto;
 import org.savapage.core.dto.UserAccountingDto.CreditLimitEnum;
+import org.savapage.core.dto.UserPropertiesDto;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodParms;
 import org.savapage.core.json.rpc.ErrorDataBasic;
 import org.savapage.core.json.rpc.JsonRpcError;
@@ -42,7 +42,7 @@ public class CliSetUserProperties extends AbstractAppApi {
     /**
      *
      */
-    private static final String API_VERSION = "0.20";
+    private static final String API_VERSION = "0.30";
 
     /**
      *
@@ -101,6 +101,11 @@ public class CliSetUserProperties extends AbstractAppApi {
     private static final String CLI_OPT_PIN = "pin";
 
     /**
+    *
+    */
+    private static final String CLI_OPT_UUID = "uuid";
+
+    /**
      * Accounting.
      */
     private static final String CLI_OPT_BALANCE = "balance";
@@ -152,6 +157,12 @@ public class CliSetUserProperties extends AbstractAppApi {
             + CLI_OPT_PIN;
 
     /**
+     * .
+     */
+    private static final String CLI_SWITCH_KEEP_UUID = CLI_SWITCH_PFX_KEEP
+            + CLI_OPT_UUID;
+
+    /**
      *
      */
     private static final String CLI_SWITCH_REMOVE_EMAIL = CLI_SWITCH_PFX_REMOVE
@@ -188,6 +199,12 @@ public class CliSetUserProperties extends AbstractAppApi {
             + CLI_OPT_PIN;
 
     /**
+     * .
+     */
+    private static final String CLI_SWITCH_REMOVE_UUID = CLI_SWITCH_PFX_REMOVE
+            + CLI_OPT_UUID;
+
+    /**
      *
      */
     private static Object[][] theOptions =
@@ -212,6 +229,7 @@ public class CliSetUserProperties extends AbstractAppApi {
                             "NFC Card Number First Byte [default: LSB]." },
                     { ARG_TEXT + "(16)", CLI_OPT_ID, "ID Number." },
                     { ARG_TEXT + "(16)", CLI_OPT_PIN, "PIN for ID and Card." },
+                    { ARG_TEXT + "(36)", CLI_OPT_UUID, "The user's secret UUID." },
 
                     /*
                      * Accounting.
@@ -264,6 +282,11 @@ public class CliSetUserProperties extends AbstractAppApi {
                             "Keep existing PIN, or use --" + CLI_OPT_PIN
                                     + " value when not present." },
 
+                    {
+                            null,
+                            CLI_SWITCH_KEEP_UUID,
+                            "Keep existing UUID, or use --" + CLI_OPT_UUID
+                                    + " value when not present." },
                     /*
                      * Remove switches.
                      */
@@ -290,7 +313,10 @@ public class CliSetUserProperties extends AbstractAppApi {
                     { null, CLI_SWITCH_REMOVE_PASSWORD,
                             "Remove Password (Internal User only)." },
                     { null, CLI_SWITCH_REMOVE_PIN,
-                            "Remove PIN (opposed to --" + CLI_OPT_PIN + ")." }
+                            "Remove PIN (opposed to --" + CLI_OPT_PIN + ")." },
+
+                    { null, CLI_SWITCH_REMOVE_UUID,
+                            "Remove UUID (opposed to --" + CLI_OPT_UUID + ")." }
             //
             };
 
@@ -354,7 +380,9 @@ public class CliSetUserProperties extends AbstractAppApi {
                 || (cmd.hasOption(CLI_SWITCH_KEEP_PASSWORD) && !cmd
                         .hasOption(CLI_OPT_PASSWORD))
                 || (cmd.hasOption(CLI_SWITCH_KEEP_PIN) && !cmd
-                        .hasOption(CLI_OPT_PIN))) {
+                        .hasOption(CLI_OPT_PIN))
+                || (cmd.hasOption(CLI_SWITCH_KEEP_UUID) && !cmd
+                        .hasOption(CLI_OPT_UUID))) {
             return false;
         }
 
@@ -373,7 +401,9 @@ public class CliSetUserProperties extends AbstractAppApi {
                 || (cmd.hasOption(CLI_SWITCH_REMOVE_PASSWORD) && cmd
                         .hasOption(CLI_OPT_PASSWORD))
                 || (cmd.hasOption(CLI_SWITCH_REMOVE_PIN) && cmd
-                        .hasOption(CLI_OPT_PIN))) {
+                        .hasOption(CLI_OPT_PIN))
+                || (cmd.hasOption(CLI_SWITCH_REMOVE_UUID) && cmd
+                        .hasOption(CLI_OPT_UUID))) {
             return false;
         }
 
@@ -431,6 +461,7 @@ public class CliSetUserProperties extends AbstractAppApi {
         dto.setId(cmd.getOptionValue(CLI_OPT_ID));
         dto.setPassword(cmd.getOptionValue(CLI_OPT_PASSWORD));
         dto.setPin(cmd.getOptionValue(CLI_OPT_PIN));
+        dto.setUuid(cmd.getOptionValue(CLI_OPT_UUID));
         dto.setUserName(cmd.getOptionValue(CLI_OPT_USERNAME));
         //
         dto.setKeepCard(this.getSwitchValue(cmd, CLI_SWITCH_KEEP_CARD));
@@ -525,8 +556,8 @@ public class CliSetUserProperties extends AbstractAppApi {
 
         final ErrorDataBasic data = error.data(ErrorDataBasic.class);
 
-        getErrorDisplayStream().println("Error [" + error.getCode() + "]: "
-                + error.getMessage());
+        getErrorDisplayStream().println(
+                "Error [" + error.getCode() + "]: " + error.getMessage());
 
         if (data.getReason() != null) {
             getErrorDisplayStream().println("Reason: " + data.getReason());

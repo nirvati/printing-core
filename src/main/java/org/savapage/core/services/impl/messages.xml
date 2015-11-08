@@ -73,6 +73,7 @@
     <entry key="msg-user-pin-length-error-min">PIN should be at least {0} digits long.</entry>
     <entry key="msg-user-pin-length-error-min-max">PIN should be between {0} and {1} digits long.</entry>
     <entry key="msg-user-pin-length-error">PIN should be {0} digits long.</entry>
+    <entry key="msg-user-uuid-invalid">UUID is invalid.</entry>    
     <entry key="msg-user-deleted-ok">User successfully deleted.</entry>
     <entry key="msg-user-deleted-ok-inc-safepages">User successfully deleted (including {0} SafePages).</entry>
     <entry key="msg-user-delete-safepages-error">User "{0}" not deleted: error when removing SafePages.</entry>

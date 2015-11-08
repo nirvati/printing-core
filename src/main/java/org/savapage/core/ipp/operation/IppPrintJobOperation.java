@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -56,7 +56,7 @@ public final class IppPrintJobOperation extends AbstractIppOperation {
     /**
      *
      */
-    private final String authWebAppUser;
+    private final String trustedIppClientUserId;
 
     /**
      *
@@ -71,16 +71,20 @@ public final class IppPrintJobOperation extends AbstractIppOperation {
      *            The print queue. Can be {@code null} is no queue matches the
      *            URI.
      * @param clientIpAccessToQueue
-     * @param authWebAppUser
+     *            Indicates if client has access to printing. When {@code false}
+     *            , printing is NOT allowed.
+     * @param trustedIppClientUserId
+     *            The user id of the trusted on the IPP client. If {@code null}
+     *            there is NO trusted user.
      */
     public IppPrintJobOperation(final String originatorIp,
             final IppQueue queue, final boolean clientIpAccessToQueue,
-            final String authWebAppUser) {
+            final String trustedIppClientUserId) {
 
         this.originatorIp = originatorIp;
         this.queue = queue;
         this.clientIpAccessToQueue = clientIpAccessToQueue;
-        this.authWebAppUser = authWebAppUser;
+        this.trustedIppClientUserId = trustedIppClientUserId;
     }
 
     public IppQueue getQueue() {
@@ -150,18 +154,17 @@ public final class IppPrintJobOperation extends AbstractIppOperation {
      */
     public boolean isAuthorized() {
         return hasClientIpAccessToQueue()
-                && (isTrustedQueue() || getAuthWebAppUser() != null)
+                && (isTrustedQueue() || getTrustedIppClientUserId() != null)
                 && request.isTrustedUser();
     }
 
     /**
-     * Get the uid of the Person who is currently authenticated in User WebApp
-     * at same IP-address as the job was issued from.
+     * Get the user id of the Person who is currently trusted on the IPP client.
      *
-     * @return {@code null} if no user is authenticated.
+     * @return {@code null} if there is NO trusted user.
      */
-    public String getAuthWebAppUser() {
-        return authWebAppUser;
+    public String getTrustedIppClientUserId() {
+        return trustedIppClientUserId;
     }
 
     /**

@@ -72,7 +72,7 @@ public class IppPrintJobReq extends AbstractIppRequest {
         this.printInProcessor =
                 new DocContentPrintProcessor(operation.getQueue(),
                         operation.getOriginatorIp(), null,
-                        operation.getAuthWebAppUser());
+                        operation.getTrustedIppClientUserId());
         /*
          * Read the IPP attributes.
          */

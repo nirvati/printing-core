@@ -36,9 +36,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *
  */
 @JsonPropertyOrder({ "userName", "password", "fullName", "email", "emailOther",
-        "card", "cardFormat", "cardFirstByte", "id;", "pin", "admin", "person",
-        "disabled", "keepEmailOther", "keepCard", "keepPassword", "keepPin",
-        "accounting" })
+        "card", "cardFormat", "cardFirstByte", "id;", "pin", "uuid", "admin",
+        "person", "disabled", "keepEmailOther", "keepCard", "keepPassword",
+        "keepPin", "keepUuid", "accounting" })
 @JsonInclude(Include.NON_NULL)
 public class UserDto extends AbstractDto {
 
@@ -75,6 +75,9 @@ public class UserDto extends AbstractDto {
     @JsonProperty("pin")
     private String pin;
 
+    @JsonProperty("uuid")
+    private String uuid;
+
     @JsonProperty("internal")
     private Boolean internal = Boolean.FALSE;
 
@@ -98,6 +101,9 @@ public class UserDto extends AbstractDto {
 
     @JsonProperty("keepPin")
     private Boolean keepPin = false;
+
+    @JsonProperty("keepUuid")
+    private Boolean keepUuid = false;
 
     @JsonProperty("accounting")
     private UserAccountingDto accounting;
@@ -227,6 +233,14 @@ public class UserDto extends AbstractDto {
         this.pin = pin;
     }
 
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
     public Boolean getInternal() {
         return internal;
     }
@@ -293,6 +307,14 @@ public class UserDto extends AbstractDto {
 
     public UserAccountingDto getAccounting() {
         return accounting;
+    }
+
+    public Boolean getKeepUuid() {
+        return keepUuid;
+    }
+
+    public void setKeepUuid(Boolean keepUuid) {
+        this.keepUuid = keepUuid;
     }
 
     public void setAccounting(UserAccountingDto accounting) {

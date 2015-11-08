@@ -48,7 +48,7 @@ import org.savapage.core.print.server.PrintInResultEnum;
 import org.savapage.core.print.server.UnsupportedPrintJobContent;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
-import org.savapage.core.services.helpers.InetUtils;
+import org.savapage.core.util.InetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -415,7 +415,7 @@ public final class QueueServiceImpl extends AbstractService implements
 
     @Override
     public boolean hasClientIpAccessToQueue(final IppQueue queue,
-            final String uri, final String clientIpAddr) {
+            final String printerNameForLogging, final String clientIpAddr) {
 
         /*
          * Assume remote host has NO access to printing.
@@ -427,11 +427,13 @@ public final class QueueServiceImpl extends AbstractService implements
          * Is IppQueue present ... and can it be used?
          */
         if (queue == null || queue.getDeleted()) {
-            throw new SpException("No queue found for [" + uri.toString() + "]");
+            throw new SpException(String.format("No queue found for [%s]",
+                    printerNameForLogging));
         }
 
         if (queue.getDisabled()) {
-            throw new SpException("queue [" + uri.toString() + "] is disabled");
+            throw new SpException(String.format("queue [%s] is disabled.",
+                    queue.getUrlPath()));
         }
 
         /*
@@ -475,5 +477,4 @@ public final class QueueServiceImpl extends AbstractService implements
 
         return hasPrintAccessToQueue;
     }
-
 }

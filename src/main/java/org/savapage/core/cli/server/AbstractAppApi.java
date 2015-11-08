@@ -61,6 +61,7 @@ import org.savapage.core.json.rpc.JsonRpcError;
 import org.savapage.core.json.rpc.JsonRpcMethod;
 import org.savapage.core.json.rpc.JsonRpcResponseParser;
 import org.savapage.core.json.rpc.JsonRpcResult;
+import org.savapage.core.util.InetUtils;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -430,7 +431,7 @@ public abstract class AbstractAppApi extends AbstractApp {
          * We need the server hostname in the URL, since it must match the name
          * in the (self-signed) SSL certificate.
          */
-        return new URL("https://" + ConfigManager.getServerHostName() + ":"
+        return new URL("https://" + InetUtils.getServerHostName() + ":"
                 + ConfigManager.getServerSslPort(serverProps) + "/jsonrpc");
     }
 

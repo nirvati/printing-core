@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,6 +39,11 @@ public enum ReservedIppQueueEnum {
      * The default IPP queue for driver printing.
      */
     IPP_PRINT("", "IPP Printer", true),
+
+    /**
+     * The default IPP queue for driver printing over public internet.
+     */
+    IPP_PRINT_INTERNET("internet", "Internet Printer", true),
 
     /**
      * The dedicated queue for FTP printing.
