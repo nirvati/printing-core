@@ -23,8 +23,8 @@ package org.savapage.core.cli.server;
 
 import org.apache.commons.cli.CommandLine;
 import org.savapage.core.dto.UserAccountingDto;
-import org.savapage.core.dto.UserDto;
 import org.savapage.core.dto.UserAccountingDto.CreditLimitEnum;
+import org.savapage.core.dto.UserDto;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodParms;
 import org.savapage.core.json.rpc.ErrorDataBasic;
 import org.savapage.core.json.rpc.JsonRpcError;
@@ -39,10 +39,10 @@ import org.savapage.core.json.rpc.impl.ParamsAddInternalUser;
  */
 public class CliAddInternalUser extends AbstractAppApi {
 
-    private static final String API_VERSION = "0.20";
+    private static final String API_VERSION = "0.30";
 
     private static final String METHOD_SHORT_DESCRIPT =
-            "Creates a new or Updates an existing Internal User.";
+            "Creates a new or updates an existing Internal User.";
 
     /** */
     private static final String CLI_OPT_USERNAME = "username";
@@ -55,6 +55,7 @@ public class CliAddInternalUser extends AbstractAppApi {
     private static final String CLI_OPT_CARD_FIRST_BYTE = "card-first-byte";
     private static final String CLI_OPT_ID = "id";
     private static final String CLI_OPT_PIN = "pin";
+    private static final String CLI_OPT_UUID = "uuid";
 
     /*
      * Accounting.
@@ -78,6 +79,8 @@ public class CliAddInternalUser extends AbstractAppApi {
             + CLI_OPT_PASSWORD;
     private static final String CLI_SWITCH_KEEP_PIN = CLI_SWITCH_PFX_KEEP
             + CLI_OPT_PIN;
+    private static final String CLI_SWITCH_KEEP_UUID = CLI_SWITCH_PFX_KEEP
+            + CLI_OPT_UUID;
 
     private static Object[][] theOptions =
             new Object[][] {
@@ -100,6 +103,8 @@ public class CliAddInternalUser extends AbstractAppApi {
                             "NFC Card Number First Byte [default: LSB]." },
                     { ARG_TEXT + "(16)", CLI_OPT_ID, "ID Number." },
                     { ARG_TEXT + "(16)", CLI_OPT_PIN, "PIN for ID and Card." },
+                    { ARG_TEXT + "(36)", CLI_OPT_UUID,
+                            "The user's secret UUID." },
 
                     /*
                      * Accounting.
@@ -152,7 +157,13 @@ public class CliAddInternalUser extends AbstractAppApi {
                             null,
                             CLI_SWITCH_KEEP_PIN,
                             "Keep existing PIN, or use --" + CLI_OPT_PIN
-                                    + " value when not present." }
+                                    + " value when not present." },
+
+                    {
+                            null,
+                            CLI_SWITCH_KEEP_UUID,
+                            "Keep existing UUID, or use --" + CLI_OPT_UUID
+                                    + " value when not present." },
             //
             };
 
@@ -216,7 +227,9 @@ public class CliAddInternalUser extends AbstractAppApi {
                 || (cmd.hasOption(CLI_SWITCH_KEEP_PASSWORD) && !cmd
                         .hasOption(CLI_OPT_PASSWORD))
                 || (cmd.hasOption(CLI_SWITCH_KEEP_PIN) && !cmd
-                        .hasOption(CLI_OPT_PIN))) {
+                        .hasOption(CLI_OPT_PIN))
+                || (cmd.hasOption(CLI_SWITCH_KEEP_UUID) && !cmd
+                        .hasOption(CLI_OPT_UUID))) {
             return false;
         }
 
@@ -275,6 +288,8 @@ public class CliAddInternalUser extends AbstractAppApi {
         dto.setId(cmd.getOptionValue(CLI_OPT_ID));
         dto.setPassword(cmd.getOptionValue(CLI_OPT_PASSWORD));
         dto.setPin(cmd.getOptionValue(CLI_OPT_PIN));
+        dto.setUuid(cmd.getOptionValue(CLI_OPT_UUID));
+
         dto.setUserName(cmd.getOptionValue(CLI_OPT_USERNAME));
         //
         dto.setKeepCard(this.getSwitchValue(cmd, CLI_SWITCH_KEEP_CARD));
@@ -357,6 +372,7 @@ public class CliAddInternalUser extends AbstractAppApi {
         case CLI_SWITCH_KEEP_EMAIL_OTHER:
         case CLI_SWITCH_KEEP_PASSWORD:
         case CLI_SWITCH_KEEP_PIN:
+        case CLI_SWITCH_KEEP_UUID:
             return true;
         }
 
