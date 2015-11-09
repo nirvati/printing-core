@@ -22,7 +22,7 @@
 package org.savapage.core.config;
 
 import java.math.BigDecimal;
-import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Currency;
@@ -683,6 +683,13 @@ public interface IConfigProp {
          */
         INTERNAL_USERS_PW_LENGTH_MIN("internal-users.password-length-min",
                 NUMBER_VALIDATOR, "6"),
+
+        /**
+         * The base URL, i.e. "protocol://authority" <i>without</i> the path, of
+         * the IPP Internet Printer URI (no trailing slash) (optional).
+         */
+        IPP_INTERNET_PRINTER_URI_BASE("ipp.internet-printer.uri-base",
+                URI_VALIDATOR_OPT, ""),
 
         /**
          * See this <a href=
@@ -1565,6 +1572,11 @@ public interface IConfigProp {
         USER_CAN_CHANGE_PIN("user.can-change-pin", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * .
+         */
+        USER_CAN_CHANGE_UUID("user.can-change-uuid", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          *
          */
         USER_PIN_LENGTH_MIN("user.pin-length-min", NUMBER_VALIDATOR, "4"),
@@ -2059,6 +2071,10 @@ public interface IConfigProp {
             this.isOptional = optional;
         }
 
+        protected void customCheck(final String value) throws Exception {
+            new URL(value);
+        }
+
         @Override
         public ValidationResult validate(final String value) {
 
@@ -2067,8 +2083,8 @@ public interface IConfigProp {
             if (!this.isOptional || !value.isEmpty()) {
 
                 try {
-                    new URL(value);
-                } catch (MalformedURLException e) {
+                    this.customCheck(value);
+                } catch (Exception e) {
                     res.setStatus(ValidationStatusEnum.ERROR_SYNTAX);
                 }
             }
@@ -2077,6 +2093,23 @@ public interface IConfigProp {
                 res.setMessage("Invalid URL");
             }
             return res;
+        }
+    }
+
+    /**
+     *
+     * @author Rijk Ravestein
+     *
+     */
+    static class UriValidator extends UrlValidator {
+
+        public UriValidator(final boolean optional) {
+            super(optional);
+        }
+
+        @Override
+        protected void customCheck(final String value) throws Exception {
+            new URI(value);
         }
     }
 
@@ -2299,6 +2332,11 @@ public interface IConfigProp {
      * URL is not required (may be empty).
      */
     UrlValidator URL_VALIDATOR_OPT = new UrlValidator(true);
+
+    /**
+     * URI is not required (may be empty).
+     */
+    UriValidator URI_VALIDATOR_OPT = new UriValidator(true);
 
     /**
      * .
