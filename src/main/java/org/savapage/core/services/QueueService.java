@@ -311,6 +311,15 @@ public interface QueueService {
      *         not.
      */
     boolean hasClientIpAccessToQueue(IppQueue queue,
-            String printerNameForLogging,
-            String clientIpAddr);
+            String printerNameForLogging, String clientIpAddr);
+
+    /**
+     * Checks if the reserved queue is enabled.
+     *
+     * @param queue
+     *            The {@link ReservedIppQueueEnum}.
+     * @return {@code true} when enabled.
+     */
+    boolean isQueueEnabled(ReservedIppQueueEnum queue);
+
 }

@@ -477,4 +477,9 @@ public final class QueueServiceImpl extends AbstractService implements
 
         return hasPrintAccessToQueue;
     }
+
+    public boolean isQueueEnabled(final ReservedIppQueueEnum queue) {
+        return !ippQueueDAO().find(queue).getDisabled();
+    }
+
 }
