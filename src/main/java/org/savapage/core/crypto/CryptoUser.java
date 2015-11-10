@@ -305,15 +305,16 @@ public class CryptoUser {
      * @see {@link #decryptUserAttr(Long, String)}
      * @param userKey
      *            The primary key of the User.
-     * @param pin
-     *            The PIN to encrypt.
-     * @return The encrypted PIN.
+     * @param value
+     *            The value to encrypt.
+     * @return The encrypted value.
      */
-    public static String encryptUserAttr(final Long userKey, final String pin) {
-        if (StringUtils.isBlank(pin)) {
+    public static String
+            encryptUserAttr(final Long userKey, final String value) {
+        if (StringUtils.isBlank(value)) {
             return "";
         }
-        return encrypt(userKey.toString() + "|" + pin);
+        return encrypt(userKey.toString() + "|" + value);
     }
 
     /**

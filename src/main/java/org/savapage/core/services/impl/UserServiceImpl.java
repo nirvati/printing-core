@@ -1460,6 +1460,45 @@ public final class UserServiceImpl extends AbstractService implements
         return user;
     }
 
+    /**
+     * Gets the {@link UserAttr} from {@link User#getAttributes()} list.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param attrEnum
+     *            The {@link UserAttrEnum} to search for.
+     * @return The {@link UserAttr} or {@code null} when not found.
+     */
+    private UserAttr getUserAttr(final User user, final UserAttrEnum attrEnum) {
+
+        if (user.getAttributes() != null) {
+            for (final UserAttr attr : user.getAttributes()) {
+                if (attr.getName().equals(attrEnum.getName())) {
+                    return attr;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String
+            getUserAttrValue(final User user, final UserAttrEnum attrEnum) {
+
+        if (user.getAttributes() != null) {
+            for (final UserAttr attr : user.getAttributes()) {
+                if (attr.getName().equals(attrEnum.getName())) {
+                    if (attrEnum == UserAttrEnum.UUID) {
+                        return CryptoUser.decryptUserAttr(user.getId(),
+                                attr.getValue());
+                    }
+                    return attr.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
     @Override
     public User findUserByNumberUuid(final String number, final UUID uuid) {
 
@@ -1467,14 +1506,15 @@ public final class UserServiceImpl extends AbstractService implements
 
         if (user != null && user.getAttributes() != null) {
 
-            final String encryptedUuid =
-                    CryptoUser.encryptUserAttr(user.getId(), uuid.toString());
+            final UserAttr attr = this.getUserAttr(user, UserAttrEnum.UUID);
 
-            for (final UserAttr attr : user.getAttributes()) {
+            if (attr != null) {
 
-                if (attr.getName().equals(UserAttrEnum.UUID.getName())
-                        && attr.getValue().equals(encryptedUuid)) {
+                final String encryptedUuid =
+                        CryptoUser.encryptUserAttr(user.getId(),
+                                uuid.toString());
 
+                if (attr.getValue().equals(encryptedUuid)) {
                     return user;
                 }
             }
@@ -2006,6 +2046,34 @@ public final class UserServiceImpl extends AbstractService implements
         attr.setValue(value);
 
         list.add(attr);
+    }
+
+    @Override
+    public UUID lazyAddUserAttrUuid(final User user) {
+
+        final List<UserAttr> list = user.getAttributes();
+
+        if (list != null) {
+
+            final UserAttr attr = this.getUserAttr(user, UserAttrEnum.UUID);
+
+            if (attr != null) {
+                final String decryptedUuid =
+                        CryptoUser.decryptUserAttr(user.getId(),
+                                attr.getValue());
+                return UUID.fromString(decryptedUuid);
+            }
+        }
+
+        final UUID uuid = UUID.randomUUID();
+
+        final String encryptedUuid =
+                CryptoUser.encryptUserAttr(user.getId(), uuid.toString());
+
+        this.addUserAttr(user, UserAttrEnum.UUID, encryptedUuid);
+        this.setUserAttrValue(user, UserAttrEnum.UUID, encryptedUuid);
+
+        return uuid;
     }
 
     @Override

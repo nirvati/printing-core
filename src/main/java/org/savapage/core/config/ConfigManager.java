@@ -1809,7 +1809,8 @@ public final class ConfigManager {
     /**
      *
      * @param key
-     * @return <code>null</code> when property is not found.
+     *            The key.
+     * @return the boolean value..
      */
     public boolean isConfigValue(final IConfigProp.Key key) {
         return myConfigProp.getBoolean(key);
@@ -2011,8 +2012,9 @@ public final class ConfigManager {
         final MutableLong size = new MutableLong();
         File file = new File(getUserHomeDir(user));
         if (file.exists()) {
-            FileSystemHelper.calcDirSize(FileSystems.getDefault()
-                    .getPath(file.getAbsolutePath()), size);
+            FileSystemHelper.calcDirSize(
+                    FileSystems.getDefault().getPath(file.getAbsolutePath()),
+                    size);
         }
         return size.longValue();
     }

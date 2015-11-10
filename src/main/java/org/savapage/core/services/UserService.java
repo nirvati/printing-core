@@ -408,6 +408,18 @@ public interface UserService {
     void performLogicalDelete(User user);
 
     /**
+     * Gets the (un-encrypted) {@link UserAttr#getValue()} from
+     * {@link User#getAttributes()} list.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param attrEnum
+     *            The {@link UserAttrEnum} to search for.
+     * @return The (un-encrypted) value string or {@code null} when not found.
+     */
+    String getUserAttrValue(final User user, final UserAttrEnum attrEnum);
+
+    /**
      * Removes an attribute from the User's list of attributes AND from the
      * database.
      *
@@ -428,7 +440,7 @@ public interface UserService {
      * </p>
      *
      * @param user
-     *            The user.
+     *            The {@link User}.
      * @param name
      *            The name of the {@link UserAttr}.
      * @param value
@@ -437,10 +449,21 @@ public interface UserService {
     void addUserAttr(User user, UserAttrEnum name, final String value);
 
     /**
+     * Adds the {@link UserAttrEnum#UUID} to the User's list of attributes and
+     * creates the {@link UserAttr} in the database when the attribute is NOT
+     * already on the list (the list is lazy created when it does not exist).
+     *
+     * @param user
+     *            The {@link User}.
+     * @return The {@link UUID}.
+     */
+    UUID lazyAddUserAttrUuid(User user);
+
+    /**
      * Reads the attribute value from the database.
      *
      * @param user
-     *            The user.
+     *            The {@link User}.
      * @param name
      *            The name of the {@link UserAttr}.
      * @return The attribute value or {@code null} when NOT found.

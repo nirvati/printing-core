@@ -1572,11 +1572,6 @@ public interface IConfigProp {
         USER_CAN_CHANGE_PIN("user.can-change-pin", BOOLEAN_VALIDATOR, V_YES),
 
         /**
-         * .
-         */
-        USER_CAN_CHANGE_UUID("user.can-change-uuid", BOOLEAN_VALIDATOR, V_YES),
-
-        /**
          *
          */
         USER_PIN_LENGTH_MIN("user.pin-length-min", NUMBER_VALIDATOR, "4"),
