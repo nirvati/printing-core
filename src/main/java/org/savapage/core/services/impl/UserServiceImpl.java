@@ -739,14 +739,24 @@ public final class UserServiceImpl extends AbstractService implements
 
         if (StringUtils.isNotBlank(cardNumber)) {
 
-            RfidNumberFormat.Format format =
-                    RfidNumberFormat.toFormat(userDto.getCardFormat());
+            final RfidNumberFormat rfidNumberFormat;
 
-            RfidNumberFormat.FirstByte firstByte =
-                    RfidNumberFormat.toFirstByte(userDto.getCardFirstByte());
+            if (StringUtils.isBlank(userDto.getCardFormat())
+                    || StringUtils.isBlank(userDto.getCardFirstByte())) {
 
-            RfidNumberFormat rfidNumberFormat =
-                    new RfidNumberFormat(format, firstByte);
+                rfidNumberFormat = new RfidNumberFormat();
+
+            } else {
+
+                final RfidNumberFormat.Format format =
+                        RfidNumberFormat.toFormat(userDto.getCardFormat());
+
+                final RfidNumberFormat.FirstByte firstByte =
+                        RfidNumberFormat
+                                .toFirstByte(userDto.getCardFirstByte());
+
+                rfidNumberFormat = new RfidNumberFormat(format, firstByte);
+            }
 
             if (!rfidNumberFormat.isNumberValid(cardNumber)) {
                 return createError("msg-card-number-invalid", cardNumber);
