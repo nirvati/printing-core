@@ -46,7 +46,7 @@ public final class OutboxInfoDto extends AbstractDto {
 
     /**
      *
-     * @author rijk
+     * @author Rijk Ravestein
      *
      */
     public final static class LocaleInfo {
@@ -103,6 +103,7 @@ public final class OutboxInfoDto extends AbstractDto {
         private int sheets;
         private boolean removeGraphics;
         private boolean ecoPrint;
+        private boolean collate;
         private BigDecimal cost;
         private long submitTime;
         private long expiryTime;
@@ -178,6 +179,14 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setEcoPrint(boolean ecoPrint) {
             this.ecoPrint = ecoPrint;
+        }
+
+        public boolean isCollate() {
+            return collate;
+        }
+
+        public void setCollate(boolean collate) {
+            this.collate = collate;
         }
 
         public BigDecimal getCost() {

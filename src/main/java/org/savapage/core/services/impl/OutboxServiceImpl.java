@@ -375,6 +375,7 @@ public final class OutboxServiceImpl extends AbstractService implements
             job.setSheets(calNumberOfSheets(request));
             job.setRemoveGraphics(request.isRemoveGraphics());
             job.setEcoPrint(request.isEcoPrint() || request.isEcoPrintShadow());
+            job.setCollate(request.isCollate());
             job.setCost(request.getCost());
             job.setSubmitTime(submitDate.getTime());
             job.setExpiryTime(expiryDate.getTime());

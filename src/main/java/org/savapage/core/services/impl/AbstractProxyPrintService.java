@@ -1605,6 +1605,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printReq.setPrinterName(job.getPrinterName());
             printReq.setRemoveGraphics(job.isRemoveGraphics());
             printReq.setEcoPrintShadow(job.isEcoPrint());
+            printReq.setCollate(job.isCollate());
             printReq.setLocale(ServiceContext.getLocale());
             printReq.setIdUser(lockedUser.getId());
             printReq.putOptionValues(job.getOptionValues());
