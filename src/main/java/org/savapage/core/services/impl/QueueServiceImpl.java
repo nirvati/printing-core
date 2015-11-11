@@ -227,13 +227,23 @@ public final class QueueServiceImpl extends AbstractService implements
     public IppQueue getOrCreateReservedQueue(
             final ReservedIppQueueEnum reservedQueue) {
 
-        IppQueue group = ippQueueDAO().find(reservedQueue);
+        IppQueue queue = ippQueueDAO().find(reservedQueue);
 
-        if (group == null) {
-            group = createQueueDefault(reservedQueue.getUrlPath());
-            ippQueueDAO().create(group);
+        if (queue == null) {
+            queue = createQueueDefault(reservedQueue.getUrlPath());
+            ippQueueDAO().create(queue);
+
+        } else if (reservedQueue == ReservedIppQueueEnum.AIRPRINT
+                || reservedQueue == ReservedIppQueueEnum.IPP_PRINT_INTERNET) {
+
+            // Force to untrusted.
+            if (queue.getTrusted()) {
+                queue.setTrusted(Boolean.FALSE);
+                ippQueueDAO().update(queue);
+            }
         }
-        return group;
+
+        return queue;
     }
 
     /**
@@ -248,6 +258,7 @@ public final class QueueServiceImpl extends AbstractService implements
         final IppQueue queue = new IppQueue();
 
         queue.setUrlPath(urlPath);
+        queue.setTrusted(Boolean.FALSE);
         queue.setCreatedBy(ServiceContext.getActor());
         queue.setCreatedDate(ServiceContext.getTransactionDate());
 
@@ -478,6 +489,7 @@ public final class QueueServiceImpl extends AbstractService implements
         return hasPrintAccessToQueue;
     }
 
+    @Override
     public boolean isQueueEnabled(final ReservedIppQueueEnum queue) {
         return !ippQueueDAO().find(queue).getDisabled();
     }

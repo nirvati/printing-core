@@ -36,6 +36,11 @@ import org.savapage.core.jpa.IppQueue;
 public enum ReservedIppQueueEnum {
 
     /**
+     * The AirPrint queue.
+     */
+    AIRPRINT("airprint", "AirPrint", true),
+
+    /**
      * The default IPP queue for driver printing.
      */
     IPP_PRINT("", "IPP Printer", true),
@@ -134,4 +139,13 @@ public enum ReservedIppQueueEnum {
         return this.driverPrint;
     }
 
+    /**
+     *
+     * @return {@code true} when this queue can NOT be set to trusted (always
+     *         untrusted).
+     */
+    public boolean isNotTrusted() {
+        return this == ReservedIppQueueEnum.AIRPRINT
+                || this == ReservedIppQueueEnum.IPP_PRINT_INTERNET;
+    }
 }
