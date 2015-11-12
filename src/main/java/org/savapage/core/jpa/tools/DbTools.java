@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -321,7 +321,7 @@ public final class DbTools implements ServiceEntryPoint {
      * Custom ORDER BY clauses for XML schema entities. The array holds arrays
      * of 2 elements. Element 0 (zero) is the simple class name of the
      * {@link XEntityVersion} type, element 1 (one) is the ORDER BY clause.
-     * (without the {@code ORDER BY} proefix).
+     * (without the {@code ORDER BY} prefix).
      * <p>
      * REASON: Some entities need an ORDER BY clause, to ensure that on import
      * recursive foreign key constraints are satisfied.
@@ -341,22 +341,18 @@ public final class DbTools implements ServiceEntryPoint {
     private static final String[][] SCHEMA_ENTITIES_XML_EXPORT_ORDER_BY = {
             /*
              * AccountV01 has a foreign key that points to itself. Therefore the
-             * rows that do NOT have this relation should be exported first.
-             *
-             * NOTE: NULLS LAST and NULLS FIRST are Hibernate dependent, when
-             * using another ORM, check if this clause is supported.
+             * rows that do NOT have this relation (NULL value for secondary
+             * key) should be exported first.
              */
             { XAccountV01.class.getSimpleName(),
-                    JPQL_ENTITY_ALIAS + ".parent NULLS FIRST" },
+                    "COALESCE(" + JPQL_ENTITY_ALIAS + ".parent, 0)" },
             /*
              * DeviceV01 has a foreign key that points to itself. Therefore the
-             * rows that do NOT have this relation should be exported first.
-             *
-             * NOTE: NULLS LAST and NULLS FIRST are Hibernate dependent, when
-             * using another ORM, check if this clause is supported.
+             * rows that do NOT have this relation (NULL value for secondary
+             * key) should be exported first.
              */
             { XDeviceV01.class.getSimpleName(),
-                    JPQL_ENTITY_ALIAS + ".cardReader NULLS FIRST" },
+                    "COALESCE(" + JPQL_ENTITY_ALIAS + ".cardReader, 0)" },
 
     };
 
