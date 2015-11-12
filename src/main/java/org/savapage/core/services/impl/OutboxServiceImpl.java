@@ -55,7 +55,7 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.LocaleInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
-import org.savapage.core.pdf.PdfCollator;
+import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
@@ -431,7 +431,7 @@ public final class OutboxServiceImpl extends AbstractService implements
      * @return The number of sheets.
      */
     private static int calNumberOfSheets(final ProxyPrintInboxReq request) {
-        return PdfCollator.calcNumberOfPrintedSheets(request);
+        return PdfPrintCollector.calcNumberOfPrintedSheets(request);
     }
 
     /**

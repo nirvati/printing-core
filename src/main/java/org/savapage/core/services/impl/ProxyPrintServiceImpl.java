@@ -93,7 +93,7 @@ import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcError.Code;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
-import org.savapage.core.pdf.PdfCollator;
+import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
@@ -881,53 +881,55 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
-         * If collate for more then one (1) copy we need to print one (1) copy
-         * of a PDF with collated copies.
+         * If we print more then one (1) copy we need to print one (1) copy of a
+         * PDF with collected copies.
          */
+        final boolean collectPdf = request.getNumberOfCopies() > 1;
 
         // Save number of copies.
         final int numberOfCopiesSaved = request.getNumberOfCopies();
 
-        final boolean collatePdf =
-                request.isCollate() && request.getNumberOfCopies() > 1;
-
         /*
          * Send the IPP Print Job request.
          */
-        File pdfFileCollated = null;
+        File pdfFileCollected = null;
         final List<IppAttrGroup> response;
 
         try {
 
             final File pdfFileToPrint;
 
-            if (collatePdf) {
+            if (collectPdf) {
 
-                pdfFileCollated =
-                        new File(String.format("%s-collated",
+                pdfFileCollected =
+                        new File(String.format("%s-collected",
                                 filePdf.getCanonicalPath()));
 
-                final int nTotCollatedPages =
-                        PdfCollator.collate(request, filePdf, pdfFileCollated);
+                final int nTotCollectedPages =
+                        PdfPrintCollector.collect(request, request.isCollate(),
+                                filePdf, pdfFileCollected);
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(String.format("Collated PDF [%s] pages [%d], "
-                            + "copies [%d], n-up [%d], duplex [%s] "
-                            + "-> pages [%d]", request.getJobName(),
-                            request.getNumberOfPages(),
-                            request.getNumberOfCopies(), request.getNup(),
+                    LOGGER.debug(String.format(
+                            "Collected PDF [%s] pages [%d], "
+                                    + "copies [%d], collate [%s], "
+                                    + "n-up [%d], duplex [%s] -> pages [%d]",
+                            request.getJobName(), request.getNumberOfPages(),
+                            request.getNumberOfCopies(),
+                            Boolean.toString(request.isCollate()),
+                            request.getNup(),
                             Boolean.toString(request.isDuplex()),
-                            nTotCollatedPages));
+                            nTotCollectedPages));
                 }
 
-                pdfFileToPrint = pdfFileCollated;
+                pdfFileToPrint = pdfFileCollected;
 
                 // Trick the request so IPP Print Job request sets the number of
                 // copies to one (1).
                 request.setNumberOfCopies(1);
 
             } else {
-                pdfFileCollated = null;
+                pdfFileCollected = null;
                 pdfFileToPrint = filePdf;
             }
 
@@ -944,8 +946,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         } finally {
 
-            if (pdfFileCollated != null) {
-                pdfFileCollated.delete();
+            if (pdfFileCollected != null) {
+                pdfFileCollected.delete();
             }
         }
 
@@ -1024,7 +1026,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                         .get(IppDictJobTemplateAttr.ATTR_MEDIA));
 
         // ------------------
-        int numberOfSheets = PdfCollator.calcNumberOfPrintedSheets(request);
+        int numberOfSheets =
+                PdfPrintCollector.calcNumberOfPrintedSheets(request);
 
         // ------------------
         final DocOut docOut = docLog.getDocOut();

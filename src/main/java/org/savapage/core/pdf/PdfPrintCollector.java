@@ -27,8 +27,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.savapage.core.print.proxy.ProxyPrintSheetsCalcParms;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -37,28 +35,24 @@ import com.itextpdf.text.pdf.PdfCopy;
 import com.itextpdf.text.pdf.PdfReader;
 
 /**
+ * Collects multiple copies of a PDF document into one (1) PDF document for
+ * proxy printing.
  *
  * @author Rijk Ravestein
  *
  */
-public final class PdfCollator {
-
-    /**
-     * The logger.
-     */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(PdfCollator.class);
+public final class PdfPrintCollector {
 
     /**
      * The {@link PdfReader} containing a single blank page to be used to insert
-     * into the collated result.
+     * into the collected result.
      */
     private PdfReader singleBlankPagePdfReader;
 
     /**
      * Private instance only.
      */
-    private PdfCollator() {
+    private PdfPrintCollector() {
     }
 
     /**
@@ -172,7 +166,7 @@ public final class PdfCollator {
 
     /**
      * Calculates the extra blank pages to append to a single PDF copy in a
-     * collated sequence of copies.
+     * sequence of copies.
      * <p>
      * IMPORTANT: {@link ProxyPrintSheetsCalcParms#isOddOrEvenSheets()},
      * {@link ProxyPrintSheetsCalcParms#isCoverPageBefore()} and
@@ -184,7 +178,7 @@ public final class PdfCollator {
      *            The {@link ProxyPrintSheetsCalcParms}.
      * @return The number of extra blank pages to append to each copy.
      */
-    public static int calcBlankCollatePagesToAppend(
+    public static int calcBlankAppendPagesOfCopy(
             final ProxyPrintSheetsCalcParms calcParms) {
 
         /*
@@ -227,25 +221,27 @@ public final class PdfCollator {
      * error is fixed in qpdf 5.1.2-3. See Mantis #614.
      * </p>
      *
-     * @param collatedPdfCopy
+     * @param collectedPdfCopy
      *            The {@link PdfCopy} append the blank page to.
      * @throws DocumentException
      *             When error creating the PDF document.
      * @throws IOException
      *             When IO errors creating the reader.
      */
-    private void addBlankPage(final PdfCopy collatedPdfCopy)
+    private void addBlankPage(final PdfCopy collectedPdfCopy)
             throws IOException, DocumentException {
-        collatedPdfCopy.addPage(collatedPdfCopy.getImportedPage(
-                this.getBlankPageReader(collatedPdfCopy.getPageSize()), 1));
+        collectedPdfCopy.addPage(collectedPdfCopy.getImportedPage(
+                this.getBlankPageReader(collectedPdfCopy.getPageSize()), 1));
     }
 
     /**
-     * Collates multiple copies of a single PDF input file into a single PDF
+     * Collects multiple copies of a single PDF input file into a single PDF
      * output file.
      *
      * @param calcParms
      *            The {@link ProxyPrintSheetsCalcParms}.
+     * @param collate
+     *            If {@code true} output must be collated.
      * @param fileIn
      *            The PDF input file.
      * @param fileOut
@@ -254,18 +250,19 @@ public final class PdfCollator {
      * @throws IOException
      *             When IO errors.
      */
-    public static int collate(final ProxyPrintSheetsCalcParms calcParms,
-            final File fileIn, final File fileOut) throws IOException {
+    public static int collect(final ProxyPrintSheetsCalcParms calcParms,
+            final boolean collate, final File fileIn, final File fileOut)
+            throws IOException {
 
         int nTotalOutPages = 0;
 
         final Document targetDocument = new Document();
 
-        final PdfCollator pdfCollator = new PdfCollator();
+        final PdfPrintCollector pdfCollector = new PdfPrintCollector();
 
         try {
 
-            final PdfCopy collatedPdfCopy =
+            final PdfCopy collectedPdfCopy =
                     new PdfCopy(targetDocument, new FileOutputStream(fileOut));
 
             targetDocument.open();
@@ -273,48 +270,17 @@ public final class PdfCollator {
             final PdfReader pdfReader =
                     new PdfReader(new FileInputStream(fileIn));
 
-            final int nPagesMax = pdfReader.getNumberOfPages();
-
             final int nBlankPagesToAppend =
-                    calcBlankCollatePagesToAppend(calcParms);
+                    calcBlankAppendPagesOfCopy(calcParms);
 
-            for (int j = 0; j < calcParms.getNumberOfCopies(); j++) {
-
-                if (j > 0) {
-
-                    for (int k = 0; k < nBlankPagesToAppend; k++) {
-                        pdfCollator.addBlankPage(collatedPdfCopy);
-                        nTotalOutPages++;
-                    }
-                }
-
-                for (int nPage = 1; nPage <= nPagesMax; nPage++) {
-
-                    final boolean pageContentsPresent =
-                            ITextPdfCreator.isPageContentsPresent(pdfReader,
-                                    nPage);
-
-                    if (pageContentsPresent) {
-
-                        collatedPdfCopy.addPage(collatedPdfCopy
-                                .getImportedPage(pdfReader, nPage));
-
-                    } else {
-                        /*
-                         * Replace page without /Contents with our own blank
-                         * content. See Mantis #614.
-                         */
-                        pdfCollator.addBlankPage(collatedPdfCopy);
-
-                        if (LOGGER.isInfoEnabled()) {
-                            LOGGER.info(String.format(
-                                    "File [%s] page [%d] has NO /Contents: "
-                                            + "replaced by blank content.",
-                                    fileIn.getName(), nPage));
-                        }
-                    }
-                    nTotalOutPages++;
-                }
+            if (collate) {
+                nTotalOutPages =
+                        collectCollated(pdfCollector, collectedPdfCopy,
+                                pdfReader, calcParms, nBlankPagesToAppend);
+            } else {
+                nTotalOutPages =
+                        collectUncollated(pdfCollector, collectedPdfCopy,
+                                pdfReader, calcParms, nBlankPagesToAppend);
             }
 
             targetDocument.close();
@@ -322,9 +288,186 @@ public final class PdfCollator {
         } catch (DocumentException e) {
             throw new IOException(e.getMessage(), e);
         } finally {
-            pdfCollator.close();
+            pdfCollector.close();
         }
 
         return nTotalOutPages;
+    }
+
+    /**
+     * Collects collated output.
+     *
+     * @param pdfCollector
+     *            The {@link PdfPrintCollector}.
+     * @param collectedPdfCopy
+     *            The {@link PdfCopy} to collect the pages on.
+     * @param pdfReader
+     *            The {@link PdfReader}.
+     * @param calcParms
+     *            The {@link ProxyPrintSheetsCalcParms}.
+     * @param nBlankPagesToAppend
+     *            The number of blank pages to append to a single document copy.
+     * @return The number of pages in the collated document.
+     * @throws IOException
+     *             When IO errors.
+     * @throws DocumentException
+     *             When PDF errors.
+     */
+    private static int collectCollated(final PdfPrintCollector pdfCollector,
+            final PdfCopy collectedPdfCopy, final PdfReader pdfReader,
+            final ProxyPrintSheetsCalcParms calcParms,
+            final int nBlankPagesToAppend) throws IOException,
+            DocumentException {
+
+        final int nPagesMax = pdfReader.getNumberOfPages();
+
+        int nTotalOutPages = 0;
+
+        for (int j = 0; j < calcParms.getNumberOfCopies(); j++) {
+
+            if (j > 0) {
+
+                for (int k = 0; k < nBlankPagesToAppend; k++) {
+                    pdfCollector.addBlankPage(collectedPdfCopy);
+                    nTotalOutPages++;
+                }
+            }
+
+            for (int nPage = 1; nPage <= nPagesMax; nPage++) {
+                collectPage(pdfCollector, collectedPdfCopy, pdfReader, nPage);
+                nTotalOutPages++;
+            }
+        }
+        return nTotalOutPages;
+    }
+
+    /**
+     * Collects collated output.
+     *
+     * @param pdfCollector
+     *            The {@link PdfPrintCollector}.
+     * @param collectedPdfCopy
+     *            The {@link PdfCopy} to collect the pages on.
+     * @param pdfReader
+     *            The {@link PdfReader}.
+     * @param calcParms
+     *            The {@link ProxyPrintSheetsCalcParms}.
+     * @param nBlankPagesToAppend
+     *            The number of blank pages to append to a single document copy.
+     * @return The number of pages in the collated document.
+     * @throws IOException
+     *             When IO errors.
+     * @throws DocumentException
+     *             When PDF errors.
+     */
+    private static int collectUncollated(final PdfPrintCollector pdfCollector,
+            final PdfCopy collectedPdfCopy, final PdfReader pdfReader,
+            final ProxyPrintSheetsCalcParms calcParms,
+            final int nBlankPagesToAppend) throws IOException,
+            DocumentException {
+
+        /*
+         * The number of pages in the un-collated sequence.
+         */
+        final int nPageSequence;
+
+        if (calcParms.isDuplex()) {
+            nPageSequence = 2 * calcParms.getNup();
+        } else {
+            nPageSequence = calcParms.getNup();
+        }
+
+        /*
+         * The number of pages in the source document.
+         */
+        final int nPagesDoc = pdfReader.getNumberOfPages();
+
+        int nTotalOutPages = 0;
+
+        /*
+         * Traverse all source document pages.
+         */
+        for (int nPage = 1; nPage <= nPagesDoc; nPage += nPageSequence) {
+
+            /*
+             * Calc page sequence for each copy.
+             */
+            final int nPageFrom = nPage;
+            final int nPageTo = nPage + nPageSequence - 1;
+
+            /*
+             * Collect page sequence for each copy.
+             */
+            for (int i = 0; i < calcParms.getNumberOfCopies(); i++) {
+
+                int iSequence = 0;
+                int nPageWlk = nPageFrom;
+
+                while (nPageWlk <= nPageTo && nPageWlk <= nPagesDoc) {
+
+                    collectPage(pdfCollector, collectedPdfCopy, pdfReader,
+                            nPageWlk);
+
+                    nTotalOutPages++;
+
+                    nPageWlk++;
+                    iSequence++;
+                }
+
+                /*
+                 * When this is NOT the last sequence of the collected
+                 * document...
+                 */
+                if (iSequence < nPageSequence
+                        && i + 1 < calcParms.getNumberOfCopies()) {
+                    /*
+                     * ... append blank pages.
+                     */
+                    for (int k = 0; k < nBlankPagesToAppend; k++) {
+                        pdfCollector.addBlankPage(collectedPdfCopy);
+                        nTotalOutPages++;
+                    }
+                }
+            }
+        }
+
+        return nTotalOutPages;
+    }
+
+    /**
+     * Collects a page.
+     *
+     * @param pdfCollector
+     *            The {@link PdfPrintCollector}.
+     * @param collectedPdfCopy
+     *            The {@link PdfCopy} to collect the pages on.
+     * @param pdfReader
+     *            The {@link PdfReader}.
+     * @param nPage
+     *            The 1-based page ordinal in the PDF reader.
+     * @throws IOException
+     *             When IO errors.
+     * @throws DocumentException
+     *             When PDF errors.
+     */
+    private static void collectPage(final PdfPrintCollector pdfCollector,
+            final PdfCopy collectedPdfCopy, final PdfReader pdfReader,
+            final int nPage) throws IOException, DocumentException {
+
+        final boolean pageContentsPresent =
+                ITextPdfCreator.isPageContentsPresent(pdfReader, nPage);
+
+        if (pageContentsPresent) {
+
+            collectedPdfCopy.addPage(collectedPdfCopy.getImportedPage(
+                    pdfReader, nPage));
+
+        } else {
+            /*
+             * Replace page without /Contents with our own blank content. See
+             * Mantis #614.
+             */
+            pdfCollector.addBlankPage(collectedPdfCopy);
+        }
     }
 }

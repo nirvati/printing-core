@@ -24,11 +24,11 @@ package org.savapage.core.print.proxy;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.savapage.core.pdf.PdfCollator;
+import org.savapage.core.pdf.PdfPrintCollector;
 
 /**
  * Test cases for
- * {@link PdfCollator#calcBlankCollatePagesToAppend(ProxyPrintSheetsCalcParms)}.
+ * {@link PdfPrintCollector#calcBlankAppendPagesOfCopy(ProxyPrintSheetsCalcParms)}.
  * .
  *
  * @author Datraverse B.V.
@@ -46,7 +46,7 @@ public class PdfCollateTest {
      */
     public static int calcBlankCollatePagesToAppend(
             final ProxyPrintSheetsCalcParms calcParms) {
-        return PdfCollator.calcBlankCollatePagesToAppend(calcParms);
+        return PdfPrintCollector.calcBlankAppendPagesOfCopy(calcParms);
     }
 
     private static final boolean DUPLEX = true;

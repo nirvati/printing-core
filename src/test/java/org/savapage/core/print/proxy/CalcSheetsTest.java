@@ -24,11 +24,11 @@ package org.savapage.core.print.proxy;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.savapage.core.pdf.PdfCollator;
+import org.savapage.core.pdf.PdfPrintCollector;
 
 /**
  * Test cases for
- * {@link PdfCollator#calcNumberOfPrintedSheets(int, int, boolean, int, boolean, boolean, boolean)}
+ * {@link PdfPrintCollector#calcNumberOfPrintedSheets(int, int, boolean, int, boolean, boolean, boolean)}
  * .
  * <p>
  * References:
@@ -57,7 +57,7 @@ public class CalcSheetsTest {
         int copies = 1;
 
         // ----------------
-        assertEquals("1 page, 1-up", 1, PdfCollator.calcNumberOfPrintedSheets(
+        assertEquals("1 page, 1-up", 1, PdfPrintCollector.calcNumberOfPrintedSheets(
                 numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
                 coverPageBefore, coverPageAfter));
     }
@@ -74,7 +74,7 @@ public class CalcSheetsTest {
         int nUp = 4;
         int copies = 1;
 
-        assertEquals("2 pages, 4-up", 1, PdfCollator.calcNumberOfPrintedSheets(
+        assertEquals("2 pages, 4-up", 1, PdfPrintCollector.calcNumberOfPrintedSheets(
                 numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
                 coverPageBefore, coverPageAfter));
     }
@@ -91,7 +91,7 @@ public class CalcSheetsTest {
         int nUp = 2;
         int copies = 1;
 
-        assertEquals("2 pages, 2-up", 1, PdfCollator.calcNumberOfPrintedSheets(
+        assertEquals("2 pages, 2-up", 1, PdfPrintCollector.calcNumberOfPrintedSheets(
                 numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
                 coverPageBefore, coverPageAfter));
     }
@@ -108,7 +108,7 @@ public class CalcSheetsTest {
         int nUp = 2;
         int copies = 1;
 
-        assertEquals("3 pages, 2-up", 2, PdfCollator.calcNumberOfPrintedSheets(
+        assertEquals("3 pages, 2-up", 2, PdfPrintCollector.calcNumberOfPrintedSheets(
                 numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
                 coverPageBefore, coverPageAfter));
     }
@@ -126,7 +126,7 @@ public class CalcSheetsTest {
         int copies = 2;
 
         assertEquals("3 pages, 4-up, 2 copies", 2,
-                PdfCollator.calcNumberOfPrintedSheets(numberOfPages, copies,
+                PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages, copies,
                         duplex, nUp, oddOrEvenSheets, coverPageBefore,
                         coverPageAfter));
     }
