@@ -147,12 +147,12 @@
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
-			<version>10.11.1.1</version>
+			<version>10.12.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derbytools</artifactId>
-			<version>10.11.1.1</version>
+			<version>10.12.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -162,7 +162,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
-			<version>4.3.10.Final</version>
+			<version>4.3.11.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-beanutils</groupId>
@@ -177,18 +177,13 @@
 		<dependency>
 			<groupId>org.quartz-scheduler</groupId>
 			<artifactId>quartz</artifactId>
-			<version>2.2.1</version>
+			<version>2.2.2</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>c3p0</artifactId>
 					<groupId>c3p0</groupId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm.icu</groupId>
-			<artifactId>icu4j</artifactId>
-			<version>3.8</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>
@@ -203,7 +198,7 @@
 		<dependency>
 			<groupId>org.cometd.java</groupId>
 			<artifactId>cometd-java-client</artifactId>
-			<version>3.0.5</version>
+			<version>3.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-net</groupId>
@@ -233,7 +228,7 @@
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
-			<version>6.1.0</version>
+			<version>6.2.0</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>bcmail-jdk14</artifactId>
@@ -261,7 +256,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.5</version>
+			<version>4.5.1</version>
 		</dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -282,7 +277,7 @@
 		<dependency>
 			<groupId>net.sourceforge.htmlcleaner</groupId>
 			<artifactId>htmlcleaner</artifactId>
-			<version>2.13</version>
+			<version>2.15</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.opencsv</groupId>
@@ -302,17 +297,17 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
-			<version>4.5</version>
+			<version>4.5.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-c3p0</artifactId>
-			<version>4.3.10.Final</version>
+			<version>4.3.11.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>9.4-1201-jdbc41</version>
+			<version>9.4-1205-jdbc41</version>
 		</dependency>
 		<dependency>
 			<groupId>org.snmp4j</groupId>
@@ -327,22 +322,22 @@
         <dependency>
         	<groupId>org.bouncycastle</groupId>
         	<artifactId>bcpkix-jdk15on</artifactId>
-        	<version>1.52</version>
+        	<version>1.53</version>
         </dependency>
         <dependency>
         	<groupId>org.xhtmlrenderer</groupId>
         	<artifactId>flying-saucer-pdf-itext5</artifactId>
-        	<version>9.0.7</version>
+        	<version>9.0.8</version>
         </dependency>
         <dependency>
         	<groupId>com.itextpdf</groupId>
         	<artifactId>itextpdf</artifactId>
-        	<version>5.5.6</version>
+        	<version>5.5.7</version>
         </dependency>
         <dependency>
         	<groupId>com.itextpdf</groupId>
         	<artifactId>itext-pdfa</artifactId>
-        	<version>5.5.6-1</version>
+        	<version>5.5.7</version>
         </dependency>
         <dependency>
         	<groupId>org.antlr</groupId>

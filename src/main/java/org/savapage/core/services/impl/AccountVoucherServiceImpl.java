@@ -23,6 +23,7 @@ package org.savapage.core.services.impl;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
@@ -39,8 +40,6 @@ import org.savapage.core.services.AccountVoucherService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.AccountVoucherUtil;
 import org.savapage.core.util.BigDecimalUtil;
-
-import com.ibm.icu.util.Calendar;
 
 /**
  *
