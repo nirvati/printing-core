@@ -1044,7 +1044,7 @@ public interface IConfigProp {
          */
         SMARTSCHOOL_SOAP_CONNECT_TIMEOUT_MILLIS(
                 "smartschool.soap.connect-timeout-millis", NUMBER_VALIDATOR,
-                "3000"),
+                "20000"),
 
         /**
          * Timeout in milliseconds to receive data from SmartSchool SOAP
@@ -1052,7 +1052,7 @@ public interface IConfigProp {
          */
         SMARTSCHOOL_SOAP_SOCKET_TIMEOUT_MILLIS(
                 "smartschool.soap.socket-timeout-millis", NUMBER_VALIDATOR,
-                "3000"),
+                "20000"),
 
         /**
          * Is SmartSchool (1) enabled?
