@@ -54,17 +54,6 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
             .getLogger(EcoPrintPdfTaskServiceImpl.class);
 
     /**
-     * The number of threads to keep in the pool, even if they are idle, unless
-     * {@code allowCoreThreadTimeOut} is set.
-     */
-    private static final int THREADPOOL_CORE_SIZE = 2;
-
-    /**
-     * The maximum number of threads to allow in the pool.
-     */
-    private static final int THREADPOOL_MAX_SIZE = 4;
-
-    /**
      * When the number of threads is greater than the
      * {@link EcoPrintPdfTaskServiceImpl#THREADPOOL_CORE_SIZE}, this is the
      * maximum time that excess idle threads will wait for new tasks before
@@ -107,9 +96,30 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
      */
     public EcoPrintPdfTaskServiceImpl() {
 
+        /*
+         * The optimum size of a thread pool depends on the number of processors
+         * available and the nature of the tasks on the work queue. On an
+         * N-processor system for a work queue that will hold entirely
+         * compute-bound tasks, you will generally achieve maximum CPU
+         * utilization with a thread pool of N or N+1 threads.
+         *
+         * http://www.ibm.com/developerworks/library/j-jtp0730/index.html
+         */
+
+        /*
+         * The maximum number of threads to allow in the pool.
+         */
+        final int maximumPoolSize = Runtime.getRuntime().availableProcessors();
+
+        /*
+         * The number of threads to keep in the pool, even if they are idle,
+         * unless allowCoreThreadTimeOut is set.
+         */
+        final int corePoolSize = maximumPoolSize;
+
         this.executorPool =
-                new EcoPrintPdfTaskThreadPoolExecutor(THREADPOOL_CORE_SIZE,
-                        THREADPOOL_MAX_SIZE, THREADPOOL_KEEP_ALIVE_SECONDS,
+                new EcoPrintPdfTaskThreadPoolExecutor(corePoolSize,
+                        maximumPoolSize, THREADPOOL_KEEP_ALIVE_SECONDS,
                         TimeUnit.SECONDS, this.workQueue,
                         Executors.defaultThreadFactory(), this.rejectionHandler);
     }
