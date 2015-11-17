@@ -32,6 +32,7 @@ import org.savapage.core.SpException;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -145,9 +146,24 @@ public abstract class JsonAbstractBase {
      * @throws IOException
      *             When serialization fails.
      */
-    public static String asJsonString(final Map<String, Object> map)
+    public static String stringifyObjectMap(final Map<String, Object> map)
             throws IOException {
         return getMapper().writeValueAsString(map);
+    }
+
+    /**
+     * Creates a JSON string from a {@link Map}.
+     *
+     * @param map
+     *            The {@link Map}
+     * @return The JSON String.
+     */
+    public static String stringifyStringMap(final Map<String, String> map) {
+        try {
+            return getMapper().writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            throw new SpException(e.getMessage(), e);
+        }
     }
 
     /**

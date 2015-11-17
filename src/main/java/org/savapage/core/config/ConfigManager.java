@@ -2160,7 +2160,7 @@ public final class ConfigManager {
     }
 
     /**
-     * Sets the Hibernate adn system properties for Derby.
+     * Sets the Hibernate and system properties for Derby.
      *
      * @param properties
      *            The properties.

@@ -85,6 +85,11 @@ public abstract class AbstractPdfCreator {
     private boolean convertToEcoPdf = false;
 
     /**
+     * {@code true} when graphics are removed from PDF.
+     */
+    private boolean removeGraphics = false;
+
+    /**
      * {@code true} when PDF EcoPrint shadow files are used.
      */
     private boolean useEcoPdfShadow = false;
@@ -346,6 +351,8 @@ public abstract class AbstractPdfCreator {
 
         this.isGrayscalePdf = createReq.isGrayscale();
 
+        this.removeGraphics = createReq.isRemoveGraphics();
+
         /*
          * INVARIANT: if PDF is meant for export, DRM-restricted content is not
          * allowed.
@@ -502,8 +509,7 @@ public abstract class AbstractPdfCreator {
 
                     int nPageTo = rangeAtom.pageEnd;
 
-                    onProcessJobPages(nPageFrom, nPageTo,
-                            createReq.isRemoveGraphics());
+                    onProcessJobPages(nPageFrom, nPageTo, this.removeGraphics);
 
                     if (uuidPageCount != null) {
                         totUuidPages += nPageTo - nPageFrom + 1;
@@ -533,6 +539,10 @@ public abstract class AbstractPdfCreator {
                 docOut = new DocOut();
                 docLog.setDocOut(docOut);
                 docOut.setDocLog(docLog);
+
+                docOut.setEcoPrint(Boolean.valueOf(this.useEcoPdfShadow
+                        || this.convertToEcoPdf));
+                docOut.setRemoveGraphics(Boolean.valueOf(this.removeGraphics));
             }
 
             // --------------------------------------------------------

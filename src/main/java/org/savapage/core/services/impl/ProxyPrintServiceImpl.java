@@ -1033,7 +1033,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         final DocOut docOut = docLog.getDocOut();
 
         docLog.setDeliveryProtocol(DocLogProtocolEnum.IPP.getDbName());
+
         docOut.setDestination(printer.getName());
+        docOut.setEcoPrint(Boolean.valueOf(request.isEcoPrint()
+                || request.isEcoPrintShadow()));
+        docOut.setRemoveGraphics(Boolean.valueOf(request.isRemoveGraphics()));
+
         docLog.setTitle(request.getJobName());
 
         final PrintOut printOut = new PrintOut();
@@ -1045,6 +1050,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         printOut.setCupsCreationTime(printJob.getCreationTime());
 
         printOut.setDuplex(duplex);
+        printOut.setReversePages(false);
 
         printOut.setGrayscale(grayscale);
 
@@ -1054,6 +1060,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         printOut.setNumberOfCopies(request.getNumberOfCopies());
         printOut.setNumberOfSheets(numberOfSheets);
+
+        if (request.getNumberOfCopies() > 1) {
+            printOut.setCollateCopies(Boolean.valueOf(request.isCollate()));
+        }
 
         printOut.setPaperSize(mediaSizeName.toString());
 
@@ -1065,6 +1075,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 printOut.getPaperWidth(), printOut.getPaperHeight()));
 
         printOut.setPrinter(printer.getDbPrinter());
+
+        printOut.setIppOptions(JsonAbstractBase.stringifyStringMap(request
+                .getOptionValues()));
 
         docOut.setPrintOut(printOut);
     }

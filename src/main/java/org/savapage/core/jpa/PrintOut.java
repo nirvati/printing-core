@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -107,6 +107,19 @@ public class PrintOut extends org.savapage.core.jpa.Entity {
     @Column(name = "total_esu", nullable = false, insertable = true,
             updatable = true)
     private Long numberOfEsu;
+
+    //
+    @Column(name = "collate_copies", nullable = true, insertable = true,
+            updatable = true)
+    private Boolean collateCopies;
+
+    @Column(name = "reverse_pages", nullable = false, insertable = true,
+            updatable = true)
+    private Boolean reversePages;
+
+    @Column(name = "ipp_options", length = 2000, nullable = true,
+            insertable = true, updatable = true)
+    private String ippOptions;
 
     /**
      * CUPS Print jobs are identified by a locally-unique job ID number from 1
@@ -260,6 +273,30 @@ public class PrintOut extends org.savapage.core.jpa.Entity {
 
     public void setNumberOfEsu(Long numberOfEsu) {
         this.numberOfEsu = numberOfEsu;
+    }
+
+    public Boolean getCollateCopies() {
+        return collateCopies;
+    }
+
+    public void setCollateCopies(Boolean collateCopies) {
+        this.collateCopies = collateCopies;
+    }
+
+    public Boolean getReversePages() {
+        return reversePages;
+    }
+
+    public void setReversePages(Boolean reversePages) {
+        this.reversePages = reversePages;
+    }
+
+    public String getIppOptions() {
+        return ippOptions;
+    }
+
+    public void setIppOptions(String ippOptions) {
+        this.ippOptions = ippOptions;
     }
 
     public Integer getCupsJobId() {

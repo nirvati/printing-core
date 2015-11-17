@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -78,6 +78,14 @@ public class DocOut extends org.savapage.core.jpa.Entity {
             updatable = true)
     private Boolean letterhead;
 
+    @Column(name = "ecoprint", nullable = false, insertable = true,
+            updatable = true)
+    private Boolean ecoPrint;
+
+    @Column(name = "remove_graphics", nullable = false, insertable = true,
+            updatable = true)
+    private Boolean removeGraphics;
+
     @OneToOne(mappedBy = "docOut", cascade = { CascadeType.ALL },
             fetch = FetchType.EAGER, optional = false)
     private DocLog docLog;
@@ -139,6 +147,22 @@ public class DocOut extends org.savapage.core.jpa.Entity {
 
     public void setLetterhead(Boolean letterhead) {
         this.letterhead = letterhead;
+    }
+
+    public Boolean getEcoPrint() {
+        return ecoPrint;
+    }
+
+    public void setEcoPrint(Boolean ecoPrint) {
+        this.ecoPrint = ecoPrint;
+    }
+
+    public Boolean getRemoveGraphics() {
+        return removeGraphics;
+    }
+
+    public void setRemoveGraphics(Boolean removeGraphics) {
+        this.removeGraphics = removeGraphics;
     }
 
     public DocLog getDocLog() {
