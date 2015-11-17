@@ -471,8 +471,6 @@ public final class OutputProducer {
      *            one-pixel).
      * @param ecoPdf
      *            <code>true</code> if Eco PDF is to be generated.
-     * @param grayscale
-     *            <code>true</code> if Grayscale PDF is to be generated.
      * @param docLog
      *            The document log to update.
      * @return File object with generated PDF.
@@ -484,9 +482,9 @@ public final class OutputProducer {
      */
     public File generatePdfForExport(final User user, final String pdfFile,
             final String documentPageRangeFilter, final boolean removeGraphics,
-            final boolean ecoPdf, final boolean grayscale, final DocLog docLog)
-            throws IOException, LetterheadNotFoundException,
-            PostScriptDrmException, EcoPrintPdfTaskPendingException {
+            final boolean ecoPdf, final DocLog docLog) throws IOException,
+            LetterheadNotFoundException, PostScriptDrmException,
+            EcoPrintPdfTaskPendingException {
 
         final LinkedHashMap<String, Integer> uuidPageCount =
                 new LinkedHashMap<>();
@@ -512,7 +510,6 @@ public final class OutputProducer {
         pdfRequest.setApplyLetterhead(true);
         pdfRequest.setForPrinting(false);
         pdfRequest.setEcoPdfShadow(ecoPdf);
-        pdfRequest.setGrayscale(grayscale);
 
         final File file = generatePdf(pdfRequest, uuidPageCount, docLog);
 

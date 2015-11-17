@@ -103,12 +103,6 @@ public abstract class AbstractProxyPrintReq implements
      */
     private boolean collate;
 
-    /**
-     * <code>true</code> if PDF needs to be converted to grayscale before proxy
-     * printing.
-     */
-    private boolean convertToGrayscale;
-
     private Locale locale = Locale.getDefault();
 
     private String userMsg;
@@ -226,14 +220,6 @@ public abstract class AbstractProxyPrintReq implements
 
     public void setCollate(boolean collate) {
         this.collate = collate;
-    }
-
-    public boolean isConvertToGrayscale() {
-        return convertToGrayscale;
-    }
-
-    public void setConvertToGrayscale(boolean convertToGrayscale) {
-        this.convertToGrayscale = convertToGrayscale;
     }
 
     @Override

@@ -24,6 +24,7 @@ package org.savapage.core.dto;
 import java.util.List;
 import java.util.Locale;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  */
 @JsonInclude(Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class ProxyPrinterMediaSourcesDto extends AbstractDto {
 
     /**
@@ -80,11 +82,6 @@ public final class ProxyPrinterMediaSourcesDto extends AbstractDto {
     private Boolean defaultMonochrome;
 
     /**
-     * {@code true} if client-side monochrome conversion.
-     */
-    private Boolean clientSideMonochrome;
-
-    /**
      *
      * @return
      */
@@ -126,25 +123,6 @@ public final class ProxyPrinterMediaSourcesDto extends AbstractDto {
 
     public void setDefaultMonochrome(Boolean defaultMonochrome) {
         this.defaultMonochrome = defaultMonochrome;
-    }
-
-    /**
-     *
-     * @return {@code true} if monochrome conversion is performed client-side
-     *         (locally).
-     */
-    public Boolean getClientSideMonochrome() {
-        return clientSideMonochrome;
-    }
-
-    /**
-     *
-     * @param clientSideMonochrome
-     *            {@code true} if monochrome conversion is performed client-side
-     *            (locally).
-     */
-    public void setClientSideMonochrome(Boolean clientSideMonochrome) {
-        this.clientSideMonochrome = clientSideMonochrome;
     }
 
     public String getLanguage() {

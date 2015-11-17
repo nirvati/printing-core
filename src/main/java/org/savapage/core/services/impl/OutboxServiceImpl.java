@@ -55,8 +55,8 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.LocaleInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
-import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.pdf.PdfCreateRequest;
+import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
@@ -356,7 +356,6 @@ public final class OutboxServiceImpl extends AbstractService implements
             pdfRequest.setEcoPdf(request.isEcoPrint());
             pdfRequest.setEcoPdfShadow(request.isEcoPrintShadow());
 
-            pdfRequest.setGrayscale(request.isConvertToGrayscale());
             pdfRequest.setApplyPdfProps(!APPLY_PDF_PROPS);
             pdfRequest.setApplyLetterhead(APPLY_LETTERHEAD);
             pdfRequest.setForPrinting(PDF_FOR_PRINTING);

@@ -171,19 +171,6 @@ public interface PrinterService {
     String getPrintColorModeDefault(final Printer printer);
 
     /**
-     * Checks if monochrome conversion is performed client-side (locally).
-     * <p>
-     * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
-     * find the value of {@link PrinterAttrEnum#CLIENT_SIDE_MONOCHROME}.
-     * </p>
-     *
-     * @param printer
-     *            The {@link Printer}.
-     * @return {@code true} if monochrome conversion is performed client-side.
-     */
-    boolean isClientSideMonochrome(Printer printer);
-
-    /**
      * Sets printer instance as logically deleted (database is NOT updated).
      *
      * @param printer

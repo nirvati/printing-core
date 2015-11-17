@@ -95,11 +95,6 @@ public abstract class AbstractPdfCreator {
     private boolean useEcoPdfShadow = false;
 
     /**
-     * {@code true} when Grayscale PDF is to be created.
-     */
-    private boolean isGrayscalePdf = false;
-
-    /**
      *
      */
     protected String myPdfFileLetterhead = null;
@@ -132,14 +127,6 @@ public abstract class AbstractPdfCreator {
      */
     protected final boolean isConvertToEcoPdf() {
         return this.convertToEcoPdf;
-    }
-
-    /**
-     *
-     * @return {@code true} when Grayscale PDF is to be created.
-     */
-    protected final boolean isGrayscalePdf() {
-        return this.isGrayscalePdf;
     }
 
     /**
@@ -348,8 +335,6 @@ public abstract class AbstractPdfCreator {
 
         this.pdfFile = createReq.getPdfFile();
         this.isForPrinting = createReq.isForPrinting();
-
-        this.isGrayscalePdf = createReq.isGrayscale();
 
         this.removeGraphics = createReq.isRemoveGraphics();
 

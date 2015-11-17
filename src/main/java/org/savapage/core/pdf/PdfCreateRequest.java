@@ -76,11 +76,6 @@ public final class PdfCreateRequest {
      */
     private boolean ecoPdfShadow;
 
-    /**
-     * {@code true} if grayscale PDF is to be created.
-     */
-    private boolean grayscale;
-
     public User getUserObj() {
         return userObj;
     }
@@ -166,14 +161,6 @@ public final class PdfCreateRequest {
      */
     public void setEcoPdfShadow(boolean ecoPdfShadow) {
         this.ecoPdfShadow = ecoPdfShadow;
-    }
-
-    public boolean isGrayscale() {
-        return grayscale;
-    }
-
-    public void setGrayscale(boolean grayscale) {
-        this.grayscale = grayscale;
     }
 
 }

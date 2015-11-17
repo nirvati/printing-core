@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -288,27 +288,6 @@ public class PrinterServiceImpl extends AbstractService implements
             }
         }
         return null;
-    }
-
-    @Override
-    public final boolean isClientSideMonochrome(final Printer printer) {
-
-        final List<PrinterAttr> attributes = printer.getAttributes();
-
-        if (attributes != null) {
-
-            final String targetName =
-                    PrinterAttrEnum.CLIENT_SIDE_MONOCHROME.getDbName();
-
-            for (final PrinterAttr printerAttr : attributes) {
-
-                if (printerAttr.getName().equals(targetName)) {
-                    return printerAttr.getValue().equals(
-                            Boolean.TRUE.toString());
-                }
-            }
-        }
-        return false;
     }
 
     @Override

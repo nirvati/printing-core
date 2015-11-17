@@ -66,13 +66,7 @@ public enum PrinterAttrEnum {
      * {"scope":"allow","groups":["Staff","ICT"]}
      * </p>
      */
-    ACCESS_USER_GROUPS("access.user-groups"),
-
-    /**
-     * Is monochrome conversion performed client-side (locally)? Boolean:
-     * {@code true|false}.
-     */
-    CLIENT_SIDE_MONOCHROME("filter.monochrome.client-side");
+    ACCESS_USER_GROUPS("access.user-groups");
 
     /**
      *

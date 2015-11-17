@@ -64,9 +64,6 @@ import org.savapage.core.dao.helpers.DocLogProtocolEnum;
 import org.savapage.core.dao.helpers.PrintModeEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentToPdfException;
-import org.savapage.core.doc.DocContentTypeEnum;
-import org.savapage.core.doc.IFileConverter;
-import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
@@ -2935,32 +2932,6 @@ public final class SmartSchoolPrintMonitor {
         }
 
         /*
-         * Client-side monochrome filtering?
-         */
-        final File fileToPrint;
-
-        File downloadedFileConverted = null;
-
-        if (isColorPrinter && printReq.isGrayscale()
-                && PRINTER_SERVICE.isClientSideMonochrome(printer)) {
-
-            final IFileConverter converter = new PdfToGrayscale();
-
-            downloadedFileConverted =
-                    converter.convert(DocContentTypeEnum.PDF, downloadedFile);
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(String.format("[%s] converted to grayscale.",
-                        printReq.getJobName()));
-            }
-
-            fileToPrint = downloadedFileConverted;
-
-        } else {
-            fileToPrint = downloadedFile;
-        }
-
-        /*
          * Proxy Print Transaction.
          */
         ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
@@ -2981,7 +2952,7 @@ public final class SmartSchoolPrintMonitor {
             final User lockedUser = userDao.lock(user.getId());
 
             PROXY_PRINT_SERVICE
-                    .proxyPrintPdf(lockedUser, printReq, fileToPrint);
+                    .proxyPrintPdf(lockedUser, printReq, downloadedFile);
 
             daoContext.commit();
 
@@ -2994,11 +2965,6 @@ public final class SmartSchoolPrintMonitor {
 
             daoContext.rollback();
             ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
-
-            if (downloadedFileConverted != null
-                    && downloadedFileConverted.exists()) {
-                downloadedFileConverted.delete();
-            }
         }
     }
 
