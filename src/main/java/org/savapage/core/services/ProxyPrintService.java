@@ -67,6 +67,7 @@ import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
+import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.snmp.SnmpConnectException;
 
 /**
@@ -377,19 +378,11 @@ public interface ProxyPrintService {
      * creation-time. If there is no match, i.e. when creation times differs, no
      * update is done.
      *
-     * @return A three element int array with statistics.
-     *         <ul>
-     *         <li>Index 0 : the number of active PrintOut jobs.</li>
-     *         <li>Index 1 : the number of jobs that were update with a new CUPS
-     *         state.</li>
-     *         <li>Index 2 : the number of jobs that were not found in CUPS:
-     *         this could be due to an off-line or disabled printer, or a
-     *         printer that has been removed.</li>
-     *         </ul>
+     * @return The {@link SyncPrintJobsResult}.
      * @throws IppConnectException
      *             When a connection error occurs.
      */
-    int[] syncPrintJobs() throws IppConnectException;
+    SyncPrintJobsResult syncPrintJobs() throws IppConnectException;
 
     /**
      * Gets the {@link Printer} object while validating {@link User} access.

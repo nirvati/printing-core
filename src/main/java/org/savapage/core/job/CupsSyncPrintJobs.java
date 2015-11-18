@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,7 @@ import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.util.AppLogHelper;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,8 @@ public final class CupsSyncPrintJobs extends AbstractJob {
     @Override
     protected void onInit(final JobExecutionContext ctx) {
         ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
-        ReadWriteLockEnum.PRINT_OUT_HISTORY.setWriteLock(true);    }
+        ReadWriteLockEnum.PRINT_OUT_HISTORY.setWriteLock(true);
+    }
 
     @Override
     protected void onExit(final JobExecutionContext ctx) {
@@ -86,24 +88,25 @@ public final class CupsSyncPrintJobs extends AbstractJob {
 
         try {
 
-            final int[] stats = proxyPrintService.syncPrintJobs();
+            final SyncPrintJobsResult syncResult =
+                    proxyPrintService.syncPrintJobs();
 
             daoContext.commit();
             rollback = false;
 
-            if (stats[0] > 0) {
+            if (syncResult.getJobsActive() > 0) {
                 msg =
                         AppLogHelper.logInfo(getClass(),
                                 "CupsSyncPrintJobs.success",
-                                String.valueOf(stats[0]),
-                                String.valueOf(stats[1]),
-                                String.valueOf(stats[2]));
+                                String.valueOf(syncResult.getJobsActive()),
+                                String.valueOf(syncResult.getJobsUpdated()),
+                                String.valueOf(syncResult.getJobsNotFound()));
             } else {
                 msg =
                         localizeSysMsg("CupsSyncPrintJobs.success",
-                                String.valueOf(stats[0]),
-                                String.valueOf(stats[1]),
-                                String.valueOf(stats[2]));
+                                String.valueOf(syncResult.getJobsActive()),
+                                String.valueOf(syncResult.getJobsUpdated()),
+                                String.valueOf(syncResult.getJobsNotFound()));
             }
 
         } catch (Exception e) {
@@ -127,5 +130,4 @@ public final class CupsSyncPrintJobs extends AbstractJob {
         }
 
     }
-
 }

@@ -31,6 +31,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -72,6 +73,7 @@ import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.inbox.OutputProducer;
+import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.IppSyntaxException;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
@@ -121,6 +123,7 @@ import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.PrinterSnmpReader;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 import org.savapage.core.services.helpers.ProxyPrintInboxReqChunker;
+import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.snmp.SnmpClientSession;
 import org.savapage.core.snmp.SnmpConnectException;
 import org.savapage.core.util.MediaUtils;
@@ -936,32 +939,37 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public final int[] syncPrintJobs() throws IppConnectException {
-
-        final int[] stats = new int[3];
-
-        for (int i = 0; i < stats.length; i++) {
-            stats[i] = 0;
-        }
+    public final SyncPrintJobsResult syncPrintJobs() throws IppConnectException {
 
         /*
-         * constants
+         * Constants
          */
         final int nChunkMax = 50;
 
         /*
          * Init batch.
          */
-        final List<PrintOut> list = printOutDAO().findActiveCupsJobs();
+        final List<PrintOut> printOutList = printOutDAO().findActiveCupsJobs();
 
+        //
         final Map<Integer, PrintOut> lookupPrintOut = new HashMap<>();
-
-        for (final PrintOut printOut : list) {
+        for (final PrintOut printOut : printOutList) {
             lookupPrintOut.put(printOut.getCupsJobId(), printOut);
         }
 
-        stats[0] = list.size();
+        // The number of active PrintOut jobs.
+        final int jobsActive = printOutList.size();
 
+        // The number of PrintOut jobs that were updated with a new CUPS state.
+        int jobsUpdated = 0;
+
+        // The number of jobs that were not found in CUPS.
+        int jobsNotFound = 0;
+
+        //
+        final Set<Integer> cupsJobsFound = new HashSet<>();
+
+        //
         int i = 0;
         int iChunk = 0;
         PrintOut printOut = null;
@@ -970,15 +978,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
         List<Integer> jobIds = null;
 
         /*
-         * initial read
+         * Initial read.
          */
-        if (i < list.size()) {
-            printOut = list.get(i);
+        if (i < printOutList.size()) {
+            printOut = printOutList.get(i);
             printer = printOut.getPrinter().getPrinterName();
         }
 
         /*
-         * processing loop
+         * Processing loop.
          */
         while (printOut != null) {
 
@@ -991,14 +999,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
             jobIds.add(printOut.getCupsJobId());
 
             /*
-             * read next
+             * Read next.
              */
             printOut = null;
             i++;
             iChunk++;
 
-            if (i < list.size()) {
-                printOut = list.get(i);
+            if (i < printOutList.size()) {
+                printOut = printOutList.get(i);
                 printer = printOut.getPrinter().getPrinterName();
             }
 
@@ -1011,19 +1019,19 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 final List<JsonProxyPrintJob> cupsJobs =
                         retrievePrintJobs(printerPrv, jobIds);
 
-                stats[2] += (iChunk - cupsJobs.size());
+                jobsNotFound += (iChunk - cupsJobs.size());
 
-                /**
-                 *
-                 */
                 for (final JsonProxyPrintJob cupsJob : cupsJobs) {
+
+                    final Integer cupsJobId = cupsJob.getJobId();
+
+                    cupsJobsFound.add(cupsJobId);
 
                     /*
                      * Since the list of retrieved jobs does NOT contain jobs
                      * that were NOT found, we use the lookup map.
                      */
-                    final PrintOut printOutWlk =
-                            lookupPrintOut.get(cupsJob.getJobId());
+                    final PrintOut printOutWlk = lookupPrintOut.get(cupsJobId);
 
                     /*
                      * It turns out that when using IPP (HTTP) there might be a
@@ -1037,8 +1045,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace("MISMATCH printer [" + printerPrv
-                                    + "] job [" + cupsJob.getJobId()
-                                    + "] state [" + cupsJob.getJobState()
+                                    + "] job [" + cupsJobId + "] state ["
+                                    + cupsJob.getJobState()
                                     + "] created in CUPS ["
                                     + cupsJob.getCreationTime() + "] in log ["
                                     + printOutWlk.getCupsCreationTime() + "]");
@@ -1058,26 +1066,50 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace("printer [" + printerPrv + "] job ["
-                                    + cupsJob.getJobId() + "] state ["
+                                    + cupsJobId + "] state ["
                                     + cupsJob.getJobState() + "] completed ["
                                     + cupsJob.getCompletedTime() + "]");
                         }
-                        stats[1]++;
+                        jobsUpdated++;
                     }
 
                 }
 
                 iChunk = 0;
-
             }
         }
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Syncing [" + stats[0] + "] active PrintOut jobs "
-                    + "with CUPS : updated [" + stats[1] + "], not found ["
-                    + stats[2] + "]");
+        /*
+         * Handle the jobs not found.
+         */
+        if (jobsNotFound > 0) {
+
+            final Iterator<PrintOut> iter = printOutList.iterator();
+
+            while (iter.hasNext()) {
+
+                final PrintOut printOutWlk = iter.next();
+
+                if (cupsJobsFound.contains(printOutWlk.getCupsJobId())) {
+                    continue;
+                }
+                // Set completed time to null, so we know we interpreted the
+                // status as completed.
+                printOutWlk.setCupsCompletedTime(null);
+                printOutWlk.setCupsJobState(Integer
+                        .valueOf(IppJobStateEnum.IPP_JOB_COMPLETED.asInt()));
+                printOutDAO().update(printOutWlk);
+            }
         }
-        return stats;
+
+        //
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Syncing [" + jobsActive + "] active PrintOut jobs "
+                    + "with CUPS : updated [" + jobsUpdated + "], not found ["
+                    + jobsNotFound + "]");
+        }
+
+        return new SyncPrintJobsResult(jobsActive, jobsUpdated, jobsNotFound);
     }
 
     /**
