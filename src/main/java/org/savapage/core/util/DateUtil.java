@@ -56,6 +56,12 @@ public final class DateUtil {
     public static final int MSEC_IN_HUNDREDTH_OF_SECOND = 10;
 
     /**
+     * The number of seconds in a minute.
+     */
+    public static final int SECONDS_IN_MINUTE = 60;
+
+
+    /**
      *
      */
     private DateUtil() {

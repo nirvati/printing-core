@@ -1737,6 +1737,12 @@ public interface IConfigProp {
                 NUMBER_VALIDATOR, "30"),
 
         /**
+         * .
+         */
+        WEB_LOGIN_AUTHTOKEN_ENABLE("web-login.authtoken.enable",
+                BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * Inactivity timeout (minutes) for the admin web interface.
          */
         WEB_LOGIN_ADMIN_SESSION_TIMOUT_MINS(
