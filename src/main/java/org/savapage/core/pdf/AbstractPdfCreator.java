@@ -245,9 +245,8 @@ public abstract class AbstractPdfCreator {
 
     /**
      *
-     * @return {@code true} if encryption is applied.
      */
-    protected abstract boolean onStampEncryptionForPrinting();
+    protected abstract void onStampEncryptionForPrinting();
 
     /**
      *
@@ -631,9 +630,9 @@ public abstract class AbstractPdfCreator {
 
             } else if (createReq.isForPrinting()) {
 
-                final boolean isEncrypted = onStampEncryptionForPrinting();
+                onStampEncryptionForPrinting();
 
-                if (isEncrypted && docLog != null) {
+                if (docLog != null) {
                     docLog.setDrmRestricted(true);
                 }
             }
