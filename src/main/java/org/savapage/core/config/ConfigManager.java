@@ -266,11 +266,17 @@ public final class ConfigManager {
     // ========================================================================
 
     /**
-     *
+     * .
      */
     public static final String SYS_PROP_SERVER_HOME = "server.home";
 
-    private static final String APP_OWNER = "Datraverse B.V.";
+    /**
+     * .
+     */
+    public static final String SYS_PROP_CLIENT_HOME = "client.home";
+
+    private static final String APP_OWNER = CommunityDictEnum.DATRAVERSE_BV
+            .getWord();
 
     private final CryptoApp myCipher = new CryptoApp();
 
@@ -595,6 +601,19 @@ public final class ConfigManager {
      */
     public static String getServerHome() {
         return System.getProperty(SYS_PROP_SERVER_HOME);
+    }
+
+    /**
+     * @return The {@code client.home} system property as passed to the JVM or
+     *         set internally. If the property is not found the "../client" path
+     *         relative to {@link #getServerHome()} is returned.
+     */
+    public static String getClientHome() {
+        String clientHome = System.getProperty(SYS_PROP_CLIENT_HOME);
+        if (clientHome == null) {
+            clientHome = String.format("%s/../client", getServerHome());
+        }
+        return clientHome;
     }
 
     /**
