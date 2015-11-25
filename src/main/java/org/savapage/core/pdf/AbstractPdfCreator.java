@@ -45,6 +45,7 @@ import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PdfOut;
 import org.savapage.core.jpa.User;
 import org.savapage.core.json.PdfProperties;
+import org.savapage.core.print.proxy.ProxyPrintSheetsCalcParms;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
@@ -78,6 +79,13 @@ public abstract class AbstractPdfCreator {
     protected String pdfFile;
 
     private boolean isForPrinting = false;
+
+    /**
+     * For future use, for now: do NOT encrypt since
+     * {@link PdfPrintCollector#collect(ProxyPrintSheetsCalcParms, boolean, File, File)}
+     * will fail.
+     */
+    private final boolean encryptForPrinting = false;
 
     /**
      * {@code true} when PDF is converted on the fly to EcoImages.
@@ -628,7 +636,7 @@ public abstract class AbstractPdfCreator {
                     }
                 }
 
-            } else if (createReq.isForPrinting()) {
+            } else if (createReq.isForPrinting() && encryptForPrinting) {
 
                 onStampEncryptionForPrinting();
 
