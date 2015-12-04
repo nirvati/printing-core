@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -104,6 +104,9 @@ public class DocLogPagerReq extends AbstractPagerReq {
         @JsonProperty("user_id")
         private Long userId = null;
 
+        @JsonProperty("account_id")
+        private Long accountId = null;
+
         @JsonProperty("printer_id")
         private Long printerId = null;
 
@@ -205,6 +208,14 @@ public class DocLogPagerReq extends AbstractPagerReq {
 
         public void setUserId(Long userId) {
             this.userId = userId;
+        }
+
+        public Long getAccountId() {
+            return accountId;
+        }
+
+        public void setAccountId(Long accountId) {
+            this.accountId = accountId;
         }
 
         public Long getPrinterId() {

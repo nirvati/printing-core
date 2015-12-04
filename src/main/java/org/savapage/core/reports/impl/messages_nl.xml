@@ -4,6 +4,7 @@
 
     <!-- AccountTrxList -->    
     <entry key="accounttrxlist-sel-userid">Gebruiker "{0}"</entry>
+    <entry key="accounttrxlist-sel-account">Account "{0}"</entry>
     <entry key="accounttrxlist-sel-accounttype">{0} account</entry>
     <entry key="accounttrxlist-sel-comment">Commentaar "{0}"</entry>
     <entry key="accounttrxlist-sel-date-from">Van {0}</entry>

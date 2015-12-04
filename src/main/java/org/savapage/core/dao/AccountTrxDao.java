@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ import org.savapage.core.jpa.User;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface AccountTrxDao extends GenericDao<AccountTrx> {
@@ -58,6 +58,8 @@ public interface AccountTrxDao extends GenericDao<AccountTrx> {
     class ListFilter {
 
         private Long userId;
+        private Long accountId;
+
         private AccountTypeEnum accountType;
         private AccountTrxTypeEnum trxType;
         private Date dateFrom;
@@ -70,6 +72,14 @@ public interface AccountTrxDao extends GenericDao<AccountTrx> {
 
         public void setUserId(Long userId) {
             this.userId = userId;
+        }
+
+        public Long getAccountId() {
+            return accountId;
+        }
+
+        public void setAccountId(Long accountId) {
+            this.accountId = accountId;
         }
 
         public AccountTypeEnum getAccountType() {

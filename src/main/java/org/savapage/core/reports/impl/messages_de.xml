@@ -4,6 +4,7 @@
 
     <!-- AccountTrxList -->    
     <entry key="accounttrxlist-sel-userid">Benutzer "{0}"</entry>
+    <entry key="accounttrxlist-sel-account">Konto "{0}"</entry>
     <entry key="accounttrxlist-sel-accounttype">{0} konto</entry>
     <entry key="accounttrxlist-sel-comment">Bemerkung "{0}"</entry>
     <entry key="accounttrxlist-sel-date-from">Von {0}</entry>

@@ -108,34 +108,36 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
 
         final boolean filterAccountType = filter.getAccountType() != null;
 
-        String joinClause;
+        final StringBuilder joinClause = new StringBuilder();
 
         if (filter.getUserId() != null) {
 
-            joinClause =
-                    " JOIN TRX.account AA WHERE AA.id ="
-                            + " (SELECT A.id FROM UserAccount UA"
-                            + " JOIN UA.user U" + " JOIN UA.account A"
-                            + " WHERE U.id = :userId";
+            joinClause.append(" JOIN TRX.account AA WHERE AA.id ="
+                    + " (SELECT A.id FROM UserAccount UA" + " JOIN UA.user U"
+                    + " JOIN UA.account A" + " WHERE U.id = :userId");
 
             if (filterAccountType) {
-                joinClause += " AND A.accountType = :accountType";
+                joinClause.append(" AND A.accountType = :accountType");
             }
 
-            joinClause += ")";
+            joinClause.append(")");
+
+        } else if (filter.getAccountId() != null) {
+
+            joinClause.append(" JOIN TRX.account AA WHERE AA.id = ").append(
+                    filter.getAccountId());
 
         } else {
 
-            joinClause = " JOIN TRX.account AA";
+            joinClause.append(" JOIN TRX.account AA");
 
             if (filterAccountType) {
-                joinClause += " WHERE AA.accountType = :accountType";
+                joinClause.append(" WHERE AA.accountType = :accountType");
             }
-
         }
 
         int nWhere = 0;
-        StringBuilder where = new StringBuilder();
+        final StringBuilder where = new StringBuilder();
 
         if (filter.getTrxType() != null) {
             if (nWhere > 0) {

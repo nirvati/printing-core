@@ -87,6 +87,9 @@ public class AccountTrxPagerReq extends AbstractPagerReq {
         @JsonProperty("user_id")
         private Long userId = null;
 
+        @JsonProperty("account_id")
+        private Long accountId = null;
+
         @JsonProperty("text")
         private String containingText = null;
 
@@ -106,6 +109,14 @@ public class AccountTrxPagerReq extends AbstractPagerReq {
 
         public void setUserId(Long userId) {
             this.userId = userId;
+        }
+
+        public Long getAccountId() {
+            return accountId;
+        }
+
+        public void setAccountId(Long accountId) {
+            this.accountId = accountId;
         }
 
         public AccountTrxTypeEnum getTrxType() {

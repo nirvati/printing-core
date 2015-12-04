@@ -34,6 +34,7 @@ import org.savapage.core.dto.AccountVoucherRedeemDto;
 import org.savapage.core.dto.FinancialDisplayInfoDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
+import org.savapage.core.dto.SharedAccountDisplayInfoDto;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserCreditTransferDto;
 import org.savapage.core.dto.UserPaymentGatewayDto;
@@ -158,6 +159,31 @@ public interface AccountingService {
      */
     AccountDisplayInfoDto getAccountDisplayInfo(User user, Locale locale,
             String currencySymbol);
+
+    /**
+     * Gets the shared {@link Account} information of an {@link Account} meant
+     * for display.
+     *
+     * @param account
+     *            The shared {@link Account}.
+     * @param locale
+     *            The {@link Locale} used for formatting financial data.
+     * @param currencySymbol
+     *            {@code null} or empty when not applicable.
+     * @return The {@link SharedAccountDisplayInfoDto} object.
+     */
+    SharedAccountDisplayInfoDto getSharedAccountDisplayInfo(Account account,
+            Locale locale, String currencySymbol);
+
+    /**
+     * Updates or creates a shared {@link Account} from user input.
+     *
+     * @param dto
+     *            {@link SharedAccountDisplayInfoDto} object
+     * @return The JSON-RPC Return message (either a result or an error);
+     */
+    AbstractJsonRpcMethodResponse lazyUpdateSharedAccount(
+            SharedAccountDisplayInfoDto dto);
 
     /**
      * Gets global financial information meant for display.
@@ -476,4 +502,15 @@ public interface AccountingService {
      */
     AbstractJsonRpcMethodResponse transferUserCredit(UserCreditTransferDto dto);
 
+    /**
+     * Creates a new shared {@link Account} object with default values (from a
+     * template).
+     *
+     * @param name
+     *            The name of the account.
+     * @param parent
+     *            The shared {@link Account} parent.
+     * @return
+     */
+    Account createSharedAccountTemplate(String name, Account parent);
 }

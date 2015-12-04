@@ -38,6 +38,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.UserDao;
+import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.AccountVoucher;
 import org.savapage.core.jpa.DocIn;
@@ -98,6 +99,11 @@ public final class DocLogClean extends AbstractJob {
      * Step 4, 5 and 6 remove logically deleted {@link User}, {@link Printer}
      * and {@link IppQueue} instances that do NOT have any related
      * {@link DocLog} anymore.
+     * </p>
+     * <p>
+     * Step 7 removes {@link Account} instances (cascade delete) that are
+     * <i>logically</i> deleted, and which do <i>not</i> have any related
+     * {@link AccountTrx}.
      * </p>
      * <p>
      * <b>IMPORTANT</b>: After each step a commit is done.

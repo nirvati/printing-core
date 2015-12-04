@@ -78,8 +78,6 @@ public abstract class JsonAbstractBase {
      *             When something goes wrong.
      */
     public final String stringify() throws IOException {
-
-        mapper.generateJsonSchema(this.getClass()).toString();
         return mapper.writeValueAsString(this);
     }
 

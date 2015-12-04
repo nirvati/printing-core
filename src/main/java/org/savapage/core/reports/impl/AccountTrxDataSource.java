@@ -38,10 +38,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.helpers.AccountTrxPagerReq;
 import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
+import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
@@ -72,8 +74,6 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
     private int counter = 1;
     private int chunkCounter = CHUNK_SIZE;
 
-    private final UserDao userDao;
-
     private final AccountTrxDao.Field sortField;
     private final Boolean sortAscending;
     private final AccountTrxDao.ListFilter filter;
@@ -85,6 +85,7 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
     private final SimpleDateFormat dfMediumDatetime;
 
     private final User user;
+    private final Account account;
 
     final boolean showDocLogTitle;
 
@@ -111,8 +112,9 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
 
         //
         this.filter.setTrxType(req.getSelect().getTrxType());
+
         this.filter.setUserId(req.getSelect().getUserId());
-        this.filter.setAccountType(AccountTypeEnum.USER);
+        this.filter.setAccountId(req.getSelect().getAccountId());
 
         Long time = req.getSelect().getDateFrom();
         if (time != null) {
@@ -132,13 +134,26 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
         this.chunkCounter = CHUNK_SIZE;
 
         //
-        this.userDao = ServiceContext.getDaoContext().getUserDao();
-
-        this.user = this.userDao.findById(req.getSelect().getUserId());
-
         this.showDocLogTitle =
                 ConfigManager.instance().isConfigValue(
                         Key.WEBAPP_DOCLOG_SHOW_DOC_TITLE);
+        //
+        if (req.getSelect().getUserId() != null) {
+
+            this.filter.setAccountType(AccountTypeEnum.USER);
+
+            final UserDao dao = ServiceContext.getDaoContext().getUserDao();
+            this.user = dao.findById(req.getSelect().getUserId());
+            this.account = null;
+        } else if (req.getSelect().getAccountId() != null) {
+            this.user = null;
+            final AccountDao dao =
+                    ServiceContext.getDaoContext().getAccountDao();
+            this.account = dao.findById(req.getSelect().getAccountId());
+        } else {
+            this.user = null;
+            this.account = null;
+        }
 
     }
 
@@ -155,21 +170,32 @@ public final class AccountTrxDataSource extends AbstractJrDataSource implements
 
         int nSelect = 0;
 
-        if (user.getUserId() != null) {
+        // User
+        if (this.user != null && this.user.getUserId() != null) {
             if (nSelect > 0) {
                 where.append(", ");
             }
             nSelect++;
             where.append(localized("accounttrxlist-sel-userid",
-                    user.getUserId()));
+                    this.user.getUserId()));
         }
 
-        if (user.getFullName() != null) {
+        if (this.user != null && this.user.getFullName() != null) {
             if (nSelect > 0) {
                 where.append(", ");
             }
             nSelect++;
-            where.append(user.getFullName());
+            where.append(this.user.getFullName());
+        }
+
+        // Account
+        if (this.account != null && this.account.getName() != null) {
+            if (nSelect > 0) {
+                where.append(", ");
+            }
+            nSelect++;
+            where.append(localized("accounttrxlist-sel-account",
+                    this.account.getName()));
         }
 
         // Not yet...

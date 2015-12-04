@@ -30,6 +30,12 @@
     <entry key="msg-user-credit-transfer-err-unknown-users">Gebruikers "{0}" en "{1}" zijn onbekend.</entry>
     <entry key="msg-user-credit-transfer-err-amount-greater">Bedrag is groter dan het beschikbare saldo.</entry>
 
+    <entry key="msg-shared-account-name-needed">Accountnaam moet worden ingevuld.</entry>
+    <entry key="msg-shared-account-name-in-use">De accountnaam is niet uniek".</entry>    
+    <entry key="msg-shared-account-parent-must-differ">Account en bovenliggend account moeten verschillend zijn.</entry>
+    <entry key="msg-shared-account-parent-unknown">Bovenliggend account is onbekend.</entry>
+    <entry key="msg-shared-accounts-deleted">{0} account(s) verwijderd.</entry>
+    <entry key="msg-shared-account-cannot-have-parent">Dit account heeft sub-accounts en moet een account op top-niveau blijven.</entry>
         
 <!-- AccountVoucherServiceImpl -->
     <entry key="msg-voucher-batch-invalid">Batch ID "{0}" is ongeldig.</entry>

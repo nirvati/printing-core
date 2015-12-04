@@ -54,6 +54,7 @@ import org.savapage.core.dto.MediaCostDto;
 import org.savapage.core.dto.MediaPageCostDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
+import org.savapage.core.dto.SharedAccountDisplayInfoDto;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserCreditTransferDto;
 import org.savapage.core.dto.UserPaymentGatewayDto;
@@ -1047,24 +1048,240 @@ public final class AccountingServiceImpl extends AbstractService implements
         return dto;
     }
 
+    /**
+     * Throws an {@link IllegalArgumentException} when account is not of type
+     * SHARED.
+     *
+     * @param account
+     *            The account.
+     */
+    private static void checkAccountShared(final Account account) {
+
+        final String accountTypeShared = AccountTypeEnum.SHARED.toString();
+
+        if (!account.getAccountType().equals(accountTypeShared)) {
+            throw new IllegalArgumentException(String.format(
+                    "Account [%s] must be %s.", account.getName(),
+                    accountTypeShared));
+        }
+    }
+
+    @Override
+    public SharedAccountDisplayInfoDto getSharedAccountDisplayInfo(
+            final Account account, final Locale locale,
+            final String currencySymbol) {
+
+        /*
+         * INVARIANT: Account MUST be of type SHARED.
+         */
+        checkAccountShared(account);
+
+        final SharedAccountDisplayInfoDto dto =
+                new SharedAccountDisplayInfoDto();
+
+        fillAccountDisplayInfo(account, locale, currencySymbol, dto);
+
+        dto.setId(account.getId());
+        dto.setName(account.getName());
+
+        if (account.getParent() != null) {
+            dto.setParentId(account.getParent().getId());
+            dto.setParentName(account.getParent().getName());
+        }
+
+        dto.setNotes(account.getNotes());
+        dto.setDeleted(account.getDeleted());
+
+        return dto;
+    }
+
+    @Override
+    public AbstractJsonRpcMethodResponse lazyUpdateSharedAccount(
+            final SharedAccountDisplayInfoDto dto) {
+
+        /*
+         * INVARIANT: Account name MUST be present.
+         */
+        if (StringUtils.isBlank(dto.getName())) {
+            return createErrorMsg("msg-shared-account-name-needed");
+        }
+
+        final Account parent;
+
+        if (StringUtils.isBlank(dto.getParentName())) {
+
+            parent = null;
+
+        } else {
+            /*
+             * INVARIANT: Account can NOT be a sub-account of oneself.
+             */
+            if (dto.getParentName().equalsIgnoreCase(dto.getName())) {
+                return createErrorMsg("msg-shared-account-parent-must-differ");
+            }
+            /*
+             * INVARIANT: Parent account MUST exist.
+             */
+            parent =
+                    accountDAO().findActiveSharedAccountByName(
+                            dto.getParentName());
+
+            if (parent == null) {
+                return createErrorMsg("msg-shared-account-parent-unknown");
+            }
+        }
+
+        /*
+         * INVARIANT: Top Account name MUST be case insensitive unique among top
+         * accounts.
+         *
+         * INVARIANT: Account name must be case insensitive unique among sibling
+         * sub accounts.
+         */
+        final Account accountDuplicate;
+
+        if (parent == null) {
+            accountDuplicate =
+                    accountDAO().findActiveSharedAccountByName(dto.getName());
+        } else {
+            accountDuplicate =
+                    accountDAO().findActiveSharedChildAccountByName(
+                            parent.getId(), dto.getName());
+        }
+
+        if (accountDuplicate != null
+                && !accountDuplicate.getId().equals(dto.getId())) {
+            return createErrorMsg("msg-shared-account-name-in-use");
+        }
+
+        //
+        final Account account;
+        final boolean newAccount = dto.getId() == null;
+
+        if (newAccount) {
+            account = this.createSharedAccountTemplate(dto.getName(), parent);
+        } else {
+            account = accountDAO().findById(dto.getId());
+        }
+
+        /*
+         * INVARIANT: Account MUST exist.
+         */
+        if (account == null) {
+            throw new IllegalArgumentException(String.format(
+                    "Account [%s] can not be found.", dto.getName()));
+        }
+
+        /*
+         * INVARIANT: Account MUST be of type SHARED.
+         */
+        checkAccountShared(account);
+
+        /*
+         * INVARIANT: A deleted Account can NOT be updated.
+         */
+        if (account.getDeleted()) {
+            throw new IllegalArgumentException(String.format(
+                    "Deleted Account [%s] can not be updated.",
+                    account.getName()));
+        }
+
+        /*
+         * Is this a top account?
+         */
+        final boolean topAccount = account.getParent() == null;
+
+        /*
+         * Logical delete.
+         */
+        if (dto.getDeleted() != null && dto.getDeleted()) {
+
+            accountDAO().setLogicalDelete(account,
+                    ServiceContext.getTransactionDate(),
+                    ServiceContext.getActor());
+
+            int nUpdated = 1;
+
+            if (topAccount) {
+                nUpdated +=
+                        accountDAO().logicalDeleteSubAccounts(account.getId(),
+                                ServiceContext.getTransactionDate(),
+                                ServiceContext.getActor());
+            }
+
+            accountDAO().update(account);
+            return createOkResult("msg-shared-accounts-deleted",
+                    String.valueOf(nUpdated));
+        }
+
+        /*
+         * Update.
+         */
+
+        /*
+         * INVARIANT: An account that has sub accounts can NOT have a parent
+         * account.
+         */
+        if (!newAccount && StringUtils.isNotBlank(dto.getParentName())
+                && accountDAO().countSubAccounts(account.getId()) > 0) {
+            return createErrorMsg("msg-shared-account-cannot-have-parent",
+                    account.getName());
+        }
+
+        //
+        account.setName(dto.getName().trim());
+        account.setNameLower(dto.getName().trim().toLowerCase());
+        account.setParent(parent);
+        account.setNotes(dto.getNotes());
+
+        //
+        if (newAccount) {
+            accountDAO().create(account);
+        } else {
+            accountDAO().update(account);
+        }
+
+        return JsonRpcMethodResult.createOkResult();
+    }
+
     @Override
     public AccountDisplayInfoDto getAccountDisplayInfo(final User user,
             final Locale locale, final String currencySymbol) {
+
+        final AccountDisplayInfoDto dto = new AccountDisplayInfoDto();
+
+        final Account account =
+                this.lazyGetUserAccount(user, AccountTypeEnum.USER)
+                        .getAccount();
+
+        fillAccountDisplayInfo(account, locale, currencySymbol, dto);
+
+        return dto;
+    }
+
+    /**
+     * Gets the {@link Account} information meant for display.
+     *
+     * @param account
+     *            The {@link Account}.
+     * @param locale
+     *            The {@link Locale} used for formatting financial data.
+     * @param currencySymbol
+     *            {@code null} or empty when not applicable.
+     * @param dto
+     *            The {@link AccountDisplayInfoDto} object
+     */
+    private static void fillAccountDisplayInfo(final Account account,
+            final Locale locale, final String currencySymbol,
+            final AccountDisplayInfoDto dto) {
 
         final String currencySymbolWrk =
                 StringUtils.defaultString(currencySymbol);
 
         final int balanceDecimals = ConfigManager.getUserBalanceDecimals();
 
-        AccountDisplayInfoDto dto = new AccountDisplayInfoDto();
-
-        final Account account =
-                this.lazyGetUserAccount(user, AccountTypeEnum.USER)
-                        .getAccount();
-
-        // ------------------
-        String formattedCreditLimit;
-        AccountDisplayInfoDto.Status status;
+        final String formattedCreditLimit;
+        final AccountDisplayInfoDto.Status status;
 
         if (account.getRestricted()) {
 
@@ -1111,11 +1328,10 @@ public final class AccountingServiceImpl extends AbstractService implements
         } catch (ParseException e) {
             throw new SpException(e);
         }
+
         dto.setLocale(locale.getDisplayLanguage());
         dto.setCreditLimit(formattedCreditLimit);
         dto.setStatus(status);
-
-        return dto;
     }
 
     @Override
@@ -1845,4 +2061,33 @@ public final class AccountingServiceImpl extends AbstractService implements
 
         return JsonRpcMethodResult.createOkResult(userNotification);
     }
+
+    @Override
+    public Account createSharedAccountTemplate(final String name,
+            final Account parent) {
+
+        final Account account = new Account();
+
+        account.setName(name);
+        account.setNameLower(name.toLowerCase());
+
+        account.setParent(parent);
+
+        account.setBalance(BigDecimal.ZERO);
+        account.setOverdraft(BigDecimal.ZERO);
+        account.setRestricted(false);
+        account.setUseGlobalOverdraft(false);
+
+        account.setAccountType(Account.AccountTypeEnum.SHARED.toString());
+        account.setComments(Account.CommentsEnum.COMMENT_OPTIONAL.toString());
+        account.setInvoicing(Account.InvoicingEnum.ALWAYS_ON.toString());
+        account.setDeleted(false);
+        account.setDisabled(false);
+
+        account.setCreatedBy(ServiceContext.getActor());
+        account.setCreatedDate(ServiceContext.getTransactionDate());
+
+        return account;
+    }
+
 }

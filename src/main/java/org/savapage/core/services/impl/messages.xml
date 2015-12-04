@@ -30,6 +30,13 @@
     <entry key="msg-user-credit-transfer-err-unknown-users">Users "{0}" and "{1}" are unknown.</entry>
     <entry key="msg-user-credit-transfer-err-amount-greater">Amount is greater than available credit.</entry>
 
+    <entry key="msg-shared-account-name-needed">Account name must be entered.</entry>    
+    <entry key="msg-shared-account-name-in-use">The account name is not unique".</entry>    
+    <entry key="msg-shared-account-parent-must-differ">Account and parent must differ.</entry>
+    <entry key="msg-shared-account-parent-unknown">Parent account is unknown.</entry>
+    <entry key="msg-shared-accounts-deleted">{0} account(s) deleted.</entry>
+    <entry key="msg-shared-account-cannot-have-parent">This account has sub accounts and must remain a top-level account.</entry>
+
 <!-- AccountVoucherServiceImpl -->
     <entry key="msg-voucher-batch-invalid">Batch ID "{0}" is not valid.</entry>
     <entry key="msg-voucher-batch-exist">Batch ID "{0}" already exists.</entry>    
