@@ -1178,15 +1178,6 @@ public final class AccountingServiceImpl extends AbstractService implements
         checkAccountShared(account);
 
         /*
-         * INVARIANT: A deleted Account can NOT be updated.
-         */
-        if (account.getDeleted()) {
-            throw new IllegalArgumentException(String.format(
-                    "Deleted Account [%s] can not be updated.",
-                    account.getName()));
-        }
-
-        /*
          * Is this a top account?
          */
         final boolean topAccount = account.getParent() == null;
@@ -1233,6 +1224,7 @@ public final class AccountingServiceImpl extends AbstractService implements
         account.setNameLower(dto.getName().trim().toLowerCase());
         account.setParent(parent);
         account.setNotes(dto.getNotes());
+        account.setDeleted(dto.getDeleted());
 
         //
         if (newAccount) {
