@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -49,6 +49,7 @@ import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.codec.binary.Base64OutputStream;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -89,7 +90,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class SmartSchoolServiceImpl extends AbstractService implements
@@ -354,13 +355,23 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
     }
 
     /**
+     * Parses the XML {@link InputStream} and writes the Base64 decoded PDF
+     * document to the {@link OutputStream}.
      *
+     * @param connection
+     *            The {@link SmartSchoolConnection} (used to check if a shutdown
+     *            is requested).
      * @param istr
+     *            The XML {@link InputStream}.
      * @param ostr
+     *            The {@link OutputStream} for the Base64 decoded PDF document.
      * @throws ParserConfigurationException
      * @throws SAXException
+     *             When SAX error.
      * @throws IOException
+     *             When IO error.
      * @throws ShutdownRequestedException
+     *             When a shutdown was requested during processing.
      */
     private static void saxParseDocumentData(
             final SmartSchoolConnection connection, final InputStream istr,
@@ -368,30 +379,65 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
             SAXException, IOException, ShutdownRequestedException,
             ShutdownRequestedException {
 
+        /*
+         * ------------------------ IMPORTANT --------------------------------
+         *
+         * The download data is held as content of the "return" element. What is
+         * "special" (peculiar) is that this content is XML formatted (escaped)
+         * as string! This escaped XML is NOT part of the XML tree, hence the
+         * SAXParser will NOT encounter startElement() and endElement()
+         * callbacks for the escaped elements "filename", "filesize", "md5sum",
+         * and "data"! That is why string parsing is done in the characters()
+         * callback while the "return" tag is in focus.
+         * -------------------------------------------------------------------
+         */
         final DefaultHandler saxHandler = new DefaultHandler() {
 
+            /**
+             * {@code true} when we are processing the "return" element.
+             */
             private boolean processReturn;
+
+            /**
+             * {@code true} when we are processing the "data" element with the
+             * Base64 encoded document.
+             */
             private boolean processData;
+
+            /**
+             * The collected XML content of the "return" element.
+             */
             private final StringBuilder initialReturnXml = new StringBuilder(
                     256);
 
-            private String fileName;
-            private String fileSize;
-            private String md5sum;
+            // private String fileName; // TODO
+            // private String fileSize; // TODO
+            // private String md5sum; // TODO
 
+            /**
+             * The {@link OutputStream} with the Base64 decode PDF.
+             */
             private OutputStream ostrDoc = null;
 
             @Override
             public void startDocument() throws SAXException {
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("startDocument");
+                }
 
                 processReturn = false;
                 ostrDoc = new Base64OutputStream(ostr, false);
             }
 
             @Override
-            public void startElement(String namespaceURI, String localName,
-                    String qName, org.xml.sax.Attributes atts)
-                    throws SAXException {
+            public void startElement(final String namespaceURI,
+                    final String localName, final String qName,
+                    final org.xml.sax.Attributes atts) throws SAXException {
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace(String.format("startElement [%s]", qName));
+                }
 
                 processReturn = qName.equalsIgnoreCase("return");
                 processData = false;
@@ -406,79 +452,92 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
                     throw new ShutdownRequestedException();
                 }
 
-                if (this.processReturn) {
+                if (!this.processReturn) {
+                    return;
+                }
 
-                    try {
-                        if (!processData) {
+                try {
+                    if (!processData) {
 
-                            initialReturnXml.append(String.valueOf(ch, start,
-                                    length));
+                        initialReturnXml.append(String.valueOf(ch, start,
+                                length));
 
-                            int iWlk;
-                            String searchWlk;
+                        int iWlk;
+                        String searchWlk;
 
-                            // </filename>
-                            searchWlk = "</filename>";
-                            iWlk = initialReturnXml.indexOf(searchWlk);
-                            if (iWlk >= 0) {
+                        // </filename>
+                        searchWlk = "</filename>";
+                        iWlk = initialReturnXml.indexOf(searchWlk);
+                        if (iWlk >= 0) {
 
-                            }
-
-                            // <data>
-                            searchWlk = "<data>";
-                            iWlk = initialReturnXml.indexOf(searchWlk);
-
-                            if (iWlk >= 0) {
-
-                                processData = true;
-
-                                for (final int aChar : initialReturnXml
-                                        .substring(iWlk + searchWlk.length())
-                                        .toCharArray()) {
-                                    ostrDoc.write(aChar);
-                                }
-
-                            }
-
-                        } else {
-
-                            for (int i = start; i < length; i++) {
-
-                                final char chWlk = ch[i];
-
-                                if (chWlk == '<') {
-                                    ostrDoc.close();
-                                    processReturn = false;
-                                    break;
-                                } else {
-                                    ostrDoc.write(chWlk);
-                                }
-
-                            }
                         }
 
-                    } catch (IOException e) {
-                        throw new SpException(e.getMessage());
+                        // <data>
+                        searchWlk = "<data>";
+                        iWlk = initialReturnXml.indexOf(searchWlk);
+
+                        if (iWlk >= 0) {
+
+                            if (LOGGER.isTraceEnabled()) {
+                                LOGGER.trace(String.format("Found [%s] ",
+                                        searchWlk));
+                            }
+
+                            processData = true;
+
+                            for (final int aChar : initialReturnXml.substring(
+                                    iWlk + searchWlk.length()).toCharArray()) {
+                                ostrDoc.write(aChar);
+                            }
+
+                        }
+
+                    } else {
+
+                        for (int i = start; i < length; i++) {
+
+                            final char chWlk = ch[i];
+
+                            /*
+                             * The '<' character marks the end of the <data>
+                             * content.
+                             */
+                            if (chWlk == '<') {
+                                ostrDoc.close();
+                                processReturn = false;
+                                break;
+                            } else {
+                                ostrDoc.write(chWlk);
+                            }
+
+                        }
                     }
 
+                } catch (IOException e) {
+                    throw new SpException(e.getMessage());
                 }
+
             }
 
             @Override
-            public void endElement(String uri, String localName, String qName)
-                    throws SAXException {
+            public void endElement(final String uri, final String localName,
+                    final String qName) throws SAXException {
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace(String.format("endElement [%s]", qName));
+                }
+                /*
+                 * Any endElement will end the document download processing.
+                 */
                 processReturn = false;
             }
 
             @Override
             public void endDocument() throws SAXException {
-                if (ostrDoc != null) {
-                    try {
-                        ostrDoc.close();
-                    } catch (IOException e) {
-                        throw new SpException(e.getMessage());
-                    }
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("endDocument");
                 }
+                IOUtils.closeQuietly(ostrDoc);
             }
         };
 
