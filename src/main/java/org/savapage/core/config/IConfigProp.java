@@ -993,7 +993,7 @@ public interface IConfigProp {
                 IMAP_MAX_FILES_V_DEFAULT.toString()),
 
         /**
-         * Insert requesting users ad-hoc when printing from SmartSchool to the
+         * Insert requesting users ad-hoc when printing from Smartschool to the
          * {@link ReservedIppQueueEnum#SMARTSCHOOL} queue.
          * <p>
          * WARNING: this option assumes that the user is TRUSTED.
@@ -1033,13 +1033,13 @@ public interface IConfigProp {
                 NUMBER_VALIDATOR, "15"),
 
         /**
-         * Is PaperCut integration for SmartSchool component enabled?
+         * Is PaperCut integration for Smartschool component enabled?
          */
         SMARTSCHOOL_PAPERCUT_ENABLE("smartschool.papercut.enable",
                 BOOLEAN_VALIDATOR, V_NO),
 
         /**
-         * Timeout in milliseconds until a SmartSchool SOAP connection is
+         * Timeout in milliseconds until a Smartschool SOAP connection is
          * established.
          */
         SMARTSCHOOL_SOAP_CONNECT_TIMEOUT_MILLIS(
@@ -1047,7 +1047,7 @@ public interface IConfigProp {
                 "20000"),
 
         /**
-         * Timeout in milliseconds to receive data from SmartSchool SOAP
+         * Timeout in milliseconds to receive data from Smartschool SOAP
          * Service.
          */
         SMARTSCHOOL_SOAP_SOCKET_TIMEOUT_MILLIS(
@@ -1055,30 +1055,30 @@ public interface IConfigProp {
                 "20000"),
 
         /**
-         * Is SmartSchool (1) enabled?
+         * Is Smartschool (1) enabled?
          */
         SMARTSCHOOL_1_ENABLE("smartschool.1.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
-         * Printer name for SmartSchool direct proxy printing (1).
+         * Printer name for Smartschool direct proxy printing (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER(
                 "smartschool.1.soap.print.proxy-printer"),
 
         /**
-         * Printer name for SmartSchool direct duplex proxy printing (1).
+         * Printer name for Smartschool direct duplex proxy printing (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_DUPLEX(
                 "smartschool.1.soap.print.proxy-printer-duplex"),
 
         /**
-         * Printer name for SmartSchool direct proxy grayscale printing (1).
+         * Printer name for Smartschool direct proxy grayscale printing (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE(
                 "smartschool.1.soap.print.proxy-printer-grayscale"),
 
         /**
-         * Printer name for SmartSchool direct proxy grayscale duplex printing
+         * Printer name for Smartschool direct proxy grayscale duplex printing
          * (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX(
@@ -1093,42 +1093,66 @@ public interface IConfigProp {
                 BOOLEAN_VALIDATOR, V_YES),
 
         /**
-         * SOAP endpoint URL of SmartSchool Print Center (1).
+         * SOAP endpoint URL of Smartschool Print Center (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_URL(
                 "smartschool.1.soap.print.endpoint.url"),
 
         /**
-         * Password of SOAP endpoint URL of SmartSchool Print Center (1).
+         * Password of SOAP endpoint URL of Smartschool Print Center (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD(
                 "smartschool.1.soap.print.endpoint.password"),
 
         /**
-         * Is SmartSchool (2) enabled?
+         * {@code true} if this module is a node SmartXchool Print Cluster (1).
+         */
+        SMARTSCHOOL_1_SOAP_PRINT_NODE_ENABLE(
+                "smartschool.1.soap.print.node.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * The unique node ID of this module in the Smartschool cluster (1).
+         */
+        SMARTSCHOOL_1_SOAP_PRINT_NODE_ID("smartschool.1.soap.print.node.id"),
+
+        /**
+         * {@code true} if this node acts as Smartschool Print Center Proxy (1).
+         */
+        SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENABLE(
+                "smartschool.1.soap.print.node.proxy.enable",
+                BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * SOAP endpoint URL of Smartschool Print Center Proxy (1).
+         */
+        SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL(
+                "smartschool.1.soap.print.node.proxy.endpoint.url"),
+
+        /**
+         * Is Smartschool (2) enabled?
          */
         SMARTSCHOOL_2_ENABLE("smartschool.2.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
-         * Printer name for SmartSchool direct proxy printing (2).
+         * Printer name for Smartschool direct proxy printing (2).
          */
         SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER(
                 "smartschool.2.soap.print.proxy-printer"),
 
         /**
-         * Printer name for SmartSchool direct duplex proxy printing (1).
+         * Printer name for Smartschool direct duplex proxy printing (1).
          */
         SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_DUPLEX(
                 "smartschool.2.soap.print.proxy-printer-duplex"),
 
         /**
-         * Printer name for SmartSchool direct proxy grayscale printing (2).
+         * Printer name for Smartschool direct proxy grayscale printing (2).
          */
         SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE(
                 "smartschool.2.soap.print.proxy-printer-grayscale"),
 
         /**
-         * Printer name for SmartSchool direct proxy grayscale duplex printing
+         * Printer name for Smartschool direct proxy grayscale duplex printing
          * (2).
          */
         SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX(
@@ -1143,29 +1167,53 @@ public interface IConfigProp {
                 BOOLEAN_VALIDATOR, V_YES),
 
         /**
-         * SOAP endpoint URL of SmartSchool Print Center (2).
+         * SOAP endpoint URL of Smartschool Print Center (2).
          */
         SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_URL(
                 "smartschool.2.soap.print.endpoint.url"),
 
         /**
-         * Password of SOAP endpoint URL of SmartSchool Print Center (2).
+         * Password of SOAP endpoint URL of Smartschool Print Center (2).
          */
         SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD(
                 "smartschool.2.soap.print.endpoint.password"),
 
         /**
-         * The heartbeat (seconds) within a SmartSchool print polling session.
+         * {@code true} if this module is a node SmartXchool Print Cluster (2).
+         */
+        SMARTSCHOOL_2_SOAP_PRINT_NODE_ENABLE(
+                "smartschool.2.soap.print.node.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * The unique node ID of this module in the Smartschool cluster (2).
+         */
+        SMARTSCHOOL_2_SOAP_PRINT_NODE_ID("smartschool.2.soap.print.node.id"),
+
+        /**
+         * {@code true} if this node acts as Smartschool Print Center Proxy (2).
+         */
+        SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENABLE(
+                "smartschool.2.soap.print.node.proxy.enable",
+                BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * SOAP endpoint URL of Smartschool Print Center Proxy (2).
+         */
+        SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL(
+                "smartschool.2.soap.print.node.proxy.endpoint.url"),
+
+        /**
+         * The heartbeat (seconds) within a Smartschool print polling session.
          */
         SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEAT_SECS(
                 "smartschool.soap.print.poll.heartbeat-secs", NUMBER_VALIDATOR,
                 "2"),
 
         /**
-         * The number of heartbeats within a SmartSchool print polling session
-         * after which an actual poll to SmartSchool is executed.
+         * The number of heartbeats within a Smartschool print polling session
+         * after which an actual poll to Smartschool is executed.
          * <p>
-         * SmartSchool has a rate-limit of one (1) poll per 2 minutes. When
+         * Smartschool has a rate-limit of one (1) poll per 2 minutes. When
          * limit is exceeded an error message is returned. Note: status updates
          * can be send unlimited.
          * </p>
@@ -1175,7 +1223,7 @@ public interface IConfigProp {
                 "61"),
 
         /**
-         * The duration (seconds) of a SmartSchool print polling session.
+         * The duration (seconds) of a Smartschool print polling session.
          */
         SMARTSCHOOL_SOAP_PRINT_POLL_SESSION_DURATION_SECS(
                 "smartschool.soap.print.poll.session.duration-secs",

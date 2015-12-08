@@ -788,7 +788,7 @@ public final class SmartSchoolPrintMonitor {
         processinfo.setDuplex("off");
         // processinfo.setDuplex("on");
 
-        processinfo.setRendermode("grayscale");
+        processinfo.setRendermode(SmartschoolConstants.RENDER_MODE_GRAYSCALE);
         // processinfo.setRendermode("color");
 
         //
@@ -1693,7 +1693,8 @@ public final class SmartSchoolPrintMonitor {
         final Processinfo processInfo = document.getProcessinfo();
 
         // media
-        if (processInfo.getPapersize().equalsIgnoreCase("a3")) {
+        if (processInfo.getPapersize().equalsIgnoreCase(
+                SmartschoolConstants.PAPERSIZE_A3)) {
             supplierData.setMediaSize(IppMediaSizeEnum.ISO_A3);
         } else {
             supplierData.setMediaSize(IppMediaSizeEnum.ISO_A4);
@@ -1704,7 +1705,7 @@ public final class SmartSchoolPrintMonitor {
 
         // grayscale
         supplierData.setColor(!processInfo.getRendermode().equalsIgnoreCase(
-                "grayscale"));
+                SmartschoolConstants.RENDER_MODE_GRAYSCALE));
 
         // staple (TODO)
 
@@ -2951,8 +2952,8 @@ public final class SmartSchoolPrintMonitor {
 
             final User lockedUser = userDao.lock(user.getId());
 
-            PROXY_PRINT_SERVICE
-                    .proxyPrintPdf(lockedUser, printReq, downloadedFile);
+            PROXY_PRINT_SERVICE.proxyPrintPdf(lockedUser, printReq,
+                    downloadedFile);
 
             daoContext.commit();
 
