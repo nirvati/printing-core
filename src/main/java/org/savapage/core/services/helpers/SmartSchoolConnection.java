@@ -21,7 +21,6 @@
  */
 package org.savapage.core.services.helpers;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -33,10 +32,13 @@ import javax.xml.soap.SOAPConnection;
 import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.SOAPException;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.savapage.core.SpException;
+import org.savapage.core.print.smartschool.SmartschoolAccount;
+import org.savapage.core.print.smartschool.SmartschoolRequestEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * @author Datraverse B.V.
  *
  */
-public class SmartSchoolConnection {
+public final class SmartSchoolConnection {
 
     /**
      * .
@@ -67,98 +69,107 @@ public class SmartSchoolConnection {
     private final CloseableHttpClient httpClient;
 
     /**
-    *
-    */
-    private final URL endpointUrl;
-
-    /**
-     *
-     */
-    private final URI endpointUri;
-
-    /**
      * The SmartSchool account name as part of the {@link #endpointUrl}.
      */
     private final String accountName;
 
     /**
-     *
+     * The SmartSchool end-point {@link URL}.
+     */
+    private final URL endpointUrl;
+
+    /**
+     * The SmartSchool end-point {@link URI}.
+     */
+    private final URI endpointUri;
+
+    /**
+     * The SmartSchool end-point IP address.
      */
     private final String endpointIpAddress;
 
     /**
-     * .
+     * The SmartSchool Proxy end-point {@link URL}.
      */
-    private final char[] password;
+    private final URL endpointUrlProxy;
 
     /**
-     *
+     * The SmartSchool Proxy end-point {@link URI}.
      */
-    private final boolean chargeToStudents;
+    private final URI endpointUriProxy;
 
     /**
-     * The default proxy printer (can be {@code null} or empty).
+     * The SmartSchool Proxy end-point IP address.
      */
-    private final String proxyPrinterName;
+    private final String endpointIpAddressProxy;
 
-    /**
-     * The default proxy printer for duplex printing (can be {@code null} or
-     * empty).
-     */
-    private final String proxyPrinterDuplexName;
-
-    /**
-     * The proxy printer for grayscale printing (can be {@code null} or empty).
-     */
-    private final String proxyPrinterGrayscaleName;
-
-    /**
-     * The proxy printer for grayscale duplex printing (can be {@code null} or
-     * empty).
-     */
-    private final String proxyPrinterGrayscaleDuplexName;
     /**
      * .
-     *
      */
     private volatile boolean shutdownRequested = false;
 
     /**
+     * The {@link SmartschoolAccount}.
+     */
+    private final SmartschoolAccount account;
+
+    public final static String PROXY_URL_PARM_ACCOUNT = "account";
+    public final static String PROXY_URL_PARM_NODE = "node";
+
+    /**
      *
-     * @param endpoint
-     *            The SOAP endpoint.
-     * @param password
-     *            Password for the Smartschool Afdrukcentrum.
-     * @param proxyPrinterName
-     *            Name of the proxy printer, can be {@code null} or empty.
-     * @param proxyPrinterDuplexName
-     *            Name of the duplex proxy printer, can be {@code null} or
-     *            empty.
-     * @param proxyPrinterGrayscaleName
-     *            Name of the grayscale proxy printer, can be {@code null} or
-     *            empty.
-     * @param proxyPrinterGrayscaleDuplexName
-     *            Name of the grayscale duplex proxy printer, can be
-     *            {@code null} or empty.
-     * @param chargeToStudents
-     *            {@code true} if costs are charged to individual students,
-     *            {@code false} if costs are charged to shared "Klas" accounts
-     *            only.
+     * @param acc
+     *            The {@link SmartschoolAccount}.
      * @throws SOAPException
      */
-    public SmartSchoolConnection(final String endpoint, final char[] password,
-            final String proxyPrinterName, final String proxyPrinterDuplexName,
-            final String proxyPrinterGrayscaleName,
-            final String proxyPrinterGrayscaleDuplexName,
-            final boolean chargeToStudents) throws SOAPException {
+    public SmartSchoolConnection(final SmartschoolAccount acc)
+            throws SOAPException {
+
+        this.account = acc;
 
         try {
-            this.endpointUri = new URI(endpoint);
-            this.endpointUrl = new URL(endpoint);
+            this.endpointUri = new URI(this.account.getEndpoint());
+            this.endpointUrl = new URL(this.account.getEndpoint());
 
             this.endpointIpAddress =
                     InetAddress.getByName(this.endpointUrl.getHost())
                             .getHostAddress();
+
+            //
+            this.accountName =
+                    StringUtils
+                            .substringBefore(this.endpointUrl.getHost(), ".");
+
+            if (this.accountName == null) {
+                throw new SpException("No account found in endpoint "
+                        + this.account.getEndpoint());
+            }
+
+            //
+            final SmartschoolAccount.Node node = this.account.getNode();
+
+            if (node == null || StringUtils.isBlank(node.getProxyEndpoint())) {
+
+                this.endpointUriProxy = null;
+                this.endpointUrlProxy = null;
+                this.endpointIpAddressProxy = null;
+
+            } else {
+
+                final StringBuilder proxyEndpoint = new StringBuilder();
+
+                proxyEndpoint.append(node.getProxyEndpoint()).append("?")
+                        .append(PROXY_URL_PARM_ACCOUNT).append("=")
+                        .append(this.accountName).append("&")
+                        .append(PROXY_URL_PARM_NODE).append("=")
+                        .append(StringUtils.defaultString(this.getNodeId()));
+
+                this.endpointUriProxy = new URI(proxyEndpoint.toString());
+                this.endpointUrlProxy = new URL(proxyEndpoint.toString());
+                this.endpointIpAddressProxy =
+                        InetAddress.getByName(this.endpointUrlProxy.getHost())
+                                .getHostAddress();
+            }
 
         } catch (URISyntaxException | MalformedURLException
                 | UnknownHostException e) {
@@ -166,38 +177,53 @@ public class SmartSchoolConnection {
                     .getSimpleName(), e.getMessage()), e);
         }
 
-        this.chargeToStudents = chargeToStudents;
-
-        this.accountName =
-                StringUtils.substringBefore(this.endpointUrl.getHost(), ".");
-
-        if (this.accountName == null) {
-            throw new SpException("No account found in endpoint " + endpoint);
-        }
-
-        this.password = password;
         this.connection =
                 SOAPConnectionFactory.newInstance().createConnection();
 
+        //
         final HttpClientBuilder builder = HttpClientBuilder.create();
         this.httpClient = builder.build();
-
-        this.proxyPrinterName = proxyPrinterName;
-        this.proxyPrinterDuplexName = proxyPrinterDuplexName;
-
-        this.proxyPrinterGrayscaleName = proxyPrinterGrayscaleName;
-        this.proxyPrinterGrayscaleDuplexName = proxyPrinterGrayscaleDuplexName;
     }
 
+    /**
+     *
+     * @return
+     */
     public SOAPConnection getConnection() {
         return connection;
     }
 
-    public URL getEndpointUrl() {
+    /**
+     *
+     * @return The HTTP client for streaming download of PDF documents.
+     */
+    public CloseableHttpClient getHttpClient() {
+        return httpClient;
+    }
+
+    /**
+     * @param request
+     *            The {@link SmartschoolRequestEnum}.
+     * @return The (proxy) SOAP end-point as {@link URL}.
+     */
+    public URL getEndpointUrl(final SmartschoolRequestEnum request) {
+        if (endpointUrlProxy != null
+                && request != SmartschoolRequestEnum.SET_DOCUMENTSTATUS) {
+            return endpointUrlProxy;
+        }
         return endpointUrl;
     }
 
-    public URI getEndpointUri() {
+    /**
+     * @param request
+     *            The {@link SmartschoolRequestEnum}.
+     * @return The (proxy) SOAP end-point as {@link URI}.
+     */
+    public URI getEndpointUri(final SmartschoolRequestEnum request) {
+        if (endpointUrlProxy != null
+                && request != SmartschoolRequestEnum.SET_DOCUMENTSTATUS) {
+            return endpointUriProxy;
+        }
         return endpointUri;
     }
 
@@ -209,12 +235,21 @@ public class SmartSchoolConnection {
         return accountName;
     }
 
-    public String getEndpointIpAddress() {
+    /**
+     * @param request
+     *            The {@link SmartschoolRequestEnum}.
+     * @return The (proxy) SOAP end-point IP address.
+     */
+    public String getEndpointIpAddress(final SmartschoolRequestEnum request) {
+        if (endpointUrlProxy != null
+                && request != SmartschoolRequestEnum.SET_DOCUMENTSTATUS) {
+            return endpointIpAddressProxy;
+        }
         return endpointIpAddress;
     }
 
     public char[] getPassword() {
-        return password;
+        return this.account.getPassword();
     }
 
     public boolean isShutdownRequested() {
@@ -225,6 +260,9 @@ public class SmartSchoolConnection {
         this.shutdownRequested = shutdownRequested;
     }
 
+    /**
+     * Closes end-point connection(s).
+     */
     public void close() {
 
         try {
@@ -233,58 +271,33 @@ public class SmartSchoolConnection {
             LOGGER.warn("Error closing SOAP connection: " + e.getMessage());
         }
 
-        try {
-            this.httpClient.close();
-        } catch (IOException e) {
-            LOGGER.warn("Error closing HTTP connection: " + e.getMessage());
+        IOUtils.closeQuietly(this.httpClient);
+    }
+
+    /**
+     * @return The {@link SmartschoolAccount.Config}.
+     */
+    public SmartschoolAccount.Config getAccountConfig() {
+        return this.account.getConfig();
+    }
+
+    /**
+     * @return The Cluster Node ID, or {@code null} when not defined.
+     */
+    public String getNodeId() {
+        if (this.account.getNode() == null) {
+            return null;
         }
-    }
-
-    public CloseableHttpClient getHttpClient() {
-        return httpClient;
+        return this.account.getNode().getId();
     }
 
     /**
-     * @return The default proxy printer (can be {@code null} or empty).
+     * @return {@code true} when this connection acts as Smartschool Cluster
+     *         Proxy.
      */
-    public String getProxyPrinterName() {
-        return proxyPrinterName;
-    }
-
-    /**
-     * @return The default proxy printer for duplex printing (can be
-     *         {@code null} or empty).
-     */
-    public String getProxyPrinterDuplexName() {
-        return proxyPrinterDuplexName;
-    }
-
-    /**
-     *
-     * @return The proxy printer for grayscale printing (can be {@code null} or
-     *         empty).
-     */
-    public String getProxyPrinterGrayscaleName() {
-        return proxyPrinterGrayscaleName;
-    }
-
-    /**
-     *
-     * @return The proxy printer for grayscale duplex printing (can be
-     *         {@code null} or empty).
-     */
-    public String getProxyPrinterGrayscaleDuplexName() {
-        return proxyPrinterGrayscaleDuplexName;
-    }
-
-    /**
-     *
-     * @return {@code true} if costs are charged to individual students,
-     *         {@code false} if costs are charged to shared "Klas" accounts
-     *         only.
-     */
-    public boolean isChargeToStudents() {
-        return chargeToStudents;
+    public boolean isProxy() {
+        return this.account.getNode() != null
+                && this.account.getNode().isProxy();
     }
 
 }

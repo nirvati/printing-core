@@ -1774,7 +1774,8 @@ public final class SmartSchoolPrintMonitor {
         printInInfo.setLogComment(document.getComment());
         printInInfo.setMimetype(DocContent.MIMETYPE_PDF);
         printInInfo.setOriginatorEmail(null);
-        printInInfo.setOriginatorIp(connection.getEndpointIpAddress());
+        printInInfo.setOriginatorIp(connection
+                .getEndpointIpAddress(SmartschoolRequestEnum.GET_DOCUMENT));
         printInInfo.setPageProps(pdfProps);
         printInInfo.setUuidJob(uuid);
 
@@ -2229,7 +2230,8 @@ public final class SmartSchoolPrintMonitor {
             final IUserSource userSource, final String userSourceGroup) {
 
         final boolean chargeToStudents =
-                monitor.processingConnection.isChargeToStudents();
+                monitor.processingConnection.getAccountConfig()
+                        .isChargeToStudents();
 
         int nTotCopies = 0;
 
@@ -2447,7 +2449,7 @@ public final class SmartSchoolPrintMonitor {
          */
         final boolean isDirectProxyPrint =
                 StringUtils.isNotBlank(monitor.processingConnection
-                        .getProxyPrinterName());
+                        .getAccountConfig().getProxyPrinterName());
 
         /*
          * Determine (initial) print status.
@@ -2740,11 +2742,12 @@ public final class SmartSchoolPrintMonitor {
             final SmartSchoolPrintInData supplierData) {
 
         // The unique printer name for all jobs.
-        final String printerName = connection.getProxyPrinterName();
+        final String printerName =
+                connection.getAccountConfig().getProxyPrinterName();
 
         // The unique printer name for grayscale jobs.
         final String printerGrayscaleName =
-                connection.getProxyPrinterGrayscaleName();
+                connection.getAccountConfig().getProxyPrinterGrayscaleName();
 
         //
         final String printerNameSelected;
@@ -2753,7 +2756,7 @@ public final class SmartSchoolPrintMonitor {
                 || StringUtils.isBlank(printerGrayscaleName)) {
 
             final String printerDuplexName =
-                    connection.getProxyPrinterDuplexName();
+                    connection.getAccountConfig().getProxyPrinterDuplexName();
 
             if (supplierData.getDuplex()
                     && StringUtils.isNotBlank(printerDuplexName)) {
@@ -2765,7 +2768,8 @@ public final class SmartSchoolPrintMonitor {
         } else {
 
             final String printerDuplexName =
-                    connection.getProxyPrinterGrayscaleDuplexName();
+                    connection.getAccountConfig()
+                            .getProxyPrinterGrayscaleDuplexName();
 
             if (supplierData.getDuplex()
                     && StringUtils.isNotBlank(printerDuplexName)) {

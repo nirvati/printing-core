@@ -35,6 +35,15 @@ public final class SmartschoolConstants {
 
     public static final String RENDER_MODE_GRAYSCALE = "grayscale";
 
+    public static final String XML_ELM_RETURN = "return";
+    public static final String XML_ELM_DATA = "data";
+    public static final String XML_ELM_PWD = "pwd";
+    public static final String XML_ELM_UID = "uid";
+    public static final String XML_ELM_XML = "xml";
+
+    /**
+     * Prevent public instantiation.
+     */
     private SmartschoolConstants() {
 
     }

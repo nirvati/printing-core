@@ -74,7 +74,11 @@ import org.savapage.core.print.smartschool.SmartSchoolException;
 import org.savapage.core.print.smartschool.SmartSchoolLogger;
 import org.savapage.core.print.smartschool.SmartSchoolPrintStatusEnum;
 import org.savapage.core.print.smartschool.SmartSchoolTooManyRequestsException;
+import org.savapage.core.print.smartschool.SmartschoolAccount;
+import org.savapage.core.print.smartschool.SmartschoolConstants;
+import org.savapage.core.print.smartschool.SmartschoolRequestEnum;
 import org.savapage.core.print.smartschool.xml.Document;
+import org.savapage.core.print.smartschool.xml.DocumentStatusIn;
 import org.savapage.core.print.smartschool.xml.Jobticket;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.SmartSchoolService;
@@ -125,6 +129,92 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
      */
     private static final String SHARED_ACCOUNT_FOR_KLAS_FORMAT = "%s.Klas.%s";
 
+    /**
+     * Creates the first account.
+     *
+     * @return The {@link SmartschoolAccount}.
+     */
+    private static SmartschoolAccount getAccount1() {
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        final SmartschoolAccount acc = new SmartschoolAccount();
+
+        acc.setEndpoint(cm
+                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_URL));
+        acc.setPassword(cm.getConfigValue(
+                Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD).toCharArray());
+
+        final SmartschoolAccount.Config cfg = acc.getConfig();
+
+        cfg.setChargeToStudents(cm
+                .isConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_CHARGE_TO_STUDENTS));
+
+        cfg.setProxyPrinterName(cm
+                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER));
+        cfg.setProxyPrinterDuplexName(cm
+                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_DUPLEX));
+        cfg.setProxyPrinterGrayscaleName(cm
+                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE));
+
+        cfg.setProxyPrinterGrayscaleDuplexName(cm
+                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX));
+
+        if (cm.isConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_NODE_ENABLE)) {
+            final SmartschoolAccount.Node node = new SmartschoolAccount.Node();
+            acc.setNode(node);
+            node.setId(cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_NODE_ID));
+            node.setProxy(cm
+                    .isConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENABLE));
+            node.setProxyEndpoint(cm
+                    .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL));
+        }
+        return acc;
+    }
+
+    /**
+     * Creates the second account.
+     *
+     * @return The {@link SmartschoolAccount}.
+     */
+    private static SmartschoolAccount getAccount2() {
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        final SmartschoolAccount acc = new SmartschoolAccount();
+
+        acc.setEndpoint(cm
+                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_URL));
+        acc.setPassword(cm.getConfigValue(
+                Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD).toCharArray());
+
+        final SmartschoolAccount.Config cfg = acc.getConfig();
+
+        cfg.setChargeToStudents(cm
+                .isConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_CHARGE_TO_STUDENTS));
+
+        cfg.setProxyPrinterName(cm
+                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER));
+        cfg.setProxyPrinterDuplexName(cm
+                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_DUPLEX));
+        cfg.setProxyPrinterGrayscaleName(cm
+                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE));
+
+        cfg.setProxyPrinterGrayscaleDuplexName(cm
+                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX));
+
+        if (cm.isConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_NODE_ENABLE)) {
+            final SmartschoolAccount.Node node = new SmartschoolAccount.Node();
+            acc.setNode(node);
+            node.setId(cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_NODE_ID));
+            node.setProxy(cm
+                    .isConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENABLE));
+            node.setProxyEndpoint(cm
+                    .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL));
+        }
+        return acc;
+    }
+
     @Override
     public Map<String, SmartSchoolConnection> createConnections()
             throws SOAPException {
@@ -137,35 +227,12 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
         SmartSchoolConnection connection;
 
         if (cm.isConfigValue(Key.SMARTSCHOOL_1_ENABLE)) {
-
-            connection =
-                    new SmartSchoolConnection(
-                            cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_URL),
-                            cm.getConfigValue(
-                                    Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD)
-                                    .toCharArray(),
-                            cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER),
-                            cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_DUPLEX),
-                            cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE),
-                            cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX),
-                            cm.isConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_CHARGE_TO_STUDENTS));
-
+            connection = new SmartSchoolConnection(getAccount1());
             connectionMap.put(connection.getAccountName(), connection);
         }
 
         if (cm.isConfigValue(Key.SMARTSCHOOL_2_ENABLE)) {
-
-            connection =
-                    new SmartSchoolConnection(
-                            cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_URL),
-                            cm.getConfigValue(
-                                    Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD)
-                                    .toCharArray(),
-                            cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER),
-                            cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_DUPLEX),
-                            cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE),
-                            cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX),
-                            cm.isConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_CHARGE_TO_STUDENTS));
+            connection = new SmartSchoolConnection(getAccount2());
             connectionMap.put(connection.getAccountName(), connection);
         }
 
@@ -180,9 +247,16 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
         final SOAPElement returnElement;
 
         try {
+
+            final SmartschoolRequestEnum request =
+                    SmartschoolRequestEnum.GET_PRINTJOBS;
+
             returnElement =
-                    sendMessage(connection,
-                            createPrintJobsRequest(connection.getPassword()));
+                    this.sendMessage(
+                            connection,
+                            request,
+                            createPrintJobsRequest(request,
+                                    connection.getPassword()));
         } catch (SOAPException e) {
             /*
              * This is a weak solution, but there is no other way to find out
@@ -211,9 +285,13 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
             final String documentId, final SmartSchoolPrintStatusEnum status,
             final String comment) throws SmartSchoolException, SOAPException {
 
-        sendMessage(
+        final SmartschoolRequestEnum request =
+                SmartschoolRequestEnum.SET_DOCUMENTSTATUS;
+
+        this.sendMessage(
                 connection,
-                createSetDocumentStatusRequest(connection, documentId,
+                request,
+                createSetDocumentStatusRequest(connection, request, documentId,
                         status.getXmlText(), comment));
     }
 
@@ -283,8 +361,11 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
             final Document document, final File downloadedFile)
             throws IOException, ShutdownException {
 
+        final SmartschoolRequestEnum request =
+                SmartschoolRequestEnum.GET_DOCUMENT;
+
         final SOAPMessage soapMsg =
-                createGetDocumentRequest(document.getId(),
+                createGetDocumentRequest(request, document.getId(),
                         connection.getPassword());
 
         final ContentType contentType = ContentType.create("application/xml");
@@ -292,7 +373,8 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
         final HttpEntity entity =
                 new StringEntity(getXmlFromSOAPMessage(soapMsg), contentType);
 
-        final HttpPost httppost = new HttpPost(connection.getEndpointUri());
+        final HttpPost httppost =
+                new HttpPost(connection.getEndpointUri(request));
 
         httppost.setConfig(buildRequestConfig());
 
@@ -382,13 +464,13 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
         /*
          * ------------------------ IMPORTANT --------------------------------
          *
-         * The download data is held as content of the "return" element. What is
-         * "special" (peculiar) is that this content is XML formatted (escaped)
-         * as string! This escaped XML is NOT part of the XML tree, hence the
-         * SAXParser will NOT encounter startElement() and endElement()
-         * callbacks for the escaped elements "filename", "filesize", "md5sum",
-         * and "data"! That is why string parsing is done in the characters()
-         * callback while the "return" tag is in focus.
+         * The download data is held as content of the "return" element. Beware
+         * that the content is XML formatted (escaped) as string! This escaped
+         * XML is NOT part of the XML tree, hence the SAXParser will NOT
+         * encounter startElement() and endElement() callbacks for the escaped
+         * elements "filename", "filesize", "md5sum", and "data"! That is why
+         * string parsing is done in the characters() callback while the
+         * "return" tag is in focus.
          * -------------------------------------------------------------------
          */
         final DefaultHandler saxHandler = new DefaultHandler() {
@@ -439,7 +521,8 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
                     LOGGER.trace(String.format("startElement [%s]", qName));
                 }
 
-                processReturn = qName.equalsIgnoreCase("return");
+                processReturn =
+                        qName.equalsIgnoreCase(SmartschoolConstants.XML_ELM_RETURN);
                 processData = false;
 
             }
@@ -473,7 +556,8 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
                         }
 
                         // <data>
-                        searchWlk = "<data>";
+                        searchWlk =
+                                "<" + SmartschoolConstants.XML_ELM_DATA + ">";
                         iWlk = initialReturnXml.indexOf(searchWlk);
 
                         if (iWlk >= 0) {
@@ -555,11 +639,14 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
     /**
      * Creates a {@link SOAPMessage} request to get the print jobs.
      *
+     * @param request
+     *            The {@link SmartschoolRequestEnum}.
      * @param password
      *            The password for the request
      * @return The {@link SOAPMessage}.
      */
-    private static SOAPMessage createPrintJobsRequest(final char[] password) {
+    private static SOAPMessage createPrintJobsRequest(
+            final SmartschoolRequestEnum request, final char[] password) {
 
         final SOAPMessage message;
 
@@ -570,10 +657,11 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
             header.detachNode();
 
             final SOAPBody body = message.getSOAPBody();
-            final QName bodyName = new QName("getPrintJobs");
+            final QName bodyName = new QName(request.getSoapName());
             final SOAPBodyElement bodyElement = body.addBodyElement(bodyName);
             final SOAPElement elementPassword =
-                    bodyElement.addChildElement("pwd");
+                    bodyElement
+                            .addChildElement(SmartschoolConstants.XML_ELM_PWD);
             elementPassword.addTextNode(String.valueOf(password));
 
         } catch (SOAPException e) {
@@ -586,6 +674,8 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
     /**
      * Creates a {@link SOAPMessage} request to get the print job document.
      *
+     * @param request
+     *            The {@link SmartschoolRequestEnum}.
      * @param documentId
      *            The unique identification if the document.
      * @param password
@@ -593,7 +683,8 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
      * @return The {@link SOAPMessage}.
      */
     private static SOAPMessage createGetDocumentRequest(
-            final String documentId, final char[] password) {
+            final SmartschoolRequestEnum request, final String documentId,
+            final char[] password) {
 
         final SOAPMessage message;
 
@@ -604,14 +695,17 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
             header.detachNode();
 
             final SOAPBody body = message.getSOAPBody();
-            final QName bodyName = new QName("getDocument");
+            final QName bodyName = new QName(request.getSoapName());
             final SOAPBodyElement bodyElement = body.addBodyElement(bodyName);
 
             final SOAPElement elementPassword =
-                    bodyElement.addChildElement("pwd");
+                    bodyElement
+                            .addChildElement(SmartschoolConstants.XML_ELM_PWD);
             elementPassword.addTextNode(String.valueOf(password));
 
-            final SOAPElement uid = bodyElement.addChildElement("uid");
+            final SOAPElement uid =
+                    bodyElement
+                            .addChildElement(SmartschoolConstants.XML_ELM_UID);
             uid.addTextNode(documentId);
 
         } catch (SOAPException e) {
@@ -628,7 +722,8 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
      * @throws SOAPException
      */
     private static SOAPMessage createSetDocumentStatusRequest(
-            final SmartSchoolConnection connection, final String documentId,
+            final SmartSchoolConnection connection,
+            final SmartschoolRequestEnum request, final String documentId,
             final String status, final String comment) throws SOAPException {
 
         final SOAPMessage message =
@@ -640,28 +735,35 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
 
         final SOAPBody body = message.getSOAPBody();
 
-        final QName bodyName = new QName("setDocumentStatus");
+        final QName bodyName = new QName(request.getSoapName());
         final SOAPBodyElement bodyElement = body.addBodyElement(bodyName);
 
-        /*
-        *
-        */
-        final SOAPElement password = bodyElement.addChildElement("pwd");
+        //
+        final SOAPElement password =
+                bodyElement.addChildElement(SmartschoolConstants.XML_ELM_PWD);
+
         password.addTextNode(String.valueOf(connection.getPassword()));
 
-        /*
-        *
-        */
-        final SOAPElement uid = bodyElement.addChildElement("uid");
+        //
+        final SOAPElement uid =
+                bodyElement.addChildElement(SmartschoolConstants.XML_ELM_UID);
+
         uid.addTextNode(documentId);
 
-        /*
-        *
-        */
-        final SOAPElement xmlElement = bodyElement.addChildElement("xml");
-        xmlElement.addTextNode("<status type=\"print\"><id>" + documentId
-                + "</id><code>" + status + "</code><comment>" + comment
-                + "</comment></status>");
+        //
+        final SOAPElement xmlElement =
+                bodyElement.addChildElement(SmartschoolConstants.XML_ELM_XML);
+
+        final DocumentStatusIn docStat = new DocumentStatusIn();
+        docStat.setDocumentId(documentId);
+        docStat.setComment(comment);
+        docStat.setCode(status);
+
+        try {
+            xmlElement.addTextNode(docStat.createXml());
+        } catch (JAXBException e) {
+            throw new SpException(e.getMessage(), e);
+        }
 
         return message;
     }
@@ -671,6 +773,8 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
      *
      * @param connection
      *            The {@link SmartSchoolConnection}.
+     * @param request
+     *            The {@link SmartschoolRequestEnum}.
      * @param message
      *            The {@link SOAPMessage} to send.
      * @return The {@link SOAPElement} return element.
@@ -680,15 +784,15 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
      *             When SOAP (connection) error.
      */
     private SOAPElement sendMessage(final SmartSchoolConnection connection,
-            final SOAPMessage message) throws SmartSchoolException,
-            SOAPException {
+            final SmartschoolRequestEnum request, final SOAPMessage message)
+            throws SmartSchoolException, SOAPException {
 
         final SOAPMessage response;
 
         try {
             response =
                     connection.getConnection().call(message,
-                            connection.getEndpointUrl());
+                            connection.getEndpointUrl(request));
 
         } catch (SOAPException e) {
             if (SmartSchoolLogger.isEnabled()) {
