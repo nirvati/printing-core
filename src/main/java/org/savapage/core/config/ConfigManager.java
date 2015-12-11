@@ -1593,7 +1593,8 @@ public final class ConfigManager {
                 || key == Key.PAPERCUT_DB_PASSWORD
                 || key == Key.PAPERCUT_SERVER_AUTH_TOKEN
                 || key == Key.PRINT_IMAP_PASSWORD
-                || key == Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD;
+                || key == Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD
+                || key == Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD;
     }
 
     /**
