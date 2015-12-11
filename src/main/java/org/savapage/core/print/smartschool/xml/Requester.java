@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ package org.savapage.core.print.smartschool.xml;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class Requester {
@@ -35,40 +35,51 @@ public class Requester {
     private String username;
     private String role;
 
-    public String getId() {
+    public final String getId() {
         return id;
     }
-    public void setId(String id) {
+
+    public final void setId(String id) {
         this.id = id;
     }
-    public String getRegistrationnumber() {
+
+    public final String getRegistrationnumber() {
         return registrationnumber;
     }
-    public void setRegistrationnumber(String registrationnumber) {
+
+    public final void setRegistrationnumber(String registrationnumber) {
         this.registrationnumber = registrationnumber;
     }
-    public String getName() {
+
+    public final String getName() {
         return name;
     }
-    public void setName(String name) {
+
+    public final void setName(String name) {
         this.name = name;
     }
-    public String getSurname() {
+
+    public final String getSurname() {
         return surname;
     }
-    public void setSurname(String surname) {
+
+    public final void setSurname(String surname) {
         this.surname = surname;
     }
-    public String getUsername() {
+
+    public final String getUsername() {
         return username;
     }
-    public void setUsername(String username) {
+
+    public final void setUsername(String username) {
         this.username = username;
     }
-    public String getRole() {
+
+    public final String getRole() {
         return role;
     }
-    public void setRole(String role) {
+
+    public final void setRole(String role) {
         this.role = role;
     }
 

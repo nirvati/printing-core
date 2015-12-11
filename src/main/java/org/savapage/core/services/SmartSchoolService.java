@@ -93,13 +93,11 @@ public interface SmartSchoolService {
     File getDownloadFile(String documentName, UUID uuid);
 
     /**
-     * Downloads a document for printing into the application's temp directory.
-     * See {@link ConfigManager#getAppTmpDir()}.
+     * Downloads a Smartschool {@link Document} for printing into the
+     * application's temp directory. See {@link ConfigManager#getAppTmpDir()}.
      *
      * @param connection
      *            The {@link SmartSchoolConnection }.
-     * @param user
-     *            The requesting {@link User}.
      * @param document
      *            The SmartSchool {@link Document}.
      * @param uuid
@@ -112,8 +110,27 @@ public interface SmartSchoolService {
      *             {@link SmartSchoolConnection#setShutdownRequested(boolean)}
      *             request.
      */
-    File downloadDocument(SmartSchoolConnection connection, User user,
-            Document document, UUID uuid) throws IOException, ShutdownException;
+    File downloadDocument(SmartSchoolConnection connection, Document document,
+            UUID uuid) throws IOException, ShutdownException;
+
+    /**
+     * Downloads a Smartschool {@link Document} into the application's temp
+     * directory. See {@link ConfigManager#getAppTmpDir()}.
+     *
+     * @param connection
+     *            The {@link SmartSchoolConnection }.
+     * @param document
+     *            The SmartSchool {@link Document}.
+     * @return The downloaded {@link File}.
+     * @throws IOException
+     *             When a a file IO error occurs.
+     * @throws ShutdownException
+     *             When download was interrupted because of a
+     *             {@link SmartSchoolConnection#setShutdownRequested(boolean)}
+     *             request.
+     */
+    File downloadDocumentForProxy(SmartSchoolConnection connection,
+            Document document) throws IOException, ShutdownException;
 
     /**
      * Reports the document status to SmartSchool.
@@ -121,9 +138,11 @@ public interface SmartSchoolService {
      * @param connection
      *            The {@link SmartSchoolConnection }.
      * @param documentId
+     *            The document ID.
      * @param status
      *            The {@link SmartSchoolPrintStatusEnum}.
      * @param comment
+     *            The comment.
      * @throws SmartSchoolException
      * @throws SOAPException
      *             When SOAP connection error.

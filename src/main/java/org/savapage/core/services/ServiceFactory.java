@@ -152,6 +152,13 @@ public interface ServiceFactory {
     SmartSchoolService getSmartSchoolService();
 
     /**
+     * Gets the {@link SmartSchoolProxyService} singleton.
+     *
+     * @return The singleton.
+     */
+    SmartSchoolProxyService getSmartSchoolProxyService();
+
+    /**
      * Gets the {@link UserGroupService} singleton.
      *
      * @return The singleton.

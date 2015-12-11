@@ -23,7 +23,7 @@ package org.savapage.core.print.smartschool.xml;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum SmartSchoolRoleEnum {

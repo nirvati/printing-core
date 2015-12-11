@@ -135,10 +135,7 @@ public final class SmartSchoolConnection {
                     InetAddress.getByName(this.endpointUrl.getHost())
                             .getHostAddress();
 
-            //
-            this.accountName =
-                    StringUtils
-                            .substringBefore(this.endpointUrl.getHost(), ".");
+            this.accountName = extractAccountName(this.endpointUrl);
 
             if (this.accountName == null) {
                 throw new SpException("No account found in endpoint "
@@ -183,6 +180,17 @@ public final class SmartSchoolConnection {
         //
         final HttpClientBuilder builder = HttpClientBuilder.create();
         this.httpClient = builder.build();
+    }
+
+    /**
+     * Extracts the account name from the native Smartschool SOAP endpoint.
+     *
+     * @param endpoint
+     *            The Smartschool SOAP endpoint {@link URL}.
+     * @return The Smartschool account name, or {@code null} when not found.
+     */
+    public static String extractAccountName(final URL endpoint) {
+        return StringUtils.substringBefore(endpoint.getHost(), ".");
     }
 
     /**
@@ -282,13 +290,22 @@ public final class SmartSchoolConnection {
     }
 
     /**
-     * @return The Cluster Node ID, or {@code null} when not defined.
+     * @return The Cluster Node ID, or {@code null} when not the connection is
+     *         not part of a Cluster.
      */
     public String getNodeId() {
         if (this.account.getNode() == null) {
             return null;
         }
         return this.account.getNode().getId();
+    }
+
+    /**
+     *
+     * @return {@code true} if this connection is part of a Cluster.
+     */
+    public boolean isPartOfCluster() {
+        return StringUtils.isNotBlank(this.getNodeId());
     }
 
     /**

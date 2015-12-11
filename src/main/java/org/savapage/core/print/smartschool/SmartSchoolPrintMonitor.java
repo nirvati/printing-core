@@ -41,6 +41,7 @@ import javax.xml.soap.SOAPConnection;
 import javax.xml.soap.SOAPException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.ShutdownException;
@@ -51,6 +52,7 @@ import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.AccountTrxDao;
@@ -108,6 +110,7 @@ import org.savapage.core.services.PaperCutService;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.SmartSchoolProxyService;
 import org.savapage.core.services.SmartSchoolService;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
@@ -176,6 +179,9 @@ public final class SmartSchoolPrintMonitor {
     private static final String MSG_COMMENT_PRINT_QUEUED =
             "Document is met succes in de wachtrij geplaatst.";
 
+    private static final String MSG_COMMENT_PRINT_CACHED_IN_PROXY =
+            "Afdrukopdracht wordt verwerkt...";
+
     private static final String MSG_COMMENT_PRINT_CANCELLED =
             "Afdrukopdracht is geannuleerd.";
 
@@ -203,6 +209,9 @@ public final class SmartSchoolPrintMonitor {
     private static final String MSG_COMMENT_PRINT_ERROR_NO_COPIES =
             "Geen kopieen gespecificeerd.";
 
+    private static final String MSG_COMMENT_PRINT_ERROR_NO_NODE_ID =
+            "Geen Node ID gespecificeerd.";
+
     private static final String MSG_COMMENT_PRINT_ERROR_UNKNOWN_USER_BOTH =
             "Aanvrager \"%s\" is onbekend in "
                     + CommunityDictEnum.SAVAPAGE.getWord() + " en PaperCut.";
@@ -215,7 +224,7 @@ public final class SmartSchoolPrintMonitor {
             "Aanvrager \"%s\" is onbekend in PaperCut.";
 
     /**
-     * The map with SmartSchool account connections with key is SmartSchool
+     * The map with Smartschool account connections with key is SmartSchool
      * account.
      */
     private final Map<String, SmartSchoolConnection> connectionMap;
@@ -273,6 +282,12 @@ public final class SmartSchoolPrintMonitor {
     /**
      * .
      */
+    private static final SmartSchoolProxyService SMARTSCHOOL_PROXY_SERVICE =
+            ServiceContext.getServiceFactory().getSmartSchoolProxyService();
+
+    /**
+     * .
+     */
     private static final PaperCutService PAPERCUT_SERVICE = ServiceContext
             .getServiceFactory().getPaperCutService();
 
@@ -299,10 +314,21 @@ public final class SmartSchoolPrintMonitor {
 
     /**
      * {@link DocLogDao.ListFilter} for retrieving
-     * {@link SmartSchoolPrintStatusEnum#PENDING_EXT} SmartSchool jobs.
+     * {@link SmartSchoolPrintStatusEnum#PENDING_EXT} Smartschool jobs.
      */
     private final DocLogDao.ListFilter listFilterPendingExt =
             new DocLogDao.ListFilter();
+
+    /**
+     * Number of seconds of a monitoring heartbeat.
+     */
+    private final int monitorHeartbeatSecs;
+
+    /**
+     * The number of monitoring heartbeats after which Smartschool is contacted
+     * to get the {@link Jobticket}.
+     */
+    private final int monitorHeartbeatsForJobticket;
 
     /**
      *
@@ -329,14 +355,34 @@ public final class SmartSchoolPrintMonitor {
         this.papercutServerProxy = paperCutProxy;
         this.papercutDbProxy = papercutDbProxy;
 
-        listFilterPendingExt
+        this.listFilterPendingExt
                 .setExternalSupplier(ExternalSupplierEnum.SMARTSCHOOL);
 
-        listFilterPendingExt
+        this.listFilterPendingExt
                 .setExternalStatus(SmartSchoolPrintStatusEnum.PENDING_EXT
                         .toString());
 
-        listFilterPendingExt.setProtocol(DocLogProtocolEnum.IPP);
+        this.listFilterPendingExt.setProtocol(DocLogProtocolEnum.IPP);
+
+        //
+        final ConfigManager cm = ConfigManager.instance();
+
+        this.monitorHeartbeatSecs =
+                cm.getConfigInt(IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEAT_SECS);
+
+        //
+        final IConfigProp.Key sessionHeartbeatSecsKey;
+
+        if (simulationMode) {
+            sessionHeartbeatSecsKey =
+                    IConfigProp.Key.SMARTSCHOOL_SIMULATION_SOAP_PRINT_POLL_HEARTBEATS;
+        } else {
+            sessionHeartbeatSecsKey =
+                    IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEATS;
+        }
+
+        this.monitorHeartbeatsForJobticket =
+                cm.getConfigInt(sessionHeartbeatSecsKey);
     }
 
     /**
@@ -421,19 +467,24 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Monitors incoming SmartSchool print jobs and print status.
+     * @return The number of msecs since last heartbeat after which node is
+     *         considered dead.
+     */
+    private long getNodeExpiryMsec() {
+        final int extraFactor = 2;
+        return this.monitorHeartbeatSecs * this.monitorHeartbeatsForJobticket
+                * DateUtil.DURATION_MSEC_SECOND * extraFactor;
+    }
+
+    /**
+     * Monitors incoming Smartschool print jobs and print status.
      * <p>
      * <b>Note</b>: This is a blocking call that returns when the maximum
      * duration is reached (or a {@link #disconnect()} is called before
      * returning).
      * </p>
      *
-     * @param heartbeatSecs
-     *            Number of seconds of a heartbeat.
-     * @param pollingHeartbeats
-     *            The number of heartbeats after which Smartschool is contacted
-     *            for waiting print jobs.
-     * @param sessionDurationSecs
+     * @param monitorDurationSecs
      *            The duration after which this method returns.
      * @throws InterruptedException
      *             When we are interrupted.
@@ -442,15 +493,14 @@ public final class SmartSchoolPrintMonitor {
      * @throws ShutdownException
      *             When we application shutdown is in progress.
      * @throws SmartSchoolException
-     *             When SmartSchool return a fault.
+     *             When Smartschool return a fault.
      * @throws PaperCutException
      * @throws DocContentToPdfException
      *
      */
-    public void monitor(final int heartbeatSecs, final int pollingHeartbeats,
-            final int sessionDurationSecs) throws InterruptedException,
-            SOAPException, ShutdownException, SmartSchoolException,
-            PaperCutException, DocContentToPdfException {
+    public void monitor(final int monitorDurationSecs)
+            throws InterruptedException, SOAPException, ShutdownException,
+            SmartSchoolException, PaperCutException, DocContentToPdfException {
 
         final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -460,7 +510,7 @@ public final class SmartSchoolPrintMonitor {
 
             final long sessionEndTime =
                     System.currentTimeMillis() + DateUtil.DURATION_MSEC_SECOND
-                            * sessionDurationSecs;
+                            * monitorDurationSecs;
 
             final Date sessionEndDate = new Date(sessionEndTime);
 
@@ -469,7 +519,7 @@ public final class SmartSchoolPrintMonitor {
              * the minimal polling frequency enforced by Smartschool must be
              * respected.
              */
-            if (simulationMode && this.isConnected) {
+            if (this.simulationMode && this.isConnected) {
                 processJobs(this);
             }
 
@@ -492,10 +542,10 @@ public final class SmartSchoolPrintMonitor {
                 }
 
                 /*
-                 * SmartSchool still enabled?
+                 * Smartschool still enabled?
                  */
                 if (!ConfigManager.isSmartSchoolPrintEnabled()) {
-                    LOGGER.trace("SmartSchool disabled by administrator.");
+                    LOGGER.trace("Smartschool disabled by administrator.");
                     break;
                 }
 
@@ -519,15 +569,17 @@ public final class SmartSchoolPrintMonitor {
                  */
                 heartbeatPollCounter++;
 
-                if (heartbeatPollCounter < pollingHeartbeats) {
+                if (heartbeatPollCounter < this.monitorHeartbeatsForJobticket) {
 
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Waiting... next ["
                                 + dateFormat.format(DateUtils.addSeconds(now,
-                                        heartbeatSecs)) + "] till ["
+                                        this.monitorHeartbeatSecs))
+                                + "] till ["
                                 + dateFormat.format(sessionEndDate) + "] ...");
                     }
-                    Thread.sleep(heartbeatSecs * DateUtil.DURATION_MSEC_SECOND);
+                    Thread.sleep(this.monitorHeartbeatSecs
+                            * DateUtil.DURATION_MSEC_SECOND);
 
                 } else if (this.isConnected) {
 
@@ -549,7 +601,7 @@ public final class SmartSchoolPrintMonitor {
      *
      * @return The job ticket.
      * @throws SmartSchoolException
-     *             When SmartSchool reported an error.
+     *             When Smartschool reported an error.
      * @throws SmartSchoolTooManyRequestsException
      *             When HTTP status 429 "Too Many Requests" occurred.
      * @throws ShutdownException
@@ -588,7 +640,7 @@ public final class SmartSchoolPrintMonitor {
      * @param status
      *            The {@link SmartSchoolPrintStatusEnum}.
      * @param comment
-     *            The SmartSchool feedback comment.
+     *            The Smartschool feedback comment.
      * @throws SmartSchoolException
      * @throws SOAPException
      */
@@ -617,7 +669,6 @@ public final class SmartSchoolPrintMonitor {
      * See {@link ConfigManager#getAppTmpDir()}.
      *
      * @param connection
-     * @param user
      * @param document
      * @param uuid
      * @return The downloaded {@link File}.
@@ -628,9 +679,9 @@ public final class SmartSchoolPrintMonitor {
      *             request.
      */
     private static File downloadDocument(
-            final SmartSchoolConnection connection, final User user,
-            Document document, final UUID uuid, final boolean simulationMode)
-            throws IOException, ShutdownException {
+            final SmartSchoolConnection connection, Document document,
+            final UUID uuid, final boolean simulationMode) throws IOException,
+            ShutdownException {
 
         if (simulationMode) {
 
@@ -641,8 +692,7 @@ public final class SmartSchoolPrintMonitor {
             return downloadDocumentSimulation(document, uuid);
         }
 
-        return SMARTSCHOOL_SERVICE.downloadDocument(connection, user, document,
-                uuid);
+        return SMARTSCHOOL_SERVICE.downloadDocument(connection, document, uuid);
     }
 
     /**
@@ -665,7 +715,7 @@ public final class SmartSchoolPrintMonitor {
         Paragraph para;
 
         try {
-            final String text = "\n\n\n\nSmartSchool Simulation";
+            final String text = "\n\n\n\nSmartschool Simulation";
 
             PdfWriter.getInstance(pdfDoc, new FileOutputStream(downloadFile));
             pdfDoc.open();
@@ -842,7 +892,7 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Processes the SmartSchool print queue(s) and monitors PaperCut print
+     * Processes the Smartschool print queue(s) and monitors PaperCut print
      * status.
      *
      * @param monitor
@@ -850,7 +900,7 @@ public final class SmartSchoolPrintMonitor {
      * @throws SOAPException
      *             When connectivity problems.
      * @throws SmartSchoolException
-     *             When SmartSchool reported an error.
+     *             When Smartschool reported an error.
      * @throws ShutdownException
      *             When interrupted by a shutdown request.
      * @throws PaperCutException
@@ -910,9 +960,117 @@ public final class SmartSchoolPrintMonitor {
              * Process print jobs one-by-one.
              */
             for (final Document doc : jobTicket.getDocuments().getDocument()) {
-                processJob(monitor, doc);
-            }
 
+                final MutableBoolean doProcess = new MutableBoolean();
+                final MutableBoolean doProxy = new MutableBoolean();
+                final StringBuilder proxyClientNodeId = new StringBuilder();
+
+                evaluateJobProcessing(monitor, doc, doProcess, doProxy,
+                        proxyClientNodeId);
+
+                if (doProcess.isTrue()) {
+
+                    if (doProxy.isTrue()) {
+                        storeJobInProxyCache(monitor, doc,
+                                proxyClientNodeId.toString());
+                    } else {
+                        processJob(monitor, doc);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if this job (document) can be processed. If a required Node ID tag
+     * is missing from the document comment the
+     * {@link #processJobWithoutNodeId(SmartSchoolConnection, boolean, Document)}
+     * method is executed, so we don't encounter the document at the next poll.
+     *
+     * @param monitor
+     *            The {@link SmartSchoolPrintMonitor}.
+     * @param doc
+     *            The Smartschool {@link Document}.
+     * @param doProcess
+     *            Set to {@code true} if job can be processed.
+     * @param doProxy
+     *            Set to {@code true} if job must be processed as proxy.
+     * @param proxyClientNodeId
+     *            The cluster client node this job is aimed at.
+     * @throws SmartSchoolException
+     * @throws SOAPException
+     * @throws SpException
+     *             When cluster configuration error.
+     */
+    private static void evaluateJobProcessing(
+            final SmartSchoolPrintMonitor monitor, final Document doc,
+            final MutableBoolean doProcess, final MutableBoolean doProxy,
+            final StringBuilder proxyClientNodeId) throws SmartSchoolException,
+            SOAPException {
+
+        doProcess.setFalse();
+        doProxy.setFalse();
+
+        final SmartSchoolConnection connection = monitor.processingConnection;
+
+        /*
+         * Process if connection is NOT part of a cluster.
+         */
+        if (!connection.isPartOfCluster()) {
+            doProcess.setTrue();
+            return;
+        }
+
+        /*
+         * INVARIANT: This connection MUST has a Node ID since it is part of
+         * cluster.
+         */
+        final String nodeId = connection.getNodeId();
+
+        if (StringUtils.isBlank(nodeId)) {
+
+            final StringBuilder msg = new StringBuilder();
+            msg.append("Connection [")
+                    .append(StringUtils.defaultString(connection
+                            .getAccountName()))
+                    .append("] is part of a cluster, but Node ID is missing.");
+
+            throw new SpException(msg.toString());
+        }
+
+        /*
+         * INVARIANT: Document comment MUST be present if connection is part of
+         * cluster.
+         */
+        final String docComment = doc.getComment();
+        if (StringUtils.isBlank(docComment)) {
+            doProcess.setFalse();
+            processJobWithoutNodeId(connection, monitor.simulationMode, doc);
+            return;
+        }
+
+        final String targetNodeId = SMARTSCHOOL_PROXY_SERVICE.getNodeId(doc);
+
+        /*
+         * Process if connection is part of a cluster and the document comment
+         * contains the tagged Node ID.
+         */
+        if (targetNodeId != null && targetNodeId.equalsIgnoreCase(nodeId)) {
+            doProcess.setTrue();
+            return;
+        }
+
+        /*
+         * If this connection is a proxy, we will proxy if the target Node ID is
+         * alive.
+         */
+        if (connection.isProxy()
+                && SMARTSCHOOL_PROXY_SERVICE.isNodeAlive(targetNodeId,
+                        monitor.getNodeExpiryMsec())) {
+            doProcess.setTrue();
+            doProxy.setTrue();
+            proxyClientNodeId.append(targetNodeId);
+            return;
         }
     }
 
@@ -940,7 +1098,7 @@ public final class SmartSchoolPrintMonitor {
 
     /**
      * Monitors the print job status in PaperCut for
-     * {@link SmartSchoolPrintStatusEnum#PENDING_EXT} SmartSchool jobs (i.e jobs
+     * {@link SmartSchoolPrintStatusEnum#PENDING_EXT} Smartschool jobs (i.e jobs
      * that were proxy printed to a PaperCut managed printer).
      *
      * @param connectionMap
@@ -1045,7 +1203,7 @@ public final class SmartSchoolPrintMonitor {
             }
 
             /*
-             * Get SmartSchool account name from the document name.
+             * Get Smartschool account name from the document name.
              */
             final StringBuilder msg = new StringBuilder();
 
@@ -1087,7 +1245,7 @@ public final class SmartSchoolPrintMonitor {
             }
 
             /*
-             * NOTE: reporting the status to SmartSchool MUST be the LAST
+             * NOTE: reporting the status to Smartschool MUST be the LAST
              * action.
              */
             reportDocumentStatus(connection, docLog.getExternalId(),
@@ -1100,7 +1258,7 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Processes SmartSchool print jobs that cannot be found in PaperCut: status
+     * Processes Smartschool print jobs that cannot be found in PaperCut: status
      * is set to {@link SmartSchoolPrintStatusEnum#ERROR} when Smartschool job
      * is more then {@link #MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG} old.
      *
@@ -1137,7 +1295,7 @@ public final class SmartSchoolPrintMonitor {
 
             msg.append("PaperCut print log of ")
                     .append(MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG)
-                    .append(" days old SmartSchool document [").append(docName)
+                    .append(" days old Smartschool document [").append(docName)
                     .append("] not found.");
 
             publishAdminMsg(PubLevelEnum.ERROR, msg.toString());
@@ -1175,7 +1333,7 @@ public final class SmartSchoolPrintMonitor {
 
     /**
      *
-     * Processes a cancelled PaperCut SmartSchool print job.
+     * Processes a cancelled PaperCut Smartschool print job.
      * <ul>
      * <li></li>
      * </ul>
@@ -1196,7 +1354,7 @@ public final class SmartSchoolPrintMonitor {
 
         final StringBuilder msg = new StringBuilder();
 
-        msg.append("PaperCut print of SmartSchool document [")
+        msg.append("PaperCut print of Smartschool document [")
                 .append(papercutLog.getDocumentName()).append("] ")
                 .append(printStatus).append(" because \"")
                 .append(papercutLog.getDeniedReason()).append("\"");
@@ -1208,7 +1366,7 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Processes a completed PaperCut SmartSchool print job.
+     * Processes a completed PaperCut Smartschool print job.
      * <ul>
      * <li>The Personal and Shared SmartSchool\Klas accounts are lazy adjusted
      * in PaperCut and SavaPage.</li>
@@ -1581,7 +1739,7 @@ public final class SmartSchoolPrintMonitor {
          * Publish admin message.
          */
         publishAdminMsg(PubLevelEnum.CLEAR, String.format(
-                "PaperCut print of SmartSchool document [%s] %s",
+                "PaperCut print of Smartschool document [%s] %s",
                 papercutLog.getDocumentName(), printStatus.toString()));
 
     }
@@ -1606,7 +1764,7 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Creates {@link AccountTrxInfoSet} for a SmartSchool klas and personal
+     * Creates {@link AccountTrxInfoSet} for a Smartschool klas and personal
      * copies.
      *
      * <p>
@@ -1689,7 +1847,7 @@ public final class SmartSchoolPrintMonitor {
 
         supplierData.setCopies(nTotCopies);
 
-        // Translate SmartSchool processInfo to SavaPage speak.
+        // Translate Smartschool processInfo to SavaPage speak.
         final Processinfo processInfo = document.getProcessinfo();
 
         // media
@@ -1734,7 +1892,7 @@ public final class SmartSchoolPrintMonitor {
      * @param connection
      *            The {@link SmartSchoolConnection}.
      * @param document
-     *            The SmartSchool {@link Document} to be printed.
+     *            The Smartschool {@link Document} to be printed.
      * @param downloadedFile
      *            The downloaded {@link File}.
      * @param nTotCopies
@@ -1818,7 +1976,63 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Processes a SmartSchool print job.
+     * Stores a Smartschool print job in the proxy cache and reports status and
+     * comment back to Smartschool.
+     *
+     * @param monitor
+     *            The {@link SmartSchoolPrintMonitor} instance.
+     * @param document
+     *            The Smartschool document.
+     * @param proxyClientNodeId
+     *            The cluster Node ID the document is meant for.
+     * @throws ShutdownException
+     *             When interrupted by a shutdown request.
+     * @throws SOAPException
+     * @throws SmartSchoolException
+     */
+    private static void storeJobInProxyCache(
+            final SmartSchoolPrintMonitor monitor, final Document document,
+            final String proxyClientNodeId) throws ShutdownException,
+            SmartSchoolException, SOAPException {
+
+        boolean exception = true;
+
+        File pdfFile = null;
+
+        try {
+            monitor.isProcessing = true;
+
+            pdfFile =
+                    SMARTSCHOOL_SERVICE.downloadDocumentForProxy(
+                            monitor.processingConnection, document);
+
+            final String accountName =
+                    monitor.processingConnection.getAccountName();
+
+            SMARTSCHOOL_PROXY_SERVICE.cacheDocument(accountName,
+                    proxyClientNodeId, document, pdfFile);
+
+            exception = false;
+
+        } catch (IOException e) {
+
+            throw new SpException(e.getMessage());
+
+        } finally {
+
+            if (exception && pdfFile != null) {
+                pdfFile.delete();
+            }
+            monitor.isProcessing = false;
+        }
+
+        reportDocumentStatus(monitor.processingConnection, document.getId(),
+                SmartSchoolPrintStatusEnum.PENDING,
+                MSG_COMMENT_PRINT_CACHED_IN_PROXY, monitor.simulationMode);
+    }
+
+    /**
+     * Processes a Smartschool print job.
      * <p>
      * The job is canceled when the requesting user does NOT exist in SavaPage
      * (and PaperCut, when integration is enabled).
@@ -1827,11 +2041,11 @@ public final class SmartSchoolPrintMonitor {
      * @param monitor
      *            The {@link SmartSchoolPrintMonitor} instance.
      * @param document
-     *            The SmartSchool document.
+     *            The Smartschool document.
      * @throws SOAPException
      *             When connectivity problems.
      * @throws SmartSchoolException
-     *             When SmartSchool reported an error.
+     *             When Smartschool reported an error.
      * @throws ShutdownException
      *             When interrupted by a shutdown request.
      * @throws DocContentToPdfException
@@ -1926,8 +2140,7 @@ public final class SmartSchoolPrintMonitor {
 
                     downloadedFile =
                             downloadDocument(monitor.processingConnection,
-                                    requestingUser, document, uuid,
-                                    monitor.simulationMode);
+                                    document, uuid, monitor.simulationMode);
 
                     /*
                      * Create ExternalSupplierInfo info.
@@ -2053,7 +2266,7 @@ public final class SmartSchoolPrintMonitor {
      * @throws SOAPException
      *             When connectivity problems.
      * @throws SmartSchoolException
-     *             When SmartSchool reported an error.
+     *             When Smartschool reported an error.
      */
     private static void processJobNoCopies(
             final SmartSchoolConnection connection,
@@ -2068,12 +2281,47 @@ public final class SmartSchoolPrintMonitor {
 
         publishAdminMsg(
                 PubLevelEnum.WARN,
-                String.format("SmartSchool document [%s]: %s",
+                String.format("Smartschool document [%s]: %s",
                         document.getName(), MSG_COMMENT_PRINT_ERROR_NO_COPIES));
 
         reportDocumentStatus(connection, document.getId(),
                 SmartSchoolPrintStatusEnum.ERROR,
                 MSG_COMMENT_PRINT_ERROR_NO_COPIES, simulationMode);
+    }
+
+    /**
+     * Processes a job request without a Node ID tag.
+     *
+     * @param connection
+     *            The {@link SmartSchoolConnection}.
+     * @param simulationMode
+     *            {@code true} when in simulation mode.
+     * @param document
+     *            The document.
+     * @throws SOAPException
+     *             When connectivity problems.
+     * @throws SmartSchoolException
+     *             When Smartschool reported an error.
+     */
+    private static void processJobWithoutNodeId(
+            final SmartSchoolConnection connection,
+            final boolean simulationMode, final Document document)
+            throws SmartSchoolException, SOAPException {
+
+        if (LOGGER.isWarnEnabled()) {
+            LOGGER.warn(String.format(
+                    "Document [%s] [%s] skipped: Node ID is missing.",
+                    document.getId(), document.getName()));
+        }
+
+        publishAdminMsg(
+                PubLevelEnum.WARN,
+                String.format("Smartschool document [%s]: %s",
+                        document.getName(), MSG_COMMENT_PRINT_ERROR_NO_NODE_ID));
+
+        reportDocumentStatus(connection, document.getId(),
+                SmartSchoolPrintStatusEnum.ERROR,
+                MSG_COMMENT_PRINT_ERROR_NO_NODE_ID, simulationMode);
     }
 
     /**
@@ -2092,7 +2340,7 @@ public final class SmartSchoolPrintMonitor {
      * @throws SOAPException
      *             When connectivity problems.
      * @throws SmartSchoolException
-     *             When SmartSchool reported an error.
+     *             When Smartschool reported an error.
      */
     private static void processJobRequesterNotFound(
             final SmartSchoolConnection connection,
@@ -2127,7 +2375,7 @@ public final class SmartSchoolPrintMonitor {
         }
 
         publishAdminMsg(PubLevelEnum.WARN,
-                "SmartSchool document [" + document.getName() + "]: " + msg);
+                "Smartschool document [" + document.getName() + "]: " + msg);
 
         reportDocumentStatus(connection, document.getId(),
                 SmartSchoolPrintStatusEnum.ERROR, msg, simulationMode);
@@ -2208,7 +2456,7 @@ public final class SmartSchoolPrintMonitor {
      * @param monitor
      *            The {@link SmartSchoolPrintMonitor} instance.
      * @param document
-     *            The SmartSchool {@link Document} to print.
+     *            The Smartschool {@link Document} to print.
      * @param klasCopies
      *            The map to collect the number of copies to per Klas (students
      *            only).
@@ -2405,7 +2653,7 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Processes the downloaded SmartSchool print Job file.
+     * Processes the downloaded Smartschool print Job file.
      *
      * @param monitor
      *            The {@link SmartSchoolPrintMonitor} instance.
@@ -2585,10 +2833,10 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Translates a The SmartSchool boolean value to a boolean type.
+     * Translates a The Smartschool boolean value to a boolean type.
      *
      * @param value
-     *            The SmartSchool boolean value.
+     *            The Smartschool boolean value.
      * @return {@code true} when value represents {@link Boolean#TRUE}.
      */
     private static boolean asBoolean(final String value) {
@@ -2729,7 +2977,7 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Proxy Prints the SmartSchool document.
+     * Proxy Prints the Smartschool document.
      *
      * @param connection
      *            The {@link SmartSchoolConnection} instance.
@@ -2783,7 +3031,7 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Proxy Prints the SmartSchool document.
+     * Proxy Prints the Smartschool document.
      *
      * @param monitor
      *            The {@link SmartSchoolPrintMonitor} instance.
@@ -2813,7 +3061,7 @@ public final class SmartSchoolPrintMonitor {
             DocContentToPdfException {
 
         /*
-         * Get SmartSchool process info from the supplier data.
+         * Get Smartschool process info from the supplier data.
          */
         final SmartSchoolPrintInData supplierData =
                 (SmartSchoolPrintInData) externalSupplierInfo.getData();
@@ -3005,7 +3253,7 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Tests the SmartSchool print connections and returns the total number of
+     * Tests the Smartschool print connections and returns the total number of
      * jobs.
      *
      * @param nMessagesInbox
@@ -3013,7 +3261,7 @@ public final class SmartSchoolPrintMonitor {
      * @throws SOAPException
      *             When SOAP connection fails.
      * @throws SmartSchoolException
-     *             When SmartSchool returns errors.
+     *             When Smartschool returns errors.
      * @throws SmartSchoolTooManyRequestsException
      *             When HTTP status 429 "Too Many Requests" occurred.
      */

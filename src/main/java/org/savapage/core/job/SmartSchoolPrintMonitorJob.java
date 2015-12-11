@@ -125,12 +125,12 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
 
         /**
          *
-         * @param parentJob
+         * @param parent
          *            The parent {@link SmartSchoolPrintMonitorJob}.
          */
         public SmartSchoolCircuitOperation(
-                final SmartSchoolPrintMonitorJob parentJob) {
-            this.parentJob = parentJob;
+                final SmartSchoolPrintMonitorJob parent) {
+            this.parentJob = parent;
         }
 
         @Override
@@ -151,24 +151,6 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
                     papercutServerProxy.connect();
                     papercutDbProxy.connect();
                 }
-
-                //
-                final int pollingHeartbeatSecs =
-                        cm.getConfigInt(IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEAT_SECS);
-
-                //
-                final IConfigProp.Key sessionHeartbeatSecsKey;
-
-                if (this.parentJob.isSimulation) {
-                    sessionHeartbeatSecsKey =
-                            IConfigProp.Key.SMARTSCHOOL_SIMULATION_SOAP_PRINT_POLL_HEARTBEATS;
-                } else {
-                    sessionHeartbeatSecsKey =
-                            IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEATS;
-                }
-
-                final int sessionHeartbeatSecs =
-                        cm.getConfigInt(sessionHeartbeatSecsKey);
 
                 //
                 final int sessionDurationSecs =
@@ -204,8 +186,7 @@ public final class SmartSchoolPrintMonitorJob extends AbstractJob {
                 /*
                  * Blocking...
                  */
-                this.printMonitor.monitor(pollingHeartbeatSecs,
-                        sessionHeartbeatSecs, sessionDurationSecs);
+                this.printMonitor.monitor(sessionDurationSecs);
 
             } catch (SOAPException | PaperCutConnectException e) {
 

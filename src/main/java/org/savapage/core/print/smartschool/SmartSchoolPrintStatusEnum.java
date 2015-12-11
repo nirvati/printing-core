@@ -35,7 +35,7 @@ package org.savapage.core.print.smartschool;
 public enum SmartSchoolPrintStatusEnum {
 
     /**
-     * Cancelled by user. E.g. by PaperCtu user RELEASE_STATION_CANCELLED.
+     * Cancelled by user. E.g. by PaperCut user RELEASE_STATION_CANCELLED.
      */
     CANCELLED(SmartSchoolPrintStatusEnum.XML_CANCELED),
 

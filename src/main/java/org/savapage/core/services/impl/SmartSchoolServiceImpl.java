@@ -80,6 +80,7 @@ import org.savapage.core.print.smartschool.SmartschoolRequestEnum;
 import org.savapage.core.print.smartschool.xml.Document;
 import org.savapage.core.print.smartschool.xml.DocumentStatusIn;
 import org.savapage.core.print.smartschool.xml.Jobticket;
+import org.savapage.core.print.smartschool.xml.SmartschoolXmlObject;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.SmartSchoolService;
 import org.savapage.core.services.helpers.AccountTrxInfo;
@@ -273,7 +274,9 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
         final Jobticket jobTicket;
 
         try {
-            jobTicket = Jobticket.createFromXml(returnElement.getValue());
+            jobTicket =
+                    SmartschoolXmlObject.create(Jobticket.class,
+                            returnElement.getValue());
         } catch (JAXBException e) {
             throw new SpException(e);
         }
@@ -313,20 +316,16 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
     }
 
     @Override
+    public File downloadDocumentForProxy(final SmartSchoolConnection connection,
+            final Document document) throws IOException,
+            ShutdownException {
+        return downloadDocument(connection, document, UUID.randomUUID());
+    }
+
+    @Override
     public File downloadDocument(final SmartSchoolConnection connection,
-            final User user, final Document document, final UUID uuid)
-            throws IOException, ShutdownException {
-
-        final StringBuffer downloadedFilePath = new StringBuffer(128);
-
-        /*
-         * Do NOT download in user safepages .temp directory, since that might
-         * not exist (because this is the first user print). A lazy create
-         * requires a User lock, which we do not want at this moment.
-         */
-        downloadedFilePath.append(ConfigManager.getAppTmpDir())
-                .append(File.separatorChar).append(uuid.toString()).append("_")
-                .append(document.getName());
+            final Document document, final UUID uuid) throws IOException,
+            ShutdownException {
 
         final File downloadedFile =
                 this.getDownloadFile(document.getName(), uuid);
@@ -334,7 +333,7 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
         boolean exception = true;
 
         try {
-            downloadDocument(connection, user, document, downloadedFile);
+            downloadDocument(connection, document, downloadedFile);
             exception = false;
         } finally {
             if (exception) {
@@ -343,23 +342,20 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
                 }
             }
         }
-
         return downloadedFile;
     }
 
     /**
      *
      * @param connection
-     * @param user
      * @param documentId
      * @param downloadedFile
      * @throws IOException
      * @throws ShutdownException
      */
     private static void downloadDocument(
-            final SmartSchoolConnection connection, final User user,
-            final Document document, final File downloadedFile)
-            throws IOException, ShutdownException {
+            final SmartSchoolConnection connection, final Document document,
+            final File downloadedFile) throws IOException, ShutdownException {
 
         final SmartschoolRequestEnum request =
                 SmartschoolRequestEnum.GET_DOCUMENT;
@@ -760,7 +756,7 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
         docStat.setCode(status);
 
         try {
-            xmlElement.addTextNode(docStat.createXml());
+            xmlElement.addTextNode(docStat.asXmlString());
         } catch (JAXBException e) {
             throw new SpException(e.getMessage(), e);
         }

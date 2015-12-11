@@ -21,14 +21,11 @@
  */
 package org.savapage.core.print.smartschool.xml;
 
-import java.io.StringWriter;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.savapage.core.print.smartschool.SmartSchoolPrintStatusEnum;
 
 /**
  * Document status to send to Smartschool.
@@ -37,7 +34,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  *
  */
 @XmlRootElement(name = "status")
-public class DocumentStatusIn {
+public final class DocumentStatusIn extends SmartschoolXmlObject {
 
     private final String type = "print";
     private String documentId;
@@ -63,6 +60,11 @@ public class DocumentStatusIn {
         return code;
     }
 
+    /**
+     * @param code
+     *            The code as in {@link SmartSchoolPrintStatusEnum#getXmlText()}
+     *            .
+     */
     public void setCode(String code) {
         this.code = code;
     }
@@ -73,22 +75,6 @@ public class DocumentStatusIn {
 
     public void setComment(String comment) {
         this.comment = comment;
-    }
-
-    /**
-     * Serializes the object to XML.
-     *
-     * @return The XML string.
-     * @throws JAXBException
-     *             When XML serialization goes wrong.
-     */
-    public String createXml() throws JAXBException {
-        final JAXBContext jc = JAXBContext.newInstance(this.getClass());
-        final Marshaller m = jc.createMarshaller();
-        m.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
-        final StringWriter writer = new StringWriter();
-        m.marshal(this, writer);
-        return writer.toString();
     }
 
 }

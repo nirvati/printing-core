@@ -37,6 +37,7 @@ import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.RfIdReaderService;
 import org.savapage.core.services.ServiceFactory;
+import org.savapage.core.services.SmartSchoolProxyService;
 import org.savapage.core.services.SmartSchoolService;
 import org.savapage.core.services.StatefulService;
 import org.savapage.core.services.UserGroupService;
@@ -141,6 +142,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
                 new SmartSchoolServiceImpl();
     }
 
+    private static class SmartSchoolProxyServiceHolder {
+        public static final SmartSchoolProxyService SERVICE =
+                new SmartSchoolProxyServiceImpl();
+    }
+
     private final static StatefulService statefullServices[] =
             new StatefulService[] { EcoPrintPdfTaskServiceHolder.SERVICE };
 
@@ -232,6 +238,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public SmartSchoolService getSmartSchoolService() {
         return SmartSchoolServiceHolder.SERVICE;
+    }
+
+    @Override
+    public SmartSchoolProxyService getSmartSchoolProxyService() {
+        return SmartSchoolProxyServiceHolder.SERVICE;
     }
 
     @Override

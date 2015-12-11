@@ -25,11 +25,11 @@ import javax.xml.bind.annotation.XmlRegistry;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @XmlRegistry
-public class ObjectFactory {
+public final class ObjectFactory {
 
     public Jobticket createJobticket() {
         return new Jobticket();

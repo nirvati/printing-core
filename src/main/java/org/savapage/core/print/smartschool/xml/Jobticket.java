@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,21 +21,18 @@
  */
 package org.savapage.core.print.smartschool.xml;
 
-import java.io.StringReader;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @XmlRootElement
-public class Jobticket {
+public final class Jobticket extends SmartschoolXmlObject {
+
+    public static final String TYPE_PRINT = "print";
 
     private String location;
     private String type;
@@ -76,23 +73,6 @@ public class Jobticket {
 
     public void setDocuments(Documents documents) {
         this.documents = documents;
-    }
-
-    /**
-     * Create a {@link Jobticket} object from XML.
-     *
-     * @param xml
-     *            The XML string.
-     * @return The {@link Jobticket} object.
-     * @throws JAXBException
-     *             When JAXB error.
-     */
-    public static Jobticket createFromXml(final String xml)
-            throws JAXBException {
-        final JAXBContext jc = JAXBContext.newInstance(Jobticket.class);
-        final Unmarshaller u = jc.createUnmarshaller();
-        StringReader reader = new StringReader(xml);
-        return (Jobticket) u.unmarshal(reader);
     }
 
 }

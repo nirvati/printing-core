@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,10 +26,10 @@ import java.util.List;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class Documents {
+public final class Documents {
 
     private List<Document> document = new ArrayList<Document>();
 
@@ -40,6 +40,5 @@ public class Documents {
     public void setDocument(List<Document> document) {
         this.document = document;
     }
-
 
 }

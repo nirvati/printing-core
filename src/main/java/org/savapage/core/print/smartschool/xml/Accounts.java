@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,10 +26,10 @@ import java.util.List;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class Accounts {
+public final class Accounts {
 
     private List<Account> account = new ArrayList<Account>();
 
@@ -40,6 +40,5 @@ public class Accounts {
     public void setAccount(List<Account> account) {
         this.account = account;
     }
-
 
 }
