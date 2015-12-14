@@ -91,9 +91,14 @@ public final class SmartSchoolProxyServiceImpl implements
     private static final int BUFFER_SIZE = 1024;
 
     /**
-     *
+     * .
      */
     private static final String CACHE_RELATIVE_HOME_PATH = "smartschool";
+
+    /**
+     * .
+     */
+    private static final String CACHE_RELATIVE_PROXY_PATH = "proxy";
 
     /**
      * .
@@ -453,7 +458,8 @@ public final class SmartSchoolProxyServiceImpl implements
      */
     private static Path getCacheHomePath() {
         return Paths.get(ConfigManager.getServerExtHome().getAbsolutePath(),
-                CACHE_RELATIVE_HOME_PATH).toAbsolutePath();
+                CACHE_RELATIVE_HOME_PATH, CACHE_RELATIVE_PROXY_PATH)
+                .toAbsolutePath();
     }
 
     /**

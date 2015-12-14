@@ -210,16 +210,27 @@ public final class SmartSchoolConnection {
     }
 
     /**
+     * Checks if proxy is to be used for a Smartschool request.
+     *
+     * @param request
+     *            The {@link SmartschoolRequestEnum}.
+     * @return {@code true} when proxy is to be used.
+     */
+    private boolean useProxy(final SmartschoolRequestEnum request) {
+        return request != SmartschoolRequestEnum.SET_DOCUMENTSTATUS
+                && this.endpointUrlProxy != null && !this.isProxy();
+    }
+
+    /**
      * @param request
      *            The {@link SmartschoolRequestEnum}.
      * @return The (proxy) SOAP end-point as {@link URL}.
      */
     public URL getEndpointUrl(final SmartschoolRequestEnum request) {
-        if (endpointUrlProxy != null
-                && request != SmartschoolRequestEnum.SET_DOCUMENTSTATUS) {
-            return endpointUrlProxy;
+        if (useProxy(request)) {
+            return this.endpointUrlProxy;
         }
-        return endpointUrl;
+        return this.endpointUrl;
     }
 
     /**
@@ -228,19 +239,10 @@ public final class SmartSchoolConnection {
      * @return The (proxy) SOAP end-point as {@link URI}.
      */
     public URI getEndpointUri(final SmartschoolRequestEnum request) {
-        if (endpointUrlProxy != null
-                && request != SmartschoolRequestEnum.SET_DOCUMENTSTATUS) {
-            return endpointUriProxy;
+        if (useProxy(request)) {
+            return this.endpointUriProxy;
         }
-        return endpointUri;
-    }
-
-    /**
-     *
-     * @return The SmartSchool account name as part of the SOAP endpoint.
-     */
-    public String getAccountName() {
-        return accountName;
+        return this.endpointUri;
     }
 
     /**
@@ -249,11 +251,18 @@ public final class SmartSchoolConnection {
      * @return The (proxy) SOAP end-point IP address.
      */
     public String getEndpointIpAddress(final SmartschoolRequestEnum request) {
-        if (endpointUrlProxy != null
-                && request != SmartschoolRequestEnum.SET_DOCUMENTSTATUS) {
-            return endpointIpAddressProxy;
+        if (useProxy(request)) {
+            return this.endpointIpAddressProxy;
         }
-        return endpointIpAddress;
+        return this.endpointIpAddress;
+    }
+
+    /**
+     *
+     * @return The SmartSchool account name as part of the SOAP endpoint.
+     */
+    public String getAccountName() {
+        return accountName;
     }
 
     public char[] getPassword() {
