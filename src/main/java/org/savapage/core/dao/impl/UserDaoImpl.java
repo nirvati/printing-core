@@ -80,7 +80,13 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
         final StringBuilder jpql =
                 new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
 
-        jpql.append("SELECT COUNT(U.id) FROM User U");
+        jpql.append("SELECT COUNT(U.id) FROM ");
+
+        if (filter.getUserGroupId() == null) {
+            jpql.append("User U");
+        } else {
+            jpql.append("UserGroupMember M JOIN M.user U JOIN M.group G");
+        }
 
         if (filter.getContainingEmailText() != null) {
             jpql.append(" JOIN U.emails E");
@@ -106,7 +112,13 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
          * NOTE: We need a DISTINCT to prevent a User/UserEmail cartesian
          * product.
          */
-        jpql.append("SELECT DISTINCT U FROM User U");
+        jpql.append("SELECT DISTINCT U FROM ");
+
+        if (filter.getUserGroupId() == null) {
+            jpql.append("User U");
+        } else {
+            jpql.append("UserGroupMember M JOIN M.user U JOIN M.group G");
+        }
 
         if (filter.getContainingEmailText() == null) {
             /*
@@ -169,6 +181,11 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
         StringBuilder where = new StringBuilder();
 
         int nWhere = 0;
+
+        if (filter.getUserGroupId() != null) {
+            nWhere++;
+            where.append(" G.id = :userGroupId");
+        }
 
         if (filter.getContainingIdText() != null) {
             if (nWhere > 0) {
@@ -251,6 +268,10 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             final ListFilter filter) {
 
         final Query query = getEntityManager().createQuery(jpql.toString());
+
+        if (filter.getUserGroupId() != null) {
+            query.setParameter("userGroupId", filter.getUserGroupId());
+        }
 
         if (filter.getContainingIdText() != null) {
             query.setParameter("containingIdText", "%"

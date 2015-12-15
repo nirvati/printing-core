@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ package org.savapage.core.dao.helpers;
 import java.io.IOException;
 
 import org.savapage.core.SpException;
-import org.savapage.core.dao.UserDao;
+import org.savapage.core.dao.UserGroupDao;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,27 +32,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Bean for mapping JSON page request.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class UserPagerReq extends AbstractPagerReq {
+public final class UserGroupPagerReq extends AbstractPagerReq {
 
     /**
      * Reads the page request from the JSON string.
      *
+     * @param json
+     *            The JSON data.
      * @return The page request.
      */
-    public static UserPagerReq read(final String data) {
+    public static UserGroupPagerReq read(final String json) {
 
-        UserPagerReq req = null;
+        UserGroupPagerReq req = null;
 
-        if (data != null) {
+        if (json != null) {
             /*
              * Use passed JSON values
              */
             ObjectMapper mapper = new ObjectMapper();
             try {
-                req = mapper.readValue(data, UserPagerReq.class);
+                req = mapper.readValue(json, UserGroupPagerReq.class);
             } catch (IOException e) {
                 throw new SpException(e.getMessage());
             }
@@ -65,89 +67,29 @@ public class UserPagerReq extends AbstractPagerReq {
             /*
              * Use the defaults
              */
-            req = new UserPagerReq();
+            req = new UserGroupPagerReq();
         }
         return req;
     }
 
     public static class Select {
 
-        @JsonProperty("usergroup_id")
-        private Long userGroupId;
+        @JsonProperty("name_text")
+        private String nameContainingText = null;
 
-        @JsonProperty("id_text")
-        private String idContainingText = null;
-
-        @JsonProperty("email_text")
-        private String emailContainingText = null;
-
-        private Boolean admin = null;
-        private Boolean person = null;
-        private Boolean disabled = null;
-        private Boolean deleted = null;
-
-        public Long getUserGroupId() {
-            return userGroupId;
+        public String getNameContainingText() {
+            return nameContainingText;
         }
 
-        public void setUserGroupId(Long userGroupId) {
-            this.userGroupId = userGroupId;
-        }
-
-        public String getIdContainingText() {
-            return idContainingText;
-        }
-
-        public void setIdContainingText(String idContainingText) {
-            this.idContainingText = idContainingText;
-        }
-
-        public String getEmailContainingText() {
-            return emailContainingText;
-        }
-
-        public void setEmailContainingText(String emailContainingText) {
-            this.emailContainingText = emailContainingText;
-        }
-
-        public Boolean getAdmin() {
-            return admin;
-        }
-
-        public void setAdmin(Boolean admin) {
-            this.admin = admin;
-        }
-
-        public Boolean getPerson() {
-            return person;
-        }
-
-        public void setPerson(Boolean person) {
-            this.person = person;
-        }
-
-        public Boolean getDisabled() {
-            return disabled;
-        }
-
-        public void setDisabled(Boolean disabled) {
-            this.disabled = disabled;
-        }
-
-        public Boolean getDeleted() {
-            return deleted;
-        }
-
-        public void setDeleted(Boolean deleted) {
-            this.deleted = deleted;
+        public void setNameContainingText(String nameContainingText) {
+            this.nameContainingText = nameContainingText;
         }
 
     }
 
     public static class Sort {
 
-        public static final String FLD_ID = "id";
-        public static final String FLD_EMAIL = "email";
+        public static final String FLD_NAME = "name";
 
         private String field = null;
         private Boolean ascending = true;
@@ -160,19 +102,15 @@ public class UserPagerReq extends AbstractPagerReq {
             this.field = field;
         }
 
-        private boolean isIdSort() {
-            return field != null && field.equalsIgnoreCase(FLD_ID);
+        private boolean isNameSort() {
+            return field != null && field.equalsIgnoreCase(FLD_NAME);
         }
 
-        private boolean isEmailSort() {
-            return field != null && field.equalsIgnoreCase(FLD_EMAIL);
-        }
-
-        public UserDao.Field getSortField() {
-            if (isIdSort()) {
-                return UserDao.Field.USERID;
+        public UserGroupDao.Field getSortField() {
+            if (isNameSort()) {
+                return UserGroupDao.Field.NAME;
             }
-            return UserDao.Field.EMAIL;
+            return UserGroupDao.Field.NAME;
         }
 
         public Boolean getAscending() {

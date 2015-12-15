@@ -1105,7 +1105,7 @@ public interface IConfigProp {
                 "smartschool.1.soap.print.endpoint.password"),
 
         /**
-         * {@code true} if this module is a node SmartXchool Print Cluster (1).
+         * {@code true} if this module is a node Smartschool Print Cluster (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_NODE_ENABLE(
                 "smartschool.1.soap.print.node.enable", BOOLEAN_VALIDATOR, V_NO),
@@ -1179,7 +1179,7 @@ public interface IConfigProp {
                 "smartschool.2.soap.print.endpoint.password"),
 
         /**
-         * {@code true} if this module is a node SmartXchool Print Cluster (2).
+         * {@code true} if this module is a node Smartschool Print Cluster (2).
          */
         SMARTSCHOOL_2_SOAP_PRINT_NODE_ENABLE(
                 "smartschool.2.soap.print.node.enable", BOOLEAN_VALIDATOR, V_NO),

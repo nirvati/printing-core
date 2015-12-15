@@ -53,6 +53,7 @@ public interface UserDao extends GenericDao<User> {
      */
     class ListFilter {
 
+        private Long userGroupId;
         private String containingIdText;
         private String containingNameText;
         private String containingEmailText;
@@ -61,6 +62,14 @@ public interface UserDao extends GenericDao<User> {
         private Boolean person;
         private Boolean disabled;
         private Boolean deleted;
+
+        public Long getUserGroupId() {
+            return userGroupId;
+        }
+
+        public void setUserGroupId(Long userGroupId) {
+            this.userGroupId = userGroupId;
+        }
 
         public String getContainingIdText() {
             return containingIdText;

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,11 +30,15 @@ import org.savapage.core.jpa.UserGroup;
  * invalidate current database content.
  * </p>
  *
- * @author Datraverse B.V.
- * @since 0.9.6
+ * @author Rijk Ravestein
+ *
  */
 public enum ReservedUserGroupEnum {
 
+    /**
+     * All users.
+     */
+    ALL("!!All Users!!"),
     /**
      * External users as synchronized from an external source.
      */
@@ -53,8 +57,8 @@ public enum ReservedUserGroupEnum {
      */
     private final String groupName;
 
-    private ReservedUserGroupEnum(final String groupName) {
-        this.groupName = groupName;
+    private ReservedUserGroupEnum(final String name) {
+        this.groupName = name;
     }
 
     /**
@@ -66,6 +70,41 @@ public enum ReservedUserGroupEnum {
      */
     public String getGroupName() {
         return groupName;
+    }
+
+    /**
+     * Gets the {@link ReservedUserGroupEnum} from the database name.
+     *
+     * @param groupName
+     *            The group name in the database.
+     * @return {@code null} when not found.
+     */
+    public static ReservedUserGroupEnum fromDbName(final String groupName) {
+        for (ReservedUserGroupEnum value : ReservedUserGroupEnum.values()) {
+            if (groupName.equalsIgnoreCase(value.getGroupName())) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @return {@link Boolean#TRUE} when internal group, {@link Boolean#FALSE}
+     *         when external group, otherwise {@code null}.
+     */
+    public Boolean isInternalExternal() {
+        final Boolean internal;
+        switch (this) {
+        case EXTERNAL:
+            internal = Boolean.FALSE;
+            break;
+        case INTERNAL:
+            internal = Boolean.TRUE;
+            break;
+        default:
+            internal = null;
+        }
+        return internal;
     }
 
 }

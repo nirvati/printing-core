@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,16 +31,19 @@ import net.sf.jasperreports.engine.JRField;
 
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.UserDao;
+import org.savapage.core.dao.UserGroupDao;
+import org.savapage.core.dao.helpers.ReservedUserGroupEnum;
 import org.savapage.core.dao.helpers.UserPagerReq;
 import org.savapage.core.dto.AccountDisplayInfoDto;
 import org.savapage.core.jpa.User;
+import org.savapage.core.jpa.UserGroup;
 import org.savapage.core.reports.AbstractJrDataSource;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class UserDataSource extends AbstractJrDataSource implements
@@ -78,9 +81,26 @@ public final class UserDataSource extends AbstractJrDataSource implements
         this.sortAscending = true;
         this.filter = new UserDao.ListFilter();
 
+        //
+        final Long userGroupId = req.getSelect().getUserGroupId();
+
+        if (userGroupId != null) {
+
+            final UserGroupDao userGroupDao =
+                    ServiceContext.getDaoContext().getUserGroupDao();
+
+            final ReservedUserGroupEnum reservedGroup =
+                    userGroupDao.findReservedGroup(userGroupId);
+
+            if (reservedGroup == null) {
+                filter.setUserGroupId(req.getSelect().getUserGroupId());
+            } else {
+                filter.setInternal(reservedGroup.isInternalExternal());
+            }
+        }
+
         filter.setContainingIdText(req.getSelect().getIdContainingText());
         filter.setContainingEmailText(req.getSelect().getEmailContainingText());
-        filter.setInternal(req.getSelect().getInternal());
         filter.setAdmin(req.getSelect().getAdmin());
         filter.setPerson(req.getSelect().getPerson());
         filter.setDisabled(req.getSelect().getDisabled());
@@ -136,6 +156,18 @@ public final class UserDataSource extends AbstractJrDataSource implements
                 where.append(localized("userlist-sel-internal-users"));
             } else {
                 where.append(localized("userlist-sel-external-users"));
+            }
+        } else if (filter.getUserGroupId() != null) {
+            final UserGroup group =
+                    ServiceContext.getDaoContext().getUserGroupDao()
+                            .findById(filter.getUserGroupId());
+            if (group != null) {
+                if (nSelect > 0) {
+                    where.append(", ");
+                }
+                nSelect++;
+                where.append(localized("userlist-sel-user-group",
+                        group.getGroupName()));
             }
         }
 

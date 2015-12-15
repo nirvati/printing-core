@@ -127,8 +127,9 @@ public final class UserGroupServiceImpl extends AbstractService implements
 
     @Override
     public void lazyCreateReservedGroups() {
-        this.getOrCreateReservedGroup(ReservedUserGroupEnum.EXTERNAL);
-        this.getOrCreateReservedGroup(ReservedUserGroupEnum.INTERNAL);
+        for (ReservedUserGroupEnum value : ReservedUserGroupEnum.values()) {
+            this.getOrCreateReservedGroup(value);
+        }
     }
 
     @Override
@@ -248,10 +249,7 @@ public final class UserGroupServiceImpl extends AbstractService implements
 
     @Override
     public boolean isReservedGroupName(final String groupName) {
-        return groupName.equalsIgnoreCase(ReservedUserGroupEnum.EXTERNAL
-                .getGroupName())
-                || groupName.equalsIgnoreCase(ReservedUserGroupEnum.INTERNAL
-                        .getGroupName());
+        return ReservedUserGroupEnum.fromDbName(groupName) != null;
     }
 
     @Override

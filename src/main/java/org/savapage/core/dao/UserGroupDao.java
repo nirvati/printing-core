@@ -70,7 +70,8 @@ public interface UserGroupDao extends GenericDao<UserGroup> {
     /**
      *
      * @param filter
-     * @return
+     *            The {@link ListFilter}.
+     * @return The number of filtered rows.
      */
     long getListCount(ListFilter filter);
 
@@ -97,9 +98,20 @@ public interface UserGroupDao extends GenericDao<UserGroup> {
             Integer maxResults, Field orderBy, boolean sortAscending);
 
     /**
-     * Finds a reserved {@link UserGroup}.
+     * Finds the {@link ReservedUserGroupEnum} by primary key.
+     *
+     * @param id
+     *            The primary key.
+     * @return The {@link ReservedUserGroupEnum}, or {@code null} when not
+     *         found.
+     */
+    ReservedUserGroupEnum findReservedGroup(Long id);
+
+    /**
+     * Finds a reserved {@link UserGroup} by enum.
      *
      * @param reservedGroup
+     *            The {@link ReservedUserGroupEnum}.
      * @return The {@link UserGroup}, or {@code null} when not found.
      */
     UserGroup find(ReservedUserGroupEnum reservedGroup);

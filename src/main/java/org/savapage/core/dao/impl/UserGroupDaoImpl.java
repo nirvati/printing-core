@@ -44,6 +44,15 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
         UserGroupDao {
 
     @Override
+    public ReservedUserGroupEnum findReservedGroup(final Long userGroupId) {
+        final UserGroup userGroup = findById(userGroupId);
+        if (userGroup == null) {
+            return null;
+        }
+        return ReservedUserGroupEnum.fromDbName(userGroup.getGroupName());
+    }
+
+    @Override
     public UserGroup find(final ReservedUserGroupEnum reservedGroup) {
         return this.findByName(reservedGroup.getGroupName());
     }

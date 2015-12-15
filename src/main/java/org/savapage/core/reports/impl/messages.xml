@@ -14,6 +14,7 @@
     <entry key="userlist-header-balance">{0} Balance</entry>
     <entry key="userlist-sel-username">Username "{0}"</entry>
     <entry key="userlist-sel-email">Email "{0}"</entry>
+    <entry key="userlist-sel-user-group">Group: {0}</entry>
     <entry key="userlist-sel-internal-users">Internal Users</entry>
     <entry key="userlist-sel-external-users">External Users</entry>
     <entry key="userlist-sel-admins">Administrators</entry>
