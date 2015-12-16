@@ -217,7 +217,7 @@ public interface UserGroupService {
      * Deletes a user group.
      *
      * @param groupName
-     *            The name of the group to add..
+     *            The name of the group to delete.
      *
      * @return The JSON-RPC Return message (either a result or an error);
      *
@@ -225,6 +225,20 @@ public interface UserGroupService {
      *             When something goes wrong.
      */
     AbstractJsonRpcMethodResponse deleteUserGroup(String groupName)
+            throws IOException;
+
+    /**
+     * Deletes a user group.
+     *
+     * @param groupId
+     *            The database key of the group to delete.
+     *
+     * @return The JSON-RPC Return message (either a result or an error);
+     *
+     * @throws IOException
+     *             When something goes wrong.
+     */
+    AbstractJsonRpcMethodResponse deleteUserGroup(Long groupId)
             throws IOException;
 
 }

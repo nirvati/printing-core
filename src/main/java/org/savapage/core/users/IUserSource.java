@@ -36,7 +36,7 @@ public interface IUserSource {
     /**
      * Get sorted set (ascending, case insensitive) of group names.
      *
-     * @return The groups.
+     * @return The groups or an empty set when no groups are found.
      */
     SortedSet<String> getGroups();
 

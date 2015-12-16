@@ -390,6 +390,23 @@ public final class UserGroupServiceImpl extends AbstractService implements
     }
 
     @Override
+    public AbstractJsonRpcMethodResponse deleteUserGroup(final Long groupId)
+            throws IOException {
+
+        final UserGroup userGroup = userGroupDAO().findById(groupId);
+
+        /*
+         * INVARIANT: group MUST exist.
+         */
+        if (userGroup == null) {
+            return JsonRpcMethodError.createBasicError(Code.INVALID_REQUEST,
+                    "Group [" + groupId + "] does not exist.", null);
+        }
+
+        return deleteUserGroup(userGroup);
+    }
+
+    @Override
     public AbstractJsonRpcMethodResponse
             deleteUserGroup(final String groupName) throws IOException {
 
@@ -403,19 +420,34 @@ public final class UserGroupServiceImpl extends AbstractService implements
                     "Group [" + groupName + "] does not exist.", null);
         }
 
-        /*
-         * Delete members.
-         */
+        return deleteUserGroup(userGroup);
+    }
+
+    /**
+     *
+     * Deletes a user group.
+     *
+     * @param userGroup
+     *            The {@link UserGroup} to delete.
+     *
+     * @return The JSON-RPC Return message (either a result or an error);
+     *
+     * @throws IOException
+     *             When something goes wrong.
+     */
+    private AbstractJsonRpcMethodResponse deleteUserGroup(
+            final UserGroup userGroup) throws IOException {
+
+        // Delete members.
         final int nMembers =
                 userGroupMemberDAO().deleteGroup(userGroup.getId());
 
-        /*
-         * Delete group.
-         */
+        // Delete group.
         userGroupDAO().delete(userGroup);
 
-        return JsonRpcMethodResult.createOkResult("Group [" + groupName
-                + "] with [" + nMembers + "] members deleted.");
+        return JsonRpcMethodResult.createOkResult(String.format(
+                "Group [%s] with [%d] members deleted.",
+                userGroup.getGroupName(), nMembers));
     }
 
     @Override
