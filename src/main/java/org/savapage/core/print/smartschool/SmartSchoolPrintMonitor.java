@@ -516,8 +516,8 @@ public final class SmartSchoolPrintMonitor {
 
             /*
              * Do an initial poll when in simulation mode. When in production
-             * the minimal polling frequency enforced by Smartschool must be
-             * respected.
+             * mode the minimal polling frequency enforced by Smartschool must
+             * be respected.
              */
             if (this.simulationMode && this.isConnected) {
                 processJobs(this);
@@ -598,14 +598,15 @@ public final class SmartSchoolPrintMonitor {
     /**
      * @param connection
      *            The {@link SmartSchoolConnection}.
-     *
+     * @param simulationMode
+     *            {@code true} when in simulation mode.
      * @return The job ticket.
      * @throws SmartSchoolException
      *             When Smartschool reported an error.
      * @throws SmartSchoolTooManyRequestsException
      *             When HTTP status 429 "Too Many Requests" occurred.
-     * @throws ShutdownException
-     *             When interrupted by a shutdown request.
+     * @throws SOAPException
+     *             When SOAP error.
      */
     private static Jobticket
             getJobticket(final SmartSchoolConnection connection,
@@ -641,12 +642,16 @@ public final class SmartSchoolPrintMonitor {
      *            The {@link SmartSchoolPrintStatusEnum}.
      * @param comment
      *            The Smartschool feedback comment.
+     * @param simulationMode
+     *            {@code true} when in simulation mode.
      * @throws SmartSchoolException
+     *             When Smartschool reported an error.
      * @throws SOAPException
+     *             When SOAP error.
      */
     private static void reportDocumentStatus(
-            final SmartSchoolConnection connection, String documentId,
-            SmartSchoolPrintStatusEnum status, String comment,
+            final SmartSchoolConnection connection, final String documentId,
+            final SmartSchoolPrintStatusEnum status, final String comment,
             final boolean simulationMode) throws SmartSchoolException,
             SOAPException {
 
@@ -679,7 +684,7 @@ public final class SmartSchoolPrintMonitor {
      *             request.
      */
     private static File downloadDocument(
-            final SmartSchoolConnection connection, Document document,
+            final SmartSchoolConnection connection, final Document document,
             final UUID uuid, final boolean simulationMode) throws IOException,
             ShutdownException {
 
@@ -1335,22 +1340,28 @@ public final class SmartSchoolPrintMonitor {
      *
      * Processes a cancelled PaperCut Smartschool print job.
      * <ul>
-     * <li></li>
+     * <li>The {@link DocLog} target and source is updated with the
+     * {@link SmartSchoolPrintStatusEnum}.</li>
+     * <li>Publish Admin messages.</li>
      * </ul>
      *
-     * @param docLog
-     *            The SavaPage log.
+     * @param docLogOut
+     *            The SavaPage {@link DocLog} target holding the {@link DocOut}
+     *            with the {@link PrintOut}.
      * @param papercutLog
-     *            The PaperCut log.
+     *            The PaperCut usage log.
      * @param printStatus
      *            The {@link SmartSchoolPrintStatusEnum}.
      */
-    private static void processPaperCutCancelled(final DocLog docLog,
+    private static void processPaperCutCancelled(final DocLog docLogOut,
             final PaperCutPrinterUsageLog papercutLog,
             final SmartSchoolPrintStatusEnum printStatus) {
 
         final DocLogDao doclogDao =
                 ServiceContext.getDaoContext().getDocLogDao();
+
+        final DocInOutDao docInOutDao =
+                ServiceContext.getDaoContext().getDocInOutDao();
 
         final StringBuilder msg = new StringBuilder();
 
@@ -1361,8 +1372,17 @@ public final class SmartSchoolPrintMonitor {
 
         publishAdminMsg(PubLevelEnum.WARN, msg.toString());
 
-        docLog.setExternalStatus(printStatus.toString());
-        doclogDao.update(docLog);
+        docLogOut.setExternalStatus(printStatus.toString());
+        doclogDao.update(docLogOut);
+
+        /*
+         * Get and update the DocLog source.
+         */
+        final DocLog docLogIn =
+                docInOutDao.findDocOutSource(docLogOut.getDocOut().getId());
+
+        docLogIn.setExternalStatus(printStatus.toString());
+        doclogDao.update(docLogIn);
     }
 
     /**
@@ -1374,6 +1394,7 @@ public final class SmartSchoolPrintMonitor {
      * source to the {@link DocLog} target.</li>
      * <li>The {@link DocLog} target is updated with the
      * {@link SmartSchoolPrintStatusEnum}.</li>
+     * <li>Publish Admin messages.</li>
      * </ul>
      *
      * @param papercutServerProxy
@@ -1732,6 +1753,7 @@ public final class SmartSchoolPrintMonitor {
         docLogOut.setTransactions(trxList);
         doclogDao.update(docLogOut);
 
+        docLogIn.setExternalStatus(printStatus.toString());
         docLogIn.setTransactions(null);
         doclogDao.update(docLogIn);
 
@@ -1824,8 +1846,11 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Creates {@link ExternalSupplierInfo}.
+     * Creates {@link ExternalSupplierInfo} with {@link SmartSchoolPrintInData}
+     * supplier data.
      *
+     * @param connection
+     *            The {@link SmartSchoolConnection}.
      * @param document
      *            The {@link Document}.
      * @param nTotCopies
@@ -2067,6 +2092,9 @@ public final class SmartSchoolPrintMonitor {
         final String userSourceGroup =
                 cm.getConfigValue(Key.USER_SOURCE_GROUP).trim();
 
+        /*
+         * Does requesting user exist in SavaPage?
+         */
         final String userId = document.getRequester().getUsername();
 
         final User requestingUser =
@@ -2468,7 +2496,7 @@ public final class SmartSchoolPrintMonitor {
      * @param userSource
      *            The {@link IUserSource}.
      * @param userSourceGroup
-     *            The user group of the The {@link IUserSource}.
+     *            The user group of the {@link IUserSource}.
      * @return The total number of copies of the document to be printed.
      */
     private static int collectCopyInfo(final SmartSchoolPrintMonitor monitor,
@@ -2761,24 +2789,30 @@ public final class SmartSchoolPrintMonitor {
             }
 
             /*
-             * Logging as first action.
+             * STEP 1: Logging the PrintIn as first action.
              */
             DOCLOG_SERVICE.logPrintIn(user, monitor.smartSchoolQueue,
                     DocLogProtocolEnum.SMARTSCHOOL, printInInfo);
 
             /*
-             * Direct Proxy Print.
+             * STEP 2: Direct Proxy Print.
+             *
+             * Since the DocContentPrintInInfo is re-used for DocOut/PrintOut
+             * target logging, the AccountTrxInfoSet is RESET.
              */
-
             if (isIntegratedWithPaperCut) {
                 /*
-                 * Use an empty transaction set, so NO (user or shared) account
-                 * transactions are created.
+                 * Use an EMPTY AccountTrxInfoSet, so NO (user or shared)
+                 * account transactions are created at the DocOut/PrintOut
+                 * target NOW. This will be done when PaperCut reports that the
+                 * document was successfully printed (by moving the PrintIn
+                 * account transactions created in STEP 1 to the DocOut/PrintOut
+                 * target).
                  */
                 printInInfo.setAccountTrxInfoSet(new AccountTrxInfoSet());
             } else {
                 /*
-                 * Set the AccountTrx's in the DocLog target (DocOut/PrintOut).
+                 * Set the AccountTrx's in the DocOut/PrintOut target.
                  */
                 printInInfo.setAccountTrxInfoSet(accountTrxInfoSet);
             }
@@ -2801,7 +2835,7 @@ public final class SmartSchoolPrintMonitor {
             printInInfo.setAccountTrxInfoSet(accountTrxInfoSet);
 
             /*
-             * Logging as first action.
+             * STEP 1: Logging the PrintIn as first action.
              */
             DOCLOG_SERVICE.logPrintIn(user, monitor.smartSchoolQueue,
                     DocLogProtocolEnum.SMARTSCHOOL, printInInfo);
