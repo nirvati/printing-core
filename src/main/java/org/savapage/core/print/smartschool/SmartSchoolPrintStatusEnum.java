@@ -21,6 +21,9 @@
  */
 package org.savapage.core.print.smartschool;
 
+import org.savapage.core.SpException;
+import org.savapage.core.services.helpers.ExternalSupplierStatusEnum;
+
 /**
  * SmartSchool print status with XML string values used in SmartSchool SOAP
  * communication.
@@ -105,5 +108,31 @@ public enum SmartSchoolPrintStatusEnum {
      */
     public String getXmlText() {
         return xmlText;
+    }
+
+    /**
+     * Maps to the generic {@link ExternalSupplierStatusEnum}.
+     *
+     * @return The {@link ExternalSupplierStatusEnum}.
+     */
+    public ExternalSupplierStatusEnum asGenericStatus() {
+        switch (this) {
+        case CANCELLED:
+            return ExternalSupplierStatusEnum.CANCELLED;
+        case COMPLETED:
+            return ExternalSupplierStatusEnum.COMPLETED;
+        case ERROR:
+            return ExternalSupplierStatusEnum.ERROR;
+        case EXPIRED:
+            return ExternalSupplierStatusEnum.EXPIRED;
+        case PENDING:
+            return ExternalSupplierStatusEnum.PENDING;
+        case PENDING_EXT:
+            return ExternalSupplierStatusEnum.PENDING_EXT;
+        default:
+            throw new SpException(String.format("%s.%s cannot be mapped to %s",
+                    this.getClass().getSimpleName(), this.toString(),
+                    ExternalSupplierStatusEnum.class.getSimpleName()));
+        }
     }
 }

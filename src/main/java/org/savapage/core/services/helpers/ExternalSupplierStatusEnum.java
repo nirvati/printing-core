@@ -21,61 +21,56 @@
  */
 package org.savapage.core.services.helpers;
 
+import java.util.Locale;
+
+import org.savapage.core.util.Messages;
+
 /**
- * Information about from an {@link ExternalSupplierEnum} with
- * {@link ExternalSupplierData} .
+ * Generic status of (proxy) print request from External Supplier.
  *
  * @author Rijk Ravestein
  *
  */
-public final class ExternalSupplierInfo {
-
-    private ExternalSupplierEnum supplier;
-
-    private String id;
-
-    private String status;
+public enum ExternalSupplierStatusEnum {
 
     /**
-     * Data supplied by the external source.
+     * .
      */
-    private ExternalSupplierData data;
+    CANCELLED,
 
     /**
-     *
-     * @return
+     * .
      */
+    COMPLETED,
 
-    public String getId() {
-        return id;
+    /**
+     * .
+     */
+    ERROR,
+
+    /**
+     * A PENDING print expired.
+     */
+    EXPIRED,
+
+    /**
+     * Pending in SavaPage.
+     */
+    PENDING,
+
+    /**
+     * SmartSchool Print request is pending in an external system like PaperCut.
+     */
+    PENDING_EXT;
+
+    /**
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public String uiText(final Locale locale) {
+        return Messages.loadXmlResource(this.getClass(),
+                this.getClass().getSimpleName(), locale).getString(
+                this.toString());
     }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public ExternalSupplierEnum getSupplier() {
-        return supplier;
-    }
-
-    public void setSupplier(ExternalSupplierEnum supplier) {
-        this.supplier = supplier;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public ExternalSupplierData getData() {
-        return data;
-    }
-
-    public void setData(ExternalSupplierData data) {
-        this.data = data;
-    }
-
 }

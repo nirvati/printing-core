@@ -44,6 +44,8 @@ import org.savapage.core.jpa.UserAttr;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.services.helpers.ExternalSupplierEnum;
+import org.savapage.core.services.helpers.ExternalSupplierStatusEnum;
 
 /**
  *
@@ -197,5 +199,23 @@ public interface DocLogService {
      */
     void resetPagometers(String resetBy, boolean resetDashboard,
             boolean resetQueues, boolean resetPrinters, boolean resetUsers);
+
+    /**
+     * Gets the {@link ExternalSupplierEnum} from the {@link DocLog}.
+     *
+     * @param docLog
+     *            The {@link DocLog}.
+     * @return {@code null} when no External Supplier is present.
+     */
+    ExternalSupplierEnum getExtSupplier(DocLog docLog);
+
+    /**
+     * Gets the External Supplier status from the {@link DocLog}.
+     *
+     * @param docLog
+     *            The {@link DocLog}.
+     * @return {@code null} when no External Supplier or Status is present.
+     */
+    ExternalSupplierStatusEnum getExtSupplierStatus(DocLog docLog);
 
 }

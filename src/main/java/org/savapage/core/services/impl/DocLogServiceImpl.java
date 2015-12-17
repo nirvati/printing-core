@@ -34,6 +34,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.PerformanceLogger;
 import org.savapage.core.SpException;
@@ -70,11 +72,14 @@ import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusPrintOut;
+import org.savapage.core.print.smartschool.SmartSchoolPrintStatusEnum;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.services.helpers.ExternalSupplierEnum;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.savapage.core.services.helpers.ExternalSupplierStatusEnum;
 import org.savapage.core.util.DateUtil;
 
 /**
@@ -1151,6 +1156,52 @@ public final class DocLogServiceImpl extends AbstractService implements
         docLogCollect.getDocOut().setSignature(
                 this.generateSignature(docLogCollect));
 
+    }
+
+    @Override
+    public ExternalSupplierEnum getExtSupplier(final DocLog docLog) {
+
+        final ExternalSupplierEnum extSupplierEnum;
+
+        if (docLog == null) {
+            extSupplierEnum = null;
+        } else {
+
+            final String supplier =
+                    StringUtils.defaultString(docLog.getExternalSupplier());
+
+            if (StringUtils.isNotBlank(supplier)
+                    && EnumUtils.isValidEnum(ExternalSupplierEnum.class,
+                            supplier)) {
+                extSupplierEnum = ExternalSupplierEnum.valueOf(supplier);
+            } else {
+                extSupplierEnum = null;
+            }
+        }
+        return extSupplierEnum;
+    }
+
+    @Override
+    public ExternalSupplierStatusEnum getExtSupplierStatus(final DocLog docLog) {
+
+        final ExternalSupplierEnum extSupplierEnum =
+                this.getExtSupplier(docLog);
+
+        if (extSupplierEnum != ExternalSupplierEnum.SMARTSCHOOL) {
+            return null;
+        }
+
+        final String status =
+                StringUtils.defaultString(docLog.getExternalStatus());
+
+        // Smartschool?
+        if (StringUtils.isNotBlank(status)
+                && EnumUtils.isValidEnum(SmartSchoolPrintStatusEnum.class,
+                        status)) {
+            return SmartSchoolPrintStatusEnum.valueOf(status).asGenericStatus();
+        }
+
+        return null;
     }
 
 }

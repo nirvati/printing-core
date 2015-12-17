@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <entry key="CANCELLED">Geannuleerd</entry>
+    <entry key="COMPLETED">Voltooid</entry>
+    <entry key="ERROR">Fout</entry>
+    <entry key="EXPIRED">Verlopen</entry>
+    <entry key="PENDING">In afwachting</entry>
+    <entry key="PENDING_EXT">In afwachting (extern)</entry>
+</properties>
