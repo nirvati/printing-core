@@ -122,7 +122,7 @@ public final class DocLogServiceImpl extends AbstractService implements
 
     @Override
     public void logDocOut(final User user, final DocOut docOut) {
-        logDocOut(user, docOut, new AccountTrxInfoSet());
+        logDocOut(user, docOut, new AccountTrxInfoSet(0));
     }
 
     @Override

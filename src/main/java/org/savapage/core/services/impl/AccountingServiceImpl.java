@@ -464,7 +464,7 @@ public final class AccountingServiceImpl extends AbstractService implements
     public void createAccountTrxs(final AccountTrxInfoSet accountTrxInfoSet,
             final DocLog docLog, final AccountTrxTypeEnum trxType) {
 
-        final int nTotalWeight = accountTrxInfoSet.calcTotalWeight();
+        final int nTotalWeight = accountTrxInfoSet.getWeightTotal();
 
         for (final AccountTrxInfo trxInfo : accountTrxInfoSet
                 .getAccountTrxInfoList()) {

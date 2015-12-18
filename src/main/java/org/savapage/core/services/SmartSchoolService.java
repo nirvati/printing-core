@@ -217,6 +217,8 @@ public interface SmartSchoolService {
      *            The {@link SmartSchoolConnection}.
      * @param parent
      *            The parent {@link Account}.
+     * @param nTotCopies
+     *            The total number of copies to be proxy printed.
      * @param klasCopies
      *            The number of copies per klas.
      * @param userCopies
@@ -227,7 +229,7 @@ public interface SmartSchoolService {
      * @return The {@link AccountTrxInfoSet}.
      */
     AccountTrxInfoSet createPrintInAccountTrxInfoSet(
-            SmartSchoolConnection connection, Account parent,
+            SmartSchoolConnection connection, Account parent, int nTotCopies,
             Map<String, Integer> klasCopies, Map<String, Integer> userCopies,
             Map<String, String> userKlas);
 }

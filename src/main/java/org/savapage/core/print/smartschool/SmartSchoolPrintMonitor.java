@@ -1477,7 +1477,9 @@ public final class SmartSchoolPrintMonitor {
 
         /*
          * Get total number of copies from the external data and use as weight
-         * total.
+         * total. IMPORTANT: the accumulated weight of the individual Account
+         * transactions need NOT be the same as the number of copies (since
+         * parts of the printing costs may be charged to multiple accounts).
          */
         final SmartSchoolPrintInData externalPrintInData =
                 SmartSchoolPrintInData.createFromData(docLogIn
@@ -1796,6 +1798,8 @@ public final class SmartSchoolPrintMonitor {
      *
      * @param connection
      *            The {@link SmartSchoolConnection}.
+     * @param nTotCopies
+     *            The total number of copies to be proxy printed.
      * @param klasCopies
      *            The collected "klas" copies.
      * @param userCopies
@@ -1805,7 +1809,7 @@ public final class SmartSchoolPrintMonitor {
      * @return The {@link AccountTrxInfoSet}.
      */
     private static AccountTrxInfoSet createAccountTrxInfoSet(
-            final SmartSchoolConnection connection,
+            final SmartSchoolConnection connection, final int nTotCopies,
             final Map<String, Integer> klasCopies,
             final Map<String, Integer> userCopies,
             final Map<String, String> userKlas) {
@@ -1829,8 +1833,8 @@ public final class SmartSchoolPrintMonitor {
 
             infoSet =
                     SMARTSCHOOL_SERVICE.createPrintInAccountTrxInfoSet(
-                            connection, sharedParentAccount, klasCopies,
-                            userCopies, userKlas);
+                            connection, sharedParentAccount, nTotCopies,
+                            klasCopies, userCopies, userKlas);
 
             daoContext.commit();
 
@@ -2183,8 +2187,8 @@ public final class SmartSchoolPrintMonitor {
                      */
                     final AccountTrxInfoSet accountTrxInfoSet =
                             createAccountTrxInfoSet(
-                                    monitor.processingConnection, klasCopies,
-                                    userCopies, userKlas);
+                                    monitor.processingConnection, nTotCopies,
+                                    klasCopies, userCopies, userKlas);
                     /*
                      * Create PrintIn info.
                      */
@@ -2809,7 +2813,7 @@ public final class SmartSchoolPrintMonitor {
                  * account transactions created in STEP 1 to the DocOut/PrintOut
                  * target).
                  */
-                printInInfo.setAccountTrxInfoSet(new AccountTrxInfoSet());
+                printInInfo.setAccountTrxInfoSet(new AccountTrxInfoSet(0));
             } else {
                 /*
                  * Set the AccountTrx's in the DocOut/PrintOut target.
@@ -2887,13 +2891,20 @@ public final class SmartSchoolPrintMonitor {
      *            The {@link ProxyPrintDocReq}.
      * @param ippMediaSize
      *            The media size.
+     * @param hasMediaSourceAuto
+     *            {@code true} when printer has "auto"media source.
+     * @param isManagedByPaperCut
+     *            {@code true} when printer is managed by PaperCut.
      * @throws ProxyPrintException
      *             When printer has no media-source for media size.
      */
-    private static void addProxyPrintJobChunk(final Printer printer,
-            final ProxyPrintDocReq printReq,
-            final IppMediaSizeEnum ippMediaSize,
-            final boolean hasMediaSourceAuto) throws ProxyPrintException {
+    private static void
+            addProxyPrintJobChunk(final Printer printer,
+                    final ProxyPrintDocReq printReq,
+                    final IppMediaSizeEnum ippMediaSize,
+                    final boolean hasMediaSourceAuto,
+                    final boolean isManagedByPaperCut)
+                    throws ProxyPrintException {
 
         final String printerName = printReq.getPrinterName();
 
@@ -2918,10 +2929,11 @@ public final class SmartSchoolPrintMonitor {
         jobChunk.setAssignedMedia(ippMediaSize);
 
         /*
-         * Set "media-source" to "auto" in the Print Request if printer supports
-         * it, otherwise set the assigned media-source in the Job Chunk.
+         * If the printer is managed by PaperCut, set "media-source" to "auto"
+         * in the Print Request if printer supports it, otherwise set the
+         * assigned media-source in the Job Chunk.
          */
-        if (hasMediaSourceAuto) {
+        if (isManagedByPaperCut && hasMediaSourceAuto) {
             printReq.setMediaSourceOption(IppKeyword.MEDIA_SOURCE_AUTO);
             jobChunk.setAssignedMediaSource(null);
         } else {
@@ -3170,7 +3182,8 @@ public final class SmartSchoolPrintMonitor {
         final Printer printer = printerDao.findByName(printerNameSelected);
 
         addProxyPrintJobChunk(printer, printReq, supplierData.getMediaSize(),
-                PROXY_PRINT_SERVICE.hasMediaSourceAuto(printerNameSelected));
+                PROXY_PRINT_SERVICE.hasMediaSourceAuto(printerNameSelected),
+                monitor.isIntegratedWithPaperCut());
 
         /*
          * At this point we do NOT need the external data anymore.

@@ -316,9 +316,9 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
     }
 
     @Override
-    public File downloadDocumentForProxy(final SmartSchoolConnection connection,
-            final Document document) throws IOException,
-            ShutdownException {
+    public File downloadDocumentForProxy(
+            final SmartSchoolConnection connection, final Document document)
+            throws IOException, ShutdownException {
         return downloadDocument(connection, document, UUID.randomUUID());
     }
 
@@ -953,11 +953,11 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
     @Override
     public AccountTrxInfoSet createPrintInAccountTrxInfoSet(
             final SmartSchoolConnection connection, final Account parent,
-            final Map<String, Integer> klasCopies,
+            final int nTotCopies, final Map<String, Integer> klasCopies,
             final Map<String, Integer> userCopies,
             final Map<String, String> userKlas) {
 
-        final AccountTrxInfoSet infoSet = new AccountTrxInfoSet();
+        final AccountTrxInfoSet infoSet = new AccountTrxInfoSet(nTotCopies);
 
         final List<AccountTrxInfo> accountTrxInfoList = new ArrayList<>();
         infoSet.setAccountTrxInfoList(accountTrxInfoList);
