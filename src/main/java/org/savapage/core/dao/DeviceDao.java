@@ -23,7 +23,7 @@ package org.savapage.core.dao;
 
 import java.util.List;
 
-import org.savapage.core.dao.helpers.DeviceTypeEnum;
+import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.jpa.Device;
 
 /**

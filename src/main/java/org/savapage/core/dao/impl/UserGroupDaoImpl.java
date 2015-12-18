@@ -32,7 +32,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
 import org.savapage.core.dao.UserGroupDao;
-import org.savapage.core.dao.helpers.ReservedUserGroupEnum;
+import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.jpa.UserGroup;
 
 /**

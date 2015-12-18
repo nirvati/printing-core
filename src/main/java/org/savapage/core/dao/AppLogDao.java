@@ -24,7 +24,7 @@ package org.savapage.core.dao;
 import java.util.Date;
 import java.util.List;
 
-import org.savapage.core.dao.helpers.AppLogLevelEnum;
+import org.savapage.core.dao.enums.AppLogLevelEnum;
 import org.savapage.core.jpa.AppLog;
 
 /**

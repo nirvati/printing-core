@@ -21,7 +21,7 @@
  */
 package org.savapage.core.dao;
 
-import org.savapage.core.dao.helpers.UserAttrEnum;
+import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAttr;
 

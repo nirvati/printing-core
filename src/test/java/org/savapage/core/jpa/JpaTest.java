@@ -34,7 +34,7 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.junit.Test;
-import org.savapage.core.dao.helpers.UserAttrEnum;
+import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.jpa.tools.DbTools;
 import org.savapage.core.jpa.xml.XAccountAttrV01;
 import org.savapage.core.util.XmlParseHelper;

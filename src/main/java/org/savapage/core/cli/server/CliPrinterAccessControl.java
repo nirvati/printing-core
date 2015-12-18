@@ -22,7 +22,7 @@
 package org.savapage.core.cli.server;
 
 import org.apache.commons.cli.CommandLine;
-import org.savapage.core.dao.helpers.AccessControlScopeEnum;
+import org.savapage.core.dao.enums.AccessControlScopeEnum;
 import org.savapage.core.dao.helpers.JsonUserGroupAccess;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodParms;
 import org.savapage.core.json.rpc.ErrorDataBasic;

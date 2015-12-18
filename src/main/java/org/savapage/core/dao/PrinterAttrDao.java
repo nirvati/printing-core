@@ -21,7 +21,7 @@
  */
 package org.savapage.core.dao;
 
-import org.savapage.core.dao.helpers.PrinterAttrEnum;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
 

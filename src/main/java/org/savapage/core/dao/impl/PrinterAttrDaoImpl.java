@@ -25,7 +25,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.savapage.core.dao.PrinterAttrDao;
-import org.savapage.core.dao.helpers.PrinterAttrEnum;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.jpa.PrinterAttr;
 
 /**

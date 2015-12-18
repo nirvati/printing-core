@@ -30,7 +30,6 @@ import java.text.ParseException;
 import java.util.Locale;
 
 import org.junit.Test;
-import org.savapage.core.util.BigDecimalUtil;
 
 /**
  *
@@ -177,4 +176,34 @@ public class BigDecimalUtilTest {
 
     }
 
+    @Test
+    public void test9() throws NumberFormatException, ParseException {
+
+        final Locale locale = new Locale("en");
+
+        final String[][] strDecimalTest = {
+                //
+                { "-0.000001", "2", "-0.000001" },
+                //
+                { "0.000000", "2", "0.00" },
+                //
+                { "0.000000", "3", "0.000" },
+                //
+                { "-0.000001", "4", "-0.000001" },
+                //
+                { "0.000001", "3", "0.000001" },
+                //
+                { "-7.000001", "2", "-7.000001" }
+        //
+                };
+
+        for (final String[] test : strDecimalTest) {
+            final String localized =
+                    BigDecimalUtil.localizeMinimalPrecision(new BigDecimal(
+                            test[0]), Integer.valueOf(test[1]).intValue(),
+                            locale, false);
+            assertEquals(localized, test[2]);
+        }
+
+    }
 }

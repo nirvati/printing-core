@@ -28,7 +28,7 @@ import javax.persistence.Query;
 
 import org.savapage.core.dao.DeviceAttrDao;
 import org.savapage.core.dao.DeviceDao;
-import org.savapage.core.dao.helpers.DeviceTypeEnum;
+import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DeviceAttr;
 import org.savapage.core.services.ServiceContext;

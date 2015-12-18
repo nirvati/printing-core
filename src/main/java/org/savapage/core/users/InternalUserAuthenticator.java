@@ -22,7 +22,7 @@
 package org.savapage.core.users;
 
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.dao.helpers.UserAttrEnum;
+import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;

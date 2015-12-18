@@ -24,7 +24,7 @@ package org.savapage.core.dao;
 import java.util.Date;
 import java.util.List;
 
-import org.savapage.core.dao.helpers.ReservedIppQueueEnum;
+import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.IppQueue;
 

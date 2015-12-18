@@ -38,7 +38,7 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 import org.apache.commons.lang3.StringUtils;
-import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
+import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 
 /**
  *

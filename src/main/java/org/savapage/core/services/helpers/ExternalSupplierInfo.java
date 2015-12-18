@@ -21,6 +21,8 @@
  */
 package org.savapage.core.services.helpers;
 
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+
 /**
  * Information about from an {@link ExternalSupplierEnum} with
  * {@link ExternalSupplierData} .

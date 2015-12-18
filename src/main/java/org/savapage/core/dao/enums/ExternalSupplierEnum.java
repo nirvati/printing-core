@@ -19,23 +19,38 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.helpers;
+package org.savapage.core.dao.enums;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public enum AccessControlScopeEnum {
+public enum ExternalSupplierEnum {
 
     /**
-     * Allow access.
+     * .
      */
-    ALLOW,
+    SMARTSCHOOL("Smartschool", "smartschool.jpg");
+
+    private final String uiText;
+    private final String imageFileName;
+
+    private ExternalSupplierEnum(final String uiText, final String imageFileName) {
+        this.uiText = uiText;
+        this.imageFileName = imageFileName;
+    }
+
+    public String getUiText() {
+        return uiText;
+    }
 
     /**
-     * Deny access.
+     *
+     * @return The image filename.
      */
-    DENY
+    public String getImageFileName() {
+        return imageFileName;
+    }
 
 }

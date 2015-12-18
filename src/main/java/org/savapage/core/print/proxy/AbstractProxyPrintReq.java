@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.savapage.core.dao.helpers.PrintModeEnum;
+import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;

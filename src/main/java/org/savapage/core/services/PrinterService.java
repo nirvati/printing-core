@@ -26,10 +26,10 @@ import java.util.Date;
 import java.util.Map;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.savapage.core.dao.helpers.AccessControlScopeEnum;
-import org.savapage.core.dao.helpers.DeviceTypeEnum;
+import org.savapage.core.dao.enums.AccessControlScopeEnum;
+import org.savapage.core.dao.enums.DeviceTypeEnum;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.JsonUserGroupAccess;
-import org.savapage.core.dao.helpers.PrinterAttrEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.Printer;

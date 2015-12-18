@@ -23,7 +23,7 @@ package org.savapage.core.print.proxy;
 
 import java.util.UUID;
 
-import org.savapage.core.dao.helpers.PrintModeEnum;
+import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.jpa.DocIn;
 
 /**

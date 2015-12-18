@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.savapage.core.dao.helpers.DocLogProtocolEnum;
+import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.ipp.attribute.IppAttrValue;
 import org.savapage.core.jpa.User;
 import org.savapage.core.print.server.DocContentPrintProcessor;

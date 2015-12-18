@@ -25,7 +25,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.savapage.core.dao.UserAttrDao;
-import org.savapage.core.dao.helpers.UserAttrEnum;
+import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAttr;
 

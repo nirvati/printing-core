@@ -22,17 +22,18 @@
 package org.savapage.core.print.smartschool;
 
 import org.savapage.core.SpException;
-import org.savapage.core.services.helpers.ExternalSupplierStatusEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 
 /**
- * SmartSchool print status with XML string values used in SmartSchool SOAP
- * communication.
+ * Implementation of {@link ExternalSupplierStatusEnum} with SmartSchool print
+ * status with XML string values used in SmartSchool SOAP communication.
  *
  * <p>
- * NOTE: Do NOT changes enum values since they are stored in the database.
+ * NOTE: Do NOT changes enum text since they must mirror
+ * {@link ExternalSupplierStatusEnum}.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum SmartSchoolPrintStatusEnum {

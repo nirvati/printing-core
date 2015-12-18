@@ -29,8 +29,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.jpa.schema.DocLogV01;
-import org.savapage.core.services.helpers.ExternalSupplierEnum;
 
 /**
  * Document Log.

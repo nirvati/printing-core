@@ -32,7 +32,7 @@ import net.sf.jasperreports.engine.JRField;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserGroupDao;
-import org.savapage.core.dao.helpers.ReservedUserGroupEnum;
+import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.dao.helpers.UserPagerReq;
 import org.savapage.core.dto.AccountDisplayInfoDto;
 import org.savapage.core.jpa.User;

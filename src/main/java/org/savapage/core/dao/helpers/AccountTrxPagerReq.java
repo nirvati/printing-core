@@ -28,6 +28,7 @@ import java.util.Date;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.dao.AccountTrxDao;
+import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;

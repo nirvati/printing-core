@@ -41,7 +41,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
-import org.savapage.core.services.helpers.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
 
 /**
  * Document Log.

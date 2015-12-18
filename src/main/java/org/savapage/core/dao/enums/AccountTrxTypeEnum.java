@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2015 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,48 +19,66 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.helpers;
+package org.savapage.core.dao.enums;
+
+import org.savapage.core.jpa.AccountTrx;
 
 /**
+ * The trigger (reason why) for a credit assignment or change.
+ * <p>
+ * The string value of this enum is stored in the database. Therefore the length
+ * of the enum value is limited. See {@link AccountTrx#setTrxType(String)}.
+ * </p>
  *
- * @since 0.9.6
  * @author Datraverse B.V.
+ *
  */
-public enum PrintModeEnum {
+public enum AccountTrxTypeEnum {
 
     /**
-     * Authenticated WebApp Print.
+     * "Initial allocation".
      */
-    AUTH("WebApp"),
+    INITIAL,
 
     /**
-     * Automatic Print.
+     * "Manual adjustment".
      */
-    AUTO("Auto"),
+    ADJUST,
 
     /**
-     * Hold Release Print.
+     * "Manual transaction" (deposit funds at point-of-sales).
      */
-    HOLD("Hold"),
+    DEPOSIT,
 
     /**
-     * Fast Release Print.
+     * "Voucher use".
      */
-    FAST("Fast"),
+    VOUCHER,
 
     /**
-     * Direct (Push) WebApp Print.
+     * Funds transferred via a Payment Gateway.
      */
-    PUSH("Direct");
+    GATEWAY,
 
-    private final String uiText;
+    /**
+     * Used for both the "send" and "receive" part of a "move" transaction: a
+     * user transferring (part of) his account balance to the account of a
+     * fellow user.
+     */
+    TRANSFER,
 
-    private PrintModeEnum(final String uiText) {
-        this.uiText = uiText;
-    }
+    /**
+     *
+     */
+    PRINT_IN,
 
-    public String getUiText() {
-        return uiText;
-    }
+    /**
+     * A proxy print.
+     */
+    PRINT_OUT,
 
+    /**
+     * PDF download.
+     */
+    PDF_OUT
 }

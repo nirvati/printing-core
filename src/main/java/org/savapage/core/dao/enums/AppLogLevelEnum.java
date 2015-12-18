@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2014 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,58 +19,39 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.services.helpers;
-
-import java.util.Locale;
-
-import org.savapage.core.util.Messages;
+package org.savapage.core.dao.enums;
 
 /**
- * Generic status of (proxy) print request from External Supplier.
  *
- * @author Rijk Ravestein
+ * @author Datraverse B.V.
  *
  */
-public enum ExternalSupplierStatusEnum {
+public enum AppLogLevelEnum {
 
     /**
-     * .
+     * Informational.
      */
-    CANCELLED,
+    INFO,
 
     /**
-     * .
+     * Warning.
      */
-    COMPLETED,
+    WARN,
 
     /**
-     * .
+     * Error.
      */
-    ERROR,
+    ERROR;
 
-    /**
-     * A PENDING print expired.
-     */
-    EXPIRED,
-
-    /**
-     * Pending in SavaPage.
-     */
-    PENDING,
-
-    /**
-     * SmartSchool Print request is pending in an external system like PaperCut.
-     */
-    PENDING_EXT;
-
-    /**
-     * @param locale
-     *            The {@link Locale}.
-     * @return The localized text.
-     */
-    public String uiText(final Locale locale) {
-        return Messages.loadXmlResource(this.getClass(),
-                this.getClass().getSimpleName(), locale).getString(
-                this.toString());
+    public static AppLogLevelEnum asEnum(final String dbName) {
+        return AppLogLevelEnum.valueOf(dbName);
     }
+
+    /**
+     * @return The value as used in the database.
+     */
+    public String getDbName() {
+        return this.toString();
+    }
+
 }

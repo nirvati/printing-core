@@ -23,6 +23,7 @@ package org.savapage.core.dao.helpers;
 
 import java.util.ArrayList;
 
+import org.savapage.core.dao.enums.AccessControlScopeEnum;
 import org.savapage.core.json.JsonAbstractBase;
 
 /**

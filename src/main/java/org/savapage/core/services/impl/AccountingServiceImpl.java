@@ -42,7 +42,7 @@ import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.PosPurchaseDao.ReceiptNumberPrefixEnum;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.UserDao;
-import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
+import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.helpers.AggregateResult;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.AccountDisplayInfoDto;
@@ -200,7 +200,7 @@ public final class AccountingServiceImpl extends AbstractService implements
 
         try {
             dto.setBalance(BigDecimalUtil.localize(account.getBalance(),
-                    ConfigManager.getUserBalanceDecimals(),
+                    ConfigManager.getFinancialDecimalsInDatabase(),
                     ServiceContext.getLocale(), true));
 
             UserAccountingDto.CreditLimitEnum creditLimit;

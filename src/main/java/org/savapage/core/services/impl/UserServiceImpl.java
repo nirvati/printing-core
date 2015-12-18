@@ -56,7 +56,7 @@ import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserEmailDao;
-import org.savapage.core.dao.helpers.UserAttrEnum;
+import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserDto;
 import org.savapage.core.dto.UserEmailDto;

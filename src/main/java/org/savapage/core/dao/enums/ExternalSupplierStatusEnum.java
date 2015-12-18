@@ -19,66 +19,63 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.helpers;
+package org.savapage.core.dao.enums;
 
-import org.savapage.core.jpa.AccountTrx;
+import java.util.Locale;
+
+import org.savapage.core.print.smartschool.SmartSchoolPrintStatusEnum;
+import org.savapage.core.util.Messages;
 
 /**
- * The trigger (reason why) for a credit assignment or change.
+ * Generic status of (proxy) print request from External Supplier. Also see
+ * {@link SmartSchoolPrintStatusEnum}.
  * <p>
- * The string value of this enum is stored in the database. Therefore the length
- * of the enum value is limited. See {@link AccountTrx#setTrxType(String)}.
+ * NOTE: Do NOT changes enum text since they are stored in the database.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public enum AccountTrxTypeEnum {
+public enum ExternalSupplierStatusEnum {
 
     /**
-     * "Initial allocation".
+     * .
      */
-    INITIAL,
+    CANCELLED,
 
     /**
-     * "Manual adjustment".
+     * .
      */
-    ADJUST,
+    COMPLETED,
 
     /**
-     * "Manual transaction" (deposit funds at point-of-sales).
+     * .
      */
-    DEPOSIT,
+    ERROR,
 
     /**
-     * "Voucher use".
+     * A PENDING print expired.
      */
-    VOUCHER,
+    EXPIRED,
 
     /**
-     * Funds transferred via a Payment Gateway.
+     * Pending in SavaPage.
      */
-    GATEWAY,
+    PENDING,
 
     /**
-     * Used for both the "send" and "receive" part of a "move" transaction: a
-     * user transferring (part of) his account balance to the account of a
-     * fellow user.
+     * SmartSchool Print request is pending in an external system like PaperCut.
      */
-    TRANSFER,
+    PENDING_EXT;
 
     /**
-     *
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
      */
-    PRINT_IN,
-
-    /**
-     * A proxy print.
-     */
-    PRINT_OUT,
-
-    /**
-     * PDF download.
-     */
-    PDF_OUT
+    public String uiText(final Locale locale) {
+        return Messages.loadXmlResource(this.getClass(),
+                this.getClass().getSimpleName(), locale).getString(
+                this.toString());
+    }
 }

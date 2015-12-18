@@ -23,7 +23,7 @@ package org.savapage.core.json;
 
 import java.net.URI;
 
-import org.savapage.core.dao.helpers.ProxyPrintAuthModeEnum;
+import org.savapage.core.dao.enums.ProxyPrintAuthModeEnum;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

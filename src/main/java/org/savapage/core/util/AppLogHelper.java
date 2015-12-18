@@ -21,7 +21,7 @@
  */
 package org.savapage.core.util;
 
-import org.savapage.core.dao.helpers.AppLogLevelEnum;
+import org.savapage.core.dao.enums.AppLogLevelEnum;
 import org.savapage.core.services.AppLogService;
 import org.savapage.core.services.ServiceContext;
 

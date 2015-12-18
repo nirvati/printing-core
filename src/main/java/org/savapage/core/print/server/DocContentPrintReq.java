@@ -21,7 +21,7 @@
  */
 package org.savapage.core.print.server;
 
-import org.savapage.core.dao.helpers.DocLogProtocolEnum;
+import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 

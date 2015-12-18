@@ -19,26 +19,48 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.helpers;
+package org.savapage.core.dao.enums;
 
 /**
  *
+ * @since 0.9.6
  * @author Datraverse B.V.
- *
  */
-public enum SchedulePeriodEnum {
-
-    NONE, DAILY, WEEKLY , MONTHLY , CUSTOM;
-
-    public static SchedulePeriodEnum asEnum(final String dbName) {
-        return SchedulePeriodEnum.valueOf(dbName);
-    }
+public enum PrintModeEnum {
 
     /**
-     * @return The value as used in the database.
+     * Authenticated WebApp Print.
      */
-    public String getDbName() {
-        return this.toString();
+    AUTH("WebApp"),
+
+    /**
+     * Automatic Print.
+     */
+    AUTO("Auto"),
+
+    /**
+     * Hold Release Print.
+     */
+    HOLD("Hold"),
+
+    /**
+     * Fast Release Print.
+     */
+    FAST("Fast"),
+
+    /**
+     * Direct (Push) WebApp Print.
+     */
+    PUSH("Direct");
+
+    private final String uiText;
+
+    private PrintModeEnum(final String uiText) {
+        this.uiText = uiText;
+    }
+
+    public String getUiText() {
+        return uiText;
     }
 
 }

@@ -21,7 +21,7 @@
  */
 package org.savapage.core.dao;
 
-import org.savapage.core.dao.helpers.IppQueueAttrEnum;
+import org.savapage.core.dao.enums.IppQueueAttrEnum;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.IppQueueAttr;
 

@@ -27,7 +27,7 @@ import java.util.Locale;
 
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.dao.PrinterDao;
-import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
+import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.AccountDisplayInfoDto;
 import org.savapage.core.dto.AccountVoucherRedeemDto;

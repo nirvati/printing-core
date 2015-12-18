@@ -19,7 +19,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.helpers;
+package org.savapage.core.dao.enums;
 
 import org.savapage.core.SpException;
 import org.savapage.core.jpa.PrintIn;

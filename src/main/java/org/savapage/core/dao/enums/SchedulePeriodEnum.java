@@ -19,52 +19,26 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.helpers;
+package org.savapage.core.dao.enums;
 
 /**
  *
  * @author Datraverse B.V.
  *
  */
-public enum ProxyPrintAuthModeEnum {
+public enum SchedulePeriodEnum {
 
-    /**
-     *
-     */
-    DIRECT,
+    NONE, DAILY, WEEKLY , MONTHLY , CUSTOM;
 
-    /**
-     *
-     */
-    FAST,
-
-    /**
-    *
-    */
-    FAST_DIRECT,
-
-    /**
-     *
-     */
-    FAST_HOLD,
-
-    /**
-     *
-     */
-    HOLD;
-
-    /**
-     * @return {@code true} if the enum represents Fast Printing.
-     */
-    public boolean isFast() {
-        return this == FAST || this == FAST_DIRECT || this == FAST_HOLD;
+    public static SchedulePeriodEnum asEnum(final String dbName) {
+        return SchedulePeriodEnum.valueOf(dbName);
     }
 
     /**
-     * @return {@code true} if the enum represents Hold/Release Printing.
+     * @return The value as used in the database.
      */
-    public boolean isHoldRelease() {
-        return this == HOLD || this == FAST_HOLD;
+    public String getDbName() {
+        return this.toString();
     }
 
 }

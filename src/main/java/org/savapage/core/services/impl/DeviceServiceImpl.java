@@ -25,8 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.savapage.core.dao.DeviceAttrDao;
-import org.savapage.core.dao.helpers.DeviceAttrEnum;
-import org.savapage.core.dao.helpers.ProxyPrintAuthModeEnum;
+import org.savapage.core.dao.enums.DeviceAttrEnum;
+import org.savapage.core.dao.enums.ProxyPrintAuthModeEnum;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DeviceAttr;
 import org.savapage.core.jpa.Printer;

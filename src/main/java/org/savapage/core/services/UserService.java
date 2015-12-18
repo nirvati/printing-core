@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
 
-import org.savapage.core.dao.helpers.UserAttrEnum;
+import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.UserDto;
 import org.savapage.core.dto.UserPropertiesDto;
 import org.savapage.core.jpa.Account;

@@ -40,7 +40,8 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 import org.apache.commons.lang3.StringUtils;
-import org.savapage.core.services.helpers.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 
 /**
  * Document Log.
@@ -214,7 +215,7 @@ public class DocLog extends org.savapage.core.jpa.Entity {
     private String externalId;
 
     /**
-     * .
+     * See {@link ExternalSupplierStatusEnum}.
      */
     @Column(name = "ext_status", length = 16)
     private String externalStatus;

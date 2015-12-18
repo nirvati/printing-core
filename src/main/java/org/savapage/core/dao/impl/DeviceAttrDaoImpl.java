@@ -25,7 +25,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.savapage.core.dao.DeviceAttrDao;
-import org.savapage.core.dao.helpers.DeviceAttrEnum;
+import org.savapage.core.dao.enums.DeviceAttrEnum;
 import org.savapage.core.jpa.DeviceAttr;
 
 /**

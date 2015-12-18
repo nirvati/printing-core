@@ -19,46 +19,79 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.helpers;
+package org.savapage.core.dao.enums;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.savapage.core.dao.IppQueueAttrDao;
-import org.savapage.core.jpa.IppQueueAttr;
-
 /**
- * {@link IppQueueAttr} names. See {@link IppQueueAttr#setName(String)}.
  *
  * @author Datraverse B.V.
+ *
  */
-public enum IppQueueAttrEnum {
+public enum DocLogProtocolEnum {
 
     /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,2,1,4,0,0,2,0,..,0,8,1,0}
-     * </p>
-     */
-    PRINT_IN_ROLLING_DAY_PAGES(IppQueueAttrDao.STATS_ROLLING_PREFIX
-            + "-day.pages");
+    *
+    */
+    IPP("IPP"),
 
     /**
-     *
-     */
+    *
+    */
+    RAW("RAW"),
+
+    /**
+    *
+    */
+    HTTP("HTTP"),
+
+    /**
+    *
+    */
+    FTP("FTP"),
+
+    /**
+    *
+    */
+    LPR("LPR"),
+
+    /**
+    *
+    */
+    SMARTSCHOOL("SMARTSCHOOL"),
+
+    /**
+    *
+    */
+    SMTP("SMTP"),
+
+    /**
+    *
+    */
+    IMAP("IMAP"),
+
+    /**
+    *
+    */
+    GCP("GCP");
+
+    /**
+   *
+   */
     private static class Lookup {
 
         /**
-         *
-         */
-        private final Map<String, IppQueueAttrEnum> enumLookup =
-                new HashMap<String, IppQueueAttrEnum>();
+       *
+       */
+        private final Map<String, DocLogProtocolEnum> enumLookup =
+                new HashMap<String, DocLogProtocolEnum>();
 
         /**
-         *
-         */
+       *
+       */
         public Lookup() {
-            for (IppQueueAttrEnum value : IppQueueAttrEnum.values()) {
+            for (DocLogProtocolEnum value : DocLogProtocolEnum.values()) {
                 enumLookup.put(value.dbName, value);
             }
         }
@@ -69,49 +102,50 @@ public enum IppQueueAttrEnum {
          *            The key (name).
          * @return The enum.
          */
-        public IppQueueAttrEnum get(final String key) {
+        public DocLogProtocolEnum get(final String key) {
             return enumLookup.get(key);
         }
     }
 
     /**
-         *
-         */
-    private final String dbName;
-
-    /**
      * Ensure one-time initialization on class loading.
      */
     private static class LookupHolder {
+        /**
+        *
+        */
         public static final Lookup INSTANCE = new Lookup();
     }
 
     /**
-     * Gets the IppQueueAttrEnum from the database name.
-     *
-     * @param dbName
-     *            The database name
-     * @return The {@link IppQueueAttrEnum}.
-     */
-    public static IppQueueAttrEnum asEnum(final String dbName) {
-        return LookupHolder.INSTANCE.get(dbName);
-    }
+    *
+    */
+    private final String dbName;
 
     /**
      *
      * @param dbName
-     *            The database name.
      */
-    private IppQueueAttrEnum(final String dbName) {
+    private DocLogProtocolEnum(final String dbName) {
         this.dbName = dbName;
     }
 
     /**
-     * Gets the name used in the database.
+     * Gets the DocLogProtocolEnum from the database name.
      *
-     * @return The database name.
+     * @param dbName
+     *            The database name
+     * @return The {@link DocLogProtocolEnum} or {@code null} when not found.
      */
-    public final String getDbName() {
+    public static DocLogProtocolEnum asEnum(final String dbName) {
+        return LookupHolder.INSTANCE.get(dbName);
+    }
+
+    /**
+     * @return The value as used in the database.
+     */
+    public String getDbName() {
         return this.dbName;
     }
+
 }

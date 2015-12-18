@@ -37,7 +37,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
-import org.savapage.core.dao.helpers.DeviceTypeEnum;
+import org.savapage.core.dao.enums.DeviceTypeEnum;
 
 /**
  * A physical device of a certain type running one or more SavaPage functions.

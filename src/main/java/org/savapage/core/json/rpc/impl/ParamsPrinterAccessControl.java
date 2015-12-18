@@ -21,7 +21,7 @@
  */
 package org.savapage.core.json.rpc.impl;
 
-import org.savapage.core.dao.helpers.AccessControlScopeEnum;
+import org.savapage.core.dao.enums.AccessControlScopeEnum;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodParms;
 
 /**

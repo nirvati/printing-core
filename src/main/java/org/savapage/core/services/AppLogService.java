@@ -26,7 +26,7 @@ import java.util.Locale;
 
 import javax.persistence.EntityManager;
 
-import org.savapage.core.dao.helpers.AppLogLevelEnum;
+import org.savapage.core.dao.enums.AppLogLevelEnum;
 import org.savapage.core.jpa.AppLog;
 
 /**

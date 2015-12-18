@@ -34,7 +34,7 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
-import org.savapage.core.dao.helpers.PrintModeEnum;
+import org.savapage.core.dao.enums.PrintModeEnum;
 
 /**
  * Print Output Document.

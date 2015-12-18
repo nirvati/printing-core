@@ -22,7 +22,7 @@
 package org.savapage.core.dao;
 
 import org.savapage.core.config.IConfigProp;
-import org.savapage.core.dao.helpers.DeviceAttrEnum;
+import org.savapage.core.dao.enums.DeviceAttrEnum;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DeviceAttr;
 

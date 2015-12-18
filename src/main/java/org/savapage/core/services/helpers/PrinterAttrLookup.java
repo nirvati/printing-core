@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.PrinterDao.MediaSourceAttr;
-import org.savapage.core.dao.helpers.PrinterAttrEnum;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;

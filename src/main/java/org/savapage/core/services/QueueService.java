@@ -27,8 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.savapage.core.config.IConfigProp;
-import org.savapage.core.dao.helpers.IppQueueAttrEnum;
-import org.savapage.core.dao.helpers.ReservedIppQueueEnum;
+import org.savapage.core.dao.enums.IppQueueAttrEnum;
+import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.IppQueueAttr;
 import org.savapage.core.jpa.User;

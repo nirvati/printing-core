@@ -24,12 +24,12 @@ package org.savapage.core.dao;
 import java.util.Date;
 import java.util.List;
 
-import org.savapage.core.dao.helpers.DocLogProtocolEnum;
+import org.savapage.core.dao.enums.DocLogProtocolEnum;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
-import org.savapage.core.services.helpers.ExternalSupplierEnum;
 
 /**
  *

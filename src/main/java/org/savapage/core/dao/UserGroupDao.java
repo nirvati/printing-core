@@ -23,7 +23,7 @@ package org.savapage.core.dao;
 
 import java.util.List;
 
-import org.savapage.core.dao.helpers.ReservedUserGroupEnum;
+import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.jpa.UserGroup;
 
 /**

@@ -25,7 +25,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.savapage.core.dao.IppQueueAttrDao;
-import org.savapage.core.dao.helpers.IppQueueAttrEnum;
+import org.savapage.core.dao.enums.IppQueueAttrEnum;
 import org.savapage.core.jpa.IppQueueAttr;
 
 /**

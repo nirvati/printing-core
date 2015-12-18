@@ -21,7 +21,7 @@
  */
 package org.savapage.core.dto;
 
-import org.savapage.core.dao.helpers.AccountTrxTypeEnum;
+import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
