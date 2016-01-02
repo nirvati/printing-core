@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -114,7 +114,6 @@ import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
-import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
@@ -144,12 +143,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private static final Logger LOGGER = LoggerFactory
             .getLogger(AbstractProxyPrintService.class);
-
-    /**
-     * .
-     */
-    private static final PrinterService PRINTER_SERVICE = ServiceContext
-            .getServiceFactory().getPrinterService();
 
     /**
      *
@@ -620,12 +613,19 @@ public abstract class AbstractProxyPrintService extends AbstractService
     public boolean isPrinterConfigured(final JsonProxyPrinter cupsPrinter,
             final PrinterAttrLookup lookup) {
 
+        final ArrayList<JsonProxyPrinterOptGroup> cupsPrinterGroups =
+                cupsPrinter.getGroups();
+
+        if (cupsPrinterGroups == null) {
+            return false;
+        }
+
         /*
          * Any media sources defined in CUPS printer?
          */
         List<JsonProxyPrinterOptChoice> mediaSourceChoices = null;
 
-        for (final JsonProxyPrinterOptGroup optGroup : cupsPrinter.getGroups()) {
+        for (final JsonProxyPrinterOptGroup optGroup : cupsPrinterGroups) {
 
             for (final JsonProxyPrinterOpt option : optGroup.getOptions()) {
 
