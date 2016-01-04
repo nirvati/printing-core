@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -36,6 +36,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
+import org.savapage.core.crypto.OneTimeAuthToken;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.dao.impl.DaoBatchCommitterImpl;
@@ -1789,6 +1790,23 @@ public interface IConfigProp {
          */
         WEB_LOGIN_AUTHTOKEN_ENABLE("web-login.authtoken.enable",
                 BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * Is web login via Trusted Third Party (TTP) enabled?
+         */
+        WEB_LOGIN_TTP_ENABLE("web-login.ttp.enable", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * Trusted Third Party API Key for Web Login.
+         */
+        WEB_LOGIN_TTP_API_KEY("web-login.ttp.apikey"),
+
+        /**
+         * Number of msecs after after which an {@link OneTimeAuthToken}
+         * expires.
+         */
+        WEB_LOGIN_TTP_TOKEN_EXPIRY_MSECS("web-login.ttp.token.expiry-msecs",
+                NUMBER_VALIDATOR, "5000"),
 
         /**
          * Inactivity timeout (minutes) for the admin web interface.

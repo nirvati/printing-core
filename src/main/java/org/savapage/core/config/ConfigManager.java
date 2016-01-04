@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1594,7 +1594,8 @@ public final class ConfigManager {
                 || key == Key.PAPERCUT_SERVER_AUTH_TOKEN
                 || key == Key.PRINT_IMAP_PASSWORD
                 || key == Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD
-                || key == Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD;
+                || key == Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD
+                || key == Key.WEB_LOGIN_TTP_API_KEY;
     }
 
     /**
