@@ -32,6 +32,7 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.savapage.core.services.helpers.ProxyPrintCostParms;
 
 /**
  * Proxy Print Request base on the SafePages inbox.
@@ -581,6 +582,24 @@ public abstract class AbstractProxyPrintReq implements
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    /**
+     * Creates {@link ProxyPrintCostParms}.
+     *
+     * @return The {@link ProxyPrintCostParms}.
+     */
+    public ProxyPrintCostParms createProxyPrintCostParms() {
+
+        final ProxyPrintCostParms costParms = new ProxyPrintCostParms();
+
+        costParms.setDuplex(this.isDuplex());
+        costParms.setEcoPrint(this.isEcoPrintShadow() || this.isEcoPrint());
+        costParms.setGrayscale(this.isGrayscale());
+        costParms.setNumberOfCopies(this.getNumberOfCopies());
+        costParms.setPagesPerSide(this.getNup());
+
+        return costParms;
     }
 
 }

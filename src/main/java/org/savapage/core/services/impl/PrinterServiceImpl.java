@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -37,6 +37,7 @@ import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.AccessControlScopeEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
+import org.savapage.core.dao.enums.ProxyPrintAuthModeEnum;
 import org.savapage.core.dao.helpers.JsonUserGroupAccess;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.jpa.Device;
@@ -59,10 +60,10 @@ import org.savapage.core.services.ServiceContext;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class PrinterServiceImpl extends AbstractService implements
+public final class PrinterServiceImpl extends AbstractService implements
         PrinterService {
 
     /**
@@ -76,12 +77,12 @@ public class PrinterServiceImpl extends AbstractService implements
     private static final boolean ACCESS_DENIED = !ACCESS_ALLOWED;
 
     @Override
-    public final boolean canPrinterBeUsed(final Printer printer) {
+    public boolean canPrinterBeUsed(final Printer printer) {
         return !(printer.getDeleted() || printer.getDisabled());
     }
 
     @Override
-    public final boolean checkPrinterSecurity(final Printer printer,
+    public boolean checkPrinterSecurity(final Printer printer,
             final MutableBoolean terminalSecured,
             final MutableBoolean readerSecured) {
 
@@ -90,7 +91,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final boolean checkPrinterSecurity(final Printer printer,
+    public boolean checkPrinterSecurity(final Printer printer,
             final MutableBoolean terminalSecured,
             final MutableBoolean readerSecured,
             final Map<String, Device> terminalDevices,
@@ -180,7 +181,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final boolean checkDeviceSecurity(final Printer printer,
+    public boolean checkDeviceSecurity(final Printer printer,
             final DeviceTypeEnum deviceType, final Device device) {
 
         /*
@@ -232,7 +233,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final void setLogicalDeleted(final Printer printer) {
+    public void setLogicalDeleted(final Printer printer) {
 
         final Date deletedDate = ServiceContext.getTransactionDate();
 
@@ -245,14 +246,14 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final void undoLogicalDeleted(final Printer printer) {
+    public void undoLogicalDeleted(final Printer printer) {
 
         printer.setDeleted(false);
         printer.setDeletedDate(null);
     }
 
     @Override
-    public final String getAttributeValue(final Printer printer,
+    public String getAttributeValue(final Printer printer,
             final PrinterAttrEnum name) {
 
         final String dbName = name.getDbName();
@@ -270,7 +271,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final String getPrintColorModeDefault(final Printer printer) {
+    public String getPrintColorModeDefault(final Printer printer) {
 
         final List<PrinterAttr> attributes = printer.getAttributes();
 
@@ -291,7 +292,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final void addJobTotals(final Printer printer, final Date jobDate,
+    public void addJobTotals(final Printer printer, final Date jobDate,
             final int jobPages, final int jobSheets, final long jobEsu,
             final long jobBytes) {
 
@@ -307,7 +308,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final boolean isPrinterGroupMember(final PrinterGroup group,
+    public boolean isPrinterGroupMember(final PrinterGroup group,
             final Printer printer) {
 
         for (final PrinterGroupMember member : group.getMembers()) {
@@ -406,7 +407,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final void logPrintOut(final Printer printer, final Date jobTime,
+    public void logPrintOut(final Printer printer, final Date jobTime,
             final Integer jobPages, final Integer jobSheets, final Long jobEsu) {
 
         addTimeSeriesDataPoint(printer,
@@ -419,7 +420,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final AbstractJsonRpcMethodResponse addAccessControl(
+    public AbstractJsonRpcMethodResponse addAccessControl(
             final AccessControlScopeEnum scope, final String printerName,
             final String groupName) throws IOException {
 
@@ -529,9 +530,8 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final AbstractJsonRpcMessage removeAccessControl(
-            final String printerName, final String groupName)
-            throws IOException {
+    public AbstractJsonRpcMessage removeAccessControl(final String printerName,
+            final String groupName) throws IOException {
 
         final Printer printer = printerDAO().findByName(printerName);
 
@@ -607,8 +607,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final AbstractJsonRpcMessage removeAccessControl(
-            final String printerName) {
+    public AbstractJsonRpcMessage removeAccessControl(final String printerName) {
 
         final Printer printer = printerDAO().findByName(printerName);
 
@@ -639,7 +638,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final JsonUserGroupAccess getAccessControl(final String printerName) {
+    public JsonUserGroupAccess getAccessControl(final String printerName) {
 
         final Printer printer = printerDAO().findByName(printerName);
 
@@ -654,7 +653,7 @@ public class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public final JsonUserGroupAccess getAccessControl(final Printer printer) {
+    public JsonUserGroupAccess getAccessControl(final Printer printer) {
 
         final PrinterAttr printerAttr =
                 printerAttrDAO().findByName(printer.getId(),
@@ -681,9 +680,69 @@ public class PrinterServiceImpl extends AbstractService implements
         return groupAccess;
     }
 
+    /**
+     * Checks if {@link Device} objects from the list supports hold/release
+     * printing.
+     *
+     * @param devices
+     *            The {@link Device} objects.
+     * @return {@code true} when HOLD is supported.
+     */
+    private static boolean isHoldReleasePrintSupported(
+            final List<Device> devices) {
+
+        if (devices != null && !devices.isEmpty()) {
+
+            for (final Device device : devices) {
+
+                if (device.getDisabled() || !deviceDAO().isCardReader(device)) {
+                    continue;
+                }
+
+                final ProxyPrintAuthModeEnum authMode =
+                        deviceService().getProxyPrintAuthMode(device.getId());
+
+                if (authMode != null && authMode.isHoldRelease()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
-    public final boolean isPrinterAccessGranted(final Printer printer,
-            final User user) {
+    public boolean isHoldReleasePrinter(final Printer printer) {
+
+        /*
+         * Check associated Card Reader devices which act as Print
+         * Authenticator.
+         *
+         * (1) Try via Devices.
+         */
+        if (isHoldReleasePrintSupported(printer.getDevices())) {
+            return true;
+        }
+
+        /*
+         * (2) Try via PrinterGroupMembers.
+         */
+        if (printer.getPrinterGroupMembers() != null) {
+
+            for (final PrinterGroupMember member : printer
+                    .getPrinterGroupMembers()) {
+
+                if (isHoldReleasePrintSupported(member.getGroup().getDevices())) {
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean
+            isPrinterAccessGranted(final Printer printer, final User user) {
 
         final JsonUserGroupAccess access = this.getAccessControl(printer);
 

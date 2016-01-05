@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -50,18 +51,25 @@ import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
-import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.LocaleInfo;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfo;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfoSet;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
 import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.pdf.PdfPrintCollector;
+import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
+import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.AccountTrxInfo;
+import org.savapage.core.services.helpers.AccountTrxInfoSet;
+import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.util.BigDecimalUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,17 +207,25 @@ public final class OutboxServiceImpl extends AbstractService implements
         return outboxInfo;
     }
 
+    /**
+     * Calculates the expiration {@link Date} of a held proxy print job.
+     *
+     * @param submitDate
+     *            The {@link Date} the job is submitted.
+     * @return The expiration {@link Date}.
+     */
+    private static Date calcHoldExpiry(final Date submitDate) {
+        return DateUtils.addMinutes(submitDate, ConfigManager.instance()
+                .getConfigInt(IConfigProp.Key.PROXY_PRINT_HOLD_EXPIRY_MINS));
+    }
+
     @Override
     public void proxyPrintInbox(final User lockedUser,
             final ProxyPrintInboxReq request)
             throws EcoPrintPdfTaskPendingException {
 
         final Date submitDate = ServiceContext.getTransactionDate();
-        final Date expiryDate =
-                DateUtils.addMinutes(
-                        submitDate,
-                        ConfigManager.instance().getConfigInt(
-                                IConfigProp.Key.PROXY_PRINT_HOLD_EXPIRY_MINS));
+        final Date expiryDate = calcHoldExpiry(submitDate);
 
         final OutboxInfoDto outboxInfo =
                 this.readOutboxInfo(lockedUser.getUserId());
@@ -304,6 +320,115 @@ public final class OutboxServiceImpl extends AbstractService implements
     }
 
     /**
+     * Creates an {@link OutboxJob} from input parameters.
+     *
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
+     * @param submitDate
+     *            The date the proxy print was submitted.
+     * @param expiryDate
+     *            The date the proxy print expires.
+     * @param pdfOutboxFile
+     *            The PDF file in the outbox.
+     * @param uuidPageCount
+     *            Object with the number of selected pages per input file UUID.
+     * @return The {@link OutboxJob}.
+     */
+    private OutboxJob createOutboxJob(final AbstractProxyPrintReq request,
+            final Date submitDate, final Date expiryDate,
+            final File pdfOutboxFile,
+            final LinkedHashMap<String, Integer> uuidPageCount) {
+
+        final OutboxJob job = new OutboxJob();
+
+        job.setFile(pdfOutboxFile.getName());
+        job.setPrinterName(request.getPrinterName());
+        job.setJobName(request.getJobName());
+        job.setCopies(request.getNumberOfCopies());
+        job.setPages(request.getNumberOfPages());
+        job.setSheets(calNumberOfSheets(request));
+        job.setRemoveGraphics(request.isRemoveGraphics());
+        job.setEcoPrint(request.isEcoPrint() || request.isEcoPrintShadow());
+        job.setCollate(request.isCollate());
+        job.setCost(request.getCost());
+        job.setSubmitTime(submitDate.getTime());
+        job.setExpiryTime(expiryDate.getTime());
+        job.setFitToPage(request.getFitToPage());
+
+        job.putOptionValues(request.getOptionValues());
+        job.setUuidPageCount(uuidPageCount);
+
+        this.importToOutbox(request.getAccountTrxInfoSet(), job);
+
+        return job;
+    }
+
+    @Override
+    public void proxyPrintPdf(final User lockedUser,
+            final ProxyPrintDocReq request, final File pdfFile,
+            final DocContentPrintInInfo printInfo) throws IOException {
+
+        final Date submitDate = ServiceContext.getTransactionDate();
+        final Date expiryDate = calcHoldExpiry(submitDate);
+
+        final OutboxInfoDto outboxInfo =
+                this.readOutboxInfo(lockedUser.getUserId());
+
+        final String pdfOutboxFileName =
+                createUuidFileName(lockedUser.getUserId()).getAbsolutePath();
+
+        final File pdfOutboxFile = new File(pdfOutboxFileName);
+
+        boolean jobAdded = false;
+
+        try {
+            /*
+             * Just in case, lazy create home directory.
+             */
+            userService().lazyUserHomeDir(lockedUser.getUserId());
+
+            /*
+             * Copy the input PDF file to the outbox.
+             */
+            FileUtils.copyFile(pdfFile, pdfOutboxFile);
+
+            final LinkedHashMap<String, Integer> uuidPageCount =
+                    new LinkedHashMap<>();
+
+            uuidPageCount.put(printInfo.getUuidJob().toString(),
+                    Integer.valueOf(request.getNumberOfPages()));
+
+            final OutboxJob job =
+                    createOutboxJob(request, submitDate, expiryDate,
+                            pdfOutboxFile, uuidPageCount);
+
+            outboxInfo.addJob(job.getFile(), job);
+
+            jobAdded = true;
+
+        } finally {
+
+            if (!jobAdded && pdfOutboxFile != null && pdfOutboxFile.exists()) {
+                if (pdfOutboxFile.delete()) {
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("deleted file [" + pdfOutboxFile + "]");
+                    }
+                } else {
+                    LOGGER.error("delete of file [" + pdfOutboxFile
+                            + "] FAILED");
+                }
+            }
+        }
+
+        this.storeOutboxInfo(lockedUser.getUserId(), outboxInfo);
+
+        request.setStatus(Status.WAITING_FOR_RELEASE);
+        request.setUserMsgKey("msg-user-print-outbox");
+        request.setUserMsg(localize("msg-user-print-outbox",
+                request.getPrinterName()));
+    }
+
+    /**
      * Proxy prints a single inbox chunk to the outbox.
      *
      * @param lockedUser
@@ -316,9 +441,9 @@ public final class OutboxServiceImpl extends AbstractService implements
      *            The {@link OutboxInfoDto} to append the info about the print
      *            job on.
      * @param submitDate
-     *            The data the proxy print was submitted.
+     *            The date the proxy print was submitted.
      * @param expiryDate
-     *            The data the proxy print expires.
+     *            The date the proxy print expires.
      * @throws EcoPrintPdfTaskPendingException
      *             When {@link EcoPrintPdfTask} objects needed for this PDF are
      *             pending.
@@ -327,8 +452,6 @@ public final class OutboxServiceImpl extends AbstractService implements
             final ProxyPrintInboxReq request, final InboxInfoDto inboxInfo,
             final OutboxInfoDto outboxInfo, final Date submitDate,
             final Date expiryDate) throws EcoPrintPdfTaskPendingException {
-
-        final DocLog docLog = null;
 
         /*
          * Generate the PDF file.
@@ -362,27 +485,11 @@ public final class OutboxServiceImpl extends AbstractService implements
 
             pdfFileToPrint =
                     outputProducer().generatePdf(pdfRequest, uuidPageCount,
-                            docLog);
+                            null);
 
-            final OutboxJob job = new OutboxJob();
-            //
-            job.setFile(pdfFileToPrint.getName());
-            job.setPrinterName(request.getPrinterName());
-            job.setJobName(request.getJobName());
-            job.setCopies(request.getNumberOfCopies());
-            job.setPages(request.getNumberOfPages());
-            job.setSheets(calNumberOfSheets(request));
-            job.setRemoveGraphics(request.isRemoveGraphics());
-            job.setEcoPrint(request.isEcoPrint() || request.isEcoPrintShadow());
-            job.setCollate(request.isCollate());
-            job.setCost(request.getCost());
-            job.setSubmitTime(submitDate.getTime());
-            job.setExpiryTime(expiryDate.getTime());
-            job.setFitToPage(request.getFitToPage());
-
-            job.setUuidPageCount(uuidPageCount);
-
-            job.putOptionValues(request.getOptionValues());
+            final OutboxJob job =
+                    createOutboxJob(request, submitDate, expiryDate,
+                            pdfFileToPrint, uuidPageCount);
 
             outboxInfo.addJob(job.getFile(), job);
 
@@ -423,13 +530,13 @@ public final class OutboxServiceImpl extends AbstractService implements
 
     /**
      * Calculates the number of sheets as requested in the
-     * {@link ProxyPrintInboxReq} request.
+     * {@link AbstractProxyPrintReq} request.
      *
      * @param request
      *            The request.
      * @return The number of sheets.
      */
-    private static int calNumberOfSheets(final ProxyPrintInboxReq request) {
+    private static int calNumberOfSheets(final AbstractProxyPrintReq request) {
         return PdfPrintCollector.calcNumberOfPrintedSheets(request);
     }
 
@@ -762,6 +869,90 @@ public final class OutboxServiceImpl extends AbstractService implements
         }
 
         return nExtended;
+    }
+
+    @Override
+    public AccountTrxInfoSet createAccountTrxInfoSet(final OutboxJob source) {
+
+        final OutboxAccountTrxInfoSet sourceInfoSet =
+                source.getAccountTransactions();
+
+        if (sourceInfoSet == null) {
+            return null;
+        }
+
+        final AccountTrxInfoSet targetInfoSet =
+                new AccountTrxInfoSet(sourceInfoSet.getWeightTotal());
+
+        final List<AccountTrxInfo> transactions = new ArrayList<>();
+        targetInfoSet.setAccountTrxInfoList(transactions);
+
+        for (final OutboxAccountTrxInfo sourceTrxInfo : sourceInfoSet
+                .getTransactions()) {
+
+            /*
+             * INVARIANT: Account MUST be active?
+             */
+            final Account account =
+                    accountDAO().findById(sourceTrxInfo.getAccountId());
+
+            if (account.getDeleted()) {
+                // TODO
+            }
+
+            //
+            final AccountTrxInfo targetTrxInfo = new AccountTrxInfo();
+
+            transactions.add(targetTrxInfo);
+            //
+            targetTrxInfo.setAccount(account);
+            targetTrxInfo.setExtDetails(sourceTrxInfo.getExtDetails());
+            targetTrxInfo.setWeight(Integer.valueOf(sourceTrxInfo.getWeight()));
+        }
+
+        //
+        return targetInfoSet;
+    }
+
+    /**
+     * Imports the source {@link AccountTrxInfoSet} into the target
+     * {@link OutboxJob}.
+     *
+     * @param source
+     *            The {@link AccountTrxInfoSet}.
+     * @param target
+     *            The {@link OutboxJob}.
+     */
+    private void importToOutbox(final AccountTrxInfoSet source,
+            final OutboxJob target) {
+
+        if (source == null) {
+            target.setAccountTransactions(null);
+            return;
+        }
+
+        //
+        final OutboxAccountTrxInfoSet infoSet = new OutboxAccountTrxInfoSet();
+        target.setAccountTransactions(infoSet);
+
+        //
+        infoSet.setWeightTotal(source.getWeightTotal());
+
+        final List<OutboxAccountTrxInfo> transactions = new ArrayList<>();
+        infoSet.setTransactions(transactions);
+
+        //
+        for (final AccountTrxInfo trxInfo : source.getAccountTrxInfoList()) {
+
+            final OutboxAccountTrxInfo outboxTrxInfo =
+                    new OutboxAccountTrxInfo();
+
+            transactions.add(outboxTrxInfo);
+            //
+            outboxTrxInfo.setAccountId(trxInfo.getAccount().getId());
+            outboxTrxInfo.setExtDetails(trxInfo.getExtDetails());
+            outboxTrxInfo.setWeight(trxInfo.getWeight().intValue());
+        }
     }
 
 }

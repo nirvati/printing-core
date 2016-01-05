@@ -1644,6 +1644,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printReq.setFitToPage(job.getFitToPage());
             printReq.setCost(job.getCost());
 
+            printReq.setAccountTrxInfoSet(outboxService()
+                    .createAccountTrxInfoSet(job));
+
             /*
              * Create the DocLog container.
              */
@@ -1920,9 +1923,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     /**
-     * Creates a standard {@link DocLog} instance for proxy printing: just the
-     * {@link AbstractProxyPrintReq#getCost()} is used, and no related objects
-     * are created.
+     * Creates a standard {@link DocLog} instance for proxy printing. Just the
+     * financial data and external supplier data are used from The
+     * {@link AbstractProxyPrintReq}: no related objects are created.
      *
      * @param request
      *            The {@link AbstractProxyPrintReq}.

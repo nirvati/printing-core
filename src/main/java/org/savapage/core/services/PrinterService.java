@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@ import org.savapage.core.json.rpc.JsonRpcMethodResult;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface PrinterService {
@@ -305,5 +305,14 @@ public interface PrinterService {
      * @return {@code true} when access is granted.
      */
     boolean isPrinterAccessGranted(Printer printer, User user);
+
+    /**
+     * Checks if printer supports hold/release printing.
+     *
+     * @param printer
+     *            The {@link Printer}.
+     * @return {@code true} if printer supports hold/release printing.
+     */
+    boolean isHoldReleasePrinter(final Printer printer);
 
 }

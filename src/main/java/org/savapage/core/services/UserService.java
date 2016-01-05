@@ -557,8 +557,8 @@ public interface UserService {
     /**
      * Creates a user's home directory structure when it does not exist.
      * <p>
-     * Note: This method has its own database transaction. When creating the
-     * home directory the {@link User} database row is locked.
+     * IMPORTANT: This method has its own database transaction. When creating
+     * the home directory the {@link User} database row is locked.
      * </p>
      *
      * @param user
@@ -571,6 +571,12 @@ public interface UserService {
 
     /**
      * Creates a user's home directory structure when it does not exist.
+     *
+     * <p>
+     * IMPORTANT: This method does NOT have its own database transaction. Any
+     * client should lock the {@link User} database row before calling this
+     * method.
+     * </p>
      *
      * @param userId
      *            The unique id of the user.

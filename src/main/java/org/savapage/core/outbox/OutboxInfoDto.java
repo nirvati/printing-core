@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.savapage.core.dto.AbstractDto;
@@ -90,6 +91,89 @@ public final class OutboxInfoDto extends AbstractDto {
 
     }
 
+    public final static class OutboxAccountTrxInfo {
+
+        /**
+         * Primary key of the {@link Account}.
+         */
+        private long accountId;
+
+        /**
+         * Mathematical weight of the transaction in the context of a
+         * transaction set.
+         */
+        private int weight;
+
+        /**
+         * Free format details from external source.
+         */
+        private String extDetails;
+
+        /**
+         *
+         * @return
+         */
+        public long getAccountId() {
+            return accountId;
+        }
+
+        public void setAccountId(long accountId) {
+            this.accountId = accountId;
+        }
+
+        public int getWeight() {
+            return weight;
+        }
+
+        public void setWeight(int weight) {
+            this.weight = weight;
+        }
+
+        public String getExtDetails() {
+            return extDetails;
+        }
+
+        public void setExtDetails(String extDetails) {
+            this.extDetails = extDetails;
+        }
+    }
+
+    /**
+    *
+    */
+    public final static class OutboxAccountTrxInfoSet {
+
+        /**
+         * The weight total. IMPORTANT: This total need NOT be the same as the
+         * accumulated weight of the individual Account transactions. For
+         * example: parts of the printing costs may be charged to (personal and
+         * shared) multiple accounts.
+         */
+        private int weightTotal;
+
+        /**
+         * .
+         */
+        private List<OutboxAccountTrxInfo> transactions;
+
+        public int getWeightTotal() {
+            return weightTotal;
+        }
+
+        public void setWeightTotal(int weightTotal) {
+            this.weightTotal = weightTotal;
+        }
+
+        public List<OutboxAccountTrxInfo> getTransactions() {
+            return transactions;
+        }
+
+        public void setTransactions(List<OutboxAccountTrxInfo> transactions) {
+            this.transactions = transactions;
+        }
+
+    }
+
     /**
      *
      */
@@ -117,6 +201,15 @@ public final class OutboxInfoDto extends AbstractDto {
          */
         private LinkedHashMap<String, Integer> uuidPageCount;
 
+        /**
+         *
+         */
+        private OutboxAccountTrxInfoSet accountTransactions;
+
+        /**
+         *
+         * @return
+         */
         public String getFile() {
             return file;
         }
@@ -281,6 +374,15 @@ public final class OutboxInfoDto extends AbstractDto {
         public void setUuidPageCount(
                 LinkedHashMap<String, Integer> uuidPageCount) {
             this.uuidPageCount = uuidPageCount;
+        }
+
+        public OutboxAccountTrxInfoSet getAccountTransactions() {
+            return accountTransactions;
+        }
+
+        public void setAccountTransactions(
+                OutboxAccountTrxInfoSet accountTransactions) {
+            this.accountTransactions = accountTransactions;
         }
 
     }

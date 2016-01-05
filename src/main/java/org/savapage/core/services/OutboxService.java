@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 package org.savapage.core.services;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +33,10 @@ import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
+import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
+import org.savapage.core.services.helpers.AccountTrxInfoSet;
+import org.savapage.core.services.helpers.DocContentPrintInInfo;
 
 /**
  *
@@ -151,6 +155,27 @@ public interface OutboxService {
             throws EcoPrintPdfTaskPendingException;
 
     /**
+     * Proxy prints a PDF file to the user's outbox.
+     * <p>
+     * NOTE: The PDF file location is arbitrary and NOT part in the user's
+     * inbox.
+     * </p>
+     *
+     * @param lockedUser
+     *            The requesting {@link User}, which should be locked.
+     * @param request
+     *            The {@link ProxyPrintDocReq}.
+     * @param pdfFile
+     *            The arbitrary (non-inbox) PDF file to print.
+     * @param printInfo
+     *            The {@link DocContentPrintInInfo}.
+     * @throws IOException
+     *             When file IO error occurs.
+     */
+    void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request, File pdfFile,
+            DocContentPrintInInfo printInfo) throws IOException;
+
+    /**
      * Gets the {@link OutboxJob} candidate objects for proxy printing.
      * <p>
      * Note: prunes the {@link OutboxJob} instances in {@link OutboxInfoDto} for
@@ -171,4 +196,14 @@ public interface OutboxService {
     List<OutboxJob> getOutboxJobs(String userId, Set<String> printerNames,
             Date expiryRef);
 
+    /**
+     * Creates the {@link AccountTrxInfoSet} from the {@link OutboxJob} source.
+     *
+     * @since 0.9.11
+     *
+     * @param source
+     *            The {@link OutboxJob}.
+     * @return The {@link AccountTrxInfoSet}.
+     */
+    AccountTrxInfoSet createAccountTrxInfoSet(OutboxJob source);
 }

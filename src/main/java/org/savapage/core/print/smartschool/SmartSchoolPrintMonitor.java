@@ -107,6 +107,7 @@ import org.savapage.core.print.smartschool.xml.Requestinfo;
 import org.savapage.core.print.smartschool.xml.SmartSchoolRoleEnum;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.DocLogService;
+import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.PaperCutService;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
@@ -169,9 +170,10 @@ public final class SmartSchoolPrintMonitor {
             "Afdrukopdracht staat klaar in PaperCut.";
 
     private static final String MSG_COMMENT_PRINT_PENDING_SAVAPAGE =
-            "Afdrukopdracht staat klaar in "
+            "Document is niet afgedrukt, maar is zichtbaar in "
                     + CommunityDictEnum.SAVAPAGE.getWord()
-                    + ". Ga naar de WebApp voor verdere acties.";
+                    + ". Afdrukinformatie is niet bewaard. "
+                    + "Ga naar de WebApp voor verdere acties.";
 
     private static final String MSG_COMMENT_PRINT_COMPLETED =
             "Document is met succes afgedrukt.";
@@ -260,6 +262,12 @@ public final class SmartSchoolPrintMonitor {
      */
     private static final DocLogService DOCLOG_SERVICE = ServiceContext
             .getServiceFactory().getDocLogService();
+
+    /**
+     * .
+     */
+    private static final OutboxService OUTBOX_SERVICE = ServiceContext
+            .getServiceFactory().getOutboxService();
 
     /**
      * .
@@ -2720,14 +2728,13 @@ public final class SmartSchoolPrintMonitor {
             ProxyPrintException, IppConnectException, SmartSchoolException,
             SOAPException, DocContentToPdfException {
 
-        final boolean isIntegratedWithPaperCut =
+        final boolean isPaperCutManagedPrinter =
                 monitor.isIntegratedWithPaperCut();
 
         /*
-         * We have Direct Proxy Print if printer name for Direct Printing is
-         * configured.
+         * Proxy print if printer name is configured.
          */
-        final boolean isDirectProxyPrint =
+        final boolean isProxyPrint =
                 StringUtils.isNotBlank(monitor.processingConnection
                         .getAccountConfig().getProxyPrinterName());
 
@@ -2736,18 +2743,16 @@ public final class SmartSchoolPrintMonitor {
          */
         final SmartSchoolPrintStatusEnum smartschoolPrintStatus;
 
-        if (isDirectProxyPrint) {
+        if (isProxyPrint) {
 
-            if (isIntegratedWithPaperCut) {
+            if (isPaperCutManagedPrinter) {
                 smartschoolPrintStatus = SmartSchoolPrintStatusEnum.PENDING_EXT;
             } else {
                 smartschoolPrintStatus = SmartSchoolPrintStatusEnum.COMPLETED;
             }
 
         } else {
-            // TODO
             smartschoolPrintStatus = SmartSchoolPrintStatusEnum.COMPLETED;
-            // smartschoolPrintStatus = SmartSchoolPrintStatusEnum.PENDING;
         }
 
         /*
@@ -2762,14 +2767,14 @@ public final class SmartSchoolPrintMonitor {
 
         /*
          * IMPORTANT: Logging the PrintIn event MUST be the first action. When
-         * printing to the inbox this is crucial, since it is the document MUST
-         * be present in the database BEFORE moving the PDF file.
+         * printing to the inbox this is crucial, since the document MUST be
+         * present in the database BEFORE moving the PDF file.
          */
         printInInfo.setSupplierInfo(externalSupplierInfo);
 
-        if (isDirectProxyPrint) {
+        if (isProxyPrint) {
 
-            if (isIntegratedWithPaperCut) {
+            if (isPaperCutManagedPrinter) {
 
                 feedbackComment = MSG_COMMENT_PRINT_PENDING_PAPERCUT;
 
@@ -2804,7 +2809,7 @@ public final class SmartSchoolPrintMonitor {
              * Since the DocContentPrintInInfo is re-used for DocOut/PrintOut
              * target logging, the AccountTrxInfoSet is RESET.
              */
-            if (isIntegratedWithPaperCut) {
+            if (isPaperCutManagedPrinter) {
                 /*
                  * Use an EMPTY AccountTrxInfoSet, so NO (user or shared)
                  * account transactions are created at the DocOut/PrintOut
@@ -2829,14 +2834,9 @@ public final class SmartSchoolPrintMonitor {
             feedbackComment = MSG_COMMENT_PRINT_PENDING_SAVAPAGE;
 
             /*
-             * Set the AccountTrx's in the DocLog source (DocIn/PrintIn).
-             *
-             * TODO
-             *
-             * Later on, when we .... (hold?/fast?) print, we will move/update
-             * the AccountTrx's to the DocLog (DocOut/PrintOut) target.
+             * Ignore the AccountTrxInfoSet.
              */
-            printInInfo.setAccountTrxInfoSet(accountTrxInfoSet);
+            printInInfo.setAccountTrxInfoSet(null);
 
             /*
              * STEP 1: Logging the PrintIn as first action.
@@ -2845,7 +2845,7 @@ public final class SmartSchoolPrintMonitor {
                     DocLogProtocolEnum.SMARTSCHOOL, printInInfo);
 
             /*
-             * Move PDF document to the SavaPage inbox.
+             * STEP 2: Move PDF document to the SavaPage inbox.
              */
             final String homeDir =
                     USER_SERVICE.lazyUserHomeDir(user).getCanonicalPath();
@@ -3023,7 +3023,7 @@ public final class SmartSchoolPrintMonitor {
     }
 
     /**
-     * Proxy Prints the Smartschool document.
+     * Selects the proxy printer for the supplied data.
      *
      * @param connection
      *            The {@link SmartSchoolConnection} instance.
@@ -3097,6 +3097,8 @@ public final class SmartSchoolPrintMonitor {
      *             When connection to CUPS fails.
      * @throws DocContentToPdfException
      *             When monochrome conversion failed.
+     * @throws IOException
+     *             When IO errors.
      */
     private static void processJobProxyPrint(
             final SmartSchoolPrintMonitor monitor, final User user,
@@ -3104,7 +3106,7 @@ public final class SmartSchoolPrintMonitor {
             final DocContentPrintInInfo printInInfo,
             final ExternalSupplierInfo externalSupplierInfo)
             throws ProxyPrintException, IppConnectException,
-            DocContentToPdfException {
+            DocContentToPdfException, IOException {
 
         /*
          * Get Smartschool process info from the supplier data.
@@ -3119,10 +3121,28 @@ public final class SmartSchoolPrintMonitor {
                 selectProxyPrinter(monitor.processingConnection, supplierData);
 
         /*
+         * Read the selected Printer.
+         */
+        final PrinterDao printerDao =
+                ServiceContext.getDaoContext().getPrinterDao();
+
+        final Printer printer = printerDao.findByName(printerNameSelected);
+
+        /*
+         * Determine Print Mode.
+         */
+        final PrintModeEnum printMode;
+
+        if (PRINTER_SERVICE.isHoldReleasePrinter(printer)) {
+            printMode = PrintModeEnum.HOLD;
+        } else {
+            printMode = PrintModeEnum.AUTO;
+        }
+
+        /*
          * Create print request.
          */
-        final ProxyPrintDocReq printReq =
-                new ProxyPrintDocReq(PrintModeEnum.AUTO);
+        final ProxyPrintDocReq printReq = new ProxyPrintDocReq(printMode);
 
         printReq.setDocumentUuid(printInInfo.getUuidJob().toString());
 
@@ -3176,11 +3196,9 @@ public final class SmartSchoolPrintMonitor {
             }
         }
 
-        final PrinterDao printerDao =
-                ServiceContext.getDaoContext().getPrinterDao();
-
-        final Printer printer = printerDao.findByName(printerNameSelected);
-
+        /*
+         * Pro-forma chunk.
+         */
         addProxyPrintJobChunk(printer, printReq, supplierData.getMediaSize(),
                 PROXY_PRINT_SERVICE.hasMediaSourceAuto(printerNameSelected),
                 monitor.isIntegratedWithPaperCut());
@@ -3205,15 +3223,12 @@ public final class SmartSchoolPrintMonitor {
 
         printReq.setSupplierInfo(externalSupplierInfo);
 
-        /*
-         *
-         */
         if (LOGGER.isDebugEnabled()) {
 
             final StringBuilder msg = new StringBuilder();
 
-            msg.append("ProxyPrint [").append(printReq.getJobName())
-                    .append("]: ")
+            msg.append(printReq.getPrintMode()).append(" ProxyPrint [")
+                    .append(printReq.getJobName()).append("]: ")
                     .append(printReq.getJobChunkInfo().getChunks().size())
                     .append(" chunk(s), ").append(printReq.getNumberOfPages())
                     .append(" page(s), ").append(printReq.getNumberOfCopies())
@@ -3243,7 +3258,8 @@ public final class SmartSchoolPrintMonitor {
             final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(String.format("start printing [%s] ...",
+                LOGGER.debug(String.format("Start %s printing of [%s] ...",
+                        printReq.getPrintMode().toString(),
                         printReq.getJobName()));
             }
 
@@ -3251,13 +3267,32 @@ public final class SmartSchoolPrintMonitor {
 
             final User lockedUser = userDao.lock(user.getId());
 
-            PROXY_PRINT_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                    downloadedFile);
+            if (printReq.getPrintMode() == PrintModeEnum.HOLD) {
+
+                final BigDecimal cost =
+                        ACCOUNTING_SERVICE.calcProxyPrintCost(
+                                ServiceContext.getLocale(),
+                                ServiceContext.getAppCurrencySymbol(),
+                                lockedUser, printer,
+                                printReq.createProxyPrintCostParms(),
+                                printReq.getJobChunkInfo());
+
+                printReq.setCost(cost);
+
+                OUTBOX_SERVICE.proxyPrintPdf(lockedUser, printReq,
+                        downloadedFile, printInInfo);
+
+            } else {
+
+                PROXY_PRINT_SERVICE.proxyPrintPdf(lockedUser, printReq,
+                        downloadedFile);
+            }
 
             daoContext.commit();
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(String.format("finished printing [%s]",
+                LOGGER.debug(String.format("Finished %s printing of [%s]",
+                        printReq.getPrintMode().toString(),
                         printReq.getJobName()));
             }
 
