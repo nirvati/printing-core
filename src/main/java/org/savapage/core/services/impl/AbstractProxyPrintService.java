@@ -1658,6 +1658,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             docLog.setTitle(printReq.getJobName());
 
+            //
+            if (docLog.getExternalSupplier() == null
+                    && job.getExternalSupplier() != null) {
+                docLog.setExternalSupplier(job.getExternalSupplier().toString());
+            }
+
+            //
             final File pdfFileToPrint =
                     outboxService().getOutboxFile(cardUser.getUserId(),
                             job.getFile());

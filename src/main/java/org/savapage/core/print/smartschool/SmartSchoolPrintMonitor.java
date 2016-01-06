@@ -81,6 +81,7 @@ import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
+import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.papercut.PaperCutDbProxy;
 import org.savapage.core.papercut.PaperCutException;
 import org.savapage.core.papercut.PaperCutPrinterUsageLog;
@@ -3254,7 +3255,6 @@ public final class SmartSchoolPrintMonitor {
         final DaoContext daoContext = ServiceContext.getDaoContext();
 
         try {
-
             final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
 
             if (LOGGER.isDebugEnabled()) {
@@ -3281,6 +3281,13 @@ public final class SmartSchoolPrintMonitor {
 
                 OUTBOX_SERVICE.proxyPrintPdf(lockedUser, printReq,
                         downloadedFile, printInInfo);
+
+                /*
+                 * This will refresh the User Web App with new status
+                 * information.
+                 */
+                UserMsgIndicator.write(lockedUser.getUserId(), new Date(),
+                        UserMsgIndicator.Msg.PRINT_OUT_HOLD, null);
 
             } else {
 

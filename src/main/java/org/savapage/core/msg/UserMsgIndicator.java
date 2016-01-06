@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  * message.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class UserMsgIndicator {
@@ -94,7 +94,12 @@ public final class UserMsgIndicator {
         PRINT_OUT_AUTH_REQ,
 
         /**
-         * Request to stop the long poll
+         * Proxy Print job is held.
+         */
+        PRINT_OUT_HOLD,
+
+        /**
+         * Request to stop the long poll.
          */
         STOP_POLL_REQ
     };

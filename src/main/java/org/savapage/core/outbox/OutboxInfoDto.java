@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dto.AbstractDto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -179,6 +180,8 @@ public final class OutboxInfoDto extends AbstractDto {
      */
     public final static class OutboxJob {
 
+        private ExternalSupplierEnum externalSupplier;
+
         private String file;
         private String printerName;
         private String jobName;
@@ -206,10 +209,16 @@ public final class OutboxInfoDto extends AbstractDto {
          */
         private OutboxAccountTrxInfoSet accountTransactions;
 
-        /**
-         *
-         * @return
-         */
+        //
+
+        public ExternalSupplierEnum getExternalSupplier() {
+            return externalSupplier;
+        }
+
+        public void setExternalSupplier(ExternalSupplierEnum externalSupplier) {
+            this.externalSupplier = externalSupplier;
+        }
+
         public String getFile() {
             return file;
         }

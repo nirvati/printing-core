@@ -358,6 +358,10 @@ public final class OutboxServiceImpl extends AbstractService implements
         job.putOptionValues(request.getOptionValues());
         job.setUuidPageCount(uuidPageCount);
 
+        if (request.getSupplierInfo() != null) {
+            job.setExternalSupplier(request.getSupplierInfo().getSupplier());
+        }
+
         this.importToOutbox(request.getAccountTrxInfoSet(), job);
 
         return job;
@@ -918,8 +922,9 @@ public final class OutboxServiceImpl extends AbstractService implements
      * Imports the source {@link AccountTrxInfoSet} into the target
      * {@link OutboxJob}.
      *
+     * @see {@link #createAccountTrxInfoSet(OutboxJob)}.
      * @param source
-     *            The {@link AccountTrxInfoSet}.
+     *            The {@link AccountTrxInfoSet}
      * @param target
      *            The {@link OutboxJob}.
      */
