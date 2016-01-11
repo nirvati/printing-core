@@ -9,5 +9,6 @@
 
     <entry key="print-cancelled">SmartSchool Print van document "{0}" is geannuleerd: {1}</entry>
     <entry key="print-error">SmartSchool Print fout voor document "{0}" : {1}</entry>
+    <entry key="download-error">Download van SmartSchool document "{0}" : {1}</entry>
 
 </properties>

@@ -122,6 +122,7 @@ import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.SmartSchoolConnection;
 import org.savapage.core.users.IUserSource;
+import org.savapage.core.util.AppLogHelper;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.Messages;
@@ -2216,7 +2217,20 @@ public final class SmartSchoolPrintMonitor {
 
         } catch (IOException e) {
 
-            throw new SpException(e.getMessage());
+            if (downloadedFile == null) {
+                /*
+                 * Notify and give it another chance at next polling cycle.
+                 */
+                final String error =
+                        AppLogHelper.logError(SmartSchoolPrintMonitor.class,
+                                "download-error", document.getName(),
+                                e.getMessage());
+
+                publishAdminMsg(PubLevelEnum.ERROR, error);
+
+            } else {
+                throw new SpException(e.getMessage(), e);
+            }
 
         } catch (DocContentPrintException e) {
 
