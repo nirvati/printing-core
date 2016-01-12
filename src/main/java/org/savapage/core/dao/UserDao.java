@@ -24,6 +24,7 @@ package org.savapage.core.dao;
 import java.util.Date;
 import java.util.List;
 
+import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
@@ -256,4 +257,15 @@ public interface UserDao extends GenericDao<User> {
      */
     long countActiveUsers();
 
+    /**
+     * Counts the number of active users in a {@link ReservedUserGroupEnum}.
+     * <p>
+     * NOTE: logically deleted users are excluded from the count.
+     * </p>
+     *
+     * @param userGroupEnum
+     *            The {@link ReservedUserGroupEnum}.
+     * @return the number of active users.
+     */
+    long countActiveUsers(ReservedUserGroupEnum userGroupEnum);
 }

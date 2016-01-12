@@ -27,7 +27,9 @@ import java.util.List;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import org.savapage.core.SpException;
 import org.savapage.core.dao.UserDao;
+import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.services.ServiceContext;
 
@@ -359,10 +361,33 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
 
     @Override
     public long countActiveUsers() {
-        final Query query =
-                getEntityManager().createQuery(
-                        "SELECT COUNT(U.id) FROM User U"
-                                + " WHERE U.deleted = false");
+        return countActiveUsers(ReservedUserGroupEnum.ALL);
+    }
+
+    @Override
+    public long countActiveUsers(final ReservedUserGroupEnum userGroupEnum) {
+
+        final StringBuilder psql = new StringBuilder();
+
+        psql.append("SELECT COUNT(U.id) FROM User U"
+                + " WHERE U.deleted = false");
+
+        switch (userGroupEnum) {
+        case ALL:
+            // noop
+            break;
+        case EXTERNAL:
+            psql.append(" AND U.internal = false");
+            break;
+        case INTERNAL:
+            psql.append(" AND U.internal = true");
+            break;
+        default:
+            throw new SpException(String.format("%s.%s not handled",
+                    ReservedUserGroupEnum.class.getSimpleName(),
+                    userGroupEnum.toString()));
+        }
+        final Query query = getEntityManager().createQuery(psql.toString());
         final Number countResult = (Number) query.getSingleResult();
         return countResult.longValue();
     }

@@ -141,7 +141,8 @@ public final class OutboxServiceImpl extends AbstractService implements
      * @param outboxInfo
      *            The {@link OutboxInfoDto} object.
      */
-    void storeOutboxInfo(final String userId, final OutboxInfoDto outboxInfo) {
+    private void storeOutboxInfo(final String userId,
+            final OutboxInfoDto outboxInfo) {
 
         final File jsonFile = getOutboxInfoFilePath(userId);
         final ObjectMapper mapper = new ObjectMapper();
