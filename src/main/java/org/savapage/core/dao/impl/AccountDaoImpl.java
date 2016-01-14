@@ -302,9 +302,11 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
             jpql.append("ACC.accountType");
 
         } else if (orderBy == Field.NAME) {
-            jpql.append("CONCAT(" + "COALESCE(P.name, ACC.name), "
-                    + "COALESCE(P.id, ACC.id),"
-                    + "COALESCE(P.id, '0'), ACC.name)");
+
+            jpql.append("COALESCE(P.name, ACC.name), "
+                    + "COALESCE(P.id, ACC.id)," + "COALESCE(P.id, 0), "
+                    + "ACC.name");
+
         } else {
             jpql.append("ACC.accountType");
         }
