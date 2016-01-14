@@ -303,9 +303,18 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
 
         } else if (orderBy == Field.NAME) {
 
-            jpql.append("COALESCE(P.name, ACC.name), "
-                    + "COALESCE(P.id, ACC.id)," + "COALESCE(P.id, 0), "
-                    + "ACC.name");
+            jpql.append("COALESCE(P.name, ACC.name)");
+            if (!sortAscending) {
+                jpql.append(" DESC");
+            }
+
+            jpql.append(", COALESCE(P.id, ACC.id)");
+            if (!sortAscending) {
+                jpql.append(" DESC");
+            }
+
+            jpql.append(", COALESCE(P.id, 0)");
+            jpql.append(", ACC.name");
 
         } else {
             jpql.append("ACC.accountType");
