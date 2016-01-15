@@ -393,6 +393,15 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
     }
 
     @Override
+    public User findActiveUserById(final Long id) {
+        final User user = this.findById(id);
+        if (user.getDeleted()) {
+            return null;
+        }
+        return user;
+    }
+
+    @Override
     public User findActiveUserByUserId(final String userId) {
         return readUser(userId, null, null, null);
     }

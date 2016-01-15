@@ -56,6 +56,10 @@ public class Account extends org.savapage.core.jpa.Entity {
          */
         USER,
         /**
+        *
+        */
+        GROUP,
+        /**
          *
          */
         SHARED,
@@ -113,10 +117,13 @@ public class Account extends org.savapage.core.jpa.Entity {
 
     @Id
     @Column(name = "account_id")
-    @TableGenerator(name = "accountPropGen", table = Sequence.TABLE_NAME, pkColumnName = "SEQUENCE_NAME",
-    //
-    valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME, allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.TABLE, generator = "accountPropGen")
+    @TableGenerator(name = "accountPropGen", table = Sequence.TABLE_NAME,
+            pkColumnName = "SEQUENCE_NAME",
+            //
+            valueColumnName = "SEQUENCE_NEXT_VALUE",
+            pkColumnValue = TABLE_NAME, allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.TABLE,
+            generator = "accountPropGen")
     private Long id;
 
     /**
@@ -185,7 +192,8 @@ public class Account extends org.savapage.core.jpa.Entity {
     @Column(name = "created_date", nullable = false)
     private Date createdDate;
 
-    @Column(name = "created_by", length = 50, nullable = false, unique = false, insertable = true, updatable = true)
+    @Column(name = "created_by", length = 50, nullable = false, unique = false,
+            insertable = true, updatable = true)
     private String createdBy;
 
     /**
@@ -199,7 +207,9 @@ public class Account extends org.savapage.core.jpa.Entity {
 
     /**
      * The parent account.
-     * <p>foreignKey = @ForeignKey(name = "FK_ACCOUNT_TO_PARENT")</p>
+     * <p>
+     * foreignKey = @ForeignKey(name = "FK_ACCOUNT_TO_PARENT")
+     * </p>
      */
     @ManyToOne
     @JoinColumn(name = "parent_id")
@@ -208,25 +218,29 @@ public class Account extends org.savapage.core.jpa.Entity {
     /**
      * The LAZY Account list with sub-accounts.
      */
-    @OneToMany(targetEntity = Account.class, mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(targetEntity = Account.class, mappedBy = "parent",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Account> subAccounts;
 
     /**
      * The LAZY AccountAttr list.
      */
-    @OneToMany(targetEntity = AccountAttr.class, mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(targetEntity = AccountAttr.class, mappedBy = "account",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AccountAttr> attributes;
 
     /**
      * The LAZY AccountTrx list.
      */
-    @OneToMany(targetEntity = AccountTrx.class, mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(targetEntity = AccountTrx.class, mappedBy = "account",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AccountTrx> transactions;
 
     /**
      * The LAZY UserAccount list.
      */
-    @OneToMany(targetEntity = UserAccount.class, mappedBy = "account", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(targetEntity = UserAccount.class, mappedBy = "account",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserAccount> members;
 
     /**

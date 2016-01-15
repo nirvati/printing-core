@@ -172,6 +172,17 @@ public interface UserDao extends GenericDao<User> {
     User lockByUserId(String userId);
 
     /**
+     * Finds an active (i.e. not logically deleted) {@link User} by id,
+     * when not found (or logically deleted) {@code null} is returned.
+     *
+     * @param id
+     *            The primary id of the user.
+     * @return The {@link User} instance, or {@code null} when not found (or
+     *         logically deleted).
+     */
+    User findActiveUserById(Long id);
+
+    /**
      * Finds an active (i.e. not logically deleted) {@link User} by user id,
      * when not found (or logically deleted) {@code null} is returned.
      *

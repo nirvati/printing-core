@@ -93,6 +93,15 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
     /**
      * Gets the number of user members of a group.
      *
+     * @param groupId
+     *            The ID of the {@link UserGroup}.
+     * @return The number of members.
+     */
+    long getUserCount(Long groupId);
+
+    /**
+     * Gets the number of user members of a group.
+     *
      * @param filter
      *            The filter.
      * @return The number of filtered entries.

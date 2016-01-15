@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -49,12 +49,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * </ul>
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public abstract class JsonAbstractBase {
 
     /**
-     * Can reuse, share globally.
+     * {@link ObjectMapper} is thread-safe.
      */
     private static ObjectMapper mapper = new ObjectMapper();
 

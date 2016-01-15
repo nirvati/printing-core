@@ -110,6 +110,13 @@ public interface ServiceFactory {
     PaperCutService getPaperCutService();
 
     /**
+     * Gets the {@link PrintDelegationService} singleton.
+     *
+     * @return The singleton.
+     */
+    PrintDelegationService getPrintDelegationService();
+
+    /**
      * Gets the {@link PrinterGroupService} singleton.
      *
      * @return The singleton.

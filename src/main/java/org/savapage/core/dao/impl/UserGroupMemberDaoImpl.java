@@ -149,6 +149,14 @@ public final class UserGroupMemberDaoImpl extends
     }
 
     @Override
+    public long getUserCount(final Long groupId) {
+        final UserGroupMemberDao.GroupFilter filter =
+                new UserGroupMemberDao.GroupFilter();
+        filter.setGroupId(groupId);
+        return getUserCount(filter);
+    }
+
+    @Override
     public long getUserCount(final GroupFilter filter) {
 
         final StringBuilder jpql =

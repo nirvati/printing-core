@@ -31,6 +31,8 @@ import java.util.Map;
 
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dto.AbstractDto;
+import org.savapage.core.services.helpers.AccountTrxInfo;
+import org.savapage.core.services.helpers.AccountTrxInfoSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -51,7 +53,8 @@ public final class OutboxInfoDto extends AbstractDto {
      * @author Rijk Ravestein
      *
      */
-    public final static class LocaleInfo {
+    @JsonInclude(Include.NON_NULL)
+    public static final class LocaleInfo {
 
         private String cost;
         private String submitTime;
@@ -92,7 +95,18 @@ public final class OutboxInfoDto extends AbstractDto {
 
     }
 
-    public final static class OutboxAccountTrxInfo {
+    /**
+     * A weighted {@link Account} transaction with free format details.
+     * <p>
+     * NOTE: This class has a similar purpose as {@link AccountTrxInfo}, but
+     * contains the primary key of {@link Account} instead of the object itself.
+     * </p>
+     *
+     * @author Rijk Ravestein
+     *
+     */
+    @JsonInclude(Include.NON_NULL)
+    public static final class OutboxAccountTrxInfo {
 
         /**
          * Primary key of the {@link Account}.
@@ -140,9 +154,18 @@ public final class OutboxInfoDto extends AbstractDto {
     }
 
     /**
-    *
-    */
-    public final static class OutboxAccountTrxInfoSet {
+     * A unit of weighted {@link OutboxAccountTrxInfo} objects.
+     * <p>
+     * NOTE: This class has a similar purpose as {@link AccountTrxInfoSet}, but
+     * contains {@link OutboxAccountTrxInfo} objects that have the primary key
+     * of {@link Account} instead of the {@link Account} object itself.
+     * </p>
+     *
+     * @author Rijk Ravestein
+     *
+     */
+    @JsonInclude(Include.NON_NULL)
+    public static final class OutboxAccountTrxInfoSet {
 
         /**
          * The weight total. IMPORTANT: This total need NOT be the same as the
@@ -178,7 +201,8 @@ public final class OutboxInfoDto extends AbstractDto {
     /**
      *
      */
-    public final static class OutboxJob {
+    @JsonInclude(Include.NON_NULL)
+    public static final class OutboxJob {
 
         private ExternalSupplierEnum externalSupplier;
 
@@ -439,6 +463,8 @@ public final class OutboxInfoDto extends AbstractDto {
     /**
      * Adds a job.
      *
+     * @param fileName
+     *            The file name.
      * @param job
      *            The job to add.
      */

@@ -31,6 +31,7 @@ import org.savapage.core.services.EmailService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.PaperCutService;
+import org.savapage.core.services.PrintDelegationService;
 import org.savapage.core.services.PrinterGroupService;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
@@ -116,6 +117,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     private static class RfIdReaderServiceHolder {
         public static final RfIdReaderService SERVICE =
                 new RfIdReaderServiceImpl();
+    }
+
+    private static class PrintDelegationServiceHolder {
+        public static final PrintDelegationService SERVICE =
+                new PrintDelegationServiceImpl();
     }
 
     private static class PrinterGroupServiceHolder {
@@ -218,6 +224,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public PrinterGroupService getPrinterGroupService() {
         return PrinterGroupServiceHolder.SERVICE;
+    }
+
+    @Override
+    public PrintDelegationService getPrintDelegationService() {
+        return PrintDelegationServiceHolder.SERVICE;
     }
 
     @Override
