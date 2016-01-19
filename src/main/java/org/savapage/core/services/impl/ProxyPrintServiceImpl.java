@@ -104,6 +104,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.InetUtils;
+import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1075,7 +1076,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         printOut.setPrinter(printer.getDbPrinter());
 
-        printOut.setIppOptions(JsonAbstractBase.stringifyStringMap(request
+        printOut.setIppOptions(JsonHelper.stringifyStringMap(request
                 .getOptionValues()));
 
         docOut.setPrintOut(printOut);

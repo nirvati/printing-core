@@ -21,6 +21,7 @@
  */
 package org.savapage.core.dao.enums;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +34,11 @@ import org.savapage.core.jpa.UserAttr;
  * @author Datraverse B.V.
  */
 public enum UserAttrEnum {
+
+    /**
+     * A JSON value of {@link EnumSet} of {@link ACLRoleEnum}.
+     */
+    ACL_ROLES("acl.roles"),
 
     /**
      * The pending bitcoin address created for a {@link User} payment

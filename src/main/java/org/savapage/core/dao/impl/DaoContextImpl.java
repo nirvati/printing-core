@@ -48,6 +48,7 @@ import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.dao.UserCardDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserEmailDao;
+import org.savapage.core.dao.UserGroupAttrDao;
 import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.UserGroupMemberDao;
 import org.savapage.core.dao.UserNumberDao;
@@ -251,6 +252,12 @@ public final class DaoContextImpl implements DaoContext {
         /**
         *
         */
+        public static final UserGroupAttrDao USER_GROUP_ATTR_DAO =
+                new UserGroupAttrDaoImpl();
+
+        /**
+        *
+        */
         public static final UserGroupMemberDao USER_GROUP_MEMBER_DAO =
                 new UserGroupMemberDaoImpl();
 
@@ -409,6 +416,11 @@ public final class DaoContextImpl implements DaoContext {
     @Override
     public UserGroupDao getUserGroupDao() {
         return DaoHolder.USER_GROUP_DAO;
+    }
+
+    @Override
+    public UserGroupAttrDao getUserGroupAttrDao() {
+        return DaoHolder.USER_GROUP_ATTR_DAO;
     }
 
     @Override

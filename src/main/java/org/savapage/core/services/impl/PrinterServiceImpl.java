@@ -57,6 +57,7 @@ import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.util.JsonHelper;
 
 /**
  *
@@ -472,7 +473,7 @@ public final class PrinterServiceImpl extends AbstractService implements
 
             if (json != null) {
                 groupAccess =
-                        JsonUserGroupAccess.createOrNull(
+                        JsonHelper.createOrNull(
                                 JsonUserGroupAccess.class, json);
             }
         }
@@ -558,7 +559,7 @@ public final class PrinterServiceImpl extends AbstractService implements
         if (printerAttr != null) {
 
             final JsonUserGroupAccess groupAccess =
-                    JsonUserGroupAccess.createOrNull(JsonUserGroupAccess.class,
+                    JsonHelper.createOrNull(JsonUserGroupAccess.class,
                             printerAttr.getValue());
 
             if (groupAccess == null) {
@@ -663,7 +664,7 @@ public final class PrinterServiceImpl extends AbstractService implements
 
         if (printerAttr != null) {
             groupAccess =
-                    JsonUserGroupAccess.createOrNull(JsonUserGroupAccess.class,
+                    JsonHelper.createOrNull(JsonUserGroupAccess.class,
                             printerAttr.getValue());
         }
 

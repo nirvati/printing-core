@@ -23,6 +23,7 @@ package org.savapage.core.dao;
 
 import java.util.List;
 
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.jpa.UserGroup;
 
@@ -56,6 +57,7 @@ public interface UserGroupDao extends GenericDao<UserGroup> {
     class ListFilter {
 
         private String containingText;
+        private ACLRoleEnum aclRole;
 
         public String getContainingText() {
             return containingText;
@@ -63,6 +65,14 @@ public interface UserGroupDao extends GenericDao<UserGroup> {
 
         public void setContainingText(String containingText) {
             this.containingText = containingText;
+        }
+
+        public ACLRoleEnum getAclRole() {
+            return aclRole;
+        }
+
+        public void setAclRole(ACLRoleEnum aclRole) {
+            this.aclRole = aclRole;
         }
 
     }

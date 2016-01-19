@@ -194,6 +194,11 @@ public interface DaoContext {
     /**
      * @return The DAO implementation.
      */
+    UserGroupAttrDao getUserGroupAttrDao();
+
+    /**
+     * @return The DAO implementation.
+     */
     UserGroupMemberDao getUserGroupMemberDao();
 
     /**

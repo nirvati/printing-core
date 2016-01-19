@@ -25,14 +25,12 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Map;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.SpException;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -137,35 +135,6 @@ public abstract class JsonAbstractBase {
     }
 
     /**
-     * Creates a JSON string from a {@link Map}.
-     *
-     * @param map
-     *            The {@link Map}
-     * @return The JSON String.
-     * @throws IOException
-     *             When serialization fails.
-     */
-    public static String stringifyObjectMap(final Map<String, Object> map)
-            throws IOException {
-        return getMapper().writeValueAsString(map);
-    }
-
-    /**
-     * Creates a JSON string from a {@link Map}.
-     *
-     * @param map
-     *            The {@link Map}
-     * @return The JSON String.
-     */
-    public static String stringifyStringMap(final Map<String, String> map) {
-        try {
-            return getMapper().writeValueAsString(map);
-        } catch (JsonProcessingException e) {
-            throw new SpException(e.getMessage(), e);
-        }
-    }
-
-    /**
      * Creates a bean object from a JSON string.
      * <p>
      * An unchecked exception is thrown on IO and syntax errors.
@@ -184,26 +153,6 @@ public abstract class JsonAbstractBase {
             return getMapper().readValue(json, clazz);
         } catch (IOException e) {
             throw new SpException(e);
-        }
-    }
-
-    /**
-     * Creates a bean object from a JSON string, when de-serialization fails
-     * (due to syntax errors) {@code null} is returned.
-     *
-     * @param <E>
-     *            The bean class.
-     * @param clazz
-     *            The bean class.
-     * @param json
-     *            The JSON String
-     * @return The instance or {@code null} when an IO or syntax error occurs.
-     */
-    public static <E> E createOrNull(final Class<E> clazz, final String json) {
-        try {
-            return getMapper().readValue(json, clazz);
-        } catch (Exception e) {
-            return null;
         }
     }
 

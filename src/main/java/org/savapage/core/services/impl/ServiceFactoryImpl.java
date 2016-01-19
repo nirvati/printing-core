@@ -21,6 +21,7 @@
  */
 package org.savapage.core.services.impl;
 
+import org.savapage.core.services.AccessControlService;
 import org.savapage.core.services.AccountVoucherService;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.AppLogService;
@@ -61,6 +62,11 @@ import org.savapage.core.services.UserService;
  *
  */
 public final class ServiceFactoryImpl implements ServiceFactory {
+
+    private static class AccessControlServiceHolder {
+        public static final AccessControlService SERVICE =
+                new AccessControlServiceImpl();
+    }
 
     private static class AccountingServiceHolder {
         public static final AccountingService SERVICE =
@@ -155,6 +161,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private final static StatefulService statefullServices[] =
             new StatefulService[] { EcoPrintPdfTaskServiceHolder.SERVICE };
+
+    @Override
+    public AccessControlService getAccessControlService() {
+        return AccessControlServiceHolder.SERVICE;
+    }
 
     @Override
     public AccountingService getAccountingService() {

@@ -40,6 +40,13 @@ public interface ServiceFactory {
     void shutdown();
 
     /**
+     * Gets the {@link AccessControlService} singleton.
+     *
+     * @return The singleton.
+     */
+    AccessControlService getAccessControlService();
+
+    /**
      * Gets the {@link AccountingService} singleton.
      *
      * @return The singleton.
