@@ -377,8 +377,9 @@ public final class QueueServiceImpl extends AbstractService implements
 
             } else {
                 printRsp.setResult(PrintInResultEnum.USER_NOT_AUTHORIZED);
-
-                LOGGER.warn("User [" + user.getUserId() + "] NOT authorized.");
+                LOGGER.warn(String.format(
+                        "User [%s] not authorized for Queue [%s]",
+                        user.getUserId(), queueName));
             }
 
         } catch (Exception e) {
