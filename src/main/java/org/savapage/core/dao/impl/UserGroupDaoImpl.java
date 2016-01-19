@@ -33,6 +33,7 @@ import javax.persistence.criteria.Root;
 
 import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
+import org.savapage.core.dao.enums.UserGroupAttrEnum;
 import org.savapage.core.jpa.UserGroup;
 
 /**
@@ -80,7 +81,11 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
         final StringBuilder jpql =
                 new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
 
-        jpql.append("SELECT C FROM UserGroup C");
+        if (filter.getAclRole() == null) {
+            jpql.append("SELECT C FROM UserGroup C");
+        } else {
+            jpql.append("SELECT C FROM UserGroupAttr A JOIN A.userGroup C");
+        }
 
         applyListFilter(jpql, filter);
 
@@ -125,6 +130,14 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
 
         int nWhere = 0;
 
+        if (filter.getAclRole() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" A.name = :roleName AND A.value like :roleValue");
+        }
+
         if (filter.getContainingText() != null) {
             if (nWhere > 0) {
                 where.append(" AND");
@@ -152,6 +165,14 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
             final ListFilter filter) {
 
         final Query query = getEntityManager().createQuery(jpql.toString());
+
+        if (filter.getAclRole() != null) {
+            query.setParameter("roleName",
+                    UserGroupAttrEnum.ACL_ROLES.getName());
+
+            query.setParameter("roleValue", "%"
+                    + filter.getAclRole().toString() + "%");
+        }
 
         if (filter.getContainingText() != null) {
             query.setParameter("containingText", "%"

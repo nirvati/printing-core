@@ -83,16 +83,20 @@ public final class JsonHelper {
     public static <E extends Enum<E>> EnumSet<E> deserializeEnumSet(
             final Class<E> enumClass, final String json) throws IOException {
 
-        List<String> result;
+        final List<String> result =
+                mapper.readValue(json, new TypeReference<List<String>>() {
+                });
 
-        result = mapper.readValue(json, new TypeReference<List<String>>() {
-        });
+        if (result.isEmpty()) {
+            return EnumSet.noneOf(enumClass);
+        }
 
         final Collection<E> collection = new HashSet<>();
 
         for (final String enumName : result) {
             collection.add(Enum.valueOf(enumClass, enumName));
         }
+
         return EnumSet.copyOf(collection);
     }
 
