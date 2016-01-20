@@ -23,6 +23,7 @@ package org.savapage.core.services.impl;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.savapage.core.dao.UserGroupMemberDao;
 import org.savapage.core.dao.enums.ACLRoleEnum;
@@ -52,19 +53,56 @@ public final class AccessControlServiceImpl extends AbstractService implements
     private static final Logger LOGGER = LoggerFactory
             .getLogger(AccessControlServiceImpl.class);
 
-    @Override
-    public boolean isAuthorized(final User user, final ACLRoleEnum role) {
+    /**
+     * Checks if role is enabled in JSON String.
+     *
+     * @param json
+     *            The JSON string.
+     * @param role
+     *            The {@link ACLRoleEnum};
+     * @return {@code null} when undetermined.
+     * @throws IOException
+     *             When JSON string is invalid.
+     */
+    private static Boolean isRoleEnabledInJson(final String json,
+            final ACLRoleEnum role) throws IOException {
 
-        // Check User
+        final Map<ACLRoleEnum, Boolean> map =
+                JsonHelper.createEnumBooleanMap(ACLRoleEnum.class, json);
+
+        final String key = role.toString();
+        final Boolean value;
+
+        if (map.containsKey(key)) {
+            value = map.get(key);
+        } else {
+            value = null;
+        }
+        return value;
+    }
+
+    /**
+     * Checks if User is authorized for a Role.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param role
+     *            The {@link ACLRoleEnum};
+     * @return {@code true} when authorized.
+     */
+    private static boolean isUserAuthorized(final User user,
+            final ACLRoleEnum role) {
+
         final UserAttr userAttr =
                 userAttrDAO().findByName(user, UserAttrEnum.ACL_ROLES);
 
         if (userAttr != null) {
-
             try {
-                return JsonHelper.deserializeEnumSet(ACLRoleEnum.class,
-                        userAttr.getValue()).contains(role);
-
+                final Boolean value =
+                        isRoleEnabledInJson(userAttr.getValue(), role);
+                if (value != null) {
+                    return value.booleanValue();
+                }
             } catch (IOException e) {
                 // Try to remove the culprit.
                 if (ServiceContext.getDaoContext().isTransactionActive()) {
@@ -77,32 +115,33 @@ public final class AccessControlServiceImpl extends AbstractService implements
                 }
             }
         }
+        return false;
+    }
 
-        // Check Groups
-        final UserGroupMemberDao.UserFilter filter =
-                new UserGroupMemberDao.UserFilter();
+    /**
+     * Checks if UserGroup is authorized for a Role.
+     *
+     * @param group
+     *            The {@link UserGroup}.
+     * @param role
+     *            The {@link ACLRoleEnum};
+     * @return {@code true} when authorized.
+     */
+    private static boolean isGroupAuthorized(final UserGroup group,
+            final ACLRoleEnum role) {
 
-        filter.setUserId(user.getId());
+        final UserGroupAttr groupAttr =
+                userGroupAttrDAO().findByName(group,
+                        UserGroupAttrEnum.ACL_ROLES);
 
-        final List<UserGroup> groupList =
-                userGroupMemberDAO().getGroupChunk(filter, null, null,
-                        UserGroupMemberDao.GroupField.GROUP_NAME, true);
-
-        for (final UserGroup group : groupList) {
-
-            final UserGroupAttr groupAttr =
-                    userGroupAttrDAO().findByName(group,
-                            UserGroupAttrEnum.ACL_ROLES);
-
-            if (groupAttr == null) {
-                continue;
-            }
-
+        if (groupAttr != null) {
             try {
-                if (JsonHelper.deserializeEnumSet(ACLRoleEnum.class,
-                        groupAttr.getValue()).contains(role)) {
-                    return true;
+                final Boolean value =
+                        isRoleEnabledInJson(groupAttr.getValue(), role);
+                if (value != null) {
+                    return value.booleanValue();
                 }
+
             } catch (IOException e) {
                 // Try to remove the culprit.
                 if (ServiceContext.getDaoContext().isTransactionActive()) {
@@ -114,8 +153,55 @@ public final class AccessControlServiceImpl extends AbstractService implements
                             groupAttr.getName(), groupAttr.getValue()));
                 }
             }
-
         }
+        return false;
+    }
+
+    @Override
+    public boolean isAuthorized(final User user, final ACLRoleEnum role) {
+
+        if (isUserAuthorized(user, role)) {
+            return true;
+        }
+
+        /*
+         * Check Group Memberships (explicit).
+         */
+        final UserGroupMemberDao.UserFilter filter =
+                new UserGroupMemberDao.UserFilter();
+
+        filter.setUserId(user.getId());
+
+        final List<UserGroup> groupList =
+                userGroupMemberDAO().getGroupChunk(filter, null, null,
+                        UserGroupMemberDao.GroupField.GROUP_NAME, true);
+
+        for (final UserGroup group : groupList) {
+            if (isGroupAuthorized(group, role)) {
+                return true;
+            }
+        }
+
+        /*
+         * Check Group Memberships (implicit).
+         */
+        final UserGroup group;
+
+        if (user.getInternal().booleanValue()) {
+            group = userGroupService().getInternalUserGroup();
+        } else {
+            group = userGroupService().getExternalUserGroup();
+        }
+
+        if (isGroupAuthorized(group, role)) {
+            return true;
+        }
+
+        // All Users
+        if (isGroupAuthorized(userGroupService().getAllUserGroup(), role)) {
+            return true;
+        }
+
         return false;
     }
 }

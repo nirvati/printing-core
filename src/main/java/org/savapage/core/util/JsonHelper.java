@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -79,6 +80,8 @@ public final class JsonHelper {
      * @return The {@link EnumSet}.
      * @throws IOException
      *             When JSON input is not valid.
+     * @throws IllegalArgumentException
+     *             When JSON string contains invalid enum value.
      */
     public static <E extends Enum<E>> EnumSet<E> deserializeEnumSet(
             final Class<E> enumClass, final String json) throws IOException {
@@ -98,6 +101,47 @@ public final class JsonHelper {
         }
 
         return EnumSet.copyOf(collection);
+    }
+
+    /**
+     * De-serializes an {@link Map} with enum key and boolean value.
+     *
+     * @param enumClass
+     *            The enum class.
+     * @param json
+     *            The serialized JSON string.
+     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     */
+    public static <E extends Enum<E>> Map<E, Boolean>
+            createEnumBooleanMapOrNull(final Class<E> enumClass,
+                    final String json) {
+        try {
+            return mapper.readValue(json, new TypeReference<Map<E, Boolean>>() {
+            });
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * De-serializes an {@link Map} with enum key and boolean value.
+     *
+     * @param enumClass
+     *            The enum class.
+     * @param json
+     *            The serialized JSON string.
+     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     * @throws IOException
+     *             When JSON syntax is invalid.
+     */
+    public static <E extends Enum<E>> Map<E, Boolean> createEnumBooleanMap(
+            final Class<E> enumClass, final String json) throws IOException {
+        try {
+            return mapper.readValue(json, new TypeReference<Map<E, Boolean>>() {
+            });
+        } catch (IllegalArgumentException e) {
+            throw new IOException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -121,7 +165,8 @@ public final class JsonHelper {
     }
 
     /**
-     * Creates a JSON string from a {@link Map}.
+     * Creates a JSON string from a {@link Map}. Note: the string does NOT
+     * contain any whitespace.
      *
      * @param map
      *            The {@link Map}
@@ -129,24 +174,40 @@ public final class JsonHelper {
      */
     public static String stringifyStringMap(final Map<String, String> map) {
         try {
-            return mapper.writeValueAsString(map);
+            return StringUtils.deleteWhitespace(mapper.writeValueAsString(map));
         } catch (JsonProcessingException e) {
             throw new SpException(e.getMessage(), e);
         }
     }
 
     /**
-     * Creates a JSON string from a {@link Map}.
+     * Creates a JSON string from a {@link Map}. Note: the string does NOT
+     * contain any whitespace.
      *
      * @param map
-     *            The {@link Map}
+     *            The {@link Map}.
      * @return The JSON String.
      * @throws IOException
      *             When serialization fails.
      */
     public static String stringifyObjectMap(final Map<String, Object> map)
             throws IOException {
-        return mapper.writeValueAsString(map);
+        return StringUtils.deleteWhitespace(mapper.writeValueAsString(map));
+    }
+
+    /**
+     * Creates a JSON string from an {@link Object}. Note: the string does NOT
+     * contain any whitespace.
+     *
+     * @param object
+     *            The {@link Object}.
+     * @return The JSON String.
+     * @throws IOException
+     *             When serialization fails.
+     */
+    public static String stringifyObject(final Object object)
+            throws IOException {
+        return StringUtils.deleteWhitespace(mapper.writeValueAsString(object));
     }
 
 }

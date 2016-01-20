@@ -64,8 +64,13 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
         final StringBuilder jpql =
                 new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
 
-        jpql.append("SELECT COUNT(C.id) FROM UserGroup C");
+        jpql.append("SELECT COUNT(C.id) FROM ");
 
+        if (filter.getAclRole() == null) {
+            jpql.append("UserGroup C");
+        } else {
+            jpql.append("UserGroupAttr A JOIN A.userGroup C");
+        }
         applyListFilter(jpql, filter);
 
         final Query query = createListQuery(jpql, filter);
@@ -81,10 +86,12 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
         final StringBuilder jpql =
                 new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
 
+        jpql.append("SELECT C FROM ");
+
         if (filter.getAclRole() == null) {
-            jpql.append("SELECT C FROM UserGroup C");
+            jpql.append("UserGroup C");
         } else {
-            jpql.append("SELECT C FROM UserGroupAttr A JOIN A.userGroup C");
+            jpql.append("UserGroupAttr A JOIN A.userGroup C");
         }
 
         applyListFilter(jpql, filter);
@@ -135,7 +142,7 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" A.name = :roleName AND A.value like :roleValue");
+            where.append(" A.name = :roleName AND A.value like :jsonRoleValue");
         }
 
         if (filter.getContainingText() != null) {
@@ -167,11 +174,19 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
         final Query query = getEntityManager().createQuery(jpql.toString());
 
         if (filter.getAclRole() != null) {
+
             query.setParameter("roleName",
                     UserGroupAttrEnum.ACL_ROLES.getName());
 
-            query.setParameter("roleValue", "%"
-                    + filter.getAclRole().toString() + "%");
+            final StringBuilder like = new StringBuilder();
+
+            /*
+             * INVARIANT: JSON string does NOT contain whitespace.
+             */
+            like.append("%\"").append(filter.getAclRole().toString())
+                    .append("\":").append(Boolean.TRUE.toString()).append("%");
+
+            query.setParameter("jsonRoleValue", like.toString());
         }
 
         if (filter.getContainingText() != null) {

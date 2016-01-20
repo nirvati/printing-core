@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
-    <entry key="JOB_TICKET_USER">Job Ticket Gebruiker</entry>
+    <entry key="JOB_TICKET_CREATOR">Job Ticket Maker</entry>
     <entry key="JOB_TICKET_OPERATOR">Job Ticket Operator</entry>
     <entry key="WEB_CASHIER">Web Kassier</entry>
     <entry key="PRINT_DELEGATOR">Print Job Delegatiegever</entry>

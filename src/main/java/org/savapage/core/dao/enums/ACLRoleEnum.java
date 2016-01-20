@@ -37,10 +37,10 @@ public enum ACLRoleEnum {
     /**
      * Job ticket user.
      */
-    JOB_TICKET_USER,
+    JOB_TICKET_CREATOR,
 
     /**
-     * Handle a job ticket created by a {@link #JOB_TICKET_USER}.
+     * Handle a job ticket created by a {@link #JOB_TICKET_CREATOR}.
      */
     JOB_TICKET_OPERATOR,
 

@@ -23,6 +23,8 @@ package org.savapage.core.services;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.jpa.User;
+import org.savapage.core.jpa.UserGroup;
+import org.savapage.core.jpa.UserGroupMember;
 
 /**
  *
@@ -32,7 +34,11 @@ import org.savapage.core.jpa.User;
 public interface AccessControlService {
 
     /**
-     * Checks if User is authorized for a Role.
+     * Checks if {@link User} is authorized for a Role. Checks are done
+     * bottom-up, starting at the {@link User} and moving up to the
+     * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
+     * first encountered object with a defined {@link ACLRoleEnum} is used for
+     * the check. When no reference object is found, the user is not authorized.
      *
      * @param user
      *            The {@link User}.

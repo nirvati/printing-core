@@ -23,6 +23,7 @@ package org.savapage.core.services;
 
 import java.io.IOException;
 
+import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.UserGroupPropertiesDto;
 import org.savapage.core.jpa.UserGroup;
@@ -44,14 +45,21 @@ public interface UserGroupService {
     void lazyCreateReservedGroups();
 
     /**
-     * Gets the reserved external {@link UserGroup}.
+     * Gets the {@link ReservedUserGroupEnum#ALL}.
+     *
+     * @return The {@link UserGroup} or {@code null} when not found.
+     */
+    UserGroup getAllUserGroup();
+
+    /**
+     * Gets the {@link ReservedUserGroupEnum#EXTERNAL}.
      *
      * @return The {@link UserGroup} or {@code null} when not found.
      */
     UserGroup getExternalUserGroup();
 
     /**
-     * Gets the reserved internal {@link UserGroup}.
+     * Gets the {@link ReservedUserGroupEnum#INTERNAL}.
      *
      * @return The {@link UserGroup} or {@code null} when not found.
      */

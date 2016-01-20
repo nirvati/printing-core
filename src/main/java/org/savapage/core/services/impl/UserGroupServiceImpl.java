@@ -116,6 +116,11 @@ public final class UserGroupServiceImpl extends AbstractService implements
     }
 
     @Override
+    public UserGroup getAllUserGroup() {
+        return userGroupDAO().find(ReservedUserGroupEnum.ALL);
+    }
+
+    @Override
     public UserGroup getExternalUserGroup() {
         return userGroupDAO().find(ReservedUserGroupEnum.EXTERNAL);
     }
