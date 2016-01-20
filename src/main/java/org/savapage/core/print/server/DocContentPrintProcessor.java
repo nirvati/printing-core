@@ -423,16 +423,16 @@ public class DocContentPrintProcessor {
 
                 if (this.uidTrusted != null && !this.uidTrusted.equals(uid)) {
 
-                    if (LOGGER.isInfoEnabled()) {
-                        LOGGER.info("Requesting user [" + uid
+                    if (LOGGER.isWarnEnabled()) {
+                        LOGGER.warn("Requesting user [" + uid
                                 + "] is unknown -> WebApp user ["
                                 + this.uidTrusted + "] " + reason
                                 + ": print denied");
                     }
 
                 } else {
-                    if (LOGGER.isInfoEnabled()) {
-                        LOGGER.info("Requesting user [" + uid + "] " + reason
+                    if (LOGGER.isWarnEnabled()) {
+                        LOGGER.warn("Requesting user [" + uid + "] " + reason
                                 + ": print denied");
                     }
                 }
