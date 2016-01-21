@@ -177,7 +177,7 @@ public interface UserGroupService {
             boolean nested) throws IOException;
 
     /**
-     * Adds a user group from the external user source. All synchronized
+     * Adds a user group from the external user source. All (synchronized)
      * external users belonging to this group are added as member.
      *
      * @param batchCommitter
@@ -191,6 +191,21 @@ public interface UserGroupService {
     AbstractJsonRpcMethodResponse addUserGroup(
             DaoBatchCommitter batchCommitter, String groupName)
             throws IOException;
+
+    /**
+     * Adds an internal user group. All internal and (synchronized) external
+     * users belonging to this group are added as member.
+     *
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
+     * @param groupName
+     *            The name of the group to add.
+     * @return The number of group members added.
+     * @throws IOException
+     *             When something goes wrong.
+     */
+    int addInternalUserGroup(DaoBatchCommitter batchCommitter,
+            String groupName) throws IOException;
 
     /**
      * Updates one or more properties for an existing Internal or External User
@@ -218,6 +233,22 @@ public interface UserGroupService {
      *             When something goes wrong.
      */
     AbstractJsonRpcMethodResponse syncUserGroup(
+            DaoBatchCommitter batchCommitter, String groupName)
+            throws IOException;
+
+    /**
+     * Synchronizes with an internal user group. Internal and (synchronized)
+     * external users are added or removed as member.
+     *
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
+     * @param groupName
+     *            The name of the group to add.
+     * @return The JSON-RPC Return message (either a result or an error);
+     * @throws IOException
+     *             When something goes wrong.
+     */
+    AbstractJsonRpcMethodResponse syncInternalUserGroup(
             DaoBatchCommitter batchCommitter, String groupName)
             throws IOException;
 

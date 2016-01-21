@@ -33,7 +33,7 @@ public class AbstractUserSource {
     /**
      *
      */
-    protected static class CommonUserComparator implements
+    public static class CommonUserComparator implements
             Comparator<CommonUser> {
 
         @Override

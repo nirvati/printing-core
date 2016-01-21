@@ -110,7 +110,7 @@ import org.savapage.core.users.IUserSource;
 import org.savapage.core.users.LdapUserSource;
 import org.savapage.core.users.NoUserSource;
 import org.savapage.core.users.UnixUserSource;
-import org.savapage.core.users.UserAliasList;
+import org.savapage.core.users.conf.UserAliasList;
 import org.savapage.core.util.CurrencyUtil;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.InetUtils;
@@ -151,10 +151,16 @@ public final class ConfigManager {
             "data/email-outbox";
 
     /**
-     *
+     * .
      */
-    private static final String REL_PATH_USERALIAS_LIST =
+    private static final String SERVER_REL_PATH_USERNAME_ALIASES_TXT =
             "data/conf/username-aliases.txt";
+
+    /**
+     * .
+     */
+    public static final String SERVER_REL_PATH_INTERNAL_GROUPS_TXT =
+            "data/conf/internal-groups.txt";
 
     /**
      * Path of SAVAPAGE.ppd (case sensitive!) relative to
@@ -1195,7 +1201,13 @@ public final class ConfigManager {
              *
              */
             loadAdminProperties();
-            initUserAliasList();
+
+            final int nAliases = initUserAliasList();
+
+            if (nAliases > 0) {
+                SpInfo.instance().log(
+                        String.format("Read [%d] User Aliases.", nAliases));
+            }
 
             this.myPrintProxy =
                     ServiceContext.getServiceFactory().getProxyPrintService();
@@ -1394,11 +1406,13 @@ public final class ConfigManager {
     }
 
     /**
-     *
+     * @throws IOException
+     *             When IO errors reading the list.
      */
-    private void initUserAliasList() {
-        UserAliasList.instance().load(
-                new File(getServerHome() + "/" + REL_PATH_USERALIAS_LIST));
+    private int initUserAliasList() throws IOException {
+        return UserAliasList.instance().load(
+                new File(getServerHome() + "/"
+                        + SERVER_REL_PATH_USERNAME_ALIASES_TXT));
     }
 
     /**
@@ -1414,6 +1428,7 @@ public final class ConfigManager {
      * @param value
      *            The string value.
      * @param actor
+     *            The actor.
      */
     public void updateConfigKey(final Key key, final String value,
             final String actor) {
@@ -1428,8 +1443,7 @@ public final class ConfigManager {
     }
 
     /**
-     * See: {@link #updateConfigKey(Key, String, String)
-
+     * @see {@link #updateConfigKey(Key, String, String).
      */
     public void updateConfigKey(final Key key, final boolean value,
             final String actor) {

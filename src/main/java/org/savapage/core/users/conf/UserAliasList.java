@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,30 +19,19 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.users;
+package org.savapage.core.users.conf;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class UserAliasList {
-
-    /**
-     * The logger.
-     */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(UserAliasList.class);
+public final class UserAliasList extends ConfFileReader {
 
     /**
      * The SingletonHolder is loaded on the first execution of
@@ -74,72 +63,29 @@ public class UserAliasList {
     /**
      * Gets the singleton instance.
      *
-     * @return
+     * @return The singleton.
      */
     public static UserAliasList instance() {
         return SingletonHolder.INSTANCE;
     }
 
+    @Override
+    public void onItem(final String key, final String value) {
+        myAliasUser.put(key, value);
+    }
+
     /**
      *
      * @param file
+     *            The {@link File}.
+     * @return the number of aliases.
+     * @throws IOException
+     *             When error reading the file.
      */
-    public void load(File file) {
-
+    public int load(final File file) throws IOException {
         myAliasUser.clear();
-
-        if (!file.isFile()) {
-            return;
-        }
-
-        BufferedReader br = null;
-
-        try {
-            br = new BufferedReader(new FileReader(file));
-            String strLine;
-
-            while ((strLine = br.readLine()) != null) {
-
-                strLine = strLine.trim();
-
-                if (strLine.isEmpty()) {
-                    continue;
-                }
-                if (strLine.charAt(0) == '#') {
-                    continue;
-                }
-                /*
-                 * The aliasname and the username may be separated by '=', ':'
-                 * or TAB (a tab-delimited file).
-                 */
-                int i = strLine.indexOf(':');
-                if (i < 0) {
-                    i = strLine.indexOf('=');
-                }
-                if (i < 0) {
-                    i = strLine.indexOf('\t');
-                }
-                if (i < 1) {
-                    // finding the separator on index zero makes no sense
-                    continue;
-                }
-                if (strLine.length() == (i + 1)) {
-                    continue;
-                }
-                myAliasUser.put(strLine.substring(0, i).trim(), strLine
-                        .substring(i + 1).trim());
-            }
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
-            }
-        }
+        this.read(file);
+        return myAliasUser.size();
     }
 
     /**
@@ -151,11 +97,10 @@ public class UserAliasList {
      *         candidate user name if not.
      */
     public String getUserName(final String candidate) {
-        String username = myAliasUser.get(candidate);
+        final String username = myAliasUser.get(candidate);
         if (username == null) {
-            username = candidate;
+            return candidate;
         }
         return username;
     }
-
 }

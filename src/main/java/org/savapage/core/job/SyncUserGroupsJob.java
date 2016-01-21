@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,9 @@
  */
 package org.savapage.core.job;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -36,6 +39,7 @@ import org.savapage.core.jpa.Entity;
 import org.savapage.core.jpa.UserGroup;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserGroupService;
+import org.savapage.core.users.conf.InternalGroupList;
 import org.savapage.core.util.AppLogHelper;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
@@ -43,7 +47,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class SyncUserGroupsJob extends AbstractJob {
 
@@ -125,26 +130,48 @@ public final class SyncUserGroupsJob extends AbstractJob {
             pubMsg(Messages.getMessage(getClass(), "SyncUserGroupsJob.start",
                     null));
 
+            final Set<String> internalGroups =
+                    InternalGroupList.getGroups();
+            final Set<String> internalGroupsCollected = new HashSet<>();
+
+            // Groups from external source
             for (final UserGroup group : userGroupDao.getListChunk(
                     new UserGroupDao.ListFilter(), null, null,
                     UserGroupDao.Field.NAME, true)) {
 
                 final String groupName = group.getGroupName();
 
-                if (!USER_GROUP_SERVICE.isReservedGroupName(groupName)) {
-
-                    USER_GROUP_SERVICE.syncUserGroup(batchCommitter, groupName);
-
-                    batchCommitter.commit();
-
-                    pubMsg(Messages
-                            .getMessage(this.getClass(),
-                                    "SyncUserGroup.success",
-                                    new String[] { groupName }));
+                if (USER_GROUP_SERVICE.isReservedGroupName(groupName)) {
+                    continue;
                 }
 
+                // Internal group names take precedence.
+                if (internalGroups.contains(groupName)) {
+                    internalGroupsCollected.add(groupName);
+                    continue;
+                }
+
+                USER_GROUP_SERVICE.syncUserGroup(batchCommitter, groupName);
+
+                batchCommitter.commit();
+
+                pubMsg(Messages.getMessage(this.getClass(),
+                        "SyncUserGroup.success", new String[] { groupName }));
             }
 
+            // Collected Internal Groups
+            for (final String groupName : internalGroupsCollected) {
+
+                USER_GROUP_SERVICE.syncInternalUserGroup(batchCommitter,
+                        groupName);
+
+                batchCommitter.commit();
+
+                pubMsg(Messages.getMessage(this.getClass(),
+                        "SyncUserGroup.success", new String[] { groupName }));
+            }
+
+            //
             msg =
                     AppLogHelper.logInfo(getClass(),
                             "SyncUserGroupsJob.success", msgTestPfx);
@@ -162,9 +189,6 @@ public final class SyncUserGroupsJob extends AbstractJob {
             LOGGER.error(e.getMessage(), e);
         }
 
-        /*
-         *
-         */
         try {
             AdminPublisher.instance().publish(PubTopicEnum.USER_SYNC, level,
                     msg);

@@ -62,7 +62,7 @@ import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
-import org.savapage.core.users.UserAliasList;
+import org.savapage.core.users.conf.UserAliasList;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
