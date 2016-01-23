@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
@@ -52,10 +53,10 @@ import org.savapage.core.fonts.InternalFontFamilyEnum;
  * </ul>
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class DocContent {
+public final class DocContent {
 
     /**
      * The first bytes (signature) of {@link DocContentTypeEnum#PDF}.
@@ -70,6 +71,18 @@ public class DocContent {
      * </p>
      */
     public static final String HEADER_PDF = "%PDF";
+
+    /**
+     * A request for a test page as e.g. defined in
+     * {@code /usr/share/cups/data/testprint}.
+     *
+     * <pre>
+     * #PDF-BANNER
+     * Template default-testpage.pdf
+     * Show printer-name printer-info printer-location printer-make-and-model printer-driver-name printer-driver-version paper-size imageable-area job-id options time-at-creation time-at-processing
+     * </pre>
+     */
+    public static final String HEADER_PDF_BANNER = "#PDF";
 
     /**
      * The first bytes (signature) of {@link DocContentTypeEnum#PS}.
@@ -249,9 +262,10 @@ public class DocContent {
      * @param mimes
      * @param extensions
      */
-    private void init(DocContentTypeEnum format, String[] mimes,
+    private void init(final DocContentTypeEnum format, final String[] mimes,
             String[] extensions) {
-        for (String mime : mimes) {
+
+        for (final String mime : mimes) {
             formatMime.put(format, mime);
             mimeFormat.put(mime, format);
         }
@@ -267,7 +281,8 @@ public class DocContent {
      * @param mime
      * @param ext
      */
-    private void init(DocContentTypeEnum format, String mime, String ext) {
+    private void init(final DocContentTypeEnum format, final String mime,
+            final String ext) {
         formatMime.put(format, mime);
         mimeFormat.put(mime, format);
         extFormat.put(ext, format);
@@ -279,7 +294,7 @@ public class DocContent {
      * @param format
      * @param mime
      */
-    private void init(DocContentTypeEnum format, String mime) {
+    private void init(final DocContentTypeEnum format, final String mime) {
         init(format, mime, null);
     }
 
@@ -288,17 +303,18 @@ public class DocContent {
      * @return
      */
     public static String getHtmlAcceptString() {
-        String html = "";
 
-        for (DocContentTypeEnum contentType : DocContentTypeEnum.values()) {
+        final StringBuilder html = new StringBuilder();
+
+        for (final DocContentTypeEnum contentType : DocContentTypeEnum.values()) {
             if (isSupported(contentType)) {
                 if (html.length() > 0) {
-                    html += ",";
+                    html.append(",");
                 }
-                html += "." + getFileExtension(contentType);
+                html.append(".").append(getFileExtension(contentType));
             }
         }
-        return html;
+        return html.toString();
     }
 
     /**
@@ -307,7 +323,7 @@ public class DocContent {
      */
     public static String getSupportedDocsInfo() {
 
-        List<String> list = new ArrayList<>();
+        final List<String> list = new ArrayList<>();
 
         if (isSupported(DocContentTypeEnum.DOCX)) {
             list.add("Microsoft Office");
@@ -336,7 +352,7 @@ public class DocContent {
      */
     public static String getSupportedGraphicsInfo() {
 
-        List<String> list = new ArrayList<>();
+        final List<String> list = new ArrayList<>();
 
         for (DocContentTypeEnum contentType : new DocContentTypeEnum[] {
                 DocContentTypeEnum.BMP, DocContentTypeEnum.GIF,
@@ -353,20 +369,21 @@ public class DocContent {
      *
      * @return
      */
-    private static String getSupportedInfo(List<String> list) {
-        String supported = "";
+    private static String getSupportedInfo(final List<String> list) {
+
+        final StringBuilder supported = new StringBuilder();
 
         if (list.isEmpty()) {
-            supported += "-";
+            supported.append("-");
         } else {
             for (int i = 0; i < list.size(); i++) {
                 if (i > 0) {
-                    supported += ", ";
+                    supported.append(", ");
                 }
-                supported += list.get(i);
+                supported.append(list.get(i));
             }
         }
-        return supported;
+        return supported.toString();
     }
 
     /**
@@ -424,6 +441,9 @@ public class DocContent {
                     Key.DOC_CONVERT_XPS_TO_PDF_ENABLED)
                     && XpsToPdf.lazyIsInstalled();
 
+        case CUPS_PDF_BANNER:
+            return true;
+
         case CUPS_COMMAND:
         case UNIRAST:
         case VCARD:
@@ -444,10 +464,10 @@ public class DocContent {
      * @return {@code null} when NO stream converter is available.
      */
     public static IStreamConverter createPdfStreamConverter(
-            DocContentTypeEnum contentType,
+            final DocContentTypeEnum contentType,
             final InternalFontFamilyEnum preferredOutputFont) {
 
-        IStreamConverter converter = null;
+        final IStreamConverter converter;
 
         if (contentType == DocContentTypeEnum.SVG) {
             /*
@@ -455,18 +475,29 @@ public class DocContent {
              * converter (though we DO have a file converter).
              */
             converter = null;
+
         } else if (DocContent.isImage(contentType)) {
             converter = new ImageToPdf();
+
         } else if (contentType == DocContentTypeEnum.HTML) {
             converter = new HtmlToPdf();
+
+        } else if (contentType == DocContentTypeEnum.CUPS_PDF_BANNER) {
+            converter = new CupsPdfBannerToPdf();
+
         } else if (contentType == DocContentTypeEnum.TXT) {
+
             InternalFontFamilyEnum font = preferredOutputFont;
+
             if (font == null) {
                 font =
                         ConfigManager
                                 .getConfigFontFamily(Key.REPORTS_PDF_INTERNAL_FONT_FAMILY);
             }
             converter = new TextToPdf(font);
+
+        } else {
+            converter = null;
         }
         return converter;
     }
@@ -482,7 +513,6 @@ public class DocContent {
             DocContentTypeEnum contentType) {
 
         switch (contentType) {
-
         case PS:
             return new PsToPdf();
         case SVG:
@@ -552,7 +582,7 @@ public class DocContent {
      */
     public static String getMimeType(final File file) {
 
-        DocContentTypeEnum format = getContentType(file);
+        final DocContentTypeEnum format = getContentType(file);
         if (format == null) {
             return null;
         }
@@ -583,6 +613,7 @@ public class DocContent {
      * @return
      */
     public static boolean isImage(final DocContentTypeEnum contentType) {
-        return getMimeType(contentType).startsWith("image");
+        return StringUtils.defaultString(getMimeType(contentType)).startsWith(
+                "image");
     }
 }

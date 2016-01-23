@@ -164,10 +164,9 @@ public final class ConfigManager {
 
     /**
      * Path of SAVAPAGE.ppd (case sensitive!) relative to
-     * {@link ConfigManager#getServerHome().
+     * {@link ConfigManager#getClientHome().
      */
-    private static final String REL_PATH_SAVAPAGE_PPD_FILE =
-            "../client/SAVAPAGE.ppd";
+    private static final String REL_PATH_SAVAPAGE_PPD_FILE = "SAVAPAGE.ppd";
 
     private static final String INTERNAL_ADMIN_PASSWORD_DEFAULT = "admin";
 
@@ -591,7 +590,7 @@ public final class ConfigManager {
      * @return The PPD file.
      */
     public static File getPpdFile() {
-        return new File(getServerHome() + File.separator
+        return new File(getClientHome() + File.separator
                 + REL_PATH_SAVAPAGE_PPD_FILE);
     }
 

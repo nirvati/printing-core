@@ -562,6 +562,9 @@ public class DocContentPrintProcessor {
 
             if (this.signatureString.startsWith(DocContent.HEADER_PDF)) {
                 contentType = DocContentTypeEnum.PDF;
+            } else if (this.signatureString
+                    .startsWith(DocContent.HEADER_PDF_BANNER)) {
+                contentType = DocContentTypeEnum.CUPS_PDF_BANNER;
             } else if (this.signatureString.startsWith(DocContent.HEADER_PS)) {
                 contentType = DocContentTypeEnum.PS;
             } else if (this.signatureString
@@ -802,6 +805,12 @@ public class DocContentPrintProcessor {
                  * Always use a file converter,
                  */
                 fileConverter = DocContent.createPdfFileConverter(inputType);
+
+            } else if (inputType == DocContentTypeEnum.CUPS_PDF_BANNER) {
+
+                streamConverter =
+                        DocContent.createPdfStreamConverter(inputType,
+                                preferredOutputFont);
 
             } else {
 

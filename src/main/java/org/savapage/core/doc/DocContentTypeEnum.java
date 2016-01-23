@@ -46,6 +46,18 @@ public enum DocContentTypeEnum {
      */
     CUPS_COMMAND,
 
+    /**
+     * A text file with a CUPS request for a test page as e.g. defined in
+     * {@code /usr/share/cups/data/testprint}.
+     *
+     * <pre>
+     * #PDF-BANNER
+     * Template default-testpage.pdf
+     * Show printer-name printer-info printer-location printer-make-and-model printer-driver-name printer-driver-version paper-size imageable-area job-id options time-at-creation time-at-processing
+     * </pre>
+     */
+    CUPS_PDF_BANNER,
+
     /** Microsoft Word 97/2000/XP/2003 document. */
     DOC,
 
