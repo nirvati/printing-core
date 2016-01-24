@@ -286,7 +286,7 @@ public interface ProxyPrintService {
             List<JsonProxyPrinterOptChoice> choices);
 
     /**
-     * Gets the valid printers for a user on a terminal.
+     * Gets the valid printers for a user on a terminal (sorted on alias).
      * <ul>
      * <li>Terminal {@link Device} restriction and {@link UserGroup} Access
      * Control are applied.</li>
@@ -303,7 +303,7 @@ public interface ProxyPrintService {
      *            available.
      * @param userName
      *            The unique name of the requesting user.
-     * @return The {@link JsonPrinterList}.
+     * @return The sorted {@link JsonPrinterList}.
      * @throws IppConnectException
      * @throws IppSyntaxException
      */

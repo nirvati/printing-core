@@ -29,6 +29,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -594,13 +596,24 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
         }
 
+        Collections.sort(collectedPrinters, new Comparator<JsonPrinter>() {
+
+            @Override
+            public int compare(final JsonPrinter o1, final JsonPrinter o2) {
+
+                return o1.getAlias().compareToIgnoreCase(o2.getAlias());
+            }
+        });
+
         final JsonPrinterList printerList = new JsonPrinterList();
+
         printerList.setList(collectedPrinters);
 
         if (hasDefaultPrinterName()) {
             printerList
                     .setDfault(getPrinterDetailCopy(getDefaultPrinterName()));
         }
+
         return printerList;
     }
 
@@ -610,8 +623,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public boolean isPrinterConfigured(final JsonProxyPrinter cupsPrinter,
-            final PrinterAttrLookup lookup) {
+    public final boolean isPrinterConfigured(
+            final JsonProxyPrinter cupsPrinter, final PrinterAttrLookup lookup) {
 
         final ArrayList<JsonProxyPrinterOptGroup> cupsPrinterGroups =
                 cupsPrinter.getGroups();
