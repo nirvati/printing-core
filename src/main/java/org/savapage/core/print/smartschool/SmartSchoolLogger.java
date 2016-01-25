@@ -21,13 +21,10 @@
  */
 package org.savapage.core.print.smartschool;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
 import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -35,6 +32,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,22 +78,35 @@ public class SmartSchoolLogger {
     }
 
     /**
+     * Logs a {@link SOAPException}.
+     * <p>
+     * Note: the content of the request is not logged, since this exposes the
+     * password.
+     * </p>
      *
-     * @param soapMsg
-     * @param msg
+     * @param request
+     *            The request.
+     * @param e
+     *            The exception.
      */
-    public static void logError(final SOAPMessage soapMsg, final String error) {
-        final ByteArrayOutputStream ostr = new ByteArrayOutputStream();
-        try {
-            soapMsg.writeTo(ostr);
-            LOGGER.error(String.format(
-                    "|________________ SOAP Message ________________|\n\n%s\n",
-                    formatXml(ostr.toString())));
-            LOGGER.error(error);
-        } catch (SOAPException | IOException e) {
-            LOGGER.error(e.getMessage());
+    public static void logError(final SmartschoolRequestEnum request,
+            final SOAPException e) {
+
+        final String cause;
+
+        if (e.getCause() == null) {
+            cause = "unknown";
+        } else {
+            cause =
+                    String.format("%s, %s", e.getCause().getClass()
+                            .getSimpleName(), StringUtils.defaultString(e
+                            .getCause().getMessage()));
         }
 
+        LOGGER.error(String.format(
+                "|_______________ SOAPException_________________|\n"
+                        + "Request: %s\nError: %s\nCause: %s\n",
+                request.toString(), e.getMessage(), cause));
     }
 
     public static void logError(final String msg) {

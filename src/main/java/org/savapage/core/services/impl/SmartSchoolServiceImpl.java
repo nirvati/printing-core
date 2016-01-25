@@ -792,7 +792,7 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
 
         } catch (SOAPException e) {
             if (SmartSchoolLogger.isEnabled()) {
-                SmartSchoolLogger.logError(message, e.getMessage());
+                SmartSchoolLogger.logError(request, e);
             }
             throw e;
         }
@@ -814,7 +814,6 @@ public final class SmartSchoolServiceImpl extends AbstractService implements
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(xml);
             }
-
         }
 
         if (responseBody.getFault() != null) {
