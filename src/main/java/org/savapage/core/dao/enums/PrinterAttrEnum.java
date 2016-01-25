@@ -35,6 +35,19 @@ import org.savapage.core.jpa.PrinterAttr;
 public enum PrinterAttrEnum {
 
     /**
+     * User groups to either allow or deny access to the Printer. Examples
+     * <p>
+     * {"scope":"allow","groups":["Staff","ICT"]}
+     * </p>
+     */
+    ACCESS_USER_GROUPS("access.user-groups"),
+
+    /**
+     * Boolean: Y | N. When not present N is assumed.
+     */
+    ACCESS_INTERNAL("access.internal"),
+
+    /**
      * Statistic time series. Example:
      * <p>
      * {@code 1342562400000,2,1,0,...,0,8,1}
@@ -58,15 +71,7 @@ public enum PrinterAttrEnum {
      * {@code 1342562400000,2,1,0,...,0,8,1}
      * </p>
      */
-    PRINT_OUT_ROLLING_DAY_ESU(PrinterAttrDao.STATS_ROLLING_PREFIX + "-day.esu"),
-
-    /**
-     * User groups to either allow or deny access to the Printer. Examples
-     * <p>
-     * {"scope":"allow","groups":["Staff","ICT"]}
-     * </p>
-     */
-    ACCESS_USER_GROUPS("access.user-groups");
+    PRINT_OUT_ROLLING_DAY_ESU(PrinterAttrDao.STATS_ROLLING_PREFIX + "-day.esu");
 
     /**
      *
@@ -139,4 +144,5 @@ public enum PrinterAttrEnum {
     public final String getDbName() {
         return this.dbName;
     }
+
 }

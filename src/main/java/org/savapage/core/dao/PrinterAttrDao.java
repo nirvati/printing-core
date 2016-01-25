@@ -24,6 +24,7 @@ package org.savapage.core.dao;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
+import org.savapage.core.services.helpers.PrinterAttrLookup;
 
 /**
  *
@@ -52,5 +53,34 @@ public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
      * Deletes all rolling statistics of ALL {@link Printer} instances.
      */
     void deleteRollingStats();
+
+    /**
+     * Checks if {@link PrinterAttrLookup} indicates an internal printer.
+     *
+     * @see {@link PrinterAttrEnum#ACCESS_INTERNAL}.
+     * @param lookup
+     *            The {@link PrinterAttrLookup}.
+     * @return {@code true} is printer is internal printer.
+     */
+    boolean isInternalPrinter(PrinterAttrLookup lookup);
+
+    /**
+     * Returns attribute value as boolean.
+     *
+     * @see {@link PrinterAttr#getValue()}.
+     * @param attr
+     *            The {@link PrinterAttr} ({@code null} is allowed).
+     * @return {@code true} When value is {@code true}.
+     */
+    boolean getBooleanValue(PrinterAttr attr);
+
+    /**
+     * Returns the database value of a boolean value.
+     *
+     * @param value
+     *            The value.
+     * @return The string representation of a boolean value
+     */
+    String getDbBooleanValue(boolean value);
 
 }

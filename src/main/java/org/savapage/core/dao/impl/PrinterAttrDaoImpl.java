@@ -24,9 +24,11 @@ package org.savapage.core.dao.impl;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dao.PrinterAttrDao;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.jpa.PrinterAttr;
+import org.savapage.core.services.helpers.PrinterAttrLookup;
 
 /**
  *
@@ -35,6 +37,9 @@ import org.savapage.core.jpa.PrinterAttr;
  */
 public final class PrinterAttrDaoImpl extends GenericDaoImpl<PrinterAttr>
         implements PrinterAttrDao {
+
+    private static final String V_YES = "Y";
+    private static final String V_NO = "N";
 
     /**
      * This SQL LIKE value is used to select all rolling statistics.
@@ -77,6 +82,27 @@ public final class PrinterAttrDaoImpl extends GenericDaoImpl<PrinterAttr>
         final Query query = getEntityManager().createQuery(jpql);
         query.setParameter("name", SQL_LIKE_STATS_ROLLING);
         query.executeUpdate();
+    }
+
+    @Override
+    public boolean isInternalPrinter(final PrinterAttrLookup lookup) {
+        return lookup.get(PrinterAttrEnum.ACCESS_INTERNAL, V_NO)
+                .equalsIgnoreCase(V_YES);
+    }
+
+    @Override
+    public boolean getBooleanValue(final PrinterAttr attr) {
+        return attr != null
+                && StringUtils.defaultString(attr.getValue(), V_NO)
+                        .equalsIgnoreCase(V_YES);
+    }
+
+    @Override
+    public String getDbBooleanValue(final boolean value) {
+        if (value) {
+            return V_YES;
+        }
+        return V_NO;
     }
 
 }

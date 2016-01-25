@@ -536,11 +536,19 @@ public abstract class AbstractProxyPrintService extends AbstractService
             final Printer dbPrinterWlk =
                     printerDAO().findById(printer.getDbPrinter().getId());
 
+            final PrinterAttrLookup attrLookup =
+                    new PrinterAttrLookup(dbPrinterWlk);
+
+            /*
+             * Skip internal printer.
+             */
+            if (printerAttrDAO().isInternalPrinter(attrLookup)) {
+                continue;
+            }
             /*
              * Skip printer that is not configured.
              */
-            if (!this.isPrinterConfigured(printer, new PrinterAttrLookup(
-                    dbPrinterWlk))) {
+            if (!this.isPrinterConfigured(printer, attrLookup)) {
                 continue;
             }
 

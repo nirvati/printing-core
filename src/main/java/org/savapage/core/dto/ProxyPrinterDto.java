@@ -57,6 +57,9 @@ public class ProxyPrinterDto extends AbstractDto {
     @JsonProperty("printerGroups")
     String printerGroups;
 
+    @JsonProperty("internal")
+    Boolean internal;
+
     @JsonProperty("disabled")
     Boolean disabled;
 
@@ -110,6 +113,14 @@ public class ProxyPrinterDto extends AbstractDto {
 
     public void setPrinterGroups(String printerGroups) {
         this.printerGroups = printerGroups;
+    }
+
+    public Boolean getInternal() {
+        return internal;
+    }
+
+    public void setInternal(Boolean internal) {
+        this.internal = internal;
     }
 
     public Boolean getDisabled() {

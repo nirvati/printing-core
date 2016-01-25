@@ -47,6 +47,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
@@ -2254,6 +2255,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         dto.setPresent(this.getCachedPrinter(printer.getPrinterName()) != null);
 
+        dto.setInternal(Boolean.valueOf(printerService().isInternalPrinter(
+                printer)));
+
         /*
          * Printer Groups.
          */
@@ -2288,6 +2292,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         jpaPrinter.setModifiedDate(now);
 
         jpaPrinter.setDisplayName(dto.getDisplayName());
+
         jpaPrinter.setDisabled(dto.getDisabled());
 
         /*
@@ -2301,6 +2306,51 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 printerService().setLogicalDeleted(jpaPrinter);
             } else {
                 printerService().undoLogicalDeleted(jpaPrinter);
+            }
+        }
+
+        /*
+         *
+         */
+        final boolean internalPrinter =
+                dto.getInternal() != null && dto.getInternal().booleanValue();
+
+        final PrinterAttr attrInternal =
+                printerService().getAttribute(jpaPrinter,
+                        PrinterAttrEnum.ACCESS_INTERNAL);
+
+        if (attrInternal == null) {
+
+            if (internalPrinter) {
+
+                final PrinterAttr attr = new PrinterAttr();
+
+                attr.setPrinter(jpaPrinter);
+                attr.setName(PrinterAttrEnum.ACCESS_INTERNAL.getDbName());
+                attr.setValue(printerAttrDAO().getDbBooleanValue(
+                        internalPrinter));
+
+                jpaPrinter.getAttributes().add(attr);
+
+                printerAttrDAO().create(attr);
+            }
+
+        } else {
+
+            final boolean currentInternalPrinter =
+                    printerAttrDAO().getBooleanValue(attrInternal);
+
+            if (internalPrinter != currentInternalPrinter) {
+
+                if (internalPrinter) {
+                    attrInternal.setValue(printerAttrDAO().getDbBooleanValue(
+                            internalPrinter));
+                    printerAttrDAO().update(attrInternal);
+                } else {
+                    printerService().removeAttribute(jpaPrinter,
+                            PrinterAttrEnum.ACCESS_INTERNAL);
+                    printerAttrDAO().delete(attrInternal);
+                }
             }
         }
 
@@ -2341,14 +2391,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         while (iterMembers.hasNext()) {
 
-            PrinterGroupMember member = iterMembers.next();
+            final PrinterGroupMember member = iterMembers.next();
 
             final String groupName = member.getGroup().getGroupName();
 
             if (printerGroupLookup.containsKey(groupName)) {
                 printerGroupLookup.remove(groupName);
             } else {
-                this.printerGroupMemberDAO().delete(member);
+                printerGroupMemberDAO().delete(member);
                 iterMembers.remove();
             }
         }
@@ -2358,11 +2408,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          */
         for (Entry<String, String> entry : printerGroupLookup.entrySet()) {
 
-            PrinterGroup group =
-                    this.printerGroupDAO().readOrAdd(entry.getKey(),
+            final PrinterGroup group =
+                    printerGroupDAO().readOrAdd(entry.getKey(),
                             entry.getValue(), requestingUser, now);
 
-            PrinterGroupMember member = new PrinterGroupMember();
+            final PrinterGroupMember member = new PrinterGroupMember();
 
             member.setGroup(group);
             member.setPrinter(jpaPrinter);

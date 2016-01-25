@@ -55,6 +55,15 @@ public interface PrinterService {
     int MAX_TIME_SERIES_INTERVALS_DAYS = 40;
 
     /**
+     * Reads the database to check if printer is internal use only.
+     *
+     * @param printer
+     *            The {@link Printer}.
+     * @return {@code true} when internal printer.
+     */
+    boolean isInternalPrinter(Printer printer);
+
+    /**
      * Checks if the {@link Printer} can be used for proxy printing, i.e. it is
      * NOT disabled and NOT (logically) deleted.
      *
@@ -146,14 +155,41 @@ public interface PrinterService {
 
     /**
      * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
+     * remove a {@link PrinterAttr}.
+     *
+     * @param printer
+     *            The {@link Printer}.
+     * @param name
+     *            The {@link PrinterAttrEnum}.
+     *
+     * @return The {@link PrinterAttr} that was removed, or {@code null} when
+     *         not found.
+     */
+    PrinterAttr removeAttribute(Printer printer, PrinterAttrEnum name);
+
+    /**
+     * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
+     * get the {@link PrinterAttr}.
+     *
+     * @param printer
+     *            The {@link Printer}.
+     * @param name
+     *            The {@link PrinterAttrEnum}.
+     *
+     * @return {@code null} when not found.
+     */
+    PrinterAttr getAttribute(Printer printer, PrinterAttrEnum name);
+
+    /**
+     * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
      * get the value of an attribute.
      *
      * @param printer
      *            The {@link Printer}.
      * @param name
-     *            The attribute name.
+     *            The {@link PrinterAttrEnum}.
      *
-     * @return {@code null} when is not found.
+     * @return {@code null} when not found.
      */
     String getAttributeValue(Printer printer, PrinterAttrEnum name);
 

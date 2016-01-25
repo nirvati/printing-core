@@ -78,6 +78,15 @@ public final class PrinterServiceImpl extends AbstractService implements
     private static final boolean ACCESS_DENIED = !ACCESS_ALLOWED;
 
     @Override
+    public boolean isInternalPrinter(final Printer printer) {
+
+        final PrinterAttr attr =
+                printerAttrDAO().findByName(printer.getId(),
+                        PrinterAttrEnum.ACCESS_INTERNAL);
+        return printerAttrDAO().getBooleanValue(attr);
+    }
+
+    @Override
     public boolean canPrinterBeUsed(final Printer printer) {
         return !(printer.getDeleted() || printer.getDisabled());
     }
@@ -254,19 +263,54 @@ public final class PrinterServiceImpl extends AbstractService implements
     }
 
     @Override
-    public String getAttributeValue(final Printer printer,
+    public PrinterAttr removeAttribute(final Printer printer,
             final PrinterAttrEnum name) {
-
-        final String dbName = name.getDbName();
 
         final List<PrinterAttr> attributes = printer.getAttributes();
 
         if (attributes != null) {
-            for (final PrinterAttr attr : attributes) {
+
+            final String dbName = name.getDbName();
+
+            final Iterator<PrinterAttr> iter = attributes.iterator();
+            while (iter.hasNext()) {
+                final PrinterAttr attr = iter.next();
                 if (attr.getName().equals(dbName)) {
-                    return attr.getValue();
+                    iter.remove();
+                    return attr;
                 }
             }
+        }
+        return null;
+    }
+
+    @Override
+    public PrinterAttr getAttribute(final Printer printer,
+            final PrinterAttrEnum name) {
+
+        final List<PrinterAttr> attributes = printer.getAttributes();
+
+        if (attributes != null) {
+
+            final String dbName = name.getDbName();
+
+            for (final PrinterAttr attr : attributes) {
+                if (attr.getName().equals(dbName)) {
+                    return attr;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getAttributeValue(final Printer printer,
+            final PrinterAttrEnum name) {
+
+        final PrinterAttr attr = this.getAttribute(printer, name);
+
+        if (attr != null) {
+            return attr.getValue();
         }
         return null;
     }
@@ -473,8 +517,8 @@ public final class PrinterServiceImpl extends AbstractService implements
 
             if (json != null) {
                 groupAccess =
-                        JsonHelper.createOrNull(
-                                JsonUserGroupAccess.class, json);
+                        JsonHelper
+                                .createOrNull(JsonUserGroupAccess.class, json);
             }
         }
 
