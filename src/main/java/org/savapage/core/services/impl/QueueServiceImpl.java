@@ -230,13 +230,20 @@ public final class QueueServiceImpl extends AbstractService implements
         IppQueue queue = ippQueueDAO().find(reservedQueue);
 
         if (queue == null) {
+
             queue = createQueueDefault(reservedQueue.getUrlPath());
             ippQueueDAO().create(queue);
 
         } else if (reservedQueue == ReservedIppQueueEnum.AIRPRINT
+                || reservedQueue == ReservedIppQueueEnum.WEBPRINT
+                || reservedQueue == ReservedIppQueueEnum.GCP
+                || reservedQueue == ReservedIppQueueEnum.MAILPRINT
                 || reservedQueue == ReservedIppQueueEnum.IPP_PRINT_INTERNET) {
 
-            // Force to untrusted.
+            /*
+             * Force legacy queues to untrusted: reserved queues are untrusted
+             * by nature.
+             */
             if (queue.getTrusted()) {
                 queue.setTrusted(Boolean.FALSE);
                 ippQueueDAO().update(queue);
@@ -247,7 +254,7 @@ public final class QueueServiceImpl extends AbstractService implements
     }
 
     /**
-     * Creates a default {@link IppQueue}.
+     * Creates a default {@link IppQueue} that is untrusted.
      *
      * @param urlPath
      *            The URL path.
@@ -305,8 +312,9 @@ public final class QueueServiceImpl extends AbstractService implements
     }
 
     @Override
-    public DocContentPrintRsp printDocContent(final String queueName,
-            final User user, final DocContentPrintReq printReq,
+    public DocContentPrintRsp printDocContent(
+            final ReservedIppQueueEnum reservedQueue, final User user,
+            final boolean isUserTrusted, final DocContentPrintReq printReq,
             final InputStream istrContent) throws DocContentPrintException {
 
         final DocLogProtocolEnum protocol = printReq.getProtocol();
@@ -335,21 +343,34 @@ public final class QueueServiceImpl extends AbstractService implements
             /*
              * Get the Queue object.
              */
-            queue = ippQueueDAO().findByUrlPath(queueName);
+            queue = ippQueueDAO().find(reservedQueue);
 
             /*
              * Create the request.
              */
+            final String requestingUserId = user.getUserId();
+
+            final String authWebAppUser;
+
+            if (isUserTrusted) {
+                /*
+                 * Simulate an authenticated Web App user.
+                 */
+                authWebAppUser = requestingUserId;
+            } else {
+                authWebAppUser = null;
+            }
+
             processor =
                     new DocContentPrintProcessor(queue, originatorIp, title,
-                            null);
+                            authWebAppUser);
 
             /*
              * If we tracked the user down by his email address, we know he
              * already exists in the database, so a lazy user insert is no issue
              * (same argument for a Web Print).
              */
-            processor.processRequestingUser(user.getUserId());
+            processor.processRequestingUser(requestingUserId);
 
             isAuthorized = processor.isAuthorized();
 
@@ -379,7 +400,7 @@ public final class QueueServiceImpl extends AbstractService implements
                 printRsp.setResult(PrintInResultEnum.USER_NOT_AUTHORIZED);
                 LOGGER.warn(String.format(
                         "User [%s] not authorized for Queue [%s]",
-                        user.getUserId(), queueName));
+                        requestingUserId, reservedQueue.getUrlPath()));
             }
 
         } catch (Exception e) {

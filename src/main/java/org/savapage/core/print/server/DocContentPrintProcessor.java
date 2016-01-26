@@ -254,7 +254,7 @@ public class DocContentPrintProcessor {
      * @return
      */
     public boolean isTrustedQueue() {
-        return queue != null && queue.getTrusted();
+        return this.queue != null && this.queue.getTrusted();
     }
 
     /**
@@ -264,7 +264,34 @@ public class DocContentPrintProcessor {
      * @return
      */
     public boolean isAuthorized() {
-        return isTrustedUser() && (isTrustedQueue() || isAuthWebAppUser());
+
+        final boolean authorized =
+                isTrustedUser() && (isTrustedQueue() || isAuthWebAppUser());
+
+        if (!authorized && LOGGER.isWarnEnabled()) {
+
+            final StringBuilder msg = new StringBuilder();
+
+            msg.append("Authorized [").append(authorized).append("] :");
+
+            msg.append(" Requesting User [").append(this.requestingUserId)
+                    .append("]");
+
+            msg.append(" Trusted User [").append(this.uidTrusted).append("]");
+
+            //
+            msg.append(" Trusted Queue [").append(this.isTrustedQueue())
+                    .append("]");
+            if (this.queue == null) {
+                msg.append(" Reason [queue is null]");
+            }
+
+            msg.append(" Authenticatied Web App User [")
+                    .append(this.authWebAppUser).append("]");
+
+            LOGGER.warn(msg.toString());
+        }
+        return authorized;
     }
 
     /**
@@ -274,7 +301,7 @@ public class DocContentPrintProcessor {
      * @return {@code null} if no user is authenticated.
      */
     public String getAuthWebAppUser() {
-        return authWebAppUser;
+        return this.authWebAppUser;
     }
 
     /**
@@ -283,7 +310,7 @@ public class DocContentPrintProcessor {
      * @return
      */
     public boolean isAuthWebAppUser() {
-        return StringUtils.isNotBlank(authWebAppUser);
+        return StringUtils.isNotBlank(this.authWebAppUser);
     }
 
     /**
@@ -310,6 +337,10 @@ public class DocContentPrintProcessor {
 
         if (requestingUserId == null) {
 
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Requester user id unknown.");
+            }
+
             this.userDb = null;
             this.uidTrusted = null;
 
@@ -326,7 +357,8 @@ public class DocContentPrintProcessor {
                 }
             }
 
-            ConfigManager cm = ConfigManager.instance();
+            final ConfigManager cm = ConfigManager.instance();
+
             /*
              * Read (alias) user from database.
              */
@@ -374,7 +406,7 @@ public class DocContentPrintProcessor {
          * Check authorization.
          */
         boolean isAuthorized = false;
-        String reason = null;
+        final String reason;
 
         if (this.userDb == null) {
 
@@ -393,6 +425,7 @@ public class DocContentPrintProcessor {
                     reason = "is DISABLED for printing";
                 } else {
                     isAuthorized = true;
+                    reason = null;
                 }
 
             } else {

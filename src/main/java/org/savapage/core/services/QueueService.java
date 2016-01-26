@@ -270,12 +270,14 @@ public interface QueueService {
 
     /**
      * Prints a document {@link InputStream} originating from a {@link User} to
-     * a Queue.
+     * a reserved Queue.
      *
-     * @param queueName
-     *            The name of the {@link IppQueue}.
+     * @param reservedQueue
+     *            The {@link ReservedIppQueueEnum}.
      * @param user
      *            The {@link User} requesting the print.
+     * @param isUserTrusted
+     *            {@code true} when user is trusted.
      * @param printReq
      *            The {@link DocContentPrintReq}.
      * @param istrContent
@@ -284,7 +286,8 @@ public interface QueueService {
      * @throws DocContentPrintException
      *             When something goes wrong during printing.
      */
-    DocContentPrintRsp printDocContent(String queueName, User user,
+    DocContentPrintRsp printDocContent(ReservedIppQueueEnum reservedQueue,
+            User user, final boolean isUserTrusted,
             DocContentPrintReq printReq, InputStream istrContent)
             throws DocContentPrintException;
 
