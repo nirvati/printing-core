@@ -108,7 +108,7 @@ public interface OutboxService {
     OutboxInfoDto pruneOutboxInfo(String userId, Date expiryRef);
 
     /**
-     * Gets the The full path {@link File} from an outbox file name.
+     * Gets the full path {@link File} from an outbox file name.
      *
      * @param userId
      *            The unique user id.

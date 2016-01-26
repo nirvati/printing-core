@@ -30,6 +30,7 @@ import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.EcoPrintPdfTaskService;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.InboxService;
+import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.PaperCutService;
 import org.savapage.core.services.PrintDelegationService;
@@ -101,6 +102,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private static class InboxServiceHolder {
         public static final InboxService INSTANCE = new InboxServiceImpl();
+    }
+
+    private static class JobTicketServiceHolder {
+        public static final JobTicketService INSTANCE =
+                new JobTicketServiceImpl();
     }
 
     private static class OutboxServiceHolder {
@@ -205,6 +211,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public InboxService getInboxService() {
         return InboxServiceHolder.INSTANCE;
+    }
+
+    @Override
+    public JobTicketService getJobTicketService() {
+        return JobTicketServiceHolder.INSTANCE;
     }
 
     @Override

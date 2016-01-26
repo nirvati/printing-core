@@ -36,7 +36,9 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -147,8 +149,15 @@ public final class ConfigManager {
      * The relative path of the email outbox folder (relative to the
      * {@code server} directory).
      */
-    private static final String SERVER_RELATIVE_EMAIL_OUTBOX_PATH =
+    private static final String SERVER_REL_PATH_EMAIL_OUTBOX =
             "data/email-outbox";
+
+    /**
+     * The relative path of the print-jobtickets folder (relative to the
+     * {@code server} directory).
+     */
+    private static final String SERVER_REL_PATH_PRINT_JOBTICKETS =
+            "data/print-jobtickets";
 
     /**
      * .
@@ -627,7 +636,7 @@ public final class ConfigManager {
      *         {@code server} directory).
      */
     public static String getServerRelativeEmailOutboxPath() {
-        return SERVER_RELATIVE_EMAIL_OUTBOX_PATH;
+        return SERVER_REL_PATH_EMAIL_OUTBOX;
     }
 
     /**
@@ -754,6 +763,29 @@ public final class ConfigManager {
             home.append("i686");
         }
         return home.toString();
+    }
+
+    /**
+     *
+     * @return The directory path with the print jobtickets.
+     */
+    public static Path getJobTicketsHome() {
+        return Paths.get(getServerHome(), SERVER_REL_PATH_PRINT_JOBTICKETS);
+    }
+
+    /**
+     *
+     * @throws IOException
+     */
+    private synchronized void lazyCreateJobTicketsHome() throws IOException {
+
+        final Set<PosixFilePermission> permissions =
+                EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE);
+
+        final FileAttribute<Set<PosixFilePermission>> fileAttributes =
+                PosixFilePermissions.asFileAttribute(permissions);
+
+        Files.createDirectories(getJobTicketsHome(), fileAttributes);
     }
 
     /**
@@ -1151,6 +1183,8 @@ public final class ConfigManager {
         CryptoUser.init();
 
         this.initJmx();
+
+        this.lazyCreateJobTicketsHome();
 
         /*
          * Bootstrap Hibernate.

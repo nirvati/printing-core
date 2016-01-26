@@ -103,6 +103,13 @@ public interface ServiceFactory {
     InboxService getInboxService();
 
     /**
+     * Gets the {@link JobTicketService} singleton.
+     *
+     * @return The singleton.
+     */
+    JobTicketService getJobTicketService();
+
+    /**
      * Gets the {@link OutboxService} singleton.
      *
      * @return The singleton.

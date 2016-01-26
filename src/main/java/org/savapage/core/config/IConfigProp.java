@@ -693,6 +693,11 @@ public interface IConfigProp {
                 URI_VALIDATOR_OPT, ""),
 
         /**
+         * Printer name for JobTicket printing.
+         */
+        JOBTICKET_PROXY_PRINTER("jobticket.proxy-printer"),
+
+        /**
          * See this <a href=
          * "http://docs.oracle.com/javase/jndi/tutorial/ldap/search/batch.html"
          * >explanation</a> and this <a href=

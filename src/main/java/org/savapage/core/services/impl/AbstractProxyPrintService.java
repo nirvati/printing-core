@@ -364,6 +364,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printer.setGroups(cupsPrinter.getGroups());
             printer.setPrinterUri(cupsPrinter.getPrinterUri());
 
+            final String jobTicketPrinterName =
+                    StringUtils.defaultString(ConfigManager.instance()
+                            .getConfigValue(Key.JOBTICKET_PROXY_PRINTER));
+
+            printer.setJobTicket(Boolean.valueOf(printer.getName().equals(
+                    jobTicketPrinterName)));
+
             /*
              * Create copy, localize and prune.
              */
@@ -510,6 +517,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         lazyInitPrinterCache();
 
+        final String jobTicketPrinterName =
+                StringUtils.defaultString(ConfigManager.instance()
+                        .getConfigValue(Key.JOBTICKET_PROXY_PRINTER));
         /*
          * The collected valid printers.
          */
@@ -599,6 +609,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     basicPrinter.setTerminalSecured(terminalSecuredWlk
                             .getValue());
                     basicPrinter.setReaderSecured(readerSecuredWlk.getValue());
+
+                    basicPrinter.setJobTicket(Boolean
+                            .valueOf(jobTicketPrinterName.equals(printer
+                                    .getName())));
                 }
 
             }

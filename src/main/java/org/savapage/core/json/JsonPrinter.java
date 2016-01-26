@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public class JsonPrinter extends JsonAbstractBase {
 
@@ -63,6 +64,11 @@ public class JsonPrinter extends JsonAbstractBase {
      * required to print a job.
      */
     private Boolean readerSecured = Boolean.FALSE;
+
+    /**
+     * Indicates whether this printer is used to produce a job ticket.
+     */
+    private Boolean jobTicket = Boolean.FALSE;
 
     /**
      * The unique name of the Card Reader (when reader secured).
@@ -126,6 +132,14 @@ public class JsonPrinter extends JsonAbstractBase {
         this.readerSecured = readerSecured;
     }
 
+    public Boolean getJobTicket() {
+        return jobTicket;
+    }
+
+    public void setJobTicket(Boolean jobTicket) {
+        this.jobTicket = jobTicket;
+    }
+
     public String getReaderName() {
         return readerName;
     }
@@ -162,6 +176,7 @@ public class JsonPrinter extends JsonAbstractBase {
         copy.readerName = this.readerName;
         copy.authMode = this.authMode;
         copy.printerUri = this.printerUri;
+        copy.jobTicket = this.jobTicket;
     }
 
 }

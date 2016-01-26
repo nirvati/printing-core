@@ -38,19 +38,13 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.savapage.core.LetterheadNotFoundException;
-import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.doc.DocContent;
-import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
-import org.savapage.core.inbox.InboxInfoDto;
-import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
@@ -58,18 +52,17 @@ import org.savapage.core.outbox.OutboxInfoDto.LocaleInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfoSet;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
-import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
-import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.util.BigDecimalUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,19 +84,92 @@ public final class OutboxServiceImpl extends AbstractService implements
     private static final Logger LOGGER = LoggerFactory
             .getLogger(OutboxServiceImpl.class);
 
-    private static final boolean APPLY_PDF_PROPS = true;
-    private static final boolean APPLY_LETTERHEAD = true;
-    private static final boolean PDF_FOR_PRINTING = true;
-
     /**
     *
     */
     private static final String OUTBOX_DESCRIPT_FILE_NAME = "outbox.json";
 
     /**
-    *
-    */
+     * .
+     */
     private static final String USER_RELATIVE_OUTBOX_PATH = "outbox";
+
+    /**
+     * Implementation of execution pattern for proxy printing from the user
+     * inbox to user outbox.
+     */
+    private static final class ProxyPrintInbox extends ProxyPrintInboxPattern {
+
+        private final OutboxServiceImpl serviceImpl;
+
+        /**
+         * The date the proxy print was submitted.
+         */
+        private Date submitDate;
+
+        /**
+         * The date the proxy print expires.
+         */
+        private Date expiryDate;
+
+        /**
+         * The {@link OutboxInfoDto} to append the info about the print job on.
+         */
+        private OutboxInfoDto outboxInfo;
+
+        /**
+         *
+         * @param service
+         *            The parent service.
+         */
+        public ProxyPrintInbox(final OutboxServiceImpl service) {
+            this.serviceImpl = service;
+        }
+
+        @Override
+        protected void onInit(final User lockedUser,
+                final ProxyPrintInboxReq request) {
+
+            this.submitDate = ServiceContext.getTransactionDate();
+            this.expiryDate = calcHoldExpiry(submitDate);
+
+            this.outboxInfo =
+                    this.serviceImpl.readOutboxInfo(lockedUser.getUserId());
+        }
+
+        @Override
+        protected void onExit(final User lockedUser,
+                final ProxyPrintInboxReq request) {
+
+            serviceImpl.storeOutboxInfo(lockedUser.getUserId(), outboxInfo);
+
+            final String msgKey = "msg-user-print-outbox";
+
+            request.setStatus(Status.WAITING_FOR_RELEASE);
+            request.setUserMsgKey(msgKey);
+            request.setUserMsg(this.serviceImpl.localize(msgKey,
+                    request.getPrinterName()));
+        }
+
+        @Override
+        protected File onReservePdfToGenerate(final User lockedUser) {
+            return this.serviceImpl.createUuidFileName(lockedUser.getUserId());
+        }
+
+        @Override
+        protected void onPdfGenerated(final User lockedUser,
+                final ProxyPrintInboxReq request,
+                final LinkedHashMap<String, Integer> uuidPageCount,
+                final File pdfGenerated) {
+
+            final OutboxJob job =
+                    this.serviceImpl.createOutboxJob(request, this.submitDate,
+                            this.expiryDate, pdfGenerated, uuidPageCount);
+
+            this.outboxInfo.addJob(job.getFile(), job);
+        }
+
+    } // end-of-class
 
     @Override
     public File getUserOutboxDir(final String userId) {
@@ -225,99 +291,7 @@ public final class OutboxServiceImpl extends AbstractService implements
             final ProxyPrintInboxReq request)
             throws EcoPrintPdfTaskPendingException {
 
-        final Date submitDate = ServiceContext.getTransactionDate();
-        final Date expiryDate = calcHoldExpiry(submitDate);
-
-        final OutboxInfoDto outboxInfo =
-                this.readOutboxInfo(lockedUser.getUserId());
-
-        /*
-         * When printing the chunks, the container request parameters are
-         * replaced by chunk values. So, we save the original request parameters
-         * here, and restore them afterwards.
-         */
-        final String orgJobName = request.getJobName();
-        final int orgNumberOfPages = request.getNumberOfPages();
-        final Boolean orgFitToPage = request.getFitToPage();
-        final String orgMediaOption = request.getMediaOption();
-        final String orgMediaSourceOption = request.getMediaSourceOption();
-        final BigDecimal orgCost = request.getCost();
-
-        try {
-
-            if (request.getJobChunkInfo() == null) {
-
-                final InboxInfoDto inboxInfo =
-                        inboxService().readInboxInfo(lockedUser.getUserId());
-
-                final InboxInfoDto filteredInboxInfo =
-                        inboxService().filterInboxInfoPages(inboxInfo,
-                                request.getPageRanges());
-
-                proxyPrintInboxChunk(lockedUser, request, filteredInboxInfo,
-                        outboxInfo, submitDate, expiryDate);
-
-            } else {
-
-                final InboxInfoDto inboxInfo =
-                        request.getJobChunkInfo().getInboxInfo();
-
-                for (final ProxyPrintJobChunk chunk : request.getJobChunkInfo()
-                        .getChunks()) {
-
-                    /*
-                     * Replace the request parameters with the chunk parameters.
-                     */
-                    request.setNumberOfPages(chunk.getNumberOfPages());
-                    request.setFitToPage(chunk.getFitToPage());
-                    request.setMediaOption(chunk.getAssignedMedia()
-                            .getIppKeyword());
-                    request.setMediaSourceOption(chunk.getAssignedMediaSource()
-                            .getSource());
-                    request.setCost(chunk.getCost());
-
-                    if (StringUtils.isBlank(orgJobName)) {
-                        request.setJobName(chunk.getJobName());
-                    }
-
-                    /*
-                     * Save the original pages.
-                     */
-                    final ArrayList<InboxJobRange> orgPages =
-                            inboxService().replaceInboxInfoPages(inboxInfo,
-                                    chunk.getRanges());
-
-                    /*
-                     * Proxy print the chunk.
-                     */
-                    proxyPrintInboxChunk(lockedUser, request, inboxInfo,
-                            outboxInfo, submitDate, expiryDate);
-
-                    /*
-                     * Restore the original pages.
-                     */
-                    inboxInfo.setPages(orgPages);
-                }
-            }
-
-            storeOutboxInfo(lockedUser.getUserId(), outboxInfo);
-
-            request.setStatus(Status.WAITING_FOR_RELEASE);
-            request.setUserMsgKey("msg-user-print-outbox");
-            request.setUserMsg(localize("msg-user-print-outbox",
-                    request.getPrinterName()));
-
-        } finally {
-            /*
-             * Restore the original request parameters.
-             */
-            request.setJobName(orgJobName);
-            request.setNumberOfPages(orgNumberOfPages);
-            request.setFitToPage(orgFitToPage);
-            request.setMediaOption(orgMediaOption);
-            request.setMediaSourceOption(orgMediaSourceOption);
-            request.setCost(orgCost);
-        }
+        new ProxyPrintInbox(this).print(lockedUser, request);
     }
 
     /**
@@ -433,93 +407,6 @@ public final class OutboxServiceImpl extends AbstractService implements
                 request.getPrinterName()));
     }
 
-    /**
-     * Proxy prints a single inbox chunk to the outbox.
-     *
-     * @param lockedUser
-     *            The requesting {@link User}, which should be locked.
-     * @param request
-     *            The {@link ProxyPrintInboxReq}.
-     * @param inboxInfo
-     *            The (filtered) {@link InboxInfoDto}.
-     * @param outboxInfo
-     *            The {@link OutboxInfoDto} to append the info about the print
-     *            job on.
-     * @param submitDate
-     *            The date the proxy print was submitted.
-     * @param expiryDate
-     *            The date the proxy print expires.
-     * @throws EcoPrintPdfTaskPendingException
-     *             When {@link EcoPrintPdfTask} objects needed for this PDF are
-     *             pending.
-     */
-    private void proxyPrintInboxChunk(final User lockedUser,
-            final ProxyPrintInboxReq request, final InboxInfoDto inboxInfo,
-            final OutboxInfoDto outboxInfo, final Date submitDate,
-            final Date expiryDate) throws EcoPrintPdfTaskPendingException {
-
-        /*
-         * Generate the PDF file.
-         */
-        File pdfFileToPrint = null;
-
-        boolean fileCreated = false;
-
-        try {
-
-            final String pdfFileName =
-                    createUuidFileName(lockedUser.getUserId())
-                            .getAbsolutePath();
-
-            final LinkedHashMap<String, Integer> uuidPageCount =
-                    new LinkedHashMap<>();
-
-            final PdfCreateRequest pdfRequest = new PdfCreateRequest();
-
-            pdfRequest.setUserObj(lockedUser);
-            pdfRequest.setPdfFile(pdfFileName);
-            pdfRequest.setInboxInfo(inboxInfo);
-            pdfRequest.setRemoveGraphics(request.isRemoveGraphics());
-
-            pdfRequest.setEcoPdf(request.isEcoPrint());
-            pdfRequest.setEcoPdfShadow(request.isEcoPrintShadow());
-
-            pdfRequest.setApplyPdfProps(!APPLY_PDF_PROPS);
-            pdfRequest.setApplyLetterhead(APPLY_LETTERHEAD);
-            pdfRequest.setForPrinting(PDF_FOR_PRINTING);
-
-            pdfFileToPrint =
-                    outputProducer().generatePdf(pdfRequest, uuidPageCount,
-                            null);
-
-            final OutboxJob job =
-                    createOutboxJob(request, submitDate, expiryDate,
-                            pdfFileToPrint, uuidPageCount);
-
-            outboxInfo.addJob(job.getFile(), job);
-
-            fileCreated = true;
-
-        } catch (LetterheadNotFoundException | PostScriptDrmException e) {
-
-            throw new SpException(e.getMessage());
-
-        } finally {
-
-            if (!fileCreated && pdfFileToPrint != null
-                    && pdfFileToPrint.exists()) {
-                if (pdfFileToPrint.delete()) {
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("deleted file [" + pdfFileToPrint + "]");
-                    }
-                } else {
-                    LOGGER.error("delete of file [" + pdfFileToPrint
-                            + "] FAILED");
-                }
-            }
-        }
-    }
-
     @Override
     public File getOutboxFile(final String userId, final String fileName) {
 
@@ -546,7 +433,7 @@ public final class OutboxServiceImpl extends AbstractService implements
     }
 
     /**
-     * Creates a unique outbox PDF file name.
+     * Creates a unique outbox PDF file path.
      *
      * @param userId
      *            The unique id of the user.
@@ -554,8 +441,8 @@ public final class OutboxServiceImpl extends AbstractService implements
      */
     private File createUuidFileName(final String userId) {
 
-        return getOutboxFile(userId, java.util.UUID.randomUUID().toString()
-                + "." + DocContent.FILENAME_EXT_PDF);
+        return getOutboxFile(userId, String.format("%s.%s", java.util.UUID
+                .randomUUID().toString(), DocContent.FILENAME_EXT_PDF));
     }
 
     @Override

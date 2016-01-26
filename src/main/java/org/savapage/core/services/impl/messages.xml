@@ -59,6 +59,9 @@
     <entry key="msg-printer-cost-error">Cost "{0}" is not valid.</entry>
     <entry key="msg-printer-media-error">Media size "{0}" of "{1}" is not valid.</entry>
 
+<!--  JobTicketServiceImpl -->
+    <entry key="msg-user-print-jobticket">Job Ticket send to operator.</entry>
+
 <!--  OutboxServiceImpl -->
     <entry key="msg-user-print-outbox">Print stored for release at printer "{0}".</entry>
 

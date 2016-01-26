@@ -59,6 +59,9 @@
     <entry key="msg-printer-cost-error">Kosten "{0}" is ongeldig.</entry>
     <entry key="msg-printer-media-error">Papierformaat "{0}" van "{1}" is ongeldig.</entry>
 
+<!--  JobTicketServiceImpl -->
+    <entry key="msg-user-print-jobticket">Job Ticket verzonden naar operator.</entry>
+
 <!--  OutboxServiceImpl -->
     <entry key="msg-user-print-outbox">Afdruk opgeslagen voor vrijgave bij printer "{0}".</entry>
     
