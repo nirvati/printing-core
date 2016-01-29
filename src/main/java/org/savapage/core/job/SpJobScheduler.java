@@ -45,8 +45,9 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.print.gcp.GcpPrinter;
 import org.savapage.core.print.imap.ImapPrinter;
-import org.savapage.core.print.smartschool.SmartSchoolPrinter;
 import org.savapage.core.util.DateUtil;
+import org.savapage.ext.smartschool.SmartschoolPrinter;
+import org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -337,7 +338,7 @@ public class SpJobScheduler {
             break;
 
         case SMARTSCHOOL_PRINT_MONITOR_JOB:
-            jobClass = org.savapage.core.job.SmartSchoolPrintMonitorJob.class;
+            jobClass = org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class;
             break;
 
         default:
@@ -510,11 +511,11 @@ public class SpJobScheduler {
 
         final JobDataMap data = new JobDataMap();
 
-        data.put(SmartSchoolPrintMonitorJob.ATTR_SIMULATION,
+        data.put(SmartschoolPrintMonitorJob.ATTR_SIMULATION,
                 Boolean.valueOf(simulate));
 
         final JobDetail job =
-                newJob(org.savapage.core.job.SmartSchoolPrintMonitorJob.class)
+                newJob(org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class)
                         .withIdentity(
                                 SpJobType.SMARTSCHOOL_PRINT_MONITOR_JOB
                                         .toString(),
@@ -522,7 +523,7 @@ public class SpJobScheduler {
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
 
-        SmartSchoolPrinter.setOnline(true);
+        SmartschoolPrinter.setOnline(true);
     }
 
     /**
@@ -597,7 +598,7 @@ public class SpJobScheduler {
      *         found and interrupted.
      */
     public static boolean interruptSmartSchoolPoller() {
-        SmartSchoolPrinter.setOnline(false);
+        SmartschoolPrinter.setOnline(false);
         return instance().interruptJob(SpJobType.SMARTSCHOOL_PRINT_MONITOR_JOB,
                 JOB_GROUP_ONESHOT);
     }

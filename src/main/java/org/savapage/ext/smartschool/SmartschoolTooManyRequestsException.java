@@ -19,63 +19,51 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.enums;
-
-import java.util.Locale;
-
-import org.savapage.core.util.Messages;
-import org.savapage.ext.smartschool.SmartschoolPrintStatusEnum;
+package org.savapage.ext.smartschool;
 
 /**
- * Generic status of (proxy) print request from External Supplier. Also see
- * {@link SmartschoolPrintStatusEnum}.
- * <p>
- * NOTE: Do NOT changes enum text since they are stored in the database.
- * </p>
  *
  * @author Rijk Ravestein
  *
  */
-public enum ExternalSupplierStatusEnum {
+public class SmartschoolTooManyRequestsException extends Exception {
 
     /**
-     * .
+     *
      */
-    CANCELLED,
+    private static final long serialVersionUID = 1L;
 
     /**
-     * .
+     * Constructs a new {@link SmartschoolTooManyRequestsException}.
+     *
+     * @param cause
+     *            The cause.
      */
-    COMPLETED,
-
-    /**
-     * .
-     */
-    ERROR,
-
-    /**
-     * A PENDING print expired.
-     */
-    EXPIRED,
-
-    /**
-     * Pending in SavaPage.
-     */
-    PENDING,
-
-    /**
-     * SmartSchool Print request is pending in an external system like PaperCut.
-     */
-    PENDING_EXT;
-
-    /**
-     * @param locale
-     *            The {@link Locale}.
-     * @return The localized text.
-     */
-    public String uiText(final Locale locale) {
-        return Messages.loadXmlResource(this.getClass(),
-                this.getClass().getSimpleName(), locale).getString(
-                this.toString());
+    public SmartschoolTooManyRequestsException(final Throwable cause) {
+        super(cause);
     }
+
+    /**
+     * Constructs a new {@link SmartschoolTooManyRequestsException}.
+     *
+     * @param message
+     *            The detail message.
+     */
+    public SmartschoolTooManyRequestsException(final String message) {
+        super(message);
+    }
+
+    /**
+     * Constructs a new {@link SmartschoolTooManyRequestsException}.
+     *
+     * @param message
+     *            The detail message.
+     * @param cause
+     *            The cause.
+     */
+    public SmartschoolTooManyRequestsException(final String message,
+            final Throwable cause) {
+        super(message, cause);
+    }
+
 }

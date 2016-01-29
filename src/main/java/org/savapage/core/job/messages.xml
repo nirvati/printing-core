@@ -111,15 +111,6 @@
 	<entry key="GcpPollForAuthCode.timeout">User failed to claim Google Cloud Printer within time.</entry>
 	<entry key="GcpGetAuthTokens.success">Google Cloud Print AuthTokens successfully retrieved.</entry>
 
-    <entry key="SmartSchoolMonitor.error">SmartSchool error: {0}</entry>
-    <entry key="SmartSchoolMonitor.membership.error">SmartSchool Print monitoring stopped: check your {0} {1}.</entry>
-	<entry key="SmartSchoolMonitor.started">SmartSchool Print monitoring started.</entry>
-    <entry key="SmartSchoolMonitor.started.simulation">SmartSchool Print monitoring started (simulation).</entry>
-	<entry key="SmartSchoolMonitor.stopped">SmartSchool Print monitoring stopped.</entry>
-    <entry key="SmartSchoolMonitor.restart">SmartSchool Print monitoring stopped: restart after {0} seconds.</entry>
-    <entry key="SmartSchoolMonitor.stopped.simulation">SmartSchool Print monitoring stopped (simulation).</entry>
-    <entry key="SmartSchoolMonitor.restart.simulation">SmartSchool Print monitoring stopped (simulation): restart after {0} seconds.</entry>
-
     <entry key="EmailOutboxMonitor.error">Email outbox monitoring error: {0}</entry>
     <entry key="EmailOutboxMonitor.started">Email outbox monitoring started.</entry>
     <entry key="EmailOutboxMonitor.stopped">Email outbox monitoring stopped.</entry>

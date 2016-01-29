@@ -32,7 +32,6 @@ import org.savapage.core.services.EmailService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
-import org.savapage.core.services.PaperCutService;
 import org.savapage.core.services.PrintDelegationService;
 import org.savapage.core.services.PrinterGroupService;
 import org.savapage.core.services.PrinterService;
@@ -40,11 +39,15 @@ import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.RfIdReaderService;
 import org.savapage.core.services.ServiceFactory;
-import org.savapage.core.services.SmartSchoolProxyService;
-import org.savapage.core.services.SmartSchoolService;
 import org.savapage.core.services.StatefulService;
 import org.savapage.core.services.UserGroupService;
 import org.savapage.core.services.UserService;
+import org.savapage.ext.papercut.services.PaperCutService;
+import org.savapage.ext.papercut.services.impl.PaperCutServiceImpl;
+import org.savapage.ext.smartschool.services.SmartschoolProxyService;
+import org.savapage.ext.smartschool.services.SmartschoolService;
+import org.savapage.ext.smartschool.services.impl.SmartschoolProxyServiceImpl;
+import org.savapage.ext.smartschool.services.impl.SmartschoolServiceImpl;
 
 /**
  * Service factory with one (1) SingletonHolder per Service.
@@ -156,13 +159,13 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     }
 
     private static class SmartSchoolServiceHolder {
-        public static final SmartSchoolService SERVICE =
-                new SmartSchoolServiceImpl();
+        public static final SmartschoolService SERVICE =
+                new SmartschoolServiceImpl();
     }
 
     private static class SmartSchoolProxyServiceHolder {
-        public static final SmartSchoolProxyService SERVICE =
-                new SmartSchoolProxyServiceImpl();
+        public static final SmartschoolProxyService SERVICE =
+                new SmartschoolProxyServiceImpl();
     }
 
     private final static StatefulService statefullServices[] =
@@ -269,12 +272,12 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     }
 
     @Override
-    public SmartSchoolService getSmartSchoolService() {
+    public SmartschoolService getSmartSchoolService() {
         return SmartSchoolServiceHolder.SERVICE;
     }
 
     @Override
-    public SmartSchoolProxyService getSmartSchoolProxyService() {
+    public SmartschoolProxyService getSmartSchoolProxyService() {
         return SmartSchoolProxyServiceHolder.SERVICE;
     }
 

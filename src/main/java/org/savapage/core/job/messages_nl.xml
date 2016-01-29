@@ -108,15 +108,6 @@
     <entry key="GcpPollForAuthCode.timeout">Gebruiker heeft Google Cloud Printer niet op tijd opgeëist.</entry>
     <entry key="GcpGetAuthTokens.success">Google Cloud Print AuthTokens met succes opgehaald.</entry>
 
-    <entry key="SmartSchoolMonitor.error">SmartSchool fout: {0}</entry>
-    <entry key="SmartSchoolMonitor.membership.error">SmartSchool Print toezicht gestopt: controleer uw {0} {1}.</entry>
-    <entry key="SmartSchoolMonitor.started">SmartSchool Print toezicht gestart.</entry>
-    <entry key="SmartSchoolMonitor.started.simulation">SmartSchool Print toezicht gestart (simulatie).</entry>
-    <entry key="SmartSchoolMonitor.stopped">SmartSchool Print toezicht gestopt.</entry>
-    <entry key="SmartSchoolMonitor.restart">SmartSchool Print toezicht gestopt: herstart na {0} seconden.</entry>
-    <entry key="SmartSchoolMonitor.stopped.simulation">SmartSchool Print toezicht gestopt (simulatie).</entry>
-    <entry key="SmartSchoolMonitor.restart.simulation">SmartSchool Print toezicht gestopt (simulatie): herstart na {0} seconden.</entry>
-
     <entry key="EmailOutboxMonitor.error">Email outbox toezicht fout: {0}</entry>
     <entry key="EmailOutboxMonitor.started">Email outbox toezicht gestart.</entry>
     <entry key="EmailOutboxMonitor.stopped">Email outbox toezicht gestopt.</entry>

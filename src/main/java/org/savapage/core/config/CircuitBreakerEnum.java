@@ -33,8 +33,8 @@ import org.savapage.core.circuitbreaker.CircuitNonTrippingException;
 import org.savapage.core.circuitbreaker.CircuitTrippingException;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.jpa.AppLog;
-import org.savapage.core.papercut.PaperCutConnectException;
-import org.savapage.core.papercut.PaperCutException;
+import org.savapage.ext.papercut.PaperCutConnectException;
+import org.savapage.ext.papercut.PaperCutException;
 
 /**
  * Identification and configuration for {@link CircuitBreaker} instances as used
