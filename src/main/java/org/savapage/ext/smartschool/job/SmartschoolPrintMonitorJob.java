@@ -55,10 +55,11 @@ import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.util.AppLogHelper;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
+import org.savapage.ext.ExtSupplierConnectException;
+import org.savapage.ext.ExtSupplierException;
 import org.savapage.ext.papercut.PaperCutConnectException;
 import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutServerProxy;
-import org.savapage.ext.smartschool.SmartschoolException;
 import org.savapage.ext.smartschool.SmartschoolPrintMonitor;
 import org.savapage.ext.smartschool.SmartschoolPrinter;
 import org.slf4j.Logger;
@@ -190,7 +191,8 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
                  */
                 this.printMonitor.monitor(sessionDurationSecs);
 
-            } catch (SOAPException | PaperCutConnectException e) {
+            } catch (ExtSupplierConnectException | SOAPException
+                    | PaperCutConnectException e) {
 
                 throw new CircuitTrippingException(e);
 
@@ -202,7 +204,7 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
 
                 throw e;
 
-            } catch (SmartschoolException t) {
+            } catch (ExtSupplierException t) {
 
                 throw new CircuitDamagingException(t);
 
@@ -233,7 +235,6 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
                 }
 
             }
-            //
             return null;
         }
 

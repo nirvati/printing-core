@@ -21,7 +21,6 @@
  */
 package org.savapage.ext.smartschool;
 
-import org.savapage.core.SpException;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 
 /**
@@ -41,34 +40,40 @@ public enum SmartschoolPrintStatusEnum {
     /**
      * Cancelled by user. E.g. by PaperCut user RELEASE_STATION_CANCELLED.
      */
-    CANCELLED(SmartschoolPrintStatusEnum.XML_CANCELED),
+    CANCELLED(SmartschoolPrintStatusEnum.XML_CANCELED,
+            ExternalSupplierStatusEnum.CANCELLED),
 
     /**
      * .
      */
-    COMPLETED(SmartschoolPrintStatusEnum.XML_COMPLETED),
+    COMPLETED(SmartschoolPrintStatusEnum.XML_COMPLETED,
+            ExternalSupplierStatusEnum.COMPLETED),
 
     /**
      * .
      */
-    ERROR(SmartschoolPrintStatusEnum.XML_ERROR),
+    ERROR(SmartschoolPrintStatusEnum.XML_ERROR,
+            ExternalSupplierStatusEnum.ERROR),
 
     /**
      * A PENDING print expired. E.g. by a PaperCut RELEASE_STATION_TIMEOUT.
      * NOTE: the XML value is 'canceled', since SmartSchool does NOT have a
      * separate EXPIRED status.
      */
-    EXPIRED(SmartschoolPrintStatusEnum.XML_CANCELED),
+    EXPIRED(SmartschoolPrintStatusEnum.XML_CANCELED,
+            ExternalSupplierStatusEnum.EXPIRED),
 
     /**
      * SmartSchool Print request is pending in SavaPage.
      */
-    PENDING(SmartschoolPrintStatusEnum.XML_IN_PROGRESS),
+    PENDING(SmartschoolPrintStatusEnum.XML_IN_PROGRESS,
+            ExternalSupplierStatusEnum.PENDING),
 
     /**
      * SmartSchool Print request is pending in an external system like PaperCut.
      */
-    PENDING_EXT(SmartschoolPrintStatusEnum.XML_IN_PROGRESS);
+    PENDING_EXT(SmartschoolPrintStatusEnum.XML_IN_PROGRESS,
+            ExternalSupplierStatusEnum.PENDING_EXT);
 
     /**
      * .
@@ -96,12 +101,19 @@ public enum SmartschoolPrintStatusEnum {
     private final String xmlText;
 
     /**
+     * The {@link ExternalSupplierStatusEnum} equivalent.
+     */
+    private final ExternalSupplierStatusEnum externalSupplierStatus;
+
+    /**
      *
      * @param text
      *            The text used by SmartSchool.
      */
-    private SmartschoolPrintStatusEnum(final String text) {
+    private SmartschoolPrintStatusEnum(final String text,
+            final ExternalSupplierStatusEnum externalStatus) {
         this.xmlText = text;
+        this.externalSupplierStatus = externalStatus;
     }
 
     /**
@@ -117,23 +129,43 @@ public enum SmartschoolPrintStatusEnum {
      * @return The {@link ExternalSupplierStatusEnum}.
      */
     public ExternalSupplierStatusEnum asGenericStatus() {
-        switch (this) {
+        return this.externalSupplierStatus;
+    }
+
+    /**
+     *
+     * @param status
+     * @return
+     */
+    public static SmartschoolPrintStatusEnum fromGenericStatus(
+            final ExternalSupplierStatusEnum status) {
+
+        switch (status) {
+
         case CANCELLED:
-            return ExternalSupplierStatusEnum.CANCELLED;
+            return SmartschoolPrintStatusEnum.CANCELLED;
+
         case COMPLETED:
-            return ExternalSupplierStatusEnum.COMPLETED;
-        case ERROR:
-            return ExternalSupplierStatusEnum.ERROR;
+            return SmartschoolPrintStatusEnum.COMPLETED;
+
         case EXPIRED:
-            return ExternalSupplierStatusEnum.EXPIRED;
+            return SmartschoolPrintStatusEnum.EXPIRED;
+
+        case ERROR:
+            return SmartschoolPrintStatusEnum.ERROR;
+
         case PENDING:
-            return ExternalSupplierStatusEnum.PENDING;
+            return SmartschoolPrintStatusEnum.PENDING;
+
         case PENDING_EXT:
-            return ExternalSupplierStatusEnum.PENDING_EXT;
+            return SmartschoolPrintStatusEnum.PENDING_EXT;
+
         default:
-            throw new SpException(String.format("%s.%s cannot be mapped to %s",
-                    this.getClass().getSimpleName(), this.toString(),
-                    ExternalSupplierStatusEnum.class.getSimpleName()));
+            throw new IllegalArgumentException(String.format(
+                    "%s.%s cannot be mapped to %s", status.getClass()
+                            .getSimpleName(), status.toString(),
+                    SmartschoolPrintStatusEnum.class.getSimpleName()));
         }
     }
+
 }

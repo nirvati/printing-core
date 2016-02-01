@@ -64,7 +64,7 @@ public enum ExternalSupplierStatusEnum {
     PENDING,
 
     /**
-     * SmartSchool Print request is pending in an external system like PaperCut.
+     * Proxy Print request is pending in an external system like PaperCut.
      */
     PENDING_EXT;
 

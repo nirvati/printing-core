@@ -68,6 +68,7 @@ import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.SyncPrintJobsResult;
+import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.snmp.SnmpConnectException;
 
 /**
@@ -553,6 +554,16 @@ public interface ProxyPrintService {
      *         printer is unknown.
      */
     Boolean isLocalPrinter(String cupsPrinterName);
+
+    /**
+     * Checks if the CUPS printer is managed by an external (third-party)
+     * application.
+     *
+     * @param cupsPrinterName
+     *            The printer CUPS name.
+     * @return {@code null} when not managed by external party.
+     */
+    ThirdPartyEnum getExtPrinterManager(String cupsPrinterName);
 
     /**
      * Gets the media option choices for a printer.

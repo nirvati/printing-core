@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +63,7 @@ import org.savapage.core.dao.UserAccountDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentToPdfException;
@@ -75,7 +75,6 @@ import org.savapage.core.job.AbstractJob;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
-import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
@@ -106,9 +105,14 @@ import org.savapage.core.util.AppLogHelper;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.Messages;
+import org.savapage.ext.ExtSupplierConnectException;
+import org.savapage.ext.ExtSupplierException;
 import org.savapage.ext.papercut.DelegatedPrintCommentSyntax;
 import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutException;
+import org.savapage.ext.papercut.PaperCutHelper;
+import org.savapage.ext.papercut.PaperCutPrintJobListener;
+import org.savapage.ext.papercut.PaperCutPrintJobMonitor;
 import org.savapage.ext.papercut.PaperCutPrinterUsageLog;
 import org.savapage.ext.papercut.PaperCutServerProxy;
 import org.savapage.ext.papercut.PaperCutUser;
@@ -135,7 +139,6 @@ import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.exceptions.InvalidPdfException;
 import com.itextpdf.text.pdf.PdfWriter;
 
 /**
@@ -143,7 +146,7 @@ import com.itextpdf.text.pdf.PdfWriter;
  * @author Datraverse B.V.
  *
  */
-public final class SmartschoolPrintMonitor {
+public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
     /**
      *
@@ -183,7 +186,7 @@ public final class SmartschoolPrintMonitor {
                     + ". Afdrukinformatie is niet bewaard. "
                     + "Ga naar de WebApp voor verdere acties.";
 
-    private static final String MSG_COMMENT_PRINT_COMPLETED =
+    public static final String MSG_COMMENT_PRINT_COMPLETED =
             "Document is met succes afgedrukt.";
 
     private static final String MSG_COMMENT_PRINT_QUEUED =
@@ -192,13 +195,13 @@ public final class SmartschoolPrintMonitor {
     private static final String MSG_COMMENT_PRINT_CACHED_IN_PROXY =
             "Afdrukopdracht wordt verwerkt...";
 
-    private static final String MSG_COMMENT_PRINT_CANCELLED =
+    public static final String MSG_COMMENT_PRINT_CANCELLED =
             "Afdrukopdracht is geannuleerd.";
 
-    private static final String MSG_COMMENT_PRINT_EXPIRED =
+    public static final String MSG_COMMENT_PRINT_EXPIRED =
             "Afdrukopdracht is verlopen.";
 
-    private static final String MSG_COMMENT_PRINT_DOCUMENT_TOO_LARGE =
+    public static final String MSG_COMMENT_PRINT_DOCUMENT_TOO_LARGE =
             "De omvang van de afdrukopdracht is te groot "
                     + "om in één keer verwerkt te worden: "
                     + "splits uw verzoek op in kleinere opdrachten.";
@@ -260,8 +263,8 @@ public final class SmartschoolPrintMonitor {
     private SmartschoolConnection processingConnection = null;
 
     /**
-    *
-    */
+     * .
+     */
     private static final AccountingService ACCOUNTING_SERVICE = ServiceContext
             .getServiceFactory().getAccountingService();
 
@@ -403,6 +406,14 @@ public final class SmartschoolPrintMonitor {
 
     /**
      *
+     * @return
+     */
+    public boolean isSimulationMode() {
+        return this.simulationMode;
+    }
+
+    /**
+     *
      */
     public static void resetJobTickerCounter() {
         getJobTickerCounter = 0;
@@ -504,19 +515,18 @@ public final class SmartschoolPrintMonitor {
      *            The duration after which this method returns.
      * @throws InterruptedException
      *             When we are interrupted.
-     * @throws SOAPException
-     *             When a SOAP communication error occurs.
      * @throws ShutdownException
      *             When we application shutdown is in progress.
-     * @throws SmartschoolException
-     *             When Smartschool return a fault.
      * @throws PaperCutException
-     * @throws DocContentToPdfException
-     *
+     * @throws ExtSupplierConnectException
+     *             When a SOAP communication error occurs.
+     * @throws ExtSupplierException
+     *             When Smartschool returns a fault.
      */
     public void monitor(final int monitorDurationSecs)
-            throws InterruptedException, SOAPException, ShutdownException,
-            SmartschoolException, PaperCutException, DocContentToPdfException {
+            throws InterruptedException, ShutdownException, PaperCutException,
+            DocContentToPdfException, ExtSupplierException,
+            ExtSupplierConnectException {
 
         final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -604,6 +614,14 @@ public final class SmartschoolPrintMonitor {
                     processJobs(this);
                 }
             }
+
+        } catch (SmartschoolException e) {
+
+            throw new ExtSupplierException(e.getMessage(), e);
+
+        } catch (SOAPException e) {
+
+            throw new ExtSupplierConnectException(e.getMessage(), e);
 
         } finally {
 
@@ -926,19 +944,24 @@ public final class SmartschoolPrintMonitor {
      *             When interrupted by a shutdown request.
      * @throws PaperCutException
      * @throws DocContentToPdfException
+     * @throws ExtSupplierConnectException
+     * @throws ExtSupplierException
      */
     private static void processJobs(final SmartschoolPrintMonitor monitor)
-            throws SOAPException, SmartschoolException, ShutdownException,
-            PaperCutException, DocContentToPdfException {
+            throws ShutdownException, PaperCutException,
+            DocContentToPdfException, ExtSupplierException,
+            ExtSupplierConnectException, SmartschoolException, SOAPException {
 
         /*
          * Any progress on the PaperCut front?
          */
         if (monitor.isIntegratedWithPaperCut()) {
 
-            monitorPaperCut(monitor.connectionMap, monitor.simulationMode,
-                    monitor.papercutServerProxy, monitor.papercutDbProxy,
-                    monitor.listFilterPendingExt);
+            monitorPaperCut(monitor);
+
+            // monitorPaperCut(monitor.connectionMap, monitor.simulationMode,
+            // monitor.papercutServerProxy, monitor.papercutDbProxy,
+            // monitor.listFilterPendingExt);
         }
 
         for (final SmartschoolConnection connection : monitor.connectionMap
@@ -1103,7 +1126,7 @@ public final class SmartschoolPrintMonitor {
      *            The unicode string.
      * @return The 7-bit ascii character string.
      */
-    public static String unicodeToAscii(final String unicode) {
+    private static String unicodeToAscii(final String unicode) {
 
         final String stripped = StringUtils.stripAccents(unicode);
         final StringBuilder output = new StringBuilder(stripped.length());
@@ -1122,686 +1145,22 @@ public final class SmartschoolPrintMonitor {
      * {@link SmartschoolPrintStatusEnum#PENDING_EXT} Smartschool jobs (i.e jobs
      * that were proxy printed to a PaperCut managed printer).
      *
-     * @param connectionMap
-     *            The {@link SmartschoolConnection} map.
-     * @param papercutDbProxy
-     *            The {@link PaperCutDbProxy}.
+     * @param smartschoolMonitor
      * @throws PaperCutException
-     * @throws SOAPException
-     * @throws SmartschoolException
-     *
+     * @throws ExtSupplierException
+     * @throws ExtSupplierConnectException
      */
     private static void monitorPaperCut(
-            final Map<String, SmartschoolConnection> connectionMap,
-            final boolean simulationMode,
-            final PaperCutServerProxy papercutServerProxy,
-            final PaperCutDbProxy papercutDbProxy,
-            final DocLogDao.ListFilter listFilterPendingExt)
-            throws PaperCutException, SmartschoolException, SOAPException {
-
-        final DocLogDao doclogDao =
-                ServiceContext.getDaoContext().getDocLogDao();
-
-        final Map<String, DocLog> uniquePaperCutDocNames = new HashMap<>();
-
-        for (final DocLog docLog : doclogDao.getListChunk(listFilterPendingExt)) {
-            uniquePaperCutDocNames.put(docLog.getTitle(), docLog);
-        }
-
-        if (uniquePaperCutDocNames.isEmpty()) {
-            return;
-        }
-
-        final List<PaperCutPrinterUsageLog> papercutLogList =
-                PAPERCUT_SERVICE.getPrinterUsageLog(papercutDbProxy,
-                        uniquePaperCutDocNames.keySet());
-
-        final Set<String> paperCutDocNamesHandled = new HashSet<>();
-
-        for (final PaperCutPrinterUsageLog papercutLog : papercutLogList) {
-
-            paperCutDocNamesHandled.add(papercutLog.getDocumentName());
-
-            debugLog(papercutLog);
-
-            final DocLog docLog =
-                    uniquePaperCutDocNames.get(papercutLog.getDocumentName());
-
-            final SmartschoolPrintStatusEnum printStatus;
-            final String comment;
-
-            /*
-             * Database transaction.
-             */
-            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
-
-            final DaoContext daoContext = ServiceContext.getDaoContext();
-
-            try {
-
-                if (!daoContext.isTransactionActive()) {
-                    daoContext.beginTransaction();
-                }
-
-                if (papercutLog.isPrinted()) {
-
-                    printStatus = SmartschoolPrintStatusEnum.COMPLETED;
-                    comment = MSG_COMMENT_PRINT_COMPLETED;
-
-                    processPaperCutCompleted(papercutServerProxy, docLog,
-                            papercutLog, printStatus);
-
-                } else {
-
-                    if (papercutLog.getDeniedReason().contains("TIMEOUT")) {
-
-                        printStatus = SmartschoolPrintStatusEnum.EXPIRED;
-                        comment = MSG_COMMENT_PRINT_EXPIRED;
-
-                    } else if (papercutLog.getDeniedReason().contains(
-                            "DOCUMENT_TOO_LARGE")) {
-
-                        printStatus = SmartschoolPrintStatusEnum.CANCELLED;
-                        comment = MSG_COMMENT_PRINT_DOCUMENT_TOO_LARGE;
-
-                    } else {
-
-                        printStatus = SmartschoolPrintStatusEnum.CANCELLED;
-                        comment = MSG_COMMENT_PRINT_CANCELLED;
-                    }
-
-                    processPaperCutCancelled(docLog, papercutLog, printStatus);
-                }
-
-                daoContext.commit();
-
-            } finally {
-
-                daoContext.rollback();
-
-                ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
-
-            }
-
-            /*
-             * Get Smartschool account name from the document name.
-             */
-            final StringBuilder msg = new StringBuilder();
-
-            final String account =
-                    getAccountFromProxyPrintJobName(papercutLog
-                            .getDocumentName());
-
-            if (account == null) {
-
-                msg.append("No account found in DocLog supplier data for [")
-                        .append(papercutLog.getDocumentName()).append("].");
-
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn(msg.toString());
-                }
-
-                if (SmartschoolLogger.getLogger().isDebugEnabled()) {
-                    SmartschoolLogger.logDebug(msg.toString());
-                }
-                continue;
-            }
-
-            final SmartschoolConnection connection = connectionMap.get(account);
-
-            if (connection == null) {
-
-                msg.append("No connection found for account [").append(account)
-                        .append("] of [").append(papercutLog.getDocumentName())
-                        .append("].");
-
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn(msg.toString());
-                }
-
-                if (SmartschoolLogger.getLogger().isDebugEnabled()) {
-                    SmartschoolLogger.logDebug(msg.toString());
-                }
-                continue;
-            }
-
-            /*
-             * NOTE: reporting the status to Smartschool MUST be the LAST
-             * action.
-             */
-            reportDocumentStatus(connection, docLog.getExternalId(),
-                    printStatus, comment, simulationMode);
-
-        } // end-for
-
-        processPaperCutNotFound(uniquePaperCutDocNames, paperCutDocNamesHandled);
-
-    }
-
-    /**
-     * Processes Smartschool print jobs that cannot be found in PaperCut: status
-     * is set to {@link SmartschoolPrintStatusEnum#ERROR} when Smartschool job
-     * is more then {@link #MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG} old.
-     *
-     * @param papercutDocNamesToFind
-     *            The PaperCut documents to find.
-     * @param papercutDocNamesFound
-     *            The PaperCut documents found.
-     */
-    private static void processPaperCutNotFound(
-            final Map<String, DocLog> papercutDocNamesToFind,
-            final Set<String> papercutDocNamesFound) {
-
-        final DocLogDao doclogDao =
-                ServiceContext.getDaoContext().getDocLogDao();
-
-        for (final String docName : papercutDocNamesToFind.keySet()) {
-
-            if (papercutDocNamesFound.contains(docName)) {
-                continue;
-            }
-
-            final DocLog docLog = papercutDocNamesToFind.get(docName);
-
-            final long docAge =
-                    ServiceContext.getTransactionDate().getTime()
-                            - docLog.getCreatedDate().getTime();
-
-            if (docAge < MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG
-                    * DateUtil.DURATION_MSEC_DAY) {
-                continue;
-            }
-
-            final StringBuilder msg = new StringBuilder();
-
-            msg.append("PaperCut print log of ")
-                    .append(MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG)
-                    .append(" days old Smartschool document [").append(docName)
-                    .append("] not found.");
-
-            publishAdminMsg(PubLevelEnum.ERROR, msg.toString());
-
-            LOGGER.error(msg.toString());
-
-            /*
-             * Database transaction.
-             */
-            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
-
-            final DaoContext daoContext = ServiceContext.getDaoContext();
-
-            try {
-
-                if (!daoContext.isTransactionActive()) {
-                    daoContext.beginTransaction();
-                }
-
-                docLog.setExternalStatus(SmartschoolPrintStatusEnum.ERROR
-                        .toString());
-
-                doclogDao.update(docLog);
-
-                daoContext.commit();
-
-            } finally {
-
-                daoContext.rollback();
-
-                ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
-            }
-        }
-    }
-
-    /**
-     *
-     * Processes a cancelled PaperCut Smartschool print job.
-     * <ul>
-     * <li>The {@link DocLog} target and source is updated with the
-     * {@link SmartschoolPrintStatusEnum}.</li>
-     * <li>Publish Admin messages.</li>
-     * </ul>
-     *
-     * @param docLogOut
-     *            The SavaPage {@link DocLog} target holding the {@link DocOut}
-     *            with the {@link PrintOut}.
-     * @param papercutLog
-     *            The PaperCut usage log.
-     * @param printStatus
-     *            The {@link SmartschoolPrintStatusEnum}.
-     */
-    private static void processPaperCutCancelled(final DocLog docLogOut,
-            final PaperCutPrinterUsageLog papercutLog,
-            final SmartschoolPrintStatusEnum printStatus) {
-
-        final DocLogDao doclogDao =
-                ServiceContext.getDaoContext().getDocLogDao();
-
-        final DocInOutDao docInOutDao =
-                ServiceContext.getDaoContext().getDocInOutDao();
-
-        final StringBuilder msg = new StringBuilder();
-
-        msg.append("PaperCut print of Smartschool document [")
-                .append(papercutLog.getDocumentName()).append("] ")
-                .append(printStatus).append(" because \"")
-                .append(papercutLog.getDeniedReason()).append("\"");
-
-        publishAdminMsg(PubLevelEnum.WARN, msg.toString());
-
-        docLogOut.setExternalStatus(printStatus.toString());
-        doclogDao.update(docLogOut);
-
-        /*
-         * Get and update the DocLog source.
-         */
-        final DocLog docLogIn =
-                docInOutDao.findDocOutSource(docLogOut.getDocOut().getId());
-
-        docLogIn.setExternalStatus(printStatus.toString());
-        doclogDao.update(docLogIn);
-    }
-
-    /**
-     * Processes a completed PaperCut Smartschool print job.
-     * <ul>
-     * <li>The Personal and Shared SmartSchool\Klas accounts are lazy adjusted
-     * in PaperCut and SavaPage.</li>
-     * <li>The {@link AccountTrx} objects are moved from the {@link DocLog}
-     * source to the {@link DocLog} target.</li>
-     * <li>The {@link DocLog} target is updated with the
-     * {@link SmartschoolPrintStatusEnum}.</li>
-     * <li>Publish Admin messages.</li>
-     * </ul>
-     *
-     * @param papercutServerProxy
-     *            The {@link PaperCutServerProxy}.
-     * @param docLogOut
-     *            The SavaPage {@link DocLog} target holding the {@link DocOut}
-     *            with the {@link PrintOut}.
-     * @param papercutLog
-     *            The {@link PaperCutPrinterUsageLog}.
-     * @param printStatus
-     *            The {@link SmartschoolPrintStatusEnum}.
-     * @throws PaperCutException
-     *             When a PaperCut error occurs.
-     */
-    private static void processPaperCutCompleted(
-            final PaperCutServerProxy papercutServerProxy,
-            final DocLog docLogOut, final PaperCutPrinterUsageLog papercutLog,
-            final SmartschoolPrintStatusEnum printStatus)
-            throws PaperCutException {
-
-        //
-        final AccountDao accountDao =
-                ServiceContext.getDaoContext().getAccountDao();
-
-        final AccountTrxDao accountTrxDao =
-                ServiceContext.getDaoContext().getAccountTrxDao();
-
-        final DocInOutDao docInOutDao =
-                ServiceContext.getDaoContext().getDocInOutDao();
-
-        final DocLogDao doclogDao =
-                ServiceContext.getDaoContext().getDocLogDao();
-
-        /*
-         * Get the DocLog source.
-         */
-        final DocLog docLogIn =
-                docInOutDao.findDocOutSource(docLogOut.getDocOut().getId());
-
-        final PrintOut printOutLog = docLogOut.getDocOut().getPrintOut();
-
-        //
-        final String indicatorDuplex;
-
-        if (printOutLog.getDuplex().booleanValue()) {
-            indicatorDuplex = DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_ON;
-        } else {
-            indicatorDuplex = DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_OFF;
-        }
-
-        //
-        final String indicatorColor;
-
-        if (printOutLog.getGrayscale().booleanValue()) {
-            indicatorColor = DelegatedPrintCommentSyntax.INDICATOR_COLOR_OFF;
-        } else {
-            indicatorColor = DelegatedPrintCommentSyntax.INDICATOR_COLOR_ON;
-        }
-
-        final String indicatorPaperSize =
-                DelegatedPrintCommentSyntax
-                        .convertToPaperSizeIndicator(printOutLog.getPaperSize());
-
-        final String indicatorExternalId = docLogOut.getExternalId();
-
-        /*
-         * Any transactions?
-         */
-        final List<AccountTrx> trxList = docLogIn.getTransactions();
-
-        if (trxList == null || trxList.isEmpty()) {
-
-            if (SmartschoolLogger.getLogger().isDebugEnabled()) {
-                SmartschoolLogger.logDebug(String.format(
-                        "No DocLog transactions found for [%s] [%s]",
-                        docLogOut.getTitle(), docLogOut.getId().toString()));
-            }
-            return;
-        }
-
-        /*
-         * Get total number of copies from the external data and use as weight
-         * total. IMPORTANT: the accumulated weight of the individual Account
-         * transactions need NOT be the same as the number of copies (since
-         * parts of the printing costs may be charged to multiple accounts).
-         */
-        final SmartschoolPrintInData externalPrintInData =
-                SmartschoolPrintInData.createFromData(docLogIn
-                        .getExternalData());
-
-        final int weightTotal = externalPrintInData.getCopies().intValue();
-
-        /*
-         * Total printing cost reported by PaperCut.
-         */
-        final BigDecimal papercutUsageCost =
-                BigDecimal.valueOf(papercutLog.getUsageCost());
-
-        /*
-         * Number of decimals for decimal scaling.
-         */
-        final int scale = ConfigManager.getFinancialDecimalsInDatabase();
-
-        /*
-         * Number of pages in the printed document.
-         */
-        final Integer numberOfDocumentPages = docLogIn.getNumberOfPages();
-
-        /*
-         * Comment with job data.
-         */
-        final String requestingUserId = docLogIn.getUser().getUserId();
-
-        final StringBuilder jobTrxComment = new StringBuilder();
-
-        // user | copies | pages
-        jobTrxComment
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
-                .append(requestingUserId)
-                //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(weightTotal)
-                //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(numberOfDocumentPages);
-
-        // ... | A4 | S | G | id
-        jobTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR);
-
-        DelegatedPrintCommentSyntax.appendIndicatorFields(jobTrxComment,
-                indicatorPaperSize, indicatorDuplex, indicatorColor,
-                indicatorExternalId);
-
-        /*
-         * Adjust the Personal and Shared Accounts in PaperCut and update the
-         * SavaPage AccountTrx's.
-         */
-        int weightTotalJobTrx = 0;
-
-        for (final AccountTrx trx : trxList) {
-
-            final int weight = trx.getTransactionWeight().intValue();
-
-            final BigDecimal weightedCost =
-                    ACCOUNTING_SERVICE.calcWeightedAmount(papercutUsageCost,
-                            weightTotal, weight, scale);
-
-            final org.savapage.core.jpa.Account account = trx.getAccount();
-
-            /*
-             * PaperCut account adjustment.
-             */
-            final BigDecimal papercutAdjustment = weightedCost.negate();
-
-            final AccountTypeEnum accountType =
-                    AccountTypeEnum.valueOf(account.getAccountType());
-
-            if (accountType == AccountTypeEnum.SHARED) {
-
-                /*
-                 * Adjust Shared SmartSchool/klas Account.
-                 */
-                final String topAccountName = account.getParent().getName();
-                final String subAccountName = account.getName();
-
-                final String klasName =
-                        SMARTSCHOOL_SERVICE
-                                .getKlasFromComposedAccountName(subAccountName);
-
-                // requester | copies | pages
-                final StringBuilder klasTrxComment = new StringBuilder();
-
-                klasTrxComment
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
-                        .append(requestingUserId)
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(weight)
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(docLogIn.getNumberOfPages());
-
-                // ... | A4 | S | G | id
-                klasTrxComment
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR);
-
-                DelegatedPrintCommentSyntax.appendIndicatorFields(
-                        klasTrxComment, indicatorPaperSize, indicatorDuplex,
-                        indicatorColor, indicatorExternalId);
-
-                // ... | document | comment
-                klasTrxComment
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(docLogIn.getTitle())
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(docLogIn.getLogComment())
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_LAST);
-
-                if (SmartschoolLogger.getLogger().isDebugEnabled()) {
-
-                    SmartschoolLogger.logDebug(String.format(
-                            "PaperCut shared account [%s] "
-                                    + "adjustment [%s] comment: %s",
-                            papercutServerProxy.composeSharedAccountName(
-                                    topAccountName, subAccountName),
-                            papercutAdjustment.toPlainString(), klasTrxComment
-                                    .toString()));
-                }
-
-                PAPERCUT_SERVICE.lazyAdjustSharedAccount(papercutServerProxy,
-                        topAccountName, subAccountName, papercutAdjustment,
-                        klasTrxComment.toString());
-
-                // ... | user@class-n | copies-n
-                jobTrxComment
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(requestingUserId)
-                        //
-                        .append(DelegatedPrintCommentSyntax.USER_CLASS_SEPARATOR)
-                        .append(klasName)
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(weight);
-
-                weightTotalJobTrx += weight;
-
-            } else {
-
-                final StringBuilder userCopiesComment = new StringBuilder();
-
-                // class | requester | copies | pages
-                userCopiesComment
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
-                        .append(StringUtils.defaultString(trx.getExtDetails(),
-                                DelegatedPrintCommentSyntax.DUMMY_KLAS))
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(requestingUserId)
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(weight)
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(docLogIn.getNumberOfPages());
-
-                //
-                // ... | A4 | S | G | id
-                userCopiesComment
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR);
-
-                DelegatedPrintCommentSyntax.appendIndicatorFields(
-                        userCopiesComment, indicatorPaperSize, indicatorDuplex,
-                        indicatorColor, indicatorExternalId);
-
-                // ... | document | comment
-                userCopiesComment
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(docLogIn.getTitle())
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                        .append(docLogIn.getLogComment())
-                        //
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_LAST);
-
-                //
-                final UserAccountDao userAccountDao =
-                        ServiceContext.getDaoContext().getUserAccountDao();
-
-                /*
-                 * Get the user of the transaction.
-                 */
-                final User user =
-                        userAccountDao
-                                .findByAccountId(trx.getAccount().getId())
-                                .getUser();
-                /*
-                 * Adjust Personal Account.
-                 */
-                if (SmartschoolLogger.getLogger().isDebugEnabled()) {
-
-                    SmartschoolLogger.logDebug(String.format(
-                            "PaperCut personal account [%s] "
-                                    + "adjustment [%s] comment [%s]",
-                            user.getUserId(),
-                            papercutAdjustment.toPlainString(),
-                            userCopiesComment.toString()));
-                }
-
-                PAPERCUT_SERVICE.adjustUserAccountBalance(papercutServerProxy,
-                        user.getUserId(), PAPERCUT_USER_ACCOUNT_NAME,
-                        papercutAdjustment, userCopiesComment.toString());
-            }
-
-            /*
-             * Update Account.
-             */
-            account.setBalance(account.getBalance().subtract(weightedCost));
-            accountDao.update(account);
-
-            /*
-             * Update AccountTrx.
-             */
-            trx.setAmount(papercutAdjustment);
-            trx.setBalance(account.getBalance());
-
-            trx.setTransactedBy(ServiceContext.getActor());
-            trx.setTransactionDate(ServiceContext.getTransactionDate());
-
-            // Move from DocLog source to target.
-            trx.setDocLog(docLogOut);
-
-            accountTrxDao.update(trx);
-        }
-
-        /*
-         * Create a transaction in the shared Jobs account with a comment of
-         * formatted job data.
-         */
-
-        // ... |
-        if (weightTotalJobTrx != weightTotal) {
-
-            jobTrxComment
-                    .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                    .append(requestingUserId)
-                    //
-                    .append(DelegatedPrintCommentSyntax.USER_CLASS_SEPARATOR)
-                    .append(DelegatedPrintCommentSyntax.DUMMY_KLAS)
-                    //
-                    .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                    .append(weightTotal - weightTotalJobTrx);
-        }
-
-        // ... | document | comment
-        jobTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(docLogIn.getTitle())
-                //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(docLogIn.getLogComment())
-                //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_LAST);
-
-        PAPERCUT_SERVICE.lazyAdjustSharedAccount(papercutServerProxy,
-                SMARTSCHOOL_SERVICE.getSharedParentAccountName(),
-                SMARTSCHOOL_SERVICE.getSharedJobsAccountName(),
-                papercutUsageCost.negate(), StringUtils.abbreviate(
-                        jobTrxComment.toString(),
-                        PaperCutDbProxy.COL_LEN_TXN_COMMENT));
-
-        /*
-         * Move the AccountTrx list from DocLog source to target and Update
-         * source and target.
-         */
-        docLogOut.setExternalStatus(printStatus.toString());
-        docLogOut.setTransactions(trxList);
-        doclogDao.update(docLogOut);
-
-        docLogIn.setExternalStatus(printStatus.toString());
-        docLogIn.setTransactions(null);
-        doclogDao.update(docLogIn);
-
-        /*
-         * Publish admin message.
-         */
-        publishAdminMsg(PubLevelEnum.CLEAR, String.format(
-                "PaperCut print of Smartschool document [%s] %s",
-                papercutLog.getDocumentName(), printStatus.toString()));
-
-    }
-
-    /**
-     * Logs content of a {@link PaperCutPrinterUsageLog} object.
-     *
-     * @param usageLog
-     *            The object to log.
-     */
-    private static void debugLog(final PaperCutPrinterUsageLog usageLog) {
-
-        if (LOGGER.isDebugEnabled()) {
-            final StringBuilder msg = new StringBuilder();
-            msg.append(usageLog.getDocumentName()).append(" | printed [")
-                    .append(usageLog.isPrinted()).append("] cancelled [")
-                    .append(usageLog.isCancelled()).append("] deniedReason [")
-                    .append(usageLog.getDeniedReason()).append("] usageCost[")
-                    .append(usageLog.getUsageCost()).append("]");
-            LOGGER.debug(msg.toString());
-        }
+            final SmartschoolPrintMonitor smartschoolMonitor)
+            throws PaperCutException, ExtSupplierException,
+            ExtSupplierConnectException {
+
+        final PaperCutPrintJobMonitor papercutMonitor =
+                new PaperCutPrintJobMonitor(ExternalSupplierEnum.SMARTSCHOOL,
+                        smartschoolMonitor.papercutServerProxy,
+                        smartschoolMonitor.papercutDbProxy, smartschoolMonitor);
+
+        papercutMonitor.process();
     }
 
     /**
@@ -1949,7 +1308,7 @@ public final class SmartschoolPrintMonitor {
      * @return The {@link DocContentPrintInInfo}.
      * @throws PdfSecurityException
      *             When the PDF file has security restrictions.
-     * @throws InvalidPdfException
+     * @throws PdfValidityException
      *             When the document isn't a valid PDF document.
      */
     private static DocContentPrintInInfo createPrintInInfo(
@@ -2996,39 +2355,9 @@ public final class SmartschoolPrintMonitor {
     private static String encodeProxyPrintJobName(
             final SmartschoolConnection connection, final Document document) {
 
-        final String suffix =
-                String.format("%s%s%s%s",
-                        DelegatedPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR,
-                        connection.getAccountName(),
-                        DelegatedPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR,
-                        document.getId());
-
-        if (suffix.length() > PaperCutDbProxy.COL_LEN_DOCUMENT_NAME) {
-            throw new RuntimeException("length exceeded");
-        }
-
-        return unicodeToAscii(String.format("%s%s", StringUtils.abbreviate(
-                document.getName(), PaperCutDbProxy.COL_LEN_DOCUMENT_NAME
-                        - suffix.length()), suffix));
-    }
-
-    /**
-     *
-     * @param jobName
-     *            The job name.
-     * @return {@code null} when not found.
-     */
-    private static String getAccountFromProxyPrintJobName(final String jobName) {
-
-        final String[] parts =
-                StringUtils.split(jobName,
-                        DelegatedPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR);
-
-        if (parts.length < 3) {
-            return null;
-        }
-
-        return parts[parts.length - 2];
+        return PaperCutHelper.encodeProxyPrintJobName(
+                connection.getAccountName(), document.getId(),
+                document.getName());
     }
 
     /**
@@ -3395,6 +2724,560 @@ public final class SmartschoolPrintMonitor {
                     + jobTicket.getDocuments().getDocument().size());
         }
 
+    }
+
+    @Override
+    public void onPaperCutPrintJobCancelled(final DocLog docLogOut,
+            final PaperCutPrinterUsageLog papercutLog,
+            final ExternalSupplierStatusEnum printStatus) {
+
+        final DocLogDao doclogDao =
+                ServiceContext.getDaoContext().getDocLogDao();
+
+        final DocInOutDao docInOutDao =
+                ServiceContext.getDaoContext().getDocInOutDao();
+
+        docLogOut.setExternalStatus(printStatus.toString());
+        doclogDao.update(docLogOut);
+
+        /*
+         * Get and update the DocLog source.
+         */
+        final DocLog docLogIn =
+                docInOutDao.findDocOutSource(docLogOut.getDocOut().getId());
+
+        docLogIn.setExternalStatus(printStatus.toString());
+        doclogDao.update(docLogIn);
+
+    }
+
+    @Override
+    public void onPaperCutPrintJobCompleted(
+            PaperCutServerProxy papercutServerProxy, DocLog docLogOut,
+            PaperCutPrinterUsageLog papercutLog,
+            ExternalSupplierStatusEnum printStatus) throws PaperCutException {
+
+        final AccountDao accountDao =
+                ServiceContext.getDaoContext().getAccountDao();
+
+        final AccountTrxDao accountTrxDao =
+                ServiceContext.getDaoContext().getAccountTrxDao();
+
+        final DocInOutDao docInOutDao =
+                ServiceContext.getDaoContext().getDocInOutDao();
+
+        final DocLogDao doclogDao =
+                ServiceContext.getDaoContext().getDocLogDao();
+
+        /*
+         * Get the DocLog source.
+         */
+        final DocLog docLogIn =
+                docInOutDao.findDocOutSource(docLogOut.getDocOut().getId());
+
+        final PrintOut printOutLog = docLogOut.getDocOut().getPrintOut();
+
+        //
+        final String indicatorDuplex;
+
+        if (printOutLog.getDuplex().booleanValue()) {
+            indicatorDuplex = DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_ON;
+        } else {
+            indicatorDuplex = DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_OFF;
+        }
+
+        //
+        final String indicatorColor;
+
+        if (printOutLog.getGrayscale().booleanValue()) {
+            indicatorColor = DelegatedPrintCommentSyntax.INDICATOR_COLOR_OFF;
+        } else {
+            indicatorColor = DelegatedPrintCommentSyntax.INDICATOR_COLOR_ON;
+        }
+
+        final String indicatorPaperSize =
+                DelegatedPrintCommentSyntax
+                        .convertToPaperSizeIndicator(printOutLog.getPaperSize());
+
+        final String indicatorExternalId = docLogOut.getExternalId();
+
+        /*
+         * Any transactions?
+         */
+        final List<AccountTrx> trxList = docLogIn.getTransactions();
+
+        if (trxList == null || trxList.isEmpty()) {
+
+            if (SmartschoolLogger.getLogger().isDebugEnabled()) {
+                SmartschoolLogger.logDebug(String.format(
+                        "No DocLog transactions found for [%s] [%s]",
+                        docLogOut.getTitle(), docLogOut.getId().toString()));
+            }
+            return;
+        }
+
+        /*
+         * Get total number of copies from the external data and use as weight
+         * total. IMPORTANT: the accumulated weight of the individual Account
+         * transactions need NOT be the same as the number of copies (since
+         * parts of the printing costs may be charged to multiple accounts).
+         */
+        final SmartschoolPrintInData externalPrintInData =
+                SmartschoolPrintInData.createFromData(docLogIn
+                        .getExternalData());
+
+        final int weightTotal = externalPrintInData.getCopies().intValue();
+
+        /*
+         * Total printing cost reported by PaperCut.
+         */
+        final BigDecimal papercutUsageCost =
+                BigDecimal.valueOf(papercutLog.getUsageCost());
+
+        /*
+         * Number of decimals for decimal scaling.
+         */
+        final int scale = ConfigManager.getFinancialDecimalsInDatabase();
+
+        /*
+         * Number of pages in the printed document.
+         */
+        final Integer numberOfDocumentPages = docLogIn.getNumberOfPages();
+
+        /*
+         * Comment with job data.
+         */
+        final String requestingUserId = docLogIn.getUser().getUserId();
+
+        final StringBuilder jobTrxComment = new StringBuilder();
+
+        // user | copies | pages
+        jobTrxComment
+                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
+                .append(requestingUserId)
+                //
+                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(weightTotal)
+                //
+                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(numberOfDocumentPages);
+
+        // ... | A4 | S | G | id
+        jobTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR);
+
+        DelegatedPrintCommentSyntax.appendIndicatorFields(jobTrxComment,
+                indicatorPaperSize, indicatorDuplex, indicatorColor,
+                indicatorExternalId);
+
+        /*
+         * Adjust the Personal and Shared Accounts in PaperCut and update the
+         * SavaPage AccountTrx's.
+         */
+        int weightTotalJobTrx = 0;
+
+        for (final AccountTrx trx : trxList) {
+
+            final int weight = trx.getTransactionWeight().intValue();
+
+            final BigDecimal weightedCost =
+                    ACCOUNTING_SERVICE.calcWeightedAmount(papercutUsageCost,
+                            weightTotal, weight, scale);
+
+            final org.savapage.core.jpa.Account account = trx.getAccount();
+
+            /*
+             * PaperCut account adjustment.
+             */
+            final BigDecimal papercutAdjustment = weightedCost.negate();
+
+            final AccountTypeEnum accountType =
+                    AccountTypeEnum.valueOf(account.getAccountType());
+
+            if (accountType == AccountTypeEnum.SHARED) {
+
+                /*
+                 * Adjust Shared SmartSchool/klas Account.
+                 */
+                final String topAccountName = account.getParent().getName();
+                final String subAccountName = account.getName();
+
+                final String klasName =
+                        SMARTSCHOOL_SERVICE
+                                .getKlasFromComposedAccountName(subAccountName);
+
+                // requester | copies | pages
+                final StringBuilder klasTrxComment = new StringBuilder();
+
+                klasTrxComment
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
+                        .append(requestingUserId)
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(weight)
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(docLogIn.getNumberOfPages());
+
+                // ... | A4 | S | G | id
+                klasTrxComment
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR);
+
+                DelegatedPrintCommentSyntax.appendIndicatorFields(
+                        klasTrxComment, indicatorPaperSize, indicatorDuplex,
+                        indicatorColor, indicatorExternalId);
+
+                // ... | document | comment
+                klasTrxComment
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(docLogIn.getTitle())
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(docLogIn.getLogComment())
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_LAST);
+
+                if (SmartschoolLogger.getLogger().isDebugEnabled()) {
+
+                    SmartschoolLogger.logDebug(String.format(
+                            "PaperCut shared account [%s] "
+                                    + "adjustment [%s] comment: %s",
+                            papercutServerProxy.composeSharedAccountName(
+                                    topAccountName, subAccountName),
+                            papercutAdjustment.toPlainString(), klasTrxComment
+                                    .toString()));
+                }
+
+                PAPERCUT_SERVICE.lazyAdjustSharedAccount(papercutServerProxy,
+                        topAccountName, subAccountName, papercutAdjustment,
+                        klasTrxComment.toString());
+
+                // ... | user@class-n | copies-n
+                jobTrxComment
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(requestingUserId)
+                        //
+                        .append(DelegatedPrintCommentSyntax.USER_CLASS_SEPARATOR)
+                        .append(klasName)
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(weight);
+
+                weightTotalJobTrx += weight;
+
+            } else {
+
+                final StringBuilder userCopiesComment = new StringBuilder();
+
+                // class | requester | copies | pages
+                userCopiesComment
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
+                        .append(StringUtils.defaultString(trx.getExtDetails(),
+                                DelegatedPrintCommentSyntax.DUMMY_KLAS))
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(requestingUserId)
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(weight)
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(docLogIn.getNumberOfPages());
+
+                //
+                // ... | A4 | S | G | id
+                userCopiesComment
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR);
+
+                DelegatedPrintCommentSyntax.appendIndicatorFields(
+                        userCopiesComment, indicatorPaperSize, indicatorDuplex,
+                        indicatorColor, indicatorExternalId);
+
+                // ... | document | comment
+                userCopiesComment
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(docLogIn.getTitle())
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(docLogIn.getLogComment())
+                        //
+                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_LAST);
+
+                //
+                final UserAccountDao userAccountDao =
+                        ServiceContext.getDaoContext().getUserAccountDao();
+
+                /*
+                 * Get the user of the transaction.
+                 */
+                final User user =
+                        userAccountDao
+                                .findByAccountId(trx.getAccount().getId())
+                                .getUser();
+                /*
+                 * Adjust Personal Account.
+                 */
+                if (SmartschoolLogger.getLogger().isDebugEnabled()) {
+
+                    SmartschoolLogger.logDebug(String.format(
+                            "PaperCut personal account [%s] "
+                                    + "adjustment [%s] comment [%s]",
+                            user.getUserId(),
+                            papercutAdjustment.toPlainString(),
+                            userCopiesComment.toString()));
+                }
+
+                PAPERCUT_SERVICE.adjustUserAccountBalance(papercutServerProxy,
+                        user.getUserId(), PAPERCUT_USER_ACCOUNT_NAME,
+                        papercutAdjustment, userCopiesComment.toString());
+            }
+
+            /*
+             * Update Account.
+             */
+            account.setBalance(account.getBalance().subtract(weightedCost));
+            accountDao.update(account);
+
+            /*
+             * Update AccountTrx.
+             */
+            trx.setAmount(papercutAdjustment);
+            trx.setBalance(account.getBalance());
+
+            trx.setTransactedBy(ServiceContext.getActor());
+            trx.setTransactionDate(ServiceContext.getTransactionDate());
+
+            // Move from DocLog source to target.
+            trx.setDocLog(docLogOut);
+
+            accountTrxDao.update(trx);
+        }
+
+        /*
+         * Create a transaction in the shared Jobs account with a comment of
+         * formatted job data.
+         */
+
+        // ... |
+        if (weightTotalJobTrx != weightTotal) {
+
+            jobTrxComment
+                    .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                    .append(requestingUserId)
+                    //
+                    .append(DelegatedPrintCommentSyntax.USER_CLASS_SEPARATOR)
+                    .append(DelegatedPrintCommentSyntax.DUMMY_KLAS)
+                    //
+                    .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                    .append(weightTotal - weightTotalJobTrx);
+        }
+
+        // ... | document | comment
+        jobTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(docLogIn.getTitle())
+                //
+                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(docLogIn.getLogComment())
+                //
+                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_LAST);
+
+        PAPERCUT_SERVICE.lazyAdjustSharedAccount(papercutServerProxy,
+                SMARTSCHOOL_SERVICE.getSharedParentAccountName(),
+                SMARTSCHOOL_SERVICE.getSharedJobsAccountName(),
+                papercutUsageCost.negate(), StringUtils.abbreviate(
+                        jobTrxComment.toString(),
+                        PaperCutDbProxy.COL_LEN_TXN_COMMENT));
+
+        /*
+         * Move the AccountTrx list from DocLog source to target and Update
+         * source and target.
+         */
+        docLogOut.setExternalStatus(printStatus.toString());
+        docLogOut.setTransactions(trxList);
+        doclogDao.update(docLogOut);
+
+        docLogIn.setExternalStatus(printStatus.toString());
+        docLogIn.setTransactions(null);
+        doclogDao.update(docLogIn);
+    }
+
+    @Override
+    public void onPaperCutPrintJobProcessed(final DocLog docLog,
+            final PaperCutPrinterUsageLog papercutLog,
+            final ExternalSupplierStatusEnum printStatus,
+            final boolean isDocumentTooLarge) throws ExtSupplierException,
+            ExtSupplierConnectException {
+
+        final SmartschoolPrintStatusEnum smartschoolPrintStatus =
+                SmartschoolPrintStatusEnum.fromGenericStatus(printStatus);
+
+        try {
+            /*
+             * Get Smartschool account name from the document name.
+             */
+            final StringBuilder msg = new StringBuilder();
+
+            final String account =
+                    PaperCutHelper
+                            .getAccountFromEncodedProxyPrintJobName(papercutLog
+                                    .getDocumentName());
+
+            if (account == null) {
+
+                msg.append("No account found in DocLog supplier data for [")
+                        .append(papercutLog.getDocumentName()).append("].");
+
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(msg.toString());
+                }
+
+                if (SmartschoolLogger.getLogger().isDebugEnabled()) {
+                    SmartschoolLogger.logDebug(msg.toString());
+                }
+                return;
+            }
+
+            final SmartschoolConnection connection = connectionMap.get(account);
+
+            if (connection == null) {
+
+                msg.append("No connection found for account [").append(account)
+                        .append("] of [").append(papercutLog.getDocumentName())
+                        .append("].");
+
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(msg.toString());
+                }
+
+                if (SmartschoolLogger.getLogger().isDebugEnabled()) {
+                    SmartschoolLogger.logDebug(msg.toString());
+                }
+                return;
+            }
+
+            final String comment;
+
+            switch (printStatus) {
+
+            case CANCELLED:
+                if (isDocumentTooLarge) {
+                    comment = MSG_COMMENT_PRINT_DOCUMENT_TOO_LARGE;
+                } else {
+                    comment = MSG_COMMENT_PRINT_CANCELLED;
+                }
+                break;
+
+            case COMPLETED:
+                comment = MSG_COMMENT_PRINT_COMPLETED;
+                break;
+
+            case EXPIRED:
+                comment = MSG_COMMENT_PRINT_EXPIRED;
+                break;
+
+            default:
+                comment = null;
+                break;
+            }
+
+            //
+            reportDocumentStatus(connection, docLog.getExternalId(),
+                    smartschoolPrintStatus, comment, this.simulationMode);
+
+        } catch (SmartschoolException e) {
+            throw new ExtSupplierException(e.getMessage(), e);
+        } catch (SOAPException e) {
+            throw new ExtSupplierConnectException(e.getMessage(), e);
+        }
+
+        //
+        final PubLevelEnum pubLevel;
+        final StringBuilder msg = new StringBuilder();
+
+        if (printStatus == ExternalSupplierStatusEnum.COMPLETED) {
+            pubLevel = PubLevelEnum.CLEAR;
+            msg.append("PaperCut print of Smartschool document [")
+                    .append(papercutLog.getDocumentName()).append("] ")
+                    .append(printStatus.toString());
+        } else {
+            pubLevel = PubLevelEnum.WARN;
+            msg.append("PaperCut print of Smartschool document [")
+                    .append(papercutLog.getDocumentName()).append("] ")
+                    .append(printStatus).append(" because \"")
+                    .append(papercutLog.getDeniedReason()).append("\"");
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(msg.toString());
+        }
+
+        publishAdminMsg(pubLevel, msg.toString());
+    }
+
+    @Override
+    public void onPaperCutPrintJobsNotFound(
+            Map<String, DocLog> papercutDocNamesToFind,
+            Set<String> papercutDocNamesFound) {
+
+        final DocLogDao doclogDao =
+                ServiceContext.getDaoContext().getDocLogDao();
+
+        for (final String docName : papercutDocNamesToFind.keySet()) {
+
+            if (papercutDocNamesFound.contains(docName)) {
+                continue;
+            }
+
+            final DocLog docLog = papercutDocNamesToFind.get(docName);
+
+            final long docAge =
+                    ServiceContext.getTransactionDate().getTime()
+                            - docLog.getCreatedDate().getTime();
+
+            if (docAge < MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG
+                    * DateUtil.DURATION_MSEC_DAY) {
+                continue;
+            }
+
+            final StringBuilder msg = new StringBuilder();
+
+            msg.append("PaperCut print log of ")
+                    .append(MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG)
+                    .append(" days old Smartschool document [").append(docName)
+                    .append("] not found.");
+
+            publishAdminMsg(PubLevelEnum.ERROR, msg.toString());
+
+            LOGGER.error(msg.toString());
+
+            /*
+             * Database transaction.
+             */
+            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
+
+            final DaoContext daoContext = ServiceContext.getDaoContext();
+
+            try {
+
+                if (!daoContext.isTransactionActive()) {
+                    daoContext.beginTransaction();
+                }
+
+                docLog.setExternalStatus(SmartschoolPrintStatusEnum.ERROR
+                        .toString());
+
+                doclogDao.update(docLog);
+
+                daoContext.commit();
+
+            } finally {
+
+                daoContext.rollback();
+
+                ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+            }
+        }
     }
 
 }

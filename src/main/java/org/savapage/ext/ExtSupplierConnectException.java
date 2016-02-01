@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,59 +19,52 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.enums;
+package org.savapage.ext;
 
 /**
+ * Error connecting to external supplier.
  *
  * @author Rijk Ravestein
  *
  */
-public enum ExternalSupplierEnum {
-
-    /**
-     * SavaPage in role as external supplier.
-     */
-    SAVAPAGE("SavaPage", "savapage.png"),
-
-    /**
-     * Smartschool Afdrukcentrum.
-     */
-    SMARTSCHOOL("Smartschool", "smartschool.jpg");
-
-    /**
-     * Text to display in user interface.
-     */
-    private final String uiText;
-
-    /**
-     * Image file name.
-     */
-    private final String imageFileName;
+public class ExtSupplierConnectException extends Exception {
 
     /**
      *
-     * @param uiText
-     *            Text to display in user interface.
-     * @param imageFileName
-     *            Image file name.
      */
-    private ExternalSupplierEnum(final String uiText, final String imageFileName) {
-        this.uiText = uiText;
-        this.imageFileName = imageFileName;
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Constructs a new {@link ExtSupplierConnectException}.
+     *
+     * @param cause
+     *            The cause.
+     */
+    public ExtSupplierConnectException(final Throwable cause) {
+        super(cause);
     }
 
     /**
-     * @return Text to display in user interface.
+     * Constructs a new {@link ExtSupplierConnectException}.
+     *
+     * @param message
+     *            The detail message.
      */
-    public String getUiText() {
-        return uiText;
+    public ExtSupplierConnectException(final String message) {
+        super(message);
     }
 
     /**
-     * @return The image filename.
+     * Constructs a new {@link ExtSupplierConnectException}.
+     *
+     * @param message
+     *            The detail message.
+     * @param cause
+     *            The cause.
      */
-    public String getImageFileName() {
-        return imageFileName;
+    public ExtSupplierConnectException(final String message,
+            final Throwable cause) {
+        super(message, cause);
     }
 
 }

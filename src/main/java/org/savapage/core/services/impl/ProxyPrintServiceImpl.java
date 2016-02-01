@@ -102,11 +102,13 @@ import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptGroup;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.InetUtils;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
+import org.savapage.ext.papercut.PaperCutHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -3278,6 +3280,24 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     @Override
     public URL getCupsAdminUrl() {
         return getCupsUrl("/admin");
+    }
+
+    @Override
+    public ThirdPartyEnum getExtPrinterManager(final String cupsPrinterName) {
+
+        final JsonProxyPrinter cupsPrinter =
+                this.getCachedPrinter(cupsPrinterName);
+
+        if (cupsPrinter != null) {
+
+            final URI deviceUri = cupsPrinter.getDeviceUri();
+
+            if (deviceUri != null
+                    && PaperCutHelper.isPaperCutPrinter(deviceUri)) {
+                return ThirdPartyEnum.PAPERCUT;
+            }
+        }
+        return null;
     }
 
 }

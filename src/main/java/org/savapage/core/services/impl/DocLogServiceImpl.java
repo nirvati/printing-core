@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.PerformanceLogger;
 import org.savapage.core.SpException;
@@ -48,6 +49,7 @@ import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintInDeniedReasonEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.ipp.IppJobStateEnum;
@@ -283,8 +285,16 @@ public final class DocLogServiceImpl extends AbstractService implements
 
                 /*
                  * Account Transactions.
+                 *
+                 * NOTE: Always create account transactions when External
+                 * Supplier Status is Pending, even when costs are zero.
                  */
-                if (docLog.getCostOriginal().compareTo(BigDecimal.ZERO) != 0) {
+                final ExternalSupplierStatusEnum externalStatus =
+                        EnumUtils.getEnum(ExternalSupplierStatusEnum.class,
+                                docLog.getExternalStatus());
+
+                if (externalStatus == ExternalSupplierStatusEnum.PENDING_EXT
+                        || docLog.getCostOriginal().compareTo(BigDecimal.ZERO) != 0) {
 
                     if (accountTrxInfoSet == null) {
 
