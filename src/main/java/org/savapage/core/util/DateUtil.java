@@ -101,4 +101,32 @@ public final class DateUtil {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(date);
     }
 
+    /**
+     * Formats elapsed milliseconds into readable string.
+     *
+     * @param diff
+     *            milliseconds
+     * @return formatted string
+     */
+    public static String formatDuration(long duration) {
+
+        long durationSeconds = duration / 1000;
+
+        long days = durationSeconds / 86400;
+        long hours = (durationSeconds % 86400) / 3600;
+        long minutes = ((durationSeconds % 86400) % 3600) / 60;
+
+        if (days == 0) {
+            if (hours == 0) {
+                if (minutes == 0) {
+                    long seconds = ((durationSeconds % 86400) % 3600) % 60;
+                    return String.format("%ds", seconds);
+                }
+                return String.format("%dm", minutes);
+            }
+            return String.format("%dh %dm", hours, minutes);
+        }
+        return String.format("%dd %dh %dm", days, hours, minutes);
+    }
+
 }
