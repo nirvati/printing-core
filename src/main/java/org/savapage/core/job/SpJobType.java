@@ -55,6 +55,11 @@ public enum SpJobType {
     EMAIL_OUTBOX_MONITOR,
 
     /**
+     * Monitors PaperCut Print jobs.
+     */
+    PAPERCUT_PRINT_MONITOR,
+
+    /**
      * Synchronize users.
      */
     SYNC_USERS,

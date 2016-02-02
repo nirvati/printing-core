@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <entry key="PaperCutPrintMonitor.error">PaperCut Print toezicht fout: {0}</entry>
+    <entry key="PaperCutPrintMonitor.started">PaperCut Print toezicht gestart.</entry>
+    <entry key="PaperCutPrintMonitor.stopped">PaperCut Print toezicht gestopt.</entry>
+    <entry key="PaperCutPrintMonitor.restart">PaperCut Print toezicht gestopt: herstart na {0} seconden.</entry>
+</properties>

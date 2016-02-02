@@ -154,6 +154,13 @@ public class SpJobScheduler {
             scheduleOneShotEmailOutboxMonitor(1L);
 
             /*
+             * PaperCut Print Monitoring enabled?
+             */
+            if (ConfigManager.isPaperCutPrintEnabled()) {
+                scheduleOneShotPaperCutPrintMonitor(1L);
+            }
+
+            /*
              * Mail Print enabled?
              */
             if (ConfigManager.isPrintImapEnabled()) {
@@ -233,6 +240,11 @@ public class SpJobScheduler {
                  * Wait for GcpListener to finish...
                  */
                 interruptGcpListener();
+
+                /*
+                 * Wait for PaperCut Prit Monitor to finish...
+                 */
+                interruptPaperCutPrintMonitor();
 
                 /*
                  * Wait for SmartSchoolListener to finish...
@@ -333,12 +345,18 @@ public class SpJobScheduler {
             jobClass = org.savapage.core.job.GcpRegisterJob.class;
             break;
 
+        case PAPERCUT_PRINT_MONITOR:
+            jobClass =
+                    org.savapage.ext.papercut.job.PaperCutPrintMonitorJob.class;
+            break;
+
         case PRINTER_GROUP_CLEAN:
             jobClass = org.savapage.core.job.PrinterGroupClean.class;
             break;
 
         case SMARTSCHOOL_PRINT_MONITOR_JOB:
-            jobClass = org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class;
+            jobClass =
+                    org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class;
             break;
 
         default:
@@ -488,6 +506,24 @@ public class SpJobScheduler {
      *
      * @param milliSecondsFromNow
      */
+    public void scheduleOneShotPaperCutPrintMonitor(long milliSecondsFromNow) {
+
+        final JobDataMap data = new JobDataMap();
+
+        final JobDetail job =
+                newJob(
+                        org.savapage.ext.papercut.job.PaperCutPrintMonitorJob.class)
+                        .withIdentity(
+                                SpJobType.PAPERCUT_PRINT_MONITOR.toString(),
+                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+
+        rescheduleOneShotJob(job, milliSecondsFromNow);
+    }
+
+    /**
+     *
+     * @param milliSecondsFromNow
+     */
     public void scheduleOneShotImapListener(long milliSecondsFromNow) {
 
         JobDataMap data = new JobDataMap();
@@ -515,7 +551,8 @@ public class SpJobScheduler {
                 Boolean.valueOf(simulate));
 
         final JobDetail job =
-                newJob(org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class)
+                newJob(
+                        org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class)
                         .withIdentity(
                                 SpJobType.SMARTSCHOOL_PRINT_MONITOR_JOB
                                         .toString(),
@@ -571,6 +608,17 @@ public class SpJobScheduler {
      */
     public static boolean interruptEmailOutputMonitor() {
         return instance().interruptJob(SpJobType.EMAIL_OUTBOX_MONITOR,
+                JOB_GROUP_ONESHOT);
+    }
+
+    /**
+     * .
+     *
+     * @return {@code true} if at least one instance of the identified job was
+     *         found and interrupted.
+     */
+    public static boolean interruptPaperCutPrintMonitor() {
+        return instance().interruptJob(SpJobType.PAPERCUT_PRINT_MONITOR,
                 JOB_GROUP_ONESHOT);
     }
 

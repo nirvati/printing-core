@@ -74,18 +74,17 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.impl.AbstractService;
+import org.savapage.ext.smartschool.SmartschoolAccount;
 import org.savapage.ext.smartschool.SmartschoolConnection;
+import org.savapage.ext.smartschool.SmartschoolConstants;
 import org.savapage.ext.smartschool.SmartschoolException;
 import org.savapage.ext.smartschool.SmartschoolLogger;
 import org.savapage.ext.smartschool.SmartschoolPrintStatusEnum;
-import org.savapage.ext.smartschool.SmartschoolTooManyRequestsException;
-import org.savapage.ext.smartschool.SmartschoolAccount;
-import org.savapage.ext.smartschool.SmartschoolConstants;
 import org.savapage.ext.smartschool.SmartschoolRequestEnum;
+import org.savapage.ext.smartschool.SmartschoolTooManyRequestsException;
 import org.savapage.ext.smartschool.services.SmartschoolService;
 import org.savapage.ext.smartschool.xml.Document;
 import org.savapage.ext.smartschool.xml.DocumentStatusIn;
-import org.savapage.ext.smartschool.xml.Documents;
 import org.savapage.ext.smartschool.xml.Jobticket;
 import org.savapage.ext.smartschool.xml.SmartschoolXmlObject;
 import org.slf4j.Logger;
@@ -121,7 +120,7 @@ public final class SmartschoolServiceImpl extends AbstractService implements
     private static final String SHARED_PARENT_ACCOUNT_NAME = "Smartschool";
 
     /**
-     * The name of the child {@link Account} for all SmartScholl Jobs.
+     * The name of the child {@link Account} for all Smartschool Jobs.
      */
     private static final String SHARED_ACCOUNT_JOBS = "Jobs";
 
@@ -910,12 +909,6 @@ public final class SmartschoolServiceImpl extends AbstractService implements
                 connection.getAccountName(), klas);
     }
 
-    /**
-     *
-     * @param accountName
-     *            The account name.
-     * @return {@code null} when not found.
-     */
     @Override
     public String getKlasFromComposedAccountName(final String accountName) {
 

@@ -21,11 +21,7 @@
  */
 package org.savapage.ext.papercut;
 
-import java.util.Map;
-import java.util.Set;
-
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
-import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PrintOut;
@@ -40,72 +36,21 @@ import org.savapage.ext.ExtSupplierException;
 public interface PaperCutPrintJobListener {
 
     /**
+     * Notifies pending SavaPage print job that could not be found in PaperCut
+     * and where document status is set (and committed) to
+     * {@link ExternalSupplierStatusEnum#ERROR}.
      *
-     * Notifies a cancelled PaperCut print job.
-     * <ul>
-     * <li>The {@link DocLog} target and source is updated with the
-     * {@link ExternalSupplierStatusEnum}.</li>
-     * <li>Publish Admin messages.</li>
-     * </ul>
+     * @see {@link DocLog#setExternalStatus(String)}.
      *
-     * @param docLogOut
-     *            The SavaPage {@link DocLog} target holding the {@link DocOut}
-     *            with the {@link PrintOut}.
-     * @param papercutLog
-     *            The {@link PaperCutPrinterUsageLog}.
-     * @param printStatus
-     *            The {@link ExternalSupplierStatusEnum}.
+     * @param docName
+     *            The name of the document.
+     * @param docAge
+     *            Age of the document in milliseconds.
      */
-    void onPaperCutPrintJobCancelled(DocLog docLogOut,
-            PaperCutPrinterUsageLog papercutLog,
-            ExternalSupplierStatusEnum printStatus);
+    void onPaperCutPrintJobNotFound(String docName, long docAge);
 
     /**
-     * Notifies a completed PaperCut print job.
-     * <ul>
-     * <li>The Personal and Shared SmartSchool\Klas accounts are lazy adjusted
-     * in PaperCut and SavaPage.</li>
-     * <li>The {@link AccountTrx} objects are moved from the {@link DocLog}
-     * source to the {@link DocLog} target.</li>
-     * <li>The {@link DocLog} target is updated with the
-     * {@link ExternalSupplierStatusEnum}.</li>
-     * <li>Publish Admin messages.</li>
-     * </ul>
-     *
-     * @param papercutServerProxy
-     *            The {@link PaperCutServerProxy}.
-     * @param docLogOut
-     *            The SavaPage {@link DocLog} target holding the {@link DocOut}
-     *            with the {@link PrintOut}.
-     * @param papercutLog
-     *            The {@link PaperCutPrinterUsageLog}.
-     * @param printStatus
-     *            The {@link ExternalSupplierStatusEnum}.
-     * @throws PaperCutException
-     *             When a PaperCut error occurs.
-     */
-    void onPaperCutPrintJobCompleted(
-            final PaperCutServerProxy papercutServerProxy,
-            final DocLog docLogOut, final PaperCutPrinterUsageLog papercutLog,
-            final ExternalSupplierStatusEnum printStatus)
-            throws PaperCutException;
-
-    /**
-     * Notifies pending SavaPage print jobs that cannot be found in PaperCut:
-     * status is set to {@link ExternalSupplierStatusEnum#ERROR} when SavaPage
-     * print job is more then {@link #MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG} old.
-     *
-     * @param papercutDocNamesToFind
-     *            The PaperCut documents to find.
-     * @param papercutDocNamesFound
-     *            The PaperCut documents found.
-     */
-    void onPaperCutPrintJobsNotFound(
-            final Map<String, DocLog> papercutDocNamesToFind,
-            final Set<String> papercutDocNamesFound);
-
-    /**
-     * Notifies that the PaperCut print job has been processed and changes are
+     * Notifies that a PaperCut print job has been processed and changes are
      * committed to the SavaPage database.
      *
      * @param docLogOut

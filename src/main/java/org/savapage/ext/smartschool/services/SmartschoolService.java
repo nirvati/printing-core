@@ -189,7 +189,9 @@ public interface SmartschoolService {
 
     /**
      * Composes a {@link AccountTypeEnum#SHARED} {@link Account} name for a
-     * SmartSchool klas.
+     * SmartSchool klas. Format: {@code [smartschool-account].Klas.[klas]}
+     *
+     * @see {@link SmartschoolService#getKlasFromComposedAccountName(String)}.
      *
      * @param connection
      *            The {@link SmartschoolConnection}.
@@ -202,8 +204,11 @@ public interface SmartschoolService {
 
     /**
      * Gets the SmartSchool klas from the composed
-     * {@link AccountTypeEnum#SHARED} {@link Account} name.
+     * {@link AccountTypeEnum#SHARED} {@link Account} name:
+     * {@code [smartschool-account].Klas.[klas]}
      *
+     * @see {@link #composeSharedChildAccountNameForKlas(SmartschoolConnection, String)}
+     *      .
      * @param accountName
      *            The account name.
      * @return {@code null} when not found.

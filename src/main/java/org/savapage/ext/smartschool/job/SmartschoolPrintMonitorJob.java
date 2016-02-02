@@ -314,9 +314,7 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
                     localizeSysMsg("SmartschoolMonitor.error", t.getMessage()));
 
             LOGGER.error(t.getMessage(), t);
-
         }
-
     }
 
     @Override
