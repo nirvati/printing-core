@@ -22,6 +22,7 @@
 package org.savapage.ext.papercut;
 
 import java.net.URI;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -31,6 +32,11 @@ import org.apache.commons.lang3.StringUtils;
  *
  */
 public final class PaperCutHelper {
+
+    /**
+     * The dummy account name to be used for a SavaPage Delegated Print.
+     */
+    private static final String SAVAPAGE_PRINTJOB_ACCOUNT_NAME = "savapage";
 
     /**
      * No public instantiation.
@@ -61,9 +67,25 @@ public final class PaperCutHelper {
     }
 
     /**
+     * Encodes SavaPage Delegated Print job name of the proxy printed document
+     * to a unique name that can be used to query the PaperCut's
+     * tbl_printer_usage_log table about the print status. The format is:
+     * {@code [documentName].savapage.[documentId]}
+     *
+     * @param documentName
+     *            The document name (as mnemonic).
+     * @return The encoded unique name.
+     */
+    public static String encodeProxyPrintJobName(final String documentName) {
+        return encodeProxyPrintJobName(SAVAPAGE_PRINTJOB_ACCOUNT_NAME, UUID
+                .randomUUID().toString(), documentName);
+    }
+
+    /**
      * Encodes the job name of the proxy printed document to a unique name that
      * can be used to query the PaperCut's tbl_printer_usage_log table about the
-     * print status. The format is: {@code documentName.accountName.documentId}
+     * print status. The format is:
+     * {@code [documentName].[accountName].[documentId]}
      *
      * <p>
      * Note: {@link #unicodeToAscii(String)} is applied to the document name,

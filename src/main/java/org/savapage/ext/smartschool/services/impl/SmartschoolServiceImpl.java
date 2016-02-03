@@ -115,16 +115,6 @@ public final class SmartschoolServiceImpl extends AbstractService implements
     private final static String HTTP_STATUS_TOO_MANY_REQUESTS = "429";
 
     /**
-     * The name of the parent {@link Account} for all child "klas" accounts.
-     */
-    private static final String SHARED_PARENT_ACCOUNT_NAME = "Smartschool";
-
-    /**
-     * The name of the child {@link Account} for all Smartschool Jobs.
-     */
-    private static final String SHARED_ACCOUNT_JOBS = "Jobs";
-
-    /**
      * Format string to be used in {@link String#format(String, Object...)}. The
      * first {@code %s} is a placeholder for the SmartSchool account name. The
      * second {@code %s} is a placeholder for the klas name.
@@ -996,16 +986,19 @@ public final class SmartschoolServiceImpl extends AbstractService implements
     @Override
     public Account getSharedParentAccount() {
         return accountingService().lazyGetSharedAccount(
-                SHARED_PARENT_ACCOUNT_NAME, createSharedAccountTemplate(null));
+                this.getSharedParentAccountName(),
+                createSharedAccountTemplate(null));
     }
 
     @Override
     public String getSharedParentAccountName() {
-        return SHARED_PARENT_ACCOUNT_NAME;
+        return ConfigManager.instance().getConfigValue(
+                Key.SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT);
     }
 
     @Override
     public String getSharedJobsAccountName() {
-        return SHARED_ACCOUNT_JOBS;
+        return ConfigManager.instance().getConfigValue(
+                Key.SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS);
     }
 }

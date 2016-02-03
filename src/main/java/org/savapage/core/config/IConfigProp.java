@@ -1045,6 +1045,30 @@ public interface IConfigProp {
                 BOOLEAN_VALIDATOR, V_NO),
 
         /**
+         * The shared top-level account that must be present in PaperCut.
+         * Several sub-accounts will be lazy created by SavaPage. Besides, any
+         * PaperCut printer assigned to Smartschool will be configured to charge
+         * to this account.
+         */
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT(
+                "smartschool.papercut.account.shared.parent", "Smartschool"),
+
+        /**
+         * The sub-account of
+         * {@link #SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT} holding Print Job
+         * transactions.
+         */
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS(
+                "smartschool.papercut.account.shared.child.jobs", "Jobs"),
+
+        /**
+         * This is one of the “Multiple Personal Accounts” in PaperCut and is
+         * used by SavaPage to charge printing costs to individual persons.
+         */
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL(
+                "smartschool.papercut.account.personal", "Smartschool"),
+
+        /**
          * Timeout in milliseconds until a Smartschool SOAP connection is
          * established.
          */
@@ -1349,6 +1373,33 @@ public interface IConfigProp {
          */
         PRINT_IN_ALLOW_ENCRYPTED_PDF("print-in.allow-encrypted-pdf",
                 BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * The shared top-level account that must be present in PaperCut.
+         * Several sub-accounts will be lazy created by SavaPage. Besides, any
+         * PaperCut printer assigned to Delegated Print will be configured to
+         * charge to this account.
+         */
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_PARENT(
+                "proxy-print.delegate.papercut.account.shared.parent",
+                "SavaPage"),
+
+        /**
+         * The sub-account of
+         * {@link #PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_PARENT} holding
+         * Print Job transactions.
+         */
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS(
+                "proxy-print.delegate.papercut.account.shared.child.jobs",
+                "Jobs"),
+
+        /**
+         * This is one of the “Multiple Personal Accounts” in PaperCut and is
+         * used by SavaPage to charge Delegated Print costs to individual
+         * persons.
+         */
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL(
+                "proxy-print.delegate.papercut.account.personal", "SavaPage"),
 
         /**
          * Enable non-secure proxy printing (Boolean).

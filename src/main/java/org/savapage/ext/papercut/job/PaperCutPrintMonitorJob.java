@@ -38,11 +38,11 @@ import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.job.AbstractJob;
 import org.savapage.core.job.SpJobScheduler;
-import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
@@ -113,23 +113,6 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
             PaperCutPrintMonitorPattern {
 
         /**
-         * INVARIANT: PaperCut is configured with Multiple Personal Accounts,
-         * and this is the account name to use.
-         */
-        private static final String PAPERCUT_USER_ACCOUNT_NAME = "SavaPage";
-
-        /**
-         * The name of the parent {@link Account} for all child "group"
-         * accounts.
-         */
-        private static final String SHARED_PARENT_ACCOUNT_NAME = "SavaPage";
-
-        /**
-         * The name of the child {@link Account} for all SavaPage Jobs.
-         */
-        private static final String SHARED_ACCOUNT_JOBS = "Jobs";
-
-        /**
          *
          * @param papercutServerProxy
          *            The {@link PaperCutServerProxy}.
@@ -149,17 +132,22 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
 
         @Override
         protected String getUserAccountName() {
-            return PAPERCUT_USER_ACCOUNT_NAME;
+            return ConfigManager.instance().getConfigValue(
+                    Key.PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL);
         }
 
         @Override
         protected String getSharedParentAccountName() {
-            return SHARED_PARENT_ACCOUNT_NAME;
+            return ConfigManager.instance().getConfigValue(
+                    Key.PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_PARENT);
         }
 
         @Override
         protected String getSharedJobsAccountName() {
-            return SHARED_ACCOUNT_JOBS;
+            return ConfigManager
+                    .instance()
+                    .getConfigValue(
+                            Key.PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS);
         }
 
         @Override

@@ -21,6 +21,8 @@
  */
 package org.savapage.ext.smartschool;
 
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.services.ServiceContext;
@@ -38,12 +40,6 @@ import org.slf4j.Logger;
  */
 public final class SmartschoolPaperCutMonitor extends
         PaperCutPrintMonitorPattern {
-
-    /**
-     * PaperCut is configured with Multiple Personal Accounts, and this is the
-     * account name to use.
-     */
-    private static final String PAPERCUT_USER_ACCOUNT_NAME = "Smartschool";
 
     /**
      * .
@@ -70,7 +66,8 @@ public final class SmartschoolPaperCutMonitor extends
 
     @Override
     protected String getUserAccountName() {
-        return PAPERCUT_USER_ACCOUNT_NAME;
+        return ConfigManager.instance().getConfigValue(
+                Key.SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL);
     }
 
     @Override
@@ -98,8 +95,7 @@ public final class SmartschoolPaperCutMonitor extends
     }
 
     @Override
-    protected String
-            getKlasFromAccountName(final String subAccountName) {
+    protected String getKlasFromAccountName(final String subAccountName) {
         return SMARTSCHOOL_SERVICE
                 .getKlasFromComposedAccountName(subAccountName);
     }
