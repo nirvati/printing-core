@@ -36,6 +36,13 @@ import org.savapage.ext.ExtSupplierException;
 public interface PaperCutPrintJobListener {
 
     /**
+     * Notifies about a processing step.
+     *
+     * @return {@code false} is all processing must be terminated.
+     */
+    boolean onPaperCutPrintJobProcessingStep();
+
+    /**
      * Notifies pending SavaPage print job that could not be found in PaperCut
      * and where document status is set (and committed) to
      * {@link ExternalSupplierStatusEnum#ERROR}.

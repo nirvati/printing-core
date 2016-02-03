@@ -236,6 +236,11 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private volatile boolean isProcessing = false;
 
     /**
+     * Indicating if shutdown is requested.
+     */
+    private volatile boolean isShutdownRequested = false;
+
+    /**
      * The connection that is processing.
      */
     private SmartschoolConnection processingConnection = null;
@@ -423,6 +428,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      */
     public synchronized void disconnect() throws InterruptedException {
 
+        this.isShutdownRequested = true;
+
         /*
          * Wait for processing to finish.
          */
@@ -523,9 +530,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 /*
                  * Session ended?
                  */
-                final Date now = new Date();
-
-                if (now.getTime() > sessionEndTime) {
+                if (System.currentTimeMillis() > sessionEndTime) {
                     break;
                 }
 
@@ -561,8 +566,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Waiting... next ["
-                                + dateFormat.format(DateUtils.addSeconds(now,
-                                        this.monitorHeartbeatSecs))
+                                + dateFormat.format(DateUtils.addSeconds(
+                                        new Date(), this.monitorHeartbeatSecs))
                                 + "] till ["
                                 + dateFormat.format(sessionEndDate) + "] ...");
                     }
@@ -2680,6 +2685,11 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             nMessagesInbox.setValue(nMessagesInbox.getValue().intValue()
                     + jobTicket.getDocuments().getDocument().size());
         }
+    }
+
+    @Override
+    public boolean onPaperCutPrintJobProcessingStep() {
+        return !this.isShutdownRequested;
     }
 
     @Override

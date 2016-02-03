@@ -203,6 +203,9 @@ public abstract class PaperCutPrintMonitorPattern {
 
         final Map<String, DocLog> uniquePaperCutDocNames = new HashMap<>();
 
+        /*
+         * Find pending SavaPage jobs.
+         */
         for (final DocLog docLog : doclogDao.getListChunk(listFilterPendingExt)) {
             uniquePaperCutDocNames.put(docLog.getTitle(), docLog);
         }
@@ -211,6 +214,13 @@ public abstract class PaperCutPrintMonitorPattern {
             return;
         }
 
+        if (!this.statusListener.onPaperCutPrintJobProcessingStep()) {
+            return;
+        }
+
+        /*
+         * Find PaperCut jobs.
+         */
         final List<PaperCutPrinterUsageLog> papercutLogList =
                 PAPERCUT_SERVICE.getPrinterUsageLog(papercutDbProxy,
                         uniquePaperCutDocNames.keySet());
@@ -219,6 +229,11 @@ public abstract class PaperCutPrintMonitorPattern {
 
         for (final PaperCutPrinterUsageLog papercutLog : papercutLogList) {
 
+            if (!this.statusListener.onPaperCutPrintJobProcessingStep()) {
+                return;
+            }
+
+            //
             paperCutDocNamesHandled.add(papercutLog.getDocumentName());
 
             debugLog(papercutLog);
@@ -287,7 +302,7 @@ public abstract class PaperCutPrintMonitorPattern {
     }
 
     /**
-     * Notifies pending SavaPage print jobs that cannot be found in PaperCut:
+     * Processes pending SavaPage print jobs that cannot be found in PaperCut:
      * status is set to {@link ExternalSupplierStatusEnum#ERROR} when SavaPage
      * print job is more then {@link #MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG} old.
      *

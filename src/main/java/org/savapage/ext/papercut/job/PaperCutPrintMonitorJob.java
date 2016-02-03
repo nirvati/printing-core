@@ -23,8 +23,11 @@ package org.savapage.ext.papercut.job;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
@@ -74,9 +77,19 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
     private static final int RESTART_SECS_AFTER_EXCEPTION = 60;
 
     /**
-     * .
+     * The duration (seconds) of a monitoring session.
      */
-    private static final long MAX_MONITOR_MSEC = DateUtil.DURATION_MSEC_HOUR;
+    private static final int MONITOR_SESSION_DURATION_SECS = 60 * 60;
+
+    /**
+     * Number of seconds of a monitoring heartbeat.
+     */
+    private static final int MONITOR_SESSION_HEARTBEAT_SECS = 3;
+
+    /**
+     * The number of heartbeats after which monitoring is processed.
+     */
+    private static final int MONITOR_HEARTBEATS_PROCESS_TRIGGER = 10;
 
     /**
      * .
@@ -217,8 +230,9 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
                             papercutDbProxy, this);
 
             //
-            this.monitorPaperCut(monitor);
-            //
+            this.monitorPaperCut(monitor, MONITOR_SESSION_DURATION_SECS,
+                    MONITOR_SESSION_HEARTBEAT_SECS,
+                    MONITOR_HEARTBEATS_PROCESS_TRIGGER);
 
             this.millisUntilNextInvocation = 1 * DateUtil.DURATION_MSEC_SECOND;
 
@@ -328,30 +342,44 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
      *
      * @param monitor
      *            The {@link PaperCutPrintMonitorPattern}.
+     * @param monitorDurationSecs
+     *            The duration after which this method returns.
+     * @param monitorHeartbeatSecs
+     *            Number of seconds of a monitoring heartbeat.
+     * @param monitorHeartbeatTrigger
+     *            The number of monitoring heartbeats after which processing
+     *            occurs.
      * @throws PaperCutException
      *             When PaperCut returns an error.
      * @throws ExtSupplierException
      *             When external supplier returns an error.
      * @throws ExtSupplierConnectException
      *             When error connecting to external supplier.
+     * @throws InterruptedException
      */
-    private void monitorPaperCut(final PaperCutPrintMonitorPattern monitor)
-            throws PaperCutException, ExtSupplierException,
-            ExtSupplierConnectException {
+    private void monitorPaperCut(final PaperCutPrintMonitorPattern monitor,
+            final int monitorDurationSecs, final int monitorHeartbeatSecs,
+            final int monitorHeartbeatTrigger) throws PaperCutException,
+            ExtSupplierException, ExtSupplierConnectException {
 
-        final long msecStart = System.currentTimeMillis();
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
+        final long sessionEndTime =
+                System.currentTimeMillis() + DateUtil.DURATION_MSEC_SECOND
+                        * monitorDurationSecs;
+
+        final Date sessionEndDate = new Date(sessionEndTime);
+
+        int heartbeatCounter = 0;
         int i = 0;
 
         while (!this.isInterrupted()) {
 
-            try {
-                Thread.sleep(MSECS_WAIT_BETWEEN_POLLS);
-            } catch (InterruptedException e) {
+            if (this.isInterrupted()) {
                 break;
             }
 
-            if (this.isInterrupted()) {
+            if (System.currentTimeMillis() > sessionEndTime) {
                 break;
             }
 
@@ -361,28 +389,38 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
                 LOGGER.trace(String.format("PaperCut Print Job poll [%d]", i));
             }
 
-            /*
-             * Process.
-             */
-            monitor.process();
+            heartbeatCounter++;
 
-            /*
-             * STOP if the max monitor time has elapsed.
-             */
-            final long timeElapsed =
-                    System.currentTimeMillis() + MSECS_WAIT_BETWEEN_POLLS
-                            - msecStart;
-
-            if (timeElapsed >= MAX_MONITOR_MSEC) {
+            if (heartbeatCounter < monitorHeartbeatTrigger) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("PaperCut Print Job poll: time elapsed.");
+                    LOGGER.trace("Waiting... next ["
+                            + dateFormat.format(DateUtils.addSeconds(
+                                    new Date(), monitorHeartbeatSecs))
+                            + "] till [" + dateFormat.format(sessionEndDate)
+                            + "] ...");
                 }
 
-                break;
+                try {
+                    Thread.sleep(monitorHeartbeatSecs
+                            * DateUtil.DURATION_MSEC_SECOND);
+                } catch (InterruptedException e) {
+                    break;
+                }
+
+            }
+
+            if (!this.isInterrupted()) {
+                heartbeatCounter = 0;
+                monitor.process();
             }
 
         } // end-for
+    }
+
+    @Override
+    public boolean onPaperCutPrintJobProcessingStep() {
+        return !this.isInterrupted();
     }
 
     @Override
@@ -431,4 +469,5 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
         AdminPublisher.instance().publish(PubTopicEnum.PAPERCUT,
                 PubLevelEnum.ERROR, msg.toString());
     }
+
 }
