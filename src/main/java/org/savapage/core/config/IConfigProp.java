@@ -875,6 +875,11 @@ public interface IConfigProp {
                 DEFAULT_COMMUNITY_HELPDESK_URL),
 
         /**
+         * Is PaperCut integration enabled?
+         */
+        PAPERCUT_ENABLE("papercut.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
          * PaperCut Database JDBC driver, like "org.postgresql.Driver".
          */
         PAPERCUT_DB_JDBC_DRIVER("papercut.db.jdbc-driver"),
@@ -1373,6 +1378,18 @@ public interface IConfigProp {
          */
         PRINT_IN_ALLOW_ENCRYPTED_PDF("print-in.allow-encrypted-pdf",
                 BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * Enable Delegated Print (boolean).
+         */
+        PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * Enable Delegated Print integration with PaperCut (boolean).
+         */
+        PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE(
+                "proxy-print.delegate.papercut.enable",
+                BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * The shared top-level account that must be present in PaperCut.
