@@ -51,13 +51,24 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
      *
      * @param account
      * @param weight
+     * @param groupName
+     *            The name of the group the user was selected by, or
+     *            {@code null} when selected as single user.
      * @return
      */
     private static AccountTrxInfo createAccountTrxInfo(final Account account,
-            final Integer weight) {
+            final Integer weight, final String groupName) {
+
         final AccountTrxInfo trx = new AccountTrxInfo();
+
         trx.setWeight(weight);
         trx.setAccount(account);
+
+        /*
+         * Use free format external details to set the group name.
+         */
+        trx.setExtDetails(groupName);
+
         return trx;
     }
 
@@ -68,10 +79,14 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
      *            The target list.
      * @param user
      *            The {@link User}.
+     * @param groupName
+     *            The name of the group the user was selected by, or
+     *            {@code null} when a single user.
      * @return The weight of the added {@link AccountTrxInfo}.
      */
     private static int addUserAccountToTrxList(
-            final List<AccountTrxInfo> targetList, final User user) {
+            final List<AccountTrxInfo> targetList, final User user,
+            final String groupName) {
 
         final UserAccount userAccount =
                 accountingService().lazyGetUserAccount(user,
@@ -80,7 +95,7 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
         final int weightWlk = 1;
 
         targetList.add(createAccountTrxInfo(userAccount.getAccount(),
-                Integer.valueOf(weightWlk)));
+                Integer.valueOf(weightWlk), groupName));
 
         return weightWlk;
     }
@@ -109,7 +124,7 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
                 continue;
             }
 
-            weightTotal += addUserAccountToTrxList(targetList, user);
+            weightTotal += addUserAccountToTrxList(targetList, user, null);
         }
 
         /*
@@ -126,9 +141,10 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
 
             int weightWlk = (int) userGroupMemberDAO().getUserCount(idGroup);
 
-            // TODO
-            // targetList.add(createAccountTrxInfo(userAccount.getAccount(),
-            // weightWlk));
+            final Account groupAccount =
+                    accountingService().lazyGetUserGroupAccount(userGroup);
+
+            targetList.add(createAccountTrxInfo(groupAccount, weightWlk, null));
 
             weightTotal += weightWlk;
         }
@@ -137,6 +153,8 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
          * Groups: USER accounts.
          */
         for (final Long idGroup : source.getGroupsAccountUser()) {
+
+            // TODO: Add GROUP account?
 
             for (final UserGroupMember member : userGroupMemberDAO()
                     .getGroupMembers(idGroup)) {
@@ -147,7 +165,9 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
                     continue;
                 }
 
-                weightTotal += addUserAccountToTrxList(targetList, user);
+                weightTotal +=
+                        addUserAccountToTrxList(targetList, user, member
+                                .getGroup().getGroupName());
             }
         }
 
@@ -199,7 +219,7 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
             }
 
             final Integer weight = entry.getValue();
-            targetList.add(createAccountTrxInfo(account, weight));
+            targetList.add(createAccountTrxInfo(account, weight, null));
             weightTotal += weight.intValue();
         }
 

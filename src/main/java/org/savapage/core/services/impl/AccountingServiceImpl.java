@@ -118,6 +118,12 @@ public final class AccountingServiceImpl extends AbstractService implements
         return userAccountDAO().findByActiveUserId(userId, accountType);
     }
 
+    @Override
+    public Account getActiveUserGroupAccount(final String groupName) {
+        return accountDAO().findActiveAccountByName(groupName,
+                AccountTypeEnum.GROUP);
+    }
+
     /**
      * Checks if account is a shared account, if not an {@link SpException} is
      * thrown.
@@ -125,7 +131,7 @@ public final class AccountingServiceImpl extends AbstractService implements
      * @param account
      *            The account to check.
      */
-    private void checkSharedAccountType(final Account account) {
+    private static void checkSharedAccountType(final Account account) {
 
         final AccountTypeEnum accountType =
                 AccountTypeEnum.valueOf(account.getAccountType());
@@ -186,6 +192,18 @@ public final class AccountingServiceImpl extends AbstractService implements
             userAccount = createUserAccount(user, userGroup);
         }
         return userAccount;
+    }
+
+    @Override
+    public Account lazyGetUserGroupAccount(final UserGroup userGroup) {
+
+        final Account account =
+                this.getActiveUserGroupAccount(userGroup.getGroupName());
+
+        if (account != null) {
+            return account;
+        }
+        return this.createUserGroupAccount(userGroup);
     }
 
     @Override
@@ -355,6 +373,7 @@ public final class AccountingServiceImpl extends AbstractService implements
         }
 
         account.setAccountType(Account.AccountTypeEnum.USER.toString());
+
         account.setComments(Account.CommentsEnum.COMMENT_OPTIONAL.toString());
         account.setInvoicing(Account.InvoicingEnum.USER_CHOICE_ON.toString());
         account.setDeleted(false);
@@ -380,6 +399,51 @@ public final class AccountingServiceImpl extends AbstractService implements
 
         //
         return userAccount;
+    }
+
+    /**
+     * Creates an {@link Account} of type {@link Account.AccountTypeEnum#GROUP}
+     * for a {@link UserGroup}.
+     *
+     * @param userGroup
+     *            The {@link UserGroup}.
+     * @return The {@link Account} created.
+     */
+    private Account createUserGroupAccount(final UserGroup userGroup) {
+
+        final Account account = new Account();
+
+        if (userGroup.getInitialSettingsEnabled()) {
+
+            account.setBalance(userGroup.getInitialCredit());
+            account.setOverdraft(userGroup.getInitialOverdraft());
+            account.setRestricted(userGroup.getInitiallyRestricted());
+            account.setUseGlobalOverdraft(userGroup
+                    .getInitialUseGlobalOverdraft());
+
+        } else {
+            account.setBalance(BigDecimal.ZERO);
+            account.setOverdraft(BigDecimal.ZERO);
+            account.setRestricted(true);
+            account.setUseGlobalOverdraft(false);
+        }
+
+        account.setAccountType(Account.AccountTypeEnum.GROUP.toString());
+
+        account.setComments(Account.CommentsEnum.COMMENT_OPTIONAL.toString());
+        account.setInvoicing(Account.InvoicingEnum.USER_CHOICE_ON.toString());
+        account.setDeleted(false);
+        account.setDisabled(false);
+        account.setName(userGroup.getGroupName());
+        account.setNameLower(userGroup.getGroupName().toLowerCase());
+
+        account.setCreatedBy(ServiceContext.getActor());
+        account.setCreatedDate(ServiceContext.getTransactionDate());
+
+        accountDAO().create(account);
+
+        //
+        return account;
     }
 
     /**

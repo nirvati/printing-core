@@ -25,6 +25,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 
 /**
  *
@@ -37,6 +38,11 @@ public final class PaperCutHelper {
      * The dummy account name to be used for a SavaPage Delegated Print.
      */
     private static final String SAVAPAGE_PRINTJOB_ACCOUNT_NAME = "savapage";
+
+    private static final char COMPOSED_ACCOUNT_NAME_SEPARATOR = '.';
+    private static final String COMPOSED_ACCOUNT_NAME_PFX = "savapage";
+    private static final String COMPOSED_ACCOUNT_NAME_CLASS_SHARED = "shared";
+    private static final String COMPOSED_ACCOUNT_NAME_CLASS_GROUP = "group";
 
     /**
      * No public instantiation.
@@ -79,6 +85,68 @@ public final class PaperCutHelper {
     public static String encodeProxyPrintJobName(final String documentName) {
         return encodeProxyPrintJobName(SAVAPAGE_PRINTJOB_ACCOUNT_NAME, UUID
                 .randomUUID().toString(), documentName);
+    }
+
+    /**
+     * Uses SavaPage {@link Account} data to compose a shared account name for
+     * PaperCut.
+     *
+     * @param accountType
+     *            The SavaPage {@link AccountTypeEnum}.
+     * @param accountName
+     *            The SavaPage account name.
+     * @return The composed sub account name to be used in PaperCut.
+     */
+    public static String composeSharedAccountName(
+            final AccountTypeEnum accountType, final String accountName) {
+
+        final StringBuilder name = new StringBuilder();
+
+        name.append(COMPOSED_ACCOUNT_NAME_PFX).append(
+                COMPOSED_ACCOUNT_NAME_SEPARATOR);
+
+        switch (accountType) {
+        case GROUP:
+            name.append(COMPOSED_ACCOUNT_NAME_CLASS_GROUP);
+            break;
+
+        case SHARED:
+            name.append(COMPOSED_ACCOUNT_NAME_CLASS_SHARED);
+            break;
+
+        default:
+            throw new IllegalArgumentException(String.format(
+                    "%s.%s is not supported", accountType.getClass()
+                            .getSimpleName(), accountType.toString()));
+        }
+
+        name.append(COMPOSED_ACCOUNT_NAME_SEPARATOR).append(accountName);
+
+        return name.toString();
+    }
+
+    /**
+     * Gets the SavaPage {@link Account} name from the compose a shared account
+     * name for PaperCut.
+     *
+     * @see {@link #composeSharedAccountName(AccountTypeEnum, String)}.
+     *
+     * @param composedAccountName
+     *            The composed account name.
+     * @return The account name.
+     */
+    public static String decomposeSharedAccountName(
+            final String composedAccountName) {
+
+        final String[] parts =
+                StringUtils.split(composedAccountName,
+                        COMPOSED_ACCOUNT_NAME_SEPARATOR);
+
+        if (parts.length < 3) {
+            return null;
+        }
+
+        return parts[parts.length - 1];
     }
 
     /**

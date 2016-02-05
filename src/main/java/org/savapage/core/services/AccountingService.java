@@ -45,6 +45,7 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
+import org.savapage.core.jpa.UserGroup;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.JsonRpcResult;
@@ -307,6 +308,15 @@ public interface AccountingService {
             Account.AccountTypeEnum accountType);
 
     /**
+     * Gets the {@link Account} account of an {@link UserGroup} by group name.
+     *
+     * @param groupName
+     *            The user group name.
+     * @return {@code null} when not found.
+     */
+    Account getActiveUserGroupAccount(String groupName);
+
+    /**
      * Gets the {@link UserAccount} account of a {@link User}. The
      * {@link UserAccount} and related {@link Account} are ad-hoc created when
      * they do not exist.
@@ -319,6 +329,16 @@ public interface AccountingService {
      */
     UserAccount lazyGetUserAccount(User user,
             Account.AccountTypeEnum accountType);
+
+    /**
+     * Gets the {@link Account} account of a {@link UserGroup}. The
+     * {@link Account} is ad-hoc created when it does not exist.
+     *
+     * @param userGroup
+     *            The {@link UserGroup}.
+     * @return The {@link Account}.
+     */
+    Account lazyGetUserGroupAccount(UserGroup userGroup);
 
     /**
      * Gets an <i>active</i> shared {@link Account} by name. If it does not

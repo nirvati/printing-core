@@ -58,6 +58,8 @@ public interface AccountDao extends GenericDao<Account> {
     class ListFilter {
 
         private AccountTypeEnum accountType;
+        private AccountTypeEnum accountTypeExtra;
+
         private String containingNameText;
         private Boolean deleted;
 
@@ -67,6 +69,14 @@ public interface AccountDao extends GenericDao<Account> {
 
         public void setAccountType(AccountTypeEnum accountType) {
             this.accountType = accountType;
+        }
+
+        public AccountTypeEnum getAccountTypeExtra() {
+            return accountTypeExtra;
+        }
+
+        public void setAccountTypeExtra(AccountTypeEnum accountTypeExtra) {
+            this.accountTypeExtra = accountTypeExtra;
         }
 
         public String getContainingNameText() {
@@ -108,7 +118,7 @@ public interface AccountDao extends GenericDao<Account> {
             Integer maxResults, Field orderBy, boolean sortAscending);
 
     /**
-     * Finds an active (i.e. not logically deleted)
+     * Finds the active (i.e. not logically deleted)
      * {@link AccountTypeEnum#SHARED} top-level {@link Account} by its unique
      * name.
      * <p>
@@ -121,6 +131,22 @@ public interface AccountDao extends GenericDao<Account> {
      * @return The {@link Account} instance or {@code null} when not found.
      */
     Account findActiveSharedAccountByName(String name);
+
+    /**
+     * Finds the active (i.e. not logically deleted) top-level {@link Account}
+     * of {@link AccountTypeEnum} by its unique name.
+     * <p>
+     * Note: The name might not be unique in the database as such, but there
+     * MUST only be one (1) <i>active</i> instance with that name.
+     * </p>
+     *
+     * @param name
+     *            The unique active account name.
+     * @param accountType
+     *            The {@link AccountTypeEnum}.
+     * @return The {@link Account} instance or {@code null} when not found.
+     */
+    Account findActiveAccountByName(String name, AccountTypeEnum accountType);
 
     /**
      * Finds an active (i.e. not logically deleted)

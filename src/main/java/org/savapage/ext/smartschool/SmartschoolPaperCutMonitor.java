@@ -24,6 +24,7 @@ package org.savapage.ext.smartschool;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.ext.papercut.PaperCutDbProxy;
@@ -108,6 +109,15 @@ public final class SmartschoolPaperCutMonitor extends
     @Override
     protected boolean isDocInAccountTrx() {
         return true;
+    }
+
+    @Override
+    protected String composeSharedSubAccountName(
+            final AccountTypeEnum accountType, final String accountName) {
+        /*
+         * The account name is already in composed format.
+         */
+        return accountName;
     }
 
 }

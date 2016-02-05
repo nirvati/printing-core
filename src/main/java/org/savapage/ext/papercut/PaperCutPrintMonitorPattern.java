@@ -394,14 +394,26 @@ public abstract class PaperCutPrintMonitorPattern {
     protected abstract String getSharedParentAccountName();
 
     /**
+     * Uses SavaPage {@link Account} data to compose a shared (sub) account name
+     * for PaperCut.
+     *
+     * @param accountType
+     *            The SavaPage {@link AccountTypeEnum}.
+     * @param accountName
+     *            The SavaPage account name.
+     * @return The composed sub account name to be used in PaperCut.
+     */
+    protected abstract String composeSharedSubAccountName(
+            AccountTypeEnum accountType, String accountName);
+
+    /**
      *
      * @return
      */
     protected abstract String getSharedJobsAccountName();
 
     /**
-     * Gets the klas (group) name from the SavaPage account name. When the
-     * account is "composed", the klas (group) must be parsed.
+     * Gets the klas (group or shared account) name from the composed account name.
      * <p>
      * Note: The klas (group) name is needed to compose the comment of a newly
      * created PaperCut account transaction.
@@ -630,13 +642,22 @@ public abstract class PaperCutPrintMonitorPattern {
             final AccountTypeEnum accountType =
                     AccountTypeEnum.valueOf(account.getAccountType());
 
-            if (accountType == AccountTypeEnum.SHARED) {
+            if (accountType == AccountTypeEnum.SHARED
+                    || accountType == AccountTypeEnum.GROUP) {
 
                 /*
-                 * Adjust Shared [Parent]/[klas|group] Account.
+                 * Adjust Shared [Parent]/[klas|group|shared] Account.
                  */
-                final String topAccountName = account.getParent().getName();
-                final String subAccountName = account.getName();
+
+                /*
+                 * NOTE: Ignore account.getParent().getName(), which is SavaPage
+                 * internal, but use the top account name as used in PaperCut.
+                 */
+                final String topAccountName = this.getSharedParentAccountName();
+
+                final String subAccountName =
+                        this.composeSharedSubAccountName(accountType,
+                                account.getName());
 
                 final String klasName =
                         this.getKlasFromAccountName(subAccountName);

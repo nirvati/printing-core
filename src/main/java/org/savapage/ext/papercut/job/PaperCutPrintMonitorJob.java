@@ -43,6 +43,7 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.job.AbstractJob;
 import org.savapage.core.job.SpJobScheduler;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
@@ -50,6 +51,7 @@ import org.savapage.ext.ExtSupplierConnectException;
 import org.savapage.ext.ExtSupplierException;
 import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutException;
+import org.savapage.ext.papercut.PaperCutHelper;
 import org.savapage.ext.papercut.PaperCutPrintJobListener;
 import org.savapage.ext.papercut.PaperCutPrintMonitorPattern;
 import org.savapage.ext.papercut.PaperCutPrinterUsageLog;
@@ -158,10 +160,7 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
 
         @Override
         protected String getKlasFromAccountName(final String accountName) {
-            /*
-             * The account name is NOT composed, but is the plain (sub) account.
-             */
-            return accountName;
+            return PaperCutHelper.decomposeSharedAccountName(accountName);
         }
 
         @Override
@@ -172,6 +171,13 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
         @Override
         protected boolean isDocInAccountTrx() {
             return false;
+        }
+
+        @Override
+        protected String composeSharedSubAccountName(
+                final AccountTypeEnum accountType, final String accountName) {
+            return PaperCutHelper.composeSharedAccountName(accountType,
+                    accountName);
         }
     }
 

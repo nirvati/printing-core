@@ -25,6 +25,7 @@ import java.io.IOException;
 
 import org.savapage.core.SpException;
 import org.savapage.core.dao.AccountDao;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,12 +71,22 @@ public class AccountPagerReq extends AbstractPagerReq {
         return req;
     }
 
+    /**
+     * @author Rijk Ravestein
+     *
+     */
+    /**
+     * @author Rijk Ravestein
+     *
+     */
     public static class Select {
 
         @JsonProperty("name_text")
         private String nameContainingText = null;
 
         private Boolean deleted = null;
+
+        private AccountTypeEnum accountType;
 
         public String getNameContainingText() {
             return nameContainingText;
@@ -91,6 +102,14 @@ public class AccountPagerReq extends AbstractPagerReq {
 
         public void setDeleted(Boolean deleted) {
             this.deleted = deleted;
+        }
+
+        public AccountTypeEnum getAccountType() {
+            return accountType;
+        }
+
+        public void setAccountType(AccountTypeEnum accountType) {
+            this.accountType = accountType;
         }
 
     }

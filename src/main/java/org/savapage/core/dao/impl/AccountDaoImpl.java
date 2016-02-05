@@ -64,7 +64,8 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
     }
 
     @Override
-    public Account findActiveSharedAccountByName(final String name) {
+    public Account findActiveAccountByName(final String name,
+            final AccountTypeEnum accountType) {
 
         final String jpql =
                 "SELECT A FROM Account A WHERE A.name = :name"
@@ -74,7 +75,7 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
         final Query query = getEntityManager().createQuery(jpql);
 
         query.setParameter("name", name);
-        query.setParameter("accountType", AccountTypeEnum.SHARED.toString());
+        query.setParameter("accountType", accountType.toString());
 
         Account account = null;
 
@@ -84,6 +85,11 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
             account = null;
         }
         return account;
+    }
+
+    @Override
+    public Account findActiveSharedAccountByName(final String name) {
+        return this.findActiveAccountByName(name, AccountTypeEnum.SHARED);
     }
 
     @Override
@@ -203,12 +209,31 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
 
         int nWhere = 0;
 
-        if (filter.getAccountType() != null) {
+        if (filter.getAccountType() != null
+                || filter.getAccountTypeExtra() != null) {
+
             if (nWhere > 0) {
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" ACC.accountType like :accountType");
+
+            where.append(" ACC.accountType IN(");
+
+            boolean first = false;
+
+            if (filter.getAccountType() != null) {
+                first = true;
+                where.append(" :accountType");
+            }
+
+            if (filter.getAccountTypeExtra() != null) {
+                if (first) {
+                    where.append(",");
+                }
+                where.append(":accountTypeExtra");
+            }
+
+            where.append(")");
         }
 
         if (filter.getContainingNameText() != null) {
@@ -248,6 +273,11 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
 
         if (filter.getAccountType() != null) {
             query.setParameter("accountType", filter.getAccountType()
+                    .toString());
+        }
+
+        if (filter.getAccountTypeExtra() != null) {
+            query.setParameter("accountTypeExtra", filter.getAccountTypeExtra()
                     .toString());
         }
 
