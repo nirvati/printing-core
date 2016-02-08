@@ -36,6 +36,8 @@ public class DelegatedPrintPeriodDto extends AbstractDto {
     private Long timeTo;
     private List<String> klassen;
 
+    private String personalAccountType;
+
     public Long getTimeFrom() {
         return timeFrom;
     }
@@ -58,6 +60,14 @@ public class DelegatedPrintPeriodDto extends AbstractDto {
 
     public void setKlassen(List<String> klassen) {
         this.klassen = klassen;
+    }
+
+    public String getPersonalAccountType() {
+        return personalAccountType;
+    }
+
+    public void setPersonalAccountType(String personalAccountType) {
+        this.personalAccountType = personalAccountType;
     }
 
 }

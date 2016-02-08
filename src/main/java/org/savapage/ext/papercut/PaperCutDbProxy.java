@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
@@ -635,7 +636,13 @@ public final class PaperCutDbProxy {
                 + " LEFT JOIN tbl_user as U" + " ON UACC.user_id = U.user_id");
 
         sql.append(" WHERE TRX.transaction_type = 'ADJUST'"
-                + " and ACC.account_type LIKE 'USER-%'");
+                + " and ACC.account_type ");
+
+        if (StringUtils.isBlank(dto.getPersonalAccountType())) {
+            sql.append("LIKE 'USER-%'");
+        } else {
+            sql.append("= '").append(dto.getPersonalAccountType()).append("'");
+        }
 
         // select students only.
         sql.append(" and LEFT(TRX.txn_comment, 1) != '")

@@ -1074,6 +1074,15 @@ public interface IConfigProp {
                 "smartschool.papercut.account.personal", "Smartschool"),
 
         /**
+         * The PaperCut account_type (like "USER-001", "USER-002") of the
+         * {@link #SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL}. This is a technical
+         * value determined by PaperCut. When a value is specified in this key
+         * it is used to filter personal transactions in JDBC queries (CSV
+         * downloads) for the Smartschool context.
+         */
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL_TYPE(
+                "smartschool.papercut.account.personal-type"),
+        /**
          * Timeout in milliseconds until a Smartschool SOAP connection is
          * established.
          */
@@ -1382,14 +1391,14 @@ public interface IConfigProp {
         /**
          * Enable Delegated Print (boolean).
          */
-        PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable", BOOLEAN_VALIDATOR, V_NO),
+        PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable",
+                BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * Enable Delegated Print integration with PaperCut (boolean).
          */
         PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE(
-                "proxy-print.delegate.papercut.enable",
-                BOOLEAN_VALIDATOR, V_NO),
+                "proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * The shared top-level account that must be present in PaperCut.
@@ -1417,6 +1426,16 @@ public interface IConfigProp {
          */
         PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL(
                 "proxy-print.delegate.papercut.account.personal", "SavaPage"),
+
+        /**
+         * The PaperCut account_type (like "USER-001", "USER-002") of the
+         * {@link #PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL}. This is a
+         * technical value determined by PaperCut. When a value is specified in
+         * this key it is used to filter personal transactions in JDBC queries
+         * (CSV downloads) for the Delegated Print context.
+         */
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL_TYPE(
+                "proxy-print.delegate.papercut.account.personal-type"),
 
         /**
          * Enable non-secure proxy printing (Boolean).

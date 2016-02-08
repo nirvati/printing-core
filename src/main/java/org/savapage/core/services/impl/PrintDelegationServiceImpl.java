@@ -154,7 +154,7 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
          */
         for (final Long idGroup : source.getGroupsAccountUser()) {
 
-            // TODO: Add GROUP account?
+            int weightGroup = 0;
 
             for (final UserGroupMember member : userGroupMemberDAO()
                     .getGroupMembers(idGroup)) {
@@ -165,9 +165,22 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
                     continue;
                 }
 
-                weightTotal +=
+                final int weightWlk =
                         addUserAccountToTrxList(targetList, user, member
                                 .getGroup().getGroupName());
+
+                weightTotal += weightWlk;
+                weightGroup += weightWlk;
+            }
+
+            if (weightGroup > 0) {
+
+                final UserGroup userGroup = userGroupDAO().findById(idGroup);
+                final Account groupAccount =
+                        accountingService().lazyGetUserGroupAccount(userGroup);
+
+                targetList.add(createAccountTrxInfo(groupAccount, weightGroup,
+                        null));
             }
         }
 
