@@ -21,6 +21,7 @@
  */
 package org.savapage.core.services;
 
+import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroup;
@@ -34,6 +35,20 @@ import org.savapage.core.jpa.UserGroupMember;
 public interface AccessControlService {
 
     /**
+     * Checks if {@link User} has access to a Role. First {@link ConfigManager}
+     * is consulted if role is enabled, then the
+     * {@link #isAuthorized(User, ACLRoleEnum)} method is used to check user
+     * authorization.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param role
+     *            The {@link ACLRoleEnum};
+     * @return {@code true} when user has access to role.
+     */
+    boolean hasAccess(User user, ACLRoleEnum role);
+
+    /**
      * Checks if {@link User} is authorized for a Role. Checks are done
      * bottom-up, starting at the {@link User} and moving up to the
      * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
@@ -44,7 +59,7 @@ public interface AccessControlService {
      *            The {@link User}.
      * @param role
      *            The {@link ACLRoleEnum};
-     * @return {@code true} when authorized.
+     * @return {@code true} when authorized for role.
      */
     boolean isAuthorized(User user, ACLRoleEnum role);
 

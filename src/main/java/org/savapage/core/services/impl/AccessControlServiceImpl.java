@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.UserGroupMemberDao;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.UserAttrEnum;
@@ -203,5 +205,17 @@ public final class AccessControlServiceImpl extends AbstractService implements
         }
 
         return false;
+    }
+
+    @Override
+    public boolean hasAccess(final User user, final ACLRoleEnum role) {
+
+        if (role == ACLRoleEnum.PRINT_DELEGATE
+                && !ConfigManager.instance().isConfigValue(
+                        Key.PROXY_PRINT_DELEGATE_ENABLE)) {
+            return false;
+        }
+
+        return isAuthorized(user, role);
     }
 }
