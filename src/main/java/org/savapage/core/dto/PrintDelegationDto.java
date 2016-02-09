@@ -49,6 +49,8 @@ public final class PrintDelegationDto extends AbstractDto {
         @JsonProperty("id")
         private Long accountId;
 
+        private Integer userCount;
+
         public DelegatorAccountEnum getAccountType() {
             return accountType;
         }
@@ -63,6 +65,14 @@ public final class PrintDelegationDto extends AbstractDto {
 
         public void setAccountId(Long accountId) {
             this.accountId = accountId;
+        }
+
+        public Integer getUserCount() {
+            return userCount;
+        }
+
+        public void setUserCount(Integer userCount) {
+            this.userCount = userCount;
         }
 
     }
