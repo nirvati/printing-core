@@ -45,3 +45,4 @@ release.properties
 /.eclipse-pmd
 /derby.log
 /target
+.pmd
