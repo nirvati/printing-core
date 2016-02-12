@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
-<properties>
-    <entry key="PaperCutPrintMonitor.error">PaperCut Print monitoring error: {0}</entry>
-    <entry key="PaperCutPrintMonitor.started">PaperCut Print monitoring started.</entry>
-    <entry key="PaperCutPrintMonitor.stopped">PaperCut Print monitoring stopped.</entry>
-    <entry key="PaperCutPrintMonitor.restart">PaperCut Print monitoring stopped: restart after {0} seconds.</entry>
-</properties>

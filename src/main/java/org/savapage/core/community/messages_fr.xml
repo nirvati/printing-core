@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
-<properties>
-    <entry key="membership-status-invalid">{0} Invalide</entry>
-    <entry key="membership-status-exceeded">{0} Dépassé</entry>
-    <entry key="membership-status-expired">{0} Expiré</entry>
-</properties>

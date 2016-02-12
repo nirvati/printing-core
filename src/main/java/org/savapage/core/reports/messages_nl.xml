@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
-<properties>
-
-    <!-- Vouchers -->
-    <entry key="voucher-use-before">Te gebruiken voor {0}</entry>
-        
-</properties>

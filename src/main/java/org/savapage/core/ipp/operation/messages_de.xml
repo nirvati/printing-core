@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
-<properties>
-    <entry key="pub-user-print-in-denied">Benutzer "{0}" Druck auf queue "{1}" von {2} verweigert. Grund: {3}</entry>
-</properties>
