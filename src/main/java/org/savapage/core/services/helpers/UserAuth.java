@@ -52,8 +52,8 @@ public class UserAuth {
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(UserAuth.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(UserAuth.class);
 
     /**
      * Login method 'Username'.
@@ -173,7 +173,7 @@ public class UserAuth {
      *            {@code true} if this is an Admin WebApp context.
      */
     public UserAuth(final Device terminal, final String authModeRequest,
-            boolean isAdminWebAppContext) {
+            final boolean isAdminWebAppContext) {
 
         final DeviceDao deviceDao =
                 ServiceContext.getDaoContext().getDeviceDao();
@@ -233,9 +233,8 @@ public class UserAuth {
              */
             customAuth = new DeviceService.DeviceAttrLookup(terminal);
 
-            isCustomAuth =
-                    customAuth
-                            .isTrue(DeviceAttrEnum.AUTH_MODE_IS_CUSTOM, false);
+            isCustomAuth = customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_IS_CUSTOM,
+                    false);
         }
 
         if (customAuth != null && isCustomAuth) {
@@ -248,13 +247,11 @@ public class UserAuth {
                     customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_ID, false);
             this.allowAuthCardIp =
                     customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_CARD_IP, false);
-            this.allowAuthCardLocal =
-                    customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_CARD_LOCAL,
-                            false);
+            this.allowAuthCardLocal = customAuth
+                    .isTrue(DeviceAttrEnum.AUTH_MODE_CARD_LOCAL, false);
 
-            this.authModeDefault =
-                    UserAuth.mode(customAuth.get(
-                            DeviceAttrEnum.AUTH_MODE_DEFAULT,
+            this.authModeDefault = UserAuth
+                    .mode(customAuth.get(DeviceAttrEnum.AUTH_MODE_DEFAULT,
                             UserAuth.mode(UserAuth.Mode.NAME)));
 
             showAuthName = this.allowAuthName;
@@ -263,23 +260,19 @@ public class UserAuth {
             showAuthCardLocal = this.allowAuthCardLocal;
 
             if (!isAdminWebAppContext) {
-                this.maxIdleSeconds =
-                        Integer.valueOf(customAuth.get(
-                                DeviceAttrEnum.WEBAPP_USER_MAX_IDLE_SECS,
-                                cm.getConfigValue(Key.WEBAPP_USER_MAX_IDLE_SECS)));
+                this.maxIdleSeconds = Integer.valueOf(customAuth.get(
+                        DeviceAttrEnum.WEBAPP_USER_MAX_IDLE_SECS,
+                        cm.getConfigValue(Key.WEBAPP_USER_MAX_IDLE_SECS)));
             }
 
-            this.authIdPinReq =
-                    customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_ID_PIN_REQ,
-                            this.authIdPinReq);
+            this.authIdPinReq = customAuth.isTrue(
+                    DeviceAttrEnum.AUTH_MODE_ID_PIN_REQ, this.authIdPinReq);
 
-            this.authIdMasked =
-                    customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_ID_IS_MASKED,
-                            this.authIdMasked);
+            this.authIdMasked = customAuth.isTrue(
+                    DeviceAttrEnum.AUTH_MODE_ID_IS_MASKED, this.authIdMasked);
 
-            this.authCardPinReq =
-                    customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_CARD_PIN_REQ,
-                            this.authCardPinReq);
+            this.authCardPinReq = customAuth.isTrue(
+                    DeviceAttrEnum.AUTH_MODE_CARD_PIN_REQ, this.authCardPinReq);
 
             this.authCardSelfAssoc =
                     customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_CARD_SELF_ASSOC,
@@ -416,11 +409,13 @@ public class UserAuth {
          * INVARIANT: The default MUST match a valid authentication method. If
          * not it should be corrected.
          */
-        boolean incorrectDefault =
-                (this.authModeDefault == Mode.NAME && !this.visibleAuthName)
-                        || (this.authModeDefault == Mode.ID && !this.visibleAuthId)
-                        || (this.authModeDefault == Mode.CARD_LOCAL && !this.visibleAuthCardLocal)
-                        || (this.authModeDefault == Mode.CARD_IP && !this.visibleAuthCardIp);
+        boolean incorrectDefault = (this.authModeDefault == Mode.NAME
+                && !this.visibleAuthName)
+                || (this.authModeDefault == Mode.ID && !this.visibleAuthId)
+                || (this.authModeDefault == Mode.CARD_LOCAL
+                        && !this.visibleAuthCardLocal)
+                || (this.authModeDefault == Mode.CARD_IP
+                        && !this.visibleAuthCardIp);
 
         if (incorrectDefault) {
             /*
