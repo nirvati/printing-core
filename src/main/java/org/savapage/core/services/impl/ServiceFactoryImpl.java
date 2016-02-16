@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -54,15 +54,15 @@ import org.savapage.ext.smartschool.services.impl.SmartschoolServiceImpl;
  * <p>
  * A SingletonHolder is loaded on first access to one of its public static
  * members, not before. See <a href=
- * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
- * >The Singleton solution of Bill Pugh</a>.
+ * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh" >
+ * The Singleton solution of Bill Pugh</a>.
  * </p>
  * <p>
  * IMPORTANT: This granularity is needed because Services have instance
  * variables pointing to other Services.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ServiceFactoryImpl implements ServiceFactory {
@@ -104,16 +104,16 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     }
 
     private static class InboxServiceHolder {
-        public static final InboxService INSTANCE = new InboxServiceImpl();
+        public static final InboxService SERVICE = new InboxServiceImpl();
     }
 
     private static class JobTicketServiceHolder {
-        public static final JobTicketService INSTANCE =
+        public static final JobTicketService SERVICE =
                 new JobTicketServiceImpl();
     }
 
     private static class OutboxServiceHolder {
-        public static final OutboxService INSTANCE = new OutboxServiceImpl();
+        public static final OutboxService SERVICE = new OutboxServiceImpl();
     }
 
     private static class PaperCutServiceHolder {
@@ -169,7 +169,8 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     }
 
     private final static StatefulService statefullServices[] =
-            new StatefulService[] { EcoPrintPdfTaskServiceHolder.SERVICE };
+            new StatefulService[] { EcoPrintPdfTaskServiceHolder.SERVICE,
+                    JobTicketServiceHolder.SERVICE };
 
     @Override
     public AccessControlService getAccessControlService() {
@@ -213,17 +214,17 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     @Override
     public InboxService getInboxService() {
-        return InboxServiceHolder.INSTANCE;
+        return InboxServiceHolder.SERVICE;
     }
 
     @Override
     public JobTicketService getJobTicketService() {
-        return JobTicketServiceHolder.INSTANCE;
+        return JobTicketServiceHolder.SERVICE;
     }
 
     @Override
     public OutboxService getOutboxService() {
-        return OutboxServiceHolder.INSTANCE;
+        return OutboxServiceHolder.SERVICE;
     }
 
     @Override

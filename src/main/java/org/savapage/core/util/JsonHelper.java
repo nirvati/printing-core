@@ -21,7 +21,9 @@
  */
 package org.savapage.core.util;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -31,6 +33,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +52,11 @@ public final class JsonHelper {
      */
     private static ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * .
+     */
+    private static JsonFactory jsonFactory = new JsonFactory();
+
     private JsonHelper() {
 
     }
@@ -59,8 +68,8 @@ public final class JsonHelper {
      *            The {@link EnumSet}.
      * @return The serialized JSON result.
      */
-    public static <E extends Enum<E>> String serializeEnumSet(
-            final EnumSet<E> enumSet) {
+    public static <E extends Enum<E>> String
+            serializeEnumSet(final EnumSet<E> enumSet) {
 
         final ArrayNode node = mapper.createArrayNode();
         for (final Object value : enumSet.toArray()) {
@@ -208,6 +217,41 @@ public final class JsonHelper {
     public static String stringifyObject(final Object object)
             throws IOException {
         return StringUtils.deleteWhitespace(mapper.writeValueAsString(object));
+    }
+
+    /**
+     * Writes POJO as pretty printed JSON.
+     *
+     * @param pojo
+     *            The POJO.
+     * @param writer
+     *            The {@link Writer}.
+     * @throws IOException
+     *             When IO error.
+     */
+    public static void write(final Object pojo, final Writer writer)
+            throws IOException {
+        final JsonGenerator jg = jsonFactory.createJsonGenerator(writer);
+        jg.useDefaultPrettyPrinter();
+        mapper.writeValue(jg, pojo);
+    }
+
+    /**
+     * Creates a bean from a JSON file.
+     *
+     * @param <E>
+     *            The bean class.
+     * @param clazz
+     *            The bean class.
+     * @param file
+     *            The JSON {@link File}.
+     * @return The bean instance.
+     * @throws IOException
+     *             When IO error.
+     */
+    public static <E> E read(final Class<E> clazz, final File file)
+            throws IOException {
+        return mapper.readValue(file, clazz);
     }
 
 }

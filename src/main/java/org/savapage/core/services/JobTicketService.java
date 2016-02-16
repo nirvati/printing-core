@@ -21,17 +21,20 @@
  */
 package org.savapage.core.services;
 
+import java.util.List;
+
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.jpa.User;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 
 /**
-*
-* @author Rijk Ravestein
-*
-*/
-public interface JobTicketService {
+ *
+ * @author Rijk Ravestein
+ *
+ */
+public interface JobTicketService extends StatefulService {
 
     /**
      * Sends Print Job to the OutBox.
@@ -50,4 +53,19 @@ public interface JobTicketService {
     void proxyPrintInbox(User lockedUser, ProxyPrintInboxReq request)
             throws EcoPrintPdfTaskPendingException;
 
+    /**
+     * Gets the pending Job Tickets.
+     *
+     * @return The Job Tickets.
+     */
+    List<OutboxJobDto> getTickets();
+
+    /**
+     * Gets the pending Job Tickets of a {@link User}.
+     *
+     * @param userId
+     *            The {@link User} database key.
+     * @return The Job Tickets.
+     */
+    List<OutboxJobDto> getTickets(Long userId);
 }

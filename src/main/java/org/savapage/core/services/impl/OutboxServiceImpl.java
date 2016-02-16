@@ -23,7 +23,9 @@ package org.savapage.core.services.impl;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.nio.file.FileSystems;
 import java.text.DateFormat;
@@ -38,6 +40,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.savapage.core.SpException;
@@ -51,7 +54,7 @@ import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.LocaleInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfoSet;
-import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
@@ -64,6 +67,7 @@ import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.util.BigDecimalUtil;
+import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,14 +79,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @since 0.9.6
  * @author Datraverse B.V.
  */
-public final class OutboxServiceImpl extends AbstractService implements
-        OutboxService {
+public final class OutboxServiceImpl extends AbstractService
+        implements OutboxService {
 
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(OutboxServiceImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(OutboxServiceImpl.class);
 
     /**
     *
@@ -162,7 +166,7 @@ public final class OutboxServiceImpl extends AbstractService implements
                 final LinkedHashMap<String, Integer> uuidPageCount,
                 final File pdfGenerated) {
 
-            final OutboxJob job =
+            final OutboxJobDto job =
                     this.serviceImpl.createOutboxJob(request, this.submitDate,
                             this.expiryDate, pdfGenerated, uuidPageCount);
 
@@ -173,10 +177,10 @@ public final class OutboxServiceImpl extends AbstractService implements
 
     @Override
     public File getUserOutboxDir(final String userId) {
-        return FileSystems
-                .getDefault()
+        return FileSystems.getDefault()
                 .getPath(ConfigManager.getUserHomeDir(userId),
-                        USER_RELATIVE_OUTBOX_PATH).toFile();
+                        USER_RELATIVE_OUTBOX_PATH)
+                .toFile();
     }
 
     @Override
@@ -192,8 +196,7 @@ public final class OutboxServiceImpl extends AbstractService implements
      * @return The filename.
      */
     private static File getOutboxInfoFilePath(final String userId) {
-        return FileSystems
-                .getDefault()
+        return FileSystems.getDefault()
                 .getPath(ConfigManager.getUserHomeDir(userId),
                         USER_RELATIVE_OUTBOX_PATH, OUTBOX_DESCRIPT_FILE_NAME)
                 .toFile();
@@ -211,13 +214,17 @@ public final class OutboxServiceImpl extends AbstractService implements
             final OutboxInfoDto outboxInfo) {
 
         final File jsonFile = getOutboxInfoFilePath(userId);
-        final ObjectMapper mapper = new ObjectMapper();
 
+        Writer writer = null;
         try {
-            mapper.writeValue(jsonFile, outboxInfo);
+            writer = new FileWriter(jsonFile);
+            JsonHelper.write(outboxInfo, writer);
+            writer.close();
         } catch (IOException e) {
-            throw new SpException("Error writing file ["
-                    + jsonFile.getAbsolutePath() + "]", e);
+            throw new SpException(String.format("Error writing file [%s]",
+                    jsonFile.getAbsolutePath()), e);
+        } finally {
+            IOUtils.closeQuietly(writer);
         }
     }
 
@@ -268,8 +275,8 @@ public final class OutboxServiceImpl extends AbstractService implements
                 outboxInfo = new OutboxInfoDto();
             }
         } catch (IOException e) {
-            throw new SpException("Error reading file ["
-                    + file.getAbsolutePath() + "]", e);
+            throw new SpException(
+                    "Error reading file [" + file.getAbsolutePath() + "]", e);
         }
         return outboxInfo;
     }
@@ -289,32 +296,18 @@ public final class OutboxServiceImpl extends AbstractService implements
     @Override
     public void proxyPrintInbox(final User lockedUser,
             final ProxyPrintInboxReq request)
-            throws EcoPrintPdfTaskPendingException {
+                    throws EcoPrintPdfTaskPendingException {
 
         new ProxyPrintInbox(this).print(lockedUser, request);
     }
 
-    /**
-     * Creates an {@link OutboxJob} from input parameters.
-     *
-     * @param request
-     *            The {@link AbstractProxyPrintReq}.
-     * @param submitDate
-     *            The date the proxy print was submitted.
-     * @param expiryDate
-     *            The date the proxy print expires.
-     * @param pdfOutboxFile
-     *            The PDF file in the outbox.
-     * @param uuidPageCount
-     *            Object with the number of selected pages per input file UUID.
-     * @return The {@link OutboxJob}.
-     */
-    private OutboxJob createOutboxJob(final AbstractProxyPrintReq request,
+    @Override
+    public OutboxJobDto createOutboxJob(final AbstractProxyPrintReq request,
             final Date submitDate, final Date expiryDate,
             final File pdfOutboxFile,
             final LinkedHashMap<String, Integer> uuidPageCount) {
 
-        final OutboxJob job = new OutboxJob();
+        final OutboxJobDto job = new OutboxJobDto();
 
         job.setFile(pdfOutboxFile.getName());
         job.setPrinterName(request.getPrinterName());
@@ -377,9 +370,8 @@ public final class OutboxServiceImpl extends AbstractService implements
             uuidPageCount.put(printInfo.getUuidJob().toString(),
                     Integer.valueOf(request.getNumberOfPages()));
 
-            final OutboxJob job =
-                    createOutboxJob(request, submitDate, expiryDate,
-                            pdfOutboxFile, uuidPageCount);
+            final OutboxJobDto job = createOutboxJob(request, submitDate,
+                    expiryDate, pdfOutboxFile, uuidPageCount);
 
             outboxInfo.addJob(job.getFile(), job);
 
@@ -393,8 +385,8 @@ public final class OutboxServiceImpl extends AbstractService implements
                         LOGGER.trace("deleted file [" + pdfOutboxFile + "]");
                     }
                 } else {
-                    LOGGER.error("delete of file [" + pdfOutboxFile
-                            + "] FAILED");
+                    LOGGER.error(
+                            "delete of file [" + pdfOutboxFile + "] FAILED");
                 }
             }
         }
@@ -403,18 +395,18 @@ public final class OutboxServiceImpl extends AbstractService implements
 
         request.setStatus(Status.WAITING_FOR_RELEASE);
         request.setUserMsgKey("msg-user-print-outbox");
-        request.setUserMsg(localize("msg-user-print-outbox",
-                request.getPrinterName()));
+        request.setUserMsg(
+                localize("msg-user-print-outbox", request.getPrinterName()));
     }
 
     @Override
     public File getOutboxFile(final String userId, final String fileName) {
 
         try {
-            return FileSystems
-                    .getDefault()
+            return FileSystems.getDefault()
                     .getPath(getUserOutboxDir(userId).getCanonicalPath(),
-                            fileName).toFile();
+                            fileName)
+                    .toFile();
         } catch (IOException e) {
             throw new SpException(e.getMessage());
         }
@@ -441,23 +433,24 @@ public final class OutboxServiceImpl extends AbstractService implements
      */
     private File createUuidFileName(final String userId) {
 
-        return getOutboxFile(userId, String.format("%s.%s", java.util.UUID
-                .randomUUID().toString(), DocContent.FILENAME_EXT_PDF));
+        return getOutboxFile(userId,
+                String.format("%s.%s", java.util.UUID.randomUUID().toString(),
+                        DocContent.FILENAME_EXT_PDF));
     }
 
     @Override
-    public List<OutboxJob> getOutboxJobs(final String userId,
+    public List<OutboxJobDto> getOutboxJobs(final String userId,
             final Set<String> printerNames, final Date expiryRef) {
 
         final OutboxInfoDto outboxInfo =
                 pruneOutboxInfo(userId, readOutboxInfo(userId), expiryRef);
 
-        final List<OutboxJob> jobs = new ArrayList<>();
+        final List<OutboxJobDto> jobs = new ArrayList<>();
 
-        for (final Entry<String, OutboxJob> entry : outboxInfo.getJobs()
+        for (final Entry<String, OutboxJobDto> entry : outboxInfo.getJobs()
                 .entrySet()) {
 
-            final OutboxJob job = entry.getValue();
+            final OutboxJobDto job = entry.getValue();
 
             if (printerNames.contains(job.getPrinterName())) {
                 jobs.add(job);
@@ -484,10 +477,10 @@ public final class OutboxServiceImpl extends AbstractService implements
     }
 
     /**
-     * Prunes the {@link OutboxJob} instances in {@link OutboxInfoDto} for jobs
-     * which are expired for Proxy Printing, or for which the outbox PDF file
-     * has been deleted. Also, outbox PDF files which are not referenced by an
-     * {@link OutboxJob} are deleted.
+     * Prunes the {@link OutboxJobDto} instances in {@link OutboxInfoDto} for
+     * jobs which are expired for Proxy Printing, or for which the outbox PDF
+     * file has been deleted. Also, outbox PDF files which are not referenced by
+     * an {@link OutboxJobDto} are deleted.
      * <p>
      * IMPORTANT: when nothing is pruned the {@link OutboxInfoDto} <b>input</b>
      * object is returned.
@@ -534,10 +527,10 @@ public final class OutboxServiceImpl extends AbstractService implements
          */
         int nPruned = 0;
 
-        for (final Entry<String, OutboxJob> entry : outboxInfo.getJobs()
+        for (final Entry<String, OutboxJobDto> entry : outboxInfo.getJobs()
                 .entrySet()) {
 
-            final OutboxJob job = entry.getValue();
+            final OutboxJobDto job = entry.getValue();
 
             /*
              * Add job if not expired.
@@ -580,9 +573,9 @@ public final class OutboxServiceImpl extends AbstractService implements
      *            the outbox jobs.
      * @return the pruned jobs.
      */
-    private LinkedHashMap<String, OutboxJob> pruneOutboxJobFiles(
+    private LinkedHashMap<String, OutboxJobDto> pruneOutboxJobFiles(
             final String userId,
-            final LinkedHashMap<String, OutboxJob> outboxJobs) {
+            final LinkedHashMap<String, OutboxJobDto> outboxJobs) {
 
         final FileFilter filefilter = new FileFilter() {
             @Override
@@ -598,7 +591,7 @@ public final class OutboxServiceImpl extends AbstractService implements
          */
         final File[] files = getUserOutboxDir(userId).listFiles(filefilter);
 
-        final LinkedHashMap<String, OutboxJob> prunedOutboxJobs =
+        final LinkedHashMap<String, OutboxJobDto> prunedOutboxJobs =
                 new LinkedHashMap<>();
 
         if (files != null) {
@@ -666,9 +659,19 @@ public final class OutboxServiceImpl extends AbstractService implements
 
         localeInfo.setSubmitTime(timeFormatter.format(submitDate));
         localeInfo.setExpiryTime(timeFormatter.format(expiryDate));
-        localeInfo.setRemainTime(DurationFormatUtils.formatDuration(
-                expiryDate.getTime() - dateNow.getTime(), "H:mm"));
 
+        final long remainMillis = expiryDate.getTime() - dateNow.getTime();
+
+        final String remainTime;
+
+        if (remainMillis < 0) {
+            remainTime = String.format("-%s",
+                    DurationFormatUtils.formatDuration(-remainMillis, "H:mm"));
+        } else {
+            remainTime =
+                    DurationFormatUtils.formatDuration(remainMillis, "H:mm");
+        }
+        localeInfo.setRemainTime(remainTime);
     }
 
     @Override
@@ -688,10 +691,10 @@ public final class OutboxServiceImpl extends AbstractService implements
 
         try {
 
-            for (final Entry<String, OutboxJob> entry : outboxInfo.getJobs()
+            for (final Entry<String, OutboxJobDto> entry : outboxInfo.getJobs()
                     .entrySet()) {
 
-                final OutboxJob job = entry.getValue();
+                final OutboxJobDto job = entry.getValue();
 
                 costTotal = costTotal.add(job.getCost());
 
@@ -745,10 +748,10 @@ public final class OutboxServiceImpl extends AbstractService implements
 
         int nExtended = 0;
 
-        for (final Entry<String, OutboxJob> entry : outboxInfo.getJobs()
+        for (final Entry<String, OutboxJobDto> entry : outboxInfo.getJobs()
                 .entrySet()) {
 
-            final OutboxJob job = entry.getValue();
+            final OutboxJobDto job = entry.getValue();
 
             if (job.getExpiryTime() < extendedTime) {
                 job.setExpiryTime(extendedTime);
@@ -764,7 +767,8 @@ public final class OutboxServiceImpl extends AbstractService implements
     }
 
     @Override
-    public AccountTrxInfoSet createAccountTrxInfoSet(final OutboxJob source) {
+    public AccountTrxInfoSet
+            createAccountTrxInfoSet(final OutboxJobDto source) {
 
         final OutboxAccountTrxInfoSet sourceInfoSet =
                 source.getAccountTransactions();
@@ -808,16 +812,16 @@ public final class OutboxServiceImpl extends AbstractService implements
 
     /**
      * Imports the source {@link AccountTrxInfoSet} into the target
-     * {@link OutboxJob}.
+     * {@link OutboxJobDto}.
      *
-     * @see {@link #createAccountTrxInfoSet(OutboxJob)}.
+     * @see {@link #createAccountTrxInfoSet(OutboxJobDto)}.
      * @param source
      *            The {@link AccountTrxInfoSet}
      * @param target
-     *            The {@link OutboxJob}.
+     *            The {@link OutboxJobDto}.
      */
     private void importToOutbox(final AccountTrxInfoSet source,
-            final OutboxJob target) {
+            final OutboxJobDto target) {
 
         if (source == null) {
             target.setAccountTransactions(null);

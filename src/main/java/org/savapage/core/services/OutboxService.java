@@ -24,6 +24,7 @@ package org.savapage.core.services;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -32,7 +33,8 @@ import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
-import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
+import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
@@ -67,6 +69,25 @@ public interface OutboxService {
      * @return The number of jobs in the cleared outbox.
      */
     int clearOutbox(String userId);
+
+    /**
+     * Creates an {@link OutboxJobDto} from input parameters.
+     *
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
+     * @param submitDate
+     *            The date the proxy print was submitted.
+     * @param expiryDate
+     *            The date the proxy print expires.
+     * @param pdfOutboxFile
+     *            The PDF file in the outbox.
+     * @param uuidPageCount
+     *            Object with the number of selected pages per input file UUID.
+     * @return The {@link OutboxJobDto}.
+     */
+    OutboxJobDto createOutboxJob(AbstractProxyPrintReq request, Date submitDate,
+            Date expiryDate, File pdfOutboxFile,
+            LinkedHashMap<String, Integer> uuidPageCount);
 
     /**
      * Removes a job in the user's outbox.
@@ -176,9 +197,9 @@ public interface OutboxService {
             DocContentPrintInInfo printInfo) throws IOException;
 
     /**
-     * Gets the {@link OutboxJob} candidate objects for proxy printing.
+     * Gets the {@link OutboxJobDto} candidate objects for proxy printing.
      * <p>
-     * Note: prunes the {@link OutboxJob} instances in {@link OutboxInfoDto} for
+     * Note: prunes the {@link OutboxJobDto} instances in {@link OutboxInfoDto} for
      * jobs which are expired for Proxy Printing.
      * </p>
      *
@@ -190,20 +211,20 @@ public interface OutboxService {
      *            The unique printer names to get the jobs for.
      * @param expiryRef
      *            The reference date for calculating the expiration.
-     * @return A list with {@link OutboxJob} candidate objects for proxy
+     * @return A list with {@link OutboxJobDto} candidate objects for proxy
      *         printing.
      */
-    List<OutboxJob> getOutboxJobs(String userId, Set<String> printerNames,
+    List<OutboxJobDto> getOutboxJobs(String userId, Set<String> printerNames,
             Date expiryRef);
 
     /**
-     * Creates the {@link AccountTrxInfoSet} from the {@link OutboxJob} source.
+     * Creates the {@link AccountTrxInfoSet} from the {@link OutboxJobDto} source.
      *
      * @since 0.9.11
      *
      * @param source
-     *            The {@link OutboxJob}.
+     *            The {@link OutboxJobDto}.
      * @return The {@link AccountTrxInfoSet}.
      */
-    AccountTrxInfoSet createAccountTrxInfoSet(OutboxJob source);
+    AccountTrxInfoSet createAccountTrxInfoSet(OutboxJobDto source);
 }

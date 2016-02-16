@@ -104,7 +104,7 @@ import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
 import org.savapage.core.json.rpc.impl.ResultAttribute;
 import org.savapage.core.json.rpc.impl.ResultPrinterSnmp;
-import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
@@ -1628,7 +1628,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         final int nPagesTot;
 
-        final List<OutboxJob> jobs =
+        final List<OutboxJobDto> jobs =
                 outboxService().getOutboxJobs(lockedUser.getUserId(),
                         printerNames, ServiceContext.getTransactionDate());
 
@@ -1646,7 +1646,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         BigDecimal totCost = BigDecimal.ZERO;
 
-        for (final OutboxJob job : jobs) {
+        for (final OutboxJobDto job : jobs) {
 
             this.getValidateProxyPrinterAccess(cardUser, job.getPrinterName(),
                     ServiceContext.getTransactionDate());
@@ -1660,7 +1660,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         int nTotWlk = 0;
 
-        for (final OutboxJob job : jobs) {
+        for (final OutboxJobDto job : jobs) {
 
             final ProxyPrintDocReq printReq =
                     new ProxyPrintDocReq(PrintModeEnum.HOLD);

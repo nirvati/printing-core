@@ -27,7 +27,7 @@ import java.util.Map.Entry;
 
 import org.junit.Test;
 import org.savapage.core.outbox.OutboxInfoDto;
-import org.savapage.core.outbox.OutboxInfoDto.OutboxJob;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 
 /**
  *
@@ -44,14 +44,14 @@ public class OutboxInfoTest {
         final String[] values = {"9", "8", "a", "7", "Z", "6"};
 
         for (int i = 0; i < values.length; i++) {
-            final OutboxJob job = new OutboxJob();
+            final OutboxJobDto job = new OutboxJobDto();
             job.setFile(values[i]);
             info.addJob(values[i], job);
         }
 
         int i = 0;
 
-        for (final Entry<String, OutboxJob> entry : info.getJobs().entrySet()) {
+        for (final Entry<String, OutboxJobDto> entry : info.getJobs().entrySet()) {
             final String value = entry.getKey();
             assertTrue(value == values[i++]);
         }

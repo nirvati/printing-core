@@ -202,7 +202,12 @@ public final class OutboxInfoDto extends AbstractDto {
      *
      */
     @JsonInclude(Include.NON_NULL)
-    public static final class OutboxJob {
+    public static final class OutboxJobDto {
+
+        /**
+         * Is {@code null} when in User outbox.
+         */
+        private Long userId;
 
         private ExternalSupplierEnum externalSupplier;
 
@@ -234,6 +239,13 @@ public final class OutboxInfoDto extends AbstractDto {
         private OutboxAccountTrxInfoSet accountTransactions;
 
         //
+        public Long getUserId() {
+            return userId;
+        }
+
+        public void setUserId(Long userId) {
+            this.userId = userId;
+        }
 
         public ExternalSupplierEnum getExternalSupplier() {
             return externalSupplier;
@@ -428,19 +440,19 @@ public final class OutboxInfoDto extends AbstractDto {
     /**
      * Note: {@link LinkedHashMap} is insertion ordered.
      */
-    private LinkedHashMap<String, OutboxJob> jobs = new LinkedHashMap<>();
+    private LinkedHashMap<String, OutboxJobDto> jobs = new LinkedHashMap<>();
 
     /**
      * Note: {@link LinkedHashMap} is insertion ordered.
      */
-    public LinkedHashMap<String, OutboxJob> getJobs() {
+    public LinkedHashMap<String, OutboxJobDto> getJobs() {
         return jobs;
     }
 
     /**
      * Note: {@link LinkedHashMap} is insertion ordered.
      */
-    public void setJobs(LinkedHashMap<String, OutboxJob> jobs) {
+    public void setJobs(LinkedHashMap<String, OutboxJobDto> jobs) {
         this.jobs = jobs;
     }
 
@@ -469,7 +481,7 @@ public final class OutboxInfoDto extends AbstractDto {
      *            The job to add.
      */
     @JsonIgnore
-    public void addJob(final String fileName, final OutboxJob job) {
+    public void addJob(final String fileName, final OutboxJobDto job) {
         this.jobs.put(fileName, job);
     }
 
