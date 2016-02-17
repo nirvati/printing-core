@@ -76,8 +76,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *
- * @since 0.9.6
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class OutboxServiceImpl extends AbstractService
         implements OutboxService {
@@ -850,6 +850,21 @@ public final class OutboxServiceImpl extends AbstractService
             outboxTrxInfo.setExtDetails(trxInfo.getExtDetails());
             outboxTrxInfo.setWeight(trxInfo.getWeight().intValue());
         }
+    }
+
+    @Override
+    public OutboxInfoDto getOutboxJobTicketInfo(final User user,
+            final Date expiryRef) {
+
+        final OutboxInfoDto outboxInfo =
+                pruneOutboxInfo(user.getUserId(), expiryRef);
+
+        for (final OutboxJobDto dto : jobTicketService()
+                .getTickets(user.getId())) {
+            outboxInfo.addJob(dto.getFile(), dto);
+        }
+
+        return outboxInfo;
     }
 
 }

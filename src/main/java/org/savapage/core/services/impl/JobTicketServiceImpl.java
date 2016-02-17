@@ -72,7 +72,15 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 public final class JobTicketServiceImpl extends AbstractService
         implements JobTicketService {
 
+    /**
+     * .
+     */
     public static final String FILENAME_EXT_JSON = "json";
+
+    /**
+     * .
+     */
+    private static final String FILENAME_EXT_PDF = DocContent.FILENAME_EXT_PDF;
 
     /**
      * The logger.
@@ -127,7 +135,7 @@ public final class JobTicketServiceImpl extends AbstractService
         @Override
         protected File onReservePdfToGenerate(final User lockedUser) {
             return getJobTicketFile(java.util.UUID.randomUUID(),
-                    DocContent.FILENAME_EXT_PDF);
+                    FILENAME_EXT_PDF);
         }
 
         @Override
@@ -171,12 +179,13 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     /**
+     * Gets the full file path of a Job Ticket file.
      *
      * @param uuid
      *            The {@link UUID}
      * @param fileExt
      *            The JSON or PDF file extension.
-     * @return The jobticket JSON or PDF file.
+     * @return The job ticket JSON or PDF file.
      */
     private static File getJobTicketFile(final UUID uuid,
             final String fileExt) {
@@ -240,7 +249,7 @@ public final class JobTicketServiceImpl extends AbstractService
             final Iterator<UUID> iter = uuidToDelete.iterator();
             while (iter.hasNext()) {
                 final UUID uuid = iter.next();
-                getJobTicketFile(uuid, DocContent.FILENAME_EXT_PDF).delete();
+                getJobTicketFile(uuid, FILENAME_EXT_PDF).delete();
                 getJobTicketFile(uuid, FILENAME_EXT_JSON).delete();
                 if (LOGGER.isWarnEnabled()) {
                     LOGGER.warn(
@@ -321,6 +330,39 @@ public final class JobTicketServiceImpl extends AbstractService
             }
         }
         return tickets;
+    }
+
+    /**
+     * Gets the UUID from one of the a job ticket files.
+     *
+     * @param fileName
+     *            One of the files from the Job Ticket file pair.
+     * @return The UUID.
+     */
+    private static UUID uuidFromFileName(final String fileName) {
+        return UUID.fromString(FilenameUtils.getBaseName(fileName));
+    }
+
+    @Override
+    public boolean removeTicket(final Long userId, final String fileName) {
+
+        final UUID uuid = uuidFromFileName(fileName);
+        final OutboxJobDto dto = this.jobTicketCache.get(uuid);
+
+        if (dto == null) {
+            return false;
+        }
+
+        if (!dto.getUserId().equals(userId)) {
+            throw new SpException(
+                    String.format("Job ticket [%s] is not owned by user [%s]",
+                            uuid.toString(), userId.toString()));
+        }
+
+        getJobTicketFile(uuid, FILENAME_EXT_JSON).delete();
+        getJobTicketFile(uuid, FILENAME_EXT_PDF).delete();
+
+        return this.jobTicketCache.remove(uuid) != null;
     }
 
 }

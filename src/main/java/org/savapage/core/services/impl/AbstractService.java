@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -55,6 +55,7 @@ import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.InboxService;
+import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.QueueService;
@@ -65,7 +66,7 @@ import org.savapage.core.util.Messages;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractService {
@@ -88,6 +89,10 @@ public abstract class AbstractService {
 
     protected static InboxService inboxService() {
         return ServiceContext.getServiceFactory().getInboxService();
+    }
+
+    protected static JobTicketService jobTicketService() {
+        return ServiceContext.getServiceFactory().getJobTicketService();
     }
 
     protected static OutputProducer outputProducer() {

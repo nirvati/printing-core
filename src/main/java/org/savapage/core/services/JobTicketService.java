@@ -68,4 +68,15 @@ public interface JobTicketService extends StatefulService {
      * @return The Job Tickets.
      */
     List<OutboxJobDto> getTickets(Long userId);
+
+    /**
+     * Removes a Job Ticket.
+     *
+     * @param userId
+     *            The {@link User} database key.
+     * @param fileName
+     *            The unique PDF file name of the job to remove.
+     * @return {@code false} if the job was not found.
+     */
+    boolean removeTicket(Long userId, String fileName);
 }

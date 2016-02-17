@@ -42,8 +42,7 @@ import org.savapage.core.services.helpers.DocContentPrintInInfo;
 
 /**
  *
- * @since 0.9.6
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface OutboxService {
@@ -199,8 +198,8 @@ public interface OutboxService {
     /**
      * Gets the {@link OutboxJobDto} candidate objects for proxy printing.
      * <p>
-     * Note: prunes the {@link OutboxJobDto} instances in {@link OutboxInfoDto} for
-     * jobs which are expired for Proxy Printing.
+     * Note: prunes the {@link OutboxJobDto} instances in {@link OutboxInfoDto}
+     * for jobs which are expired for Proxy Printing.
      * </p>
      *
      * @since 0.9.6
@@ -218,7 +217,8 @@ public interface OutboxService {
             Date expiryRef);
 
     /**
-     * Creates the {@link AccountTrxInfoSet} from the {@link OutboxJobDto} source.
+     * Creates the {@link AccountTrxInfoSet} from the {@link OutboxJobDto}
+     * source.
      *
      * @since 0.9.11
      *
@@ -227,4 +227,23 @@ public interface OutboxService {
      * @return The {@link AccountTrxInfoSet}.
      */
     AccountTrxInfoSet createAccountTrxInfoSet(OutboxJobDto source);
+
+    /**
+     * Gets the {@link OutboxInfoDto} from the user's outbox merged with the
+     * user's Job Tickets.
+     *
+     * <p>
+     * NOTE: The {@link OutboxInfoDto} JSON file from the user's outbox is read
+     * and pruned, or void created when it does not exist. Job tickets of all
+     * users are collected in one central place.
+     * </p>
+     *
+     * @param user
+     *            The {@link User}.
+     * @param expiryRef
+     *            The reference date for calculating the expiration.
+     * @return The {@link OutboxInfoDto} object.
+     */
+    OutboxInfoDto getOutboxJobTicketInfo(User user, Date expiryRef);
+
 }

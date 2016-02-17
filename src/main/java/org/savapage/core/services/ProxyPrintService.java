@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -74,7 +74,7 @@ import org.savapage.core.snmp.SnmpConnectException;
 /**
  * Service for Proxy Printing.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface ProxyPrintService {
@@ -180,9 +180,8 @@ public interface ProxyPrintService {
      * @throws IppConnectException
      *             When an connection error occurs.
      */
-    IppStatusCode getNotifications(String requestingUser,
-            String subscriptionId, List<IppAttrGroup> response)
-            throws IppConnectException;
+    IppStatusCode getNotifications(String requestingUser, String subscriptionId,
+            List<IppAttrGroup> response) throws IppConnectException;
 
     /**
      *
@@ -204,7 +203,7 @@ public interface ProxyPrintService {
      *
      * @param printerName
      *            The printer name.
-     * @return {@code null} when the printer is not present in CUPS an no part
+     * @return {@code null} when the printer is not present in CUPS and not part
      *         of the cache.
      */
     JsonProxyPrinter getCachedPrinter(String printerName);
@@ -236,8 +235,8 @@ public interface ProxyPrintService {
      *            The printer name.
      * @return {@code null} when the printer is no longer part of the cache.
      */
-    JsonPrinterDetail
-            getPrinterDetailUserCopy(Locale locale, String printerName);
+    JsonPrinterDetail getPrinterDetailUserCopy(Locale locale,
+            String printerName);
 
     /**
      * Gets the IPP attributes of a printer.
