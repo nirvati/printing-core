@@ -520,7 +520,7 @@ public final class UserMsgIndicator {
 
         JsonUserMsg msg = new JsonUserMsg();
 
-        msg.setLevel(1); // TODO
+        msg.setLevel(JsonUserMsg.LEVEL_WARN);
 
         msg.setText(localizeMsg(msg.getClass(), locale, "msg-print-in-denied",
                 "/" + printIn.getQueue().getUrlPath(),
@@ -541,7 +541,7 @@ public final class UserMsgIndicator {
         final PrintOutDao printOutDao =
                 ServiceContext.getDaoContext().getPrintOutDao();
 
-        int level = 1;
+        int level = JsonUserMsg.LEVEL_WARN;
         String key = null;
 
         switch (printOutDao.getIppJobState(printOut)) {
@@ -555,7 +555,7 @@ public final class UserMsgIndicator {
             key = "msg-print-out-aborted";
             break;
         case IPP_JOB_COMPLETED:
-            level = 0;
+            level = JsonUserMsg.LEVEL_INFO;
             key = "msg-print-out-completed";
             break;
         default:

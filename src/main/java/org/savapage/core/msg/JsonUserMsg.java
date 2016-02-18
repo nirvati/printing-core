@@ -30,6 +30,9 @@ import org.savapage.core.json.JsonAbstractBase;
  */
 public class JsonUserMsg extends JsonAbstractBase {
 
+    public static final int LEVEL_INFO = 0;
+    public static final int LEVEL_WARN = 1;
+
     private Integer level;
     private String text;
 
