@@ -343,26 +343,44 @@ public final class JobTicketServiceImpl extends AbstractService
         return UUID.fromString(FilenameUtils.getBaseName(fileName));
     }
 
+    /**
+     * Removes a Job Ticket.
+     *
+     * @param uuid
+     *            The {@link UUID}.
+     * @return The {@link OutboxJobDto }.
+     */
+    private OutboxJobDto removeTicket(final UUID uuid) {
+
+        getJobTicketFile(uuid, FILENAME_EXT_JSON).delete();
+        getJobTicketFile(uuid, FILENAME_EXT_PDF).delete();
+
+        return this.jobTicketCache.remove(uuid);
+    }
+
     @Override
-    public boolean removeTicket(final Long userId, final String fileName) {
+    public OutboxJobDto removeTicket(final Long userId, final String fileName) {
 
         final UUID uuid = uuidFromFileName(fileName);
         final OutboxJobDto dto = this.jobTicketCache.get(uuid);
 
         if (dto == null) {
-            return false;
+            return dto;
         }
 
         if (!dto.getUserId().equals(userId)) {
-            throw new SpException(
+            throw new IllegalArgumentException(
                     String.format("Job ticket [%s] is not owned by user [%s]",
                             uuid.toString(), userId.toString()));
         }
 
-        getJobTicketFile(uuid, FILENAME_EXT_JSON).delete();
-        getJobTicketFile(uuid, FILENAME_EXT_PDF).delete();
+        return this.removeTicket(uuid);
+    }
 
-        return this.jobTicketCache.remove(uuid) != null;
+    @Override
+    public OutboxJobDto removeTicket(final String fileName) {
+        final UUID uuid = uuidFromFileName(fileName);
+        return this.removeTicket(uuid);
     }
 
 }
