@@ -22,6 +22,7 @@
 package org.savapage.core.services;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Date;
@@ -57,6 +58,7 @@ import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
@@ -484,6 +486,25 @@ public interface ProxyPrintService {
      */
     int proxyPrintOutbox(Device reader, String cardNumber)
             throws ProxyPrintException;
+
+    /**
+     * Print a Job Ticket.
+     *
+     * @param lockedUser
+     *            The {@link User} who owns the Job Ticket, which should be
+     *            locked.
+     * @param job
+     *            The {@link OutboxJobDto} Job Ticket.
+     * @param pdfFileToPrint
+     *            The PDF file to print.
+     * @return The number of printed pages.
+     * @throws IOException
+     *             When IO error.
+     * @throws IppConnectException
+     *             When connection to CUPS fails.
+     */
+    int proxyPrintJobTicket(User lockedUser, OutboxJobDto job,
+            File pdfFileToPrint) throws IOException, IppConnectException;
 
     /**
      * Sends Print Job to the CUPS Printer, and updates {@link User},

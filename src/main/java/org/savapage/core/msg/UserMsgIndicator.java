@@ -80,6 +80,11 @@ public final class UserMsgIndicator {
         ACCOUNT_INFO,
 
         /**
+         * .
+         */
+        JOBTICKET_DENIED,
+
+        /**
          * A printed in was denied.
          */
         PRINT_IN_DENIED,

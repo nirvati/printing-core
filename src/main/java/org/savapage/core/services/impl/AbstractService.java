@@ -58,6 +58,7 @@ import org.savapage.core.services.InboxService;
 import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.PrinterService;
+import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserGroupService;
@@ -101,6 +102,10 @@ public abstract class AbstractService {
 
     protected static OutboxService outboxService() {
         return ServiceContext.getServiceFactory().getOutboxService();
+    }
+
+    protected static ProxyPrintService proxyPrintService() {
+        return ServiceContext.getServiceFactory().getProxyPrintService();
     }
 
     protected static PrinterService printerService() {

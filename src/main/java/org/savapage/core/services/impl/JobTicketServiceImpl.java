@@ -51,6 +51,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
+import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
@@ -380,6 +381,25 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public OutboxJobDto removeTicket(final String fileName) {
         final UUID uuid = uuidFromFileName(fileName);
+        return this.removeTicket(uuid);
+    }
+
+    @Override
+    public OutboxJobDto printTicket(final String fileName)
+            throws IOException, IppConnectException {
+
+        final UUID uuid = uuidFromFileName(fileName);
+        final OutboxJobDto dto = this.jobTicketCache.get(uuid);
+
+        if (dto == null) {
+            return dto;
+        }
+
+        final User lockedUser = userDAO().lock(dto.getUserId());
+
+        proxyPrintService().proxyPrintJobTicket(lockedUser, dto,
+                getJobTicketFile(uuid, FILENAME_EXT_PDF));
+
         return this.removeTicket(uuid);
     }
 
