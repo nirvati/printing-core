@@ -242,7 +242,7 @@ public interface InboxService {
      */
     void setLetterhead(User user, String letterheadId, String name,
             boolean foreground, boolean isPublic, boolean isPublicNew)
-            throws IOException, LetterheadNotFoundException;
+                    throws IOException, LetterheadNotFoundException;
 
     /**
      * Deletes a private or public letterhead. If the deleted letterhead is
@@ -301,7 +301,7 @@ public interface InboxService {
      */
     Map<String, Object> getLetterheadDetails(User userObj, String letterheadId,
             Boolean isPublic, boolean imgBase64)
-            throws LetterheadNotFoundException;
+                    throws LetterheadNotFoundException;
 
     /**
      * Returns private or public letterhead store.
@@ -695,4 +695,16 @@ public interface InboxService {
      * @return The file path of the PDF EcoPrint shadow.
      */
     String createEcoPdfShadowPath(String pdfPath);
+
+    /**
+     * Gets the most recent modified time of a user's time print-in file (job).
+     *
+     * @param userId
+     *            The user ID.
+     * @return The time in milliseconds or {@code null} when no jobs are
+     *         present.
+     * @throws IOException
+     *             When file system error.
+     */
+    Long getLastPrintInTime(String userId) throws IOException;
 }

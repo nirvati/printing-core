@@ -21,11 +21,17 @@
  */
 package org.savapage.core.services.impl;
 
+import static java.nio.file.FileVisitResult.CONTINUE;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -44,6 +50,7 @@ import javax.print.attribute.standard.MediaSizeName;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableLong;
 import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
@@ -92,8 +99,8 @@ public final class InboxServiceImpl implements InboxService {
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(InboxServiceImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(InboxServiceImpl.class);
 
     /**
      * .
@@ -192,9 +199,11 @@ public final class InboxServiceImpl implements InboxService {
         try {
             mapper.writeValue(new File(filename), jobinfo);
         } catch (JsonGenerationException e) {
-            throw new SpException("Error generating file [" + filename + "]", e);
+            throw new SpException("Error generating file [" + filename + "]",
+                    e);
         } catch (JsonMappingException e) {
-            throw new SpException("Error mapping to file [" + filename + "]", e);
+            throw new SpException("Error mapping to file [" + filename + "]",
+                    e);
         } catch (IOException e) {
             throw new SpException("Error writing file [" + filename + "]", e);
         }
@@ -206,8 +215,8 @@ public final class InboxServiceImpl implements InboxService {
 
         final String tmpdir = ConfigManager.getUserTempDir(user);
 
-        if (FilenameUtils.getExtension(filePs).equals(
-                DocContent.FILENAME_EXT_PS)) {
+        if (FilenameUtils.getExtension(filePs)
+                .equals(DocContent.FILENAME_EXT_PS)) {
             if (isLetterhead) {
                 throw new SpException("letterheads are NOT supported yet");
             }
@@ -272,9 +281,8 @@ public final class InboxServiceImpl implements InboxService {
                 /*
                  *
                  */
-                final DocLog docLog =
-                        doclogDao.findByUuid(userObj.getId(),
-                                FilenameUtils.getBaseName(filePath));
+                final DocLog docLog = doclogDao.findByUuid(userObj.getId(),
+                        FilenameUtils.getBaseName(filePath));
 
                 if (docLog == null) {
                     /*
@@ -387,9 +395,8 @@ public final class InboxServiceImpl implements InboxService {
             for (final RangeAtom atom : ranges) {
 
                 int nPageFrom = atom.pageBegin == null ? 1 : atom.pageBegin;
-                int nPageTo =
-                        atom.pageEnd == null ? jobs.get(page.getJob())
-                                .getPages() : atom.pageEnd;
+                int nPageTo = atom.pageEnd == null
+                        ? jobs.get(page.getJob()).getPages() : atom.pageEnd;
 
                 int nPagesInAtom = nPageTo - nPageFrom + 1;
 
@@ -431,8 +438,8 @@ public final class InboxServiceImpl implements InboxService {
      *            The total number of pages in the document.
      * @return The number of pages.
      */
-    public static int calcSelectedDocPages(
-            final List<RangeAtom> selectedRanges, final int nTotPages) {
+    public static int calcSelectedDocPages(final List<RangeAtom> selectedRanges,
+            final int nTotPages) {
 
         int nPages = 0;
 
@@ -546,9 +553,8 @@ public final class InboxServiceImpl implements InboxService {
                     if (jobAtom.pageBegin == null) {
                         inboxAtom.pageBegin = Integer.valueOf(nPagesWlk);
                     } else {
-                        inboxAtom.pageBegin =
-                                Integer.valueOf(nPagesWlk + jobAtom.pageBegin
-                                        - 1);
+                        inboxAtom.pageBegin = Integer
+                                .valueOf(nPagesWlk + jobAtom.pageBegin - 1);
                     }
 
                     if (jobAtom.pageEnd == null) {
@@ -589,9 +595,8 @@ public final class InboxServiceImpl implements InboxService {
             }
             for (RangeAtom atom : ranges) {
                 int nPageFrom = atom.pageBegin == null ? 1 : atom.pageBegin;
-                int nPageTo =
-                        atom.pageEnd == null ? jobs.get(page.getJob())
-                                .getPages() : atom.pageEnd;
+                int nPageTo = atom.pageEnd == null
+                        ? jobs.get(page.getJob()).getPages() : atom.pageEnd;
                 nPages += nPageTo - nPageFrom + 1;
             }
         }
@@ -684,7 +689,8 @@ public final class InboxServiceImpl implements InboxService {
      */
     @Deprecated
     public static boolean isScanJobFilename(final String filename) {
-        return FilenameUtils.getExtension(filename).equals(FILENAME_EXT_SCAN);
+        return FilenameUtils.getExtension(filename)
+                .equalsIgnoreCase(FILENAME_EXT_SCAN);
     }
 
     /**
@@ -695,8 +701,8 @@ public final class InboxServiceImpl implements InboxService {
      * @return true if filename represents a print job.
      */
     public static boolean isPsJobFilename(final String filename) {
-        return FilenameUtils.getExtension(filename).equals(
-                DocContent.FILENAME_EXT_PS);
+        return FilenameUtils.getExtension(filename)
+                .equalsIgnoreCase(DocContent.FILENAME_EXT_PS);
     }
 
     /**
@@ -707,17 +713,16 @@ public final class InboxServiceImpl implements InboxService {
      * @return true if filename represents a print job.
      */
     public static boolean isPdfJobFilename(final String filename) {
-        return FilenameUtils.getExtension(filename).equals(
-                DocContent.FILENAME_EXT_PDF);
+        return FilenameUtils.getExtension(filename)
+                .equalsIgnoreCase(DocContent.FILENAME_EXT_PDF);
     }
 
     @Override
     public boolean isSupportedJobType(final File file) {
         final String ext = FilenameUtils.getExtension(file.getName());
-        return ext != null
-                && (ext.equals(DocContent.FILENAME_EXT_PDF)
-                        || ext.equals(DocContent.FILENAME_EXT_PS) || ext
-                            .equals(FILENAME_EXT_SCAN));
+        return ext != null && (ext.equalsIgnoreCase(DocContent.FILENAME_EXT_PDF)
+                || ext.equalsIgnoreCase(DocContent.FILENAME_EXT_PS)
+                || ext.equalsIgnoreCase(FILENAME_EXT_SCAN));
     }
 
     @Override
@@ -993,9 +998,10 @@ public final class InboxServiceImpl implements InboxService {
             n++; // overall page counter
 
             bNextPageChunk =
-                    (n == nStartChunkPre
-                            || n == nStartChunkPost
-                            || ((nFirstDetailPage <= n) && n < (nFirstDetailPage + MAX_DETAIL_PAGES)) || n == nStartNextChunk);
+                    (n == nStartChunkPre || n == nStartChunkPost
+                            || ((nFirstDetailPage <= n) && n < (nFirstDetailPage
+                                    + MAX_DETAIL_PAGES))
+                    || n == nStartNextChunk);
 
             /*
              * Next page-range
@@ -1050,10 +1056,8 @@ public final class InboxServiceImpl implements InboxService {
 
                 pagesOut.getPages().add(pageTmp);
 
-                chunks +=
-                        "\n[" + nChunkStart + "-" + (n - 1) + ":"
-                                + nChunkedPages + "] [" + pageTmp.getUrl()
-                                + "]";
+                chunks += "\n[" + nChunkStart + "-" + (n - 1) + ":"
+                        + nChunkedPages + "] [" + pageTmp.getUrl() + "]";
 
                 bPageChunkInit = true;
             }
@@ -1183,9 +1187,8 @@ public final class InboxServiceImpl implements InboxService {
 
         File file;
         try {
-            file =
-                    OutputProducer.instance().createLetterhead(
-                            getLetterheadsDir(user.getUserId()), user);
+            file = OutputProducer.instance().createLetterhead(
+                    getLetterheadsDir(user.getUserId()), user);
         } catch (EcoPrintPdfTaskPendingException e) {
             throw new SpException(e.getMessage(), e);
         }
@@ -1238,9 +1241,9 @@ public final class InboxServiceImpl implements InboxService {
 
     @Override
     public void setLetterhead(final User user, final String letterheadId,
-            final String name, final boolean foreground,
-            final boolean isPublic, final boolean isPublicNew)
-            throws IOException, LetterheadNotFoundException {
+            final String name, final boolean foreground, final boolean isPublic,
+            final boolean isPublicNew)
+                    throws IOException, LetterheadNotFoundException {
 
         LetterheadInfo letterheadInfoPublic = null;
         LetterheadInfo letterheadInfoUser = null;
@@ -1278,8 +1281,9 @@ public final class InboxServiceImpl implements InboxService {
                             letterheadId);
                 }
 
-                FileUtils.moveFileToDirectory(new File(locationPublic + "/"
-                        + letterheadId), new File(locationUser), false);
+                FileUtils.moveFileToDirectory(
+                        new File(locationPublic + "/" + letterheadId),
+                        new File(locationUser), false);
 
                 job.setPub(false);
 
@@ -1300,8 +1304,9 @@ public final class InboxServiceImpl implements InboxService {
                             letterheadId);
                 }
 
-                FileUtils.moveFileToDirectory(new File(locationUser + "/"
-                        + letterheadId), new File(locationPublic), false);
+                FileUtils.moveFileToDirectory(
+                        new File(locationUser + "/" + letterheadId),
+                        new File(locationPublic), false);
 
                 job.setPub(true);
 
@@ -1321,8 +1326,8 @@ public final class InboxServiceImpl implements InboxService {
                     getLetterhead(letterheadId, letterheadInfo);
 
             if (job == null) {
-                throw LetterheadNotFoundException
-                        .create(isPublic, letterheadId);
+                throw LetterheadNotFoundException.create(isPublic,
+                        letterheadId);
             }
 
             job.setName(name);
@@ -1392,8 +1397,7 @@ public final class InboxServiceImpl implements InboxService {
 
         final InboxInfoDto info = readInboxInfo(user);
 
-        if (info.getLetterhead() != null
-                && info.getLetterhead().getId() != null
+        if (info.getLetterhead() != null && info.getLetterhead().getId() != null
                 && info.getLetterhead().getId().equals(letterheadId)) {
 
             info.setLetterhead(null);
@@ -1439,10 +1443,9 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public Map<String, Object>
-            getLetterheadDetails(final User userObj, final String letterheadId,
-                    final Boolean isPublic, boolean imgBase64)
-                    throws LetterheadNotFoundException {
+    public Map<String, Object> getLetterheadDetails(final User userObj,
+            final String letterheadId, final Boolean isPublic,
+            boolean imgBase64) throws LetterheadNotFoundException {
 
         final String user = userObj.getUserId();
 
@@ -1503,8 +1506,8 @@ public final class InboxServiceImpl implements InboxService {
             try {
                 FileUtils.forceMkdir(directory);
             } catch (IOException e) {
-                throw new SpException("directory [" + workdir
-                        + "] could not be created.", e);
+                throw new SpException(
+                        "directory [" + workdir + "] could not be created.", e);
             }
         }
 
@@ -1550,8 +1553,8 @@ public final class InboxServiceImpl implements InboxService {
                     int nPages = getNumberOfPagesInPdfFile(filePath);
                     job.setPages(nPages);
                 } else {
-                    throw new SpException("[" + filePath
-                            + "] is not a PDF file");
+                    throw new SpException(
+                            "[" + filePath + "] is not a PDF file");
                 }
 
                 job.setForeground(true);
@@ -1604,8 +1607,8 @@ public final class InboxServiceImpl implements InboxService {
                     info = mapper.readValue(file, LetterheadInfo.class);
                 } catch (JsonMappingException e) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Error mapping from file [" + filename
-                                + "]");
+                        LOGGER.debug(
+                                "Error mapping from file [" + filename + "]");
                     }
                 }
             }
@@ -1632,17 +1635,19 @@ public final class InboxServiceImpl implements InboxService {
      *            The letterhead store.
      *
      */
-    private void
-            storeLetterheadInfo(final String directory, LetterheadInfo info) {
+    private void storeLetterheadInfo(final String directory,
+            LetterheadInfo info) {
         final String filename =
                 directory + "/" + LETTERHEADS_DESCRIPT_FILE_NAME;
         ObjectMapper mapper = new ObjectMapper();
         try {
             mapper.writeValue(new File(filename), info);
         } catch (JsonGenerationException e) {
-            throw new SpException("Error generating file [" + filename + "]", e);
+            throw new SpException("Error generating file [" + filename + "]",
+                    e);
         } catch (JsonMappingException e) {
-            throw new SpException("Error mapping to file [" + filename + "]", e);
+            throw new SpException("Error mapping to file [" + filename + "]",
+                    e);
         } catch (IOException e) {
             throw new SpException("Error writing file [" + filename + "]", e);
         }
@@ -1683,8 +1688,8 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public void editJob(final String user, final int iJob,
-            final boolean rotate, final boolean undelete) {
+    public void editJob(final String user, final int iJob, final boolean rotate,
+            final boolean undelete) {
 
         final InboxInfoDto jobs = readInboxInfo(user);
 
@@ -1836,8 +1841,8 @@ public final class InboxServiceImpl implements InboxService {
                         homedir + "/" + jobs.getJobs().get(i).getFile();
                 files2Unlink.add(filePath);
 
-                if (FilenameUtils.getExtension(filePath).equals(
-                        DocContent.FILENAME_EXT_PS)) {
+                if (FilenameUtils.getExtension(filePath)
+                        .equals(DocContent.FILENAME_EXT_PS)) {
                     filePath =
                             tmpdir + "/" + FilenameUtils.getBaseName(filePath)
                                     + "." + DocContent.FILENAME_EXT_PDF;
@@ -1875,8 +1880,8 @@ public final class InboxServiceImpl implements InboxService {
                 try {
                     this.deleteJobFileAndRelated(file);
                 } catch (IOException e) {
-                    throw new SpException("File [" + filename
-                            + "] could not be deleted", e);
+                    throw new SpException(
+                            "File [" + filename + "] could not be deleted", e);
                 }
                 nFilesDeleted++;
             }
@@ -1916,7 +1921,8 @@ public final class InboxServiceImpl implements InboxService {
         if (ECOPRINT_SERVICE.cancelTask(uuid)) {
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Stopped [" + uuid.toString() + "] EcoPrint task.");
+                LOGGER.trace(
+                        "Stopped [" + uuid.toString() + "] EcoPrint task.");
             }
 
         } else {
@@ -2000,9 +2006,8 @@ public final class InboxServiceImpl implements InboxService {
             jobPagesWlk = iterJobPages.next();
             jobWlk = jobs.getJobs().get(jobPagesWlk.getJob());
 
-            jobIterRangeAtom =
-                    this.createSortedRangeArray(jobPagesWlk.getRange())
-                            .iterator();
+            jobIterRangeAtom = this
+                    .createSortedRangeArray(jobPagesWlk.getRange()).iterator();
 
             if (jobIterRangeAtom.hasNext()) {
 
@@ -2023,9 +2028,8 @@ public final class InboxServiceImpl implements InboxService {
             /*
              * Mapping filter page numbers to job page numbers.
              */
-            nFilterJobPageFrom =
-                    jobRangeAtomWlk.pageBegin
-                            + (nFilterPageFrom - nDocPageFrom);
+            nFilterJobPageFrom = jobRangeAtomWlk.pageBegin
+                    + (nFilterPageFrom - nDocPageFrom);
 
             nFilterJobPageTo =
                     jobRangeAtomWlk.pageEnd - (nDocPageTo - nFilterPageTo);
@@ -2261,9 +2265,9 @@ public final class InboxServiceImpl implements InboxService {
 
                         jobPagesWlk = iterJobPages.next();
                         jobWlk = jobs.getJobs().get(jobPagesWlk.getJob());
-                        jobIterRangeAtom =
-                                this.createSortedRangeArray(
-                                        jobPagesWlk.getRange()).iterator();
+                        jobIterRangeAtom = this
+                                .createSortedRangeArray(jobPagesWlk.getRange())
+                                .iterator();
                     }
                 }
 
@@ -2274,9 +2278,8 @@ public final class InboxServiceImpl implements InboxService {
                     jobRangeAtomWlk.pageEnd =
                             jobRangeAtomWlk.calcPageTo(jobWlk.getPages());
                     nDocPageFrom = nDocPageTo + 1;
-                    nDocPageTo +=
-                            jobRangeAtomWlk.pageEnd - jobRangeAtomWlk.pageBegin
-                                    + 1;
+                    nDocPageTo += jobRangeAtomWlk.pageEnd
+                            - jobRangeAtomWlk.pageBegin + 1;
                 }
 
             }
@@ -2301,9 +2304,8 @@ public final class InboxServiceImpl implements InboxService {
             if (jobRangeAtomWlk != null
                     && (bReadNextDocAtom || bReadNextFilterAtom)) {
 
-                nFilterJobPageFrom =
-                        jobRangeAtomWlk.pageBegin
-                                + (nFilterPageFrom - nDocPageFrom);
+                nFilterJobPageFrom = jobRangeAtomWlk.pageBegin
+                        + (nFilterPageFrom - nDocPageFrom);
 
                 nFilterJobPageTo =
                         jobRangeAtomWlk.pageEnd - (nDocPageTo - nFilterPageTo);
@@ -2331,8 +2333,8 @@ public final class InboxServiceImpl implements InboxService {
      * @param pages
      * @return
      */
-    public static String getPageRangeAsText(
-            final List<InboxInfoDto.InboxJobRange> pages) {
+    public static String
+            getPageRangeAsText(final List<InboxInfoDto.InboxJobRange> pages) {
         String txt = "";
         boolean first = true;
         for (InboxInfoDto.InboxJobRange page : pages) {
@@ -2374,9 +2376,8 @@ public final class InboxServiceImpl implements InboxService {
                 return false;
             }
 
-            if (atom.pageEnd != null
-                    && atom.pageEnd.intValue() != jobInfo.getJobs()
-                            .get(iJobRange).getPages().intValue()) {
+            if (atom.pageEnd != null && atom.pageEnd.intValue() != jobInfo
+                    .getJobs().get(iJobRange).getPages().intValue()) {
                 return false;
             }
 
@@ -2524,9 +2525,8 @@ public final class InboxServiceImpl implements InboxService {
          * Prune the jobs (this will actually delete the pruned job files in the
          * user home directory as well) and store them.
          */
-        final InboxInfoDto prunedInfoPersist =
-                this.pruneJobs(ConfigManager.getUserHomeDir(userId), userId,
-                        prunedInfoFast);
+        final InboxInfoDto prunedInfoPersist = this.pruneJobs(
+                ConfigManager.getUserHomeDir(userId), userId, prunedInfoFast);
 
         this.storeInboxInfo(userId, prunedInfoPersist);
 
@@ -2542,8 +2542,8 @@ public final class InboxServiceImpl implements InboxService {
      *            The {@link InboxInfoDto} to touch.
      */
     private void touchLastPreviewTime(final InboxInfoDto dto) {
-        dto.setLastPreviewTime(Long.valueOf(ServiceContext.getTransactionDate()
-                .getTime()));
+        dto.setLastPreviewTime(
+                Long.valueOf(ServiceContext.getTransactionDate().getTime()));
     }
 
     @Override
@@ -2580,7 +2580,8 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public IppMediaSizeEnum checkSingleInboxMedia(final InboxInfoDto inboxInfo) {
+    public IppMediaSizeEnum
+            checkSingleInboxMedia(final InboxInfoDto inboxInfo) {
 
         String media = null;
 
@@ -2644,11 +2645,8 @@ public final class InboxServiceImpl implements InboxService {
 
         info.setPdfIn(pdfIn);
 
-        final Path pathTargetEco =
-                FileSystems.getDefault().getPath(
-                        homedir,
-                        String.format("%s.%s", pdfIn.getName(),
-                                FILENAME_EXT_ECO));
+        final Path pathTargetEco = FileSystems.getDefault().getPath(homedir,
+                String.format("%s.%s", pdfIn.getName(), FILENAME_EXT_ECO));
 
         info.setPdfOut(pathTargetEco.toFile());
 
@@ -2656,8 +2654,8 @@ public final class InboxServiceImpl implements InboxService {
          * Use the application's temp dir, since it is cleaned when the
          * application is started.
          */
-        info.setPathTmpDir(FileSystems.getDefault().getPath(
-                ConfigManager.getAppTmpDir()));
+        info.setPathTmpDir(
+                FileSystems.getDefault().getPath(ConfigManager.getAppTmpDir()));
 
         info.setResolution(Integer.valueOf(ConfigManager.instance()
                 .getConfigInt(Key.ECO_PRINT_RESOLUTION_DPI)));
@@ -2697,11 +2695,8 @@ public final class InboxServiceImpl implements InboxService {
              */
             final String uuid = FilenameUtils.getBaseName(job.getFile());
 
-            final Path pdfPath =
-                    FileSystems.getDefault().getPath(
-                            homedir,
-                            String.format("%s.%s", uuid,
-                                    DocContent.FILENAME_EXT_PDF));
+            final Path pdfPath = FileSystems.getDefault().getPath(homedir,
+                    String.format("%s.%s", uuid, DocContent.FILENAME_EXT_PDF));
 
             final File fileEco =
                     new File(this.createEcoPdfShadowPath(pdfPath.toString()));
@@ -2719,6 +2714,42 @@ public final class InboxServiceImpl implements InboxService {
         }
 
         return nTasksBusy + nTasksStarted;
+    }
+
+    @Override
+    public Long getLastPrintInTime(final String userId) throws IOException {
+
+        final File userdir = new File(ConfigManager.getUserHomeDir(userId));
+
+        if (!userdir.exists()) {
+            return null;
+        }
+
+        final MutableLong lastTime = new MutableLong(-1L);
+
+        final SimpleFileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(final Path file,
+                    final BasicFileAttributes attrs) throws IOException {
+
+                if (isPdfJobFilename(file.toString())) {
+                    final long time = file.toFile().lastModified();
+                    if (time > lastTime.longValue()) {
+                        lastTime.setValue(time);
+                    }
+                }
+
+                return CONTINUE;
+            }
+        };
+
+        Files.walkFileTree(ConfigManager.getJobTicketsHome(), visitor);
+
+        if (lastTime.longValue() > 0) {
+            return lastTime.toLong();
+        }
+
+        return null;
     }
 
 }
