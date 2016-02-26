@@ -206,22 +206,18 @@ public interface IConfigProp {
         /**
          *
          */
-        BIG_DECIMAL,
-        /**
-         *
-         */
-        LOCALIZED_MULTI_LINE,
-        /**
-         *
-         */
-        LOCALIZED_SINGLE_LINE,
-        /**
-         *
-         */
-        MULTI_LINE,
-        /**
-         *
-         */
+        BIG_DECIMAL, /**
+                      *
+                      */
+        LOCALIZED_MULTI_LINE, /**
+                               *
+                               */
+        LOCALIZED_SINGLE_LINE, /**
+                                *
+                                */
+        MULTI_LINE, /**
+                     *
+                     */
         SINGLE_LINE
     };
 
@@ -334,10 +330,9 @@ public interface IConfigProp {
         /**
          *
          */
-        FINANCIAL_VOUCHER_CARD_FONT_FAMILY(
-                "financial.voucher.card-font-family",
-                INTERNAL_FONT_FAMILY_VALIDATOR, DEFAULT_INTERNAL_FONT_FAMILY
-                        .toString()),
+        FINANCIAL_VOUCHER_CARD_FONT_FAMILY("financial.voucher.card-font-family",
+                INTERNAL_FONT_FAMILY_VALIDATOR,
+                DEFAULT_INTERNAL_FONT_FAMILY.toString()),
 
         /**
          * URL of external user page with information about the Bitcoin
@@ -438,8 +433,9 @@ public interface IConfigProp {
         /**
          * Authentication method.
          */
-        AUTH_METHOD("auth.method", null, AUTH_METHOD_V_NONE, new String[] {
-                AUTH_METHOD_V_NONE, AUTH_METHOD_V_UNIX, AUTH_METHOD_V_LDAP }),
+        AUTH_METHOD("auth.method", null, AUTH_METHOD_V_NONE,
+                new String[] { AUTH_METHOD_V_NONE, AUTH_METHOD_V_UNIX,
+                        AUTH_METHOD_V_LDAP }),
 
         /**
          *
@@ -474,16 +470,16 @@ public interface IConfigProp {
         /**
          *
          */
-        CARD_NUMBER_FORMAT("card.number.format", null,
-                CARD_NUMBER_FORMAT_V_HEX, new String[] {
-                        CARD_NUMBER_FORMAT_V_DEC, CARD_NUMBER_FORMAT_V_HEX }),
+        CARD_NUMBER_FORMAT("card.number.format", null, CARD_NUMBER_FORMAT_V_HEX,
+                new String[] { CARD_NUMBER_FORMAT_V_DEC,
+                        CARD_NUMBER_FORMAT_V_HEX }),
 
         /**
          *
          */
         CARD_NUMBER_FIRST_BYTE("card.number.first-byte", null,
-                CARD_NUMBER_FIRSTBYTE_V_LSB, new String[] {
-                        CARD_NUMBER_FIRSTBYTE_V_LSB,
+                CARD_NUMBER_FIRSTBYTE_V_LSB,
+                new String[] { CARD_NUMBER_FIRSTBYTE_V_LSB,
                         CARD_NUMBER_FIRSTBYTE_V_MSB }),
 
         /**
@@ -491,8 +487,8 @@ public interface IConfigProp {
          * renewal is Quartz scheduled with Key.ScheduleHourly.
          */
         CUPS_IPP_SUBSCR_NOTIFY_LEASE_DURATION(
-                "cups.ipp.subscription.notify-lease-duration",
-                NUMBER_VALIDATOR, "4200"),
+                "cups.ipp.subscription.notify-lease-duration", NUMBER_VALIDATOR,
+                "4200"),
 
         /**
          * Max number of IPP connections per CUPS server.
@@ -549,8 +545,8 @@ public interface IConfigProp {
         /**
          * A value of {@code -1} is interpreted as {@code null}.
          */
-        DELETE_ACCOUNT_TRX_DAYS("delete.account-trx-log.days",
-                NUMBER_VALIDATOR, "365"),
+        DELETE_ACCOUNT_TRX_DAYS("delete.account-trx-log.days", NUMBER_VALIDATOR,
+                "365"),
 
         /**
          *
@@ -666,7 +662,8 @@ public interface IConfigProp {
         /**
          *
          */
-        INTERNAL_USERS_ENABLE("internal-users.enable", BOOLEAN_VALIDATOR, V_YES),
+        INTERNAL_USERS_ENABLE("internal-users.enable", BOOLEAN_VALIDATOR,
+                V_YES),
 
         /**
          *
@@ -740,7 +737,8 @@ public interface IConfigProp {
          * IMPORTANT: The search must include the <code>{0}</code> value.
          * </p>
          */
-        LDAP_SCHEMA_USER_NAME_GROUP_SEARCH("ldap.schema.user-name-group-search"),
+        LDAP_SCHEMA_USER_NAME_GROUP_SEARCH(
+                "ldap.schema.user-name-group-search"),
 
         /**
          * The LDAP search to retrieve the nested groups of a parent group. The
@@ -838,23 +836,25 @@ public interface IConfigProp {
         /**
          * The LDAP field that contains the user's Card Number.
          */
-        LDAP_SCHEMA_USER_CARD_NUMBER_FIELD("ldap.schema.user-card-number-field"),
+        LDAP_SCHEMA_USER_CARD_NUMBER_FIELD(
+                "ldap.schema.user-card-number-field"),
 
         /**
          *
          */
         LDAP_SCHEMA_USER_CARD_NUMBER_FIRST_BYTE(
                 "ldap.user-card-number.first-byte", null,
-                CARD_NUMBER_FIRSTBYTE_V_LSB, new String[] {
-                        CARD_NUMBER_FIRSTBYTE_V_LSB,
+                CARD_NUMBER_FIRSTBYTE_V_LSB,
+                new String[] { CARD_NUMBER_FIRSTBYTE_V_LSB,
                         CARD_NUMBER_FIRSTBYTE_V_MSB }),
 
         /**
          *
          */
         LDAP_SCHEMA_USER_CARD_NUMBER_FORMAT("ldap.user-card-number.format",
-                null, CARD_NUMBER_FORMAT_V_HEX, new String[] {
-                        CARD_NUMBER_FORMAT_V_DEC, CARD_NUMBER_FORMAT_V_HEX }),
+                null, CARD_NUMBER_FORMAT_V_HEX,
+                new String[] { CARD_NUMBER_FORMAT_V_DEC,
+                        CARD_NUMBER_FORMAT_V_HEX }),
 
         /**
          * The LDAP field that contains the user's ID Number.
@@ -1014,8 +1014,8 @@ public interface IConfigProp {
          * database before he is allowed to print.
          * </p>
          */
-        SMARTSCHOOL_USER_INSERT_LAZY_PRINT(
-                "smartschool.user.insert.lazy-print", BOOLEAN_VALIDATOR, V_NO),
+        SMARTSCHOOL_USER_INSERT_LAZY_PRINT("smartschool.user.insert.lazy-print",
+                BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * User used for simulation and testing.
@@ -1152,7 +1152,8 @@ public interface IConfigProp {
          * {@code true} if this module is a node Smartschool Print Cluster (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_NODE_ENABLE(
-                "smartschool.1.soap.print.node.enable", BOOLEAN_VALIDATOR, V_NO),
+                "smartschool.1.soap.print.node.enable", BOOLEAN_VALIDATOR,
+                V_NO),
 
         /**
          * The unique node ID of this module in the Smartschool cluster (1).
@@ -1163,8 +1164,8 @@ public interface IConfigProp {
          * {@code true} if this node acts as Smartschool Print Center Proxy (1).
          */
         SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENABLE(
-                "smartschool.1.soap.print.node.proxy.enable",
-                BOOLEAN_VALIDATOR, V_NO),
+                "smartschool.1.soap.print.node.proxy.enable", BOOLEAN_VALIDATOR,
+                V_NO),
 
         /**
          * SOAP endpoint URL of Smartschool Print Center Proxy (1).
@@ -1226,7 +1227,8 @@ public interface IConfigProp {
          * {@code true} if this module is a node Smartschool Print Cluster (2).
          */
         SMARTSCHOOL_2_SOAP_PRINT_NODE_ENABLE(
-                "smartschool.2.soap.print.node.enable", BOOLEAN_VALIDATOR, V_NO),
+                "smartschool.2.soap.print.node.enable", BOOLEAN_VALIDATOR,
+                V_NO),
 
         /**
          * The unique node ID of this module in the Smartschool cluster (2).
@@ -1237,8 +1239,8 @@ public interface IConfigProp {
          * {@code true} if this node acts as Smartschool Print Center Proxy (2).
          */
         SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENABLE(
-                "smartschool.2.soap.print.node.proxy.enable",
-                BOOLEAN_VALIDATOR, V_NO),
+                "smartschool.2.soap.print.node.proxy.enable", BOOLEAN_VALIDATOR,
+                V_NO),
 
         /**
          * SOAP endpoint URL of Smartschool Print Center Proxy (2).
@@ -1277,8 +1279,8 @@ public interface IConfigProp {
          *
          */
         REPORTS_PDF_INTERNAL_FONT_FAMILY("reports.pdf.font-family",
-                INTERNAL_FONT_FAMILY_VALIDATOR, DEFAULT_INTERNAL_FONT_FAMILY
-                        .toString()),
+                INTERNAL_FONT_FAMILY_VALIDATOR,
+                DEFAULT_INTERNAL_FONT_FAMILY.toString()),
 
         /**
          * Boolean (Default is false). If true, prevents use of the non-standard
@@ -1337,7 +1339,8 @@ public interface IConfigProp {
         /**
          *
          */
-        MAIL_SMTP_MAX_FILE_KB("mail.smtp.max-file-kb", NUMBER_VALIDATOR, "1024"),
+        MAIL_SMTP_MAX_FILE_KB("mail.smtp.max-file-kb", NUMBER_VALIDATOR,
+                "1024"),
 
         /**
          * Value for SMTP property: <b>mail.smtp.connectiontimeout</b>
@@ -1398,7 +1401,8 @@ public interface IConfigProp {
          * Enable Delegated Print integration with PaperCut (boolean).
          */
         PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE(
-                "proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR, V_NO),
+                "proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR,
+                V_NO),
 
         /**
          * The shared top-level account that must be present in PaperCut.
@@ -1518,12 +1522,14 @@ public interface IConfigProp {
         /**
          *
          */
-        STATS_PRINT_IN_ROLLING_MONTH_PAGES("stats.print-in.rolling-month.pages"),
+        STATS_PRINT_IN_ROLLING_MONTH_PAGES(
+                "stats.print-in.rolling-month.pages"),
 
         /**
          *
          */
-        STATS_PRINT_IN_ROLLING_MONTH_BYTES("stats.print-in.rolling-month.bytes"),
+        STATS_PRINT_IN_ROLLING_MONTH_BYTES(
+                "stats.print-in.rolling-month.bytes"),
 
         /**
          *
@@ -1558,7 +1564,8 @@ public interface IConfigProp {
         /**
          *
          */
-        STATS_PRINT_OUT_ROLLING_WEEK_PAGES("stats.print-out.rolling-week.pages"),
+        STATS_PRINT_OUT_ROLLING_WEEK_PAGES(
+                "stats.print-out.rolling-week.pages"),
 
         /**
          *
@@ -1574,7 +1581,8 @@ public interface IConfigProp {
         /**
          *
          */
-        STATS_PRINT_OUT_ROLLING_WEEK_BYTES("stats.print-out.rolling-week.bytes"),
+        STATS_PRINT_OUT_ROLLING_WEEK_BYTES(
+                "stats.print-out.rolling-week.bytes"),
 
         /**
          *
@@ -1602,8 +1610,8 @@ public interface IConfigProp {
         /**
          *
          */
-        STATS_TOTAL_RESET_DATE("stats.total.reset-date", String.valueOf(System
-                .currentTimeMillis())),
+        STATS_TOTAL_RESET_DATE("stats.total.reset-date",
+                String.valueOf(System.currentTimeMillis())),
 
         /**
          *
@@ -1726,8 +1734,8 @@ public interface IConfigProp {
         /**
          *
          */
-        USER_ID_NUMBER_LENGTH_MIN("user.id-number-length-min",
-                NUMBER_VALIDATOR, "4"),
+        USER_ID_NUMBER_LENGTH_MIN("user.id-number-length-min", NUMBER_VALIDATOR,
+                "4"),
 
         /**
          * Insert users ad-hoc after successful authentication at the login
@@ -1776,8 +1784,8 @@ public interface IConfigProp {
          * Trust authenticated user in User Web App on same IP address as Client
          * App (Boolean, default TRUE).
          */
-        CLIAPP_AUTH_TRUST_WEBAPP_USER_AUTH(
-                "cliapp.auth.trust-webapp-user-auth", BOOLEAN_VALIDATOR, V_YES),
+        CLIAPP_AUTH_TRUST_WEBAPP_USER_AUTH("cliapp.auth.trust-webapp-user-auth",
+                BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * .
@@ -1808,8 +1816,8 @@ public interface IConfigProp {
          * Trust authenticated user in Client App on same IP address as User Web
          * App (Boolean, default TRUE).
          */
-        WEBAPP_USER_AUTH_TRUST_CLIAPP_AUTH(
-                "webapp.user.auth.trust-cliapp-auth", BOOLEAN_VALIDATOR, V_YES),
+        WEBAPP_USER_AUTH_TRUST_CLIAPP_AUTH("webapp.user.auth.trust-cliapp-auth",
+                BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * (boolean) Show Document title in the DocLog.
@@ -1832,8 +1840,8 @@ public interface IConfigProp {
         /**
          * Max idle seconds after which automatic logout occurs.
          */
-        WEBAPP_USER_MAX_IDLE_SECS("webapp.user.max-idle-secs",
-                NUMBER_VALIDATOR, WEBAPP_MAX_IDLE_SECS_V_NONE.toString()),
+        WEBAPP_USER_MAX_IDLE_SECS("webapp.user.max-idle-secs", NUMBER_VALIDATOR,
+                WEBAPP_MAX_IDLE_SECS_V_NONE.toString()),
 
         /**
          * Admin WebApp: show technical info on dashboard?
@@ -1853,8 +1861,8 @@ public interface IConfigProp {
         /**
          * User WebApp: Max. copies for proxy printing.
          */
-        WEBAPP_USER_PROXY_PRINT_MAX_COPIES(
-                "webapp.user.proxy-print.max-copies", NUMBER_VALIDATOR, "30"),
+        WEBAPP_USER_PROXY_PRINT_MAX_COPIES("webapp.user.proxy-print.max-copies",
+                NUMBER_VALIDATOR, "30"),
 
         /**
          * User WebApp: clear inbox after proxy printing.
@@ -1876,6 +1884,54 @@ public interface IConfigProp {
          */
         WEBAPP_CARD_ASSOC_DIALOG_MAX_SECS("webapp.card-assoc.dialog-max-secs",
                 NUMBER_VALIDATOR, "30"),
+
+        /**
+         * The custom jQuery Mobile Theme CSS file for the Admin Web App as
+         * present in the {@code server/custom/web/themes/} folder.
+         */
+        WEBAPP_THEME_ADMIN("webapp.theme.admin"),
+
+        /**
+         * The custom jQuery Mobile Theme CSS file for the Job Tickets Web App
+         * as present in the {@code server/custom/web/themes/} folder.
+         */
+        WEBAPP_THEME_JOBTICKETS("webapp.theme.jobtickets"),
+
+        /**
+         * The custom jQuery Mobile Theme CSS file for the POS Web App as
+         * present in the {@code server/custom/web/themes/} folder.
+         */
+        WEBAPP_THEME_POS("webapp.theme.pos"),
+
+        /**
+         * The custom jQuery Mobile Theme CSS file for the User Web App as
+         * present in the {@code server/custom/web/themes/} folder.
+         */
+        WEBAPP_THEME_USER("webapp.theme.user"),
+
+        /**
+         * The custom CSS file for the Admin Web App as present in the
+         * {@code server/custom/web/} folder.
+         */
+        WEBAPP_CUSTOM_ADMIN("webapp.custom.admin"),
+
+        /**
+         * The custom CSS file for the Job Tickets Web App as present in the
+         * {@code server/custom/web/} folder.
+         */
+        WEBAPP_CUSTOM_JOBTICKETS("webapp.custom.jobtickets"),
+
+        /**
+         * The custom CSS file for the POS Web App as present in the
+         * {@code server/custom/web/} folder.
+         */
+        WEBAPP_CUSTOM_POS("webapp.custom.pos"),
+
+        /**
+         * The custom CSS file for the User Web App as present in the
+         * {@code server/custom/web/} folder.
+         */
+        WEBAPP_CUSTOM_USER("webapp.custom.user"),
 
         /**
          * .
@@ -1939,9 +1995,8 @@ public interface IConfigProp {
          * @param name
          */
         private Key(final String name) {
-            this.property =
-                    this.createProperty(KeyType.SINGLE_LINE, name, null, "",
-                            null);
+            this.property = this.createProperty(KeyType.SINGLE_LINE, name, null,
+                    "", null);
         }
 
         /**
@@ -1959,9 +2014,8 @@ public interface IConfigProp {
          * @param defaultValue
          */
         private Key(final String name, final String defaultValue) {
-            this.property =
-                    this.createProperty(KeyType.SINGLE_LINE, name, null,
-                            defaultValue, null);
+            this.property = this.createProperty(KeyType.SINGLE_LINE, name, null,
+                    defaultValue, null);
         }
 
         /**
@@ -1970,9 +2024,8 @@ public interface IConfigProp {
          * @param validator
          */
         private Key(final String name, final Validator validator) {
-            this.property =
-                    this.createProperty(KeyType.SINGLE_LINE, name, validator,
-                            "", null);
+            this.property = this.createProperty(KeyType.SINGLE_LINE, name,
+                    validator, "", null);
         }
 
         /**
@@ -1983,8 +2036,8 @@ public interface IConfigProp {
          */
         private Key(final String name, final KeyType keyType,
                 final String defaultValue) {
-            this.property =
-                    this.createProperty(keyType, name, null, defaultValue, null);
+            this.property = this.createProperty(keyType, name, null,
+                    defaultValue, null);
         }
 
         /**
@@ -1996,9 +2049,8 @@ public interface IConfigProp {
          */
         private Key(final String name, final KeyType keyType,
                 final Validator validator, final String defaultValue) {
-            this.property =
-                    this.createProperty(keyType, name, validator, defaultValue,
-                            null);
+            this.property = this.createProperty(keyType, name, validator,
+                    defaultValue, null);
         }
 
         /**
@@ -2009,9 +2061,8 @@ public interface IConfigProp {
          */
         private Key(final String name, final Validator validator,
                 final String defaultValue) {
-            this.property =
-                    this.createProperty(KeyType.SINGLE_LINE, name, validator,
-                            defaultValue, null);
+            this.property = this.createProperty(KeyType.SINGLE_LINE, name,
+                    validator, defaultValue, null);
         }
 
         /**
@@ -2023,9 +2074,8 @@ public interface IConfigProp {
          */
         private Key(final String name, final Validator validator,
                 final String defaultValue, String[] values) {
-            this.property =
-                    this.createProperty(KeyType.SINGLE_LINE, name, validator,
-                            defaultValue, values);
+            this.property = this.createProperty(KeyType.SINGLE_LINE, name,
+                    validator, defaultValue, values);
         }
 
         /**
@@ -2083,42 +2133,33 @@ public interface IConfigProp {
         /**
          *
          */
-        OK,
-        /**
-         *
-         */
-        ERROR_EMPTY,
-        /**
-         *
-         */
-        ERROR_ENUM,
-        /**
-         *
-         */
-        ERROR_SYNTAX,
-        /**
-         *
-         */
-        ERROR_YN,
-        /**
-         *
-         */
-        ERROR_LOCALE,
-        /**
-         * .
-         */
-        ERROR_CURRENCY,
-        /**
-         *
-         */
-        ERROR_NOT_NUMERIC,
-        /**
-         *
-         */
-        ERROR_NOT_DECIMAL,
-        /**
-         *
-         */
+        OK, /**
+             *
+             */
+        ERROR_EMPTY, /**
+                      *
+                      */
+        ERROR_ENUM, /**
+                     *
+                     */
+        ERROR_SYNTAX, /**
+                       *
+                       */
+        ERROR_YN, /**
+                   *
+                   */
+        ERROR_LOCALE, /**
+                       * .
+                       */
+        ERROR_CURRENCY, /**
+                         *
+                         */
+        ERROR_NOT_NUMERIC, /**
+                            *
+                            */
+        ERROR_NOT_DECIMAL, /**
+                            *
+                            */
         ERROR_RANGE
     }
 
@@ -2280,15 +2321,14 @@ public interface IConfigProp {
         @Override
         public ValidationResult validate(String value) {
             ValidationResult res = new ValidationResult(value);
-            boolean valid =
-                    (value != null && (value.equals(V_YES) || value
-                            .equals(V_NO)));
+            boolean valid = (value != null
+                    && (value.equals(V_YES) || value.equals(V_NO)));
             if (!valid) {
                 res.setStatus(ValidationStatusEnum.ERROR_YN);
             }
             if (!res.isValid()) {
-                res.setMessage("value should be [" + V_YES + "] or [" + V_NO
-                        + "]");
+                res.setMessage(
+                        "value should be [" + V_YES + "] or [" + V_NO + "]");
             }
             return res;
         }
@@ -2428,9 +2468,10 @@ public interface IConfigProp {
 
                     final Long longValue = Long.valueOf(value);
 
-                    final boolean isValid =
-                            (this.minValue == null || longValue >= this.minValue)
-                                    && (this.maxValue == null || longValue <= this.maxValue);
+                    final boolean isValid = (this.minValue == null
+                            || longValue >= this.minValue)
+                            && (this.maxValue == null
+                                    || longValue <= this.maxValue);
 
                     if (!isValid) {
                         res.setStatus(ValidationStatusEnum.ERROR_RANGE);
@@ -2734,14 +2775,12 @@ public interface IConfigProp {
         /**
          * Apple Open Directory
          */
-        OPEN_DIR,
-        /**
-         * Novell eDirectory
-         */
-        EDIR,
-        /**
-         * Microsoft Active Directory
-         */
+        OPEN_DIR, /**
+                   * Novell eDirectory
+                   */
+        EDIR, /**
+               * Microsoft Active Directory
+               */
         ACTD,
     };
 
