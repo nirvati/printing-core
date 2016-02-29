@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,17 +32,17 @@ import java.io.OutputStreamWriter;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
 import org.savapage.core.print.server.PostScriptFilter;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class AppPostScriptFilter extends AbstractApp {
+public final class AppPostScriptFilter extends AbstractApp {
 
     private static final String CLI_SWITCH_NEGLECT_DRM = "neglect-drm";
     private static final String CLI_SWITCH_RESPECT_DRM = "respect-drm";
@@ -99,7 +99,7 @@ public class AppPostScriptFilter extends AbstractApp {
         // Parse parameters from CLI
         // ......................................................
         Options options = createCliOptions();
-        CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
 
         try {
@@ -157,9 +157,8 @@ public class AppPostScriptFilter extends AbstractApp {
                 writer = new BufferedWriter(new FileWriter(file));
 
             } else {
-                writer =
-                        new BufferedWriter(new OutputStreamWriter(
-                                getDisplayStream()));
+                writer = new BufferedWriter(
+                        new OutputStreamWriter(getDisplayStream()));
             }
 
             if (reader != null && writer != null) {
@@ -186,40 +185,27 @@ public class AppPostScriptFilter extends AbstractApp {
 
     @Override
     protected Options createCliOptions() throws Exception {
-        Options options = new Options();
+        final Options options = new Options();
 
-        //
         options.addOption(CLI_SWITCH_HELP, CLI_SWITCH_HELP_LONG, false,
                 "Displays this help text.");
 
-        //
-        OptionBuilder.hasArg(false);
-        OptionBuilder.withLongOpt(CLI_SWITCH_NEGLECT_DRM);
-        OptionBuilder.withDescription("Neglects the DRM.");
-        options.addOption(OptionBuilder.create());
+        options.addOption(
+                Option.builder().hasArg(false).longOpt(CLI_SWITCH_NEGLECT_DRM)
+                        .desc("Neglects the DRM.").build());
 
-        //
-        OptionBuilder.hasArg(false);
-        OptionBuilder.withLongOpt(CLI_SWITCH_RESPECT_DRM);
-        OptionBuilder.withDescription("Respects the DRM.");
-        options.addOption(OptionBuilder.create());
+        options.addOption(
+                Option.builder().hasArg(false).longOpt(CLI_SWITCH_RESPECT_DRM)
+                        .desc("Respects the DRM.").build());
 
-        //
-        OptionBuilder.hasArg(true);
-        OptionBuilder.withArgName("FILE");
-        OptionBuilder.withLongOpt(CLI_OPTION_IN);
-        OptionBuilder.withDescription("Input PostScript File (default stdin)");
-        options.addOption(OptionBuilder.create());
+        options.addOption(Option.builder().hasArg(true).argName("FILE")
+                .longOpt(CLI_OPTION_IN)
+                .desc("Input PostScript File (default stdin)").build());
 
-        //
-        OptionBuilder.hasArg(true);
-        OptionBuilder.withArgName("FILE");
-        OptionBuilder.withLongOpt(CLI_OPTION_OUT);
-        OptionBuilder
-                .withDescription("Output PostScript File (default stdout)");
-        options.addOption(OptionBuilder.create());
+        options.addOption(Option.builder().hasArg(true).argName("FILE")
+                .longOpt(CLI_OPTION_OUT)
+                .desc("Output PostScript File (default stdout)").build());
 
-        //
         return options;
     }
 

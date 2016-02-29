@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,9 +27,9 @@ import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
 import org.savapage.core.cli.AbstractApp;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.crypto.CryptoUser;
@@ -45,7 +45,7 @@ import org.savapage.core.crypto.CryptoUser;
  * rights to execute the commands.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class App extends AbstractApp {
@@ -79,11 +79,13 @@ public final class App extends AbstractApp {
     public static void addMethodOption(final Options options,
             final List<String> optionNames, final AbstractAppApi appApi) {
 
-        OptionBuilder.hasArg(false);
-        OptionBuilder.withLongOpt(appApi.getCliMethodName());
-        OptionBuilder.withDescription(appApi.getShortDecription());
+        final Option.Builder optionBuilder = Option.builder();
 
-        options.addOption(OptionBuilder.create());
+        optionBuilder.hasArg(false);
+        optionBuilder.longOpt(appApi.getCliMethodName());
+        optionBuilder.desc(appApi.getShortDecription());
+
+        options.addOption(optionBuilder.build());
 
         optionNames.add(appApi.getCliMethodName());
     }
@@ -126,8 +128,8 @@ public final class App extends AbstractApp {
             new CliSetUserGroupProperties(),
             //
             new CliSyncUserGroup()
-    //
-            };
+            //
+    };
 
     @Override
     protected Options createCliOptions() throws Exception {
@@ -189,9 +191,8 @@ public final class App extends AbstractApp {
 
         final String cmdLineSyntax = "[METHOD] [OPTION]...";
 
-        final String descript =
-                AbstractAppApi.getApiDescriptHeader()
-                        + "Note: use METHOD --help for method details.";
+        final String descript = AbstractAppApi.getApiDescriptHeader()
+                + "Note: use METHOD --help for method details.";
 
         // ......................................................
         // Parse FIRST parameter from CLI
@@ -202,7 +203,7 @@ public final class App extends AbstractApp {
         }
 
         Options options = createCliOptions();
-        CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
 
         try {

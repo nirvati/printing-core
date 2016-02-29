@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,9 +35,9 @@ import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -68,7 +68,7 @@ import au.com.bytecode.opencsv.CSVReader;
 /**
  * Command Line Interface (CLI) for Public JSON-RPC API.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractAppApi extends AbstractApp {
@@ -99,8 +99,9 @@ public abstract class AbstractAppApi extends AbstractApp {
     protected static final String CLI_BATCH_SWITCH_CONTINUE = "continue";
 
     /**
-     * The batch option for charset. See: <a
-     * href="http://www.iana.org/assignments/character-sets/">www.iana.org</a>
+     * The batch option for charset. See:
+     * <a href="http://www.iana.org/assignments/character-sets/">www.iana.org
+     * </a>
      */
     protected static final String CLI_BATCH_OPTION_CHARSET = "charset";
 
@@ -214,8 +215,8 @@ public abstract class AbstractAppApi extends AbstractApp {
      * @param cmd
      * @return
      */
-    protected abstract AbstractJsonRpcMethodParms createMethodParms(
-            CommandLine cmd);
+    protected abstract AbstractJsonRpcMethodParms
+            createMethodParms(CommandLine cmd);
 
     /**
      *
@@ -266,9 +267,8 @@ public abstract class AbstractAppApi extends AbstractApp {
     private boolean isValidLocale(final CommandLine cmd) {
         boolean isValid = true;
         if (hasLocaleOption() && cmd.hasOption(CLI_OPTION_LOCALE)) {
-            isValid =
-                    isValidLocaleLanguageTag(cmd
-                            .getOptionValue(CLI_OPTION_LOCALE));
+            isValid = isValidLocaleLanguageTag(
+                    cmd.getOptionValue(CLI_OPTION_LOCALE));
         }
         return isValid;
     }
@@ -334,8 +334,8 @@ public abstract class AbstractAppApi extends AbstractApp {
         //
         opt = CLI_BATCH_OPTION_INPUT;
         optionNames.add(opt);
-        options.addOption(opt, null, true, "Batch input file: "
-                + "optional with stdin as default.");
+        options.addOption(opt, null, true,
+                "Batch input file: " + "optional with stdin as default.");
         //
         opt = CLI_BATCH_OPTION_CHARSET;
         optionNames.add(opt);
@@ -396,9 +396,8 @@ public abstract class AbstractAppApi extends AbstractApp {
      */
     public static String getApiDescriptHeader() {
         final String eol = System.lineSeparator();
-        final String name =
-                CommunityDictEnum.SAVAPAGE.getWord()
-                        + " Command Line Interface";
+        final String name = CommunityDictEnum.SAVAPAGE.getWord()
+                + " Command Line Interface";
         return StringUtils.repeat("_", name.length() + 1) + eol + name + eol
                 + eol;
     }
@@ -444,7 +443,7 @@ public abstract class AbstractAppApi extends AbstractApp {
      */
     private int handleBatchRequest(final String[] args) throws Exception {
 
-        final CommandLineParser parser = new PosixParser();
+        final CommandLineParser parser = new DefaultParser();
         final Options options = new Options();
         final List<String> optionNameList = new ArrayList<>();
 
@@ -480,9 +479,8 @@ public abstract class AbstractAppApi extends AbstractApp {
         /*
          *
          */
-        final String charset =
-                cmd.getOptionValue(AbstractAppApi.CLI_BATCH_OPTION_CHARSET,
-                        "utf-8");
+        final String charset = cmd.getOptionValue(
+                AbstractAppApi.CLI_BATCH_OPTION_CHARSET, "utf-8");
 
         /*
          *
@@ -568,8 +566,8 @@ public abstract class AbstractAppApi extends AbstractApp {
     /**
      *
      * <p>
-     * See <a
-     * href="http://opencsv.sourceforge.net/">http://opencsv.sourceforge.net
+     * See
+     * <a href="http://opencsv.sourceforge.net/">http://opencsv.sourceforge.net
      * /</a>
      * </p>
      *
@@ -703,8 +701,8 @@ public abstract class AbstractAppApi extends AbstractApp {
      */
     protected final String send(final JsonRpcMethod request) throws Exception {
 
-        request.getParams().setApiKey(
-                "302c02145da35d18d85dcc724aabcb237b63092802e7ec"
+        request.getParams()
+                .setApiKey("302c02145da35d18d85dcc724aabcb237b63092802e7ec"
                         + "cb0214622a0d0eb5658c15edeea6d75f4ece349110490f");
 
         final String jsonIn = request.stringifyPrettyPrinted();
@@ -773,9 +771,9 @@ public abstract class AbstractAppApi extends AbstractApp {
     @Override
     protected Options createCliOptions() throws Exception {
 
-        Options options = new Options();
+        final Options options = new Options();
 
-        List<String> optionNames = getOptionNames();
+        final List<String> optionNames = getOptionNames();
 
         /*
          *
@@ -801,26 +799,24 @@ public abstract class AbstractAppApi extends AbstractApp {
              * IMPORTANT: do NOT set required, since this will throw a parse
              * exception, even if we just want --help
              */
-            // OptionBuilder.isRequired(required);
-
             final boolean hasArg = (option[0] != null);
-            OptionBuilder.hasArg(hasArg);
+
+            final Option.Builder optionBuilder = Option.builder();
+
+            optionBuilder.hasArg(hasArg);
 
             if (hasArg) {
-                OptionBuilder.withArgName(option[0].toString());
+                optionBuilder.argName(option[0].toString());
             }
 
-            // -------------------
-            OptionBuilder.withLongOpt(option[1].toString());
-            OptionBuilder.withDescription(descript);
+            optionBuilder.longOpt(option[1].toString());
+            optionBuilder.desc(descript);
 
-            options.addOption(OptionBuilder.create());
+            options.addOption(optionBuilder.build());
         }
 
-        //
         addHelpOptions(options, optionNames);
 
-        //
         if (hasBatchOptions()) {
             addBatchOptions(options, optionNames);
         }
@@ -828,9 +824,8 @@ public abstract class AbstractAppApi extends AbstractApp {
         if (hasLocaleOption()) {
             addLocaleOption(options, optionNames);
         }
-        //
-        return options;
 
+        return options;
     }
 
     /**
@@ -863,12 +858,11 @@ public abstract class AbstractAppApi extends AbstractApp {
 
         final String eol = System.lineSeparator();
 
-        final StringBuilder txt =
-                new StringBuilder().append(getApiDescriptHeader())
-                        .append("Method  : ").append(getMethodName())
-                        .append(eol).append("Version : ")
-                        .append(getApiVersion()).append(eol).append(eol)
-                        .append(getShortDecription());
+        final StringBuilder txt = new StringBuilder()
+                .append(getApiDescriptHeader()).append("Method  : ")
+                .append(getMethodName()).append(eol).append("Version : ")
+                .append(getApiVersion()).append(eol).append(eol)
+                .append(getShortDecription());
 
         if (getLongDecription() != null) {
             txt.append(eol).append(eol).append(getLongDecription());
@@ -883,7 +877,7 @@ public abstract class AbstractAppApi extends AbstractApp {
         // ......................................................
         // Parse parameters from CLI
         // ......................................................
-        CommandLineParser parser = new PosixParser();
+        CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
 
         int exitCode = EXIT_CODE_OK;
@@ -896,9 +890,8 @@ public abstract class AbstractAppApi extends AbstractApp {
             exitCode = EXIT_CODE_PARMS_PARSE_ERROR;
         }
 
-        if (exitCode == EXIT_CODE_OK
-                && (cmd.hasOption(CLI_SWITCH_HELP) || cmd
-                        .hasOption(CLI_SWITCH_HELP_LONG))) {
+        if (exitCode == EXIT_CODE_OK && (cmd.hasOption(CLI_SWITCH_HELP)
+                || cmd.hasOption(CLI_SWITCH_HELP_LONG))) {
             showUsage();
             return EXIT_CODE_OK;
         }

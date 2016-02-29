@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -42,9 +42,9 @@ import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -64,7 +64,7 @@ import org.savapage.core.jpa.tools.DatabaseTypeEnum;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class AppSSLKeystore extends AbstractApp {
@@ -139,9 +139,8 @@ public final class AppSSLKeystore extends AbstractApp {
         final String propKeyPassword = "password";
 
         final Properties props = new Properties();
-        final File filePw =
-                new File(ConfigManager.getServerHome()
-                        + "/data/default-ssl-keystore.pw");
+        final File filePw = new File(ConfigManager.getServerHome()
+                + "/data/default-ssl-keystore.pw");
 
         InputStream istr = null;
         Writer writer = null;
@@ -208,18 +207,16 @@ public final class AppSSLKeystore extends AbstractApp {
         /*
          * 10 Years After, as notAfter date
          */
-        final Date dateNotAfter =
-                new Date(System.currentTimeMillis()
-                        + (10L * 365 * 24L * 60L * 60L * 1000L));
+        final Date dateNotAfter = new Date(System.currentTimeMillis()
+                + (10L * 365 * 24L * 60L * 60L * 1000L));
 
         /*
          * GENERATE THE X509 CERTIFICATE
          */
         final byte[] publickeyb = keyPair.getPublic().getEncoded();
 
-        final SubjectPublicKeyInfo subPubKeyInfo =
-                new SubjectPublicKeyInfo(
-                        (ASN1Sequence) ASN1Primitive.fromByteArray(publickeyb));
+        final SubjectPublicKeyInfo subPubKeyInfo = new SubjectPublicKeyInfo(
+                (ASN1Sequence) ASN1Primitive.fromByteArray(publickeyb));
 
         // Mantis #560
         final X500Name holder = new X500Name("CN=" + holderCommonName);
@@ -269,9 +266,8 @@ public final class AppSSLKeystore extends AbstractApp {
         final X509CertificateHolder certHolder =
                 certBuilder.build(contentSigner);
 
-        final X509Certificate cert =
-                new JcaX509CertificateConverter().setProvider("BC")
-                        .getCertificate(certHolder);
+        final X509Certificate cert = new JcaX509CertificateConverter()
+                .setProvider("BC").getCertificate(certHolder);
 
         /*
          * Create empty keystore
@@ -317,8 +313,8 @@ public final class AppSSLKeystore extends AbstractApp {
         X509Certificate t = (X509Certificate) ks.getCertificate(alias);
 
         getDisplayStream().println("Version    : " + t.getVersion());
-        getDisplayStream().println(
-                "Serial#    : " + t.getSerialNumber().toString(16));
+        getDisplayStream()
+                .println("Serial#    : " + t.getSerialNumber().toString(16));
         getDisplayStream().println("SubjectDN  : " + t.getSubjectDN());
         getDisplayStream().println("IssuerDN   : " + t.getIssuerDN());
         getDisplayStream().println("NotBefore  : " + t.getNotBefore());
@@ -339,40 +335,29 @@ public final class AppSSLKeystore extends AbstractApp {
 
         final Options options = new Options();
 
-        //
         options.addOption(CLI_SWITCH_HELP, CLI_SWITCH_HELP_LONG, false,
                 "Displays this help text.");
 
-        //
         options.addOption(CLI_SWITCH_DEFAULT, CLI_SWITCH_DEFAULT_LONG, false,
                 "Creates the default keystore file '"
                         + new File(this.keystorePathDefault).getAbsolutePath()
                         + "'.");
 
-        //
-        OptionBuilder.hasArg(true);
-        OptionBuilder.withArgName("FILE");
-        OptionBuilder.withLongOpt(CLI_OPTION_CREATE);
-        OptionBuilder.withDescription("Creates a specific keystore file.");
-        options.addOption(OptionBuilder.create());
+        options.addOption(Option.builder().hasArg(true).argName("FILE")
+                .longOpt(CLI_OPTION_CREATE)
+                .desc("Creates a specific keystore file.").build());
 
-        //
-        OptionBuilder.hasArg(true);
-        OptionBuilder.withArgName("NAME");
-        OptionBuilder.withLongOpt(CLI_OPTION_SYSTEM_NAME);
-        OptionBuilder
-                .withDescription("The name of the computer/server used for the "
+        options.addOption(Option.builder().hasArg(true).argName("NAME")
+                .longOpt(CLI_OPTION_SYSTEM_NAME)
+                .desc("The name of the computer/server used for the "
                         + "SSL Certificate. If not set the current "
-                        + "computer name '"
-                        + this.hostnameDefault
-                        + "' is used.");
-        options.addOption(OptionBuilder.create());
+                        + "computer name '" + this.hostnameDefault
+                        + "' is used.")
+                .build());
 
-        //
         options.addOption(CLI_SWITCH_FORCE, CLI_SWITCH_FORCE_LONG, false,
                 "Force. Overwrite any existing keystore file.");
 
-        //
         return options;
     }
 
@@ -385,7 +370,7 @@ public final class AppSSLKeystore extends AbstractApp {
         // Parse parameters from CLI
         // ......................................................
         final Options options = createCliOptions();
-        final CommandLineParser parser = new PosixParser();
+        final CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
 
         try {
@@ -413,9 +398,8 @@ public final class AppSSLKeystore extends AbstractApp {
         // ......................................................
         //
         // ......................................................
-        final boolean forceCreate =
-                (cmd.hasOption(CLI_SWITCH_FORCE) || cmd
-                        .hasOption(CLI_SWITCH_FORCE_LONG));
+        final boolean forceCreate = (cmd.hasOption(CLI_SWITCH_FORCE)
+                || cmd.hasOption(CLI_SWITCH_FORCE_LONG));
 
         /*
          * Create the default key store
@@ -441,25 +425,22 @@ public final class AppSSLKeystore extends AbstractApp {
         /*
          * Create the custom key store
          */
-        final String systemName =
-                cmd.getOptionValue(CLI_OPTION_SYSTEM_NAME, this.hostnameDefault);
+        final String systemName = cmd.getOptionValue(CLI_OPTION_SYSTEM_NAME,
+                this.hostnameDefault);
 
-        final File keystore =
-                new File(cmd.getOptionValue(CLI_OPTION_CREATE,
-                        this.keystorePathDefault));
+        final File keystore = new File(cmd.getOptionValue(CLI_OPTION_CREATE,
+                this.keystorePathDefault));
 
         if (keystore.isDirectory()) {
-            getErrorDisplayStream().println(
-                    "Error: keystore " + keystore.getAbsolutePath()
-                            + " refers to a directory");
+            getErrorDisplayStream().println("Error: keystore "
+                    + keystore.getAbsolutePath() + " refers to a directory");
             return EXIT_CODE_ERROR;
         }
 
         if (keystore.exists() && !forceCreate) {
-            getErrorDisplayStream().println(
-                    "Error: SSL key store " + keystore.getAbsolutePath()
-                            + " already exists. "
-                            + "Use the force option to overwrite");
+            getErrorDisplayStream().println("Error: SSL key store "
+                    + keystore.getAbsolutePath() + " already exists. "
+                    + "Use the force option to overwrite");
             return EXIT_CODE_ERROR;
         }
 
