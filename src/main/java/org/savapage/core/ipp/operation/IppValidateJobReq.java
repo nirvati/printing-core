@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,17 +30,15 @@ import org.savapage.core.print.server.DocContentPrintProcessor;
 
 /**
  *
- * @author rijk
+ * @author Rijk Ravestein
  *
  */
-public class IppValidateJobReq extends AbstractIppRequest {
-
-    // private Logger myLogger = LoggerFactory.getLogger(this.getClass());
+public final class IppValidateJobReq extends AbstractIppRequest {
 
     private DocContentPrintProcessor printInReqHandler = null;
 
     @Override
-    void process(final InputStream istr) throws IOException {
+    protected void process(final InputStream istr) throws IOException {
         // no code intended
     }
 
@@ -54,14 +52,23 @@ public class IppValidateJobReq extends AbstractIppRequest {
     public void processAttributes(final IppValidateJobOperation operation,
             final InputStream istr) throws Exception {
 
+        final String requestingUserId;
+        final String authWebAppUser;
+
+        if (operation.isTrustedUserAsRequester()) {
+            requestingUserId = operation.getTrustedIppClientUserId();
+            authWebAppUser = null;
+        } else {
+            requestingUserId = this.getRequestingUserName();
+            authWebAppUser = operation.getTrustedIppClientUserId();
+        }
+
         /*
          * Create generic PrintIn handler. This should be a first action because
          * this handler holds the deferred exception.
          */
-        printInReqHandler =
-                new DocContentPrintProcessor(operation.getQueue(),
-                        operation.getRemoteAddr(), null,
-                        operation.getTrustedIppClientUserId());
+        printInReqHandler = new DocContentPrintProcessor(operation.getQueue(),
+                operation.getRemoteAddr(), null, authWebAppUser);
 
         /*
          * Read the IPP attributes.
@@ -72,15 +79,14 @@ public class IppValidateJobReq extends AbstractIppRequest {
          * Check...
          */
         printInReqHandler.setJobName(getJobName());
-        printInReqHandler.processRequestingUser(getRequestingUserName());
-
+        printInReqHandler.processRequestingUser(requestingUserId);
     }
 
     /**
      *
      * @return
      */
-    public final String getJobName() {
+    public String getJobName() {
 
         final IppAttrValue ippValue = getAttrValue("job-name");
 

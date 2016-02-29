@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,8 @@ import org.savapage.core.jpa.IppQueue;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class IppPrintJobOperation extends AbstractIppOperation {
 
@@ -59,6 +60,12 @@ public final class IppPrintJobOperation extends AbstractIppOperation {
     private final String trustedIppClientUserId;
 
     /**
+     * If {@code true}, the trustedIppClientUserId overrules the requesting
+     * user.
+     */
+    private final boolean trustedUserAsRequester;
+
+    /**
      *
      */
     private final String originatorIp;
@@ -76,15 +83,20 @@ public final class IppPrintJobOperation extends AbstractIppOperation {
      * @param trustedIppClientUserId
      *            The user id of the trusted on the IPP client. If {@code null}
      *            there is NO trusted user.
+     * @param trustedUserAsRequester
+     *            If {@code true}, the trustedIppClientUserId overrules the
+     *            requesting user.
      */
-    public IppPrintJobOperation(final String originatorIp,
-            final IppQueue queue, final boolean clientIpAccessToQueue,
-            final String trustedIppClientUserId) {
+    public IppPrintJobOperation(final String originatorIp, final IppQueue queue,
+            final boolean clientIpAccessToQueue,
+            final String trustedIppClientUserId,
+            final boolean trustedUserAsRequester) {
 
         this.originatorIp = originatorIp;
         this.queue = queue;
         this.clientIpAccessToQueue = clientIpAccessToQueue;
         this.trustedIppClientUserId = trustedIppClientUserId;
+        this.trustedUserAsRequester = trustedUserAsRequester;
     }
 
     public IppQueue getQueue() {
@@ -165,6 +177,14 @@ public final class IppPrintJobOperation extends AbstractIppOperation {
      */
     public String getTrustedIppClientUserId() {
         return trustedIppClientUserId;
+    }
+
+    /**
+     * @return {@code true} if the trustedIppClientUserId overrules the
+     *         requesting user.
+     */
+    public boolean isTrustedUserAsRequester() {
+        return this.trustedUserAsRequester;
     }
 
     /**

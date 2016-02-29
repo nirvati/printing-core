@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractIppRequest extends IppMessageMixin {
@@ -46,8 +46,8 @@ public abstract class AbstractIppRequest extends IppMessageMixin {
     /**
     *
     */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(AbstractIppRequest.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(AbstractIppRequest.class);
 
     private static final Charset MY_CHARSET = Charset.forName("US-ASCII");
 
@@ -56,19 +56,19 @@ public abstract class AbstractIppRequest extends IppMessageMixin {
      */
     private List<IppAttrGroup> attrGroups = new ArrayList<>();
 
-    /**
+    /*
      * The only operations that support supplying the document data within an
      * operation request are Print-Job and Send- Document.
      */
 
-    /**
+    /*
      * When an IPP object receives a request to perform an operation it does not
      * support, it returns the ’server-error-operation-not-supported’ status
      * code (see section 13.1.5.2). An IPP object is non-conformant if it does
      * not support a REQUIRED operation.
      */
 
-    /**
+    /*
      * The operation target attributes are REQUIRED operation attributes that
      * MUST be included in every operation request. Like the charset and natural
      * language attributes (see section 3.1.4), the operation target attributes
@@ -109,16 +109,16 @@ public abstract class AbstractIppRequest extends IppMessageMixin {
      * URI MUST be used by the client to contact the IPP object.
      */
 
-    /**
+    /*
      * 3.1.8 Versions
      *
-     * Each operation request and response carries with it a "version-
-     * number" parameter. Each value of the "version-number" is in the form
-     * "X.Y" where X is the major version number and Y is the minor version
-     * number. By including a version number in the client request, it allows
-     * the client to identify which version of IPP it is interested in using,
-     * i.e., the version whose conformance requirements the client may be
-     * depending upon the Printer to meet.
+     * Each operation request and response carries with it a "version- number
+     * " parameter. Each value of the "version-number" is in the form "X.Y"
+     * where X is the major version number and Y is the minor version number. By
+     * including a version number in the client request, it allows the client to
+     * identify which version of IPP it is interested in using, i.e., the
+     * version whose conformance requirements the client may be depending upon
+     * the Printer to meet.
      *
      * If the IPP object does not support that major version number supplied by
      * the client, i.e., the major version field of the "version-number"
@@ -223,12 +223,11 @@ public abstract class AbstractIppRequest extends IppMessageMixin {
     }
 
     /**
-     * Gets the "requesting-user-name" or {@code null} when not found.
-     *
-     * @return {@code null} when not found.
+     * @return the IPP attribute "requesting-user-name" or {@code null} when not
+     *         found.
      */
     public final String getRequestingUserName() {
-        IppAttrValue val =
+        final IppAttrValue val =
                 getAttrValue(IppDictOperationAttr.ATTR_REQUESTING_USER_NAME);
         if (val != null && val.getValues().size() == 1) {
             return val.getValues().get(0);

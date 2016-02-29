@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -67,8 +67,14 @@ import org.slf4j.LoggerFactory;
  * no Job Object Attributes (Group 3) are returned, since no Job object is
  * created.
  * </p>
+ *
+ * @author Rijk Ravestein
+ *
  */
 public class IppValidateJobOperation extends AbstractIppOperation {
+
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(IppValidateJobOperation.class);
 
     private final IppValidateJobReq request = new IppValidateJobReq();
     private final IppValidateJobRsp response = new IppValidateJobRsp();
@@ -76,11 +82,22 @@ public class IppValidateJobOperation extends AbstractIppOperation {
     private final IppQueue queue;
     private final String requestedQueueUrlPath;
     private final boolean clientIpAccessToQueue;
-    private final String trustedIppClientUserId;
-    private final String remoteAddr;
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(IppValidateJobOperation.class);
+    /**
+     * .
+     */
+    private final String trustedIppClientUserId;
+
+    /**
+     * If {@code true}, the trustedIppClientUserId overrules the requesting
+     * user.
+     */
+    private final boolean trustedUserAsRequester;
+
+    /**
+     * .
+     */
+    private final String remoteAddr;
 
     /**
      *
@@ -96,17 +113,22 @@ public class IppValidateJobOperation extends AbstractIppOperation {
      * @param trustedIppClientUserId
      *            The user id of the trusted on the IPP client. If {@code null}
      *            there is NO trusted user.
+     * @param trustedUserAsRequester
+     *            If {@code true}, the trustedIppClientUserId overrules the
+     *            requesting user.
      */
     public IppValidateJobOperation(final String remoteAddr,
             final IppQueue queue, final String requestedQueueUrlPath,
             final boolean clientIpAccessToQueue,
-            final String trustedIppClientUserId) {
+            final String trustedIppClientUserId,
+            final boolean trustedUserAsRequester) {
 
         this.remoteAddr = remoteAddr;
         this.queue = queue;
         this.requestedQueueUrlPath = requestedQueueUrlPath;
         this.clientIpAccessToQueue = clientIpAccessToQueue;
         this.trustedIppClientUserId = trustedIppClientUserId;
+        this.trustedUserAsRequester = trustedUserAsRequester;
     }
 
     public IppQueue getQueue() {
@@ -118,9 +140,8 @@ public class IppValidateJobOperation extends AbstractIppOperation {
     }
 
     @Override
-    protected final void
-            process(final InputStream istr, final OutputStream ostr)
-                    throws Exception {
+    protected final void process(final InputStream istr,
+            final OutputStream ostr) throws Exception {
         /*
          * IMPORTANT: we want to give a response in ALL cases. When an exception
          * occurs, the response will act in such a way that the client will not
@@ -172,9 +193,7 @@ public class IppValidateJobOperation extends AbstractIppOperation {
             pubLevel = PubLevelEnum.ERROR;
             pubMessage = request.getDeferredException().getMessage();
 
-            AdminPublisher.instance().publish(
-                    PubTopicEnum.USER,
-                    pubLevel,
+            AdminPublisher.instance().publish(PubTopicEnum.USER, pubLevel,
                     localize("pub-user-print-in-denied", userid,
                             ("/" + requestedQueueUrlPath), remoteAddr,
                             pubMessage));
@@ -211,13 +230,22 @@ public class IppValidateJobOperation extends AbstractIppOperation {
     }
 
     /**
-     * Gets the uid of the Person who is currently authenticated in User WebApp
-     * at same IP-address as the job was issued from.
+     * Gets the trusted user id. This is either the Person currently
+     * authenticated in User WebApp at same IP-address as the job was issued
+     * from, or an authenticated user from Internet Print.
      *
      * @return {@code null} if no user is authenticated.
      */
     public String getTrustedIppClientUserId() {
         return trustedIppClientUserId;
+    }
+
+    /**
+     * @return If {@code true}, the trustedIppClientUserId overrules the
+     *         requesting user.
+     */
+    public boolean isTrustedUserAsRequester() {
+        return trustedUserAsRequester;
     }
 
     /**

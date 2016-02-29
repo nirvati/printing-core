@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,13 +31,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractIppOperation {
 
-    private final static Logger LOGGER = LoggerFactory
-            .getLogger(AbstractIppOperation.class);
+    private final static Logger LOGGER =
+            LoggerFactory.getLogger(AbstractIppOperation.class);
 
     private int versionMajor;
     private int versionMinor;
@@ -96,6 +96,9 @@ public abstract class AbstractIppOperation {
      * @param trustedIppClientUserId
      *            The trusted user id on the IPP client. If {@code null} there
      *            is NO trusted user.
+     * @param trustedUserAsRequester
+     *            If {@code true}, the trustedIppClientUserId overrules the
+     *            requesting user.
      * @return The {@link IppOperationId}, or {@code null} when requested
      *         operation is not supported.
      * @throws Exception
@@ -105,7 +108,8 @@ public abstract class AbstractIppOperation {
             final IppQueue queue, final String requestedQueueUrlPath,
             final InputStream istr, final OutputStream ostr,
             final boolean hasPrintAccessToQueue,
-            final String trustedIppClientUserId) throws Exception {
+            final String trustedIppClientUserId,
+            final boolean trustedUserAsRequester) throws Exception {
 
         // -----------------------------------------------
         // | version-number (2 bytes - required)
@@ -137,14 +141,13 @@ public abstract class AbstractIppOperation {
         final AbstractIppOperation operation;
 
         if (operationId == IppOperationId.PRINT_JOB.asInt()) {
-            operation =
-                    new IppPrintJobOperation(remoteAddr, queue,
-                            hasPrintAccessToQueue, trustedIppClientUserId);
+            operation = new IppPrintJobOperation(remoteAddr, queue,
+                    hasPrintAccessToQueue, trustedIppClientUserId,
+                    trustedUserAsRequester);
         } else if (operationId == IppOperationId.VALIDATE_JOB.asInt()) {
-            operation =
-                    new IppValidateJobOperation(remoteAddr, queue,
-                            requestedQueueUrlPath, hasPrintAccessToQueue,
-                            trustedIppClientUserId);
+            operation = new IppValidateJobOperation(remoteAddr, queue,
+                    requestedQueueUrlPath, hasPrintAccessToQueue,
+                    trustedIppClientUserId, trustedUserAsRequester);
         } else if (operationId == IppOperationId.GET_PRINTER_ATTR.asInt()) {
             operation = new IppGetPrinterAttrOperation();
         } else if (operationId == IppOperationId.GET_JOBS.asInt()) {
@@ -162,8 +165,8 @@ public abstract class AbstractIppOperation {
         if (operation == null) {
 
             if (LOGGER.isWarnEnabled()) {
-                LOGGER.warn("operationId [" + operationId
-                        + "] is NOT supported");
+                LOGGER.warn(
+                        "operationId [" + operationId + "] is NOT supported");
             }
 
             ippOperationId = null;
