@@ -22,6 +22,7 @@
 package org.savapage.core.services;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.Currency;
 import java.util.Locale;
 
@@ -113,6 +114,30 @@ public interface AccountingService {
     UserAccountingDto getUserAccounting(User user);
 
     /**
+     * Gets the initial accounting parameters for a member from a
+     * {@link UserGroup}.
+     *
+     * @param group
+     *            The {@link UserGroup}.
+     * @return The {@link UserAccountingDto}.
+     */
+    UserAccountingDto getInitialUserAccounting(UserGroup group);
+
+    /**
+     * Sets the initial accounting parameters for a member in a
+     * {@link UserGroup} from the {@link UserAccountingDto}.
+     *
+     * @param group
+     *            The {@link UserGroup}.
+     * @param dto
+     *            The {@link UserAccountingDto}.
+     * @throws ParseException
+     *             A error occurred parsing an amount string to a number.
+     */
+    void setInitialUserAccounting(UserGroup group, UserAccountingDto dto)
+            throws ParseException;
+
+    /**
      * Gets the formatted balance of a {@link User}.
      * <p>
      * Note: {@link UserAccount} is NOT lazy created.
@@ -183,8 +208,8 @@ public interface AccountingService {
      *            {@link SharedAccountDisplayInfoDto} object
      * @return The JSON-RPC Return message (either a result or an error);
      */
-    AbstractJsonRpcMethodResponse lazyUpdateSharedAccount(
-            SharedAccountDisplayInfoDto dto);
+    AbstractJsonRpcMethodResponse
+            lazyUpdateSharedAccount(SharedAccountDisplayInfoDto dto);
 
     /**
      * Gets global financial information meant for display.
@@ -244,8 +269,8 @@ public interface AccountingService {
      *            The {@link ProxyPrintCostParms}.
      * @return The cost as {@link BigDecimal}.
      */
-    BigDecimal
-            calcProxyPrintCost(Printer printer, ProxyPrintCostParms costParms);
+    BigDecimal calcProxyPrintCost(Printer printer,
+            ProxyPrintCostParms costParms);
 
     /**
      * Calculates the cost for each individual {@link ProxyPrintJobChunk} in the

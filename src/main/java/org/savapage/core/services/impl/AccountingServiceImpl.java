@@ -206,25 +206,36 @@ public final class AccountingServiceImpl extends AbstractService
         return this.createUserGroupAccount(userGroup);
     }
 
-    @Override
-    public UserAccountingDto getUserAccounting(final User user) {
+    /**
+     * Create a {@link UserAccountingDto} object.
+     *
+     * @param balance
+     *            The balance amount.
+     * @param restricted
+     *            {@code true} when restricted.
+     * @param useGlobalOverdraft
+     *            {@code true} when using global overdraft default.
+     * @param overdraft
+     *            The overdraft amount.
+     * @return The {@link UserAccountingDto} object.
+     */
+    private UserAccountingDto createUserAccounting(final BigDecimal balance,
+            final Boolean restricted, final Boolean useGlobalOverdraft,
+            final BigDecimal overdraft) {
 
         UserAccountingDto dto = new UserAccountingDto();
 
         dto.setLocale(ServiceContext.getLocale().toLanguageTag());
 
-        Account account =
-                lazyGetUserAccount(user, AccountTypeEnum.USER).getAccount();
-
         try {
-            dto.setBalance(BigDecimalUtil.localize(account.getBalance(),
+            dto.setBalance(BigDecimalUtil.localize(balance,
                     ConfigManager.getFinancialDecimalsInDatabase(),
                     ServiceContext.getLocale(), true));
 
             UserAccountingDto.CreditLimitEnum creditLimit;
 
-            if (account.getRestricted()) {
-                if (account.getUseGlobalOverdraft()) {
+            if (restricted) {
+                if (useGlobalOverdraft) {
                     creditLimit = UserAccountingDto.CreditLimitEnum.DEFAULT;
                 } else {
                     creditLimit = UserAccountingDto.CreditLimitEnum.INDIVIDUAL;
@@ -234,15 +245,71 @@ public final class AccountingServiceImpl extends AbstractService
             }
 
             dto.setCreditLimit(creditLimit);
-            dto.setCreditLimitAmount(
-                    BigDecimalUtil.localize(account.getOverdraft(),
-                            ConfigManager.getUserBalanceDecimals(),
-                            ServiceContext.getLocale(), true));
+            dto.setCreditLimitAmount(BigDecimalUtil.localize(overdraft,
+                    ConfigManager.getUserBalanceDecimals(),
+                    ServiceContext.getLocale(), true));
 
         } catch (ParseException e) {
             throw new SpException(e);
         }
         return dto;
+
+    }
+
+    @Override
+    public UserAccountingDto getUserAccounting(final User user) {
+
+        final Account account =
+                lazyGetUserAccount(user, AccountTypeEnum.USER).getAccount();
+
+        return this.createUserAccounting(account.getBalance(),
+                account.getRestricted(), account.getUseGlobalOverdraft(),
+                account.getOverdraft());
+    }
+
+    @Override
+    public UserAccountingDto getInitialUserAccounting(final UserGroup group) {
+        return this.createUserAccounting(group.getInitialCredit(),
+                group.getInitiallyRestricted(),
+                group.getInitialUseGlobalOverdraft(),
+                group.getInitialOverdraft());
+    }
+
+    @Override
+    public void setInitialUserAccounting(UserGroup group,
+            UserAccountingDto dto) throws ParseException {
+        final Locale dtoLocale;
+
+        if (dto.getLocale() != null) {
+            dtoLocale = Locale.forLanguageTag(dto.getLocale());
+        } else {
+            dtoLocale = ServiceContext.getLocale();
+        }
+
+        if (dto.getBalance() != null) {
+
+            final String amount = dto.getBalance();
+            group.setInitialCredit(
+                    BigDecimalUtil.parse(amount, dtoLocale, false, false));
+        }
+
+        final UserAccountingDto.CreditLimitEnum creditLimit =
+                dto.getCreditLimit();
+
+        if (creditLimit != null) {
+
+            group.setInitiallyRestricted(
+                    creditLimit != UserAccountingDto.CreditLimitEnum.NONE);
+
+            group.setInitialUseGlobalOverdraft(
+                    creditLimit == UserAccountingDto.CreditLimitEnum.DEFAULT);
+
+            if (creditLimit == UserAccountingDto.CreditLimitEnum.INDIVIDUAL) {
+                final String amount = dto.getCreditLimitAmount();
+                group.setInitialOverdraft(
+                        BigDecimalUtil.parse(amount, dtoLocale, false, false));
+            }
+        }
     }
 
     @Override
