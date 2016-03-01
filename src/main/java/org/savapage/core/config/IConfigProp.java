@@ -1871,6 +1871,12 @@ public interface IConfigProp {
                 "webapp.user.proxy-print.clear-inbox", BOOLEAN_VALIDATOR, V_NO),
 
         /**
+         * WebApp: enable (show) driver download in About Dialog?
+         */
+        WEBAPP_ABOUT_DRIVER_DOWNLOAD_ENABLE("webapp.about.driver-download.enable",
+                BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * Time limit (milliseconds) to capture the keystrokes of the card
          * number from a Local Card Reader.
          */
