@@ -223,14 +223,14 @@ public final class AccountingServiceImpl extends AbstractService
             final Boolean restricted, final Boolean useGlobalOverdraft,
             final BigDecimal overdraft) {
 
-        UserAccountingDto dto = new UserAccountingDto();
+        final UserAccountingDto dto = new UserAccountingDto();
+        final int minimalDecimals = ConfigManager.getUserBalanceDecimals();
 
         dto.setLocale(ServiceContext.getLocale().toLanguageTag());
 
         try {
-            dto.setBalance(BigDecimalUtil.localize(balance,
-                    ConfigManager.getFinancialDecimalsInDatabase(),
-                    ServiceContext.getLocale(), true));
+            dto.setBalance(BigDecimalUtil.localizeMinimalPrecision(balance,
+                    minimalDecimals, ServiceContext.getLocale(), true));
 
             UserAccountingDto.CreditLimitEnum creditLimit;
 
@@ -245,9 +245,9 @@ public final class AccountingServiceImpl extends AbstractService
             }
 
             dto.setCreditLimit(creditLimit);
-            dto.setCreditLimitAmount(BigDecimalUtil.localize(overdraft,
-                    ConfigManager.getUserBalanceDecimals(),
-                    ServiceContext.getLocale(), true));
+            dto.setCreditLimitAmount(
+                    BigDecimalUtil.localizeMinimalPrecision(overdraft,
+                            minimalDecimals, ServiceContext.getLocale(), true));
 
         } catch (ParseException e) {
             throw new SpException(e);
@@ -276,8 +276,9 @@ public final class AccountingServiceImpl extends AbstractService
     }
 
     @Override
-    public void setInitialUserAccounting(UserGroup group,
-            UserAccountingDto dto) throws ParseException {
+    public void setInitialUserAccounting(UserGroup group, UserAccountingDto dto)
+            throws ParseException {
+
         final Locale dtoLocale;
 
         if (dto.getLocale() != null) {

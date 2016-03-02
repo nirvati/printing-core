@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * Utility methods for {@link BigDecimal} conversions.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class BigDecimalUtil {
@@ -57,7 +57,7 @@ public final class BigDecimalUtil {
      */
     public static BigDecimal parse(final String localizedDecimal,
             final Locale locale, boolean currency, boolean groupingUsed)
-            throws ParseException {
+                    throws ParseException {
         final DecimalFormat df = getDecimalFormat(locale, currency);
         df.setParseBigDecimal(true);
         df.setGroupingUsed(groupingUsed);
@@ -73,8 +73,8 @@ public final class BigDecimalUtil {
      * @return
      * @throws ParseException
      */
-    public static String localize(final BigDecimal decimal,
-            final Locale locale, boolean groupingUsed) throws ParseException {
+    public static String localize(final BigDecimal decimal, final Locale locale,
+            boolean groupingUsed) throws ParseException {
         final DecimalFormat df = getDecimalFormat(locale, false);
         df.setParseBigDecimal(true);
         df.setGroupingUsed(groupingUsed);
@@ -112,7 +112,7 @@ public final class BigDecimalUtil {
      */
     public static String localize(final BigDecimal decimal, int fractionDigits,
             final Locale locale, boolean currency, boolean groupingUsed)
-            throws ParseException {
+                    throws ParseException {
 
         final DecimalFormat df = getDecimalFormat(locale, currency);
 
@@ -138,15 +138,15 @@ public final class BigDecimalUtil {
 
         if (decimal.compareTo(BigDecimal.ZERO) != 0) {
 
-            final BigDecimal min =
-                    BigDecimal.ONE.divide(BigDecimal.TEN
-                            .pow(fractionDigitsMinimum));
+            final BigDecimal min = BigDecimal.ONE
+                    .divide(BigDecimal.TEN.pow(fractionDigitsMinimum));
 
             final BigDecimal abs = decimal.abs();
             final BigDecimal decimalsOnly =
                     abs.subtract(abs.setScale(0, RoundingMode.DOWN));
 
-            if (decimalsOnly.compareTo(min) < 0) {
+            if (decimalsOnly.compareTo(BigDecimal.ZERO) != 0
+                    && decimalsOnly.compareTo(min) < 0) {
                 return decimal.scale();
             }
         }
@@ -173,7 +173,7 @@ public final class BigDecimalUtil {
     public static String localizeMinimalPrecision(final BigDecimal decimal,
             final int fractionDigitsMinimum, final Locale locale,
             final String currencySymbol, final boolean groupingUsed)
-            throws ParseException {
+                    throws ParseException {
 
         return localize(decimal,
                 getRightSizedPrecision(decimal, fractionDigitsMinimum), locale,
@@ -223,14 +223,14 @@ public final class BigDecimalUtil {
     public static String localize(final BigDecimal decimal,
             final int fractionDigits, final Locale locale,
             final String currencySymbol, final boolean groupingUsed)
-            throws ParseException {
+                    throws ParseException {
         final StringBuilder txt = new StringBuilder();
 
         if (StringUtils.isNotBlank(currencySymbol)) {
             txt.append(currencySymbol).append(" ");
         }
-        return txt.append(
-                localize(decimal, fractionDigits, locale, groupingUsed))
+        return txt
+                .append(localize(decimal, fractionDigits, locale, groupingUsed))
                 .toString();
     }
 
@@ -270,9 +270,9 @@ public final class BigDecimalUtil {
      */
     public static String toPlainString(final String localizedDecimal,
             final Locale locale, final boolean groupingUsed)
-            throws ParseException {
-        return BigDecimalUtil.toPlainString(BigDecimalUtil.parse(
-                localizedDecimal, locale, false, groupingUsed));
+                    throws ParseException {
+        return BigDecimalUtil.toPlainString(BigDecimalUtil
+                .parse(localizedDecimal, locale, false, groupingUsed));
     }
 
     /**
