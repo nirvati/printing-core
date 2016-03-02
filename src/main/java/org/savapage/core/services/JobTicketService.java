@@ -72,6 +72,15 @@ public interface JobTicketService extends StatefulService {
     List<OutboxJobDto> getTickets(Long userId);
 
     /**
+     * Removes the pending Job Tickets of a {@link User}.
+     *
+     * @param userId
+     *            The {@link User} database key.
+     * @return The number of Job Tickets removed.
+     */
+    int removeTickets(Long userId);
+
+    /**
      * Removes a Job Ticket with an extra user check.
      *
      * @param userId

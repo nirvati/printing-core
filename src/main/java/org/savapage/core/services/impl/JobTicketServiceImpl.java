@@ -294,6 +294,17 @@ public final class JobTicketServiceImpl extends AbstractService
         return filterTickets(userId);
     }
 
+    @Override
+    public int removeTickets(final Long userId) {
+        int nRemoved = 0;
+        for (final OutboxJobDto dto : filterTickets(userId)) {
+            if (removeTicket(dto.getFile()) != null) {
+                nRemoved++;
+            }
+        }
+        return nRemoved;
+    }
+
     /**
      * Filters the pending Job Tickets.
      *
