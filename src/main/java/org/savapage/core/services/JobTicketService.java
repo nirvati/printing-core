@@ -22,6 +22,7 @@
 package org.savapage.core.services;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import org.savapage.core.imaging.EcoPrintPdfTask;
@@ -48,12 +49,14 @@ public interface JobTicketService extends StatefulService {
      *            The requesting {@link User}, which should be locked.
      * @param request
      *            The {@link ProxyPrintInboxReq}.
+     * @param deliveryDate
+     *            The requested date of delivery.
      * @throws EcoPrintPdfTaskPendingException
      *             When {@link EcoPrintPdfTask} objects needed for this PDF are
      *             pending.
      */
-    void proxyPrintInbox(User lockedUser, ProxyPrintInboxReq request)
-            throws EcoPrintPdfTaskPendingException;
+    void proxyPrintInbox(User lockedUser, ProxyPrintInboxReq request,
+            Date deliveryDate) throws EcoPrintPdfTaskPendingException;
 
     /**
      * Gets the pending Job Tickets.
@@ -70,6 +73,18 @@ public interface JobTicketService extends StatefulService {
      * @return The Job Tickets.
      */
     List<OutboxJobDto> getTickets(Long userId);
+
+    /**
+     * Gets the pending Job Ticket belonging to a {@link User} job file.
+     *
+     * @param userId
+     *            The {@link User} database key.
+     * @param fileName
+     *            The unique PDF file name of the job (no path).
+     * @return The Job Ticket or {@code null} when not found, or not owned by
+     *         this user.
+     */
+    OutboxJobDto getTicket(Long userId, String fileName);
 
     /**
      * Removes the pending Job Tickets of a {@link User}.

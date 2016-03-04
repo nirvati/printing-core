@@ -1619,6 +1619,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         printReq.setDocumentUuid(FilenameUtils.getBaseName(job.getFile()));
         printReq.setJobName(job.getJobName());
+        printReq.setComment(job.getComment());
         printReq.setNumberOfPages(job.getPages());
         printReq.setNumberOfCopies(job.getCopies());
         printReq.setPrinterName(job.getPrinterName());

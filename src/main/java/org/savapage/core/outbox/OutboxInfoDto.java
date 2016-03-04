@@ -225,6 +225,7 @@ public final class OutboxInfoDto extends AbstractDto {
         private long expiryTime;
         private Boolean fitToPage;
         private Map<String, String> optionValues;
+        private String comment;
 
         private LocaleInfo localeInfo;
 
@@ -392,6 +393,14 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setOptionValues(Map<String, String> optionValues) {
             this.optionValues = optionValues;
+        }
+
+        public String getComment() {
+            return comment;
+        }
+
+        public void setComment(String comment) {
+            this.comment = comment;
         }
 
         /**

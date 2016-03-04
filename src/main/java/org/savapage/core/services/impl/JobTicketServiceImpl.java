@@ -46,7 +46,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.doc.DocContent;
@@ -105,21 +104,30 @@ public final class JobTicketServiceImpl extends AbstractService
         /**
          * The date the proxy print was submitted.
          */
-        private Date submitDate;
+        private final Date submitDate;
+
+        /**
+         * The requested delivery date.
+         */
+        private final Date deliveryDate;
 
         /**
          *
          * @param service
          *            The parent service.
+         * @param deliveryDate
+         *            The requested date of delivery.
          */
-        public ProxyPrintInbox(final JobTicketServiceImpl service) {
+        ProxyPrintInbox(final JobTicketServiceImpl service,
+                final Date deliveryDate) {
             this.serviceImpl = service;
+            this.submitDate = ServiceContext.getTransactionDate();
+            this.deliveryDate = deliveryDate;
         }
 
         @Override
         protected void onInit(final User lockedUser,
                 final ProxyPrintInboxReq request) {
-            this.submitDate = ServiceContext.getTransactionDate();
         }
 
         @Override
@@ -145,9 +153,6 @@ public final class JobTicketServiceImpl extends AbstractService
                 final LinkedHashMap<String, Integer> uuidPageCount,
                 final File pdfGenerated) {
 
-            // TODO
-            final Date expiryDate = DateUtils.addHours(new Date(), 1);
-
             /*
              * Create sibling json file with proxy print information.
              */
@@ -156,8 +161,9 @@ public final class JobTicketServiceImpl extends AbstractService
 
             final File jsonFile = getJobTicketFile(uuid, FILENAME_EXT_JSON);
 
-            final OutboxJobDto dto = outboxService().createOutboxJob(request,
-                    this.submitDate, expiryDate, pdfGenerated, uuidPageCount);
+            final OutboxJobDto dto =
+                    outboxService().createOutboxJob(request, this.submitDate,
+                            this.deliveryDate, pdfGenerated, uuidPageCount);
 
             dto.setUserId(lockedUser.getId());
 
@@ -279,9 +285,9 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public void proxyPrintInbox(final User lockedUser,
-            final ProxyPrintInboxReq request)
+            final ProxyPrintInboxReq request, final Date deliveryDate)
                     throws EcoPrintPdfTaskPendingException {
-        new ProxyPrintInbox(this).print(lockedUser, request);
+        new ProxyPrintInbox(this, deliveryDate).print(lockedUser, request);
     }
 
     @Override
@@ -292,6 +298,16 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public List<OutboxJobDto> getTickets(final Long userId) {
         return filterTickets(userId);
+    }
+
+    @Override
+    public OutboxJobDto getTicket(final Long userId, final String fileName) {
+        final UUID uuid = uuidFromFileName(fileName);
+        final OutboxJobDto dto = this.jobTicketCache.get(uuid);
+        if (dto != null && dto.getUserId().equals(userId)) {
+            return dto;
+        }
+        return null;
     }
 
     @Override

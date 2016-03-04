@@ -282,7 +282,8 @@ public final class OutboxServiceImpl extends AbstractService
     }
 
     /**
-     * Calculates the expiration {@link Date} of a held proxy print job.
+     * Calculates the expiration {@link Date} of a held proxy print job (using
+     * the configuration setting).
      *
      * @param submitDate
      *            The {@link Date} the job is submitted.
@@ -312,6 +313,7 @@ public final class OutboxServiceImpl extends AbstractService
         job.setFile(pdfOutboxFile.getName());
         job.setPrinterName(request.getPrinterName());
         job.setJobName(request.getJobName());
+        job.setComment(request.getComment());
         job.setCopies(request.getNumberOfCopies());
         job.setPages(request.getNumberOfPages());
         job.setSheets(calNumberOfSheets(request));
