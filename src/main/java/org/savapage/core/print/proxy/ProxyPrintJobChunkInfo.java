@@ -50,8 +50,8 @@ public final class ProxyPrintJobChunkInfo {
     /**
     *
     */
-    private static final InboxService INBOX_SERVICE = ServiceContext
-            .getServiceFactory().getInboxService();
+    private static final InboxService INBOX_SERVICE =
+            ServiceContext.getServiceFactory().getInboxService();
 
     /**
      * Prevent public default instantiation.
@@ -90,9 +90,8 @@ public final class ProxyPrintJobChunkInfo {
             throw new ProxyPrintException("Inbox was edited by user");
         }
 
-        this.inboxInfo =
-                INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
-                        RangeAtom.FULL_PAGE_RANGE);
+        this.inboxInfo = INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
+                RangeAtom.FULL_PAGE_RANGE);
 
         for (final InboxJobRange jobRange : this.inboxInfo.getPages()) {
 
@@ -108,6 +107,7 @@ public final class ProxyPrintJobChunkInfo {
 
             printJobChunkWlk.setJobName(inboxJob.getTitle());
             printJobChunkWlk.setMediaSizeName(mediaSizeNameWlk);
+            printJobChunkWlk.setDrm(inboxJob.getDrm());
 
             this.addChunk(printJobChunkWlk);
 
@@ -131,15 +131,14 @@ public final class ProxyPrintJobChunkInfo {
      */
     public ProxyPrintJobChunkInfo(final InboxInfoDto inboxInfoIn,
             final int iVanillaJob, final String vanillaJobPageRanges)
-            throws ProxyPrintException {
+                    throws ProxyPrintException {
 
         if (!INBOX_SERVICE.isInboxVanilla(inboxInfoIn)) {
             throw new ProxyPrintException("Inbox was edited by user");
         }
 
-        this.inboxInfo =
-                INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
-                        RangeAtom.FULL_PAGE_RANGE);
+        this.inboxInfo = INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
+                RangeAtom.FULL_PAGE_RANGE);
 
         for (final InboxJobRange jobRange : this.inboxInfo.getPages()) {
 
@@ -160,6 +159,7 @@ public final class ProxyPrintJobChunkInfo {
 
             printJobChunkWlk.setJobName(inboxJob.getTitle());
             printJobChunkWlk.setMediaSizeName(mediaSizeNameWlk);
+            printJobChunkWlk.setDrm(inboxJob.getDrm());
 
             this.addChunk(printJobChunkWlk);
 
@@ -192,9 +192,8 @@ public final class ProxyPrintJobChunkInfo {
     public ProxyPrintJobChunkInfo(final InboxInfoDto inboxInfoIn,
             final String selectedPageRanges) {
 
-        this.inboxInfo =
-                INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
-                        selectedPageRanges);
+        this.inboxInfo = INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
+                selectedPageRanges);
 
         /*
          * First Page.
@@ -203,6 +202,8 @@ public final class ProxyPrintJobChunkInfo {
 
         MediaSizeName mediaSizeNameItem = null;
         MediaSizeName mediaSizeNameWlk = null;
+
+        boolean isDrm = false;
 
         final Iterator<InboxJobRange> iterPages =
                 inboxInfo.getPages().iterator();
@@ -232,10 +233,16 @@ public final class ProxyPrintJobChunkInfo {
                 printJobChunkWlk = new ProxyPrintJobChunk();
                 printJobChunkWlk.setMediaSizeName(mediaSizeNameWlk);
 
-                // Note: do NOT set chuck job name.
+                // Initialize DRM.
+                isDrm = inboxJob.getDrm();
+
+                // Note: do NOT set chunk job name.
 
                 this.addChunk(printJobChunkWlk);
             }
+
+            // Overwrite chunk with DRM of current job.
+            printJobChunkWlk.setDrm(isDrm || inboxJob.getDrm());
 
             addJobRangesToJobChunk(printJobChunkWlk, iJob, nJobPages, jobRange);
         }

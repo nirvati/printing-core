@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ import org.savapage.core.ipp.IppMediaSizeEnum;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ProxyPrintJobChunk {
@@ -45,6 +45,7 @@ public final class ProxyPrintJobChunk {
     private IppMediaSourceCostDto assignedMediaSource;
     private IppMediaSizeEnum assignedMedia;
     private Boolean fitToPage;
+    private boolean drm;
 
     private BigDecimal cost;
 
@@ -101,6 +102,14 @@ public final class ProxyPrintJobChunk {
 
     public void setFitToPage(Boolean fitToPage) {
         this.fitToPage = fitToPage;
+    }
+
+    public boolean isDrm() {
+        return drm;
+    }
+
+    public void setDrm(boolean drm) {
+        this.drm = drm;
     }
 
     public BigDecimal getCost() {

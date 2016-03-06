@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ package org.savapage.core.print.proxy;
 /**
  * Proxy Print Request base on the SafePages inbox.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ProxyPrintInboxReq extends AbstractProxyPrintReq {

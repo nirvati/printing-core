@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -37,11 +37,11 @@ import org.savapage.core.services.helpers.ProxyPrintCostParms;
 /**
  * Proxy Print Request base on the SafePages inbox.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public abstract class AbstractProxyPrintReq implements
-        ProxyPrintSheetsCalcParms {
+public abstract class AbstractProxyPrintReq
+        implements ProxyPrintSheetsCalcParms {
 
     /**
      * Proxy Print Request Status.
@@ -94,6 +94,7 @@ public abstract class AbstractProxyPrintReq implements
     private int numberOfCopies;
     private int numberOfPages;
     private boolean removeGraphics;
+    private boolean drm;
 
     private boolean ecoPrint;
 
@@ -179,6 +180,14 @@ public abstract class AbstractProxyPrintReq implements
 
     public void setRemoveGraphics(boolean removeGraphics) {
         this.removeGraphics = removeGraphics;
+    }
+
+    public boolean isDrm() {
+        return drm;
+    }
+
+    public void setDrm(boolean drm) {
+        this.drm = drm;
     }
 
     /**

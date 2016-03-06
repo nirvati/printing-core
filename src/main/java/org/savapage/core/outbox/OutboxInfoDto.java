@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -42,7 +42,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @JsonInclude(Include.NON_NULL)
@@ -218,6 +218,7 @@ public final class OutboxInfoDto extends AbstractDto {
         private int pages;
         private int sheets;
         private boolean removeGraphics;
+        private boolean drm;
         private boolean ecoPrint;
         private boolean collate;
         private BigDecimal cost;
@@ -310,6 +311,14 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setRemoveGraphics(boolean removeGraphics) {
             this.removeGraphics = removeGraphics;
+        }
+
+        public boolean isDrm() {
+            return drm;
+        }
+
+        public void setDrm(boolean drm) {
+            this.drm = drm;
         }
 
         public boolean isEcoPrint() {
@@ -425,8 +434,8 @@ public final class OutboxInfoDto extends AbstractDto {
         /**
          * Note: {@link LinkedHashMap} is insertion ordered.
          */
-        public void setUuidPageCount(
-                LinkedHashMap<String, Integer> uuidPageCount) {
+        public void
+                setUuidPageCount(LinkedHashMap<String, Integer> uuidPageCount) {
             this.uuidPageCount = uuidPageCount;
         }
 

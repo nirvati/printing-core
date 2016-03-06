@@ -35,8 +35,8 @@ public abstract class ProxyPrintInboxPattern {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ProxyPrintInboxPattern.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ProxyPrintInboxPattern.class);
 
     /**
      * Helper constant.
@@ -115,7 +115,7 @@ public abstract class ProxyPrintInboxPattern {
      */
     public final void print(final User lockedUser,
             final ProxyPrintInboxReq request)
-            throws EcoPrintPdfTaskPendingException {
+                    throws EcoPrintPdfTaskPendingException {
 
         final InboxService inboxService =
                 ServiceContext.getServiceFactory().getInboxService();
@@ -133,6 +133,7 @@ public abstract class ProxyPrintInboxPattern {
         final String orgMediaOption = request.getMediaOption();
         final String orgMediaSourceOption = request.getMediaSourceOption();
         final BigDecimal orgCost = request.getCost();
+        final boolean orgDrm = request.isDrm();
 
         try {
 
@@ -161,11 +162,12 @@ public abstract class ProxyPrintInboxPattern {
                      */
                     request.setNumberOfPages(chunk.getNumberOfPages());
                     request.setFitToPage(chunk.getFitToPage());
-                    request.setMediaOption(chunk.getAssignedMedia()
-                            .getIppKeyword());
-                    request.setMediaSourceOption(chunk.getAssignedMediaSource()
-                            .getSource());
+                    request.setMediaOption(
+                            chunk.getAssignedMedia().getIppKeyword());
+                    request.setMediaSourceOption(
+                            chunk.getAssignedMediaSource().getSource());
                     request.setCost(chunk.getCost());
+                    request.setDrm(chunk.isDrm());
 
                     if (StringUtils.isBlank(orgJobName)) {
                         request.setJobName(chunk.getJobName());
@@ -202,6 +204,7 @@ public abstract class ProxyPrintInboxPattern {
             request.setMediaOption(orgMediaOption);
             request.setMediaSourceOption(orgMediaSourceOption);
             request.setCost(orgCost);
+            request.setDrm(orgDrm);
         }
     }
 
@@ -220,7 +223,7 @@ public abstract class ProxyPrintInboxPattern {
      */
     private void proxyPrintInboxChunk(final User lockedUser,
             final ProxyPrintInboxReq request, final InboxInfoDto inboxInfo)
-            throws EcoPrintPdfTaskPendingException {
+                    throws EcoPrintPdfTaskPendingException {
 
         /*
          * Generate the PDF file.
@@ -251,9 +254,8 @@ public abstract class ProxyPrintInboxPattern {
             pdfRequest.setApplyLetterhead(APPLY_LETTERHEAD);
             pdfRequest.setForPrinting(PDF_FOR_PRINTING);
 
-            pdfFileGenerated =
-                    OutputProducer.instance().generatePdf(pdfRequest,
-                            uuidPageCount, null);
+            pdfFileGenerated = OutputProducer.instance().generatePdf(pdfRequest,
+                    uuidPageCount, null);
 
             this.onPdfGenerated(lockedUser, request, uuidPageCount,
                     pdfFileGenerated);
@@ -273,8 +275,8 @@ public abstract class ProxyPrintInboxPattern {
                         LOGGER.trace("deleted file [" + pdfFileGenerated + "]");
                     }
                 } else {
-                    LOGGER.error("delete of file [" + pdfFileGenerated
-                            + "] FAILED");
+                    LOGGER.error(
+                            "delete of file [" + pdfFileGenerated + "] FAILED");
                 }
             }
         }
