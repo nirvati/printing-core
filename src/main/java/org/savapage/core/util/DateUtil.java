@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,8 @@ import java.util.Date;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class DateUtil {
 
@@ -60,6 +61,10 @@ public final class DateUtil {
      */
     public static final int SECONDS_IN_MINUTE = 60;
 
+    /**
+     * The number of minutes in a hour.
+     */
+    public static final int MINUTES_IN_HOUR = 60;
 
     /**
      *
@@ -104,11 +109,11 @@ public final class DateUtil {
     /**
      * Formats elapsed milliseconds into readable string.
      *
-     * @param diff
+     * @param duration
      *            milliseconds
      * @return formatted string
      */
-    public static String formatDuration(long duration) {
+    public static String formatDuration(final long duration) {
 
         long durationSeconds = duration / 1000;
 

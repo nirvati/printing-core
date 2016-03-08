@@ -30,6 +30,7 @@ import java.math.BigDecimal;
 import java.nio.file.FileSystems;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -685,7 +686,7 @@ public final class OutboxServiceImpl extends AbstractService
         final int nDecimals = 2;
 
         final DateFormat timeFormatter =
-                DateFormat.getTimeInstance(DateFormat.SHORT, Locale.GERMAN);
+                new SimpleDateFormat("yyyy-MM-dd' 'HH:mm");
 
         BigDecimal costTotal = BigDecimal.ZERO;
         Date firstSubmitDate = null;
