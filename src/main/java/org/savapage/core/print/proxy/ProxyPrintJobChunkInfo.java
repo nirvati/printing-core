@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.print.attribute.standard.MediaSizeName;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
@@ -107,7 +108,7 @@ public final class ProxyPrintJobChunkInfo {
 
             printJobChunkWlk.setJobName(inboxJob.getTitle());
             printJobChunkWlk.setMediaSizeName(mediaSizeNameWlk);
-            printJobChunkWlk.setDrm(inboxJob.getDrm());
+            printJobChunkWlk.setDrm(BooleanUtils.isTrue(inboxJob.getDrm()));
 
             this.addChunk(printJobChunkWlk);
 
@@ -234,7 +235,7 @@ public final class ProxyPrintJobChunkInfo {
                 printJobChunkWlk.setMediaSizeName(mediaSizeNameWlk);
 
                 // Initialize DRM.
-                isDrm = inboxJob.getDrm();
+                isDrm = BooleanUtils.isTrue(inboxJob.getDrm());
 
                 // Note: do NOT set chunk job name.
 
@@ -242,7 +243,8 @@ public final class ProxyPrintJobChunkInfo {
             }
 
             // Overwrite chunk with DRM of current job.
-            printJobChunkWlk.setDrm(isDrm || inboxJob.getDrm());
+            printJobChunkWlk
+                    .setDrm(isDrm || BooleanUtils.isTrue(inboxJob.getDrm()));
 
             addJobRangesToJobChunk(printJobChunkWlk, iJob, nJobPages, jobRange);
         }
