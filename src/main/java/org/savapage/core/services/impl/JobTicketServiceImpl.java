@@ -51,6 +51,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.ipp.client.IppConnectException;
+import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
@@ -301,9 +302,14 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public OutboxJobDto getTicket(final Long userId, final String fileName) {
+    public OutboxJobDto getTicket(final String fileName) {
         final UUID uuid = uuidFromFileName(fileName);
-        final OutboxJobDto dto = this.jobTicketCache.get(uuid);
+        return this.jobTicketCache.get(uuid);
+    }
+
+    @Override
+    public OutboxJobDto getTicket(final Long userId, final String fileName) {
+        final OutboxJobDto dto = this.getTicket(fileName);
         if (dto != null && dto.getUserId().equals(userId)) {
             return dto;
         }
@@ -412,8 +418,8 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public OutboxJobDto printTicket(final String fileName)
-            throws IOException, IppConnectException {
+    public OutboxJobDto printTicket(final Printer printer,
+            final String fileName) throws IOException, IppConnectException {
 
         final UUID uuid = uuidFromFileName(fileName);
         final OutboxJobDto dto = this.jobTicketCache.get(uuid);
@@ -421,6 +427,11 @@ public final class JobTicketServiceImpl extends AbstractService
         if (dto == null) {
             return dto;
         }
+
+        /*
+         * Replace with redirect printer.
+         */
+        dto.setPrinterName(printer.getPrinterName());
 
         final User lockedUser = userDAO().lock(dto.getUserId());
 

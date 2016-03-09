@@ -48,7 +48,8 @@ import org.savapage.core.util.Messages;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public interface IConfigProp {
 
@@ -693,6 +694,12 @@ public interface IConfigProp {
          * Printer name for JobTicket printing.
          */
         JOBTICKET_PROXY_PRINTER("jobticket.proxy-printer"),
+
+        /**
+         * Printer Group with compatible redirect printers for JobTicket
+         * Printer.
+         */
+        JOBTICKET_PROXY_PRINTER_GROUP("jobticket.proxy-printer-group"),
 
         /**
          * See this <a href=
@@ -1873,8 +1880,9 @@ public interface IConfigProp {
         /**
          * WebApp: enable (show) driver download in About Dialog?
          */
-        WEBAPP_ABOUT_DRIVER_DOWNLOAD_ENABLE("webapp.about.driver-download.enable",
-                BOOLEAN_VALIDATOR, V_YES),
+        WEBAPP_ABOUT_DRIVER_DOWNLOAD_ENABLE(
+                "webapp.about.driver-download.enable", BOOLEAN_VALIDATOR,
+                V_YES),
 
         /**
          * Time limit (milliseconds) to capture the keystrokes of the card

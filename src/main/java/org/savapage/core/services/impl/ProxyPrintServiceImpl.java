@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -2370,8 +2370,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         final Map<String, String> printerGroupLookup = new HashMap<>();
 
-        for (String displayName : StringUtils.split(printerGroups, ',')) {
-
+        for (String displayName : StringUtils.split(printerGroups, " ,;:")) {
             printerGroupLookup.put(displayName.trim().toLowerCase(),
                     displayName.trim());
         }

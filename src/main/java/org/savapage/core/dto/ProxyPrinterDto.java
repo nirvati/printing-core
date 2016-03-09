@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @JsonInclude(Include.NON_NULL)
@@ -52,7 +52,7 @@ public class ProxyPrinterDto extends AbstractDto {
     String location;
 
     /**
-     * A comma separated list of printer group names.
+     * A " ,;:" separated list of printer group names.
      */
     @JsonProperty("printerGroups")
     String printerGroups;

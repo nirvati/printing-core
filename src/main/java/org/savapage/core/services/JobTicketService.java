@@ -28,6 +28,7 @@ import java.util.List;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.ipp.client.IppConnectException;
+import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
@@ -64,6 +65,15 @@ public interface JobTicketService extends StatefulService {
      * @return The Job Tickets.
      */
     List<OutboxJobDto> getTickets();
+
+    /**
+     * Gets the pending Job Ticket.
+     *
+     * @param fileName
+     *            The unique PDF file name of the job (no path).
+     * @return The Job Ticket or {@code null} when not found.
+     */
+    OutboxJobDto getTicket(String fileName);
 
     /**
      * Gets the pending Job Tickets of a {@link User}.
@@ -120,6 +130,8 @@ public interface JobTicketService extends StatefulService {
     /**
      * Prints a Job Ticket.
      *
+     * @param printer
+     *            The redirect printer.
      * @param fileName
      *            The unique PDF file name of the job to remove.
      * @return The printed ticket or {@code null} when ticket was not found.
@@ -128,7 +140,7 @@ public interface JobTicketService extends StatefulService {
      * @throws IppConnectException
      *             When connection to CUPS fails.
      */
-    OutboxJobDto printTicket(String fileName)
+    OutboxJobDto printTicket(Printer printer, String fileName)
             throws IOException, IppConnectException;
 
 }

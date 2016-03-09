@@ -31,6 +31,8 @@ import java.util.Map;
 
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dto.AbstractDto;
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
+import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 
@@ -446,6 +448,43 @@ public final class OutboxInfoDto extends AbstractDto {
         public void setAccountTransactions(
                 OutboxAccountTrxInfoSet accountTransactions) {
             this.accountTransactions = accountTransactions;
+        }
+
+        /**
+         *
+         * @return {@code true} if this is a color job.
+         */
+        @JsonIgnore
+        public boolean isColorJob() {
+            return isOptionPresent(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
+                    IppKeyword.PRINT_COLOR_MODE_COLOR);
+        }
+
+        /**
+         *
+         * @return {@code true} if this is a duplex job.
+         */
+        @JsonIgnore
+        public boolean isDuplexJob() {
+            return isOptionPresent(IppDictJobTemplateAttr.ATTR_SIDES,
+                    IppKeyword.SIDES_TWO_SIDED_LONG_EDGE)
+                    || isOptionPresent(IppDictJobTemplateAttr.ATTR_SIDES,
+                            IppKeyword.SIDES_TWO_SIDED_SHORT_EDGE);
+        }
+
+        /**
+         * Checks if option value is present.
+         *
+         * @param key
+         *            The option key.
+         * @param value
+         *            The option value;
+         * @return {@code true} if option value is present.
+         */
+        @JsonIgnore
+        public boolean isOptionPresent(final String key, final String value) {
+            final String found = this.optionValues.get(key);
+            return found != null && found.equals(value);
         }
 
     }
