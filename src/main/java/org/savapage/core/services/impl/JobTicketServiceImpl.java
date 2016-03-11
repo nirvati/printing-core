@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,13 +49,18 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.jpa.Printer;
+import org.savapage.core.jpa.PrinterGroup;
+import org.savapage.core.jpa.PrinterGroupMember;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
+import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.ServiceContext;
@@ -439,6 +445,105 @@ public final class JobTicketServiceImpl extends AbstractService
                 getJobTicketFile(uuid, FILENAME_EXT_PDF));
 
         return this.removeTicket(uuid);
+    }
+
+    @Override
+    public List<RedirectPrinterDto> getRedirectPrinters(final String fileName) {
+
+        final OutboxJobDto job = this.getTicket(fileName);
+
+        if (job == null) {
+            return null;
+        }
+
+        final List<RedirectPrinterDto> printerList = new ArrayList<>();
+
+        final String groupName = ConfigManager.instance()
+                .getConfigValue(Key.JOBTICKET_PROXY_PRINTER_GROUP);
+
+        final PrinterGroup printerGroup = ServiceContext.getDaoContext()
+                .getPrinterGroupDao().findByName(groupName);
+
+        if (printerGroup == null) {
+            return printerList;
+        }
+
+        final boolean colorJob = job.isColorJob();
+        final boolean duplexJob = job.isDuplexJob();
+
+        int iPreferred = -1;
+        int iPrinter = 0;
+
+        for (final PrinterGroupMember member : printerGroup.getMembers()) {
+
+            final Printer printer = member.getPrinter();
+
+            final JsonProxyPrinter cupsPrinter = proxyPrintService()
+                    .getCachedPrinter(printer.getPrinterName());
+
+            if (cupsPrinter == null) {
+                throw new IllegalStateException(
+                        String.format("Printer [%s] not found in cache.",
+                                printer.getPrinterName()));
+            }
+
+            /*
+             * Check compatibility.
+             */
+            if (duplexJob && !cupsPrinter.getDuplexDevice()) {
+                continue;
+            }
+
+            final boolean colorPrinter = cupsPrinter.getColorDevice();
+
+            if (colorJob && !colorPrinter) {
+                continue;
+            }
+
+            if (iPreferred < 0) {
+                if (colorJob) {
+                    if (colorPrinter) {
+                        iPreferred = iPrinter;
+                    }
+                } else if (!colorPrinter) {
+                    iPreferred = iPrinter;
+                }
+            }
+
+            final RedirectPrinterDto redirectPrinter = new RedirectPrinterDto();
+            printerList.add(redirectPrinter);
+
+            redirectPrinter.setId(printer.getId());
+            redirectPrinter.setName(printer.getDisplayName());
+
+            iPrinter++;
+        }
+
+        if (!printerList.isEmpty() && iPreferred >= 0) {
+            printerList.get(iPreferred).setPreferred(true);
+        }
+
+        return printerList;
+    }
+
+    @Override
+    public RedirectPrinterDto getRedirectPrinter(final String fileName) {
+
+        final List<RedirectPrinterDto> printers =
+                this.getRedirectPrinters(fileName);
+
+        if (printers == null || printers.isEmpty()) {
+            return null;
+        }
+
+        final int index;
+
+        if (printers.size() == 1) {
+            index = 0;
+        } else {
+            index = new Random().nextInt(printers.size());
+        }
+        return printers.get(index);
     }
 
 }

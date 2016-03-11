@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.ipp.client.IppConnectException;
@@ -143,4 +144,24 @@ public interface JobTicketService extends StatefulService {
     OutboxJobDto printTicket(Printer printer, String fileName)
             throws IOException, IppConnectException;
 
+    /**
+     * Gets the list of {@link RedirectPrinterDto} compatible printers for a Job
+     * Ticket.
+     *
+     * @param fileName
+     *            The unique PDF file name of the job ticket.
+     * @return The list of redirect printers (can be empty) or {@code null} when
+     *         job ticket is not found.
+     */
+    List<RedirectPrinterDto> getRedirectPrinters(String fileName);
+
+    /**
+     * Gets a {@link RedirectPrinterDto} compatible printer for a Job Ticket.
+     *
+     * @param fileName
+     *            The unique PDF file name of the job ticket.
+     * @return The redirect printer or {@code null} when no job ticket or
+     *         printer is found.
+     */
+    RedirectPrinterDto getRedirectPrinter(String fileName);
 }
