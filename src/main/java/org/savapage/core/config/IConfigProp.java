@@ -702,6 +702,12 @@ public interface IConfigProp {
         JOBTICKET_PROXY_PRINTER_GROUP("jobticket.proxy-printer-group"),
 
         /**
+         * Force Job Ticket when printing more than threshold pages.
+         */
+        JOBTICKET_THRESHOLD_PAGE_TOTAL("jobticket.threshold.page-total",
+                NUMBER_VALIDATOR, "100"),
+
+        /**
          * See this <a href=
          * "http://docs.oracle.com/javase/jndi/tutorial/ldap/search/batch.html"
          * >explanation</a> and this <a href=
