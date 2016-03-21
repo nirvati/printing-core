@@ -65,14 +65,14 @@ import org.slf4j.LoggerFactory;
  * @author Datraverse B.V.
  *
  */
-public abstract class LdapUserSourceMixin extends AbstractUserSource implements
-        IUserSource, IExternalUserAuthenticator {
+public abstract class LdapUserSourceMixin extends AbstractUserSource
+        implements IUserSource, IExternalUserAuthenticator {
 
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(LdapUserSourceMixin.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(LdapUserSourceMixin.class);
 
     /**
      *
@@ -181,17 +181,14 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
          */
         this.pageSize = cm.getConfigInt(Key.LDAP_BATCH_SIZE) - 1;
 
-        this.attrIdUserName =
-                cm.getConfigValue(this.ldapType,
-                        Key.LDAP_SCHEMA_USER_NAME_FIELD);
+        this.attrIdUserName = cm.getConfigValue(this.ldapType,
+                Key.LDAP_SCHEMA_USER_NAME_FIELD);
 
-        this.attrIdUserEmail =
-                cm.getConfigValue(this.ldapType,
-                        Key.LDAP_SCHEMA_USER_EMAIL_FIELD);
+        this.attrIdUserEmail = cm.getConfigValue(this.ldapType,
+                Key.LDAP_SCHEMA_USER_EMAIL_FIELD);
 
-        this.attrIdUserFullName =
-                cm.getConfigValue(this.ldapType,
-                        Key.LDAP_SCHEMA_USER_FULL_NAME_FIELD);
+        this.attrIdUserFullName = cm.getConfigValue(this.ldapType,
+                Key.LDAP_SCHEMA_USER_FULL_NAME_FIELD);
 
         this.isPosixGroups =
                 cm.getConfigValue(this.ldapType, Key.LDAP_SCHEMA_POSIX_GROUPS)
@@ -343,10 +340,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
      */
     protected String getProviderUrlBaseDn() {
 
-        return getProviderUrl()
-                + "/"
-                + ConfigManager.instance().getConfigValue(
-                        IConfigProp.Key.AUTH_LDAP_BASE_DN);
+        return getProviderUrl() + "/" + ConfigManager.instance()
+                .getConfigValue(IConfigProp.Key.AUTH_LDAP_BASE_DN);
     }
 
     /**
@@ -360,7 +355,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
      * @throws NamingException
      *             When LDAP error.
      */
-    private User createUser(final Attributes attributes) throws NamingException {
+    private User createUser(final Attributes attributes)
+            throws NamingException {
         return createCommonUser(attributes).createUser();
     }
 
@@ -544,7 +540,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
                 } catch (AuthenticationException authEx) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Authentication for [" + uid + "] failed!");
+                        LOGGER.debug(
+                                "Authentication for [" + uid + "] failed!");
                     }
                 } catch (NamingException namEx) {
                     throw new SpException("LDAP NamingException", namEx);
@@ -555,8 +552,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
             /*
              * The base context was not found.
              */
-            throw new SpException("LDAP base context [" + this.baseDN
-                    + "] not found", e);
+            throw new SpException(
+                    "LDAP base context [" + this.baseDN + "] not found", e);
 
         } catch (NamingException e) {
 
@@ -579,9 +576,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
      * @throws NamingException
      *             On LDAP error.
      */
-    private void
-            debugLogAttributes(final String dn, final Attributes attributes)
-                    throws NamingException {
+    private void debugLogAttributes(final String dn,
+            final Attributes attributes) throws NamingException {
 
         final StringBuilder output = new StringBuilder();
 
@@ -765,8 +761,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
             }
 
         } catch (NameNotFoundException e) {
-            throw new SpException("LDAP base context [" + this.baseDN
-                    + "] not found", e);
+            throw new SpException(
+                    "LDAP base context [" + this.baseDN + "] not found", e);
         } catch (NamingException e) {
             throw new SpException(e.getMessage(), e);
         } finally {
@@ -798,17 +794,20 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
             final SearchControls controls = new SearchControls();
 
-            controls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
+            controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
             // Just one (1) group expected.
             controls.setCountLimit(1);
 
             results = ctx.search("", ldapFilterExpression, controls);
 
-            if (results.hasMore()) {
+            if (results.hasMoreElements()) {
                 found = true;
             }
 
         } catch (NamingException e) {
+
+            LOGGER.error(String.format("isGroupPresent(\"%s\"): %s", groupName,
+                    e.getMessage()));
 
             found = false;
 
@@ -884,8 +883,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
             }
 
         } catch (NameNotFoundException e) {
-            throw new SpException("LDAP base context [" + this.baseDN
-                    + "] not found", e);
+            throw new SpException(
+                    "LDAP base context [" + this.baseDN + "] not found", e);
         } catch (NamingException e) {
             throw new SpException(e.getMessage(), e);
         } finally {
@@ -905,9 +904,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
         final ConfigManager cm = ConfigManager.instance();
         final String providerUrl = getProviderUrlBaseDn();
 
-        final String ldapUserFullNameField =
-                cm.getConfigValue(getLdapType(),
-                        Key.LDAP_SCHEMA_USER_FULL_NAME_FIELD);
+        final String ldapUserFullNameField = cm.getConfigValue(getLdapType(),
+                Key.LDAP_SCHEMA_USER_FULL_NAME_FIELD);
 
         final String ldapFilterExpression = getGroupSearchExpression(groupName);
 
@@ -936,18 +934,16 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
             /*
              * Paged retrieval of group members attribute values.
              */
-            final LdapMultiValuePager ldapPager =
-                    new LdapMultiValuePager(ctx, searchControls,
-                            ldapFilterExpression, groupMemberField,
-                            getRangeStepSize(ctx));
+            final LdapMultiValuePager ldapPager = new LdapMultiValuePager(ctx,
+                    searchControls, ldapFilterExpression, groupMemberField,
+                    getRangeStepSize(ctx));
 
             while (ldapPager.hasNextRange()) {
 
                 for (final String groupMember : ldapPager.nextRange()) {
 
-                    final CommonUser cuser =
-                            commonUserFromGroupMember(ctx,
-                                    ldapUserFullNameField, groupMember);
+                    final CommonUser cuser = commonUserFromGroupMember(ctx,
+                            ldapUserFullNameField, groupMember);
 
                     if (cuser == null) {
 
@@ -955,8 +951,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
                             final StringBuilder builder = new StringBuilder();
 
-                            builder.append("Group member [")
-                                    .append(groupMember)
+                            builder.append("Group member [").append(groupMember)
                                     .append("] is not a user.");
 
                             LOGGER.trace(builder.toString());
@@ -986,17 +981,15 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
      *            The {@link InitialLdapContext}.
      * @return The diagnostic message string.
      */
-    protected final String getResultControlSupportDiagnostic(
-            final InitialLdapContext ctx) {
+    protected final String
+            getResultControlSupportDiagnostic(final InitialLdapContext ctx) {
         String support = "[SavaPage Diagnostics for ResultControlSupport";
 
         try {
-            support +=
-                    ": PagedResultControl supported ("
-                            + isPagedResultControlSupported(ctx) + ")";
-            support +=
-                    ", RangePropertyControl supported ("
-                            + isRangePropertyControlSupported(ctx) + ")";
+            support += ": PagedResultControl supported ("
+                    + isPagedResultControlSupported(ctx) + ")";
+            support += ", RangePropertyControl supported ("
+                    + isRangePropertyControlSupported(ctx) + ")";
 
         } catch (NamingException e) {
             support = String.format(": Error %s: ", e.getMessage());
@@ -1060,7 +1053,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
      */
     protected final CommonUser commonUserFromGroupMember(final DirContext ctx,
             final String ldapUserFullNameField, final String member)
-            throws NamingException {
+                    throws NamingException {
 
         CommonUser cuser = null;
 
@@ -1185,14 +1178,11 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
                 /*
                  * Is DN part of the group?
                  */
-                final String groupFilter =
-                        "(&("
-                                + getLdapConfigValue(Key.LDAP_SCHEMA_GROUP_NAME_FIELD)
-                                + "="
-                                + group
-                                + ")("
-                                + getLdapConfigValue(Key.LDAP_SCHEMA_GROUP_MEMBER_FIELD)
-                                + "=" + dn + "))";
+                final String groupFilter = "(&("
+                        + getLdapConfigValue(Key.LDAP_SCHEMA_GROUP_NAME_FIELD)
+                        + "=" + group + ")("
+                        + getLdapConfigValue(Key.LDAP_SCHEMA_GROUP_MEMBER_FIELD)
+                        + "=" + dn + "))";
 
                 // re-use the results
                 results.close();
@@ -1298,8 +1288,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
             firstByte = RfidNumberFormat.FirstByte.MSB;
         }
 
-        if (cm.getConfigValue(Key.LDAP_SCHEMA_USER_CARD_NUMBER_FORMAT).equals(
-                IConfigProp.CARD_NUMBER_FORMAT_V_HEX)) {
+        if (cm.getConfigValue(Key.LDAP_SCHEMA_USER_CARD_NUMBER_FORMAT)
+                .equals(IConfigProp.CARD_NUMBER_FORMAT_V_HEX)) {
             format = RfidNumberFormat.Format.HEX;
         } else {
             format = RfidNumberFormat.Format.DEC;
@@ -1330,9 +1320,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
      * @param ctx
      *            The {@link DirContext}.
      */
-    protected final void
-            closeResources(final NamingEnumeration<SearchResult> results,
-                    final DirContext ctx) {
+    protected final void closeResources(
+            final NamingEnumeration<SearchResult> results,
+            final DirContext ctx) {
 
         if (results != null) {
             try {
@@ -1360,9 +1350,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
      * @throws NamingException
      *             When LDAP errors.
      */
-    protected final boolean
-            isPagedResultControlSupported(final LdapContext ctx)
-                    throws NamingException {
+    protected final boolean isPagedResultControlSupported(final LdapContext ctx)
+            throws NamingException {
         return isControlSupported(ctx, PagedResultsControl.OID);
     }
 
@@ -1412,9 +1401,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource implements
 
         this.supportedControlSet = new HashSet<>();
 
-        final Attributes attrs =
-                ctx.getAttributes(getProviderUrl(),
-                        new String[] { LDAP_ATTRID_SUPPORTED_CONTROL });
+        final Attributes attrs = ctx.getAttributes(getProviderUrl(),
+                new String[] { LDAP_ATTRID_SUPPORTED_CONTROL });
 
         if (attrs == null) {
             return this.supportedControlSet;
