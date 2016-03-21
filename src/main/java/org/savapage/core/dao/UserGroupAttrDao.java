@@ -43,4 +43,13 @@ public interface UserGroupAttrDao extends GenericDao<UserGroupAttr> {
      */
     UserGroupAttr findByName(UserGroup group, UserGroupAttrEnum name);
 
+    /**
+     * Deletes all attributes of a group.
+     *
+     * @param groupId
+     *            The primary key of the group.
+     * @return The number of deleted attributes.
+     */
+    int deleteGroup(Long groupId);
+
 }

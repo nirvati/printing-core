@@ -61,4 +61,14 @@ public final class UserGroupAttrDaoImpl extends GenericDaoImpl<UserGroupAttr>
         return result;
     }
 
+    @Override
+    public int deleteGroup(final Long groupId) {
+
+        final String jpql =
+                "DELETE UserGroupAttr A WHERE A.userGroup.id = :groupId";
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("groupId", groupId);
+        return query.executeUpdate();
+    }
+
 }

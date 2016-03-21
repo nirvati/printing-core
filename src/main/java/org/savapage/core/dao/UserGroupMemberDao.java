@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ import org.savapage.core.jpa.UserGroupMember;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
@@ -163,10 +163,10 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
     List<UserGroupMember> getGroupMembers(Long groupId);
 
     /**
-     * Delete all member of a group.
+     * Deletes all members of a group.
      *
      * @param groupId
-     *            The primary key of the the group.
+     *            The primary key of the group.
      * @return The number of deleted group members.
      */
     int deleteGroup(Long groupId);

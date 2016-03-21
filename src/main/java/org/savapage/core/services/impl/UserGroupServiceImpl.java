@@ -62,8 +62,8 @@ import org.savapage.core.util.BigDecimalUtil;
  * @author Datraverse B.V.
  *
  */
-public final class UserGroupServiceImpl extends AbstractService implements
-        UserGroupService {
+public final class UserGroupServiceImpl extends AbstractService
+        implements UserGroupService {
 
     /**
      * Creates a default {@link UserGroup}.
@@ -139,15 +139,14 @@ public final class UserGroupServiceImpl extends AbstractService implements
     }
 
     @Override
-    public AbstractJsonRpcMethodResponse listUserGroups(
-            final Integer startIndex, final Integer itemsPerPage)
-            throws IOException {
+    public AbstractJsonRpcMethodResponse
+            listUserGroups(final Integer startIndex, final Integer itemsPerPage)
+                    throws IOException {
 
         final UserGroupDao.ListFilter filter = new UserGroupDao.ListFilter();
 
-        final List<UserGroup> list =
-                userGroupDAO().getListChunk(filter, startIndex, itemsPerPage,
-                        UserGroupDao.Field.NAME, true);
+        final List<UserGroup> list = userGroupDAO().getListChunk(filter,
+                startIndex, itemsPerPage, UserGroupDao.Field.NAME, true);
 
         final List<QuickSearchItemDto> items = new ArrayList<>();
 
@@ -187,10 +186,9 @@ public final class UserGroupServiceImpl extends AbstractService implements
 
         filter.setUserId(user.getId());
 
-        final List<UserGroup> list =
-                userGroupMemberDAO().getGroupChunk(filter, startIndex,
-                        itemsPerPage, UserGroupMemberDao.GroupField.GROUP_NAME,
-                        true);
+        final List<UserGroup> list = userGroupMemberDAO().getGroupChunk(filter,
+                startIndex, itemsPerPage,
+                UserGroupMemberDao.GroupField.GROUP_NAME, true);
 
         final List<QuickSearchItemDto> items = new ArrayList<>();
 
@@ -230,10 +228,9 @@ public final class UserGroupServiceImpl extends AbstractService implements
 
         filter.setGroupId(userGroup.getId());
 
-        final List<User> list =
-                userGroupMemberDAO().getUserChunk(filter, startIndex,
-                        itemsPerPage, UserGroupMemberDao.UserField.USER_NAME,
-                        true);
+        final List<User> list = userGroupMemberDAO().getUserChunk(filter,
+                startIndex, itemsPerPage,
+                UserGroupMemberDao.UserField.USER_NAME, true);
 
         final List<QuickSearchItemDto> items = new ArrayList<>();
 
@@ -320,8 +317,8 @@ public final class UserGroupServiceImpl extends AbstractService implements
          * INVARIANT: can NOT add reserved group names.
          */
         if (isReservedGroupName(groupName)) {
-            throw new IllegalArgumentException(String.format(
-                    "Cannot add reserved groupname [%s]", groupName));
+            throw new IllegalArgumentException(String
+                    .format("Cannot add reserved groupname [%s]", groupName));
         }
     }
 
@@ -340,7 +337,7 @@ public final class UserGroupServiceImpl extends AbstractService implements
     @Override
     public AbstractJsonRpcMethodResponse addUserGroup(
             final DaoBatchCommitter batchCommitter, final String groupName)
-            throws IOException {
+                    throws IOException {
 
         checkAddGroupInvariants(groupName);
 
@@ -348,8 +345,8 @@ public final class UserGroupServiceImpl extends AbstractService implements
          * Do NOT process request when group is already present.
          */
         if (userGroupDAO().findByName(groupName) != null) {
-            return JsonRpcMethodResult.createOkResult("Group [" + groupName
-                    + "] is already present.");
+            return JsonRpcMethodResult.createOkResult(
+                    "Group [" + groupName + "] is already present.");
         }
 
         /*
@@ -371,9 +368,9 @@ public final class UserGroupServiceImpl extends AbstractService implements
         final int nMembersAdd =
                 this.addUserGroupMembers(batchCommitter, groupName, members);
 
-        return JsonRpcMethodResult.createOkResult("Group [" + groupName
-                + "] added: [" + nMembersAdd + "] of [" + nMembersTot
-                + "] users added as member.");
+        return JsonRpcMethodResult.createOkResult(
+                "Group [" + groupName + "] added: [" + nMembersAdd + "] of ["
+                        + nMembersTot + "] users added as member.");
     }
 
     @Override
@@ -402,7 +399,8 @@ public final class UserGroupServiceImpl extends AbstractService implements
 
         final List<String> items = new ArrayList<>();
 
-        for (final String group : userSource.getGroupHierarchy(groupName, true)) {
+        for (final String group : userSource.getGroupHierarchy(groupName,
+                true)) {
             items.add(group);
         }
 
@@ -420,8 +418,8 @@ public final class UserGroupServiceImpl extends AbstractService implements
 
         final List<String> items = new ArrayList<>();
 
-        for (final CommonUser commonUser : userSource.getUsersInGroup(
-                groupName, nested)) {
+        for (final CommonUser commonUser : userSource.getUsersInGroup(groupName,
+                nested)) {
             items.add(commonUser.getUserName());
         }
 
@@ -449,8 +447,8 @@ public final class UserGroupServiceImpl extends AbstractService implements
     }
 
     @Override
-    public AbstractJsonRpcMethodResponse
-            deleteUserGroup(final String groupName) throws IOException {
+    public AbstractJsonRpcMethodResponse deleteUserGroup(final String groupName)
+            throws IOException {
 
         final UserGroup userGroup = userGroupDAO().findByName(groupName);
 
@@ -477,19 +475,22 @@ public final class UserGroupServiceImpl extends AbstractService implements
      * @throws IOException
      *             When something goes wrong.
      */
-    private AbstractJsonRpcMethodResponse deleteUserGroup(
-            final UserGroup userGroup) throws IOException {
+    private AbstractJsonRpcMethodResponse
+            deleteUserGroup(final UserGroup userGroup) throws IOException {
 
         // Delete members.
         final int nMembers =
                 userGroupMemberDAO().deleteGroup(userGroup.getId());
 
+        // Delete attributes.
+        userGroupAttrDAO().deleteGroup(userGroup.getId());
+
         // Delete group.
         userGroupDAO().delete(userGroup);
 
-        return JsonRpcMethodResult.createOkResult(String.format(
-                "Group [%s] with [%d] members deleted.",
-                userGroup.getGroupName(), nMembers));
+        return JsonRpcMethodResult.createOkResult(
+                String.format("Group [%s] with [%d] members deleted.",
+                        userGroup.getGroupName(), nMembers));
     }
 
     /**
@@ -560,9 +561,8 @@ public final class UserGroupServiceImpl extends AbstractService implements
                 readNextSrc = true;
 
             } else {
-                final int compare =
-                        objSrc.getUserName().compareTo(
-                                objDst.getUser().getUserId());
+                final int compare = objSrc.getUserName()
+                        .compareTo(objDst.getUser().getUserId());
                 if (compare < 0) {
                     // Source < Destination: ADD destination.
                     createDst = true;
@@ -652,8 +652,8 @@ public final class UserGroupServiceImpl extends AbstractService implements
          * INVARIANT: can NOT sync reserved group names.
          */
         if (isReservedGroupName(groupName)) {
-            throw new IllegalArgumentException(String.format(
-                    "Cannot sync reserved groupname [%s]", groupName));
+            throw new IllegalArgumentException(String
+                    .format("Cannot sync reserved groupname [%s]", groupName));
         }
         return userGroupDAO().findByName(groupName);
     }
@@ -661,7 +661,7 @@ public final class UserGroupServiceImpl extends AbstractService implements
     @Override
     public AbstractJsonRpcMethodResponse syncInternalUserGroup(
             final DaoBatchCommitter batchCommitter, final String groupName)
-            throws IOException {
+                    throws IOException {
 
         final UserGroup userGroup = checkSyncGroupInvariants(groupName);
         final SortedSet<CommonUser> source =
@@ -672,7 +672,7 @@ public final class UserGroupServiceImpl extends AbstractService implements
     @Override
     public AbstractJsonRpcMethodResponse syncUserGroup(
             final DaoBatchCommitter batchCommitter, final String groupName)
-            throws IOException {
+                    throws IOException {
 
         final UserGroup userGroup = checkSyncGroupInvariants(groupName);
 
@@ -775,8 +775,8 @@ public final class UserGroupServiceImpl extends AbstractService implements
 
         if (balance != null) {
             try {
-                jpaGroup.setInitialCredit(BigDecimalUtil.parse(balance,
-                        dtoLocale, false, false));
+                jpaGroup.setInitialCredit(
+                        BigDecimalUtil.parse(balance, dtoLocale, false, false));
             } catch (ParseException e) {
                 return createError("msg-amount-error", balance);
             }
