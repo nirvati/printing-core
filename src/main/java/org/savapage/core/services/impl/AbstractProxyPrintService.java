@@ -119,6 +119,7 @@ import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.PrinterSnmpReader;
@@ -134,7 +135,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractProxyPrintService extends AbstractService
@@ -1874,7 +1875,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 /*
                  * If this is the last job, then clear all pages.
                  */
-                printReq.setClearPages(iJob + 1 == nJobs);
+                final InboxSelectScopeEnum clearScope;
+
+                if (iJob + 1 == nJobs) {
+                    clearScope = InboxSelectScopeEnum.ALL;
+                } else {
+                    clearScope = InboxSelectScopeEnum.NONE;
+                }
+
+                printReq.setClearScope(clearScope);
 
                 //
                 nJobPageBegin += totJobPages;
@@ -1905,8 +1914,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printReq.setJobName(jobs.getJobs().get(0).getTitle());
             printReq.setPageRanges(ProxyPrintInboxReq.PAGE_RANGES_ALL);
             printReq.setNumberOfPages(nPagesTot);
-            printReq.setClearPages(true);
-
+            printReq.setClearScope(InboxSelectScopeEnum.ALL);
         }
 
         /*
@@ -2029,12 +2037,49 @@ public abstract class AbstractProxyPrintService extends AbstractService
         return docLog;
     }
 
+    @Override
+    public final int clearInbox(final User lockedUser,
+            final ProxyPrintInboxReq request) {
+
+        final String userid = lockedUser.getUserId();
+        final int clearedPages;
+
+        switch (request.getClearScope()) {
+
+        case ALL:
+            clearedPages = inboxService().deleteAllPages(userid);
+            break;
+
+        case JOBS:
+            clearedPages = inboxService().deleteJobs(userid,
+                    request.getJobChunkInfo().getChunks());
+            break;
+
+        case PAGES:
+            clearedPages =
+                    inboxService().deletePages(userid, request.getPageRanges());
+            break;
+
+        case NONE:
+            clearedPages = 0;
+            break;
+
+        default:
+            throw new SpException(String.format("Unhandled enum value [%s]",
+                    request.getClearScope().toString()));
+        }
+
+        return clearedPages;
+    }
+
     /**
      * Sends PDF file to the CUPS Printer, and updates {@link User},
      * {@link Printer} and global {@link IConfigProp} statistics.
      * <p>
-     * Note: This is a straight proxy print. {@link InboxInfoDto} is not
-     * consulted or updated, and invariants are NOT checked.
+     * Note: This is a straight proxy print. Invariants are NOT checked. The
+     * {@link InboxInfoDto} is updated when this is an
+     * {@link ProxyPrintInboxReq} and pages or jobs need to be cleared. See
+     * {@link ProxyPrintInboxReq#getClearScope()}.
      * </p>
      *
      * @param lockedUser
@@ -2062,8 +2107,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         if (print(request, userid, pdfFileToPrint, docLog)) {
 
-            if (request.isClearPages()) {
-                request.setClearedPages(inboxService().deleteAllPages(userid));
+            if (request instanceof ProxyPrintInboxReq) {
+                request.setClearedPages(this.clearInbox(lockedUser,
+                        (ProxyPrintInboxReq) request));
             } else {
                 request.setClearedPages(0);
             }
@@ -2235,7 +2281,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          * here, and restore them afterwards.
          */
         final String orgJobName = request.getJobName();
-        final boolean orgClearPages = request.isClearPages();
+        final InboxSelectScopeEnum orgClearScope = request.getClearScope();
         final Boolean orgFitToPage = request.getFitToPage();
         final String orgMediaOption = request.getMediaOption();
         final String orgMediaSourceOption = request.getMediaSourceOption();
@@ -2257,7 +2303,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             } else {
 
                 final InboxInfoDto inboxInfo =
-                        request.getJobChunkInfo().getInboxInfo();
+                        request.getJobChunkInfo().getFilteredInboxInfo();
 
                 final int nChunkMax =
                         request.getJobChunkInfo().getChunks().size();
@@ -2272,7 +2318,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     /*
                      * Replace the request parameters with the chunk parameters.
                      */
-                    request.setClearPages(orgClearPages && nChunk == nChunkMax);
+                    if (nChunk == nChunkMax) {
+                        request.setClearScope(orgClearScope);
+                    } else {
+                        request.setClearScope(InboxSelectScopeEnum.NONE);
+                    }
 
                     request.setFitToPage(chunk.getFitToPage());
 
@@ -2321,7 +2371,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
              * Restore the original request parameters.
              */
             request.setJobName(orgJobName);
-            request.setClearPages(orgClearPages);
+            request.setClearScope(orgClearScope);
             request.setFitToPage(orgFitToPage);
             request.setMediaOption(orgMediaOption);
             request.setMediaSourceOption(orgMediaSourceOption);

@@ -84,7 +84,7 @@ import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.config.IConfigProp.LdapType;
 import org.savapage.core.config.IConfigProp.Prop;
-import org.savapage.core.config.IConfigProp.ValidationResult;
+import org.savapage.core.config.validator.ValidationResult;
 import org.savapage.core.crypto.CryptoApp;
 import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.UserDao;
@@ -127,8 +127,8 @@ public final class ConfigManager {
     /**
      * .
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ConfigManager.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ConfigManager.class);
 
     /**
      * .
@@ -289,8 +289,8 @@ public final class ConfigManager {
      */
     public static final String SYS_PROP_CLIENT_HOME = "client.home";
 
-    private static final String APP_OWNER = CommunityDictEnum.DATRAVERSE_BV
-            .getWord();
+    private static final String APP_OWNER =
+            CommunityDictEnum.DATRAVERSE_BV.getWord();
 
     private final CryptoApp myCipher = new CryptoApp();
 
@@ -430,9 +430,8 @@ public final class ConfigManager {
      * @return The {@link Locale}.
      */
     public static Locale getDefaultLocale() {
-        final String languageTag =
-                ConfigManager.instance().getConfigValue(Key.SYS_DEFAULT_LOCALE)
-                        .trim();
+        final String languageTag = ConfigManager.instance()
+                .getConfigValue(Key.SYS_DEFAULT_LOCALE).trim();
 
         if (StringUtils.isNotBlank(languageTag)) {
             Locale.Builder builder = new Locale.Builder();
@@ -495,8 +494,8 @@ public final class ConfigManager {
             loadAdminProperties();
 
             if (isUserPasswordValid(
-                    myPropsAdmin.getProperty(PROP_INTERNAL_ADMIN_PASSWORD),
-                    uid, password)) {
+                    myPropsAdmin.getProperty(PROP_INTERNAL_ADMIN_PASSWORD), uid,
+                    password)) {
                 user = createInternalAdminUser();
             }
         }
@@ -544,8 +543,8 @@ public final class ConfigManager {
      *            The type of breaker.
      * @return he {@link CircuitBreaker} instance.
      */
-    public static CircuitBreaker getCircuitBreaker(
-            final CircuitBreakerEnum breakerEnum) {
+    public static CircuitBreaker
+            getCircuitBreaker(final CircuitBreakerEnum breakerEnum) {
 
         return instance().circuitBreakerRegistry.getOrCreateCircuitBreaker(
                 breakerEnum.toString(), breakerEnum.getFailureThreshHold(),
@@ -579,8 +578,8 @@ public final class ConfigManager {
      *         <code>false</code> if not.
      */
     public boolean isUserInsertLazyPrint() {
-        return !myConfigProp.getString(IConfigProp.Key.AUTH_METHOD).equals(
-                IConfigProp.AUTH_METHOD_V_NONE)
+        return !myConfigProp.getString(IConfigProp.Key.AUTH_METHOD)
+                .equals(IConfigProp.AUTH_METHOD_V_NONE)
                 && myConfigProp
                         .getBoolean(IConfigProp.Key.USER_INSERT_LAZY_PRINT);
     }
@@ -599,8 +598,8 @@ public final class ConfigManager {
      * @return The PPD file.
      */
     public static File getPpdFile() {
-        return new File(getClientHome() + File.separator
-                + REL_PATH_SAVAPAGE_PPD_FILE);
+        return new File(
+                getClientHome() + File.separator + REL_PATH_SAVAPAGE_PPD_FILE);
     }
 
     /**
@@ -717,9 +716,8 @@ public final class ConfigManager {
 
         try {
 
-            final String path =
-                    ConfigManager.getServerHome() + "/"
-                            + FILENAME_SERVER_PROPERTIES;
+            final String path = ConfigManager.getServerHome() + "/"
+                    + FILENAME_SERVER_PROPERTIES;
 
             fis = new FileInputStream(path);
 
@@ -873,9 +871,9 @@ public final class ConfigManager {
      * @return
      */
     public static String getAppVersionBuild() {
-        return String.format("%s.%s.%s (Build %s)",
-                VersionInfo.VERSION_A_MAJOR, VersionInfo.VERSION_B_MINOR,
-                VersionInfo.VERSION_C_REVISION, VersionInfo.VERSION_D_BUILD);
+        return String.format("%s.%s.%s (Build %s)", VersionInfo.VERSION_A_MAJOR,
+                VersionInfo.VERSION_B_MINOR, VersionInfo.VERSION_C_REVISION,
+                VersionInfo.VERSION_D_BUILD);
     }
 
     /**
@@ -960,9 +958,9 @@ public final class ConfigManager {
      */
     public static void setWebAppAdminPath(final String path) {
         try {
-            theWebAppAdminSslUrl =
-                    new URL("https", InetUtils.getServerHostAddress(), Integer
-                            .valueOf(getServerSslPort()).intValue(), path);
+            theWebAppAdminSslUrl = new URL("https",
+                    InetUtils.getServerHostAddress(),
+                    Integer.valueOf(getServerSslPort()).intValue(), path);
         } catch (NumberFormatException | MalformedURLException
                 | UnknownHostException e) {
             throw new SpException(e.getMessage(), e);
@@ -1048,11 +1046,9 @@ public final class ConfigManager {
         String method = DEFAULT_PRINT_PROXY_NOTIFICATION_METHOD;
 
         if (theServerProps != null) {
-            method =
-                    theServerProps
-                            .getProperty(
-                                    SERVER_PROP_PRINT_PROXY_NOTIFICATION_METHOD,
-                                    ConfigManager.DEFAULT_PRINT_PROXY_NOTIFICATION_METHOD);
+            method = theServerProps.getProperty(
+                    SERVER_PROP_PRINT_PROXY_NOTIFICATION_METHOD,
+                    ConfigManager.DEFAULT_PRINT_PROXY_NOTIFICATION_METHOD);
         }
         return method
                 .equalsIgnoreCase(VAL_PRINT_PROXY_NOTIFICATION_METHOD_PUSH);
@@ -1136,11 +1132,11 @@ public final class ConfigManager {
      * @throws UnrecoverableKeyException
      * @throws KeyManagementException
      */
-    private void initJmx() throws MalformedObjectNameException,
-            InstanceAlreadyExistsException, MBeanRegistrationException,
-            NotCompliantMBeanException, KeyStoreException,
-            NoSuchAlgorithmException, CertificateException, IOException,
-            UnrecoverableKeyException, KeyManagementException {
+    private void initJmx()
+            throws MalformedObjectNameException, InstanceAlreadyExistsException,
+            MBeanRegistrationException, NotCompliantMBeanException,
+            KeyStoreException, NoSuchAlgorithmException, CertificateException,
+            IOException, UnrecoverableKeyException, KeyManagementException {
 
         /*
          * Get the MBean server.
@@ -1308,7 +1304,8 @@ public final class ConfigManager {
      * @param props
      * @throws IOException
      */
-    private void initAsRunnableCoreLibrary(Properties props) throws IOException {
+    private void initAsRunnableCoreLibrary(Properties props)
+            throws IOException {
 
         initAsCoreLibrary(null, props);
 
@@ -1389,8 +1386,8 @@ public final class ConfigManager {
     public static void setDefaultLocale(final String languageTag) {
         if (StringUtils.isNotBlank(languageTag)) {
             if (!languageTag.equals(Locale.getDefault().toLanguageTag())) {
-                Locale.setDefault(new Locale.Builder().setLanguageTag(
-                        languageTag).build());
+                Locale.setDefault(new Locale.Builder()
+                        .setLanguageTag(languageTag).build());
             }
         } else {
             Locale.setDefault(getServerHostLocale());
@@ -1405,9 +1402,8 @@ public final class ConfigManager {
      */
     public void setInternalAdminPassword(final String plainPassword) {
 
-        final String pw =
-                CryptoUser.getHashedUserPassword(UserDao.INTERNAL_ADMIN_USERID,
-                        plainPassword);
+        final String pw = CryptoUser.getHashedUserPassword(
+                UserDao.INTERNAL_ADMIN_USERID, plainPassword);
 
         myPropsAdmin.setProperty(PROP_INTERNAL_ADMIN_PASSWORD, pw);
 
@@ -1443,9 +1439,8 @@ public final class ConfigManager {
      *             When IO errors reading the list.
      */
     private int initUserAliasList() throws IOException {
-        return UserAliasList.instance().load(
-                new File(getServerHome() + "/"
-                        + SERVER_REL_PATH_USERNAME_ALIASES_TXT));
+        return UserAliasList.instance().load(new File(
+                getServerHome() + "/" + SERVER_REL_PATH_USERNAME_ALIASES_TXT));
     }
 
     /**
@@ -1486,7 +1481,7 @@ public final class ConfigManager {
 
     /**
      * See: {@link #updateConfigKey(Key, String, String)
-
+     *
      */
     public void updateConfigKey(final Key key, final Long value,
             final String actor) {
@@ -1534,9 +1529,8 @@ public final class ConfigManager {
 
         String val = null;
 
-        final ConfigProperty prop =
-                ServiceContext.getDaoContext().getConfigPropertyDao()
-                        .findByName(getConfigKey(key));
+        final ConfigProperty prop = ServiceContext.getDaoContext()
+                .getConfigPropertyDao().findByName(getConfigKey(key));
 
         if (prop != null) {
             val = prop.getValue();
@@ -1578,9 +1572,8 @@ public final class ConfigManager {
 
             } else {
 
-                final PrinterGroup group =
-                        ServiceContext.getDaoContext().getPrinterGroupDao()
-                                .findByName(groupName);
+                final PrinterGroup group = ServiceContext.getDaoContext()
+                        .getPrinterGroupDao().findByName(groupName);
 
                 if (group == null) {
                     isNonSecure = true;
@@ -1590,9 +1583,8 @@ public final class ConfigManager {
                     }
                 } else {
 
-                    final PrinterService printerService =
-                            ServiceContext.getServiceFactory()
-                                    .getPrinterService();
+                    final PrinterService printerService = ServiceContext
+                            .getServiceFactory().getPrinterService();
 
                     if (printerService.isPrinterGroupMember(group, printer)) {
                         isNonSecure = true;
@@ -1702,6 +1694,22 @@ public final class ConfigManager {
     }
 
     /**
+     * Gets the enum config value.
+     *
+     * @param enumClass
+     *            The enum class.
+     * @param key
+     *            The {@link Key}.
+     * @param <E>
+     *            The enum type.
+     * @return The enum.
+     */
+    public <E extends Enum<E>> E getConfigEnum(final Class<E> enumClass,
+            final IConfigProp.Key key) {
+        return EnumUtils.getEnum(enumClass, this.getConfigValue(key));
+    }
+
+    /**
      * Gets the {@link InternalFontFamilyEnum} of a config key.
      *
      * @param key
@@ -1709,8 +1717,8 @@ public final class ConfigManager {
      * @return {@link IConfigProp#DEFAULT_INTERNAL_FONT_FAMILY} when or invalid
      *         or not found.
      */
-    public static InternalFontFamilyEnum getConfigFontFamily(
-            final IConfigProp.Key key) {
+    public static InternalFontFamilyEnum
+            getConfigFontFamily(final IConfigProp.Key key) {
 
         InternalFontFamilyEnum font = IConfigProp.DEFAULT_INTERNAL_FONT_FAMILY;
 
@@ -1768,8 +1776,8 @@ public final class ConfigManager {
      */
     public static String[] getConfigMultiline(Key key) {
         if (instance().isConfigMultiline(key)) {
-            return StringUtils.splitPreserveAllTokens(instance()
-                    .getConfigValue(key).replace("\r\n", "\n"), '\n');
+            return StringUtils.splitPreserveAllTokens(
+                    instance().getConfigValue(key).replace("\r\n", "\n"), '\n');
         } else {
             return new String[0];
         }
@@ -1915,8 +1923,9 @@ public final class ConfigManager {
      * @return {@code true} when activated.
      */
     public static boolean isSmartSchoolPrintModuleActivated() {
-        return theServerProps.getProperty(SERVER_PROP_SMARTSCHOOL_PRINT,
-                "false").equalsIgnoreCase("true");
+        return theServerProps
+                .getProperty(SERVER_PROP_SMARTSCHOOL_PRINT, "false")
+                .equalsIgnoreCase("true");
     }
 
     /**
@@ -2085,7 +2094,8 @@ public final class ConfigManager {
      * @throws IOException
      *             When IO error occurs.
      */
-    public static long getUserHomeDirSize(final String user) throws IOException {
+    public static long getUserHomeDirSize(final String user)
+            throws IOException {
         final MutableLong size = new MutableLong();
         File file = new File(getUserHomeDir(user));
         if (file.exists()) {
@@ -2200,8 +2210,8 @@ public final class ConfigManager {
      *         source.
      */
     public static boolean isLdapUserSync() {
-        return instance().getConfigValue(Key.AUTH_METHOD).equals(
-                IConfigProp.AUTH_METHOD_V_LDAP);
+        return instance().getConfigValue(Key.AUTH_METHOD)
+                .equals(IConfigProp.AUTH_METHOD_V_LDAP);
     }
 
     /**
@@ -2301,9 +2311,8 @@ public final class ConfigManager {
             properties.put("javax.persistence.jdbc.url",
                     theServerProps.getProperty(SERVER_PROP_DB_URL));
 
-            jdbcDriver =
-                    theServerProps.getProperty(SERVER_PROP_DB_DRIVER,
-                            jdbcDriverDefault);
+            jdbcDriver = theServerProps.getProperty(SERVER_PROP_DB_DRIVER,
+                    jdbcDriverDefault);
 
         } else {
             jdbcDriver = jdbcDriverDefault;
@@ -2357,9 +2366,8 @@ public final class ConfigManager {
             useHibernateC3p0Parms = false;
 
         } else {
-            this.myDatabaseType =
-                    DatabaseTypeEnum.valueOf(theServerProps.getProperty(
-                            SERVER_PROP_DB_TYPE,
+            this.myDatabaseType = DatabaseTypeEnum
+                    .valueOf(theServerProps.getProperty(SERVER_PROP_DB_TYPE,
                             DatabaseTypeEnum.Internal.getPropertiesId()));
 
             useHibernateC3p0Parms = true;
@@ -2449,9 +2457,8 @@ public final class ConfigManager {
          * an entity manager factory is a wrapper on top of a session factory.
          * Calls to the entityManagerFactory are thread safe."
          */
-        this.myEmf =
-                persistenceProvider.createEntityManagerFactory(
-                        PERSISTENCE_UNIT_NAME, configOverrides);
+        this.myEmf = persistenceProvider.createEntityManagerFactory(
+                PERSISTENCE_UNIT_NAME, configOverrides);
 
     }
 

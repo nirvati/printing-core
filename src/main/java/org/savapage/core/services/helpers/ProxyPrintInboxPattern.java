@@ -152,7 +152,7 @@ public abstract class ProxyPrintInboxPattern {
             } else {
 
                 final InboxInfoDto inboxInfo =
-                        request.getJobChunkInfo().getInboxInfo();
+                        request.getJobChunkInfo().getFilteredInboxInfo();
 
                 for (final ProxyPrintJobChunk chunk : request.getJobChunkInfo()
                         .getChunks()) {

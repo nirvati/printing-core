@@ -67,6 +67,7 @@ import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
+import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.SyncPrintJobsResult;
@@ -709,6 +710,18 @@ public interface ProxyPrintService {
     void chunkProxyPrintRequest(User lockedUser, ProxyPrintInboxReq request,
             PageScalingEnum pageScaling, boolean chunkVanillaJobs,
             Integer iVanillaJob) throws ProxyPrintException;
+
+    /**
+     * Clears the user's inbox depending on the print request and the
+     * {@link InboxSelectScopeEnum} in it.
+     *
+     * @param lockedUser
+     *            The requesting {@link User}, which should be locked.
+     * @param request
+     *            The {@link ProxyPrintInboxReq}.
+     * @return The number of cleared (removed pages).
+     */
+    int clearInbox(User lockedUser, ProxyPrintInboxReq request);
 
     /**
      * Reads SNMP printer info.

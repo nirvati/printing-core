@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -42,6 +42,7 @@ import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.job.DocLogClean;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.User;
+import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
 
 /**
@@ -342,7 +343,23 @@ public interface InboxService {
     int deletePages(String userId, String ranges);
 
     /**
-     * Deletes a job.
+     * Deletes jobs from the inbox that are part of the
+     * {@link ProxyPrintJobChunk} list.
+     * <p>
+     * Note: a complete job is deleted if just one (1) of its pages is printed.
+     * </p>
+     *
+     * @param userId
+     *            The unique user id.
+     * @param chunks
+     *            The list of {@link ProxyPrintJobChunk} objects.
+     * @return The total number of the not already logically deleted pages of
+     *         all deleted jobs.
+     */
+    int deleteJobs(String userId, List<ProxyPrintJobChunk> chunks);
+
+    /**
+     * Deletes a job from the inbox.
      *
      * @param userId
      *            The unique user id.

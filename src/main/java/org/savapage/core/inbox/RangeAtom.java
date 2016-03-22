@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class RangeAtom {
@@ -123,8 +123,8 @@ public class RangeAtom {
         }
 
         if (atom == null) {
-            throw new IllegalArgumentException("range \"" + value
-                    + "\" has invalid syntax");
+            throw new IllegalArgumentException(
+                    "range \"" + value + "\" has invalid syntax");
         }
 
         return atom;
@@ -144,6 +144,14 @@ public class RangeAtom {
 
     public int calcPageTo() {
         return calcPageTo(pageBegin);
+    }
+
+    /**
+     *
+     * @return The number of pages in the range.
+     */
+    public int calcPages() {
+        return this.calcPageTo() - this.calcPageFrom() + 1;
     }
 
     /**

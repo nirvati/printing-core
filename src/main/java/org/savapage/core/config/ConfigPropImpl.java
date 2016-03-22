@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.config.validator.ValidationResult;
 import org.savapage.core.dao.ConfigPropertyDao;
 import org.savapage.core.jpa.ConfigProperty;
 import org.savapage.core.jpa.Entity;

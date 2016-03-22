@@ -74,6 +74,7 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
+import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
 import org.savapage.core.services.EcoPrintPdfTaskService;
 import org.savapage.core.services.InboxService;
@@ -1633,10 +1634,9 @@ public final class InboxServiceImpl implements InboxService {
      *            The location of the letterhead store.
      * @param info
      *            The letterhead store.
-     *
      */
     private void storeLetterheadInfo(final String directory,
-            LetterheadInfo info) {
+            final LetterheadInfo info) {
         final String filename =
                 directory + "/" + LETTERHEADS_DESCRIPT_FILE_NAME;
         ObjectMapper mapper = new ObjectMapper();
@@ -1668,23 +1668,66 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public void deleteJob(final String user, final int iJob) {
+    public int deleteJobs(final String userid,
+            final List<ProxyPrintJobChunk> chunks) {
+
+        int nDeletedPages = 0;
+
+        final InboxInfoDto jobs = readInboxInfo(userid);
+
+        final Set<Integer> collectedJobs = new HashSet<>();
+
+        for (final ProxyPrintJobChunk chunk : chunks) {
+
+            for (final ProxyPrintJobChunkRange range : chunk.getRanges()) {
+
+                final int iJob = range.getJob();
+                /*
+                 * Remove on first occurrence in collected jobs.
+                 */
+                if (collectedJobs.add(Integer.valueOf(iJob))) {
+                    this.removeJob(jobs, iJob);
+                }
+                nDeletedPages += range.calcPages(); // TODO: not exactly right.
+            }
+        }
+
+        if (!collectedJobs.isEmpty()) {
+            storeInboxInfo(userid, this.pruneJobs(
+                    ConfigManager.getUserHomeDir(userid), userid, jobs));
+        }
+
+        return nDeletedPages;
+    }
+
+    /**
+     * Removes job page ranges from the inbox {@link InboxInfoDto} object.
+     *
+     * @param jobs
+     *            The {@link InboxInfoDto} object to remove from.
+     * @param iJob
+     *            The zero-based index of the job to remove.
+     * @return The same {@link InboxInfoDto} object.
+     */
+    private InboxInfoDto removeJob(final InboxInfoDto jobs, final int iJob) {
 
         final ArrayList<InboxInfoDto.InboxJobRange> jobPagesNew =
                 new ArrayList<>();
-
-        final InboxInfoDto jobs = readInboxInfo(user);
 
         for (final InboxJobRange range : jobs.getPages()) {
             if (range.getJob() != iJob) {
                 jobPagesNew.add(range);
             }
         }
-
         jobs.setPages(jobPagesNew);
 
-        storeInboxInfo(user,
-                pruneJobs(ConfigManager.getUserHomeDir(user), user, jobs));
+        return jobs;
+    }
+
+    @Override
+    public void deleteJob(final String user, final int iJob) {
+        storeInboxInfo(user, pruneJobs(ConfigManager.getUserHomeDir(user), user,
+                this.removeJob(readInboxInfo(user), iJob)));
     }
 
     @Override

@@ -22,28 +22,36 @@
 package org.savapage.core.config;
 
 import java.math.BigDecimal;
-import java.net.URI;
-import java.net.URL;
 import java.text.MessageFormat;
-import java.util.Currency;
-import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 
 import javax.print.attribute.standard.MediaSizeName;
 
-import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
+import org.savapage.core.config.validator.BooleanValidator;
+import org.savapage.core.config.validator.ConfigPropValidator;
+import org.savapage.core.config.validator.CurrencyCodeValidator;
+import org.savapage.core.config.validator.DecimalValidator;
+import org.savapage.core.config.validator.EnumValidator;
+import org.savapage.core.config.validator.InternalFontFamilyValidator;
+import org.savapage.core.config.validator.IpPortValidator;
+import org.savapage.core.config.validator.LocaleValidator;
+import org.savapage.core.config.validator.NotEmptyValidator;
+import org.savapage.core.config.validator.NumberValidator;
+import org.savapage.core.config.validator.UriValidator;
+import org.savapage.core.config.validator.UrlValidator;
+import org.savapage.core.config.validator.ValidationResult;
+import org.savapage.core.config.validator.ValidationStatusEnum;
 import org.savapage.core.crypto.OneTimeAuthToken;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.dao.impl.DaoBatchCommitterImpl;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.jpa.PrinterGroup;
+import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.UserAuth;
-import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.Messages;
 
 /**
@@ -201,31 +209,37 @@ public interface IConfigProp {
     final Integer NUMBER_V_NONE = 0;
 
     /**
-     * @author Datraverse B.V.
+     * .
      */
     enum KeyType {
         /**
-         *
+         * .
          */
-        BIG_DECIMAL, /**
-                      *
-                      */
-        LOCALIZED_MULTI_LINE, /**
-                               *
-                               */
-        LOCALIZED_SINGLE_LINE, /**
-                                *
-                                */
-        MULTI_LINE, /**
-                     *
-                     */
+        BIG_DECIMAL,
+
+        /**
+         * .
+         */
+        LOCALIZED_MULTI_LINE,
+
+        /**
+         * .
+         */
+        LOCALIZED_SINGLE_LINE,
+
+        /**
+         * .
+         */
+        MULTI_LINE,
+
+        /**
+         * .
+         */
         SINGLE_LINE
     };
 
     /**
-     *
-     * @author Datraverse B.V.
-     *
+     * .
      */
     enum Key {
 
@@ -1878,10 +1892,20 @@ public interface IConfigProp {
                 NUMBER_VALIDATOR, "30"),
 
         /**
-         * User WebApp: clear inbox after proxy printing.
+         * User WebApp: enable a fixed inbox clearing scope after a proxy print
+         * job is issued.
          */
-        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX(
-                "webapp.user.proxy-print.clear-inbox", BOOLEAN_VALIDATOR, V_NO),
+        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_ENABLE(
+                "webapp.user.proxy-print.clear-inbox.enable", BOOLEAN_VALIDATOR,
+                V_NO),
+
+        /**
+         * User WebApp: the fixed inbox clearing scope after proxy printing.
+         */
+        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE(
+                "webapp.user.proxy-print.clear-inbox.scope",
+                new EnumValidator<>(InboxSelectScopeEnum.class),
+                InboxSelectScopeEnum.NONE.toString()),
 
         /**
          * WebApp: enable (show) driver download in About Dialog?
@@ -2043,7 +2067,7 @@ public interface IConfigProp {
          * @param name
          * @param validator
          */
-        private Key(final String name, final Validator validator) {
+        private Key(final String name, final ConfigPropValidator validator) {
             this.property = this.createProperty(KeyType.SINGLE_LINE, name,
                     validator, "", null);
         }
@@ -2068,7 +2092,8 @@ public interface IConfigProp {
          * @param defaultValue
          */
         private Key(final String name, final KeyType keyType,
-                final Validator validator, final String defaultValue) {
+                final ConfigPropValidator validator,
+                final String defaultValue) {
             this.property = this.createProperty(keyType, name, validator,
                     defaultValue, null);
         }
@@ -2079,7 +2104,7 @@ public interface IConfigProp {
          * @param validator
          * @param defaultValue
          */
-        private Key(final String name, final Validator validator,
+        private Key(final String name, final ConfigPropValidator validator,
                 final String defaultValue) {
             this.property = this.createProperty(KeyType.SINGLE_LINE, name,
                     validator, defaultValue, null);
@@ -2092,7 +2117,7 @@ public interface IConfigProp {
          * @param defaultValue
          * @param values
          */
-        private Key(final String name, final Validator validator,
+        private Key(final String name, final ConfigPropValidator validator,
                 final String defaultValue, String[] values) {
             this.property = this.createProperty(KeyType.SINGLE_LINE, name,
                     validator, defaultValue, values);
@@ -2108,7 +2133,7 @@ public interface IConfigProp {
          * @return
          */
         private Prop createProperty(final KeyType keyType, final String name,
-                final Validator validator, final String defaultValue,
+                final ConfigPropValidator validator, final String defaultValue,
                 String[] values) {
 
             switch (keyType) {
@@ -2144,390 +2169,20 @@ public interface IConfigProp {
     };
 
     /**
-     * Validation status.
-     *
-     * @author rijk
-     *
-     */
-    enum ValidationStatusEnum {
-        /**
-         *
-         */
-        OK, /**
-             *
-             */
-        ERROR_EMPTY, /**
-                      *
-                      */
-        ERROR_ENUM, /**
-                     *
-                     */
-        ERROR_SYNTAX, /**
-                       *
-                       */
-        ERROR_YN, /**
-                   *
-                   */
-        ERROR_LOCALE, /**
-                       * .
-                       */
-        ERROR_CURRENCY, /**
-                         *
-                         */
-        ERROR_NOT_NUMERIC, /**
-                            *
-                            */
-        ERROR_NOT_DECIMAL, /**
-                            *
-                            */
-        ERROR_RANGE
-    }
-
-    /**
-     *
-     * @author rijk
-     *
-     */
-    public static class ValidationResult {
-
-        private String value = null;
-        private String message = "";
-
-        /**
-         *
-         */
-        private ValidationStatusEnum status = ValidationStatusEnum.OK;
-
-        public ValidationResult(final String value) {
-            this.setValue(value);
-            status = ValidationStatusEnum.OK;
-        }
-
-        public ValidationResult(final String value,
-                final ValidationStatusEnum status, final String message) {
-            this.status = status;
-            this.message = message;
-        }
-
-        public boolean isValid() {
-            return status == ValidationStatusEnum.OK;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
-        public ValidationStatusEnum getStatus() {
-            return status;
-        }
-
-        public void setStatus(ValidationStatusEnum status) {
-            this.status = status;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public void setValue(String value) {
-            this.value = value;
-        }
-
-    }
-
-    /**
-     * Validation of a single value.
-     */
-    interface Validator {
-
-        /**
-         * Validate a value.
-         *
-         * @param value
-         *            Value to be validated.
-         * @return The newly created validation result;
-         */
-        ValidationResult validate(final String value);
-    }
-
-    /**
-     *
-     */
-    static class NotEmptyValidator implements Validator {
-
-        @Override
-        public ValidationResult validate(String value) {
-            ValidationResult res = new ValidationResult(value);
-            if (StringUtils.isBlank(value)) {
-                res.setStatus(ValidationStatusEnum.ERROR_EMPTY);
-            }
-            if (!res.isValid()) {
-                res.setMessage("value cannot be empty");
-            }
-            return res;
-        }
-    }
-
-    /**
-    *
-    */
-    static class UrlValidator implements Validator {
-
-        /**
-         * {@code true} if value is optional.
-         */
-        private final boolean isOptional;
-
-        /**
-         * @param optional
-         *            {@code true} if value is optional.
-         */
-        public UrlValidator(final boolean optional) {
-            super();
-            this.isOptional = optional;
-        }
-
-        protected void customCheck(final String value) throws Exception {
-            new URL(value);
-        }
-
-        @Override
-        public ValidationResult validate(final String value) {
-
-            ValidationResult res = new ValidationResult(value);
-
-            if (!this.isOptional || !value.isEmpty()) {
-
-                try {
-                    this.customCheck(value);
-                } catch (Exception e) {
-                    res.setStatus(ValidationStatusEnum.ERROR_SYNTAX);
-                }
-            }
-
-            if (!res.isValid()) {
-                res.setMessage("Invalid URL");
-            }
-            return res;
-        }
-    }
-
-    /**
-     *
-     * @author Rijk Ravestein
-     *
-     */
-    static class UriValidator extends UrlValidator {
-
-        public UriValidator(final boolean optional) {
-            super(optional);
-        }
-
-        @Override
-        protected void customCheck(final String value) throws Exception {
-            new URI(value);
-        }
-    }
-
-    /**
-     *
-     */
-    static class BooleanValidator implements Validator {
-
-        @Override
-        public ValidationResult validate(String value) {
-            ValidationResult res = new ValidationResult(value);
-            boolean valid = (value != null
-                    && (value.equals(V_YES) || value.equals(V_NO)));
-            if (!valid) {
-                res.setStatus(ValidationStatusEnum.ERROR_YN);
-            }
-            if (!res.isValid()) {
-                res.setMessage(
-                        "value should be [" + V_YES + "] or [" + V_NO + "]");
-            }
-            return res;
-        }
-
-    }
-
-    /**
-     *
-     */
-    static class CurrencyCodeValidator implements Validator {
-
-        /**
-         * {@code true} if value is optional.
-         */
-        private final boolean isOptional;
-
-        /**
-         * @param optional
-         *            {@code true} if value is optional.
-         */
-        public CurrencyCodeValidator(final boolean optional) {
-            super();
-            this.isOptional = optional;
-        }
-
-        @Override
-        public ValidationResult validate(String value) {
-            ValidationResult res = new ValidationResult(value);
-
-            try {
-                if (!this.isOptional || !value.isEmpty()) {
-                    Currency.getInstance(value);
-                }
-            } catch (Exception e) {
-                res.setStatus(ValidationStatusEnum.ERROR_CURRENCY);
-                res.setMessage(e.getMessage());
-            }
-            return res;
-        }
-    }
-
-    /**
-    *
-    */
-    static class LocaleValidator implements Validator {
-
-        @Override
-        public ValidationResult validate(String value) {
-            ValidationResult res = new ValidationResult(value);
-
-            try {
-                if (!value.isEmpty()) {
-                    new Locale.Builder().setLanguageTag(value).build();
-                }
-            } catch (Exception e) {
-                res.setStatus(ValidationStatusEnum.ERROR_LOCALE);
-                res.setMessage(e.getMessage());
-            }
-            return res;
-        }
-    }
-
-    /**
-     *
-     */
-    static class InternalFontFamilyValidator implements Validator {
-
-        @Override
-        public ValidationResult validate(String fontFamily) {
-            ValidationResult res = new ValidationResult(fontFamily);
-            if (StringUtils.isBlank(fontFamily)) {
-                res.setStatus(ValidationStatusEnum.ERROR_EMPTY);
-                res.setMessage("value must be a font family name");
-            } else {
-                if (!EnumUtils.isValidEnum(InternalFontFamilyEnum.class,
-                        fontFamily)) {
-                    res.setStatus(ValidationStatusEnum.ERROR_ENUM);
-                    res.setMessage("font family enum is invalid");
-                }
-            }
-            return res;
-        }
-    }
-
-    /**
-     *
-     */
-    static class DecimalValidator implements Validator {
-
-        @Override
-        public ValidationResult validate(String plainString) {
-            ValidationResult res = new ValidationResult(plainString);
-            if (StringUtils.isBlank(plainString)) {
-                res.setStatus(ValidationStatusEnum.ERROR_EMPTY);
-                res.setMessage("value must be a decimal");
-            } else {
-                if (!BigDecimalUtil.isValid(plainString)) {
-                    res.setStatus(ValidationStatusEnum.ERROR_NOT_DECIMAL);
-                    res.setMessage("decimal value is invalid");
-                }
-            }
-            return res;
-        }
-    }
-
-    /**
-     *
-     */
-    static class NumberValidator implements Validator {
-
-        private final Long minValue;
-        private final Long maxValue;
-
-        public NumberValidator() {
-            this.minValue = null;
-            this.maxValue = null;
-        }
-
-        public NumberValidator(Long minValue, Long maxValue) {
-            this.minValue = minValue;
-            this.maxValue = maxValue;
-        }
-
-        @Override
-        public ValidationResult validate(String value) {
-
-            ValidationResult res = new ValidationResult(value);
-
-            if (StringUtils.isBlank(value)) {
-
-                res.setStatus(ValidationStatusEnum.ERROR_EMPTY);
-                res.setMessage("value must be a number");
-
-            } else {
-
-                if (StringUtils.isNumeric(value)) {
-
-                    final Long longValue = Long.valueOf(value);
-
-                    final boolean isValid = (this.minValue == null
-                            || longValue >= this.minValue)
-                            && (this.maxValue == null
-                                    || longValue <= this.maxValue);
-
-                    if (!isValid) {
-                        res.setStatus(ValidationStatusEnum.ERROR_RANGE);
-                        res.setMessage("value is not in range");
-                    }
-
-                } else {
-
-                    res.setStatus(ValidationStatusEnum.ERROR_NOT_NUMERIC);
-                    res.setMessage("value must contain digits only");
-
-                }
-            }
-            return res;
-        }
-
-    }
-
-    /**
-     * Just a wrapper for now.
-     */
-    static class IpPortValidator extends NumberValidator {
-    }
-
-    /**
      * .
      */
     BooleanValidator BOOLEAN_VALIDATOR = new BooleanValidator();
+
     /**
      * .
      */
     IpPortValidator IP_PORT_VALIDATOR = new IpPortValidator();
+
     /**
      * .
      */
     NumberValidator NUMBER_VALIDATOR = new NumberValidator();
+
     /**
      * .
      */
@@ -2571,7 +2226,7 @@ public interface IConfigProp {
             new InternalFontFamilyValidator();
 
     /**
-     * @author Datraverse B.V.
+     * .
      */
     static class MultiLineProp extends Prop {
 
@@ -2586,9 +2241,7 @@ public interface IConfigProp {
     }
 
     /**
-     *
-     * @author Datraverse B.V.
-     *
+     * .
      */
     static class Prop {
 
@@ -2600,7 +2253,7 @@ public interface IConfigProp {
 
         private String[] values = null;
 
-        private Validator validator = null;
+        private ConfigPropValidator validator = null;
         private ValidationResult validationResult = null;
 
         private Prop(final Key key, final String name) {
@@ -2608,19 +2261,22 @@ public interface IConfigProp {
             this.name = name;
         }
 
-        Prop(final Key key, final String name, final Validator validator) {
+        Prop(final Key key, final String name,
+                final ConfigPropValidator validator) {
             this(key, name);
             this.validator = validator;
         }
 
-        Prop(final Key key, final String name, final Validator validator,
+        Prop(final Key key, final String name,
+                final ConfigPropValidator validator,
                 final String defaultValue) {
             this(key, name, validator);
             this.defaultValue = defaultValue;
         }
 
-        Prop(final Key key, final String name, final Validator validator,
-                final String defaultValue, String[] values) {
+        Prop(final Key key, final String name,
+                final ConfigPropValidator validator, final String defaultValue,
+                String[] values) {
             this(key, name, validator, defaultValue);
             this.values = values;
         }
@@ -2651,7 +2307,7 @@ public interface IConfigProp {
         public static ValidationResult validate(final Prop prop,
                 final String value) {
             ValidationResult validationResult = null;
-            final Validator validator = prop.getValidator();
+            final ConfigPropValidator validator = prop.getValidator();
             if (validator == null) {
                 validationResult = new ValidationResult(value);
             } else {
@@ -2722,11 +2378,11 @@ public interface IConfigProp {
             return validationResult;
         }
 
-        public Validator getValidator() {
+        public ConfigPropValidator getValidator() {
             return validator;
         }
 
-        public void setValidator(Validator validator) {
+        public void setValidator(ConfigPropValidator validator) {
             this.validator = validator;
         }
 
@@ -2788,19 +2444,23 @@ public interface IConfigProp {
     enum LdapType {
 
         /**
-         * OpenLDAP
+         * OpenLDAP.
          */
         OPEN_LDAP,
 
         /**
-         * Apple Open Directory
+         * Apple Open Directory.
          */
-        OPEN_DIR, /**
-                   * Novell eDirectory
-                   */
-        EDIR, /**
-               * Microsoft Active Directory
-               */
+        OPEN_DIR,
+
+        /**
+         * Novell eDirectory.
+         */
+        EDIR,
+
+        /**
+         * Microsoft Active Directory.
+         */
         ACTD,
     };
 

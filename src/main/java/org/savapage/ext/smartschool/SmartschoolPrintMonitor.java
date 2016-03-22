@@ -90,6 +90,7 @@ import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.users.IUserSource;
 import org.savapage.core.util.AppLogHelper;
@@ -152,8 +153,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SmartschoolPrintMonitor.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SmartschoolPrintMonitor.class);
 
     private static final String MSG_COMMENT_PRINT_PENDING_PAPERCUT =
             "Afdrukopdracht staat klaar in PaperCut.";
@@ -248,32 +249,32 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     /**
      * .
      */
-    private static final AccountingService ACCOUNTING_SERVICE = ServiceContext
-            .getServiceFactory().getAccountingService();
+    private static final AccountingService ACCOUNTING_SERVICE =
+            ServiceContext.getServiceFactory().getAccountingService();
 
     /**
      * .
      */
-    private static final DocLogService DOCLOG_SERVICE = ServiceContext
-            .getServiceFactory().getDocLogService();
+    private static final DocLogService DOCLOG_SERVICE =
+            ServiceContext.getServiceFactory().getDocLogService();
 
     /**
      * .
      */
-    private static final OutboxService OUTBOX_SERVICE = ServiceContext
-            .getServiceFactory().getOutboxService();
+    private static final OutboxService OUTBOX_SERVICE =
+            ServiceContext.getServiceFactory().getOutboxService();
 
     /**
      * .
      */
-    private static final ProxyPrintService PROXY_PRINT_SERVICE = ServiceContext
-            .getServiceFactory().getProxyPrintService();
+    private static final ProxyPrintService PROXY_PRINT_SERVICE =
+            ServiceContext.getServiceFactory().getProxyPrintService();
 
     /**
      * .
      */
-    private static final PrinterService PRINTER_SERVICE = ServiceContext
-            .getServiceFactory().getPrinterService();
+    private static final PrinterService PRINTER_SERVICE =
+            ServiceContext.getServiceFactory().getPrinterService();
 
     /**
      * .
@@ -290,14 +291,14 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     /**
      * .
      */
-    private static final PaperCutService PAPERCUT_SERVICE = ServiceContext
-            .getServiceFactory().getPaperCutService();
+    private static final PaperCutService PAPERCUT_SERVICE =
+            ServiceContext.getServiceFactory().getPaperCutService();
 
     /**
     *
     */
-    private static final UserService USER_SERVICE = ServiceContext
-            .getServiceFactory().getUserService();
+    private static final UserService USER_SERVICE =
+            ServiceContext.getServiceFactory().getUserService();
 
     /**
      *
@@ -338,7 +339,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      */
     public SmartschoolPrintMonitor(final PaperCutServerProxy paperCutProxy,
             final PaperCutDbProxy papercutDbProxy, final boolean simulationMode)
-            throws SOAPException {
+                    throws SOAPException {
 
         this.simulationMode = simulationMode;
 
@@ -353,8 +354,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         //
         final ConfigManager cm = ConfigManager.instance();
 
-        this.monitorHeartbeatSecs =
-                cm.getConfigInt(IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEAT_SECS);
+        this.monitorHeartbeatSecs = cm.getConfigInt(
+                IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEAT_SECS);
 
         //
         final IConfigProp.Key sessionHeartbeatSecsKey;
@@ -503,9 +504,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
         try {
 
-            final long sessionEndTime =
-                    System.currentTimeMillis() + DateUtil.DURATION_MSEC_SECOND
-                            * monitorDurationSecs;
+            final long sessionEndTime = System.currentTimeMillis()
+                    + DateUtil.DURATION_MSEC_SECOND * monitorDurationSecs;
 
             final Date sessionEndDate = new Date(sessionEndTime);
 
@@ -545,9 +545,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 /*
                  * Stop if PaperCut integration changed.
                  */
-                final boolean isPaperCutEnabled =
-                        ConfigManager.instance().isConfigValue(
-                                Key.SMARTSCHOOL_PAPERCUT_ENABLE);
+                final boolean isPaperCutEnabled = ConfigManager.instance()
+                        .isConfigValue(Key.SMARTSCHOOL_PAPERCUT_ENABLE);
 
                 if (isPaperCutEnabled && this.papercutServerProxy == null) {
                     break;
@@ -568,8 +567,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                         LOGGER.trace("Waiting... next ["
                                 + dateFormat.format(DateUtils.addSeconds(
                                         new Date(), this.monitorHeartbeatSecs))
-                                + "] till ["
-                                + dateFormat.format(sessionEndDate) + "] ...");
+                                + "] till [" + dateFormat.format(sessionEndDate)
+                                + "] ...");
                     }
                     Thread.sleep(this.monitorHeartbeatSecs
                             * DateUtil.DURATION_MSEC_SECOND);
@@ -609,9 +608,9 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      * @throws SOAPException
      *             When SOAP error.
      */
-    private static Jobticket
-            getJobticket(final SmartschoolConnection connection,
-                    final boolean simulationMode) throws SmartschoolException,
+    private static Jobticket getJobticket(
+            final SmartschoolConnection connection,
+            final boolean simulationMode) throws SmartschoolException,
                     SmartschoolTooManyRequestsException, SOAPException {
 
         if (simulationMode) {
@@ -653,8 +652,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static void reportDocumentStatus(
             final SmartschoolConnection connection, final String documentId,
             final SmartschoolPrintStatusEnum status, final String comment,
-            final boolean simulationMode) throws SmartschoolException,
-            SOAPException {
+            final boolean simulationMode)
+                    throws SmartschoolException, SOAPException {
 
         if (simulationMode) {
 
@@ -684,10 +683,10 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      *             {@link SmartschoolConnection#setShutdownRequested(boolean)}
      *             request.
      */
-    private static File downloadDocument(
-            final SmartschoolConnection connection, final Document document,
-            final UUID uuid, final boolean simulationMode) throws IOException,
-            ShutdownException {
+    private static File downloadDocument(final SmartschoolConnection connection,
+            final Document document, final UUID uuid,
+            final boolean simulationMode)
+                    throws IOException, ShutdownException {
 
         if (simulationMode) {
 
@@ -730,9 +729,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
             // Page #1
             font.setColor(BaseColor.GREEN);
-            para =
-                    new Paragraph(
-                            String.format("%s\n\nPage %d", text, ++nPage), font);
+            para = new Paragraph(String.format("%s\n\nPage %d", text, ++nPage),
+                    font);
             para.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.add(para);
 
@@ -740,9 +738,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             pdfDoc.newPage();
 
             font.setColor(BaseColor.BLACK);
-            para =
-                    new Paragraph(
-                            String.format("%s\n\nPage %d", text, ++nPage), font);
+            para = new Paragraph(String.format("%s\n\nPage %d", text, ++nPage),
+                    font);
             para.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.add(para);
 
@@ -750,9 +747,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             pdfDoc.newPage();
 
             font.setColor(BaseColor.BLACK);
-            para =
-                    new Paragraph(
-                            String.format("%s\n\nPage %d", text, ++nPage), font);
+            para = new Paragraph(String.format("%s\n\nPage %d", text, ++nPage),
+                    font);
             para.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.add(para);
 
@@ -797,9 +793,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      */
     private static Jobticket getJobticketSimulation() {
 
-        final String simulationUser =
-                ConfigManager.instance().getConfigValue(
-                        Key.SMARTSCHOOL_SIMULATION_USER);
+        final String simulationUser = ConfigManager.instance()
+                .getConfigValue(Key.SMARTSCHOOL_SIMULATION_USER);
 
         final Jobticket ticket = new Jobticket();
 
@@ -866,8 +861,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         account.setClazz(SIMULATION_CLASS_1);
         account.setCopies(1);
         account.setExtra(2);
-        account.setUsername(ConfigManager.instance().getConfigValue(
-                Key.SMARTSCHOOL_SIMULATION_STUDENT_1));
+        account.setUsername(ConfigManager.instance()
+                .getConfigValue(Key.SMARTSCHOOL_SIMULATION_STUDENT_1));
 
         account.setRole(SmartschoolRoleEnum.STUDENT.getXmlValue());
 
@@ -878,8 +873,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         account.setClazz(SIMULATION_CLASS_2);
         account.setCopies(2);
         account.setExtra(2);
-        account.setUsername(ConfigManager.instance().getConfigValue(
-                Key.SMARTSCHOOL_SIMULATION_STUDENT_2));
+        account.setUsername(ConfigManager.instance()
+                .getConfigValue(Key.SMARTSCHOOL_SIMULATION_STUDENT_2));
         account.setRole(SmartschoolRoleEnum.STUDENT.getXmlValue());
 
         // Account #3
@@ -957,8 +952,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 if (nDocs == 0) {
                     LOGGER.debug("no documents to print.");
                 } else {
-                    LOGGER.debug(String.format("[%d] document(s) to print.",
-                            nDocs));
+                    LOGGER.debug(
+                            String.format("[%d] document(s) to print.", nDocs));
                 }
             }
 
@@ -1011,8 +1006,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static void evaluateJobProcessing(
             final SmartschoolPrintMonitor monitor, final Document doc,
             final MutableBoolean doProcess, final MutableBoolean doProxy,
-            final StringBuilder proxyClientNodeId) throws SmartschoolException,
-            SOAPException {
+            final StringBuilder proxyClientNodeId)
+                    throws SmartschoolException, SOAPException {
 
         doProcess.setFalse();
         doProxy.setFalse();
@@ -1037,8 +1032,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
             final StringBuilder msg = new StringBuilder();
             msg.append("Connection [")
-                    .append(StringUtils.defaultString(connection
-                            .getAccountName()))
+                    .append(StringUtils
+                            .defaultString(connection.getAccountName()))
                     .append("] is part of a cluster, but Node ID is missing.");
 
             throw new SpException(msg.toString());
@@ -1070,9 +1065,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
          * If this connection is a proxy, we will proxy if the target Node ID is
          * alive.
          */
-        if (connection.isProxy()
-                && SMARTSCHOOL_PROXY_SERVICE.isNodeAlive(targetNodeId,
-                        monitor.getNodeExpiryMsec())) {
+        if (connection.isProxy() && SMARTSCHOOL_PROXY_SERVICE
+                .isNodeAlive(targetNodeId, monitor.getNodeExpiryMsec())) {
             doProcess.setTrue();
             doProxy.setTrue();
             proxyClientNodeId.append(targetNodeId);
@@ -1112,10 +1106,10 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      * @throws ExtSupplierException
      * @throws ExtSupplierConnectException
      */
-    private static void monitorPaperCut(
-            final SmartschoolPrintMonitor smartschoolMonitor)
-            throws PaperCutException, ExtSupplierException,
-            ExtSupplierConnectException {
+    private static void
+            monitorPaperCut(final SmartschoolPrintMonitor smartschoolMonitor)
+                    throws PaperCutException, ExtSupplierException,
+                    ExtSupplierConnectException {
 
         final PaperCutPrintMonitorPattern papercutMonitor =
                 new SmartschoolPaperCutMonitor(
@@ -1169,10 +1163,9 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final org.savapage.core.jpa.Account sharedParentAccount =
                     SMARTSCHOOL_SERVICE.getSharedParentAccount();
 
-            infoSet =
-                    SMARTSCHOOL_SERVICE.createPrintInAccountTrxInfoSet(
-                            connection, sharedParentAccount, nTotCopies,
-                            klasCopies, userCopies, userKlas);
+            infoSet = SMARTSCHOOL_SERVICE.createPrintInAccountTrxInfoSet(
+                    connection, sharedParentAccount, nTotCopies, klasCopies,
+                    userCopies, userKlas);
 
             daoContext.commit();
 
@@ -1218,8 +1211,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         final Processinfo processInfo = document.getProcessinfo();
 
         // media
-        if (processInfo.getPapersize().equalsIgnoreCase(
-                SmartschoolConstants.PAPERSIZE_A3)) {
+        if (processInfo.getPapersize()
+                .equalsIgnoreCase(SmartschoolConstants.PAPERSIZE_A3)) {
             supplierData.setMediaSize(IppMediaSizeEnum.ISO_A3);
         } else {
             supplierData.setMediaSize(IppMediaSizeEnum.ISO_A4);
@@ -1229,8 +1222,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         supplierData.setDuplex(asBoolean(processInfo.getDuplex()));
 
         // grayscale
-        supplierData.setColor(!processInfo.getRendermode().equalsIgnoreCase(
-                SmartschoolConstants.RENDER_MODE_GRAYSCALE));
+        supplierData.setColor(!processInfo.getRendermode()
+                .equalsIgnoreCase(SmartschoolConstants.RENDER_MODE_GRAYSCALE));
 
         // staple (TODO)
 
@@ -1276,7 +1269,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static DocContentPrintInInfo createPrintInInfo(
             final SmartschoolConnection connection, final Document document,
             final File downloadedFile, final int nTotCopies, final UUID uuid)
-            throws PdfSecurityException, PdfValidityException {
+                    throws PdfSecurityException, PdfValidityException {
 
         /*
          * Get the PDF properties to check security issues.
@@ -1332,9 +1325,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
             ServiceContext.getDaoContext().beginTransaction();
 
-            user =
-                    USER_SERVICE.lazyInsertExternalUser(userSource, userId,
-                            userSourceGroup);
+            user = USER_SERVICE.lazyInsertExternalUser(userSource, userId,
+                    userSourceGroup);
 
             ServiceContext.getDaoContext().commit();
         }
@@ -1360,7 +1352,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static void storeJobInProxyCache(
             final SmartschoolPrintMonitor monitor, final Document document,
             final String proxyClientNodeId) throws ShutdownException,
-            SmartschoolException, SOAPException {
+                    SmartschoolException, SOAPException {
 
         boolean exception = true;
 
@@ -1369,9 +1361,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         try {
             monitor.isProcessing = true;
 
-            pdfFile =
-                    SMARTSCHOOL_SERVICE.downloadDocumentForProxy(
-                            monitor.processingConnection, document);
+            pdfFile = SMARTSCHOOL_SERVICE.downloadDocumentForProxy(
+                    monitor.processingConnection, document);
 
             final String accountName =
                     monitor.processingConnection.getAccountName();
@@ -1418,8 +1409,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      * @throws DocContentToPdfException
      */
     private static void processJob(SmartschoolPrintMonitor monitor,
-            final Document document) throws SmartschoolException,
-            SOAPException, ShutdownException, DocContentToPdfException {
+            final Document document) throws SmartschoolException, SOAPException,
+                    ShutdownException, DocContentToPdfException {
 
         ServiceContext.resetTransactionDate();
 
@@ -1439,9 +1430,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
          */
         final String userId = document.getRequester().getUsername();
 
-        final User requestingUser =
-                findActiveUser(userId, lazyInsertUser, userSource,
-                        userSourceGroup);
+        final User requestingUser = findActiveUser(userId, lazyInsertUser,
+                userSource, userSourceGroup);
 
         final boolean userExistSavaPage = requestingUser != null;
 
@@ -1460,9 +1450,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         final Boolean userExistPaperCut;
 
         if (monitor.isIntegratedWithPaperCut()) {
-            papercutUser =
-                    PAPERCUT_SERVICE.findUser(monitor.papercutServerProxy,
-                            userId);
+            papercutUser = PAPERCUT_SERVICE
+                    .findUser(monitor.papercutServerProxy, userId);
             userExistPaperCut = papercutUser != null;
         } else {
             papercutUser = null;
@@ -1492,10 +1481,9 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 final Map<String, Integer> userCopies = new HashMap<>();
                 final Map<String, String> userKlas = new HashMap<>();
 
-                final int nTotCopies =
-                        collectCopyInfo(monitor, document, klasCopies,
-                                userCopies, userKlas, lazyInsertUser,
-                                userSource, userSourceGroup);
+                final int nTotCopies = collectCopyInfo(monitor, document,
+                        klasCopies, userCopies, userKlas, lazyInsertUser,
+                        userSource, userSourceGroup);
 
                 if (nTotCopies == 0) {
 
@@ -1549,10 +1537,9 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 /*
                  * Notify and give it another chance at next polling cycle.
                  */
-                final String error =
-                        AppLogHelper.logError(SmartschoolPrintMonitor.class,
-                                "download-error", document.getName(),
-                                e.getMessage());
+                final String error = AppLogHelper.logError(
+                        SmartschoolPrintMonitor.class, "download-error",
+                        document.getName(), e.getMessage());
 
                 publishAdminMsg(PubLevelEnum.ERROR, error);
 
@@ -1562,50 +1549,42 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
         } catch (DocContentPrintException e) {
 
-            publishAdminMsg(
-                    PubLevelEnum.WARN,
-                    localizedMsg("print-cancelled", document.getName(),
-                            e.getMessage()));
+            publishAdminMsg(PubLevelEnum.WARN, localizedMsg("print-cancelled",
+                    document.getName(), e.getMessage()));
 
-            reportDocumentStatus(monitor.processingConnection,
-                    document.getId(), SmartschoolPrintStatusEnum.CANCELLED,
+            reportDocumentStatus(monitor.processingConnection, document.getId(),
+                    SmartschoolPrintStatusEnum.CANCELLED,
                     MSG_COMMENT_PRINT_CANCELLED_DOC_TYPE,
                     monitor.simulationMode);
 
         } catch (PdfSecurityException e) {
 
-            publishAdminMsg(
-                    PubLevelEnum.WARN,
-                    localizedMsg("print-cancelled", document.getName(),
-                            e.getMessage()));
+            publishAdminMsg(PubLevelEnum.WARN, localizedMsg("print-cancelled",
+                    document.getName(), e.getMessage()));
 
-            reportDocumentStatus(monitor.processingConnection,
-                    document.getId(), SmartschoolPrintStatusEnum.CANCELLED,
+            reportDocumentStatus(monitor.processingConnection, document.getId(),
+                    SmartschoolPrintStatusEnum.CANCELLED,
                     MSG_COMMENT_PRINT_CANCELLED_PDF_ENCRYPTED,
                     monitor.simulationMode);
 
         } catch (PdfValidityException e) {
 
-            publishAdminMsg(
-                    PubLevelEnum.WARN,
-                    localizedMsg("print-cancelled", document.getName(),
-                            e.getMessage()));
+            publishAdminMsg(PubLevelEnum.WARN, localizedMsg("print-cancelled",
+                    document.getName(), e.getMessage()));
 
-            reportDocumentStatus(monitor.processingConnection,
-                    document.getId(), SmartschoolPrintStatusEnum.CANCELLED,
+            reportDocumentStatus(monitor.processingConnection, document.getId(),
+                    SmartschoolPrintStatusEnum.CANCELLED,
                     MSG_COMMENT_PRINT_CANCELLED_PDF_INVALID,
                     monitor.simulationMode);
 
         } catch (ProxyPrintException e) {
 
-            publishAdminMsg(
-                    PubLevelEnum.WARN,
-                    localizedMsg("print-error", document.getName(),
-                            e.getMessage()));
+            publishAdminMsg(PubLevelEnum.WARN, localizedMsg("print-error",
+                    document.getName(), e.getMessage()));
 
-            reportDocumentStatus(monitor.processingConnection,
-                    document.getId(), SmartschoolPrintStatusEnum.ERROR,
-                    e.getMessage(), monitor.simulationMode);
+            reportDocumentStatus(monitor.processingConnection, document.getId(),
+                    SmartschoolPrintStatusEnum.ERROR, e.getMessage(),
+                    monitor.simulationMode);
 
         } catch (IppConnectException e) {
 
@@ -1654,7 +1633,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static void processJobNoCopies(
             final SmartschoolConnection connection,
             final boolean simulationMode, final Document document)
-            throws SmartschoolException, SOAPException {
+                    throws SmartschoolException, SOAPException {
 
         if (LOGGER.isWarnEnabled()) {
             LOGGER.warn(String.format(
@@ -1662,8 +1641,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                     document.getId(), document.getName()));
         }
 
-        publishAdminMsg(
-                PubLevelEnum.WARN,
+        publishAdminMsg(PubLevelEnum.WARN,
                 String.format("Smartschool document [%s]: %s",
                         document.getName(), MSG_COMMENT_PRINT_ERROR_NO_COPIES));
 
@@ -1689,7 +1667,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static void processJobWithoutNodeId(
             final SmartschoolConnection connection,
             final boolean simulationMode, final Document document)
-            throws SmartschoolException, SOAPException {
+                    throws SmartschoolException, SOAPException {
 
         if (LOGGER.isWarnEnabled()) {
             LOGGER.warn(String.format(
@@ -1697,10 +1675,10 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                     document.getId(), document.getName()));
         }
 
-        publishAdminMsg(
-                PubLevelEnum.WARN,
+        publishAdminMsg(PubLevelEnum.WARN,
                 String.format("Smartschool document [%s]: %s",
-                        document.getName(), MSG_COMMENT_PRINT_ERROR_NO_NODE_ID));
+                        document.getName(),
+                        MSG_COMMENT_PRINT_ERROR_NO_NODE_ID));
 
         reportDocumentStatus(connection, document.getId(),
                 SmartschoolPrintStatusEnum.ERROR,
@@ -1729,29 +1707,24 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final SmartschoolConnection connection,
             final boolean simulationMode, final Document document,
             final String userId, final boolean userExistSavaPage,
-            final Boolean userExistPaperCut) throws SmartschoolException,
-            SOAPException {
+            final Boolean userExistPaperCut)
+                    throws SmartschoolException, SOAPException {
 
         final String msg;
 
         if (!userExistSavaPage && userExistPaperCut != null
                 && !userExistPaperCut) {
 
-            msg =
-                    String.format(MSG_COMMENT_PRINT_ERROR_UNKNOWN_USER_BOTH,
-                            userId);
+            msg = String.format(MSG_COMMENT_PRINT_ERROR_UNKNOWN_USER_BOTH,
+                    userId);
 
         } else if (!userExistSavaPage) {
-            msg =
-                    String.format(
-                            MSG_COMMENT_PRINT_ERROR_UNKNOWN_USER_SAVAPAGE,
-                            userId);
+            msg = String.format(MSG_COMMENT_PRINT_ERROR_UNKNOWN_USER_SAVAPAGE,
+                    userId);
 
         } else if (userExistPaperCut != null && !userExistPaperCut) {
-            msg =
-                    String.format(
-                            MSG_COMMENT_PRINT_ERROR_UNKNOWN_USER_PAPERCUT,
-                            userId);
+            msg = String.format(MSG_COMMENT_PRINT_ERROR_UNKNOWN_USER_PAPERCUT,
+                    userId);
         } else {
             throw new SpException(
                     "no msg needed (SavaPage and PaperCut users found");
@@ -1795,9 +1768,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             userExistPaperCut = null;
         }
 
-        final User user =
-                findActiveUser(userName, lazyInsertUser, userSource,
-                        userSourceGroup);
+        final User user = findActiveUser(userName, lazyInsertUser, userSource,
+                userSourceGroup);
 
         final boolean userExistSavaPage = user != null;
 
@@ -1805,18 +1777,16 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
         if (!userExistSavaPage && userExistPaperCut != null
                 && !userExistPaperCut) {
-            msg =
-                    String.format("Account [%s] skipped: onbekend "
-                            + "in %s en PaperCut.", userName,
-                            CommunityDictEnum.SAVAPAGE.getWord());
+            msg = String.format(
+                    "Account [%s] skipped: onbekend " + "in %s en PaperCut.",
+                    userName, CommunityDictEnum.SAVAPAGE.getWord());
         } else if (!userExistSavaPage) {
-            msg =
-                    String.format("Account [%s] skipped: onbekend in %s.",
-                            userName, CommunityDictEnum.SAVAPAGE.getWord());
+            msg = String.format("Account [%s] skipped: onbekend in %s.",
+                    userName, CommunityDictEnum.SAVAPAGE.getWord());
         } else if (userExistPaperCut != null && !userExistPaperCut) {
-            msg =
-                    String.format("Account [%s] skipped: "
-                            + "onbekend in PaperCut.", userName);
+            msg = String.format(
+                    "Account [%s] skipped: " + "onbekend in PaperCut.",
+                    userName);
         } else {
             msg = null;
         }
@@ -1860,9 +1830,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final Map<String, String> userKlas, final boolean lazyInsertUser,
             final IUserSource userSource, final String userSourceGroup) {
 
-        final boolean chargeToStudents =
-                monitor.processingConnection.getAccountConfig()
-                        .isChargeToStudents();
+        final boolean chargeToStudents = monitor.processingConnection
+                .getAccountConfig().isChargeToStudents();
 
         int nTotCopies = 0;
 
@@ -1956,9 +1925,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
              * INVARIANT: If copies are charged to an individual user, this user
              * MUST exist in SavaPage and (optionally) PaperCut.
              */
-            if (chargeCopiesToUser
-                    && !collectCopyInfoUserCheck(monitor, userName,
-                            lazyInsertUser, userSource, userSourceGroup)) {
+            if (chargeCopiesToUser && !collectCopyInfoUserCheck(monitor,
+                    userName, lazyInsertUser, userSource, userSourceGroup)) {
                 continue;
             }
 
@@ -2063,13 +2031,14 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      * @throws DocContentToPdfException
      */
     private static void processJobFile(final SmartschoolPrintMonitor monitor,
-            final Document document, final User user,
-            final File downloadedFile, final DocContentPrintInInfo printInInfo,
+            final Document document, final User user, final File downloadedFile,
+            final DocContentPrintInInfo printInInfo,
             final AccountTrxInfoSet accountTrxInfoSet,
             final ExternalSupplierInfo externalSupplierInfo)
-            throws IOException, DocContentPrintException, ShutdownException,
-            ProxyPrintException, IppConnectException, SmartschoolException,
-            SOAPException, DocContentToPdfException {
+                    throws IOException, DocContentPrintException,
+                    ShutdownException, ProxyPrintException, IppConnectException,
+                    SmartschoolException, SOAPException,
+                    DocContentToPdfException {
 
         final boolean isPaperCutManagedPrinter =
                 monitor.isIntegratedWithPaperCut();
@@ -2193,15 +2162,12 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final String homeDir =
                     USER_SERVICE.lazyUserHomeDir(user).getCanonicalPath();
 
-            final Path source =
-                    FileSystems.getDefault().getPath(
-                            downloadedFile.getCanonicalPath());
+            final Path source = FileSystems.getDefault()
+                    .getPath(downloadedFile.getCanonicalPath());
 
-            final Path target =
-                    FileSystems.getDefault().getPath(
-                            homeDir,
-                            printInInfo.getUuidJob().toString() + "."
-                                    + DocContent.FILENAME_EXT_PDF);
+            final Path target = FileSystems.getDefault().getPath(homeDir,
+                    printInInfo.getUuidJob().toString() + "."
+                            + DocContent.FILENAME_EXT_PDF);
 
             FileSystemHelper.doAtomicFileMove(source, target);
         }
@@ -2210,7 +2176,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
          * Report status and comment back to SmartSchool.
          */
         reportDocumentStatus(monitor.processingConnection, document.getId(),
-                smartschoolPrintStatus, feedbackComment, monitor.simulationMode);
+                smartschoolPrintStatus, feedbackComment,
+                monitor.simulationMode);
     }
 
     /**
@@ -2241,12 +2208,10 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      * @throws ProxyPrintException
      *             When printer has no media-source for media size.
      */
-    private static void
-            addProxyPrintJobChunk(final Printer printer,
-                    final ProxyPrintDocReq printReq,
-                    final IppMediaSizeEnum ippMediaSize,
-                    final boolean hasMediaSourceAuto,
-                    final boolean isManagedByPaperCut)
+    private static void addProxyPrintJobChunk(final Printer printer,
+            final ProxyPrintDocReq printReq,
+            final IppMediaSizeEnum ippMediaSize,
+            final boolean hasMediaSourceAuto, final boolean isManagedByPaperCut)
                     throws ProxyPrintException {
 
         final String printerName = printReq.getPrinterName();
@@ -2262,9 +2227,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 printerAttrLookup.findAnyMediaSourceForMedia(ippMediaSize);
 
         if (assignedMediaSource == null) {
-            throw new ProxyPrintException(localizedMsg(
-                    "printer-media-not-foud", printerName,
-                    ippMediaSize.getIppKeyword()));
+            throw new ProxyPrintException(localizedMsg("printer-media-not-foud",
+                    printerName, ippMediaSize.getIppKeyword()));
         }
 
         final ProxyPrintJobChunk jobChunk = new ProxyPrintJobChunk();
@@ -2374,9 +2338,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
         } else {
 
-            final String printerDuplexName =
-                    connection.getAccountConfig()
-                            .getProxyPrinterGrayscaleDuplexName();
+            final String printerDuplexName = connection.getAccountConfig()
+                    .getProxyPrinterGrayscaleDuplexName();
 
             if (supplierData.getDuplex()
                     && StringUtils.isNotBlank(printerDuplexName)) {
@@ -2418,8 +2381,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final Document document, final File downloadedFile,
             final DocContentPrintInInfo printInInfo,
             final ExternalSupplierInfo externalSupplierInfo)
-            throws ProxyPrintException, IppConnectException,
-            DocContentToPdfException, IOException {
+                    throws ProxyPrintException, IppConnectException,
+                    DocContentToPdfException, IOException {
 
         /*
          * Get Smartschool process info from the supplier data.
@@ -2462,7 +2425,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         printReq.setAccountTrxInfoSet(printInInfo.getAccountTrxInfoSet());
         printReq.setComment(document.getComment());
 
-        printReq.setNumberOfPages(printInInfo.getPageProps().getNumberOfPages());
+        printReq.setNumberOfPages(
+                printInInfo.getPageProps().getNumberOfPages());
         printReq.setPrinterName(printerNameSelected);
 
         printReq.setLocale(ServiceContext.getLocale());
@@ -2471,11 +2435,10 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         printReq.setCollate(true);
 
         printReq.setRemoveGraphics(false);
-        printReq.setClearPages(false);
+        printReq.setClearScope(InboxSelectScopeEnum.NONE);
 
-        final Map<String, String> ippOptions =
-                PROXY_PRINT_SERVICE
-                        .getDefaultPrinterCostOptions(printerNameSelected);
+        final Map<String, String> ippOptions = PROXY_PRINT_SERVICE
+                .getDefaultPrinterCostOptions(printerNameSelected);
 
         printReq.setOptionValues(ippOptions);
 
@@ -2581,13 +2544,11 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
             if (printReq.getPrintMode() == PrintModeEnum.HOLD) {
 
-                final BigDecimal cost =
-                        ACCOUNTING_SERVICE.calcProxyPrintCost(
-                                ServiceContext.getLocale(),
-                                ServiceContext.getAppCurrencySymbol(),
-                                lockedUser, printer,
-                                printReq.createProxyPrintCostParms(),
-                                printReq.getJobChunkInfo());
+                final BigDecimal cost = ACCOUNTING_SERVICE.calcProxyPrintCost(
+                        ServiceContext.getLocale(),
+                        ServiceContext.getAppCurrencySymbol(), lockedUser,
+                        printer, printReq.createProxyPrintCostParms(),
+                        printReq.getJobChunkInfo());
 
                 printReq.setCost(cost);
 
@@ -2633,9 +2594,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      * @throws InterruptedException
      *             When thread has been interrupted.
      */
-    private static void waitForProcessing(
-            final SmartschoolPrintMonitor monitor, final long millisInterval)
-            throws InterruptedException {
+    private static void waitForProcessing(final SmartschoolPrintMonitor monitor,
+            final long millisInterval) throws InterruptedException {
 
         boolean waiting = monitor.isProcessing;
 
@@ -2696,8 +2656,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     public void onPaperCutPrintJobProcessed(final DocLog docLog,
             final PaperCutPrinterUsageLog papercutLog,
             final ExternalSupplierStatusEnum printStatus,
-            final boolean isDocumentTooLarge) throws ExtSupplierException,
-            ExtSupplierConnectException {
+            final boolean isDocumentTooLarge)
+                    throws ExtSupplierException, ExtSupplierConnectException {
 
         final SmartschoolPrintStatusEnum smartschoolPrintStatus =
                 SmartschoolPrintStatusEnum.fromGenericStatus(printStatus);
@@ -2709,9 +2669,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final StringBuilder msg = new StringBuilder();
 
             final String account =
-                    PaperCutHelper
-                            .getAccountFromEncodedProxyPrintJobName(papercutLog
-                                    .getDocumentName());
+                    PaperCutHelper.getAccountFromEncodedProxyPrintJobName(
+                            papercutLog.getDocumentName());
 
             if (account == null) {
 

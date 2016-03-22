@@ -32,6 +32,7 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 
 /**
@@ -116,7 +117,7 @@ public abstract class AbstractProxyPrintReq
 
     private Map<String, String> optionValues;
 
-    private boolean clearPages;
+    private InboxSelectScopeEnum clearScope;
 
     private Boolean fitToPage;
 
@@ -144,16 +145,14 @@ public abstract class AbstractProxyPrintReq
         this.printMode = printMode;
     }
 
-    /**
-     *
-     * @return
-     */
-    public boolean isClearPages() {
-        return clearPages;
+
+    public InboxSelectScopeEnum getClearScope() {
+        return clearScope;
     }
 
-    public void setClearPages(boolean clearPages) {
-        this.clearPages = clearPages;
+
+    public void setClearScope(InboxSelectScopeEnum clearScope) {
+        this.clearScope = clearScope;
     }
 
     /**
