@@ -378,12 +378,19 @@ public abstract class AbstractProxyPrintReq
     }
 
     /**
-     * Gets the value of the PWG5101.1 IPP "media" option.
-     *
-     * @return
+     * @return The value of the PWG5101.1 IPP "media" option.
      */
     public String getMediaOption() {
-        return this.optionValues.get(IppDictJobTemplateAttr.ATTR_MEDIA);
+        return getMediaOption(this.optionValues);
+    }
+
+    /**
+     *
+     * @param optionValues
+     * @return The value of the PWG5101.1 IPP "media" option.
+     */
+    public static String getMediaOption(Map<String, String> optionValues) {
+        return optionValues.get(IppDictJobTemplateAttr.ATTR_MEDIA);
     }
 
     /**
