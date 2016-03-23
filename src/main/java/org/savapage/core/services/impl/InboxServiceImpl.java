@@ -532,7 +532,7 @@ public final class InboxServiceImpl implements InboxService {
          * INVARIANT: jobInfo must be vanilla.
          */
         if (!this.isInboxVanilla(jobInfo)) {
-            throw new IllegalArgumentException("Inbox is edited, job page "
+            throw new IllegalStateException("Inbox is edited, job page "
                     + "Scope cannot be converted to inbox scope.");
         }
 
@@ -1002,7 +1002,7 @@ public final class InboxServiceImpl implements InboxService {
                     (n == nStartChunkPre || n == nStartChunkPost
                             || ((nFirstDetailPage <= n) && n < (nFirstDetailPage
                                     + MAX_DETAIL_PAGES))
-                    || n == nStartNextChunk);
+                            || n == nStartNextChunk);
 
             /*
              * Next page-range
@@ -1244,7 +1244,7 @@ public final class InboxServiceImpl implements InboxService {
     public void setLetterhead(final User user, final String letterheadId,
             final String name, final boolean foreground, final boolean isPublic,
             final boolean isPublicNew)
-                    throws IOException, LetterheadNotFoundException {
+            throws IOException, LetterheadNotFoundException {
 
         LetterheadInfo letterheadInfoPublic = null;
         LetterheadInfo letterheadInfoUser = null;
@@ -1668,10 +1668,23 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
+    public int deleteJobPages(final String userId, final int iVanillaJobIndex,
+            final String ranges) {
+
+        final InboxInfoDto jobInfo = readInboxInfo(userId);
+
+        final List<RangeAtom> sortedRangeArrayJob =
+                this.createSortedRangeArray(ranges);
+
+        return this.deletePages(userId, this.toVanillaJobInboxRange(jobInfo,
+                iVanillaJobIndex, sortedRangeArrayJob));
+    }
+
+    @Override
     public int deleteJobs(final String userid,
             final List<ProxyPrintJobChunk> chunks) {
 
-        int nDeletedPages = 0;
+        int nJobDeleteTriggerPages = 0;
 
         final InboxInfoDto jobs = readInboxInfo(userid);
 
@@ -1688,7 +1701,7 @@ public final class InboxServiceImpl implements InboxService {
                 if (collectedJobs.add(Integer.valueOf(iJob))) {
                     this.removeJob(jobs, iJob);
                 }
-                nDeletedPages += range.calcPages(); // TODO: not exactly right.
+                nJobDeleteTriggerPages += range.calcPages();
             }
         }
 
@@ -1697,7 +1710,7 @@ public final class InboxServiceImpl implements InboxService {
                     ConfigManager.getUserHomeDir(userid), userid, jobs));
         }
 
-        return nDeletedPages;
+        return nJobDeleteTriggerPages;
     }
 
     /**

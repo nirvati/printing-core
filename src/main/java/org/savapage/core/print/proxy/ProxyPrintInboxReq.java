@@ -40,10 +40,20 @@ public final class ProxyPrintInboxReq extends AbstractProxyPrintReq {
     private String pageRanges;
 
     /**
-     *
+     * .
      */
-    public ProxyPrintInboxReq() {
+    private final Integer pageRangesJobIndex;
+
+    /**
+     *
+     * @param pageRangesJobIndex
+     *            {@code null} when {@link #pageRanges} are related to the
+     *            virtual inbox document. Otherwise the zero-based index of the
+     *            job the {@link #pageRanges} belong to.
+     */
+    public ProxyPrintInboxReq(final Integer pageRangesJobIndex) {
         super(null);
+        this.pageRangesJobIndex = pageRangesJobIndex;
     }
 
     /**
@@ -60,6 +70,16 @@ public final class ProxyPrintInboxReq extends AbstractProxyPrintReq {
      */
     public void setPageRanges(String pageRanges) {
         this.pageRanges = pageRanges;
+    }
+
+    /**
+     *
+     * @return {@code null} when {@link #pageRanges} are related to the virtual
+     *         inbox document, or the zero-based index of the job the
+     *         {@link #pageRanges} belong to.
+     */
+    public Integer getPageRangesJobIndex() {
+        return pageRangesJobIndex;
     }
 
 }

@@ -515,7 +515,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     @Override
     public final JsonPrinterList getUserPrinterList(final Device terminal,
             final String userName)
-                    throws IppConnectException, IppSyntaxException {
+            throws IppConnectException, IppSyntaxException {
 
         lazyInitPrinterCache();
 
@@ -1257,7 +1257,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     abstract protected void startSubscription(final String requestingUser,
             String leaseSeconds, String recipientUri)
-                    throws IppConnectException, IppSyntaxException;
+            throws IppConnectException, IppSyntaxException;
 
     @Override
     public final void lazyInitPrinterCache()
@@ -1504,7 +1504,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private void collectDefaultPrinterCostOptions(final String printerName,
             final Map<String, String> printerOptionValues)
-                    throws ProxyPrintException {
+            throws ProxyPrintException {
 
         final JsonPrinterDetail printerDetail =
                 getPrinterDetailCopy(printerName);
@@ -1667,7 +1667,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     @Override
     public final int proxyPrintJobTicket(final User lockedUser,
             final OutboxJobDto job, final File pdfFileToPrint)
-                    throws IOException, IppConnectException {
+            throws IOException, IppConnectException {
 
         this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.HOLD,
                 pdfFileToPrint);
@@ -1829,7 +1829,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         /*
-         * Create the request for each jobs, so we can check the credit limit
+         * Create the request for each job, so we can check the credit limit
          * invariant.
          */
         final List<ProxyPrintInboxReq> printReqList = new ArrayList<>();
@@ -1844,7 +1844,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             for (int iJob = 0; iJob < nJobs; iJob++) {
 
-                final ProxyPrintInboxReq printReq = new ProxyPrintInboxReq();
+                final ProxyPrintInboxReq printReq =
+                        new ProxyPrintInboxReq(null);
+
                 printReqList.add(printReq);
 
                 final InboxJob job = jobs.getJobs().get(iJob);
@@ -1893,7 +1895,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             /*
              * Print as ONE job.
              */
-            final ProxyPrintInboxReq printReq = new ProxyPrintInboxReq();
+            final ProxyPrintInboxReq printReq = new ProxyPrintInboxReq(null);
             printReqList.add(printReq);
 
             /*
@@ -2056,8 +2058,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
             break;
 
         case PAGES:
-            clearedPages =
-                    inboxService().deletePages(userid, request.getPageRanges());
+            if (request.getPageRangesJobIndex() == null) {
+                clearedPages = inboxService().deletePages(userid,
+                        request.getPageRanges());
+            } else {
+                clearedPages = inboxService().deleteJobPages(userid,
+                        request.getPageRangesJobIndex().intValue(),
+                        request.getPageRanges());
+            }
             break;
 
         case NONE:
@@ -2191,7 +2199,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     @Override
     public final void proxyPrintPdf(final User lockedUser,
             final ProxyPrintDocReq request, final File pdfFile)
-                    throws IppConnectException, ProxyPrintException {
+            throws IppConnectException, ProxyPrintException {
 
         /*
          * Get access to the printer.
@@ -2265,15 +2273,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
     public final void chunkProxyPrintRequest(final User lockedUser,
             final ProxyPrintInboxReq request, final PageScalingEnum pageScaling,
             final boolean chunkVanillaJobs, final Integer iVanillaJob)
-                    throws ProxyPrintException {
+            throws ProxyPrintException {
         new ProxyPrintInboxReqChunker(lockedUser, request, pageScaling)
                 .chunk(chunkVanillaJobs, iVanillaJob, request.getPageRanges());
     }
 
     @Override
     public final void proxyPrintInbox(final User lockedUser,
-            final ProxyPrintInboxReq request) throws IppConnectException,
-                    EcoPrintPdfTaskPendingException {
+            final ProxyPrintInboxReq request)
+            throws IppConnectException, EcoPrintPdfTaskPendingException {
 
         /*
          * When printing the chunks, the container request parameters are
@@ -2398,8 +2406,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private void proxyPrintInboxChunk(final User lockedUser,
             final ProxyPrintInboxReq request, final InboxInfoDto inboxInfo,
-            final int nChunk) throws IppConnectException,
-                    EcoPrintPdfTaskPendingException {
+            final int nChunk)
+            throws IppConnectException, EcoPrintPdfTaskPendingException {
 
         final DocLog docLog = this.createProxyPrintDocLog(request);
 
@@ -2487,7 +2495,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private boolean print(final AbstractProxyPrintReq request,
             final String user, final File filePdf, final DocLog docLog)
-                    throws IppConnectException {
+            throws IppConnectException {
 
         final JsonProxyPrinter printer =
                 this.getJsonProxyPrinterCopy(request.getPrinterName());
@@ -2584,7 +2592,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     @Override
     public final Printer getValidateProxyPrinterAccess(final User user,
             final String printerName, final Date refDate)
-                    throws ProxyPrintException {
+            throws ProxyPrintException {
 
         /*
          * INVARIANT: MUST be connected to CUPS.

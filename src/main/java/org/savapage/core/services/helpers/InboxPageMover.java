@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Moves and deletes SafePages.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class InboxPageMover {
@@ -46,14 +46,14 @@ public final class InboxPageMover {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(InboxPageMover.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(InboxPageMover.class);
 
     /**
     *
     */
-    private static final InboxService INBOX_SERVICE = ServiceContext
-            .getServiceFactory().getInboxService();
+    private static final InboxService INBOX_SERVICE =
+            ServiceContext.getServiceFactory().getInboxService();
 
     /**
      *
@@ -204,9 +204,8 @@ public final class InboxPageMover {
             nTotPagesCut =
                     nPagesTot - INBOX_SERVICE.calcNumberOfPagesInJobs(jobinfo);
         } else { // pages moved
-            nTotPagesCut =
-                    INBOX_SERVICE.calcNumberOfPages(jobinfo.getJobs(),
-                            jobPagesMoved);
+            nTotPagesCut = INBOX_SERVICE.calcNumberOfPages(jobinfo.getJobs(),
+                    jobPagesMoved);
         }
         return nTotPagesCut;
     }
@@ -244,7 +243,7 @@ public final class InboxPageMover {
      * Delete page ranges.
      *
      * @param user
-     *            The userid. Is {@code null} if result of the operation is NOT
+     *            The userid. If {@code null} the result of the operation is NOT
      *            user related, so the new {@link InboxInfoDto} is NOT updated
      *            for in a user's homedir (workdir).
      * @param jobinfo
@@ -256,8 +255,8 @@ public final class InboxPageMover {
      * @throws IllegalArgumentException
      *             When page range syntax error.
      */
-    public static int deletePages(final String user,
-            final InboxInfoDto jobinfo, final String nRanges) {
+    public static int deletePages(final String user, final InboxInfoDto jobinfo,
+            final String nRanges) {
 
         InboxPageMover mover = new InboxPageMover(user, jobinfo, nRanges);
         mover.deleteRanges = true;
@@ -277,12 +276,10 @@ public final class InboxPageMover {
 
         if (moveRangesIter.hasNext()) {
             moveRangeAtom = moveRangesIter.next();
-            nRelMoveBegin =
-                    (moveRangeAtom.pageBegin == null) ? 1
-                            : moveRangeAtom.pageBegin;
-            nRelMoveEnd =
-                    (moveRangeAtom.pageEnd == null) ? nPagesTot
-                            : moveRangeAtom.pageEnd;
+            nRelMoveBegin = (moveRangeAtom.pageBegin == null) ? 1
+                    : moveRangeAtom.pageBegin;
+            nRelMoveEnd = (moveRangeAtom.pageEnd == null) ? nPagesTot
+                    : moveRangeAtom.pageEnd;
         }
     }
 
@@ -388,18 +385,15 @@ public final class InboxPageMover {
 
                 pageRangeAtom = pageRangesIter.next();
                 if (pageRangeAtom.pageEnd == null) {
-                    pageRangeAtom.pageEnd =
-                            this.jobinfo.getJobs().get(jobPage.getJob())
-                                    .getPages();
+                    pageRangeAtom.pageEnd = this.jobinfo.getJobs()
+                            .get(jobPage.getJob()).getPages();
                 }
 
-                nJobPageBegin =
-                        (pageRangeAtom.pageBegin == null) ? 1
-                                : pageRangeAtom.pageBegin;
-                nJobPageEnd =
-                        (pageRangeAtom.pageEnd == null) ? this.jobinfo
-                                .getJobs().get(jobPage.getJob()).getPages()
-                                : pageRangeAtom.pageEnd;
+                nJobPageBegin = (pageRangeAtom.pageBegin == null) ? 1
+                        : pageRangeAtom.pageBegin;
+                nJobPageEnd = (pageRangeAtom.pageEnd == null) ? this.jobinfo
+                        .getJobs().get(jobPage.getJob()).getPages()
+                        : pageRangeAtom.pageEnd;
                 nRelPageBegin = 1;
                 nRelPageBeginFirst = nRelPageBegin;
                 nRelPageEnd = nRelPageBegin + (nJobPageEnd - nJobPageBegin);
@@ -481,9 +475,9 @@ public final class InboxPageMover {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("  no pages left to move");
-            LOGGER.trace(String.format(
-                    "    -> preservedJobPageRanges.add [%d:%d]",
-                    pageRangeAtom.pageBegin, pageRangeAtom.pageEnd));
+            LOGGER.trace(
+                    String.format("    -> preservedJobPageRanges.add [%d:%d]",
+                            pageRangeAtom.pageBegin, pageRangeAtom.pageEnd));
         }
     }
 
@@ -495,9 +489,10 @@ public final class InboxPageMover {
         bNextMoveRange = true;
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(String.format("  move [%d-%d] is BEFORE "
-                    + "[%d-%d] : next Move RangeAtom", nRelMoveBegin,
-                    nRelMoveEnd, nRelPageBegin, nRelPageEnd));
+            LOGGER.trace(String.format(
+                    "  move [%d-%d] is BEFORE "
+                            + "[%d-%d] : next Move RangeAtom",
+                    nRelMoveBegin, nRelMoveEnd, nRelPageBegin, nRelPageEnd));
         }
     }
 
@@ -514,9 +509,9 @@ public final class InboxPageMover {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace(String.format("  move [%d-%d] is AFTER [%d-%d]",
                     nRelMoveBegin, nRelMoveEnd, nRelPageBegin, nRelPageEnd));
-            LOGGER.trace(String.format(
-                    "    -> preservedJobPageRanges.add [%d:%d]",
-                    pageRangeAtom.pageBegin, pageRangeAtom.pageEnd));
+            LOGGER.trace(
+                    String.format("    -> preservedJobPageRanges.add [%d:%d]",
+                            pageRangeAtom.pageBegin, pageRangeAtom.pageEnd));
         }
     }
 
@@ -531,9 +526,9 @@ public final class InboxPageMover {
         bNextPageRange = true;
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(String.format("  move [%d-%d] is WITHIN "
-                    + "or SAME as [%d-%d]", nRelMoveBegin, nRelMoveEnd,
-                    nRelPageBegin, nRelPageEnd));
+            LOGGER.trace(String.format(
+                    "  move [%d-%d] is WITHIN " + "or SAME as [%d-%d]",
+                    nRelMoveBegin, nRelMoveEnd, nRelPageBegin, nRelPageEnd));
             LOGGER.trace(String.format("    -> movedJobPageRanges.add [%d:%d]",
                     pageRangeAtom.pageBegin, pageRangeAtom.pageEnd));
         }
@@ -545,9 +540,9 @@ public final class InboxPageMover {
     private void onMoveWithinJob() {
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(String.format("  move [%d-%d] is WITHIN "
-                    + "[%d-%d] : split ...", nRelMoveBegin, nRelMoveEnd,
-                    nRelPageBegin, nRelPageEnd));
+            LOGGER.trace(String.format(
+                    "  move [%d-%d] is WITHIN " + "[%d-%d] : split ...",
+                    nRelMoveBegin, nRelMoveEnd, nRelPageBegin, nRelPageEnd));
         }
 
         /*
@@ -591,11 +586,11 @@ public final class InboxPageMover {
         pageRangePost.pageEnd = nJobPageEnd;
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(String.format("    ... pre [%d-%d] - mid [%d-%d]"
-                    + " - post [%d-%d]", pageRangePre.pageBegin,
-                    pageRangePre.pageEnd, pageRangeMid.pageBegin,
-                    pageRangeMid.pageEnd, pageRangePost.pageBegin,
-                    pageRangePost.pageEnd));
+            LOGGER.trace(String.format(
+                    "    ... pre [%d-%d] - mid [%d-%d]" + " - post [%d-%d]",
+                    pageRangePre.pageBegin, pageRangePre.pageEnd,
+                    pageRangeMid.pageBegin, pageRangeMid.pageEnd,
+                    pageRangePost.pageBegin, pageRangePost.pageEnd));
         }
 
         if (pageRangePost.pageBegin <= pageRangePost.pageEnd) {
@@ -608,9 +603,8 @@ public final class InboxPageMover {
 
             nRelPageBegin = nRelMoveEnd + 1;
 
-            nRelPageEnd =
-                    nRelPageBegin + pageRangePost.pageEnd
-                            - pageRangePost.pageBegin;
+            nRelPageEnd = nRelPageBegin + pageRangePost.pageEnd
+                    - pageRangePost.pageBegin;
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(String.format("    ... next Job Rel [%d-%d]",
@@ -694,9 +688,11 @@ public final class InboxPageMover {
             else if (nRelMoveBegin <= nRelPageBegin) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(String.format("  move [%d-%d] STARTS "
-                            + "BEFORE or ON [%d-%d] START", nRelMoveBegin,
-                            nRelMoveEnd, nRelPageBegin, nRelPageEnd));
+                    LOGGER.trace(String.format(
+                            "  move [%d-%d] STARTS "
+                                    + "BEFORE or ON [%d-%d] START",
+                            nRelMoveBegin, nRelMoveEnd, nRelPageBegin,
+                            nRelPageEnd));
                 }
 
                 // move pre-pageRange
@@ -712,9 +708,10 @@ public final class InboxPageMover {
             else if (nRelPageEnd <= nRelMoveEnd) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(String.format("  move [%d-%d] ENDS "
-                            + "AFTER or ON [%d-%d] END ", nRelMoveBegin,
-                            nRelMoveEnd, nRelPageBegin, nRelPageEnd));
+                    LOGGER.trace(String.format(
+                            "  move [%d-%d] ENDS " + "AFTER or ON [%d-%d] END ",
+                            nRelMoveBegin, nRelMoveEnd, nRelPageBegin,
+                            nRelPageEnd));
                 }
 
                 // move post-pageRange
@@ -751,14 +748,12 @@ public final class InboxPageMover {
 
                 if (pageRangeAtom != null) {
 
-                    pageRangeAtom.pageBegin =
-                            (pageRangeAtom.pageBegin == null) ? 1
-                                    : pageRangeAtom.pageBegin;
+                    pageRangeAtom.pageBegin = (pageRangeAtom.pageBegin == null)
+                            ? 1 : pageRangeAtom.pageBegin;
 
-                    pageRangeAtom.pageEnd =
-                            (pageRangeAtom.pageEnd == null) ? jobinfo.getJobs()
-                                    .get(jobPage.getJob()).getPages()
-                                    : pageRangeAtom.pageEnd;
+                    pageRangeAtom.pageEnd = (pageRangeAtom.pageEnd == null)
+                            ? jobinfo.getJobs().get(jobPage.getJob()).getPages()
+                            : pageRangeAtom.pageEnd;
 
                     nJobPageBegin = pageRangeAtom.pageBegin;
                     nJobPageEnd = pageRangeAtom.pageEnd;
@@ -824,9 +819,8 @@ public final class InboxPageMover {
         if (!jobPagesMoved.isEmpty()) {
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Before : "
-                        + InboxServiceImpl.getPageRangeAsText(jobinfo
-                                .getPages()));
+                LOGGER.trace("Before : " + InboxServiceImpl
+                        .getPageRangeAsText(jobinfo.getPages()));
             }
 
             jobinfo.setPages(jobPagesNew);
@@ -840,9 +834,8 @@ public final class InboxPageMover {
             }
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("After  : "
-                        + InboxServiceImpl.getPageRangeAsText(jobinfo
-                                .getPages()));
+                LOGGER.trace("After  : " + InboxServiceImpl
+                        .getPageRangeAsText(jobinfo.getPages()));
             }
 
             if (isUpdateUser) {
@@ -959,8 +952,8 @@ public final class InboxPageMover {
                                 new InboxInfoDto.InboxJobRange();
                         jobPageNew.setJob(jobPage.getJob());
 
-                        jobPageNew.setRange(RangeAtom
-                                .asText(preservedJobPageRangesWork));
+                        jobPageNew.setRange(
+                                RangeAtom.asText(preservedJobPageRangesWork));
 
                         jobPagesNew.add(jobPageNew);
 
@@ -980,19 +973,21 @@ public final class InboxPageMover {
                         preservedJobPageRangesWork.add(rangePost);
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(String.format(
-                                    "    -> work.add [%s] (post)",
-                                    rangePost.toString()));
+                            LOGGER.trace(
+                                    String.format("    -> work.add [%s] (post)",
+                                            rangePost.toString()));
                         }
                     }
 
                     iJobPageNew2Move2 = jobPagesNew.size();
 
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(String.format("      -> MOVE AT "
-                                + "page [%d] IN " + "pageRange [%d:%d-%d] "
-                                + "iJobPageNew2Move2 [%d] ", nPage2Move2,
-                                curJobIndex, begin, end, iJobPageNew2Move2));
+                        LOGGER.trace(String.format(
+                                "      -> MOVE AT " + "page [%d] IN "
+                                        + "pageRange [%d:%d-%d] "
+                                        + "iJobPageNew2Move2 [%d] ",
+                                nPage2Move2, curJobIndex, begin, end,
+                                iJobPageNew2Move2));
                     }
 
                 } else {
@@ -1156,9 +1151,8 @@ public final class InboxPageMover {
 
                     jobCur = rangeOld.getJob();
 
-                    rangeAtomsOld =
-                            INBOX_SERVICE.createSortedRangeArray(rangeOld
-                                    .getRange());
+                    rangeAtomsOld = INBOX_SERVICE
+                            .createSortedRangeArray(rangeOld.getRange());
 
                     j = 0;
                     if (j < rangeAtomsOld.size()) {

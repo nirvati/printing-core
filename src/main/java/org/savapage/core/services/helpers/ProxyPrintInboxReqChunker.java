@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -46,8 +46,8 @@ import org.savapage.core.util.NumberUtil;
 /**
  * Chunks a {@link ProxyPrintInboxReq} in separate print jobs per media-source.
  *
- * @author Datraverse B.V.
- * @since 0.9.6
+ * @author Rijk Ravestein
+ *
  */
 public final class ProxyPrintInboxReqChunker {
 
@@ -59,8 +59,8 @@ public final class ProxyPrintInboxReqChunker {
     /**
     *
     */
-    private static final InboxService INBOX_SERVICE = ServiceContext
-            .getServiceFactory().getInboxService();
+    private static final InboxService INBOX_SERVICE =
+            ServiceContext.getServiceFactory().getInboxService();
 
     /**
      *
@@ -96,7 +96,8 @@ public final class ProxyPrintInboxReqChunker {
      *
      */
     public ProxyPrintInboxReqChunker(final User lockedUser,
-            final ProxyPrintInboxReq request, final PageScalingEnum pageScaling) {
+            final ProxyPrintInboxReq request,
+            final PageScalingEnum pageScaling) {
 
         this.lockedUser = lockedUser;
         this.request = request;
@@ -139,9 +140,9 @@ public final class ProxyPrintInboxReqChunker {
          */
         if (mediaSourceCostList.size() == 0) {
 
-            throw new ProxyPrintException(getErrorMessagePfx()
-                    + "no media-source for media ["
-                    + inboxIppMedia.getIppKeyword() + "].");
+            throw new ProxyPrintException(
+                    getErrorMessagePfx() + "no media-source for media ["
+                            + inboxIppMedia.getIppKeyword() + "].");
         }
 
         if (IS_UNIQUE_MEDIASOURCE_REQUIRED) {
@@ -172,9 +173,8 @@ public final class ProxyPrintInboxReqChunker {
                 /*
                  * Pick a random media-source.
                  */
-                iMediaSource =
-                        NumberUtil.getRandomNumber(0,
-                                mediaSourceCostList.size() - 1);
+                iMediaSource = NumberUtil.getRandomNumber(0,
+                        mediaSourceCostList.size() - 1);
             }
 
             mediaSourceForMedia = mediaSourceCostList.get(iMediaSource);
@@ -206,9 +206,8 @@ public final class ProxyPrintInboxReqChunker {
      *             request, or when vanilla job chunking is requested and the
      *             inbox is not vanilla.
      */
-    public void chunk(final boolean chunkVanillaJobs,
-            final Integer iVanillaJob, final String vanillaJobPageRanges)
-            throws ProxyPrintException {
+    public void chunk(final boolean chunkVanillaJobs, final Integer iVanillaJob,
+            final String vanillaJobPageRanges) throws ProxyPrintException {
 
         final PrinterDao printerDao =
                 ServiceContext.getDaoContext().getPrinterDao();
@@ -262,8 +261,8 @@ public final class ProxyPrintInboxReqChunker {
              */
             if (isSingleInboxMedia) {
 
-                assignedMediaSource =
-                        getMediaSourceForMedia(printerAttrLookup, inboxIppMedia);
+                assignedMediaSource = getMediaSourceForMedia(printerAttrLookup,
+                        inboxIppMedia);
                 assignedMedia = inboxIppMedia;
 
             } else {
@@ -273,7 +272,8 @@ public final class ProxyPrintInboxReqChunker {
 
             }
 
-        } else if (requestedMediaSource.equals(IppKeyword.MEDIA_SOURCE_MANUAL)) {
+        } else if (requestedMediaSource
+                .equals(IppKeyword.MEDIA_SOURCE_MANUAL)) {
 
             /*
              * INVARIANT: 'media' MUST be specified for 'manual' print.
@@ -300,16 +300,15 @@ public final class ProxyPrintInboxReqChunker {
             /*
              * Get the media-source and related media.
              */
-            assignedMediaSource =
-                    printerAttrLookup.get(new PrinterDao.MediaSourceAttr(
-                            requestedMediaSource));
+            assignedMediaSource = printerAttrLookup
+                    .get(new PrinterDao.MediaSourceAttr(requestedMediaSource));
             /*
              * INVARIANT: requested 'media-source' MUST be present.
              */
             if (assignedMediaSource == null) {
-                throw new ProxyPrintException(getErrorMessagePfx()
-                        + "media source [" + requestedMediaSource
-                        + "] unknown.");
+                throw new ProxyPrintException(
+                        getErrorMessagePfx() + "media source ["
+                                + requestedMediaSource + "] unknown.");
             }
 
             final String media = assignedMediaSource.getMedia().getMedia();
@@ -342,14 +341,12 @@ public final class ProxyPrintInboxReqChunker {
             if (iVanillaJob == null) {
                 printJobChunkInfo = new ProxyPrintJobChunkInfo(inboxInfo);
             } else {
-                printJobChunkInfo =
-                        new ProxyPrintJobChunkInfo(inboxInfo,
-                                iVanillaJob.intValue(), vanillaJobPageRanges);
+                printJobChunkInfo = new ProxyPrintJobChunkInfo(inboxInfo,
+                        iVanillaJob.intValue(), vanillaJobPageRanges);
             }
         } else {
-            printJobChunkInfo =
-                    new ProxyPrintJobChunkInfo(inboxInfo,
-                            request.getPageRanges());
+            printJobChunkInfo = new ProxyPrintJobChunkInfo(inboxInfo,
+                    request.getPageRanges());
         }
 
         request.setJobChunkInfo(printJobChunkInfo);
@@ -408,19 +405,16 @@ public final class ProxyPrintInboxReqChunker {
             if (collectedMediaSources.isEmpty()) {
 
                 throw new ProxyPrintException(String.format(
-                        "%s: no media-source matches.",
-                        getErrorMessagePfx()));
+                        "%s: no media-source matches.", getErrorMessagePfx()));
             }
 
             if (collectedMediaSources.size() == 1) {
 
-                determinedMediaSource =
-                        collectedMediaSources.entrySet().iterator().next()
-                                .getValue();
+                determinedMediaSource = collectedMediaSources.entrySet()
+                        .iterator().next().getValue();
 
-                determinedMedia =
-                        IppMediaSizeEnum.find(determinedMediaSource.getMedia()
-                                .getMedia());
+                determinedMedia = IppMediaSizeEnum
+                        .find(determinedMediaSource.getMedia().getMedia());
 
             } else {
 
@@ -497,10 +491,9 @@ public final class ProxyPrintInboxReqChunker {
 
         } else {
 
-            final int compare =
-                    MediaUtils.compareMediaSize(printJobChunk
-                            .getMediaSizeName(), printJobChunk
-                            .getAssignedMedia().getMediaSizeName());
+            final int compare = MediaUtils.compareMediaSize(
+                    printJobChunk.getMediaSizeName(),
+                    printJobChunk.getAssignedMedia().getMediaSizeName());
 
             if (compare == 0) {
                 fitToPage = false;

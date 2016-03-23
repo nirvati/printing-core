@@ -243,7 +243,7 @@ public interface InboxService {
      */
     void setLetterhead(User user, String letterheadId, String name,
             boolean foreground, boolean isPublic, boolean isPublicNew)
-                    throws IOException, LetterheadNotFoundException;
+            throws IOException, LetterheadNotFoundException;
 
     /**
      * Deletes a private or public letterhead. If the deleted letterhead is
@@ -302,7 +302,7 @@ public interface InboxService {
      */
     Map<String, Object> getLetterheadDetails(User userObj, String letterheadId,
             Boolean isPublic, boolean imgBase64)
-                    throws LetterheadNotFoundException;
+            throws LetterheadNotFoundException;
 
     /**
      * Returns private or public letterhead store.
@@ -330,31 +330,49 @@ public interface InboxService {
     int deleteAllPages(String userId);
 
     /**
-     * Deletes pages from virtual document.
+     * Deletes pages from the virtual document.
      *
      * @param userId
      *            The unique user id.
      * @param ranges
      *            String with lpr style (1-based) page ranges.
      * @return The number of deleted pages.
+     *
      * @throws IllegalArgumentException
      *             When page range syntax error.
      */
     int deletePages(String userId, String ranges);
 
     /**
+     * Deletes pages from a <i>vanilla</i> inbox job.
+     *
+     * @param userId
+     *            The unique user id.
+     * @param iVanillaJobIndex
+     *            The zero-based job index within the vanilla inbox.
+     * @param ranges
+     *            String with lpr style (1-based) page ranges of the job
+     *            document.
+     * @return The number of deleted pages.
+     *
+     * @throws IllegalStateException
+     *             When inbox is not vanilla.
+     */
+    int deleteJobPages(String userId, int iVanillaJobIndex, String ranges);
+
+    /**
      * Deletes jobs from the inbox that are part of the
      * {@link ProxyPrintJobChunk} list.
      * <p>
-     * Note: a complete job is deleted if just one (1) of its pages is printed.
+     * Note: a complete job is deleted when at least one (1) of its pages is
+     * printed.
      * </p>
      *
      * @param userId
      *            The unique user id.
      * @param chunks
      *            The list of {@link ProxyPrintJobChunk} objects.
-     * @return The total number of the not already logically deleted pages of
-     *         all deleted jobs.
+     * @return The total number of deleted pages that triggered job deletes.
      */
     int deleteJobs(String userId, List<ProxyPrintJobChunk> chunks);
 
@@ -432,6 +450,9 @@ public interface InboxService {
      *            The sorted {@link RangeAtom} list with page numbers in job
      *            context.
      * @return The range string.
+     *
+     * @throws IllegalStateException
+     *             When inbox is not vanilla.
      */
     String toVanillaJobInboxRange(InboxInfoDto jobInfo, int iVanillaJobIndex,
             List<RangeAtom> sortedRangeArrayJob);
