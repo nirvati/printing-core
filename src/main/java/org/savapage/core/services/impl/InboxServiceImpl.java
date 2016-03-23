@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,6 +25,7 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -80,6 +81,7 @@ import org.savapage.core.services.EcoPrintPdfTaskService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.InboxPageMover;
+import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -192,19 +194,12 @@ public final class InboxServiceImpl implements InboxService {
     @Override
     public void storeInboxInfo(final String user, final InboxInfoDto jobinfo) {
 
-        final String userdir = ConfigManager.getUserHomeDir(user);
-        final String filename = userdir + "/" + INBOX_DESCRIPT_FILE_NAME;
-
-        final ObjectMapper mapper = new ObjectMapper();
+        final String filename =
+                String.format("%s%c%s", ConfigManager.getUserHomeDir(user),
+                        File.separatorChar, INBOX_DESCRIPT_FILE_NAME);
 
         try {
-            mapper.writeValue(new File(filename), jobinfo);
-        } catch (JsonGenerationException e) {
-            throw new SpException("Error generating file [" + filename + "]",
-                    e);
-        } catch (JsonMappingException e) {
-            throw new SpException("Error mapping to file [" + filename + "]",
-                    e);
+            JsonHelper.write(jobinfo, new FileWriter(new File(filename)));
         } catch (IOException e) {
             throw new SpException("Error writing file [" + filename + "]", e);
         }
