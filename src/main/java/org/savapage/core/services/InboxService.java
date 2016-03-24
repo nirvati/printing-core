@@ -377,6 +377,19 @@ public interface InboxService {
     int deleteJobs(String userId, List<ProxyPrintJobChunk> chunks);
 
     /**
+     * Deletes jobs from the inbox that are expired.
+     *
+     * @param userid
+     *            The unique user id.
+     * @param msecReferenceTime
+     *            The reference time in milliseconds.
+     * @param msecExpiry
+     *            The expiration period in milliseconds.
+     * @return The number of deleted jobs.
+     */
+    int deleteJobs(String userid, long msecReferenceTime, long msecExpiry);
+
+    /**
      * Deletes a job from the inbox.
      *
      * @param userId

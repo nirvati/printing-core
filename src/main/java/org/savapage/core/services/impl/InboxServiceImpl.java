@@ -1694,7 +1694,7 @@ public final class InboxServiceImpl implements InboxService {
                  * Remove on first occurrence in collected jobs.
                  */
                 if (collectedJobs.add(Integer.valueOf(iJob))) {
-                    this.removeJob(jobs, iJob);
+                    this.removeJobPages(jobs, iJob);
                 }
                 nJobDeleteTriggerPages += range.calcPages();
             }
@@ -1708,6 +1708,33 @@ public final class InboxServiceImpl implements InboxService {
         return nJobDeleteTriggerPages;
     }
 
+    @Override
+    public int deleteJobs(final String userid, final long msecReferenceTime,
+            final long msecExpiry) {
+
+        final InboxInfoDto inboxInfo = readInboxInfo(userid);
+
+        int nDeleted = 0;
+        int iJob = 0;
+
+        for (final InboxJob job : inboxInfo.getJobs()) {
+
+            if (job.getCreatedTime().longValue()
+                    + msecExpiry < msecReferenceTime) {
+                this.removeJobPages(inboxInfo, iJob);
+                nDeleted++;
+            }
+            iJob++;
+        }
+
+        if (nDeleted > 0) {
+            storeInboxInfo(userid, this.pruneJobs(
+                    ConfigManager.getUserHomeDir(userid), userid, inboxInfo));
+        }
+
+        return nDeleted;
+    }
+
     /**
      * Removes job page ranges from the inbox {@link InboxInfoDto} object.
      *
@@ -1717,7 +1744,8 @@ public final class InboxServiceImpl implements InboxService {
      *            The zero-based index of the job to remove.
      * @return The same {@link InboxInfoDto} object.
      */
-    private InboxInfoDto removeJob(final InboxInfoDto jobs, final int iJob) {
+    private InboxInfoDto removeJobPages(final InboxInfoDto jobs,
+            final int iJob) {
 
         final ArrayList<InboxInfoDto.InboxJobRange> jobPagesNew =
                 new ArrayList<>();
@@ -1735,7 +1763,7 @@ public final class InboxServiceImpl implements InboxService {
     @Override
     public void deleteJob(final String user, final int iJob) {
         storeInboxInfo(user, pruneJobs(ConfigManager.getUserHomeDir(user), user,
-                this.removeJob(readInboxInfo(user), iJob)));
+                this.removeJobPages(readInboxInfo(user), iJob)));
     }
 
     @Override

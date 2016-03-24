@@ -124,6 +124,8 @@ public interface IConfigProp {
     final String V_YES = "Y";
     final String V_NO = "N";
 
+    final String V_ZERO = "0";
+
     /**
      * Null value for numerics.
      */
@@ -246,20 +248,17 @@ public interface IConfigProp {
         /**
          * See {@link DaoBatchCommitterImpl}.
          */
-        DB_BATCH_COMMIT_CHUNK_SIZE("db.batch.commit-chunk-size",
-                NUMBER_VALIDATOR, DEFAULT_BATCH_COMMIT_CHUNK_SIZE),
+        DB_BATCH_COMMIT_CHUNK_SIZE("db.batch.commit-chunk-size", NUMBER_VALIDATOR, DEFAULT_BATCH_COMMIT_CHUNK_SIZE),
 
         /**
          *
          */
-        FINANCIAL_GLOBAL_CREDIT_LIMIT("financial.global.credit-limit",
-                KeyType.BIG_DECIMAL, "0.00"),
+        FINANCIAL_GLOBAL_CREDIT_LIMIT("financial.global.credit-limit", KeyType.BIG_DECIMAL, "0.00"),
 
         /**
          * ISO 4217 codes, like EUR, USD, JPY, ...
          */
-        FINANCIAL_GLOBAL_CURRENCY_CODE("financial.global.currency-code",
-                CURRENCY_VALIDATOR),
+        FINANCIAL_GLOBAL_CURRENCY_CODE("financial.global.currency-code", CURRENCY_VALIDATOR),
 
         /**
          * A comma separated list of Point-of-Sale payment methods.
@@ -274,68 +273,52 @@ public interface IConfigProp {
         /**
          *
          */
-        FINANCIAL_PRINTER_COST_DECIMALS("financial.printer.cost-decimals",
-                ACCOUNTING_DECIMAL_VALIDATOR,
-                DEFAULT_FINANCIAL_PRINTER_COST_DECIMALS),
+        FINANCIAL_PRINTER_COST_DECIMALS("financial.printer.cost-decimals", ACCOUNTING_DECIMAL_VALIDATOR, DEFAULT_FINANCIAL_PRINTER_COST_DECIMALS),
 
         /**
          *
          */
-        FINANCIAL_USER_BALANCE_DECIMALS("financial.user.balance-decimals",
-                ACCOUNTING_DECIMAL_VALIDATOR,
-                DEFAULT_FINANCIAL_USER_BALANCE_DECIMALS),
+        FINANCIAL_USER_BALANCE_DECIMALS("financial.user.balance-decimals", ACCOUNTING_DECIMAL_VALIDATOR, DEFAULT_FINANCIAL_USER_BALANCE_DECIMALS),
 
         /**
          * .
          */
-        FINANCIAL_USER_TRANSFER_ENABLE("financial.user.transfers.enable",
-                BOOLEAN_VALIDATOR, V_YES),
+        FINANCIAL_USER_TRANSFER_ENABLE("financial.user.transfers.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * .
          */
-        FINANCIAL_USER_TRANSFER_ENABLE_COMMENTS(
-                "financial.user.transfers.enable-comments", BOOLEAN_VALIDATOR,
-                V_YES),
+        FINANCIAL_USER_TRANSFER_ENABLE_COMMENTS("financial.user.transfers.enable-comments", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * .
          */
-        FINANCIAL_USER_TRANSFER_AMOUNT_MIN(
-                "financial.user.transfers.amount-min", KeyType.BIG_DECIMAL,
-                "0.01"),
+        FINANCIAL_USER_TRANSFER_AMOUNT_MIN("financial.user.transfers.amount-min", KeyType.BIG_DECIMAL, "0.01"),
 
         /**
          * .
          */
-        FINANCIAL_USER_TRANSFER_AMOUNT_MAX(
-                "financial.user.transfers.amount-max", KeyType.BIG_DECIMAL,
-                "999999999.99"),
+        FINANCIAL_USER_TRANSFER_AMOUNT_MAX("financial.user.transfers.amount-max", KeyType.BIG_DECIMAL, "999999999.99"),
 
         /**
          * .
          */
-        FINANCIAL_USER_TRANSFER_ENABLE_LIMIT_GROUP(
-                "financial.user.transfers.enable-limit-group",
-                BOOLEAN_VALIDATOR, V_NO),
+        FINANCIAL_USER_TRANSFER_ENABLE_LIMIT_GROUP("financial.user.transfers.enable-limit-group", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * .
          */
-        FINANCIAL_USER_TRANSFER_LIMIT_GROUP(
-                "financial.user.transfers.limit-group"),
+        FINANCIAL_USER_TRANSFER_LIMIT_GROUP("financial.user.transfers.limit-group"),
 
         /**
          * .
          */
-        FINANCIAL_USER_VOUCHERS_ENABLE("financial.user.vouchers.enable",
-                BOOLEAN_VALIDATOR, V_YES),
+        FINANCIAL_USER_VOUCHERS_ENABLE("financial.user.vouchers.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
          */
-        FINANCIAL_VOUCHER_CARD_HEADER("financial.voucher.card-header",
-                KeyType.LOCALIZED_SINGLE_LINE),
+        FINANCIAL_VOUCHER_CARD_HEADER("financial.voucher.card-header", KeyType.LOCALIZED_SINGLE_LINE),
 
         /**
          *
@@ -345,9 +328,7 @@ public interface IConfigProp {
         /**
          *
          */
-        FINANCIAL_VOUCHER_CARD_FONT_FAMILY("financial.voucher.card-font-family",
-                INTERNAL_FONT_FAMILY_VALIDATOR,
-                DEFAULT_INTERNAL_FONT_FAMILY.toString()),
+        FINANCIAL_VOUCHER_CARD_FONT_FAMILY("financial.voucher.card-font-family", INTERNAL_FONT_FAMILY_VALIDATOR, DEFAULT_INTERNAL_FONT_FAMILY.toString()),
 
         /**
          * URL of external user page with information about the Bitcoin
@@ -359,9 +340,7 @@ public interface IConfigProp {
          * https://blockexplorer.com/tx/{0}
          * </pre>
          */
-        FINANCIAL_BITCOIN_USER_PAGE_URL_PATTERN_TRX(
-                "financial.bitcoin.user-page.url-pattern.trx",
-                URL_VALIDATOR_OPT, "https://blockchain.info/tx-index/{0}"),
+        FINANCIAL_BITCOIN_USER_PAGE_URL_PATTERN_TRX("financial.bitcoin.user-page.url-pattern.trx", URL_VALIDATOR_OPT, "https://blockchain.info/tx-index/{0}"),
 
         /**
          * URL of external user page with information about the Bitcoin address.
@@ -373,9 +352,7 @@ public interface IConfigProp {
          * https://blockexplorer.com/address/{0}
          * </pre>
          */
-        FINANCIAL_BITCOIN_USER_PAGE_URL_PATTERN_ADDRESS(
-                "financial.bitcoin.user-page.url-pattern.address",
-                URL_VALIDATOR_OPT, "https://blockchain.info/address/{0}"),
+        FINANCIAL_BITCOIN_USER_PAGE_URL_PATTERN_ADDRESS("financial.bitcoin.user-page.url-pattern.address", URL_VALIDATOR_OPT, "https://blockchain.info/address/{0}"),
 
         /**
          *
@@ -395,14 +372,12 @@ public interface IConfigProp {
         /**
          *
          */
-        AUTH_MODE_ID_PIN_REQUIRED("auth-mode.id.pin-required",
-                BOOLEAN_VALIDATOR, V_YES),
+        AUTH_MODE_ID_PIN_REQUIRED("auth-mode.id.pin-required", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
          */
-        AUTH_MODE_ID_IS_MASKED("auth-mode.id.is-masked", BOOLEAN_VALIDATOR,
-                V_NO),
+        AUTH_MODE_ID_IS_MASKED("auth-mode.id.is-masked", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          *
@@ -417,40 +392,32 @@ public interface IConfigProp {
         /**
          *
          */
-        AUTH_MODE_CARD_PIN_REQUIRED("auth-mode.card.pin-required",
-                BOOLEAN_VALIDATOR, V_YES),
+        AUTH_MODE_CARD_PIN_REQUIRED("auth-mode.card.pin-required", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
          */
-        AUTH_MODE_CARD_SELF_ASSOCIATION("auth-mode.card.self-association",
-                BOOLEAN_VALIDATOR, V_NO),
+        AUTH_MODE_CARD_SELF_ASSOCIATION("auth-mode.card.self-association", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * Number of msecs after which an IP Card Number Detect event expires.
          */
-        AUTH_MODE_CARD_IP_EXPIRY_MSECS("auth-mode.card-ip.expiry-msecs",
-                NUMBER_VALIDATOR, "2000"),
+        AUTH_MODE_CARD_IP_EXPIRY_MSECS("auth-mode.card-ip.expiry-msecs", NUMBER_VALIDATOR, "2000"),
 
         /**
          *
          */
-        AUTH_MODE_CARD_LOCAL_SHOW("auth-mode.card-local.show",
-                BOOLEAN_VALIDATOR, V_YES),
+        AUTH_MODE_CARD_LOCAL_SHOW("auth-mode.card-local.show", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
          */
-        AUTH_MODE_DEFAULT("auth-mode-default", null, AUTH_MODE_V_NAME,
-                new String[] { AUTH_MODE_V_NAME, AUTH_MODE_V_ID,
-                        AUTH_MODE_V_CARD_LOCAL }),
+        AUTH_MODE_DEFAULT("auth-mode-default", null, AUTH_MODE_V_NAME, new String[] { AUTH_MODE_V_NAME, AUTH_MODE_V_ID, AUTH_MODE_V_CARD_LOCAL }),
 
         /**
          * Authentication method.
          */
-        AUTH_METHOD("auth.method", null, AUTH_METHOD_V_NONE,
-                new String[] { AUTH_METHOD_V_NONE, AUTH_METHOD_V_UNIX,
-                        AUTH_METHOD_V_LDAP }),
+        AUTH_METHOD("auth.method", null, AUTH_METHOD_V_NONE, new String[] { AUTH_METHOD_V_NONE, AUTH_METHOD_V_UNIX, AUTH_METHOD_V_LDAP }),
 
         /**
          *
@@ -485,83 +452,64 @@ public interface IConfigProp {
         /**
          *
          */
-        CARD_NUMBER_FORMAT("card.number.format", null, CARD_NUMBER_FORMAT_V_HEX,
-                new String[] { CARD_NUMBER_FORMAT_V_DEC,
-                        CARD_NUMBER_FORMAT_V_HEX }),
+        CARD_NUMBER_FORMAT("card.number.format", null, CARD_NUMBER_FORMAT_V_HEX, new String[] { CARD_NUMBER_FORMAT_V_DEC, CARD_NUMBER_FORMAT_V_HEX }),
 
         /**
          *
          */
-        CARD_NUMBER_FIRST_BYTE("card.number.first-byte", null,
-                CARD_NUMBER_FIRSTBYTE_V_LSB,
-                new String[] { CARD_NUMBER_FIRSTBYTE_V_LSB,
-                        CARD_NUMBER_FIRSTBYTE_V_MSB }),
+        CARD_NUMBER_FIRST_BYTE("card.number.first-byte", null, CARD_NUMBER_FIRSTBYTE_V_LSB, new String[] { CARD_NUMBER_FIRSTBYTE_V_LSB, CARD_NUMBER_FIRSTBYTE_V_MSB }),
 
         /**
          * IMPORTANT: the value of this key should be GT one (1) hour, since the
          * renewal is Quartz scheduled with Key.ScheduleHourly.
          */
-        CUPS_IPP_SUBSCR_NOTIFY_LEASE_DURATION(
-                "cups.ipp.subscription.notify-lease-duration", NUMBER_VALIDATOR,
-                "4200"),
+        CUPS_IPP_SUBSCR_NOTIFY_LEASE_DURATION("cups.ipp.subscription.notify-lease-duration", NUMBER_VALIDATOR, "4200"),
 
         /**
          * Max number of IPP connections per CUPS server.
          */
-        CUPS_IPP_MAX_CONNECTIONS("cups.ipp.max-connections", NUMBER_VALIDATOR,
-                "10"),
+        CUPS_IPP_MAX_CONNECTIONS("cups.ipp.max-connections", NUMBER_VALIDATOR, "10"),
 
         /**
          * Timeout in milliseconds until a IPP connection with local CUPS server
          * is established.
          */
-        CUPS_IPP_LOCAL_CONNECT_TIMEOUT_MILLIS(
-                "cups.ipp.local-connect-timeout-millis", NUMBER_VALIDATOR,
-                "2000"),
+        CUPS_IPP_LOCAL_CONNECT_TIMEOUT_MILLIS("cups.ipp.local-connect-timeout-millis", NUMBER_VALIDATOR, "2000"),
 
         /**
          * Timeout in milliseconds to receive IPP data from local CUPS server
          * after the connection is established, i.e. maximum time of inactivity
          * between two data packets.
          */
-        CUPS_IPP_LOCAL_SOCKET_TIMEOUT_MILLIS(
-                "cups.ipp.local-socket-timeout-millis", NUMBER_VALIDATOR,
-                "2000"),
+        CUPS_IPP_LOCAL_SOCKET_TIMEOUT_MILLIS("cups.ipp.local-socket-timeout-millis", NUMBER_VALIDATOR, "2000"),
 
         /**
          * Is access of remote CUPS enabled?
          */
-        CUPS_IPP_REMOTE_ENABLED("cups.ipp.remote-enabled", BOOLEAN_VALIDATOR,
-                V_NO),
+        CUPS_IPP_REMOTE_ENABLED("cups.ipp.remote-enabled", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * Timeout in milliseconds until a IPP connection with remote CUPS
          * server is established.
          */
-        CUPS_IPP_REMOTE_CONNECT_TIMEOUT_MILLIS(
-                "cups.ipp.remote-connect-timeout-millis", NUMBER_VALIDATOR,
-                "3000"),
+        CUPS_IPP_REMOTE_CONNECT_TIMEOUT_MILLIS("cups.ipp.remote-connect-timeout-millis", NUMBER_VALIDATOR, "3000"),
 
         /**
          * Timeout in milliseconds to receive IPP data from remote CUPS server
          * after the connection is established, i.e. maximum time of inactivity
          * between two data packets.
          */
-        CUPS_IPP_REMOTE_SOCKET_TIMEOUT_MILLIS(
-                "cups.ipp.remote-socket-timeout-millis", NUMBER_VALIDATOR,
-                "3000"),
+        CUPS_IPP_REMOTE_SOCKET_TIMEOUT_MILLIS("cups.ipp.remote-socket-timeout-millis", NUMBER_VALIDATOR, "3000"),
 
         /**
          *
          */
-        DELETE_ACCOUNT_TRX_LOG("delete.account-trx-log", BOOLEAN_VALIDATOR,
-                V_YES),
+        DELETE_ACCOUNT_TRX_LOG("delete.account-trx-log", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * A value of {@code -1} is interpreted as {@code null}.
          */
-        DELETE_ACCOUNT_TRX_DAYS("delete.account-trx-log.days", NUMBER_VALIDATOR,
-                "365"),
+        DELETE_ACCOUNT_TRX_DAYS("delete.account-trx-log.days", NUMBER_VALIDATOR, "365"),
 
         /**
          *
@@ -586,20 +534,17 @@ public interface IConfigProp {
         /**
          * The default port for {@link DeviceTypeEnum#CARD_READER}.
          */
-        DEVICE_CARD_READER_DEFAULT_PORT("device.card-reader.default-port",
-                NUMBER_VALIDATOR, "7772"),
+        DEVICE_CARD_READER_DEFAULT_PORT("device.card-reader.default-port", NUMBER_VALIDATOR, "7772"),
 
         /**
          *
          */
-        DOC_CONVERT_XPS_TO_PDF_ENABLED("doc.convert.xpstopdf-enabled",
-                BOOLEAN_VALIDATOR, V_NO),
+        DOC_CONVERT_XPS_TO_PDF_ENABLED("doc.convert.xpstopdf-enabled", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          *
          */
-        DOC_CONVERT_LIBRE_OFFICE_ENABLED("doc.convert.libreoffice-enabled",
-                BOOLEAN_VALIDATOR, V_NO),
+        DOC_CONVERT_LIBRE_OFFICE_ENABLED("doc.convert.libreoffice-enabled", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          *
@@ -609,8 +554,7 @@ public interface IConfigProp {
         /**
          *
          */
-        ENV_SHEETS_PER_TREE("environment.sheets-per-tree", NUMBER_VALIDATOR,
-                "8333"),
+        ENV_SHEETS_PER_TREE("environment.sheets-per-tree", NUMBER_VALIDATOR, "8333"),
 
         /**
          *
@@ -621,15 +565,13 @@ public interface IConfigProp {
          * The base URL, i.e. "protocol://authority" <i>without</i> the path, of
          * the Web API callback interface (no trailing slash) (optional).
          */
-        EXT_WEBAPI_CALLBACK_URL_BASE("ext.webapi.callback.url-base",
-                URL_VALIDATOR_OPT, ""),
+        EXT_WEBAPI_CALLBACK_URL_BASE("ext.webapi.callback.url-base", URL_VALIDATOR_OPT, ""),
 
         /**
          * The URL of the User Web App used by the Web API to redirect to after
          * remote Web App dialog is done (optional).
          */
-        EXT_WEBAPI_REDIRECT_URL_WEBAPP_USER(
-                "ext.webapi.redirect.url-webapp-user", URL_VALIDATOR_OPT, ""),
+        EXT_WEBAPI_REDIRECT_URL_WEBAPP_USER("ext.webapi.redirect.url-webapp-user", URL_VALIDATOR_OPT, ""),
 
         /**
          * Google Cloud Print enabled (boolean).
@@ -639,8 +581,7 @@ public interface IConfigProp {
         /**
          * Max seconds to wait for a GCP connect.
          */
-        GC_CONNECT_TIMEOUT_SECS("gcp.connect-timeout-secs", NUMBER_VALIDATOR,
-                "5"),
+        GC_CONNECT_TIMEOUT_SECS("gcp.connect-timeout-secs", NUMBER_VALIDATOR, "5"),
 
         /**
          * Max seconds to wait for a GCP event.
@@ -650,41 +591,32 @@ public interface IConfigProp {
         /**
          *
          */
-        GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_ENABLE(
-                "gcp.job-owner-unknown.cancel-mail.enable", BOOLEAN_VALIDATOR,
-                V_YES),
+        GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_ENABLE("gcp.job-owner-unknown.cancel-mail.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
          */
-        GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_BODY(
-                "gcp.job-owner-unknown.cancel-mail.body",
-                KeyType.LOCALIZED_MULTI_LINE),
+        GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_BODY("gcp.job-owner-unknown.cancel-mail.body", KeyType.LOCALIZED_MULTI_LINE),
 
         /**
          *
          */
-        GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_SUBJECT(
-                "gcp.job-owner-unknown.cancel-mail.subject",
-                KeyType.LOCALIZED_SINGLE_LINE),
+        GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_SUBJECT("gcp.job-owner-unknown.cancel-mail.subject", KeyType.LOCALIZED_SINGLE_LINE),
 
         /**
          * Do we have an Internet connection?
          */
-        INFRA_INTERNET_CONNECTED("infra.internet-connected", BOOLEAN_VALIDATOR,
-                V_YES),
+        INFRA_INTERNET_CONNECTED("infra.internet-connected", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
          */
-        INTERNAL_USERS_ENABLE("internal-users.enable", BOOLEAN_VALIDATOR,
-                V_YES),
+        INTERNAL_USERS_ENABLE("internal-users.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
          */
-        INTERNAL_USERS_CAN_CHANGE_PW("internal-users.user-can-change-password",
-                BOOLEAN_VALIDATOR, V_YES),
+        INTERNAL_USERS_CAN_CHANGE_PW("internal-users.user-can-change-password", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
@@ -694,15 +626,13 @@ public interface IConfigProp {
         /**
          *
          */
-        INTERNAL_USERS_PW_LENGTH_MIN("internal-users.password-length-min",
-                NUMBER_VALIDATOR, "6"),
+        INTERNAL_USERS_PW_LENGTH_MIN("internal-users.password-length-min", NUMBER_VALIDATOR, "6"),
 
         /**
          * The base URL, i.e. "protocol://authority" <i>without</i> the path, of
          * the IPP Internet Printer URI (no trailing slash) (optional).
          */
-        IPP_INTERNET_PRINTER_URI_BASE("ipp.internet-printer.uri-base",
-                URI_VALIDATOR_OPT, ""),
+        IPP_INTERNET_PRINTER_URI_BASE("ipp.internet-printer.uri-base", URI_VALIDATOR_OPT, ""),
 
         /**
          * Printer name for JobTicket printing.
@@ -718,8 +648,7 @@ public interface IConfigProp {
         /**
          * Force Job Ticket when printing more than threshold pages.
          */
-        JOBTICKET_THRESHOLD_PAGE_TOTAL("jobticket.threshold.page-total",
-                NUMBER_VALIDATOR, "100"),
+        JOBTICKET_THRESHOLD_PAGE_TOTAL("jobticket.threshold.page-total", NUMBER_VALIDATOR, "100"),
 
         /**
          * See this <a href=
@@ -764,8 +693,7 @@ public interface IConfigProp {
          * IMPORTANT: The search must include the <code>{0}</code> value.
          * </p>
          */
-        LDAP_SCHEMA_USER_NAME_GROUP_SEARCH(
-                "ldap.schema.user-name-group-search"),
+        LDAP_SCHEMA_USER_NAME_GROUP_SEARCH("ldap.schema.user-name-group-search"),
 
         /**
          * The LDAP search to retrieve the nested groups of a parent group. The
@@ -816,9 +744,7 @@ public interface IConfigProp {
         /**
          * LdapSchema* properties have "" default value.
          */
-        LDAP_SCHEMA_TYPE("ldap.schema.type", null, LDAP_TYPE_V_OPEN_LDAP,
-                new String[] { LDAP_TYPE_V_ACTIV, LDAP_TYPE_V_E_DIR,
-                        LDAP_TYPE_V_APPLE, LDAP_TYPE_V_OPEN_LDAP }),
+        LDAP_SCHEMA_TYPE("ldap.schema.type", null, LDAP_TYPE_V_OPEN_LDAP, new String[] { LDAP_TYPE_V_ACTIV, LDAP_TYPE_V_E_DIR, LDAP_TYPE_V_APPLE, LDAP_TYPE_V_OPEN_LDAP }),
 
         /**
          * The LDAP field that contains the user's username.
@@ -863,25 +789,17 @@ public interface IConfigProp {
         /**
          * The LDAP field that contains the user's Card Number.
          */
-        LDAP_SCHEMA_USER_CARD_NUMBER_FIELD(
-                "ldap.schema.user-card-number-field"),
+        LDAP_SCHEMA_USER_CARD_NUMBER_FIELD("ldap.schema.user-card-number-field"),
 
         /**
          *
          */
-        LDAP_SCHEMA_USER_CARD_NUMBER_FIRST_BYTE(
-                "ldap.user-card-number.first-byte", null,
-                CARD_NUMBER_FIRSTBYTE_V_LSB,
-                new String[] { CARD_NUMBER_FIRSTBYTE_V_LSB,
-                        CARD_NUMBER_FIRSTBYTE_V_MSB }),
+        LDAP_SCHEMA_USER_CARD_NUMBER_FIRST_BYTE("ldap.user-card-number.first-byte", null, CARD_NUMBER_FIRSTBYTE_V_LSB, new String[] { CARD_NUMBER_FIRSTBYTE_V_LSB, CARD_NUMBER_FIRSTBYTE_V_MSB }),
 
         /**
          *
          */
-        LDAP_SCHEMA_USER_CARD_NUMBER_FORMAT("ldap.user-card-number.format",
-                null, CARD_NUMBER_FORMAT_V_HEX,
-                new String[] { CARD_NUMBER_FORMAT_V_DEC,
-                        CARD_NUMBER_FORMAT_V_HEX }),
+        LDAP_SCHEMA_USER_CARD_NUMBER_FORMAT("ldap.user-card-number.format", null, CARD_NUMBER_FORMAT_V_HEX, new String[] { CARD_NUMBER_FORMAT_V_DEC, CARD_NUMBER_FORMAT_V_HEX }),
 
         /**
          * The LDAP field that contains the user's ID Number.
@@ -898,8 +816,7 @@ public interface IConfigProp {
         /**
          *
          */
-        COMMUNITY_HELPDESK_URL("community.helpdesk.url", URL_VALIDATOR,
-                DEFAULT_COMMUNITY_HELPDESK_URL),
+        COMMUNITY_HELPDESK_URL("community.helpdesk.url", URL_VALIDATOR, DEFAULT_COMMUNITY_HELPDESK_URL),
 
         /**
          * Is PaperCut integration enabled?
@@ -965,16 +882,13 @@ public interface IConfigProp {
          * Socket connection timeout value in milliseconds. Default is infinite
          * timeout.
          */
-        PRINT_IMAP_CONNECTION_TIMEOUT_MSECS(
-                "print.imap.connectiontimeout-msecs", NUMBER_VALIDATOR,
-                IMAP_CONNECTION_TIMEOUT_V_DEFAULT.toString()),
+        PRINT_IMAP_CONNECTION_TIMEOUT_MSECS("print.imap.connectiontimeout-msecs", NUMBER_VALIDATOR, IMAP_CONNECTION_TIMEOUT_V_DEFAULT.toString()),
 
         /**
          * Socket I/O timeout value in milliseconds. Default is infinite
          * timeout.
          */
-        PRINT_IMAP_TIMEOUT_MSECS("print.imap.timeout-msecs", NUMBER_VALIDATOR,
-                IMAP_TIMEOUT_V_DEFAULT.toString()),
+        PRINT_IMAP_TIMEOUT_MSECS("print.imap.timeout-msecs", NUMBER_VALIDATOR, IMAP_TIMEOUT_V_DEFAULT.toString()),
 
         /**
          *
@@ -1009,26 +923,22 @@ public interface IConfigProp {
         /**
          *
          */
-        PRINT_IMAP_SESSION_HEARTBEAT_SECS("print.imap.session.heartbeat-secs",
-                NUMBER_VALIDATOR, "300"),
+        PRINT_IMAP_SESSION_HEARTBEAT_SECS("print.imap.session.heartbeat-secs", NUMBER_VALIDATOR, "300"),
 
         /**
          *
          */
-        PRINT_IMAP_SESSION_DURATION_SECS("print.imap.session.duration-secs",
-                NUMBER_VALIDATOR, "3000"),
+        PRINT_IMAP_SESSION_DURATION_SECS("print.imap.session.duration-secs", NUMBER_VALIDATOR, "3000"),
 
         /**
          *
          */
-        PRINT_IMAP_MAX_FILE_MB("print.imap.max-file-mb", NUMBER_VALIDATOR,
-                IMAP_MAX_FILE_MB_V_DEFAULT.toString()),
+        PRINT_IMAP_MAX_FILE_MB("print.imap.max-file-mb", NUMBER_VALIDATOR, IMAP_MAX_FILE_MB_V_DEFAULT.toString()),
 
         /**
          *
          */
-        PRINT_IMAP_MAX_FILES("print.imap.max-files", NUMBER_VALIDATOR,
-                IMAP_MAX_FILES_V_DEFAULT.toString()),
+        PRINT_IMAP_MAX_FILES("print.imap.max-files", NUMBER_VALIDATOR, IMAP_MAX_FILES_V_DEFAULT.toString()),
 
         /**
          * Insert requesting users ad-hoc when printing from Smartschool to the
@@ -1041,40 +951,33 @@ public interface IConfigProp {
          * database before he is allowed to print.
          * </p>
          */
-        SMARTSCHOOL_USER_INSERT_LAZY_PRINT("smartschool.user.insert.lazy-print",
-                BOOLEAN_VALIDATOR, V_NO),
+        SMARTSCHOOL_USER_INSERT_LAZY_PRINT("smartschool.user.insert.lazy-print", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * User used for simulation and testing.
          */
-        SMARTSCHOOL_SIMULATION_USER("smartschool.simulation.user",
-                DEFAULT_SMARTSCHOOL_SIMULATION_USER),
+        SMARTSCHOOL_SIMULATION_USER("smartschool.simulation.user", DEFAULT_SMARTSCHOOL_SIMULATION_USER),
 
         /**
          * Student user 1 used for simulation and testing.
          */
-        SMARTSCHOOL_SIMULATION_STUDENT_1("smartschool.simulation.student-1",
-                DEFAULT_SMARTSCHOOL_SIMULATION_STUDENT_1),
+        SMARTSCHOOL_SIMULATION_STUDENT_1("smartschool.simulation.student-1", DEFAULT_SMARTSCHOOL_SIMULATION_STUDENT_1),
 
         /**
          * Student user 2 used for simulation and testing.
          */
-        SMARTSCHOOL_SIMULATION_STUDENT_2("smartschool.simulation.student-2",
-                DEFAULT_SMARTSCHOOL_SIMULATION_STUDENT_2),
+        SMARTSCHOOL_SIMULATION_STUDENT_2("smartschool.simulation.student-2", DEFAULT_SMARTSCHOOL_SIMULATION_STUDENT_2),
 
         /**
          * The simulation variant of
          * {@link #SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEATS}.
          */
-        SMARTSCHOOL_SIMULATION_SOAP_PRINT_POLL_HEARTBEATS(
-                "smartschool.simulation.soap.print.poll.heartbeats",
-                NUMBER_VALIDATOR, "15"),
+        SMARTSCHOOL_SIMULATION_SOAP_PRINT_POLL_HEARTBEATS("smartschool.simulation.soap.print.poll.heartbeats", NUMBER_VALIDATOR, "15"),
 
         /**
          * Is PaperCut integration for Smartschool component enabled?
          */
-        SMARTSCHOOL_PAPERCUT_ENABLE("smartschool.papercut.enable",
-                BOOLEAN_VALIDATOR, V_NO),
+        SMARTSCHOOL_PAPERCUT_ENABLE("smartschool.papercut.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * The shared top-level account that must be present in PaperCut.
@@ -1082,23 +985,20 @@ public interface IConfigProp {
          * PaperCut printer assigned to Smartschool will be configured to charge
          * to this account.
          */
-        SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT(
-                "smartschool.papercut.account.shared.parent", "Smartschool"),
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT("smartschool.papercut.account.shared.parent", "Smartschool"),
 
         /**
          * The sub-account of
          * {@link #SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT} holding Print Job
          * transactions.
          */
-        SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS(
-                "smartschool.papercut.account.shared.child.jobs", "Jobs"),
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS("smartschool.papercut.account.shared.child.jobs", "Jobs"),
 
         /**
          * This is one of the “Multiple Personal Accounts” in PaperCut and is
          * used by SavaPage to charge printing costs to individual persons.
          */
-        SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL(
-                "smartschool.papercut.account.personal", "Smartschool"),
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL("smartschool.papercut.account.personal", "Smartschool"),
 
         /**
          * The PaperCut account_type (like "USER-001", "USER-002") of the
@@ -1107,23 +1007,18 @@ public interface IConfigProp {
          * it is used to filter personal transactions in JDBC queries (CSV
          * downloads) for the Smartschool context.
          */
-        SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL_TYPE(
-                "smartschool.papercut.account.personal-type"),
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL_TYPE("smartschool.papercut.account.personal-type"),
         /**
          * Timeout in milliseconds until a Smartschool SOAP connection is
          * established.
          */
-        SMARTSCHOOL_SOAP_CONNECT_TIMEOUT_MILLIS(
-                "smartschool.soap.connect-timeout-millis", NUMBER_VALIDATOR,
-                "20000"),
+        SMARTSCHOOL_SOAP_CONNECT_TIMEOUT_MILLIS("smartschool.soap.connect-timeout-millis", NUMBER_VALIDATOR, "20000"),
 
         /**
          * Timeout in milliseconds to receive data from Smartschool SOAP
          * Service.
          */
-        SMARTSCHOOL_SOAP_SOCKET_TIMEOUT_MILLIS(
-                "smartschool.soap.socket-timeout-millis", NUMBER_VALIDATOR,
-                "20000"),
+        SMARTSCHOOL_SOAP_SOCKET_TIMEOUT_MILLIS("smartschool.soap.socket-timeout-millis", NUMBER_VALIDATOR, "20000"),
 
         /**
          * Is Smartschool (1) enabled?
@@ -1133,54 +1028,44 @@ public interface IConfigProp {
         /**
          * Printer name for Smartschool direct proxy printing (1).
          */
-        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER(
-                "smartschool.1.soap.print.proxy-printer"),
+        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER("smartschool.1.soap.print.proxy-printer"),
 
         /**
          * Printer name for Smartschool direct duplex proxy printing (1).
          */
-        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_DUPLEX(
-                "smartschool.1.soap.print.proxy-printer-duplex"),
+        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_DUPLEX("smartschool.1.soap.print.proxy-printer-duplex"),
 
         /**
          * Printer name for Smartschool direct proxy grayscale printing (1).
          */
-        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE(
-                "smartschool.1.soap.print.proxy-printer-grayscale"),
+        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE("smartschool.1.soap.print.proxy-printer-grayscale"),
 
         /**
          * Printer name for Smartschool direct proxy grayscale duplex printing
          * (1).
          */
-        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX(
-                "smartschool.1.soap.print.proxy-printer-grayscale-duplex"),
+        SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX("smartschool.1.soap.print.proxy-printer-grayscale-duplex"),
 
         /**
          * {@code true} if costs are charged to individual students,
          * {@code false} if costs are charged to shared "Klas" accounts only.
          */
-        SMARTSCHOOL_1_SOAP_PRINT_CHARGE_TO_STUDENTS(
-                "smartschool.1.soap.print.charge-to-students",
-                BOOLEAN_VALIDATOR, V_YES),
+        SMARTSCHOOL_1_SOAP_PRINT_CHARGE_TO_STUDENTS("smartschool.1.soap.print.charge-to-students", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * SOAP endpoint URL of Smartschool Print Center (1).
          */
-        SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_URL(
-                "smartschool.1.soap.print.endpoint.url"),
+        SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_URL("smartschool.1.soap.print.endpoint.url"),
 
         /**
          * Password of SOAP endpoint URL of Smartschool Print Center (1).
          */
-        SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD(
-                "smartschool.1.soap.print.endpoint.password"),
+        SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD("smartschool.1.soap.print.endpoint.password"),
 
         /**
          * {@code true} if this module is a node Smartschool Print Cluster (1).
          */
-        SMARTSCHOOL_1_SOAP_PRINT_NODE_ENABLE(
-                "smartschool.1.soap.print.node.enable", BOOLEAN_VALIDATOR,
-                V_NO),
+        SMARTSCHOOL_1_SOAP_PRINT_NODE_ENABLE("smartschool.1.soap.print.node.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * The unique node ID of this module in the Smartschool cluster (1).
@@ -1190,15 +1075,12 @@ public interface IConfigProp {
         /**
          * {@code true} if this node acts as Smartschool Print Center Proxy (1).
          */
-        SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENABLE(
-                "smartschool.1.soap.print.node.proxy.enable", BOOLEAN_VALIDATOR,
-                V_NO),
+        SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENABLE("smartschool.1.soap.print.node.proxy.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * SOAP endpoint URL of Smartschool Print Center Proxy (1).
          */
-        SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL(
-                "smartschool.1.soap.print.node.proxy.endpoint.url"),
+        SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL("smartschool.1.soap.print.node.proxy.endpoint.url"),
 
         /**
          * Is Smartschool (2) enabled?
@@ -1208,54 +1090,44 @@ public interface IConfigProp {
         /**
          * Printer name for Smartschool direct proxy printing (2).
          */
-        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER(
-                "smartschool.2.soap.print.proxy-printer"),
+        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER("smartschool.2.soap.print.proxy-printer"),
 
         /**
          * Printer name for Smartschool direct duplex proxy printing (1).
          */
-        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_DUPLEX(
-                "smartschool.2.soap.print.proxy-printer-duplex"),
+        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_DUPLEX("smartschool.2.soap.print.proxy-printer-duplex"),
 
         /**
          * Printer name for Smartschool direct proxy grayscale printing (2).
          */
-        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE(
-                "smartschool.2.soap.print.proxy-printer-grayscale"),
+        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE("smartschool.2.soap.print.proxy-printer-grayscale"),
 
         /**
          * Printer name for Smartschool direct proxy grayscale duplex printing
          * (2).
          */
-        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX(
-                "smartschool.2.soap.print.proxy-printer-grayscale-duplex"),
+        SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX("smartschool.2.soap.print.proxy-printer-grayscale-duplex"),
 
         /**
          * {@code true} if costs are charged to individual students,
          * {@code false} if costs are charged to shared "Klas" accounts only.
          */
-        SMARTSCHOOL_2_SOAP_PRINT_CHARGE_TO_STUDENTS(
-                "smartschool.2.soap.print.charge-to-students",
-                BOOLEAN_VALIDATOR, V_YES),
+        SMARTSCHOOL_2_SOAP_PRINT_CHARGE_TO_STUDENTS("smartschool.2.soap.print.charge-to-students", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * SOAP endpoint URL of Smartschool Print Center (2).
          */
-        SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_URL(
-                "smartschool.2.soap.print.endpoint.url"),
+        SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_URL("smartschool.2.soap.print.endpoint.url"),
 
         /**
          * Password of SOAP endpoint URL of Smartschool Print Center (2).
          */
-        SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD(
-                "smartschool.2.soap.print.endpoint.password"),
+        SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD("smartschool.2.soap.print.endpoint.password"),
 
         /**
          * {@code true} if this module is a node Smartschool Print Cluster (2).
          */
-        SMARTSCHOOL_2_SOAP_PRINT_NODE_ENABLE(
-                "smartschool.2.soap.print.node.enable", BOOLEAN_VALIDATOR,
-                V_NO),
+        SMARTSCHOOL_2_SOAP_PRINT_NODE_ENABLE("smartschool.2.soap.print.node.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * The unique node ID of this module in the Smartschool cluster (2).
@@ -1265,22 +1137,17 @@ public interface IConfigProp {
         /**
          * {@code true} if this node acts as Smartschool Print Center Proxy (2).
          */
-        SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENABLE(
-                "smartschool.2.soap.print.node.proxy.enable", BOOLEAN_VALIDATOR,
-                V_NO),
+        SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENABLE("smartschool.2.soap.print.node.proxy.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * SOAP endpoint URL of Smartschool Print Center Proxy (2).
          */
-        SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL(
-                "smartschool.2.soap.print.node.proxy.endpoint.url"),
+        SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL("smartschool.2.soap.print.node.proxy.endpoint.url"),
 
         /**
          * The heartbeat (seconds) within a Smartschool print polling session.
          */
-        SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEAT_SECS(
-                "smartschool.soap.print.poll.heartbeat-secs", NUMBER_VALIDATOR,
-                "2"),
+        SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEAT_SECS("smartschool.soap.print.poll.heartbeat-secs", NUMBER_VALIDATOR, "2"),
 
         /**
          * The number of heartbeats within a Smartschool print polling session
@@ -1291,44 +1158,35 @@ public interface IConfigProp {
          * can be send unlimited.
          * </p>
          */
-        SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEATS(
-                "smartschool.soap.print.poll.heartbeats", NUMBER_VALIDATOR,
-                "61"),
+        SMARTSCHOOL_SOAP_PRINT_POLL_HEARTBEATS("smartschool.soap.print.poll.heartbeats", NUMBER_VALIDATOR, "61"),
 
         /**
          * The duration (seconds) of a Smartschool print polling session.
          */
-        SMARTSCHOOL_SOAP_PRINT_POLL_SESSION_DURATION_SECS(
-                "smartschool.soap.print.poll.session.duration-secs",
-                NUMBER_VALIDATOR, "3600"),
+        SMARTSCHOOL_SOAP_PRINT_POLL_SESSION_DURATION_SECS("smartschool.soap.print.poll.session.duration-secs", NUMBER_VALIDATOR, "3600"),
 
         /**
          *
          */
-        REPORTS_PDF_INTERNAL_FONT_FAMILY("reports.pdf.font-family",
-                INTERNAL_FONT_FAMILY_VALIDATOR,
-                DEFAULT_INTERNAL_FONT_FAMILY.toString()),
+        REPORTS_PDF_INTERNAL_FONT_FAMILY("reports.pdf.font-family", INTERNAL_FONT_FAMILY_VALIDATOR, DEFAULT_INTERNAL_FONT_FAMILY.toString()),
 
         /**
          * Boolean (Default is false). If true, prevents use of the non-standard
          * AUTHENTICATE LOGIN command, instead using the plain LOGIN command.
          */
-        MAIL_IMAP_AUTH_LOGIN_DISABLE("print.imap.auth.login.disable",
-                BOOLEAN_VALIDATOR, V_NO),
+        MAIL_IMAP_AUTH_LOGIN_DISABLE("print.imap.auth.login.disable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * Boolean (Default is false). If true, prevents use of the AUTHENTICATE
          * PLAIN command.
          */
-        MAIL_IMAP_AUTH_PLAIN_DISABLE("print.imap.auth.plain.disable",
-                BOOLEAN_VALIDATOR, V_NO),
+        MAIL_IMAP_AUTH_PLAIN_DISABLE("print.imap.auth.plain.disable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * Boolean (Default is false). If true, prevents use of the AUTHENTICATE
          * NTLM command.
          */
-        MAIL_IMAP_AUTH_NTLM_DISABLE("print.imap.auth.ntlm.disable",
-                BOOLEAN_VALIDATOR, V_NO),
+        MAIL_IMAP_AUTH_NTLM_DISABLE("print.imap.auth.ntlm.disable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          *
@@ -1364,10 +1222,9 @@ public interface IConfigProp {
         MAIL_SMTP_DEBUG("mail.smtp.debug", BOOLEAN_VALIDATOR, V_NO),
 
         /**
-         *
+         * .
          */
-        MAIL_SMTP_MAX_FILE_KB("mail.smtp.max-file-kb", NUMBER_VALIDATOR,
-                "1024"),
+        MAIL_SMTP_MAX_FILE_KB("mail.smtp.max-file-kb", NUMBER_VALIDATOR, "1024"),
 
         /**
          * Value for SMTP property: <b>mail.smtp.connectiontimeout</b>
@@ -1378,8 +1235,7 @@ public interface IConfigProp {
          * This timeout is implemented by java.net.Socket.
          * </p>
          */
-        MAIL_SMTP_CONNECTIONTIMEOUT("mail.smtp.connectiontimeout",
-                NUMBER_VALIDATOR, "5000"),
+        MAIL_SMTP_CONNECTIONTIMEOUT("mail.smtp.connectiontimeout", NUMBER_VALIDATOR, "5000"),
 
         /**
          * Value for SMTP property: <b>mail.smtp.timeout</b>
@@ -1415,21 +1271,24 @@ public interface IConfigProp {
         /**
          *
          */
-        PRINT_IN_ALLOW_ENCRYPTED_PDF("print-in.allow-encrypted-pdf",
-                BOOLEAN_VALIDATOR, V_YES),
+        PRINT_IN_ALLOW_ENCRYPTED_PDF("print-in.allow-encrypted-pdf", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * Number of minutes after which a print-in job expires. When zero (0)
+         * there is NO expiry.
+         *
+         */
+        PRINT_IN_JOB_EXPIRY_MINS("print-in.job-expiry-mins", NUMBER_VALIDATOR, V_ZERO),
 
         /**
          * Enable Delegated Print (boolean).
          */
-        PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable",
-                BOOLEAN_VALIDATOR, V_NO),
+        PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * Enable Delegated Print integration with PaperCut (boolean).
          */
-        PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE(
-                "proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR,
-                V_NO),
+        PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE("proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * The shared top-level account that must be present in PaperCut.
@@ -1437,26 +1296,21 @@ public interface IConfigProp {
          * PaperCut printer assigned to Delegated Print will be configured to
          * charge to this account.
          */
-        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_PARENT(
-                "proxy-print.delegate.papercut.account.shared.parent",
-                "SavaPage"),
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_PARENT("proxy-print.delegate.papercut.account.shared.parent", "SavaPage"),
 
         /**
          * The sub-account of
          * {@link #PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_PARENT} holding
          * Print Job transactions.
          */
-        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS(
-                "proxy-print.delegate.papercut.account.shared.child.jobs",
-                "Jobs"),
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS("proxy-print.delegate.papercut.account.shared.child.jobs", "Jobs"),
 
         /**
          * This is one of the “Multiple Personal Accounts” in PaperCut and is
          * used by SavaPage to charge Delegated Print costs to individual
          * persons.
          */
-        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL(
-                "proxy-print.delegate.papercut.account.personal", "SavaPage"),
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL("proxy-print.delegate.papercut.account.personal", "SavaPage"),
 
         /**
          * The PaperCut account_type (like "USER-001", "USER-002") of the
@@ -1465,39 +1319,33 @@ public interface IConfigProp {
          * this key it is used to filter personal transactions in JDBC queries
          * (CSV downloads) for the Delegated Print context.
          */
-        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL_TYPE(
-                "proxy-print.delegate.papercut.account.personal-type"),
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL_TYPE("proxy-print.delegate.papercut.account.personal-type"),
 
         /**
          * Enable non-secure proxy printing (Boolean).
          */
-        PROXY_PRINT_NON_SECURE("proxy-print.non-secure", BOOLEAN_VALIDATOR,
-                V_YES),
+        PROXY_PRINT_NON_SECURE("proxy-print.non-secure", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
          */
-        PROXY_PRINT_FAST_EXPIRY_MINS("proxy-print.fast-expiry-mins",
-                NUMBER_VALIDATOR, "10"),
+        PROXY_PRINT_FAST_EXPIRY_MINS("proxy-print.fast-expiry-mins", NUMBER_VALIDATOR, "10"),
 
         /**
           *
           */
-        PROXY_PRINT_HOLD_EXPIRY_MINS("proxy-print.hold-expiry-mins",
-                NUMBER_VALIDATOR, "60"),
+        PROXY_PRINT_HOLD_EXPIRY_MINS("proxy-print.hold-expiry-mins", NUMBER_VALIDATOR, "60"),
 
         /**
           *
           */
-        PROXY_PRINT_DIRECT_EXPIRY_SECS("proxy-print.direct-expiry-secs",
-                NUMBER_VALIDATOR, "20"),
+        PROXY_PRINT_DIRECT_EXPIRY_SECS("proxy-print.direct-expiry-secs", NUMBER_VALIDATOR, "20"),
 
         /**
          * Restrict non-secure proxy printing to this Printer Group. See:
          * {@link PrinterGroup#getGroupName()}
          */
-        PROXY_PRINT_NON_SECURE_PRINTER_GROUP(
-                "proxy-print.non-secure-printer-group"),
+        PROXY_PRINT_NON_SECURE_PRINTER_GROUP("proxy-print.non-secure-printer-group"),
 
         /**
          * CRON expression: 10 minutes past midnight.
@@ -1528,8 +1376,7 @@ public interface IConfigProp {
         /**
          *
          */
-        SCHEDULE_AUTO_SYNC_USER("schedule.auto-sync.user", BOOLEAN_VALIDATOR,
-                V_YES),
+        SCHEDULE_AUTO_SYNC_USER("schedule.auto-sync.user", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
@@ -1549,14 +1396,12 @@ public interface IConfigProp {
         /**
          *
          */
-        STATS_PRINT_IN_ROLLING_MONTH_PAGES(
-                "stats.print-in.rolling-month.pages"),
+        STATS_PRINT_IN_ROLLING_MONTH_PAGES("stats.print-in.rolling-month.pages"),
 
         /**
          *
          */
-        STATS_PRINT_IN_ROLLING_MONTH_BYTES(
-                "stats.print-in.rolling-month.bytes"),
+        STATS_PRINT_IN_ROLLING_MONTH_BYTES("stats.print-in.rolling-month.bytes"),
 
         /**
          *
@@ -1591,14 +1436,12 @@ public interface IConfigProp {
         /**
          *
          */
-        STATS_PRINT_OUT_ROLLING_WEEK_PAGES(
-                "stats.print-out.rolling-week.pages"),
+        STATS_PRINT_OUT_ROLLING_WEEK_PAGES("stats.print-out.rolling-week.pages"),
 
         /**
          *
          */
-        STATS_PRINT_OUT_ROLLING_WEEK_SHEETS(
-                "stats.print-out.rolling-week.sheets"),
+        STATS_PRINT_OUT_ROLLING_WEEK_SHEETS("stats.print-out.rolling-week.sheets"),
 
         /**
          *
@@ -1608,20 +1451,17 @@ public interface IConfigProp {
         /**
          *
          */
-        STATS_PRINT_OUT_ROLLING_WEEK_BYTES(
-                "stats.print-out.rolling-week.bytes"),
+        STATS_PRINT_OUT_ROLLING_WEEK_BYTES("stats.print-out.rolling-week.bytes"),
 
         /**
          *
          */
-        STATS_PRINT_OUT_ROLLING_MONTH_PAGES(
-                "stats.print-out.rolling-month.pages"),
+        STATS_PRINT_OUT_ROLLING_MONTH_PAGES("stats.print-out.rolling-month.pages"),
 
         /**
          *
          */
-        STATS_PRINT_OUT_ROLLING_MONTH_SHEETS(
-                "stats.print-out.rolling-month.sheets"),
+        STATS_PRINT_OUT_ROLLING_MONTH_SHEETS("stats.print-out.rolling-month.sheets"),
 
         /**
          *
@@ -1631,14 +1471,12 @@ public interface IConfigProp {
         /**
          *
          */
-        STATS_PRINT_OUT_ROLLING_MONTH_BYTES(
-                "stats.print-out.rolling-month.bytes"),
+        STATS_PRINT_OUT_ROLLING_MONTH_BYTES("stats.print-out.rolling-month.bytes"),
 
         /**
          *
          */
-        STATS_TOTAL_RESET_DATE("stats.total.reset-date",
-                String.valueOf(System.currentTimeMillis())),
+        STATS_TOTAL_RESET_DATE("stats.total.reset-date", String.valueOf(System.currentTimeMillis())),
 
         /**
          *
@@ -1683,26 +1521,22 @@ public interface IConfigProp {
         /**
          * Make a backup before a database schema upgrade.
          */
-        SYS_BACKUP_BEFORE_DB_UPGRADE("system.backup.before-db-upgrade",
-                BOOLEAN_VALIDATOR, V_YES),
+        SYS_BACKUP_BEFORE_DB_UPGRADE("system.backup.before-db-upgrade", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * Time in milliseconds when last backup was run.
          */
-        SYS_BACKUP_LAST_RUN_TIME("system.backup.last-run-time",
-                NUMBER_VALIDATOR, "0"),
+        SYS_BACKUP_LAST_RUN_TIME("system.backup.last-run-time", NUMBER_VALIDATOR, "0"),
 
         /**
          *
          */
-        SYS_BACKUP_DAYS_TO_KEEP("system.backup.days-to-keep", NUMBER_VALIDATOR,
-                "30"),
+        SYS_BACKUP_DAYS_TO_KEEP("system.backup.days-to-keep", NUMBER_VALIDATOR, "30"),
 
         /**
          *
          */
-        SYS_BACKUP_ENABLE_AUTOMATIC("system.backup.enable-automatic",
-                BOOLEAN_VALIDATOR, V_YES),
+        SYS_BACKUP_ENABLE_AUTOMATIC("system.backup.enable-automatic", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
@@ -1755,21 +1589,18 @@ public interface IConfigProp {
         /**
          *
          */
-        USER_PIN_LENGTH_MAX("user.pin-length-max", NUMBER_VALIDATOR,
-                NUMBER_V_NONE.toString()),
+        USER_PIN_LENGTH_MAX("user.pin-length-max", NUMBER_VALIDATOR, NUMBER_V_NONE.toString()),
 
         /**
          *
          */
-        USER_ID_NUMBER_LENGTH_MIN("user.id-number-length-min", NUMBER_VALIDATOR,
-                "4"),
+        USER_ID_NUMBER_LENGTH_MIN("user.id-number-length-min", NUMBER_VALIDATOR, "4"),
 
         /**
          * Insert users ad-hoc after successful authentication at the login
          * page.
          */
-        USER_INSERT_LAZY_LOGIN("user.insert.lazy-login", BOOLEAN_VALIDATOR,
-                V_YES),
+        USER_INSERT_LAZY_LOGIN("user.insert.lazy-login", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * Insert users ad-hoc when printing to a SavaPage printer.
@@ -1781,8 +1612,7 @@ public interface IConfigProp {
          * any SavaPage printer can be used.
          * </p>
          */
-        USER_INSERT_LAZY_PRINT("user.insert.lazy-print", BOOLEAN_VALIDATOR,
-                V_NO),
+        USER_INSERT_LAZY_PRINT("user.insert.lazy-print", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          *
@@ -1792,15 +1622,13 @@ public interface IConfigProp {
         /**
          *
          */
-        USER_SOURCE_UPDATE_USER_DETAILS("user-source.update-user-details",
-                BOOLEAN_VALIDATOR, V_YES),
+        USER_SOURCE_UPDATE_USER_DETAILS("user-source.update-user-details", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * (boolean) Trust the User Client App system account name as user
          * identification?
          */
-        CLIAPP_AUTH_TRUST_USER_ACCOUNT("cliapp.auth.trust-user-account",
-                BOOLEAN_VALIDATOR, V_NO),
+        CLIAPP_AUTH_TRUST_USER_ACCOUNT("cliapp.auth.trust-user-account", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * Secret administrator passkey of User Client App.
@@ -1811,8 +1639,7 @@ public interface IConfigProp {
          * Trust authenticated user in User Web App on same IP address as Client
          * App (Boolean, default TRUE).
          */
-        CLIAPP_AUTH_TRUST_WEBAPP_USER_AUTH("cliapp.auth.trust-webapp-user-auth",
-                BOOLEAN_VALIDATOR, V_YES),
+        CLIAPP_AUTH_TRUST_WEBAPP_USER_AUTH("cliapp.auth.trust-webapp-user-auth", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * .
@@ -1824,110 +1651,92 @@ public interface IConfigProp {
          * arrives in SafePages inbox: if number of PDF pages is GT threshold
          * the shadow is not created.
          */
-        ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT(
-                "eco-print.auto-threshold.page-count", NUMBER_VALIDATOR, "0"),
+        ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT("eco-print.auto-threshold.page-count", NUMBER_VALIDATOR, "0"),
 
         /**
          * .
          */
-        ECO_PRINT_RESOLUTION_DPI("eco-print.resolution-dpi", NUMBER_VALIDATOR,
-                "300"),
+        ECO_PRINT_RESOLUTION_DPI("eco-print.resolution-dpi", NUMBER_VALIDATOR, "300"),
 
         /**
          * Discount percentage for EcoPrint proxy printing.
          */
-        ECO_PRINT_DISCOUNT_PERC("eco-print.discount-percent", NUMBER_VALIDATOR,
-                "15"),
+        ECO_PRINT_DISCOUNT_PERC("eco-print.discount-percent", NUMBER_VALIDATOR, "15"),
 
         /**
          * Trust authenticated user in Client App on same IP address as User Web
          * App (Boolean, default TRUE).
          */
-        WEBAPP_USER_AUTH_TRUST_CLIAPP_AUTH("webapp.user.auth.trust-cliapp-auth",
-                BOOLEAN_VALIDATOR, V_YES),
+        WEBAPP_USER_AUTH_TRUST_CLIAPP_AUTH("webapp.user.auth.trust-cliapp-auth", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * (boolean) Show Document title in the DocLog.
          */
-        WEBAPP_DOCLOG_SHOW_DOC_TITLE("webapp.doclog.show-doc-title",
-                BOOLEAN_VALIDATOR, V_YES),
+        WEBAPP_DOCLOG_SHOW_DOC_TITLE("webapp.doclog.show-doc-title", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
          */
-        WEBAPP_WATCHDOG_HEARTBEAT_SECS("webapp.watchdog.heartbeat-secs",
-                NUMBER_VALIDATOR, DEFAULT_WEBAPP_WATCHDOG_HEARTBEAT_SECS),
+        WEBAPP_WATCHDOG_HEARTBEAT_SECS("webapp.watchdog.heartbeat-secs", NUMBER_VALIDATOR, DEFAULT_WEBAPP_WATCHDOG_HEARTBEAT_SECS),
 
         /**
          *
          */
-        WEBAPP_WATCHDOG_TIMEOUT_SECS("webapp.watchdog.timeout-secs",
-                NUMBER_VALIDATOR, DEFAULT_WEBAPP_WATCHDOG_TIMEOUT_SECS),
+        WEBAPP_WATCHDOG_TIMEOUT_SECS("webapp.watchdog.timeout-secs", NUMBER_VALIDATOR, DEFAULT_WEBAPP_WATCHDOG_TIMEOUT_SECS),
 
         /**
          * Max idle seconds after which automatic logout occurs.
          */
-        WEBAPP_USER_MAX_IDLE_SECS("webapp.user.max-idle-secs", NUMBER_VALIDATOR,
-                WEBAPP_MAX_IDLE_SECS_V_NONE.toString()),
+        WEBAPP_USER_MAX_IDLE_SECS("webapp.user.max-idle-secs", NUMBER_VALIDATOR, WEBAPP_MAX_IDLE_SECS_V_NONE.toString()),
 
         /**
          * Admin WebApp: show technical info on dashboard?
          */
-        WEBAPP_ADMIN_DASHBOARD_SHOW_TECH_INFO(
-                "webapp.admin.dashboard.show-tech-info", BOOLEAN_VALIDATOR,
-                V_NO),
+        WEBAPP_ADMIN_DASHBOARD_SHOW_TECH_INFO("webapp.admin.dashboard.show-tech-info", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * Number of seconds after which cached Bitcoin wallet information
          * expires.
          */
-        WEBAPP_ADMIN_BITCOIN_WALLET_CACHE_EXPIRY_SECS(
-                "webapp.admin.bitcoin.wallet.cache-expiry-secs",
-                NUMBER_VALIDATOR, "3600"),
+        WEBAPP_ADMIN_BITCOIN_WALLET_CACHE_EXPIRY_SECS("webapp.admin.bitcoin.wallet.cache-expiry-secs", NUMBER_VALIDATOR, "3600"),
+
+        /**
+         * Delete all print-in jobs at User WebApp logout.
+         */
+        WEBAPP_USER_LOGOUT_CLEAR_INBOX("webapp.user.logout.clear-inbox", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * User WebApp: Max. copies for proxy printing.
          */
-        WEBAPP_USER_PROXY_PRINT_MAX_COPIES("webapp.user.proxy-print.max-copies",
-                NUMBER_VALIDATOR, "30"),
+        WEBAPP_USER_PROXY_PRINT_MAX_COPIES("webapp.user.proxy-print.max-copies", NUMBER_VALIDATOR, "30"),
 
         /**
          * User WebApp: enable a fixed inbox clearing scope after a proxy print
          * job is issued.
          */
-        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_ENABLE(
-                "webapp.user.proxy-print.clear-inbox.enable", BOOLEAN_VALIDATOR,
-                V_NO),
+        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_ENABLE("webapp.user.proxy-print.clear-inbox.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * User WebApp: the fixed inbox clearing scope after proxy printing.
          */
-        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE(
-                "webapp.user.proxy-print.clear-inbox.scope",
-                new EnumValidator<>(InboxSelectScopeEnum.class),
-                InboxSelectScopeEnum.NONE.toString()),
+        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE("webapp.user.proxy-print.clear-inbox.scope", new EnumValidator<>(InboxSelectScopeEnum.class), InboxSelectScopeEnum.NONE.toString()),
 
         /**
          * WebApp: enable (show) driver download in About Dialog?
          */
-        WEBAPP_ABOUT_DRIVER_DOWNLOAD_ENABLE(
-                "webapp.about.driver-download.enable", BOOLEAN_VALIDATOR,
-                V_YES),
+        WEBAPP_ABOUT_DRIVER_DOWNLOAD_ENABLE("webapp.about.driver-download.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * Time limit (milliseconds) to capture the keystrokes of the card
          * number from a Local Card Reader.
          */
-        WEBAPP_CARD_LOCAL_KEYSTROKES_MAX_MSECS(
-                "webapp.card-local.keystrokes-max-msecs", NUMBER_VALIDATOR,
-                "500"),
+        WEBAPP_CARD_LOCAL_KEYSTROKES_MAX_MSECS("webapp.card-local.keystrokes-max-msecs", NUMBER_VALIDATOR, "500"),
 
         /**
          * Time limit (seconds) for a user to associate a new Card to his
          * account. After the time limit the dialog is automatically closed.
          */
-        WEBAPP_CARD_ASSOC_DIALOG_MAX_SECS("webapp.card-assoc.dialog-max-secs",
-                NUMBER_VALIDATOR, "30"),
+        WEBAPP_CARD_ASSOC_DIALOG_MAX_SECS("webapp.card-assoc.dialog-max-secs", NUMBER_VALIDATOR, "30"),
 
         /**
          * The custom jQuery Mobile Theme CSS file for the Admin Web App as
@@ -1980,8 +1789,7 @@ public interface IConfigProp {
         /**
          * .
          */
-        WEB_LOGIN_AUTHTOKEN_ENABLE("web-login.authtoken.enable",
-                BOOLEAN_VALIDATOR, V_YES),
+        WEB_LOGIN_AUTHTOKEN_ENABLE("web-login.authtoken.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * Is web login via Trusted Third Party (TTP) enabled?
@@ -1997,21 +1805,17 @@ public interface IConfigProp {
          * Number of msecs after after which an {@link OneTimeAuthToken}
          * expires.
          */
-        WEB_LOGIN_TTP_TOKEN_EXPIRY_MSECS("web-login.ttp.token.expiry-msecs",
-                NUMBER_VALIDATOR, "5000"),
+        WEB_LOGIN_TTP_TOKEN_EXPIRY_MSECS("web-login.ttp.token.expiry-msecs", NUMBER_VALIDATOR, "5000"),
 
         /**
          * Inactivity timeout (minutes) for the admin web interface.
          */
-        WEB_LOGIN_ADMIN_SESSION_TIMOUT_MINS(
-                "web-login.admin.session-timeout-mins", NUMBER_VALIDATOR,
-                "1440"),
+        WEB_LOGIN_ADMIN_SESSION_TIMOUT_MINS("web-login.admin.session-timeout-mins", NUMBER_VALIDATOR, "1440"),
 
         /**
          * Inactivity timeout (minutes) for the user web interface.
          */
-        WEB_LOGIN_USER_SESSION_TIMEOUT_MINS(
-                "web-login.user.session-timeout-mins", NUMBER_VALIDATOR, "60"),
+        WEB_LOGIN_USER_SESSION_TIMEOUT_MINS("web-login.user.session-timeout-mins", NUMBER_VALIDATOR, "60"),
 
         /**
          *
@@ -2021,8 +1825,7 @@ public interface IConfigProp {
         /**
          *
          */
-        WEB_PRINT_MAX_FILE_MB("web-print.max-file-mb", NUMBER_VALIDATOR,
-                WEBPRINT_MAX_FILE_MB_V_DEFAULT.toString()),
+        WEB_PRINT_MAX_FILE_MB("web-print.max-file-mb", NUMBER_VALIDATOR, WEBPRINT_MAX_FILE_MB_V_DEFAULT.toString()),
 
         /**
          *
