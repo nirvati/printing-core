@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,10 +30,10 @@ import org.savapage.core.util.MediaUtils;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class PageImages {
+public final class PageImages {
 
     private Boolean drm = false;
     private ArrayList<PageImageJob> jobs = new ArrayList<>();
@@ -81,6 +81,12 @@ public class PageImages {
             this.pages = pages;
         }
 
+        /**
+         * Adds pages to the total selected pages.
+         *
+         * @param nPages
+         *            The number of pages to add.
+         */
         public void addPagesSelected(int nPages) {
             pagesSelected += nPages;
         }
@@ -130,8 +136,6 @@ public class PageImages {
 
     /**
      *
-     * @author Datraverse B.V.
-     *
      */
     public static class PageImage {
 
@@ -140,6 +144,8 @@ public class PageImages {
         private String rotate;
         private Boolean drm;
         private String media;
+        private Long expiryTime;
+        private Long expiryTimeSignal;
 
         /**
          * The index into the job array.
@@ -194,6 +200,22 @@ public class PageImages {
             this.media = media;
         }
 
+        public Long getExpiryTime() {
+            return expiryTime;
+        }
+
+        public void setExpiryTime(Long expiryTime) {
+            this.expiryTime = expiryTime;
+        }
+
+        public Long getExpiryTimeSignal() {
+            return expiryTimeSignal;
+        }
+
+        public void setExpiryTimeSignal(Long expiryTimeSignal) {
+            this.expiryTimeSignal = expiryTimeSignal;
+        }
+
     }
 
     public PageImages() {
@@ -242,9 +264,8 @@ public class PageImages {
         if (mediaInbox == null) {
             mediaSizeInbox = null;
         } else {
-            mediaSizeInbox =
-                    MediaUtils.getMediaSizeFromInboxMedia(mediaInbox
-                            .toLowerCase());
+            mediaSizeInbox = MediaUtils
+                    .getMediaSizeFromInboxMedia(mediaInbox.toLowerCase());
         }
 
         final IppMediaSizeEnum mediaSizeIpp;
@@ -272,7 +293,7 @@ public class PageImages {
     }
 
     /**
-     * Adds pages to the selected pages per job counter.
+     * Adds pages to the total selected pages of a job.
      *
      * @param iJob
      *            Zero-base index of the job.

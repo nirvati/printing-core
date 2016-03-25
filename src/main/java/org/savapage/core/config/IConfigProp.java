@@ -1278,7 +1278,7 @@ public interface IConfigProp {
          * there is NO expiry.
          *
          */
-        PRINT_IN_JOB_EXPIRY_MINS("print-in.job-expiry-mins", NUMBER_VALIDATOR, V_ZERO),
+        PRINT_IN_JOB_EXPIRY_MINS("print-in.job-expiry.mins", NUMBER_VALIDATOR, V_ZERO),
 
         /**
          * Enable Delegated Print (boolean).
@@ -1582,12 +1582,12 @@ public interface IConfigProp {
         USER_CAN_CHANGE_PIN("user.can-change-pin", BOOLEAN_VALIDATOR, V_YES),
 
         /**
-         *
+         * .
          */
         USER_PIN_LENGTH_MIN("user.pin-length-min", NUMBER_VALIDATOR, "4"),
 
         /**
-         *
+         * .
          */
         USER_PIN_LENGTH_MAX("user.pin-length-max", NUMBER_VALIDATOR, NUMBER_V_NONE.toString()),
 
@@ -1704,6 +1704,13 @@ public interface IConfigProp {
          * Delete all print-in jobs at User WebApp logout.
          */
         WEBAPP_USER_LOGOUT_CLEAR_INBOX("webapp.user.logout.clear-inbox", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * User WebApp: The number of minutes before job expiration when a job
+         * is signaled as nearing expiration. When zero (0) the expiration is
+         * <i>not</i> signaled.
+         */
+        WEBAPP_USER_PRINT_IN_JOB_EXPIRY_SIGNAL_MINS("webapp.user.print-in.job-expiry.signal-mins", NUMBER_VALIDATOR, V_ZERO),
 
         /**
          * User WebApp: Max. copies for proxy printing.

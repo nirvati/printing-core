@@ -24,6 +24,8 @@ package org.savapage.core.services.helpers;
 import java.util.Iterator;
 import java.util.List;
 
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.imaging.ImageUrl;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
@@ -32,6 +34,7 @@ import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.impl.InboxServiceImpl;
+import org.savapage.core.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +75,23 @@ public final class InboxPageImageChunker {
     private final String uniqueUrlValue;
     private final boolean base64;
 
+    /**
+     * The job expiration period in milliseconds.
+     */
+    private long msecJobExpiry;
+
+    /**
+     * The number of milliseconds before job expiration when a job is signaled
+     * as nearing expiration. When zero (0) expiration is <i>not</i> signaled.
+     */
+    private long msecJobExpirySignal;
+
+    /**
+     * The job expiration reference time in milliseconds (the current time).
+     *
+     */
+    private long msecCurrentTime;
+
     /*
      * Derived parameters.
      */
@@ -86,9 +106,9 @@ public final class InboxPageImageChunker {
     private final int nPagesInChunk;
 
     /**
-     * The return value.
+     * The collected {@link PageImages}.
      */
-    private final PageImages pageImagesOut;
+    private final PageImages pageImages;
 
     /**
      * Accumulating tracing info.
@@ -96,25 +116,34 @@ public final class InboxPageImageChunker {
     private final StringBuilder chunkTrace = new StringBuilder();
 
     /*
-     * Process variables.
+     * Process "walk" variables.
      */
-    private Iterator<InboxJobRange> pagesIterWlk;
 
-    private boolean bEofWlk;
-    private boolean bPageRangesInitWlk;
-    private boolean bPageChunkInitWlk;
+    /**
+     * Iterator over all inbox page ranges.
+     */
+    private Iterator<InboxJobRange> pageRangesIterWlk;
+
+    private boolean isEofWlk;
+
+    private boolean initPageRangesWlk;
+    private boolean initPageRangeWlk;
+    private boolean initPageChunkWlk;
+
+    private boolean nextPageRangesWlk;
+    private boolean nextPageRangeWlk;
+    private boolean nextPageChunkWlk;
 
     /**
      * Overall page counter.
      */
     private int nPageCountWlk;
 
-    private InboxJobRange pageIterWlk;
+    private InboxJobRange pageRangesWlk;
 
-    boolean bPageRangeInitWlk = true;
+    private Iterator<RangeAtom> pageRangeAtomIterWlk;
+    private RangeAtom pageRangeAtomWlk;
 
-    private Iterator<RangeAtom> rangesIterWlk;
-    private RangeAtom rangeIterWlk;
     private InboxInfoDto.InboxJob jobWlk;
     private Integer iJobWlk;
 
@@ -135,19 +164,22 @@ public final class InboxPageImageChunker {
     private boolean bScanPageChunkWlk;
 
     private ImageUrl imgUrlChunkWlk;
-    private ImageUrl imgUrlPageWlk;
 
+    /**
+     * {@link ImageUrl} template for atoms in a page range.
+     */
+    private ImageUrl imgUrlPageRangesWlk;
+
+    /**
+     *
+     */
     private int pageUrlParmChunkWlk;
+
     private int iWlk;
     private int iBeginWlk;
     private int iEndWlk;
 
-    private List<RangeAtom> rangesWlk;
-
     private int nStartNextChunkWlk;
-    private boolean bNextPageRangeWlk;
-    private boolean bNextPageRangesWlk;
-    private boolean bNextPageChunkWlk;
 
     /**
      *
@@ -228,12 +260,12 @@ public final class InboxPageImageChunker {
         }
 
         /*
-         * Create and initialize return object.
+         * Create and initialize with jobs info.
          */
-        this.pageImagesOut = new PageImages();
+        this.pageImages = new PageImages();
 
         for (final InboxInfoDto.InboxJob jobIn : inboxInfo.getJobs()) {
-            this.pageImagesOut.addJob(jobIn.getTitle(), jobIn.getPages(),
+            this.pageImages.addJob(jobIn.getTitle(), jobIn.getPages(),
                     jobIn.getRotate(), jobIn.getDrm(), jobIn.getMedia());
         }
     }
@@ -256,26 +288,45 @@ public final class InboxPageImageChunker {
             LOGGER.trace("nPagesInChunk [" + nPagesInChunk + "]");
         }
 
-        pagesIterWlk = inboxInfo.getPages().iterator();
+        msecCurrentTime = System.currentTimeMillis();
 
-        bEofWlk = !pagesIterWlk.hasNext();
-        bPageRangesInitWlk = true;
-        bPageChunkInitWlk = true;
+        /*
+         * Signaling expired jobs.
+         */
+        final ConfigManager cm = ConfigManager.instance();
 
-        nPageCountWlk = 1; // overall page counter
+        msecJobExpiry = cm.getConfigInt(Key.PRINT_IN_JOB_EXPIRY_MINS, 0)
+                * DateUtil.DURATION_MSEC_MINUTE;
 
-        pageIterWlk = null;
-        if (!bEofWlk) {
-            pageIterWlk = pagesIterWlk.next(); // first page
+        if (msecJobExpiry > 0) {
+            msecJobExpirySignal = ConfigManager.instance().getConfigInt(
+                    Key.WEBAPP_USER_PRINT_IN_JOB_EXPIRY_SIGNAL_MINS, 0)
+                    * DateUtil.DURATION_MSEC_MINUTE;
+        } else {
+            msecJobExpirySignal = 0;
         }
 
-        bPageRangeInitWlk = true;
+        //
+        pageRangesIterWlk = inboxInfo.getPages().iterator();
+
+        isEofWlk = !pageRangesIterWlk.hasNext();
+
+        initPageRangesWlk = true;
+        initPageRangeWlk = true;
+        initPageChunkWlk = true;
+
+        nPageCountWlk = 1;
+
+        pageRangesWlk = null;
+        if (!isEofWlk) {
+            pageRangesWlk = pageRangesIterWlk.next(); // first page
+        }
 
         // ---------------------------------------
         // Walking variables used in the loop
         // ---------------------------------------
-        rangesIterWlk = null;
-        rangeIterWlk = null;
+        pageRangeAtomIterWlk = null;
+        pageRangeAtomWlk = null;
 
         jobWlk = null;
         iJobWlk = null;
@@ -296,19 +347,17 @@ public final class InboxPageImageChunker {
         bScanPageChunkWlk = false;
 
         imgUrlChunkWlk = null;
-        imgUrlPageWlk = null;
+        imgUrlPageRangesWlk = null;
 
         pageUrlParmChunkWlk = 0;
         iWlk = 0;
         iBeginWlk = 0;
         iEndWlk = 0;
 
-        rangesWlk = null;
-
         nStartNextChunkWlk = 0;
-        bNextPageRangeWlk = false;
-        bNextPageRangesWlk = false;
-        bNextPageChunkWlk = false;
+        nextPageRangeWlk = false;
+        nextPageRangesWlk = false;
+        nextPageChunkWlk = false;
     }
 
     /**
@@ -321,12 +370,13 @@ public final class InboxPageImageChunker {
     }
 
     /**
+     * Creates a generic {@link ImageUrl} for a job.
      *
      * @param job
      *            The inbox job.
      * @return The {@link ImageUrl}.
      */
-    private ImageUrl createImageUrl(final InboxInfoDto.InboxJob job) {
+    private ImageUrl createJobImageUrl(final InboxInfoDto.InboxJob job) {
 
         final ImageUrl imgUrlPage = new ImageUrl();
 
@@ -353,32 +403,37 @@ public final class InboxPageImageChunker {
      */
     private void onInitPageRanges() {
 
-        bPageRangesInitWlk = false;
+        initPageRangesWlk = false;
 
-        final InboxJobRange page = pageIterWlk;
+        final InboxJobRange page = pageRangesWlk;
 
+        //
         iJobWlk = page.getJob();
         jobWlk = inboxInfo.getJobs().get(iJobWlk);
 
-        imgUrlPageWlk = createImageUrl(jobWlk);
+        //
+        imgUrlPageRangesWlk = createJobImageUrl(jobWlk);
 
         bScanPageWlk = InboxServiceImpl.isScanJobFilename(jobWlk.getFile());
 
+        final List<RangeAtom> rangeAtomList;
+
         if (bScanPageWlk) {
-            rangesWlk = INBOX_SERVICE.createSortedRangeArray("1");
+            rangeAtomList = INBOX_SERVICE.createSortedRangeArray("1");
         } else {
-            rangesWlk = INBOX_SERVICE.createSortedRangeArray(page.getRange());
+            rangeAtomList =
+                    INBOX_SERVICE.createSortedRangeArray(page.getRange());
         }
 
-        rangesIterWlk = rangesWlk.iterator();
+        pageRangeAtomIterWlk = rangeAtomList.iterator();
 
-        if (rangesIterWlk.hasNext()) {
-            rangeIterWlk = rangesIterWlk.next();
+        if (pageRangeAtomIterWlk.hasNext()) {
+            pageRangeAtomWlk = pageRangeAtomIterWlk.next();
         } else {
-            rangeIterWlk = null;
+            pageRangeAtomWlk = null;
         }
 
-        bPageRangeInitWlk = true;
+        initPageRangeWlk = true;
     }
 
     /**
@@ -386,9 +441,9 @@ public final class InboxPageImageChunker {
      */
     private void onInitPageRange() {
 
-        bPageRangeInitWlk = false;
+        initPageRangeWlk = false;
 
-        final Integer start = rangeIterWlk.pageBegin;
+        final Integer start = pageRangeAtomWlk.pageBegin;
 
         if (start == null) {
             iBeginWlk = 0;
@@ -397,7 +452,7 @@ public final class InboxPageImageChunker {
         }
 
         //
-        final Integer end = rangeIterWlk.pageEnd;
+        final Integer end = pageRangeAtomWlk.pageEnd;
 
         if (end == null) {
             iEndWlk = jobWlk.getPages();
@@ -407,7 +462,7 @@ public final class InboxPageImageChunker {
 
         iWlk = iBeginWlk;
 
-        pageImagesOut.addPagesSelected(iJobWlk, iEndWlk - iBeginWlk);
+        pageImages.addPagesSelected(iJobWlk, iEndWlk - iBeginWlk);
     }
 
     /**
@@ -415,20 +470,25 @@ public final class InboxPageImageChunker {
      */
     private void onInitPageChunk() {
 
-        bPageChunkInitWlk = false;
+        initPageChunkWlk = false;
 
+        //
         iJobChunkWlk = iJobWlk;
         jobChunkWlk = jobWlk;
 
+        //
         nChunkStartWlk = nPageCountWlk;
         nChunkedPagesWlk = 0;
 
         bScanPageChunkWlk = bScanPageWlk;
-        imgUrlChunkWlk = new ImageUrl(imgUrlPageWlk);
+
+        imgUrlChunkWlk = new ImageUrl(imgUrlPageRangesWlk);
 
         pageUrlParmChunkWlk = iWlk;
 
-        // calc the next end-of-chunk
+        /*
+         * Calc the next end-of-chunk.
+         */
         if (nPageCountWlk == nStartChunkPre) {
             nStartNextChunkWlk = nPageCountWlk + nPagesInChunkPre;
         } else if (nPageCountWlk == nStartChunkPost) {
@@ -450,8 +510,8 @@ public final class InboxPageImageChunker {
      */
     private void onNextPage() {
         iWlk++;
-        bNextPageRangeWlk = !(iWlk < iEndWlk);
-        bNextPageRangesWlk = false;
+        nextPageRangeWlk = !(iWlk < iEndWlk);
+        nextPageRangesWlk = false;
     }
 
     /**
@@ -463,7 +523,7 @@ public final class InboxPageImageChunker {
 
         nPageCountWlk++;
 
-        bNextPageChunkWlk = nPageCountWlk == nStartChunkPre
+        nextPageChunkWlk = nPageCountWlk == nStartChunkPre
                 || nPageCountWlk == nStartChunkPost
                 || ((nFirstDetailPage <= nPageCountWlk)
                         && nPageCountWlk < (nFirstDetailPage
@@ -475,12 +535,12 @@ public final class InboxPageImageChunker {
      *
      */
     private void onNextPageRange() {
-        if (rangesIterWlk.hasNext()) {
-            rangeIterWlk = rangesIterWlk.next(); // next page-range
-            bPageRangeInitWlk = true;
+        if (pageRangeAtomIterWlk.hasNext()) {
+            pageRangeAtomWlk = pageRangeAtomIterWlk.next(); // next page-range
+            initPageRangeWlk = true;
         } else {
-            rangeIterWlk = null;
-            bNextPageRangesWlk = true;
+            pageRangeAtomWlk = null;
+            nextPageRangesWlk = true;
         }
     }
 
@@ -488,14 +548,14 @@ public final class InboxPageImageChunker {
      *
      */
     private void onNextPageRanges() {
-        bEofWlk = !pagesIterWlk.hasNext();
+        isEofWlk = !pageRangesIterWlk.hasNext();
 
-        if (bEofWlk) {
-            pagesIterWlk = null;
-            bNextPageChunkWlk = true;
+        if (isEofWlk) {
+            pageRangesIterWlk = null;
+            nextPageChunkWlk = true;
         } else {
-            pageIterWlk = pagesIterWlk.next(); // next page (ranges)
-            bPageRangesInitWlk = true;
+            pageRangesWlk = pageRangesIterWlk.next(); // next page (ranges)
+            initPageRangesWlk = true;
         }
     }
 
@@ -521,7 +581,14 @@ public final class InboxPageImageChunker {
         pageTmp.setMedia(jobChunkWlk.getMedia());
         pageTmp.setPages(nChunkedPagesWlk);
 
-        pageImagesOut.getPages().add(pageTmp);
+        if (msecJobExpirySignal > 0) {
+            pageTmp.setExpiryTime(jobChunkWlk.getCreatedTime() + msecJobExpiry);
+            pageTmp.setExpiryTimeSignal(msecJobExpirySignal);
+        } else {
+            pageTmp.setExpiryTime(Long.valueOf(0));
+        }
+
+        pageImages.getPages().add(pageTmp);
 
         if (LOGGER.isTraceEnabled()) {
             chunkTrace.append("\n[").append(nChunkStartWlk).append("-")
@@ -530,7 +597,7 @@ public final class InboxPageImageChunker {
                     .append("]");
         }
 
-        bPageChunkInitWlk = true;
+        initPageChunkWlk = true;
     }
 
     /**
@@ -541,15 +608,15 @@ public final class InboxPageImageChunker {
 
         this.onInit();
 
-        while (!bEofWlk) {
+        while (!isEofWlk) {
 
-            if (bPageRangesInitWlk) {
+            if (initPageRangesWlk) {
                 this.onInitPageRanges();
             }
-            if (bPageRangeInitWlk) {
+            if (initPageRangeWlk) {
                 this.onInitPageRange();
             }
-            if (bPageChunkInitWlk) {
+            if (initPageChunkWlk) {
                 this.onInitPageChunk();
             }
 
@@ -558,20 +625,20 @@ public final class InboxPageImageChunker {
             this.onNextPage();
             this.onNextChunkedPage();
 
-            if (bNextPageRangeWlk) {
+            if (nextPageRangeWlk) {
                 this.onNextPageRange();
             }
-            if (bNextPageRangesWlk) {
+            if (nextPageRangesWlk) {
                 this.onNextPageRanges();
             }
-            if (bNextPageChunkWlk) {
+            if (nextPageChunkWlk) {
                 this.onNextPageChunk();
             }
         }
 
         this.onExit();
 
-        return pageImagesOut;
+        return pageImages;
     }
 
     /**
