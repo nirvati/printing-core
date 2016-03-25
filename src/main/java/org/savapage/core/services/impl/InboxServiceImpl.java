@@ -80,6 +80,7 @@ import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
 import org.savapage.core.services.EcoPrintPdfTaskService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.InboxPageImageChunker;
 import org.savapage.core.services.helpers.InboxPageMover;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
@@ -723,6 +724,14 @@ public final class InboxServiceImpl implements InboxService {
 
     @Override
     public PageImages getPageChunks(final String user,
+            final Integer firstDetailPage, final String uniqueUrlValue,
+            final boolean base64) {
+        return InboxPageImageChunker.chunk(user, firstDetailPage, uniqueUrlValue,
+                base64);
+    }
+
+    @Deprecated
+    public PageImages getPageChunks_SAVED(final String user,
             final Integer firstDetailPage, final String uniqueUrlValue,
             final boolean base64) {
 
