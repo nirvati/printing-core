@@ -63,14 +63,11 @@ public final class IppPrintJobReq extends AbstractIppRequest {
     public void processAttributes(final IppPrintJobOperation operation,
             final InputStream istr) throws Exception {
 
-        final String requestingUserId;
         final String authWebAppUser;
 
         if (operation.isTrustedUserAsRequester()) {
-            requestingUserId = operation.getTrustedIppClientUserId();
             authWebAppUser = null;
         } else {
-            requestingUserId = this.getRequestingUserName();
             authWebAppUser = operation.getTrustedIppClientUserId();
         }
 
@@ -82,16 +79,26 @@ public final class IppPrintJobReq extends AbstractIppRequest {
                 new DocContentPrintProcessor(operation.getQueue(),
                         operation.getOriginatorIp(), null, authWebAppUser);
         /*
-         * Read the IPP attributes.
+         * Then, read the IPP attributes.
          */
         readAttributes(istr);
+
+        /*
+         * Then, get the IPP requesting user.
+         */
+        final String requestingUserId;
+
+        if (operation.isTrustedUserAsRequester()) {
+            requestingUserId = operation.getTrustedIppClientUserId();
+        } else {
+            requestingUserId = this.getRequestingUserName();
+        }
 
         /*
          * Check...
          */
         printInProcessor.setJobName(getJobName());
         printInProcessor.processRequestingUser(requestingUserId);
-
     }
 
     /**
@@ -104,7 +111,7 @@ public final class IppPrintJobReq extends AbstractIppRequest {
     }
 
     @Override
-            void process(final InputStream istr) throws Exception {
+    void process(final InputStream istr) throws Exception {
         printInProcessor.process(istr, DocLogProtocolEnum.IPP, null, null,
                 null);
     }

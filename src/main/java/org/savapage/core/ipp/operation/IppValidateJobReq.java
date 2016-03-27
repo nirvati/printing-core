@@ -52,14 +52,11 @@ public final class IppValidateJobReq extends AbstractIppRequest {
     public void processAttributes(final IppValidateJobOperation operation,
             final InputStream istr) throws Exception {
 
-        final String requestingUserId;
         final String authWebAppUser;
 
         if (operation.isTrustedUserAsRequester()) {
-            requestingUserId = operation.getTrustedIppClientUserId();
             authWebAppUser = null;
         } else {
-            requestingUserId = this.getRequestingUserName();
             authWebAppUser = operation.getTrustedIppClientUserId();
         }
 
@@ -71,9 +68,20 @@ public final class IppValidateJobReq extends AbstractIppRequest {
                 operation.getRemoteAddr(), null, authWebAppUser);
 
         /*
-         * Read the IPP attributes.
+         * Then, read the IPP attributes.
          */
         readAttributes(istr);
+
+        /*
+         * Then, get the IPP requesting user.
+         */
+        final String requestingUserId;
+
+        if (operation.isTrustedUserAsRequester()) {
+            requestingUserId = operation.getTrustedIppClientUserId();
+        } else {
+            requestingUserId = this.getRequestingUserName();
+        }
 
         /*
          * Check...
