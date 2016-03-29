@@ -85,9 +85,15 @@ public final class UserMsgIndicator {
         JOBTICKET_DENIED,
 
         /**
-         * A printed in was denied.
+         * A print-in was denied.
          */
         PRINT_IN_DENIED,
+
+        /**
+         * A print-in expired.
+         */
+        PRINT_IN_EXPIRED,
+
         /**
          * A document was successfully proxy printed.
          */
