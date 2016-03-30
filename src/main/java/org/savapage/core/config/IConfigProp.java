@@ -1664,12 +1664,6 @@ public interface IConfigProp {
         ECO_PRINT_DISCOUNT_PERC("eco-print.discount-percent", NUMBER_VALIDATOR, "15"),
 
         /**
-         * Trust authenticated user in Client App on same IP address as User Web
-         * App (Boolean, default TRUE).
-         */
-        WEBAPP_USER_AUTH_TRUST_CLIAPP_AUTH("webapp.user.auth.trust-cliapp-auth", BOOLEAN_VALIDATOR, V_YES),
-
-        /**
          * (boolean) Show Document title in the DocLog.
          */
         WEBAPP_DOCLOG_SHOW_DOC_TITLE("webapp.doclog.show-doc-title", BOOLEAN_VALIDATOR, V_YES),
@@ -1685,11 +1679,6 @@ public interface IConfigProp {
         WEBAPP_WATCHDOG_TIMEOUT_SECS("webapp.watchdog.timeout-secs", NUMBER_VALIDATOR, DEFAULT_WEBAPP_WATCHDOG_TIMEOUT_SECS),
 
         /**
-         * Max idle seconds after which automatic logout occurs.
-         */
-        WEBAPP_USER_MAX_IDLE_SECS("webapp.user.max-idle-secs", NUMBER_VALIDATOR, WEBAPP_MAX_IDLE_SECS_V_NONE.toString()),
-
-        /**
          * Admin WebApp: show technical info on dashboard?
          */
         WEBAPP_ADMIN_DASHBOARD_SHOW_TECH_INFO("webapp.admin.dashboard.show-tech-info", BOOLEAN_VALIDATOR, V_NO),
@@ -1699,6 +1688,17 @@ public interface IConfigProp {
          * expires.
          */
         WEBAPP_ADMIN_BITCOIN_WALLET_CACHE_EXPIRY_SECS("webapp.admin.bitcoin.wallet.cache-expiry-secs", NUMBER_VALIDATOR, "3600"),
+
+        /**
+         * Trust authenticated user in Client App on same IP address as User Web
+         * App (Boolean, default TRUE).
+         */
+        WEBAPP_USER_AUTH_TRUST_CLIAPP_AUTH("webapp.user.auth.trust-cliapp-auth", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * Max idle seconds after which automatic logout occurs.
+         */
+        WEBAPP_USER_MAX_IDLE_SECS("webapp.user.max-idle-secs", NUMBER_VALIDATOR, WEBAPP_MAX_IDLE_SECS_V_NONE.toString()),
 
         /**
          * Delete all print-in jobs at User WebApp logout.
@@ -1727,6 +1727,11 @@ public interface IConfigProp {
          * User WebApp: the fixed inbox clearing scope after proxy printing.
          */
         WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE("webapp.user.proxy-print.clear-inbox.scope", new EnumValidator<>(InboxSelectScopeEnum.class), InboxSelectScopeEnum.NONE.toString()),
+
+        /**
+         * User WebApp: show financial info?
+         */
+        WEBAPP_USER_FINANCIAL_SHOW("webapp.user.financial.show", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * WebApp: enable (show) driver download in About Dialog?
