@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -36,6 +36,11 @@ public final class SmartschoolConstants {
     public static final String RENDER_MODE_GRAYSCALE = "grayscale";
 
     public static final String XML_ELM_RETURN = "return";
+    public static final String XML_ELM_FILENAME = "filename";
+    public static final String XML_ELM_FILESIZE = "filesize";
+    public static final String XML_ELM_MD5SUM = "md5sum";
+    public static final String XML_ELM_URL = "url";
+
     public static final String XML_ELM_DATA = "data";
     public static final String XML_ELM_PWD = "pwd";
     public static final String XML_ELM_UID = "uid";

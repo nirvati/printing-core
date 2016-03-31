@@ -82,8 +82,8 @@ import org.savapage.ext.smartschool.xml.Requestinfo;
  * @author Rijk Ravestein
  *
  */
-public final class SmartschoolProxyServiceImpl implements
-        SmartschoolProxyService {
+public final class SmartschoolProxyServiceImpl
+        implements SmartschoolProxyService {
 
     /**
      * The buffer size for reading.
@@ -170,15 +170,13 @@ public final class SmartschoolProxyServiceImpl implements
                 && cm.isConfigValue(keySmartschoolEnable)) {
 
             try {
-                final String name =
-                        SmartschoolConnection.extractAccountName(new URL(cm
-                                .getConfigValue(keySmartschoolEndPointUrl)));
+                final String name = SmartschoolConnection.extractAccountName(
+                        new URL(cm.getConfigValue(keySmartschoolEndPointUrl)));
 
                 return name != null
                         && cm.isConfigValue(keySmartschoolNodeEnable)
                         && cm.isConfigValue(keySmartschoolNodeProxyEnable)
-                        && name.equals(accountName)
-                        && password
+                        && name.equals(accountName) && password
                                 .equals(cm.getConfigValue(keySmartschoolPwd));
             } catch (MalformedURLException e) {
                 // noop
@@ -260,8 +258,8 @@ public final class SmartschoolProxyServiceImpl implements
      * @throws IOException
      *             When IO errors.
      */
-    private static synchronized Jobticket getJobticket(
-            final String accountName, final String nodeId) throws IOException {
+    private static synchronized Jobticket getJobticket(final String accountName,
+            final String nodeId) throws IOException {
 
         final Jobticket ticket = createEmptyJobticket(accountName);
 
@@ -302,24 +300,20 @@ public final class SmartschoolProxyServiceImpl implements
 
     @Override
     public SOAPMessage createPrintJobsRsp(final String accountName,
-            final String nodeId) throws SOAPException, JAXBException,
-            IOException {
+            final String nodeId)
+            throws SOAPException, JAXBException, IOException {
 
         final Jobticket jobTicket = getJobticket(accountName, nodeId);
 
-        final SOAPMessage message =
-                MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL)
-                        .createMessage();
+        final SOAPMessage message = MessageFactory
+                .newInstance(SOAPConstants.SOAP_1_2_PROTOCOL).createMessage();
 
         final SOAPBody body = message.getSOAPBody();
-        final QName bodyName =
-                new QName(
-                        SmartschoolRequestEnum.GET_PRINTJOBS
-                                .getSoapNameResponse());
+        final QName bodyName = new QName(
+                SmartschoolRequestEnum.GET_PRINTJOBS.getSoapNameResponse());
         final SOAPBodyElement bodyElement = body.addBodyElement(bodyName);
-        final SOAPElement elementReturn =
-                bodyElement
-                        .addChildElement(SmartschoolConstants.XML_ELM_RETURN);
+        final SOAPElement elementReturn = bodyElement
+                .addChildElement(SmartschoolConstants.XML_ELM_RETURN);
 
         // NOTE: XML is added as text!!
         elementReturn.addTextNode(jobTicket.asXmlString());
@@ -346,22 +340,19 @@ public final class SmartschoolProxyServiceImpl implements
             final String nodeId, final String documentId,
             final OutputStream ostr) throws IOException {
 
-        final File file =
-                createDocumentFile(accountName, nodeId, documentId,
-                        FILE_EXT_PDF).toFile();
+        final File file = createDocumentFile(accountName, nodeId, documentId,
+                FILE_EXT_PDF).toFile();
 
         if (!file.exists()) {
             // TODO
-            throw new FileNotFoundException(String.format("File %s not found",
-                    file.getAbsolutePath()));
+            throw new FileNotFoundException(
+                    String.format("File %s not found", file.getAbsolutePath()));
         }
 
         streamGetDocumentRsp(documentId, file, ostr);
 
-        deleteDocumentCache(
-                file,
-                createDocumentFile(accountName, nodeId, documentId,
-                        FILE_EXT_XML).toFile());
+        deleteDocumentCache(file, createDocumentFile(accountName, nodeId,
+                documentId, FILE_EXT_XML).toFile());
     }
 
     /**
@@ -387,9 +378,9 @@ public final class SmartschoolProxyServiceImpl implements
         start.append("<env:Envelope "
                 + "xmlns:env=\"http://www.w3.org/2003/05/soap-envelope\">"
                 + "<env:Header/><env:Body>");
-        start.append("<")
-                .append(SmartschoolRequestEnum.GET_DOCUMENT
-                        .getSoapNameResponse()).append(">");
+        start.append("<").append(
+                SmartschoolRequestEnum.GET_DOCUMENT.getSoapNameResponse())
+                .append(">");
         start.append("<").append(SmartschoolConstants.XML_ELM_RETURN)
                 .append(">");
 
@@ -402,19 +393,25 @@ public final class SmartschoolProxyServiceImpl implements
 
         content.append("<document id=\"").append(documentId).append("\">");
 
-        content.append("<filename>").append(file.getName())
-                .append("</filename>");
+        content.append("<").append(SmartschoolConstants.XML_ELM_FILENAME)
+                .append(">").append(file.getName()).append("</")
+                .append(SmartschoolConstants.XML_ELM_FILENAME).append(">");
 
-        content.append("<filesize>").append(String.valueOf(file.length()))
-                .append("</filesize>");
+        content.append("<").append(SmartschoolConstants.XML_ELM_FILESIZE)
+                .append(">").append(String.valueOf(file.length())).append("</")
+                .append(SmartschoolConstants.XML_ELM_FILESIZE).append(">");
 
-        content.append("<md5sum>").append("0").append("</md5sum>"); // TODO
+        // TODO
+        content.append("<").append(SmartschoolConstants.XML_ELM_MD5SUM)
+                .append(">").append("0").append("</")
+                .append(SmartschoolConstants.XML_ELM_MD5SUM).append(">");
 
         //
         content.append("<").append(SmartschoolConstants.XML_ELM_DATA)
                 .append(">");
 
-        ostr.write(StringEscapeUtils.escapeXml10(content.toString()).getBytes());
+        ostr.write(
+                StringEscapeUtils.escapeXml10(content.toString()).getBytes());
 
         /*
          * The Base64 encoded PDF file (no escape needed).
@@ -444,10 +441,11 @@ public final class SmartschoolProxyServiceImpl implements
          */
         final StringBuilder end = new StringBuilder();
 
-        end.append("</return>");
-        end.append("</")
-                .append(SmartschoolRequestEnum.GET_DOCUMENT
-                        .getSoapNameResponse()).append(">");
+        end.append("</").append(SmartschoolConstants.XML_ELM_RETURN)
+                .append(">");
+        end.append("</").append(
+                SmartschoolRequestEnum.GET_DOCUMENT.getSoapNameResponse())
+                .append(">");
         end.append("</env:Body></env:Envelope>");
 
         ostr.write(end.toString().getBytes());
@@ -457,8 +455,9 @@ public final class SmartschoolProxyServiceImpl implements
      * @return The cache home directory path.
      */
     private static Path getCacheHomePath() {
-        return Paths.get(ConfigManager.getServerExtHome().getAbsolutePath(),
-                CACHE_RELATIVE_HOME_PATH, CACHE_RELATIVE_PROXY_PATH)
+        return Paths
+                .get(ConfigManager.getServerExtHome().getAbsolutePath(),
+                        CACHE_RELATIVE_HOME_PATH, CACHE_RELATIVE_PROXY_PATH)
                 .toAbsolutePath();
     }
 
@@ -511,9 +510,8 @@ public final class SmartschoolProxyServiceImpl implements
 
         lazyCreateCacheHome(accountName, nodeId);
 
-        final File cachedXml =
-                createDocumentFile(accountName, nodeId, document.getId(),
-                        FILE_EXT_XML).toFile();
+        final File cachedXml = createDocumentFile(accountName, nodeId,
+                document.getId(), FILE_EXT_XML).toFile();
 
         final Writer xmlWriter = new FileWriter(cachedXml);
 
@@ -525,9 +523,8 @@ public final class SmartschoolProxyServiceImpl implements
             IOUtils.closeQuietly(xmlWriter);
         }
 
-        final Path cachedPdf =
-                createDocumentFile(accountName, nodeId, document.getId(),
-                        FILE_EXT_PDF);
+        final Path cachedPdf = createDocumentFile(accountName, nodeId,
+                document.getId(), FILE_EXT_PDF);
 
         boolean exception = true;
         try {
@@ -555,7 +552,8 @@ public final class SmartschoolProxyServiceImpl implements
      * @return The {@link Path}.
      */
     private static Path createDocumentFile(final String accountName,
-            final String nodeId, final String documentId, final String fileExt) {
+            final String nodeId, final String documentId,
+            final String fileExt) {
 
         return Paths.get(getCacheHomePath(accountName, nodeId).toString(),
                 String.format("%s.%s", documentId, fileExt));
@@ -571,15 +569,13 @@ public final class SmartschoolProxyServiceImpl implements
     private static SOAPMessage createSetDocumentStatusRsp()
             throws SOAPException, JAXBException {
 
-        final SOAPMessage message =
-                MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL)
-                        .createMessage();
+        final SOAPMessage message = MessageFactory
+                .newInstance(SOAPConstants.SOAP_1_2_PROTOCOL).createMessage();
 
         final SOAPBody body = message.getSOAPBody();
         final QName bodyName =
-                new QName(
-                        SmartschoolRequestEnum.SET_DOCUMENTSTATUS
-                                .getSoapNameResponse());
+                new QName(SmartschoolRequestEnum.SET_DOCUMENTSTATUS
+                        .getSoapNameResponse());
         final SOAPBodyElement bodyElement = body.addBodyElement(bodyName);
         final SOAPElement elementReturn = bodyElement.addChildElement("return");
 

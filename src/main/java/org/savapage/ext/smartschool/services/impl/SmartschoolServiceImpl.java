@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -99,14 +100,14 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author Rijk Ravestein
  *
  */
-public final class SmartschoolServiceImpl extends AbstractService implements
-        SmartschoolService {
+public final class SmartschoolServiceImpl extends AbstractService
+        implements SmartschoolService {
 
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SmartschoolServiceImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SmartschoolServiceImpl.class);
 
     /**
      * The user has sent too many requests in a given amount of time. Intended
@@ -132,34 +133,35 @@ public final class SmartschoolServiceImpl extends AbstractService implements
 
         final SmartschoolAccount acc = new SmartschoolAccount();
 
-        acc.setEndpoint(cm
-                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_URL));
-        acc.setPassword(cm.getConfigValue(
-                Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD).toCharArray());
+        acc.setEndpoint(
+                cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_URL));
+        acc.setPassword(cm
+                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD)
+                .toCharArray());
 
         final SmartschoolAccount.Config cfg = acc.getConfig();
 
-        cfg.setChargeToStudents(cm
-                .isConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_CHARGE_TO_STUDENTS));
+        cfg.setChargeToStudents(cm.isConfigValue(
+                Key.SMARTSCHOOL_1_SOAP_PRINT_CHARGE_TO_STUDENTS));
 
-        cfg.setProxyPrinterName(cm
-                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER));
-        cfg.setProxyPrinterDuplexName(cm
-                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_DUPLEX));
-        cfg.setProxyPrinterGrayscaleName(cm
-                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE));
+        cfg.setProxyPrinterName(
+                cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER));
+        cfg.setProxyPrinterDuplexName(cm.getConfigValue(
+                Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_DUPLEX));
+        cfg.setProxyPrinterGrayscaleName(cm.getConfigValue(
+                Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE));
 
-        cfg.setProxyPrinterGrayscaleDuplexName(cm
-                .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX));
+        cfg.setProxyPrinterGrayscaleDuplexName(cm.getConfigValue(
+                Key.SMARTSCHOOL_1_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX));
 
         if (cm.isConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_NODE_ENABLE)) {
             final SmartschoolAccount.Node node = new SmartschoolAccount.Node();
             acc.setNode(node);
             node.setId(cm.getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_NODE_ID));
-            node.setProxy(cm
-                    .isConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENABLE));
-            node.setProxyEndpoint(cm
-                    .getConfigValue(Key.SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL));
+            node.setProxy(cm.isConfigValue(
+                    Key.SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENABLE));
+            node.setProxyEndpoint(cm.getConfigValue(
+                    Key.SMARTSCHOOL_1_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL));
         }
         return acc;
     }
@@ -175,34 +177,35 @@ public final class SmartschoolServiceImpl extends AbstractService implements
 
         final SmartschoolAccount acc = new SmartschoolAccount();
 
-        acc.setEndpoint(cm
-                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_URL));
-        acc.setPassword(cm.getConfigValue(
-                Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD).toCharArray());
+        acc.setEndpoint(
+                cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_URL));
+        acc.setPassword(cm
+                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD)
+                .toCharArray());
 
         final SmartschoolAccount.Config cfg = acc.getConfig();
 
-        cfg.setChargeToStudents(cm
-                .isConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_CHARGE_TO_STUDENTS));
+        cfg.setChargeToStudents(cm.isConfigValue(
+                Key.SMARTSCHOOL_2_SOAP_PRINT_CHARGE_TO_STUDENTS));
 
-        cfg.setProxyPrinterName(cm
-                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER));
-        cfg.setProxyPrinterDuplexName(cm
-                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_DUPLEX));
-        cfg.setProxyPrinterGrayscaleName(cm
-                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE));
+        cfg.setProxyPrinterName(
+                cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER));
+        cfg.setProxyPrinterDuplexName(cm.getConfigValue(
+                Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_DUPLEX));
+        cfg.setProxyPrinterGrayscaleName(cm.getConfigValue(
+                Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE));
 
-        cfg.setProxyPrinterGrayscaleDuplexName(cm
-                .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX));
+        cfg.setProxyPrinterGrayscaleDuplexName(cm.getConfigValue(
+                Key.SMARTSCHOOL_2_SOAP_PRINT_PROXY_PRINTER_GRAYSCALE_DUPLEX));
 
         if (cm.isConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_NODE_ENABLE)) {
             final SmartschoolAccount.Node node = new SmartschoolAccount.Node();
             acc.setNode(node);
             node.setId(cm.getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_NODE_ID));
-            node.setProxy(cm
-                    .isConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENABLE));
-            node.setProxyEndpoint(cm
-                    .getConfigValue(Key.SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL));
+            node.setProxy(cm.isConfigValue(
+                    Key.SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENABLE));
+            node.setProxyEndpoint(cm.getConfigValue(
+                    Key.SMARTSCHOOL_2_SOAP_PRINT_NODE_PROXY_ENDPOINT_URL));
         }
         return acc;
     }
@@ -243,12 +246,8 @@ public final class SmartschoolServiceImpl extends AbstractService implements
             final SmartschoolRequestEnum request =
                     SmartschoolRequestEnum.GET_PRINTJOBS;
 
-            returnElement =
-                    this.sendMessage(
-                            connection,
-                            request,
-                            createPrintJobsRequest(request,
-                                    connection.getPassword()));
+            returnElement = this.sendMessage(connection, request,
+                    createPrintJobsRequest(request, connection.getPassword()));
         } catch (SOAPException e) {
             /*
              * This is a weak solution, but there is no other way to find out
@@ -265,9 +264,8 @@ public final class SmartschoolServiceImpl extends AbstractService implements
         final Jobticket jobTicket;
 
         try {
-            jobTicket =
-                    SmartschoolXmlObject.create(Jobticket.class,
-                            returnElement.getValue());
+            jobTicket = SmartschoolXmlObject.create(Jobticket.class,
+                    returnElement.getValue());
         } catch (JAXBException e) {
             throw new SpException(e);
         }
@@ -282,11 +280,8 @@ public final class SmartschoolServiceImpl extends AbstractService implements
         final SmartschoolRequestEnum request =
                 SmartschoolRequestEnum.SET_DOCUMENTSTATUS;
 
-        this.sendMessage(
-                connection,
-                request,
-                createSetDocumentStatusRequest(connection, request, documentId,
-                        status.getXmlText(), comment));
+        this.sendMessage(connection, request, createSetDocumentStatusRequest(
+                connection, request, documentId, status.getXmlText(), comment));
     }
 
     @Override
@@ -307,16 +302,15 @@ public final class SmartschoolServiceImpl extends AbstractService implements
     }
 
     @Override
-    public File downloadDocumentForProxy(
-            final SmartschoolConnection connection, final Document document)
-            throws IOException, ShutdownException {
+    public File downloadDocumentForProxy(final SmartschoolConnection connection,
+            final Document document) throws IOException, ShutdownException {
         return downloadDocument(connection, document, UUID.randomUUID());
     }
 
     @Override
     public File downloadDocument(final SmartschoolConnection connection,
-            final Document document, final UUID uuid) throws IOException,
-            ShutdownException {
+            final Document document, final UUID uuid)
+            throws IOException, ShutdownException {
 
         final File downloadedFile =
                 this.getDownloadFile(document.getName(), uuid);
@@ -344,16 +338,15 @@ public final class SmartschoolServiceImpl extends AbstractService implements
      * @throws IOException
      * @throws ShutdownException
      */
-    private static void downloadDocument(
-            final SmartschoolConnection connection, final Document document,
-            final File downloadedFile) throws IOException, ShutdownException {
+    private static void downloadDocument(final SmartschoolConnection connection,
+            final Document document, final File downloadedFile)
+            throws IOException, ShutdownException {
 
         final SmartschoolRequestEnum request =
                 SmartschoolRequestEnum.GET_DOCUMENT;
 
-        final SOAPMessage soapMsg =
-                createGetDocumentRequest(request, document.getId(),
-                        connection.getPassword());
+        final SOAPMessage soapMsg = createGetDocumentRequest(request,
+                document.getId(), connection.getPassword());
 
         final ContentType contentType = ContentType.create("application/xml");
 
@@ -394,11 +387,17 @@ public final class SmartschoolServiceImpl extends AbstractService implements
 
                         try {
 
-                            saxParseDocumentData(connection,
-                                    entity.getContent(), ostr);
+                            final URL downloadUrl = saxParseDocumentData(
+                                    connection, entity.getContent(), ostr);
+
+                            if (downloadUrl != null) {
+                                throw new SpException("Download of Smartschool "
+                                        + "PDF not supported yet.");
+                            }
 
                         } catch (IllegalStateException
-                                | ParserConfigurationException | SAXException e) {
+                                | ParserConfigurationException
+                                | SAXException e) {
                             throw new SpException(e.getMessage());
                         }
 
@@ -426,6 +425,11 @@ public final class SmartschoolServiceImpl extends AbstractService implements
     /**
      * Parses the XML {@link InputStream} and writes the Base64 decoded PDF
      * document to the {@link OutputStream}.
+     * <p>
+     * NOTE: Although Smartschool deprecated/removed the embedded Base64 PDF
+     * from their SOAP AIP, we still use this method to transfer the PDF from
+     * the Smartschool proxy (master) to the client (slave).
+     * </p>
      *
      * @param connection
      *            The {@link SmartschoolConnection} (used to check if a shutdown
@@ -433,7 +437,12 @@ public final class SmartschoolServiceImpl extends AbstractService implements
      * @param istr
      *            The XML {@link InputStream}.
      * @param ostr
-     *            The {@link OutputStream} for the Base64 decoded PDF document.
+     *            The {@link OutputStream} for the Base64 decoded embedded PDF
+     *            document.
+     *
+     * @return The URL to download the PDF document from, or {@code null} when
+     *         the PDF document is embedded.
+     *
      * @throws ParserConfigurationException
      * @throws SAXException
      *             When SAX error.
@@ -442,11 +451,13 @@ public final class SmartschoolServiceImpl extends AbstractService implements
      * @throws ShutdownRequestedException
      *             When a shutdown was requested during processing.
      */
-    private static void saxParseDocumentData(
+    private static URL saxParseDocumentData(
             final SmartschoolConnection connection, final InputStream istr,
-            final OutputStream ostr) throws ParserConfigurationException,
-            SAXException, IOException, ShutdownRequestedException,
-            ShutdownRequestedException {
+            final OutputStream ostr)
+            throws ParserConfigurationException, SAXException, IOException,
+            ShutdownRequestedException, ShutdownRequestedException {
+
+        final StringBuilder downloadUrlBuilder = new StringBuilder();
 
         /*
          * ------------------------ IMPORTANT --------------------------------
@@ -465,28 +476,47 @@ public final class SmartschoolServiceImpl extends AbstractService implements
             /**
              * {@code true} when we are processing the "return" element.
              */
-            private boolean processReturn;
+            private boolean processElmReturn;
 
             /**
              * {@code true} when we are processing the "data" element with the
              * Base64 encoded document.
              */
-            private boolean processData;
+            private boolean processElmData;
 
             /**
-             * The collected XML content of the "return" element.
+             * {@code true} when we are processing the elements after the "data"
+             * element with the Base64 encoded document.
              */
-            private final StringBuilder initialReturnXml = new StringBuilder(
-                    256);
+            private boolean processElmDataAfter;
+
+            /**
+             * The collected XML content of the "return" element before the
+             * {@code data} element.
+             */
+            private final StringBuilder embeddedPdfXmlBefore =
+                    new StringBuilder(512);
+
+            /**
+             * The collected XML content of the "return" element after the
+             * {@code data} element.
+             */
+            private final StringBuilder embeddedPdfXmlAfter =
+                    new StringBuilder(256);
 
             // private String fileName; // TODO
             // private String fileSize; // TODO
             // private String md5sum; // TODO
 
             /**
-             * The {@link OutputStream} with the Base64 decode PDF.
+             * The {@link OutputStream} with the Base64 decoded PDF.
              */
             private OutputStream ostrDoc = null;
+
+            /**
+             * {@code true} when PDF is embedded in XML.
+             */
+            private boolean pdfEmbedded;
 
             @Override
             public void startDocument() throws SAXException {
@@ -495,8 +525,10 @@ public final class SmartschoolServiceImpl extends AbstractService implements
                     LOGGER.trace("startDocument");
                 }
 
-                processReturn = false;
-                ostrDoc = new Base64OutputStream(ostr, false);
+                pdfEmbedded = false;
+
+                processElmReturn = false;
+                processElmDataAfter = false;
             }
 
             @Override
@@ -508,10 +540,9 @@ public final class SmartschoolServiceImpl extends AbstractService implements
                     LOGGER.trace(String.format("startElement [%s]", qName));
                 }
 
-                processReturn =
-                        qName.equalsIgnoreCase(SmartschoolConstants.XML_ELM_RETURN);
-                processData = false;
-
+                processElmReturn = qName
+                        .equalsIgnoreCase(SmartschoolConstants.XML_ELM_RETURN);
+                processElmData = false;
             }
 
             @Override
@@ -522,45 +553,59 @@ public final class SmartschoolServiceImpl extends AbstractService implements
                     throw new ShutdownRequestedException();
                 }
 
-                if (!this.processReturn) {
+                if (processElmDataAfter) {
+                    embeddedPdfXmlAfter
+                            .append(String.valueOf(ch, start, length));
+                    return;
+                }
+
+                if (!this.processElmReturn) {
                     return;
                 }
 
                 try {
-                    if (!processData) {
+                    if (!processElmData) {
 
-                        initialReturnXml.append(String.valueOf(ch, start,
-                                length));
+                        embeddedPdfXmlBefore
+                                .append(String.valueOf(ch, start, length));
 
                         int iWlk;
                         String searchWlk;
 
                         // </filename>
-                        searchWlk = "</filename>";
-                        iWlk = initialReturnXml.indexOf(searchWlk);
+                        searchWlk = String.format("</%s>",
+                                SmartschoolConstants.XML_ELM_FILENAME);
+                        iWlk = embeddedPdfXmlBefore.indexOf(searchWlk);
                         if (iWlk >= 0) {
 
                         }
 
                         // <data>
-                        searchWlk =
-                                "<" + SmartschoolConstants.XML_ELM_DATA + ">";
-                        iWlk = initialReturnXml.indexOf(searchWlk);
+                        searchWlk = String.format("<%s>",
+                                SmartschoolConstants.XML_ELM_DATA);
+
+                        iWlk = embeddedPdfXmlBefore.indexOf(searchWlk);
 
                         if (iWlk >= 0) {
 
+                            pdfEmbedded = true;
+
+                            ostrDoc = new Base64OutputStream(ostr, false);
+
                             if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace(String.format("Found [%s] ",
-                                        searchWlk));
+                                LOGGER.trace(
+                                        String.format("Found [%s] after: \n%s",
+                                                searchWlk, embeddedPdfXmlBefore
+                                                        .substring(0, iWlk)));
                             }
 
-                            processData = true;
+                            processElmData = true;
 
-                            for (final int aChar : initialReturnXml.substring(
-                                    iWlk + searchWlk.length()).toCharArray()) {
+                            for (final int aChar : embeddedPdfXmlBefore
+                                    .substring(iWlk + searchWlk.length())
+                                    .toCharArray()) {
                                 ostrDoc.write(aChar);
                             }
-
                         }
 
                     } else {
@@ -574,9 +619,13 @@ public final class SmartschoolServiceImpl extends AbstractService implements
                              * content.
                              */
                             if (chWlk == '<') {
+                                processElmReturn = false;
+                                processElmDataAfter = true;
                                 ostrDoc.close();
-                                processReturn = false;
-                                break;
+                            }
+
+                            if (processElmDataAfter) {
+                                embeddedPdfXmlAfter.append(chWlk);
                             } else {
                                 ostrDoc.write(chWlk);
                             }
@@ -600,15 +649,34 @@ public final class SmartschoolServiceImpl extends AbstractService implements
                 /*
                  * Any endElement will end the document download processing.
                  */
-                processReturn = false;
+                processElmReturn = false;
             }
 
             @Override
             public void endDocument() throws SAXException {
+
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("endDocument");
+                    LOGGER.trace(String.format("endDocument\n%s",
+                            embeddedPdfXmlAfter.toString()));
                 }
-                IOUtils.closeQuietly(ostrDoc);
+
+                if (pdfEmbedded) {
+
+                    IOUtils.closeQuietly(ostrDoc);
+
+                } else {
+
+                    final String url = StringUtils.substringBetween(
+                            embeddedPdfXmlBefore.toString(),
+                            String.format("<%s>",
+                                    SmartschoolConstants.XML_ELM_URL),
+                            String.format("</%s>",
+                                    SmartschoolConstants.XML_ELM_URL));
+
+                    if (url != null) {
+                        downloadUrlBuilder.append(url);
+                    }
+                }
             }
         };
 
@@ -621,6 +689,14 @@ public final class SmartschoolServiceImpl extends AbstractService implements
 
         xmlReader.parse(input);
 
+        final URL downloadUrl;
+
+        if (downloadUrlBuilder.length() > 0) {
+            downloadUrl = new URL(downloadUrlBuilder.toString());
+        } else {
+            downloadUrl = null;
+        }
+        return downloadUrl;
     }
 
     /**
@@ -646,9 +722,8 @@ public final class SmartschoolServiceImpl extends AbstractService implements
             final SOAPBody body = message.getSOAPBody();
             final QName bodyName = new QName(request.getSoapName());
             final SOAPBodyElement bodyElement = body.addBodyElement(bodyName);
-            final SOAPElement elementPassword =
-                    bodyElement
-                            .addChildElement(SmartschoolConstants.XML_ELM_PWD);
+            final SOAPElement elementPassword = bodyElement
+                    .addChildElement(SmartschoolConstants.XML_ELM_PWD);
             elementPassword.addTextNode(String.valueOf(password));
 
         } catch (SOAPException e) {
@@ -685,14 +760,12 @@ public final class SmartschoolServiceImpl extends AbstractService implements
             final QName bodyName = new QName(request.getSoapName());
             final SOAPBodyElement bodyElement = body.addBodyElement(bodyName);
 
-            final SOAPElement elementPassword =
-                    bodyElement
-                            .addChildElement(SmartschoolConstants.XML_ELM_PWD);
+            final SOAPElement elementPassword = bodyElement
+                    .addChildElement(SmartschoolConstants.XML_ELM_PWD);
             elementPassword.addTextNode(String.valueOf(password));
 
-            final SOAPElement uid =
-                    bodyElement
-                            .addChildElement(SmartschoolConstants.XML_ELM_UID);
+            final SOAPElement uid = bodyElement
+                    .addChildElement(SmartschoolConstants.XML_ELM_UID);
             uid.addTextNode(documentId);
 
         } catch (SOAPException e) {
@@ -777,9 +850,8 @@ public final class SmartschoolServiceImpl extends AbstractService implements
         final SOAPMessage response;
 
         try {
-            response =
-                    connection.getConnection().call(message,
-                            connection.getEndpointUrl(request));
+            response = connection.getConnection().call(message,
+                    connection.getEndpointUrl(request));
 
         } catch (SOAPException e) {
             if (SmartschoolLogger.isEnabled()) {
@@ -959,8 +1031,8 @@ public final class SmartschoolServiceImpl extends AbstractService implements
                                     connection, entry.getKey()),
                             accountTemplate);
 
-            accountTrxInfoList.add(createAccountTrxInfo(account,
-                    entry.getValue(), null));
+            accountTrxInfoList
+                    .add(createAccountTrxInfo(account, entry.getValue(), null));
         }
 
         /*
@@ -971,13 +1043,12 @@ public final class SmartschoolServiceImpl extends AbstractService implements
             final String userId = entry.getKey();
             final User user = userDAO().findActiveUserByUserId(userId);
 
-            final UserAccount userAccount =
-                    accountingService().lazyGetUserAccount(user,
-                            AccountTypeEnum.USER);
+            final UserAccount userAccount = accountingService()
+                    .lazyGetUserAccount(user, AccountTypeEnum.USER);
 
-            accountTrxInfoList.add(createAccountTrxInfo(
-                    userAccount.getAccount(), entry.getValue(),
-                    userKlas.get(userId)));
+            accountTrxInfoList
+                    .add(createAccountTrxInfo(userAccount.getAccount(),
+                            entry.getValue(), userKlas.get(userId)));
         }
 
         return infoSet;
@@ -992,8 +1063,8 @@ public final class SmartschoolServiceImpl extends AbstractService implements
 
     @Override
     public String getSharedParentAccountName() {
-        return ConfigManager.instance().getConfigValue(
-                Key.SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT);
+        return ConfigManager.instance()
+                .getConfigValue(Key.SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT);
     }
 
     @Override
