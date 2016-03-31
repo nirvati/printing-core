@@ -50,6 +50,7 @@ import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.codec.binary.Base64OutputStream;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -391,8 +392,7 @@ public final class SmartschoolServiceImpl extends AbstractService
                                     connection, entity.getContent(), ostr);
 
                             if (downloadUrl != null) {
-                                throw new SpException("Download of Smartschool "
-                                        + "PDF not supported yet.");
+                                copyURLToFile(downloadUrl, downloadedFile);
                             }
 
                         } catch (IllegalStateException
@@ -420,6 +420,32 @@ public final class SmartschoolServiceImpl extends AbstractService
              */
             httppost.reset();
         }
+    }
+
+    /**
+     * Copies bytes from the URL <code>source</code> to a file
+     * <code>destination</code>. The directories up to <code>destination</code>
+     * will be created if they don't already exist. <code>destination</code>
+     * will be overwritten if it already exists.
+     *
+     * @param source
+     *            The <code>URL</code> to copy bytes from, must not be
+     *            {@code null}.
+     * @param destination
+     *            The non-directory <code>File</code> to write bytes to
+     *            (possibly overwriting), must not be {@code null}.
+     * @throws IOException
+     *             When IO errors.
+     *
+     */
+    private static void copyURLToFile(final URL source, final File destination)
+            throws IOException {
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        FileUtils.copyURLToFile(source, destination,
+                cm.getConfigInt(Key.SMARTSCHOOL_SOAP_CONNECT_TIMEOUT_MILLIS),
+                cm.getConfigInt(Key.SMARTSCHOOL_SOAP_SOCKET_TIMEOUT_MILLIS));
     }
 
     /**
