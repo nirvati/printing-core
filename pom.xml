@@ -172,7 +172,7 @@
 		<dependency>
 			<groupId>net.iharder</groupId>
 			<artifactId>base64</artifactId>
-			<version>2.3.8</version>
+			<version>2.3.9</version>
 		</dependency>
 		<dependency>
 			<groupId>org.quartz-scheduler</groupId>
@@ -203,7 +203,7 @@
 		<dependency>
 			<groupId>commons-net</groupId>
 			<artifactId>commons-net</artifactId>
-			<version>3.3</version>
+			<version>3.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -228,7 +228,7 @@
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
-			<version>6.2.0</version>
+			<version>6.2.1</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>bcmail-jdk14</artifactId>
@@ -277,7 +277,7 @@
 		<dependency>
 			<groupId>net.sourceforge.htmlcleaner</groupId>
 			<artifactId>htmlcleaner</artifactId>
-			<version>2.15</version>
+			<version>2.16</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.opencsv</groupId>
@@ -297,7 +297,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
-			<version>4.5.1</version>
+			<version>4.5.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -307,7 +307,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>9.4-1205-jdbc41</version>
+			<version>9.4-1206-jdbc41</version>
 		</dependency>
 		<dependency>
 			<groupId>org.snmp4j</groupId>
@@ -322,7 +322,7 @@
         <dependency>
         	<groupId>org.bouncycastle</groupId>
         	<artifactId>bcpkix-jdk15on</artifactId>
-        	<version>1.53</version>
+        	<version>1.54</version>
         </dependency>
         <dependency>
         	<groupId>org.xhtmlrenderer</groupId>
@@ -332,12 +332,12 @@
         <dependency>
         	<groupId>com.itextpdf</groupId>
         	<artifactId>itextpdf</artifactId>
-        	<version>5.5.7</version>
+        	<version>5.5.9</version>
         </dependency>
         <dependency>
         	<groupId>com.itextpdf</groupId>
         	<artifactId>itext-pdfa</artifactId>
-        	<version>5.5.7</version>
+        	<version>5.5.9</version>
         </dependency>
         <dependency>
         	<groupId>org.antlr</groupId>
