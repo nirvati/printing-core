@@ -259,8 +259,8 @@ public final class InboxServiceImpl implements InboxService {
             java.util.Arrays.sort(files, new Comparator<File>() {
                 @Override
                 public int compare(final File o1, final File o2) {
-                    Long m1 = o1.lastModified();
-                    Long m2 = o2.lastModified();
+                    final Long m1 = o1.lastModified();
+                    final Long m2 = o2.lastModified();
                     return m1.compareTo(m2);
                 }
             });
@@ -664,12 +664,10 @@ public final class InboxServiceImpl implements InboxService {
             }
         }
 
-        Collections.sort(aRanges, new Comparator() {
+        Collections.sort(aRanges, new Comparator<RangeAtom>() {
             @Override
-            public int compare(Object o1, Object o2) {
-                RangeAtom r1 = (RangeAtom) o1;
-                RangeAtom r2 = (RangeAtom) o2;
-                return r1.pageBegin.compareTo(r2.pageBegin);
+            public int compare(final RangeAtom o1, final RangeAtom o2) {
+                return o1.pageBegin.compareTo(o2.pageBegin);
             }
         });
 
@@ -726,8 +724,8 @@ public final class InboxServiceImpl implements InboxService {
     public PageImages getPageChunks(final String user,
             final Integer firstDetailPage, final String uniqueUrlValue,
             final boolean base64) {
-        return InboxPageImageChunker.chunk(user, firstDetailPage, uniqueUrlValue,
-                base64);
+        return InboxPageImageChunker.chunk(user, firstDetailPage,
+                uniqueUrlValue, base64);
     }
 
     @Deprecated
@@ -1538,9 +1536,9 @@ public final class InboxServiceImpl implements InboxService {
             // .....................................................
             java.util.Arrays.sort(files, new Comparator<File>() {
                 @Override
-                public int compare(File o1, File o2) {
-                    Long m1 = o1.lastModified();
-                    Long m2 = o2.lastModified();
+                public int compare(final File o1, final File o2) {
+                    final Long m1 = o1.lastModified();
+                    final Long m2 = o2.lastModified();
                     return m1.compareTo(m2);
                 }
             });
