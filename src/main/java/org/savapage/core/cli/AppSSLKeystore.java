@@ -48,7 +48,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -215,8 +214,8 @@ public final class AppSSLKeystore extends AbstractApp {
          */
         final byte[] publickeyb = keyPair.getPublic().getEncoded();
 
-        final SubjectPublicKeyInfo subPubKeyInfo = new SubjectPublicKeyInfo(
-                (ASN1Sequence) ASN1Primitive.fromByteArray(publickeyb));
+        final SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo
+                .getInstance(ASN1Primitive.fromByteArray(publickeyb));
 
         // Mantis #560
         final X500Name holder = new X500Name("CN=" + holderCommonName);
