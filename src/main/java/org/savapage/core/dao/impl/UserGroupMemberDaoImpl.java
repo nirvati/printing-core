@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,11 +32,11 @@ import org.savapage.core.jpa.UserGroupMember;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public final class UserGroupMemberDaoImpl extends
-        GenericDaoImpl<UserGroupMember> implements UserGroupMemberDao {
+public final class UserGroupMemberDaoImpl
+        extends GenericDaoImpl<UserGroupMember> implements UserGroupMemberDao {
 
     @Override
     public int deleteGroup(final Long groupId) {
@@ -63,6 +63,7 @@ public final class UserGroupMemberDaoImpl extends
         return countResult.longValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<UserGroup> getGroupChunk(final UserFilter filter,
             final Integer startPosition, final Integer maxResults,
@@ -172,6 +173,7 @@ public final class UserGroupMemberDaoImpl extends
 
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<User> getUserChunk(final GroupFilter filter,
             final Integer startPosition, final Integer maxResults,
@@ -257,13 +259,12 @@ public final class UserGroupMemberDaoImpl extends
         return query;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<UserGroupMember> getGroupMembers(final Long groupId) {
 
-        final String jpql =
-                "SELECT U FROM UserGroupMember U "
-                        + "WHERE U.group.id = :groupId "
-                        + "ORDER BY U.user.userId";
+        final String jpql = "SELECT U FROM UserGroupMember U "
+                + "WHERE U.group.id = :groupId " + "ORDER BY U.user.userId";
 
         final Query query = getEntityManager().createQuery(jpql);
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,20 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRField;
-import net.sf.jasperreports.engine.design.JRDesignBand;
-import net.sf.jasperreports.engine.design.JRDesignRectangle;
-import net.sf.jasperreports.engine.design.JRDesignSection;
-import net.sf.jasperreports.engine.design.JRDesignStyle;
-import net.sf.jasperreports.engine.design.JRDesignTextField;
-import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.type.HorizontalAlignEnum;
-import net.sf.jasperreports.engine.type.ModeEnum;
-import net.sf.jasperreports.engine.type.PrintOrderEnum;
-import net.sf.jasperreports.engine.type.VerticalAlignEnum;
-
 import org.savapage.core.SpException;
 import org.savapage.core.dao.AccountVoucherDao;
 import org.savapage.core.dao.AccountVoucherDao.DbVoucherType;
@@ -55,9 +41,23 @@ import org.savapage.core.jpa.AccountVoucher;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
 
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRField;
+import net.sf.jasperreports.engine.design.JRDesignBand;
+import net.sf.jasperreports.engine.design.JRDesignRectangle;
+import net.sf.jasperreports.engine.design.JRDesignSection;
+import net.sf.jasperreports.engine.design.JRDesignStyle;
+import net.sf.jasperreports.engine.design.JRDesignTextField;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
+import net.sf.jasperreports.engine.type.ModeEnum;
+import net.sf.jasperreports.engine.type.PrintOrderEnum;
+import net.sf.jasperreports.engine.type.VerticalTextAlignEnum;
+
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class JrVoucherPageDesign extends AbstractJrDesign {
@@ -74,8 +74,8 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
      * @author Datraverse B.V.
      *
      */
-    private static class DataSource extends AbstractJrDataSource implements
-            JRDataSource {
+    private static class DataSource extends AbstractJrDataSource
+            implements JRDataSource {
 
         private static final int CHUNK_SIZE = 100;
 
@@ -125,13 +125,10 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
          */
         private void getNextChunk(Integer startPosition, Integer maxResults) {
 
-            this.entryList =
-                    ServiceContext
-                            .getDaoContext()
-                            .getAccountVoucherDao()
-                            .getListChunk(this.filter, startPosition,
-                                    maxResults, this.sortField,
-                                    this.sortAscending);
+            this.entryList = ServiceContext.getDaoContext()
+                    .getAccountVoucherDao().getListChunk(this.filter,
+                            startPosition, maxResults, this.sortField,
+                            this.sortAscending);
 
             this.chunkCounter = 0;
             this.iterator = this.entryList.iterator();
@@ -369,9 +366,9 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
     private JRDesignTextField addDesignTextField(JRDesignBand band,
             String expression, int posY, int fieldHeight) throws JRException {
 
-        return addDesignTextField(band, expression, 0, posY, getLayout()
-                .getColumnWidth().intValue(), fieldHeight,
-                HorizontalAlignEnum.CENTER, VerticalAlignEnum.MIDDLE);
+        return addDesignTextField(band, expression, 0, posY,
+                getLayout().getColumnWidth().intValue(), fieldHeight,
+                HorizontalTextAlignEnum.CENTER, VerticalTextAlignEnum.MIDDLE);
     }
 
     /**
@@ -414,8 +411,10 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
                 java.lang.String.class);
 
         // Fields
-        addFields(jasperDesign, new String[] { FIELD_CARD_VALUE,
-                FIELD_CARD_NUMBER, FIELD_CARD_EXPIRY }, java.lang.String.class);
+        addFields(
+                jasperDesign, new String[] { FIELD_CARD_VALUE,
+                        FIELD_CARD_NUMBER, FIELD_CARD_EXPIRY },
+                java.lang.String.class);
 
         // Title (empty)
         JRDesignBand band = new JRDesignBand();
@@ -437,11 +436,11 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
 
         final int cardHeight = layout.getCardHeight().intValue();
 
-        final int fontSizeHeader = 14;
-        final int fontSizeAmount = 16;
-        final int fontSizeValidTill = 10;
-        final int fontSizeFooter = 8;
-        final int fontSizeCardNumber = 13;
+        final float fontSizeHeader = 14f;
+        final float fontSizeAmount = 16f;
+        final float fontSizeValidTill = 10f;
+        final float fontSizeFooter = 8f;
+        final float fontSizeCardNumber = 13f;
 
         //
         band = new JRDesignBand();
@@ -466,9 +465,8 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
         // HEADER
         fieldHeighWlk = (int) Math.round(cardHeight * .20);
 
-        textField =
-                addDesignTextField(band, "$P{" + PARM_HEADER + "}", cardHeight
-                        - cardHeightRemainder, fieldHeighWlk);
+        textField = addDesignTextField(band, "$P{" + PARM_HEADER + "}",
+                cardHeight - cardHeightRemainder, fieldHeighWlk);
         textField.setFontSize(fontSizeHeader);
         textField.setBold(false);
         textField.setStretchWithOverflow(true);
@@ -478,9 +476,8 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
         // AMOUNT
         fieldHeighWlk = (int) Math.round(cardHeight * .20);
 
-        textField =
-                addDesignTextField(band, "$F{" + FIELD_CARD_VALUE + "}",
-                        cardHeight - cardHeightRemainder, fieldHeighWlk);
+        textField = addDesignTextField(band, "$F{" + FIELD_CARD_VALUE + "}",
+                cardHeight - cardHeightRemainder, fieldHeighWlk);
         textField.setFontSize(fontSizeAmount);
         textField.setBold(false);
 
@@ -489,9 +486,8 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
         // CARD_NUMBER
         fieldHeighWlk = (int) Math.round(cardHeight * .20);
 
-        textField =
-                addDesignTextField(band, "$F{" + FIELD_CARD_NUMBER + "}",
-                        cardHeight - cardHeightRemainder, fieldHeighWlk);
+        textField = addDesignTextField(band, "$F{" + FIELD_CARD_NUMBER + "}",
+                cardHeight - cardHeightRemainder, fieldHeighWlk);
         textField.setFontSize(fontSizeCardNumber);
         textField.setBold(false);
         textField.setStretchWithOverflow(true);
@@ -501,9 +497,8 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
         // VALID_TILL
         fieldHeighWlk = (int) Math.round(cardHeight * .20);
 
-        textField =
-                addDesignTextField(band, "$F{" + FIELD_CARD_EXPIRY + "}",
-                        cardHeight - cardHeightRemainder, fieldHeighWlk);
+        textField = addDesignTextField(band, "$F{" + FIELD_CARD_EXPIRY + "}",
+                cardHeight - cardHeightRemainder, fieldHeighWlk);
         textField.setFontSize(fontSizeValidTill);
         textField.setBold(false);
         textField.setStretchWithOverflow(true);
@@ -511,9 +506,8 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
         cardHeightRemainder -= fieldHeighWlk;
 
         // FOOTER
-        textField =
-                addDesignTextField(band, "$P{" + PARM_FOOTER + "}", cardHeight
-                        - cardHeightRemainder, cardHeightRemainder);
+        textField = addDesignTextField(band, "$P{" + PARM_FOOTER + "}",
+                cardHeight - cardHeightRemainder, cardHeightRemainder);
         textField.setFontSize(fontSizeFooter);
         textField.setBold(false);
         textField.setStretchWithOverflow(true);

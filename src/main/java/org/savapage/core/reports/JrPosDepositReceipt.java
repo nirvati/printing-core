@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,17 +28,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.design.JRDesignBand;
-import net.sf.jasperreports.engine.design.JRDesignExpression;
-import net.sf.jasperreports.engine.design.JRDesignImage;
-import net.sf.jasperreports.engine.design.JRDesignLine;
-import net.sf.jasperreports.engine.design.JRDesignSection;
-import net.sf.jasperreports.engine.design.JRDesignTextField;
-import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.type.HorizontalAlignEnum;
-import net.sf.jasperreports.engine.type.VerticalAlignEnum;
-
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
@@ -53,10 +42,21 @@ import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.CurrencyUtil;
 import org.savapage.core.util.LocaleHelper;
 
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.design.JRDesignBand;
+import net.sf.jasperreports.engine.design.JRDesignExpression;
+import net.sf.jasperreports.engine.design.JRDesignImage;
+import net.sf.jasperreports.engine.design.JRDesignLine;
+import net.sf.jasperreports.engine.design.JRDesignSection;
+import net.sf.jasperreports.engine.design.JRDesignTextField;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
+import net.sf.jasperreports.engine.type.VerticalTextAlignEnum;
+
 /**
  * Jasper Reports design for Point-of-Sale Receipt.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class JrPosDepositReceipt extends AbstractJrDesign {
@@ -144,8 +144,8 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
      * @return
      * @throws ParseException
      */
-    public static Map<String, Object> getParameters(
-            final PosDepositReceiptDto receipt, Locale locale) {
+    public static Map<String, Object>
+            getParameters(final PosDepositReceiptDto receipt, Locale locale) {
 
         final LocaleHelper helper = new LocaleHelper(locale);
 
@@ -166,17 +166,19 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
         //
         parms.put(PARM_RECEIPT_REF_NUMBER, receipt.getReceiptNumber());
 
-        parms.put(PARM_RECEIPT_DATE, helper.getLongMediumDateTime(new Date(
-                receipt.getTransactionDate().longValue())));
+        parms.put(PARM_RECEIPT_DATE, helper.getLongMediumDateTime(
+                new Date(receipt.getTransactionDate().longValue())));
 
         parms.put(PARM_RECEIPT_USERNAME, receipt.getUserFullName());
 
         try {
-            parms.put(PARM_RECEIPT_AMOUNT, helper.getCurrencyDecimal(
-                    BigDecimalUtil.valueOf(receipt.getPlainAmount()),
-                    ConfigManager.getUserBalanceDecimals(), CurrencyUtil
-                            .getCurrencySymbol(receipt.getAccountTrx()
-                                    .getCurrencyCode(), locale)));
+            parms.put(PARM_RECEIPT_AMOUNT,
+                    helper.getCurrencyDecimal(
+                            BigDecimalUtil.valueOf(receipt.getPlainAmount()),
+                            ConfigManager.getUserBalanceDecimals(),
+                            CurrencyUtil.getCurrencySymbol(
+                                    receipt.getAccountTrx().getCurrencyCode(),
+                                    locale)));
         } catch (ParseException e) {
             throw new SpException(e);
         }
@@ -241,11 +243,9 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
         final int PAGE_TITLE_HEIGHT = 90;
         final int PAGE_FOOTER_HEIGHT = 60;
 
-        final int PAGE_DETAIL_HEIGHT =
-                getLayout().getPageSize().getHeight()
-                        - getLayout().getTopMargin()
-                        - getLayout().getBottomMargin() - PAGE_TITLE_HEIGHT
-                        - PAGE_FOOTER_HEIGHT;
+        final int PAGE_DETAIL_HEIGHT = getLayout().getPageSize().getHeight()
+                - getLayout().getTopMargin() - getLayout().getBottomMargin()
+                - PAGE_TITLE_HEIGHT - PAGE_FOOTER_HEIGHT;
 
         // JasperDesign
         JasperDesign jasperDesign = new JasperDesign();
@@ -269,11 +269,12 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
         }
 
         // Parameters
-        addParameters(jasperDesign, new String[] { PARM_APP_VERSION,
-                PARM_REPORT_ACTOR, PARM_REPORT_DATE, PARM_RECEIPT_DATE,
-                PARM_RECEIPT_REF_NUMBER, PARM_RECEIPT_USERNAME,
-                PARM_RECEIPT_AMOUNT, PARM_RECEIPT_CASHIER,
-                PARM_RECEIPT_COMMENT, PARM_RECEIPT_PAYMENT_METHOD },
+        addParameters(jasperDesign,
+                new String[] { PARM_APP_VERSION, PARM_REPORT_ACTOR,
+                        PARM_REPORT_DATE, PARM_RECEIPT_DATE,
+                        PARM_RECEIPT_REF_NUMBER, PARM_RECEIPT_USERNAME,
+                        PARM_RECEIPT_AMOUNT, PARM_RECEIPT_CASHIER,
+                        PARM_RECEIPT_COMMENT, PARM_RECEIPT_PAYMENT_METHOD },
                 java.lang.String.class);
 
         addParameters(jasperDesign, new String[] { PARM_REPORT_IMAGE },
@@ -283,6 +284,11 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
 
         final int FONT_SIZE_TITLE = 20;
         final int FONT_SIZE_HEADER = 12;
+
+        final float FONT_SIZE_TITLE_F =
+                Integer.valueOf(FONT_SIZE_TITLE).floatValue();
+        final float FONT_SIZE_HEADER_F =
+                Integer.valueOf(FONT_SIZE_HEADER).floatValue();
 
         // --------------------------------------------
         // Title
@@ -296,8 +302,8 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
         JRDesignImage image = new JRDesignImage(jasperDesign);
         band.addElement(image);
 
-        image.setExpression(new JRDesignExpression("$P{" + PARM_REPORT_IMAGE
-                + "}"));
+        image.setExpression(
+                new JRDesignExpression("$P{" + PARM_REPORT_IMAGE + "}"));
 
         image.setX(0);
         image.setY(0);
@@ -312,12 +318,11 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
 
         int width = getLayout().getColumnWidth().intValue() - posX;
 
-        textField =
-                addDesignTextField(band, "$R{PosDepositReceipt.title}", posX,
-                        15, width, 42, HorizontalAlignEnum.LEFT,
-                        VerticalAlignEnum.MIDDLE);
+        textField = addDesignTextField(band, "$R{PosDepositReceipt.title}",
+                posX, 15, width, 42, HorizontalTextAlignEnum.LEFT,
+                VerticalTextAlignEnum.MIDDLE);
 
-        textField.setFontSize(FONT_SIZE_TITLE);
+        textField.setFontSize(FONT_SIZE_TITLE_F);
 
         //
         JRDesignLine line;
@@ -346,11 +351,10 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
 
         for (final String headerLine : ConfigManager
                 .getConfigMultiline(Key.FINANCIAL_POS_RECEIPT_HEADER)) {
-            textField =
-                    addDesignTextField(band, "\"" + headerLine + "\"", 0,
-                            wlkPosY, getLayout().getColumnWidth(), fieldHeight,
-                            HorizontalAlignEnum.LEFT, VerticalAlignEnum.MIDDLE);
-            textField.setFontSize(FONT_SIZE_HEADER);
+            textField = addDesignTextField(band, "\"" + headerLine + "\"", 0,
+                    wlkPosY, getLayout().getColumnWidth(), fieldHeight,
+                    HorizontalTextAlignEnum.LEFT, VerticalTextAlignEnum.MIDDLE);
+            textField.setFontSize(FONT_SIZE_HEADER_F);
             wlkPosY += posYIncrement;
         }
 
@@ -358,6 +362,8 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
 
         // Dimensions
         final int FONT_SIZE_DETAIL = 12;
+        final float FONT_SIZE_DETAIL_F =
+                Integer.valueOf(FONT_SIZE_DETAIL).floatValue();
 
         fieldHeight = FONT_SIZE_DETAIL + 4;
         posYIncrement = fieldHeight + 10;
@@ -370,130 +376,118 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
         final int fieldWidth = getLayout().getColumnWidth() - fieldX;
 
         // Fixed Header text
-        textField =
-                addDesignTextField(band, "$R{PosDepositReceipt.header}", 0,
-                        wlkPosY, getLayout().getColumnWidth(), fieldHeight,
-                        HorizontalAlignEnum.LEFT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band, "$R{PosDepositReceipt.header}", 0,
+                wlkPosY, getLayout().getColumnWidth(), fieldHeight,
+                HorizontalTextAlignEnum.LEFT, VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
         wlkPosY += 2 * posYIncrement;
 
         // Reference number
 
-        textField =
-                addDesignTextField(band,
-                        "$R{PosDepositReceipt.prompt.refNumber} + \" :\"", 0,
-                        wlkPosY, promptWidth, fieldHeight,
-                        HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band,
+                "$R{PosDepositReceipt.prompt.refNumber} + \" :\"", 0, wlkPosY,
+                promptWidth, fieldHeight, HorizontalTextAlignEnum.RIGHT,
+                VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
-        textField =
-                addDesignTextField(band, "$P{" + PARM_RECEIPT_REF_NUMBER + "}",
-                        fieldX, wlkPosY, fieldWidth, fieldHeight,
-                        HorizontalAlignEnum.LEFT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band,
+                "$P{" + PARM_RECEIPT_REF_NUMBER + "}", fieldX, wlkPosY,
+                fieldWidth, fieldHeight, HorizontalTextAlignEnum.LEFT,
+                VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
         wlkPosY += posYIncrement;
 
         // Date
 
-        textField =
-                addDesignTextField(band,
-                        "$R{PosDepositReceipt.prompt.date} + \" :\"", 0,
-                        wlkPosY, promptWidth, fieldHeight,
-                        HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band,
+                "$R{PosDepositReceipt.prompt.date} + \" :\"", 0, wlkPosY,
+                promptWidth, fieldHeight, HorizontalTextAlignEnum.RIGHT,
+                VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
-        textField =
-                addDesignTextField(band, "$P{" + PARM_RECEIPT_DATE + "}",
-                        fieldX, wlkPosY, fieldWidth, fieldHeight,
-                        HorizontalAlignEnum.LEFT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band, "$P{" + PARM_RECEIPT_DATE + "}",
+                fieldX, wlkPosY, fieldWidth, fieldHeight,
+                HorizontalTextAlignEnum.LEFT, VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
         wlkPosY += posYIncrement;
 
         // Username
 
-        textField =
-                addDesignTextField(band,
-                        "$R{PosDepositReceipt.prompt.userName} + \" :\"", 0,
-                        wlkPosY, promptWidth, fieldHeight,
-                        HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band,
+                "$R{PosDepositReceipt.prompt.userName} + \" :\"", 0, wlkPosY,
+                promptWidth, fieldHeight, HorizontalTextAlignEnum.RIGHT,
+                VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
-        textField =
-                addDesignTextField(band, "$P{" + PARM_RECEIPT_USERNAME + "}",
-                        fieldX, wlkPosY, fieldWidth, fieldHeight,
-                        HorizontalAlignEnum.LEFT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band,
+                "$P{" + PARM_RECEIPT_USERNAME + "}", fieldX, wlkPosY,
+                fieldWidth, fieldHeight, HorizontalTextAlignEnum.LEFT,
+                VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
         wlkPosY += posYIncrement;
 
         // Amount
 
-        textField =
-                addDesignTextField(band,
-                        "$R{PosDepositReceipt.prompt.amount} + \" :\"", 0,
-                        wlkPosY, promptWidth, fieldHeight,
-                        HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band,
+                "$R{PosDepositReceipt.prompt.amount} + \" :\"", 0, wlkPosY,
+                promptWidth, fieldHeight, HorizontalTextAlignEnum.RIGHT,
+                VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
-        textField =
-                addDesignTextField(band, "$P{" + PARM_RECEIPT_AMOUNT + "}",
-                        fieldX, wlkPosY, fieldWidth, fieldHeight,
-                        HorizontalAlignEnum.LEFT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band, "$P{" + PARM_RECEIPT_AMOUNT + "}",
+                fieldX, wlkPosY, fieldWidth, fieldHeight,
+                HorizontalTextAlignEnum.LEFT, VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
         wlkPosY += posYIncrement;
 
         // Payment method
 
-        textField =
-                addDesignTextField(band,
-                        "$R{PosDepositReceipt.prompt.paymentMethod} + \" :\"",
-                        0, wlkPosY, promptWidth, fieldHeight,
-                        HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band,
+                "$R{PosDepositReceipt.prompt.paymentMethod} + \" :\"", 0,
+                wlkPosY, promptWidth, fieldHeight,
+                HorizontalTextAlignEnum.RIGHT, VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
-        textField =
-                addDesignTextField(band, "$P{" + PARM_RECEIPT_PAYMENT_METHOD
-                        + "}", fieldX, wlkPosY, fieldWidth, fieldHeight,
-                        HorizontalAlignEnum.LEFT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band,
+                "$P{" + PARM_RECEIPT_PAYMENT_METHOD + "}", fieldX, wlkPosY,
+                fieldWidth, fieldHeight, HorizontalTextAlignEnum.LEFT,
+                VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
         wlkPosY += posYIncrement;
 
         // Cashier
 
-        textField =
-                addDesignTextField(band,
-                        "$R{PosDepositReceipt.prompt.cashier} + \" :\"", 0,
-                        wlkPosY, promptWidth, fieldHeight,
-                        HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band,
+                "$R{PosDepositReceipt.prompt.cashier} + \" :\"", 0, wlkPosY,
+                promptWidth, fieldHeight, HorizontalTextAlignEnum.RIGHT,
+                VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
-        textField =
-                addDesignTextField(band, "$P{" + PARM_RECEIPT_CASHIER + "}",
-                        fieldX, wlkPosY, fieldWidth, fieldHeight,
-                        HorizontalAlignEnum.LEFT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band, "$P{" + PARM_RECEIPT_CASHIER + "}",
+                fieldX, wlkPosY, fieldWidth, fieldHeight,
+                HorizontalTextAlignEnum.LEFT, VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
         wlkPosY += posYIncrement;
 
         // Comment
 
-        textField =
-                addDesignTextField(band,
-                        "$R{PosDepositReceipt.prompt.comment} + \" :\"", 0,
-                        wlkPosY, promptWidth, fieldHeight,
-                        HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band,
+                "$R{PosDepositReceipt.prompt.comment} + \" :\"", 0, wlkPosY,
+                promptWidth, fieldHeight, HorizontalTextAlignEnum.RIGHT,
+                VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
 
-        textField =
-                addDesignTextField(band, "$P{" + PARM_RECEIPT_COMMENT + "}",
-                        fieldX, wlkPosY, fieldWidth, fieldHeight,
-                        HorizontalAlignEnum.LEFT, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(FONT_SIZE_DETAIL);
+        textField = addDesignTextField(band, "$P{" + PARM_RECEIPT_COMMENT + "}",
+                fieldX, wlkPosY, fieldWidth, fieldHeight,
+                HorizontalTextAlignEnum.LEFT, VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(FONT_SIZE_DETAIL_F);
         textField.setStretchWithOverflow(true);
 
         wlkPosY += posYIncrement;
@@ -506,11 +500,10 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
 
         band.setHeight(PAGE_FOOTER_HEIGHT);
 
-        textField =
-                addDesignTextField(band, "$P{" + PARM_APP_VERSION + "}", 0, 30,
-                        getLayout().getColumnWidth().intValue(), 20,
-                        HorizontalAlignEnum.CENTER, VerticalAlignEnum.MIDDLE);
-        textField.setFontSize(10);
+        textField = addDesignTextField(band, "$P{" + PARM_APP_VERSION + "}", 0,
+                30, getLayout().getColumnWidth().intValue(), 20,
+                HorizontalTextAlignEnum.CENTER, VerticalTextAlignEnum.MIDDLE);
+        textField.setFontSize(10f);
 
         // --------------------------------------------
         return jasperDesign;

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,12 +34,12 @@ import javax.persistence.criteria.Root;
 
 import org.savapage.core.SpException;
 import org.savapage.core.dao.AccountVoucherDao;
-import org.savapage.core.jpa.AccountVoucher;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
+import org.savapage.core.jpa.AccountVoucher;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class AccountVoucherDaoImpl extends GenericDaoImpl<AccountVoucher>
@@ -92,6 +92,7 @@ public final class AccountVoucherDaoImpl extends GenericDaoImpl<AccountVoucher>
         return query.executeUpdate();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<String> getBatches() {
         final String jpql =

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,11 +35,11 @@ import org.savapage.core.services.ServiceContext;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public final class DeviceDaoImpl extends GenericDaoImpl<Device> implements
-        DeviceDao {
+public final class DeviceDaoImpl extends GenericDaoImpl<Device>
+        implements DeviceDao {
 
     @Override
     public Device findByName(final String deviceName) {
@@ -104,6 +104,7 @@ public final class DeviceDaoImpl extends GenericDaoImpl<Device> implements
         return countResult.longValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<Device> getListChunk(final ListFilter filter,
             final Integer startPosition, final Integer maxResults,
@@ -160,8 +161,8 @@ public final class DeviceDaoImpl extends GenericDaoImpl<Device> implements
         final Query query = getEntityManager().createQuery(jpql);
 
         if (filter.getContainingText() != null) {
-            query.setParameter("containingText", "%"
-                    + filter.getContainingText().toLowerCase() + "%");
+            query.setParameter("containingText",
+                    "%" + filter.getContainingText().toLowerCase() + "%");
         }
 
         if (filter.getDisabled() != null) {
@@ -232,9 +233,8 @@ public final class DeviceDaoImpl extends GenericDaoImpl<Device> implements
      */
     private DeviceAttr readAttribute(final Device device, final String name) {
 
-        final String jpql =
-                "SELECT A FROM DeviceAttr A JOIN A.device D "
-                        + "WHERE D.id = :deviceId AND A.name = :name";
+        final String jpql = "SELECT A FROM DeviceAttr A JOIN A.device D "
+                + "WHERE D.id = :deviceId AND A.name = :name";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -282,8 +282,8 @@ public final class DeviceDaoImpl extends GenericDaoImpl<Device> implements
 
     @Override
     public boolean isCardReader(final Device device) {
-        return device.getDeviceType().equals(
-                DeviceTypeEnum.CARD_READER.toString());
+        return device.getDeviceType()
+                .equals(DeviceTypeEnum.CARD_READER.toString());
     }
 
     @Override

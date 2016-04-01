@@ -59,6 +59,7 @@ public final class XmlParseHelper {
      * {@code [#x1-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]}
      * </p>
      */
+    @SuppressWarnings("unused")
     private static final String XML_1_1_PATTERN_INVALID_CHARS = "[^"
             + "\u0001-\uD7FF" + "\uE000-\uFFFD" + "\ud800\udc00-\udbff\udfff"
             + "]+";

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,11 +38,11 @@ import org.savapage.core.jpa.UserGroup;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
-        UserGroupDao {
+public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup>
+        implements UserGroupDao {
 
     @Override
     public ReservedUserGroupEnum findReservedGroup(final Long userGroupId) {
@@ -78,6 +78,7 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
         return countResult.longValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<UserGroup> getListChunk(final ListFilter filter,
             final Integer startPosition, final Integer maxResults,
@@ -190,8 +191,8 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup> implements
         }
 
         if (filter.getContainingText() != null) {
-            query.setParameter("containingText", "%"
-                    + filter.getContainingText().toLowerCase() + "%");
+            query.setParameter("containingText",
+                    "%" + filter.getContainingText().toLowerCase() + "%");
         }
 
         return query;

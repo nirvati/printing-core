@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -81,15 +81,16 @@ import org.slf4j.LoggerFactory;
  * <li>NO user source. See {@link IConfigProp#AUTH_METHOD_V_NONE}.</li>
  * </ul>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class SyncUsersJob extends AbstractJob {
 
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SyncUsersJob.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SyncUsersJob.class);
 
     /**
      *
@@ -166,8 +167,8 @@ public final class SyncUsersJob extends AbstractJob {
     /**
      *
      */
-    private static final UserService USER_SERVICE = ServiceContext
-            .getServiceFactory().getUserService();
+    private static final UserService USER_SERVICE =
+            ServiceContext.getServiceFactory().getUserService();
 
     @Override
     protected void onInterrupt() throws UnableToInterruptJobException {
@@ -210,8 +211,8 @@ public final class SyncUsersJob extends AbstractJob {
                 return;
             }
 
-            if (cm.getConfigValue(Key.AUTH_METHOD).equals(
-                    IConfigProp.AUTH_METHOD_V_NONE)) {
+            if (cm.getConfigValue(Key.AUTH_METHOD)
+                    .equals(IConfigProp.AUTH_METHOD_V_NONE)) {
                 return;
             }
         }
@@ -242,9 +243,8 @@ public final class SyncUsersJob extends AbstractJob {
 
         try {
             syncUsers();
-            msg =
-                    AppLogHelper.logInfo(getClass(), "SyncUsersJob.success",
-                            msgTestPfx);
+            msg = AppLogHelper.logInfo(getClass(), "SyncUsersJob.success",
+                    msgTestPfx);
 
             if (!this.isTest) {
                 MemberCard.instance().init();
@@ -258,9 +258,8 @@ public final class SyncUsersJob extends AbstractJob {
 
             level = PubLevelEnum.ERROR;
 
-            msg =
-                    AppLogHelper.logError(getClass(), "SyncUsersJob.error",
-                            msgTestPfx, e.getMessage());
+            msg = AppLogHelper.logError(getClass(), "SyncUsersJob.error",
+                    msgTestPfx, e.getMessage());
 
             LoggerFactory.getLogger(this.getClass()).error(e.getMessage(), e);
 
@@ -271,8 +270,8 @@ public final class SyncUsersJob extends AbstractJob {
                  * Do NOT use pubMsg since we use the ready-to-use result
                  * message from the application log.
                  */
-                AdminPublisher.instance().publish(PubTopicEnum.USER_SYNC,
-                        level, msg);
+                AdminPublisher.instance().publish(PubTopicEnum.USER_SYNC, level,
+                        msg);
 
                 if (!this.isTest) {
 
@@ -280,10 +279,9 @@ public final class SyncUsersJob extends AbstractJob {
 
                     if (memberCard.getStatus() == Stat.EXCEEDED) {
                         level = PubLevelEnum.WARN;
-                        msg =
-                                AppLogHelper.logWarning(getClass(),
-                                        "Membership.exceeded",
-                                        CommunityDictEnum.MEMBERSHIP.getWord());
+                        msg = AppLogHelper.logWarning(getClass(),
+                                "Membership.exceeded",
+                                CommunityDictEnum.MEMBERSHIP.getWord());
                     } else {
                         // Just for now ...
                         level = PubLevelEnum.INFO;
@@ -329,9 +327,8 @@ public final class SyncUsersJob extends AbstractJob {
 
         this.rfidNumberFormat = this.userSource.createRfidNumberFormat();
 
-        this.minLengthIdNumber =
-                ConfigManager.instance().getConfigInt(
-                        Key.USER_ID_NUMBER_LENGTH_MIN);
+        this.minLengthIdNumber = ConfigManager.instance()
+                .getConfigInt(Key.USER_ID_NUMBER_LENGTH_MIN);
 
         final String group = cm.getConfigValue(Key.USER_SOURCE_GROUP).trim();
 
@@ -423,11 +420,9 @@ public final class SyncUsersJob extends AbstractJob {
         }
 
         if (this.isTest) {
-            return !isExistingUser
-                    || !StringUtils.defaultString(
-                            USER_SERVICE.getPrimaryCardNumber(user))
-                            .equalsIgnoreCase(
-                                    StringUtils.defaultString(cardNumberSrc));
+            return !isExistingUser || !StringUtils
+                    .defaultString(USER_SERVICE.getPrimaryCardNumber(user))
+                    .equalsIgnoreCase(StringUtils.defaultString(cardNumberSrc));
         }
 
         final UserCardDao userCardDao =
@@ -438,16 +433,13 @@ public final class SyncUsersJob extends AbstractJob {
         if (primaryCardNumber != null) {
 
             try {
-                primaryCardNumber =
-                        this.rfidNumberFormat
-                                .getNormalizedNumber(cardNumberSrc);
+                primaryCardNumber = this.rfidNumberFormat
+                        .getNormalizedNumber(cardNumberSrc);
 
             } catch (NumberFormatException e) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(msgTestPfx
-                            + " Card ["
-                            + cardNumberSrc
+                    LOGGER.trace(msgTestPfx + " Card [" + cardNumberSrc
                             + "] Format Error handled as NO card present for User ["
                             + user.getUserId() + "]");
                 }
@@ -482,9 +474,9 @@ public final class SyncUsersJob extends AbstractJob {
              * attached before.
              */
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(msgTestPfx
-                        + " No Primary Card to Attach for User ["
-                        + user.getUserId() + "]");
+                LOGGER.trace(
+                        msgTestPfx + " No Primary Card to Attach for User ["
+                                + user.getUserId() + "]");
             }
 
             if (user.getCards() != null) {
@@ -498,8 +490,7 @@ public final class SyncUsersJob extends AbstractJob {
                     if (userCardDao.isPrimaryCard(card)) {
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(msgTestPfx
-                                    + " Detached Primary Card ["
+                            LOGGER.trace(msgTestPfx + " Detached Primary Card ["
                                     + card.getNumber() + "] from User ["
                                     + user.getUserId() + "]");
                         }
@@ -618,9 +609,8 @@ public final class SyncUsersJob extends AbstractJob {
                     /*
                      * Detaching CardNumber from next user.
                      */
-                    final User userDb =
-                            ServiceContext.getDaoContext().getUserDao()
-                                    .findById(userCard.getUser().getId());
+                    final User userDb = ServiceContext.getDaoContext()
+                            .getUserDao().findById(userCard.getUser().getId());
 
                     if (detachCardFromUser(userCardDao, userDb,
                             primaryCardNumber)) {
@@ -646,21 +636,20 @@ public final class SyncUsersJob extends AbstractJob {
                     /*
                      * OTHER User is a PREVIOUS User: detach or ignore.
                      */
-                    isUpdated =
-                            detachCardFromUser(userCardDao, user,
-                                    primaryCardNumber);
+                    isUpdated = detachCardFromUser(userCardDao, user,
+                            primaryCardNumber);
 
                     if (isUpdated) {
 
                         commitAtNextIncrement = true;
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(msgTestPfx + " Card ["
-                                    + primaryCardNumber
-                                    + "] Attached to Previous User ["
-                                    + otherUserId
-                                    + "]. Detached from Current User ["
-                                    + currentUserId + "]");
+                            LOGGER.trace(
+                                    msgTestPfx + " Card [" + primaryCardNumber
+                                            + "] Attached to Previous User ["
+                                            + otherUserId
+                                            + "]. Detached from Current User ["
+                                            + currentUserId + "]");
                         }
 
                     } else if (LOGGER.isTraceEnabled()) {
@@ -701,9 +690,8 @@ public final class SyncUsersJob extends AbstractJob {
             isUpdated = true;
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(msgTestPfx + " Attached Card ["
-                        + primaryCardNumber + "] to User [" + user.getUserId()
-                        + "] ");
+                LOGGER.trace(msgTestPfx + " Attached Card [" + primaryCardNumber
+                        + "] to User [" + user.getUserId() + "] ");
             }
         }
 
@@ -762,11 +750,9 @@ public final class SyncUsersJob extends AbstractJob {
         }
 
         if (this.isTest) {
-            return !isExistingUser
-                    || !StringUtils.defaultString(
-                            USER_SERVICE.getPrimaryIdNumber(user))
-                            .equalsIgnoreCase(
-                                    StringUtils.defaultString(idNumberSrc));
+            return !isExistingUser || !StringUtils
+                    .defaultString(USER_SERVICE.getPrimaryIdNumber(user))
+                    .equalsIgnoreCase(StringUtils.defaultString(idNumberSrc));
         }
 
         final UserNumberDao userNumberDao =
@@ -863,8 +849,8 @@ public final class SyncUsersJob extends AbstractJob {
                 attachPrimaryId = true;
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(msgTestPfx + " New ID [" + primaryIdNumber
-                            + "]");
+                    LOGGER.trace(
+                            msgTestPfx + " New ID [" + primaryIdNumber + "]");
                 }
 
                 // This commit prevents that a single User ID linked to
@@ -899,10 +885,10 @@ public final class SyncUsersJob extends AbstractJob {
                      * needed.
                      */
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " Primary ID ["
-                                + primaryIdNumber
-                                + "] already Attached to User ["
-                                + user.getUserId() + "]");
+                        LOGGER.trace(
+                                msgTestPfx + " Primary ID [" + primaryIdNumber
+                                        + "] already Attached to User ["
+                                        + user.getUserId() + "]");
                     }
 
                     attachPrimaryId = false;
@@ -980,9 +966,8 @@ public final class SyncUsersJob extends AbstractJob {
                     /*
                      * OTHER User is a PREVIOUS User: detach or ignore.
                      */
-                    isUpdated =
-                            detachIdNumberFromUser(userNumberDao, user,
-                                    primaryIdNumber);
+                    isUpdated = detachIdNumberFromUser(userNumberDao, user,
+                            primaryIdNumber);
 
                     if (isUpdated) {
 
@@ -1092,8 +1077,9 @@ public final class SyncUsersJob extends AbstractJob {
 
         if (this.isTest) {
             return !isExistingUser
-                    || !StringUtils.defaultString(
-                            USER_SERVICE.getPrimaryEmailAddress(user))
+                    || !StringUtils
+                            .defaultString(
+                                    USER_SERVICE.getPrimaryEmailAddress(user))
                             .equalsIgnoreCase(
                                     StringUtils.defaultString(emailAddressSrc));
         }
@@ -1149,9 +1135,9 @@ public final class SyncUsersJob extends AbstractJob {
              * attached before.
              */
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(msgTestPfx
-                        + " No Primary Email to Attach for User ["
-                        + user.getUserId() + "]");
+                LOGGER.trace(
+                        msgTestPfx + " No Primary Email to Attach for User ["
+                                + user.getUserId() + "]");
             }
 
             if (user.getEmails() != null) {
@@ -1286,9 +1272,8 @@ public final class SyncUsersJob extends AbstractJob {
                     /*
                      * Detaching email from next user.
                      */
-                    final User userDb =
-                            ServiceContext.getDaoContext().getUserDao()
-                                    .findById(userEmail.getUser().getId());
+                    final User userDb = ServiceContext.getDaoContext()
+                            .getUserDao().findById(userEmail.getUser().getId());
 
                     if (detachEmailFromUser(userEmailDao, userDb,
                             primaryEmailAddress)) {
@@ -1304,8 +1289,8 @@ public final class SyncUsersJob extends AbstractJob {
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace(msgTestPfx
                                     + " Detached Primary Email ["
-                                    + primaryEmailAddress
-                                    + "] from Next User [" + otherUserId + "]");
+                                    + primaryEmailAddress + "] from Next User ["
+                                    + otherUserId + "]");
                         }
                     }
 
@@ -1316,9 +1301,8 @@ public final class SyncUsersJob extends AbstractJob {
                     /*
                      * OTHER User is a PREVIOUS User: detach or ignore.
                      */
-                    isUpdated =
-                            detachEmailFromUser(userEmailDao, user,
-                                    primaryEmailAddress);
+                    isUpdated = detachEmailFromUser(userEmailDao, user,
+                            primaryEmailAddress);
 
                     if (isUpdated) {
 
@@ -1372,8 +1356,8 @@ public final class SyncUsersJob extends AbstractJob {
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(msgTestPfx + " Attached Primary Email ["
-                        + primaryEmailAddress + "] to User ["
-                        + user.getUserId() + "] ");
+                        + primaryEmailAddress + "] to User [" + user.getUserId()
+                        + "] ");
             }
         }
 
@@ -1661,9 +1645,8 @@ public final class SyncUsersJob extends AbstractJob {
      */
     private void syncUsers() throws Exception {
 
-        final boolean isUpdateUsers =
-                ConfigManager.instance().isConfigValue(
-                        Key.USER_SOURCE_UPDATE_USER_DETAILS);
+        final boolean isUpdateUsers = ConfigManager.instance()
+                .isConfigValue(Key.USER_SOURCE_UPDATE_USER_DETAILS);
 
         final Date syncDate = ServiceContext.getTransactionDate();
         final String syncActor = ServiceContext.getActor();
@@ -1703,9 +1686,8 @@ public final class SyncUsersJob extends AbstractJob {
         CommonUser userSrc = nextSrc(iterSrc);
         User userDb = nextDb(iterDb);
 
-        this.batchCommitter =
-                ServiceContext.getDaoContext().createBatchCommitter(
-                        ConfigManager.getDaoBatchChunkSize());
+        this.batchCommitter = ServiceContext.getDaoContext()
+                .createBatchCommitter(ConfigManager.getDaoBatchChunkSize());
 
         this.batchCommitter.setTest(this.isTest);
 
@@ -1818,47 +1800,37 @@ public final class SyncUsersJob extends AbstractJob {
         if (isDeleteUsers) {
 
             if (isUpdateUsers) {
-                msg =
-                        "Users: identical [" + nIdentical + "] added ["
-                                + nAdded + "] updated [" + nUpdated
-                                + "] deleted [" + nDeleted + "] internal ["
-                                + nInternalUsers + "]";
+                msg = "Users: identical [" + nIdentical + "] added [" + nAdded
+                        + "] updated [" + nUpdated + "] deleted [" + nDeleted
+                        + "] internal [" + nInternalUsers + "]";
             } else {
-                msg =
-                        "Users: same [" + nSameUser + "] added [" + nAdded
-                                + "] deleted [" + nDeleted + "] internal ["
-                                + nInternalUsers + "]";
+                msg = "Users: same [" + nSameUser + "] added [" + nAdded
+                        + "] deleted [" + nDeleted + "] internal ["
+                        + nInternalUsers + "]";
             }
 
         } else {
 
             if (isUpdateUsers) {
-                msg =
-                        "Users: identical [" + nIdentical + "] added ["
-                                + nAdded + "] updated [" + nUpdated
-                                + "] non-exist [" + nNonExist + "] internal ["
-                                + nInternalUsers + "]";
+                msg = "Users: identical [" + nIdentical + "] added [" + nAdded
+                        + "] updated [" + nUpdated + "] non-exist [" + nNonExist
+                        + "] internal [" + nInternalUsers + "]";
 
             } else {
-                msg =
-                        "Users: same [" + nSameUser + "] added [" + nAdded
-                                + "] non-exist [" + nNonExist + "] internal ["
-                                + nInternalUsers + "]";
+                msg = "Users: same [" + nSameUser + "] added [" + nAdded
+                        + "] non-exist [" + nNonExist + "] internal ["
+                        + nInternalUsers + "]";
             }
         }
 
         pubMsg(msg);
 
-        msg =
-                "Files: present ["
-                        + NumberUtil.humanReadableByteCount(
-                                nBytesUserFilesPresent, true) + "]";
+        msg = "Files: present [" + NumberUtil
+                .humanReadableByteCount(nBytesUserFilesPresent, true) + "]";
 
         if (nBytesUserFilesDeleted > 0) {
-            msg +=
-                    " deleted ["
-                            + NumberUtil.humanReadableByteCount(
-                                    nBytesUserFilesDeleted, true) + "]";
+            msg += " deleted [" + NumberUtil
+                    .humanReadableByteCount(nBytesUserFilesDeleted, true) + "]";
         }
         pubMsg(msg);
     }
@@ -1879,12 +1851,12 @@ public final class SyncUsersJob extends AbstractJob {
      *            then ALL (remaining users) are returned.
      * @return
      */
+    @SuppressWarnings("unchecked")
     private static List<User> getListChunk(final EntityManager em,
             final Integer startPosition, final Integer maxResults) {
 
-        final String jpql =
-                "SELECT U FROM User U" + " WHERE U.deleted = false"
-                        + " ORDER BY U.userId ";
+        final String jpql = "SELECT U FROM User U" + " WHERE U.deleted = false"
+                + " ORDER BY U.userId ";
 
         final Query query = em.createQuery(jpql);
 

@@ -32,8 +32,6 @@ import java.util.TreeSet;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.users.AbstractUserSource.CommonUserComparator;
 import org.savapage.core.users.CommonUser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -41,12 +39,6 @@ import org.slf4j.LoggerFactory;
  *
  */
 public final class InternalGroupList {
-
-    /**
-     * The logger.
-     */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(InternalGroupList.class);
 
     /**
      * .
@@ -73,8 +65,8 @@ public final class InternalGroupList {
 
         private final String userGroup;
 
-        final SortedSet<CommonUser> users = new TreeSet<>(
-                new CommonUserComparator());
+        final SortedSet<CommonUser> users =
+                new TreeSet<>(new CommonUserComparator());
 
         public GroupMemberReader(final String groupName) {
             this.userGroup = groupName;
@@ -103,8 +95,10 @@ public final class InternalGroupList {
     }
 
     private static File getFile() {
-        return Paths.get(ConfigManager.getServerHome(),
-                ConfigManager.SERVER_REL_PATH_INTERNAL_GROUPS_TXT).toFile();
+        return Paths
+                .get(ConfigManager.getServerHome(),
+                        ConfigManager.SERVER_REL_PATH_INTERNAL_GROUPS_TXT)
+                .toFile();
     }
 
     /**

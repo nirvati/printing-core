@@ -526,6 +526,7 @@ public final class PaperCutDbProxy {
             }
         };
 
+        @SuppressWarnings("unused")
         final Object result;
 
         try {

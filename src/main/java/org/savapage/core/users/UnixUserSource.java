@@ -43,14 +43,14 @@ import org.slf4j.LoggerFactory;
  * @author Datraverse B.V.
  *
  */
-public final class UnixUserSource extends AbstractUserSource implements
-        IUserSource, IExternalUserAuthenticator {
+public final class UnixUserSource extends AbstractUserSource
+        implements IUserSource, IExternalUserAuthenticator {
 
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(UnixUserSource.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(UnixUserSource.class);
 
     private static String STDOUT_TRUE = "Y";
 
@@ -117,24 +117,22 @@ public final class UnixUserSource extends AbstractUserSource implements
         /*
          * Note: the input on stdin is passed as second argument.
          */
-        final ICommandExecutor exec =
-                CommandExecutor.create(getModulePamPath(), uid + "\n"
-                        + password);
+        final ICommandExecutor exec = CommandExecutor.create(getModulePamPath(),
+                uid + "\n" + password);
 
         try {
             if (exec.executeCommand() != 0) {
                 LOGGER.error(exec.getStandardErrorFromCommand().toString());
-                throw new SpException("user [" + uid
-                        + "] could not be validated.");
+                throw new SpException(
+                        "user [" + uid + "] could not be validated.");
             }
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(exec.getStandardOutputFromCommand().toString());
             }
 
-            final PamExecResponse jsonResponse =
-                    PamExecResponse.create(exec.getStandardOutputFromCommand()
-                            .toString());
+            final PamExecResponse jsonResponse = PamExecResponse
+                    .create(exec.getStandardOutputFromCommand().toString());
 
             if (jsonResponse.isValid()) {
                 user = new User();
@@ -167,9 +165,8 @@ public final class UnixUserSource extends AbstractUserSource implements
                 LOGGER.trace(exec.getStandardOutputFromCommand().toString());
             }
 
-            final StringTokenizer tokenizer =
-                    new StringTokenizer(exec.getStandardOutputFromCommand()
-                            .toString());
+            final StringTokenizer tokenizer = new StringTokenizer(
+                    exec.getStandardOutputFromCommand().toString());
 
             while (tokenizer.hasMoreTokens()) {
                 sset.add(tokenizer.nextToken());
@@ -226,12 +223,12 @@ public final class UnixUserSource extends AbstractUserSource implements
             if (exec.executeCommand() == 0) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(exec.getStandardOutputFromCommand().toString());
+                    LOGGER.trace(
+                            exec.getStandardOutputFromCommand().toString());
                 }
 
-                final StringTokenizer lineTokenizer =
-                        new StringTokenizer(exec.getStandardOutputFromCommand()
-                                .toString(), "\n");
+                final StringTokenizer lineTokenizer = new StringTokenizer(
+                        exec.getStandardOutputFromCommand().toString(), "\n");
 
                 while (lineTokenizer.hasMoreTokens()) {
                     sset.add(parseUserDetails(lineTokenizer.nextToken()));
@@ -340,9 +337,8 @@ public final class UnixUserSource extends AbstractUserSource implements
 
                 LOGGER.error(exec.getStandardErrorFromCommand().toString());
 
-                final String msg =
-                        "user [" + uid + "] of group [" + group
-                                + "] could not be retrieved";
+                final String msg = "user [" + uid + "] of group [" + group
+                        + "] could not be retrieved";
 
                 throw new SpException(msg);
             }

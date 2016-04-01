@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@ import org.savapage.core.services.ServiceContext;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
@@ -102,6 +102,7 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
         return countResult.longValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<User> getListChunk(final ListFilter filter,
             final Integer startPosition, final Integer maxResults,

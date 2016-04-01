@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,17 +34,17 @@ import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.MediaCostDto;
 import org.savapage.core.jpa.Entity;
 import org.savapage.core.jpa.Printer;
-import org.savapage.core.jpa.PrinterAttr;
 import org.savapage.core.jpa.Printer.ChargeType;
+import org.savapage.core.jpa.PrinterAttr;
 import org.savapage.core.json.JsonAbstractBase;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public final class PrinterDaoImpl extends GenericDaoImpl<Printer> implements
-        PrinterDao {
+public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
+        implements PrinterDao {
 
     @Override
     public CostMediaAttr getCostMediaAttr() {
@@ -86,9 +86,8 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer> implements
                     || (dtoPageCost == null && isDefault)) {
 
                 try {
-                    dtoPageCost =
-                            JsonAbstractBase.create(MediaCostDto.class,
-                                    attr.getValue());
+                    dtoPageCost = JsonAbstractBase.create(MediaCostDto.class,
+                            attr.getValue());
                 } catch (SpException e) {
                     // Be forgiving :)
                 }
@@ -113,11 +112,10 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer> implements
     @Override
     public void resetTotals(final Date resetDate, final String resetBy) {
 
-        final String jpql =
-                "UPDATE Printer P SET "
-                        + "P.totalBytes = 0, P.totalEsu = 0, P.totalJobs = 0, "
-                        + "P.totalPages = 0, P.totalSheets = 0, "
-                        + "P.resetDate = :resetDate, P.resetBy = :resetBy";
+        final String jpql = "UPDATE Printer P SET "
+                + "P.totalBytes = 0, P.totalEsu = 0, P.totalJobs = 0, "
+                + "P.totalPages = 0, P.totalSheets = 0, "
+                + "P.resetDate = :resetDate, P.resetBy = :resetBy";
 
         Query query = getEntityManager().createQuery(jpql);
 
@@ -138,9 +136,8 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer> implements
          */
         int nCount = 0;
 
-        final String jpql =
-                "SELECT P FROM Printer P WHERE P.deleted = true "
-                        + "AND P.printsOut IS EMPTY";
+        final String jpql = "SELECT P FROM Printer P WHERE P.deleted = true "
+                + "AND P.printsOut IS EMPTY";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -158,9 +155,8 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer> implements
     @Override
     public long countPrintOuts(final Long id) {
 
-        final String jpql =
-                "SELECT COUNT(O.id) FROM Printer P "
-                        + "JOIN P.printsOut O WHERE P.id = :id";
+        final String jpql = "SELECT COUNT(O.id) FROM Printer P "
+                + "JOIN P.printsOut O WHERE P.id = :id";
         final Query query = getEntityManager().createQuery(jpql);
 
         query.setParameter("id", id);
@@ -208,6 +204,7 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer> implements
         return countResult.longValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<Printer> getListChunk(final ListFilter filter,
             final Integer startPosition, final Integer maxResults,
@@ -264,8 +261,8 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer> implements
         final Query query = getEntityManager().createQuery(jpql);
 
         if (filter.getContainingText() != null) {
-            query.setParameter("containingText", "%"
-                    + filter.getContainingText().toLowerCase() + "%");
+            query.setParameter("containingText",
+                    "%" + filter.getContainingText().toLowerCase() + "%");
         }
 
         if (filter.getDisabled() != null) {

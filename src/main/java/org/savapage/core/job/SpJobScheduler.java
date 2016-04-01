@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -53,17 +53,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class SpJobScheduler {
+public final class SpJobScheduler {
 
     public static final String JOB_GROUP_SCHEDULED = "DEFAULT";
     public static final String JOB_GROUP_ONESHOT = "ONESHOT";
-
-    /**
-     * Used for testing, not for production.
-     */
-    private static final String JOB_GROUP_TEST = "TEST";
 
     private final List<JobDetail> myHourlyJobs = new ArrayList<>();
     private final List<JobDetail> myDailyJobs = new ArrayList<>();
@@ -88,8 +84,8 @@ public class SpJobScheduler {
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SpJobScheduler.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SpJobScheduler.class);
 
     /**
      * My Quartz job scheduler.
@@ -210,8 +206,8 @@ public class SpJobScheduler {
             scheduleJobs(myDailyMaintJobs, configKey);
             break;
         default:
-            throw new SpException("no handler for configuration key ["
-                    + configKey + "]");
+            throw new SpException(
+                    "no handler for configuration key [" + configKey + "]");
         }
     }
 
@@ -377,8 +373,8 @@ public class SpJobScheduler {
      */
     private void initJobDetails() {
         //
-        myHourlyJobs.add(createJob(SpJobType.CUPS_SUBS_RENEW,
-                JOB_GROUP_SCHEDULED));
+        myHourlyJobs
+                .add(createJob(SpJobType.CUPS_SUBS_RENEW, JOB_GROUP_SCHEDULED));
 
         //
         myWeeklyJobs.add(createJob(SpJobType.DB_BACKUP, JOB_GROUP_SCHEDULED));
@@ -387,8 +383,8 @@ public class SpJobScheduler {
         myDailyJobs.add(createJob(SpJobType.SYNC_USERS, JOB_GROUP_SCHEDULED));
         myDailyJobs.add(createJob(SpJobType.CHECK_MEMBERSHIP_CARD,
                 JOB_GROUP_SCHEDULED));
-        myDailyJobs.add(createJob(SpJobType.PRINTER_GROUP_CLEAN,
-                JOB_GROUP_SCHEDULED));
+        myDailyJobs.add(
+                createJob(SpJobType.PRINTER_GROUP_CLEAN, JOB_GROUP_SCHEDULED));
     }
 
     /**
@@ -437,10 +433,10 @@ public class SpJobScheduler {
         data.put(SyncUsersJob.ATTR_IS_TEST, isTest);
         data.put(SyncUsersJob.ATTR_IS_DELETE_USERS, deleteUser);
 
-        JobDetail job =
-                newJob(org.savapage.core.job.SyncUsersJob.class)
-                        .withIdentity(SpJobType.SYNC_USERS.toString(),
-                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+        JobDetail job = newJob(org.savapage.core.job.SyncUsersJob.class)
+                .withIdentity(SpJobType.SYNC_USERS.toString(),
+                        JOB_GROUP_ONESHOT)
+                .usingJobData(data).build();
 
         scheduleOneShotJob(job, DateUtil.DURATION_MSEC_SECOND);
     }
@@ -454,10 +450,10 @@ public class SpJobScheduler {
         JobDataMap data = new JobDataMap();
         data.put(SyncUsersJob.ATTR_IS_TEST, isTest);
 
-        JobDetail job =
-                newJob(org.savapage.core.job.SyncUserGroupsJob.class)
-                        .withIdentity(SpJobType.SYNC_USER_GROUPS.toString(),
-                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+        JobDetail job = newJob(org.savapage.core.job.SyncUserGroupsJob.class)
+                .withIdentity(SpJobType.SYNC_USER_GROUPS.toString(),
+                        JOB_GROUP_ONESHOT)
+                .usingJobData(data).build();
 
         scheduleOneShotJob(job, DateUtil.DURATION_MSEC_SECOND);
     }
@@ -479,10 +475,11 @@ public class SpJobScheduler {
                 newJob(org.savapage.core.job.IppGetNotifications.class)
                         .withIdentity(
                                 SpJobType.IPP_GET_NOTIFICATIONS.toString(),
-                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+                                JOB_GROUP_ONESHOT)
+                        .usingJobData(data).build();
 
-        rescheduleOneShotJob(job, secondsFromNow
-                * DateUtil.DURATION_MSEC_SECOND);
+        rescheduleOneShotJob(job,
+                secondsFromNow * DateUtil.DURATION_MSEC_SECOND);
     }
 
     /**
@@ -495,9 +492,9 @@ public class SpJobScheduler {
 
         final JobDetail job =
                 newJob(org.savapage.core.job.EmailOutboxMonitor.class)
-                        .withIdentity(
-                                SpJobType.EMAIL_OUTBOX_MONITOR.toString(),
-                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+                        .withIdentity(SpJobType.EMAIL_OUTBOX_MONITOR.toString(),
+                                JOB_GROUP_ONESHOT)
+                        .usingJobData(data).build();
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
     }
@@ -511,11 +508,11 @@ public class SpJobScheduler {
         final JobDataMap data = new JobDataMap();
 
         final JobDetail job =
-                newJob(
-                        org.savapage.ext.papercut.job.PaperCutPrintMonitorJob.class)
+                newJob(org.savapage.ext.papercut.job.PaperCutPrintMonitorJob.class)
                         .withIdentity(
                                 SpJobType.PAPERCUT_PRINT_MONITOR.toString(),
-                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+                                JOB_GROUP_ONESHOT)
+                        .usingJobData(data).build();
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
     }
@@ -528,10 +525,10 @@ public class SpJobScheduler {
 
         JobDataMap data = new JobDataMap();
 
-        JobDetail job =
-                newJob(org.savapage.core.job.ImapListenerJob.class)
-                        .withIdentity(SpJobType.IMAP_LISTENER_JOB.toString(),
-                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+        JobDetail job = newJob(org.savapage.core.job.ImapListenerJob.class)
+                .withIdentity(SpJobType.IMAP_LISTENER_JOB.toString(),
+                        JOB_GROUP_ONESHOT)
+                .usingJobData(data).build();
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
 
@@ -551,12 +548,10 @@ public class SpJobScheduler {
                 Boolean.valueOf(simulate));
 
         final JobDetail job =
-                newJob(
-                        org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class)
-                        .withIdentity(
-                                SpJobType.SMARTSCHOOL_PRINT_MONITOR_JOB
-                                        .toString(),
-                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+                newJob(org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class)
+                        .withIdentity(SpJobType.SMARTSCHOOL_PRINT_MONITOR_JOB
+                                .toString(), JOB_GROUP_ONESHOT)
+                        .usingJobData(data).build();
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
 
@@ -571,10 +566,10 @@ public class SpJobScheduler {
 
         final JobDataMap data = new JobDataMap();
 
-        final JobDetail job =
-                newJob(org.savapage.core.job.GcpListenerJob.class)
-                        .withIdentity(SpJobType.GCP_LISTENER_JOB.toString(),
-                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+        final JobDetail job = newJob(org.savapage.core.job.GcpListenerJob.class)
+                .withIdentity(SpJobType.GCP_LISTENER_JOB.toString(),
+                        JOB_GROUP_ONESHOT)
+                .usingJobData(data).build();
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
     }
@@ -591,11 +586,10 @@ public class SpJobScheduler {
         data.put(GcpRegisterJob.KEY_POLLING_URL, pollingUrl);
         data.put(GcpRegisterJob.KEY_TOKEN_DURATION, tokenDuration);
 
-        final JobDetail job =
-                newJob(org.savapage.core.job.GcpRegisterJob.class)
-                        .withIdentity(
-                                SpJobType.GCP_POLL_FOR_AUTH_CODE.toString(),
-                                JOB_GROUP_ONESHOT).usingJobData(data).build();
+        final JobDetail job = newJob(org.savapage.core.job.GcpRegisterJob.class)
+                .withIdentity(SpJobType.GCP_POLL_FOR_AUTH_CODE.toString(),
+                        JOB_GROUP_ONESHOT)
+                .usingJobData(data).build();
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
     }
@@ -768,11 +762,9 @@ public class SpJobScheduler {
 
         long startTime = System.currentTimeMillis() + milliSecondsFromNow;
 
-        SimpleTrigger trigger =
-                (SimpleTrigger) newTrigger()
-                        .withIdentity("once." + jobName, jobGroup)
-                        .startAt(new Date(startTime)).forJob(jobName, jobGroup)
-                        .build();
+        SimpleTrigger trigger = (SimpleTrigger) newTrigger()
+                .withIdentity("once." + jobName, jobGroup)
+                .startAt(new Date(startTime)).forJob(jobName, jobGroup).build();
 
         if (trigger != null) {
 
@@ -790,16 +782,15 @@ public class SpJobScheduler {
                     myScheduler.scheduleJob(job, trigger);
                 }
 
-                LOGGER.debug("one-shot job : [" + jobName + "] [" + jobGroup
-                        + "]");
+                LOGGER.debug(
+                        "one-shot job : [" + jobName + "] [" + jobGroup + "]");
             } catch (SchedulerException e) {
                 /*
                  * Example: Unable to store Job : 'DEFAULT.DbBackup', because
                  * one already exists with this identification.
                  */
-                final String msg =
-                        "Error scheduling one-shot job [" + jobName + "]["
-                                + jobGroup + "] : " + e.getMessage();
+                final String msg = "Error scheduling one-shot job [" + jobName
+                        + "][" + jobGroup + "] : " + e.getMessage();
                 throw new SpException(msg, e);
             }
         }
@@ -837,13 +828,10 @@ public class SpJobScheduler {
             } catch (SchedulerException e) {
 
                 final String msg =
-                        "Error scheduling job ["
-                                + jobName
-                                + "]["
-                                + jobGroup
-                                + "] for ["
-                                + ConfigManager.instance().getConfigKey(
-                                        configKey) + "] : " + e.getMessage();
+                        "Error scheduling job [" + jobName + "][" + jobGroup
+                                + "] for [" + ConfigManager.instance()
+                                        .getConfigKey(configKey)
+                                + "] : " + e.getMessage();
                 throw new SpException(msg, e);
             }
         }

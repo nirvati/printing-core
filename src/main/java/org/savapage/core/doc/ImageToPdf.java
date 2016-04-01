@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,6 +39,7 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.ImgWMF;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.io.RandomAccessSourceFactory;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.RandomAccessFileOrArray;
 import com.itextpdf.text.pdf.codec.GifImage;
@@ -46,18 +47,19 @@ import com.itextpdf.text.pdf.codec.TiffImage;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class ImageToPdf implements IStreamConverter {
+public final class ImageToPdf implements IStreamConverter {
 
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ImageToPdf.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ImageToPdf.class);
 
     @Override
-    public final long convert(final DocContentTypeEnum contentType,
+    public long convert(final DocContentTypeEnum contentType,
             final DocInputStream istrDoc, final OutputStream ostrPdf)
             throws Exception {
 
@@ -69,8 +71,8 @@ public class ImageToPdf implements IStreamConverter {
      * Creates a PDF file from a standard image type such as BMP, EPS, GIF,
      * JPEG/JPG, PNG, TIFF and WMF.
      * <p>
-     * See <a
-     * href="http://www.geek-tutorials.com/java/itext/itext_image.php">this
+     * See
+     * <a href="http://www.geek-tutorials.com/java/itext/itext_image.php">this
      * tutorial</a>.
      * </p>
      *
@@ -94,9 +96,8 @@ public class ImageToPdf implements IStreamConverter {
         Document document = null;
 
         try {
-            document =
-                    new Document(ITextPdfCreator.getDefaultPageSize(),
-                            marginLeft, marginRight, marginTop, marginBottom);
+            document = new Document(ITextPdfCreator.getDefaultPageSize(),
+                    marginLeft, marginRight, marginTop, marginBottom);
 
             PdfWriter.getInstance(document, ostrPdf);
             document.open();
@@ -108,13 +109,13 @@ public class ImageToPdf implements IStreamConverter {
             case BMP:
             case JPEG:
             case PNG:
-                java.awt.Image awtImage = ImageIO.read(istrImage);
+                final java.awt.Image awtImage = ImageIO.read(istrImage);
                 image = com.itextpdf.text.Image.getInstance(awtImage, null);
                 addImagePage(document, marginLeft, marginRight, image);
                 break;
 
             case GIF:
-                GifImage img = new GifImage(istrImage);
+                final GifImage img = new GifImage(istrImage);
                 int frameCount = img.getFrameCount();
                 /*
                  * For animated GIF extract every frames of it and display
@@ -128,10 +129,17 @@ public class ImageToPdf implements IStreamConverter {
                 break;
 
             case TIFF:
-                RandomAccessFileOrArray ra =
-                        new RandomAccessFileOrArray(istrImage);
-                int pages = TiffImage.getNumberOfPages(ra);
+
+                final RandomAccessSourceFactory raFactory =
+                        new RandomAccessSourceFactory();
+
+                final RandomAccessFileOrArray ra = new RandomAccessFileOrArray(
+                        raFactory.createSource(istrImage));
+
+                final int pages = TiffImage.getNumberOfPages(ra);
+
                 for (int i = 0; i < pages; i++) {
+
                     if (i > 0) {
                         // Every page on a new PDF page.
                         document.newPage();
@@ -144,7 +152,7 @@ public class ImageToPdf implements IStreamConverter {
 
             case WMF:
                 // UNDER CONSTRUCTION
-                ImgWMF wmf = new ImgWMF(IOUtils.toByteArray(istrImage));
+                final ImgWMF wmf = new ImgWMF(IOUtils.toByteArray(istrImage));
                 addImagePage(document, marginLeft, marginRight, wmf);
                 break;
 
@@ -199,9 +207,8 @@ public class ImageToPdf implements IStreamConverter {
             final com.itextpdf.text.Image image) throws DocumentException {
 
         final boolean landscapeImg = image.getWidth() > image.getHeight();
-        final boolean landscapePdf =
-                document.getPageSize().getWidth() > document.getPageSize()
-                        .getHeight();
+        final boolean landscapePdf = document.getPageSize()
+                .getWidth() > document.getPageSize().getHeight();
 
         if (landscapeImg && !landscapePdf) {
             image.setRotation((float) (Math.PI * .5));

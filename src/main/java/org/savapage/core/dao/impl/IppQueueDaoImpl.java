@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,20 +33,18 @@ import org.savapage.core.jpa.IppQueue;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public final class IppQueueDaoImpl extends GenericDaoImpl<IppQueue> implements
-        IppQueueDao {
+public final class IppQueueDaoImpl extends GenericDaoImpl<IppQueue>
+        implements IppQueueDao {
 
     @Override
     public void resetTotals(final Date resetDate, final String resetBy) {
 
-        final String jpql =
-                "UPDATE IppQueue Q SET "
-                        + "Q.totalBytes = 0, Q.totalJobs = 0, "
-                        + "Q.totalPages = 0, "
-                        + "Q.resetDate = :resetDate, Q.resetBy = :resetBy";
+        final String jpql = "UPDATE IppQueue Q SET "
+                + "Q.totalBytes = 0, Q.totalJobs = 0, " + "Q.totalPages = 0, "
+                + "Q.resetDate = :resetDate, Q.resetBy = :resetBy";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -93,9 +91,8 @@ public final class IppQueueDaoImpl extends GenericDaoImpl<IppQueue> implements
          */
         int nCount = 0;
 
-        final String jpql =
-                "SELECT Q FROM IppQueue Q WHERE Q.deleted = true "
-                        + "AND Q.printsIn IS EMPTY";
+        final String jpql = "SELECT Q FROM IppQueue Q WHERE Q.deleted = true "
+                + "AND Q.printsIn IS EMPTY";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -125,6 +122,7 @@ public final class IppQueueDaoImpl extends GenericDaoImpl<IppQueue> implements
         return countResult.longValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<IppQueue> getListChunk(final ListFilter filter,
             final Integer startPosition, final Integer maxResults,
@@ -181,8 +179,8 @@ public final class IppQueueDaoImpl extends GenericDaoImpl<IppQueue> implements
         final Query query = getEntityManager().createQuery(jpql);
 
         if (filter.getContainingText() != null) {
-            query.setParameter("containingText", "%"
-                    + filter.getContainingText().toLowerCase() + "%");
+            query.setParameter("containingText",
+                    "%" + filter.getContainingText().toLowerCase() + "%");
         }
 
         if (filter.getTrusted() != null) {

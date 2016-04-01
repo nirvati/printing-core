@@ -1075,28 +1075,6 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     }
 
     /**
-     * Converts a unicode to 7-bit ascii character string. Latin-1 diacritics
-     * are flattened and chars > 127 are replaced by '?'.
-     *
-     * @param unicode
-     *            The unicode string.
-     * @return The 7-bit ascii character string.
-     */
-    private static String unicodeToAscii(final String unicode) {
-
-        final String stripped = StringUtils.stripAccents(unicode);
-        final StringBuilder output = new StringBuilder(stripped.length());
-
-        for (char a : stripped.toCharArray()) {
-            if (a > 127) {
-                a = '?';
-            }
-            output.append(a);
-        }
-        return output.toString();
-    }
-
-    /**
      * Monitors the print job status in PaperCut for
      * {@link SmartschoolPrintStatusEnum#PENDING_EXT} Smartschool jobs (i.e jobs
      * that were proxy printed to a PaperCut managed printer).

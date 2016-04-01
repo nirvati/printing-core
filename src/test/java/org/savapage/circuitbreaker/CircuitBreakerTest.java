@@ -114,6 +114,7 @@ public class CircuitBreakerTest {
 
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testTripping() throws InterruptedException {
 

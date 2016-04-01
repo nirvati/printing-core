@@ -127,6 +127,7 @@ public enum CommunityDictEnum {
     /**
      *
      */
+    @SuppressWarnings("unused")
     private final boolean translatable;
 
     /**
@@ -135,7 +136,7 @@ public enum CommunityDictEnum {
      * @param word
      *            The unique non-translatable word for the dictionary entry.
      */
-    private CommunityDictEnum(final String word) {
+    CommunityDictEnum(final String word) {
         this.word = word;
         this.translatable = false;
     }
@@ -149,11 +150,15 @@ public enum CommunityDictEnum {
      *            {@code true} when this term must be translated for
      *            internalization.
      */
-    private CommunityDictEnum(final String word, final boolean translatable) {
+    CommunityDictEnum(final String word, final boolean translatable) {
         this.word = word;
         this.translatable = translatable;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getWord() {
         return word;
     }

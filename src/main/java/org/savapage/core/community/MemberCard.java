@@ -34,8 +34,6 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import net.iharder.Base64;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.SpException;
@@ -50,6 +48,8 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.iharder.Base64;
 
 /**
  * Runtime Membership status information.
@@ -199,6 +199,7 @@ public final class MemberCard {
     /**
      *
      */
+    @SuppressWarnings("unused")
     private static final String ALLOW_UPDATES_WITHIN_SAME_VERSION =
             "ALLOW_UPDATES_WITHIN_SAME_VERSION";
 
@@ -272,11 +273,13 @@ public final class MemberCard {
     /**
      *
      */
+    @SuppressWarnings("unused")
     private boolean myCardExpiring = false;
 
     /**
      *
      */
+    @SuppressWarnings("unused")
     private Date myCardSupportExpDate = null;
 
     /**
@@ -292,6 +295,7 @@ public final class MemberCard {
     /**
      *
      */
+    @SuppressWarnings("unused")
     private boolean myCardUpgExpiring = false;
 
     /**

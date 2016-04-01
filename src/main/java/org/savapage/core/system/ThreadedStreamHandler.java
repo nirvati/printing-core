@@ -94,8 +94,8 @@ import org.slf4j.LoggerFactory;
  */
 class ThreadedStreamHandler extends Thread {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ThreadedStreamHandler.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ThreadedStreamHandler.class);
 
     InputStream inputStream;
     String myStdIn;
@@ -165,14 +165,6 @@ class ThreadedStreamHandler extends Thread {
                     // ignore this one
                 }
             }
-        }
-    }
-
-    private void doSleep(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            // ignore
         }
     }
 

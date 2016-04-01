@@ -194,9 +194,11 @@ public final class ConfigManager {
     /**
      *
      */
+    @SuppressWarnings("unchecked")
     private static final Class<? extends Exception>[] CIRCUIT_NON_TRIPPING_EXCEPTIONS =
             new Class[] { CircuitNonTrippingException.class };
 
+    @SuppressWarnings("unchecked")
     private static final Class<? extends Exception>[] CIRCUIT_DAMAGING_EXCEPTIONS =
             new Class[] { CircuitDamagingException.class };
 

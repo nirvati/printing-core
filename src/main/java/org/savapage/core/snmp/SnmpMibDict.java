@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,13 +26,14 @@ import org.snmp4j.smi.OID;
 /**
  * SNMP MIB Dictionary.
  * <p>
- * See: <a
- * href="http://technet.microsoft.com/en-us/library/cc783142(v=ws.10).aspx">How
- * SNMP Works</a>.
+ * See:
+ * <a href="http://technet.microsoft.com/en-us/library/cc783142(v=ws.10).aspx">
+ * How SNMP Works</a>.
  * </p>
  * <ul>
  * <li><a href="http://tools.ietf.org/html/rfc1213.html">RFC1213</a>: Management
- * Information Base for Network Management of TCP/IP-based internets: MIB-II</li>
+ * Information Base for Network Management of TCP/IP-based internets: MIB-II
+ * </li>
  * <li><a href="http://tools.ietf.org/html/rfc1759.html">RFC1759</a>: Printer
  * MIB</li>
  * <li><a href="http://tools.ietf.org/html/rfc2790.html">RFC2790</a>: Host
@@ -40,7 +41,7 @@ import org.snmp4j.smi.OID;
  * </ul>
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class SnmpMibDict {
@@ -69,8 +70,8 @@ public final class SnmpMibDict {
     /**
      * .
      */
-    public static final OID OID_PRINTER_DETECTED_ERROR_STATE = new OID(PFX_HOST
-            + ".3.5.1.2");
+    public static final OID OID_PRINTER_DETECTED_ERROR_STATE =
+            new OID(PFX_HOST + ".3.5.1.2");
 
     /**
      * RFC1213 : <a href="http://oid-info.com/get/1.3.6.1.2.1.1.1">
@@ -82,8 +83,8 @@ public final class SnmpMibDict {
      * this only contain printable ASCII characters.</i>
      * </p>
      */
-    public static final OID OID_SYSTEM_DESCR_RFC1213 = new OID(PFX_SYSTEM
-            + ".1.0");
+    public static final OID OID_SYSTEM_DESCR_RFC1213 =
+            new OID(PFX_SYSTEM + ".1.0");
 
     /**
      * RFC1213 : <a href="http://oid-info.com/get/1.3.6.1.2.1.1.2"> {iso(1)
@@ -138,20 +139,20 @@ public final class SnmpMibDict {
      * manufacturer and revision, and optionally, its serial number.</i>
      * </p>
      */
-    public static final OID OID_SYSTEM_DESCR_RFC2790 = new OID(PFX_HOST
-            + ".3.2.1.3.1");
+    public static final OID OID_SYSTEM_DESCR_RFC2790 =
+            new OID(PFX_HOST + ".3.2.1.3.1");
 
     /**
-     * RFC2790: <a href="http://oid-info.com/get/1.3.6.1.2.1.25.3.5.1.1">
-     * {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1)
-     * host(25) hrDevice(3) hrPrinterTable(5) hrPrinterEntry(1)
-     * hrPrinterStatus(1)} </a>
+     * RFC2790:
+     * <a href="http://oid-info.com/get/1.3.6.1.2.1.25.3.5.1.1"> {iso(1)
+     * identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) host(25)
+     * hrDevice(3) hrPrinterTable(5) hrPrinterEntry(1) hrPrinterStatus(1)} </a>
      * <p>
      * <i>The current status of this printer device.</i>
      * </p>
      */
-    public static final OID OID_PRINTER_STATUS = new OID(PFX_HOST
-            + ".3.5.1.1.1");
+    public static final OID OID_PRINTER_STATUS =
+            new OID(PFX_HOST + ".3.5.1.1.1");
 
     /**
      * The public printers branch:
@@ -164,8 +165,8 @@ public final class SnmpMibDict {
      * {@code iso.org.dod.internet.mgmt.private.enterprises}
      * <p>
      * Enterprises are defined by IANA. See <a href=
-     * "http://www.iana.org/assignments/enterprise-numbers/enterprise-numbers"
-     * >SMI Network Management Private Enterprise Codes</a>.
+     * "http://www.iana.org/assignments/enterprise-numbers/enterprise-numbers" >
+     * SMI Network Management Private Enterprise Codes</a>.
      * </p>
      */
     public static final String PFX_ENTERPRISES = PFX_SNMP + ".4.1.";
@@ -173,50 +174,52 @@ public final class SnmpMibDict {
     /**
      * The private MIB branch for Canon.
      */
-    private static final String PFX_CANON = PFX_ENTERPRISES
-            + SnmpPrinterVendorEnum.CANON.getEnterprise();
+    private static final String PFX_CANON =
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.CANON.getEnterprise();
 
     /**
      * The private MIB branch for Epson.
      */
-    private static final String PFX_EPSON = PFX_ENTERPRISES
-            + SnmpPrinterVendorEnum.EPSON.getEnterprise();
+    private static final String PFX_EPSON =
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.EPSON.getEnterprise();
 
     /**
      * The private MIB branch for HP.
      */
-    private static final String PFX_HP = PFX_ENTERPRISES
-            + SnmpPrinterVendorEnum.HP.getEnterprise();
+    private static final String PFX_HP =
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.HP.getEnterprise();
 
     /**
      * The private MIB branch for KONICA MINOLTA HOLDINGS, INC.
      */
-    private static final String PFX_KONICA = PFX_ENTERPRISES
-            + SnmpPrinterVendorEnum.KONICA.getEnterprise();
+    @SuppressWarnings("unused")
+    private static final String PFX_KONICA =
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.KONICA.getEnterprise();
 
     /**
      * The private MIB branch for Kyocera.
      */
-    private static final String PFX_KYOCERA = PFX_ENTERPRISES
-            + SnmpPrinterVendorEnum.KYOCERA.getEnterprise();
+    @SuppressWarnings("unused")
+    private static final String PFX_KYOCERA =
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.KYOCERA.getEnterprise();
 
     /**
      * The private MIB branch for Lexmark.
      */
-    private static final String PFX_LEXMARK = PFX_ENTERPRISES
-            + SnmpPrinterVendorEnum.LEXMARK.getEnterprise();
+    private static final String PFX_LEXMARK =
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.LEXMARK.getEnterprise();
 
     /**
      * The private MIB branch for Oki.
      */
-    private static final String PFX_OKI = PFX_ENTERPRISES
-            + SnmpPrinterVendorEnum.OKI.getEnterprise();
+    private static final String PFX_OKI =
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.OKI.getEnterprise();
 
     /**
      * The private MIB branch for Ricoh.
      */
-    private static final String PFX_RICOH = PFX_ENTERPRISES
-            + SnmpPrinterVendorEnum.RICOH.getEnterprise();
+    private static final String PFX_RICOH =
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.RICOH.getEnterprise();
 
     /**
      * "A recorded serial number for this device that indexes some type device
@@ -224,37 +227,37 @@ public final class SnmpMibDict {
      * manufacturer but the MIB supports the option of writing for this object
      * for site-specific administration of device inventory or tracking."
      */
-    public static final OID OID_PRT_SERIAL_NR = new OID(PFX_PRINTERS
-            + ".5.1.1.17.1");
+    public static final OID OID_PRT_SERIAL_NR =
+            new OID(PFX_PRINTERS + ".5.1.1.17.1");
 
     /**
      * Attributes of a marker supply. Entries may exist in the table for each
      * device index whose device type is printer.
      */
-    public static final String PRT_MARKER_SUPPLIES_ENTRY = PFX_PRINTERS
-            + ".11.1.1";
+    public static final String PRT_MARKER_SUPPLIES_ENTRY =
+            PFX_PRINTERS + ".11.1.1";
 
     /**
      * Attributes of a marker supply. Entries may exist in the table for each
      * device index whose device type is printer.
      */
-    public static final OID OID_PRT_MARKER_SUPPLIES_ENTRY = new OID(
-            PRT_MARKER_SUPPLIES_ENTRY);
+    public static final OID OID_PRT_MARKER_SUPPLIES_ENTRY =
+            new OID(PRT_MARKER_SUPPLIES_ENTRY);
 
     /**
      * The value of prtMarkerIndex corresponding to the marking sub-unit with
      * which this marker supply sub-unit is associated.
      */
-    public static final OID OID_PRT_MARKER_SUPPLIES_MARKER_INDEX = new OID(
-            PRT_MARKER_SUPPLIES_ENTRY + ".2");
+    public static final OID OID_PRT_MARKER_SUPPLIES_MARKER_INDEX =
+            new OID(PRT_MARKER_SUPPLIES_ENTRY + ".2");
 
     /**
      * The value of prtMarkerColorantIndex corresponding to the colorant with
      * which this marker supply sub-unit is associated. This value shall be 0 if
      * there is no colorant table.
      */
-    public static final OID OID_PRT_MARKER_SUPPLIES_COLORANT_INDEX = new OID(
-            PRT_MARKER_SUPPLIES_ENTRY + ".3");
+    public static final OID OID_PRT_MARKER_SUPPLIES_COLORANT_INDEX =
+            new OID(PRT_MARKER_SUPPLIES_ENTRY + ".3");
 
     /**
      * prtMarkerSuppliesClass
@@ -265,8 +268,8 @@ public final class SnmpMibDict {
      * is consumed or a receptacle that is filled."
      *
      */
-    public static final OID OID_PRT_MARKER_SUPPLIES_CLASS = new OID(
-            PRT_MARKER_SUPPLIES_ENTRY + ".4");
+    public static final OID OID_PRT_MARKER_SUPPLIES_CLASS =
+            new OID(PRT_MARKER_SUPPLIES_ENTRY + ".4");
 
     /**
      * prtMarkerSuppliesType
@@ -277,8 +280,8 @@ public final class SnmpMibDict {
      *
      * The type of this supply.
      */
-    public static final OID OID_PRT_MARKER_SUPPLIES_TYPE = new OID(
-            PRT_MARKER_SUPPLIES_ENTRY + ".5");
+    public static final OID OID_PRT_MARKER_SUPPLIES_TYPE =
+            new OID(PRT_MARKER_SUPPLIES_ENTRY + ".5");
 
     /**
      * prtMarkerSuppliesDescription
@@ -286,8 +289,8 @@ public final class SnmpMibDict {
      * "The description of this supply container/receptacle in the localization
      * specified by prtGeneralCurrentLocalization."
      */
-    public static final OID OID_PRT_MARKER_SUPPLIES_DESCRIPTION = new OID(
-            PRT_MARKER_SUPPLIES_ENTRY + ".6");
+    public static final OID OID_PRT_MARKER_SUPPLIES_DESCRIPTION =
+            new OID(PRT_MARKER_SUPPLIES_ENTRY + ".6");
 
     /**
      * prtMarkerSuppliesSupplyUnit
@@ -298,8 +301,8 @@ public final class SnmpMibDict {
      *
      * "Unit of this marker supply container/receptacle.
      */
-    public static final OID OID_PRT_MARKER_SUPPLIES_SUPPLY_UNIT = new OID(
-            PRT_MARKER_SUPPLIES_ENTRY + ".7");
+    public static final OID OID_PRT_MARKER_SUPPLIES_SUPPLY_UNIT =
+            new OID(PRT_MARKER_SUPPLIES_ENTRY + ".7");
 
     /**
      * prtMarkerSuppliesMaxCapacity
@@ -312,8 +315,8 @@ public final class SnmpMibDict {
      * the sub-unit places no restrictions on this parameter. The value (-2)
      * means unknown.
      */
-    public static final OID OID_PRT_MARKER_SUPPLIES_MAX_CAPACITY = new OID(
-            PRT_MARKER_SUPPLIES_ENTRY + ".8");
+    public static final OID OID_PRT_MARKER_SUPPLIES_MAX_CAPACITY =
+            new OID(PRT_MARKER_SUPPLIES_ENTRY + ".8");
 
     /**
      * (-1) means other and specifically indicates that the sub-unit places no
@@ -338,8 +341,8 @@ public final class SnmpMibDict {
      * value (-2) means unknown. A value of (-3) means that the printer knows
      * that there is some supply/remaining space, respectively.
      */
-    public static final OID OID_PRT_MARKER_SUPPLIES_LEVEL = new OID(
-            PRT_MARKER_SUPPLIES_ENTRY + ".9");
+    public static final OID OID_PRT_MARKER_SUPPLIES_LEVEL =
+            new OID(PRT_MARKER_SUPPLIES_ENTRY + ".9");
 
     /**
      * (-1) means other and specifically indicates that the sub-unit places no
@@ -364,8 +367,8 @@ public final class SnmpMibDict {
      * Attributes of a colorant available on the printer. Entries may exist in
      * the table for each device index whos device type is `printer.
      */
-    private static final String PRT_MARKER_COLORANT_ENTRY = PFX_PRINTERS
-            + ".12.1.1";
+    private static final String PRT_MARKER_COLORANT_ENTRY =
+            PFX_PRINTERS + ".12.1.1";
 
     /**
      * prtMarkerColorantMarkerIndex
@@ -373,8 +376,8 @@ public final class SnmpMibDict {
      * The value of prtMarkerIndex corresponding to the marker sub-unit with
      * which this colorant entry is associated.
      */
-    public static final OID OID_PRT_MARKER_COLORANT_MARKER_INDEX = new OID(
-            PRT_MARKER_COLORANT_ENTRY + ".2");
+    public static final OID OID_PRT_MARKER_COLORANT_MARKER_INDEX =
+            new OID(PRT_MARKER_COLORANT_ENTRY + ".2");
 
     /**
      * prtMarkerColorantRole
@@ -383,8 +386,8 @@ public final class SnmpMibDict {
      *
      * The role played by this colorant.
      */
-    public static final OID OID_PRT_MARKER_COLORANT_ROLE = new OID(
-            PRT_MARKER_COLORANT_ENTRY + ".3");
+    public static final OID OID_PRT_MARKER_COLORANT_ROLE =
+            new OID(PRT_MARKER_COLORANT_ENTRY + ".3");
 
     /**
      * prtMarkerColorantValue
@@ -398,8 +401,8 @@ public final class SnmpMibDict {
      * Implementors may add additional string values. The naming conventions in
      * ISO 9070 are recommended in order to avoid potential name clashes
      */
-    public static final OID OID_PRT_MARKER_COLORANT_VALUE = new OID(
-            PRT_MARKER_COLORANT_ENTRY + ".4");
+    public static final OID OID_PRT_MARKER_COLORANT_VALUE =
+            new OID(PRT_MARKER_COLORANT_ENTRY + ".4");
 
     /**
      * prtMarkerColorantTonality
@@ -409,60 +412,68 @@ public final class SnmpMibDict {
      * tonal difference that an interpreter can obtain by techniques such as
      * half toning. This value must be at least 2.
      */
-    public static final OID OID_PRT_MARKER_COLORANT_TONALITY = new OID(
-            PRT_MARKER_COLORANT_ENTRY + ".5");
+    public static final OID OID_PRT_MARKER_COLORANT_TONALITY =
+            new OID(PRT_MARKER_COLORANT_ENTRY + ".5");
 
     /**
      * .
      */
-    private static final OID OID_PRT_SERIAL_NR_HP = new OID(PFX_HP
-            + ".2.3.9.4.2.1.1.3.3.0");
+    @SuppressWarnings("unused")
+    private static final OID OID_PRT_SERIAL_NR_HP =
+            new OID(PFX_HP + ".2.3.9.4.2.1.1.3.3.0");
 
     /**
      * .
      */
-    private static final OID OID_PRT_SERIAL_NR_EPSON = new OID(PFX_EPSON
-            + ".1.2.2.1.1.1.5.1");
+    @SuppressWarnings("unused")
+    private static final OID OID_PRT_SERIAL_NR_EPSON =
+            new OID(PFX_EPSON + ".1.2.2.1.1.1.5.1");
 
     /**
      * .
      */
-    private static final OID OID_PRT_SERIAL_NR_RICOH = new OID(PFX_RICOH
-            + ".3.2.1.2.1.4.0");
+    @SuppressWarnings("unused")
+    private static final OID OID_PRT_SERIAL_NR_RICOH =
+            new OID(PFX_RICOH + ".3.2.1.2.1.4.0");
 
     /**
      * .
      */
-    private static final OID OID_PRT_SERIAL_NR_CANON = new OID(PFX_CANON
-            + ".1.2.1.4.0");
+    @SuppressWarnings("unused")
+    private static final OID OID_PRT_SERIAL_NR_CANON =
+            new OID(PFX_CANON + ".1.2.1.4.0");
 
     /**
      * .
      */
-    private static final OID OID_PRT_SERIAL_NR_OKI = new OID(PFX_OKI
-            + ".1.1.1.1.11.1.10.45.0");
+    @SuppressWarnings("unused")
+    private static final OID OID_PRT_SERIAL_NR_OKI =
+            new OID(PFX_OKI + ".1.1.1.1.11.1.10.45.0");
 
     /**
      * .
      */
-    private static final OID OID_PRT_SERIAL_NR_LEXMARK = new OID(PFX_LEXMARK
-            + ".6.2.3.1.5.1");
+    @SuppressWarnings("unused")
+    private static final OID OID_PRT_SERIAL_NR_LEXMARK =
+            new OID(PFX_LEXMARK + ".6.2.3.1.5.1");
 
     /**
-     * RFC1759: <a href="http://oid-info.com/get/1.3.6.1.2.1.43.10.2.1.3">
-     * {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1)
+     * RFC1759:
+     * <a href="http://oid-info.com/get/1.3.6.1.2.1.43.10.2.1.3"> {iso(1)
+     * identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1)
      * printmib(43) prtMarker(10) prtMarkerTable(2) prtMarkerEntry(1)
      * prtMarkerCounterUnit(3)}
      * <p>
      * Note the suffix ".1.1".
      * </p>
      */
-    public static final OID OID_PRT_MARKER_COUNTER_UNIT = new OID(PFX_PRINTERS
-            + ".10.2.1.3.1.1");
+    public static final OID OID_PRT_MARKER_COUNTER_UNIT =
+            new OID(PFX_PRINTERS + ".10.2.1.3.1.1");
 
     /**
-     * RFC1759: <a href="http://oid-info.com/get/1.3.6.1.2.1.43.10.2.1.4">
-     * {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1)
+     * RFC1759:
+     * <a href="http://oid-info.com/get/1.3.6.1.2.1.43.10.2.1.4"> {iso(1)
+     * identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1)
      * printmib(43) prtMarker(10) prtMarkerTable(2) prtMarkerEntry(1)
      * prtMarkerLifeCount(4)}</a>
      * <p>
@@ -473,8 +484,8 @@ public final class SnmpMibDict {
      * Note the suffix ".1.1".
      * </p>
      */
-    public static final OID OID_PRT_MARKER_LIFE_COUNT = new OID(PFX_PRINTERS
-            + ".10.2.1.4.1.1");
+    public static final OID OID_PRT_MARKER_LIFE_COUNT =
+            new OID(PFX_PRINTERS + ".10.2.1.4.1.1");
 
     /**
      * Prevent public instantiation.

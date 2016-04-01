@@ -1424,6 +1424,7 @@ public final class DbTools implements ServiceEntryPoint {
             private final SimpleDateFormat xmlDateFormat =
                     new SimpleDateFormat(XML_DATEFORMAT_PATTERN);
 
+            @SuppressWarnings("rawtypes")
             @Override
             public Object convert(final Class arg0, final Object arg1) {
 

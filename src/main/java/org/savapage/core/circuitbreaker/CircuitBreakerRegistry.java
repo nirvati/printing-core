@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,10 +27,10 @@ import java.util.Map;
 /**
  * A registry of {@link CircuitBreaker} instances.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class CircuitBreakerRegistry {
+public final class CircuitBreakerRegistry {
 
     /**
      *
@@ -71,6 +71,7 @@ public class CircuitBreakerRegistry {
     /**
      * Default constructor.
      */
+    @SuppressWarnings("unchecked")
     public CircuitBreakerRegistry() {
 
         defaultFailureThreshHold = DEFAULT_FAILURE_THRESHHOLD;
@@ -103,9 +104,8 @@ public class CircuitBreakerRegistry {
      */
     public final CircuitBreaker getOrCreateCircuitBreaker(final String id) {
 
-        return this.getOrCreateCircuitBreaker(id,
-                this.defaultFailureThreshHold, this.defaultMillisUntilRetry,
-                this.defaultNonTrippingExceptions,
+        return this.getOrCreateCircuitBreaker(id, this.defaultFailureThreshHold,
+                this.defaultMillisUntilRetry, this.defaultNonTrippingExceptions,
                 this.defaultDamagingExceptions, null);
     }
 
@@ -127,9 +127,10 @@ public class CircuitBreakerRegistry {
             final CircuitBreakerListener listener) {
 
         if (!circuitBreakers.containsKey(id)) {
-            circuitBreakers.put(id, new CircuitBreaker(id, failureThreshHold,
-                    millisUntilRetry, nonTrippingExceptions,
-                    damagingExceptions, listener));
+            circuitBreakers.put(id,
+                    new CircuitBreaker(id, failureThreshHold, millisUntilRetry,
+                            nonTrippingExceptions, damagingExceptions,
+                            listener));
         }
 
         return circuitBreakers.get(id);
@@ -195,8 +196,8 @@ public class CircuitBreakerRegistry {
      *
      * @param defaultFailureThreshHold
      */
-    public final void setDefaultFailureThreshHold(
-            final int defaultFailureThreshHold) {
+    public final void
+            setDefaultFailureThreshHold(final int defaultFailureThreshHold) {
         this.defaultFailureThreshHold = defaultFailureThreshHold;
     }
 
@@ -212,8 +213,8 @@ public class CircuitBreakerRegistry {
      *
      * @param defaultMillisUntilRetry
      */
-    public final void setDefaultMillisUntilRetry(
-            final int defaultMillisUntilRetry) {
+    public final void
+            setDefaultMillisUntilRetry(final int defaultMillisUntilRetry) {
         this.defaultMillisUntilRetry = defaultMillisUntilRetry;
     }
 
@@ -221,7 +222,8 @@ public class CircuitBreakerRegistry {
      *
      * @return
      */
-    public final Class<? extends Exception>[] getDefaultNonTrippingExceptions() {
+    public final Class<? extends Exception>[]
+            getDefaultNonTrippingExceptions() {
         return defaultNonTrippingExceptions;
     }
 
@@ -234,18 +236,20 @@ public class CircuitBreakerRegistry {
         this.defaultNonTrippingExceptions = defaultNonTrippingExceptions;
     }
 
-/**
+    /**
      * Gets the map of {@link CircuitBreaker) instances.
+     *
      * @return The map of {@link CircuitBreaker) instances.
      */
     public final Map<String, CircuitBreaker> getCircuitBreakers() {
         return circuitBreakers;
     }
 
-/**
+    /**
      * Sets the map of {@link CircuitBreaker) instances.
      *
-     * @param circuitBreakers The map of {@link CircuitBreaker) instances.
+     * @param circuitBreakers
+     *            The map of {@link CircuitBreaker) instances.
      */
     public final void setCircuitBreakers(
             final Map<String, CircuitBreaker> circuitBreakers) {

@@ -25,8 +25,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
@@ -45,20 +43,14 @@ import org.snmp4j.util.TableEvent;
 import org.snmp4j.util.TableUtils;
 
 /**
- * Based on this short <a
- * href="http://www.jayway.com/2010/05/21/introduction-to-snmp4j/"> Introduction
- * to snmp4j</a>.
+ * Based on this short
+ * <a href="http://www.jayway.com/2010/05/21/introduction-to-snmp4j/">
+ * Introduction to snmp4j</a>.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class SnmpClientSession {
-
-    /**
-     * .
-     */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SnmpClientSession.class);
 
     /**
      * .
@@ -105,8 +97,8 @@ public final class SnmpClientSession {
     }
 
     /**
-     * Constructor typically used when using <a
-     * href="http://snmpsim.sourceforge.net/">SNMP Agent Simulator</a>.
+     * Constructor typically used when using
+     * <a href="http://snmpsim.sourceforge.net/">SNMP Agent Simulator</a>.
      *
      * @param address
      *            A simulator address like {@code "udp:192.168.1.54/1161"}
@@ -310,9 +302,9 @@ public final class SnmpClientSession {
         }
 
         if (event.getResponse() == null) {
-            throw new SnmpConnectException(String.format(
-                    "no response from [%s]", this.target.getAddress()
-                            .toString()));
+            throw new SnmpConnectException(
+                    String.format("no response from [%s]",
+                            this.target.getAddress().toString()));
         }
 
         return event.getResponse();

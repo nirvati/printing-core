@@ -271,6 +271,7 @@ public class JsonRollingTimeSeries<T> extends JsonAbstractBase {
      * @param observationTime
      * @param observation
      */
+    @SuppressWarnings("unchecked")
     public void addDataPoint(final Date observationTime, T observation) {
 
         if (data == null) {

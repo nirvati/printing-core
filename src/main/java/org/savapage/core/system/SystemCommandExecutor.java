@@ -79,9 +79,9 @@ import org.savapage.core.SpException;
 /**
  *
  * @author alvin j. alexander, devdaily.com
+ * @author Rijk Ravestein (added implements)
  */
-public class SystemCommandExecutor implements ICommandExecutor { // @RRA added
-                                                                 // implements
+public class SystemCommandExecutor implements ICommandExecutor {
 
     private final List<String> commandInformation;
     private final String myStdIn;
@@ -98,7 +98,8 @@ public class SystemCommandExecutor implements ICommandExecutor { // @RRA added
      * commands.add(&quot;-c&quot;);
      * commands.add(&quot;5&quot;);
      * commands.add(&quot;www.google.com&quot;);
-     * SystemCommandExecutor commandExecutor = new SystemCommandExecutor(commands);
+     * SystemCommandExecutor commandExecutor =
+     *         new SystemCommandExecutor(commands);
      * commandExecutor.executeCommand();
      * </pre>
      *
@@ -116,9 +117,10 @@ public class SystemCommandExecutor implements ICommandExecutor { // @RRA added
     /**
      * Pass in the system command you want to run as a List of Strings, and the
      * stdin as string.
-     *
+     * <p>
      * WARNING: when executing the 'sudo' command, with password string in stdIn
      * parameter, the command will hang when the given password is wrong.
+     * </p>
      *
      * @param commandInformation
      * @param stdIn
@@ -136,14 +138,12 @@ public class SystemCommandExecutor implements ICommandExecutor { // @RRA added
     }
 
     /**
-     *
+     * @author Rijk Ravestein
      * @return
      * @throws IOException
      * @throws InterruptedException
      */
-    public int executeSimple() throws IOException, InterruptedException { // @RRA:
-                                                                          // added
-                                                                          // method
+    public int executeSimple() throws IOException, InterruptedException {
         int exitValue = -99;
 
         ProcessBuilder pb = new ProcessBuilder(commandInformation);

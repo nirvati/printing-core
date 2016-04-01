@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Locale;
 
+import org.savapage.core.dto.JrPageLayoutDto;
+import org.savapage.core.fonts.InternalFontFamilyEnum;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
@@ -34,15 +37,12 @@ import net.sf.jasperreports.engine.design.JRDesignParameter;
 import net.sf.jasperreports.engine.design.JRDesignStyle;
 import net.sf.jasperreports.engine.design.JRDesignTextField;
 import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.type.HorizontalAlignEnum;
-import net.sf.jasperreports.engine.type.VerticalAlignEnum;
-
-import org.savapage.core.dto.JrPageLayoutDto;
-import org.savapage.core.fonts.InternalFontFamilyEnum;
+import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
+import net.sf.jasperreports.engine.type.VerticalTextAlignEnum;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractJrDesign {
@@ -81,8 +81,7 @@ public abstract class AbstractJrDesign {
      * @return The name of the JasperReports resource bundle.
      */
     protected static String getResourceBundleBaseName() {
-        return AbstractJrDesign.class.getPackage().getName()
-                + ".JrMessages";
+        return AbstractJrDesign.class.getPackage().getName() + ".JrMessages";
     }
 
     /**
@@ -157,8 +156,8 @@ public abstract class AbstractJrDesign {
     protected static JRDesignTextField addDesignTextField(
             final JRDesignBand band, final String expression, final int posX,
             final int posY, final int fieldWidth, final int fieldHeight,
-            final HorizontalAlignEnum alignH, final VerticalAlignEnum alignV)
-            throws JRException {
+            final HorizontalTextAlignEnum alignH,
+            final VerticalTextAlignEnum alignV) throws JRException {
 
         final JRDesignTextField textField = new JRDesignTextField();
 
@@ -168,8 +167,8 @@ public abstract class AbstractJrDesign {
         textField.setWidth(fieldWidth);
         textField.setHeight(fieldHeight);
 
-        textField.setHorizontalAlignment(alignH);
-        textField.setVerticalAlignment(alignV);
+        textField.setHorizontalTextAlign(alignH);
+        textField.setVerticalTextAlign(alignV);
         textField.setExpression(new JRDesignExpression(expression));
 
         band.addElement(textField);
@@ -213,7 +212,8 @@ public abstract class AbstractJrDesign {
      *             When report errors.
      */
     protected static void addFields(final JasperDesign jasperDesign,
-            final String[] fieldNames, final Class<?> clazz) throws JRException {
+            final String[] fieldNames, final Class<?> clazz)
+            throws JRException {
         for (String name : fieldNames) {
             JRDesignField field = new JRDesignField();
             field.setName(name);

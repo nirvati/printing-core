@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,18 +35,17 @@ import org.savapage.core.jpa.Account.AccountTypeEnum;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
-        AccountDao {
+public final class AccountDaoImpl extends GenericDaoImpl<Account>
+        implements AccountDao {
 
     @Override
     public int pruneAccounts() {
 
-        final String jpql =
-                "SELECT A FROM Account A WHERE A.deleted = true "
-                        + "AND A.transactions IS EMPTY";
+        final String jpql = "SELECT A FROM Account A WHERE A.deleted = true "
+                + "AND A.transactions IS EMPTY";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -67,10 +66,9 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
     public Account findActiveAccountByName(final String name,
             final AccountTypeEnum accountType) {
 
-        final String jpql =
-                "SELECT A FROM Account A WHERE A.name = :name"
-                        + " AND A.accountType = :accountType"
-                        + " AND A.deleted = false";
+        final String jpql = "SELECT A FROM Account A WHERE A.name = :name"
+                + " AND A.accountType = :accountType"
+                + " AND A.deleted = false";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -96,11 +94,10 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
     public Account findActiveSharedChildAccountByName(final Long parentId,
             final String name) {
 
-        final String jpql =
-                "SELECT A FROM Account A JOIN A.parent P"
-                        + " WHERE A.name = :name" + " AND P.id = :parentId"
-                        + " AND A.accountType = :accountType"
-                        + " AND A.deleted = false";
+        final String jpql = "SELECT A FROM Account A JOIN A.parent P"
+                + " WHERE A.name = :name" + " AND P.id = :parentId"
+                + " AND A.accountType = :accountType"
+                + " AND A.deleted = false";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -154,8 +151,8 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
     }
 
     @Override
-    public AggregateResult<BigDecimal> getBalanceStats(
-            final boolean userAccounts, final boolean debit) {
+    public AggregateResult<BigDecimal>
+            getBalanceStats(final boolean userAccounts, final boolean debit) {
 
         final StringBuilder jpql = new StringBuilder();
 
@@ -272,18 +269,18 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
         final Query query = getEntityManager().createQuery(jpql.toString());
 
         if (filter.getAccountType() != null) {
-            query.setParameter("accountType", filter.getAccountType()
-                    .toString());
+            query.setParameter("accountType",
+                    filter.getAccountType().toString());
         }
 
         if (filter.getAccountTypeExtra() != null) {
-            query.setParameter("accountTypeExtra", filter.getAccountTypeExtra()
-                    .toString());
+            query.setParameter("accountTypeExtra",
+                    filter.getAccountTypeExtra().toString());
         }
 
         if (filter.getContainingNameText() != null) {
-            query.setParameter("containingNameText", "%"
-                    + filter.getContainingNameText().toLowerCase() + "%");
+            query.setParameter("containingNameText",
+                    "%" + filter.getContainingNameText().toLowerCase() + "%");
         }
 
         if (filter.getDeleted() != null) {
@@ -309,9 +306,11 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
         return countResult.longValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public List<Account> getListChunk(ListFilter filter, Integer startPosition,
-            Integer maxResults, Field orderBy, boolean sortAscending) {
+    public List<Account> getListChunk(final ListFilter filter,
+            final Integer startPosition, final Integer maxResults,
+            final Field orderBy, final boolean sortAscending) {
 
         final StringBuilder jpql =
                 new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
@@ -382,6 +381,7 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account> implements
         return countResult.longValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<Account> getSubAccounts(final Long parentId) {
 

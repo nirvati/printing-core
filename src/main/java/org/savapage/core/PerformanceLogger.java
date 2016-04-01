@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,15 +30,16 @@ import org.slf4j.LoggerFactory;
 /**
  * A dedicated logger for simple performance statistics.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class PerformanceLogger {
+public final class PerformanceLogger {
 
     /**
      * .
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(PerformanceLogger.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PerformanceLogger.class);
 
     private static final String DATEFORMAT_PATTERN = "yyyy-MM-dd'\t'HH:mm:ss.S";
 
@@ -68,8 +69,8 @@ public class PerformanceLogger {
      * @param timeStart
      * @param msg
      */
-    public static void log(final Class caller, final String method,
-            final Date timeStart, final String msg) {
+    public static <T extends Object> void log(final Class<T> caller,
+            final String method, final Date timeStart, final String msg) {
 
         if (timeStart != null && isEnabled()) {
 
@@ -78,12 +79,16 @@ public class PerformanceLogger {
             final SimpleDateFormat dateFormat =
                     new SimpleDateFormat(DATEFORMAT_PATTERN);
 
-            LOGGER.info(String.format("%s\t%s\t%s\t%s\t%s\t%s\t%s", dateFormat
-                    .format(now), new SimpleDateFormat(TIMEFORMAT_PATTERN)
-                    .format(timeStart), String.format("%.4f",
-                    (float) (now.getTime() - timeStart.getTime()) / 10000),
-                    caller.getSimpleName(), method, msg, Thread.currentThread()
-                            .getName()));
+            LOGGER.info(
+                    String.format("%s\t%s\t%s\t%s\t%s\t%s\t%s",
+                            dateFormat.format(now),
+                            new SimpleDateFormat(TIMEFORMAT_PATTERN)
+                                    .format(timeStart),
+                            String.format("%.4f",
+                                    (float) (now.getTime()
+                                            - timeStart.getTime()) / 10000),
+                            caller.getSimpleName(), method, msg,
+                            Thread.currentThread().getName()));
         }
     }
 

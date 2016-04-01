@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,13 +28,12 @@ import java.util.Date;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.dao.AccountVoucherDao;
-import org.savapage.core.dao.AccountVoucherDao.Field;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class AccountVoucherPagerReq extends AbstractPagerReq {
@@ -88,8 +87,9 @@ public class AccountVoucherPagerReq extends AbstractPagerReq {
          */
         public Date dateTo() {
             if (dateTo != null) {
-                return DateUtils.truncate(new Date(dateTo
-                        + DateUtils.MILLIS_PER_DAY), Calendar.DAY_OF_MONTH);
+                return DateUtils.truncate(
+                        new Date(dateTo + DateUtils.MILLIS_PER_DAY),
+                        Calendar.DAY_OF_MONTH);
             }
             return null;
         }

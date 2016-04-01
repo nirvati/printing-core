@@ -94,11 +94,6 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
     private static final int MONITOR_HEARTBEATS_PROCESS_TRIGGER = 10;
 
     /**
-     * .
-     */
-    private static final long MSECS_WAIT_BETWEEN_POLLS = 30000;
-
-    /**
      * Milliseconds to wait before starting this job again.
      */
     private long millisUntilNextInvocation;
