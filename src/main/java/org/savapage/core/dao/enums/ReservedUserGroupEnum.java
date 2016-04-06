@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,15 +38,15 @@ public enum ReservedUserGroupEnum {
     /**
      * All users.
      */
-    ALL("!!All Users!!"),
+    ALL("!!All Users!!", "All Users"),
     /**
      * External users as synchronized from an external source.
      */
-    EXTERNAL("!!External Users!!"),
+    EXTERNAL("!!External Users!!", "External Users"),
     /**
      * Internal users.
      */
-    INTERNAL("!!Internal Users!!");
+    INTERNAL("!!Internal Users!!", "Internal Users");
 
     /**
      * The group name as used in the database.
@@ -57,8 +57,21 @@ public enum ReservedUserGroupEnum {
      */
     private final String groupName;
 
-    private ReservedUserGroupEnum(final String name) {
+    /**
+     * The group name as used in the UI.
+     */
+    private final String uiName;
+
+    /**
+     *
+     * @param name
+     *            The group name as used in the database.
+     * @param ui
+     *            The group name as used in the UI.
+     */
+    ReservedUserGroupEnum(final String name, final String ui) {
         this.groupName = name;
+        this.uiName = ui;
     }
 
     /**
@@ -70,6 +83,13 @@ public enum ReservedUserGroupEnum {
      */
     public String getGroupName() {
         return groupName;
+    }
+
+    /**
+     * @return the group name as used in the UI.
+     */
+    public String getUiName() {
+        return uiName;
     }
 
     /**
