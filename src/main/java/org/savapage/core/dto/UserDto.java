@@ -22,8 +22,10 @@
 package org.savapage.core.dto;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.dao.enums.ACLRoleEnum;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -38,7 +40,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({ "userName", "password", "fullName", "email", "emailOther",
         "card", "cardFormat", "cardFirstByte", "id;", "pin", "uuid", "admin",
         "person", "disabled", "keepEmailOther", "keepCard", "keepPassword",
-        "keepPin", "keepUuid", "accounting" })
+        "keepPin", "keepUuid", "accounting", "aclRoles" })
 @JsonInclude(Include.NON_NULL)
 public class UserDto extends AbstractDto {
 
@@ -108,6 +110,9 @@ public class UserDto extends AbstractDto {
     @JsonProperty("accounting")
     private UserAccountingDto accounting;
 
+    @JsonProperty("aclRoles")
+    private Map<ACLRoleEnum, Boolean> aclRoles;
+
     /**
      *
      */
@@ -143,6 +148,8 @@ public class UserDto extends AbstractDto {
         keepPin = dto.keepPin;
         //
         accounting = dto.accounting;
+        //
+        aclRoles = dto.aclRoles;
     }
 
     public Long getDatabaseId() {
@@ -319,6 +326,23 @@ public class UserDto extends AbstractDto {
 
     public void setAccounting(UserAccountingDto accounting) {
         this.accounting = accounting;
+    }
+
+    /**
+     *
+     * @return The ACL roles.
+     */
+    public Map<ACLRoleEnum, Boolean> getAclRoles() {
+        return aclRoles;
+    }
+
+    /**
+     *
+     * @param roles
+     *            The ACL roles.
+     */
+    public void setAclRoles(final Map<ACLRoleEnum, Boolean> roles) {
+        this.aclRoles = roles;
     }
 
     /**

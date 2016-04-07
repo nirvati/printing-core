@@ -37,8 +37,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
@@ -54,8 +56,10 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.DaoContext;
+import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserEmailDao;
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserDto;
@@ -82,6 +86,7 @@ import org.savapage.core.services.UserService;
 import org.savapage.core.users.CommonUser;
 import org.savapage.core.users.IUserSource;
 import org.savapage.core.util.EmailValidator;
+import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.NumberUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,18 +96,18 @@ import org.slf4j.LoggerFactory;
  * @author Datraverse B.V.
  *
  */
-public final class UserServiceImpl extends AbstractService implements
-        UserService {
+public final class UserServiceImpl extends AbstractService
+        implements UserService {
 
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(UserServiceImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Override
-    public AbstractJsonRpcMethodResponse setUserProperties(
-            final UserPropertiesDto dto) throws IOException {
+    public AbstractJsonRpcMethodResponse
+            setUserProperties(final UserPropertiesDto dto) throws IOException {
 
         final String userid = dto.getUserName();
 
@@ -132,8 +137,8 @@ public final class UserServiceImpl extends AbstractService implements
         /*
          * INVARIANT: (Remove/Keep) password is for Internal User only.
          */
-        if ((dto.getPassword() != null || dto.getKeepPassword() || dto
-                .getRemovePassword()) && !jpaUser.getInternal()) {
+        if ((dto.getPassword() != null || dto.getKeepPassword()
+                || dto.getRemovePassword()) && !jpaUser.getInternal()) {
             return createError("msg-user-not-internal", userid);
         }
 
@@ -217,9 +222,8 @@ public final class UserServiceImpl extends AbstractService implements
 
         if (updateEmailOther) {
 
-            JsonRpcMethodError error =
-                    setSecondaryEmail(false, primaryEmail, jpaUser,
-                            dto.getEmailOther());
+            JsonRpcMethodError error = setSecondaryEmail(false, primaryEmail,
+                    jpaUser, dto.getEmailOther());
 
             if (error != null) {
                 return error;
@@ -265,9 +269,8 @@ public final class UserServiceImpl extends AbstractService implements
                 if (StringUtils.isBlank(dto.getCardFirstByte())) {
                     firstByte = formatDefault.getFirstByte();
                 } else {
-                    firstByte =
-                            RfidNumberFormat
-                                    .toFirstByte(dto.getCardFirstByte());
+                    firstByte = RfidNumberFormat
+                            .toFirstByte(dto.getCardFirstByte());
                 }
 
                 final RfidNumberFormat rfidNumberFormat =
@@ -313,9 +316,8 @@ public final class UserServiceImpl extends AbstractService implements
 
         } else {
 
-            final int lengthMin =
-                    ConfigManager.instance().getConfigInt(
-                            Key.USER_ID_NUMBER_LENGTH_MIN);
+            final int lengthMin = ConfigManager.instance()
+                    .getConfigInt(Key.USER_ID_NUMBER_LENGTH_MIN);
 
             if (idNumber.length() < lengthMin) {
                 /*
@@ -357,8 +359,8 @@ public final class UserServiceImpl extends AbstractService implements
             boolean doUpdate;
 
             if (dto.getKeepPin()) {
-                doUpdate =
-                        this.findUserAttrValue(jpaUser, UserAttrEnum.PIN) == null;
+                doUpdate = this.findUserAttrValue(jpaUser,
+                        UserAttrEnum.PIN) == null;
             } else {
                 doUpdate = true;
             }
@@ -394,8 +396,8 @@ public final class UserServiceImpl extends AbstractService implements
             boolean doUpdate;
 
             if (dto.getKeepUuid()) {
-                doUpdate =
-                        this.findUserAttrValue(jpaUser, UserAttrEnum.UUID) == null;
+                doUpdate = this.findUserAttrValue(jpaUser,
+                        UserAttrEnum.UUID) == null;
             } else {
                 doUpdate = true;
             }
@@ -421,7 +423,8 @@ public final class UserServiceImpl extends AbstractService implements
         if (StringUtils.isBlank(password)) {
 
             if (dto.getRemovePassword()) {
-                if (this.removeUserAttr(jpaUser, UserAttrEnum.INTERNAL_PASSWORD) != null) {
+                if (this.removeUserAttr(jpaUser,
+                        UserAttrEnum.INTERNAL_PASSWORD) != null) {
                     isUpdated = true;
                 }
             }
@@ -430,9 +433,8 @@ public final class UserServiceImpl extends AbstractService implements
             boolean doUpdate;
 
             if (dto.getKeepPassword()) {
-                doUpdate =
-                        (this.findUserAttrValue(jpaUser,
-                                UserAttrEnum.INTERNAL_PASSWORD) == null);
+                doUpdate = (this.findUserAttrValue(jpaUser,
+                        UserAttrEnum.INTERNAL_PASSWORD) == null);
             } else {
                 doUpdate = true;
             }
@@ -471,9 +473,8 @@ public final class UserServiceImpl extends AbstractService implements
 
         if (accountingDto != null) {
 
-            final AbstractJsonRpcMethodResponse rsp =
-                    accountingService().setUserAccounting(jpaUser,
-                            accountingDto);
+            final AbstractJsonRpcMethodResponse rsp = accountingService()
+                    .setUserAccounting(jpaUser, accountingDto);
 
             if (rsp.isError()) {
                 return rsp;
@@ -486,7 +487,7 @@ public final class UserServiceImpl extends AbstractService implements
     @Override
     public UserDto createUserDto(final User user) {
 
-        UserDto dto = new UserDto();
+        final UserDto dto = new UserDto();
 
         dto.setDatabaseId(user.getId());
         dto.setFullName(user.getFullName());
@@ -543,9 +544,8 @@ public final class UserServiceImpl extends AbstractService implements
 
         String ippInternetUuid = "";
         if (encryptedIppInternetUuid != null) {
-            ippInternetUuid =
-                    CryptoUser.decryptUserAttr(user.getId(),
-                            encryptedIppInternetUuid);
+            ippInternetUuid = CryptoUser.decryptUserAttr(user.getId(),
+                    encryptedIppInternetUuid);
         }
 
         dto.setUuid(ippInternetUuid);
@@ -560,6 +560,28 @@ public final class UserServiceImpl extends AbstractService implements
          */
         dto.setAccounting(accountingService().getUserAccounting(user));
 
+        /*
+         * ACL Roles.
+         */
+        final UserAttr aclAttr =
+                userAttrDAO().findByName(user, UserAttrEnum.ACL_ROLES);
+
+        Map<ACLRoleEnum, Boolean> aclRoles;
+
+        if (aclAttr == null) {
+            aclRoles = null;
+        } else {
+            aclRoles = JsonHelper.createEnumBooleanMapOrNull(ACLRoleEnum.class,
+                    aclAttr.getValue());
+        }
+
+        if (aclRoles == null) {
+            aclRoles = new HashMap<ACLRoleEnum, Boolean>();
+        }
+
+        dto.setAclRoles(aclRoles);
+
+        //
         return dto;
 
     }
@@ -677,23 +699,21 @@ public final class UserServiceImpl extends AbstractService implements
                 return createError("msg-user-not-found", userDto.getUserName());
             }
 
-            if (jpaUserIdNumberDuplicate != null
-                    && !jpaUserIdNumberDuplicate.getUserId().equals(
-                            jpaUserDuplicate.getUserId())) {
+            if (jpaUserIdNumberDuplicate != null && !jpaUserIdNumberDuplicate
+                    .getUserId().equals(jpaUserDuplicate.getUserId())) {
                 return createError("msg-user-duplicate-user-id-number",
                         idNumber, jpaUserIdNumberDuplicate.getUserId());
             }
 
             if (jpaUserCardNumberDuplicate != null
-                    && !jpaUserCardNumberDuplicate.getUserId().equals(
-                            jpaUserDuplicate.getUserId())) {
+                    && !jpaUserCardNumberDuplicate.getUserId()
+                            .equals(jpaUserDuplicate.getUserId())) {
                 return createError("msg-user-duplicate-user-card-number",
                         cardNumber, jpaUserCardNumberDuplicate.getUserId());
             }
 
-            if (jpaUserEmailDuplicate != null
-                    && !jpaUserEmailDuplicate.getUserId().equals(
-                            jpaUserDuplicate.getUserId())) {
+            if (jpaUserEmailDuplicate != null && !jpaUserEmailDuplicate
+                    .getUserId().equals(jpaUserDuplicate.getUserId())) {
                 return createError("msg-user-duplicate-user-email",
                         primaryEmail, jpaUserEmailDuplicate.getUserId());
             }
@@ -723,9 +743,8 @@ public final class UserServiceImpl extends AbstractService implements
 
         if (secondaryEmail != null) {
 
-            JsonRpcMethodError error =
-                    setSecondaryEmail(isNewInternalUser, primaryEmail, jpaUser,
-                            secondaryEmail);
+            JsonRpcMethodError error = setSecondaryEmail(isNewInternalUser,
+                    primaryEmail, jpaUser, secondaryEmail);
 
             if (error != null) {
                 return error;
@@ -751,9 +770,8 @@ public final class UserServiceImpl extends AbstractService implements
                 final RfidNumberFormat.Format format =
                         RfidNumberFormat.toFormat(userDto.getCardFormat());
 
-                final RfidNumberFormat.FirstByte firstByte =
-                        RfidNumberFormat
-                                .toFirstByte(userDto.getCardFirstByte());
+                final RfidNumberFormat.FirstByte firstByte = RfidNumberFormat
+                        .toFirstByte(userDto.getCardFirstByte());
 
                 rfidNumberFormat = new RfidNumberFormat(format, firstByte);
             }
@@ -773,9 +791,8 @@ public final class UserServiceImpl extends AbstractService implements
          */
         if (StringUtils.isNotBlank(idNumber)) {
 
-            final int lengthMin =
-                    ConfigManager.instance().getConfigInt(
-                            Key.USER_ID_NUMBER_LENGTH_MIN);
+            final int lengthMin = ConfigManager.instance()
+                    .getConfigInt(Key.USER_ID_NUMBER_LENGTH_MIN);
 
             if (idNumber.length() < lengthMin) {
                 return createError("msg-id-number-length-error",
@@ -853,13 +870,21 @@ public final class UserServiceImpl extends AbstractService implements
 
         if (accountingDto != null) {
 
-            final AbstractJsonRpcMethodResponse rsp =
-                    accountingService().setUserAccounting(jpaUser,
-                            accountingDto);
+            final AbstractJsonRpcMethodResponse rsp = accountingService()
+                    .setUserAccounting(jpaUser, accountingDto);
 
             if (rsp.isError()) {
                 return rsp;
             }
+        }
+
+        /*
+         * ACL Roles.
+         */
+        final Map<ACLRoleEnum, Boolean> aclRoles = userDto.getAclRoles();
+
+        if (aclRoles != null) {
+            setAclRoles(userAttrDAO(), jpaUser, aclRoles);
         }
 
         /*
@@ -872,9 +897,52 @@ public final class UserServiceImpl extends AbstractService implements
         return JsonRpcMethodResult.createOkResult();
     }
 
+    /**
+     * Sets the ACL roles of a user.
+     *
+     * @param daoAttr
+     *            The {@link UserAttrDao}.
+     * @param user
+     *            The user.
+     * @param aclRoles
+     *            The ACL roles.
+     * @throws IOException
+     *             When JSON errors.
+     */
+    private static void setAclRoles(final UserAttrDao daoAttr, final User user,
+            final Map<ACLRoleEnum, Boolean> aclRoles) throws IOException {
+
+        final String jsonRoles;
+
+        if (aclRoles.isEmpty()) {
+            jsonRoles = null;
+        } else {
+            jsonRoles = JsonHelper.stringifyObject(aclRoles);
+        }
+
+        final UserAttrEnum attrEnum = UserAttrEnum.ACL_ROLES;
+
+        UserAttr attr = daoAttr.findByName(user, attrEnum);
+
+        if (attr == null) {
+            if (jsonRoles != null) {
+                attr = new UserAttr();
+                attr.setUser(user);
+                attr.setName(attrEnum.getName());
+                attr.setValue(jsonRoles);
+                daoAttr.create(attr);
+            }
+        } else if (jsonRoles == null) {
+            daoAttr.delete(attr);
+        } else if (!attr.getValue().equals(jsonRoles)) {
+            attr.setValue(jsonRoles);
+            daoAttr.update(attr);
+        }
+    }
+
     @Override
-    public AbstractJsonRpcMethodResponse
-            deleteUser(final String userIdToDelete) throws IOException {
+    public AbstractJsonRpcMethodResponse deleteUser(final String userIdToDelete)
+            throws IOException {
 
         User user = userDAO().lockByUserId(userIdToDelete);
 
@@ -926,11 +994,10 @@ public final class UserServiceImpl extends AbstractService implements
      *            The password in plain text.
      * @return {@code null} if valid.
      */
-    private JsonRpcMethodError validateInternalUserPassword(
-            final String plainPassword) {
-        final int minPwLength =
-                ConfigManager.instance().getConfigInt(
-                        Key.INTERNAL_USERS_PW_LENGTH_MIN);
+    private JsonRpcMethodError
+            validateInternalUserPassword(final String plainPassword) {
+        final int minPwLength = ConfigManager.instance()
+                .getConfigInt(Key.INTERNAL_USERS_PW_LENGTH_MIN);
 
         if (plainPassword == null || plainPassword.length() < minPwLength) {
             return createError("msg-password-length-error",
@@ -982,22 +1049,18 @@ public final class UserServiceImpl extends AbstractService implements
 
             if (lengthMin == lengthMax) {
 
-                methodError =
-                        createError("msg-user-pin-length-error",
-                                String.valueOf(lengthMin));
+                methodError = createError("msg-user-pin-length-error",
+                        String.valueOf(lengthMin));
 
             } else if (lengthMax == 0) {
 
-                methodError =
-                        createError("msg-user-pin-length-error-min",
-                                String.valueOf(lengthMin));
+                methodError = createError("msg-user-pin-length-error-min",
+                        String.valueOf(lengthMin));
 
             } else {
 
-                methodError =
-                        createError("msg-user-pin-length-error-min-max",
-                                String.valueOf(lengthMin),
-                                String.valueOf(lengthMax));
+                methodError = createError("msg-user-pin-length-error-min-max",
+                        String.valueOf(lengthMin), String.valueOf(lengthMax));
             }
 
         } else {
@@ -1015,9 +1078,8 @@ public final class UserServiceImpl extends AbstractService implements
 
         filter.setDeleted(Boolean.FALSE);
 
-        final List<User> list =
-                userDAO().getListChunk(filter, startIndex, itemsPerPage,
-                        UserDao.Field.USERID, true);
+        final List<User> list = userDAO().getListChunk(filter, startIndex,
+                itemsPerPage, UserDao.Field.USERID, true);
 
         final List<UserDto> items = new ArrayList<>();
 
@@ -1162,17 +1224,17 @@ public final class UserServiceImpl extends AbstractService implements
                     /*
                      * INVARIANT: email address MUST not yet exist.
                      */
-                    return createError("msg-user-duplicate-user-email",
-                            address, jpaUserEmailDuplicate.getUserId());
+                    return createError("msg-user-duplicate-user-email", address,
+                            jpaUserEmailDuplicate.getUserId());
 
-                } else if (!jpaUserEmailDuplicate.getUserId().equals(
-                        jpaUser.getUserId())) {
+                } else if (!jpaUserEmailDuplicate.getUserId()
+                        .equals(jpaUser.getUserId())) {
                     /*
                      * INVARIANT: email address MUST not be associated to
                      * another user.
                      */
-                    return createError("msg-user-duplicate-user-email",
-                            address, jpaUserEmailDuplicate.getUserId());
+                    return createError("msg-user-duplicate-user-email", address,
+                            jpaUserEmailDuplicate.getUserId());
                 }
             }
 
@@ -1492,8 +1554,8 @@ public final class UserServiceImpl extends AbstractService implements
     }
 
     @Override
-    public String
-            getUserAttrValue(final User user, final UserAttrEnum attrEnum) {
+    public String getUserAttrValue(final User user,
+            final UserAttrEnum attrEnum) {
 
         if (user.getAttributes() != null) {
             for (final UserAttr attr : user.getAttributes()) {
@@ -1520,9 +1582,8 @@ public final class UserServiceImpl extends AbstractService implements
 
             if (attr != null) {
 
-                final String encryptedUuid =
-                        CryptoUser.encryptUserAttr(user.getId(),
-                                uuid.toString());
+                final String encryptedUuid = CryptoUser
+                        .encryptUserAttr(user.getId(), uuid.toString());
 
                 if (attr.getValue().equals(encryptedUuid)) {
                     return user;
@@ -1582,7 +1643,8 @@ public final class UserServiceImpl extends AbstractService implements
 
                 if (userCardDAO().isPrimaryCard(card)) {
                     primaryCard = card;
-                } else if (card.getNumber().equalsIgnoreCase(primaryCardNumber)) {
+                } else if (card.getNumber()
+                        .equalsIgnoreCase(primaryCardNumber)) {
                     userCardDAO().delete(card);
                     iter.remove();
                 }
@@ -1656,8 +1718,8 @@ public final class UserServiceImpl extends AbstractService implements
 
                 if (userEmailDAO().isPrimaryEmail(email)) {
                     primaryEmail = email;
-                } else if (email.getAddress().equalsIgnoreCase(
-                        primaryEmailAddress)) {
+                } else if (email.getAddress()
+                        .equalsIgnoreCase(primaryEmailAddress)) {
                     userEmailDAO().delete(email);
                     iter.remove();
                 }
@@ -1731,7 +1793,8 @@ public final class UserServiceImpl extends AbstractService implements
 
                 if (userNumberDAO().isPrimaryNumber(number)) {
                     primaryNumber = number;
-                } else if (number.getNumber().equalsIgnoreCase(primaryIdNumber)) {
+                } else if (number.getNumber()
+                        .equalsIgnoreCase(primaryIdNumber)) {
                     userNumberDAO().delete(number);
                     iter.remove();
                 }
@@ -1830,11 +1893,12 @@ public final class UserServiceImpl extends AbstractService implements
     public void addPrintInJobTotals(final User user, final Date jobDate,
             final int jobPages, final long jobBytes) {
 
-        user.setNumberOfPrintInJobs(user.getNumberOfPrintInJobs().intValue() + 1);
-        user.setNumberOfPrintInPages(user.getNumberOfPrintInPages().intValue()
-                + jobPages);
-        user.setNumberOfPrintInBytes(user.getNumberOfPrintInBytes().longValue()
-                + jobBytes);
+        user.setNumberOfPrintInJobs(
+                user.getNumberOfPrintInJobs().intValue() + 1);
+        user.setNumberOfPrintInPages(
+                user.getNumberOfPrintInPages().intValue() + jobPages);
+        user.setNumberOfPrintInBytes(
+                user.getNumberOfPrintInBytes().longValue() + jobBytes);
 
         user.setLastUserActivity(jobDate);
 
@@ -1845,10 +1909,10 @@ public final class UserServiceImpl extends AbstractService implements
             final int jobPages, final long jobBytes) {
 
         user.setNumberOfPdfOutJobs(user.getNumberOfPdfOutJobs().intValue() + 1);
-        user.setNumberOfPdfOutPages(user.getNumberOfPdfOutPages().intValue()
-                + jobPages);
-        user.setNumberOfPdfOutBytes(user.getNumberOfPdfOutBytes().longValue()
-                + jobBytes);
+        user.setNumberOfPdfOutPages(
+                user.getNumberOfPdfOutPages().intValue() + jobPages);
+        user.setNumberOfPdfOutBytes(
+                user.getNumberOfPdfOutBytes().longValue() + jobBytes);
 
         user.setLastUserActivity(jobDate);
     }
@@ -1858,16 +1922,17 @@ public final class UserServiceImpl extends AbstractService implements
             final int jobPages, final int jobSheets, final long jobEsu,
             final long jobBytes) {
 
-        user.setNumberOfPrintOutJobs(user.getNumberOfPrintOutJobs().intValue() + 1);
-        user.setNumberOfPrintOutPages(user.getNumberOfPrintOutPages()
-                .intValue() + jobPages);
-        user.setNumberOfPrintOutSheets(user.getNumberOfPrintOutSheets()
-                .intValue() + jobSheets);
-        user.setNumberOfPrintOutEsu(user.getNumberOfPrintOutEsu().intValue()
-                + jobEsu);
+        user.setNumberOfPrintOutJobs(
+                user.getNumberOfPrintOutJobs().intValue() + 1);
+        user.setNumberOfPrintOutPages(
+                user.getNumberOfPrintOutPages().intValue() + jobPages);
+        user.setNumberOfPrintOutSheets(
+                user.getNumberOfPrintOutSheets().intValue() + jobSheets);
+        user.setNumberOfPrintOutEsu(
+                user.getNumberOfPrintOutEsu().intValue() + jobEsu);
 
-        user.setNumberOfPrintOutBytes(user.getNumberOfPrintOutBytes()
-                .longValue() + jobBytes);
+        user.setNumberOfPrintOutBytes(
+                user.getNumberOfPrintOutBytes().longValue() + jobBytes);
 
         user.setLastUserActivity(jobDate);
     }
@@ -1916,9 +1981,8 @@ public final class UserServiceImpl extends AbstractService implements
         if (!disabled || disabledUtil == null) {
             return disabled;
         }
-        return disabled
-                && DateUtils.truncatedCompareTo(onDate, disabledUtil,
-                        Calendar.DAY_OF_MONTH) < 0;
+        return disabled && DateUtils.truncatedCompareTo(onDate, disabledUtil,
+                Calendar.DAY_OF_MONTH) < 0;
     }
 
     /**
@@ -2068,9 +2132,8 @@ public final class UserServiceImpl extends AbstractService implements
             final UserAttr attr = this.getUserAttr(user, UserAttrEnum.UUID);
 
             if (attr != null) {
-                final String decryptedUuid =
-                        CryptoUser.decryptUserAttr(user.getId(),
-                                attr.getValue());
+                final String decryptedUuid = CryptoUser
+                        .decryptUserAttr(user.getId(), attr.getValue());
                 return UUID.fromString(decryptedUuid);
             }
         }
@@ -2163,20 +2226,21 @@ public final class UserServiceImpl extends AbstractService implements
             final Integer jobPages, final Integer jobSheets, final Long jobEsu,
             final Long jobBytes) {
 
-        addTimeSeriesDataPoint(user,
-                UserAttrEnum.PRINT_OUT_ROLLING_MONTH_BYTES, jobTime, jobBytes);
+        addTimeSeriesDataPoint(user, UserAttrEnum.PRINT_OUT_ROLLING_MONTH_BYTES,
+                jobTime, jobBytes);
         addTimeSeriesDataPoint(user, UserAttrEnum.PRINT_OUT_ROLLING_WEEK_BYTES,
                 jobTime, jobBytes);
 
-        addTimeSeriesDataPoint(user,
-                UserAttrEnum.PRINT_OUT_ROLLING_MONTH_PAGES, jobTime, jobPages);
+        addTimeSeriesDataPoint(user, UserAttrEnum.PRINT_OUT_ROLLING_MONTH_PAGES,
+                jobTime, jobPages);
         addTimeSeriesDataPoint(user, UserAttrEnum.PRINT_OUT_ROLLING_WEEK_PAGES,
                 jobTime, jobPages);
 
         addTimeSeriesDataPoint(user,
-                UserAttrEnum.PRINT_OUT_ROLLING_MONTH_SHEETS, jobTime, jobSheets);
-        addTimeSeriesDataPoint(user,
-                UserAttrEnum.PRINT_OUT_ROLLING_WEEK_SHEETS, jobTime, jobSheets);
+                UserAttrEnum.PRINT_OUT_ROLLING_MONTH_SHEETS, jobTime,
+                jobSheets);
+        addTimeSeriesDataPoint(user, UserAttrEnum.PRINT_OUT_ROLLING_WEEK_SHEETS,
+                jobTime, jobSheets);
 
         addTimeSeriesDataPoint(user, UserAttrEnum.PRINT_OUT_ROLLING_MONTH_ESU,
                 jobTime, jobEsu);
@@ -2224,16 +2288,14 @@ public final class UserServiceImpl extends AbstractService implements
                 || name == UserAttrEnum.PDF_OUT_ROLLING_MONTH_BYTES
                 || name == UserAttrEnum.PRINT_OUT_ROLLING_MONTH_ESU
                 || name == UserAttrEnum.PRINT_OUT_ROLLING_MONTH_BYTES) {
-            statsPages =
-                    new JsonRollingTimeSeries<>(TimeSeriesInterval.MONTH,
-                            MAX_TIME_SERIES_INTERVALS_MONTH, 0L);
+            statsPages = new JsonRollingTimeSeries<>(TimeSeriesInterval.MONTH,
+                    MAX_TIME_SERIES_INTERVALS_MONTH, 0L);
         } else if (name == UserAttrEnum.PRINT_IN_ROLLING_WEEK_BYTES
                 || name == UserAttrEnum.PDF_OUT_ROLLING_WEEK_BYTES
                 || name == UserAttrEnum.PRINT_OUT_ROLLING_WEEK_ESU
                 || name == UserAttrEnum.PRINT_OUT_ROLLING_WEEK_BYTES) {
-            statsPages =
-                    new JsonRollingTimeSeries<>(TimeSeriesInterval.WEEK,
-                            MAX_TIME_SERIES_INTERVALS_WEEK, 0L);
+            statsPages = new JsonRollingTimeSeries<>(TimeSeriesInterval.WEEK,
+                    MAX_TIME_SERIES_INTERVALS_WEEK, 0L);
         } else {
             throw new SpException("time series for attribute [" + name
                     + "] is not supported");
@@ -2284,16 +2346,14 @@ public final class UserServiceImpl extends AbstractService implements
                 || name == UserAttrEnum.PDF_OUT_ROLLING_MONTH_PAGES
                 || name == UserAttrEnum.PRINT_OUT_ROLLING_MONTH_PAGES
                 || name == UserAttrEnum.PRINT_OUT_ROLLING_MONTH_SHEETS) {
-            statsPages =
-                    new JsonRollingTimeSeries<>(TimeSeriesInterval.MONTH,
-                            MAX_TIME_SERIES_INTERVALS_MONTH, 0);
+            statsPages = new JsonRollingTimeSeries<>(TimeSeriesInterval.MONTH,
+                    MAX_TIME_SERIES_INTERVALS_MONTH, 0);
         } else if (name == UserAttrEnum.PRINT_IN_ROLLING_WEEK_PAGES
                 || name == UserAttrEnum.PDF_OUT_ROLLING_WEEK_PAGES
                 || name == UserAttrEnum.PRINT_OUT_ROLLING_WEEK_PAGES
                 || name == UserAttrEnum.PRINT_OUT_ROLLING_WEEK_SHEETS) {
-            statsPages =
-                    new JsonRollingTimeSeries<>(TimeSeriesInterval.WEEK,
-                            MAX_TIME_SERIES_INTERVALS_WEEK, 0);
+            statsPages = new JsonRollingTimeSeries<>(TimeSeriesInterval.WEEK,
+                    MAX_TIME_SERIES_INTERVALS_WEEK, 0);
         } else {
             throw new SpException("time series for attribute [" + name
                     + "] is not supported");
@@ -2359,21 +2419,21 @@ public final class UserServiceImpl extends AbstractService implements
 
         final User user;
 
-        if (userGroup.isEmpty() || userSource.isUserInGroup(userId, userGroup)) {
+        if (userGroup.isEmpty()
+                || userSource.isUserInGroup(userId, userGroup)) {
 
             final CommonUser commonUser = userSource.getUser(userId);
 
             if (commonUser != null) {
 
-                user =
-                        userDAO().findActiveUserByUserIdInsert(
-                                commonUser.createUser(),
-                                ServiceContext.getTransactionDate(),
-                                ServiceContext.getActor());
+                user = userDAO().findActiveUserByUserIdInsert(
+                        commonUser.createUser(),
+                        ServiceContext.getTransactionDate(),
+                        ServiceContext.getActor());
 
                 if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info(String.format("Lazy inserted user [%s].",
-                            userId));
+                    LOGGER.info(
+                            String.format("Lazy inserted user [%s].", userId));
                 }
 
             } else {
@@ -2391,9 +2451,9 @@ public final class UserServiceImpl extends AbstractService implements
             user = null;
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(String
-                        .format("User [%s] NOT lazy inserted: not member of group [%s].",
-                                userId, userGroup));
+                LOGGER.trace(String.format(
+                        "User [%s] NOT lazy inserted: not member of group [%s].",
+                        userId, userGroup));
             }
         }
 
