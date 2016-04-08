@@ -50,6 +50,7 @@ import org.savapage.core.inbox.OutputProducer;
 import org.savapage.core.json.rpc.JsonRpcError;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
+import org.savapage.core.services.AccessControlService;
 import org.savapage.core.services.AccountVoucherService;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.DeviceService;
@@ -71,6 +72,10 @@ import org.savapage.core.util.Messages;
  *
  */
 public abstract class AbstractService {
+
+    protected static AccessControlService accessControlService() {
+        return ServiceContext.getServiceFactory().getAccessControlService();
+    }
 
     protected static AccountingService accountingService() {
         return ServiceContext.getServiceFactory().getAccountingService();

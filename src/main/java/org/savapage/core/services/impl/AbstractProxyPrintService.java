@@ -63,6 +63,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrinterDao;
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
@@ -522,6 +523,17 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final String jobTicketPrinterName =
                 StringUtils.defaultString(ConfigManager.instance()
                         .getConfigValue(Key.JOBTICKET_PROXY_PRINTER));
+
+        final boolean hasAccessToJobTicket;
+
+        if (StringUtils.isNotBlank(jobTicketPrinterName)) {
+            final User user = userDAO().findActiveUserByUserId(userName);
+            hasAccessToJobTicket = accessControlService().hasAccess(user,
+                    ACLRoleEnum.JOB_TICKET_CREATOR);
+        } else {
+            hasAccessToJobTicket = true;
+        }
+
         /*
          * The collected valid printers.
          */
@@ -540,6 +552,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
          * Traverse the printer cache.
          */
         for (final JsonProxyPrinter printer : this.cupsPrinterCache.values()) {
+
+            final boolean isJobTicketPrinter =
+                    jobTicketPrinterName.equals(printer.getName());
+
+            if (isJobTicketPrinter && !hasAccessToJobTicket) {
+                continue;
+            }
 
             /*
              * Bring printer back into JPA session so @OneTo* relations can be
@@ -611,8 +630,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                             .setTerminalSecured(terminalSecuredWlk.getValue());
                     basicPrinter.setReaderSecured(readerSecuredWlk.getValue());
 
-                    basicPrinter.setJobTicket(Boolean.valueOf(
-                            jobTicketPrinterName.equals(printer.getName())));
+                    basicPrinter
+                            .setJobTicket(Boolean.valueOf(isJobTicketPrinter));
                 }
 
             }

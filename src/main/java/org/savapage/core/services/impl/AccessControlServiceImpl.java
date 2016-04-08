@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.UserGroupMemberDao;
@@ -46,14 +47,14 @@ import org.slf4j.LoggerFactory;
  * @author Rijk Ravestein
  *
  */
-public final class AccessControlServiceImpl extends AbstractService implements
-        AccessControlService {
+public final class AccessControlServiceImpl extends AbstractService
+        implements AccessControlService {
 
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(AccessControlServiceImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(AccessControlServiceImpl.class);
 
     /**
      * Checks if role is enabled in JSON String.
@@ -62,7 +63,8 @@ public final class AccessControlServiceImpl extends AbstractService implements
      *            The JSON string.
      * @param role
      *            The {@link ACLRoleEnum};
-     * @return {@code null} when undetermined.
+     * @return {@code true} when authorized, {@code false} when not,
+     *         {@code null} when undetermined.
      * @throws IOException
      *             When JSON string is invalid.
      */
@@ -90,9 +92,10 @@ public final class AccessControlServiceImpl extends AbstractService implements
      *            The {@link User}.
      * @param role
      *            The {@link ACLRoleEnum};
-     * @return {@code true} when authorized.
+     * @return {@code true} when authorized, {@code false} when not,
+     *         {@code null} when undetermined.
      */
-    private static boolean isUserAuthorized(final User user,
+    private static Boolean isUserAuthorized(final User user,
             final ACLRoleEnum role) {
 
         final UserAttr userAttr =
@@ -100,11 +103,7 @@ public final class AccessControlServiceImpl extends AbstractService implements
 
         if (userAttr != null) {
             try {
-                final Boolean value =
-                        isRoleEnabledInJson(userAttr.getValue(), role);
-                if (value != null) {
-                    return value.booleanValue();
-                }
+                return isRoleEnabledInJson(userAttr.getValue(), role);
             } catch (IOException e) {
                 // Try to remove the culprit.
                 if (ServiceContext.getDaoContext().isTransactionActive()) {
@@ -117,7 +116,7 @@ public final class AccessControlServiceImpl extends AbstractService implements
                 }
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -127,23 +126,18 @@ public final class AccessControlServiceImpl extends AbstractService implements
      *            The {@link UserGroup}.
      * @param role
      *            The {@link ACLRoleEnum};
-     * @return {@code true} when authorized.
+     * @return {@code true} when authorized, {@code false} when not,
+     *         {@code null} when undetermined.
      */
-    private static boolean isGroupAuthorized(final UserGroup group,
+    private static Boolean isGroupAuthorized(final UserGroup group,
             final ACLRoleEnum role) {
 
-        final UserGroupAttr groupAttr =
-                userGroupAttrDAO().findByName(group,
-                        UserGroupAttrEnum.ACL_ROLES);
+        final UserGroupAttr groupAttr = userGroupAttrDAO().findByName(group,
+                UserGroupAttrEnum.ACL_ROLES);
 
         if (groupAttr != null) {
             try {
-                final Boolean value =
-                        isRoleEnabledInJson(groupAttr.getValue(), role);
-                if (value != null) {
-                    return value.booleanValue();
-                }
-
+                return isRoleEnabledInJson(groupAttr.getValue(), role);
             } catch (IOException e) {
                 // Try to remove the culprit.
                 if (ServiceContext.getDaoContext().isTransactionActive()) {
@@ -156,14 +150,16 @@ public final class AccessControlServiceImpl extends AbstractService implements
                 }
             }
         }
-        return false;
+        return null;
     }
 
     @Override
     public boolean isAuthorized(final User user, final ACLRoleEnum role) {
 
-        if (isUserAuthorized(user, role)) {
-            return true;
+        final Boolean isUserAuthorized = isUserAuthorized(user, role);
+
+        if (isUserAuthorized != null) {
+            return isUserAuthorized.booleanValue();
         }
 
         /*
@@ -179,7 +175,7 @@ public final class AccessControlServiceImpl extends AbstractService implements
                         UserGroupMemberDao.GroupField.GROUP_NAME, true);
 
         for (final UserGroup group : groupList) {
-            if (isGroupAuthorized(group, role)) {
+            if (BooleanUtils.isTrue(isGroupAuthorized(group, role))) {
                 return true;
             }
         }
@@ -195,12 +191,13 @@ public final class AccessControlServiceImpl extends AbstractService implements
             group = userGroupService().getExternalUserGroup();
         }
 
-        if (isGroupAuthorized(group, role)) {
+        if (BooleanUtils.isTrue(isGroupAuthorized(group, role))) {
             return true;
         }
 
         // All Users
-        if (isGroupAuthorized(userGroupService().getAllUserGroup(), role)) {
+        if (BooleanUtils.isTrue(isGroupAuthorized(
+                userGroupService().getAllUserGroup(), role))) {
             return true;
         }
 
@@ -210,9 +207,8 @@ public final class AccessControlServiceImpl extends AbstractService implements
     @Override
     public boolean hasAccess(final User user, final ACLRoleEnum role) {
 
-        if (role == ACLRoleEnum.PRINT_DELEGATE
-                && !ConfigManager.instance().isConfigValue(
-                        Key.PROXY_PRINT_DELEGATE_ENABLE)) {
+        if (role == ACLRoleEnum.PRINT_DELEGATE && !ConfigManager.instance()
+                .isConfigValue(Key.PROXY_PRINT_DELEGATE_ENABLE)) {
             return false;
         }
 
