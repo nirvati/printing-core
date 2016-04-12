@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,6 +27,7 @@ import java.util.Currency;
 import java.util.Locale;
 
 import org.savapage.core.concurrent.ReadWriteLockEnum;
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
@@ -60,7 +61,7 @@ import org.savapage.core.services.helpers.ProxyPrintCostParms;
 /**
  * Accounting services supporting the pay-per-print solution.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface AccountingService {
@@ -226,13 +227,19 @@ public interface AccountingService {
     /**
      * Sets the accounting parameters for a {@link User}. A {@link UserAccount}
      * is lazy created when needed.
+     * <p>
+     * Note: A difference in user balance in decimal range beyond
+     * {@link IConfigProp.Key#FINANCIAL_USER_BALANCE_DECIMALS} is considered
+     * irrelevant.
+     * </p>
      *
      * @param user
      *            The {@link User}.
      * @param dto
      *            The accounting parameters.
+     * @return The {@link AbstractJsonRpcMethodResponse}.
      */
-    public AbstractJsonRpcMethodResponse setUserAccounting(User user,
+    AbstractJsonRpcMethodResponse setUserAccounting(User user,
             UserAccountingDto dto);
 
     /**

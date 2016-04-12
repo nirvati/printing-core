@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -89,7 +89,7 @@ import org.savapage.core.util.Messages;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class AccountingServiceImpl extends AbstractService
@@ -276,8 +276,8 @@ public final class AccountingServiceImpl extends AbstractService
     }
 
     @Override
-    public void setInitialUserAccounting(UserGroup group, UserAccountingDto dto)
-            throws ParseException {
+    public void setInitialUserAccounting(final UserGroup group,
+            final UserAccountingDto dto) throws ParseException {
 
         final Locale dtoLocale;
 
@@ -349,11 +349,15 @@ public final class AccountingServiceImpl extends AbstractService
 
             try {
 
+                final int userBalanceDecimals = ConfigManager.instance()
+                        .getConfigInt(Key.FINANCIAL_USER_BALANCE_DECIMALS);
+
                 final BigDecimal balanceNew =
                         BigDecimalUtil.parse(amount, dtoLocale, false, false);
 
                 final BigDecimal balanceDiff =
-                        balanceNew.subtract(account.getBalance());
+                        balanceNew.subtract(account.getBalance()).setScale(
+                                userBalanceDecimals, BigDecimal.ROUND_DOWN);
 
                 if (balanceDiff.compareTo(BigDecimal.ZERO) != 0) {
 
@@ -967,7 +971,7 @@ public final class AccountingServiceImpl extends AbstractService
             final String currencySymbol, final User user, final Printer printer,
             final ProxyPrintCostParms costParms,
             final ProxyPrintJobChunkInfo jobChunkInfo)
-                    throws ProxyPrintException {
+            throws ProxyPrintException {
 
         BigDecimal totalCost = BigDecimal.ZERO;
 
@@ -2074,7 +2078,7 @@ public final class AccountingServiceImpl extends AbstractService
                                                 ServiceContext.getLocale(),
                                                 ServiceContext
                                                         .getAppCurrencySymbol(),
-                                        true)));
+                                                true)));
             }
 
             final BigDecimal maximalTransfer =
@@ -2092,7 +2096,7 @@ public final class AccountingServiceImpl extends AbstractService
                                                 ServiceContext.getLocale(),
                                                 ServiceContext
                                                         .getAppCurrencySymbol(),
-                                        true)));
+                                                true)));
             }
         } catch (ParseException e) {
             throw new SpException(e.getMessage(), e);
