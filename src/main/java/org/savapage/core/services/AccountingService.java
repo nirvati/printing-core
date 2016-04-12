@@ -204,6 +204,11 @@ public interface AccountingService {
 
     /**
      * Updates or creates a shared {@link Account} from user input.
+     * <p>
+     * Note: A difference in account balance in decimal range beyond
+     * {@link IConfigProp.Key#FINANCIAL_USER_BALANCE_DECIMALS} is considered
+     * irrelevant.
+     * </p>
      *
      * @param dto
      *            {@link SharedAccountDisplayInfoDto} object

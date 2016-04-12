@@ -38,6 +38,7 @@ import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.PosPurchaseDao.ReceiptNumberPrefixEnum;
@@ -313,6 +314,43 @@ public final class AccountingServiceImpl extends AbstractService
         }
     }
 
+    /**
+     * Creates an {@link AccountTrx} for an {@link Account} when relevant
+     * difference in balance is determined.
+     * <p>
+     * Note: A difference in user balance in decimal range beyond
+     * {@link IConfigProp.Key#FINANCIAL_USER_BALANCE_DECIMALS} is considered
+     * irrelevant.
+     * </p>
+     *
+     * @param account
+     *            The {@link Account} to set the balance in
+     * @param balanceNew
+     *            The new balance amount.
+     * @param comment
+     *            The comment for the {@link AccountTrx}.
+     */
+    private void checkCreateAccountTrx(final Account account,
+            final BigDecimal balanceNew, final String comment) {
+
+        final int userBalanceDecimals = ConfigManager.instance()
+                .getConfigInt(Key.FINANCIAL_USER_BALANCE_DECIMALS);
+
+        final BigDecimal balanceDiff = balanceNew.subtract(account.getBalance())
+                .setScale(userBalanceDecimals, BigDecimal.ROUND_DOWN);
+
+        if (balanceDiff.compareTo(BigDecimal.ZERO) != 0) {
+
+            final AccountTrx trx = createAccountTrx(account,
+                    AccountTrxTypeEnum.ADJUST, balanceDiff, balanceNew,
+                    StringUtils.defaultString(comment));
+
+            accountTrxDAO().create(trx);
+
+            account.setBalance(balanceNew);
+        }
+    }
+
     @Override
     public AbstractJsonRpcMethodResponse setUserAccounting(final User user,
             final UserAccountingDto dto) {
@@ -348,33 +386,9 @@ public final class AccountingServiceImpl extends AbstractService
             final String amount = dto.getBalance();
 
             try {
-
-                final int userBalanceDecimals = ConfigManager.instance()
-                        .getConfigInt(Key.FINANCIAL_USER_BALANCE_DECIMALS);
-
                 final BigDecimal balanceNew =
                         BigDecimalUtil.parse(amount, dtoLocale, false, false);
-
-                final BigDecimal balanceDiff =
-                        balanceNew.subtract(account.getBalance()).setScale(
-                                userBalanceDecimals, BigDecimal.ROUND_DOWN);
-
-                if (balanceDiff.compareTo(BigDecimal.ZERO) != 0) {
-
-                    String comment = dto.getComment();
-                    if (StringUtils.isBlank(comment)) {
-                        comment = "";
-                    }
-
-                    final AccountTrx trx =
-                            createAccountTrx(account, AccountTrxTypeEnum.ADJUST,
-                                    balanceDiff, balanceNew, comment);
-
-                    accountTrxDAO().create(trx);
-
-                    account.setBalance(balanceNew);
-                }
-
+                checkCreateAccountTrx(account, balanceNew, dto.getComment());
             } catch (ParseException e) {
                 return createError("msg-amount-error", amount);
             }
@@ -1327,10 +1341,6 @@ public final class AccountingServiceImpl extends AbstractService
         }
 
         /*
-         * Update.
-         */
-
-        /*
          * INVARIANT: An account that has sub accounts can NOT have a parent
          * account.
          */
@@ -1340,17 +1350,36 @@ public final class AccountingServiceImpl extends AbstractService
                     account.getName());
         }
 
-        //
         account.setName(dto.getName().trim());
         account.setNameLower(dto.getName().trim().toLowerCase());
         account.setParent(parent);
         account.setNotes(dto.getNotes());
         account.setDeleted(dto.getDeleted());
 
-        //
+        final Locale dtoLocale;
+
+        if (dto.getLocale() != null) {
+            dtoLocale = Locale.forLanguageTag(dto.getLocale());
+        } else {
+            dtoLocale = ServiceContext.getLocale();
+        }
+
+        final BigDecimal balanceNew;
+        final String balance = dto.getBalance();
+        try {
+            if (!BigDecimalUtil.isValid(balance, dtoLocale, false)) {
+                throw new ParseException(balance, 0);
+            }
+            balanceNew = BigDecimalUtil.parse(balance, dtoLocale, false, false);
+        } catch (ParseException e) {
+            return createErrorMsg("msg-amount-error", balance);
+        }
+
         if (newAccount) {
+            account.setBalance(balanceNew);
             accountDAO().create(account);
         } else {
+            checkCreateAccountTrx(account, balanceNew, null);
             accountDAO().update(account);
         }
 
