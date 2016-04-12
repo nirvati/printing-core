@@ -62,6 +62,7 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
         public void setUserId(Long userId) {
             this.userId = userId;
         }
+
     }
 
     /**
@@ -91,24 +92,6 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
     long getGroupCount(UserFilter filter);
 
     /**
-     * Gets the number of user members of a group.
-     *
-     * @param groupId
-     *            The ID of the {@link UserGroup}.
-     * @return The number of members.
-     */
-    long getUserCount(Long groupId);
-
-    /**
-     * Gets the number of user members of a group.
-     *
-     * @param filter
-     *            The filter.
-     * @return The number of filtered entries.
-     */
-    long getUserCount(GroupFilter filter);
-
-    /**
      *
      * Gets a chunk of user groups a user belongs to.
      *
@@ -131,8 +114,26 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
             Integer maxResults, GroupField orderBy, boolean sortAscending);
 
     /**
+     * Gets the number of active (non-deleted) user members of a group.
      *
-     * Gets a chunk of user members of a group.
+     * @param groupId
+     *            The ID of the {@link UserGroup}.
+     * @return The number of members.
+     */
+    long getUserCount(Long groupId);
+
+    /**
+     * Gets the number of active (non-deleted) user members of a group.
+     *
+     * @param filter
+     *            The filter.
+     * @return The number of filtered entries.
+     */
+    long getUserCount(GroupFilter filter);
+
+    /**
+     *
+     * Gets a chunk of active (non-deleted) user members of a group.
      *
      * @param filter
      *            The filter.
@@ -153,8 +154,8 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
             Integer maxResults, UserField orderBy, boolean sortAscending);
 
     /**
-     * Gets the full {@link UserGroupMember} list of a {@link UserGroup} sorted
-     * (ascending) by user name.
+     * Gets the full list of active (non-deleted) {@link UserGroupMember} of a
+     * {@link UserGroup} sorted (ascending) by user name.
      *
      * @param groupId
      *            The primary key of the {@link UserGroup}.

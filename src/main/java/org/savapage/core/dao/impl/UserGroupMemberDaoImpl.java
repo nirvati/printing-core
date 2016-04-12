@@ -59,6 +59,7 @@ public final class UserGroupMemberDaoImpl
         applyGroupFilter(jpql, filter);
 
         final Query query = createGroupQuery(jpql, filter);
+
         final Number countResult = (Number) query.getSingleResult();
         return countResult.longValue();
     }
@@ -235,9 +236,14 @@ public final class UserGroupMemberDaoImpl
         where.append(" U.group.id = :groupId");
 
         if (nWhere > 0) {
+            where.append(" AND");
+        }
+        nWhere++;
+        where.append(" U.user.deleted = :deleted");
+
+        if (nWhere > 0) {
             jpql.append(" WHERE ").append(where.toString());
         }
-
     }
 
     /**
@@ -255,6 +261,7 @@ public final class UserGroupMemberDaoImpl
         final Query query = getEntityManager().createQuery(jpql.toString());
 
         query.setParameter("groupId", filter.getGroupId());
+        query.setParameter("deleted", Boolean.FALSE);
 
         return query;
     }
@@ -264,11 +271,13 @@ public final class UserGroupMemberDaoImpl
     public List<UserGroupMember> getGroupMembers(final Long groupId) {
 
         final String jpql = "SELECT U FROM UserGroupMember U "
-                + "WHERE U.group.id = :groupId " + "ORDER BY U.user.userId";
+                + "WHERE U.group.id = :groupId AND U.user.deleted = :deleted "
+                + "ORDER BY U.user.userId";
 
         final Query query = getEntityManager().createQuery(jpql);
 
         query.setParameter("groupId", groupId);
+        query.setParameter("deleted", Boolean.FALSE);
 
         return query.getResultList();
     }
