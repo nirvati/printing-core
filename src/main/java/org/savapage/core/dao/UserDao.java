@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ import org.savapage.core.jpa.User;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface UserDao extends GenericDao<User> {
@@ -152,11 +152,19 @@ public interface UserDao extends GenericDao<User> {
      * </p>
      *
      * @param filter
+     *            The filter.
      * @param startPosition
+     *            The zero-based start position of the chunk related to the
+     *            total number of rows. If {@code null} the chunk starts with
+     *            the first row.
      * @param maxResults
+     *            The maximum number of rows in the chunk. If {@code null}, then
+     *            ALL (remaining rows) are returned.
      * @param orderBy
+     *            The sort field.
      * @param sortAscending
-     * @return
+     *            {@code true} when sorted ascending.
+     * @return The chunk.
      */
     List<User> getListChunk(ListFilter filter, Integer startPosition,
             Integer maxResults, Field orderBy, boolean sortAscending);
@@ -172,8 +180,8 @@ public interface UserDao extends GenericDao<User> {
     User lockByUserId(String userId);
 
     /**
-     * Finds an active (i.e. not logically deleted) {@link User} by id,
-     * when not found (or logically deleted) {@code null} is returned.
+     * Finds an active (i.e. not logically deleted) {@link User} by id, when not
+     * found (or logically deleted) {@code null} is returned.
      *
      * @param id
      *            The primary id of the user.

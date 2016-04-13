@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,9 +21,11 @@
  */
 package org.savapage.core.dto;
 
+import org.savapage.core.dao.enums.ACLRoleEnum;
+
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class QuickSearchUserGroupMemberFilterDto extends AbstractDto {
@@ -31,6 +33,7 @@ public class QuickSearchUserGroupMemberFilterDto extends AbstractDto {
     private Long groupId;
     private String filter;
     private Integer maxResults;
+    private ACLRoleEnum aclRole;
 
     /**
      *
@@ -60,6 +63,14 @@ public class QuickSearchUserGroupMemberFilterDto extends AbstractDto {
 
     public void setMaxResults(Integer maxResults) {
         this.maxResults = maxResults;
+    }
+
+    public ACLRoleEnum getAclRole() {
+        return aclRole;
+    }
+
+    public void setAclRole(ACLRoleEnum aclRole) {
+        this.aclRole = aclRole;
     }
 
 }
