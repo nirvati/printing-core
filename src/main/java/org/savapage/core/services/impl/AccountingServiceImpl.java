@@ -44,6 +44,7 @@ import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.PosPurchaseDao.ReceiptNumberPrefixEnum;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.UserDao;
+import org.savapage.core.dao.UserGroupMemberDao;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.helpers.AggregateResult;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
@@ -173,26 +174,80 @@ public final class AccountingServiceImpl extends AbstractService
     public UserAccount lazyGetUserAccount(final User user,
             final Account.AccountTypeEnum accountType) {
 
-        UserAccount userAccount =
+        final UserAccount userAccount =
                 this.getActiveUserAccount(user.getUserId(), accountType);
 
-        if (userAccount == null) {
+        if (userAccount != null) {
+            return userAccount;
+        }
+
+        if (accountType != AccountTypeEnum.USER) {
+            return null;
+        }
+
+        /*
+         * Check Group Memberships (explicit).
+         */
+        final UserGroupMemberDao.UserFilter filter =
+                new UserGroupMemberDao.UserFilter();
+
+        filter.setUserId(user.getId());
+
+        final List<UserGroup> groupList =
+                userGroupMemberDAO().getGroupChunk(filter, null, null,
+                        UserGroupMemberDao.GroupField.GROUP_NAME, true);
+
+        BigDecimal accumulatedBalance = BigDecimal.ZERO;
+        BigDecimal overdraft = BigDecimal.ZERO;
+        Boolean useGlobalOverdraft = Boolean.FALSE;
+        Boolean initiallyRestricted = Boolean.TRUE;
+
+        int groupCount = 0;
+
+        for (final UserGroup group : groupList) {
+
+            if (!group.getInitialSettingsEnabled()) {
+                continue;
+            }
+
+            if (!group.getInitiallyRestricted()) {
+                initiallyRestricted = Boolean.FALSE;
+            }
+
+            accumulatedBalance =
+                    accumulatedBalance.add(group.getInitialCredit());
+            overdraft = group.getInitialOverdraft();
+            useGlobalOverdraft = group.getInitialUseGlobalOverdraft();
+
+            groupCount++;
+        }
+
+        final UserAccount userAccountNew;
+
+        if (groupCount == 0) {
 
             final UserGroup userGroup;
 
-            if (accountType == AccountTypeEnum.USER) {
-                if (user.getInternal()) {
-                    userGroup = userGroupService().getInternalUserGroup();
-                } else {
-                    userGroup = userGroupService().getExternalUserGroup();
-                }
+            if (user.getInternal()) {
+                userGroup = userGroupService().getInternalUserGroup();
             } else {
-                userGroup = null;
+                userGroup = userGroupService().getExternalUserGroup();
             }
 
-            userAccount = createUserAccount(user, userGroup);
+            userAccountNew = createUserAccount(user, userGroup);
+
+        } else {
+
+            userAccountNew = createUserAccount(user, null);
+
+            final Account account = userAccountNew.getAccount();
+            account.setBalance(accumulatedBalance);
+            account.setRestricted(initiallyRestricted);
+            account.setOverdraft(overdraft);
+            account.setUseGlobalOverdraft(useGlobalOverdraft);
         }
-        return userAccount;
+
+        return userAccountNew;
     }
 
     @Override
@@ -500,27 +555,17 @@ public final class AccountingServiceImpl extends AbstractService
 
         final Account account = new Account();
 
-        if (userGroup.getInitialSettingsEnabled()) {
-
-            account.setBalance(userGroup.getInitialCredit());
-            account.setOverdraft(userGroup.getInitialOverdraft());
-            account.setRestricted(userGroup.getInitiallyRestricted());
-            account.setUseGlobalOverdraft(
-                    userGroup.getInitialUseGlobalOverdraft());
-
-        } else {
-            account.setBalance(BigDecimal.ZERO);
-            account.setOverdraft(BigDecimal.ZERO);
-            account.setRestricted(true);
-            account.setUseGlobalOverdraft(false);
-        }
-
         account.setAccountType(Account.AccountTypeEnum.GROUP.toString());
+
+        account.setBalance(BigDecimal.ZERO);
+        account.setOverdraft(BigDecimal.ZERO);
+        account.setRestricted(Boolean.FALSE);
+        account.setUseGlobalOverdraft(Boolean.FALSE);
 
         account.setComments(Account.CommentsEnum.COMMENT_OPTIONAL.toString());
         account.setInvoicing(Account.InvoicingEnum.USER_CHOICE_ON.toString());
-        account.setDeleted(false);
-        account.setDisabled(false);
+        account.setDeleted(Boolean.FALSE);
+        account.setDisabled(Boolean.FALSE);
         account.setName(userGroup.getGroupName());
         account.setNameLower(userGroup.getGroupName().toLowerCase());
 
@@ -529,7 +574,6 @@ public final class AccountingServiceImpl extends AbstractService
 
         accountDAO().create(account);
 
-        //
         return account;
     }
 
