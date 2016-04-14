@@ -24,6 +24,7 @@ package org.savapage.core.dto;
 import java.util.Locale;
 
 import org.savapage.core.jpa.Account;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -44,42 +45,62 @@ public class SharedAccountDisplayInfoDto extends AccountDisplayInfoDto {
     private String parentName;
     private String notes;
     private Boolean deleted;
+    private AccountTypeEnum accountType;
 
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
+
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
+
     public Long getParentId() {
         return parentId;
     }
+
     public void setParentId(Long parentId) {
         this.parentId = parentId;
     }
+
     public String getParentName() {
         return parentName;
     }
+
     public void setParentName(String parentName) {
         this.parentName = parentName;
     }
+
     public String getNotes() {
         return notes;
     }
+
     public void setNotes(String notes) {
         this.notes = notes;
     }
+
     public Boolean getDeleted() {
         return deleted;
     }
+
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public AccountTypeEnum getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(AccountTypeEnum accountType) {
+        this.accountType = accountType;
     }
 
 }
