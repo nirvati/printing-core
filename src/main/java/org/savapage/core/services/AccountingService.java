@@ -115,6 +115,23 @@ public interface AccountingService {
     UserAccountingDto getUserAccounting(User user);
 
     /**
+     * Create a {@link UserAccountingDto} object.
+     *
+     * @param balance
+     *            The balance amount.
+     * @param restricted
+     *            {@code true} when restricted.
+     * @param useGlobalOverdraft
+     *            {@code true} when using global overdraft default.
+     * @param overdraft
+     *            The overdraft amount.
+     * @return The {@link UserAccountingDto} object.
+     */
+    UserAccountingDto createUserAccounting(BigDecimal balance,
+            Boolean restricted, Boolean useGlobalOverdraft,
+            BigDecimal overdraft);
+
+    /**
      * Gets the initial accounting parameters for a member from a
      * {@link UserGroup}.
      *

@@ -262,20 +262,8 @@ public final class AccountingServiceImpl extends AbstractService
         return this.createUserGroupAccount(userGroup);
     }
 
-    /**
-     * Create a {@link UserAccountingDto} object.
-     *
-     * @param balance
-     *            The balance amount.
-     * @param restricted
-     *            {@code true} when restricted.
-     * @param useGlobalOverdraft
-     *            {@code true} when using global overdraft default.
-     * @param overdraft
-     *            The overdraft amount.
-     * @return The {@link UserAccountingDto} object.
-     */
-    private UserAccountingDto createUserAccounting(final BigDecimal balance,
+    @Override
+    public UserAccountingDto createUserAccounting(final BigDecimal balance,
             final Boolean restricted, final Boolean useGlobalOverdraft,
             final BigDecimal overdraft) {
 
@@ -1229,12 +1217,14 @@ public final class AccountingServiceImpl extends AbstractService
 
     /**
      * Throws an {@link IllegalArgumentException} when account is not of type
-     * SHARED.
+     * {@link AccountTypeEnum#SHARED} or {@link AccountTypeEnum#GROUP}.
      *
      * @param account
      *            The account.
+     * @return The {@link AccountTypeEnum}.
      */
-    private static void checkAccountShared(final Account account) {
+    private static AccountTypeEnum
+            checkAccountSharedOrGroup(final Account account) {
 
         final AccountTypeEnum accountType = EnumUtils
                 .getEnum(AccountTypeEnum.class, account.getAccountType());
@@ -1246,6 +1236,7 @@ public final class AccountingServiceImpl extends AbstractService
                     String.format("Account [%s] : type %s is not allowed.",
                             account.getName(), accountType.toString()));
         }
+        return accountType;
     }
 
     @Override
@@ -1256,7 +1247,7 @@ public final class AccountingServiceImpl extends AbstractService
         /*
          * INVARIANT: Account MUST be of type SHARED.
          */
-        checkAccountShared(account);
+        final AccountTypeEnum accountType = checkAccountSharedOrGroup(account);
 
         final SharedAccountDisplayInfoDto dto =
                 new SharedAccountDisplayInfoDto();
@@ -1265,6 +1256,7 @@ public final class AccountingServiceImpl extends AbstractService
 
         dto.setId(account.getId());
         dto.setName(account.getName());
+        dto.setAccountType(accountType);
 
         if (account.getParent() != null) {
             dto.setParentId(account.getParent().getId());
@@ -1355,7 +1347,7 @@ public final class AccountingServiceImpl extends AbstractService
         /*
          * INVARIANT: Account MUST be of type SHARED.
          */
-        checkAccountShared(account);
+        checkAccountSharedOrGroup(account);
 
         /*
          * Is this a top account?
