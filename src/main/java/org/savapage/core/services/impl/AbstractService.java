@@ -260,7 +260,7 @@ public abstract class AbstractService {
     protected final JsonRpcMethodError createErrorMsg(final String key,
             final String... args) {
         return JsonRpcMethodError.createBasicError(
-                JsonRpcError.Code.INVALID_PARAMS, key, localize(key, args));
+                JsonRpcError.Code.INVALID_PARAMS, localize(key, args), null);
     }
 
     /**
@@ -272,8 +272,8 @@ public abstract class AbstractService {
     protected final JsonRpcMethodError createError(final String msgKey,
             final String... msgArgs) {
         return JsonRpcMethodError.createBasicError(
-                JsonRpcError.Code.INVALID_PARAMS, "Invalid input.",
-                localize(msgKey, msgArgs));
+                JsonRpcError.Code.INVALID_PARAMS, localize(msgKey, msgArgs),
+                null);
     }
 
     /**
