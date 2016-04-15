@@ -339,7 +339,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      */
     public SmartschoolPrintMonitor(final PaperCutServerProxy paperCutProxy,
             final PaperCutDbProxy papercutDbProxy, final boolean simulationMode)
-                    throws SOAPException {
+            throws SOAPException {
 
         this.simulationMode = simulationMode;
 
@@ -611,7 +611,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static Jobticket getJobticket(
             final SmartschoolConnection connection,
             final boolean simulationMode) throws SmartschoolException,
-                    SmartschoolTooManyRequestsException, SOAPException {
+            SmartschoolTooManyRequestsException, SOAPException {
 
         if (simulationMode) {
 
@@ -653,7 +653,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final SmartschoolConnection connection, final String documentId,
             final SmartschoolPrintStatusEnum status, final String comment,
             final boolean simulationMode)
-                    throws SmartschoolException, SOAPException {
+            throws SmartschoolException, SOAPException {
 
         if (simulationMode) {
 
@@ -686,7 +686,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static File downloadDocument(final SmartschoolConnection connection,
             final Document document, final UUID uuid,
             final boolean simulationMode)
-                    throws IOException, ShutdownException {
+            throws IOException, ShutdownException {
 
         if (simulationMode) {
 
@@ -1007,7 +1007,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final SmartschoolPrintMonitor monitor, final Document doc,
             final MutableBoolean doProcess, final MutableBoolean doProxy,
             final StringBuilder proxyClientNodeId)
-                    throws SmartschoolException, SOAPException {
+            throws SmartschoolException, SOAPException {
 
         doProcess.setFalse();
         doProxy.setFalse();
@@ -1247,7 +1247,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static DocContentPrintInInfo createPrintInInfo(
             final SmartschoolConnection connection, final Document document,
             final File downloadedFile, final int nTotCopies, final UUID uuid)
-                    throws PdfSecurityException, PdfValidityException {
+            throws PdfSecurityException, PdfValidityException {
 
         /*
          * Get the PDF properties to check security issues.
@@ -1280,7 +1280,9 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
     /**
      * Finds the active (non-deleted) SavaPage user (optionally lazy insert).
-     *
+     * <p>
+     * NOTE: this method has its own database transaction scope.
+     * </p>
      * @param userId
      *            The unique user id.
      * @param lazyInsertUser
@@ -1306,7 +1308,11 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             user = USER_SERVICE.lazyInsertExternalUser(userSource, userId,
                     userSourceGroup);
 
-            ServiceContext.getDaoContext().commit();
+            if (user == null) {
+                ServiceContext.getDaoContext().rollback();
+            } else {
+                ServiceContext.getDaoContext().commit();
+            }
         }
 
         return user;
@@ -1329,8 +1335,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      */
     private static void storeJobInProxyCache(
             final SmartschoolPrintMonitor monitor, final Document document,
-            final String proxyClientNodeId) throws ShutdownException,
-                    SmartschoolException, SOAPException {
+            final String proxyClientNodeId)
+            throws ShutdownException, SmartschoolException, SOAPException {
 
         boolean exception = true;
 
@@ -1388,7 +1394,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      */
     private static void processJob(SmartschoolPrintMonitor monitor,
             final Document document) throws SmartschoolException, SOAPException,
-                    ShutdownException, DocContentToPdfException {
+            ShutdownException, DocContentToPdfException {
 
         ServiceContext.resetTransactionDate();
 
@@ -1611,7 +1617,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static void processJobNoCopies(
             final SmartschoolConnection connection,
             final boolean simulationMode, final Document document)
-                    throws SmartschoolException, SOAPException {
+            throws SmartschoolException, SOAPException {
 
         if (LOGGER.isWarnEnabled()) {
             LOGGER.warn(String.format(
@@ -1645,7 +1651,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private static void processJobWithoutNodeId(
             final SmartschoolConnection connection,
             final boolean simulationMode, final Document document)
-                    throws SmartschoolException, SOAPException {
+            throws SmartschoolException, SOAPException {
 
         if (LOGGER.isWarnEnabled()) {
             LOGGER.warn(String.format(
@@ -1686,7 +1692,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final boolean simulationMode, final Document document,
             final String userId, final boolean userExistSavaPage,
             final Boolean userExistPaperCut)
-                    throws SmartschoolException, SOAPException {
+            throws SmartschoolException, SOAPException {
 
         final String msg;
 
@@ -2013,10 +2019,9 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final DocContentPrintInInfo printInInfo,
             final AccountTrxInfoSet accountTrxInfoSet,
             final ExternalSupplierInfo externalSupplierInfo)
-                    throws IOException, DocContentPrintException,
-                    ShutdownException, ProxyPrintException, IppConnectException,
-                    SmartschoolException, SOAPException,
-                    DocContentToPdfException {
+            throws IOException, DocContentPrintException, ShutdownException,
+            ProxyPrintException, IppConnectException, SmartschoolException,
+            SOAPException, DocContentToPdfException {
 
         final boolean isPaperCutManagedPrinter =
                 monitor.isIntegratedWithPaperCut();
@@ -2190,7 +2195,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final ProxyPrintDocReq printReq,
             final IppMediaSizeEnum ippMediaSize,
             final boolean hasMediaSourceAuto, final boolean isManagedByPaperCut)
-                    throws ProxyPrintException {
+            throws ProxyPrintException {
 
         final String printerName = printReq.getPrinterName();
 
@@ -2359,8 +2364,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final Document document, final File downloadedFile,
             final DocContentPrintInInfo printInInfo,
             final ExternalSupplierInfo externalSupplierInfo)
-                    throws ProxyPrintException, IppConnectException,
-                    DocContentToPdfException, IOException {
+            throws ProxyPrintException, IppConnectException,
+            DocContentToPdfException, IOException {
 
         /*
          * Get Smartschool process info from the supplier data.
@@ -2635,7 +2640,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final PaperCutPrinterUsageLog papercutLog,
             final ExternalSupplierStatusEnum printStatus,
             final boolean isDocumentTooLarge)
-                    throws ExtSupplierException, ExtSupplierConnectException {
+            throws ExtSupplierException, ExtSupplierConnectException {
 
         final SmartschoolPrintStatusEnum smartschoolPrintStatus =
                 SmartschoolPrintStatusEnum.fromGenericStatus(printStatus);

@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
 
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.UserDto;
 import org.savapage.core.dto.UserPropertiesDto;
@@ -166,8 +167,8 @@ public interface UserService {
      * @throws IOException
      *             When something went wrong.
      */
-    AbstractJsonRpcMethodResponse
-            setUserProperties(final UserPropertiesDto dto) throws IOException;
+    AbstractJsonRpcMethodResponse setUserProperties(final UserPropertiesDto dto)
+            throws IOException;
 
     /**
      * Logically deletes a User.
@@ -323,9 +324,8 @@ public interface UserService {
      * @param jobBytes
      *            The number of bytes.
      */
-    void
-            addPdfOutJobTotals(User user, Date jobDate, int jobPages,
-                    long jobBytes);
+    void addPdfOutJobTotals(User user, Date jobDate, int jobPages,
+            long jobBytes);
 
     /**
      * Adds totals of a PrintOut job to a {@link User} (database is NOT
@@ -546,8 +546,9 @@ public interface UserService {
      * @param userId
      *            The user id.
      * @param userGroup
-     *            The group the user belongs to. Can be empty or {@code null}
-     *            when no group is specified or known.
+     *            The {@link IConfigProp.Key#USER_SOURCE_GROUP} the user belongs
+     *            to. Can be empty or {@code null} when no group is specified or
+     *            known.
      * @return {@code null} if the user does NOT exist in the user source
      *         (group), or is a reserved name like 'admin'.
      */

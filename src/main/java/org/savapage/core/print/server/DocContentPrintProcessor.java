@@ -319,7 +319,7 @@ public class DocContentPrintProcessor {
      * User. The user (alias) must be a Person.
      * <p>
      * <b>Note</b>: On a trusted Queue (and lazy print enabled) a user is lazy
-     * inserted.
+     * inserted. <i>This method has its own database transaction scope.</i>
      * </p>
      *
      * @param requestingUserId
@@ -376,8 +376,16 @@ public class DocContentPrintProcessor {
                 final String group =
                         cm.getConfigValue(Key.USER_SOURCE_GROUP).trim();
 
+                ServiceContext.getDaoContext().beginTransaction();
+
                 this.userDb = USER_SERVICE
                         .lazyInsertExternalUser(cm.getUserSource(), uid, group);
+
+                if (this.userDb == null) {
+                    ServiceContext.getDaoContext().rollback();
+                } else {
+                    ServiceContext.getDaoContext().commit();
+                }
             }
         }
 
