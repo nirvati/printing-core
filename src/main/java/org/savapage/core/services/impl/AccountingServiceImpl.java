@@ -223,6 +223,7 @@ public final class AccountingServiceImpl extends AbstractService
         }
 
         final UserAccount userAccountNew;
+        final Account account;
 
         if (groupCount == 0) {
 
@@ -235,16 +236,23 @@ public final class AccountingServiceImpl extends AbstractService
             }
 
             userAccountNew = createUserAccount(user, userGroup);
+            account = userAccountNew.getAccount();
 
         } else {
 
             userAccountNew = createUserAccount(user, null);
+            account = userAccountNew.getAccount();
 
-            final Account account = userAccountNew.getAccount();
             account.setBalance(accumulatedBalance);
             account.setRestricted(initiallyRestricted);
             account.setOverdraft(overdraft);
             account.setUseGlobalOverdraft(useGlobalOverdraft);
+        }
+
+        if (account.getBalance().compareTo(BigDecimal.ZERO) != 0) {
+            accountTrxDAO().create(
+                    createAccountTrx(account, AccountTrxTypeEnum.INITIAL,
+                            account.getBalance(), account.getBalance(), ""));
         }
 
         return userAccountNew;
@@ -527,7 +535,6 @@ public final class AccountingServiceImpl extends AbstractService
 
         userAccountDAO().create(userAccount);
 
-        //
         return userAccount;
     }
 
