@@ -24,7 +24,9 @@ package org.savapage.core.users.conf;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -45,16 +47,34 @@ public final class InternalGroupList {
      */
     private static final class GroupReader extends ConfFileReader {
 
-        private final Set<String> groups = new HashSet<>();
+        private Set<String> groups;
+        private Map<String, Boolean> groupsMember;
+        private String user;
 
         @Override
-        public void onItem(final String group, final String user) {
-            groups.add(group);
+        public void onItem(final String group, final String userId) {
+
+            if (this.user == null) {
+                this.groups.add(group);
+            } else {
+                this.groupsMember.put(group,
+                        Boolean.valueOf(userId.equals(this.user)));
+            }
         }
 
         public Set<String> getGroups(final File file) throws IOException {
+            this.groups = new HashSet<>();
+            this.user = null;
             this.read(file);
             return groups;
+        }
+
+        public Map<String, Boolean> getGroups(final File file,
+                final String userId) throws IOException {
+            this.groupsMember = new HashMap<>();
+            this.user = userId;
+            this.read(file);
+            return groupsMember;
         }
     }
 
@@ -68,7 +88,7 @@ public final class InternalGroupList {
         final SortedSet<CommonUser> users =
                 new TreeSet<>(new CommonUserComparator());
 
-        public GroupMemberReader(final String groupName) {
+        GroupMemberReader(final String groupName) {
             this.userGroup = groupName;
         }
 
@@ -102,6 +122,8 @@ public final class InternalGroupList {
     }
 
     /**
+     * Gets all the groups.
+     *
      * @return The groups.
      * @throws IOException
      *             When IO errors reading the groups file.
@@ -113,6 +135,8 @@ public final class InternalGroupList {
     /**
      * Gets the users in a group.
      *
+     * @param groupName
+     *            The group name.
      * @return The groups.
      * @throws IOException
      *             When IO errors reading the groups file.
@@ -121,4 +145,19 @@ public final class InternalGroupList {
             throws IOException {
         return new GroupMemberReader(groupName).getMembers(getFile());
     }
+
+    /**
+     * Gets all the groups with an indication if userId is found as a member.
+     *
+     * @param userId
+     *            The user id.
+     * @return The groups/membership map.
+     * @throws IOException
+     *             When IO errors reading the groups file.
+     */
+    public static Map<String, Boolean> getGroupsOfUser(final String userId)
+            throws IOException {
+        return new GroupReader().getGroups(getFile(), userId);
+    }
+
 }

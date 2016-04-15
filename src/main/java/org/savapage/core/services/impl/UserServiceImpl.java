@@ -59,6 +59,7 @@ import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserEmailDao;
+import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.UserAccountingDto;
@@ -72,6 +73,8 @@ import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.UserAttr;
 import org.savapage.core.jpa.UserCard;
 import org.savapage.core.jpa.UserEmail;
+import org.savapage.core.jpa.UserGroup;
+import org.savapage.core.jpa.UserGroupMember;
 import org.savapage.core.jpa.UserNumber;
 import org.savapage.core.json.JsonRollingTimeSeries;
 import org.savapage.core.json.PdfProperties;
@@ -85,6 +88,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.users.CommonUser;
 import org.savapage.core.users.IUserSource;
+import org.savapage.core.users.conf.InternalGroupList;
 import org.savapage.core.util.EmailValidator;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.NumberUtil;
@@ -2431,6 +2435,9 @@ public final class UserServiceImpl extends AbstractService
                         ServiceContext.getTransactionDate(),
                         ServiceContext.getActor());
 
+                final int nMemberships =
+                        addUserGroupMemberships(userSource, user);
+
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info(
                             String.format("Lazy inserted user [%s].", userId));
@@ -2452,12 +2459,106 @@ public final class UserServiceImpl extends AbstractService
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(String.format(
-                        "User [%s] NOT lazy inserted: not member of group [%s].",
+                        "User [%s] NOT lazy inserted: "
+                                + "not member of User Source Group [%s].",
                         userId, userGroup));
             }
         }
 
         return user;
+    }
+
+    /**
+     * Adds a {@link UserGroupMember} to the database.
+     *
+     * @param userGroup
+     *            The group.
+     * @param user
+     *            The user.
+     */
+    private void addUserGroupMember(final UserGroup userGroup,
+            final User user) {
+
+        final UserGroupMember member = new UserGroupMember();
+
+        member.setGroup(userGroup);
+        member.setUser(user);
+        member.setCreatedBy(ServiceContext.getActor());
+        member.setCreatedDate(ServiceContext.getTransactionDate());
+
+        userGroupMemberDAO().create(member);
+    }
+
+    /**
+     * Adds a {@link UserGroupMember} objects to the database.
+     * <p>
+     * The {@link InternalGroupList} is consulted and the {@link UserGroup}
+     * objects from the database.
+     * </p>
+     *
+     * @param userSource
+     *            The {@link IUserSource}
+     * @param user
+     *            The {@link User}.
+     * @return The number of objects added.
+     */
+    private int addUserGroupMemberships(final IUserSource userSource,
+            final User user) {
+
+        final String userId = user.getUserId();
+
+        int nMemberships = 0;
+
+        /*
+         * Step 1: Process the Internal Groups the user is member of.
+         */
+        final Map<String, Boolean> internalGroups;
+
+        try {
+            internalGroups = InternalGroupList.getGroupsOfUser(userId);
+        } catch (IOException e) {
+            throw new SpException(e.getMessage());
+        }
+
+        for (final Entry<String, Boolean> entry : internalGroups.entrySet()) {
+            if (entry.getValue()) {
+                final UserGroup userGroup =
+                        userGroupDAO().findByName(entry.getKey());
+                if (userGroup != null) {
+                    addUserGroupMember(userGroup, user);
+                    nMemberships++;
+                }
+            }
+        }
+
+        /*
+         * Step 2: Process the User Groups in the database.
+         */
+        for (final UserGroup userGroup : userGroupDAO().getListChunk(
+                new UserGroupDao.ListFilter(), null, null,
+                UserGroupDao.Field.NAME, true)) {
+
+            final String groupName = userGroup.getGroupName();
+
+            if (userGroupService().isReservedGroupName(groupName)) {
+                continue;
+            }
+
+            /*
+             * INVARIANT: "Internal Groups should have a name distinctive to any
+             * groups defined in your external user source. If case of a name
+             * clash, the internal group takes precedence."
+             */
+            if (internalGroups.containsKey(groupName)) {
+                continue;
+            }
+
+            if (userSource.isUserInGroup(userId, groupName)) {
+                addUserGroupMember(userGroup, user);
+                nMemberships++;
+            }
+        }
+        return nMemberships;
     }
 
     @Override
