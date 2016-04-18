@@ -60,18 +60,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Monitoring PaperCut print status of jobs issued from
+ * {@link ExternalSupplierEnum#SAVAPAGE}.
  *
  * @author Rijk Ravestein
  *
  */
-public final class PaperCutPrintMonitorJob extends AbstractJob implements
-        PaperCutPrintJobListener {
+public final class PaperCutPrintMonitorJob extends AbstractJob
+        implements PaperCutPrintJobListener {
 
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(PaperCutPrintMonitorJob.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PaperCutPrintMonitorJob.class);
 
     /**
      * Number of seconds after restarting this job after an exception occurs.
@@ -104,10 +106,11 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
     private CircuitBreaker breaker;
 
     /**
-     * .
+     * Monitoring PaperCut print status of jobs issued from
+     * {@link ExternalSupplierEnum#SAVAPAGE}.
      */
-    private final class PaperCutPrintMonitor extends
-            PaperCutPrintMonitorPattern {
+    private final class PaperCutPrintMonitor
+            extends PaperCutPrintMonitorPattern {
 
         /**
          *
@@ -141,10 +144,8 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
 
         @Override
         protected String getSharedJobsAccountName() {
-            return ConfigManager
-                    .instance()
-                    .getConfigValue(
-                            Key.PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS);
+            return ConfigManager.instance().getConfigValue(
+                    Key.PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS);
         }
 
         @Override
@@ -184,9 +185,8 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
     @Override
     protected void onInit(final JobExecutionContext ctx) {
 
-        this.breaker =
-                ConfigManager
-                        .getCircuitBreaker(CircuitBreakerEnum.PAPERCUT_CONNECTION);
+        this.breaker = ConfigManager
+                .getCircuitBreaker(CircuitBreakerEnum.PAPERCUT_CONNECTION);
 
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(localizeLogMsg("PaperCutPrintMonitor.started"));
@@ -234,16 +234,12 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
 
         } catch (Exception t) {
 
-            this.millisUntilNextInvocation =
-                    RESTART_SECS_AFTER_EXCEPTION
-                            * DateUtil.DURATION_MSEC_SECOND;
+            this.millisUntilNextInvocation = RESTART_SECS_AFTER_EXCEPTION
+                    * DateUtil.DURATION_MSEC_SECOND;
 
-            AdminPublisher.instance()
-                    .publish(
-                            PubTopicEnum.PAPERCUT,
-                            PubLevelEnum.ERROR,
-                            localizeSysMsg("PaperCutPrintMonitor.error",
-                                    t.getMessage()));
+            AdminPublisher.instance().publish(PubTopicEnum.PAPERCUT,
+                    PubLevelEnum.ERROR, localizeSysMsg(
+                            "PaperCutPrintMonitor.error", t.getMessage()));
 
             LOGGER.error(t.getMessage(), t);
 
@@ -296,16 +292,12 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
 
             try {
 
-                final double seconds =
-                        (double) this.millisUntilNextInvocation
-                                / DateUtil.DURATION_MSEC_SECOND;
+                final double seconds = (double) this.millisUntilNextInvocation
+                        / DateUtil.DURATION_MSEC_SECOND;
 
-                pubMsg =
-                        localizeSysMsg(
-                                "PaperCutPrintMonitor.restart",
-                                BigDecimalUtil.localize(
-                                        BigDecimal.valueOf(seconds),
-                                        Locale.getDefault(), false));
+                pubMsg = localizeSysMsg("PaperCutPrintMonitor.restart",
+                        BigDecimalUtil.localize(BigDecimal.valueOf(seconds),
+                                Locale.getDefault(), false));
             } catch (ParseException e) {
                 throw new SpException(e.getMessage());
             }
@@ -353,9 +345,8 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
 
         final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
-        final long sessionEndTime =
-                System.currentTimeMillis() + DateUtil.DURATION_MSEC_SECOND
-                        * monitorDurationSecs;
+        final long sessionEndTime = System.currentTimeMillis()
+                + DateUtil.DURATION_MSEC_SECOND * monitorDurationSecs;
 
         final Date sessionEndDate = new Date(sessionEndTime);
 
@@ -384,8 +375,8 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Waiting... next ["
-                            + dateFormat.format(DateUtils.addSeconds(
-                                    new Date(), monitorHeartbeatSecs))
+                            + dateFormat.format(DateUtils.addSeconds(new Date(),
+                                    monitorHeartbeatSecs))
                             + "] till [" + dateFormat.format(sessionEndDate)
                             + "] ...");
                 }
@@ -416,8 +407,8 @@ public final class PaperCutPrintMonitorJob extends AbstractJob implements
     public void onPaperCutPrintJobProcessed(final DocLog docLogOut,
             final PaperCutPrinterUsageLog papercutLog,
             final ExternalSupplierStatusEnum printStatus,
-            final boolean isDocumentTooLarge) throws ExtSupplierException,
-            ExtSupplierConnectException {
+            final boolean isDocumentTooLarge)
+            throws ExtSupplierException, ExtSupplierConnectException {
 
         final PubLevelEnum pubLevel;
         final StringBuilder msg = new StringBuilder();

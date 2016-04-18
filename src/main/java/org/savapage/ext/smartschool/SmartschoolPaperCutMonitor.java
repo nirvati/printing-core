@@ -35,12 +35,14 @@ import org.savapage.ext.smartschool.services.SmartschoolService;
 import org.slf4j.Logger;
 
 /**
+ * Monitoring PaperCut print status of jobs issued from
+ * {@link ExternalSupplierEnum#SMARTSCHOOL}.
  *
  * @author Rijk Ravestein
  *
  */
-public final class SmartschoolPaperCutMonitor extends
-        PaperCutPrintMonitorPattern {
+public final class SmartschoolPaperCutMonitor
+        extends PaperCutPrintMonitorPattern {
 
     /**
      * .
@@ -67,8 +69,8 @@ public final class SmartschoolPaperCutMonitor extends
 
     @Override
     protected String getUserAccountName() {
-        return ConfigManager.instance().getConfigValue(
-                Key.SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL);
+        return ConfigManager.instance()
+                .getConfigValue(Key.SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL);
     }
 
     @Override
@@ -89,8 +91,8 @@ public final class SmartschoolPaperCutMonitor extends
          * total.
          */
         final SmartschoolPrintInData externalPrintInData =
-                SmartschoolPrintInData.createFromData(docLogIn
-                        .getExternalData());
+                SmartschoolPrintInData
+                        .createFromData(docLogIn.getExternalData());
 
         return externalPrintInData.getCopies().intValue();
     }
