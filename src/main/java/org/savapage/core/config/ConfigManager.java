@@ -1903,12 +1903,10 @@ public final class ConfigManager {
     }
 
     /**
-     * TODO
-     *
      * @return
      */
     public static boolean isPaperCutPrintEnabled() {
-        return instance().isConfigValue(Key.SMARTSCHOOL_PAPERCUT_ENABLE);
+        return instance().isConfigValue(Key.PAPERCUT_ENABLE);
     }
 
     /**
