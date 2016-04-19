@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -54,7 +54,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class PaperCutDbProxy {
@@ -74,8 +74,8 @@ public final class PaperCutDbProxy {
     /**
      * .
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(PaperCutDbProxy.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PaperCutDbProxy.class);
 
     /**
     *
@@ -130,8 +130,8 @@ public final class PaperCutDbProxy {
      * @author Datraverse B.V.
      *
      */
-    private static class PaperCutCircuitBreakerOperation implements
-            CircuitBreakerOperation {
+    private static class PaperCutCircuitBreakerOperation
+            implements CircuitBreakerOperation {
 
         private final PaperCutDbExecutor executor;
 
@@ -141,7 +141,8 @@ public final class PaperCutDbProxy {
          * @param executor
          *            The executor.
          */
-        public PaperCutCircuitBreakerOperation(final PaperCutDbExecutor executor) {
+        public PaperCutCircuitBreakerOperation(
+                final PaperCutDbExecutor executor) {
             this.executor = executor;
         }
 
@@ -243,10 +244,9 @@ public final class PaperCutDbProxy {
                      */
                     Class.forName(this.dbProxy.dbDriver);
 
-                    this.dbProxy.connection =
-                            DriverManager.getConnection(this.dbProxy.dbUrl,
-                                    this.dbProxy.dbUser,
-                                    this.dbProxy.dbPassword);
+                    this.dbProxy.connection = DriverManager.getConnection(
+                            this.dbProxy.dbUrl, this.dbProxy.dbUser,
+                            this.dbProxy.dbPassword);
                 } catch (SQLException | ClassNotFoundException e) {
                     throw new PaperCutConnectException(e.getMessage(), e);
                 }
@@ -256,8 +256,8 @@ public final class PaperCutDbProxy {
 
         try {
             if (this.useCircuitBreaker) {
-                CIRCUIT_BREAKER.execute(new PaperCutCircuitBreakerOperation(
-                        exec));
+                CIRCUIT_BREAKER
+                        .execute(new PaperCutCircuitBreakerOperation(exec));
             } else {
                 exec.execute();
             }
@@ -369,8 +369,8 @@ public final class PaperCutDbProxy {
      *         title in the input set.
      */
     @SuppressWarnings("unchecked")
-    public List<PaperCutPrinterUsageLog> getPrinterUsageLog(
-            final Set<String> uniqueDocNames) {
+    public List<PaperCutPrinterUsageLog>
+            getPrinterUsageLog(final Set<String> uniqueDocNames) {
 
         final PaperCutDbExecutor exec = new PaperCutDbExecutor(this) {
 
@@ -388,10 +388,8 @@ public final class PaperCutDbProxy {
 
         try {
             if (this.useCircuitBreaker) {
-                result =
-                        CIRCUIT_BREAKER
-                                .execute(new PaperCutCircuitBreakerOperation(
-                                        exec));
+                result = CIRCUIT_BREAKER
+                        .execute(new PaperCutCircuitBreakerOperation(exec));
             } else {
                 result = exec.execute();
             }
@@ -465,19 +463,19 @@ public final class PaperCutDbProxy {
 
                 usageLog.setDocumentName(resultset.getString("document_name"));
 
-                usageLog.setPrinted(resultset.getString("printed")
-                        .equalsIgnoreCase("Y"));
-                usageLog.setCancelled(resultset.getString("cancelled")
-                        .equalsIgnoreCase("Y"));
+                usageLog.setPrinted(
+                        resultset.getString("printed").equalsIgnoreCase("Y"));
+                usageLog.setCancelled(
+                        resultset.getString("cancelled").equalsIgnoreCase("Y"));
 
                 usageLog.setDeniedReason(resultset.getString("denied_reason"));
 
                 usageLog.setUsageCost(resultset.getDouble("usage_cost"));
 
-                usageLog.setAccountIdAssoc(resultset
-                        .getLong("assoc_with_account_id"));
-                usageLog.setAccountIdCharged(resultset
-                        .getLong("charged_to_account_id"));
+                usageLog.setAccountIdAssoc(
+                        resultset.getLong("assoc_with_account_id"));
+                usageLog.setAccountIdCharged(
+                        resultset.getLong("charged_to_account_id"));
 
                 //
                 usageLogList.add(usageLog);
@@ -498,7 +496,7 @@ public final class PaperCutDbProxy {
     }
 
     /**
-     * Creates a CSV file with Delegated Print student cost.
+     * Creates a CSV file with Delegator Print costs.
      *
      * @param file
      *            The CSV file to create.
@@ -507,7 +505,7 @@ public final class PaperCutDbProxy {
      * @throws IOException
      *             When IO errors occur while writing the file.
      */
-    public void createDelegatedPrintStudentCostCsv(final File file,
+    public void createDelegatorPrintCostCsv(final File file,
             final DelegatedPrintPeriodDto dto) throws IOException {
 
         final PaperCutDbExecutor exec = new PaperCutDbExecutor(this) {
@@ -515,7 +513,7 @@ public final class PaperCutDbProxy {
             @Override
             public Object execute() throws PaperCutException {
                 try {
-                    this.dbProxy.createDelegatedPrintStudentCostCsvSql(file,
+                    this.dbProxy.createDelegatorPrintStudentCostCsvSql(file,
                             dto);
                 } catch (SQLException e) {
                     throw new PaperCutConnectException(e.getMessage(), e);
@@ -533,10 +531,8 @@ public final class PaperCutDbProxy {
             this.connect();
 
             if (this.useCircuitBreaker) {
-                result =
-                        CIRCUIT_BREAKER
-                                .execute(new PaperCutCircuitBreakerOperation(
-                                        exec));
+                result = CIRCUIT_BREAKER
+                        .execute(new PaperCutCircuitBreakerOperation(exec));
             } else {
                 result = exec.execute();
             }
@@ -551,7 +547,7 @@ public final class PaperCutDbProxy {
     }
 
     /**
-     * Creates a CSV file with Delegated Print student cost using SQL query.
+     * Creates a CSV file with Delegator Print cost using SQL query.
      *
      * @param file
      *            The CSV file to create.
@@ -562,8 +558,9 @@ public final class PaperCutDbProxy {
      * @throws SQLException
      *             When an SQL error occurs.
      */
-    private void createDelegatedPrintStudentCostCsvSql(final File file,
-            final DelegatedPrintPeriodDto dto) throws IOException, SQLException {
+    private void createDelegatorPrintStudentCostCsvSql(final File file,
+            final DelegatedPrintPeriodDto dto)
+            throws IOException, SQLException {
 
         final StringBuilder sql = new StringBuilder(256);
 
@@ -585,14 +582,12 @@ public final class PaperCutDbProxy {
         final String syntaxVersionTestClause =
                 "LENGTH(split_part(TRX.txn_comment, ' | ', 8) ) > 0 ";
 
-        final String calcTotalPagesClause =
-                "CAST(split_part(TRX.txn_comment, " + "' | ', 3) AS INT)"
-                        + " * CAST(split_part(TRX.txn_comment, "
-                        + "' | ', 4) AS INT)" + " ELSE 0 END)";
+        final String calcTotalPagesClause = "CAST(split_part(TRX.txn_comment, "
+                + "' | ', 3) AS INT)" + " * CAST(split_part(TRX.txn_comment, "
+                + "' | ', 4) AS INT)" + " ELSE 0 END)";
 
         // Copies.
-        sql.append(", SUM(case when ")
-                .append(syntaxVersionTestClause)
+        sql.append(", SUM(case when ").append(syntaxVersionTestClause)
                 .append(" THEN CAST(split_part(TRX.txn_comment, "
                         + "' | ', 3) AS INT) " + "ELSE 0 END) as copies");
 
@@ -603,12 +598,8 @@ public final class PaperCutDbProxy {
 
         // Indicator Totals.
         final String[][] sumColInfo =
-                {
-                        { "5", "A4", "pages_a4" },
-                        { "5", "A3", "pages_a3" },
-                        {
-                                "6",
-                                DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_OFF,
+                { { "5", "A4", "pages_a4" }, { "5", "A3", "pages_a3" },
+                        { "6", DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_OFF,
                                 "pages_singlex" },
                         { "6", DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_ON,
                                 "pages_duplex" },
@@ -649,7 +640,7 @@ public final class PaperCutDbProxy {
         sql.append(" and LEFT(TRX.txn_comment, 1) != '")
                 .append(DelegatedPrintCommentSyntax.DUMMY_KLAS).append("'");
 
-        final List<String> klassen = dto.getKlassen();
+        final List<String> klassen = dto.getClasses();
 
         if (klassen != null && !klassen.isEmpty()) {
 
@@ -668,17 +659,16 @@ public final class PaperCutDbProxy {
         }
 
         if (dto.getTimeFrom() != null) {
-            sql.append(" and TRX.transaction_date >= '")
-                    .append(new java.sql.Date(dto.getTimeFrom().longValue())
-                            .toString()).append("'::DATE");
+            sql.append(" and TRX.transaction_date >= '").append(
+                    new java.sql.Date(dto.getTimeFrom().longValue()).toString())
+                    .append("'::DATE");
         }
 
         if (dto.getTimeTo() != null) {
             // next day 0:00
-            final Date dateTo =
-                    DateUtils.truncate(DateUtils.addDays(new Date(dto
-                            .getTimeTo().longValue()), 1),
-                            Calendar.DAY_OF_MONTH);
+            final Date dateTo = DateUtils.truncate(
+                    DateUtils.addDays(new Date(dto.getTimeTo().longValue()), 1),
+                    Calendar.DAY_OF_MONTH);
 
             sql.append(" and TRX.transaction_date < '")
                     .append(new java.sql.Date(dateTo.getTime()))

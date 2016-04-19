@@ -116,10 +116,10 @@ public final class PaperCutServiceImpl extends AbstractService implements
     }
 
     @Override
-    public void createDelegatedPrintStudentCostCsv(
+    public void createDelegatorPrintCostCsv(
             final PaperCutDbProxy papercut, final File file,
             final DelegatedPrintPeriodDto dto) throws IOException {
-        papercut.createDelegatedPrintStudentCostCsv(file, dto);
+        papercut.createDelegatorPrintCostCsv(file, dto);
     }
 
 }

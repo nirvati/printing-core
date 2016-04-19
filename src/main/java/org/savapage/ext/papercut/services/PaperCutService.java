@@ -128,7 +128,7 @@ public interface PaperCutService {
             Set<String> uniqueDocNames);
 
     /**
-     * Creates a CSV file with Delegated Print student cost.
+     * Creates a CSV file with Delegator Print costs.
      *
      * @param papercut
      *            The {@link PaperCutDbProxy}.
@@ -139,6 +139,6 @@ public interface PaperCutService {
      * @throws IOException
      *             When IO errors occur while writing the file.
      */
-    void createDelegatedPrintStudentCostCsv(final PaperCutDbProxy papercut,
+    void createDelegatorPrintCostCsv(final PaperCutDbProxy papercut,
             File file, DelegatedPrintPeriodDto dto) throws IOException;
 }
