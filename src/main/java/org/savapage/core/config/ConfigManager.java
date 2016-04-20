@@ -1873,6 +1873,15 @@ public final class ConfigManager {
     /**
      *
      * @param key
+     * @return <code>null</code> when property is not found or specified.
+     */
+    public Integer getConfigInteger(final IConfigProp.Key key) {
+        return myConfigProp.getInteger(key);
+    }
+
+    /**
+     *
+     * @param key
      * @param dfault
      * @return <code>null</code> when property is not found.
      */

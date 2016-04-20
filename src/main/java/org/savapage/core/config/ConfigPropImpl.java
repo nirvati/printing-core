@@ -50,8 +50,8 @@ public final class ConfigPropImpl implements IConfigProp {
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ConfigPropImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ConfigPropImpl.class);
 
     /**
      *
@@ -147,8 +147,8 @@ public final class ConfigPropImpl implements IConfigProp {
                         Key.LDAP_SCHEMA_USER_EMAIL_FIELD, "mail"),
                 new LdapProp(LdapType.OPEN_DIR,
                         Key.LDAP_SCHEMA_USER_FULL_NAME_FIELD, "cn"),
-                new LdapProp(LdapType.OPEN_DIR,
-                        Key.LDAP_SCHEMA_USER_NAME_FIELD, "uid"),
+                new LdapProp(LdapType.OPEN_DIR, Key.LDAP_SCHEMA_USER_NAME_FIELD,
+                        "uid"),
                 new LdapProp(LdapType.OPEN_DIR,
                         Key.LDAP_SCHEMA_USER_NAME_SEARCH, "(uid={0})"),
                 // not set
@@ -207,7 +207,8 @@ public final class ConfigPropImpl implements IConfigProp {
 
                 // Active Directory Only.
 
-                new LdapProp(LdapType.ACTD, Key.LDAP_ALLOW_DISABLED_USERS, V_NO),
+                new LdapProp(LdapType.ACTD, Key.LDAP_ALLOW_DISABLED_USERS,
+                        V_NO),
                 new LdapProp(LdapType.ACTD,
                         Key.LDAP_FILTER_DISABLED_USERS_LOCALLY, V_YES),
 
@@ -217,14 +218,13 @@ public final class ConfigPropImpl implements IConfigProp {
                                 + "(objectClass=user)"
                                 + "(sAMAccountType=805306368){1})"),
 
-                new LdapProp(LdapType.ACTD,
-                        Key.LDAP_SCHEMA_NESTED_GROUP_SEARCH,
+                new LdapProp(LdapType.ACTD, Key.LDAP_SCHEMA_NESTED_GROUP_SEARCH,
                         "(&(memberOf={0})(objectCategory=group))"),
 
                 new LdapProp(LdapType.ACTD, Key.LDAP_SCHEMA_DN_FIELD,
                         "distinguishedName"),
 
-        //
+                //
         };
     }
 
@@ -301,8 +301,8 @@ public final class ConfigPropImpl implements IConfigProp {
             myDbCache.put(name, prop);
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Ad-hoc: Insert Db -> Dict: " + name + " ["
-                        + value + "]");
+                LOGGER.debug("Ad-hoc: Insert Db -> Dict: " + name + " [" + value
+                        + "]");
             }
 
         } else {
@@ -359,7 +359,8 @@ public final class ConfigPropImpl implements IConfigProp {
             myDbCache.put(name, prop);
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Ad-hoc: Dict -> Db: " + name + " [" + value + "]");
+                LOGGER.debug(
+                        "Ad-hoc: Dict -> Db: " + name + " [" + value + "]");
             }
 
         } else {
@@ -442,6 +443,15 @@ public final class ConfigPropImpl implements IConfigProp {
     @Override
     public int getInt(final Key key) {
         return Integer.parseInt(getString(key));
+    }
+
+    @Override
+    public Integer getInteger(final Key key) {
+        final String val = getString(key);
+        if (StringUtils.isBlank(val)) {
+            return null;
+        }
+        return Integer.valueOf(val);
     }
 
     @Override
@@ -547,9 +557,8 @@ public final class ConfigPropImpl implements IConfigProp {
         final ConfigPropertyDao.ListFilter filter =
                 new ConfigPropertyDao.ListFilter();
 
-        final List<ConfigProperty> propsDb =
-                dao.getListChunk(filter, null, null,
-                        ConfigPropertyDao.Field.NAME, true);
+        final List<ConfigProperty> propsDb = dao.getListChunk(filter, null,
+                null, ConfigPropertyDao.Field.NAME, true);
 
         for (ConfigProperty propDb : propsDb) {
 

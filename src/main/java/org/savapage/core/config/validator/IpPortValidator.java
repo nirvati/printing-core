@@ -28,4 +28,8 @@ package org.savapage.core.config.validator;
  *
  */
 public class IpPortValidator extends NumberValidator {
+
+    public IpPortValidator() {
+        super(false);
+    }
 }

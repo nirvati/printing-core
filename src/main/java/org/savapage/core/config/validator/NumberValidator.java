@@ -33,14 +33,22 @@ public class NumberValidator implements ConfigPropValidator {
     private final Long minValue;
     private final Long maxValue;
 
-    public NumberValidator() {
+    /**
+     * {@code true} if value is optional.
+     */
+    private final boolean isOptional;
+
+    public NumberValidator(final boolean optional) {
         this.minValue = null;
         this.maxValue = null;
+        this.isOptional = optional;
     }
 
-    public NumberValidator(final Long minValue, final Long maxValue) {
+    public NumberValidator(final Long minValue, final Long maxValue,
+            final boolean optional) {
         this.minValue = minValue;
         this.maxValue = maxValue;
+        this.isOptional = optional;
     }
 
     @Override
@@ -50,8 +58,10 @@ public class NumberValidator implements ConfigPropValidator {
 
         if (StringUtils.isBlank(value)) {
 
-            res.setStatus(ValidationStatusEnum.ERROR_EMPTY);
-            res.setMessage("Value must be a number.");
+            if (!this.isOptional) {
+                res.setStatus(ValidationStatusEnum.ERROR_EMPTY);
+                res.setMessage("Value must be a number.");
+            }
 
         } else {
 

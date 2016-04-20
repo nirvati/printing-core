@@ -646,11 +646,6 @@ public interface IConfigProp {
         JOBTICKET_PROXY_PRINTER_GROUP("jobticket.proxy-printer-group"),
 
         /**
-         * Force Job Ticket when printing more than threshold pages.
-         */
-        JOBTICKET_THRESHOLD_PAGE_TOTAL("jobticket.threshold.page-total", NUMBER_VALIDATOR, "100"),
-
-        /**
          * See this <a href=
          * "http://docs.oracle.com/javase/jndi/tutorial/ldap/search/batch.html"
          * >explanation</a> and this <a href=
@@ -1342,6 +1337,11 @@ public interface IConfigProp {
         PROXY_PRINT_DIRECT_EXPIRY_SECS("proxy-print.direct-expiry-secs", NUMBER_VALIDATOR, "20"),
 
         /**
+         * Maximum number of pages allowed for a proxy print job.
+         */
+        PROXY_PRINT_MAX_PAGES("proxy-print.max-pages", NUMBER_VALIDATOR_OPT),
+
+        /**
          * Restrict non-secure proxy printing to this Printer Group. See:
          * {@link PrinterGroup#getGroupName()}
          */
@@ -1996,7 +1996,12 @@ public interface IConfigProp {
     /**
      * .
      */
-    NumberValidator NUMBER_VALIDATOR = new NumberValidator();
+    NumberValidator NUMBER_VALIDATOR = new NumberValidator(false);
+
+    /**
+     * .
+     */
+    NumberValidator NUMBER_VALIDATOR_OPT = new NumberValidator(true);
 
     /**
      * .
@@ -2032,7 +2037,7 @@ public interface IConfigProp {
      * .
      */
     NumberValidator ACCOUNTING_DECIMAL_VALIDATOR = new NumberValidator(0L,
-            Integer.valueOf(MAX_FINANCIAL_DECIMALS_IN_DB).longValue());
+            Integer.valueOf(MAX_FINANCIAL_DECIMALS_IN_DB).longValue(), false);
 
     /**
      * .
@@ -2482,6 +2487,15 @@ public interface IConfigProp {
      * @return The int value.
      */
     int getInt(final Key key);
+
+    /**
+     * Gets the value of a configuration key as {@link Integer}.
+     *
+     * @param key
+     *            The key.
+     * @return The int value or {@code null} when not specified.
+     */
+    Integer getInteger(final Key key);
 
     /**
      * Gets the value of a configuration key as boolean.

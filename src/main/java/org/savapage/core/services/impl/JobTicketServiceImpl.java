@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
@@ -293,7 +294,7 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public void proxyPrintInbox(final User lockedUser,
             final ProxyPrintInboxReq request, final Date deliveryDate)
-                    throws EcoPrintPdfTaskPendingException {
+            throws EcoPrintPdfTaskPendingException {
         new ProxyPrintInbox(this, deliveryDate).print(lockedUser, request);
     }
 
@@ -460,6 +461,10 @@ public final class JobTicketServiceImpl extends AbstractService
 
         final String groupName = ConfigManager.instance()
                 .getConfigValue(Key.JOBTICKET_PROXY_PRINTER_GROUP);
+
+        if (StringUtils.isBlank(groupName)) {
+            return printerList;
+        }
 
         final PrinterGroup printerGroup = ServiceContext.getDaoContext()
                 .getPrinterGroupDao().findByName(groupName);
