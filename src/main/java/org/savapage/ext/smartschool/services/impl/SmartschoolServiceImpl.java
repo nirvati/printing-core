@@ -76,6 +76,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.impl.AbstractService;
+import org.savapage.ext.papercut.services.PaperCutService;
 import org.savapage.ext.smartschool.SmartschoolAccount;
 import org.savapage.ext.smartschool.SmartschoolConnection;
 import org.savapage.ext.smartschool.SmartschoolConstants;
@@ -220,18 +221,73 @@ public final class SmartschoolServiceImpl extends AbstractService
 
         final ConfigManager cm = ConfigManager.instance();
 
-        SmartschoolConnection connection;
+        SmartschoolConnection connectionTmp;
 
         if (cm.isConfigValue(Key.SMARTSCHOOL_1_ENABLE)) {
-            connection = new SmartschoolConnection(getAccount1());
-            connectionMap.put(connection.getAccountName(), connection);
+            connectionTmp = new SmartschoolConnection(getAccount1());
+            connectionMap.put(connectionTmp.getAccountName(), connectionTmp);
         }
 
         if (cm.isConfigValue(Key.SMARTSCHOOL_2_ENABLE)) {
-            connection = new SmartschoolConnection(getAccount2());
-            connectionMap.put(connection.getAccountName(), connection);
+            connectionTmp = new SmartschoolConnection(getAccount2());
+            connectionMap.put(connectionTmp.getAccountName(), connectionTmp);
         }
 
+        //
+        final PaperCutService paperCutService =
+                ServiceContext.getServiceFactory().getPaperCutService();
+
+        final boolean isPaperCutEnabled =
+                cm.isConfigValue(Key.SMARTSCHOOL_PAPERCUT_ENABLE);
+
+        final StringBuilder errorPrinters = new StringBuilder();
+
+        for (final SmartschoolConnection connection : connectionMap.values()) {
+
+            final SmartschoolAccount.Config config =
+                    connection.getAccountConfig();
+
+            for (final String printerName : new String[] {
+                    config.getProxyPrinterDuplexName(),
+                    config.getProxyPrinterGrayscaleDuplexName(),
+                    config.getProxyPrinterGrayscaleName(),
+                    config.getProxyPrinterName() }) {
+
+                if (StringUtils.isBlank(printerName)) {
+                    continue;
+                }
+                final boolean isPaperCutPrinter =
+                        paperCutService.isExtPaperCutPrint(printerName);
+
+                if ((isPaperCutEnabled && isPaperCutPrinter)
+                        || (!isPaperCutEnabled && !isPaperCutPrinter)) {
+                    continue;
+                }
+                if (errorPrinters.length() > 0) {
+                    errorPrinters.append(", ");
+                }
+                errorPrinters.append(printerName);
+            }
+        }
+
+        if (errorPrinters.length() > 0) {
+            final String msgIntegration;
+            final String msgManaged;
+            if (isPaperCutEnabled) {
+                msgIntegration = "ENABLED";
+                msgManaged = "are NOT";
+            } else {
+                msgIntegration = "DISABLED";
+                msgManaged = "ARE";
+            }
+            errorPrinters.insert(0,
+                    String.format(
+                            "PaperCut Integration is %s, but these "
+                                    + "printers %s managed by PaperCut: ",
+                            msgIntegration, msgManaged));
+
+            throw new IllegalStateException(errorPrinters.toString());
+        }
         return connectionMap;
     }
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -44,34 +44,38 @@ import org.savapage.ext.smartschool.xml.Jobticket;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface SmartschoolService {
 
     /**
-     * Creates a {@link SmartschoolConnection} map of active SmartSchool
+     * Creates a {@link SmartschoolConnection} map of active Smartschool
      * accounts (key is account).
      *
      * @return The connection list.
      * @throws SOAPException
      *             When SOAP connection error.
+     * @throws IllegalStateException
+     *             When PaperCut Integration is disabled (enabled), but some
+     *             printers are (not) managed by PaperCut.
      */
     Map<String, SmartschoolConnection> createConnections() throws SOAPException;
 
     /**
      *
-     * @return
+     * @return The reserved {@link IppQueue} for Smartschool.
      */
     IppQueue getSmartSchoolQueue();
 
     /**
-     * Gets the {@link Jobticket} from SmartSchool.
+     * Gets the {@link Jobticket} from Smartschool.
      *
      * @param connection
      *            The {@link SmartschoolConnection}.
      * @return Tthe {@link Jobticket}.
      * @throws SmartschoolException
+     *             When Smartschool reports an error.
      * @throws SmartschoolTooManyRequestsException
      *             When HTTP status 429 "Too Many Requests" occurred.
      * @throws SOAPException
@@ -85,7 +89,7 @@ public interface SmartschoolService {
      * Creates the {@link File} object to be used as document download target.
      *
      * @param documentName
-     *            The SmartSchool document name.
+     *            The Smartschool document name.
      * @param uuid
      *            The assigned {@link UUID}.
      * @return the {@link File} object.
@@ -99,7 +103,7 @@ public interface SmartschoolService {
      * @param connection
      *            The {@link SmartschoolConnection }.
      * @param document
-     *            The SmartSchool {@link Document}.
+     *            The Smartschool {@link Document}.
      * @param uuid
      *            The assigned {@link UUID} of the PrintIn document.
      * @return The downloaded {@link File}.
@@ -120,7 +124,7 @@ public interface SmartschoolService {
      * @param connection
      *            The {@link SmartschoolConnection }.
      * @param document
-     *            The SmartSchool {@link Document}.
+     *            The Smartschool {@link Document}.
      * @return The downloaded {@link File}.
      * @throws IOException
      *             When a a file IO error occurs.
@@ -133,7 +137,7 @@ public interface SmartschoolService {
             Document document) throws IOException, ShutdownException;
 
     /**
-     * Reports the document status to SmartSchool.
+     * Reports the document status to Smartschool.
      *
      * @param connection
      *            The {@link SmartschoolConnection }.
@@ -144,13 +148,13 @@ public interface SmartschoolService {
      * @param comment
      *            The comment.
      * @throws SmartschoolException
+     *             When Smartschool reports an error.
      * @throws SOAPException
      *             When SOAP connection error.
      */
-    void
-            reportDocumentStatus(SmartschoolConnection connection,
-                    String documentId, SmartschoolPrintStatusEnum status,
-                    String comment) throws SmartschoolException, SOAPException;
+    void reportDocumentStatus(SmartschoolConnection connection,
+            String documentId, SmartschoolPrintStatusEnum status,
+            String comment) throws SmartschoolException, SOAPException;
 
     /**
      * Creates an account template for lazy creating new shared accounts.
@@ -181,7 +185,7 @@ public interface SmartschoolService {
     String getSharedParentAccountName();
 
     /**
-     * Gets the child account name for SmartSchool Jobs.
+     * Gets the child account name for Smartschool Jobs.
      *
      * @return The shared account name.
      */
@@ -189,21 +193,21 @@ public interface SmartschoolService {
 
     /**
      * Composes a {@link AccountTypeEnum#SHARED} {@link Account} name for a
-     * SmartSchool klas. Format: {@code [smartschool-account].Klas.[klas]}
+     * Smartschool klas. Format: {@code [smartschool-account].Klas.[klas]}
      *
      * @see {@link SmartschoolService#getKlasFromComposedAccountName(String)}.
      *
      * @param connection
      *            The {@link SmartschoolConnection}.
      * @param klas
-     *            The SmartSchool klas.
+     *            The Smartschool klas.
      * @return The composed shared account name.
      */
     String composeSharedChildAccountNameForKlas(
             SmartschoolConnection connection, String klas);
 
     /**
-     * Gets the SmartSchool klas from the composed
+     * Gets the Smartschool klas from the composed
      * {@link AccountTypeEnum#SHARED} {@link Account} name:
      * {@code [smartschool-account].Klas.[klas]}
      *
@@ -216,7 +220,7 @@ public interface SmartschoolService {
     String getKlasFromComposedAccountName(String accountName);
 
     /**
-     * Creates the {@link AccountTrxInfoSet} for a SmartSchool print request.
+     * Creates the {@link AccountTrxInfoSet} for a Smartschool print request.
      *
      * @param connection
      *            The {@link SmartschoolConnection}.
