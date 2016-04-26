@@ -557,18 +557,29 @@ public abstract class PaperCutPrintMonitorPattern {
                         printOutLog.getCupsJobId().toString());
 
         /*
+         * Set status to COMPLETED.
+         */
+        final String externalPrintJobStatus =
+                ExternalSupplierStatusEnum.COMPLETED.toString();
+
+        docLogOut.setExternalStatus(externalPrintJobStatus);
+
+        /*
          * Any transactions?
          */
         final List<AccountTrx> trxList = docLogTrx.getTransactions();
 
         if (trxList == null || trxList.isEmpty()) {
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(String.format(
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn(String.format(
                         "No DocLog transactions found for [%s] [%s]",
                         docLogOut.getTitle(), docLogOut.getId().toString()));
             }
-
+            /*
+             * Just update the DocLog with status COMPLETED.
+             */
+            doclogDao.update(docLogOut);
             return;
         }
 
@@ -854,18 +865,13 @@ public abstract class PaperCutPrintMonitorPattern {
         /*
          * DocLog updates.
          */
-        final String externalStatus =
-                ExternalSupplierStatusEnum.COMPLETED.toString();
-
-        docLogOut.setExternalStatus(externalStatus);
-
         if (this.isDocInAccountTrx()) {
             /*
              * Move the AccountTrx list from DocLog source to target.
              */
             docLogOut.setTransactions(trxList);
 
-            docLogIn.setExternalStatus(externalStatus);
+            docLogIn.setExternalStatus(externalPrintJobStatus);
             docLogIn.setTransactions(null);
             doclogDao.update(docLogIn);
         }
