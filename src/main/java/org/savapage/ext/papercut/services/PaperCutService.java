@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,6 +27,9 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.print.proxy.AbstractProxyPrintReq;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.ext.papercut.DelegatedPrintPeriodDto;
 import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutException;
@@ -41,11 +44,32 @@ import org.savapage.ext.papercut.PaperCutUser;
  * See: <a href="http://www.papercut.com">www.papercut.com</a>
  * </p>
  *
- * @since 0.9.6
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface PaperCutService {
+
+    /**
+     * Checks if PaperCut integration for Printer is applicable.
+     *
+     * @param printerName
+     *            The CUPS printer name.
+     * @return {@code true} is applicable.
+     */
+    boolean isExtPaperCutPrint(String printerName);
+
+    /**
+     * Prepares the {@link AbstractProxyPrintReq} for External PaperCut Print
+     * Status monitoring and notification to an external supplier.
+     *
+     * @param printReq
+     *            The {@link AbstractProxyPrintReq}.
+     * @param supplierInfo
+     *            The {@link ExternalSupplierInfo}: when {@code null},
+     *            {@link ExternalSupplierEnum#SAVAPAGE} is assumed.
+     */
+    void prepareForExtPaperCut(AbstractProxyPrintReq printReq,
+            ExternalSupplierInfo supplierInfo);
 
     /**
      * Finds a PaperCut user.
@@ -84,8 +108,8 @@ public interface PaperCutService {
      *             When the shared account could not be adjusted (created).
      */
     void lazyAdjustSharedAccount(PaperCutServerProxy papercut,
-            String topAccountName, String subAccountName,
-            BigDecimal adjustment, String comment) throws PaperCutException;
+            String topAccountName, String subAccountName, BigDecimal adjustment,
+            String comment) throws PaperCutException;
 
     /**
      * Adjusts a user's built-in/default account balance by an adjustment
@@ -110,9 +134,9 @@ public interface PaperCutService {
      * @throws PaperCutException
      *             When the user (account) does not exist.
      */
-    void adjustUserAccountBalance(PaperCutServerProxy papercut,
-            String username, String userAccountName, BigDecimal adjustment,
-            String comment) throws PaperCutException;
+    void adjustUserAccountBalance(PaperCutServerProxy papercut, String username,
+            String userAccountName, BigDecimal adjustment, String comment)
+            throws PaperCutException;
 
     /**
      * Gets the {@link PaperCutPrinterUsageLog} for unique document names.
@@ -139,6 +163,6 @@ public interface PaperCutService {
      * @throws IOException
      *             When IO errors occur while writing the file.
      */
-    void createDelegatorPrintCostCsv(final PaperCutDbProxy papercut,
-            File file, DelegatedPrintPeriodDto dto) throws IOException;
+    void createDelegatorPrintCostCsv(final PaperCutDbProxy papercut, File file,
+            DelegatedPrintPeriodDto dto) throws IOException;
 }

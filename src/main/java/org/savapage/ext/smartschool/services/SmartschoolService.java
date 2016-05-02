@@ -23,6 +23,7 @@ package org.savapage.ext.smartschool.services;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
@@ -61,6 +62,30 @@ public interface SmartschoolService {
      *             printers are (not) managed by PaperCut.
      */
     Map<String, SmartschoolConnection> createConnections() throws SOAPException;
+
+    /**
+     * Checks if one of the connections is configured with a SavaPage Job Ticket
+     * Proxy Printer.
+     *
+     * @param connections
+     *            The connections.
+     * @return {@code true} if one of the connections is configured with a
+     *         SavaPage Job Ticket Proxy Printer.
+     */
+    boolean hasJobTicketProxyPrinter(
+            Collection<SmartschoolConnection> connections);
+
+    /**
+     * Checks if one of the connections is configured with a SavaPage
+     * Hold/Release Proxy Printer.
+     *
+     * @param connections
+     *            The connections.
+     * @return {@code true} if one of the connections is configured with a
+     *         SavaPage Hold/Release Proxy Printer.
+     */
+    boolean hasHoldReleaseProxyPrinter(
+            Collection<SmartschoolConnection> connections);
 
     /**
      *

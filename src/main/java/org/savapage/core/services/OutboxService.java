@@ -29,8 +29,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
+import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
@@ -61,15 +64,6 @@ public interface OutboxService {
             String currencySymbol);
 
     /**
-     * Clears the user's outbox.
-     *
-     * @param userId
-     *            The unique user id.
-     * @return The number of jobs in the cleared outbox.
-     */
-    int clearOutbox(String userId);
-
-    /**
      * Creates an {@link OutboxJobDto} from input parameters.
      *
      * @param request
@@ -89,7 +83,16 @@ public interface OutboxService {
             LinkedHashMap<String, Integer> uuidPageCount);
 
     /**
-     * Removes a job in the user's outbox.
+     * Cancels all jobs in the user's outbox.
+     *
+     * @param userId
+     *            The unique user id.
+     * @return The number of jobs canceled.
+     */
+    int cancelOutboxJobs(String userId);
+
+    /**
+     * Cancels a job in the user's outbox.
      *
      * @param userId
      *            The unique user id.
@@ -97,7 +100,35 @@ public interface OutboxService {
      *            The unique file name of the job to remove.
      * @return {@code false} if the job was not found.
      */
-    boolean removeOutboxJob(String userId, String fileName);
+    boolean cancelOutboxJob(String userId, String fileName);
+
+    /**
+     * Notifies an outbox job is canceled.
+     * <p>
+     * NOTE: When the outbox job was created from an
+     * {@link ExternalSupplierEnum} other than
+     * {@link ExternalSupplierEnum#SAVAPAGE} the print-in {@link DocLog} is
+     * updated with {@link ExternalSupplierStatusEnum#PENDING_CANCEL}.
+     * </p>
+     *
+     * @param job
+     *            The canceled {@link OutboxJobDto}.
+     */
+    void onOutboxJobCanceled(final OutboxJobDto job);
+
+    /**
+     * Notifies an outbox job is completed.
+     * <p>
+     * NOTE: When the outbox job was created from an
+     * {@link ExternalSupplierEnum} other than
+     * {@link ExternalSupplierEnum#SAVAPAGE} the print-in {@link DocLog} is
+     * updated with {@link ExternalSupplierStatusEnum#PENDING_COMPLETE}.
+     * </p>
+     *
+     * @param job
+     *            The completed {@link OutboxJobDto}.
+     */
+    void onOutboxJobCompleted(final OutboxJobDto job);
 
     /**
      * Extends the job expiration time of jobs in the user's outbox, so that
@@ -194,6 +225,16 @@ public interface OutboxService {
      */
     void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request, File pdfFile,
             DocContentPrintInInfo printInfo) throws IOException;
+
+    /**
+     *
+     * @since 0.9.11
+     *
+     * @param userId
+     *            The unique user id.
+     * @return The number of outbox jobs.
+     */
+    int getOutboxJobCount(String userId);
 
     /**
      * Gets the {@link OutboxJobDto} candidate objects for proxy printing.

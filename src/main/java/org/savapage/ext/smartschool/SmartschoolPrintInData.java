@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,12 +28,16 @@ import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.json.JsonAbstractBase;
 import org.savapage.core.services.helpers.ExternalSupplierData;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * Data of SmartSchool Print Request.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
+@JsonInclude(Include.NON_NULL)
 public final class SmartschoolPrintInData extends JsonAbstractBase implements
         ExternalSupplierData {
 

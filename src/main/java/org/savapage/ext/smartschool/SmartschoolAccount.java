@@ -103,6 +103,18 @@ public final class SmartschoolAccount {
         private boolean chargeToStudents;
 
         /**
+         * {@code true} if one of the configured proxy printers is a SavaPage
+         * Job Ticket Printer.
+         */
+        private boolean jobTicketProxyPrinter;
+
+        /**
+         * {@code true} if one of the configured proxy printers is a SavaPage
+         * Hold/Release Printer.
+         */
+        private boolean isHoldReleaseProxyPrinter;
+
+        /**
          * @return The default proxy printer (can be {@code null} or empty).
          */
         public String getProxyPrinterName() {
@@ -133,8 +145,8 @@ public final class SmartschoolAccount {
             return proxyPrinterGrayscaleName;
         }
 
-        public void setProxyPrinterGrayscaleName(
-                String proxyPrinterGrayscaleName) {
+        public void
+                setProxyPrinterGrayscaleName(String proxyPrinterGrayscaleName) {
             this.proxyPrinterGrayscaleName = proxyPrinterGrayscaleName;
         }
 
@@ -163,6 +175,40 @@ public final class SmartschoolAccount {
 
         public void setChargeToStudents(boolean chargeToStudents) {
             this.chargeToStudents = chargeToStudents;
+        }
+
+        /**
+         * @return {@code true} if one of the configured proxy printers is a
+         *         SavaPage Job Ticket Printer.
+         */
+        public boolean isJobTicketProxyPrinter() {
+            return jobTicketProxyPrinter;
+        }
+
+        /**
+         * @param proxyPrinterJobTicket
+         *            {@code true} if one of the configured proxy printers is a
+         *            SavaPage Job Ticket Printer.
+         */
+        public void setJobTicketProxyPrinter(boolean jobTicketProxyPrinter) {
+            this.jobTicketProxyPrinter = jobTicketProxyPrinter;
+        }
+
+        /**
+         * @return {@code true} if one of the configured proxy printers is a
+         *         SavaPage Hold/Release Printer.
+         */
+        public boolean isHoldReleaseProxyPrinter() {
+            return isHoldReleaseProxyPrinter;
+        }
+
+        /**
+         * @param isHoldReleasePrinter
+         *            {@code true} if one of the configured proxy printers is a
+         *            SavaPage Hold/Release Printer.
+         */
+        public void setHoldReleaseProxyPrinter(boolean isHoldReleasePrinter) {
+            this.isHoldReleaseProxyPrinter = isHoldReleasePrinter;
         }
 
     }

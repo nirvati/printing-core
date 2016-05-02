@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -60,11 +61,14 @@ import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.PrinterGroupMember;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
+import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
+import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
@@ -161,36 +165,99 @@ public final class JobTicketServiceImpl extends AbstractService
                 final LinkedHashMap<String, Integer> uuidPageCount,
                 final File pdfGenerated) {
 
-            /*
-             * Create sibling json file with proxy print information.
-             */
             final UUID uuid = UUID.fromString(
                     FilenameUtils.getBaseName(pdfGenerated.getName()));
 
-            final File jsonFile = getJobTicketFile(uuid, FILENAME_EXT_JSON);
-
-            final OutboxJobDto dto =
-                    outboxService().createOutboxJob(request, this.submitDate,
-                            this.deliveryDate, pdfGenerated, uuidPageCount);
-
-            dto.setUserId(lockedUser.getId());
-
-            Writer writer = null;
             try {
-                writer = new FileWriter(jsonFile);
-                JsonHelper.write(dto, writer);
-                writer.close();
+                this.serviceImpl.addJobticketToCache(lockedUser, pdfGenerated,
+                        uuid, request, uuidPageCount, this.submitDate,
+                        this.deliveryDate);
             } catch (IOException e) {
                 throw new SpException(e.getMessage(), e);
-            } finally {
-                IOUtils.closeQuietly(writer);
             }
 
-            /*
-             * Add to cache.
-             */
-            this.serviceImpl.jobTicketCache.put(uuid, dto);
         }
+    }
+
+    @Override
+    public void proxyPrintPdf(final User lockedUser,
+            final ProxyPrintDocReq request, final File pdfFile,
+            final DocContentPrintInInfo printInfo, final Date deliveryDate)
+            throws IOException {
+
+        final String msgKey = "msg-user-print-jobticket";
+
+        request.setStatus(Status.WAITING_FOR_RELEASE);
+        request.setUserMsgKey(msgKey);
+        request.setUserMsg(localize(msgKey));
+
+        final UUID uuid = UUID.fromString(request.getDocumentUuid());
+
+        /*
+         * Move PDF file to ticket Outbox.
+         */
+        final File pdfFileTicket = getJobTicketFile(uuid, FILENAME_EXT_PDF);
+        FileUtils.moveFile(pdfFile, pdfFileTicket);
+
+        /*
+         * Add to cache.
+         */
+        final LinkedHashMap<String, Integer> uuidPageCount =
+                new LinkedHashMap<>();
+        uuidPageCount.put(uuid.toString(), request.getNumberOfPages());
+
+        this.addJobticketToCache(lockedUser, pdfFileTicket, uuid, request,
+                uuidPageCount, ServiceContext.getTransactionDate(),
+                deliveryDate);
+    }
+
+    /**
+     * Creates sibling JSON file with proxy print information and adds Job
+     * Ticket to the cache.
+     *
+     * @param user
+     *            The requesting {@link User}.
+     * @param pdfFileTicket
+     *            The PDF file to be printed by the Job Ticket.
+     * @param uuid
+     *            The Job Ticket {@link UUID}.
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
+     * @param uuidPageCount
+     *            Object filled with the number of selected pages per input file
+     *            UUID.
+     * @param submitDate
+     *            The submit date.
+     * @param deliveryDate
+     *            The requested date of delivery.
+     * @throws IOException
+     *             When file IO error occurs.
+     */
+    private void addJobticketToCache(final User user, final File pdfFileTicket,
+            final UUID uuid, final AbstractProxyPrintReq request,
+            final LinkedHashMap<String, Integer> uuidPageCount,
+            final Date submitDate, final Date deliveryDate) throws IOException {
+
+        final OutboxJobDto dto = outboxService().createOutboxJob(request,
+                submitDate, deliveryDate, pdfFileTicket, uuidPageCount);
+
+        dto.setUserId(user.getId());
+
+        final File jsonFileTicket = getJobTicketFile(uuid, FILENAME_EXT_JSON);
+
+        Writer writer = null;
+        try {
+            writer = new FileWriter(jsonFileTicket);
+            JsonHelper.write(dto, writer);
+            writer.close();
+        } finally {
+            IOUtils.closeQuietly(writer);
+        }
+
+        /*
+         * Add to cache.
+         */
+        this.jobTicketCache.put(uuid, dto);
     }
 
     /**
@@ -324,10 +391,10 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public int removeTickets(final Long userId) {
+    public int cancelTickets(final Long userId) {
         int nRemoved = 0;
         for (final OutboxJobDto dto : filterTickets(userId)) {
-            if (removeTicket(dto.getFile()) != null) {
+            if (cancelTicket(dto.getFile()) != null) {
                 nRemoved++;
             }
         }
@@ -389,18 +456,30 @@ public final class JobTicketServiceImpl extends AbstractService
      *
      * @param uuid
      *            The {@link UUID}.
-     * @return The {@link OutboxJobDto }.
+     * @param isCanceled
+     *            {@code true} when ticket is canceled.
+     * @return The {@link OutboxJobDto}.
      */
-    private OutboxJobDto removeTicket(final UUID uuid) {
+    private OutboxJobDto removeTicket(final UUID uuid,
+            final boolean isCanceled) {
 
         getJobTicketFile(uuid, FILENAME_EXT_JSON).delete();
         getJobTicketFile(uuid, FILENAME_EXT_PDF).delete();
 
-        return this.jobTicketCache.remove(uuid);
+        final OutboxJobDto job = this.jobTicketCache.remove(uuid);
+
+        if (job != null) {
+            if (isCanceled) {
+                outboxService().onOutboxJobCanceled(job);
+            } else {
+                outboxService().onOutboxJobCompleted(job);
+            }
+        }
+        return job;
     }
 
     @Override
-    public OutboxJobDto removeTicket(final Long userId, final String fileName) {
+    public OutboxJobDto cancelTicket(final Long userId, final String fileName) {
 
         final UUID uuid = uuidFromFileName(fileName);
         final OutboxJobDto dto = this.jobTicketCache.get(uuid);
@@ -415,13 +494,13 @@ public final class JobTicketServiceImpl extends AbstractService
                             uuid.toString(), userId.toString()));
         }
 
-        return this.removeTicket(uuid);
+        return this.removeTicket(uuid, true);
     }
 
     @Override
-    public OutboxJobDto removeTicket(final String fileName) {
+    public OutboxJobDto cancelTicket(final String fileName) {
         final UUID uuid = uuidFromFileName(fileName);
-        return this.removeTicket(uuid);
+        return this.removeTicket(uuid, true);
     }
 
     @Override
@@ -445,7 +524,7 @@ public final class JobTicketServiceImpl extends AbstractService
         proxyPrintService().proxyPrintJobTicket(lockedUser, dto,
                 getJobTicketFile(uuid, FILENAME_EXT_PDF));
 
-        return this.removeTicket(uuid);
+        return this.removeTicket(uuid, false);
     }
 
     @Override

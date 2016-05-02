@@ -70,6 +70,7 @@ import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
+import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
 import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.snmp.SnmpConnectException;
@@ -376,6 +377,16 @@ public interface ProxyPrintService {
     void initPrinterCache() throws IppConnectException, IppSyntaxException;
 
     /**
+     * Peeks if the CUPS printer cache is available.
+     * <p>
+     * Note: The cache is lazy initialized upon first use.
+     * </p>
+     *
+     * @return {@code true} when available.
+     */
+    boolean isPrinterCacheAvailable();
+
+    /**
      * Synchronizes (updates) the PrintOut jobs with the CUPS job state (if the
      * state changed). A match is made between printer, job-id and
      * creation-time. If there is no match, i.e. when creation times differs, no
@@ -445,10 +456,21 @@ public interface ProxyPrintService {
             throws IppConnectException, ProxyPrintException;
 
     /**
-     * Prints one (1) copy of each the vanilla inbox job of the {@link User}
-     * identified by card number, to the proxy printer associated with the card
-     * reader. Printer defaults are used. The inbox is cleared after the print
-     * job is successfully put on the print queue.
+     * Prints one (1) copy of each job in a vanilla inbox job of the
+     * {@link User} identified by card number, to the proxy printer associated
+     * with the card reader. Printer defaults are used.
+     *
+     * <p>
+     * <i>When the inbox is not vanilla, because user edited the SafePages, the
+     * inbox is cleared, and zero (0) is returned.</i>
+     * </p>
+     *
+     * <ul>
+     * <li>Print-in jobs that are expired for Fast Proxy Printing are deleted
+     * first.</li>
+     * <li>The inbox is cleared after the print jobs are successfully put on the
+     * print queue.</li>
+     * </ul>
      * <p>
      * Note: All invariants for {@link Printer}, {@link User},
      * {@link UserAccount}, etc. are checked. When a invariant is violated a
@@ -481,11 +503,11 @@ public interface ProxyPrintService {
      *            The card reader {@link Device}.
      * @param cardNumber
      *            The RFID card number identifying the user.
-     * @return The number of printed pages.
+     * @return The number {@link ProxyPrintOutboxResult}.
      * @throws ProxyPrintException
      *             When a invariant is violated.
      */
-    int proxyPrintOutbox(Device reader, String cardNumber)
+    ProxyPrintOutboxResult proxyPrintOutbox(Device reader, String cardNumber)
             throws ProxyPrintException;
 
     /**

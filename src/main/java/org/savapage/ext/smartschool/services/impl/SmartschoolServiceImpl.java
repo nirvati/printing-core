@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,7 @@ import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.IppQueue;
+import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.services.ServiceContext;
@@ -213,6 +215,38 @@ public final class SmartschoolServiceImpl extends AbstractService
     }
 
     @Override
+    public boolean hasJobTicketProxyPrinter(
+            final Collection<SmartschoolConnection> connections) {
+
+        for (final SmartschoolConnection connection : connections) {
+
+            final SmartschoolAccount.Config config =
+                    connection.getAccountConfig();
+
+            if (config != null && config.isJobTicketProxyPrinter()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean hasHoldReleaseProxyPrinter(
+            final Collection<SmartschoolConnection> connections) {
+
+        for (final SmartschoolConnection connection : connections) {
+
+            final SmartschoolAccount.Config config =
+                    connection.getAccountConfig();
+
+            if (config != null && config.isHoldReleaseProxyPrinter()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public Map<String, SmartschoolConnection> createConnections()
             throws SOAPException {
 
@@ -233,7 +267,33 @@ public final class SmartschoolServiceImpl extends AbstractService
             connectionMap.put(connectionTmp.getAccountName(), connectionTmp);
         }
 
-        //
+        this.checkProxyPrinters(cm, connectionMap);
+
+        return connectionMap;
+    }
+
+    /**
+     * Throws an exception if one of the proxy printers defined in the
+     * connections is NOT a valid choice.
+     * <p>
+     * NOTE: When no CUPS info for proxy printers is available no checks are
+     * performed.
+     * </p>
+     *
+     * @param cm
+     *            The {@link ConfigManager}.
+     * @param connectionMap
+     *            The connections.
+     * @throws IllegalStateException
+     *             When one of the printers is not a valid choice.
+     */
+    private void checkProxyPrinters(final ConfigManager cm,
+            final Map<String, SmartschoolConnection> connectionMap) {
+
+        if (!proxyPrintService().isPrinterCacheAvailable()) {
+            return;
+        }
+
         final PaperCutService paperCutService =
                 ServiceContext.getServiceFactory().getPaperCutService();
 
@@ -256,6 +316,19 @@ public final class SmartschoolServiceImpl extends AbstractService
                 if (StringUtils.isBlank(printerName)) {
                     continue;
                 }
+
+                if (!config.isHoldReleaseProxyPrinter()) {
+                    final Printer printer =
+                            printerDAO().findByName(printerName);
+                    config.setHoldReleaseProxyPrinter(
+                            printerService().isHoldReleasePrinter(printer));
+                }
+
+                if (!config.isJobTicketProxyPrinter()
+                        && printerService().isJobTicketPrinter(printerName)) {
+                    config.setJobTicketProxyPrinter(true);
+                }
+
                 final boolean isPaperCutPrinter =
                         paperCutService.isExtPaperCutPrint(printerName);
 
@@ -288,7 +361,6 @@ public final class SmartschoolServiceImpl extends AbstractService
 
             throw new IllegalStateException(errorPrinters.toString());
         }
-        return connectionMap;
     }
 
     @Override

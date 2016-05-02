@@ -65,6 +65,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserGroupService;
 import org.savapage.core.services.UserService;
 import org.savapage.core.util.Messages;
+import org.savapage.ext.papercut.services.PaperCutService;
 
 /**
  *
@@ -107,6 +108,10 @@ public abstract class AbstractService {
 
     protected static OutboxService outboxService() {
         return ServiceContext.getServiceFactory().getOutboxService();
+    }
+
+    protected static PaperCutService paperCutService() {
+        return ServiceContext.getServiceFactory().getPaperCutService();
     }
 
     protected static ProxyPrintService proxyPrintService() {

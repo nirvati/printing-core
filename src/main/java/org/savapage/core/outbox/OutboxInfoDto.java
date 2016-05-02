@@ -29,12 +29,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dto.AbstractDto;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -211,7 +211,7 @@ public final class OutboxInfoDto extends AbstractDto {
          */
         private Long userId;
 
-        private ExternalSupplierEnum externalSupplier;
+        private ExternalSupplierInfo externalSupplierInfo;
 
         private String file;
         private String printerName;
@@ -251,12 +251,13 @@ public final class OutboxInfoDto extends AbstractDto {
             this.userId = userId;
         }
 
-        public ExternalSupplierEnum getExternalSupplier() {
-            return externalSupplier;
+        public ExternalSupplierInfo getExternalSupplierInfo() {
+            return externalSupplierInfo;
         }
 
-        public void setExternalSupplier(ExternalSupplierEnum externalSupplier) {
-            this.externalSupplier = externalSupplier;
+        public void setExternalSupplierInfo(
+                ExternalSupplierInfo externalSupplierInfo) {
+            this.externalSupplierInfo = externalSupplierInfo;
         }
 
         public String getFile() {

@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.mail.MessagingException;
 import javax.xml.soap.SOAPException;
@@ -52,6 +53,7 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.job.AbstractJob;
 import org.savapage.core.job.SpJobScheduler;
+import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.AppLogHelper;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
@@ -60,8 +62,10 @@ import org.savapage.ext.ExtSupplierException;
 import org.savapage.ext.papercut.PaperCutConnectException;
 import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutServerProxy;
+import org.savapage.ext.smartschool.SmartschoolConnection;
 import org.savapage.ext.smartschool.SmartschoolPrintMonitor;
 import org.savapage.ext.smartschool.SmartschoolPrinter;
+import org.savapage.ext.smartschool.services.SmartschoolService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,8 +79,8 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SmartschoolPrintMonitorJob.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SmartschoolPrintMonitorJob.class);
 
     /**
      * Number of seconds after restarting this job after an exception occurs.
@@ -113,8 +117,8 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
      * @author Datraverse B.V.
      *
      */
-    private static class SmartSchoolCircuitOperation implements
-            CircuitBreakerOperation {
+    private static class SmartSchoolCircuitOperation
+            implements CircuitBreakerOperation {
 
         /**
          * .
@@ -143,10 +147,28 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
             PaperCutDbProxy papercutDbProxy = null;
 
             try {
-
                 final ConfigManager cm = ConfigManager.instance();
 
-                if (cm.isConfigValue(Key.SMARTSCHOOL_PAPERCUT_ENABLE)) {
+                final SmartschoolService smartschoolService = ServiceContext
+                        .getServiceFactory().getSmartSchoolService();
+
+                final Map<String, SmartschoolConnection> connectionMap =
+                        smartschoolService.createConnections();
+
+                /*
+                 * Can be printed to a (PaperCut managed) proxy printer via a
+                 * SavaPage Job Ticket?
+                 */
+                final boolean isPrintByJobTicket = smartschoolService
+                        .hasJobTicketProxyPrinter(connectionMap.values());
+
+                /*
+                 * Is non-secure print to a PaperCut managed printer?
+                 */
+                final boolean isPaperCutPrintNonSecure =
+                        cm.isConfigValue(Key.SMARTSCHOOL_PAPERCUT_ENABLE);
+
+                if (isPaperCutPrintNonSecure || isPrintByJobTicket) {
 
                     papercutServerProxy = PaperCutServerProxy.create(cm, true);
                     papercutDbProxy = PaperCutDbProxy.create(cm, true);
@@ -156,15 +178,14 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
                 }
 
                 //
-                final int sessionDurationSecs =
-                        cm.getConfigInt(IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_SESSION_DURATION_SECS);
+                final int sessionDurationSecs = cm.getConfigInt(
+                        IConfigProp.Key.SMARTSCHOOL_SOAP_PRINT_POLL_SESSION_DURATION_SECS);
 
-                /*
-                 *
-                 */
-                this.printMonitor =
-                        new SmartschoolPrintMonitor(papercutServerProxy,
-                                papercutDbProxy, this.parentJob.isSimulation);
+                //
+                this.printMonitor = new SmartschoolPrintMonitor(connectionMap,
+                        isPaperCutPrintNonSecure, isPrintByJobTicket,
+                        papercutServerProxy, papercutDbProxy,
+                        this.parentJob.isSimulation);
 
                 this.printMonitor.connect();
 
@@ -252,9 +273,8 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
 
     @Override
     protected void onInit(final JobExecutionContext ctx) {
-        this.breaker =
-                ConfigManager
-                        .getCircuitBreaker(CircuitBreakerEnum.SMARTSCHOOL_CONNECTION);
+        this.breaker = ConfigManager
+                .getCircuitBreaker(CircuitBreakerEnum.SMARTSCHOOL_CONNECTION);
     }
 
     @Override
@@ -277,8 +297,8 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
     protected void onExecute(final JobExecutionContext ctx)
             throws JobExecutionException {
 
-        SmartschoolPrinter.setBlocked(MemberCard.instance()
-                .isMembershipDesirable());
+        SmartschoolPrinter
+                .setBlocked(MemberCard.instance().isMembershipDesirable());
 
         if (SmartschoolPrinter.isBlocked() || !SmartschoolPrinter.isOnline()) {
             return;
@@ -305,9 +325,8 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
 
         } catch (Exception t) {
 
-            this.millisUntilNextInvocation =
-                    RESTART_SECS_AFTER_EXCEPTION
-                            * DateUtil.DURATION_MSEC_SECOND;
+            this.millisUntilNextInvocation = RESTART_SECS_AFTER_EXCEPTION
+                    * DateUtil.DURATION_MSEC_SECOND;
 
             AdminPublisher.instance().publish(PubTopicEnum.SMARTSCHOOL,
                     PubLevelEnum.ERROR,
@@ -321,11 +340,10 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
     protected void onExit(final JobExecutionContext ctx) {
 
         if (SmartschoolPrinter.isBlocked()) {
-            final String error =
-                    AppLogHelper.logError(this.getClass(),
-                            "SmartschoolMonitor.membership.error",
-                            CommunityDictEnum.SAVAPAGE.getWord(),
-                            CommunityDictEnum.MEMBERSHIP.getWord());
+            final String error = AppLogHelper.logError(this.getClass(),
+                    "SmartschoolMonitor.membership.error",
+                    CommunityDictEnum.SAVAPAGE.getWord(),
+                    CommunityDictEnum.MEMBERSHIP.getWord());
             AdminPublisher.instance().publish(PubTopicEnum.SMARTSCHOOL,
                     PubLevelEnum.ERROR, error);
 
@@ -383,12 +401,9 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
                             (double) this.millisUntilNextInvocation
                                     / DateUtil.DURATION_MSEC_SECOND;
 
-                    pubMsg =
-                            localizeSysMsg(
-                                    msgKeyRestart,
-                                    BigDecimalUtil.localize(
-                                            BigDecimal.valueOf(seconds),
-                                            Locale.getDefault(), false));
+                    pubMsg = localizeSysMsg(msgKeyRestart,
+                            BigDecimalUtil.localize(BigDecimal.valueOf(seconds),
+                                    Locale.getDefault(), false));
                 } catch (ParseException e) {
                     throw new SpException(e.getMessage());
                 }

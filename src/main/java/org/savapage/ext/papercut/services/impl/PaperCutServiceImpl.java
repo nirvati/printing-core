@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,10 +30,19 @@ import java.util.Set;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
+import org.savapage.core.dao.enums.PrintModeEnum;
+import org.savapage.core.print.proxy.AbstractProxyPrintReq;
+import org.savapage.core.print.proxy.ProxyPrintJobChunk;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.services.impl.AbstractService;
 import org.savapage.ext.papercut.DelegatedPrintPeriodDto;
 import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutException;
+import org.savapage.ext.papercut.PaperCutHelper;
 import org.savapage.ext.papercut.PaperCutPrinterUsageLog;
 import org.savapage.ext.papercut.PaperCutServerProxy;
 import org.savapage.ext.papercut.PaperCutUser;
@@ -43,17 +52,87 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public final class PaperCutServiceImpl extends AbstractService implements
-        PaperCutService {
+public final class PaperCutServiceImpl extends AbstractService
+        implements PaperCutService {
 
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(PaperCutServiceImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PaperCutServiceImpl.class);
+
+    @Override
+    public boolean isExtPaperCutPrint(final String printerName) {
+        /*
+         * Is printer managed by PaperCut?
+         */
+        final ThirdPartyEnum thirdParty =
+                proxyPrintService().getExtPrinterManager(printerName);
+
+        if (thirdParty == null || thirdParty != ThirdPartyEnum.PAPERCUT) {
+            return false;
+        }
+
+        /*
+         * PaperCut Print Monitoring enabled?
+         */
+        if (!ConfigManager.isPaperCutPrintEnabled()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public void prepareForExtPaperCut(final AbstractProxyPrintReq printReq,
+            final ExternalSupplierInfo supplierInfo) {
+
+        printReq.setPrintMode(PrintModeEnum.PUSH);
+
+        final ExternalSupplierInfo supplierInfoWrk;
+
+        if (supplierInfo == null) {
+            supplierInfoWrk = new ExternalSupplierInfo();
+            supplierInfoWrk.setSupplier(ExternalSupplierEnum.SAVAPAGE);
+        } else {
+            supplierInfoWrk = supplierInfo;
+        }
+
+        supplierInfoWrk
+                .setStatus(ExternalSupplierStatusEnum.PENDING_EXT.toString());
+
+        printReq.setSupplierInfo(supplierInfoWrk);
+
+        /*
+         * Encode job name into PaperCut format.
+         */
+        if (supplierInfoWrk.getAccount() == null) {
+            printReq.setJobName(PaperCutHelper
+                    .encodeProxyPrintJobName(printReq.getJobName()));
+        } else {
+            printReq.setJobName(PaperCutHelper.encodeProxyPrintJobName(
+                    supplierInfoWrk.getAccount(), supplierInfoWrk.getId(),
+                    printReq.getJobName()));
+        }
+
+        /*
+         * Set all cost to zero, since cost is taken from PaperCut after
+         * PaperCut reports that jobs are printed successfully.
+         */
+        printReq.setCost(BigDecimal.ZERO);
+
+        if (printReq.getJobChunkInfo() != null) {
+            for (final ProxyPrintJobChunk chunk : printReq.getJobChunkInfo()
+                    .getChunks()) {
+                chunk.setCost(BigDecimal.ZERO);
+                chunk.setJobName(PaperCutHelper
+                        .encodeProxyPrintJobName(chunk.getJobName()));
+            }
+        }
+    }
 
     @Override
     public PaperCutUser findUser(final PaperCutServerProxy papercut,
@@ -74,9 +153,8 @@ public final class PaperCutServiceImpl extends AbstractService implements
 
         } catch (PaperCutException e) {
 
-            final String composedSharedAccountName =
-                    papercut.composeSharedAccountName(topAccountName,
-                            subAccountName);
+            final String composedSharedAccountName = papercut
+                    .composeSharedAccountName(topAccountName, subAccountName);
 
             if (LOGGER.isInfoEnabled()) {
 
@@ -90,8 +168,7 @@ public final class PaperCutServiceImpl extends AbstractService implements
             papercut.adjustSharedAccountAccountBalance(topAccountName,
                     subAccountName, adjustment.doubleValue(), comment);
 
-            AdminPublisher.instance().publish(
-                    PubTopicEnum.PAPERCUT,
+            AdminPublisher.instance().publish(PubTopicEnum.PAPERCUT,
                     PubLevelEnum.CLEAR,
                     String.format("PaperCut account '%s' created.",
                             composedSharedAccountName));
@@ -116,9 +193,9 @@ public final class PaperCutServiceImpl extends AbstractService implements
     }
 
     @Override
-    public void createDelegatorPrintCostCsv(
-            final PaperCutDbProxy papercut, final File file,
-            final DelegatedPrintPeriodDto dto) throws IOException {
+    public void createDelegatorPrintCostCsv(final PaperCutDbProxy papercut,
+            final File file, final DelegatedPrintPeriodDto dto)
+            throws IOException {
         papercut.createDelegatorPrintCostCsv(file, dto);
     }
 

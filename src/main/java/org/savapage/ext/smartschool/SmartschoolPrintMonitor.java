@@ -53,6 +53,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
+import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
@@ -82,6 +83,7 @@ import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
 import org.savapage.core.print.server.DocContentPrintException;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.DocLogService;
+import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
@@ -92,6 +94,7 @@ import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
+import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.users.IUserSource;
 import org.savapage.core.util.AppLogHelper;
 import org.savapage.core.util.DateUtil;
@@ -160,6 +163,10 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             "Afdrukopdracht staat klaar in PaperCut.";
 
     private static final String MSG_COMMENT_PRINT_PENDING_SAVAPAGE =
+            "Afdrukopdracht staat klaar in "
+                    + CommunityDictEnum.SAVAPAGE.getWord() + ".";
+
+    private static final String MSG_COMMENT_PRINT_SAFEPAGES =
             "Document is niet afgedrukt, maar is zichtbaar in "
                     + CommunityDictEnum.SAVAPAGE.getWord()
                     + ". Afdrukinformatie is niet bewaard. "
@@ -261,6 +268,12 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     /**
      * .
      */
+    private static final JobTicketService JOBTICKET_SERVICE =
+            ServiceContext.getServiceFactory().getJobTicketService();
+
+    /**
+     * .
+     */
     private static final OutboxService OUTBOX_SERVICE =
             ServiceContext.getServiceFactory().getOutboxService();
 
@@ -316,6 +329,24 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private final PaperCutDbProxy papercutDbProxy;
 
     /**
+     * {@code true} if Smartschool job is non-secure printed to a PaperCut
+     * managed printer.
+     */
+    private final boolean isPaperCutPrintNonSecure;
+
+    /**
+     * {@code true} if one of the proxy printers is a Job Ticket printer, by
+     * which the Smartschool job can be released to a (PaperCut managed) proxy
+     * printer.
+     */
+    private final boolean isPrintByJobTicket;
+
+    /**
+     * {@code true} if one of the proxy printers is a Hold/Release printer.
+     */
+    private final boolean isPrintByHoldRelease;
+
+    /**
      * Number of seconds of a monitoring heartbeat.
      */
     private final int monitorHeartbeatSecs;
@@ -327,29 +358,49 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     private final int monitorHeartbeatsForJobticket;
 
     /**
-     *
-     * @param paperCutProxy
+     * @param connections
+     *            A map of {@link SmartschoolConnection} object by Smartschool
+     *            account key.
+     * @param papercutPrintNonSecure
+     *            {@code true} if non-secure print to a PaperCut managed
+     *            printer.
+     * @param printByJobTicket
+     *            {@code true} if one of the proxy printers is a Job Ticket
+     *            printer, by which the Smartschool job can be released to a
+     *            (PaperCut managed) proxy printer.
+     * @param papercutProxy
      *            The {@link PaperCutServerProxy}.
-     * @param paperDbProxy
+     * @param papercutProxyDb
      *            The {@link PaperCutDbProxy}.
-     * @param simulationMode
+     * @param simulation
      *            {@code true} when in simulation mode
      * @throws SOAPException
      *             When the {@link SOAPConnection} cannot be established.
      */
-    public SmartschoolPrintMonitor(final PaperCutServerProxy paperCutProxy,
-            final PaperCutDbProxy papercutDbProxy, final boolean simulationMode)
+    public SmartschoolPrintMonitor(
+            final Map<String, SmartschoolConnection> connections,
+            final boolean papercutPrintNonSecure,
+            final boolean printByJobTicket,
+            final PaperCutServerProxy papercutProxy,
+            final PaperCutDbProxy papercutProxyDb, final boolean simulation)
             throws SOAPException {
 
-        this.simulationMode = simulationMode;
+        this.simulationMode = simulation;
 
         this.isConnected = true;
 
-        this.connectionMap = SMARTSCHOOL_SERVICE.createConnections();
+        this.connectionMap = connections;
+
+        this.isPaperCutPrintNonSecure = papercutPrintNonSecure;
+
+        this.isPrintByJobTicket = printByJobTicket;
+
+        this.isPrintByHoldRelease = SMARTSCHOOL_SERVICE
+                .hasHoldReleaseProxyPrinter(connections.values());
 
         this.smartSchoolQueue = SMARTSCHOOL_SERVICE.getSmartSchoolQueue();
-        this.papercutServerProxy = paperCutProxy;
-        this.papercutDbProxy = papercutDbProxy;
+        this.papercutServerProxy = papercutProxy;
+        this.papercutDbProxy = papercutProxyDb;
 
         //
         final ConfigManager cm = ConfigManager.instance();
@@ -360,7 +411,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         //
         final IConfigProp.Key sessionHeartbeatSecsKey;
 
-        if (simulationMode) {
+        if (simulation) {
             sessionHeartbeatSecsKey =
                     IConfigProp.Key.SMARTSCHOOL_SIMULATION_SOAP_PRINT_POLL_HEARTBEATS;
         } else {
@@ -457,7 +508,9 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
     }
 
     /**
-     * @return {@code true} when PaperCut integration is active.
+     * @return {@code true} when Smartschool PaperCut integration is active
+     *         either directly through non-secure proxy printing, or indirectly
+     *         through Job Ticket release.
      */
     private boolean isIntegratedWithPaperCut() {
         return this.papercutServerProxy != null;
@@ -548,17 +601,14 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 final boolean isPaperCutEnabled = ConfigManager.instance()
                         .isConfigValue(Key.SMARTSCHOOL_PAPERCUT_ENABLE);
 
-                if (isPaperCutEnabled && this.papercutServerProxy == null) {
+                if (isPaperCutEnabled && !this.isPaperCutPrintNonSecure) {
                     break;
                 }
 
-                if (!isPaperCutEnabled && this.papercutServerProxy != null) {
+                if (!isPaperCutEnabled && this.isPaperCutPrintNonSecure) {
                     break;
                 }
 
-                /*
-                 *
-                 */
                 heartbeatPollCounter++;
 
                 if (heartbeatPollCounter < this.monitorHeartbeatsForJobticket) {
@@ -915,12 +965,22 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             ExtSupplierConnectException, SmartschoolException, SOAPException {
 
         /*
-         * Any progress on the PaperCut front?
+         * Any progress on the PaperCut Print front?
          */
-        if (monitor.isIntegratedWithPaperCut()) {
+        if (monitor.isPaperCutPrintNonSecure || monitor.isPrintByJobTicket) {
             monitorPaperCut(monitor);
         }
 
+        /*
+         * Any progress on the SavaPage HOLD jobs and Job Tickets?
+         */
+        if (monitor.isPrintByHoldRelease || monitor.isPrintByJobTicket) {
+            monitorSavaPage(monitor);
+        }
+
+        /*
+         * Any Smartschool Job Tickets waiting?
+         */
         for (final SmartschoolConnection connection : monitor.connectionMap
                 .values()) {
 
@@ -1080,6 +1140,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      * that were proxy printed to a PaperCut managed printer).
      *
      * @param smartschoolMonitor
+     *            The {@link SmartschoolPrintMonitor}.
      * @throws PaperCutException
      * @throws ExtSupplierException
      * @throws ExtSupplierConnectException
@@ -1095,6 +1156,141 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                         smartschoolMonitor.papercutDbProxy, smartschoolMonitor);
 
         papercutMonitor.process();
+    }
+
+    /**
+     * Monitors the print job status in SavaPage for
+     * {@link ExternalSupplierStatusEnum#PENDING_CANCEL} and
+     * {@link ExternalSupplierStatusEnum#PENDING_COMPLETE} Smartschool jobs (i.e
+     * jobs that were proxy printed to a SavaPage managed Hold/Release printer
+     * or Job Ticket).
+     *
+     * @param smartschoolMonitor
+     *            The {@link SmartschoolPrintMonitor}.
+     * @throws ExtSupplierConnectException
+     * @throws ExtSupplierException
+     */
+    private static void
+            monitorSavaPage(final SmartschoolPrintMonitor smartschoolMonitor)
+                    throws ExtSupplierException, ExtSupplierConnectException {
+
+        final DaoContext daoCtx = ServiceContext.getDaoContext();
+        final DocLogDao doclogDAO = daoCtx.getDocLogDao();
+
+        final DocLogDao.ListFilter filter = new DocLogDao.ListFilter();
+        filter.setExternalSupplier(ExternalSupplierEnum.SMARTSCHOOL);
+
+        //
+        filter.setExternalStatus(
+                ExternalSupplierStatusEnum.PENDING_CANCEL.toString());
+        final List<DocLog> listCancel = doclogDAO.getListChunk(filter);
+
+        //
+        filter.setExternalStatus(
+                ExternalSupplierStatusEnum.PENDING_COMPLETE.toString());
+        final List<DocLog> listComplete = doclogDAO.getListChunk(filter);
+
+        //
+        if (listCancel.isEmpty() && listComplete.isEmpty()) {
+            return;
+        }
+
+        ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
+
+        try {
+            if (!listCancel.isEmpty()) {
+                monitorSavaPageUpdate(smartschoolMonitor, daoCtx, doclogDAO,
+                        listCancel, ExternalSupplierStatusEnum.CANCELLED);
+            }
+            if (!listComplete.isEmpty()) {
+                monitorSavaPageUpdate(smartschoolMonitor, daoCtx, doclogDAO,
+                        listComplete, ExternalSupplierStatusEnum.COMPLETED);
+            }
+
+        } finally {
+            daoCtx.rollback();
+            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+        }
+    }
+
+    /**
+     *
+     * @param smartschoolMonitor
+     * @param daoCtx
+     * @param doclogDAO
+     * @param list
+     * @param statusNew
+     * @throws ExtSupplierException
+     * @throws ExtSupplierConnectException
+     */
+    private static void monitorSavaPageUpdate(
+            final SmartschoolPrintMonitor smartschoolMonitor,
+            final DaoContext daoCtx, final DocLogDao doclogDAO,
+            final List<DocLog> list, final ExternalSupplierStatusEnum statusNew)
+            throws ExtSupplierException, ExtSupplierConnectException {
+
+        for (final DocLog docLog : list) {
+
+            final String warning;
+
+            /*
+             * Smartschool update.
+             */
+            if (docLog.getExternalData() == null) {
+
+                warning = "Smartschool external data not specified.";
+
+            } else {
+
+                final SmartschoolPrintInData data = SmartschoolPrintInData
+                        .createFromData(docLog.getExternalData());
+
+                if (data.getAccount() == null) {
+                    warning = "Smartschool account not specified.";
+                } else {
+
+                    final SmartschoolConnection connection =
+                            smartschoolMonitor.connectionMap
+                                    .get(data.getAccount());
+
+                    if (connection == null) {
+
+                        warning = String.format(
+                                "Smartschool account [%s] not configured.",
+                                data.getAccount());
+
+                    } else {
+                        warning = null;
+                        smartschoolMonitor.onPrintJobProcessed(null, connection,
+                                docLog.getExternalId(), docLog.getTitle(),
+                                statusNew, false, null);
+                    }
+                }
+            }
+
+            /*
+             * Be forgiving when data missing, just log the warning.
+             */
+            if (warning != null) {
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(String.format(
+                            "DocLog from External Supplier [%s] "
+                                    + "ID [%s] Status [%s] Title [%s]: %s",
+                            docLog.getExternalSupplier(),
+                            docLog.getExternalId(), docLog.getExternalStatus(),
+                            docLog.getTitle(), warning));
+                }
+                publishAdminMsg(PubLevelEnum.WARN, warning);
+            }
+
+            /*
+             * SavaPage update.
+             */
+            daoCtx.beginTransaction();
+            docLog.setExternalStatus(statusNew.toString());
+            doclogDAO.update(docLog);
+            daoCtx.commit();
+        }
     }
 
     /**
@@ -1216,6 +1412,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         // Do NOT the status.
 
         //
+        supplierInfo.setAccount(supplierData.getAccount());
         supplierInfo.setId(document.getId());
 
         supplierInfo.setData(supplierData);
@@ -1283,6 +1480,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      * <p>
      * NOTE: this method has its own database transaction scope.
      * </p>
+     *
      * @param userId
      *            The unique user id.
      * @param lazyInsertUser
@@ -2023,9 +2221,6 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             ProxyPrintException, IppConnectException, SmartschoolException,
             SOAPException, DocContentToPdfException {
 
-        final boolean isPaperCutManagedPrinter =
-                monitor.isIntegratedWithPaperCut();
-
         /*
          * Proxy print if printer name is configured.
          */
@@ -2040,10 +2235,12 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
         if (isProxyPrint) {
 
-            if (isPaperCutManagedPrinter) {
+            if (monitor.isPaperCutPrintNonSecure) {
                 smartschoolPrintStatus = SmartschoolPrintStatusEnum.PENDING_EXT;
             } else {
-                smartschoolPrintStatus = SmartschoolPrintStatusEnum.COMPLETED;
+                // TODO: When NOT printing to a HOLD or JOBTICKET printer
+                // PENDING is not right.
+                smartschoolPrintStatus = SmartschoolPrintStatusEnum.PENDING;
             }
 
         } else {
@@ -2069,10 +2266,13 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
         if (isProxyPrint) {
 
-            if (isPaperCutManagedPrinter) {
+            if (monitor.isIntegratedWithPaperCut()) {
 
-                feedbackComment = MSG_COMMENT_PRINT_PENDING_PAPERCUT;
-
+                if (monitor.isPaperCutPrintNonSecure) {
+                    feedbackComment = MSG_COMMENT_PRINT_PENDING_PAPERCUT;
+                } else {
+                    feedbackComment = MSG_COMMENT_PRINT_PENDING_SAVAPAGE;
+                }
                 /*
                  * Set the AccountTrx's in the DocLog source (DocIn/PrintIn).
                  *
@@ -2104,7 +2304,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
              * Since the DocContentPrintInInfo is re-used for DocOut/PrintOut
              * target logging, the AccountTrxInfoSet is RESET.
              */
-            if (isPaperCutManagedPrinter) {
+            if (monitor.isIntegratedWithPaperCut()) {
                 /*
                  * Use an EMPTY AccountTrxInfoSet, so NO (user or shared)
                  * account transactions are created at the DocOut/PrintOut
@@ -2126,7 +2326,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
         } else {
 
-            feedbackComment = MSG_COMMENT_PRINT_PENDING_SAVAPAGE;
+            feedbackComment = MSG_COMMENT_PRINT_SAFEPAGES;
 
             /*
              * Ignore the AccountTrxInfoSet.
@@ -2387,12 +2587,18 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
         final Printer printer = printerDao.findByName(printerNameSelected);
 
+        final boolean isJobTicketPrinter =
+                PRINTER_SERVICE.isJobTicketPrinter(printer.getPrinterName());
+
         /*
          * Determine Print Mode.
          */
         final PrintModeEnum printMode;
 
-        if (PRINTER_SERVICE.isHoldReleasePrinter(printer)) {
+        if (monitor.isPaperCutPrintNonSecure) {
+            printMode = PrintModeEnum.AUTO;
+        } else if (isJobTicketPrinter
+                || PRINTER_SERVICE.isHoldReleasePrinter(printer)) {
             printMode = PrintModeEnum.HOLD;
         } else {
             printMode = PrintModeEnum.AUTO;
@@ -2463,17 +2669,22 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 monitor.isIntegratedWithPaperCut());
 
         /*
-         * At this point we do NOT need the external data anymore.
+         * At this point we do NOT need the external data anymore and can
+         * nullify it.
+         *
+         * Actually, we MUST nullify it, since persisted as JSON, the
+         * ExternalSupplierData (which is an interface) can only be read with
+         * extra effort (which we do not choose to make).
          *
          * Since we don't want to use it in the print request (i.e. store it in
          * the database) we nullify the external data.
          *
-         * We still hold the document id and status though to persist in the
-         * database.
+         * We still hold the Smartschool account, document id and status though
+         * to persist in the database.
          */
         externalSupplierInfo.setData(null);
 
-        if (monitor.isIntegratedWithPaperCut()) {
+        if (monitor.isPaperCutPrintNonSecure) {
             printReq.setJobName(encodeProxyPrintJobName(
                     monitor.processingConnection, document));
         } else {
@@ -2535,9 +2746,15 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
                 printReq.setCost(cost);
 
-                OUTBOX_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                        downloadedFile, printInInfo);
-
+                if (isJobTicketPrinter) {
+                    // TODO: 4 hours?
+                    JOBTICKET_SERVICE.proxyPrintPdf(lockedUser, printReq,
+                            downloadedFile, printInInfo, DateUtils.addHours(
+                                    ServiceContext.getTransactionDate(), 4));
+                } else {
+                    OUTBOX_SERVICE.proxyPrintPdf(lockedUser, printReq,
+                            downloadedFile, printInInfo);
+                }
                 /*
                  * This will refresh the User Web App with new status
                  * information.
@@ -2635,59 +2852,38 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         return !this.isShutdownRequested;
     }
 
-    @Override
-    public void onPaperCutPrintJobProcessed(final DocLog docLog,
-            final PaperCutPrinterUsageLog papercutLog,
+    /**
+     * Notifies that a print job has been processed and changes were committed
+     * to the SavaPage database.
+     *
+     * @param printJobManager
+     *            The {@link ThirdPartyEnum} that managed the print job. If
+     *            {@code null}, SavaPage managed the print.
+     * @param connection
+     *            The {@link SmartschoolConnection}.
+     * @param documentId
+     *            The Smartschool document ID.
+     * @param documentName
+     *            The Smartschool document name.
+     * @param printStatus
+     *            The {@link ExternalSupplierStatusEnum}.
+     * @param isDocumentTooLarge
+     *            {@code true} when document was too large to be processed.
+     * @param deniedReason
+     *            The reason the job was denied (can be {@code null}.
+     * @throws ExtSupplierException
+     *             Error returned by external supplier.
+     * @throws ExtSupplierConnectException
+     *             Error connecting to external supplier.
+     */
+    private void onPrintJobProcessed(final ThirdPartyEnum printJobManager,
+            final SmartschoolConnection connection, final String documentId,
+            final String documentName,
             final ExternalSupplierStatusEnum printStatus,
-            final boolean isDocumentTooLarge)
+            final boolean isDocumentTooLarge, final String deniedReason)
             throws ExtSupplierException, ExtSupplierConnectException {
 
-        final SmartschoolPrintStatusEnum smartschoolPrintStatus =
-                SmartschoolPrintStatusEnum.fromGenericStatus(printStatus);
-
         try {
-            /*
-             * Get Smartschool account name from the document name.
-             */
-            final StringBuilder msg = new StringBuilder();
-
-            final String account =
-                    PaperCutHelper.getAccountFromEncodedProxyPrintJobName(
-                            papercutLog.getDocumentName());
-
-            if (account == null) {
-
-                msg.append("No account found in DocLog supplier data for [")
-                        .append(papercutLog.getDocumentName()).append("].");
-
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn(msg.toString());
-                }
-
-                if (SmartschoolLogger.getLogger().isDebugEnabled()) {
-                    SmartschoolLogger.logDebug(msg.toString());
-                }
-                return;
-            }
-
-            final SmartschoolConnection connection = connectionMap.get(account);
-
-            if (connection == null) {
-
-                msg.append("No connection found for account [").append(account)
-                        .append("] of [").append(papercutLog.getDocumentName())
-                        .append("].");
-
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn(msg.toString());
-                }
-
-                if (SmartschoolLogger.getLogger().isDebugEnabled()) {
-                    SmartschoolLogger.logDebug(msg.toString());
-                }
-                return;
-            }
-
             final String comment;
 
             switch (printStatus) {
@@ -2713,9 +2909,9 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 break;
             }
 
-            //
-            reportDocumentStatus(connection, docLog.getExternalId(),
-                    smartschoolPrintStatus, comment, this.simulationMode);
+            reportDocumentStatus(connection, documentId,
+                    SmartschoolPrintStatusEnum.fromGenericStatus(printStatus),
+                    comment, this.simulationMode);
 
         } catch (SmartschoolException e) {
             throw new ExtSupplierException(e.getMessage(), e);
@@ -2729,16 +2925,19 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         final PubLevelEnum pubLevel;
         final StringBuilder msg = new StringBuilder();
 
-        msg.append("PaperCut print of Smartschool document [")
-                .append(papercutLog.getDocumentName()).append("] ")
-                .append(printStatus.toString());
+        if (printJobManager != null) {
+            msg.append(printJobManager.getUiText()).append(" ");
+        }
+        msg.append("Print of Smartschool document [").append(documentName)
+                .append("] ").append(printStatus.toString());
 
         if (printStatus == ExternalSupplierStatusEnum.COMPLETED) {
             pubLevel = PubLevelEnum.CLEAR;
         } else {
             pubLevel = PubLevelEnum.WARN;
-            msg.append(" because \"").append(papercutLog.getDeniedReason())
-                    .append("\"");
+            if (StringUtils.isNotBlank(deniedReason)) {
+                msg.append(" because \"").append(deniedReason).append("\"");
+            }
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -2746,6 +2945,63 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         }
 
         publishAdminMsg(pubLevel, msg.toString());
+    }
+
+    @Override
+    public void onPaperCutPrintJobProcessed(final DocLog docLog,
+            final PaperCutPrinterUsageLog papercutLog,
+            final ExternalSupplierStatusEnum printStatus,
+            final boolean isDocumentTooLarge)
+            throws ExtSupplierException, ExtSupplierConnectException {
+
+        /*
+         * Get Smartschool account name from the document name.
+         */
+        final StringBuilder msg = new StringBuilder();
+
+        final String account =
+                PaperCutHelper.getAccountFromEncodedProxyPrintJobName(
+                        papercutLog.getDocumentName());
+
+        /*
+         * Be forgiving when account is not found or unknown.
+         */
+        if (account == null) {
+
+            msg.append("No account found in DocLog supplier data for [")
+                    .append(papercutLog.getDocumentName()).append("].");
+
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn(msg.toString());
+            }
+
+            if (SmartschoolLogger.getLogger().isDebugEnabled()) {
+                SmartschoolLogger.logDebug(msg.toString());
+            }
+            return;
+        }
+
+        final SmartschoolConnection connection = connectionMap.get(account);
+
+        if (connection == null) {
+
+            msg.append("No connection found for account [").append(account)
+                    .append("] of [").append(papercutLog.getDocumentName())
+                    .append("].");
+
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn(msg.toString());
+            }
+
+            if (SmartschoolLogger.getLogger().isDebugEnabled()) {
+                SmartschoolLogger.logDebug(msg.toString());
+            }
+            return;
+        }
+
+        onPrintJobProcessed(ThirdPartyEnum.PAPERCUT, connection,
+                docLog.getExternalId(), papercutLog.getDocumentName(),
+                printStatus, isDocumentTooLarge, papercutLog.getDeniedReason());
     }
 
     @Override

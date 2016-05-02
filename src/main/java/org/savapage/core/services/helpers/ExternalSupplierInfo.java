@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,19 +23,34 @@ package org.savapage.core.services.helpers;
 
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
- * Information about from an {@link ExternalSupplierEnum} with
+ * Information from an {@link ExternalSupplierEnum} with
  * {@link ExternalSupplierData} .
  *
  * @author Rijk Ravestein
  *
  */
+@JsonInclude(Include.NON_NULL)
 public final class ExternalSupplierInfo {
 
     private ExternalSupplierEnum supplier;
 
+    /**
+     * The account used to access data from the external supplier.
+     */
+    private String account;
+
+    /**
+     * The ID of this info.
+     */
     private String id;
 
+    /**
+     * The status of this info.
+     */
     private String status;
 
     /**
@@ -48,20 +63,28 @@ public final class ExternalSupplierInfo {
      * @return
      */
 
+    public ExternalSupplierEnum getSupplier() {
+        return supplier;
+    }
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
+    }
+
+    public void setSupplier(ExternalSupplierEnum supplier) {
+        this.supplier = supplier;
+    }
+
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public ExternalSupplierEnum getSupplier() {
-        return supplier;
-    }
-
-    public void setSupplier(ExternalSupplierEnum supplier) {
-        this.supplier = supplier;
     }
 
     public String getStatus() {

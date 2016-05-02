@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class DocLogDaoImpl extends GenericDaoImpl<DocLog> implements
@@ -230,6 +230,14 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog> implements
             where.append(" D.externalStatus = :externalStatus");
         }
 
+        if (filter.getExternalId() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" D.externalId = :externalId");
+        }
+
         if (nWhere > 0) {
             jpql.append(" WHERE").append(where);
         }
@@ -261,6 +269,10 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog> implements
 
         if (filter.getExternalStatus() != null) {
             query.setParameter("externalStatus", filter.getExternalStatus());
+        }
+
+        if (filter.getExternalId() != null) {
+            query.setParameter("externalId", filter.getExternalId());
         }
 
         return query;

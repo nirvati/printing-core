@@ -126,6 +126,7 @@ import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.PrinterSnmpReader;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 import org.savapage.core.services.helpers.ProxyPrintInboxReqChunker;
+import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
 import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.snmp.SnmpClientSession;
 import org.savapage.core.snmp.SnmpConnectException;
@@ -521,8 +522,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         lazyInitPrinterCache();
 
         final String jobTicketPrinterName =
-                StringUtils.defaultString(ConfigManager.instance()
-                        .getConfigValue(Key.JOBTICKET_PROXY_PRINTER));
+                printerService().getJobTicketPrinterName();
 
         final boolean hasAccessToJobTicket;
 
@@ -1304,6 +1304,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
     }
 
+    @Override
+    public final boolean isPrinterCacheAvailable() {
+        return !this.isFirstTimeCupsContact.get();
+    }
+
     /**
      * Updates (or initializes) the printer cache with retrieved printer
      * information from CUPS.
@@ -1655,6 +1660,24 @@ public abstract class AbstractProxyPrintService extends AbstractService
         printReq.setAccountTrxInfoSet(
                 outboxService().createAccountTrxInfoSet(job));
 
+        //
+        final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
+
+        /*
+         * Monitor PaperCut Print Status when request is a Delegated Print and
+         * Printer is managed by PaperCut.
+         */
+        final boolean monitorPaperCutPrintStatus =
+                job.getAccountTransactions() != null
+                        && job.getAccountTransactions()
+                                .getTransactions() != null
+                        && paperCutService()
+                                .isExtPaperCutPrint(job.getPrinterName());
+
+        if (monitorPaperCutPrintStatus) {
+            paperCutService().prepareForExtPaperCut(printReq, supplierInfo);
+        }
+
         /*
          * Create the DocLog container.
          */
@@ -1668,8 +1691,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         //
         if (docLog.getExternalSupplier() == null
-                && job.getExternalSupplier() != null) {
-            docLog.setExternalSupplier(job.getExternalSupplier().toString());
+                && job.getExternalSupplierInfo() != null) {
+            docLog.setExternalSupplier(
+                    job.getExternalSupplierInfo().getSupplier().toString());
         }
 
         /*
@@ -1681,6 +1705,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
         proxyPrint(lockedUser, printReq, docLog, pdfFileToPrint);
 
         pdfFileToPrint.delete();
+
+        if (!monitorPaperCutPrintStatus) {
+            /*
+             * We know (assume) the job is completed, since we do not monitor
+             * PaperCut print status.
+             */
+            outboxService().onOutboxJobCompleted(job);
+        }
     }
 
     @Override
@@ -1695,7 +1727,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public final int proxyPrintOutbox(final Device reader,
+    public final ProxyPrintOutboxResult proxyPrintOutbox(final Device reader,
             final String cardNumber) throws ProxyPrintException {
 
         final Date perfStartTime = PerformanceLogger.startTime();
@@ -1703,7 +1735,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final User cardUser = getValidateUserOfCard(cardNumber);
 
         if (!outboxService().isOutboxPresent(cardUser.getUserId())) {
-            return 0;
+            return new ProxyPrintOutboxResult();
         }
 
         final Set<String> printerNames =
@@ -1717,8 +1749,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Get the outbox job candidates.
          */
-        final int nPagesTot;
-
         final List<OutboxJobDto> jobs =
                 outboxService().getOutboxJobs(lockedUser.getUserId(),
                         printerNames, ServiceContext.getTransactionDate());
@@ -1749,7 +1779,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 ServiceContext.getLocale(),
                 ServiceContext.getAppCurrencySymbol());
 
-        int nTotWlk = 0;
+        int totSheets = 0;
+        int totPages = 0;
 
         for (final OutboxJobDto job : jobs) {
 
@@ -1766,15 +1797,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 throw new SpException(e.getMessage());
             }
 
-            nTotWlk += job.getPages() * job.getCopies();
+            totSheets += job.getSheets() * job.getCopies();
+            totPages += job.getPages() * job.getCopies();
         }
-
-        nPagesTot = nTotWlk;
 
         PerformanceLogger.log(this.getClass(), "proxyPrintOutbox",
                 perfStartTime, cardUser.getUserId());
 
-        return nPagesTot;
+        return new ProxyPrintOutboxResult(jobs.size(), totSheets, totPages);
     }
 
     @Override

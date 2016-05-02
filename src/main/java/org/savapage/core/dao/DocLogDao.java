@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ import org.savapage.core.jpa.DocOut;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface DocLogDao extends GenericDao<DocLog> {
@@ -73,6 +73,7 @@ public interface DocLogDao extends GenericDao<DocLog> {
 
         private DocLogProtocolEnum protocol;
         private ExternalSupplierEnum externalSupplier;
+        private String externalId;
         private String externalStatus;
 
         public DocLogProtocolEnum getProtocol() {
@@ -91,6 +92,14 @@ public interface DocLogDao extends GenericDao<DocLog> {
             this.externalSupplier = externalSupplier;
         }
 
+        public String getExternalId() {
+            return externalId;
+        }
+
+        public void setExternalId(String externalId) {
+            this.externalId = externalId;
+        }
+
         public String getExternalStatus() {
             return externalStatus;
         }
@@ -98,7 +107,6 @@ public interface DocLogDao extends GenericDao<DocLog> {
         public void setExternalStatus(String externalStatus) {
             this.externalStatus = externalStatus;
         }
-
     }
 
     /**

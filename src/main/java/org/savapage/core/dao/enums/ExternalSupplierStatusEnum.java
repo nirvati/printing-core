@@ -23,15 +23,18 @@ package org.savapage.core.dao.enums;
 
 import java.util.Locale;
 
+import org.savapage.core.jpa.DocLog;
 import org.savapage.core.util.Messages;
 import org.savapage.ext.smartschool.SmartschoolPrintStatusEnum;
 
 /**
  * Generic status of (proxy) print request from External Supplier. Also see
  * {@link SmartschoolPrintStatusEnum}.
- * <p>
- * NOTE: Do NOT changes enum text since they are stored in the database.
- * </p>
+ * <ul>
+ * <li>Do NOT changes enum text since they are stored in the database.</li>
+ * <li>Enum key must fit the size of the
+ * {@link DocLog#setExternalStatus(String)} column.</li>
+ * </ul>
  *
  * @author Rijk Ravestein
  *
@@ -59,9 +62,31 @@ public enum ExternalSupplierStatusEnum {
     EXPIRED,
 
     /**
-     * Pending in SavaPage.
+     * Pending in SavaPage als Job Ticket or HOLD print.
      */
     PENDING,
+
+    /**
+     * The {@link #PENDING} status is cancelled by a User (Hold) or Job Ticket
+     * operator.
+     * <p>
+     * NOTE: This is an <i>intermediate</i> (technical) status, picked up by a
+     * monitor, communicated to the external supplier, and finalized to status
+     * {@link #CANCELLED}.
+     * </p>
+     */
+    PENDING_CANCEL,
+
+    /**
+     * The {@link #PENDING} status is changed by the release of a User (Hold)
+     * or Job Ticket.
+     * <p>
+     * NOTE: This is an <i>intermediate</i> (technical) status, picked up by a
+     * monitor, communicated to the external supplier, and finalized to status
+     * {@link #COMPLETED}.
+     * </p>
+     */
+    PENDING_COMPLETE,
 
     /**
      * Proxy Print request is pending in an external system like PaperCut.
@@ -74,8 +99,9 @@ public enum ExternalSupplierStatusEnum {
      * @return The localized text.
      */
     public String uiText(final Locale locale) {
-        return Messages.loadXmlResource(this.getClass(),
-                this.getClass().getSimpleName(), locale).getString(
-                this.toString());
+        return Messages
+                .loadXmlResource(this.getClass(),
+                        this.getClass().getSimpleName(), locale)
+                .getString(this.toString());
     }
 }

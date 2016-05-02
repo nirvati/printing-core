@@ -45,11 +45,17 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
+import org.savapage.core.dao.DaoContext;
+import org.savapage.core.dao.DocLogDao;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.jpa.Account;
+import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.LocaleInfo;
@@ -66,9 +72,11 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.JsonHelper;
+import org.savapage.ext.smartschool.SmartschoolPrintInData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -298,7 +306,7 @@ public final class OutboxServiceImpl extends AbstractService
     @Override
     public void proxyPrintInbox(final User lockedUser,
             final ProxyPrintInboxReq request)
-                    throws EcoPrintPdfTaskPendingException {
+            throws EcoPrintPdfTaskPendingException {
 
         new ProxyPrintInbox(this).print(lockedUser, request);
     }
@@ -330,7 +338,7 @@ public final class OutboxServiceImpl extends AbstractService
         job.setUuidPageCount(uuidPageCount);
 
         if (request.getSupplierInfo() != null) {
-            job.setExternalSupplier(request.getSupplierInfo().getSupplier());
+            job.setExternalSupplierInfo(request.getSupplierInfo());
         }
 
         this.importToOutbox(request.getAccountTrxInfoSet(), job);
@@ -439,6 +447,11 @@ public final class OutboxServiceImpl extends AbstractService
         return getOutboxFile(userId,
                 String.format("%s.%s", java.util.UUID.randomUUID().toString(),
                         DocContent.FILENAME_EXT_PDF));
+    }
+
+    @Override
+    public int getOutboxJobCount(final String userId) {
+        return this.readOutboxInfo(userId).getJobCount();
     }
 
     @Override
@@ -619,8 +632,16 @@ public final class OutboxServiceImpl extends AbstractService
     }
 
     @Override
-    public int clearOutbox(final String userId) {
-        final int jobCount = this.readOutboxInfo(userId).getJobCount();
+    public int cancelOutboxJobs(final String userId) {
+
+        final OutboxInfoDto outboxInfo = this.readOutboxInfo(userId);
+
+        for (final Entry<String, OutboxJobDto> entry : outboxInfo.getJobs()
+                .entrySet()) {
+            this.onOutboxJobCanceled(entry.getValue());
+        }
+
+        final int jobCount = outboxInfo.getJobCount();
         final OutboxInfoDto dto = new OutboxInfoDto();
         this.pruneOutboxJobFiles(userId, dto.getJobs());
         storeOutboxInfo(userId, dto);
@@ -628,18 +649,19 @@ public final class OutboxServiceImpl extends AbstractService
     }
 
     @Override
-    public boolean removeOutboxJob(final String userId, final String fileName) {
+    public boolean cancelOutboxJob(final String userId, final String fileName) {
 
         final OutboxInfoDto outboxInfo = readOutboxInfo(userId);
+        final OutboxJobDto removedJob = outboxInfo.getJobs().remove(fileName);
 
-        final boolean removedJob =
-                outboxInfo.getJobs().remove(fileName) != null;
-
-        if (removedJob) {
-            this.storeOutboxInfo(userId, outboxInfo);
+        if (removedJob == null) {
+            return false;
         }
 
-        return removedJob;
+        this.onOutboxJobCanceled(removedJob);
+        this.storeOutboxInfo(userId, outboxInfo);
+
+        return true;
     }
 
     /**
@@ -868,6 +890,126 @@ public final class OutboxServiceImpl extends AbstractService
         }
 
         return outboxInfo;
+    }
+
+    @Override
+    public void onOutboxJobCanceled(final OutboxJobDto job) {
+        this.onRemoveOutboxJob(job, true);
+    }
+
+    @Override
+    public void onOutboxJobCompleted(final OutboxJobDto job) {
+        this.onRemoveOutboxJob(job, false);
+    }
+
+    /**
+     * Notifies removal of outbox job.
+     * <p>
+     * NOTE: When the outbox job was created from an
+     * {@link ExternalSupplierEnum} other than
+     * {@link ExternalSupplierEnum#SAVAPAGE} the print-in {@link DocLog} is
+     * updated with either {@link ExternalSupplierStatusEnum#PENDING_CANCEL} or
+     * {@link ExternalSupplierStatusEnum#PENDING_COMPLETE}.
+     * </p>
+     *
+     * @param job
+     *            The {@link OutboxJobDto}.
+     * @param isCanceled
+     *            {@code true} when removed due to cancellation.
+     */
+    private void onRemoveOutboxJob(final OutboxJobDto job,
+            final boolean isCanceled) {
+
+        final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
+        if (supplierInfo == null) {
+            return;
+        }
+
+        final ExternalSupplierEnum supplier = supplierInfo.getSupplier();
+        if (supplier == null) {
+            return;
+        }
+
+        if (supplier == ExternalSupplierEnum.SAVAPAGE) {
+            return;
+        }
+
+        if (supplier != ExternalSupplierEnum.SMARTSCHOOL) {
+            throw new SpException(String.format("%s.%s is not handled.",
+                    ExternalSupplierInfo.class.getSimpleName(),
+                    supplier.toString()));
+        }
+
+        final String supplierId = supplierInfo.getId();
+
+        final ExternalSupplierStatusEnum statusCurrent =
+                ExternalSupplierStatusEnum.PENDING;
+
+        final DocLogDao.ListFilter filter = new DocLogDao.ListFilter();
+        filter.setExternalSupplier(supplier);
+        filter.setExternalId(supplierId);
+        filter.setExternalStatus(statusCurrent.toString());
+
+        final List<DocLog> list = docLogDAO().getListChunk(filter);
+
+        /*
+         * Same document ID can be used by different Smartschool accounts: find
+         * the right one.
+         */
+        final String accountToFind = supplierInfo.getAccount();
+        Long docLogId = null;
+
+        for (final DocLog docLog : list) {
+            if (docLog.getExternalData() == null) {
+                continue;
+            }
+            final SmartschoolPrintInData data = SmartschoolPrintInData
+                    .createFromData(docLog.getExternalData());
+            if (data != null && data.getAccount().equals(accountToFind)) {
+                docLogId = docLog.getId();
+            }
+        }
+        /*
+         * Be forgiving if no DocLog found.
+         */
+        if (docLogId == null) {
+            LOGGER.error(String.format(
+                    "DocLog from External Supplier [%s] Account [%s] "
+                            + "ID [%s] Status [%s]: not found in %d objects.",
+                    supplier.toString(), supplierId, accountToFind,
+                    statusCurrent.toString(), list.size()));
+            return;
+        }
+
+        final ExternalSupplierStatusEnum statusNew;
+        if (isCanceled) {
+            statusNew = ExternalSupplierStatusEnum.PENDING_CANCEL;
+        } else {
+            statusNew = ExternalSupplierStatusEnum.PENDING_COMPLETE;
+        }
+
+        final DaoContext daoCtx = ServiceContext.getDaoContext();
+        final boolean adhocTransaction = !daoCtx.isTransactionActive();
+
+        final DocLog docLog = docLogDAO().findById(docLogId);
+
+        if (adhocTransaction) {
+            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
+            daoCtx.beginTransaction();
+        }
+        try {
+            docLog.setExternalStatus(statusNew.toString());
+            docLogDAO().update(docLog);
+            if (adhocTransaction) {
+                daoCtx.commit();
+            }
+
+        } finally {
+            if (adhocTransaction) {
+                daoCtx.rollback();
+                ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+            }
+        }
     }
 
 }

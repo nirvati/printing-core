@@ -510,25 +510,23 @@ public interface InboxService {
 
     /**
      * Prunes the print-in {@link InboxJobRange} instances in
-     * {@link InboxInfoDto} for jobs which are expired for Fast Proxy Printing.
+     * {@link InboxInfoDto} for for Fast Proxy Printing. When the user edited
+     * the inbox <i>all</i> jobs are pruned. When inbox is "vanilla" only
+     * <i>expired</i> jobs are pruned.
      * <p>
-     * The {@link InboxJob} instances are not pruned but, by not having
+     * NOTE: Since no user information is supplied, the pruned result is NOT
+     * persisted.
+     * </p>
+     * <ul>
+     * <li>The {@link InboxJob} instances are not pruned but, by not having
      * associated {@link InboxJobRange} instances, can become orphaned and
-     * themselves become candidates for pruning.
-     * </p>
-     * <p>
-     * NOTE: If the user previewed the inbox within the expiration window, the
+     * themselves become candidates for pruning.</li>
+     * <li>If the user previewed the inbox within the expiration window, the
      * complete (edited) job info can be fast proxy printed as it is, i.e.
-     * nothing is pruned. See: {@link InboxInfoDto#getLastPreviewTime()}.
-     * </p>
-     * <p>
-     * IMPORTANT: when nothing is pruned the {@link InboxInfoDto} <b>input</b>
-     * object is returned.
-     * </p>
-     * <p>
-     * NOTE: no user information is supplied, and therefore the pruned result is
-     * NOT persisted.
-     * </p>
+     * nothing is pruned. See: {@link InboxInfoDto#getLastPreviewTime()}.</li>
+     * <li>IMPORTANT: when nothing is pruned the {@link InboxInfoDto}
+     * <b>input</b> object is returned.</li>
+     * </ul>
      *
      * @since 0.9.6
      *
@@ -549,12 +547,9 @@ public interface InboxService {
     /**
      * Prunes the print-in jobs which are expired for Fast Proxy Printing.
      * <p>
-     * If the user previewed the inbox within the expiration window, the
-     * complete (edited) job info can be fast proxy printed as it is, i.e.
-     * nothing is pruned. See: {@link InboxInfoDto#getLastPreviewTime()}.
-     * </p>
-     * <p>
-     * NOTE: a pruned result is persisted.
+     * NOTE: This method is identical to
+     * {@link #pruneForFastProxyPrint(String, Date, int)}, however the pruned
+     * result <b>is persisted</b>.
      * </p>
      *
      * @param userId

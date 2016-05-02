@@ -284,9 +284,8 @@ public interface PrinterService {
      * @throws IOException
      *             When JSON errors.
      */
-    AbstractJsonRpcMethodResponse addAccessControl(
-            AccessControlScopeEnum scope, String printerName, String groupName)
-            throws IOException;
+    AbstractJsonRpcMethodResponse addAccessControl(AccessControlScopeEnum scope,
+            String printerName, String groupName) throws IOException;
 
     /**
      * Removes {@link UserGroup} access control from a {@link Printer}.
@@ -350,5 +349,20 @@ public interface PrinterService {
      * @return {@code true} if printer supports hold/release printing.
      */
     boolean isHoldReleasePrinter(final Printer printer);
+
+    /**
+     *
+     * @param printerName
+     *            The CUPS printer name.
+     * @return {@code true} When printer name represents job ticket printer.
+     */
+    boolean isJobTicketPrinter(String printerName);
+
+    /**
+     * Gets the CUPS printer name of the Job Ticket Printer.
+     *
+     * @return Empty string when not configured.
+     */
+    String getJobTicketPrinterName();
 
 }
