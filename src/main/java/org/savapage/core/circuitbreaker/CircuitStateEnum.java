@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,9 +21,13 @@
  */
 package org.savapage.core.circuitbreaker;
 
+import java.util.Locale;
+
+import org.savapage.core.util.Messages;
+
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum CircuitStateEnum {
@@ -46,6 +50,18 @@ public enum CircuitStateEnum {
     /**
      * Damaged due to fatal error. This is an end-state.
      */
-    DAMAGED
+    DAMAGED;
+
+    /**
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public String uiText(final Locale locale) {
+        return Messages
+                .loadXmlResource(this.getClass(),
+                        this.getClass().getSimpleName(), locale)
+                .getString(this.toString());
+    }
 
 }
