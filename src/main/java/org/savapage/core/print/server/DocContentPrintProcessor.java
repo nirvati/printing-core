@@ -747,7 +747,7 @@ public class DocContentPrintProcessor {
          *
          */
         final String homeDir = ConfigManager.getUserHomeDir(this.uidTrusted);
-        final String tempDir = ConfigManager.getUserTempDir(this.uidTrusted);
+        final String tempDirApp = ConfigManager.getAppTmpDir();
 
         /*
          * Lazy create user home directory.
@@ -773,19 +773,21 @@ public class DocContentPrintProcessor {
             /*
              * The basename of the resulting file WITHOUT extension.
              */
-            final String jobFileBase = this.uuidJob.toString() + ".";
+            final String jobFileBase =
+                    String.format("%s%c", this.uuidJob.toString(), '.');
 
             /*
              * The basename of the resulting PDF file.
              */
-            final String jobFileBasePdf =
-                    jobFileBase + DocContent.FILENAME_EXT_PDF;
+            final String jobFileBasePdf = String.format("%s%s", jobFileBase,
+                    DocContent.FILENAME_EXT_PDF);
 
             /*
              * File to receive the input stream content.
              */
-            final File contentFile = new File(tempDir + "/" + jobFileBase
-                    + DocContent.getFileExtension(inputType));
+            final File contentFile = new File(String.format("%s%c%s%s",
+                    tempDirApp, File.separatorChar, jobFileBase,
+                    DocContent.getFileExtension(inputType)));
 
             /*
              * Create the file.

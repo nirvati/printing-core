@@ -60,8 +60,8 @@ public final class OutputProducer {
     /**
      * .
      */
-    private static final InboxService INBOX_SERVICE = ServiceContext
-            .getServiceFactory().getInboxService();
+    private static final InboxService INBOX_SERVICE =
+            ServiceContext.getServiceFactory().getInboxService();
 
     /**
      *
@@ -71,11 +71,11 @@ public final class OutputProducer {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(OutputProducer.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(OutputProducer.class);
 
-    private static final DocLogService DOCLOG_SERVICE = ServiceContext
-            .getServiceFactory().getDocLogService();
+    private static final DocLogService DOCLOG_SERVICE =
+            ServiceContext.getServiceFactory().getDocLogService();
 
     /**
      *
@@ -157,21 +157,16 @@ public final class OutputProducer {
             rotate2Apply = ret[2].toString();
         }
 
-        final String tmpdir = ConfigManager.getUserTempDir(user);
-
-        String homedir = null;
+        final String homedir;
 
         if (isLetterheadPublic) {
-
             homedir = ConfigManager.getLetterheadDir();
-
+        } else if (isLetterhead) {
+            homedir =
+                    String.format("%s%c%s", ConfigManager.getUserHomeDir(user),
+                            File.separatorChar, USER_LETTERHEADS_DIR_NAME);
         } else {
-
             homedir = ConfigManager.getUserHomeDir(user);
-
-            if (isLetterhead) {
-                homedir += "/" + USER_LETTERHEADS_DIR_NAME;
-            }
         }
 
         /*
@@ -205,26 +200,10 @@ public final class OutputProducer {
 
             srcFileBuilder.append(homedir).append("/").append(job);
 
+        } else if (InboxServiceImpl.isPdfJobFilename(job)) {
+            srcFileBuilder.append(homedir).append("/").append(job);
         } else {
-
-            if (InboxServiceImpl.isPdfJobFilename(job)) {
-
-                srcFileBuilder.append(homedir).append("/").append(job);
-
-            } else if (InboxServiceImpl.isPsJobFilename(job)) {
-                /*
-                 * Reconstruct the corresponding pdf file name (this file SHOULD
-                 * exist).
-                 */
-                srcFileBuilder
-                        .append(tmpdir)
-                        .append("/")
-                        .append(job.replaceFirst("\\."
-                                + DocContent.FILENAME_EXT_PS, "."
-                                + DocContent.FILENAME_EXT_PDF));
-            } else {
-                throw new SpException("unknown job type");
-            }
+            throw new SpException("unknown job type");
         }
 
         /*
@@ -241,11 +220,10 @@ public final class OutputProducer {
             imgWidth = ImageUrl.BROWSER_PAGE_WIDTH;
         }
 
-        final String command =
-                pdf2PngCommand.createCommand(srcFile, imgFile,
-                        Integer.parseInt(page), rotate2Apply,
-                        Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN,
-                        Integer.valueOf(imgWidth));
+        final String command = pdf2PngCommand.createCommand(srcFile, imgFile,
+                Integer.parseInt(page), rotate2Apply,
+                Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN,
+                Integer.valueOf(imgWidth));
 
         LOGGER.trace(command);
 
@@ -255,8 +233,8 @@ public final class OutputProducer {
             if (exec.executeCommand() != 0) {
                 LOGGER.error(command);
                 LOGGER.error(exec.getStandardErrorFromCommand().toString());
-                throw new SpException("image [" + imgFileBuilder
-                        + "] could not be created.");
+                throw new SpException(
+                        "image [" + imgFileBuilder + "] could not be created.");
             }
         } catch (Exception e) {
             throw new SpException(e);
@@ -286,9 +264,8 @@ public final class OutputProducer {
          */
         long time = System.currentTimeMillis();
 
-        String imgFile =
-                ConfigManager.getAppTmpDir() + "/" + user + "_" + job + "_"
-                        + page + "_" + time;
+        String imgFile = ConfigManager.getAppTmpDir() + "/" + user + "_" + job
+                + "_" + page + "_" + time;
 
         if (sessionId != null && !sessionId.isEmpty()) {
             imgFile += "_" + sessionId;
@@ -304,13 +281,9 @@ public final class OutputProducer {
         // -size 410x594 -gravity center -pointsize 40
         // -size 1190x1683 -gravity center -pointsize 60
         // TODO: adapt the size
-        String command =
-                "convert -flatten -background "
-                        + bg
-                        + " -fill "
-                        + fill
-                        + " -size 410x594 -gravity center -pointsize 40 label:\""
-                        + label + "\" \"" + imgFile + "\"";
+        String command = "convert -flatten -background " + bg + " -fill " + fill
+                + " -size 410x594 -gravity center -pointsize 40 label:\""
+                + label + "\" \"" + imgFile + "\"";
 
         LOGGER.trace(command);
 
@@ -319,8 +292,8 @@ public final class OutputProducer {
             if (exec.executeCommand() != 0) {
                 LOGGER.error(command);
                 LOGGER.error(exec.getStandardErrorFromCommand().toString());
-                throw new SpException("image [" + imgFile
-                        + "] could not be created.");
+                throw new SpException(
+                        "image [" + imgFile + "] could not be created.");
             }
         } catch (Exception e) {
             throw new SpException(e);
@@ -337,8 +310,8 @@ public final class OutputProducer {
     public void releasePdf(final File pdf) {
         if (pdf.delete()) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("deleted temp file [" + pdf.getAbsolutePath()
-                        + "]");
+                LOGGER.trace(
+                        "deleted temp file [" + pdf.getAbsolutePath() + "]");
             }
         } else {
             LOGGER.error("delete of temp file [" + pdf.getAbsolutePath()
@@ -396,10 +369,9 @@ public final class OutputProducer {
             throws LetterheadNotFoundException, PostScriptDrmException,
             EcoPrintPdfTaskPendingException {
 
-        final StringBuilder pdfFile =
-                new StringBuilder().append(directory).append("/letterhead-")
-                        .append(System.currentTimeMillis()).append(".")
-                        .append(DocContent.FILENAME_EXT_PDF);
+        final StringBuilder pdfFile = new StringBuilder().append(directory)
+                .append("/letterhead-").append(System.currentTimeMillis())
+                .append(".").append(DocContent.FILENAME_EXT_PDF);
 
         final PdfCreateRequest pdfRequest = new PdfCreateRequest();
 
@@ -482,9 +454,9 @@ public final class OutputProducer {
      */
     public File generatePdfForExport(final User user, final String pdfFile,
             final String documentPageRangeFilter, final boolean removeGraphics,
-            final boolean ecoPdf, final DocLog docLog) throws IOException,
-            LetterheadNotFoundException, PostScriptDrmException,
-            EcoPrintPdfTaskPendingException {
+            final boolean ecoPdf, final DocLog docLog)
+            throws IOException, LetterheadNotFoundException,
+            PostScriptDrmException, EcoPrintPdfTaskPendingException {
 
         final LinkedHashMap<String, Integer> uuidPageCount =
                 new LinkedHashMap<>();
@@ -495,9 +467,8 @@ public final class OutputProducer {
         InboxInfoDto inboxInfo = INBOX_SERVICE.getInboxInfo(user.getUserId());
 
         if (StringUtils.isNotBlank(documentPageRangeFilter)) {
-            inboxInfo =
-                    INBOX_SERVICE.filterInboxInfoPages(inboxInfo,
-                            documentPageRangeFilter);
+            inboxInfo = INBOX_SERVICE.filterInboxInfoPages(inboxInfo,
+                    documentPageRangeFilter);
         }
 
         final PdfCreateRequest pdfRequest = new PdfCreateRequest();

@@ -140,7 +140,7 @@ public final class InboxServiceImpl implements InboxService {
 
     @Override
     public boolean doesHomeDirExist(final String userId) {
-        return new File(ConfigManager.getUserTempDir(userId)).exists();
+        return new File(ConfigManager.getUserHomeDir(userId)).exists();
     }
 
     @Override
@@ -207,30 +207,12 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public String getPdfFromPsFileName(final String user, final String filePs,
-            final boolean isLetterhead) {
-
-        final String tmpdir = ConfigManager.getUserTempDir(user);
-
-        if (FilenameUtils.getExtension(filePs)
-                .equals(DocContent.FILENAME_EXT_PS)) {
-            if (isLetterhead) {
-                throw new SpException("letterheads are NOT supported yet");
-            }
-            return tmpdir + "/" + FilenameUtils.getBaseName(filePs) + "."
-                    + DocContent.FILENAME_EXT_PDF;
-        }
-        throw new SpException("file [" + filePs + "] does not have extension ["
-                + DocContent.FILENAME_EXT_PS + "]");
-    }
-
-    @Override
     public int getNumberOfPagesInPdfFile(final String filePathPdf) {
         return AbstractPdfCreator.pageCountInPdfFile(filePathPdf);
     }
 
     @Override
-    public final InboxInfoDto getInboxInfo(final String userName) {
+    public InboxInfoDto getInboxInfo(final String userName) {
 
         final DocLogDao doclogDao =
                 ServiceContext.getDaoContext().getDocLogDao();
@@ -1880,8 +1862,6 @@ public final class InboxServiceImpl implements InboxService {
     public InboxInfoDto pruneJobs(final String homedir, final String user,
             final InboxInfoDto jobs) {
 
-        final String tmpdir = ConfigManager.getUserTempDir(user);
-
         final InboxInfoDto pruned = new InboxInfoDto();
 
         // ----------------------------------------------
@@ -1919,21 +1899,17 @@ public final class InboxServiceImpl implements InboxService {
         for (int iNew = 0, i = 0; i < jobsPresent.length; i++) {
 
             if (jobsPresent[i]) {
+
                 iJobConvert.put(i, iNew);
                 prunedJobs.add(jobs.getJobs().get(i)); // copy
                 iNew++;
-            } else {
-                String filePath =
-                        homedir + "/" + jobs.getJobs().get(i).getFile();
-                files2Unlink.add(filePath);
 
-                if (FilenameUtils.getExtension(filePath)
-                        .equals(DocContent.FILENAME_EXT_PS)) {
-                    filePath =
-                            tmpdir + "/" + FilenameUtils.getBaseName(filePath)
-                                    + "." + DocContent.FILENAME_EXT_PDF;
-                    files2Unlink.add(filePath);
-                }
+            } else {
+
+                final String filePath = String.format("%s%c%s", homedir,
+                        File.separatorChar, jobs.getJobs().get(i).getFile());
+
+                files2Unlink.add(filePath);
             }
         }
         // ---------------------------------------------------------

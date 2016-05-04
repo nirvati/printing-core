@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -88,7 +88,7 @@ import com.itextpdf.text.pdf.parser.PdfContentStreamProcessor;
 /**
  * PDF Creator using the iText AGPL version.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ITextPdfCreator extends AbstractPdfCreator {
@@ -98,8 +98,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ITextPdfCreator.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ITextPdfCreator.class);
 
     private String targetPdfCopyFilePath;
     private Document targetDocument;
@@ -153,20 +153,17 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         final Rectangle pageSize;
 
-        final String papersize =
-                ConfigManager.instance().getConfigValue(
-                        Key.SYS_DEFAULT_PAPER_SIZE);
+        final String papersize = ConfigManager.instance()
+                .getConfigValue(Key.SYS_DEFAULT_PAPER_SIZE);
 
         if (papersize.equals(IConfigProp.PAPERSIZE_V_SYSTEM)) {
 
-            float[] size =
-                    MediaSize.getMediaSizeForName(
-                            MediaUtils.getHostDefaultMediaSize()).getSize(
-                            Size2DSyntax.INCH);
+            float[] size = MediaSize
+                    .getMediaSizeForName(MediaUtils.getHostDefaultMediaSize())
+                    .getSize(Size2DSyntax.INCH);
 
-            pageSize =
-                    new Rectangle(size[0] * ITEXT_POINTS_PER_INCH, size[1]
-                            * ITEXT_POINTS_PER_INCH);
+            pageSize = new Rectangle(size[0] * ITEXT_POINTS_PER_INCH,
+                    size[1] * ITEXT_POINTS_PER_INCH);
 
         } else if (papersize.equals(IConfigProp.PAPERSIZE_V_LETTER)) {
             pageSize = PageSize.LETTER;
@@ -530,8 +527,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      * @throws DocumentException
      */
     protected void onProcessJobPagesEco(final int nPageFrom, final int nPageTo,
-            final boolean removeGraphics) throws IOException,
-            InterruptedException, DocumentException {
+            final boolean removeGraphics)
+            throws IOException, InterruptedException, DocumentException {
 
         final Pdf2ImgCommandExt pdf2ImgCmd = new Pdf2PngPopplerCmd();
 
@@ -543,8 +540,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         final EcoImageFilter filter = new EcoImageFilterSquare(ecoParms);
 
         final File imageFile =
-                new File(String.format("%s/%s.png", this.tmpdir, UUID
-                        .randomUUID().toString()));
+                new File(String.format("%s%c_eco_%s.png", this.appTmpDir,
+                        File.separatorChar, UUID.randomUUID().toString()));
 
         try {
 
@@ -555,8 +552,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                  */
                 final boolean rotatePdfPage;
 
-                if (StringUtils.defaultString(this.jobRotationWlk, "0").equals(
-                        "0")) {
+                if (StringUtils.defaultString(this.jobRotationWlk, "0")
+                        .equals("0")) {
                     rotatePdfPage = false;
                 } else {
                     final int rotate = Integer.valueOf(this.jobRotationWlk);
@@ -595,14 +592,13 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 if (exec.executeCommand() != 0) {
                     LOGGER.error(command);
                     LOGGER.error(exec.getStandardErrorFromCommand().toString());
-                    throw new SpException("image ["
-                            + imageFile.getAbsolutePath()
-                            + "] could not be created.");
+                    throw new SpException(
+                            "image [" + imageFile.getAbsolutePath()
+                                    + "] could not be created.");
                 }
 
-                final com.itextpdf.text.Image image =
-                        com.itextpdf.text.Image.getInstance(
-                                filter.filter(imageFile), Color.WHITE);
+                final com.itextpdf.text.Image image = com.itextpdf.text.Image
+                        .getInstance(filter.filter(imageFile), Color.WHITE);
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace(String.format("Width x Height = %f x %f",
@@ -677,18 +673,18 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 final PdfImportedPage importedPage;
 
                 if (isPageContentsPresent(this.readerWlk, i)) {
-                    importedPage =
-                            this.targetPdfCopy.getImportedPage(this.readerWlk,
-                                    i);
+                    importedPage = this.targetPdfCopy
+                            .getImportedPage(this.readerWlk, i);
                 } else {
                     /*
                      * Replace page without /Contents with our own blank
                      * content. See Mantis #614.
                      */
                     importedPage =
-                            this.targetPdfCopy.getImportedPage(this
-                                    .getBlankPageReader(this.targetPdfCopy
-                                            .getPageSize()), 1);
+                            this.targetPdfCopy.getImportedPage(
+                                    this.getBlankPageReader(
+                                            this.targetPdfCopy.getPageSize()),
+                                    1);
 
                     if (LOGGER.isInfoEnabled()) {
                         LOGGER.info(String.format(
@@ -1029,9 +1025,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                      * Create a PdfTemplate from the nth page of the letterhead
                      * (PdfImportedPage is derived from PdfTemplate).
                      */
-                    letterheadPage =
-                            this.targetStamper.getImportedPage(
-                                    this.letterheadReader, nLetterheadPage);
+                    letterheadPage = this.targetStamper.getImportedPage(
+                            this.letterheadReader, nLetterheadPage);
                 }
 
                 /*
@@ -1051,11 +1046,11 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 float sY = sX;
 
                 float tX =
-                        (float) ((virtualPageWidth - lhPageSize.getWidth() * sX) / 2.0);
+                        (float) ((virtualPageWidth - lhPageSize.getWidth() * sX)
+                                / 2.0);
 
-                float tY =
-                        (float) ((virtualPageHeight - lhPageSize.getHeight()
-                                * sY) / 2.0);
+                float tY = (float) ((virtualPageHeight
+                        - lhPageSize.getHeight() * sY) / 2.0);
 
                 /*
                  * Add letterhead page as a layer ...
@@ -1167,7 +1162,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                     float cos = (float) Math.cos(angle);
 
                     contentByte.addTemplate(letterheadPage,
-                    //
+                            //
                             sX * cos,
                             //
                             sY * sin,
@@ -1192,7 +1187,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                     // f : tY (translate, moves f pixels in y-direction)
                     // ----------------------------------------------------
                     contentByte.addTemplate(letterheadPage,
-                    //
+                            //
                             sX,
                             //
                             0,
@@ -1214,24 +1209,23 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      *
      * Creates a one-pixel white image.
      * <p>
-     * See <a
-     * href="http://www.javamex.com/tutorials/graphics/bufferedimage.shtml">this
-     * tutorial</a<.
+     * See
+     * <a href="http://www.javamex.com/tutorials/graphics/bufferedimage.shtml">
+     * this tutorial</a<.
      * </p>
      *
      * @throws IOException
      * @throws BadElementException
      */
-    private static Image createOnePixel() throws BadElementException,
-            IOException {
+    private static Image createOnePixel()
+            throws BadElementException, IOException {
 
         final BufferedImage img =
                 new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
         img.setRGB(0, 0, Color.WHITE.getRGB());
 
-        final java.awt.Image awtImg =
-                java.awt.Toolkit.getDefaultToolkit().createImage(
-                        img.getSource());
+        final java.awt.Image awtImg = java.awt.Toolkit.getDefaultToolkit()
+                .createImage(img.getSource());
 
         return com.itextpdf.text.Image.getInstance(awtImg, null);
     }
@@ -1242,8 +1236,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      * @throws DocumentException
      * @throws IOException
      */
-    private void minifyPdfImages() throws PdfException, DocumentException,
-            IOException {
+    private void minifyPdfImages()
+            throws PdfException, DocumentException, IOException {
 
         final PdfReader pdf = this.readerWlk;
         final int n = pdf.getNumberOfPages();
@@ -1257,13 +1251,11 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
             final PdfDictionary pg = pdf.getPageN(j + 1);
 
-            final PdfDictionary res =
-                    (PdfDictionary) PdfReader.getPdfObject(pg
-                            .get(PdfName.RESOURCES));
+            final PdfDictionary res = (PdfDictionary) PdfReader
+                    .getPdfObject(pg.get(PdfName.RESOURCES));
 
-            final PdfDictionary xobj =
-                    (PdfDictionary) PdfReader.getPdfObject(res
-                            .get(PdfName.XOBJECT));
+            final PdfDictionary xobj = (PdfDictionary) PdfReader
+                    .getPdfObject(res.get(PdfName.XOBJECT));
 
             if (xobj == null) {
                 continue;
@@ -1281,9 +1273,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
                     if (tg != null) {
 
-                        final PdfName type =
-                                (PdfName) PdfReader.getPdfObject(tg
-                                        .get(PdfName.SUBTYPE));
+                        final PdfName type = (PdfName) PdfReader
+                                .getPdfObject(tg.get(PdfName.SUBTYPE));
 
                         if (PdfName.IMAGE.equals(type)) {
 
@@ -1341,8 +1332,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             } catch (ExceptionConverter e) {
                 // TODO
                 if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn(String.format("%s [%s]", e.getClass()
-                            .getSimpleName(), e.getMessage()));
+                    LOGGER.warn(String.format("%s [%s]",
+                            e.getClass().getSimpleName(), e.getMessage()));
                 }
             }
 

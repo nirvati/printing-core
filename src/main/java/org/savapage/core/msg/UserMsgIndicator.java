@@ -66,8 +66,8 @@ public final class UserMsgIndicator {
     /**
     *
     */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(UserMsgIndicator.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(UserMsgIndicator.class);
 
     /**
      * Message to be delivered to User Web App.
@@ -261,8 +261,8 @@ public final class UserMsgIndicator {
      *            The file to check.
      * @return {@code true} if the offered file is the indicator file
      */
-    public static boolean
-            isMsgIndicatorFile(final String user, final File file) {
+    public static boolean isMsgIndicatorFile(final String user,
+            final File file) {
         return file.equals(indicatorFile(user));
     }
 
@@ -274,8 +274,9 @@ public final class UserMsgIndicator {
      * @return The full path of the file store.
      */
     private static File indicatorFile(final String userId) {
-        return new File(String.format("%s%s%s",
-                ConfigManager.getUserHomeDir(userId), "/", FILE_BASENAME));
+        return new File(
+                String.format("%s%c%s", ConfigManager.getUserHomeDir(userId),
+                        File.separatorChar, FILE_BASENAME));
     }
 
     /**
@@ -286,9 +287,9 @@ public final class UserMsgIndicator {
      * @return The full path of the file store.
      */
     private static File indicatorFileTemp(final String userId) {
-        return new File(String.format("%s%s%s.%s", ConfigManager
-                .getUserTempDir(userId), "/", FILE_BASENAME, UUID.randomUUID()
-                .toString()));
+        return new File(String.format("%s%c%s_%s.%s",
+                ConfigManager.getAppTmpDir(), File.separatorChar, userId,
+                FILE_BASENAME, UUID.randomUUID().toString()));
     }
 
     /**
@@ -313,7 +314,8 @@ public final class UserMsgIndicator {
      * @param userId
      * @return The {@link UserMsgIndicator}.
      */
-    public static UserMsgIndicator read(final String userId) throws IOException {
+    public static UserMsgIndicator read(final String userId)
+            throws IOException {
         return new UserMsgIndicator(userId);
     }
 
@@ -400,9 +402,9 @@ public final class UserMsgIndicator {
             fos = null;
 
             java.nio.file.Files.move(
-                    FileSystems.getDefault().getPath(
-                            fileTemp.getCanonicalPath()), FileSystems
-                            .getDefault()
+                    FileSystems.getDefault()
+                            .getPath(fileTemp.getCanonicalPath()),
+                    FileSystems.getDefault()
                             .getPath(fileTarget.getCanonicalPath()),
                     StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
@@ -454,9 +456,9 @@ public final class UserMsgIndicator {
 
         if (singleTime) {
 
-            jpql.append(" AND ("
-                    + " (D.createdDate = :lastDate AND PI.printed = false)"
-                    + " OR (PO.cupsCompletedTime = :lastSeconds))");
+            jpql.append(
+                    " AND (" + " (D.createdDate = :lastDate AND PI.printed = false)"
+                            + " OR (PO.cupsCompletedTime = :lastSeconds))");
         } else {
             jpql.append(" AND ( (D.createdDate > :prevDate"
                     + " AND D.createdDate <= :lastDate AND PI.printed = false)"
@@ -580,8 +582,8 @@ public final class UserMsgIndicator {
             msg = new JsonUserMsg();
             msg.setLevel(level);
             msg.setText(localizeMsg(msg.getClass(), locale, key,
-                    "#" + String.valueOf(printOut.getCupsJobId()), printOut
-                            .getPrinter().getDisplayName()));
+                    "#" + String.valueOf(printOut.getCupsJobId()),
+                    printOut.getPrinter().getDisplayName()));
         }
         return msg;
     }

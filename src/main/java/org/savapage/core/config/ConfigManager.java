@@ -66,6 +66,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -120,7 +121,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Datraverse B.V.
+ *
+ * @author Rijk Ravestein
+ *
  */
 public final class ConfigManager {
 
@@ -141,16 +144,18 @@ public final class ConfigManager {
     private RunMode runMode = null;
 
     /**
-     *
-     */
-    private static final String USER_TEMP_RELATIVE_PATH = ".temp";
-
-    /**
      * The relative path of the email outbox folder (relative to the
      * {@code server} directory).
      */
     private static final String SERVER_REL_PATH_EMAIL_OUTBOX =
             "data/email-outbox";
+
+    /**
+     * The relative path of the default SafePages folder (relative to the
+     * {@code server} directory).
+     */
+    private static final String SERVER_REL_PATH_SAFEPAGES_DEFAULT =
+            "data/internal/safepages";
 
     /**
      * The relative path of the print-jobtickets folder (relative to the
@@ -641,15 +646,36 @@ public final class ConfigManager {
     }
 
     /**
-     * Returns the location where the user's SafePages are stored. As a default
-     * this is a path relative to $(server.home)/data/internal/safepages
+     * Returns the location where the user's SafePages are stored.
+     * <p>
+     * The SafePages home of all users defaults to the
+     * {@link #SERVER_REL_PATH_SAFEPAGES_DEFAULT} relative to $(server.home).
+     * Each user's home is a subdirectory in this location with path
+     * {@code x/y/user} where {@code x} and {@code y} are the first characters
+     * of the md5sum of the {@code user}.
+     * </p>
      *
      * @param user
-     * @return
+     *            The user id.
+     * @return The directory with the user's SafePages.
      */
     public static String getUserHomeDir(final String user) {
-        return theServerProps.getProperty(SERVER_PROP_APP_DIR_SAFEPAGES,
-                getServerHome() + "/data/internal/safepages") + "/" + user;
+
+        String homeSafePages =
+                theServerProps.getProperty(SERVER_PROP_APP_DIR_SAFEPAGES);
+
+        if (homeSafePages == null) {
+            homeSafePages = String.format("%s%c%s", getServerHome(),
+                    File.separatorChar, SERVER_REL_PATH_SAFEPAGES_DEFAULT);
+        }
+
+        final String md5hex = DigestUtils.md5Hex(user).toLowerCase();
+
+        final String userHomeDir = String.format("%s%c%c%c%c%c%s",
+                homeSafePages, File.separatorChar, md5hex.charAt(0),
+                File.separatorChar, md5hex.charAt(1), File.separatorChar, user);
+
+        return userHomeDir;
     }
 
     /**
@@ -2163,22 +2189,14 @@ public final class ConfigManager {
     }
 
     /**
-     * Returns the value of System property {@code java.io.tmpdir} appended with
-     * {@code /savapage}.
+     * Get the global temp directory.
      *
-     * @return
+     * @return The value of System property {@code java.io.tmpdir} appended with
+     *         {@code /savapage}.
      */
     public static String getAppTmpDir() {
-        return System.getProperty("java.io.tmpdir") + "/savapage";
-    }
-
-    /**
-     * @param userid
-     *            The user id.
-     * @return the path name of the personal user temp directory.
-     */
-    public static String getUserTempDir(final String userid) {
-        return getUserHomeDir(userid) + "/" + USER_TEMP_RELATIVE_PATH;
+        return String.format("%s%c%s", System.getProperty("java.io.tmpdir"),
+                File.separatorChar, "savapage");
     }
 
     /**
@@ -2215,7 +2233,7 @@ public final class ConfigManager {
 
     /**
      *
-     * @return {@code true} when users are ysnchronized with an LDAP user
+     * @return {@code true} when users are synchronized with an LDAP user
      *         source.
      */
     public static boolean isLdapUserSync() {

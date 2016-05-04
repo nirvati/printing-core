@@ -112,20 +112,6 @@ public interface InboxService {
     InboxInfoDto touchLastPreviewTime(String userId);
 
     /**
-     * Gets the corresponding PDF file name from the PS file name.
-     *
-     * @param userId
-     *            The unique user id.
-     * @param filePs
-     *            The PS file name.
-     * @param isLetterhead
-     *            {@code true} if the file represents a letterhead.
-     * @return The path of the corresponding PDF file
-     */
-    String getPdfFromPsFileName(String userId, String filePs,
-            boolean isLetterhead);
-
-    /**
      * Gets the number of pages in a PDF file.
      *
      * @param filePathPdf

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,6 @@ import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.doc.DocContent;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.inbox.InboxInfoDto;
@@ -54,7 +53,7 @@ import org.savapage.core.services.impl.InboxServiceImpl;
 /**
  * Strategy for creating PDF document from inbox.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractPdfCreator {
@@ -62,21 +61,25 @@ public abstract class AbstractPdfCreator {
     /**
      * .
      */
-    private static final InboxService INBOX_SERVICE = ServiceContext
-            .getServiceFactory().getInboxService();
+    private static final InboxService INBOX_SERVICE =
+            ServiceContext.getServiceFactory().getInboxService();
     /**
      * .
      */
-    private static final UserService USER_SERVICE = ServiceContext
-            .getServiceFactory().getUserService();
+    private static final UserService USER_SERVICE =
+            ServiceContext.getServiceFactory().getUserService();
 
     /**
      * .
      */
     protected String user;
     protected String userhome;
-    protected String tmpdir;
     protected String pdfFile;
+
+    /**
+     * The global (application) temporary directory.
+     */
+    protected String appTmpDir;
 
     private boolean isForPrinting = false;
 
@@ -330,8 +333,7 @@ public abstract class AbstractPdfCreator {
         //
         this.user = createReq.getUserObj().getUserId();
         this.userhome = ConfigManager.getUserHomeDir(this.user);
-        this.tmpdir = ConfigManager.getUserTempDir(this.user);
-
+        this.appTmpDir = ConfigManager.getAppTmpDir();
         //
         final InboxInfoDto inboxInfo = createReq.getInboxInfo();
 
@@ -399,9 +401,8 @@ public abstract class AbstractPdfCreator {
          * INVARIANT: if Eco Print shadow PDFs are used they must be present.
          */
         if (this.useEcoPdfShadow) {
-            final int nTasksWaiting =
-                    INBOX_SERVICE.lazyStartEcoPrintPdfTasks(this.userhome,
-                            inboxInfo);
+            final int nTasksWaiting = INBOX_SERVICE
+                    .lazyStartEcoPrintPdfTasks(this.userhome, inboxInfo);
             if (nTasksWaiting > 0) {
                 throw new EcoPrintPdfTaskPendingException(String.format(
                         "%d EcoPrint conversion(s) waiting", nTasksWaiting));
@@ -455,24 +456,7 @@ public abstract class AbstractPdfCreator {
                 String jobPfdName = null;
 
                 if (InboxServiceImpl.isPdfJobFilename(file)) {
-
                     jobPfdName = filePath;
-
-                } else if (InboxServiceImpl.isPsJobFilename(file)) {
-
-                    final String regexReplace =
-                            "\\." + DocContent.FILENAME_EXT_PS;
-                    final String replacement =
-                            "." + DocContent.FILENAME_EXT_PDF;
-
-                    jobPfdName =
-                            String.format(
-                                    "%s/%s",
-                                    this.tmpdir,
-                                    FilenameUtils.getName(filePath)
-                                            .replaceFirst(regexReplace,
-                                                    replacement));
-
                 } else {
                     throw new SpException("unknown input job type");
                 }
@@ -489,14 +473,12 @@ public abstract class AbstractPdfCreator {
 
                 for (RangeAtom rangeAtom : ranges) {
 
-                    int nPageFrom =
-                            (rangeAtom.pageBegin == null ? 1
-                                    : rangeAtom.pageBegin);
+                    int nPageFrom = (rangeAtom.pageBegin == null ? 1
+                            : rangeAtom.pageBegin);
 
                     if (rangeAtom.pageEnd == null) {
-                        rangeAtom.pageEnd =
-                                inboxInfo.getJobs().get(page.getJob())
-                                        .getPages();
+                        rangeAtom.pageEnd = inboxInfo.getJobs()
+                                .get(page.getJob()).getPages();
                     }
 
                     int nPageTo = rangeAtom.pageEnd;
@@ -532,8 +514,8 @@ public abstract class AbstractPdfCreator {
                 docLog.setDocOut(docOut);
                 docOut.setDocLog(docLog);
 
-                docOut.setEcoPrint(Boolean.valueOf(this.useEcoPdfShadow
-                        || this.convertToEcoPdf));
+                docOut.setEcoPrint(Boolean
+                        .valueOf(this.useEcoPdfShadow || this.convertToEcoPdf));
                 docOut.setRemoveGraphics(Boolean.valueOf(this.removeGraphics));
             }
 
@@ -607,9 +589,8 @@ public abstract class AbstractPdfCreator {
                 // TODO: for later, if to be auto-generated
                 // ownerPass = java.util.UUID.randomUUID().toString();
 
-                boolean hasEncryption =
-                        !(ownerPass.isEmpty() && userPass.isEmpty() && encryption
-                                .isEmpty());
+                boolean hasEncryption = !(ownerPass.isEmpty()
+                        && userPass.isEmpty() && encryption.isEmpty());
 
                 if (docLog != null) {
                     docLog.setDrmRestricted(hasEncryption);
@@ -627,12 +608,12 @@ public abstract class AbstractPdfCreator {
                     out.setEncrypted(hasEncryption);
 
                     if (!ownerPass.isEmpty()) {
-                        out.setPasswordOwner(PdfProperties.PdfPasswords
-                                .encrypt(ownerPass));
+                        out.setPasswordOwner(
+                                PdfProperties.PdfPasswords.encrypt(ownerPass));
                     }
                     if (!userPass.isEmpty()) {
-                        out.setPasswordUser(PdfProperties.PdfPasswords
-                                .encrypt(userPass));
+                        out.setPasswordUser(
+                                PdfProperties.PdfPasswords.encrypt(userPass));
                     }
                 }
 

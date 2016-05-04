@@ -2563,14 +2563,16 @@ public final class UserServiceImpl extends AbstractService
 
     @Override
     public void lazyUserHomeDir(final String uid) throws IOException {
-        lazyCreateDir(new File(ConfigManager.getUserTempDir(uid)));
+        lazyCreateDir(new File(ConfigManager.getUserHomeDir(uid)));
         lazyCreateDir(outboxService().getUserOutboxDir(uid));
     }
 
     /**
      *
      * @param dir
+     *            The directory to lazy create.
      * @throws IOException
+     *             When file IO errors.
      */
     private void lazyCreateDir(final File dir) throws IOException {
 
