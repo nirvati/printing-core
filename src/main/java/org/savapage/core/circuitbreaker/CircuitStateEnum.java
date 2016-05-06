@@ -23,7 +23,7 @@ package org.savapage.core.circuitbreaker;
 
 import java.util.Locale;
 
-import org.savapage.core.util.Messages;
+import org.savapage.core.util.LocaleHelper;
 
 /**
  *
@@ -58,10 +58,7 @@ public enum CircuitStateEnum {
      * @return The localized text.
      */
     public String uiText(final Locale locale) {
-        return Messages
-                .loadXmlResource(this.getClass(),
-                        this.getClass().getSimpleName(), locale)
-                .getString(this.toString());
+        return LocaleHelper.uiText(this, locale);
     }
 
 }

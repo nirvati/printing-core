@@ -77,8 +77,8 @@ public final class LocaleHelper {
      * @return The localized date string.
      */
     public String getLongDate(final Date date) {
-        return DateFormat.getDateInstance(DateFormat.LONG, this.locale).format(
-                date);
+        return DateFormat.getDateInstance(DateFormat.LONG, this.locale)
+                .format(date);
     }
 
     /**
@@ -140,6 +140,25 @@ public final class LocaleHelper {
     public String getDecimal(final BigDecimal decimal, int fractionDigits)
             throws ParseException {
         return getCurrencyDecimal(decimal, fractionDigits, "");
+    }
+
+    /**
+     * Gets the localized user interface text of an {@link Enum} value.
+     *
+     * @param <E>
+     *            The Enum class.
+     * @param value
+     *            The Enum value.
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public static <E extends Enum<E>> String uiText(final Enum<E> value,
+            final Locale locale) {
+        return Messages
+                .loadXmlResource(value.getClass(),
+                        value.getClass().getSimpleName(), locale)
+                .getString(value.toString());
     }
 
 }

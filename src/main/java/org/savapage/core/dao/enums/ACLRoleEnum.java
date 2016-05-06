@@ -23,7 +23,7 @@ package org.savapage.core.dao.enums;
 
 import java.util.Locale;
 
-import org.savapage.core.util.Messages;
+import org.savapage.core.util.LocaleHelper;
 
 /**
  * Role Security Identity (SID). A <i>role</i> is a job function or title which
@@ -65,9 +65,7 @@ public enum ACLRoleEnum {
      * @return The localized text.
      */
     public String uiText(final Locale locale) {
-        return Messages.loadXmlResource(this.getClass(),
-                this.getClass().getSimpleName(), locale).getString(
-                this.toString());
+        return LocaleHelper.uiText(this, locale);
     }
 
 }

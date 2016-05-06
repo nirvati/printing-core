@@ -24,7 +24,7 @@ package org.savapage.core.dao.enums;
 import java.util.Locale;
 
 import org.savapage.core.jpa.DocLog;
-import org.savapage.core.util.Messages;
+import org.savapage.core.util.LocaleHelper;
 import org.savapage.ext.smartschool.SmartschoolPrintStatusEnum;
 
 /**
@@ -99,9 +99,6 @@ public enum ExternalSupplierStatusEnum {
      * @return The localized text.
      */
     public String uiText(final Locale locale) {
-        return Messages
-                .loadXmlResource(this.getClass(),
-                        this.getClass().getSimpleName(), locale)
-                .getString(this.toString());
+        return LocaleHelper.uiText(this, locale);
     }
 }

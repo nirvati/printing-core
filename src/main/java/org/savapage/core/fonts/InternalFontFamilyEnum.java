@@ -21,11 +21,12 @@
  */
 package org.savapage.core.fonts;
 
+import java.util.Locale;
+
+import org.savapage.core.util.LocaleHelper;
+
 import net.sf.jasperreports.engine.design.JRDesignStyle;
 import net.sf.jasperreports.engine.design.JRDesignTextField;
-
-import org.savapage.core.services.ServiceContext;
-import org.savapage.core.util.Messages;
 
 /**
  * Internal Fonts packaged with SavaPage.
@@ -87,13 +88,14 @@ public enum InternalFontFamilyEnum {
     }
 
     /**
-     * Gets the font name.
+     * Gets the user interface font name.
      *
-     * @return The name of the font.
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
      */
-    public String getName() {
-        return Messages.getMessage(getClass(), ServiceContext.getLocale(),
-                "FONT_" + this.toString());
+    public String uiText(final Locale locale) {
+        return LocaleHelper.uiText(this, locale);
     }
 
     /**
