@@ -948,7 +948,7 @@ public final class OutboxServiceImpl extends AbstractService
         final DocLogDao.ListFilter filter = new DocLogDao.ListFilter();
         filter.setExternalSupplier(supplier);
         filter.setExternalId(supplierId);
-        filter.setExternalStatus(statusCurrent.toString());
+        filter.setExternalStatus(statusCurrent);
 
         final List<DocLog> list = docLogDAO().getListChunk(filter);
 
@@ -976,7 +976,7 @@ public final class OutboxServiceImpl extends AbstractService
             LOGGER.error(String.format(
                     "DocLog from External Supplier [%s] Account [%s] "
                             + "ID [%s] Status [%s]: not found in %d objects.",
-                    supplier.toString(), supplierId, accountToFind,
+                    supplier.toString(), accountToFind, supplierId,
                     statusCurrent.toString(), list.size()));
             return;
         }
@@ -986,6 +986,14 @@ public final class OutboxServiceImpl extends AbstractService
             statusNew = ExternalSupplierStatusEnum.PENDING_CANCEL;
         } else {
             statusNew = ExternalSupplierStatusEnum.PENDING_COMPLETE;
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(String.format(
+                    "DocLog from External Supplier [%s] Account [%s] "
+                            + "ID [%s]: changed external status [%s] to [%s]",
+                    supplier.toString(), accountToFind, supplierId,
+                    statusCurrent.toString(), statusNew.toString()));
         }
 
         final DaoContext daoCtx = ServiceContext.getDaoContext();

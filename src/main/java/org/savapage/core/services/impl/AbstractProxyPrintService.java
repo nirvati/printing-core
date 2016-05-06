@@ -1631,6 +1631,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The {@link PrintModeEnum}.
      * @param pdfFileToPrint
      *            The file to print.
+     * @param isJobTicket
+     *            {@code true} when Job Ticket, {@code false} when HOLD print.
      * @throws IOException
      *             When IO error.
      * @throws IppConnectException
@@ -1638,7 +1640,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private void proxyPrintOutboxJob(final User lockedUser,
             final OutboxJobDto job, final PrintModeEnum printMode,
-            final File pdfFileToPrint) throws IOException, IppConnectException {
+            final File pdfFileToPrint, final boolean isJobTicket)
+            throws IOException, IppConnectException {
 
         final ProxyPrintDocReq printReq = new ProxyPrintDocReq(printMode);
 
@@ -1706,11 +1709,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         pdfFileToPrint.delete();
 
-        if (!monitorPaperCutPrintStatus) {
-            /*
-             * We know (assume) the job is completed, since we do not monitor
-             * PaperCut print status.
-             */
+        /*
+         * If we do not monitor PaperCut print status, we know (assume) the job
+         * is completed. We notify for a HOLD job.
+         *
+         * IMPORTANT: Job Ticket handles its own notification.
+         */
+        if (!isJobTicket && !monitorPaperCutPrintStatus) {
             outboxService().onOutboxJobCompleted(job);
         }
     }
@@ -1721,7 +1726,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             throws IOException, IppConnectException {
 
         this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.HOLD,
-                pdfFileToPrint);
+                pdfFileToPrint, true);
 
         return job.getPages() * job.getCopies();
     }
@@ -1789,7 +1794,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             try {
                 this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.HOLD,
-                        pdfFileToPrint);
+                        pdfFileToPrint, false);
 
                 pdfFileToPrint.delete();
 

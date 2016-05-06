@@ -141,8 +141,8 @@ public abstract class PaperCutPrintMonitorPattern {
 
         this.listFilterPendingExt = new DocLogDao.ListFilter();
         this.listFilterPendingExt.setExternalSupplier(externalSupplier);
-        this.listFilterPendingExt.setExternalStatus(
-                ExternalSupplierStatusEnum.PENDING_EXT.toString());
+        this.listFilterPendingExt
+                .setExternalStatus(ExternalSupplierStatusEnum.PENDING_EXT);
         this.listFilterPendingExt.setProtocol(DocLogProtocolEnum.IPP);
 
         this.papercutServerProxy = serverProxy;

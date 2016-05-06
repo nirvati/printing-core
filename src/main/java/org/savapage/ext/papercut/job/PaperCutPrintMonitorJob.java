@@ -388,9 +388,7 @@ public final class PaperCutPrintMonitorJob extends AbstractJob
                     break;
                 }
 
-            }
-
-            if (!this.isInterrupted()) {
+            } else if (!this.isInterrupted()) {
                 heartbeatCounter = 0;
                 monitor.process();
             }

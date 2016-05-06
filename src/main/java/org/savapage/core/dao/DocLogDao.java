@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocLog;
@@ -74,7 +75,7 @@ public interface DocLogDao extends GenericDao<DocLog> {
         private DocLogProtocolEnum protocol;
         private ExternalSupplierEnum externalSupplier;
         private String externalId;
-        private String externalStatus;
+        private ExternalSupplierStatusEnum externalStatus;
 
         public DocLogProtocolEnum getProtocol() {
             return protocol;
@@ -100,11 +101,12 @@ public interface DocLogDao extends GenericDao<DocLog> {
             this.externalId = externalId;
         }
 
-        public String getExternalStatus() {
+        public ExternalSupplierStatusEnum getExternalStatus() {
             return externalStatus;
         }
 
-        public void setExternalStatus(String externalStatus) {
+        public void
+                setExternalStatus(ExternalSupplierStatusEnum externalStatus) {
             this.externalStatus = externalStatus;
         }
     }

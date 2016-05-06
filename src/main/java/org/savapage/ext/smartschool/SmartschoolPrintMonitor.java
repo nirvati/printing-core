@@ -1181,13 +1181,11 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         filter.setExternalSupplier(ExternalSupplierEnum.SMARTSCHOOL);
 
         //
-        filter.setExternalStatus(
-                ExternalSupplierStatusEnum.PENDING_CANCEL.toString());
+        filter.setExternalStatus(ExternalSupplierStatusEnum.PENDING_CANCEL);
         final List<DocLog> listCancel = doclogDAO.getListChunk(filter);
 
         //
-        filter.setExternalStatus(
-                ExternalSupplierStatusEnum.PENDING_COMPLETE.toString());
+        filter.setExternalStatus(ExternalSupplierStatusEnum.PENDING_COMPLETE);
         final List<DocLog> listComplete = doclogDAO.getListChunk(filter);
 
         //
@@ -2269,26 +2267,30 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             if (monitor.isIntegratedWithPaperCut()) {
 
                 if (monitor.isPaperCutPrintNonSecure) {
+
                     feedbackComment = MSG_COMMENT_PRINT_PENDING_PAPERCUT;
+
+                    /*
+                     * Set the AccountTrx's in the DocLog source
+                     * (DocIn/PrintIn).
+                     *
+                     * Later on, when we monitor PaperCut and find out that the
+                     * print succeeded, we will move/update the AccountTrx's to
+                     * the DocLog (DocOut/PrintOut) target.
+                     */
+                    printInInfo.setAccountTrxInfoSet(accountTrxInfoSet);
+
                 } else {
                     feedbackComment = MSG_COMMENT_PRINT_PENDING_SAVAPAGE;
+
+                    /*
+                     * Account Transactions are persisted in Job Ticket or HOLD
+                     * Print, so we don't want them in the DocIn/PrintIn.
+                     */
+                    printInInfo.setAccountTrxInfoSet(null);
                 }
-                /*
-                 * Set the AccountTrx's in the DocLog source (DocIn/PrintIn).
-                 *
-                 * Later on, when we monitor PaperCut and find out that the
-                 * print succeeded, we will move/update the AccountTrx's to the
-                 * DocLog (DocOut/PrintOut) target.
-                 */
-                printInInfo.setAccountTrxInfoSet(accountTrxInfoSet);
-
             } else {
-
                 feedbackComment = MSG_COMMENT_PRINT_QUEUED;
-
-                /*
-                 * Do NOT set the AccountTrx's here.
-                 */
                 printInInfo.setAccountTrxInfoSet(null);
             }
 
@@ -2300,29 +2302,9 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
             /*
              * STEP 2: Direct Proxy Print.
-             *
-             * Since the DocContentPrintInInfo is re-used for DocOut/PrintOut
-             * target logging, the AccountTrxInfoSet is RESET.
              */
-            if (monitor.isIntegratedWithPaperCut()) {
-                /*
-                 * Use an EMPTY AccountTrxInfoSet, so NO (user or shared)
-                 * account transactions are created at the DocOut/PrintOut
-                 * target NOW. This will be done when PaperCut reports that the
-                 * document was successfully printed (by moving the PrintIn
-                 * account transactions created in STEP 1 to the DocOut/PrintOut
-                 * target).
-                 */
-                printInInfo.setAccountTrxInfoSet(new AccountTrxInfoSet(0));
-            } else {
-                /*
-                 * Set the AccountTrx's in the DocOut/PrintOut target.
-                 */
-                printInInfo.setAccountTrxInfoSet(accountTrxInfoSet);
-            }
-
             processJobProxyPrint(monitor, user, document, downloadedFile,
-                    printInInfo, externalSupplierInfo);
+                    printInInfo, accountTrxInfoSet, externalSupplierInfo);
 
         } else {
 
@@ -2548,6 +2530,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      *            The downloaded {@link File}.
      * @param printInInfo
      *            The {@link DocContentPrintInInfo}.
+     * @param accountTrxInfoSet
+     *            The {@link AccountTrxInfoSet}}.
      * @param externalSupplierInfo
      *            The {@link ExternalSupplierInfo}.
      * @throws ProxyPrintException
@@ -2563,6 +2547,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             final SmartschoolPrintMonitor monitor, final User user,
             final Document document, final File downloadedFile,
             final DocContentPrintInInfo printInInfo,
+            final AccountTrxInfoSet accountTrxInfoSet,
             final ExternalSupplierInfo externalSupplierInfo)
             throws ProxyPrintException, IppConnectException,
             DocContentToPdfException, IOException {
@@ -2602,6 +2587,27 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             printMode = PrintModeEnum.HOLD;
         } else {
             printMode = PrintModeEnum.AUTO;
+        }
+
+        /*
+         * When this is an AUTO print and we are NOT integrated with PaperCut,
+         * the AccountTrxInfoSet is RESET.
+         */
+        if (monitor.isIntegratedWithPaperCut()
+                && printMode == PrintModeEnum.AUTO) {
+            /*
+             * Use an EMPTY AccountTrxInfoSet, so NO (user or shared) account
+             * transactions are created at the DocOut/PrintOut target NOW. This
+             * will be done when PaperCut reports that the document was
+             * successfully printed (by moving the PrintIn account transactions
+             * created in an earlier to the DocOut/PrintOut target).
+             */
+            printInInfo.setAccountTrxInfoSet(new AccountTrxInfoSet(0));
+        } else {
+            /*
+             * Set the AccountTrx's in the DocOut/PrintOut target.
+             */
+            printInInfo.setAccountTrxInfoSet(accountTrxInfoSet);
         }
 
         /*
@@ -2664,9 +2670,13 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         /*
          * Pro-forma chunk.
          */
+        final boolean isPrinterManagedByPaperCut =
+                printMode == PrintModeEnum.AUTO
+                        && monitor.isIntegratedWithPaperCut();
+
         addProxyPrintJobChunk(printer, printReq, supplierData.getMediaSize(),
                 PROXY_PRINT_SERVICE.hasMediaSourceAuto(printerNameSelected),
-                monitor.isIntegratedWithPaperCut());
+                isPrinterManagedByPaperCut);
 
         /*
          * At this point we do NOT need the external data anymore and can
@@ -2748,9 +2758,13 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
                 if (isJobTicketPrinter) {
                     // TODO: 4 hours?
+                    final int hours = 4;
+
                     JOBTICKET_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                            downloadedFile, printInInfo, DateUtils.addHours(
-                                    ServiceContext.getTransactionDate(), 4));
+                            downloadedFile, printInInfo,
+                            DateUtils.addHours(
+                                    ServiceContext.getTransactionDate(),
+                                    hours));
                 } else {
                     OUTBOX_SERVICE.proxyPrintPdf(lockedUser, printReq,
                             downloadedFile, printInInfo);
