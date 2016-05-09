@@ -67,9 +67,11 @@ import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.services.JobTicketService;
+import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
+import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -456,17 +458,31 @@ public final class JobTicketServiceImpl extends AbstractService
      *
      * @param uuid
      *            The {@link UUID}.
+     * @return The removed {@link OutboxJobDto}.
+     */
+    private OutboxJobDto removeTicket(final UUID uuid) {
+
+        getJobTicketFile(uuid, FILENAME_EXT_JSON).delete();
+        getJobTicketFile(uuid, FILENAME_EXT_PDF).delete();
+
+        return this.jobTicketCache.remove(uuid);
+    }
+
+    /**
+     * Removes a Job Ticket and notifies the {@link OutboxService} that job was
+     * completed or canceled.
+     *
+     * @param uuid
+     *            The {@link UUID}.
      * @param isCanceled
-     *            {@code true} when ticket is canceled.
+     *            {@code true} when ticket is canceled, {@code false} when
+     *            ticket is completed.
      * @return The {@link OutboxJobDto}.
      */
     private OutboxJobDto removeTicket(final UUID uuid,
             final boolean isCanceled) {
 
-        getJobTicketFile(uuid, FILENAME_EXT_JSON).delete();
-        getJobTicketFile(uuid, FILENAME_EXT_PDF).delete();
-
-        final OutboxJobDto job = this.jobTicketCache.remove(uuid);
+        final OutboxJobDto job = this.removeTicket(uuid);
 
         if (job != null) {
             if (isCanceled) {
@@ -519,12 +535,28 @@ public final class JobTicketServiceImpl extends AbstractService
          */
         dto.setPrinterName(printer.getPrinterName());
 
+        final ThirdPartyEnum extPrinterManager;
+
+        if (outboxService().isMonitorPaperCutPrintStatus(dto)) {
+            extPrinterManager = ThirdPartyEnum.PAPERCUT;
+        } else {
+            extPrinterManager = null;
+        }
+
         final User lockedUser = userDAO().lock(dto.getUserId());
 
         proxyPrintService().proxyPrintJobTicket(lockedUser, dto,
-                getJobTicketFile(uuid, FILENAME_EXT_PDF));
+                getJobTicketFile(uuid, FILENAME_EXT_PDF), extPrinterManager);
 
-        return this.removeTicket(uuid, false);
+        if (extPrinterManager == null) {
+            return this.removeTicket(uuid, false);
+        }
+
+        /*
+         * Just remove the ticket, do NOT notify. Notification is done in
+         * PaperCut Monitoring.
+         */
+        return this.removeTicket(uuid);
     }
 
     @Override

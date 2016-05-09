@@ -29,6 +29,8 @@ import java.util.Map;
 
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.ConfigProperty;
 import org.savapage.core.jpa.DocIn;
@@ -142,7 +144,8 @@ public interface DocLogService {
      * <li>Global document statistics, i.e. {@link ConfigProperty} objects, are
      * updated in the database in a separate transaction.</li>
      *
-     * <li>Notifications are send to {@link AdminPublisher} and {@link User}.</li>
+     * <li>Notifications are send to {@link AdminPublisher} and {@link User}.
+     * </li>
      * </ul>
      * </p>
      *
@@ -158,6 +161,24 @@ public interface DocLogService {
     void logPrintIn(final User userDb, final IppQueue queue,
             final DocLogProtocolEnum protocol,
             final DocContentPrintInInfo printInInfo);
+
+    /**
+     * Gets the input {@link DocLog} from an External Supplier with a specific
+     * {@link ExternalSupplierStatusEnum}.
+     *
+     * @param supplier
+     *            The supplier.
+     * @param supplierAccount
+     *            The supplier account.
+     * @param suppliedId
+     *            The supplied id.
+     * @param status
+     *            The status.
+     * @return {@code null} when not found.
+     */
+    DocLog getSuppliedDocLog(final ExternalSupplierEnum supplier,
+            final String supplierAccount, final String suppliedId,
+            final ExternalSupplierStatusEnum status);
 
     /**
      * Collects data for the DocOut object using the merged PDF out file and the
@@ -183,9 +204,8 @@ public interface DocLogService {
      * @throws IOException
      *             When error reading the pdfFile (file size).
      */
-    void collectData4DocOut(User user, DocLog docLogCollect,
-            final File pdfFile, LinkedHashMap<String, Integer> uuidPageCount)
-            throws IOException;
+    void collectData4DocOut(User user, DocLog docLogCollect, final File pdfFile,
+            LinkedHashMap<String, Integer> uuidPageCount) throws IOException;
 
     /**
      *

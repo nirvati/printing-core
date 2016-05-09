@@ -520,6 +520,9 @@ public interface ProxyPrintService {
      *            The {@link OutboxJobDto} Job Ticket.
      * @param pdfFileToPrint
      *            The PDF file to print.
+     * @param extPrinterManager
+     *            The {@link ThirdPartyEnum} external print manager:
+     *            {@code null} when native SavaPage.
      * @return The number of printed pages.
      * @throws IOException
      *             When IO error.
@@ -527,7 +530,8 @@ public interface ProxyPrintService {
      *             When connection to CUPS fails.
      */
     int proxyPrintJobTicket(User lockedUser, OutboxJobDto job,
-            File pdfFileToPrint) throws IOException, IppConnectException;
+            File pdfFileToPrint, ThirdPartyEnum extPrinterManager)
+            throws IOException, IppConnectException;
 
     /**
      * Sends Print Job to the CUPS Printer, and updates {@link User},

@@ -59,6 +59,7 @@ public interface AccountTrxDao extends GenericDao<AccountTrx> {
 
         private Long userId;
         private Long accountId;
+        private Long docLogId;
 
         private AccountTypeEnum accountType;
         private AccountTrxTypeEnum trxType;
@@ -80,6 +81,14 @@ public interface AccountTrxDao extends GenericDao<AccountTrx> {
 
         public void setAccountId(Long accountId) {
             this.accountId = accountId;
+        }
+
+        public Long getDocLogId() {
+            return docLogId;
+        }
+
+        public void setDocLogId(Long docLogId) {
+            this.docLogId = docLogId;
         }
 
         public AccountTypeEnum getAccountType() {

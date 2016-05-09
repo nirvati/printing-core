@@ -124,8 +124,12 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
 
         } else if (filter.getAccountId() != null) {
 
-            joinClause.append(" JOIN TRX.account AA WHERE AA.id = ").append(
-                    filter.getAccountId());
+            joinClause.append(" JOIN TRX.account AA WHERE AA.id = ")
+                    .append(filter.getAccountId());
+
+        } else if (filter.getDocLogId() != null) {
+
+            joinClause.append(" WHERE TRX.docLog.id = :docLogId");
 
         } else {
 
@@ -134,6 +138,7 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
             if (filterAccountType) {
                 joinClause.append(" WHERE AA.accountType = :accountType");
             }
+
         }
 
         int nWhere = 0;
@@ -193,9 +198,13 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
 
         final Query query = getEntityManager().createQuery(jpql.toString());
 
+        if (filter.getDocLogId() != null) {
+            query.setParameter("docLogId", filter.getDocLogId());
+        }
+
         if (filter.getAccountType() != null) {
-            query.setParameter("accountType", filter.getAccountType()
-                    .toString());
+            query.setParameter("accountType",
+                    filter.getAccountType().toString());
         }
         if (filter.getUserId() != null) {
             query.setParameter("userId", filter.getUserId());
@@ -219,9 +228,8 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
     @Override
     public int cleanHistory(final Date dateBackInTime) {
 
-        final String jpql =
-                "SELECT T FROM AccountTrx T WHERE"
-                        + " transactionDate <= :transactionDate";
+        final String jpql = "SELECT T FROM AccountTrx T WHERE"
+                + " transactionDate <= :transactionDate";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -264,9 +272,8 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
     @Override
     public List<AccountTrx> findByExtMethodAddress(final String address) {
 
-        final String jpql =
-                "SELECT T FROM AccountTrx T "
-                        + "WHERE extMethodAddress = :extMethodAddress";
+        final String jpql = "SELECT T FROM AccountTrx T "
+                + "WHERE extMethodAddress = :extMethodAddress";
 
         final Query query = getEntityManager().createQuery(jpql);
 

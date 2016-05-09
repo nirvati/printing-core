@@ -64,6 +64,21 @@ public interface OutboxService {
             String currencySymbol);
 
     /**
+     * Checks if the print status of the {@link OutboxJobDto} must be monitored
+     * in PaperCut.
+     * <p>
+     * Monitor PaperCut Print Status when request is a Delegated Print and
+     * Printer is managed by PaperCut.
+     * </p>
+     *
+     * @param job
+     *            The {@link OutboxJobDto} to print.
+     * @return {@code true} when print status of the {@link OutboxJobDto} must
+     *         be monitored in PaperCut.
+     */
+    boolean isMonitorPaperCutPrintStatus(OutboxJobDto job);
+
+    /**
      * Creates an {@link OutboxJobDto} from input parameters.
      *
      * @param request

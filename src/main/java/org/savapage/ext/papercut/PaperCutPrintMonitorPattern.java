@@ -33,6 +33,7 @@ import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.AccountTrxDao;
+import org.savapage.core.dao.AccountTrxDao.ListFilter;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.DocInOutDao;
 import org.savapage.core.dao.DocLogDao;
@@ -567,14 +568,29 @@ public abstract class PaperCutPrintMonitorPattern {
         /*
          * Any transactions?
          */
+        if (docLogTrx.getTransactions() == null) {
+            /*
+             * Somehow (?), when AccountTrx's were ad-hoc created when Job
+             * Ticket was printed to a PaperCut managed printer, we need to
+             * retrieve them this way. Why?
+             */
+            final ListFilter filter = new ListFilter();
+            filter.setDocLogId(docLogTrx.getId());
+            docLogTrx.setTransactions(
+                    accountTrxDao.getListChunk(filter, null, null, null, true));
+        }
+
         final List<AccountTrx> trxList = docLogTrx.getTransactions();
 
-        if (trxList == null || trxList.isEmpty()) {
+        if (trxList.isEmpty()) {
 
             if (LOGGER.isWarnEnabled()) {
+
                 LOGGER.warn(String.format(
-                        "No DocLog transactions found for [%s] [%s]",
-                        docLogOut.getTitle(), docLogOut.getId().toString()));
+                        "No DocLog transactions found for [%s] : "
+                                + "DocLog (Out) [%d], DocLog (Trx) [%d]",
+                        docLogTrx.getTitle(), docLogOut.getId().longValue(),
+                        docLogTrx.getId().longValue()));
             }
             /*
              * Just update the DocLog with status COMPLETED.

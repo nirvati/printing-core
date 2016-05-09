@@ -49,7 +49,6 @@ import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.DaoContext;
-import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.doc.DocContent;
@@ -76,7 +75,6 @@ import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.JsonHelper;
-import org.savapage.ext.smartschool.SmartschoolPrintInData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -940,44 +938,25 @@ public final class OutboxServiceImpl extends AbstractService
                     supplier.toString()));
         }
 
+        final String accountToFind = supplierInfo.getAccount();
+
         final String supplierId = supplierInfo.getId();
 
         final ExternalSupplierStatusEnum statusCurrent =
                 ExternalSupplierStatusEnum.PENDING;
 
-        final DocLogDao.ListFilter filter = new DocLogDao.ListFilter();
-        filter.setExternalSupplier(supplier);
-        filter.setExternalId(supplierId);
-        filter.setExternalStatus(statusCurrent);
+        final DocLog docLog = docLogService().getSuppliedDocLog(supplier,
+                accountToFind, supplierId, statusCurrent);
 
-        final List<DocLog> list = docLogDAO().getListChunk(filter);
-
-        /*
-         * Same document ID can be used by different Smartschool accounts: find
-         * the right one.
-         */
-        final String accountToFind = supplierInfo.getAccount();
-        Long docLogId = null;
-
-        for (final DocLog docLog : list) {
-            if (docLog.getExternalData() == null) {
-                continue;
-            }
-            final SmartschoolPrintInData data = SmartschoolPrintInData
-                    .createFromData(docLog.getExternalData());
-            if (data != null && data.getAccount().equals(accountToFind)) {
-                docLogId = docLog.getId();
-            }
-        }
         /*
          * Be forgiving if no DocLog found.
          */
-        if (docLogId == null) {
+        if (docLog == null) {
             LOGGER.error(String.format(
                     "DocLog from External Supplier [%s] Account [%s] "
-                            + "ID [%s] Status [%s]: not found in %d objects.",
+                            + "ID [%s] Status [%s]: not found.",
                     supplier.toString(), accountToFind, supplierId,
-                    statusCurrent.toString(), list.size()));
+                    statusCurrent.toString()));
             return;
         }
 
@@ -999,8 +978,6 @@ public final class OutboxServiceImpl extends AbstractService
         final DaoContext daoCtx = ServiceContext.getDaoContext();
         final boolean adhocTransaction = !daoCtx.isTransactionActive();
 
-        final DocLog docLog = docLogDAO().findById(docLogId);
-
         if (adhocTransaction) {
             ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
             daoCtx.beginTransaction();
@@ -1018,6 +995,13 @@ public final class OutboxServiceImpl extends AbstractService
                 ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
             }
         }
+    }
+
+    @Override
+    public boolean isMonitorPaperCutPrintStatus(final OutboxJobDto job) {
+        return job.getAccountTransactions() != null
+                && job.getAccountTransactions().getTransactions() != null
+                && paperCutService().isExtPaperCutPrint(job.getPrinterName());
     }
 
 }

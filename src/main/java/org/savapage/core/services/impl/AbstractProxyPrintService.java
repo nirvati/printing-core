@@ -62,9 +62,13 @@ import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaSourceCostDto;
@@ -119,6 +123,7 @@ import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PageScalingEnum;
@@ -128,6 +133,7 @@ import org.savapage.core.services.helpers.ProxyPrintCostParms;
 import org.savapage.core.services.helpers.ProxyPrintInboxReqChunker;
 import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
 import org.savapage.core.services.helpers.SyncPrintJobsResult;
+import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.snmp.SnmpClientSession;
 import org.savapage.core.snmp.SnmpConnectException;
 import org.savapage.core.util.MediaUtils;
@@ -1633,6 +1639,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The file to print.
      * @param isJobTicket
      *            {@code true} when Job Ticket, {@code false} when HOLD print.
+     * @param monitorPaperCutPrintStatus
+     *            {@code true} when print status of the {@link OutboxJobDto}
+     *            must be monitored in PaperCut.
      * @throws IOException
      *             When IO error.
      * @throws IppConnectException
@@ -1640,7 +1649,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private void proxyPrintOutboxJob(final User lockedUser,
             final OutboxJobDto job, final PrintModeEnum printMode,
-            final File pdfFileToPrint, final boolean isJobTicket)
+            final File pdfFileToPrint, final boolean isJobTicket,
+            final boolean monitorPaperCutPrintStatus)
             throws IOException, IppConnectException {
 
         final ProxyPrintDocReq printReq = new ProxyPrintDocReq(printMode);
@@ -1665,17 +1675,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         //
         final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
-
-        /*
-         * Monitor PaperCut Print Status when request is a Delegated Print and
-         * Printer is managed by PaperCut.
-         */
-        final boolean monitorPaperCutPrintStatus =
-                job.getAccountTransactions() != null
-                        && job.getAccountTransactions()
-                                .getTransactions() != null
-                        && paperCutService()
-                                .isExtPaperCutPrint(job.getPrinterName());
 
         if (monitorPaperCutPrintStatus) {
             paperCutService().prepareForExtPaperCut(printReq, supplierInfo);
@@ -1705,13 +1704,17 @@ public abstract class AbstractProxyPrintService extends AbstractService
         docLogService().collectData4DocOut(lockedUser, docLog, pdfFileToPrint,
                 job.getUuidPageCount());
 
+        /*
+         * Print.
+         */
         proxyPrint(lockedUser, printReq, docLog, pdfFileToPrint);
 
         pdfFileToPrint.delete();
 
         /*
-         * If we do not monitor PaperCut print status, we know (assume) the job
-         * is completed. We notify for a HOLD job.
+         * If this is NOT a job ticket and we do not monitor PaperCut print
+         * status, we know (assume) the job is completed. We notify for a HOLD
+         * job.
          *
          * IMPORTANT: Job Ticket handles its own notification.
          */
@@ -1722,11 +1725,82 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
     @Override
     public final int proxyPrintJobTicket(final User lockedUser,
-            final OutboxJobDto job, final File pdfFileToPrint)
+            final OutboxJobDto job, final File pdfFileToPrint,
+            final ThirdPartyEnum extPrinterManager)
             throws IOException, IppConnectException {
 
+        final boolean monitorPaperCutPrintStatus =
+                extPrinterManager == ThirdPartyEnum.PAPERCUT;
+
+        final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
+
+        /*
+         * If job External Supplier is integrated with PaperCut after all, we
+         * must:
+         *
+         * (1) Change the DocLog/PrintIn: ExternalStatus from PENDING to
+         * PENDING_EXT, and ExternalSupplier from SAVAPAGE to the original
+         * external supplier.
+         *
+         * (2) AD-HOC create AccountTrx's at the Log/PrintIn document.
+         */
+
+        if (monitorPaperCutPrintStatus && supplierInfo != null && supplierInfo
+                .getSupplier() != ExternalSupplierEnum.SAVAPAGE) {
+
+            final AccountTrxInfoSet accountTrxInfoSet =
+                    outboxService().createAccountTrxInfoSet(job);
+
+            if (accountTrxInfoSet != null) {
+
+                final DocLog docLogIn = docLogService().getSuppliedDocLog(
+                        supplierInfo.getSupplier(), supplierInfo.getAccount(),
+                        supplierInfo.getId(),
+                        ExternalSupplierStatusEnum.PENDING);
+
+                if (docLogIn != null) {
+
+                    final DaoContext daoContext =
+                            ServiceContext.getDaoContext();
+
+                    final boolean wasAdhocTransaction =
+                            daoContext.isTransactionActive();
+
+                    if (!wasAdhocTransaction) {
+                        daoContext.beginTransaction();
+                    }
+
+                    try {
+                        docLogIn.setExternalStatus(
+                                ExternalSupplierStatusEnum.PENDING_EXT
+                                        .toString());
+                        docLogIn.setExternalSupplier(
+                                supplierInfo.getSupplier().toString());
+
+                        accountingService().createAccountTrxs(accountTrxInfoSet,
+                                docLogIn, AccountTrxTypeEnum.PRINT_IN);
+
+                        docLogDAO().update(docLogIn);
+
+                        daoContext.commit();
+                    } finally {
+                        daoContext.rollback();
+                    }
+
+                    if (wasAdhocTransaction) {
+                        daoContext.beginTransaction();
+                    }
+
+                    /*
+                     * Prevent AccountTrx's at DocLog/DocOut.
+                     */
+                    job.setAccountTransactions(null);
+                }
+            }
+        }
+
         this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.HOLD,
-                pdfFileToPrint, true);
+                pdfFileToPrint, true, monitorPaperCutPrintStatus);
 
         return job.getPages() * job.getCopies();
     }
@@ -1789,12 +1863,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         for (final OutboxJobDto job : jobs) {
 
+            final boolean monitorPaperCutPrintStatus =
+                    outboxService().isMonitorPaperCutPrintStatus(job);
+
             final File pdfFileToPrint = outboxService()
                     .getOutboxFile(cardUser.getUserId(), job.getFile());
 
             try {
                 this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.HOLD,
-                        pdfFileToPrint, false);
+                        pdfFileToPrint, false, monitorPaperCutPrintStatus);
 
                 pdfFileToPrint.delete();
 
