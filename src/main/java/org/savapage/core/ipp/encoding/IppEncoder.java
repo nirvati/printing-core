@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * IPP encoder implementing:
+ * IPP encoder. Implementing:
  * <ul>
  * <li><a href="http://tools.ietf.org/html/rfc2910">RFC2910</a> (IPP/1.1:
  * Encoding and Transport)</li>
@@ -61,15 +62,16 @@ import org.slf4j.LoggerFactory;
  * attribute syntax)</li>
  * </ul>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class IppEncoder {
 
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(IppEncoder.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(IppEncoder.class);
 
     /**
      *
@@ -169,7 +171,7 @@ public final class IppEncoder {
      *             When read error.
      */
     private static String readValueTagValue(final IppValueTag valueTag,
-            final InputStream istr, int nBytes, final Charset charset)
+            final InputStream istr, final int nBytes, final Charset charset)
             throws IOException {
 
         String str = null;
@@ -204,7 +206,7 @@ public final class IppEncoder {
         case INTRANGE:
             str = IppRangeOfInteger.format(readInt32(istr), // min
                     readInt32(istr) // max
-                    );
+            );
             break;
 
         case DATETIME:
@@ -264,9 +266,11 @@ public final class IppEncoder {
     /**
      * 16-bit (2 bytes).
      *
-     * @param buf
-     * @return
+     * @param istr
+     *            The {@link InputStream}.
+     * @return The integer value (can be negative).
      * @throws IOException
+     *             When reading errors.
      */
     public static int readInt16(final InputStream istr) throws IOException {
         return readInt(istr, 2);
@@ -275,41 +279,46 @@ public final class IppEncoder {
     /**
      * 32-bit (4 bytes).
      *
-     * @param buf
-     * @return
+     * @param istr
+     *            The {@link InputStream}.
+     * @return The integer value (can be negative).
      * @throws IOException
+     *             When reading errors.
      */
     public static int readInt32(final InputStream istr) throws IOException {
         return readInt(istr, 4);
     }
 
     /**
+     * Reads a IPP n-byte integer from the stream.
+     * <p>
+     * IMPORTANT: {@link Integer#parseInt(String, int)} with hex string and
+     * radix 16 gives a NumberFormatException for IPP 4-byte encoded negative
+     * integers, like 0xFFFFFFFF (-1) and 0xFFFFFFFD (-3). Therefore we use
+     * {@link BigInteger#BigInteger(String, int)}.
+     * </p>
+     * <p>
+     * See Mantis #394, #609 and #688.
+     * </p>
      *
-     * @param buf
+     * @param istr
+     *            The {@link InputStream}.
      * @param nBytes
-     * @return
+     *            The number of bytes to read from the stream.
+     * @return The integer value (can be negative).
      * @throws IOException
+     *             When reading errors.
      */
     private static int readInt(final InputStream istr, final int nBytes)
             throws IOException {
 
-        String strHex = "";
+        final StringBuilder strHex = new StringBuilder();
 
         for (int i = 0; i < nBytes; i++) {
-            strHex += String.format("%02X", istr.read());
+            strHex.append(String.format("%02X", istr.read()));
         }
 
-        /*
-         * A temporary fix for Mantis #394 and #609: NumberFormatException for
-         * IPP 4-byte integer 0xFFFFFFFF and 0xFFFFFFFD
-         */
-        if (strHex.equalsIgnoreCase("FFFFFFFF")) {
-            return -1;
-        } else if (strHex.equalsIgnoreCase("FFFFFFFD")) {
-            return -3;
-        } else {
-            return Integer.parseInt(strHex, 16);
-        }
+        return new BigInteger(strHex.toString(), 16).intValue();
     }
 
     /**
@@ -427,8 +436,8 @@ public final class IppEncoder {
             nTraceLogIndent = 0;
 
             if (traceLog != null) {
-                traceLog.write("\nGroup : "
-                        + group.getDelimiterTag().toString());
+                traceLog.write(
+                        "\nGroup : " + group.getDelimiterTag().toString());
             }
             ostr.write(group.getDelimiterTag().asInt());
 
@@ -443,7 +452,8 @@ public final class IppEncoder {
                 if (traceLog != null) {
                     traceLog.append("\n")
                             .append(StringUtils.repeat(INDENT_UNIT,
-                                    nTraceLogIndent + 1)).append("Attr: ")
+                                    nTraceLogIndent + 1))
+                            .append("Attr: ")
                             .append(attr.getAttribute().getKeyword())
                             .append(" - ").append(valueTag.toString());
                 }
@@ -461,8 +471,8 @@ public final class IppEncoder {
                     if (traceLog != null) {
                         traceLog.append("\n")
                                 .append(StringUtils.repeat(INDENT_UNIT,
-                                        nTraceLogIndent + 2)).append("Value: ")
-                                .append(value);
+                                        nTraceLogIndent + 2))
+                                .append("Value: ").append(value);
                     }
 
                     if (i == 0) {
@@ -552,7 +562,8 @@ public final class IppEncoder {
                 if (traceLog != null) {
                     traceLog.append("\n")
                             .append(StringUtils.repeat(INDENT_UNIT,
-                                    nTraceLogIndent)).append("[")
+                                    nTraceLogIndent))
+                            .append("[")
                             .append(IppValueTag.MEMBERATTRNAME.toString())
                             .append("] ").append(collectionName);
                 }
@@ -595,8 +606,8 @@ public final class IppEncoder {
             //
             if (traceLog != null) {
                 traceLog.append("\n")
-                        .append(StringUtils
-                                .repeat(INDENT_UNIT, nTraceLogIndent))
+                        .append(StringUtils.repeat(INDENT_UNIT,
+                                nTraceLogIndent))
                         .append("[")
                         .append(IppValueTag.BEGCOLLECTION.toString())
                         .append("] ").append(collectionNameWlk);
@@ -630,7 +641,8 @@ public final class IppEncoder {
                 if (traceLog != null) {
                     traceLog.append("\n")
                             .append(StringUtils.repeat(INDENT_UNIT,
-                                    nTraceLogIndent + 1)).append("[")
+                                    nTraceLogIndent + 1))
+                            .append("[")
                             .append(IppValueTag.MEMBERATTRNAME.toString())
                             .append("] ").append(memberName);
                 }
@@ -649,8 +661,8 @@ public final class IppEncoder {
                     if (traceLog != null) {
                         traceLog.append("\n")
                                 .append(StringUtils.repeat(INDENT_UNIT,
-                                        nTraceLogIndent + 2)).append("Value: ")
-                                .append(value).append(" [")
+                                        nTraceLogIndent + 2))
+                                .append("Value: ").append(value).append(" [")
                                 .append(memberSyntax.getValueTag().toString())
                                 .append("]");
                     }
@@ -682,8 +694,8 @@ public final class IppEncoder {
             //
             if (traceLog != null) {
                 traceLog.append("\n")
-                        .append(StringUtils
-                                .repeat(INDENT_UNIT, nTraceLogIndent))
+                        .append(StringUtils.repeat(INDENT_UNIT,
+                                nTraceLogIndent))
                         .append("[")
                         .append(IppValueTag.ENDCOLLECTION.toString())
                         .append("]");
@@ -901,9 +913,8 @@ public final class IppEncoder {
                 // -----------------------------------------------
                 // | name | u bytes
                 // -----------------------------------------------
-                final String name =
-                        readValueTagValue(IppValueTag.KEYWORD, istr,
-                                lengthName, myCharset);
+                final String name = readValueTagValue(IppValueTag.KEYWORD, istr,
+                        lengthName, myCharset);
 
                 // -----------------------------------------------
                 // | value-length (value is v) | 2 bytes
@@ -913,9 +924,8 @@ public final class IppEncoder {
                 // -----------------------------------------------
                 // | value | v bytes
                 // -----------------------------------------------
-                final String value =
-                        readValueTagValue(valueTag, istr, lengthValue,
-                                myCharset);
+                final String value = readValueTagValue(valueTag, istr,
+                        lengthValue, myCharset);
 
                 /*
                  * Collection?
@@ -963,12 +973,11 @@ public final class IppEncoder {
                                 /*
                                  * ... move the attributes and collections ...
                                  */
-                                collectionNew.setAttributes(simpleCollectionWlk
-                                        .getAttributes());
+                                collectionNew.setAttributes(
+                                        simpleCollectionWlk.getAttributes());
 
-                                collectionNew
-                                        .setCollections(simpleCollectionWlk
-                                                .getCollections());
+                                collectionNew.setCollections(
+                                        simpleCollectionWlk.getCollections());
 
                                 simpleCollectionWlk.resetAttributes();
                                 simpleCollectionWlk.resetCollections();
@@ -1102,9 +1111,8 @@ public final class IppEncoder {
                          */
                         if (collectionMemberValueWlk == null) {
 
-                            final IppAttr attr =
-                                    AbstractIppDict.createAttr(
-                                            collectionMemberNameWlk, valueTag);
+                            final IppAttr attr = AbstractIppDict.createAttr(
+                                    collectionMemberNameWlk, valueTag);
 
                             collectionMemberValueWlk = new IppAttrValue(attr);
 
@@ -1133,44 +1141,39 @@ public final class IppEncoder {
                             switch (delimiterTag) {
 
                             case OPERATION_ATTR:
-                                ippAttr =
-                                        IppDictOperationAttr.instance()
-                                                .getAttr(name, valueTag);
-                                if (name.equals(IppDictOperationAttr.ATTR_ATTRIBUTES_CHARSET)) {
-                                    myCharset =
-                                            Charset.forName(value.toUpperCase());
+                                ippAttr = IppDictOperationAttr.instance()
+                                        .getAttr(name, valueTag);
+                                if (name.equals(
+                                        IppDictOperationAttr.ATTR_ATTRIBUTES_CHARSET)) {
+                                    myCharset = Charset
+                                            .forName(value.toUpperCase());
                                 }
                                 break;
 
                             case PRINTER_ATTR:
-                                ippAttr =
-                                        IppDictPrinterDescAttr.instance()
-                                                .getAttr(name, valueTag);
+                                ippAttr = IppDictPrinterDescAttr.instance()
+                                        .getAttr(name, valueTag);
 
                                 if (ippAttr == null) {
-                                    ippAttr =
-                                            IppDictJobTemplateAttr.instance()
-                                                    .getAttr(name);
+                                    ippAttr = IppDictJobTemplateAttr.instance()
+                                            .getAttr(name);
                                 }
 
                                 break;
 
                             case JOB_ATTR:
-                                ippAttr =
-                                        IppDictJobDescAttr.instance().getAttr(
-                                                name, valueTag);
+                                ippAttr = IppDictJobDescAttr.instance()
+                                        .getAttr(name, valueTag);
                                 break;
 
                             case SUBSCRIPTION_ATTR:
-                                ippAttr =
-                                        IppDictSubscriptionAttr.instance()
-                                                .getAttr(name, valueTag);
+                                ippAttr = IppDictSubscriptionAttr.instance()
+                                        .getAttr(name, valueTag);
                                 break;
 
                             case EVENT_NOTIFICATION_ATTR:
-                                ippAttr =
-                                        IppDictEventNotificationAttr.instance()
-                                                .getAttr(name, valueTag);
+                                ippAttr = IppDictEventNotificationAttr
+                                        .instance().getAttr(name, valueTag);
                                 break;
 
                             default:
@@ -1183,9 +1186,8 @@ public final class IppEncoder {
                              */
                             if (ippAttr == null) {
 
-                                ippAttr =
-                                        AbstractIppDict.createAttr(name,
-                                                valueTag);
+                                ippAttr = AbstractIppDict.createAttr(name,
+                                        valueTag);
 
                                 if (ippAttr == null) {
                                     LOGGER.error("Keyword [" + name + "] ["
@@ -1196,8 +1198,8 @@ public final class IppEncoder {
                             }
 
                             if (traceLog != null) {
-                                traceLog.write("\n" + INDENT_UNIT
-                                        + delimiterTag + " : " + name + " ["
+                                traceLog.write("\n" + INDENT_UNIT + delimiterTag
+                                        + " : " + name + " ["
                                         + valueTag.toString() + "]");
                             }
 
