@@ -1007,6 +1007,11 @@ public final class SmartschoolServiceImpl extends AbstractService
             response = connection.getConnection().call(message,
                     connection.getEndpointUrl(request));
 
+            if (response == null) {
+                throw new SOAPException(String.format("Smartschool %s is null.",
+                        request.getSoapNameResponse()));
+            }
+
         } catch (SOAPException e) {
             if (SmartschoolLogger.isEnabled()) {
                 SmartschoolLogger.logError(request, e);
