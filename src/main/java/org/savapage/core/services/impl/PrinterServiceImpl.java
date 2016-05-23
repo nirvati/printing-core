@@ -337,6 +337,27 @@ public final class PrinterServiceImpl extends AbstractService
     }
 
     @Override
+    public boolean isClientSideMonochrome(final Printer printer) {
+
+        final List<PrinterAttr> attributes = printer.getAttributes();
+
+        if (attributes != null) {
+
+            final String targetName =
+                    PrinterAttrEnum.CLIENT_SIDE_MONOCHROME.getDbName();
+
+            for (final PrinterAttr printerAttr : attributes) {
+
+                if (printerAttr.getName().equals(targetName)) {
+                    return printerAttr.getValue()
+                            .equals(Boolean.TRUE.toString());
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void addJobTotals(final Printer printer, final Date jobDate,
             final int jobPages, final int jobSheets, final long jobEsu,
             final long jobBytes) {

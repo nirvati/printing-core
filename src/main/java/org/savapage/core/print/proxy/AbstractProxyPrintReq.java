@@ -106,6 +106,13 @@ public abstract class AbstractProxyPrintReq
      */
     private boolean collate;
 
+    /**
+     * {@code true} if PDF must to be converted to grayscale before proxy
+     * printing.
+     */
+    private boolean convertToGrayscale = false;
+
+    //
     private Locale locale = Locale.getDefault();
 
     private String userMsg;
@@ -145,11 +152,9 @@ public abstract class AbstractProxyPrintReq
         this.printMode = printMode;
     }
 
-
     public InboxSelectScopeEnum getClearScope() {
         return clearScope;
     }
-
 
     public void setClearScope(InboxSelectScopeEnum clearScope) {
         this.clearScope = clearScope;
@@ -615,6 +620,25 @@ public abstract class AbstractProxyPrintReq
         costParms.setPagesPerSide(this.getNup());
 
         return costParms;
+    }
+
+    /**
+     *
+     * @return {@code true} if PDF must to be converted to grayscale before
+     *         proxy printing.
+     */
+    public boolean isConvertToGrayscale() {
+        return convertToGrayscale;
+    }
+
+    /**
+     *
+     * @param convertToGrayscale
+     *            {@code true} if PDF must to be converted to grayscale before
+     *            proxy printing.
+     */
+    public void setConvertToGrayscale(boolean convertToGrayscale) {
+        this.convertToGrayscale = convertToGrayscale;
     }
 
 }

@@ -62,6 +62,9 @@ import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentToPdfException;
+import org.savapage.core.doc.DocContentTypeEnum;
+import org.savapage.core.doc.IFileConverter;
+import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
@@ -2727,6 +2730,33 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         }
 
         /*
+         * Client-side monochrome filtering?
+         */
+        final File fileToPrint;
+
+        File downloadedFileConverted = null;
+
+        if (printMode == PrintModeEnum.AUTO && isColorPrinter
+                && printReq.isGrayscale()
+                && PRINTER_SERVICE.isClientSideMonochrome(printer)) {
+
+            final IFileConverter converter = new PdfToGrayscale();
+
+            downloadedFileConverted =
+                    converter.convert(DocContentTypeEnum.PDF, downloadedFile);
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(String.format("[%s] converted to grayscale.",
+                        printReq.getJobName()));
+            }
+
+            fileToPrint = downloadedFileConverted;
+
+        } else {
+            fileToPrint = downloadedFile;
+        }
+
+        /*
          * Proxy Print Transaction.
          */
         ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
@@ -2761,13 +2791,13 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                     final int hours = 4;
 
                     JOBTICKET_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                            downloadedFile, printInInfo,
+                            fileToPrint, printInInfo,
                             DateUtils.addHours(
                                     ServiceContext.getTransactionDate(),
                                     hours));
                 } else {
                     OUTBOX_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                            downloadedFile, printInInfo);
+                            fileToPrint, printInInfo);
                 }
                 /*
                  * This will refresh the User Web App with new status
@@ -2779,7 +2809,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             } else {
 
                 PROXY_PRINT_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                        downloadedFile);
+                        fileToPrint);
             }
 
             daoContext.commit();
@@ -2794,6 +2824,11 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
             daoContext.rollback();
             ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+
+            if (downloadedFileConverted != null
+                    && downloadedFileConverted.exists()) {
+                downloadedFileConverted.delete();
+            }
         }
     }
 

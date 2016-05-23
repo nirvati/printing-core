@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @JsonInclude(Include.NON_NULL)
@@ -82,6 +82,11 @@ public final class ProxyPrinterMediaSourcesDto extends AbstractDto {
     private Boolean defaultMonochrome;
 
     /**
+     * {@code true} if client-side monochrome conversion.
+     */
+    private Boolean clientSideMonochrome;
+
+    /**
      *
      * @return
      */
@@ -123,6 +128,25 @@ public final class ProxyPrinterMediaSourcesDto extends AbstractDto {
 
     public void setDefaultMonochrome(Boolean defaultMonochrome) {
         this.defaultMonochrome = defaultMonochrome;
+    }
+
+    /**
+     *
+     * @return {@code true} if monochrome conversion is performed client-side
+     *         (locally).
+     */
+    public Boolean getClientSideMonochrome() {
+        return clientSideMonochrome;
+    }
+
+    /**
+     *
+     * @param clientSideMonochrome
+     *            {@code true} if monochrome conversion is performed client-side
+     *            (locally).
+     */
+    public void setClientSideMonochrome(Boolean clientSideMonochrome) {
+        this.clientSideMonochrome = clientSideMonochrome;
     }
 
     public String getLanguage() {

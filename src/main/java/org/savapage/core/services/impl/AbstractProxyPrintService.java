@@ -1923,6 +1923,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final Map<String, String> printerOptionValues =
                 getDefaultPrinterCostOptions(printer.getPrinterName());
 
+        final boolean isConvertToGrayscale =
+                AbstractProxyPrintReq.isGrayscale(printerOptionValues)
+                        && isColorPrinter(printer.getPrinterName())
+                        && printerService().isClientSideMonochrome(printer);
         /*
          * Lock the user.
          */
@@ -1993,6 +1997,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printReq.setPrinterName(printer.getPrinterName());
                 printReq.setNumberOfCopies(Integer.valueOf(1));
                 printReq.setRemoveGraphics(false);
+                printReq.setConvertToGrayscale(isConvertToGrayscale);
                 printReq.setLocale(ServiceContext.getLocale());
                 printReq.setIdUser(user.getId());
                 printReq.putOptionValues(printerOptionValues);
@@ -2036,6 +2041,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printReq.setPrinterName(printer.getPrinterName());
             printReq.setNumberOfCopies(Integer.valueOf(1));
             printReq.setRemoveGraphics(false);
+            printReq.setConvertToGrayscale(isConvertToGrayscale);
             printReq.setLocale(ServiceContext.getLocale());
             printReq.setIdUser(user.getId());
             printReq.putOptionValues(printerOptionValues);
@@ -2564,6 +2570,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             pdfRequest.setEcoPdf(request.isEcoPrint());
             pdfRequest.setEcoPdfShadow(request.isEcoPrintShadow());
+            pdfRequest.setGrayscale(request.isConvertToGrayscale());
 
             pdfRequest.setApplyPdfProps(false);
             pdfRequest.setApplyLetterhead(true);

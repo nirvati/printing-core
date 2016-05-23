@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -53,7 +53,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class OutputProducer {
 
@@ -443,6 +444,8 @@ public final class OutputProducer {
      *            one-pixel).
      * @param ecoPdf
      *            <code>true</code> if Eco PDF is to be generated.
+     * @param grayscale
+     *            <code>true</code> if Grayscale PDF is to be generated.
      * @param docLog
      *            The document log to update.
      * @return File object with generated PDF.
@@ -454,7 +457,7 @@ public final class OutputProducer {
      */
     public File generatePdfForExport(final User user, final String pdfFile,
             final String documentPageRangeFilter, final boolean removeGraphics,
-            final boolean ecoPdf, final DocLog docLog)
+            final boolean ecoPdf, final boolean grayscale, final DocLog docLog)
             throws IOException, LetterheadNotFoundException,
             PostScriptDrmException, EcoPrintPdfTaskPendingException {
 
@@ -481,6 +484,7 @@ public final class OutputProducer {
         pdfRequest.setApplyLetterhead(true);
         pdfRequest.setForPrinting(false);
         pdfRequest.setEcoPdfShadow(ecoPdf);
+        pdfRequest.setGrayscale(grayscale);
 
         final File file = generatePdf(pdfRequest, uuidPageCount, docLog);
 

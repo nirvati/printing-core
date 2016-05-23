@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,8 @@ import org.savapage.core.jpa.PrinterAttr;
 /**
  * {@link PrinterAttr} names. See {@link PrinterAttr#setName(String)}.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public enum PrinterAttrEnum {
 
@@ -48,13 +49,10 @@ public enum PrinterAttrEnum {
     ACCESS_INTERNAL("access.internal"),
 
     /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,2,1,0,...,0,8,1}
-     * </p>
+     * Is monochrome conversion performed client-side (locally)? Boolean:
+     * {@code true|false}.
      */
-    PRINT_OUT_ROLLING_DAY_PAGES(PrinterAttrDao.STATS_ROLLING_PREFIX
-            + "-day.pages"),
+    CLIENT_SIDE_MONOCHROME("filter.monochrome.client-side"),
 
     /**
      * Statistic time series. Example:
@@ -62,8 +60,15 @@ public enum PrinterAttrEnum {
      * {@code 1342562400000,2,1,0,...,0,8,1}
      * </p>
      */
-    PRINT_OUT_ROLLING_DAY_SHEETS(PrinterAttrDao.STATS_ROLLING_PREFIX
-            + "-day.sheets"),
+    PRINT_OUT_ROLLING_DAY_PAGES(PrinterAttrDao.STATS_ROLLING_PREFIX + "-day.pages"),
+
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,2,1,0,...,0,8,1}
+     * </p>
+     */
+    PRINT_OUT_ROLLING_DAY_SHEETS(PrinterAttrDao.STATS_ROLLING_PREFIX + "-day.sheets"),
 
     /**
      * Statistic time series. Example:

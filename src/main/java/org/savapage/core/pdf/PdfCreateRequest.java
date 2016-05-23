@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,8 @@ import org.savapage.core.jpa.User;
 /**
  * A request to create a PDF file.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class PdfCreateRequest {
 
@@ -75,6 +76,11 @@ public final class PdfCreateRequest {
      * {@code true} if Eco PDF shadow is to be used.
      */
     private boolean ecoPdfShadow;
+
+    /**
+     * {@code true} if grayscale PDF is to be created.
+     */
+    private boolean grayscale;
 
     public User getUserObj() {
         return userObj;
@@ -141,7 +147,8 @@ public final class PdfCreateRequest {
 
     /**
      *
-     * @param ecoPdf {@code true} if Eco PDF is to be created.
+     * @param ecoPdf
+     *            {@code true} if Eco PDF is to be created.
      */
     public void setEcoPdf(boolean ecoPdf) {
         this.ecoPdf = ecoPdf;
@@ -161,6 +168,23 @@ public final class PdfCreateRequest {
      */
     public void setEcoPdfShadow(boolean ecoPdfShadow) {
         this.ecoPdfShadow = ecoPdfShadow;
+    }
+
+    /**
+     *
+     * @return {@code true} if grayscale PDF is to be created.
+     */
+    public boolean isGrayscale() {
+        return grayscale;
+    }
+
+    /**
+     *
+     * @param grayscale
+     *            {@code true} if grayscale PDF is to be created.
+     */
+    public void setGrayscale(boolean grayscale) {
+        this.grayscale = grayscale;
     }
 
 }

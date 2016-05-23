@@ -249,6 +249,7 @@ public abstract class ProxyPrintInboxPattern {
 
             pdfRequest.setEcoPdf(request.isEcoPrint());
             pdfRequest.setEcoPdfShadow(request.isEcoPrintShadow());
+            pdfRequest.setGrayscale(request.isConvertToGrayscale());
 
             pdfRequest.setApplyPdfProps(!APPLY_PDF_PROPS);
             pdfRequest.setApplyLetterhead(APPLY_LETTERHEAD);

@@ -31,6 +31,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -46,7 +49,10 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.doc.DocContentTypeEnum;
+import org.savapage.core.doc.IFileConverter;
 import org.savapage.core.doc.ImageToPdf;
+import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.imaging.EcoImageFilter;
 import org.savapage.core.imaging.EcoImageFilterSquare;
@@ -126,6 +132,11 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      * Create URL links by default.
      */
     private final boolean isAnnotateUrls = true;
+
+    /**
+     * {@code true} if the created pdf is to be converted to grayscale onExit.
+     */
+    private boolean onExitConvertToGrayscale = false;
 
     /**
      * Create a {@link BaseFont} for an {@link InternalFontFamilyEnum}.
@@ -444,6 +455,9 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onInit() {
 
+        this.onExitConvertToGrayscale =
+                this.isGrayscalePdf() && !this.isConvertToEcoPdf();
+
         this.targetPdfCopyFilePath = String.format("%s.tmp", this.pdfFile);
 
         try {
@@ -479,7 +493,24 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
     @Override
     protected void onPdfGenerated(final File pdfFile) throws Exception {
-        // no code intended.
+
+        if (onExitConvertToGrayscale) {
+
+            final IFileConverter converter = new PdfToGrayscale();
+
+            final File grayscalePdfFile =
+                    converter.convert(DocContentTypeEnum.PDF, pdfFile);
+
+            // move
+            final Path source = FileSystems.getDefault()
+                    .getPath(grayscalePdfFile.getAbsolutePath());
+
+            final Path target =
+                    FileSystems.getDefault().getPath(pdfFile.getAbsolutePath());
+
+            Files.move(source, target,
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     @Override
@@ -535,7 +566,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         final EcoImageFilterSquare.Parms ecoParms =
                 EcoImageFilterSquare.Parms.createDefault();
 
-        ecoParms.setConvertToGrayscale(false);
+        ecoParms.setConvertToGrayscale(this.isGrayscalePdf());
 
         final EcoImageFilter filter = new EcoImageFilterSquare(ecoParms);
 
