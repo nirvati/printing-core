@@ -34,7 +34,6 @@ import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.crypto.CryptoUser;
 
 /**
  * <p>
@@ -201,9 +200,6 @@ public final class AppPrivate extends AbstractApp {
      */
     @Override
     protected void onInit() throws Exception {
-
-        CryptoUser.init();
-
     }
 
     /**

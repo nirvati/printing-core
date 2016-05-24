@@ -177,6 +177,13 @@ public final class ConfigManager {
             "data/conf/internal-groups.txt";
 
     /**
+     * The relative path of the encryption.properties file (relative to the
+     * {@code server} directory).
+     */
+    public static final String SERVER_REL_PATH_ENCRYPTION_PROPERTIES =
+            "data/encryption.properties";
+
+    /**
      * Path of SAVAPAGE.ppd (case sensitive!) relative to
      * {@link ConfigManager#getClientHome().
      */
@@ -1204,6 +1211,7 @@ public final class ConfigManager {
 
         myConfigProp.init(props);
         myCipher.init();
+
         CryptoUser.init();
 
         this.initJmx();

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,6 +33,7 @@ import java.io.Writer;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.KeySpec;
@@ -46,20 +47,23 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
-import net.iharder.Base64;
-
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.SpInfo;
 import org.savapage.core.config.ConfigManager;
+
+import net.iharder.Base64;
 
 /**
  * This class takes care for encryption of User Data.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class CryptoUser {
+public final class CryptoUser {
 
     public static final String INTERNAL_USER_PW_CHECKSUM_PREFIX = "HASH:";
 
@@ -102,16 +106,14 @@ public class CryptoUser {
     }
 
     /**
-     * Initialization of the private singleton so static methods can be called
-     * on this class.
+     * Initialization of the private singleton so the
+     * {@link ConfigManager#SERVER_REL_PATH_ENCRYPTION_PROPERTIES} gets lazy
+     * created.
      *
      * @throws IOException
      */
     synchronized static public void init() throws IOException {
-        /*
-         * Just by calling this method the class will load and instantiate the
-         * (static) members.
-         */
+        getInstance();
     }
 
     /**
@@ -125,12 +127,10 @@ public class CryptoUser {
             /*
              * Create the key
              */
-            KeySpec keySpec =
-                    new PBEKeySpec(cipherPassword.toCharArray(), cipherSalt,
-                            cipherIterationCount);
-            SecretKey key =
-                    SecretKeyFactory.getInstance("PBEWithMD5AndDES")
-                            .generateSecret(keySpec);
+            KeySpec keySpec = new PBEKeySpec(cipherPassword.toCharArray(),
+                    cipherSalt, cipherIterationCount);
+            SecretKey key = SecretKeyFactory.getInstance("PBEWithMD5AndDES")
+                    .generateSecret(keySpec);
             cipherEncrypt = Cipher.getInstance(key.getAlgorithm());
             cipherDecrypt = Cipher.getInstance(key.getAlgorithm());
 
@@ -152,18 +152,25 @@ public class CryptoUser {
     }
 
     /**
+     * Reads the properties
+     * <p>
+     * The {@link ConfigManager#SERVER_REL_PATH_ENCRYPTION_PROPERTIES} gets lazy
+     * created.
+     * </p>
      *
      * @throws IOException
+     *             When file IO errors.
      *
      */
-    synchronized private void readProperties() throws IOException {
+    private synchronized void readProperties() throws IOException {
 
         final int pwLength = 48;
 
-        Properties props = new Properties();
-        File fileProp =
-                new File(ConfigManager.getServerHome()
-                        + "/data/encryption.properties");
+        final Properties props = new Properties();
+        final File fileProp = Paths
+                .get(ConfigManager.getServerHome(),
+                        ConfigManager.SERVER_REL_PATH_ENCRYPTION_PROPERTIES)
+                .toFile();
 
         InputStream istr = null;
         Writer writer = null;
@@ -185,9 +192,8 @@ public class CryptoUser {
                 istr.close();
                 istr = null;
                 cipherPassword = props.getProperty(PROP_CIPHER_PASSWORD);
-                cipherIterationCount =
-                        Integer.valueOf(props
-                                .getProperty(PROP_CIPHER_INTERATION_COUNT));
+                cipherIterationCount = Integer.valueOf(
+                        props.getProperty(PROP_CIPHER_INTERATION_COUNT));
                 cipherSaltTxt = props.getProperty(PROP_CIPHER_SALT);
                 hmacKey = props.getProperty(PROP_HMAC_KEY);
             }
@@ -219,6 +225,7 @@ public class CryptoUser {
             }
 
             if (saveProps) {
+
                 writer = new FileWriter(fileProp);
                 props.store(writer, "Keep the content of this "
                         + "file at a secure place.");
@@ -233,15 +240,13 @@ public class CryptoUser {
                 Files.setPosixFilePermissions(
                         fs.getPath(fileProp.getAbsolutePath()), permissions);
 
+                SpInfo.instance().log(String.format("Created %s",
+                        ConfigManager.SERVER_REL_PATH_ENCRYPTION_PROPERTIES));
             }
 
         } finally {
-            if (writer != null) {
-                writer.close();
-            }
-            if (istr != null) {
-                istr.close();
-            }
+            IOUtils.closeQuietly(writer);
+            IOUtils.closeQuietly(istr);
         }
     }
 
@@ -309,12 +314,12 @@ public class CryptoUser {
      *            The value to encrypt.
      * @return The encrypted value.
      */
-    public static String
-            encryptUserAttr(final Long userKey, final String value) {
+    public static String encryptUserAttr(final Long userKey,
+            final String value) {
         if (StringUtils.isBlank(value)) {
             return "";
         }
-        return encrypt(userKey.toString() + "|" + value);
+        return encrypt(String.format("%s|%s", userKey.toString(), value));
     }
 
     /**
@@ -337,8 +342,8 @@ public class CryptoUser {
         if (StringUtils.isBlank(encrypted)) {
             return "";
         }
-        return StringUtils.removeStart(decrypt(encrypted), userKey.toString()
-                + "|");
+        return StringUtils.removeStart(decrypt(encrypted),
+                String.format("%s|", userKey.toString()));
     }
 
     /**
@@ -351,8 +356,8 @@ public class CryptoUser {
      * </ul>
      * </p>
      * <p>
-     * See <a
-     * href="http://en.wikipedia.org/wiki/HMAC">http://en.wikipedia.org/wiki
+     * See
+     * <a href="http://en.wikipedia.org/wiki/HMAC">http://en.wikipedia.org/wiki
      * /HMAC</a>.
      * <p>
      *
@@ -376,7 +381,7 @@ public class CryptoUser {
             digest = DigestUtils.md5Hex(bytes);
         }
 
-        bytes = (digest + hmacKey).getBytes("UTF-8");
+        bytes = String.format("%s%s", digest, hmacKey).getBytes("UTF-8");
         if (sha1) {
             return DigestUtils.sha1Hex(bytes);
         } else {
@@ -428,7 +433,8 @@ public class CryptoUser {
      */
     public static String getHashedUserPassword(final String username,
             final String password) {
-        String input = username.trim().toLowerCase() + '|' + password.trim();
+        final String input = String.format("%s|%s",
+                username.trim().toLowerCase(), password.trim());
         return INTERNAL_USER_PW_CHECKSUM_PREFIX + createSha1(input);
     }
 

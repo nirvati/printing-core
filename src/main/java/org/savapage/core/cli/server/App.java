@@ -32,7 +32,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.savapage.core.cli.AbstractApp;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.crypto.CryptoUser;
 
 /**
  * <p>
@@ -270,7 +269,6 @@ public final class App extends AbstractApp {
 
     @Override
     protected void onInit() throws Exception {
-        CryptoUser.init();
     }
 
     /**
