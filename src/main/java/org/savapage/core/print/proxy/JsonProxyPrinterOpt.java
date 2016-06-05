@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,47 +25,66 @@ import java.util.ArrayList;
 
 import org.savapage.core.jpa.PrinterAttr;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class JsonProxyPrinterOpt {
+public final class JsonProxyPrinterOpt {
 
+    /**
+     * The IPP attribute keyword.
+     */
+    @JsonProperty("keyword")
     private String keyword;
 
     /**
-     * The default choice. Initially this choice is equal to
+     * The PPD option keyword (can be {@code null} when neither present nor
+     * relevant).
+     */
+    @JsonIgnore
+    private String keywordPpd;
+
+    /**
+     * The default IPP choice. Initially this choice is equal to
      * {@link #defchoiceIpp}, but may be overruled by a {@link PrinterAttr}
      * definition.
      */
+    @JsonProperty("defchoice")
     private String defchoice;
 
     /**
      * The original IPP default choice.
      */
+    @JsonProperty("defchoiceIpp")
     private String defchoiceIpp;
 
-    private String text;
-    private Integer ui;
-    private Integer section;
-
-    ArrayList<JsonProxyPrinterOptChoice> choices = new ArrayList<>();
+    /**
+     * The UI text.
+     */
+    @JsonProperty("uiText")
+    private String uiText;
 
     /**
-     *
-     * @return
+     * The choices of this option.
+     */
+    private ArrayList<JsonProxyPrinterOptChoice> choices = new ArrayList<>();
+
+    /**
+     * @return a copy of this object.
      */
     public JsonProxyPrinterOpt copy() {
 
         final JsonProxyPrinterOpt copy = new JsonProxyPrinterOpt();
 
         copy.keyword = this.keyword;
+        copy.keywordPpd = this.keywordPpd;
         copy.defchoice = this.defchoice;
         copy.defchoiceIpp = this.defchoiceIpp;
-        copy.text = this.text;
-        copy.ui = this.ui;
-        copy.section = this.section;
+        copy.uiText = this.uiText;
 
         for (final JsonProxyPrinterOptChoice choice : choices) {
             copy.choices.add(choice.copy());
@@ -78,72 +97,115 @@ public class JsonProxyPrinterOpt {
      * Convenience method.
      *
      * @param choice
-     * @param text
+     *            The IPP choice value.
+     * @param uiTtext
+     *            The UI text.
+     * @return The added {@link JsonProxyPrinterOptChoice}.
      */
-    public void addChoice(final String choice, final String text) {
+    public JsonProxyPrinterOptChoice addChoice(final String choice,
+            final String uiTtext) {
 
-        final JsonProxyPrinterOptChoice ppdChoice =
+        final JsonProxyPrinterOptChoice optChoice =
                 new JsonProxyPrinterOptChoice();
 
-        ppdChoice.setChoice(choice);
-        ppdChoice.setText(text);
+        optChoice.setChoice(choice);
+        optChoice.setUiText(uiTtext);
 
-        choices.add(ppdChoice);
+        choices.add(optChoice);
+        return optChoice;
     }
 
+    /**
+     *
+     * @return The IPP attribute keyword.
+     */
     public String getKeyword() {
         return keyword;
     }
 
-    public void setKeyword(String keyword) {
+    /**
+     *
+     * @param keyword
+     *            The IPP attribute keyword.
+     */
+    public void setKeyword(final String keyword) {
         this.keyword = keyword;
     }
 
+    /**
+     * @return The PPD option keyword (can be {@code null} when neither present
+     *         nor relevant).
+     */
+    public String getKeywordPpd() {
+        return keywordPpd;
+    }
+
+    /**
+     * @param keywordPpd
+     *            The PPD option keyword (can be {@code null} when neither
+     *            present nor relevant).
+     */
+    public void setKeywordPpd(String keywordPpd) {
+        this.keywordPpd = keywordPpd;
+    }
+
+    /**
+     * @return The effective IPP default choice.
+     */
     public String getDefchoice() {
         return defchoice;
     }
 
-    public void setDefchoice(String defchoice) {
+    /**
+     * @param defchoice
+     *            The effective IPP default choice.
+     */
+    public void setDefchoice(final String defchoice) {
         this.defchoice = defchoice;
     }
 
+    /**
+     * @return The original IPP default choice.
+     */
     public String getDefchoiceIpp() {
         return defchoiceIpp;
     }
 
-    public void setDefchoiceIpp(String defchoiceIpp) {
+    /**
+     * @param defchoiceIpp
+     *            The original IPP default choice.
+     */
+    public void setDefchoiceIpp(final String defchoiceIpp) {
         this.defchoiceIpp = defchoiceIpp;
     }
 
-    public String getText() {
-        return text;
+    /**
+     * @return The UI text.
+     */
+    public String getUiText() {
+        return uiText;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    /**
+     * @param text
+     *            The UI text.
+     */
+    public void setUiText(String text) {
+        this.uiText = text;
     }
 
-    public Integer getUi() {
-        return ui;
-    }
-
-    public void setUi(Integer ui) {
-        this.ui = ui;
-    }
-
-    public Integer getSection() {
-        return section;
-    }
-
-    public void setSection(Integer section) {
-        this.section = section;
-    }
-
+    /**
+     * @return The choices of this option.
+     */
     public ArrayList<JsonProxyPrinterOptChoice> getChoices() {
         return choices;
     }
 
-    public void setChoices(ArrayList<JsonProxyPrinterOptChoice> choices) {
+    /**
+     * @param choices
+     *            The choices of this option.
+     */
+    public void setChoices(final ArrayList<JsonProxyPrinterOptChoice> choices) {
         this.choices = choices;
     }
 }

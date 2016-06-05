@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,41 +21,94 @@
  */
 package org.savapage.core.print.proxy;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class JsonProxyPrinterOptChoice {
+public final class JsonProxyPrinterOptChoice {
 
-    String choice;
-    String text;
+    /**
+     * The IPP choice.
+     */
+    @JsonProperty("choice")
+    private String choice;
 
+    /**
+     * The PPD choice (can be {@code null} when neither present nor relevant).
+     */
+    @JsonIgnore
+    private String choicePpd;
+
+    /**
+     * The UI text.
+     */
+    @JsonProperty("uiText")
+    private String uiText;
+
+    /**
+     *
+     * @return The IPP choice.
+     */
     public String getChoice() {
         return choice;
     }
 
-    public void setChoice(String choice) {
+    /**
+     * @param choice
+     *            The IPP choice.
+     */
+    public void setChoice(final String choice) {
         this.choice = choice;
     }
 
-    public String getText() {
-        return text;
+    /**
+     * @return The PPD choice (can be {@code null} when neither present nor
+     *         relevant).
+     *
+     */
+    public String getChoicePpd() {
+        return choicePpd;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    /**
+     * @param choicePpd
+     *            The PPD choice (can be {@code null} when neither present nor
+     *            relevant).
+     */
+    public void setChoicePpd(String choicePpd) {
+        this.choicePpd = choicePpd;
+    }
+
+    /**
+     * @return The UI text.
+     */
+    public String getUiText() {
+        return uiText;
+    }
+
+    /**
+     * @param text
+     *            The UI text.
+     */
+    public void setUiText(final String text) {
+        this.uiText = text;
     }
 
     /**
      *
-     * @return
+     * @return A copy of this instance.
      */
     public JsonProxyPrinterOptChoice copy() {
 
-        JsonProxyPrinterOptChoice copy = new JsonProxyPrinterOptChoice();
+        final JsonProxyPrinterOptChoice copy = new JsonProxyPrinterOptChoice();
 
         copy.choice = this.choice;
-        copy.text = this.text;
+        copy.choicePpd = this.choicePpd;
+        copy.uiText = this.uiText;
 
         return copy;
     }

@@ -52,7 +52,7 @@ public final class InternalGroupList {
         private String user;
 
         @Override
-        public void onItem(final String group, final String userId) {
+        protected void onItem(final String group, final String userId) {
 
             if (this.user == null) {
                 this.groups.add(group);
@@ -93,7 +93,7 @@ public final class InternalGroupList {
         }
 
         @Override
-        public void onItem(final String group, final String userId) {
+        protected void onItem(final String group, final String userId) {
             if (group.equals(this.userGroup)) {
                 final CommonUser commonUser = new CommonUser();
                 commonUser.setUserName(userId);

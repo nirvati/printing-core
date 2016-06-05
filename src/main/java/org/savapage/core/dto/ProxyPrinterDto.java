@@ -57,6 +57,12 @@ public class ProxyPrinterDto extends AbstractDto {
     @JsonProperty("printerGroups")
     String printerGroups;
 
+    /**
+     * A file with custom setting for PPD to IPP conversion and constraints.
+     */
+    @JsonProperty("ppdExtFile")
+    String ppdExtFile;
+
     @JsonProperty("internal")
     Boolean internal;
 
@@ -113,6 +119,14 @@ public class ProxyPrinterDto extends AbstractDto {
 
     public void setPrinterGroups(String printerGroups) {
         this.printerGroups = printerGroups;
+    }
+
+    public String getPpdExtFile() {
+        return ppdExtFile;
+    }
+
+    public void setPpdExtFile(String ppdExtFile) {
+        this.ppdExtFile = ppdExtFile;
     }
 
     public Boolean getInternal() {

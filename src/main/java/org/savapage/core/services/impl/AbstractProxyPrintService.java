@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -70,6 +71,7 @@ import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.IppMediaSourceMappingDto;
@@ -127,6 +129,7 @@ import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PageScalingEnum;
+import org.savapage.core.services.helpers.PpdExtFileReader;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.PrinterSnmpReader;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
@@ -164,14 +167,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * True or False option.
      */
     // protected static final Integer UI_BOOLEAN = 0;
-    /**
-     * Pick one from a list.
-     */
-    protected static final Integer UI_PICKONE = 1;
-    /**
-     * Pick zero or more from a list.
-     */
-    // protected static final Integer UI_PICKMANY = 2;
 
     /**
      * Dictionary on printer name. NOTE: the key is in UPPER CASE.
@@ -483,7 +478,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                     if (dto.getActive()) {
 
-                        optChoice.setText(dto.getDisplay());
+                        optChoice.setUiText(dto.getDisplay());
 
                         if (dto.getMedia() != null) {
 
@@ -514,7 +509,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 new JsonProxyPrinterOptChoice();
 
         choiceAuto.setChoice(IppKeyword.MEDIA_SOURCE_AUTO);
-        choiceAuto.setText("Automatic"); // TODO
+        choiceAuto.setUiText("Automatic"); // TODO
         mediaSourceChoices.add(0, choiceAuto);
 
         mediaSourceOption.setDefchoice(IppKeyword.MEDIA_SOURCE_AUTO);
@@ -820,6 +815,29 @@ public abstract class AbstractProxyPrintService extends AbstractService
             final Printer dbPrinter) {
 
         proxyPrinter.setDbPrinter(dbPrinter);
+
+        final String ppdfExtFile = printerService().getAttributeValue(dbPrinter,
+                PrinterAttrEnum.CUSTOM_PPD_EXT_FILE);
+
+        if (StringUtils.isNotBlank(ppdfExtFile)) {
+
+            final File filePpdExt = Paths.get(
+                    ConfigManager.getServerCustomCupsHome().getAbsolutePath(),
+                    ppdfExtFile).toFile();
+
+            if (filePpdExt.exists()) {
+                try {
+                    PpdExtFileReader.injectPpdExt(proxyPrinter, filePpdExt);
+                } catch (IOException e) {
+                    LOGGER.error(e.getMessage());
+                }
+
+            } else {
+                LOGGER.error(String.format("Printer %s: %s does not exist.",
+                        dbPrinter.getPrinterName(),
+                        filePpdExt.getAbsolutePath()));
+            }
+        }
 
         final String colorModeDefault =
                 printerService().getPrintColorModeDefault(dbPrinter);
@@ -2250,7 +2268,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Print the PDF file.
          */
-        if (print(request, userid, pdfFileToPrint, docLog)) {
+        if (this.print(request, userid, pdfFileToPrint, docLog)) {
 
             if (request instanceof ProxyPrintInboxReq) {
                 request.setClearedPages(this.clearInbox(lockedUser,
@@ -2647,7 +2665,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             return false;
         }
 
-        printPdf(request, printer, user, filePdf, docLog);
+        this.printPdf(request, printer, user, filePdf, docLog);
 
         return true;
     }

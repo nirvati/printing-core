@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,8 +32,8 @@ import org.savapage.core.ipp.attribute.syntax.IppUri;
 import org.savapage.core.ipp.encoding.IppValueTag;
 
 /**
- * A dictionary of operation attributes: <a
- * href="http://tools.ietf.org/html/rfc2911">RFC2911</a>
+ * A dictionary of operation attributes:
+ * <a href="http://tools.ietf.org/html/rfc2911">RFC2911</a>
  * <p>
  * "These attributes are passed in the operation and affect the IPP object's
  * behavior while processing the operation request and may affect other
@@ -44,7 +44,8 @@ import org.savapage.core.ipp.encoding.IppValueTag;
  * print job and are associated with new Job objects ..."
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class IppDictOperationAttr extends AbstractIppDict {
 
@@ -153,14 +154,6 @@ public final class IppDictOperationAttr extends AbstractIppDict {
 
             /*
              * "requested-attributes" (1setOf keyword):
-             *
-             * The client OPTIONALLY supplies a set of attribute names and/or
-             * attribute group names in whose values the requester is
-             * interested.
-             *
-             * The Printer object MUST support this attribute. If the client
-             * omits this attribute, the Printer MUST respond as if this
-             * attribute had been supplied with a value of 'all'.
              */
             new IppAttr(ATTR_REQUESTED_ATTRIBUTES, IppKeyword.instance()),
             /*
@@ -258,8 +251,8 @@ public final class IppDictOperationAttr extends AbstractIppDict {
             new IppAttr(ATTR_NOTIFY_WAIT, IppBoolean.instance()),
             /* */
             new IppAttr(ATTR_NOTIFY_GET_INTERVAL, IppInteger.instance()),
-    //
-            };
+            //
+    };
 
     /**
      * The SingletonHolder is loaded on the first execution of

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -42,13 +42,14 @@ import org.savapage.core.ipp.attribute.syntax.IppText;
 import org.savapage.core.ipp.attribute.syntax.IppUri;
 import org.savapage.core.ipp.attribute.syntax.IppUriScheme;
 import org.savapage.core.ipp.encoding.IppValueTag;
+import org.savapage.core.services.helpers.PpdExtFileReader;
 
 /**
  * IPP attribute dictionary on attribute name according to <a href=
- * "http://www.iana.org/assignments/ipp-registrations/ipp-registrations.txt"
- * >Internet Printing Protocol (IPP) Registrations</a>.
+ * "http://www.iana.org/assignments/ipp-registrations/ipp-registrations.txt" >
+ * Internet Printing Protocol (IPP) Registrations</a>.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractIppDict {
@@ -57,6 +58,11 @@ public abstract class AbstractIppDict {
      * Dictionary on attribute keyword.
      */
     private final Map<String, IppAttr> dictionary = new HashMap<>();
+
+    /**
+     * The prefix for Custom SavaPage IPP attributes.
+     */
+    protected static final String ORG_SAVAPAGE_ATTR_PFX = "org.savapage-";
 
     /**
      *
@@ -69,10 +75,28 @@ public abstract class AbstractIppDict {
     }
 
     /**
+     * Creates an {@link IppAttr} object for a PPD option.
+     * <p>
+     * See {@link PpdExtFileReader}.
+     * </p>
+     *
+     * @param ppdOption
+     *            The PPD option (name).
+     * @return The attribute object.
+     */
+    public final IppAttr createPpdOptionAttr(final String ppdOption) {
+        /*
+         * We always use IppText syntax when passing PPD option as IPP
+         * attribute.
+         */
+        return new IppAttr(ppdOption, IppText.instance());
+    }
+
+    /**
      * Returns the default {@link IppAttr} object for the attribute keyword.
      *
      * @param keyword
-     *            The attribute keyword (name).
+     *            The IPP attribute keyword (name).
      * @return The attribute object or {@code null} when attribute is not
      *         supported.
      */
@@ -89,7 +113,7 @@ public abstract class AbstractIppDict {
      * </p>
      *
      * @param keyword
-     *            The attribute keyword (name).
+     *            The IPP attribute keyword (name).
      * @param valueTag
      *            The {@link IppValueTag}.
      * @return The attribute object or {@code null} when attribute is not

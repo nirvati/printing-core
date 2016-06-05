@@ -19,53 +19,29 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.users.conf;
-
-import org.apache.commons.lang3.StringUtils;
-import org.savapage.core.util.AbstractConfigFileReader;
+package org.savapage.core.print.proxy;
 
 /**
+ * IPP option group.
  *
  * @author Rijk Ravestein
  *
  */
-public abstract class ConfFileReader extends AbstractConfigFileReader {
+public enum ProxyPrinterOptGroupEnum {
 
     /**
-     * Notifies a key-value pair.
      *
-     * @param key
-     *            The key.
-     * @param value
-     *            The value.
      */
-    protected abstract void onItem(String key, String value);
+    PAGE_SETUP,
 
     /**
-     * Notifies start of reading.
+     *
      */
-    @Override
-    protected final void onInit() {
-    }
+    JOB,
 
     /**
-     * Notifies end of reading.
+     *
      */
-    @Override
-    protected final void onEof() {
-    }
-
-    @Override
-    protected final void onConfigLine(final String strLine) {
-        /*
-         * The key and value may be separated by '=', ':' or TAB (a
-         * tab-delimited file).
-         */
-        final String[] words = StringUtils.split(strLine, ":=\t");
-
-        if (words.length == 2) {
-            this.onItem(words[0].trim(), words[1].trim());
-        }
-    }
+    ADVANCED
 
 }

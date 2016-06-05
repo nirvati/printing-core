@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,7 +39,8 @@ import org.savapage.core.ipp.encoding.IppValueTag;
  * but <b>not</b> interpreted.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class IppDictJobDescAttr extends AbstractIppDict {
 
@@ -172,10 +173,10 @@ public final class IppDictJobDescAttr extends AbstractIppDict {
              */
             new IppAttr(ATTR_TIME_AT_COMPLETED, IppInteger.instance()),
 
-    // 4.3.14.4 job-printer-up-time (integer(1:MAX))
-    // 4.3.14.5 date-time-at-creation (dateTime)
-    // 4.3.14.6 date-time-at-processing (dateTime)
-    // 4.3.14.7 date-time-at-completed (dateTime)
+            // 4.3.14.4 job-printer-up-time (integer(1:MAX))
+            // 4.3.14.5 date-time-at-creation (dateTime)
+            // 4.3.14.6 date-time-at-processing (dateTime)
+            // 4.3.14.7 date-time-at-completed (dateTime)
 
             // 4.3.15 number-of-intervening-jobs (integer(0:MAX))
             // 4.3.16 job-message-from-operator (text(127))
@@ -189,7 +190,7 @@ public final class IppDictJobDescAttr extends AbstractIppDict {
             // 4.3.18.3 job-media-sheets-completed (integer(0:MAX))
             // 4.3.19 attributes-charset (charset)
             // 4.3.20 attributes-natural-language (naturalLanguage)
-            };
+    };
 
     /**
      * The SingletonHolder is loaded on the first execution of
@@ -198,7 +199,7 @@ public final class IppDictJobDescAttr extends AbstractIppDict {
      * <p>
      * <a href=
      * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>
+     * >The Singleton solution of Bill Pugh</a>.
      * </p>
      */
     private static class SingletonHolder {
@@ -207,9 +208,7 @@ public final class IppDictJobDescAttr extends AbstractIppDict {
     }
 
     /**
-     * Gets the singleton instance.
-     *
-     * @return
+     * @return the singleton instance.
      */
     public static IppDictJobDescAttr instance() {
         return SingletonHolder.INSTANCE;
@@ -223,7 +222,7 @@ public final class IppDictJobDescAttr extends AbstractIppDict {
     }
 
     @Override
-    public IppAttr getAttr(String keyword, IppValueTag valueTag) {
+    public IppAttr getAttr(final String keyword, final IppValueTag valueTag) {
         /*
          * Ignore the value tag.
          */

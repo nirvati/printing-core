@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,17 +23,26 @@ package org.savapage.core.print.proxy;
 
 import java.util.ArrayList;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class JsonProxyPrinterOptGroup {
+public final class JsonProxyPrinterOptGroup {
 
-    String name;
-    String text;
-    ArrayList<JsonProxyPrinterOpt> options;
-    ArrayList<JsonProxyPrinterOptGroup> subgroups = new ArrayList<>();
+    @JsonProperty("id")
+    private ProxyPrinterOptGroupEnum groupId;
+
+    @JsonProperty("uiText")
+    private String uiText;
+
+    @JsonProperty("options")
+    private ArrayList<JsonProxyPrinterOpt> options;
+
+    @JsonProperty("subgroups")
+    private ArrayList<JsonProxyPrinterOptGroup> subgroups = new ArrayList<>();
 
     /**
      *
@@ -43,8 +52,8 @@ public class JsonProxyPrinterOptGroup {
 
         final JsonProxyPrinterOptGroup copy = new JsonProxyPrinterOptGroup();
 
-        copy.name = this.name;
-        copy.text = this.text;
+        copy.groupId = this.groupId;
+        copy.uiText = this.uiText;
         copy.options = new ArrayList<>();
 
         for (final JsonProxyPrinterOpt opt : options) {
@@ -58,20 +67,20 @@ public class JsonProxyPrinterOptGroup {
         return copy;
     }
 
-    public String getName() {
-        return name;
+    public ProxyPrinterOptGroupEnum getGroupId() {
+        return groupId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setGroupId(final ProxyPrinterOptGroupEnum id) {
+        this.groupId = id;
     }
 
-    public String getText() {
-        return text;
+    public String getUiText() {
+        return uiText;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public void setUiText(String text) {
+        this.uiText = text;
     }
 
     public ArrayList<JsonProxyPrinterOpt> getOptions() {

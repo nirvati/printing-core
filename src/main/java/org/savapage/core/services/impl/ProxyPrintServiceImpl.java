@@ -101,6 +101,7 @@ import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptGroup;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
+import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.BigDecimalUtil;
@@ -125,9 +126,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ProxyPrintServiceImpl.class);
 
-    private static final String OPTGROUP_PAGE_SETUP = "pagesetup";
-    private static final String OPTGROUP_JOB = "job";
-    private static final String OPTGROUP_ADVANCED = "advanced";
     private static final String LOCALIZE_IPP_ATTR_PREFIX = "ipp-attr-";
 
     private final static String NOTIFY_PULL_METHOD = "ippget";
@@ -140,6 +138,74 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             "savapage:" + ConfigManager.getServerPort();
 
     private final IppClient ippClient = IppClient.instance();
+
+    /**
+     * A selection of IPP attribute keywords used in UI (Web App) for Page
+     * Options.
+     * <p>
+     * Note that the option order in the array is the top-down order as they
+     * appear in the Web App.
+     * </p>
+     */
+    private static final String[] IPP_ATTR_KEYWORDS_UI_PAGE_SETUP =
+            new String[] {
+                    /* */
+                    IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
+                    /* */
+                    IppDictJobTemplateAttr.ATTR_MEDIA,
+                    /* */
+                    IppDictJobTemplateAttr.ATTR_SIDES,
+                    /* */
+                    IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
+                    /* */
+                    IppDictJobTemplateAttr.ATTR_PRINTER_RESOLUTION,
+                    /* */
+                    IppDictJobTemplateAttr.ATTR_NUMBER_UP
+            /*
+             * Mantis #408: disable ...
+             *
+             * IppDictJobTemplateAttr.ATTR_PRINT_QUALITY
+             *
+             * IppDictJobTemplateAttr.ATTR_ORIENTATION_REQUESTED
+             */
+            };
+
+    /**
+     * A selection of IPP attribute keywords used in UI (Web App) for Job
+     * Options.
+     * <p>
+     * Note that the option order in the array is the top-down order as they
+     * appear in the Web App.
+     * </p>
+     */
+    private static final String[] IPP_ATTR_KEYWORDS_UI_JOB = new String[] {
+            /*
+             * No entries intended.
+             */
+    };
+
+    /**
+     * A selection of IPP attribute keywords used in UI (Web App) for Advanced
+     * Options.
+     * <p>
+     * Note that the option order in the array is the top-down order as they
+     * appear in the Web App.
+     * </p>
+     */
+    private static final String[] IPP_ATTR_KEYWORDS_UI_ADVANCED = new String[] {
+            /* */
+            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE,
+            /* */
+            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH,
+            /* */
+            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD
+            /*
+             * Mantis #408: disable ...
+             *
+             * IppDictJobTemplateAttr.ATTR_FINISHINGS
+             * IppDictJobTemplateAttr.ATTR_OUTPUT_BIN
+             */
+    };
 
     /**
      *
@@ -479,33 +545,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         // Options: Page Setup
         // ---------------------
         printerOptions = new ArrayList<>();
-
-        /*
-         * Note that the option order in the array is the top-down order as they
-         * appear in the Web App.
-         */
-        attrKeywords = new String[] {
-                /* */
-                IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
-                /* */
-                IppDictJobTemplateAttr.ATTR_MEDIA,
-                /* */
-                IppDictJobTemplateAttr.ATTR_SIDES,
-                /* */
-                IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
-                /* */
-                IppDictJobTemplateAttr.ATTR_PRINTER_RESOLUTION,
-                /* */
-                IppDictJobTemplateAttr.ATTR_NUMBER_UP,
-
-                /*
-                 * Mantis #408: disable ...
-                 *
-                 * IppDictJobTemplateAttr.ATTR_PRINT_QUALITY
-                 *
-                 * IppDictJobTemplateAttr.ATTR_ORIENTATION_REQUESTED
-                 */
-        };
+        attrKeywords = IPP_ATTR_KEYWORDS_UI_PAGE_SETUP;
 
         for (final String keyword : attrKeywords) {
             addOption(printer, group, printerOptions, keyword);
@@ -517,8 +557,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     new JsonProxyPrinterOptGroup();
 
             optGroup.setOptions(printerOptions);
-            optGroup.setName(OPTGROUP_PAGE_SETUP);
-            optGroup.setText(OPTGROUP_PAGE_SETUP);
+            optGroup.setGroupId(ProxyPrinterOptGroupEnum.PAGE_SETUP);
+            optGroup.setUiText(ProxyPrinterOptGroupEnum.PAGE_SETUP.toString());
 
             printerOptGroups.add(optGroup);
         }
@@ -530,12 +570,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         // Add Cover Page - Before: After:
         //
         printerOptions = new ArrayList<>();
-
-        attrKeywords = new String[] {
-                /*
-                 * No entries intended.
-                 */
-        };
+        attrKeywords = IPP_ATTR_KEYWORDS_UI_JOB;
 
         for (final String keyword : attrKeywords) {
             addOption(printer, group, printerOptions, keyword);
@@ -547,8 +582,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     new JsonProxyPrinterOptGroup();
 
             optGroup.setOptions(printerOptions);
-            optGroup.setName(OPTGROUP_JOB);
-            optGroup.setText(OPTGROUP_JOB);
+            optGroup.setGroupId(ProxyPrinterOptGroupEnum.JOB);
+            optGroup.setUiText(ProxyPrinterOptGroupEnum.JOB.toString());
 
             printerOptGroups.add(optGroup);
         }
@@ -557,16 +592,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         // Options: Advanced
         // ---------------------
         printerOptions = new ArrayList<>();
-
-        attrKeywords = new String[] {
-                /* */
-                IppDictJobTemplateAttr.ATTR_FINISHINGS,
-                /*
-                 * Mantis #408: disable ...
-                 *
-                 * IppDictJobTemplateAttr.ATTR_OUTPUT_BIN
-                 */
-        };
+        attrKeywords = IPP_ATTR_KEYWORDS_UI_ADVANCED;
 
         for (final String keyword : attrKeywords) {
             addOption(printer, group, printerOptions, keyword);
@@ -578,8 +604,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     new JsonProxyPrinterOptGroup();
 
             optGroup.setOptions(printerOptions);
-            optGroup.setName(OPTGROUP_ADVANCED);
-            optGroup.setText(OPTGROUP_ADVANCED);
+            optGroup.setGroupId(ProxyPrinterOptGroupEnum.ADVANCED);
+            optGroup.setUiText(ProxyPrinterOptGroupEnum.ADVANCED.toString());
 
             printerOptGroups.add(optGroup);
         }
@@ -634,7 +660,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                         mediaSizeName.toString());
             }
 
-            optChoice.setText(localizeWithDefault(locale,
+            optChoice.setUiText(localizeWithDefault(locale,
                     LOCALIZE_IPP_ATTR_PREFIX + attrKeyword + "-" + choice,
                     choiceTextDefault));
         }
@@ -645,7 +671,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final JsonProxyPrinterOpt option) {
 
         final String attrKeyword = option.getKeyword();
-        option.setText(
+        option.setUiText(
                 localize(locale, LOCALIZE_IPP_ATTR_PREFIX + attrKeyword));
         localizePrinterOptChoices(locale, attrKeyword, option.getChoices());
     }
@@ -657,12 +683,13 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         for (final JsonProxyPrinterOptGroup optGroup : printerDetail
                 .getGroups()) {
 
-            if (optGroup.getName().equals(OPTGROUP_ADVANCED)) {
-                optGroup.setText(localize(locale, "ipp-cat-advanced"));
-            } else if (optGroup.getName().equals(OPTGROUP_JOB)) {
-                optGroup.setText(localize(locale, "ipp-cat-job"));
-            } else if (optGroup.getName().equals(OPTGROUP_PAGE_SETUP)) {
-                optGroup.setText(localize(locale, "ipp-cat-page-setup"));
+            if (optGroup.getGroupId() == ProxyPrinterOptGroupEnum.ADVANCED) {
+                optGroup.setUiText(localize(locale, "ipp-cat-advanced"));
+            } else if (optGroup.getGroupId() == ProxyPrinterOptGroupEnum.JOB) {
+                optGroup.setUiText(localize(locale, "ipp-cat-job"));
+            } else if (optGroup
+                    .getGroupId() == ProxyPrinterOptGroupEnum.PAGE_SETUP) {
+                optGroup.setUiText(localize(locale, "ipp-cat-page-setup"));
             }
 
             for (final JsonProxyPrinterOpt option : optGroup.getOptions()) {
@@ -724,10 +751,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         final String txtKeyword = attrKeyword;
 
         final JsonProxyPrinterOpt option = new JsonProxyPrinterOpt();
-        option.setUi(UI_PICKONE);
 
         option.setKeyword(attrKeyword);
-        option.setText(txtKeyword);
+        option.setUiText(txtKeyword);
 
         String defChoiceFound = attrChoice.getValues().get(0);
 
@@ -846,7 +872,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     /**
      *
      * @param jobUri
-     * @return
+     *            The URI.
+     * @return The job id.
      */
     private static String jobIdFromJobUri(final String jobUri) {
         return jobUri.substring(jobUri.lastIndexOf('/') + 1);
@@ -854,16 +881,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
     @Override
     protected void printPdf(final AbstractProxyPrintReq request,
-            final JsonProxyPrinter printer, final String user,
+            final JsonProxyPrinter jsonPrinter, final String user,
             final File filePdf, final DocLog docLog)
             throws IppConnectException {
-
-        final String uriPrinter = printer.getPrinterUri().toString();
 
         final URL urlCupsServer;
 
         try {
-            urlCupsServer = getCupsServerUrl(printer.getPrinterUri());
+            urlCupsServer = getCupsServerUrl(jsonPrinter.getPrinterUri());
         } catch (MalformedURLException e) {
             throw new SpException(e.getMessage());
         }
@@ -937,7 +962,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             response =
                     ippClient.send(urlCupsServer, IppOperationId.PRINT_JOB,
                             this.reqPrintJob(request, pdfFileToPrint,
-                                    uriPrinter, user, jobNameWork, jobNameWork),
+                                    jsonPrinter, user, jobNameWork,
+                                    jobNameWork),
                             pdfFileToPrint);
 
         } catch (IOException e) {
@@ -989,7 +1015,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          */
         printJob.setUser(user); // needed??
 
-        collectPrintOutData(request, docLog, printer, printJob);
+        collectPrintOutData(request, docLog, jsonPrinter, printJob);
     }
 
     /**
@@ -1588,15 +1614,17 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      *
      * @param request
      * @param fileToPrint
-     * @param uriPrinter
+     * @param jsonPrinter
      * @param reqUser
      * @param docName
      * @param jobName
      * @return
      */
     private List<IppAttrGroup> reqPrintJob(final AbstractProxyPrintReq request,
-            final File fileToPrint, final String uriPrinter,
+            final File fileToPrint, final JsonProxyPrinter jsonPrinter,
             final String reqUser, final String docName, final String jobName) {
+
+        final String uriPrinter = jsonPrinter.getPrinterUri().toString();
 
         final int copies = request.getNumberOfCopies();
         final Boolean fitToPage = request.getFitToPage();
@@ -1642,18 +1670,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         // "document-natural-language" (naturalLanguage):
 
         /*
-         * An "impression" is the image (possibly many print-stream pages in
-         * different configurations) imposed onto a single media page.
-         */
-
-        // "job-impressions" (integer(0:MAX)):
-
-        /*
-         *
-         */
-        // "job-media-sheets" (integer(0:MAX)):
-
-        /*
          * Group 2: Job Template Attributes
          *
          * The client OPTIONALLY supplies a set of Job Template attributes as
@@ -1680,19 +1696,99 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         dict = IppDictJobTemplateAttr.instance();
 
+        /*
+         * We need easy lookup of options when they are injected with an
+         * SavaPage PPD Extension.
+         */
+        final Map<String, JsonProxyPrinterOpt> printerOptionsLookup;
+
+        if (jsonPrinter.isInjectPpdExt()) {
+            printerOptionsLookup = jsonPrinter.getOptionsLookup();
+        } else {
+            printerOptionsLookup = null;
+        }
+
+        /*
+         * Traverse the job options.
+         */
         for (final Entry<String, String> entry : optionValues.entrySet()) {
 
-            final String keyword = entry.getKey();
+            // The IPP option keyword.
+            final String optionKeywordIpp = entry.getKey();
 
-            final IppAttr attr = dict.getAttr(keyword);
+            // The mapped PPD option keyword.
+            final String optionKeywordPpd;
+
+            // IPP option from proxy printer definition.
+            final JsonProxyPrinterOpt proxyPrinterOpt;
+
+            if (jsonPrinter.isInjectPpdExt()) {
+
+                proxyPrinterOpt = printerOptionsLookup.get(optionKeywordIpp);
+
+                if (proxyPrinterOpt != null
+                        && proxyPrinterOpt.getKeywordPpd() != null) {
+                    optionKeywordPpd = proxyPrinterOpt.getKeywordPpd();
+                } else {
+                    optionKeywordPpd = null;
+                }
+
+            } else {
+                proxyPrinterOpt = null;
+                optionKeywordPpd = null;
+            }
+
+            // The actual attribute and options to send.
+            final IppAttr attr;
+            final String optionKeyword;
+            final String optionValue;
+
+            if (optionKeywordPpd == null) {
+
+                attr = dict.getAttr(optionKeywordIpp);
+                optionKeyword = optionKeywordIpp;
+                optionValue = entry.getValue();
+
+            } else {
+
+                final String optionValueIpp = entry.getValue();
+                String optionValuePpd = null;
+                for (final JsonProxyPrinterOptChoice choice : proxyPrinterOpt
+                        .getChoices()) {
+                    if (choice.getChoice().equals(optionValueIpp)) {
+                        optionValuePpd = choice.getChoicePpd();
+                        break;
+                    }
+                }
+                attr = dict.createPpdOptionAttr(optionKeywordPpd);
+                optionKeyword = optionKeywordPpd;
+                optionValue = optionValuePpd;
+            }
 
             if (attr == null) {
-                LOGGER.error("unkown attribute [" + keyword + "]");
+                final StringBuilder msg = new StringBuilder();
+                msg.append("IPP Attribute [").append(optionKeywordIpp)
+                        .append("] is unknown (attribute is skipped).");
+                LOGGER.error(msg.toString());
+                continue;
+            }
+
+            if (optionValue == null) {
+                final StringBuilder msg = new StringBuilder();
+                msg.append("IPP Attribute [").append(optionKeywordIpp)
+                        .append("]");
+                if (optionKeywordPpd != null) {
+                    msg.append(" with mapped PPD option [")
+                            .append(optionKeywordPpd).append("]");
+                }
+                msg.append(": mapped PPD value of [").append(entry.getValue())
+                        .append("] unknown (attribute is skipped).");
+                LOGGER.error(msg.toString());
                 continue;
             }
 
             /*
-             * Lazy initialization.
+             * Lazy group initialization.
              */
             if (group == null) {
                 group = new IppAttrGroup(IppDelimiterTag.JOB_ATTR);
@@ -1702,13 +1798,15 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             /*
              *
              */
-            if (keyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA)) {
-
+            if (optionKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA)) {
+                /*
+                 * Create here, apply later.
+                 */
                 collectionMediaSize = new IppAttrCollection(
                         IppDictJobTemplateAttr.ATTR_MEDIA_SIZE);
 
                 final MediaSizeName sizeName =
-                        IppMediaSizeEnum.findMediaSizeName(entry.getValue());
+                        IppMediaSizeEnum.findMediaSizeName(optionValue);
 
                 final int[] array = MediaUtils.getMediaWidthHeight(sizeName);
 
@@ -1720,14 +1818,16 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 collectionMediaSize.add("y-dimension", new IppInteger(0),
                         String.valueOf(array[1] * hundredthMM));
 
-            } else if (keyword
+            } else if (optionKeyword
                     .equals(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE)) {
-
+                /*
+                 * Create here, apply later.
+                 */
                 attrValueMediaSource = new IppAttrValue(attr);
-                attrValueMediaSource.addValue(entry.getValue());
+                attrValueMediaSource.addValue(optionValue);
 
             } else {
-                group.add(attr, entry.getValue());
+                group.add(attr, optionValue);
             }
         }
 
@@ -1762,11 +1862,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             }
         }
 
+        /*
+         * Mantis #205: add fit to page attribute?
+         */
         if (group != null && fitToPage != null) {
 
-            /*
-             * Mantis #205
-             */
             final String fitToPageIppBoolean;
 
             if (fitToPage) {
@@ -1780,7 +1880,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
-         * Mantis #409.
+         * Mantis #409: add media-source or media-size.
          */
         if (collectionMediaSize != null || attrValueMediaSource != null) {
 
@@ -1823,7 +1923,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
-         * Mantis #259.
+         * Mantis #259: add number of copies when GT 1.
          */
         if (copies > 1) {
             /*
@@ -1837,7 +1937,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     String.valueOf(copies));
         }
 
-        // ---------
         return attrGroups;
     }
 
@@ -2232,7 +2331,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     @Override
     public ProxyPrinterDto getProxyPrinterDto(final Printer printer) {
 
-        ProxyPrinterDto dto = new ProxyPrinterDto();
+        final ProxyPrinterDto dto = new ProxyPrinterDto();
 
         dto.setId(printer.getId());
         dto.setPrinterName(printer.getPrinterName());
@@ -2246,6 +2345,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         dto.setInternal(
                 Boolean.valueOf(printerService().isInternalPrinter(printer)));
 
+        dto.setPpdExtFile(printerService().getAttributeValue(printer,
+                PrinterAttrEnum.CUSTOM_PPD_EXT_FILE));
         /*
          * Printer Groups.
          */
@@ -2298,7 +2399,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
-         *
+         * Internal access
          */
         final boolean internalPrinter =
                 dto.getInternal() != null && dto.getInternal().booleanValue();
@@ -2337,6 +2438,48 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     printerService().removeAttribute(jpaPrinter,
                             PrinterAttrEnum.ACCESS_INTERNAL);
                     printerAttrDAO().delete(attrInternal);
+                }
+            }
+        }
+
+        /*
+         * customCupsFile
+         */
+        final String ppdExtFile =
+                StringUtils.defaultString(dto.getPpdExtFile()).trim();
+
+        final PrinterAttr attrCustomPpdExtFile = printerService()
+                .getAttribute(jpaPrinter, PrinterAttrEnum.CUSTOM_PPD_EXT_FILE);
+
+        if (attrCustomPpdExtFile == null) {
+
+            if (StringUtils.isNotBlank(ppdExtFile)) {
+
+                final PrinterAttr attr = new PrinterAttr();
+
+                attr.setPrinter(jpaPrinter);
+                attr.setName(PrinterAttrEnum.CUSTOM_PPD_EXT_FILE.getDbName());
+                attr.setValue(ppdExtFile);
+
+                jpaPrinter.getAttributes().add(attr);
+
+                printerAttrDAO().create(attr);
+            }
+
+        } else {
+
+            final String currentCustomCupsFile =
+                    StringUtils.defaultString(attrCustomPpdExtFile.getValue());
+
+            if (!ppdExtFile.equals(currentCustomCupsFile)) {
+
+                if (StringUtils.isBlank(ppdExtFile)) {
+                    printerService().removeAttribute(jpaPrinter,
+                            PrinterAttrEnum.CUSTOM_PPD_EXT_FILE);
+                    printerAttrDAO().delete(attrCustomPpdExtFile);
+                } else {
+                    attrCustomPpdExtFile.setValue(ppdExtFile);
+                    printerAttrDAO().update(attrCustomPpdExtFile);
                 }
             }
         }
@@ -2703,7 +2846,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 dto = new IppMediaSourceCostDto();
 
                 dto.setActive(Boolean.FALSE);
-                dto.setDisplay(mediaSource.getText());
+                dto.setDisplay(mediaSource.getUiText());
                 dto.setSource(mediaSource.getChoice());
 
                 if (!choice.equals(IppKeyword.MEDIA_SOURCE_AUTO)

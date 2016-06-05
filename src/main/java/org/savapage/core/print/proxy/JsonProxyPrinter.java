@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,10 +35,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Printer returned from the IPP operation.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class JsonProxyPrinter extends JsonAbstractBase {
+public final class JsonProxyPrinter extends JsonAbstractBase {
 
     @JsonIgnore
     private URI deviceUri;
@@ -68,48 +68,54 @@ public class JsonProxyPrinter extends JsonAbstractBase {
         IDLE, BUSY, STOPPED
     };
 
-    String name;
+    private String name;
 
     @JsonProperty("pcfilename")
-    String ppd;
+    private String ppd;
 
     @JsonProperty("FileVersion")
-    String ppdVersion;
+    private String ppdVersion;
 
-    Boolean dfault;
+    private Boolean dfault;
 
     @JsonProperty("is-accepting-jobs")
-    Boolean acceptingJobs;
+    private Boolean acceptingJobs;
 
-    String state;
+    private String state;
 
     @JsonProperty("state-change-time")
-    String stateChangeTime;
+    private String stateChangeTime;
 
     @JsonProperty("state-reasons")
-    String stateReasons;
+    private String stateReasons;
 
-    String location;
-    String info;
+    private String location;
+    private String info;
 
     @JsonProperty("color_device")
-    Boolean colorDevice;
+    private Boolean colorDevice;
 
     @JsonProperty("duplex_device")
-    Boolean duplexDevice;
+    private Boolean duplexDevice;
 
     @JsonProperty("manualMediaSource")
-    Boolean manualMediaSource;
+    private Boolean manualMediaSource;
 
     @JsonProperty("autoMediaSource")
-    Boolean autoMediaSource;
+    private Boolean autoMediaSource;
 
     @JsonProperty("modelname")
-    String modelName;
+    private String modelName;
 
-    String manufacturer;
+    private String manufacturer;
 
-    ArrayList<JsonProxyPrinterOptGroup> groups;
+    private ArrayList<JsonProxyPrinterOptGroup> groups;
+
+    /**
+     * {@code true} when info was injected from a SavaPage PPD extension.
+     */
+    @JsonIgnore
+    private boolean injectPpdExt = false;
 
     /**
      * Gets the corresponding Database Printer Object.
@@ -309,7 +315,8 @@ public class JsonProxyPrinter extends JsonAbstractBase {
                 lookup.put(option.getKeyword(), option);
             }
 
-            for (final JsonProxyPrinterOptGroup subgroup : group.getSubgroups()) {
+            for (final JsonProxyPrinterOptGroup subgroup : group
+                    .getSubgroups()) {
 
                 for (final JsonProxyPrinterOpt option : subgroup.getOptions()) {
                     lookup.put(option.getKeyword(), option);
@@ -331,8 +338,8 @@ public class JsonProxyPrinter extends JsonAbstractBase {
     public final boolean hasSameSignature(final JsonProxyPrinter printer) {
 
         return (hasSameName(printer)
-                && printer.getPpd().equals(printer.getPpd()) && printer
-                .getPpdVersion().equals(printer.getPpdVersion()));
+                && printer.getPpd().equals(printer.getPpd())
+                && printer.getPpdVersion().equals(printer.getPpdVersion()));
 
     }
 
@@ -367,6 +374,23 @@ public class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
+     * @return {@code true} when info was injected from a SavaPage PPD
+     *         extension.
+     */
+    public boolean isInjectPpdExt() {
+        return injectPpdExt;
+    }
+
+    /**
+     * @param injectPpdExt
+     *            {@code true} when info was injected from a SavaPage PPD
+     *            extension.
+     */
+    public void setInjectPpdExt(boolean injectPpdExt) {
+        this.injectPpdExt = injectPpdExt;
+    }
+
+    /**
      * Creates a deep copy instance.
      *
      * @return The new copy.
@@ -388,6 +412,7 @@ public class JsonProxyPrinter extends JsonAbstractBase {
         copy.modelName = this.modelName;
         copy.name = this.name;
         copy.ppd = this.ppd;
+        copy.injectPpdExt = this.injectPpdExt;
         copy.ppdVersion = this.ppdVersion;
         copy.printerUri = this.printerUri;
         copy.state = this.state;

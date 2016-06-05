@@ -70,7 +70,7 @@ public final class UserAliasList extends ConfFileReader {
     }
 
     @Override
-    public void onItem(final String key, final String value) {
+    protected void onItem(final String key, final String value) {
         myAliasUser.put(key, value);
     }
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -42,9 +42,10 @@ import org.savapage.core.services.ServiceContext;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class IppLogger {
+public final class IppLogger {
 
     /**
      *
@@ -59,16 +60,17 @@ public class IppLogger {
     /**
     *
     */
-    private static final ProxyPrintService PROXY_PRINT_SERVICE = ServiceContext
-            .getServiceFactory().getProxyPrintService();
+    private static final ProxyPrintService PROXY_PRINT_SERVICE =
+            ServiceContext.getServiceFactory().getProxyPrintService();
 
     /**
-     * Logs the UI and IPP properties of a {@link Printer}.
+     * Produces log string for the UI and IPP properties of a {@link Printer}.
      *
      * @param printer
      *            The {@link Printer}.
      * @param locale
      *            The locale used for the UI texts.
+     * @return The log string.
      */
     public static String logIppPrinterOpt(final Printer printer,
             final Locale locale) {
@@ -82,8 +84,8 @@ public class IppLogger {
                 PROXY_PRINT_SERVICE.getPrinterDetailCopy(printerName);
 
         if (jsonPrinter == null) {
-            throw new SpException("No details found for printer ["
-                    + printerName + "]");
+            throw new SpException(
+                    "No details found for printer [" + printerName + "]");
         }
 
         /*
@@ -100,26 +102,36 @@ public class IppLogger {
             writer.append(CRLF);
             writer.append("CUPS    : ")
                     .append(PROXY_PRINT_SERVICE.getCupsVersion()).append(CRLF);
-            writer.append("Printer : ").append(printerName).append(CRLF)
+            writer.append("Printer : ").append(printerName).append(CRLF);
+            writer.append("URI     : ")
+                    .append(jsonPrinter.getPrinterUri().toString()).append(CRLF)
                     .append(CRLF);
 
-            writer.append("+--------------------------------------+").append(
-                    CRLF);
-            writer.append("| UI Options                           |").append(
-                    CRLF);
+            writer.append("+--------------------------------------+")
+                    .append(CRLF);
+            writer.append("| UI Options                           |")
+                    .append(CRLF);
             writer.append("+--------------------------------------+");
 
-            for (final JsonProxyPrinterOptGroup group : jsonPrinter.getGroups()) {
+            for (final JsonProxyPrinterOptGroup group : jsonPrinter
+                    .getGroups()) {
 
                 writer.append(CRLF).append(CRLF).append("Group: ")
-                        .append(group.getName()).append(" [")
-                        .append(group.getText()).append("]");
+                        .append(group.getGroupId().toString()).append(" [")
+                        .append(group.getUiText()).append("]");
 
                 for (final JsonProxyPrinterOpt opt : group.getOptions()) {
 
                     writer.append(CRLF).append(CRLF).append("    ")
-                            .append(opt.getKeyword()).append(" [")
-                            .append(opt.getText()).append("]").append(CRLF);
+                            .append(opt.getKeyword());
+
+                    if (StringUtils.isNotBlank(opt.getKeywordPpd())) {
+                        writer.append(" {").append(opt.getKeywordPpd())
+                                .append("}");
+                    }
+
+                    writer.append(" [").append(opt.getUiText()).append("]")
+                            .append(CRLF);
 
                     for (final JsonProxyPrinterOptChoice choice : opt
                             .getChoices()) {
@@ -132,8 +144,15 @@ public class IppLogger {
                             writer.append("        ");
                         }
 
-                        writer.append(choice.getChoice()).append(" [")
-                                .append(choice.getText()).append("]");
+                        writer.append(choice.getChoice());
+
+                        if (StringUtils.isNotBlank(choice.getChoicePpd())) {
+                            writer.append(" {").append(choice.getChoicePpd())
+                                    .append("}");
+                        }
+
+                        writer.append(" [").append(choice.getUiText())
+                                .append("]");
                     }
                 }
             }
@@ -169,21 +188,19 @@ public class IppLogger {
         writer.append("| IPP Attributes                       |").append(CRLF);
         writer.append("+--------------------------------------+");
 
-        for (final IppAttrGroup group : PROXY_PRINT_SERVICE.getIppPrinterAttr(
-                printerName, jsonPrinter.getPrinterUri())) {
+        for (final IppAttrGroup group : PROXY_PRINT_SERVICE
+                .getIppPrinterAttr(printerName, jsonPrinter.getPrinterUri())) {
 
             writer.append(CRLF).append(CRLF).append("Group [")
                     .append(group.getDelimiterTag().toString()).append("]");
 
             for (final IppAttrValue attr : group.getAttributes()) {
 
-                writer.append(CRLF)
-                        .append(CRLF)
-                        .append(INDENT_UNIT)
+                writer.append(CRLF).append(CRLF).append(INDENT_UNIT)
                         .append(attr.getAttribute().getKeyword())
-                        .append(" [")
-                        .append(attr.getAttribute().getSyntax().getClass()
-                                .getSimpleName()).append("]").append(CRLF);
+                        .append(" [").append(attr.getAttribute().getSyntax()
+                                .getClass().getSimpleName())
+                        .append("]").append(CRLF);
 
                 for (final String value : attr.getValues()) {
                     writer.append(CRLF).append(INDENT_UNIT).append(INDENT_UNIT)
@@ -216,14 +233,11 @@ public class IppLogger {
 
         for (final IppAttrValue attr : collection.getAttributes()) {
 
-            writer.append(CRLF)
-                    .append(CRLF)
-                    .append(indent)
-                    .append(INDENT_UNIT)
+            writer.append(CRLF).append(CRLF).append(indent).append(INDENT_UNIT)
                     .append(attr.getAttribute().getKeyword())
-                    .append(" [")
-                    .append(attr.getAttribute().getSyntax().getClass()
-                            .getSimpleName()).append("]").append(CRLF);
+                    .append(" [").append(attr.getAttribute().getSyntax()
+                            .getClass().getSimpleName())
+                    .append("]").append(CRLF);
 
             for (final String value : attr.getValues()) {
                 writer.append(CRLF).append(indent).append(INDENT_UNIT)

@@ -24,6 +24,7 @@ package org.savapage.core.dao.enums;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.PrinterAttrDao;
 import org.savapage.core.jpa.PrinterAttr;
 
@@ -53,6 +54,13 @@ public enum PrinterAttrEnum {
      * {@code true|false}.
      */
     CLIENT_SIDE_MONOCHROME("filter.monochrome.client-side"),
+
+    /**
+     * A PPD extensions file in
+     * {@link ConfigManager#SERVER_REL_PATH_CUSTOM_CUPS} with IPP mappings and
+     * constraints.
+     */
+    CUSTOM_PPD_EXT_FILE("custom.ppd-ext-file"),
 
     /**
      * Statistic time series. Example:

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,21 +29,27 @@ import org.savapage.core.ipp.attribute.syntax.IppUri;
 import org.savapage.core.ipp.encoding.IppValueTag;
 
 /**
- * A dictionary of subscription attributes: <a
- * href="http://tools.ietf.org/html/rfc3995">RFC3995</a>
+ * A dictionary of subscription attributes:
+ * <a href="http://tools.ietf.org/html/rfc3995">RFC3995</a>.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class IppDictSubscriptionAttr extends AbstractIppDict {
+public final class IppDictSubscriptionAttr extends AbstractIppDict {
 
     public static final String ATTR_NOTIFY_EVENTS = "notify-events";
+
     public static final String ATTR_NOTIFY_LEASE_DURATION =
             "notify-lease-duration";
+
     public static final String ATTR_NOTIFY_RECIPIENT_URI =
             "notify-recipient-uri";
+
     public static final String ATTR_NOTIFY_SUBSCRIBER_USER_NAMER =
             "notify-subscriber-user-name";
+
     public static final String ATTR_NOTIFY_PULL_METHOD = "notify-pull-method";
+
     public static final String ATTR_NOTIFY_USER_DATA = "notify-user-data";
 
     /**
@@ -58,27 +64,32 @@ public class IppDictSubscriptionAttr extends AbstractIppDict {
     public static final String ATTR_NOTIFY_SUBSCRIPTION_ID =
             "notify-subscription-id";
 
-    /*
-     * Group 1: Operation Attributes
+    /**
+     * Group 1: Operation Attributes.
      */
-    private final IppAttr[] attributes = {
-    /* */
-    new IppAttr(ATTR_NOTIFY_EVENTS, IppKeyword.instance()),
-    /* */
-    new IppAttr(ATTR_NOTIFY_LEASE_DURATION, IppInteger.instance()),
-    /* */
-    new IppAttr(ATTR_NOTIFY_RECIPIENT_URI, IppUri.instance()),
-    /* */
-    new IppAttr(ATTR_NOTIFY_SUBSCRIBER_USER_NAMER, IppName.instance()),
-    /* */
-    new IppAttr(ATTR_NOTIFY_TIME_INTERVAL, IppInteger.instance()),
-    /* */
-    new IppAttr(ATTR_NOTIFY_SUBSCRIPTION_ID, IppInteger.instance()),
-    /* */
-    new IppAttr(ATTR_NOTIFY_PULL_METHOD, IppKeyword.instance()),
-    /* */
-    new IppAttr(ATTR_NOTIFY_USER_DATA, new IppOctetString(63)),
-    //
+    private final IppAttr[] attributes =
+            {
+                    /* */
+                    new IppAttr(ATTR_NOTIFY_EVENTS, IppKeyword.instance()),
+                    /* */
+                    new IppAttr(ATTR_NOTIFY_LEASE_DURATION,
+                            IppInteger.instance()),
+                    /* */
+                    new IppAttr(ATTR_NOTIFY_RECIPIENT_URI, IppUri.instance()),
+                    /* */
+                    new IppAttr(ATTR_NOTIFY_SUBSCRIBER_USER_NAMER,
+                            IppName.instance()),
+                    /* */
+                    new IppAttr(ATTR_NOTIFY_TIME_INTERVAL,
+                            IppInteger.instance()),
+                    /* */
+                    new IppAttr(ATTR_NOTIFY_SUBSCRIPTION_ID,
+                            IppInteger.instance()),
+                    /* */
+                    new IppAttr(ATTR_NOTIFY_PULL_METHOD, IppKeyword.instance()),
+                    /* */
+                    new IppAttr(ATTR_NOTIFY_USER_DATA, new IppOctetString(63)),
+            //
 
             };
 
@@ -100,7 +111,7 @@ public class IppDictSubscriptionAttr extends AbstractIppDict {
     /**
      * Gets the singleton instance.
      *
-     * @return
+     * @return the singleton instance.
      */
     public static IppDictSubscriptionAttr instance() {
         return SingletonHolder.INSTANCE;
@@ -115,7 +126,7 @@ public class IppDictSubscriptionAttr extends AbstractIppDict {
     }
 
     @Override
-    public IppAttr getAttr(String keyword, IppValueTag valueTag) {
+    public IppAttr getAttr(final String keyword, final IppValueTag valueTag) {
         /*
          * Ignore the value tag.
          */

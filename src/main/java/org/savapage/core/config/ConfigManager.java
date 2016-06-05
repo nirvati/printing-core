@@ -144,6 +144,12 @@ public final class ConfigManager {
     private RunMode runMode = null;
 
     /**
+     * The relative path of the CUPS custom properties files (relative to the
+     * {@code server} directory).
+     */
+    public static final String SERVER_REL_PATH_CUSTOM_CUPS = "custom/cups";
+
+    /**
      * The relative path of the email outbox folder (relative to the
      * {@code server} directory).
      */
@@ -827,6 +833,14 @@ public final class ConfigManager {
      */
     public static File getServerExtHome() {
         return new File(String.format("%s/ext", getServerHome()));
+    }
+
+    /**
+     * @return The directory with the server custom CUPS files.
+     */
+    public static File getServerCustomCupsHome() {
+        return new File(String.format("%s/%s", getServerHome(),
+                SERVER_REL_PATH_CUSTOM_CUPS));
     }
 
     /**
