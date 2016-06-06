@@ -247,6 +247,7 @@ public final class ConfigManager {
 
     private static Properties theServerProps = null;
 
+    public static final String SERVER_PROP_APP_DIR_TMP = "app.dir.tmp";
     public static final String SERVER_PROP_APP_DIR_SAFEPAGES =
             "app.dir.safepages";
     public static final String SERVER_PROP_APP_DIR_LETTERHEADS =
@@ -2188,7 +2189,6 @@ public final class ConfigManager {
                 PosixFilePermissions.asFileAttribute(permissions);
 
         java.nio.file.Files.createDirectories(p, attr);
-
     }
 
     /**
@@ -2211,12 +2211,26 @@ public final class ConfigManager {
     }
 
     /**
-     * Get the global temp directory.
+     * Get the global application temp directory.
      *
-     * @return The value of System property {@code java.io.tmpdir} appended with
-     *         {@code /savapage}.
+     * @return The value of the server properties
+     *         {@link #SERVER_PROP_APP_DIR_TMP} (when present) or the System
+     *         property {@code java.io.tmpdir} appended with {@code /savapage}.
      */
     public static String getAppTmpDir() {
+
+        final String homeTmp;
+
+        if (theServerProps == null) {
+            homeTmp = null;
+        } else {
+            homeTmp = theServerProps.getProperty(SERVER_PROP_APP_DIR_TMP);
+        }
+
+        if (homeTmp != null) {
+            return homeTmp;
+        }
+
         return String.format("%s%c%s", System.getProperty("java.io.tmpdir"),
                 File.separatorChar, "savapage");
     }
