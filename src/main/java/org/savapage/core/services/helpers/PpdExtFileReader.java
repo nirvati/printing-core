@@ -35,7 +35,11 @@ import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptGroup;
 import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
+import org.savapage.core.services.ProxyPrintService;
+import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.AbstractConfigFileReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Reader of file with SavaPage PPD extensions from
@@ -45,6 +49,15 @@ import org.savapage.core.util.AbstractConfigFileReader;
  *
  */
 public final class PpdExtFileReader extends AbstractConfigFileReader {
+
+    /**
+     * The logger.
+     */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PpdExtFileReader.class);
+
+    private static final ProxyPrintService PROXYPRINT_SERVICE =
+            ServiceContext.getServiceFactory().getProxyPrintService();
 
     private static final String PPD_CHOICE_DEFAULT_PFX = "*";
 
@@ -216,21 +229,57 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         final PpdExtFileReader reader = new PpdExtFileReader();
         reader.read(filePpdExt);
 
-        JsonProxyPrinterOptGroup optGroupAdvanced = null;
+        final IppDictJobTemplateAttr ippDict =
+                IppDictJobTemplateAttr.instance();
+
+        final Map<String, JsonProxyPrinterOpt> optionsLookup =
+                proxyPrinter.getOptionsLookup();
 
         for (final JsonProxyPrinterOpt opt : reader.ppdOptionMap.values()) {
 
-            if (opt.getKeyword().startsWith(
+            final String keywordIpp = opt.getKeyword();
+
+            final ProxyPrinterOptGroupEnum optGroupEnum;
+
+            if (keywordIpp.startsWith(
                     IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_PFX_FINISHINGS)) {
 
-                if (optGroupAdvanced == null) {
-                    optGroupAdvanced = lazyCreateOptGroup(
-                            ProxyPrinterOptGroupEnum.ADVANCED,
-                            proxyPrinter.getGroups());
-                }
+                optGroupEnum = PROXYPRINT_SERVICE.getUiOptGroup(keywordIpp);
 
-                optGroupAdvanced.getOptions().add(opt);
+            } else if (keywordIpp
+                    .equals(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE)) {
+
+                // TODO
+                optGroupEnum = null;// ProxyPrinterOptGroupEnum.REFERENCE_ONLY;
+
+            } else if (ippDict.isCustomAttr(keywordIpp)
+                    || ippDict.getAttr(keywordIpp) == null) {
+
+                optGroupEnum = null;
+
+                LOGGER.error(String.format(
+                        "File %s: IPP attribute [%s] is not supported.",
+                        filePpdExt, keywordIpp));
+            } else {
+                optGroupEnum = PROXYPRINT_SERVICE.getUiOptGroup(keywordIpp);
             }
+
+            if (optGroupEnum == null) {
+                continue;
+            }
+
+            final JsonProxyPrinterOpt optPresent =
+                    optionsLookup.get(opt.getKeyword());
+
+            if (optPresent != null) {
+                optPresent.copyFrom(opt);
+                continue;
+            }
+
+            final JsonProxyPrinterOptGroup optGroupInject =
+                    lazyCreateOptGroup(optGroupEnum, proxyPrinter.getGroups());
+
+            optGroupInject.getOptions().add(opt);
         }
 
         proxyPrinter.setInjectPpdExt(true);

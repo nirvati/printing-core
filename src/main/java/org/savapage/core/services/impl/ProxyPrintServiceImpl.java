@@ -381,54 +381,37 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         return printer;
     }
 
+    @Override
+    public ProxyPrinterOptGroupEnum getUiOptGroup(final String keywordIpp) {
+        if (isIppKeywordPresent(IPP_ATTR_KEYWORDS_UI_ADVANCED, keywordIpp)) {
+            return ProxyPrinterOptGroupEnum.ADVANCED;
+        }
+        if (isIppKeywordPresent(IPP_ATTR_KEYWORDS_UI_JOB, keywordIpp)) {
+            return ProxyPrinterOptGroupEnum.JOB;
+        }
+        if (isIppKeywordPresent(IPP_ATTR_KEYWORDS_UI_PAGE_SETUP, keywordIpp)) {
+            return ProxyPrinterOptGroupEnum.PAGE_SETUP;
+        }
+        return null;
+    }
+
     /**
-     * @deprecated Corrects printer attributes inconsistenties, removes unwanted
-     *             choices, etc.
+     * Checks if a keyword is present in array.
      *
-     * @param group
-     *            The {@link IppDelimiterTag#PRINTER_ATTR} group.
+     * @param keywords
+     *            The keyword array.
+     * @param keywordIpp
+     *            The IPP keyword.
+     * @return {@code null} when IPP keyword is not present in the array.
      */
-    @Deprecated
-    private void alterPrinterAttr(IppAttrGroup group) {
-
-        boolean isColorDevice = group
-                .getAttrSingleValue(IppDictPrinterDescAttr.ATTR_COLOR_SUPPORTED,
-                        IppBoolean.FALSE)
-                .equals(IppBoolean.TRUE);
-
-        /*
-         * ftp://ftp.pwg.org/pub/pwg/candidates/cs-ippjobprinterext3v10-
-         * 20120727- 5100.13.pdf
-         *
-         * A color printer MUST support the 'color' and 'monochrome' options.
-         */
-        if (isColorDevice) {
-
-            IppAttrValue attrValue = group.getAttrValue(
-                    IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE_SUPP);
-
-            if (attrValue == null) {
-
-                attrValue = new IppAttrValue(
-                        IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE_SUPP,
-                        IppKeyword.instance());
-            } else {
-                /*
-                 * We remove the 'auto' value, since we want to force the user
-                 * to make an explicit choice.
-                 */
-                attrValue.removeValue(IppKeyword.PRINT_COLOR_MODE_AUTO);
-            }
-
-            if (attrValue.getValues().isEmpty()) {
-                /*
-                 * First one is picked up as the default.
-                 */
-                attrValue.addValue(IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
-                attrValue.addValue(IppKeyword.PRINT_COLOR_MODE_COLOR);
-                group.addAttribute(attrValue);
+    private boolean isIppKeywordPresent(final String[] keywords,
+            final String keywordIpp) {
+        for (final String keyword : keywords) {
+            if (keyword.equals(keywordIpp)) {
+                return true;
             }
         }
+        return false;
     }
 
     /**

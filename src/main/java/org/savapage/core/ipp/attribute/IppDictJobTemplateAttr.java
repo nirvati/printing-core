@@ -136,6 +136,19 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     public static final String ATTR_PRINT_QUALITY = "print-quality";
 
     /**
+     * "This attribute specifies whether or not the media sheets of each copy of
+     * each printed document in a job are to be in sequence, when multiple
+     * copies of the document are specified by the 'copies' attribute."
+     * <p>
+     * <a href="https://tools.ietf.org/html/rfc3381">https://tools.ietf.org/html
+     * /rfc3381</a>
+     * </p>
+     *
+     * @since 0.9.11
+     */
+    public static final String ATTR_SHEET_COLLATE = "sheet-collate";
+
+    /**
      * CUPS attribute (since CUPS 1.4/OS X 10.6): specifies whether to scale
      * documents to fit on the selected media (fit-to-page=true) or use the
      * physical size specified in the document (fit-to-page=false). The default
@@ -296,6 +309,9 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     public static final String ATTR_PRINT_QUALITY_DFLT =
             ATTR_PRINT_QUALITY + _DFLT;
 
+    public static final String ATTR_SHEET_COLLATE_DFLT =
+            ATTR_SHEET_COLLATE + _DFLT;
+
     public static final String ATTR_PRINT_COLOR_MODE_DFLT =
             ATTR_PRINT_COLOR_MODE + _DFLT;
 
@@ -341,6 +357,9 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
 
     public static final String ATTR_PRINT_QUALITY_SUPP =
             ATTR_PRINT_QUALITY + _SUPP;
+
+    public static final String ATTR_SHEET_COLLATE_SUPP =
+            ATTR_SHEET_COLLATE + _SUPP;
 
     public static final String ATTR_PRINT_COLOR_MODE_SUPP =
             ATTR_PRINT_COLOR_MODE + _SUPP;
@@ -610,6 +629,22 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             new IppAttr(ATTR_PRINT_QUALITY, IppEnum.instance()),
             new IppAttr(ATTR_PRINT_QUALITY_DFLT, IppEnum.instance()),
             new IppAttr(ATTR_PRINT_QUALITY_SUPP, IppEnum.instance()),
+
+            /**
+             * <pre>
+             * +===================+======================+=====================+
+             * | Job Attribute     |Printer: Default Value|  Printer: Supported |
+             * |                   |   Attribute          |   Values Attribute  |
+             * +===================+======================+=====================+
+             * | sheet-collate     | sheet-collate-default| sheet-collate-      |
+             * | (type2 keyword)   | (type2 keyword)      |  supported (1setOf  |
+             * |                   |                      |      type2 keyword) |
+             * +-------------------+----------------------+---------------------+
+             * </pre>
+             */
+            new IppAttr(ATTR_SHEET_COLLATE, IppKeyword.instance()),
+            new IppAttr(ATTR_SHEET_COLLATE_DFLT, IppKeyword.instance()),
+            new IppAttr(ATTR_SHEET_COLLATE_SUPP, IppKeyword.instance()),
 
             /**
              * Where from ???

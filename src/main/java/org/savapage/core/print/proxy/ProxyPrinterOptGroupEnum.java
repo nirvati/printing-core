@@ -22,7 +22,7 @@
 package org.savapage.core.print.proxy;
 
 /**
- * IPP option group.
+ * IPP option grouping for UI purposes.
  *
  * @author Rijk Ravestein
  *
@@ -42,6 +42,11 @@ public enum ProxyPrinterOptGroupEnum {
     /**
      *
      */
-    ADVANCED
+    ADVANCED,
+
+    /**
+     * This group is not visible in the UI and used for reference only.
+     */
+    REFERENCE_ONLY
 
 }

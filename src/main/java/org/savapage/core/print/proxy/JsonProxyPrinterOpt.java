@@ -79,18 +79,29 @@ public final class JsonProxyPrinterOpt {
     public JsonProxyPrinterOpt copy() {
 
         final JsonProxyPrinterOpt copy = new JsonProxyPrinterOpt();
-
-        copy.keyword = this.keyword;
-        copy.keywordPpd = this.keywordPpd;
-        copy.defchoice = this.defchoice;
-        copy.defchoiceIpp = this.defchoiceIpp;
-        copy.uiText = this.uiText;
-
-        for (final JsonProxyPrinterOptChoice choice : choices) {
-            copy.choices.add(choice.copy());
-        }
-
+        copy.copyFrom(this);
         return copy;
+    }
+
+    /**
+     * Copies the state from another option.
+     *
+     * @param opt
+     *            The option to copy from.
+     */
+    public void copyFrom(final JsonProxyPrinterOpt opt) {
+
+        this.keyword = opt.keyword;
+        this.keywordPpd = opt.keywordPpd;
+        this.defchoice = opt.defchoice;
+        this.defchoiceIpp = opt.defchoiceIpp;
+        this.uiText = opt.uiText;
+
+        this.choices = new ArrayList<>();
+
+        for (final JsonProxyPrinterOptChoice choice : opt.choices) {
+            this.choices.add(choice.copy());
+        }
     }
 
     /**

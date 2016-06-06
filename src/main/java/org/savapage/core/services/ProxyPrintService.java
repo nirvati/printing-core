@@ -67,6 +67,7 @@ import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
+import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
@@ -254,6 +255,15 @@ public interface ProxyPrintService {
      */
     List<IppAttrGroup> getIppPrinterAttr(String printerName, URI printerUri)
             throws IppConnectException;
+
+    /**
+     * Gets the printer option UI group of an IPP keyword.
+     *
+     * @param keywordIpp
+     *            The IPP keyword.
+     * @return {@code null} when printer option is not shown in UI.
+     */
+    ProxyPrinterOptGroupEnum getUiOptGroup(final String keywordIpp);
 
     /**
      * Localizes the texts in all printer options.

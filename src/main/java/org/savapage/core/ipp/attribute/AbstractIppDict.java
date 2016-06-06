@@ -75,6 +75,16 @@ public abstract class AbstractIppDict {
     }
 
     /**
+     *
+     * @param keyword
+     *            The IPP attribute keyword (name).
+     * @return {@code true} when attribute is a custom SavaPage attribute.
+     */
+    public final boolean isCustomAttr(final String keyword) {
+        return keyword.startsWith(ORG_SAVAPAGE_ATTR_PFX);
+    }
+
+    /**
      * Creates an {@link IppAttr} object for a PPD option.
      * <p>
      * See {@link PpdExtFileReader}.
