@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@ import org.savapage.core.users.IUserSource;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface UserService {
@@ -181,6 +181,25 @@ public interface UserService {
      */
     AbstractJsonRpcMethodResponse deleteUser(final String userIdToDelete)
             throws IOException;
+
+    /**
+     * Logically deletes a user and auto-corrects the inconsistent situation
+     * where multiple active instances with same user name exist (in that case
+     * all instances are logically deleted).
+     * <p>
+     * NOTE: Any inconsistent situation is caused by a program bug, which of
+     * course needs to be fixed. In the mean time this method can be used to
+     * ad-hoc fix inconsistencies by deleting all user instances.
+     * </p>
+     *
+     * @param userIdToDelete
+     *            The unique user name to delete.
+     * @return The JSON-RPC Return message (either a result or an error);
+     * @throws IOException
+     *             When something went wrong.
+     */
+    AbstractJsonRpcMethodResponse deleteUserAutoCorrect(
+            final String userIdToDelete) throws IOException;
 
     /**
      * Lists Users sorted by user name.

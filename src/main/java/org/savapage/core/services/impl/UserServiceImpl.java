@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -97,7 +97,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class UserServiceImpl extends AbstractService
@@ -944,20 +944,15 @@ public final class UserServiceImpl extends AbstractService
         }
     }
 
-    @Override
-    public AbstractJsonRpcMethodResponse deleteUser(final String userIdToDelete)
-            throws IOException {
-
-        User user = userDAO().lockByUserId(userIdToDelete);
-
-        if (user == null) {
-            return createError("msg-user-not-found", userIdToDelete);
-
-        }
-
-        this.performLogicalDelete(user);
-
-        userDAO().update(user);
+    /**
+     * Perform the final actions after a user delete.
+     *
+     * @param userIdToDelete
+     *            The unique user name to delete.
+     * @return The JSON-RPC Return message (either a result or an error);
+     */
+    private AbstractJsonRpcMethodResponse
+            deleteUserFinalAction(final String userIdToDelete) {
 
         MemberCard.instance().init();
 
@@ -975,8 +970,53 @@ public final class UserServiceImpl extends AbstractService
         if (nBytes == 0) {
             return createOkResult("msg-user-deleted-ok");
         }
+
         return createOkResult("msg-user-deleted-ok-inc-safepages",
                 NumberUtil.humanReadableByteCount(nBytes, true));
+    }
+
+    @Override
+    public AbstractJsonRpcMethodResponse deleteUser(final String userIdToDelete)
+            throws IOException {
+
+        final User user = userDAO().lockByUserId(userIdToDelete);
+
+        if (user == null) {
+            return createError("msg-user-not-found", userIdToDelete);
+        }
+
+        this.performLogicalDelete(user);
+        userDAO().update(user);
+
+        return this.deleteUserFinalAction(userIdToDelete);
+    }
+
+    @Override
+    public AbstractJsonRpcMethodResponse deleteUserAutoCorrect(
+            final String userIdToDelete) throws IOException {
+
+        final List<User> users =
+                userDAO().checkActiveUserByUserId(userIdToDelete);
+
+        if (users.isEmpty()) {
+            return createError("msg-user-not-found", userIdToDelete);
+        }
+
+        if (users.size() == 1) {
+            userDAO().lock(users.get(0).getId());
+        } else {
+            LOGGER.warn(String.format(
+                    "Inconsistency corrected when deleting user [%s]: "
+                            + "[%d] instances found and deleted.",
+                    userIdToDelete, users.size()));
+        }
+
+        for (final User user : users) {
+            this.performLogicalDelete(user);
+            userDAO().update(user);
+        }
+
+        return this.deleteUserFinalAction(userIdToDelete);
     }
 
     /**

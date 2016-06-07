@@ -239,6 +239,20 @@ public interface UserDao extends GenericDao<User> {
             String insertedBy);
 
     /**
+     * Checks the active (i.e. not logically deleted) {@link User} by user id.
+     * When not found (or logically deleted) an empty list is returned.
+     * <p>
+     * NOTE: A returned list with more than one (1) element signals an
+     * <b>inconsistent</b> state.
+     * </p>
+     *
+     * @param userId
+     *            The unique user id.
+     * @return The list of active users found.
+     */
+    List<User> checkActiveUserByUserId(final String userId);
+
+    /**
      * Finds a User by primary key of his {@link Account}.
      *
      * @param accountId

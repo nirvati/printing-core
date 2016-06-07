@@ -49,9 +49,8 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
     @Override
     public User findByAccount(final Long accountId) {
 
-        final String jpql =
-                "SELECT UA.user FROM UserAccount UA "
-                        + "JOIN UA.account A WHERE A.id = :accountId";
+        final String jpql = "SELECT UA.user FROM UserAccount UA "
+                + "JOIN UA.account A WHERE A.id = :accountId";
 
         final Query query = getEntityManager().createQuery(jpql.toString());
 
@@ -277,16 +276,16 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
         }
 
         if (filter.getContainingIdText() != null) {
-            query.setParameter("containingIdText", "%"
-                    + filter.getContainingIdText().toLowerCase() + "%");
+            query.setParameter("containingIdText",
+                    "%" + filter.getContainingIdText().toLowerCase() + "%");
         }
         if (filter.getContainingNameText() != null) {
-            query.setParameter("containingNameText", "%"
-                    + filter.getContainingNameText().toLowerCase() + "%");
+            query.setParameter("containingNameText",
+                    "%" + filter.getContainingNameText().toLowerCase() + "%");
         }
         if (filter.getContainingEmailText() != null) {
-            query.setParameter("containingEmailText", "%"
-                    + filter.getContainingEmailText().toLowerCase() + "%");
+            query.setParameter("containingEmailText",
+                    "%" + filter.getContainingEmailText().toLowerCase() + "%");
         }
         if (filter.getInternal() != null) {
             query.setParameter("selInternal", filter.getInternal());
@@ -310,19 +309,15 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
     @Override
     public void resetTotals(final Date resetDate, final String resetBy) {
 
-        final String jpql =
-                "UPDATE User U SET " + "U.numberOfPrintInJobs = 0, "
-                        + "U.numberOfPrintInPages = 0, "
-                        + "U.numberOfPrintInBytes = 0, "
-                        + "U.numberOfPdfOutJobs = 0, "
-                        + "U.numberOfPdfOutPages = 0, "
-                        + "U.numberOfPdfOutBytes = 0,"
-                        + "U.numberOfPrintOutJobs = 0, "
-                        + "U.numberOfPrintOutPages = 0, "
-                        + "U.numberOfPrintOutSheets = 0, "
-                        + "U.numberOfPrintOutEsu = 0, "
-                        + "U.numberOfPrintOutBytes = 0,"
-                        + "U.resetDate = :resetDate, U.resetBy = :resetBy";
+        final String jpql = "UPDATE User U SET " + "U.numberOfPrintInJobs = 0, "
+                + "U.numberOfPrintInPages = 0, "
+                + "U.numberOfPrintInBytes = 0, " + "U.numberOfPdfOutJobs = 0, "
+                + "U.numberOfPdfOutPages = 0, " + "U.numberOfPdfOutBytes = 0,"
+                + "U.numberOfPrintOutJobs = 0, "
+                + "U.numberOfPrintOutPages = 0, "
+                + "U.numberOfPrintOutSheets = 0, "
+                + "U.numberOfPrintOutEsu = 0, " + "U.numberOfPrintOutBytes = 0,"
+                + "U.resetDate = :resetDate, U.resetBy = :resetBy";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -343,9 +338,8 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
          */
         int nCount = 0;
 
-        final String jpql =
-                "SELECT U FROM User U WHERE U.deleted = true "
-                        + "AND U.docLog IS EMPTY";
+        final String jpql = "SELECT U FROM User U WHERE U.deleted = true "
+                + "AND U.docLog IS EMPTY";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -370,8 +364,8 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
 
         final StringBuilder psql = new StringBuilder();
 
-        psql.append("SELECT COUNT(U.id) FROM User U"
-                + " WHERE U.deleted = false");
+        psql.append(
+                "SELECT COUNT(U.id) FROM User U" + " WHERE U.deleted = false");
 
         switch (userGroupEnum) {
         case ALL:
@@ -408,6 +402,13 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public List<User> checkActiveUserByUserId(final String userId) {
+        final Query query = this.createActiveUserQuery(userId);
+        return query.getResultList();
+    }
+
+    @Override
     public User findActiveUserByUserIdInsert(final String userId) {
 
         final User userToInsert = new User();
@@ -426,6 +427,21 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
         }
 
         return readUser(user.getUserId(), user, insertDate, insertedBy);
+    }
+
+    /**
+     * @param userId
+     *            The unique name of the user.
+     * @return A {@link Query} to find the active user(s) by unique name.
+     */
+    private Query createActiveUserQuery(final String userId) {
+
+        final String jpql = "SELECT U FROM User U WHERE U.userId = :userId "
+                + "AND U.deleted = false";
+
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("userId", userId);
+        return query;
     }
 
     /**
@@ -449,15 +465,7 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
 
         final boolean lazyInsertRow = userToInsert != null;
 
-        /*
-         * Find the user by unique name
-         */
-        final String jpql =
-                "SELECT U FROM User U WHERE U.userId = :userId "
-                        + "AND U.deleted = false";
-
-        final Query query = getEntityManager().createQuery(jpql);
-        query.setParameter("userId", userId);
+        final Query query = this.createActiveUserQuery(userId);
 
         User user = null;
 
