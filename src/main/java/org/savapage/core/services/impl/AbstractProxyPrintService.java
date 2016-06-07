@@ -123,6 +123,7 @@ import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
+import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
@@ -386,8 +387,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
 
             if (isUserCopy) {
+
                 this.setPrinterMediaSourcesForUser(cupsPrinter.getDbPrinter(),
                         printerCopy);
+
+                removeOptGroup(printerCopy,
+                        ProxyPrinterOptGroupEnum.REFERENCE_ONLY);
             }
 
         } else {
@@ -395,6 +400,30 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         return printerCopy;
+    }
+
+    /**
+     * Removes an {@link ProxyPrinterOptGroupEnum} from a
+     * {@link JsonPrinterDetail} definition.
+     *
+     * @param printerDetail
+     *            The printer definition
+     * @param optGroup
+     *            The option group.
+     */
+    private static void removeOptGroup(final JsonPrinterDetail printerDetail,
+            final ProxyPrinterOptGroupEnum optGroup) {
+
+        final Iterator<JsonProxyPrinterOptGroup> iter =
+                printerDetail.getGroups().iterator();
+
+        while (iter.hasNext()) {
+            final JsonProxyPrinterOptGroup group = iter.next();
+            if (group.getGroupId() == optGroup) {
+                iter.remove();
+                break;
+            }
+        }
     }
 
     /**

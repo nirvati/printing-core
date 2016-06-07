@@ -40,7 +40,7 @@ public enum ProxyPrinterOptGroupEnum {
     JOB,
 
     /**
-     *
+     * Option group with advanced options like finishings.
      */
     ADVANCED,
 

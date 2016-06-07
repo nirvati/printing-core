@@ -243,28 +243,18 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
             if (keywordIpp.startsWith(
                     IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_PFX_FINISHINGS)) {
-
                 optGroupEnum = PROXYPRINT_SERVICE.getUiOptGroup(keywordIpp);
-
-            } else if (keywordIpp
-                    .equals(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE)) {
-
-                // TODO
-                optGroupEnum = null;// ProxyPrinterOptGroupEnum.REFERENCE_ONLY;
-
             } else if (ippDict.isCustomAttr(keywordIpp)
                     || ippDict.getAttr(keywordIpp) == null) {
-
                 optGroupEnum = null;
-
-                LOGGER.error(String.format(
-                        "File %s: IPP attribute [%s] is not supported.",
-                        filePpdExt, keywordIpp));
             } else {
                 optGroupEnum = PROXYPRINT_SERVICE.getUiOptGroup(keywordIpp);
             }
 
             if (optGroupEnum == null) {
+                LOGGER.warn(String.format(
+                        "File %s: IPP attribute [%s] is not supported.",
+                        filePpdExt, keywordIpp));
                 continue;
             }
 

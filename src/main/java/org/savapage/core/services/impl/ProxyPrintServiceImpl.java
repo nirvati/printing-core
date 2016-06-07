@@ -208,6 +208,17 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     };
 
     /**
+     * A selection of IPP attribute keywords NOT used in UI (Web App) but for
+     * reference only.
+     */
+    private static final String[] IPP_ATTR_KEYWORDS_REFERENCE_ONLY =
+            new String[] {
+                    /* */
+                    IppDictJobTemplateAttr.ATTR_SHEET_COLLATE
+            //
+            };
+
+    /**
      *
      * @throws MalformedURLException
      */
@@ -383,6 +394,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
     @Override
     public ProxyPrinterOptGroupEnum getUiOptGroup(final String keywordIpp) {
+
         if (isIppKeywordPresent(IPP_ATTR_KEYWORDS_UI_ADVANCED, keywordIpp)) {
             return ProxyPrinterOptGroupEnum.ADVANCED;
         }
@@ -391,6 +403,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
         if (isIppKeywordPresent(IPP_ATTR_KEYWORDS_UI_PAGE_SETUP, keywordIpp)) {
             return ProxyPrinterOptGroupEnum.PAGE_SETUP;
+        }
+        if (isIppKeywordPresent(IPP_ATTR_KEYWORDS_REFERENCE_ONLY, keywordIpp)) {
+            return ProxyPrinterOptGroupEnum.REFERENCE_ONLY;
         }
         return null;
     }
