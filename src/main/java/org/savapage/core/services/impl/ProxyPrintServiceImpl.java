@@ -40,6 +40,7 @@ import java.util.Map.Entry;
 
 import javax.print.attribute.standard.MediaSizeName;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
@@ -430,6 +431,42 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     /**
+     * Adds a {@link JsonProxyPrinterOptGroup} to {@link JsonProxyPrinter}.
+     *
+     * @param printer
+     *            The printer to add the option group to.
+     * @param ippAttrGroup
+     *            All the (raw) IPP options of the printer .
+     * @param groupId
+     *            The ID of the option group.
+     * @param attrKeywords
+     *            The IPP keywords to add to the option group.
+     */
+    private void addUserPrinterOptGroup(final JsonProxyPrinter printer,
+            final IppAttrGroup ippAttrGroup,
+            final ProxyPrinterOptGroupEnum groupId,
+            final String[] attrKeywords) {
+
+        final ArrayList<JsonProxyPrinterOpt> printerOptions = new ArrayList<>();
+
+        for (final String keyword : attrKeywords) {
+            addOption(printer, ippAttrGroup, printerOptions, keyword);
+        }
+
+        if (!printerOptions.isEmpty()) {
+
+            final JsonProxyPrinterOptGroup optGroup =
+                    new JsonProxyPrinterOptGroup();
+
+            optGroup.setOptions(printerOptions);
+            optGroup.setGroupId(groupId);
+            optGroup.setUiText(groupId.toString());
+
+            printer.getGroups().add(optGroup);
+        }
+    }
+
+    /**
      * Creates a {@link JsonProxyPrinter}, with a subset of IPP option
      * (attributes).
      * <p>
@@ -536,77 +573,20 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         // ---------------------
         // Options
         // ---------------------
-        String[] attrKeywords = null;
-        ArrayList<JsonProxyPrinterOpt> printerOptions = null;
+        addUserPrinterOptGroup(printer, group,
+                ProxyPrinterOptGroupEnum.PAGE_SETUP,
+                IPP_ATTR_KEYWORDS_UI_PAGE_SETUP);
 
-        // ---------------------
-        // Options: Page Setup
-        // ---------------------
-        printerOptions = new ArrayList<>();
-        attrKeywords = IPP_ATTR_KEYWORDS_UI_PAGE_SETUP;
+        addUserPrinterOptGroup(printer, group, ProxyPrinterOptGroupEnum.JOB,
+                IPP_ATTR_KEYWORDS_UI_JOB);
 
-        for (final String keyword : attrKeywords) {
-            addOption(printer, group, printerOptions, keyword);
-        }
+        addUserPrinterOptGroup(printer, group,
+                ProxyPrinterOptGroupEnum.ADVANCED,
+                IPP_ATTR_KEYWORDS_UI_ADVANCED);
 
-        if (!printerOptions.isEmpty()) {
-
-            final JsonProxyPrinterOptGroup optGroup =
-                    new JsonProxyPrinterOptGroup();
-
-            optGroup.setOptions(printerOptions);
-            optGroup.setGroupId(ProxyPrinterOptGroupEnum.PAGE_SETUP);
-            optGroup.setUiText(ProxyPrinterOptGroupEnum.PAGE_SETUP.toString());
-
-            printerOptGroups.add(optGroup);
-        }
-
-        // ---------------------
-        // Options: Job
-        // ---------------------
-
-        // Add Cover Page - Before: After:
-        //
-        printerOptions = new ArrayList<>();
-        attrKeywords = IPP_ATTR_KEYWORDS_UI_JOB;
-
-        for (final String keyword : attrKeywords) {
-            addOption(printer, group, printerOptions, keyword);
-        }
-
-        if (!printerOptions.isEmpty()) {
-
-            final JsonProxyPrinterOptGroup optGroup =
-                    new JsonProxyPrinterOptGroup();
-
-            optGroup.setOptions(printerOptions);
-            optGroup.setGroupId(ProxyPrinterOptGroupEnum.JOB);
-            optGroup.setUiText(ProxyPrinterOptGroupEnum.JOB.toString());
-
-            printerOptGroups.add(optGroup);
-        }
-
-        // ---------------------
-        // Options: Advanced
-        // ---------------------
-        printerOptions = new ArrayList<>();
-        attrKeywords = IPP_ATTR_KEYWORDS_UI_ADVANCED;
-
-        for (final String keyword : attrKeywords) {
-            addOption(printer, group, printerOptions, keyword);
-        }
-
-        if (!printerOptions.isEmpty()) {
-
-            final JsonProxyPrinterOptGroup optGroup =
-                    new JsonProxyPrinterOptGroup();
-
-            optGroup.setOptions(printerOptions);
-            optGroup.setGroupId(ProxyPrinterOptGroupEnum.ADVANCED);
-            optGroup.setUiText(ProxyPrinterOptGroupEnum.ADVANCED.toString());
-
-            printerOptGroups.add(optGroup);
-        }
+        addUserPrinterOptGroup(printer, group,
+                ProxyPrinterOptGroupEnum.REFERENCE_ONLY,
+                IPP_ATTR_KEYWORDS_REFERENCE_ONLY);
 
         // -----------------------------------------
         printer.setDfault(
@@ -767,6 +747,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         final boolean isSides =
                 attrKeyword.equals(IppDictJobTemplateAttr.ATTR_SIDES);
 
+        final boolean isSheetCollate =
+                attrKeyword.equals(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE);
+
+        int nSheetCollateChoices = 0;
         boolean isDuplexPrinter = false;
         boolean hasManualMediaSource = false;
         boolean hasAutoMediaSource = false;
@@ -796,6 +780,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             } else if (isMediaSource && choice
                     .equalsIgnoreCase(IppKeyword.MEDIA_SOURCE_MANUAL)) {
                 hasManualMediaSource = true;
+            } else if (isSheetCollate) {
+                nSheetCollateChoices++;
             }
 
             if (choice.equals(defChoice)) {
@@ -817,6 +803,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         } else if (isMediaSource) {
             printer.setAutoMediaSource(Boolean.valueOf(hasAutoMediaSource));
             printer.setManualMediaSource(Boolean.valueOf(hasManualMediaSource));
+        } else if (isSheetCollate) {
+            // Both choices must be present.
+            printer.setSheetCollate(Boolean.valueOf(nSheetCollateChoices == 2));
         }
 
     }
@@ -906,10 +895,32 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
-         * If we print more then one (1) copy we need to print one (1) copy of a
-         * PDF with collected copies.
+         * Client-side collate?
          */
-        final boolean collectPdf = request.getNumberOfCopies() > 1;
+        final boolean clientSideCollate;
+
+        if (request.getNumberOfCopies() > 1) {
+
+            clientSideCollate =
+                    BooleanUtils.isFalse(jsonPrinter.getSheetCollate());
+
+            if (!clientSideCollate) {
+
+                final String collateKeyword;
+
+                if (request.isCollate()) {
+                    collateKeyword = IppKeyword.SHEET_COLLATE_COLLATED;
+                } else {
+                    collateKeyword = IppKeyword.SHEET_COLLATE_UNCOLLATED;
+                }
+                request.getOptionValues().put(
+                        IppDictJobTemplateAttr.ATTR_SHEET_COLLATE,
+                        collateKeyword);
+            }
+
+        } else {
+            clientSideCollate = false;
+        }
 
         // Save number of copies.
         final int numberOfCopiesSaved = request.getNumberOfCopies();
@@ -924,7 +935,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
             final File pdfFileToPrint;
 
-            if (collectPdf) {
+            if (clientSideCollate) {
 
                 pdfFileCollected = new File(String.format("%s-collected",
                         filePdf.getCanonicalPath()));

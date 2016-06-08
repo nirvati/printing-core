@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.json.JsonAbstractBase;
 
@@ -103,6 +104,14 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
 
     @JsonProperty("autoMediaSource")
     private Boolean autoMediaSource;
+
+    /**
+     * {@code true} when printer supports both
+     * {@link IppKeyword#SHEET_COLLATE_COLLATED} and
+     * {@link IppKeyword#SHEET_COLLATE_UNCOLLATED}.
+     */
+    @JsonProperty("sheetCollate")
+    private Boolean sheetCollate;
 
     @JsonProperty("modelname")
     private String modelName;
@@ -266,6 +275,25 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         this.autoMediaSource = autoMediaSource;
     }
 
+    /**
+     * @return {@code true} when printer supports both
+     *         {@link IppKeyword#SHEET_COLLATE_COLLATED} and
+     *         {@link IppKeyword#SHEET_COLLATE_UNCOLLATED}.
+     */
+    public Boolean getSheetCollate() {
+        return sheetCollate;
+    }
+
+    /**
+     * @param sheetCollate
+     *            {@code true} when printer supports both
+     *            {@link IppKeyword#SHEET_COLLATE_COLLATED} and
+     *            {@link IppKeyword#SHEET_COLLATE_UNCOLLATED}.
+     */
+    public void setSheetCollate(Boolean sheetCollate) {
+        this.sheetCollate = sheetCollate;
+    }
+
     public String getModelName() {
         return modelName;
     }
@@ -408,6 +436,8 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.info = this.info;
         copy.location = this.location;
         copy.manualMediaSource = this.manualMediaSource;
+        copy.autoMediaSource = this.autoMediaSource;
+        copy.sheetCollate = this.sheetCollate;
         copy.manufacturer = this.manufacturer;
         copy.modelName = this.modelName;
         copy.name = this.name;

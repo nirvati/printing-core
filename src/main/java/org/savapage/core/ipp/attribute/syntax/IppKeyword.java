@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,8 @@ import org.savapage.core.ipp.encoding.IppValueTag;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public class IppKeyword extends AbstractIppAttrSyntax {
 
@@ -97,6 +98,11 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String PRINT_COLOR_MODE_PROCESS_MONOCHROME =
             "process-monochrome";
 
+    // ------------------------------------------------------------------------
+    // sheet-collate (RFC 3381)
+    // ------------------------------------------------------------------------
+    public static final String SHEET_COLLATE_UNCOLLATED = "uncollated";
+    public static final String SHEET_COLLATE_COLLATED = "collated";
 
     // ------------------------------------------------------------------------
     // media-source
