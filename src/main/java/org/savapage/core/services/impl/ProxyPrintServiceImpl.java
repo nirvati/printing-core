@@ -199,7 +199,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             /* */
             IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH,
             /* */
-            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD
+            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD,
+            /* */
+            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET
             /*
              * Mantis #408: disable ...
              *

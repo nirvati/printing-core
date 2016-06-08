@@ -271,6 +271,12 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD =
             ORG_SAVAPAGE_ATTR_PFX_FINISHINGS + "fold";
 
+    /**
+     * Custom SavaPage IPP Job template finishing attribute for Booklet.
+     */
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET =
+            ORG_SAVAPAGE_ATTR_PFX_FINISHINGS + "booklet";
+
     /*
      * Defaults
      */
