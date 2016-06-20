@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,6 @@
  */
 package org.savapage.core.dao.enums;
 
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,14 +30,35 @@ import org.savapage.core.jpa.UserAttr;
 /**
  * {@link UserAttr} names. See {@link UserAttr#setName(String)}.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public enum UserAttrEnum {
 
     /**
-     * A JSON value of {@link EnumSet} of {@link ACLRoleEnum}.
+     * A JSON value of {@link Map} with key {@link ACLRoleEnum} and value
+     * {@link Boolean}. When a {@link ACLRoleEnum} key is not present the value
+     * is indeterminate.
      */
     ACL_ROLES("acl.roles"),
+
+    /**
+     * OIDS for Role "User": A JSON value of a {@link Map} with key
+     * {@link ACLOidEnum}. Value {@link Integer} is a bitwise OR of
+     * {@link ACLPermissionEnum#getPermission()} values that hold the granted
+     * access. When a {@link ACLOidEnum} key is not present in the map the
+     * access is indeterminate.
+     */
+    ACL_OIDS_USER("acl.oids.user"),
+
+    /**
+     * OIDS for Role "Admin": A JSON value of a {@link Map} with key
+     * {@link ACLOidEnum}. Value {@link Integer} is a bitwise OR of
+     * {@link ACLPermissionEnum#getPermission()} values that hold the granted
+     * access. When a {@link ACLOidEnum} key is not present in the map the
+     * access is indeterminate.
+     */
+    ACL_OIDS_ADMIN("acl.oids.admin"),
 
     /**
      * The pending bitcoin address created for a {@link User} payment
@@ -75,8 +95,7 @@ public enum UserAttrEnum {
      * {@code 1342562400000,7,16,2,9,16}
      * </p>
      */
-    PRINT_IN_ROLLING_WEEK_PAGES("print.in." + UserAttrDao.STATS_ROLLING
-            + "-week.pages"),
+    PRINT_IN_ROLLING_WEEK_PAGES("print.in." + UserAttrDao.STATS_ROLLING + "-week.pages"),
 
     /**
      * Statistic time series. Example:
@@ -84,8 +103,7 @@ public enum UserAttrEnum {
      * {@code 1342562400000,70033,163344,22335511,9999332,16345}
      * </p>
      */
-    PRINT_IN_ROLLING_WEEK_BYTES("print.in." + UserAttrDao.STATS_ROLLING
-            + "-week.bytes"),
+    PRINT_IN_ROLLING_WEEK_BYTES("print.in." + UserAttrDao.STATS_ROLLING + "-week.bytes"),
 
     /**
      * Statistic time series. Example:
@@ -93,75 +111,7 @@ public enum UserAttrEnum {
      * {@code 1342562400000,7,16,2,9,16}
      * </p>
      */
-    PRINT_IN_ROLLING_MONTH_PAGES("print.in." + UserAttrDao.STATS_ROLLING
-            + "-month.pages"),
-
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,70033,163344,22335511,9999332,16345}
-     * </p>
-     */
-    PRINT_IN_ROLLING_MONTH_BYTES("print.in." + UserAttrDao.STATS_ROLLING
-            + "-month.bytes"),
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_WEEK_PAGES("print.out." + UserAttrDao.STATS_ROLLING
-            + "-week.pages"),
-
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_WEEK_SHEETS("print.out." + UserAttrDao.STATS_ROLLING
-            + "-week.sheets"),
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_WEEK_ESU("print.out." + UserAttrDao.STATS_ROLLING
-            + "-week.esu"),
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,70033,163344,22335511,9999332,16345}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_WEEK_BYTES("print.out." + UserAttrDao.STATS_ROLLING
-            + "-week.bytes"),
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_MONTH_PAGES("print.out." + UserAttrDao.STATS_ROLLING
-            + "-month.pages"),
-
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_MONTH_SHEETS("print.out." + UserAttrDao.STATS_ROLLING
-            + "-month.sheets"),
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_MONTH_ESU("print.out." + UserAttrDao.STATS_ROLLING
-            + "-month.esu"),
+    PRINT_IN_ROLLING_MONTH_PAGES("print.in." + UserAttrDao.STATS_ROLLING + "-month.pages"),
 
     /**
      * Statistic time series. Example:
@@ -169,8 +119,14 @@ public enum UserAttrEnum {
      * {@code 1342562400000,70033,163344,22335511,9999332,16345}
      * </p>
      */
-    PRINT_OUT_ROLLING_MONTH_BYTES("print.out." + UserAttrDao.STATS_ROLLING
-            + "-month.bytes"),
+    PRINT_IN_ROLLING_MONTH_BYTES("print.in." + UserAttrDao.STATS_ROLLING + "-month.bytes"),
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PRINT_OUT_ROLLING_WEEK_PAGES("print.out." + UserAttrDao.STATS_ROLLING + "-week.pages"),
 
     /**
      * Statistic time series. Example:
@@ -178,17 +134,28 @@ public enum UserAttrEnum {
      * {@code 1342562400000,7,16,2,9,16}
      * </p>
      */
-    PDF_OUT_ROLLING_WEEK_PAGES("pdf.out." + UserAttrDao.STATS_ROLLING
-            + "-week.pages"),
-
+    PRINT_OUT_ROLLING_WEEK_SHEETS("print.out." + UserAttrDao.STATS_ROLLING + "-week.sheets"),
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PRINT_OUT_ROLLING_WEEK_ESU("print.out." + UserAttrDao.STATS_ROLLING + "-week.esu"),
     /**
      * Statistic time series. Example:
      * <p>
      * {@code 1342562400000,70033,163344,22335511,9999332,16345}
      * </p>
      */
-    PDF_OUT_ROLLING_WEEK_BYTES("pdf.out." + UserAttrDao.STATS_ROLLING
-            + "-week.bytes"),
+    PRINT_OUT_ROLLING_WEEK_BYTES("print.out." + UserAttrDao.STATS_ROLLING + "-week.bytes"),
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PRINT_OUT_ROLLING_MONTH_PAGES("print.out." + UserAttrDao.STATS_ROLLING + "-month.pages"),
 
     /**
      * Statistic time series. Example:
@@ -196,8 +163,14 @@ public enum UserAttrEnum {
      * {@code 1342562400000,7,16,2,9,16}
      * </p>
      */
-    PDF_OUT_ROLLING_MONTH_PAGES("pdf.out." + UserAttrDao.STATS_ROLLING
-            + "-month.pages"),
+    PRINT_OUT_ROLLING_MONTH_SHEETS("print.out." + UserAttrDao.STATS_ROLLING + "-month.sheets"),
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PRINT_OUT_ROLLING_MONTH_ESU("print.out." + UserAttrDao.STATS_ROLLING + "-month.esu"),
 
     /**
      * Statistic time series. Example:
@@ -205,8 +178,39 @@ public enum UserAttrEnum {
      * {@code 1342562400000,70033,163344,22335511,9999332,16345}
      * </p>
      */
-    PDF_OUT_ROLLING_MONTH_BYTES("pdf.out." + UserAttrDao.STATS_ROLLING
-            + "-month.bytes");
+    PRINT_OUT_ROLLING_MONTH_BYTES("print.out." + UserAttrDao.STATS_ROLLING + "-month.bytes"),
+
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PDF_OUT_ROLLING_WEEK_PAGES("pdf.out." + UserAttrDao.STATS_ROLLING + "-week.pages"),
+
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,70033,163344,22335511,9999332,16345}
+     * </p>
+     */
+    PDF_OUT_ROLLING_WEEK_BYTES("pdf.out." + UserAttrDao.STATS_ROLLING + "-week.bytes"),
+
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PDF_OUT_ROLLING_MONTH_PAGES("pdf.out." + UserAttrDao.STATS_ROLLING + "-month.pages"),
+
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,70033,163344,22335511,9999332,16345}
+     * </p>
+     */
+    PDF_OUT_ROLLING_MONTH_BYTES("pdf.out." + UserAttrDao.STATS_ROLLING + "-month.bytes");
 
     /**
      * Lookup {@link UserAttrEnum} by database name.

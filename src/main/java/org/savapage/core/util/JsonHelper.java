@@ -26,10 +26,13 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 
@@ -115,6 +118,8 @@ public final class JsonHelper {
     /**
      * De-serializes an {@link Map} with enum key and boolean value.
      *
+     * @param <E>
+     *            The enum type.
      * @param enumClass
      *            The enum class.
      * @param json
@@ -133,8 +138,10 @@ public final class JsonHelper {
     }
 
     /**
-     * De-serializes an {@link Map} with enum key and boolean value.
+     * De-serializes a {@link Map} with enum key and boolean value.
      *
+     * @param <E>
+     *            The enum type.
      * @param enumClass
      *            The enum class.
      * @param json
@@ -154,11 +161,118 @@ public final class JsonHelper {
     }
 
     /**
+     * De-serializes a {@link Map} with string key and integer value.
+     *
+     * @param json
+     *            The serialized JSON string.
+     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     * @throws IOException
+     *             When JSON syntax is invalid.
+     */
+    public static Map<String, Integer> createStringIntegerMap(final String json)
+            throws IOException {
+        try {
+            return mapper.readValue(json,
+                    new TypeReference<Map<String, Integer>>() {
+                    });
+        } catch (IllegalArgumentException e) {
+            throw new IOException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * De-serializes a {@link Map} with string key and integer value.
+     *
+     * @param json
+     *            The serialized JSON string.
+     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     */
+    public static Map<String, Integer>
+            createStringIntegerMapOrNull(final String json) {
+        try {
+            return createStringIntegerMap(json);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @param <E>
+     *            The enum type.
+     * @param enumClass
+     *            The enum class.
+     * @param mapTemp
+     * @return
+     */
+    private static <E extends Enum<E>> Map<E, Integer> asEnumIntegerMap(
+            final Class<E> enumClass, final Map<String, Integer> mapTemp) {
+
+        final Map<E, Integer> map = new HashMap<>();
+
+        for (final Entry<String, Integer> entry : mapTemp.entrySet()) {
+            map.put(EnumUtils.getEnum(enumClass, entry.getKey()),
+                    entry.getValue());
+        }
+        return map;
+    }
+
+    /**
+     * De-serializes a {@link Map} with enum key and integer value.
+     *
+     * @param <E>
+     *            The enum type.
+     * @param enumClass
+     *            The enum class.
+     * @param json
+     *            The serialized JSON string.
+     * @return The {@link Map}.
+     * @throws IOException
+     *             When JSON syntax is invalid.
+     */
+    public static <E extends Enum<E>> Map<E, Integer> createEnumIntegerMap(
+            final Class<E> enumClass, final String json) throws IOException {
+        /*
+         * NOTE: this trick to use an intermediary map is needed cause
+         * TypeReference<Map<E, Integer>> throws ClassCastException exception on
+         * the enum key when traversing the map with entrySet.
+         */
+        final Map<String, Integer> mapTemp = createStringIntegerMap(json);
+        return asEnumIntegerMap(enumClass, mapTemp);
+    }
+
+    /**
+     * De-serializes a {@link Map} with enum key and integer value.
+     *
+     * @param <E>
+     *            The enum type.
+     * @param enumClass
+     *            The enum class.
+     * @param json
+     *            The serialized JSON string.
+     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     */
+    public static <E extends Enum<E>> Map<E, Integer>
+            createEnumIntegerMapOrNull(final Class<E> enumClass,
+                    final String json) {
+        /*
+         * NOTE: this trick to use an intermediary map is needed cause
+         * TypeReference<Map<E, Integer>> throws ClassCastException exception on
+         * the enum key when traversing the map with entrySet.
+         */
+        final Map<String, Integer> mapTemp = createStringIntegerMapOrNull(json);
+        if (mapTemp == null) {
+            return null;
+        }
+        return asEnumIntegerMap(enumClass, mapTemp);
+    }
+
+    /**
      * Creates a bean object from a JSON string, when de-serialization fails
      * (due to syntax errors) {@code null} is returned.
      *
      * @param <E>
-     *            The bean class.
+     *            The bean type.
      * @param clazz
      *            The bean class.
      * @param json

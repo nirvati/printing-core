@@ -21,7 +21,6 @@
  */
 package org.savapage.core.dao.enums;
 
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,9 +35,29 @@ import org.savapage.core.jpa.UserGroupAttr;
 public enum UserGroupAttrEnum {
 
     /**
-     * A JSON value of {@link EnumSet} of {@link ACLRoleEnum}.
+     * A JSON value of {@link Map} with key {@link ACLRoleEnum} and value
+     * {@link Boolean}. When a {@link ACLRoleEnum} key is not present the value
+     * is indeterminate.
      */
-    ACL_ROLES("acl.roles");
+    ACL_ROLES("acl.roles"),
+
+    /**
+     * OIDS for Role "User": A JSON value of a {@link Map} with key
+     * {@link ACLOidEnum}. Value {@link Integer} is a bitwise OR of
+     * {@link ACLPermissionEnum#getPermission()} values that hold the granted
+     * access. When a {@link ACLOidEnum} key is not present in the map the
+     * access is indeterminate.
+     */
+    ACL_OIDS_USER("acl.oids.user"),
+
+    /**
+     * OIDS for Role "Admin": A JSON value of a {@link Map} with key
+     * {@link ACLOidEnum}. Value {@link Integer} is a bitwise OR of
+     * {@link ACLPermissionEnum#getPermission()} values that hold the granted
+     * access. When a {@link ACLOidEnum} key is not present in the map the
+     * access is indeterminate.
+     */
+    ACL_OIDS_ADMIN("acl.oids.admin");
 
     /**
      * Lookup {@link UserGroupAttrEnum} by database name.

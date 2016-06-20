@@ -21,7 +21,11 @@
  */
 package org.savapage.core.services;
 
+import java.util.List;
+
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.dao.enums.ACLOidEnum;
+import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroup;
@@ -62,5 +66,57 @@ public interface AccessControlService {
      * @return {@code true} when authorized for role.
      */
     boolean isAuthorized(User user, ACLRoleEnum role);
+
+    /**
+     * Checks if {@link User} has permission for an OID for role "User". Checks
+     * are done bottom-up, starting at the {@link User} and moving up to the
+     * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
+     * first encountered object with a defined {@link ACLOidEnum} is used for
+     * the check. When no reference object is found, the user <b>is</b>
+     * authorized.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param oid
+     *            The OID.
+     * @param perm
+     *            The requested permission.
+     * @return {@code true} when permitted.
+     */
+    boolean hasUserPermission(User user, ACLOidEnum oid,
+            ACLPermissionEnum perm);
+
+    /**
+     *
+     * @param perms
+     *            The permissions.
+     * @param permRequested
+     *            The requested permission.
+     * @return {@code true} when permitted.
+     */
+    boolean hasUserPermission(List<ACLPermissionEnum> perms,
+            ACLPermissionEnum permRequested);
+
+    /**
+     * Gets the OID permissions for an OID a User for role "User".
+     *
+     * @param user
+     *            The {@link User}.
+     * @param oid
+     *            The OID.
+     * @return {@code null} when undetermined.
+     */
+    List<ACLPermissionEnum> getUserPermission(User user, ACLOidEnum oid);
+
+    /**
+     * Gets the OID privileges bitmask for an OID a User for role "User".
+     *
+     * @param user
+     *            The {@link User}.
+     * @param oid
+     *            The OID.
+     * @return {@code null} when undetermined.
+     */
+    Integer getUserPrivileges(User user, ACLOidEnum oid);
 
 }

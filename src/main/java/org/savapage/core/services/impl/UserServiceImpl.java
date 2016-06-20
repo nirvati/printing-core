@@ -60,6 +60,7 @@ import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserEmailDao;
 import org.savapage.core.dao.UserGroupDao;
+import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.UserAccountingDto;
@@ -567,7 +568,7 @@ public final class UserServiceImpl extends AbstractService
         /*
          * ACL Roles.
          */
-        final UserAttr aclAttr =
+        UserAttr aclAttr =
                 userAttrDAO().findByName(user, UserAttrEnum.ACL_ROLES);
 
         Map<ACLRoleEnum, Boolean> aclRoles;
@@ -585,9 +586,44 @@ public final class UserServiceImpl extends AbstractService
 
         dto.setAclRoles(aclRoles);
 
+        /*
+         * OIDS (User).
+         */
+        aclAttr = userAttrDAO().findByName(user, UserAttrEnum.ACL_OIDS_USER);
+        Map<ACLOidEnum, Integer> aclOids;
+
+        if (aclAttr == null) {
+            aclOids = null;
+        } else {
+            aclOids = JsonHelper.createEnumIntegerMapOrNull(ACLOidEnum.class,
+                    aclAttr.getValue());
+        }
+
+        if (aclOids == null) {
+            aclOids = new HashMap<ACLOidEnum, Integer>();
+        }
+
+        dto.setAclOidsUser(ACLOidEnum.asMapPerms(aclOids));
+
+        /*
+         * OIDS (Admin).
+         */
+        aclAttr = userAttrDAO().findByName(user, UserAttrEnum.ACL_OIDS_ADMIN);
+
+        if (aclAttr == null) {
+            aclOids = null;
+        } else {
+            aclOids = JsonHelper.createEnumIntegerMapOrNull(ACLOidEnum.class,
+                    aclAttr.getValue());
+        }
+
+        if (aclOids == null) {
+            aclOids = new HashMap<ACLOidEnum, Integer>();
+        }
+
+        dto.setAclOidsAdmin(ACLOidEnum.asMapPerms(aclOids));
         //
         return dto;
-
     }
 
     @Override
@@ -892,6 +928,15 @@ public final class UserServiceImpl extends AbstractService
         }
 
         /*
+         * ACL OIDS
+         */
+        setAclOids(userAttrDAO(), jpaUser, UserAttrEnum.ACL_OIDS_USER,
+                ACLOidEnum.asMapPrivilege(userDto.getAclOidsUser()));
+
+        setAclOids(userAttrDAO(), jpaUser, UserAttrEnum.ACL_OIDS_ADMIN,
+                ACLOidEnum.asMapPrivilege(userDto.getAclOidsAdmin()));
+
+        /*
          * Re-initialize Member Card information.
          */
         if (isNewInternalUser) {
@@ -902,7 +947,7 @@ public final class UserServiceImpl extends AbstractService
     }
 
     /**
-     * Sets the ACL roles of a user.
+     * Creates, updates or deletes the ACL roles of a user.
      *
      * @param daoAttr
      *            The {@link UserAttrDao}.
@@ -924,22 +969,67 @@ public final class UserServiceImpl extends AbstractService
             jsonRoles = JsonHelper.stringifyObject(aclRoles);
         }
 
-        final UserAttrEnum attrEnum = UserAttrEnum.ACL_ROLES;
+        crudUserAttr(daoAttr, user, UserAttrEnum.ACL_ROLES, jsonRoles);
+    }
+
+    /**
+     * Creates, updates or deletes a {@link UserAttr}.
+     *
+     * @param daoAttr
+     *            The {@link UserAttrDao}.
+     * @param user
+     *            The user.
+     * @param attrEnum
+     *            The attribute key.
+     * @param aclOids
+     *            The OIDs
+     * @throws IOException
+     *             When JSON errors.
+     */
+    private static void setAclOids(final UserAttrDao daoAttr, final User user,
+            final UserAttrEnum attrEnum, final Map<ACLOidEnum, Integer> aclOids)
+            throws IOException {
+
+        final String jsonOids;
+
+        if (aclOids.isEmpty()) {
+            jsonOids = null;
+        } else {
+            jsonOids = JsonHelper.stringifyObject(aclOids);
+        }
+        crudUserAttr(daoAttr, user, attrEnum, jsonOids);
+    }
+
+    /**
+     * Creates, updates or deletes a {@link UserAttr}.
+     *
+     * @param daoAttr
+     *            The {@link UserAttrDao}.
+     * @param user
+     *            The user.
+     * @param attrEnum
+     *            The attribute key.
+     * @param attrValue
+     *            The attribute value. When {@code null} an existing attribute
+     *            is deleted.
+     */
+    private static void crudUserAttr(final UserAttrDao daoAttr, final User user,
+            final UserAttrEnum attrEnum, final String attrValue) {
 
         UserAttr attr = daoAttr.findByName(user, attrEnum);
 
         if (attr == null) {
-            if (jsonRoles != null) {
+            if (attrValue != null) {
                 attr = new UserAttr();
                 attr.setUser(user);
                 attr.setName(attrEnum.getName());
-                attr.setValue(jsonRoles);
+                attr.setValue(attrValue);
                 daoAttr.create(attr);
             }
-        } else if (jsonRoles == null) {
+        } else if (attrValue == null) {
             daoAttr.delete(attr);
-        } else if (!attr.getValue().equals(jsonRoles)) {
-            attr.setValue(jsonRoles);
+        } else if (!attr.getValue().equals(attrValue)) {
+            attr.setValue(attrValue);
             daoAttr.update(attr);
         }
     }
