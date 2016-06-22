@@ -67,6 +67,23 @@ public interface AccessControlService {
      */
     boolean isAuthorized(User user, ACLRoleEnum role);
 
+
+    /**
+     * Checks if {@link User} has access to an OID for role "User". Checks
+     * are done bottom-up, starting at the {@link User} and moving up to the
+     * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
+     * first encountered object with a defined {@link ACLOidEnum} is used for
+     * the check. When no reference object is found, the user <b>has</b>
+     * access.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param oid
+     *            The OID.
+     * @return {@code true} when access.
+     */
+    boolean hasUserAccess(User user, ACLOidEnum oid);
+
     /**
      * Checks if {@link User} has permission for an OID for role "User". Checks
      * are done bottom-up, starting at the {@link User} and moving up to the

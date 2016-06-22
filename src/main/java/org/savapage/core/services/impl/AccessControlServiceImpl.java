@@ -320,6 +320,18 @@ public final class AccessControlServiceImpl extends AbstractService
     }
 
     @Override
+    public boolean hasUserAccess(final User user, final ACLOidEnum oid) {
+
+        final Integer privileges = getUserPrivileges(user, oid);
+
+        if (privileges == null) {
+            return true;
+        }
+
+        return privileges.intValue() != 0;
+    }
+
+    @Override
     public boolean hasUserPermission(final List<ACLPermissionEnum> perms,
             final ACLPermissionEnum permRequested) {
 
