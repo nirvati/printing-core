@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -60,7 +60,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class MemberCardManager {
 
@@ -89,7 +90,7 @@ public final class MemberCardManager {
     public static final String CARD_PROP_VISITOR = "visitor";
 
     // Product: property values
-    public static final String CARD_VAL_ISSUED_BY = "Datraverse B.V";
+    public static final String CARD_VAL_ISSUED_BY = "Datraverse B.V.";
 
     // Module : property keys
     private static final String CARD_PROP_SAVAPAGE_VERSION = "version-";
