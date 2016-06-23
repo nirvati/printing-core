@@ -87,6 +87,11 @@ public enum ACLPermissionEnum {
     OWNER(ACLPermissionEnum.BIT_OWNER, ACLPermissionEnum.BITMASK_OWNER);
 
     // --------------------------------------------
+    // NO permissions.
+    // --------------------------------------------
+    private static final int BIT_NONE = 0x0;
+
+    // --------------------------------------------
     // Reader
     // --------------------------------------------
     private static final int BIT_READER = 0x1;
@@ -228,7 +233,7 @@ public enum ACLPermissionEnum {
      * @return {@code true} if privileged.
      */
     public boolean isPresent(final int bitmask) {
-        return (this.flag & bitmask) != 0;
+        return (this.flag & bitmask) != BIT_NONE;
     }
 
     /**
@@ -246,7 +251,7 @@ public enum ACLPermissionEnum {
      * @return The integer bitmap with permissions
      */
     public static int asPrivilege(final List<ACLPermissionEnum> list) {
-        int privilege = 0;
+        int privilege = BIT_NONE;
 
         for (final ACLPermissionEnum perm : list) {
             privilege |= perm.getPermission();
@@ -261,7 +266,7 @@ public enum ACLPermissionEnum {
      */
     public static ACLPermissionEnum asRole(final int privileges) {
 
-        if (privileges == 0) {
+        if (privileges == BIT_NONE) {
             return null;
         }
 

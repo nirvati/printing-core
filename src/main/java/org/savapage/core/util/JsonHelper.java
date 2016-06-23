@@ -211,8 +211,10 @@ public final class JsonHelper {
         final Map<E, Integer> map = new HashMap<>();
 
         for (final Entry<String, Integer> entry : mapTemp.entrySet()) {
-            map.put(EnumUtils.getEnum(enumClass, entry.getKey()),
-                    entry.getValue());
+            if (EnumUtils.isValidEnum(enumClass, entry.getKey())) {
+                map.put(EnumUtils.getEnum(enumClass, entry.getKey()),
+                        entry.getValue());
+            }
         }
         return map;
     }

@@ -33,6 +33,10 @@ import org.savapage.core.util.LocaleHelper;
 /**
  * Object Identity Objects (OID). A <i>object identity</i> is domain object
  * identifier to define access for.
+ * <p>
+ * Enum values prefixed with {@code U_} are OIDs for role "User". Values
+ * prefixed with {@code A_} are OIDs for role "Admin".
+ * </p>
  *
  * @author Rijk Ravestein
  *
@@ -40,19 +44,20 @@ import org.savapage.core.util.LocaleHelper;
 public enum ACLOidEnum {
 
     /**
-     * Dashboard.
+     * Details of authenticated user.
      */
-    DASHBOARD(EnumSet.of(ACLPermissionEnum.READER)),
+    U_USER(EnumSet.of(ACLPermissionEnum.READER)),
+
+    /**
+     * The user inbox (SafePages).
+     */
+    U_INBOX(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR),
+            EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND)),
 
     /**
      * Letterhead.
      */
-    LETTERHEAD(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
-
-    /**
-     * PDF Creation.
-     */
-    PDF(EnumSet.of(ACLPermissionEnum.READER), EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND));
+    U_LETTERHEAD(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR));
 
     /**
      *
@@ -175,7 +180,7 @@ public enum ACLOidEnum {
      * @return
      */
     public static EnumSet<ACLOidEnum> getAdminOids() {
-        return EnumSet.of(DASHBOARD);
+        return EnumSet.noneOf(ACLOidEnum.class);
     }
 
     /**
