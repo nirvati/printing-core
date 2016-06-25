@@ -150,6 +150,12 @@ public final class ConfigManager {
     public static final String SERVER_REL_PATH_CUSTOM_CUPS = "custom/cups";
 
     /**
+     * The relative path of the HTML injectable files (relative to the
+     * {@code server} directory).
+     */
+    public static final String SERVER_REL_PATH_CUSTOM_HTML = "custom/html";
+
+    /**
      * The relative path of the email outbox folder (relative to the
      * {@code server} directory).
      */
@@ -837,11 +843,19 @@ public final class ConfigManager {
     }
 
     /**
-     * @return The directory with the server custom CUPS files.
+     * @return The directory with the custom CUPS files.
      */
     public static File getServerCustomCupsHome() {
         return new File(String.format("%s/%s", getServerHome(),
                 SERVER_REL_PATH_CUSTOM_CUPS));
+    }
+
+    /**
+     * @return The directory with the custom HTML injectable files.
+     */
+    public static File getServerCustomHtmlHome() {
+        return new File(String.format("%s%c%s", getServerHome(),
+                File.separatorChar, SERVER_REL_PATH_CUSTOM_HTML));
     }
 
     /**

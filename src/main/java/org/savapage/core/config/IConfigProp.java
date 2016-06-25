@@ -1754,49 +1754,87 @@ public interface IConfigProp {
          * The custom jQuery Mobile Theme CSS file for the Admin Web App as
          * present in the {@code server/custom/web/themes/} folder.
          */
-        WEBAPP_THEME_ADMIN("webapp.theme.admin"),
+        WEBAPP_THEME_ADMIN(Key.WEBAPP_THEME_PFX + "admin"),
 
         /**
          * The custom jQuery Mobile Theme CSS file for the Job Tickets Web App
          * as present in the {@code server/custom/web/themes/} folder.
          */
-        WEBAPP_THEME_JOBTICKETS("webapp.theme.jobtickets"),
+        WEBAPP_THEME_JOBTICKETS(Key.WEBAPP_THEME_PFX + "jobtickets"),
 
         /**
          * The custom jQuery Mobile Theme CSS file for the POS Web App as
          * present in the {@code server/custom/web/themes/} folder.
          */
-        WEBAPP_THEME_POS("webapp.theme.pos"),
+        WEBAPP_THEME_POS(Key.WEBAPP_THEME_PFX + "pos"),
 
         /**
          * The custom jQuery Mobile Theme CSS file for the User Web App as
          * present in the {@code server/custom/web/themes/} folder.
          */
-        WEBAPP_THEME_USER("webapp.theme.user"),
+        WEBAPP_THEME_USER(Key.WEBAPP_THEME_PFX + "user"),
 
         /**
          * The custom CSS file for the Admin Web App as present in the
          * {@code server/custom/web/} folder.
          */
-        WEBAPP_CUSTOM_ADMIN("webapp.custom.admin"),
+        WEBAPP_CUSTOM_ADMIN(Key.WEBAPP_CUSTOM_PFX + "admin"),
 
         /**
          * The custom CSS file for the Job Tickets Web App as present in the
          * {@code server/custom/web/} folder.
          */
-        WEBAPP_CUSTOM_JOBTICKETS("webapp.custom.jobtickets"),
+        WEBAPP_CUSTOM_JOBTICKETS(Key.WEBAPP_CUSTOM_PFX + "jobtickets"),
 
         /**
          * The custom CSS file for the POS Web App as present in the
          * {@code server/custom/web/} folder.
          */
-        WEBAPP_CUSTOM_POS("webapp.custom.pos"),
+        WEBAPP_CUSTOM_POS(Key.WEBAPP_CUSTOM_PFX + "pos"),
 
         /**
          * The custom CSS file for the User Web App as present in the
          * {@code server/custom/web/} folder.
          */
-        WEBAPP_CUSTOM_USER("webapp.custom.user"),
+        WEBAPP_CUSTOM_USER(Key.WEBAPP_CUSTOM_PFX + "user"),
+
+        /**
+         *
+         */
+        WEBAPP_HTML_ADMIN_ABOUT(Key.WEBAPP_HTML_PFX + "admin.about"),
+
+        /**
+        *
+        */
+        WEBAPP_HTML_JOBTICKETS_ABOUT(Key.WEBAPP_HTML_PFX + "jobtickets.about"),
+
+        /**
+        *
+        */
+        WEBAPP_HTML_POS_ABOUT(Key.WEBAPP_HTML_PFX + "pos.about"),
+        /**
+        *
+        */
+        WEBAPP_HTML_USER_ABOUT(Key.WEBAPP_HTML_PFX + "user.about"),
+
+        /**
+        *
+        */
+        WEBAPP_HTML_ADMIN_LOGIN(Key.WEBAPP_HTML_PFX + "admin.login"),
+
+        /**
+        *
+        */
+        WEBAPP_HTML_JOBTICKETS_LOGIN(Key.WEBAPP_HTML_PFX + "jobtickets.login"),
+
+        /**
+        *
+        */
+        WEBAPP_HTML_POS_LOGIN(Key.WEBAPP_HTML_PFX + "pos.login"),
+        /**
+        *
+        */
+        WEBAPP_HTML_USER_LOGIN(Key.WEBAPP_HTML_PFX + "user.login"),
 
         /**
          * .
@@ -1843,6 +1881,21 @@ public interface IConfigProp {
          *
          */
         WEB_PRINT_LIMIT_IP_ADDRESSES("web-print.limit-ip-addresses");
+
+        /**
+         * Prefix for Web App theme keys.
+         */
+        public final static String WEBAPP_THEME_PFX = "webapp.theme.";
+
+        /**
+         * Prefix for Web App custom keys.
+         */
+        public final static String WEBAPP_CUSTOM_PFX = "webapp.custom.";
+
+        /**
+         * Prefix for Web App HTML keys.
+         */
+        public final static String WEBAPP_HTML_PFX = "webapp.html.";
 
         /**
          *
