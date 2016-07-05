@@ -21,46 +21,49 @@
  */
 package org.savapage.core.dao.enums;
 
+import java.util.Locale;
+
+import org.savapage.core.util.LocaleHelper;
+
 /**
  *
- * @since 0.9.6
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public enum PrintModeEnum {
 
     /**
      * Authenticated WebApp Print.
      */
-    AUTH("WebApp"),
+    AUTH,
 
     /**
      * Direct Automatic Print.
      */
-    AUTO("Auto"),
+    AUTO,
 
     /**
      * Hold Release Print.
      */
-    HOLD("Hold"),
+    HOLD,
 
     /**
      * Fast Release Print.
      */
-    FAST("Fast"),
+    FAST,
 
     /**
      * Direct (Push) WebApp Print.
      */
-    PUSH("Direct");
+    PUSH;
 
-    private final String uiText;
-
-    private PrintModeEnum(final String uiText) {
-        this.uiText = uiText;
-    }
-
-    public String getUiText() {
-        return uiText;
+    /**
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public String uiText(final Locale locale) {
+        return LocaleHelper.uiText(this, locale);
     }
 
 }

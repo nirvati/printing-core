@@ -2352,7 +2352,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             AdminPublisher.instance().publish(PubTopicEnum.PROXY_PRINT,
                     PubLevelEnum.INFO,
                     localize(request.getLocale(), "msg-printed-for-admin",
-                            request.getPrintMode().getUiText(),
+                            request.getPrintMode().uiText(request.getLocale()),
                             printOut.getPrinter().getDisplayName(),
                             lockedUser.getUserId(),
                             //
