@@ -1734,6 +1734,11 @@ public interface IConfigProp {
         WEBAPP_USER_FINANCIAL_SHOW("webapp.user.financial.show", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * User WebApp: must text of navigation buttons on main window be shown?
+         */
+        WEBAPP_USER_MAIN_NAV_BUTTON_TEXT("webapp.user.main.nav-button-text", new EnumValidator<>(OnOffEnum.class), OnOffEnum.AUTO.toString()),
+
+        /**
          * WebApp: enable (show) driver download in About Dialog?
          */
         WEBAPP_ABOUT_DRIVER_DOWNLOAD_ENABLE("webapp.about.driver-download.enable", BOOLEAN_VALIDATOR, V_YES),
