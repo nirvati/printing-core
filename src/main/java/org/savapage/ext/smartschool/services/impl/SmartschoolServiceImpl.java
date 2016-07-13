@@ -523,6 +523,10 @@ public final class SmartschoolServiceImpl extends AbstractService
                                 copyURLToFile(downloadUrl, downloadedFile);
                             }
 
+                            SmartschoolLogger.logPdfDownload(downloadUrl,
+                                    document.getName(),
+                                    downloadedFile.length());
+
                         } catch (IllegalStateException
                                 | ParserConfigurationException
                                 | SAXException e) {

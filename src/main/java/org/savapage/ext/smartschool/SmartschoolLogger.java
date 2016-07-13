@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@ package org.savapage.ext.smartschool;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.URL;
 
 import javax.xml.soap.SOAPException;
 import javax.xml.transform.OutputKeys;
@@ -34,29 +35,80 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.util.NumberUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class SmartschoolLogger {
+public final class SmartschoolLogger {
 
     /**
      * .
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SmartschoolLogger.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SmartschoolLogger.class);
+
+    /**
+     * Constructor.
+     */
+    private SmartschoolLogger() {
+
+    }
 
     /**
      *
-     * @return
+     * @return The logger.
      */
     public static Logger getLogger() {
         return LOGGER;
     }
 
+    /**
+     *
+     * @param url
+     *            The URL, or {@code null} when PDF was base64 embedded.
+     * @param documentName
+     *            The name of the document.
+     * @param documentByteCount
+     *            The size of the document.
+     */
+    public static void logPdfDownload(final URL url, final String documentName,
+            final long documentByteCount) {
+
+        if (!LOGGER.isInfoEnabled()) {
+            return;
+        }
+
+        final StringBuilder detail = new StringBuilder();
+
+        if (url == null) {
+            detail.append("Base64");
+        } else {
+            detail.append("URL");
+        }
+
+        detail.append(": ").append(documentName)
+                .append(" (").append(NumberUtil
+                        .humanReadableByteCount(documentByteCount, true))
+                .append(")");
+
+        if (url != null) {
+            detail.append("\n\n").append(url.toString());
+        }
+
+        LOGGER.info(String.format(
+                "|_______________ Downloaded ______________|\n\n%s\n",
+                detail.toString()));
+    }
+
+    /**
+     * @param xml
+     *            The XML string.
+     */
     public static void logRequest(final String xml) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(String.format(
@@ -65,6 +117,10 @@ public class SmartschoolLogger {
         }
     }
 
+    /**
+     * @param xml
+     *            The XML string.
+     */
     public static void logResponse(final String xml) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(String.format(
@@ -73,6 +129,10 @@ public class SmartschoolLogger {
         }
     }
 
+    /**
+     * @param msg
+     *            The message string.
+     */
     public static void logDebug(final String msg) {
         LOGGER.debug(msg);
     }
@@ -97,10 +157,9 @@ public class SmartschoolLogger {
         if (e.getCause() == null) {
             cause = "unknown";
         } else {
-            cause =
-                    String.format("%s, %s", e.getCause().getClass()
-                            .getSimpleName(), StringUtils.defaultString(e
-                            .getCause().getMessage()));
+            cause = String.format("%s, %s",
+                    e.getCause().getClass().getSimpleName(),
+                    StringUtils.defaultString(e.getCause().getMessage()));
         }
 
         LOGGER.error(String.format(
@@ -109,10 +168,18 @@ public class SmartschoolLogger {
                 request.toString(), e.getMessage(), cause));
     }
 
+    /**
+     * @param msg
+     *            The message string.
+     */
     public static void logError(final String msg) {
         LOGGER.error(msg);
     }
 
+    /**
+     *
+     * @return {@code true} when enabled.
+     */
     public static boolean isEnabled() {
         return LOGGER.isInfoEnabled();
     }
