@@ -1729,7 +1729,7 @@ public interface IConfigProp {
         WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE("webapp.user.proxy-print.clear-inbox.scope", new EnumValidator<>(InboxSelectScopeEnum.class), InboxSelectScopeEnum.NONE.toString()),
 
         /**
-         * User WebApp: show financial info?
+         * @deprecated User WebApp: show financial info?
          */
         WEBAPP_USER_FINANCIAL_SHOW("webapp.user.financial.show", BOOLEAN_VALIDATOR, V_YES),
 
