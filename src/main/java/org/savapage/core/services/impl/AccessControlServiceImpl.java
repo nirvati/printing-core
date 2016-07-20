@@ -403,8 +403,20 @@ public final class AccessControlServiceImpl extends AbstractService
         }
 
         // All Users
-        return getGroupPrivileges(userGroupService().getAllUserGroup(),
-                groupAttrEnum, oid);
+        userPrivileges = getGroupPrivileges(
+                userGroupService().getAllUserGroup(), groupAttrEnum, oid);
+
+        if (userPrivileges == null && oid == ACLOidEnum.U_FINANCIAL) {
+            final int financialPerm;
+            if (ConfigManager.instance()
+                    .isConfigValue(Key.WEBAPP_USER_FINANCIAL_SHOW)) {
+                financialPerm = ACLPermissionEnum.OPERATOR.getPermission();
+            } else {
+                financialPerm = ACLPermissionEnum.BIT_NONE;
+            }
+            userPrivileges = Integer.valueOf(financialPerm);
+        }
+        return userPrivileges;
     }
 
 }

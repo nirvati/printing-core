@@ -89,7 +89,7 @@ public enum ACLPermissionEnum {
     // --------------------------------------------
     // NO permissions.
     // --------------------------------------------
-    private static final int BIT_NONE = 0x0;
+    public static final int BIT_NONE = 0x0;
 
     // --------------------------------------------
     // Reader

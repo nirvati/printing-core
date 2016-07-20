@@ -55,9 +55,15 @@ public enum ACLOidEnum {
             EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND)),
 
     /**
+     * Financial.
+     */
+    U_FINANCIAL(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /**
      * Letterhead.
      */
-    U_LETTERHEAD(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR));
+    U_LETTERHEAD(EnumSet.of(ACLPermissionEnum.READER,
+            ACLPermissionEnum.EDITOR));
 
     /**
      *
