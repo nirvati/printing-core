@@ -396,8 +396,9 @@ public abstract class AbstractAppApi extends AbstractApp {
      */
     public static String getApiDescriptHeader() {
         final String eol = System.lineSeparator();
-        final String name = CommunityDictEnum.SAVAPAGE.getWord()
-                + " Command Line Interface";
+        final String name =
+                CommunityDictEnum.SAVAPAGE.getWord()
+                        + " Command Line Interface";
         return StringUtils.repeat("_", name.length() + 1) + eol + name + eol
                 + eol;
     }

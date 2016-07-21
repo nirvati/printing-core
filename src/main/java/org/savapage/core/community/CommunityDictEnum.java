@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,10 +21,14 @@
  */
 package org.savapage.core.community;
 
+import java.util.Locale;
+
+import org.savapage.core.util.LocaleHelper;
+
 /**
- * A dictionary of words that are to be used in all internalizations.
+ * A dictionary of common words.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum CommunityDictEnum {
@@ -67,7 +71,7 @@ public enum CommunityDictEnum {
     /**
      * .
      */
-    DATRAVERSE_BV_URL("http://www.datraverse.com/en"),
+    DATRAVERSE_BV_URL("http://www.datraverse.com"),
 
     /**
      * .
@@ -102,22 +106,29 @@ public enum CommunityDictEnum {
     /**
      * .
      */
-    PARTICIPANTS("Participants", true),
-
-    /**
-     * .
-     */
-    USERS("Users", true),
-
-    /**
-     * .
-     */
     VISITOR("Visitor"),
 
     /**
      * .
      */
-    VISITING_GUEST("Visiting Guest");
+    VISITING_GUEST("Visiting Guest"),
+
+    /**
+     * .
+     */
+    WEB_PRINT,
+
+    INTERNET_PRINT,
+
+    ECO_PRINT,
+
+    PROXY_PRINT,
+
+    MAIL_PRINT,
+
+    PARTICIPANTS,
+
+    USERS;
 
     /**
      * .
@@ -125,9 +136,8 @@ public enum CommunityDictEnum {
     private final String word;
 
     /**
-     *
+     * {@code true} when this term must be translated for internalization.
      */
-    @SuppressWarnings("unused")
     private final boolean translatable;
 
     /**
@@ -144,23 +154,30 @@ public enum CommunityDictEnum {
     /**
      * Constructor.
      *
-     * @param word
-     *            The unique word for the dictionary entry.
      * @param translatable
-     *            {@code true} when this term must be translated for
-     *            internalization.
      */
-    CommunityDictEnum(final String word, final boolean translatable) {
-        this.word = word;
-        this.translatable = translatable;
+    CommunityDictEnum() {
+        this.word = null;
+        this.translatable = true;
     }
 
     /**
-     *
-     * @return
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public String getWord(final Locale locale) {
+        if (this.translatable) {
+            return LocaleHelper.uiText(this, locale);
+        }
+        return word;
+    }
+
+    /**
+     * @return The default localized text.
      */
     public String getWord() {
-        return word;
+        return this.getWord(Locale.getDefault());
     }
 
 }

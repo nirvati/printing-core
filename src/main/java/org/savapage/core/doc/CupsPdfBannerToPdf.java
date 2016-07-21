@@ -65,9 +65,8 @@ public class CupsPdfBannerToPdf implements IStreamConverter {
 
         try {
 
-            document =
-                    new Document(ITextPdfCreator.getDefaultPageSize(),
-                            marginLeft, marginRight, marginTop, marginBottom);
+            document = new Document(ITextPdfCreator.getDefaultPageSize(),
+                    marginLeft, marginRight, marginTop, marginBottom);
 
             /*
              * Read the banner till the end (no info used yet).

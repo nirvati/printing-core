@@ -277,7 +277,8 @@ public final class AppSSLKeystore extends AbstractApp {
         /*
          * Fill keystore
          */
-        final String alias = CommunityDictEnum.SAVAPAGE.getWord();
+        final String alias =
+                CommunityDictEnum.SAVAPAGE.getWord();
 
         ks.setKeyEntry(alias, keyPair.getPrivate(),
                 this.keyEntryPassword.toCharArray(),

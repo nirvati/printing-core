@@ -200,19 +200,19 @@ public final class EmailMsgParms {
 
         this.contentType = CONTENT_TYPE_HTML;
 
-        cidMap.put(CID_LOGO_MAIN, new URLDataSource(this.getClass()
-                .getResource("savapage-logo-text.png")));
+        cidMap.put(CID_LOGO_MAIN, new URLDataSource(
+                this.getClass().getResource("savapage-logo-text.png")));
 
-        cidMap.put(CID_LOGO_MINI, new URLDataSource(this.getClass()
-                .getResource("savapage-logo-32x32.png")));
+        cidMap.put(CID_LOGO_MINI, new URLDataSource(
+                this.getClass().getResource("savapage-logo-32x32.png")));
 
         final ST tpl;
 
         try {
-            tpl =
-                    new ST(IOUtils.toString(this.getClass()
+            tpl = new ST(
+                    IOUtils.toString(this.getClass()
                             .getResourceAsStream("email-template.html")),
-                            ST_DELIMITER_CHAR_START, ST_DELIMITER_CHAR_STOP);
+                    ST_DELIMITER_CHAR_START, ST_DELIMITER_CHAR_STOP);
 
         } catch (IOException e) {
             throw new SpException(e.getMessage());
