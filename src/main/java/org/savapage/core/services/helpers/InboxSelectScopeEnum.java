@@ -21,6 +21,12 @@
  */
 package org.savapage.core.services.helpers;
 
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import org.savapage.core.util.LocaleHelper;
+
 /**
  * The select scope of the inbox (SafePages).
  *
@@ -30,22 +36,46 @@ package org.savapage.core.services.helpers;
 public enum InboxSelectScopeEnum {
 
     /**
-     * The complete inbox.
-     */
-    ALL,
-
-    /**
      * Nothing.
      */
     NONE,
 
     /**
-     * Pages.
+     * The complete inbox.
      */
-    PAGES,
+    ALL,
 
     /**
      * Jobs.
      */
-    JOBS
+    JOBS,
+
+    /**
+     * Pages.
+     */
+    PAGES;
+
+    /**
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public String uiText(final Locale locale) {
+        return LocaleHelper.uiText(this, locale);
+    }
+
+    /**
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text map.
+     */
+    public static Map<InboxSelectScopeEnum, String>
+            uiTextMap(final Locale locale) {
+        final Map<InboxSelectScopeEnum, String> map = new HashMap<>();
+        for (final InboxSelectScopeEnum value : InboxSelectScopeEnum.values()) {
+            map.put(value, value.uiText(locale));
+        }
+        return map;
+    }
+
 }

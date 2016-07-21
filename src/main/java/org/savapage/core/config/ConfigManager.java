@@ -1767,7 +1767,7 @@ public final class ConfigManager {
      *            The {@link Key}.
      * @param <E>
      *            The enum type.
-     * @return The enum.
+     * @return The enum, or {@code null} when not found.
      */
     public <E extends Enum<E>> E getConfigEnum(final Class<E> enumClass,
             final IConfigProp.Key key) {
