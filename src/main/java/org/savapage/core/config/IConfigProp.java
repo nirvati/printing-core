@@ -1726,7 +1726,7 @@ public interface IConfigProp {
         /**
          * User WebApp: the fixed inbox clearing scope after proxy printing.
          */
-        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE("webapp.user.proxy-print.clear-inbox.scope", new EnumValidator<>(InboxSelectScopeEnum.class), InboxSelectScopeEnum.NONE.toString()),
+        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE("webapp.user.proxy-print.clear-inbox.scope", new EnumValidator<>(InboxSelectScopeEnum.class), InboxSelectScopeEnum.ALL.toString()),
 
         /**
          * @deprecated User WebApp: show financial info?
