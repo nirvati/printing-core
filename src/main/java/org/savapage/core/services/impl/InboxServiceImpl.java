@@ -1668,11 +1668,9 @@ public final class InboxServiceImpl implements InboxService {
     public int deleteJobs(final String userid,
             final List<ProxyPrintJobChunk> chunks) {
 
-        int nJobDeleteTriggerPages = 0;
-
         final InboxInfoDto jobs = readInboxInfo(userid);
 
-        final Set<Integer> collectedJobs = new HashSet<>();
+        final Set<Integer> removedJobs = new HashSet<>();
 
         for (final ProxyPrintJobChunk chunk : chunks) {
 
@@ -1682,19 +1680,18 @@ public final class InboxServiceImpl implements InboxService {
                 /*
                  * Remove on first occurrence in collected jobs.
                  */
-                if (collectedJobs.add(Integer.valueOf(iJob))) {
+                if (removedJobs.add(Integer.valueOf(iJob))) {
                     this.removeJobPages(jobs, iJob);
                 }
-                nJobDeleteTriggerPages += range.calcPages();
             }
         }
 
-        if (!collectedJobs.isEmpty()) {
+        if (!removedJobs.isEmpty()) {
             storeInboxInfo(userid, this.pruneJobs(
                     ConfigManager.getUserHomeDir(userid), userid, jobs));
         }
 
-        return nJobDeleteTriggerPages;
+        return removedJobs.size();
     }
 
     @Override

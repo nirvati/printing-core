@@ -358,7 +358,7 @@ public interface InboxService {
      *            The unique user id.
      * @param chunks
      *            The list of {@link ProxyPrintJobChunk} objects.
-     * @return The total number of deleted pages that triggered job deletes.
+     * @return The number of deleted jobs.
      */
     int deleteJobs(String userId, List<ProxyPrintJobChunk> chunks);
 

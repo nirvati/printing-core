@@ -140,9 +140,10 @@ public abstract class AbstractProxyPrintReq
     private ExternalSupplierInfo supplierInfo;
 
     /**
-     * The number of SafePages cleared at status {@link Status#PRINTED}.
+     * The number of cleared object (pages or documents, depending on
+     * {@link #clearScope}) at status {@link Status#PRINTED}.
      */
-    private int clearedPages = 0;
+    private int clearedObjects = 0;
 
     /**
      *
@@ -161,21 +162,23 @@ public abstract class AbstractProxyPrintReq
     }
 
     /**
-     * Gets the number of SafePages cleared at status {@link Status#PRINTED}.
+     * Gets the number of cleared object (pages or documents, depending on
+     * {@link #clearScope}) at status {@link Status#PRINTED}.
      *
      * @return
      */
-    public int getClearedPages() {
-        return clearedPages;
+    public int getClearedObjects() {
+        return clearedObjects;
     }
 
     /**
-     * Sets the number of SafePages cleared at status {@link Status#PRINTED}.
+     * Sets the number of cleared object (pages or documents, depending on
+     * {@link #clearScope}) at status {@link Status#PRINTED}.
      *
-     * @param clearedPages
+     * @param clearedObjects
      */
-    public void setClearedPages(int clearedPages) {
-        this.clearedPages = clearedPages;
+    public void setClearedObjects(int clearedObjects) {
+        this.clearedObjects = clearedObjects;
     }
 
     public boolean isRemoveGraphics() {

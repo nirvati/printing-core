@@ -755,7 +755,8 @@ public interface ProxyPrintService {
      *            The requesting {@link User}, which should be locked.
      * @param request
      *            The {@link ProxyPrintInboxReq}.
-     * @return The number of cleared (removed pages).
+     * @return The number of cleared object (pages or documents, depending on
+     *         {@link ProxyPrintInboxReq#getClearScope()}).
      */
     int clearInbox(User lockedUser, ProxyPrintInboxReq request);
 

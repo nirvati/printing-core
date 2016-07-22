@@ -2228,32 +2228,32 @@ public abstract class AbstractProxyPrintService extends AbstractService
             final ProxyPrintInboxReq request) {
 
         final String userid = lockedUser.getUserId();
-        final int clearedPages;
+        final int clearedObjects;
 
         switch (request.getClearScope()) {
 
         case ALL:
-            clearedPages = inboxService().deleteAllPages(userid);
+            clearedObjects = inboxService().deleteAllPages(userid);
             break;
 
         case JOBS:
-            clearedPages = inboxService().deleteJobs(userid,
+            clearedObjects = inboxService().deleteJobs(userid,
                     request.getJobChunkInfo().getChunks());
             break;
 
         case PAGES:
             if (request.getPageRangesJobIndex() == null) {
-                clearedPages = inboxService().deletePages(userid,
+                clearedObjects = inboxService().deletePages(userid,
                         request.getPageRanges());
             } else {
-                clearedPages = inboxService().deleteJobPages(userid,
+                clearedObjects = inboxService().deleteJobPages(userid,
                         request.getPageRangesJobIndex().intValue(),
                         request.getPageRanges());
             }
             break;
 
         case NONE:
-            clearedPages = 0;
+            clearedObjects = 0;
             break;
 
         default:
@@ -2261,7 +2261,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     request.getClearScope().toString()));
         }
 
-        return clearedPages;
+        return clearedObjects;
     }
 
     /**
@@ -2300,10 +2300,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
         if (this.print(request, userid, pdfFileToPrint, docLog)) {
 
             if (request instanceof ProxyPrintInboxReq) {
-                request.setClearedPages(this.clearInbox(lockedUser,
+                request.setClearedObjects(this.clearInbox(lockedUser,
                         (ProxyPrintInboxReq) request));
             } else {
-                request.setClearedPages(0);
+                request.setClearedObjects(0);
             }
 
             docLogService().logDocOut(lockedUser, docLog.getDocOut(),
@@ -2311,22 +2311,35 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             request.setStatus(ProxyPrintInboxReq.Status.PRINTED);
 
-            if (request.getClearedPages() == 0) {
+            if (request.getClearedObjects() == 0) {
+
                 userMsgKey = "msg-printed";
                 userMsg = localize(request.getLocale(), userMsgKey);
-            } else if (request.getClearedPages() == 1) {
-                userMsgKey = "msg-printed-deleted-one";
+
+            } else if (request.getClearedObjects() == 1) {
+
+                if (request.getClearScope() == InboxSelectScopeEnum.JOBS) {
+                    userMsgKey = "msg-printed-deleted-job-one";
+                } else {
+                    userMsgKey = "msg-printed-deleted-one";
+                }
                 userMsg = localize(request.getLocale(), userMsgKey);
             } else {
-                userMsgKey = "msg-printed-deleted-multiple";
+
+                if (request.getClearScope() == InboxSelectScopeEnum.JOBS) {
+                    userMsgKey = "msg-printed-deleted-job-multiple";
+                } else {
+                    userMsgKey = "msg-printed-deleted-multiple";
+                }
                 userMsg = localize(request.getLocale(), userMsgKey,
-                        String.valueOf(request.getClearedPages()));
+                        String.valueOf(request.getClearedObjects()));
             }
 
             final PrintOut printOut = docLog.getDocOut().getPrintOut();
 
             //
             final String pagesMsgKey;
+
             if (docLog.getNumberOfPages().intValue() == 1) {
                 pagesMsgKey = "msg-printed-for-admin-single-page";
             } else {
@@ -2335,6 +2348,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             //
             final String copiesMsgKey;
+
             if (printOut.getNumberOfCopies().intValue() == 1) {
                 copiesMsgKey = "msg-printed-for-admin-single-copy";
             } else {
@@ -2343,6 +2357,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             //
             final String sheetsMsgKey;
+
             if (printOut.getNumberOfSheets().intValue() == 1) {
                 sheetsMsgKey = "msg-printed-for-admin-single-sheet";
             } else {
