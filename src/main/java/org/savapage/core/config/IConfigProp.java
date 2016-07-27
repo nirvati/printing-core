@@ -481,7 +481,7 @@ public interface IConfigProp {
          * after the connection is established, i.e. maximum time of inactivity
          * between two data packets.
          */
-        CUPS_IPP_LOCAL_SOCKET_TIMEOUT_MILLIS("cups.ipp.local-socket-timeout-millis", NUMBER_VALIDATOR, "2000"),
+        CUPS_IPP_LOCAL_SOCKET_TIMEOUT_MILLIS("cups.ipp.local-socket-timeout-millis", NUMBER_VALIDATOR, "4000"),
 
         /**
          * Is access of remote CUPS enabled?
@@ -499,7 +499,7 @@ public interface IConfigProp {
          * after the connection is established, i.e. maximum time of inactivity
          * between two data packets.
          */
-        CUPS_IPP_REMOTE_SOCKET_TIMEOUT_MILLIS("cups.ipp.remote-socket-timeout-millis", NUMBER_VALIDATOR, "3000"),
+        CUPS_IPP_REMOTE_SOCKET_TIMEOUT_MILLIS("cups.ipp.remote-socket-timeout-millis", NUMBER_VALIDATOR, "4000"),
 
         /**
          *
