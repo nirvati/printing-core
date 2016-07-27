@@ -1729,11 +1729,6 @@ public interface IConfigProp {
         WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE("webapp.user.proxy-print.clear-inbox.scope", new EnumValidator<>(InboxSelectScopeEnum.class), InboxSelectScopeEnum.ALL.toString()),
 
         /**
-         * @deprecated User WebApp: show financial info?
-         */
-        WEBAPP_USER_FINANCIAL_SHOW("webapp.user.financial.show", BOOLEAN_VALIDATOR, V_YES),
-
-        /**
          * User WebApp: must text of navigation buttons on main window be shown?
          */
         WEBAPP_USER_MAIN_NAV_BUTTON_TEXT("webapp.user.main.nav-button-text", new EnumValidator<>(OnOffEnum.class), OnOffEnum.AUTO.toString()),
