@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -34,6 +34,7 @@ import org.cometd.client.BayeuxClient;
 import org.cometd.client.transport.ClientTransport;
 import org.cometd.client.transport.LongPollingTransport;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.savapage.common.dto.CometdConnectDto;
 import org.savapage.core.SpException;
 import org.slf4j.Logger;
@@ -44,9 +45,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Singleton CometD client to the SavaPage server instance.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class AdminPublisher extends CometdClientMixin {
+public final class AdminPublisher extends CometdClientMixin {
 
     /**
      * The channel this <i>administrator</i> client <strong>publishes</strong>
@@ -58,8 +60,8 @@ public class AdminPublisher extends CometdClientMixin {
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(AdminPublisher.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(AdminPublisher.class);
 
     /**
      *
@@ -79,6 +81,9 @@ public class AdminPublisher extends CometdClientMixin {
      * {@link SingletonHolder#INSTANCE}, not before.
      */
     private static class SingletonHolder {
+        /**
+         * .
+         */
         public static final AdminPublisher INSTANCE = new AdminPublisher();
     }
 
@@ -92,17 +97,47 @@ public class AdminPublisher extends CometdClientMixin {
     }
 
     /**
+     * Initializes the CometD client session.
      *
      * @param serverPort
      *            The IP port of the server.
+     * @param isSsl
+     *            {@code true} when SSL port.
      */
-    public void init(final int serverPort) {
+    public void init(final int serverPort, final boolean isSsl) {
+
+        final StringBuilder clientUrl = new StringBuilder();
+        clientUrl.append("http");
+        if (isSsl) {
+            clientUrl.append("s");
+        }
+        clientUrl.append("://localhost:").append(serverPort).append("/cometd");
 
         /*
-         * Create (and eventually setup) Jetty's HttpClient
+         * Create (and eventually setup) Jetty's HttpClient.
          */
+        final HttpClient httpClient;
 
-        HttpClient httpClient = new HttpClient();
+        if (isSsl) {
+
+            final SslContextFactory sslContextFactory = new SslContextFactory();
+
+            /*
+             * Since we connect to local host to our own server, we can simply
+             * trust all.
+             */
+            sslContextFactory.setTrustAll(true);
+
+            /*
+             * Disable host name verification.
+             */
+            sslContextFactory.setEndpointIdentificationAlgorithm(null);
+
+            httpClient = new HttpClient(sslContextFactory);
+
+        } else {
+            httpClient = new HttpClient();
+        }
 
         /*
          * Here setup Jetty's HttpClient
@@ -119,15 +154,15 @@ public class AdminPublisher extends CometdClientMixin {
          * Prepare the transport
          */
         final Map<String, Object> options = new HashMap<String, Object>();
+
         final ClientTransport transport =
                 new LongPollingTransport(options, httpClient);
 
-        myClientSession =
-                new BayeuxClient("http://localhost:" + serverPort + "/cometd",
-                        transport);
+        //
+        myClientSession = new BayeuxClient(clientUrl.toString(), transport);
 
-        myClientSession.getChannel(Channel.META_CONNECT).addListener(
-                new ClientSessionChannel.MessageListener() {
+        myClientSession.getChannel(Channel.META_CONNECT)
+                .addListener(new ClientSessionChannel.MessageListener() {
 
                     @Override
                     public void onMessage(final ClientSessionChannel channel,
@@ -146,8 +181,8 @@ public class AdminPublisher extends CometdClientMixin {
 
                 });
 
-        myClientSession.getChannel(Channel.META_HANDSHAKE).addListener(
-                new ClientSessionChannel.MessageListener() {
+        myClientSession.getChannel(Channel.META_HANDSHAKE)
+                .addListener(new ClientSessionChannel.MessageListener() {
 
                     @Override
                     public void onMessage(final ClientSessionChannel channel,
