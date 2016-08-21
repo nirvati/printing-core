@@ -222,7 +222,7 @@ public final class EmailMsgParms {
 
         strings.setProperty("HEADER", headerText);
         strings.setProperty("MAIN_A_HREF",
-                CommunityDictEnum.SAVAPAGE_DOT_ORG_URL.getWord());
+                CommunityDictEnum.SAVAPAGE_WWW_DOT_ORG_URL.getWord());
         strings.setProperty("MAIN_A_ALT",
                 CommunityDictEnum.SAVAPAGE_DOT_ORG.getWord());
         strings.setProperty("MAIN_IMG_CID", CID_LOGO_MAIN);

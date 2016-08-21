@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -51,7 +51,12 @@ public enum CommunityDictEnum {
     /**
     *
     */
-    SAVAPAGE_DOT_ORG_URL("http://savapage.org"),
+    SAVAPAGE_WWW_DOT_ORG("www.savapage.org"),
+
+    /**
+    *
+    */
+    SAVAPAGE_WWW_DOT_ORG_URL("https://www.savapage.org"),
 
     /**
      * .
@@ -71,7 +76,7 @@ public enum CommunityDictEnum {
     /**
      * .
      */
-    DATRAVERSE_BV_URL("http://www.datraverse.com"),
+    DATRAVERSE_BV_URL("https://www.datraverse.com"),
 
     /**
      * .

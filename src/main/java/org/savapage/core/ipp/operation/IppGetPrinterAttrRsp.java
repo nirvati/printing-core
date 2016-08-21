@@ -765,7 +765,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO_MANUFACTURER:
-            value.addValue(CommunityDictEnum.SAVAPAGE_DOT_ORG_URL.getWord());
+            value.addValue(CommunityDictEnum.SAVAPAGE_WWW_DOT_ORG_URL.getWord());
             break;
 
         case IppDictPrinterDescAttr.ATTR_PAGES_PER_MIN:
