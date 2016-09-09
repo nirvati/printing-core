@@ -23,6 +23,7 @@ package org.savapage.core.config;
 
 import java.math.BigDecimal;
 import java.text.MessageFormat;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 
@@ -1831,10 +1832,17 @@ public interface IConfigProp {
         *
         */
         WEBAPP_HTML_POS_LOGIN(Key.WEBAPP_HTML_PFX + "pos.login"),
+
         /**
         *
         */
         WEBAPP_HTML_USER_LOGIN(Key.WEBAPP_HTML_PFX + "user.login"),
+
+        /**
+         * A comma/space separated list with {@link Locale#getLanguage()} codes
+         * that are available for users to choose for their Web App locale.
+         */
+        WEBAPP_LANGUAGE_AVAILABLE("webapp.language.available"),
 
         /**
          * .

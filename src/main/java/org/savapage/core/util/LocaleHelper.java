@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -26,11 +26,15 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 
 /**
  *
@@ -215,6 +219,59 @@ public final class LocaleHelper {
         }
 
         return file;
+    }
+
+    /**
+     *
+     * @return The comma separated list of supported languages.
+     */
+    private static String getSupportedLanguages() {
+
+        final StringBuilder list = new StringBuilder();
+
+        list.append(Locale.GERMANY.getLanguage()).append(',');
+        list.append(Locale.US.getLanguage()).append(',');
+        list.append(Locale.FRANCE.getLanguage()).append(',');
+        list.append("nl");
+
+        return list.toString();
+    }
+
+    /**
+     *
+     * @return The {@link Locale} list of available languages.
+     */
+    public static List<Locale> getAvailableLanguages() {
+
+        final List<Locale> list = new ArrayList<>();
+
+        String langAvailable = ConfigManager.instance()
+                .getConfigValue(Key.WEBAPP_LANGUAGE_AVAILABLE).trim();
+
+        if (StringUtils.isBlank(langAvailable)) {
+            langAvailable = getSupportedLanguages();
+        }
+
+        for (final String lang : StringUtils.split(langAvailable, " ,;:")) {
+            switch (lang.toLowerCase()) {
+            case "de":
+                list.add(Locale.GERMANY);
+                break;
+            case "en":
+                list.add(Locale.US);
+                break;
+            case "fr":
+                list.add(Locale.FRANCE);
+                break;
+            case "nl":
+                list.add(new Locale("nl", "NL"));
+                break;
+            default:
+                break;
+            }
+        }
+
+        return list;
     }
 
 }
