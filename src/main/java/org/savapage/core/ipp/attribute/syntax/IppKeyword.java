@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -62,38 +62,38 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     // print-color-mode
     // ------------------------------------------------------------------------
     /**
-     * Automatic based on document REQUIRED
+     * Automatic based on document REQUIRED.
      */
     public static final String PRINT_COLOR_MODE_AUTO = "auto";
 
     /**
-     * 1-colorant (typically black) threshold output OPTIONAL (note 1)
+     * 1-colorant (typically black) threshold output OPTIONAL (note 1).
      */
     public static final String PRINT_COLOR_MODE_BI_LEVEL = "bi-level";
 
     /**
-     * Full-color output CONDITIONALLY REQUIRED (note 2)
+     * Full-color output CONDITIONALLY REQUIRED (note 2).
      */
     public static final String PRINT_COLOR_MODE_COLOR = "color";
 
     /**
-     * 1-colorant + black output OPTIONAL
+     * 1-colorant + black output OPTIONAL.
      */
     public static final String PRINT_COLOR_MODE_HIGHLIGHT = "highlight";
 
     /**
-     * 1-colorant (typically black) shaded/grayscale output REQUIRED
+     * 1-colorant (typically black) shaded/grayscale output REQUIRED.
      */
     public static final String PRINT_COLOR_MODE_MONOCHROME = "monochrome";
 
     /**
-     * Process (2 or more colorants) threshold output OPTIONAL
+     * Process (2 or more colorants) threshold output OPTIONAL.
      */
     public static final String PRINT_COLOR_MODE_PROCESS_BI_LEVEL =
             "process-bi-level";
 
     /**
-     * Process (2 or more colorants) shaded/grayscale output
+     * Process (2 or more colorants) shaded/grayscale output.
      */
     public static final String PRINT_COLOR_MODE_PROCESS_MONOCHROME =
             "process-monochrome";
@@ -103,6 +103,12 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     // ------------------------------------------------------------------------
     public static final String SHEET_COLLATE_UNCOLLATED = "uncollated";
     public static final String SHEET_COLLATE_COLLATED = "collated";
+
+    // ------------------------------------------------------------------------
+    // print-scaling (PWG5100.16)
+    // ------------------------------------------------------------------------
+    public static final String PRINT_SCALING_FIT = "fit";
+    public static final String PRINT_SCALING_NONE = "none";
 
     // ------------------------------------------------------------------------
     // media-source

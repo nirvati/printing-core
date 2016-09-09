@@ -135,6 +135,8 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
 
     public static final String ATTR_PRINT_QUALITY = "print-quality";
 
+    public static final String ATTR_PRINT_SCALING = "print-scaling";
+
     /**
      * "This attribute specifies whether or not the media sheets of each copy of
      * each printed document in a job are to be in sequence, when multiple
@@ -318,6 +320,9 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     public static final String ATTR_SHEET_COLLATE_DFLT =
             ATTR_SHEET_COLLATE + _DFLT;
 
+    public static final String ATTR_PRINT_SCALING_DFLT =
+            ATTR_PRINT_SCALING + _DFLT;
+
     public static final String ATTR_PRINT_COLOR_MODE_DFLT =
             ATTR_PRINT_COLOR_MODE + _DFLT;
 
@@ -366,6 +371,9 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
 
     public static final String ATTR_SHEET_COLLATE_SUPP =
             ATTR_SHEET_COLLATE + _SUPP;
+
+    public static final String ATTR_PRINT_SCALING_SUPP =
+            ATTR_PRINT_SCALING + _SUPP;
 
     public static final String ATTR_PRINT_COLOR_MODE_SUPP =
             ATTR_PRINT_COLOR_MODE + _SUPP;
@@ -651,6 +659,10 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             new IppAttr(ATTR_SHEET_COLLATE, IppKeyword.instance()),
             new IppAttr(ATTR_SHEET_COLLATE_DFLT, IppKeyword.instance()),
             new IppAttr(ATTR_SHEET_COLLATE_SUPP, IppKeyword.instance()),
+
+            new IppAttr(ATTR_PRINT_SCALING, IppKeyword.instance()),
+            new IppAttr(ATTR_PRINT_SCALING_DFLT, IppKeyword.instance()),
+            new IppAttr(ATTR_PRINT_SCALING_SUPP, IppKeyword.instance()),
 
             /**
              * Where from ???

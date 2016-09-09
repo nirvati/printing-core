@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -217,7 +217,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     private static final String[] IPP_ATTR_KEYWORDS_REFERENCE_ONLY =
             new String[] {
                     /* */
-                    IppDictJobTemplateAttr.ATTR_SHEET_COLLATE
+                    IppDictJobTemplateAttr.ATTR_SHEET_COLLATE,
+                    /* */
+                    IppDictJobTemplateAttr.ATTR_PRINT_SCALING
             //
             };
 
@@ -1874,20 +1876,73 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
-         * Mantis #205: add fit to page attribute?
+         * print-scaling.
          */
         if (group != null && fitToPage != null) {
 
-            final String fitToPageIppBoolean;
+            final String optionKeywordIpp =
+                    IppDictJobTemplateAttr.ATTR_PRINT_SCALING;
 
-            if (fitToPage) {
-                fitToPageIppBoolean = IppBoolean.TRUE;
+            final JsonProxyPrinterOpt printScaling =
+                    printerOptionsLookup.get(optionKeywordIpp);
+
+            if (printScaling == null) {
+
+                /*
+                 * Mantis #205: add fit to page attribute.
+                 */
+                final String fitToPageIppBoolean;
+
+                if (fitToPage) {
+                    fitToPageIppBoolean = IppBoolean.TRUE;
+                } else {
+                    fitToPageIppBoolean = IppBoolean.FALSE;
+                }
+
+                group.add(IppDictJobTemplateAttr.CUPS_ATTR_FIT_TO_PAGE,
+                        IppBoolean.instance(), fitToPageIppBoolean);
+
             } else {
-                fitToPageIppBoolean = IppBoolean.FALSE;
-            }
 
-            group.add(IppDictJobTemplateAttr.CUPS_ATTR_FIT_TO_PAGE,
-                    IppBoolean.instance(), fitToPageIppBoolean);
+                dict = IppDictJobTemplateAttr.instance();
+
+                // The mapped PPD option keyword.
+                final String optionKeywordPpd = printScaling.getKeywordPpd();
+
+                // The IPP value.
+                final String optionValueIpp;
+                if (fitToPage) {
+                    optionValueIpp = IppKeyword.PRINT_SCALING_FIT;
+                } else {
+                    optionValueIpp = IppKeyword.PRINT_SCALING_NONE;
+                }
+
+                // The actual attribute and value to send.
+                final IppAttr attr;
+                final String optionValue;
+
+                if (optionKeywordPpd == null) {
+
+                    attr = dict.getAttr(optionKeywordIpp);
+                    optionValue = optionValueIpp;
+
+                } else {
+
+                    String optionValuePpd = null;
+
+                    for (final JsonProxyPrinterOptChoice choice : printScaling
+                            .getChoices()) {
+                        if (choice.getChoice().equals(optionValueIpp)) {
+                            optionValuePpd = choice.getChoicePpd();
+                            break;
+                        }
+                    }
+                    attr = dict.createPpdOptionAttr(optionKeywordPpd);
+                    optionValue = optionValuePpd;
+                }
+
+                group.add(attr, optionValue);
+            }
         }
 
         /*
