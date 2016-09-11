@@ -525,11 +525,6 @@ public final class SyncUsersJob extends AbstractJob {
                             + "]");
                 }
 
-                // This commit prevents that a single card number linked to
-                // different users in the source leads to index constraint
-                // violations.
-                commitAtNextIncrement = true;
-
             } else if (userCard.getUser().getInternal()) {
 
                 /*
@@ -623,8 +618,6 @@ public final class SyncUsersJob extends AbstractJob {
 
                         this.batchCommitter.commit(); // Mantis #720
 
-                        commitAtNextIncrement = true;
-
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace(msgTestPfx + " Detached Card ["
                                     + primaryCardNumber + "] from Next User ["
@@ -671,6 +664,11 @@ public final class SyncUsersJob extends AbstractJob {
          * (Re) Attach the primary card.
          */
         if (attachPrimaryCard) {
+
+            // This commit prevents that a single card number linked to
+            // different users in the source leads to index constraint
+            // violations.
+            commitAtNextIncrement = true;
 
             if (isExistingUser) {
 
@@ -855,11 +853,6 @@ public final class SyncUsersJob extends AbstractJob {
                             msgTestPfx + " New ID [" + primaryIdNumber + "]");
                 }
 
-                // This commit prevents that a single User ID linked to
-                // different users in the source leads to index constraint
-                // violations.
-                commitAtNextIncrement = true;
-
             } else if (userNumber.getUser().getInternal()) {
 
                 /*
@@ -955,8 +948,6 @@ public final class SyncUsersJob extends AbstractJob {
 
                         this.batchCommitter.commit(); // Mantis #720
 
-                        commitAtNextIncrement = true;
-
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace(msgTestPfx + " Detached Primary ID ["
                                     + primaryIdNumber + "] from Next User ["
@@ -992,12 +983,16 @@ public final class SyncUsersJob extends AbstractJob {
                     }
 
                     attachPrimaryId = false;
-
                 }
             }
         }
 
         if (attachPrimaryId) {
+
+            // This commit prevents that a single User ID linked to
+            // different users in the source leads to index constraint
+            // violations.
+            commitAtNextIncrement = true;
 
             if (isExistingUser) {
 
@@ -1190,11 +1185,6 @@ public final class SyncUsersJob extends AbstractJob {
                             + primaryEmailAddress + "]");
                 }
 
-                // This commit prevents that a single email address linked to
-                // different users in the source leads to index constraint
-                // violations.
-                commitAtNextIncrement = true;
-
             } else if (userEmail.getUser().getInternal()) {
 
                 /*
@@ -1290,8 +1280,6 @@ public final class SyncUsersJob extends AbstractJob {
 
                         this.batchCommitter.commit(); // Mantis #720
 
-                        commitAtNextIncrement = true;
-
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace(msgTestPfx
                                     + " Detached Primary Email ["
@@ -1339,6 +1327,11 @@ public final class SyncUsersJob extends AbstractJob {
          * (Re) Attach the primary email address.
          */
         if (attachPrimaryEmail) {
+
+            // This commit prevents that a single email address linked to
+            // different users in the source leads to index constraint
+            // violations.
+            commitAtNextIncrement = true;
 
             if (isExistingUser) {
 
