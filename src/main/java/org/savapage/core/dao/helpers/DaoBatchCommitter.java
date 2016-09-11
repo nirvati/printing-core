@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2014 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,7 +25,7 @@ package org.savapage.core.dao.helpers;
  * A helper class for chopping up a large batch of database actions into a
  * sequence of committed transactions.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface DaoBatchCommitter {
@@ -46,6 +46,16 @@ public interface DaoBatchCommitter {
     boolean isTest();
 
     /**
+     * Opens the batch and begins the transaction.
+     */
+    void open();
+
+    /**
+     * Closes the batch, committing any remaining increments.
+     */
+    void close();
+
+    /**
      * Increments the batch item counter, starts a new the database transaction
      * when needed, and performs a {@link #commit()} when the counter reaches
      * the commit threshold.
@@ -55,8 +65,8 @@ public interface DaoBatchCommitter {
     int increment();
 
     /**
-     * Forces a commit at the next increment. This is a one-shot
-     * instruction: after the commit this setting is wiped.
+     * Forces a commit at the next increment. This is a one-shot instruction:
+     * after the commit this setting is wiped.
      */
     void commitAtNextIncrement();
 

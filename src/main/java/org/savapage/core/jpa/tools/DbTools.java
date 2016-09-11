@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -189,7 +189,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class DbTools implements ServiceEntryPoint {
@@ -217,9 +217,9 @@ public final class DbTools implements ServiceEntryPoint {
      * <p>
      * By default Hibernate uses
      * {@link JdbcTimestampTypeDescriptor#TIMESTAMP_FORMAT} to format a Date to
-     * string format. See <a
-     * href="https://hibernate.onjira.com/browse/HHH-1859">
-     * https://hibernate.onjira.com/browse/HHH-1859</a>
+     * string format. See
+     * <a href="https://hibernate.onjira.com/browse/HHH-1859"> https://hibernate
+     * .onjira.com/browse/HHH-1859</a>
      * </p>
      */
     private static final String XML_DATEFORMAT_PATTERN =
@@ -314,7 +314,7 @@ public final class DbTools implements ServiceEntryPoint {
             // since V01.00
             UserGroupMemberV01.class
 
-    /* */
+            /* */
     };
 
     /**
@@ -460,7 +460,7 @@ public final class DbTools implements ServiceEntryPoint {
             // since V01
             XSequenceV01.class
 
-    /* */
+            /* */
     };
 
     /**
@@ -542,7 +542,7 @@ public final class DbTools implements ServiceEntryPoint {
             // since V01.02
             PosPurchaseItemV01.TABLE_NAME
 
-    /* */
+            /* */
     };
 
     //
@@ -584,8 +584,8 @@ public final class DbTools implements ServiceEntryPoint {
      */
     private static final Class<?> SIMPLE_JPA_TYPES[] = {
             // In order of most likely
-            String.class, Long.class, Boolean.class, Integer.class,
-            Float.class, Double.class, java.util.Date.class, Short.class,
+            String.class, Long.class, Boolean.class, Integer.class, Float.class,
+            Double.class, java.util.Date.class, Short.class,
             java.sql.Date.class, java.sql.Time.class, java.sql.Timestamp.class,
             //
             Byte.class, Character.class, java.math.BigInteger.class,
@@ -622,8 +622,8 @@ public final class DbTools implements ServiceEntryPoint {
             return SCHEMA_ENTITIES_V01;
         }
 
-        throw new SpException("schema version [" + version
-                + "] is not supported");
+        throw new SpException(
+                "schema version [" + version + "] is not supported");
     }
 
     /**
@@ -637,8 +637,8 @@ public final class DbTools implements ServiceEntryPoint {
             return SCHEMA_ENTITIES_V01_XML;
         }
 
-        throw new SpException("XML schema version [" + version
-                + "] is not supported");
+        throw new SpException(
+                "XML schema version [" + version + "] is not supported");
     }
 
     /**
@@ -727,8 +727,8 @@ public final class DbTools implements ServiceEntryPoint {
 
             //
             prop = new ConfigProperty();
-            prop.setPropertyName(cm
-                    .getConfigKey(IConfigProp.Key.SYS_SCHEMA_VERSION));
+            prop.setPropertyName(
+                    cm.getConfigKey(IConfigProp.Key.SYS_SCHEMA_VERSION));
 
             prop.setValue(getAppSchemaVersion());
             prop.setCreatedBy(actor);
@@ -739,8 +739,8 @@ public final class DbTools implements ServiceEntryPoint {
 
             //
             prop = new ConfigProperty();
-            prop.setPropertyName(cm
-                    .getConfigKey(IConfigProp.Key.SYS_SCHEMA_VERSION_MINOR));
+            prop.setPropertyName(
+                    cm.getConfigKey(IConfigProp.Key.SYS_SCHEMA_VERSION_MINOR));
 
             prop.setValue(getAppSchemaVersionMinor());
             prop.setCreatedBy(actor);
@@ -751,8 +751,8 @@ public final class DbTools implements ServiceEntryPoint {
 
             //
             prop = new ConfigProperty();
-            prop.setPropertyName(cm
-                    .getConfigKey(IConfigProp.Key.SYS_SETUP_COMPLETED));
+            prop.setPropertyName(
+                    cm.getConfigKey(IConfigProp.Key.SYS_SETUP_COMPLETED));
             prop.setValue(IConfigProp.V_NO);
             prop.setCreatedBy(actor);
             prop.setModifiedBy(actor);
@@ -764,8 +764,8 @@ public final class DbTools implements ServiceEntryPoint {
              * TODO: content is not meaningful yet.
              */
             prop = new ConfigProperty();
-            prop.setPropertyName(cm
-                    .getConfigKey(IConfigProp.Key.COMMUNITY_VISITOR_START_DATE));
+            prop.setPropertyName(cm.getConfigKey(
+                    IConfigProp.Key.COMMUNITY_VISITOR_START_DATE));
             prop.setValue(cm.createInitialVisitorStartDate());
 
             prop.setCreatedBy(actor);
@@ -855,9 +855,8 @@ public final class DbTools implements ServiceEntryPoint {
         final EntityManagerFactory theEmf =
                 ConfigManager.instance().getEntityManagerFactory();
 
-        final String jdbcUrl =
-                theEmf.getProperties().get("javax.persistence.jdbc.url")
-                        .toString();
+        final String jdbcUrl = theEmf.getProperties()
+                .get("javax.persistence.jdbc.url").toString();
 
         /*
          * Use the @Entity classes of the supplied schema version.
@@ -869,9 +868,8 @@ public final class DbTools implements ServiceEntryPoint {
         final String hibernateDialect =
                 theEmf.getProperties().get("hibernate.dialect").toString();
 
-        final String hibernateDriver =
-                theEmf.getProperties().get("javax.persistence.jdbc.driver")
-                        .toString();
+        final String hibernateDriver = theEmf.getProperties()
+                .get("javax.persistence.jdbc.driver").toString();
 
         configuration.setProperty(Environment.DIALECT, hibernateDialect)
                 .setProperty(Environment.DRIVER, hibernateDriver);
@@ -892,20 +890,17 @@ public final class DbTools implements ServiceEntryPoint {
             final String url;
 
             if (isDerby) {
-                url =
-                        jdbcUrl.replace("${"
-                                + ConfigManager.SYS_PROP_SERVER_HOME + "}",
-                                ConfigManager.getServerHome())
-                                + ";create=true";
+                url = jdbcUrl.replace(
+                        "${" + ConfigManager.SYS_PROP_SERVER_HOME + "}",
+                        ConfigManager.getServerHome()) + ";create=true";
             } else {
                 url = jdbcUrl;
             }
 
             configuration.setProperty(Environment.URL, url);
 
-            final String hibernateUser =
-                    theEmf.getProperties().get("javax.persistence.jdbc.user")
-                            .toString();
+            final String hibernateUser = theEmf.getProperties()
+                    .get("javax.persistence.jdbc.user").toString();
 
             final String hibernatePass = ConfigManager.getDbUserPassword();
 
@@ -991,9 +986,8 @@ public final class DbTools implements ServiceEntryPoint {
 
         int nFilesDeleted = 0;
 
-        final Path backupPath =
-                FileSystems.getDefault().getPath(
-                        ConfigManager.getDbBackupHome());
+        final Path backupPath = FileSystems.getDefault()
+                .getPath(ConfigManager.getDbBackupHome());
 
         final DirectoryStream<Path> ds =
                 Files.newDirectoryStream(backupPath, "savapage*.zip");
@@ -1034,7 +1028,8 @@ public final class DbTools implements ServiceEntryPoint {
      * @throws IOException
      */
     public static File exportDbBeforeUpg(final EntityManager em,
-            final long schemaVersion, final Date dateExport) throws IOException {
+            final long schemaVersion, final Date dateExport)
+            throws IOException {
 
         return exportDb(em, new File(ConfigManager.getDbBackupHome() + "/"
                 + createSchemaUpgBackupDbFileName(schemaVersion, dateExport)));
@@ -1134,8 +1129,8 @@ public final class DbTools implements ServiceEntryPoint {
             final int level = 9; // highest level
             zout.setLevel(level);
 
-            ZipEntry ze =
-                    new ZipEntry(FilenameUtils.getBaseName(exportFile) + ".xml");
+            ZipEntry ze = new ZipEntry(
+                    FilenameUtils.getBaseName(exportFile) + ".xml");
             zout.putNextEntry(ze);
 
             writer = new XMLWriter(zout, OutputFormat.createPrettyPrint());
@@ -1197,7 +1192,8 @@ public final class DbTools implements ServiceEntryPoint {
              * version of the application, since e.g. we want to backup the
              * database before an upgrade.
              */
-            for (Class<?> objClass : getSchemaEntitiesForXml(getDbSchemaVersion())) {
+            for (Class<?> objClass : getSchemaEntitiesForXml(
+                    getDbSchemaVersion())) {
                 exportDbTable(em, rootElement, objClass);
             }
 
@@ -1222,10 +1218,9 @@ public final class DbTools implements ServiceEntryPoint {
      *            The simple entity class name.
      * @return The {@link Query} object.
      */
-    private static Query
-            createDbTableQueryForExport(final EntityManager em,
-                    final String entityClassNameFull,
-                    final String entityClassNameSimple) {
+    private static Query createDbTableQueryForExport(final EntityManager em,
+            final String entityClassNameFull,
+            final String entityClassNameSimple) {
         /*
          * Compose statement.
          */
@@ -1291,9 +1286,8 @@ public final class DbTools implements ServiceEntryPoint {
             /*
              * Execute statement.
              */
-            final Query query =
-                    createDbTableQueryForExport(em, entityClassNameFull,
-                            entityClassNameSimple);
+            final Query query = createDbTableQueryForExport(em,
+                    entityClassNameFull, entityClassNameSimple);
 
             @SuppressWarnings("unchecked")
             final List<org.savapage.core.jpa.xml.XEntityVersion> list =
@@ -1336,9 +1330,8 @@ public final class DbTools implements ServiceEntryPoint {
 
                     if (propClass.equals(java.util.Date.class)) {
 
-                        text =
-                                xmlDateFormat.format(descr.getReadMethod()
-                                        .invoke(obj));
+                        text = xmlDateFormat
+                                .format(descr.getReadMethod().invoke(obj));
 
                     } else {
 
@@ -1496,9 +1489,10 @@ public final class DbTools implements ServiceEntryPoint {
              */
             listener.onLogEvent("Importing ...");
 
-            batchCommitter =
-                    ServiceContext.getDaoContext().createBatchCommitter(
-                            ConfigManager.getDaoBatchChunkSize());
+            batchCommitter = ServiceContext.getDaoContext()
+                    .createBatchCommitter(ConfigManager.getDaoBatchChunkSize());
+
+            batchCommitter.open();
 
             /*
              * Iterate the entities.
@@ -1536,11 +1530,10 @@ public final class DbTools implements ServiceEntryPoint {
 
                 if (count > 0) {
 
-                    final String msg =
-                            String.format(
-                                    "%20s : %d",
-                                    ((XEntityVersion) entityClass.newInstance())
-                                            .xmlName(), count);
+                    final String msg = String.format("%20s : %d",
+                            ((XEntityVersion) entityClass.newInstance())
+                                    .xmlName(),
+                            count);
 
                     listener.onLogEvent(msg);
                 }
@@ -1556,6 +1549,10 @@ public final class DbTools implements ServiceEntryPoint {
             throw new SpException(e);
 
         } finally {
+
+            if (batchCommitter != null) {
+                batchCommitter.close();
+            }
 
             if (zin != null) {
                 try {
@@ -1633,9 +1630,8 @@ public final class DbTools implements ServiceEntryPoint {
         if (iStartSimpleName < 0) {
             fullClassName = packageName + '.' + className;
         } else {
-            fullClassName =
-                    packageName + '.'
-                            + className.substring(iStartSimpleName + 1);
+            fullClassName = packageName + '.'
+                    + className.substring(iStartSimpleName + 1);
         }
 
         return Class.forName(fullClassName);
@@ -1703,8 +1699,8 @@ public final class DbTools implements ServiceEntryPoint {
      * </p>
      * <p>
      * Look <a href=
-     * "http://db.apache.org/derby/docs/10.1/ref/rrefaltertablecompress.html"
-     * >here</a> for more detail.
+     * "http://db.apache.org/derby/docs/10.1/ref/rrefaltertablecompress.html" >
+     * here</a> for more detail.
      * </p>
      */
     public static void optimizeDbInternal() {
@@ -1727,8 +1723,8 @@ public final class DbTools implements ServiceEntryPoint {
 
                     CallableStatement cs = null;
                     try {
-                        cs =
-                                conn.prepareCall("CALL SYSCS_UTIL.SYSCS_COMPRESS_TABLE('"
+                        cs = conn.prepareCall(
+                                "CALL SYSCS_UTIL.SYSCS_COMPRESS_TABLE('"
                                         + DERBY_DB_SCHEMA_NAME + "', ?, 1)");
                     } catch (SQLException se) {
                         LOGGER.error("Unable to optimize internal database. "
@@ -1737,7 +1733,8 @@ public final class DbTools implements ServiceEntryPoint {
                     }
 
                     if (LOGGER.isInfoEnabled()) {
-                        LOGGER.info("Starting optimization of internal database.");
+                        LOGGER.info(
+                                "Starting optimization of internal database.");
                     }
 
                     try {
@@ -1745,8 +1742,9 @@ public final class DbTools implements ServiceEntryPoint {
                         for (String tableName : TABLES_FOR_DERBY_COMPRESSION) {
 
                             if (LOGGER.isInfoEnabled()) {
-                                LOGGER.info("Compressing internal database table: "
-                                        + tableName);
+                                LOGGER.info(
+                                        "Compressing internal database table: "
+                                                + tableName);
                             }
 
                             try {
@@ -1772,7 +1770,8 @@ public final class DbTools implements ServiceEntryPoint {
                                 LOGGER.error(
                                         "Error occurred compressing table: "
                                                 + tableName + ". "
-                                                + se.getMessage(), se);
+                                                + se.getMessage(),
+                                        se);
                             }
                         }
 

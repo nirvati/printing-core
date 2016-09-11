@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -621,6 +621,8 @@ public final class SyncUsersJob extends AbstractJob {
                         ServiceContext.getDaoContext().getUserDao()
                                 .update(userDb);
 
+                        this.batchCommitter.commit(); // Mantis #720
+
                         commitAtNextIncrement = true;
 
                         if (LOGGER.isTraceEnabled()) {
@@ -950,6 +952,8 @@ public final class SyncUsersJob extends AbstractJob {
 
                         ServiceContext.getDaoContext().getUserDao()
                                 .update(userDb);
+
+                        this.batchCommitter.commit(); // Mantis #720
 
                         commitAtNextIncrement = true;
 
@@ -1284,6 +1288,8 @@ public final class SyncUsersJob extends AbstractJob {
                         ServiceContext.getDaoContext().getUserDao()
                                 .update(userDb);
 
+                        this.batchCommitter.commit(); // Mantis #720
+
                         commitAtNextIncrement = true;
 
                         if (LOGGER.isTraceEnabled()) {
@@ -1322,7 +1328,6 @@ public final class SyncUsersJob extends AbstractJob {
                                 + "] Attached to Previous User [" + otherUserId
                                 + "]. Ignored Attach to Current User ["
                                 + currentUserId + "]");
-
                     }
 
                     attachPrimaryEmail = false;
@@ -1691,6 +1696,8 @@ public final class SyncUsersJob extends AbstractJob {
 
         this.batchCommitter.setTest(this.isTest);
 
+        this.batchCommitter.open(); // Mantis #720
+
         /*
          * Process the balanced line.
          */
@@ -1790,7 +1797,7 @@ public final class SyncUsersJob extends AbstractJob {
         /*
          * Commit any remaining increments.
          */
-        this.batchCommitter.commit();
+        this.batchCommitter.close();
 
         /*
          *

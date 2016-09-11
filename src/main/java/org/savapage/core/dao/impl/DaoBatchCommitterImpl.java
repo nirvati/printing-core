@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -26,10 +26,15 @@ import org.savapage.core.dao.helpers.DaoBatchCommitter;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
+
+    /**
+     * Indicator value to check if committer is opened.
+     */
+    private static final int CHUNK_ITEM_COUNTER_INIT = -1;
 
     /**
      * The number of items the chunk holds before it gets committed.
@@ -47,11 +52,6 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     private int chunkItemCounter;
 
     /**
-     * The total number of items incremented.
-     */
-    private int itemCounter;
-
-    /**
      *
      */
     private boolean testMode = false;
@@ -65,60 +65,102 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
      *
      * @param ctx
      *            The {@link DaoContext} .
-     * @param commitThreshold
+     * @param chunkSize
      *            The number of increments after which a commit takes place.
      */
-    public DaoBatchCommitterImpl(final DaoContext ctx, final int commitThreshold) {
+    public DaoBatchCommitterImpl(final DaoContext ctx, final int chunkSize) {
 
-        this.commitThreshold = commitThreshold;
+        this.commitThreshold = chunkSize;
         this.daoCtx = ctx;
+        this.testMode = false;
+
+        this.chunkItemCounter = CHUNK_ITEM_COUNTER_INIT;
+    }
+
+    /**
+     * Resets the counters.
+     */
+    private void reset() {
         this.chunkItemCounter = 0;
         this.commitAtNextIncrement = false;
-        this.itemCounter = 0;
-        this.testMode = false;
+    }
+
+    @Override
+    public void open() {
+
+        if (chunkItemCounter != CHUNK_ITEM_COUNTER_INIT) {
+            throw new IllegalStateException(
+                    "DaoBatchCommitter is already open.");
+        }
+
+        /*
+         * Check for active transaction, since one might be open already.
+         */
+        if (!daoCtx.isTransactionActive()) {
+            daoCtx.beginTransaction();
+        }
+        this.reset();
+    }
+
+    @Override
+    public void close() {
+        if (testMode) {
+            this.rollback(false);
+        } else {
+            this.commit(false);
+        }
+        this.chunkItemCounter = CHUNK_ITEM_COUNTER_INIT;
     }
 
     @Override
     public int increment() {
 
-        if (chunkItemCounter == 0) {
-            beginTransaction();
+        if (chunkItemCounter == CHUNK_ITEM_COUNTER_INIT) {
+            throw new IllegalStateException("DaoBatchCommitter is not opened.");
         }
 
         if (commitAtNextIncrement || ++chunkItemCounter >= commitThreshold) {
-            commit();
+            this.commit();
         }
-
-        itemCounter++;
-
         return chunkItemCounter;
     }
 
     @Override
     public void commit() {
         if (testMode) {
-            rollback();
+            this.rollback(true);
         } else {
-            chunkItemCounter = 0;
-            commitAtNextIncrement = false;
-            daoCtx.commit();
-        }
-    }
-
-    /**
-     * Begins a database transaction when not already active.
-     */
-    private void beginTransaction() {
-        if (!daoCtx.isTransactionActive()) {
-            daoCtx.beginTransaction();
+            this.commit(true);
         }
     }
 
     @Override
     public void rollback() {
-        chunkItemCounter = 0;
-        commitAtNextIncrement = false;
+        this.rollback(true);
+    }
+
+    /**
+     * @param beginTrx
+     *            when {@code true} a new transaction is begun after the commit.
+     */
+    private void commit(final boolean beginTrx) {
+        daoCtx.commit();
+        if (beginTrx) {
+            daoCtx.beginTransaction();
+        }
+        this.reset();
+    }
+
+    /**
+     * @param beginTrx
+     *            when {@code true} a new transaction is begun after the commit.
+     */
+    private void rollback(final boolean beginTrx) {
         daoCtx.rollback();
+        if (beginTrx) {
+            daoCtx.beginTransaction();
+        }
+        this.reset();
     }
 
     @Override
