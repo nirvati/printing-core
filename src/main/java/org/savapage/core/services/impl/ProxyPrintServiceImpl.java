@@ -1887,7 +1887,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     printerOptionsLookup.get(optionKeywordIpp);
 
             if (printScaling == null) {
-
                 /*
                  * Mantis #205: add fit to page attribute.
                  */
@@ -1903,7 +1902,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                         IppBoolean.instance(), fitToPageIppBoolean);
 
             } else {
-
+                /*
+                 * Mantis #719: Create PPD mapping for print-scaling.
+                 */
                 dict = IppDictJobTemplateAttr.instance();
 
                 // The mapped PPD option keyword.
