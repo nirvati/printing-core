@@ -1883,8 +1883,13 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final String optionKeywordIpp =
                     IppDictJobTemplateAttr.ATTR_PRINT_SCALING;
 
-            final JsonProxyPrinterOpt printScaling =
-                    printerOptionsLookup.get(optionKeywordIpp);
+            final JsonProxyPrinterOpt printScaling;
+
+            if (printerOptionsLookup == null) {
+                printScaling = null;
+            } else {
+                printScaling = printerOptionsLookup.get(optionKeywordIpp);
+            }
 
             if (printScaling == null) {
                 /*
