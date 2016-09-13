@@ -125,6 +125,15 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String SIDES_TWO_SIDED_SHORT_EDGE =
             "two-sided-short-edge";
 
+    // ------------------------------------------------------------------------
+    // finishings
+    // ------------------------------------------------------------------------
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH_NONE = "3";
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE_NONE = "3";
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD_NONE = "3";
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE =
+            "none";
+
     /**
      * The SingletonHolder is loaded on the first execution of
      * {@link IppKeyword#instance()} or the first access to

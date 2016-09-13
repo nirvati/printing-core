@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
@@ -55,6 +56,8 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
+import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterGroup;
@@ -64,6 +67,8 @@ import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
+import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
+import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.services.JobTicketService;
@@ -559,6 +564,56 @@ public final class JobTicketServiceImpl extends AbstractService
         return this.removeTicket(uuid);
     }
 
+    /**
+     * Checks if capability of printer matches IPP option value requested by
+     * outbox print job.
+     *
+     * @param job
+     *            The {@link OutboxJobDto}.
+     * @param ippOptionKey
+     *            The IPP option key.
+     * @param ippOptionValueNone
+     *            The IPP option value representing a "none" choice.
+     * @param printerOptionLookup
+     *            The lookup of printer IPP options.
+     * @return {@code true} if job does not request the IPP option, or when
+     *         printer has capability to fulfill job IPP option value.
+     */
+    private static boolean isPrinterCapabilityMatch(final OutboxJobDto job,
+            final String ippOptionKey, final String ippOptionValueNone,
+            final Map<String, JsonProxyPrinterOpt> printerOptionLookup) {
+
+        final String jobOptionValue = job.getOptionValues().get(ippOptionKey);
+
+        if (jobOptionValue == null) {
+            // Option not requested: match.
+            return true;
+        }
+
+        if (job.isOptionPresent(ippOptionKey, ippOptionValueNone)) {
+            // non-choice option: match.
+            return true;
+        }
+
+        final JsonProxyPrinterOpt printerOptionValue =
+                printerOptionLookup.get(ippOptionKey);
+
+        if (printerOptionValue == null) {
+            // Printer does not have option: no match.
+            return false;
+        }
+
+        for (final JsonProxyPrinterOptChoice choice : printerOptionValue
+                .getChoices()) {
+            if (choice.getChoice().equals(jobOptionValue)) {
+                // Printer has option value: match.
+                return true;
+            }
+        }
+        // Printer does not have option value: no match.
+        return false;
+    }
+
     @Override
     public List<RedirectPrinterDto> getRedirectPrinters(final String fileName) {
 
@@ -606,10 +661,13 @@ public final class JobTicketServiceImpl extends AbstractService
             /*
              * Check compatibility.
              */
+
+            // Duplex
             if (duplexJob && !cupsPrinter.getDuplexDevice()) {
                 continue;
             }
 
+            // Color
             final boolean colorPrinter = cupsPrinter.getColorDevice();
 
             if (colorJob && !colorPrinter) {
@@ -626,6 +684,38 @@ public final class JobTicketServiceImpl extends AbstractService
                 }
             }
 
+            final Map<String, JsonProxyPrinterOpt> printerOptionlookup =
+                    cupsPrinter.getOptionsLookup();
+
+            // Finishings
+            final String[][] finishingOptionsToCheck = {
+                    { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET,
+                            IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE },
+                    { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD,
+                            IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD_NONE },
+                    { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH,
+                            IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH_NONE },
+                    { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE,
+                            IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE_NONE }
+                    //
+            };
+
+            boolean isFinishingMatch = true;
+
+            for (final String[] ippOptionCheck : finishingOptionsToCheck) {
+
+                if (!isPrinterCapabilityMatch(job, ippOptionCheck[0],
+                        ippOptionCheck[1], printerOptionlookup)) {
+                    isFinishingMatch = false;
+                    break;
+                }
+            }
+
+            if (!isFinishingMatch) {
+                continue;
+
+            }
+            //
             final RedirectPrinterDto redirectPrinter = new RedirectPrinterDto();
             printerList.add(redirectPrinter);
 

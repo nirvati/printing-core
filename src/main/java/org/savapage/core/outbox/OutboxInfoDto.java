@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -471,6 +471,81 @@ public final class OutboxInfoDto extends AbstractDto {
                     IppKeyword.SIDES_TWO_SIDED_LONG_EDGE)
                     || isOptionPresent(IppDictJobTemplateAttr.ATTR_SIDES,
                             IppKeyword.SIDES_TWO_SIDED_SHORT_EDGE);
+        }
+
+        /**
+         *
+         * @return {@code true} if job requests punch finishing.
+         */
+        @JsonIgnore
+        public boolean hasFinishingPunch() {
+            return isOptionPresentUnequal(
+                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH_NONE);
+        }
+
+        /**
+         *
+         * @return {@code true} if job requests fold finishing.
+         */
+        @JsonIgnore
+        public boolean hasFinishingFold() {
+            return isOptionPresentUnequal(
+                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD_NONE);
+        }
+
+        /**
+         *
+         * @return {@code true} if job requests booklet finishing.
+         */
+        @JsonIgnore
+        public boolean hasFinishingBooklet() {
+            return isOptionPresentUnequal(
+                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE);
+        }
+
+        /**
+         *
+         * @return {@code true} if requests staple finishing.
+         */
+        @JsonIgnore
+        public boolean hasFinishingStaple() {
+            return isOptionPresentUnequal(
+                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE_NONE);
+        }
+
+        /**
+         * Checks if an option is present and has value unequal to compareValue.
+         *
+         * @param key
+         *            The option key.
+         * @param compareValue
+         *            The option value to compare with.
+         * @return {@code true} if option is present and has value unequal to
+         *         compareValue.
+         */
+        @JsonIgnore
+        public boolean isOptionPresentUnequal(final String key,
+                final String compareValue) {
+            final String found = this.optionValues.get(key);
+            return found != null && !found.equals(compareValue);
+        }
+
+        /**
+         *
+         * @return The Number-Up attribute value;
+         */
+        @JsonIgnore
+        public Integer getNumberUp() {
+            final String value = this.optionValues
+                    .get(IppDictJobTemplateAttr.ATTR_NUMBER_UP);
+            if (value != null) {
+                return Integer.valueOf(value);
+            }
+            return Integer.valueOf(1);
         }
 
         /**
