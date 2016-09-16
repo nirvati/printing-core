@@ -86,6 +86,11 @@ public enum CommunityDictEnum {
     /**
      * .
      */
+    SAVAPAGE_SUPPORT_URL("https://support.savapage.org"),
+
+    /**
+     * .
+     */
     FELLOW("Fellow"),
 
     /**

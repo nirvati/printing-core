@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -67,12 +67,6 @@ public interface IConfigProp {
      * database for SavaPage Financial.
      */
     int MAX_FINANCIAL_DECIMALS_IN_DB = 6;
-
-    /**
-     * .
-     */
-    String DEFAULT_COMMUNITY_HELPDESK_URL =
-            "https://secure.datraverse.nl/helpdesk/";
 
     /**
      * .
@@ -808,11 +802,6 @@ public interface IConfigProp {
          * the start date of the visiting period.
          */
         COMMUNITY_VISITOR_START_DATE("community.visitor.start-date"),
-
-        /**
-         *
-         */
-        COMMUNITY_HELPDESK_URL("community.helpdesk.url", URL_VALIDATOR, DEFAULT_COMMUNITY_HELPDESK_URL),
 
         /**
          * Is PaperCut integration enabled?
