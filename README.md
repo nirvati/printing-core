@@ -15,5 +15,4 @@ SavaPage Software is produced by Community Partners and consumed by Community Fe
 
 ### Issue Management
 
-[https://secure.datraverse.nl/issues/](https://secure.datraverse.nl/issues/)
-
+[https://issues.savapage.org](https://issues.savapage.org)
