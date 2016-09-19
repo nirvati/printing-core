@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -2560,15 +2560,22 @@ public abstract class AbstractProxyPrintService extends AbstractService
                             inboxService().replaceInboxInfoPages(inboxInfo,
                                     chunk.getRanges());
 
+                    final int orgNumberOfPages = request.getNumberOfPages();
+
                     /*
                      * Proxy print the chunk.
                      */
+
+                    // Mantis #723
+                    request.setNumberOfPages(chunk.getNumberOfPages());
+
                     proxyPrintInboxChunk(lockedUser, request, inboxInfo,
                             nChunk);
 
                     /*
                      * Restore the original pages.
                      */
+                    request.setNumberOfPages(orgNumberOfPages);
                     inboxInfo.setPages(orgPages);
                 }
             }
