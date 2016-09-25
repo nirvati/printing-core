@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -63,17 +63,12 @@ import org.savapage.core.util.FileSystemHelper;
 /**
  *
  * @since 0.9.9
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 @Singleton
 public final class EmailServiceImpl extends AbstractService implements
         EmailService {
-
-    /**
-     * The logger.
-     */
-    // private static final Logger LOGGER = LoggerFactory
-    // .getLogger(EmailServiceImpl.class);
 
     /**
      *
@@ -350,6 +345,10 @@ public final class EmailServiceImpl extends AbstractService implements
         try {
             final MimeMessage msg = this.createMimeMessage(parms, false);
             msg.writeTo(fos);
+
+            fos.flush();
+            fos.getFD().sync();
+
         } finally {
             IOUtils.closeQuietly(fos);
         }
