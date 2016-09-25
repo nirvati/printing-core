@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -93,7 +93,8 @@ public final class ProxyPrintInboxReqChunker {
      *            The requesting {@link User}, which should be locked.
      * @param request
      *            The {@link ProxyPrintInboxReq} to be chunked.
-     *
+     * @param pageScaling
+     *            The {@link PageScalingEnum}.
      */
     public ProxyPrintInboxReqChunker(final User lockedUser,
             final ProxyPrintInboxReq request,
@@ -140,9 +141,9 @@ public final class ProxyPrintInboxReqChunker {
          */
         if (mediaSourceCostList.size() == 0) {
 
-            throw new ProxyPrintException(
-                    getErrorMessagePfx() + "no media-source for media ["
-                            + inboxIppMedia.getIppKeyword() + "].");
+            throw new ProxyPrintException(String.format(
+                    "%s no media-source for media [%s]", getErrorMessagePfx(),
+                    inboxIppMedia.getIppKeyword()));
         }
 
         if (IS_UNIQUE_MEDIASOURCE_REQUIRED) {
@@ -153,10 +154,11 @@ public final class ProxyPrintInboxReqChunker {
                  * media-source MUST be available that matches the single media
                  * of the inbox.
                  */
-                throw new ProxyPrintException(getErrorMessagePfx()
-                        + "no unique media-source for media ["
-                        + inboxIppMedia.getIppKeyword() + "] ("
-                        + mediaSourceCostList.size() + " sources found).[");
+                throw new ProxyPrintException(String.format(
+                        "%s no unique media-source for media [%s]"
+                                + " (%d sources found)",
+                        getErrorMessagePfx(), inboxIppMedia.getIppKeyword(),
+                        mediaSourceCostList.size()));
             }
 
             mediaSourceForMedia = mediaSourceCostList.get(0);
@@ -279,8 +281,9 @@ public final class ProxyPrintInboxReqChunker {
              * INVARIANT: 'media' MUST be specified for 'manual' print.
              */
             if (requestedMedia == null) {
-                throw new ProxyPrintException(getErrorMessagePfx()
-                        + "no media specified for manual print.");
+                throw new ProxyPrintException(
+                        String.format("%s no media specified for manual print.",
+                                getErrorMessagePfx()));
             }
 
             assignedMedia = IppMediaSizeEnum.find(requestedMedia);
@@ -289,8 +292,9 @@ public final class ProxyPrintInboxReqChunker {
              * INVARIANT: requested 'media-source' MUST be present.
              */
             if (assignedMedia == null) {
-                throw new ProxyPrintException(getErrorMessagePfx() + "media ["
-                        + requestedMedia + "] unknown.");
+                throw new ProxyPrintException(
+                        String.format("%s media [%s] unknown.",
+                                getErrorMessagePfx(), requestedMedia));
             }
 
             assignedMediaSource = printerAttrLookup.getMediaSourceManual();
@@ -307,8 +311,8 @@ public final class ProxyPrintInboxReqChunker {
              */
             if (assignedMediaSource == null) {
                 throw new ProxyPrintException(
-                        getErrorMessagePfx() + "media source ["
-                                + requestedMediaSource + "] unknown.");
+                        String.format("%s media source [%s] unknown.",
+                                getErrorMessagePfx(), requestedMediaSource));
             }
 
             final String media = assignedMediaSource.getMedia().getMedia();
@@ -319,9 +323,9 @@ public final class ProxyPrintInboxReqChunker {
              * INVARIANT: media of requested 'media-source' MUST be present.
              */
             if (assignedMedia == null) {
-                throw new ProxyPrintException(getErrorMessagePfx() + "media ["
-                        + media + "] of media source [" + requestedMediaSource
-                        + "] unknown.");
+                throw new ProxyPrintException(String.format(
+                        "%s media [%s] of media source [%s] unknown.",
+                        getErrorMessagePfx(), media, requestedMediaSource));
             }
         }
 
