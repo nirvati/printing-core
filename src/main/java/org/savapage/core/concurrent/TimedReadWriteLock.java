@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * @author Rijk Ravestein (minor changes)
  *
  */
-public class TimedReadWriteLock {
+public final class TimedReadWriteLock {
 
     /**
      * Fair policy implies:
@@ -59,16 +59,21 @@ public class TimedReadWriteLock {
     private static final boolean LOCK_POLICY_FAIR = true;
 
     /**
+     * .
+     */
+    private static final String STACK_TRACE_CLASSNAME_FILTER = "org.savapage.";
+
+    /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(TimedReadWriteLock.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(TimedReadWriteLock.class);
 
     /**
      *
      */
-    private final ReadWriteLock rwLock = new ReentrantReadWriteLock(
-            LOCK_POLICY_FAIR);
+    private final ReadWriteLock rwLock =
+            new ReentrantReadWriteLock(LOCK_POLICY_FAIR);
 
     /**
      * How long to wait to unlock.
@@ -104,28 +109,54 @@ public class TimedReadWriteLock {
         WaitTimerTask(final Thread locker, final boolean readLock) {
             this.locker = locker;
             this.readLock = readLock;
-
-            stackElements = locker.getStackTrace();
+            this.stackElements = locker.getStackTrace();
         }
 
         @Override
         public void run() {
 
-            final String lockType = readLock ? "read" : "write";
-
-            final StringBuilder msg =
-                    new StringBuilder(locker + " is holding the [" + lockType
-                            + "] lock '" + name + "' for more than " + maxWait
-                            + " ms.\nLocker stack trace:\n");
-
-            for (StackTraceElement element : stackElements) {
-                msg.append("\t").append(element).append("\n");
+            if (!LOGGER.isWarnEnabled()) {
+                return;
             }
 
-            LOGGER.error(msg.toString());
+            final String lockType;
 
+            if (this.readLock) {
+                lockType = "read";
+            } else {
+                lockType = "write";
+            }
+
+            final String thisPackageName =
+                    this.getClass().getPackage().getName();
+
+            final StringBuilder msg = new StringBuilder();
+
+            msg.append(this.locker).append(" holds [").append(lockType)
+                    .append("] lock '").append(name).append("' for more than ")
+                    .append(maxWait).append(" ms. Stack trace snippet:\n");
+
+            int nElement = 0;
+
+            for (StackTraceElement element : this.stackElements) {
+                if (element.getClassName().startsWith(thisPackageName)) {
+                    continue;
+                }
+                if (element.getClassName()
+                        .startsWith(STACK_TRACE_CLASSNAME_FILTER)) {
+                    msg.append("\t").append(element).append("\n");
+                    nElement++;
+                } else if (nElement > 0) {
+                    break;
+                }
+            }
+            LOGGER.warn(msg.toString());
         }
 
+        /**
+         *
+         * @return {@code true} when a read lock.
+         */
         public boolean isReadLock() {
             return readLock;
         }
@@ -206,7 +237,8 @@ public class TimedReadWriteLock {
      * Locks or unlocks a write lock.
      *
      * @param lock
-     *            true - lock for write, false - unlock for write.
+     *            {@code true} - lock for write, {@code false} - unlock for
+     *            write.
      */
     public void setWriteLock(final boolean lock) {
 
@@ -218,7 +250,7 @@ public class TimedReadWriteLock {
              * @see java.util.concurrent.ReentrantReadWriteLock javadocs for
              * details
              */
-            Stack<WaitTimerTask> taskStack = lockTaskStack.get();
+            final Stack<WaitTimerTask> taskStack = lockTaskStack.get();
 
             if (!taskStack.isEmpty()) {
 
@@ -232,10 +264,9 @@ public class TimedReadWriteLock {
 
                     if (LOGGER.isDebugEnabled()) {
 
-                        final StringBuilder msg =
-                                new StringBuilder(Thread.currentThread()
-                                        + " stack trace:\n");
-
+                        final StringBuilder msg = new StringBuilder();
+                        msg.append(Thread.currentThread())
+                                .append(" stack trace:\n");
                         for (StackTraceElement element : Thread.currentThread()
                                 .getStackTrace()) {
                             msg.append("\t").append(element).append("\n");
@@ -267,9 +298,8 @@ public class TimedReadWriteLock {
         } else {
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Write unlock ["
-                        + Thread.currentThread().getName() + "]: "
-                        + Thread.currentThread().getStackTrace()[3]);
+                LOGGER.trace("Write unlock [" + Thread.currentThread().getName()
+                        + "]: " + Thread.currentThread().getStackTrace()[3]);
             }
 
             rwLock.writeLock().unlock();
