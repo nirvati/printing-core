@@ -2801,14 +2801,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
             final String printerName, final Date refDate)
             throws ProxyPrintException {
 
-        /*
-         * INVARIANT: MUST be connected to CUPS.
-         */
-        if (!this.isConnectedToCups()) {
-            throw new ProxyPrintException(
-                    localize("msg-printer-connection-broken"));
-        }
-
         final Printer printer = printerDAO().findByName(printerName);
 
         /*
