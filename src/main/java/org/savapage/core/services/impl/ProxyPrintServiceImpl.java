@@ -1073,8 +1073,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         docLog.setDeliveryProtocol(DocLogProtocolEnum.IPP.getDbName());
 
         docOut.setDestination(printer.getName());
-        docOut.setEcoPrint(Boolean
-                .valueOf(request.isEcoPrint() || request.isEcoPrintShadow()));
+        docOut.setEcoPrint(Boolean.valueOf(request.isEcoPrintShadow()));
         docOut.setRemoveGraphics(Boolean.valueOf(request.isRemoveGraphics()));
 
         docLog.setTitle(request.getJobName());

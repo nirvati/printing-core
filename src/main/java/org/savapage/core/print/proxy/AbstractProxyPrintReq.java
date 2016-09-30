@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -96,8 +96,6 @@ public abstract class AbstractProxyPrintReq
     private int numberOfPages;
     private boolean removeGraphics;
     private boolean drm;
-
-    private boolean ecoPrint;
 
     private boolean ecoPrintShadow;
 
@@ -195,23 +193,6 @@ public abstract class AbstractProxyPrintReq
 
     public void setDrm(boolean drm) {
         this.drm = drm;
-    }
-
-    /**
-     *
-     * @return {@code true} if Eco PDF is to be created.
-     */
-    public boolean isEcoPrint() {
-        return ecoPrint;
-    }
-
-    /**
-     *
-     * @param ecoPrint
-     *            {@code true} if Eco PDF is to be created.
-     */
-    public void setEcoPrint(boolean ecoPrint) {
-        this.ecoPrint = ecoPrint;
     }
 
     /**
@@ -617,7 +598,7 @@ public abstract class AbstractProxyPrintReq
         final ProxyPrintCostParms costParms = new ProxyPrintCostParms();
 
         costParms.setDuplex(this.isDuplex());
-        costParms.setEcoPrint(this.isEcoPrintShadow() || this.isEcoPrint());
+        costParms.setEcoPrint(this.isEcoPrintShadow());
         costParms.setGrayscale(this.isGrayscale());
         costParms.setNumberOfCopies(this.getNumberOfCopies());
         costParms.setPagesPerSide(this.getNup());

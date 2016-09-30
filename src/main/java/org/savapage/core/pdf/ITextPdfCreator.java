@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -38,12 +38,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 
 import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.MediaSize;
 
-import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
@@ -51,16 +49,9 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.doc.IFileConverter;
-import org.savapage.core.doc.ImageToPdf;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
-import org.savapage.core.imaging.EcoImageFilter;
-import org.savapage.core.imaging.EcoImageFilterSquare;
-import org.savapage.core.imaging.Pdf2ImgCommandExt;
-import org.savapage.core.imaging.Pdf2PngPopplerCmd;
 import org.savapage.core.json.PdfProperties;
-import org.savapage.core.system.CommandExecutor;
-import org.savapage.core.system.ICommandExecutor;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,6 +92,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
     private static final int ITEXT_POINTS_PER_INCH = 72;
 
+    public static final Integer PDF_ROTATION_0 = Integer.valueOf(0);
+    public static final Integer PDF_ROTATION_90 = Integer.valueOf(90);
+    public static final Integer PDF_ROTATION_180 = Integer.valueOf(180);
+    public static final Integer PDF_ROTATION_270 = Integer.valueOf(270);
+    public static final Integer PDF_ROTATION_360 = Integer.valueOf(360);
+
     /**
      * The logger.
      */
@@ -116,7 +113,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     private PdfReader letterheadReader;
 
     private StringBuilder jobRangesWlk;
-    private String jobRotationWlk;
+    private Integer jobRotationWlk;
 
     private File jobPdfFileWlk;
 
@@ -455,8 +452,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onInit() {
 
-        this.onExitConvertToGrayscale =
-                this.isGrayscalePdf() && !this.isConvertToEcoPdf();
+        this.onExitConvertToGrayscale = this.isGrayscalePdf();
 
         this.targetPdfCopyFilePath = String.format("%s.tmp", this.pdfFile);
 
@@ -467,20 +463,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
             this.targetDocument = new Document();
 
-            if (this.isConvertToEcoPdf()) {
-
-                PdfWriter.getInstance(this.targetDocument, ostr);
-
-                /*
-                 * Do not open the target document yet, but lazy open it when
-                 * page size of first page is known.
-                 */
-
-            } else {
-
-                this.targetPdfCopy = new PdfCopy(this.targetDocument, ostr);
-                this.targetDocument.open();
-            }
+            this.targetPdfCopy = new PdfCopy(this.targetDocument, ostr);
+            this.targetDocument.open();
 
         } catch (Exception e) {
             throw new SpException(e);
@@ -514,7 +498,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     @Override
-    protected void onInitJob(final String jobPfdName, final String rotation)
+    protected void onInitJob(final String jobPfdName, final Integer rotation)
             throws Exception {
 
         this.jobPdfFileWlk = new File(jobPfdName);
@@ -530,125 +514,15 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         this.isRemoveGraphics = removeGraphics;
 
-        if (this.isConvertToEcoPdf()) {
-
-            onProcessJobPagesEco(nPageFrom, nPageTo, removeGraphics);
-
-        } else {
-
-            if (this.jobRangesWlk.length() > 0) {
-                this.jobRangesWlk.append(",");
-            }
-
-            this.jobRangesWlk.append(nPageFrom);
-
-            if (nPageFrom != nPageTo) {
-                this.jobRangesWlk.append("-").append(nPageTo);
-            }
-        }
-    }
-
-    /**
-     *
-     * @param nPageFrom
-     * @param nPageTo
-     * @param removeGraphics
-     * @throws InterruptedException
-     * @throws IOException
-     * @throws DocumentException
-     */
-    protected void onProcessJobPagesEco(final int nPageFrom, final int nPageTo,
-            final boolean removeGraphics)
-            throws IOException, InterruptedException, DocumentException {
-
-        final Pdf2ImgCommandExt pdf2ImgCmd = new Pdf2PngPopplerCmd();
-
-        final EcoImageFilterSquare.Parms ecoParms =
-                EcoImageFilterSquare.Parms.createDefault();
-
-        ecoParms.setConvertToGrayscale(this.isGrayscalePdf());
-
-        final EcoImageFilter filter = new EcoImageFilterSquare(ecoParms);
-
-        final File imageFile =
-                new File(String.format("%s%c_eco_%s.png", this.appTmpDir,
-                        File.separatorChar, UUID.randomUUID().toString()));
-
-        try {
-
-            for (int i = nPageFrom - 1; i < nPageTo; i++) {
-
-                /*
-                 * First, set page size and margins.
-                 */
-                final boolean rotatePdfPage;
-
-                if (StringUtils.defaultString(this.jobRotationWlk, "0")
-                        .equals("0")) {
-                    rotatePdfPage = false;
-                } else {
-                    final int rotate = Integer.valueOf(this.jobRotationWlk);
-                    // Rotate when odd multiple of 90.
-                    rotatePdfPage = (rotate / 90) % 2 != 0;
-                }
-
-                final Rectangle pageSize = this.readerWlk.getPageSize(i + 1);
-
-                if (rotatePdfPage) {
-                    this.targetDocument.setPageSize(pageSize.rotate());
-                } else {
-                    this.targetDocument.setPageSize(pageSize);
-                }
-                this.targetDocument.setMargins(0, 0, 0, 0);
-
-                /*
-                 * Then, open document or add new page.
-                 */
-                if (!this.targetDocument.isOpen()) {
-                    this.targetDocument.open();
-                } else {
-                    this.targetDocument.newPage();
-                }
-
-                // TODO: optimize resolution to PDF page size?
-                final int resolution = 300;
-
-                final String command =
-                        pdf2ImgCmd.createCommand(this.jobPdfFileWlk, imageFile,
-                                i, this.jobRotationWlk, resolution);
-
-                final ICommandExecutor exec =
-                        CommandExecutor.createSimple(command);
-
-                if (exec.executeCommand() != 0) {
-                    LOGGER.error(command);
-                    LOGGER.error(exec.getStandardErrorFromCommand().toString());
-                    throw new SpException(
-                            "image [" + imageFile.getAbsolutePath()
-                                    + "] could not be created.");
-                }
-
-                final com.itextpdf.text.Image image = com.itextpdf.text.Image
-                        .getInstance(filter.filter(imageFile), Color.WHITE);
-
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(String.format("Width x Height = %f x %f",
-                            this.targetDocument.getPageSize().getWidth(),
-                            this.targetDocument.getPageSize().getHeight()));
-                }
-
-                ImageToPdf.addImagePage(this.targetDocument, 0, 0, image);
-
-                imageFile.delete();
-            }
-
-        } finally {
-
-            if (imageFile.exists()) {
-                imageFile.delete();
-            }
+        if (this.jobRangesWlk.length() > 0) {
+            this.jobRangesWlk.append(",");
         }
 
+        this.jobRangesWlk.append(nPageFrom);
+
+        if (nPageFrom != nPageTo) {
+            this.jobRangesWlk.append("-").append(nPageTo);
+        }
     }
 
     /**
@@ -675,61 +549,101 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         return this.singleBlankPagePdfReader;
     }
 
+    /**
+     * Gets the page rotation for a copy of a source PDF page.
+     * <p>
+     * When the current page size has portrait orientation (height LT width) the
+     * rotation to apply depends on the current page rotation.
+     * </p>
+     *
+     * @param srcPageSize
+     *            The size of the source PDF page.
+     * @param srcPageRotation
+     *            The rotation of the source PDF page.
+     * @param defaultRotation
+     *            The default rotation.
+     * @return The page rotation to apply to the PDF page copy.
+     */
+    public static Integer rotationforPDFPageCopy(final Rectangle srcPageSize,
+            final int srcPageRotation, final Integer defaultRotation) {
+
+        if (srcPageSize.getHeight() < srcPageSize.getWidth()) {
+
+            if (srcPageRotation == PDF_ROTATION_0.intValue()) {
+                return PDF_ROTATION_270;
+            } else if (srcPageRotation == PDF_ROTATION_90.intValue()) {
+                return PDF_ROTATION_180;
+            } else if (srcPageRotation == PDF_ROTATION_180.intValue()) {
+                return PDF_ROTATION_90; // ??
+            } else if (srcPageRotation == PDF_ROTATION_270.intValue()) {
+                return PDF_ROTATION_360; // works, but why?
+            } else {
+                throw new SpException("Unsupported PDF page rotation.");
+            }
+        }
+        return defaultRotation;
+    }
+
     @Override
     protected void onExitJob() throws Exception {
 
-        if (!this.isConvertToEcoPdf()) {
+        this.readerWlk.selectPages(this.jobRangesWlk.toString());
+        int pages = this.readerWlk.getNumberOfPages();
 
-            this.readerWlk.selectPages(this.jobRangesWlk.toString());
-            int pages = this.readerWlk.getNumberOfPages();
+        final Integer jobRotationInit;
+        if (this.jobRotationWlk == null) {
+            jobRotationInit = this.jobRotationWlk;
+        } else {
+            jobRotationInit = Integer.valueOf(this.jobRotationWlk);
+        }
 
-            for (int i = 0; i < pages;) {
+        for (int i = 0; i < pages;) {
 
-                ++i;
+            ++i;
 
-                /*
-                 * Rotate for BOTH export and printing.
-                 */
-                if (this.jobRotationWlk != null) {
+            this.jobRotationWlk =
+                    rotationforPDFPageCopy(this.readerWlk.getPageSize(i),
+                            this.readerWlk.getPageRotation(i), jobRotationInit);
 
-                    final int rotate = Integer.valueOf(this.jobRotationWlk);
+            /*
+             * Rotate for BOTH export and printing.
+             */
+            if (this.jobRotationWlk != null) {
 
-                    if (rotate != 0) {
-                        final PdfDictionary pageDict =
-                                this.readerWlk.getPageN(i);
-                        pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
-                    }
+                final int rotate = this.jobRotationWlk.intValue();
+
+                if (rotate != 0) {
+                    final PdfDictionary pageDict = this.readerWlk.getPageN(i);
+                    pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
                 }
-
-                final PdfImportedPage importedPage;
-
-                if (isPageContentsPresent(this.readerWlk, i)) {
-                    importedPage = this.targetPdfCopy
-                            .getImportedPage(this.readerWlk, i);
-                } else {
-                    /*
-                     * Replace page without /Contents with our own blank
-                     * content. See Mantis #614.
-                     */
-                    importedPage =
-                            this.targetPdfCopy.getImportedPage(
-                                    this.getBlankPageReader(
-                                            this.targetPdfCopy.getPageSize()),
-                                    1);
-
-                    if (LOGGER.isInfoEnabled()) {
-                        LOGGER.info(String.format(
-                                "File [%s] page [%d] has NO /Contents: "
-                                        + "replaced by blank content.",
-                                this.jobPdfFileWlk.getName(), i));
-                    }
-                }
-
-                this.targetPdfCopy.addPage(importedPage);
             }
 
-            this.targetPdfCopy.freeReader(this.readerWlk);
+            final PdfImportedPage importedPage;
+
+            if (isPageContentsPresent(this.readerWlk, i)) {
+
+                importedPage =
+                        this.targetPdfCopy.getImportedPage(this.readerWlk, i);
+            } else {
+                /*
+                 * Replace page without /Contents with our own blank content.
+                 * See Mantis #614.
+                 */
+                importedPage = this.targetPdfCopy.getImportedPage(this
+                        .getBlankPageReader(this.targetPdfCopy.getPageSize()),
+                        1);
+
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info(String.format(
+                            "File [%s] page [%d] has NO /Contents: "
+                                    + "replaced by blank content.",
+                            this.jobPdfFileWlk.getName(), i));
+                }
+            }
+            this.targetPdfCopy.addPage(importedPage);
         }
+
+        this.targetPdfCopy.freeReader(this.readerWlk);
 
         this.readerWlk.close();
         this.readerWlk = null;

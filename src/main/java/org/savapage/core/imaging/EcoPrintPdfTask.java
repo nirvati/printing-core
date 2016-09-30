@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -32,9 +32,9 @@ import java.nio.file.Path;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.doc.ImageToPdf;
+import org.savapage.core.pdf.ITextPdfCreator;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
 import org.savapage.core.util.DateUtil;
@@ -45,6 +45,9 @@ import org.slf4j.LoggerFactory;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfDictionary;
+import com.itextpdf.text.pdf.PdfName;
+import com.itextpdf.text.pdf.PdfNumber;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfWriter;
 
@@ -54,14 +57,14 @@ import com.itextpdf.text.pdf.PdfWriter;
  * @author Rijk Ravestein
  *
  */
-public final class EcoPrintPdfTask implements Runnable,
-        Comparable<EcoPrintPdfTask> {
+public final class EcoPrintPdfTask
+        implements Runnable, Comparable<EcoPrintPdfTask> {
 
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(EcoPrintPdfTask.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(EcoPrintPdfTask.class);
 
     private final ThreadPoolExecutor executor;
 
@@ -108,15 +111,18 @@ public final class EcoPrintPdfTask implements Runnable,
      * @return
      * @throws IOException
      */
-    private static BufferedImage createFilteredImage(
-            final EcoImageFilter filter, final File imageIn) throws IOException {
+    private static BufferedImage
+            createFilteredImage(final EcoImageFilter filter, final File imageIn)
+                    throws IOException {
 
         final BufferedImage imageOut = filter.filter(imageIn);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(String.format("%s : Tot %.2f | Read %.2f | "
-                    + "Proc %.2f | Write %.2f secs | Saved %.2f perc",
-                    imageIn.getName(), (double) filter.getTotalTime()
+            LOGGER.trace(String.format(
+                    "%s : Tot %.2f | Read %.2f | "
+                            + "Proc %.2f | Write %.2f secs | Saved %.2f perc",
+                    imageIn.getName(),
+                    (double) filter.getTotalTime()
                             / DateUtil.DURATION_MSEC_SECOND,
                     (double) filter.getReadTime()
                             / DateUtil.DURATION_MSEC_SECOND,
@@ -156,9 +162,9 @@ public final class EcoPrintPdfTask implements Runnable,
                 || (this.executor != null && this.executor.isTerminating())) {
 
             if (this.stopRequest && LOGGER.isInfoEnabled()) {
-                LOGGER.info(String.format("[%s] %s : STOPPED", this.taskInfo
-                        .getUuid().toString(), this.taskInfo.getPdfIn()
-                        .getName()));
+                LOGGER.info(String.format("[%s] %s : STOPPED",
+                        this.taskInfo.getUuid().toString(),
+                        this.taskInfo.getPdfIn().getName()));
             }
 
             throw new InterruptedException();
@@ -176,11 +182,8 @@ public final class EcoPrintPdfTask implements Runnable,
 
         final EcoImageFilter filter = new EcoImageFilterSquare();
 
-        final Path pathPdfOutTemp =
-                FileSystems.getDefault().getPath(
-                        pathTmpDir,
-                        String.format("%s.pdf.eco", UUID.randomUUID()
-                                .toString()));
+        final Path pathPdfOutTemp = FileSystems.getDefault().getPath(pathTmpDir,
+                String.format("%s.pdf.eco", UUID.randomUUID().toString()));
 
         /*
          * Create target document, but lazy open it when page size of first page
@@ -196,10 +199,12 @@ public final class EcoPrintPdfTask implements Runnable,
         int nPagesMax = 0;
         double fractionFilteredTot = 0.0;
 
+        final Integer jobRotationInit =
+                Integer.valueOf(this.taskInfo.getRotation());
         try {
 
-            final PdfReader readerWlk =
-                    new PdfReader(new FileInputStream(this.taskInfo.getPdfIn()));
+            final PdfReader readerWlk = new PdfReader(
+                    new FileInputStream(this.taskInfo.getPdfIn()));
 
             nPagesMax = readerWlk.getNumberOfPages();
 
@@ -207,14 +212,14 @@ public final class EcoPrintPdfTask implements Runnable,
 
                 final StringBuilder msg = new StringBuilder();
 
-                msg.append(String.format("%s | %d page(s) ...", taskInfo
-                        .getPdfOut().getName(), nPagesMax));
+                msg.append(String.format("%s | %d page(s) ...",
+                        taskInfo.getPdfOut().getName(), nPagesMax));
 
                 LOGGER.info(msg.toString());
             }
 
-            PdfWriter.getInstance(targetDocument, new FileOutputStream(
-                    pathPdfOutTemp.toFile()));
+            PdfWriter.getInstance(targetDocument,
+                    new FileOutputStream(pathPdfOutTemp.toFile()));
 
             for (int i = 0; i < nPagesMax; i++) {
 
@@ -225,23 +230,33 @@ public final class EcoPrintPdfTask implements Runnable,
                  */
                 final boolean rotatePdfPage;
 
-                if (StringUtils.defaultString(this.taskInfo.getRotation(), "0")
-                        .equals("0")) {
-                    rotatePdfPage = false;
-                } else {
-                    final int rotate =
-                            Integer.valueOf(this.taskInfo.getRotation());
-                    // Rotate when odd multiple of 90.
-                    rotatePdfPage = (rotate / 90) % 2 != 0;
-                }
-
                 final Rectangle pageSize = readerWlk.getPageSize(i + 1);
+
+                final Integer jobRotationWlk =
+                        ITextPdfCreator.rotationforPDFPageCopy(pageSize,
+                                readerWlk.getPageSize(i + 1).getRotation(),
+                                jobRotationInit);
+
+                if (jobRotationWlk != null) {
+
+                    final int rotate = jobRotationWlk.intValue();
+                    rotatePdfPage = rotate != 0;
+
+                    if (rotatePdfPage) {
+                        final PdfDictionary pageDict =
+                                readerWlk.getPageN(i + 1);
+                        pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
+                    }
+                } else {
+                    rotatePdfPage = false;
+                }
 
                 if (rotatePdfPage) {
                     targetDocument.setPageSize(pageSize.rotate());
                 } else {
                     targetDocument.setPageSize(pageSize);
                 }
+
                 targetDocument.setMargins(0, 0, 0, 0);
 
                 /*
@@ -253,13 +268,11 @@ public final class EcoPrintPdfTask implements Runnable,
                     targetDocument.newPage();
                 }
 
-                imageOut =
-                        new File(String.format("%s/%s.png", pathTmpDir, UUID
-                                .randomUUID().toString()));
+                imageOut = new File(String.format("%s/%s.png", pathTmpDir,
+                        UUID.randomUUID().toString()));
 
-                final String command =
-                        createPdf2ImgCmd(taskInfo.getPdfIn(), i, "0",
-                                taskInfo.getResolution(), imageOut);
+                final String command = createPdf2ImgCmd(taskInfo.getPdfIn(), i,
+                        "0", taskInfo.getResolution(), imageOut);
 
                 final ICommandExecutor exec =
                         CommandExecutor.createSimple(command);
@@ -267,22 +280,20 @@ public final class EcoPrintPdfTask implements Runnable,
                 if (exec.executeCommand() != 0) {
 
                     final StringBuilder msg = new StringBuilder();
-                    msg.append("image [")
-                            .append(imageOut.getAbsolutePath())
+                    msg.append("image [").append(imageOut.getAbsolutePath())
                             .append("] could not be created. Command [")
                             .append(command)
-                            .append("] Error [")
-                            .append(exec.getStandardErrorFromCommand()
-                                    .toString()).append("]");
+                            .append("] Error [").append(exec
+                                    .getStandardErrorFromCommand().toString())
+                            .append("]");
 
                     throw new SpException(msg.toString());
                 }
 
                 this.checkExecutorTerminating();
 
-                final com.itextpdf.text.Image image =
-                        com.itextpdf.text.Image.getInstance(
-                                createFilteredImage(filter, imageOut),
+                final com.itextpdf.text.Image image = com.itextpdf.text.Image
+                        .getInstance(createFilteredImage(filter, imageOut),
                                 Color.WHITE);
 
                 this.checkExecutorTerminating();
@@ -336,14 +347,14 @@ public final class EcoPrintPdfTask implements Runnable,
 
             final StringBuilder msg = new StringBuilder();
 
-            msg.append(String.format("%s | %d page(s) | %.2f secs", taskInfo
-                    .getPdfOut().getName(), nPagesMax,
+            msg.append(String.format("%s | %d page(s) | %.2f secs",
+                    taskInfo.getPdfOut().getName(), nPagesMax,
                     (double) (System.currentTimeMillis() - startTime)
                             / DateUtil.DURATION_MSEC_SECOND));
 
             if (finished) {
-                msg.append(String.format(" | Saved %.2f perc", 100
-                        * fractionFilteredTot / nPagesTot));
+                msg.append(String.format(" | Saved %.2f perc",
+                        100 * fractionFilteredTot / nPagesTot));
             } else {
                 msg.append(" | ABORTED after ").append(nPagesTot)
                         .append(" page(s).");
@@ -360,9 +371,8 @@ public final class EcoPrintPdfTask implements Runnable,
 
     @Override
     public boolean equals(final Object object) {
-        return this.taskInfo.getUuid() != null
-                && this.taskInfo.getUuid().equals(
-                        ((EcoPrintPdfTask) object).taskInfo.getUuid());
+        return this.taskInfo.getUuid() != null && this.taskInfo.getUuid()
+                .equals(((EcoPrintPdfTask) object).taskInfo.getUuid());
     }
 
     @Override

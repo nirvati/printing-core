@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -91,11 +91,6 @@ public abstract class AbstractPdfCreator {
     private final boolean encryptForPrinting = false;
 
     /**
-     * {@code true} when PDF is converted on the fly to EcoImages.
-     */
-    private boolean convertToEcoPdf = false;
-
-    /**
      * {@code true} when graphics are removed from PDF.
      */
     private boolean removeGraphics = false;
@@ -126,23 +121,6 @@ public abstract class AbstractPdfCreator {
      */
     protected boolean isForPrinting() {
         return this.isForPrinting;
-    }
-
-    /**
-     *
-     * @param convert
-     *            {@code true} when PDF is converted on the fly to EcoImages.
-     */
-    protected final void setConvertToEcoPdf(final boolean convert) {
-        this.convertToEcoPdf = convert;
-    }
-
-    /**
-     *
-     * @return {@code true} when PDF is converted on the fly to EcoImages.
-     */
-    protected final boolean isConvertToEcoPdf() {
-        return this.convertToEcoPdf;
     }
 
     /**
@@ -218,7 +196,7 @@ public abstract class AbstractPdfCreator {
      * @throws Exception
      */
     protected abstract void onInitJob(final String jobPfdName,
-            final String rotation) throws Exception;
+            final Integer rotation) throws Exception;
 
     /**
      *
@@ -352,9 +330,6 @@ public abstract class AbstractPdfCreator {
 
         this.useEcoPdfShadow = createReq.isEcoPdfShadow();
 
-        this.convertToEcoPdf =
-                !createReq.isEcoPdfShadow() && createReq.isEcoPdf();
-
         this.pdfFile = createReq.getPdfFile();
         this.isForPrinting = createReq.isForPrinting();
 
@@ -481,7 +456,7 @@ public abstract class AbstractPdfCreator {
                             INBOX_SERVICE.createEcoPdfShadowPath(jobPfdName);
                 }
 
-                onInitJob(jobPfdName, job.getRotate());
+                onInitJob(jobPfdName, Integer.valueOf(job.getRotate()));
 
                 final List<RangeAtom> ranges =
                         INBOX_SERVICE.createSortedRangeArray(page.getRange());
@@ -529,8 +504,7 @@ public abstract class AbstractPdfCreator {
                 docLog.setDocOut(docOut);
                 docOut.setDocLog(docLog);
 
-                docOut.setEcoPrint(Boolean
-                        .valueOf(this.useEcoPdfShadow || this.convertToEcoPdf));
+                docOut.setEcoPrint(Boolean.valueOf(this.useEcoPdfShadow));
                 docOut.setRemoveGraphics(Boolean.valueOf(this.removeGraphics));
             }
 
@@ -683,7 +657,7 @@ public abstract class AbstractPdfCreator {
             onExit();
 
         } catch (Exception e) {
-            throw new SpException(e);
+            throw new SpException(e.getMessage(), e);
 
         } finally {
             onProcessFinally();
