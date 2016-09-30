@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -95,19 +95,41 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
 
     public static final String ATTR_PRINTER_URI_SUPPORTED =
             "printer-uri-supported";
+
     public static final String ATTR_URI_SECURITY_SUPPORTED =
             "uri-security-supported";
+
     public static final String ATTR_URI_AUTH_SUPPORTED =
             "uri-authentication-supported";
+
     public static final String ATTR_PRINTER_NAME = "printer-name";
+
     public static final String ATTR_PRINTER_LOCATION = "printer-location";
 
     public static final String ATTR_PRINTER_INFO = "printer-info";
+
     public static final String ATTR_PRINTER_DRIVER_INSTALLER =
             "printer-driver-installer";
+
     public static final String ATTR_PRINTER_MAKE_MODEL =
             "printer-make-and-model";
+
     public static final String ATTR_PRINTER_STATE = "printer-state";
+
+    /*
+     * (type2 enum)
+     */
+    public static final String ATTR_PRINTER_TYPE = "printer-type";
+
+    /**
+     * member-names (1setof name(127))
+     * <p>
+     * Specifies each of the printer-name attributes of the member printers and
+     * classes. Each name corresponds to the same element of the member-uris
+     * attribute.
+     * </p>
+     */
+    public static final String ATTR_MEMBER_NAMES = "member-names";
 
     /**
      * Required for IPP everywhere:
@@ -602,4 +624,5 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
          */
         return getAttr(keyword);
     }
+
 }

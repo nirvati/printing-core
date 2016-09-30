@@ -58,6 +58,7 @@ import org.savapage.core.dto.ProxyPrinterCostDto;
 import org.savapage.core.dto.ProxyPrinterDto;
 import org.savapage.core.dto.ProxyPrinterMediaSourcesDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
+import org.savapage.core.ipp.IppPrinterType;
 import org.savapage.core.ipp.IppSyntaxException;
 import org.savapage.core.ipp.attribute.AbstractIppDict;
 import org.savapage.core.ipp.attribute.IppAttr;
@@ -104,6 +105,7 @@ import org.savapage.core.print.proxy.JsonProxyPrinterOptGroup;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.CupsPrinterClass;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
@@ -253,8 +255,16 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             throws IppConnectException, URISyntaxException,
             MalformedURLException {
 
+        // All printers, including CUPS printer classes.
         final List<JsonProxyPrinter> printers = new ArrayList<>();
 
+        // A map of ALL printer by uppercase name.
+        final Map<String, JsonProxyPrinter> printerMap = new HashMap<>();
+
+        // The printers that are a CUPS printer class.
+        final List<CupsPrinterClass> printerClasses = new ArrayList<>();
+
+        //
         final boolean remoteCupsEnabled = ConfigManager.instance()
                 .isConfigValue(Key.CUPS_IPP_REMOTE_ENABLED);
 
@@ -305,6 +315,32 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             }
 
             /*
+             * Get the printer-type: printer class?
+             */
+            final String printerType = group.getAttrSingleValue(
+                    IppDictPrinterDescAttr.ATTR_PRINTER_TYPE);
+
+            if (printerType != null
+                    && IppPrinterType.hasProperty(Integer.parseInt(printerType),
+                            IppPrinterType.BitEnum.PRINTER_CLASS)) {
+
+                final String printerName = group.getAttrSingleValue(
+                        IppDictPrinterDescAttr.ATTR_PRINTER_NAME);
+
+                final CupsPrinterClass printerClass = new CupsPrinterClass();
+                printerClass.setPrinterUri(uriPrinter);
+                printerClass.setName(printerName);
+
+                for (final String member : group
+                        .getAttrValue(IppDictPrinterDescAttr.ATTR_MEMBER_NAMES)
+                        .getValues()) {
+                    printerClass.addMemberName(member.toUpperCase());
+                }
+
+                printerClasses.add(printerClass);
+            }
+
+            /*
              * Create JsonProxyPrinter object from PRINTER_ATTR group.
              */
             final JsonProxyPrinter proxyPrinterFromGroup =
@@ -313,7 +349,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             if (proxyPrinterFromGroup == null) {
                 continue;
             }
-            // proxyPrinterToAdd.setPrinterUri(uriPrinter);
 
             /*
              * Retrieve printer details.
@@ -326,13 +361,104 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
                 if (proxyPrinterDetails != null) {
                     printers.add(proxyPrinterDetails);
+                    printerMap.put(proxyPrinterDetails.getName(),
+                            proxyPrinterDetails);
                 }
 
             } catch (IppConnectException e) {
                 // noop
             }
-
         }
+
+        //
+        for (final CupsPrinterClass printerClass : printerClasses) {
+
+            /*
+             * INVARIANT: Printer Class MUST have members.
+             */
+            if (printerClass.getMemberNames().size() == 0) {
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(String.format(
+                            "No Proxy Printer Members of Printer "
+                                    + "class [%s] found.",
+                            printerClass.getName()));
+                }
+                continue;
+            }
+
+            /*
+             * INVARIANT: Printer Class members MUST same Make and Model.
+             */
+            String commonMakeModel = null;
+
+            for (final String member : printerClass.getMemberNames()) {
+
+                final JsonProxyPrinter proxyPrinterMember =
+                        printerMap.get(member);
+
+                if (commonMakeModel == null) {
+                    commonMakeModel = proxyPrinterMember.getModelName();
+                } else if (!proxyPrinterMember.getModelName()
+                        .equals(commonMakeModel)) {
+                    commonMakeModel = null;
+                    break;
+                }
+            }
+
+            if (commonMakeModel == null) {
+                LOGGER.error(String.format(
+                        "Proxy Printer Members of Printer class [%s] "
+                                + "do NOT have same Make/Model.",
+                        printerClass.getName()));
+                continue;
+            }
+
+            /*
+             * Use the IPP options of the first member.
+             */
+            final String memberName = printerClass.getMemberNames().get(0);
+
+            final JsonProxyPrinter proxyPrinterMember =
+                    printerMap.get(memberName);
+
+            /*
+             * INVARIANT: Printer Class member MUST be present as Proxy Printer.
+             */
+            if (proxyPrinterMember == null) {
+                LOGGER.error(String.format(
+                        "Proxy Printer Member [%s] of Printer class [%s] "
+                                + "not found.",
+                        memberName, printerClass.getName()));
+                continue;
+            }
+
+            final JsonProxyPrinter proxyPrinterClass =
+                    printerMap.get(printerClass.getName());
+
+            proxyPrinterClass.setGroups(proxyPrinterMember.getGroups());
+
+            proxyPrinterClass.setAutoMediaSource(
+                    proxyPrinterMember.getAutoMediaSource());
+            proxyPrinterClass
+                    .setColorDevice(proxyPrinterMember.getColorDevice());
+            proxyPrinterClass
+                    .setDuplexDevice(proxyPrinterMember.getDuplexDevice());
+            proxyPrinterClass.setManualMediaSource(
+                    proxyPrinterMember.getManualMediaSource());
+            proxyPrinterClass.setPpd(proxyPrinterMember.getPpd());
+            proxyPrinterClass.setPpdVersion(proxyPrinterMember.getPpdVersion());
+            proxyPrinterClass
+                    .setSheetCollate(proxyPrinterMember.getSheetCollate());
+
+            if (LOGGER.isTraceEnabled()) {
+                final String msg =
+                        String.format("Printer Class [%s] URI [%s] [%s]",
+                                printerClass.getName(),
+                                printerClass.getPrinterUri(), commonMakeModel);
+                LOGGER.trace(msg);
+            }
+        }
+
         return printers;
     }
 
@@ -2083,6 +2209,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         for (final String value : new String[] {
                 IppDictPrinterDescAttr.ATTR_PRINTER_URI_SUPPORTED,
                 IppDictPrinterDescAttr.ATTR_PRINTER_NAME,
+                IppDictPrinterDescAttr.ATTR_PRINTER_TYPE,
+                IppDictPrinterDescAttr.ATTR_MEMBER_NAMES,
                 IppDictPrinterDescAttr.ATTR_PRINTER_INFO,
                 IppDictPrinterDescAttr.ATTR_PRINTER_IS_ACCEPTING_JOBS,
                 IppDictPrinterDescAttr.ATTR_PRINTER_LOCATION,

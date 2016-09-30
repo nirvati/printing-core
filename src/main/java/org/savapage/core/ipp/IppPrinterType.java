@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ package org.savapage.core.ipp;
  * information and the PPD file for the printer.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class IppPrinterType {
@@ -162,14 +162,14 @@ public class IppPrinterType {
      *
      * @param value
      */
-    public IppPrinterType(int value) {
+    public IppPrinterType(final int value) {
         this.value = value;
     }
 
     /**
      *
      */
-    public int set(BitEnum bit) {
+    public int set(final BitEnum bit) {
         value |= bit.asInt();
         return value;
     }
@@ -179,8 +179,8 @@ public class IppPrinterType {
      * @param bit
      * @return
      */
-    public boolean is(BitEnum bit) {
-        return (value & bit.asInt()) != 0;
+    public boolean is(final BitEnum bit) {
+        return hasProperty(value, bit);
     }
 
     /**
@@ -189,5 +189,19 @@ public class IppPrinterType {
      */
     public int getValue() {
         return value;
+    }
+
+    /**
+     * Checks if printer type has capability/property.
+     *
+     * @param printerType
+     *            The printer type value.
+     * @param bit
+     *            The property to check.
+     * @return {@code true} when property is present.
+     */
+    public static boolean hasProperty(final int printerType,
+            final BitEnum bit) {
+        return (printerType & bit.asInt()) != 0;
     }
 }
