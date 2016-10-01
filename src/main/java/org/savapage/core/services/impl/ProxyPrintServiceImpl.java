@@ -317,17 +317,23 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             /*
              * Get the printer-type: printer class?
              */
-            final String printerType = group.getAttrSingleValue(
-                    IppDictPrinterDescAttr.ATTR_PRINTER_TYPE);
+            final Integer printerType =
+                    Integer.parseInt(group.getAttrSingleValue(
+                            IppDictPrinterDescAttr.ATTR_PRINTER_TYPE));
 
-            if (printerType != null
-                    && IppPrinterType.hasProperty(Integer.parseInt(printerType),
-                            IppPrinterType.BitEnum.PRINTER_CLASS)) {
+            if (IppPrinterType.hasProperty(printerType,
+                    IppPrinterType.BitEnum.IMPLICIT_CLASS)) {
+                continue;
+            }
+
+            if (IppPrinterType.hasProperty(printerType,
+                    IppPrinterType.BitEnum.PRINTER_CLASS)) {
 
                 final String printerName = group.getAttrSingleValue(
                         IppDictPrinterDescAttr.ATTR_PRINTER_NAME);
 
                 final CupsPrinterClass printerClass = new CupsPrinterClass();
+
                 printerClass.setPrinterUri(uriPrinter);
                 printerClass.setName(printerName);
 
@@ -432,23 +438,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 continue;
             }
 
-            final JsonProxyPrinter proxyPrinterClass =
-                    printerMap.get(printerClass.getName());
-
-            proxyPrinterClass.setGroups(proxyPrinterMember.getGroups());
-
-            proxyPrinterClass.setAutoMediaSource(
-                    proxyPrinterMember.getAutoMediaSource());
-            proxyPrinterClass
-                    .setColorDevice(proxyPrinterMember.getColorDevice());
-            proxyPrinterClass
-                    .setDuplexDevice(proxyPrinterMember.getDuplexDevice());
-            proxyPrinterClass.setManualMediaSource(
-                    proxyPrinterMember.getManualMediaSource());
-            proxyPrinterClass.setPpd(proxyPrinterMember.getPpd());
-            proxyPrinterClass.setPpdVersion(proxyPrinterMember.getPpdVersion());
-            proxyPrinterClass
-                    .setSheetCollate(proxyPrinterMember.getSheetCollate());
+            initPrinterClassFromMember(printerMap.get(printerClass.getName()),
+                    proxyPrinterMember);
 
             if (LOGGER.isTraceEnabled()) {
                 final String msg =
@@ -458,8 +449,30 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 LOGGER.trace(msg);
             }
         }
-
         return printers;
+    }
+
+    /**
+     * Initializes a CUPS printer class from a class member.
+     *
+     * @param printerClass
+     *            The CUPS printer class to initialize.
+     * @param printerMember
+     *            The CUPS printer class member to initialize from.
+     */
+    private static void initPrinterClassFromMember(
+            final JsonProxyPrinter printerClass,
+            final JsonProxyPrinter printerMember) {
+
+        printerClass.setGroups(printerMember.getGroups());
+
+        printerClass.setAutoMediaSource(printerMember.getAutoMediaSource());
+        printerClass.setColorDevice(printerMember.getColorDevice());
+        printerClass.setDuplexDevice(printerMember.getDuplexDevice());
+        printerClass.setManualMediaSource(printerMember.getManualMediaSource());
+        printerClass.setPpd(printerMember.getPpd());
+        printerClass.setPpdVersion(printerMember.getPpdVersion());
+        printerClass.setSheetCollate(printerMember.getSheetCollate());
     }
 
     /**
