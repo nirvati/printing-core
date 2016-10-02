@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -44,6 +44,7 @@ import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.User;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
+import org.savapage.core.services.helpers.InboxPageImageInfo;
 
 /**
  *
@@ -600,19 +601,31 @@ public interface InboxService {
     boolean isSupportedJobType(File file);
 
     /**
-     * Finds the job (base file name) belonging to the SafePages page index.
+     * Gets the {@link InboxPageImageInfo} belonging to the overall SafePages
+     * page index.
      *
      * @param userId
      *            The unique user id.
      * @param iPage
      *            The zero-based page number of the accumulated SafePages.
-     * @return Object array with 3 elements or zero (0) elements when the job is
-     *         not found. Element 1 is a String with the basename of the job
-     *         file, element 2 is a String with the zero-based page number
-     *         WITHIN the job file. Element 3 is a String with the rotation to
-     *         apply to the page. landscape format.
+     * @return {@code null} when the job is not found.
      */
-    Object[] findJob(String userId, int iPage);
+    InboxPageImageInfo getPageImageInfo(String userId, int iPage);
+
+    /**
+     * Gets the {@link InboxPageImageInfo} belonging to a SafePage job page
+     * index.
+     *
+     * @param userId
+     *            The unique user id.
+     * @param jobName
+     *            The basename of the job file.
+     * @param iPage
+     *            The zero-based page number of the SafePage job.
+     * @return {@code null} when the job is not found.
+     */
+    InboxPageImageInfo getPageImageInfo(String userId, String jobName,
+            int iPage);
 
     /**
      * Gets the {@link IppMediaSizeEnum} of media used in {@link InboxInfoDto}.

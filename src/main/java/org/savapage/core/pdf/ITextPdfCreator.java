@@ -318,6 +318,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         pageProps.setMmWidth(size[iSizeWidth]);
         pageProps.setMmHeight(size[iSizeHeight]);
         pageProps.setSize(MediaUtils.getMediaSizeName(pageFormat));
+        pageProps.setRotationFirstPage(mediabox.getRotation());
 
         return pageProps;
     }
@@ -431,6 +432,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
             pageProps = this.createPageProps(reader.getPageSize(1));
             pageProps.setNumberOfPages(reader.getNumberOfPages());
+            pageProps.setRotationFirstPage(reader.getPageRotation(1));
 
         } catch (com.itextpdf.text.exceptions.BadPasswordException e) {
             throw new PdfSecurityException(
@@ -561,27 +563,44 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      * @param srcPageRotation
      *            The rotation of the source PDF page.
      * @param defaultRotation
-     *            The default rotation.
-     * @return The page rotation to apply to the PDF page copy.
+     *            The default rotation (can be {@code null}).
+     * @return The page rotation to apply to the PDF page copy.{@code null},
+     *         when no rotation.
      */
-    public static Integer rotationforPDFPageCopy(final Rectangle srcPageSize,
+    public static Integer getPdfCopyPageRotation(final Rectangle srcPageSize,
             final int srcPageRotation, final Integer defaultRotation) {
 
-        if (srcPageSize.getHeight() < srcPageSize.getWidth()) {
-
-            if (srcPageRotation == PDF_ROTATION_0.intValue()) {
-                return PDF_ROTATION_270;
-            } else if (srcPageRotation == PDF_ROTATION_90.intValue()) {
-                return PDF_ROTATION_180;
-            } else if (srcPageRotation == PDF_ROTATION_180.intValue()) {
-                return PDF_ROTATION_90; // ??
-            } else if (srcPageRotation == PDF_ROTATION_270.intValue()) {
-                return PDF_ROTATION_360; // works, but why?
-            } else {
-                throw new SpException("Unsupported PDF page rotation.");
-            }
+        if (defaultRotation != null
+                && !defaultRotation.equals(PDF_ROTATION_0)) {
+            return defaultRotation;
         }
-        return defaultRotation;
+
+        final boolean isLandscape =
+                srcPageSize.getHeight() < srcPageSize.getWidth();
+
+        if (!isLandscape) {
+            return defaultRotation;
+        }
+
+        if (srcPageRotation == PDF_ROTATION_0.intValue()) {
+
+            return PDF_ROTATION_0;
+
+        } else if (srcPageRotation == PDF_ROTATION_90.intValue()) {
+
+            return PDF_ROTATION_180;
+
+        } else if (srcPageRotation == PDF_ROTATION_180.intValue()) {
+
+            return PDF_ROTATION_90; // ??
+
+        } else if (srcPageRotation == PDF_ROTATION_270.intValue()) {
+
+            return PDF_ROTATION_360; // works, but why?
+
+        } else {
+            throw new SpException("Unsupported PDF page rotation.");
+        }
     }
 
     @Override
@@ -602,7 +621,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             ++i;
 
             this.jobRotationWlk =
-                    rotationforPDFPageCopy(this.readerWlk.getPageSize(i),
+                    getPdfCopyPageRotation(this.readerWlk.getPageSize(i),
                             this.readerWlk.getPageRotation(i), jobRotationInit);
 
             /*

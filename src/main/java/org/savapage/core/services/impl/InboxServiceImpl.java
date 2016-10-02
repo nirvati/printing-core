@@ -72,15 +72,19 @@ import org.savapage.core.inbox.PageImages;
 import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.jpa.DocLog;
-import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
+import org.savapage.core.pdf.ITextPdfCreator;
+import org.savapage.core.pdf.PdfSecurityException;
+import org.savapage.core.pdf.PdfValidityException;
+import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
 import org.savapage.core.services.EcoPrintPdfTaskService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.InboxPageImageChunker;
+import org.savapage.core.services.helpers.InboxPageImageInfo;
 import org.savapage.core.services.helpers.InboxPageMover;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
@@ -211,6 +215,22 @@ public final class InboxServiceImpl implements InboxService {
         return AbstractPdfCreator.pageCountInPdfFile(filePathPdf);
     }
 
+    /**
+     * Creates the {@link SpPdfPageProps} of an PDF document.
+     *
+     * @param filePathPdf
+     *            The PDF document file path.
+     * @return The {@link SpPdfPageProps}.
+     */
+    private static SpPdfPageProps getPdfPageProps(final String filePathPdf) {
+        try {
+            return SpPdfPageProps.create(filePathPdf);
+
+        } catch (PdfSecurityException | PdfValidityException e) {
+            throw new SpException(e.getMessage());
+        }
+    }
+
     @Override
     public InboxInfoDto getInboxInfo(final String userName) {
 
@@ -285,28 +305,7 @@ public final class InboxServiceImpl implements InboxService {
                 job.setTitle(docLog.getTitle());
                 job.setCreatedTime(docLog.getCreatedDate().getTime());
 
-                /*
-                 *
-                 */
-                final String ext = FilenameUtils.getExtension(filePath);
-
-                if (ext.equals(DocContent.FILENAME_EXT_PS)) {
-                    /*
-                     * PostScript job
-                     */
-                    job.setPages(docLog.getNumberOfPages());
-
-                } else if (ext.equals(DocContent.FILENAME_EXT_PDF)) {
-                    /*
-                     * PDF job
-                     */
-                    job.setPages(docLog.getNumberOfPages());
-                } else {
-                    /*
-                     * Scan job
-                     */
-                    job.setPages(1);
-                }
+                job.setPages(docLog.getNumberOfPages());
 
                 /*
                  * DRM restricted?
@@ -314,22 +313,25 @@ public final class InboxServiceImpl implements InboxService {
                 job.setDrm(docLog.getDrmRestricted());
 
                 /*
-                 * Rotation?
+                 * Landscape, rotation, rotate, media.
                  */
-                final PrintIn printIn = docLog.getDocIn().getPrintIn();
+                final SpPdfPageProps pageProps = getPdfPageProps(filePath);
 
-                if (printIn == null) {
-                    job.setRotate("0");
-                } else {
-                    job.setRotate("0"); // TODO
-                }
+                final boolean isLandscape = pageProps.isLandscape();
+                final int rotation = pageProps.getRotationFirstPage();
 
-                /*
-                 * media
-                 */
-                if (printIn != null) {
-                    job.setMedia(printIn.getPaperSize());
-                }
+                final Integer rotate = ITextPdfCreator.PDF_ROTATION_0;
+
+                // if (isLandscape && rotation != 0) {
+                // rotate = ITextPdfCreator.PDF_ROTATION_90;
+                // } else {
+                // rotate = ITextPdfCreator.PDF_ROTATION_0;
+                // }
+
+                job.setLandscape(Boolean.valueOf(isLandscape));
+                job.setRotation(Integer.valueOf(rotation));
+                job.setRotate(rotate.toString());
+                job.setMedia(pageProps.getSize());
 
                 /*
                  * Append
@@ -354,8 +356,55 @@ public final class InboxServiceImpl implements InboxService {
         return jobinfo;
     }
 
+    /**
+     * Creates a {@link InboxPageImageInfo} from an inbox job.
+     *
+     * @param job
+     *            The inbox job.
+     * @param iPage
+     *            The zero-based page number of the SafePage job.
+     * @return The {@link InboxPageImageInfo}.
+     */
+    private static InboxPageImageInfo createInboxPageImageInfo(
+            final InboxInfoDto.InboxJob job, final int iPage) {
+
+        final InboxPageImageInfo dto = new InboxPageImageInfo();
+
+        dto.setFile(job.getFile());
+        dto.setLandscape(job.getLandscape().booleanValue());
+        dto.setRotation(job.getRotation().intValue());
+
+        dto.setPageInFile(iPage);
+
+        final String rotate = job.getRotate();
+
+        if (rotate == null) {
+            dto.setRotate(ITextPdfCreator.PDF_ROTATION_0.intValue());
+        } else {
+            dto.setRotate(Integer.valueOf(rotate).intValue());
+        }
+
+        return dto;
+    }
+
     @Override
-    public Object[] findJob(final String user, final int iPage) {
+    public InboxPageImageInfo getPageImageInfo(final String user,
+            final String jobName, final int iPage) {
+
+        final InboxInfoDto info = readInboxInfo(user);
+        final List<InboxInfoDto.InboxJob> jobs = info.getJobs();
+
+        for (final InboxInfoDto.InboxJob job : jobs) {
+            if (job.getFile().equals(jobName)) {
+                return createInboxPageImageInfo(job, iPage);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public InboxPageImageInfo getPageImageInfo(final String user,
+            final int iPage) {
 
         final InboxInfoDto info = getInboxInfo(user);
 
@@ -373,9 +422,20 @@ public final class InboxServiceImpl implements InboxService {
 
             for (final RangeAtom atom : ranges) {
 
-                int nPageFrom = atom.pageBegin == null ? 1 : atom.pageBegin;
-                int nPageTo = atom.pageEnd == null
-                        ? jobs.get(page.getJob()).getPages() : atom.pageEnd;
+                final int nPageFrom;
+                final int nPageTo;
+
+                if (atom.pageBegin == null) {
+                    nPageFrom = 1;
+                } else {
+                    nPageFrom = atom.pageBegin.intValue();
+                }
+
+                if (atom.pageEnd == null) {
+                    nPageTo = jobs.get(page.getJob()).getPages();
+                } else {
+                    nPageTo = atom.pageEnd.intValue();
+                }
 
                 int nPagesInAtom = nPageTo - nPageFrom + 1;
 
@@ -383,24 +443,15 @@ public final class InboxServiceImpl implements InboxService {
 
                     final Integer iPageInJob =
                             atom.pageBegin - 1 + (iPage - nPageWlk);
+
                     final InboxInfoDto.InboxJob job = jobs.get(page.getJob());
-                    final String rotate = job.getRotate();
 
-                    final Object[] ret = new Object[3];
-                    ret[0] = job.getFile();
-                    ret[1] = iPageInJob.toString();
-
-                    if (rotate == null) {
-                        ret[2] = "0";
-                    } else {
-                        ret[2] = rotate;
-                    }
-                    return ret;
+                    return createInboxPageImageInfo(job, iPageInJob.intValue());
                 }
                 nPageWlk += nPagesInAtom;
             }
         }
-        return new Object[0];
+        return null;
     }
 
     @Override
@@ -708,354 +759,6 @@ public final class InboxServiceImpl implements InboxService {
             final boolean base64) {
         return InboxPageImageChunker.chunk(user, firstDetailPage,
                 uniqueUrlValue, base64);
-    }
-
-    @Deprecated
-    public PageImages getPageChunks_SAVED(final String user,
-            final Integer firstDetailPage, final String uniqueUrlValue,
-            final boolean base64) {
-
-        Integer nFirstDetailPage = firstDetailPage;
-
-        // ----------------------------------------------------------------
-        // Configuration Constants
-        // ----------------------------------------------------------------
-        final int MAX_PAGE_CHUNKS = 7; // number of page chunks
-        final int MAX_DETAIL_PAGES = 5; // number of pages to show in detail
-
-        // ----------------------------------------------------------------
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("MAX_PAGE_CHUNKS  [" + MAX_PAGE_CHUNKS + "]");
-            LOGGER.trace("MAX_DETAIL_PAGES [" + MAX_DETAIL_PAGES + "]");
-        }
-
-        InboxInfoDto jobs = getInboxInfo(user);
-        int nPagesTot = calcNumberOfPagesInJobs(jobs);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("nPagesTot [" + nPagesTot + "]");
-        }
-
-        // ----------------------------
-        if (null == nFirstDetailPage || nFirstDetailPage <= 0) {
-            nFirstDetailPage = nPagesTot - MAX_DETAIL_PAGES + 1;
-            if (nFirstDetailPage < 1) {
-                nFirstDetailPage = 1;
-            }
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("nFirstDetailPage [" + nFirstDetailPage + "]");
-        }
-        // ----------------------------
-        int nPagesInChunkPre = MAX_DETAIL_PAGES;
-
-        if (nFirstDetailPage <= MAX_DETAIL_PAGES) {
-            nPagesInChunkPre = nFirstDetailPage - 1;
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("nPagesInChunkPre [" + nPagesInChunkPre + "]");
-        }
-
-        // ----------------------------
-        int nPagesInChunkPost = MAX_DETAIL_PAGES;
-
-        if ((nFirstDetailPage + 2 * MAX_DETAIL_PAGES - 1) > nPagesTot) {
-            nPagesInChunkPost =
-                    nPagesTot - (nFirstDetailPage + MAX_DETAIL_PAGES - 1);
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("nPagesInChunkPost [" + nPagesInChunkPost + "]");
-        }
-        // ----------------------------
-        int nStartChunkPre = nFirstDetailPage - nPagesInChunkPre;
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("nStartChunkPre [" + nStartChunkPre + "]");
-        }
-
-        int nStartChunkPost = nFirstDetailPage + MAX_DETAIL_PAGES;
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("nStartChunkPost [" + nStartChunkPost + "]");
-        }
-        // ----------------------------------------------------------------
-        // Calculate number of pages in regular chunk
-        // Algorithm UNDER CONSTRUCTION
-        // ----------------------------------------------------------------
-        int nPagesToChunk = nPagesTot - nPagesInChunkPre - nPagesInChunkPost;
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("nPagesToChunk [" + nPagesToChunk + "]");
-        }
-
-        int nPagesInChunk = nPagesToChunk / MAX_PAGE_CHUNKS;
-        if (nPagesInChunk < MAX_DETAIL_PAGES) {
-            nPagesInChunk = MAX_DETAIL_PAGES;
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("nPagesInChunk [" + nPagesInChunk + "]");
-        }
-
-        /*
-         * Create and initialize return object.
-         */
-        final PageImages pagesOut = new PageImages();
-
-        for (final InboxInfoDto.InboxJob jobIn : jobs.getJobs()) {
-            pagesOut.addJob(jobIn.getTitle(), jobIn.getPages(),
-                    jobIn.getRotate(), jobIn.getDrm(), jobIn.getMedia());
-        }
-
-        // -------------------------------------
-        // Chunk loop
-        // -------------------------------------
-
-        // Init batch
-        String chunks = ""; // accumulating tracing info...
-
-        final List<InboxJobRange> pages = jobs.getPages();
-        Iterator<InboxJobRange> pagesIter = pages.iterator();
-
-        boolean bEof = !pagesIter.hasNext();
-        boolean bPageRangesInit = true;
-        boolean bPageChunkInit = true;
-
-        int n = 1; // overall page counter
-
-        InboxJobRange pageIter = null;
-        if (!bEof) {
-            pageIter = pagesIter.next(); // first page
-        }
-
-        boolean bPageRangeInit = true;
-
-        // ---------------------------------------
-        // Walking variables used in the loop
-        // ---------------------------------------
-        Iterator<RangeAtom> rangesIter = null;
-        RangeAtom rangeIter = null;
-
-        InboxInfoDto.InboxJob job = null;
-        Integer iJob = null;
-
-        /*
-         * The job index of the first page in a chunk.
-         */
-        Integer iJobChunk = null;
-        /*
-         * The job of the first page in a chunk.
-         */
-        InboxInfoDto.InboxJob jobChunk = null;
-
-        int nChunkStart = n;
-        int nChunkedPages = 0;
-
-        boolean bScanPage = false;
-        boolean bScanPageChunk = false;
-
-        ImageUrl imgUrlChunk = null;
-        ImageUrl imgUrlPage = null;
-
-        int pageUrlParmChunk = 0;
-        int i = 0;
-        int iBegin = 0;
-        int iEnd = 0;
-
-        List<RangeAtom> ranges = null;
-
-        int nStartNextChunk = 0;
-        boolean bNextPageRange = false;
-        boolean bNextPageRanges = false;
-        boolean bNextPageChunk = false;
-
-        // --------------------------------
-        while (!bEof) {
-            /*
-             * Init page-ranges
-             */
-            if (bPageRangesInit) {
-
-                bPageRangesInit = false;
-
-                InboxJobRange page = pageIter;
-
-                iJob = page.getJob();
-                job = jobs.getJobs().get(iJob);
-
-                String fileName = job.getFile();
-
-                imgUrlPage = new ImageUrl();
-                imgUrlPage.setUser(user);
-                imgUrlPage.setJob(fileName);
-                imgUrlPage.setThumbnail(true);
-                imgUrlPage.setBase64(base64);
-
-                final String rotate = job.getRotate();
-                if (rotate != null && !rotate.equals("0")) {
-                    imgUrlPage.setRotate(job.getRotate());
-                }
-
-                if (!uniqueUrlValue.isEmpty()) {
-                    imgUrlPage.setNocache(uniqueUrlValue);
-                }
-
-                bScanPage = isScanJobFilename(fileName);
-
-                if (bScanPage) {
-                    ranges = createSortedRangeArray("1");
-                } else {
-                    ranges = createSortedRangeArray(page.getRange());
-                }
-
-                rangesIter = ranges.iterator();
-
-                if (rangesIter.hasNext()) {
-                    rangeIter = rangesIter.next(); // first range
-                } else {
-                    rangeIter = null;
-                }
-                bPageRangeInit = true;
-            }
-
-            /*
-             * Init page-range
-             */
-            if (bPageRangeInit) {
-                bPageRangeInit = false;
-                Integer start = rangeIter.pageBegin;
-                Integer end = rangeIter.pageEnd;
-                iBegin = (start == null ? 1 : start) - 1;
-                iEnd = (end == null ? job.getPages() : end);
-                i = iBegin;
-
-                /*
-                 *
-                 */
-                pagesOut.addPagesSelected(iJob, iEnd - iBegin);
-            }
-
-            /*
-             * Init page-chunk
-             */
-            if (bPageChunkInit) {
-                bPageChunkInit = false;
-
-                iJobChunk = iJob;
-                jobChunk = job;
-
-                nChunkStart = n;
-                nChunkedPages = 0;
-
-                bScanPageChunk = bScanPage;
-                imgUrlChunk = new ImageUrl(imgUrlPage);
-
-                pageUrlParmChunk = i;
-
-                // calc the next end-of-chunk
-                if (n == nStartChunkPre) {
-                    nStartNextChunk = n + nPagesInChunkPre;
-                } else if (n == nStartChunkPost) {
-                    nStartNextChunk = n + nPagesInChunkPost;
-                } else {
-                    nStartNextChunk = n + nPagesInChunk;
-                }
-            }
-
-            /*
-             * Process page
-             */
-
-            /*
-             * Next page
-             */
-            i++;
-            bNextPageRange = !(i < iEnd);
-            bNextPageRanges = false;
-
-            /*
-             * Next chunked page
-             */
-            nChunkedPages++;
-            n++; // overall page counter
-
-            bNextPageChunk =
-                    (n == nStartChunkPre || n == nStartChunkPost
-                            || ((nFirstDetailPage <= n) && n < (nFirstDetailPage
-                                    + MAX_DETAIL_PAGES))
-                            || n == nStartNextChunk);
-
-            /*
-             * Next page-range
-             */
-            if (bNextPageRange) {
-                if (rangesIter.hasNext()) {
-                    rangeIter = rangesIter.next(); // next page-range
-                    bPageRangeInit = true;
-                } else {
-                    rangeIter = null;
-                    bNextPageRanges = true;
-                }
-            }
-
-            /*
-             * Next page-ranges
-             */
-            if (bNextPageRanges) {
-                bEof = !pagesIter.hasNext();
-
-                if (bEof) {
-                    pagesIter = null;
-                    bNextPageChunk = true;
-                } else {
-                    pageIter = pagesIter.next(); // next page (ranges)
-                    bPageRangesInit = true;
-                }
-
-            }
-
-            /*
-             * Next chunk?
-             */
-            if (bNextPageChunk) {
-
-                PageImages.PageImage pageTmp = new PageImages.PageImage();
-
-                /*
-                 * Flush current chunk.
-                 */
-                if (!bScanPageChunk) {
-                    imgUrlChunk.setPage(String.valueOf(pageUrlParmChunk));
-                }
-
-                pageTmp.setUrl(imgUrlChunk.composeImageUrl());
-
-                pageTmp.setJob(iJobChunk);
-                pageTmp.setRotate(jobChunk.getRotate());
-                pageTmp.setDrm(jobChunk.getDrm());
-                pageTmp.setMedia(jobChunk.getMedia());
-                pageTmp.setPages(nChunkedPages);
-
-                pagesOut.getPages().add(pageTmp);
-
-                chunks += "\n[" + nChunkStart + "-" + (n - 1) + ":"
-                        + nChunkedPages + "] [" + pageTmp.getUrl() + "]";
-
-                bPageChunkInit = true;
-            }
-
-        }
-        /*
-         * Exit batch
-         */
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(chunks);
-        }
-
-        return pagesOut;
     }
 
     @Override

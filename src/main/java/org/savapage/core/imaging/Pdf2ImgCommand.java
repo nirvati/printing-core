@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,7 +25,7 @@ import java.io.File;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface Pdf2ImgCommand {
@@ -36,17 +36,21 @@ public interface Pdf2ImgCommand {
      *
      * @param pdfFile
      *            The PDF source {@link File}.
+     * @param landscape
+     *            {@code true} if the PDF orientation of the PDF document is
+     *            landscape.
+     * @param rotation
+     *            The PDF rotation the PDF inbox document.
      * @param imgFile
      *            The image target {@link File}.
      * @param pageOrdinal
      *            The zero-based ordinal page number in the PDF document.
-     * @param rotate2Apply
-     *            The rotation to be applied for this page. If {@code null}, no
-     *            rotation is applied.
      * @param resolution
      *            The resolution (density) in DPI (e.g. 72, 150, 300, 600).
+     * @param rotate
+     *            The rotation on the PDF inbox document set by the User.
      * @return The OS command string.
      */
-    String createCommand(File pdfFile, File imgFile, int pageOrdinal,
-            String rotate2Apply, int resolution);
+    String createCommand(File pdfFile, boolean landscape, int rotation,
+            File imgFile, int pageOrdinal, int resolution, int rotate);
 }

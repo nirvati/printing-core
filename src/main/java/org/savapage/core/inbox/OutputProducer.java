@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -41,10 +41,12 @@ import org.savapage.core.imaging.Pdf2PngPopplerCmd;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
+import org.savapage.core.pdf.ITextPdfCreator;
 import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.InboxPageImageInfo;
 import org.savapage.core.services.impl.InboxServiceImpl;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
@@ -75,6 +77,9 @@ public final class OutputProducer {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(OutputProducer.class);
 
+    /**
+     * .
+     */
     private static final DocLogService DOCLOG_SERVICE =
             ServiceContext.getServiceFactory().getDocLogService();
 
@@ -121,8 +126,8 @@ public final class OutputProducer {
      *            The zero-based ordinal page number in the job (or over all
      *            jobs).
      * @param rotate
-     *            The rotation to be applied for this page. If {@code null}, no
-     *            rotation is applied.
+     *            The rotation to be applied for this page by the user. If
+     *            {@code null}, no user rotation is applied.
      * @param thumbnail
      *            {@code true} if a thumbnail is requested, {@code false} if
      *            detailed image.
@@ -143,21 +148,26 @@ public final class OutputProducer {
         String job = jobName;
         String page = pageIn;
 
-        String rotate2Apply = rotate;
+        final InboxPageImageInfo pageImageInfo;
 
         if (job == null) {
 
-            Object[] ret = INBOX_SERVICE.findJob(user, Integer.parseInt(page));
+            pageImageInfo = INBOX_SERVICE.getPageImageInfo(user,
+                    Integer.parseInt(page));
 
-            if (ret.length < 3) {
-                throw new SpException("job not found");
-            }
+            page = String.valueOf(pageImageInfo.getPageInFile());
+            job = pageImageInfo.getFile();
 
-            job = ret[0].toString();
-            page = ret[1].toString();
-            rotate2Apply = ret[2].toString();
+        } else {
+            pageImageInfo = INBOX_SERVICE.getPageImageInfo(user, job,
+                    Integer.valueOf(page));
         }
 
+        if (pageImageInfo == null) {
+            throw new SpException("job not found");
+        }
+
+        //
         final String homedir;
 
         if (isLetterheadPublic) {
@@ -221,10 +231,18 @@ public final class OutputProducer {
             imgWidth = ImageUrl.BROWSER_PAGE_WIDTH;
         }
 
-        final String command = pdf2PngCommand.createCommand(srcFile, imgFile,
-                Integer.parseInt(page), rotate2Apply,
-                Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN,
-                Integer.valueOf(imgWidth));
+        final int userRotate;
+
+        if (rotate == null) {
+            userRotate = ITextPdfCreator.PDF_ROTATION_0.intValue();
+        } else {
+            userRotate = Integer.parseInt(rotate);
+        }
+
+        final String command = pdf2PngCommand.createCommand(srcFile,
+                pageImageInfo.isLandscape(), pageImageInfo.getRotation(),
+                imgFile, Integer.parseInt(page),
+                Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN, userRotate, imgWidth);
 
         LOGGER.trace(command);
 

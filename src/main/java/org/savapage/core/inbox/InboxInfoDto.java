@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -35,8 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *
- * @author Datraverse B.V.
- *
+ * @author Rijk Ravestein
  */
 @JsonInclude(Include.NON_NULL)
 public final class InboxInfoDto {
@@ -44,16 +43,36 @@ public final class InboxInfoDto {
     /**
      *
      */
-    public static class InboxJob {
+    public final static class InboxJob {
 
         private String file;
         private Long createdTime;
         private String title;
         private Integer pages;
-        private String rotate;
+
         private Boolean drm;
         private String media;
 
+        /**
+         * {@code true} if the PDF orientation of the PDF inbox document is
+         * landscape.
+         */
+        private Boolean landscape;
+
+        /**
+         * The PDF rotation the PDF inbox document.
+         */
+        private Integer rotation;
+
+        /**
+         * The rotation on the PDF inbox document set by the User.
+         */
+        private String rotate;
+
+        /**
+         *
+         * @return the base file name of the PDF document.
+         */
         public String getFile() {
             return file;
         }
@@ -76,14 +95,6 @@ public final class InboxInfoDto {
 
         public void setTitle(String title) {
             this.title = title;
-        }
-
-        public String getRotate() {
-            return rotate;
-        }
-
-        public void setRotate(String rotate) {
-            this.rotate = rotate;
         }
 
         public Boolean getDrm() {
@@ -129,6 +140,59 @@ public final class InboxInfoDto {
          */
         public void setMedia(String media) {
             this.media = media;
+        }
+
+        /**
+         *
+         * @return {@code true} if the PDF orientation of the PDF inbox document
+         *         is landscape.
+         */
+        public Boolean getLandscape() {
+            return landscape;
+        }
+
+        /**
+         *
+         * @param landscape
+         *            {@code true} if the PDF orientation of the PDF inbox
+         *            document is landscape.
+         */
+        public void setLandscape(final Boolean landscape) {
+            this.landscape = landscape;
+        }
+
+        /**
+         *
+         * @return The PDF rotation the PDF inbox document.
+         */
+        public Integer getRotation() {
+            return rotation;
+        }
+
+        /**
+         *
+         * @param rotation
+         *            The PDF rotation the PDF inbox document.
+         */
+        public void setRotation(Integer rotation) {
+            this.rotation = rotation;
+        }
+
+        /**
+         *
+         * @return The rotation on the PDF inbox document set by the User.
+         */
+        public String getRotate() {
+            return rotate;
+        }
+
+        /**
+         *
+         * @param rotate
+         *            The rotation on the PDF inbox document set by the User.
+         */
+        public void setRotate(final String rotate) {
+            this.rotate = rotate;
         }
 
     }

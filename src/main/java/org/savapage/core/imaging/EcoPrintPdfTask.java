@@ -35,6 +35,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.savapage.core.SpException;
 import org.savapage.core.doc.ImageToPdf;
 import org.savapage.core.pdf.ITextPdfCreator;
+import org.savapage.core.pdf.PdfSecurityException;
+import org.savapage.core.pdf.PdfValidityException;
+import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
 import org.savapage.core.util.DateUtil;
@@ -137,24 +140,6 @@ public final class EcoPrintPdfTask
 
     /**
      *
-     * @param pdfFile
-     * @param pageOrdinal
-     * @param rotate2Apply
-     * @param resolution
-     * @param imgFile
-     * @return
-     */
-    private static String createPdf2ImgCmd(final File pdfFile,
-            final Integer pageOrdinal, final String rotate2Apply,
-            final Integer resolution, final File imgFile) {
-
-        final Pdf2ImgCommand cmd = new Pdf2PngPopplerCmd();
-        return cmd.createCommand(pdfFile, imgFile, pageOrdinal, rotate2Apply,
-                resolution);
-    }
-
-    /**
-     *
      * @throws InterruptedException
      */
     private void checkExecutorTerminating() throws InterruptedException {
@@ -203,6 +188,9 @@ public final class EcoPrintPdfTask
                 Integer.valueOf(this.taskInfo.getRotation());
         try {
 
+            final SpPdfPageProps pdfDocProps = SpPdfPageProps
+                    .create(this.taskInfo.getPdfIn().getAbsolutePath());
+
             final PdfReader readerWlk = new PdfReader(
                     new FileInputStream(this.taskInfo.getPdfIn()));
 
@@ -232,10 +220,12 @@ public final class EcoPrintPdfTask
 
                 final Rectangle pageSize = readerWlk.getPageSize(i + 1);
 
+                final int pdfPageRotation =
+                        readerWlk.getPageSize(i + 1).getRotation();
+
                 final Integer jobRotationWlk =
-                        ITextPdfCreator.rotationforPDFPageCopy(pageSize,
-                                readerWlk.getPageSize(i + 1).getRotation(),
-                                jobRotationInit);
+                        ITextPdfCreator.getPdfCopyPageRotation(pageSize,
+                                pdfPageRotation, jobRotationInit);
 
                 if (jobRotationWlk != null) {
 
@@ -271,8 +261,12 @@ public final class EcoPrintPdfTask
                 imageOut = new File(String.format("%s/%s.png", pathTmpDir,
                         UUID.randomUUID().toString()));
 
-                final String command = createPdf2ImgCmd(taskInfo.getPdfIn(), i,
-                        "0", taskInfo.getResolution(), imageOut);
+                final Pdf2ImgCommand cmd = new Pdf2PngPopplerCmd();
+                final String command = cmd.createCommand(taskInfo.getPdfIn(),
+                        pdfDocProps.isLandscape(),
+                        pdfDocProps.getRotationFirstPage(), imageOut, i,
+                        taskInfo.getResolution().intValue(),
+                        jobRotationInit.intValue());
 
                 final ICommandExecutor exec =
                         CommandExecutor.createSimple(command);
@@ -315,7 +309,8 @@ public final class EcoPrintPdfTask
             //
             finished = true;
 
-        } catch (IOException | DocumentException | SpException e) {
+        } catch (PdfSecurityException | PdfValidityException | IOException
+                | DocumentException | SpException e) {
 
             LOGGER.error(e.getMessage());
 

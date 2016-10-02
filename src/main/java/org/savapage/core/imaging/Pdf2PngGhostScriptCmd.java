@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https:/www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,7 +23,7 @@ package org.savapage.core.imaging;
 
 import java.io.File;
 
-import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.pdf.ITextPdfCreator;
 
 /**
  * @deprecated Use {@link Pdf2PngPopplerCmd}. See Mantis #326.
@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
  *             Command using GhostScript.
  *             <p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Deprecated
@@ -43,9 +43,9 @@ public final class Pdf2PngGhostScriptCmd implements Pdf2ImgCommand {
     private static final int STRINGBUILDER_CAPACITY = 256;
 
     @Override
-    public String createCommand(final File pdfFile, final File imgFile,
-            final int pageOrdinal, final String rotate2Apply,
-            final int resolution) {
+    public String createCommand(final File pdfFile, final boolean landscape,
+            final int rotation, final File imgFile, final int pageOrdinal,
+            final int resolution, final int rotate) {
 
         final int pageOneBased = pageOrdinal + 1;
 
@@ -62,10 +62,10 @@ public final class Pdf2PngGhostScriptCmd implements Pdf2ImgCommand {
         /*
          * Apply rotate?
          */
-        if (StringUtils.defaultString(rotate2Apply, "0").equals("0")) {
+        if (rotate == ITextPdfCreator.PDF_ROTATION_0.intValue()) {
             cmdBuffer.append(" > ");
         } else {
-            cmdBuffer.append(" | convert -rotate ").append(rotate2Apply)
+            cmdBuffer.append(" | convert -rotate ").append(rotate)
                     .append(" - ");
         }
 
