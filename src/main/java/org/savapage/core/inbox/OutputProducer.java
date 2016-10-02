@@ -41,7 +41,6 @@ import org.savapage.core.imaging.Pdf2PngPopplerCmd;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
-import org.savapage.core.pdf.ITextPdfCreator;
 import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.InboxService;
@@ -125,9 +124,6 @@ public final class OutputProducer {
      * @param pageIn
      *            The zero-based ordinal page number in the job (or over all
      *            jobs).
-     * @param rotate
-     *            The rotation to be applied for this page by the user. If
-     *            {@code null}, no user rotation is applied.
      * @param thumbnail
      *            {@code true} if a thumbnail is requested, {@code false} if
      *            detailed image.
@@ -141,7 +137,7 @@ public final class OutputProducer {
      * @return The created image file.
      */
     public File allocatePageImage(final String user, final String jobName,
-            final String pageIn, final String rotate, final boolean thumbnail,
+            final String pageIn, final boolean thumbnail,
             final boolean isLetterhead, final boolean isLetterheadPublic,
             final String sessionId) {
 
@@ -231,18 +227,11 @@ public final class OutputProducer {
             imgWidth = ImageUrl.BROWSER_PAGE_WIDTH;
         }
 
-        final int userRotate;
-
-        if (rotate == null) {
-            userRotate = ITextPdfCreator.PDF_ROTATION_0.intValue();
-        } else {
-            userRotate = Integer.parseInt(rotate);
-        }
-
         final String command = pdf2PngCommand.createCommand(srcFile,
                 pageImageInfo.isLandscape(), pageImageInfo.getRotation(),
                 imgFile, Integer.parseInt(page),
-                Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN, userRotate, imgWidth);
+                Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN,
+                pageImageInfo.getRotate(), imgWidth);
 
         LOGGER.trace(command);
 

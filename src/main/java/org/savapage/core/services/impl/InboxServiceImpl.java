@@ -1461,9 +1461,9 @@ public final class InboxServiceImpl implements InboxService {
 
         final InboxInfoDto jobs = readInboxInfo(user);
 
-        String rotation = "0";
+        String rotation = ITextPdfCreator.PDF_ROTATION_0.toString();
         if (rotate) {
-            rotation = "90";
+            rotation = ITextPdfCreator.PDF_ROTATION_90.toString();
         }
         jobs.getJobs().get(iJob).setRotate(rotation);
 
