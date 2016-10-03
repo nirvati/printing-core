@@ -329,8 +329,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             if (IppPrinterType.hasProperty(printerType,
                     IppPrinterType.BitEnum.PRINTER_CLASS)) {
 
-                final String printerName = group.getAttrSingleValue(
-                        IppDictPrinterDescAttr.ATTR_PRINTER_NAME);
+                final String printerName = group
+                        .getAttrSingleValue(
+                                IppDictPrinterDescAttr.ATTR_PRINTER_NAME)
+                        .toUpperCase();
 
                 final CupsPrinterClass printerClass = new CupsPrinterClass();
 
