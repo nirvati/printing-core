@@ -59,6 +59,7 @@ import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
@@ -444,6 +445,17 @@ public interface ProxyPrintService {
             throws ProxyPrintException;
 
     /**
+     * Gets the number of pages of logical sub-jobs for proxy printing.
+     * <b>Note</b>: Blank filler pages are <i>not</i> included in the count.
+     *
+     * @param inboxInfo
+     *            The (filtered)
+     * @return {@code null} when no logical sub-jobs are applicable, because
+     *         inbox is not vanilla.
+     */
+    List<Integer> getLogicalJobPages(InboxInfoDto inboxInfo);
+
+    /**
      * Sends a PDF file to the CUPS Printer, and updates {@link User},
      * {@link Printer} and global {@link IConfigProp} statistics.
      * <p>
@@ -455,14 +467,16 @@ public interface ProxyPrintService {
      *            The requesting {@link User}, which should be locked.
      * @param request
      *            The {@link ProxyPrintDocReq}.
-     * @param pdfFile
-     *            The PDF file to send to the printer.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the PDF file to send to the
+     *            printer.
      * @throws IppConnectException
      *             When CUPS connection is broken.
      * @throws ProxyPrintException
      *             When a invariant is violated.
      */
-    void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request, File pdfFile)
+    void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request,
+            final PdfCreateInfo createInfo)
             throws IppConnectException, ProxyPrintException;
 
     /**

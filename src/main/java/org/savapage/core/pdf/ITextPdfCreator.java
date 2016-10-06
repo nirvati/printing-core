@@ -604,7 +604,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     @Override
-    protected void onExitJob() throws Exception {
+    protected void onExitJob(int blankPagesToAppend) throws Exception {
 
         this.readerWlk.selectPages(this.jobRangesWlk.toString());
         int pages = this.readerWlk.getNumberOfPages();
@@ -660,6 +660,13 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 }
             }
             this.targetPdfCopy.addPage(importedPage);
+        }
+
+        //
+        for (int i = 0; i < blankPagesToAppend; i++) {
+            this.targetPdfCopy.addPage(this.targetPdfCopy.getImportedPage(
+                    this.getBlankPageReader(this.targetPdfCopy.getPageSize()),
+                    1));
         }
 
         this.targetPdfCopy.freeReader(this.readerWlk);

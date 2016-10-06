@@ -41,6 +41,7 @@ import org.savapage.core.imaging.Pdf2PngPopplerCmd;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.InboxService;
@@ -391,7 +392,7 @@ public final class OutputProducer {
         pdfRequest.setApplyLetterhead(false);
         pdfRequest.setForPrinting(false);
 
-        return generatePdf(pdfRequest, null, null);
+        return generatePdf(pdfRequest, null, null).getPdfFile();
     }
 
     /**
@@ -407,7 +408,7 @@ public final class OutputProducer {
      * @param docLog
      *            The DocLog object to collect data on. A value of {@code null}
      *            is allowed: in that case no data is collected.
-     * @return File object with generated PDF.
+     * @return The {@link PdfCreateInfo}.
      * @throws PostScriptDrmException
      *             When source is DRM restricted.
      * @throws LetterheadNotFoundException
@@ -416,7 +417,7 @@ public final class OutputProducer {
      *             When {@link EcoPrintPdfTask} objects needed for this PDF are
      *             pending.
      */
-    public File generatePdf(final PdfCreateRequest createReq,
+    public PdfCreateInfo generatePdf(final PdfCreateRequest createReq,
             final LinkedHashMap<String, Integer> uuidPageCount,
             final DocLog docLog) throws LetterheadNotFoundException,
             PostScriptDrmException, EcoPrintPdfTaskPendingException {
@@ -493,11 +494,13 @@ public final class OutputProducer {
         pdfRequest.setEcoPdfShadow(ecoPdf);
         pdfRequest.setGrayscale(grayscale);
 
-        final File file = generatePdf(pdfRequest, uuidPageCount, docLog);
+        final PdfCreateInfo createInfo =
+                generatePdf(pdfRequest, uuidPageCount, docLog);
 
-        DOCLOG_SERVICE.collectData4DocOut(user, docLog, file, uuidPageCount);
+        DOCLOG_SERVICE.collectData4DocOut(user, docLog, createInfo,
+                uuidPageCount);
 
-        return file;
+        return createInfo.getPdfFile();
     }
 
 }

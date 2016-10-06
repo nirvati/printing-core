@@ -58,7 +58,7 @@ public final class PdfCreateRequest {
     private boolean applyPdfProps;
 
     /**
-     *
+     * {@code true} When letterhead should be applied.
      */
     private boolean applyLetterhead;
 
@@ -66,6 +66,16 @@ public final class PdfCreateRequest {
      * {@code true} if this is a PDF created for printing.
      */
     private boolean forPrinting;
+
+    /**
+     * {@code true} when duplex (printing only).
+     */
+    private boolean printDuplex = false;
+
+    /**
+     * Number of pages per side (printing only).
+     */
+    private int printNup = 1;
 
     /**
      * {@code true} if Eco PDF shadow is to be used.
@@ -164,6 +174,40 @@ public final class PdfCreateRequest {
      */
     public void setGrayscale(boolean grayscale) {
         this.grayscale = grayscale;
+    }
+
+    /**
+     *
+     * @return {@code true} when duplex (printing only).
+     */
+    public boolean isPrintDuplex() {
+        return printDuplex;
+    }
+
+    /**
+     *
+     * @param printDuplex
+     *            {@code true} when duplex (printing only).
+     */
+    public void setPrintDuplex(boolean printDuplex) {
+        this.printDuplex = printDuplex;
+    }
+
+    /**
+     *
+     * @return Number of pages per side (printing only).
+     */
+    public int getPrintNup() {
+        return printNup;
+    }
+
+    /**
+     *
+     * @param printNup
+     *            Number of pages per side (printing only).
+     */
+    public void setPrintNup(int printNup) {
+        this.printNup = printNup;
     }
 
 }

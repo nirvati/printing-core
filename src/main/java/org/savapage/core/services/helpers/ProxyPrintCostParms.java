@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,23 +14,43 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.services.helpers;
 
+import java.util.List;
+
 import org.savapage.core.dto.IppMediaSourceCostDto;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class ProxyPrintCostParms {
+public final class ProxyPrintCostParms {
 
     private int numberOfCopies;
+
+    /**
+     * The total number of pages. <b>Note</b>: Blank filler pages are <i>not</i>
+     * included in the count.
+     */
     private int numberOfPages;
+
+    /**
+     * The number of pages of logical sub-jobs. <b>Note</b>: Blank filler pages
+     * are <i>not</i> included in the count. When {@code null}, no logical
+     * sub-jobs are defined, and {@link #numberOfPages} must be used to
+     * calculate the cost.
+     */
+    private List<Integer> logicalNumberOfPages;
+
+    /**
+     * Number of pages per sheet-side.
+     */
     private int pagesPerSide;
 
     private IppMediaSourceCostDto mediaSourceCost;
@@ -102,6 +122,27 @@ public class ProxyPrintCostParms {
 
     public void setMediaSourceCost(IppMediaSourceCostDto mediaSourceCost) {
         this.mediaSourceCost = mediaSourceCost;
+    }
+
+    /**
+     * @return The number of pages of logical sub-jobs. <b>Note</b>: Blank
+     *         filler pages are <i>not</i> included in the count. When
+     *         {@code null}, no logical sub-jobs are defined, and
+     *         {@link #numberOfPages} must be used to calculate the cost.
+     */
+    public List<Integer> getLogicalNumberOfPages() {
+        return logicalNumberOfPages;
+    }
+
+    /**
+     * @param logicalNumberOfPages
+     *            The number of pages of logical sub-jobs. <b>Note</b>: Blank
+     *            filler pages are <i>not</i> included in the count. When
+     *            {@code null}, no logical sub-jobs are defined, and
+     *            {@link #numberOfPages} must be used to calculate the cost.
+     */
+    public void setLogicalNumberOfPages(List<Integer> logicalNumberOfPages) {
+        this.logicalNumberOfPages = logicalNumberOfPages;
     }
 
 }

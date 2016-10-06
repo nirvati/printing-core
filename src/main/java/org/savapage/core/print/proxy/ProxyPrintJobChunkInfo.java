@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -34,10 +34,12 @@ import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.services.InboxService;
+import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.MediaUtils;
 
 /**
+ * Page sequence chunks of a proxy print request.
  *
  * @author Rijk Ravestein
  *
@@ -49,10 +51,16 @@ public final class ProxyPrintJobChunkInfo {
     private final List<ProxyPrintJobChunk> chunks = new ArrayList<>();
 
     /**
-    *
-    */
+     * .
+     */
     private static final InboxService INBOX_SERVICE =
             ServiceContext.getServiceFactory().getInboxService();
+
+    /**
+     * .
+     */
+    private static final ProxyPrintService PROXY_PRINT_SERVICE =
+            ServiceContext.getServiceFactory().getProxyPrintService();
 
     /**
      * Prevent public default instantiation.
@@ -76,7 +84,7 @@ public final class ProxyPrintJobChunkInfo {
 
     /**
      * Creates an ordinal list of {@link ProxyPrintJobChunk} with all inbox
-     * jobs. Each entry on the list represents a chunk of pages that correspond
+     * jobs: each entry on the list represents a chunk of pages that correspond
      * with a single inbox job.
      *
      * @param inboxInfoIn
@@ -117,9 +125,9 @@ public final class ProxyPrintJobChunkInfo {
     }
 
     /**
-     * Creates an ordinal list of {@link ProxyPrintJobChunk} with all inbox
-     * jobs. Each entry on the list represents a chunk of pages that correspond
-     * with a single inbox job.
+     * Creates an ordinal list of {@link ProxyPrintJobChunk} with all page
+     * ranges of a single vanilla inbox job: each entry on the list represents a
+     * chunk of pages that correspond to a single inbox job.
      *
      * @param inboxInfoIn
      *            The {@link InboxInfoDto}.
@@ -132,7 +140,7 @@ public final class ProxyPrintJobChunkInfo {
      */
     public ProxyPrintJobChunkInfo(final InboxInfoDto inboxInfoIn,
             final int iVanillaJob, final String vanillaJobPageRanges)
-                    throws ProxyPrintException {
+            throws ProxyPrintException {
 
         if (!INBOX_SERVICE.isInboxVanilla(inboxInfoIn)) {
             throw new ProxyPrintException("Inbox was edited by user");
@@ -182,7 +190,7 @@ public final class ProxyPrintJobChunkInfo {
 
     /**
      * Creates an ordinal list of {@link ProxyPrintJobChunk} of the selected
-     * pages of an inbox. Each entry on the list represents a chunk of pages
+     * pages of an inbox: each entry on the list represents a chunk of pages
      * with the same media size.
      *
      * @param inboxInfoIn
@@ -247,6 +255,11 @@ public final class ProxyPrintJobChunkInfo {
                     .setDrm(isDrm || BooleanUtils.isTrue(inboxJob.getDrm()));
 
             addJobRangesToJobChunk(printJobChunkWlk, iJob, nJobPages, jobRange);
+        }
+
+        if (this.chunks.size() == 1) {
+            this.chunks.get(0).setLogicalJobPages(
+                    PROXY_PRINT_SERVICE.getLogicalJobPages(filteredInboxInfo));
         }
     }
 

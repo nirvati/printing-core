@@ -61,6 +61,7 @@ import org.savapage.core.outbox.OutboxInfoDto.LocaleInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfoSet;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
@@ -171,11 +172,11 @@ public final class OutboxServiceImpl extends AbstractService
         protected void onPdfGenerated(final User lockedUser,
                 final ProxyPrintInboxReq request,
                 final LinkedHashMap<String, Integer> uuidPageCount,
-                final File pdfGenerated) {
+                final PdfCreateInfo createInfo) {
 
             final OutboxJobDto job =
                     this.serviceImpl.createOutboxJob(request, this.submitDate,
-                            this.expiryDate, pdfGenerated, uuidPageCount);
+                            this.expiryDate, createInfo, uuidPageCount);
 
             this.outboxInfo.addJob(job.getFile(), job);
         }
@@ -312,18 +313,19 @@ public final class OutboxServiceImpl extends AbstractService
     @Override
     public OutboxJobDto createOutboxJob(final AbstractProxyPrintReq request,
             final Date submitDate, final Date expiryDate,
-            final File pdfOutboxFile,
+            final PdfCreateInfo createInfo,
             final LinkedHashMap<String, Integer> uuidPageCount) {
 
         final OutboxJobDto job = new OutboxJobDto();
 
-        job.setFile(pdfOutboxFile.getName());
+        job.setFile(createInfo.getPdfFile().getName());
         job.setPrinterName(request.getPrinterName());
         job.setJobName(request.getJobName());
         job.setComment(request.getComment());
         job.setCopies(request.getNumberOfCopies());
         job.setPages(request.getNumberOfPages());
-        job.setSheets(calNumberOfSheets(request));
+        job.setFillerPages(createInfo.getBlankFillerPages());
+        job.setSheets(calNumberOfSheets(request, createInfo));
         job.setRemoveGraphics(request.isRemoveGraphics());
         job.setEcoPrint(request.isEcoPrintShadow());
         job.setCollate(request.isCollate());
@@ -346,9 +348,10 @@ public final class OutboxServiceImpl extends AbstractService
 
     @Override
     public void proxyPrintPdf(final User lockedUser,
-            final ProxyPrintDocReq request, final File pdfFile,
+            final ProxyPrintDocReq request, final PdfCreateInfo createInfo,
             final DocContentPrintInInfo printInfo) throws IOException {
 
+        final File pdfFile = createInfo.getPdfFile();
         final Date submitDate = ServiceContext.getTransactionDate();
         final Date expiryDate = calcHoldExpiry(submitDate);
 
@@ -380,7 +383,7 @@ public final class OutboxServiceImpl extends AbstractService
                     Integer.valueOf(request.getNumberOfPages()));
 
             final OutboxJobDto job = createOutboxJob(request, submitDate,
-                    expiryDate, pdfOutboxFile, uuidPageCount);
+                    expiryDate, createInfo, uuidPageCount);
 
             outboxInfo.addJob(job.getFile(), job);
 
@@ -427,10 +430,15 @@ public final class OutboxServiceImpl extends AbstractService
      *
      * @param request
      *            The request.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the PDF file to be printed by
+     *            the Job Ticket.
      * @return The number of sheets.
      */
-    private static int calNumberOfSheets(final AbstractProxyPrintReq request) {
-        return PdfPrintCollector.calcNumberOfPrintedSheets(request);
+    private static int calNumberOfSheets(final AbstractProxyPrintReq request,
+            final PdfCreateInfo createInfo) {
+        return PdfPrintCollector.calcNumberOfPrintedSheets(request,
+                createInfo.getBlankFillerPages());
     }
 
     /**

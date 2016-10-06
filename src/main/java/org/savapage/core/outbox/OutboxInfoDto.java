@@ -30,8 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.savapage.core.dto.AbstractDto;
-import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
-import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
@@ -218,6 +217,13 @@ public final class OutboxInfoDto extends AbstractDto {
         private String jobName;
         private int copies;
         private int pages;
+
+        /**
+         * The total number of blank filler pages appended between logical
+         * sub-jobs (proxy print only).
+         */
+        private int fillerPages;
+
         private int sheets;
         private boolean removeGraphics;
         private boolean drm;
@@ -298,6 +304,14 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setPages(int pages) {
             this.pages = pages;
+        }
+
+        public int getFillerPages() {
+            return fillerPages;
+        }
+
+        public void setFillerPages(int fillerPages) {
+            this.fillerPages = fillerPages;
         }
 
         public int getSheets() {
@@ -452,115 +466,13 @@ public final class OutboxInfoDto extends AbstractDto {
         }
 
         /**
+         * Creates an {@link IppOptionMap} wrapping the {@link #optionValues}.
          *
-         * @return {@code true} if this is a color job.
+         * @return The {@link IppOptionMap}.
          */
         @JsonIgnore
-        public boolean isColorJob() {
-            return isOptionPresent(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
-                    IppKeyword.PRINT_COLOR_MODE_COLOR);
-        }
-
-        /**
-         *
-         * @return {@code true} if this is a duplex job.
-         */
-        @JsonIgnore
-        public boolean isDuplexJob() {
-            return isOptionPresent(IppDictJobTemplateAttr.ATTR_SIDES,
-                    IppKeyword.SIDES_TWO_SIDED_LONG_EDGE)
-                    || isOptionPresent(IppDictJobTemplateAttr.ATTR_SIDES,
-                            IppKeyword.SIDES_TWO_SIDED_SHORT_EDGE);
-        }
-
-        /**
-         *
-         * @return {@code true} if job requests punch finishing.
-         */
-        @JsonIgnore
-        public boolean hasFinishingPunch() {
-            return isOptionPresentUnequal(
-                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH,
-                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH_NONE);
-        }
-
-        /**
-         *
-         * @return {@code true} if job requests fold finishing.
-         */
-        @JsonIgnore
-        public boolean hasFinishingFold() {
-            return isOptionPresentUnequal(
-                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD,
-                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD_NONE);
-        }
-
-        /**
-         *
-         * @return {@code true} if job requests booklet finishing.
-         */
-        @JsonIgnore
-        public boolean hasFinishingBooklet() {
-            return isOptionPresentUnequal(
-                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET,
-                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE);
-        }
-
-        /**
-         *
-         * @return {@code true} if requests staple finishing.
-         */
-        @JsonIgnore
-        public boolean hasFinishingStaple() {
-            return isOptionPresentUnequal(
-                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE,
-                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE_NONE);
-        }
-
-        /**
-         * Checks if an option is present and has value unequal to compareValue.
-         *
-         * @param key
-         *            The option key.
-         * @param compareValue
-         *            The option value to compare with.
-         * @return {@code true} if option is present and has value unequal to
-         *         compareValue.
-         */
-        @JsonIgnore
-        public boolean isOptionPresentUnequal(final String key,
-                final String compareValue) {
-            final String found = this.optionValues.get(key);
-            return found != null && !found.equals(compareValue);
-        }
-
-        /**
-         *
-         * @return The Number-Up attribute value;
-         */
-        @JsonIgnore
-        public Integer getNumberUp() {
-            final String value = this.optionValues
-                    .get(IppDictJobTemplateAttr.ATTR_NUMBER_UP);
-            if (value != null) {
-                return Integer.valueOf(value);
-            }
-            return Integer.valueOf(1);
-        }
-
-        /**
-         * Checks if option value is present.
-         *
-         * @param key
-         *            The option key.
-         * @param value
-         *            The option value;
-         * @return {@code true} if option value is present.
-         */
-        @JsonIgnore
-        public boolean isOptionPresent(final String key, final String value) {
-            final String found = this.optionValues.get(key);
-            return found != null && found.equals(value);
+        public IppOptionMap createIppOptionMap() {
+            return new IppOptionMap(this.getOptionValues());
         }
 
     }

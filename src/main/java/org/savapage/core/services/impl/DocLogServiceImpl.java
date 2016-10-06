@@ -71,6 +71,7 @@ import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.json.JsonRollingTimeSeries;
 import org.savapage.core.json.TimeSeriesInterval;
 import org.savapage.core.msg.UserMsgIndicator;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusPrintOut;
@@ -1108,9 +1109,11 @@ public final class DocLogServiceImpl extends AbstractService
 
     @Override
     public void collectData4DocOut(final User user, final DocLog docLogCollect,
-            final File pdfFile,
+            final PdfCreateInfo createInfo,
             final LinkedHashMap<String, Integer> uuidPageCount)
             throws IOException {
+
+        final File pdfFile = createInfo.getPdfFile();
 
         this.applyCreationDate(docLogCollect,
                 ServiceContext.getTransactionDate());

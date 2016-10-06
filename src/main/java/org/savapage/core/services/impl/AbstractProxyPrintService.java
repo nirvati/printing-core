@@ -112,6 +112,7 @@ import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
 import org.savapage.core.json.rpc.impl.ResultAttribute;
 import org.savapage.core.json.rpc.impl.ResultPrinterSnmp;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
@@ -1748,13 +1749,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Collect the DocOut data and proxy print.
          */
-        docLogService().collectData4DocOut(lockedUser, docLog, pdfFileToPrint,
+        final PdfCreateInfo createInfo = new PdfCreateInfo(pdfFileToPrint);
+        createInfo.setBlankFillerPages(job.getFillerPages());
+
+        docLogService().collectData4DocOut(lockedUser, docLog, createInfo,
                 job.getUuidPageCount());
 
         /*
          * Print.
          */
-        proxyPrint(lockedUser, printReq, docLog, pdfFileToPrint);
+        proxyPrint(lockedUser, printReq, docLog, createInfo);
 
         pdfFileToPrint.delete();
 
@@ -2279,14 +2283,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The {@link AbstractProxyPrintReq}.
      * @param docLog
      *            The {@link DocLog} to persist in the database.
-     * @param pdfFileToPrint
-     *            The PDF file to send to the printer.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the PDF file to send to the
+     *            printer.
      * @throws IppConnectException
      *             When CUPS connection is broken.
      */
     private void proxyPrint(final User lockedUser,
             final AbstractProxyPrintReq request, final DocLog docLog,
-            final File pdfFileToPrint) throws IppConnectException {
+            final PdfCreateInfo createInfo) throws IppConnectException {
 
         final String userid = lockedUser.getUserId();
 
@@ -2296,7 +2301,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Print the PDF file.
          */
-        if (this.print(request, userid, pdfFileToPrint, docLog)) {
+        if (this.print(request, userid, createInfo, docLog)) {
 
             if (request instanceof ProxyPrintInboxReq) {
                 request.setClearedObjects(this.clearInbox(lockedUser,
@@ -2395,8 +2400,25 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
+    public final List<Integer>
+            getLogicalJobPages(final InboxInfoDto inboxInfo) {
+
+        if (!inboxService().isInboxVanilla(inboxInfo)) {
+            return null;
+        }
+
+        final List<Integer> logicalJobPages = new ArrayList<>();
+
+        for (InboxJobRange page : inboxInfo.getPages()) {
+            logicalJobPages
+                    .add(inboxInfo.getJobs().get(page.getJob()).getPages());
+        }
+        return logicalJobPages;
+    }
+
+    @Override
     public final void proxyPrintPdf(final User lockedUser,
-            final ProxyPrintDocReq request, final File pdfFile)
+            final ProxyPrintDocReq request, final PdfCreateInfo createInfo)
             throws IppConnectException, ProxyPrintException {
 
         /*
@@ -2424,6 +2446,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          * Set the parameters for this single PDF file.
          */
         costParms.setNumberOfPages(request.getNumberOfPages());
+        costParms.setLogicalNumberOfPages(createInfo.getLogicalJobPages());
         costParms.setIppMediaOption(request.getMediaOption());
 
         final BigDecimal cost = accountingService().calcProxyPrintCost(
@@ -2454,7 +2477,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 Integer.valueOf(request.getNumberOfPages()));
 
         try {
-            docLogService().collectData4DocOut(lockedUser, docLog, pdfFile,
+            docLogService().collectData4DocOut(lockedUser, docLog, createInfo,
                     uuidPageCount);
         } catch (IOException e) {
             throw new SpException(e.getMessage());
@@ -2463,7 +2486,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Finally, proxy print.
          */
-        proxyPrint(lockedUser, request, docLog, pdfFile);
+        proxyPrint(lockedUser, request, docLog, createInfo);
     }
 
     @Override
@@ -2641,14 +2664,19 @@ public abstract class AbstractProxyPrintService extends AbstractService
             pdfRequest.setApplyLetterhead(true);
             pdfRequest.setForPrinting(true);
 
-            pdfFileToPrint = outputProducer().generatePdf(pdfRequest,
-                    uuidPageCount, docLog);
+            pdfRequest.setPrintDuplex(request.isDuplex());
+            pdfRequest.setPrintNup(request.getNup());
 
-            docLogService().collectData4DocOut(lockedUser, docLog,
-                    pdfFileToPrint, uuidPageCount);
+            final PdfCreateInfo createInfo = outputProducer()
+                    .generatePdf(pdfRequest, uuidPageCount, docLog);
+
+            pdfFileToPrint = createInfo.getPdfFile();
+
+            docLogService().collectData4DocOut(lockedUser, docLog, createInfo,
+                    uuidPageCount);
 
             // Print
-            proxyPrint(lockedUser, request, docLog, pdfFileToPrint);
+            proxyPrint(lockedUser, request, docLog, createInfo);
 
         } catch (LetterheadNotFoundException | PostScriptDrmException
                 | IOException e) {
@@ -2686,8 +2714,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The {@link AbstractProxyPrintReq}.
      * @param user
      *            The user (owner of the print job).
-     * @param filePdf
-     *            The PDF file to print.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the PDF file to print.
      * @param docLog
      *            The object to collect print data on.
      * @return {@code true} when printer was found, {@code false} when printer
@@ -2697,8 +2725,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *             When IPP connect error.
      */
     private boolean print(final AbstractProxyPrintReq request,
-            final String user, final File filePdf, final DocLog docLog)
-            throws IppConnectException {
+            final String user, final PdfCreateInfo createInfo,
+            final DocLog docLog) throws IppConnectException {
 
         final JsonProxyPrinter printer =
                 this.getJsonProxyPrinterCopy(request.getPrinterName());
@@ -2712,7 +2740,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             return false;
         }
 
-        this.printPdf(request, printer, user, filePdf, docLog);
+        this.printPdf(request, printer, user, createInfo, docLog);
 
         return true;
     }
@@ -2726,8 +2754,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The printer object.
      * @param user
      *            The requesting user.
-     * @param filePdf
-     *            The file to print.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the file to print.
      * @param docLog
      *            The documentation object to log the event.
      * @throws IppConnectException
@@ -2735,7 +2763,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     protected abstract void printPdf(final AbstractProxyPrintReq request,
             final JsonProxyPrinter printer, final String user,
-            final File filePdf, final DocLog docLog) throws IppConnectException;
+            final PdfCreateInfo createInfo, final DocLog docLog)
+            throws IppConnectException;
 
     /**
      * Return a localized string.

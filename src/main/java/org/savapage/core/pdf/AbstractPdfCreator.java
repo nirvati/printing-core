@@ -22,6 +22,7 @@
 package org.savapage.core.pdf;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -44,6 +45,7 @@ import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PdfOut;
 import org.savapage.core.jpa.User;
 import org.savapage.core.json.PdfProperties;
+import org.savapage.core.print.proxy.BasePrintSheetCalcParms;
 import org.savapage.core.print.proxy.ProxyPrintSheetsCalcParms;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
@@ -209,9 +211,12 @@ public abstract class AbstractPdfCreator {
 
     /**
      *
+     * @param blankPagesToAppend
+     *            The number of blank pages to append to the end of the output
+     *            document.
      * @throws Exception
      */
-    protected abstract void onExitJob() throws Exception;
+    protected abstract void onExitJob(int blankPagesToAppend) throws Exception;
 
     /**
      *
@@ -307,7 +312,8 @@ public abstract class AbstractPdfCreator {
      * @param docLog
      *            The DocLog object to collect data on. A value of {@code null}
      *            is allowed: in that case no data is collected.
-     * @return File object with generated PDF.
+     * @return {@link PdfCreateInfo}.
+     *
      * @throws LetterheadNotFoundException
      *             When an attached letterhead cannot be found.
      * @throws PostScriptDrmException
@@ -317,7 +323,7 @@ public abstract class AbstractPdfCreator {
      *             When {@link EcoPrintPdfTask} objects needed for this PDF are
      *             pending.
      */
-    public File generate(final PdfCreateRequest createReq,
+    public PdfCreateInfo generate(final PdfCreateRequest createReq,
             final Map<String, Integer> uuidPageCount, final DocLog docLog)
             throws LetterheadNotFoundException, PostScriptDrmException,
             EcoPrintPdfTaskPendingException {
@@ -409,43 +415,38 @@ public abstract class AbstractPdfCreator {
         // --------------------------------------------------------
         final List<InboxJobRange> pages = inboxInfo.getPages();
 
+        final boolean isVanillaJobs = INBOX_SERVICE.isInboxVanilla(inboxInfo);
+        final boolean doFillerPages = this.isForPrinting && isVanillaJobs;
+
+        final int nJobRangeTot = pages.size();
+        int nJobRangeWlk = 0;
+        int totFillerPages = 0;
+
+        final List<Integer> logicalJobPages;
+
+        if (doFillerPages) {
+            logicalJobPages = new ArrayList<>();
+        } else {
+            logicalJobPages = null;
+        }
+
         try {
 
             for (InboxJobRange page : pages) {
 
+                nJobRangeWlk++;
+
+                int totJobRangePages = 0;
+
                 final InboxJob job = inboxInfo.getJobs().get(page.getJob());
+                final String pdfFile = job.getFile();
 
-                final String file = job.getFile();
-                /*
-                 * Type of job?
-                 */
-                if (InboxServiceImpl.isScanJobFilename(file)) {
-                    throw new SpException("Scan job type NOT supported yet.");
-                }
-
-                /*
-                 * The base name of the file is the UUID as registered in the
-                 * database (DocIn table).
-                 */
-                String uuid = null;
-                Integer totUuidPages = null;
-
-                if (uuidPageCount != null) {
-                    uuid = FilenameUtils.getBaseName(file);
-                    totUuidPages = uuidPageCount.get(uuid);
-                    if (totUuidPages == null) {
-                        totUuidPages = Integer.valueOf(0);
-                    }
-                }
-                /*
-                 *
-                 */
-                final String filePath =
-                        String.format("%s/%s", this.userhome, file);
+                final String filePath = String.format("%s%c%s", this.userhome,
+                        File.separatorChar, pdfFile);
 
                 String jobPfdName = null;
 
-                if (InboxServiceImpl.isPdfJobFilename(file)) {
+                if (InboxServiceImpl.isPdfJobFilename(pdfFile)) {
                     jobPfdName = filePath;
                 } else {
                     throw new SpException("unknown input job type");
@@ -456,14 +457,16 @@ public abstract class AbstractPdfCreator {
                             INBOX_SERVICE.createEcoPdfShadowPath(jobPfdName);
                 }
 
+                // Init
                 onInitJob(jobPfdName, Integer.valueOf(job.getRotate()));
 
                 final List<RangeAtom> ranges =
                         INBOX_SERVICE.createSortedRangeArray(page.getRange());
 
+                // Page ranges
                 for (RangeAtom rangeAtom : ranges) {
 
-                    int nPageFrom = (rangeAtom.pageBegin == null ? 1
+                    final int nPageFrom = (rangeAtom.pageBegin == null ? 1
                             : rangeAtom.pageBegin);
 
                     if (rangeAtom.pageEnd == null) {
@@ -471,20 +474,61 @@ public abstract class AbstractPdfCreator {
                                 .get(page.getJob()).getPages();
                     }
 
-                    int nPageTo = rangeAtom.pageEnd;
+                    final int nPageTo = rangeAtom.pageEnd;
+                    final int nPagesinAtom = nPageTo - nPageFrom + 1;
 
                     onProcessJobPages(nPageFrom, nPageTo, this.removeGraphics);
 
-                    if (uuidPageCount != null) {
-                        totUuidPages += nPageTo - nPageFrom + 1;
-                    }
-
+                    totJobRangePages += nPagesinAtom;
                 }
 
-                onExitJob();
+                /*
+                 * The number of blank filler pages to append to the end of this
+                 * job part.
+                 */
+                final int fillerPagesToAppend;
+
+                if (doFillerPages && nJobRangeTot > 1
+                        && nJobRangeWlk < nJobRangeTot) {
+
+                    final BasePrintSheetCalcParms calcParms =
+                            new BasePrintSheetCalcParms();
+
+                    calcParms.setNumberOfPages(totJobRangePages);
+                    calcParms.setDuplex(createReq.isPrintDuplex());
+                    calcParms.setNumberOfCopies(nJobRangeTot);
+                    calcParms.setNup(createReq.getPrintNup());
+
+                    fillerPagesToAppend = PdfPrintCollector
+                            .calcBlankAppendPagesOfCopy(calcParms);
+
+                } else {
+                    fillerPagesToAppend = 0;
+                }
+
+                totFillerPages += fillerPagesToAppend;
+
+                onExitJob(fillerPagesToAppend);
+
+                /*
+                 * Update grand totals.
+                 */
+                if (logicalJobPages != null) {
+                    logicalJobPages.add(Integer.valueOf(totJobRangePages));
+                }
 
                 if (uuidPageCount != null) {
-                    uuidPageCount.put(uuid, totUuidPages);
+                    /*
+                     * The base name of the file is the UUID as registered in
+                     * the database (DocIn table).
+                     */
+                    final String uuid = FilenameUtils.getBaseName(pdfFile);
+                    Integer totUuidPages = uuidPageCount.get(uuid);
+                    if (totUuidPages == null) {
+                        totUuidPages = Integer.valueOf(0);
+                    }
+                    uuidPageCount.put(uuid, Integer.valueOf(
+                            totUuidPages.intValue() + totJobRangePages));
                 }
             }
 
@@ -511,7 +555,7 @@ public abstract class AbstractPdfCreator {
             // --------------------------------------------------------
             // Document Information
             // --------------------------------------------------------
-            Calendar now = new GregorianCalendar();
+            final Calendar now = new GregorianCalendar();
 
             final PdfProperties propPdf =
                     USER_SERVICE.getPdfProperties(createReq.getUserObj());
@@ -671,6 +715,10 @@ public abstract class AbstractPdfCreator {
             throw new SpException(e.getMessage(), e);
         }
 
-        return generatedPdf;
+        final PdfCreateInfo createInfo = new PdfCreateInfo(generatedPdf);
+        createInfo.setBlankFillerPages(totFillerPages);
+        createInfo.setLogicalJobPages(logicalJobPages);
+
+        return createInfo;
     }
 }

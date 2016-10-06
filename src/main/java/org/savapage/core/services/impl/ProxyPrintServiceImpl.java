@@ -95,6 +95,7 @@ import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcError.Code;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
@@ -1014,8 +1015,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     @Override
     protected void printPdf(final AbstractProxyPrintReq request,
             final JsonProxyPrinter jsonPrinter, final String user,
-            final File filePdf, final DocLog docLog)
+            final PdfCreateInfo createInfo, final DocLog docLog)
             throws IppConnectException {
+
+        final File filePdf = createInfo.getPdfFile();
 
         final URL urlCupsServer;
 
@@ -1169,7 +1172,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          */
         printJob.setUser(user); // needed??
 
-        collectPrintOutData(request, docLog, jsonPrinter, printJob);
+        collectPrintOutData(request, docLog, jsonPrinter, printJob, createInfo);
     }
 
     /**
@@ -1183,10 +1186,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      *            The printer object.
      * @param printJob
      *            The job object.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} of the printed PDF file.
      */
     private void collectPrintOutData(final AbstractProxyPrintReq request,
             final DocLog docLog, final JsonProxyPrinter printer,
-            final JsonProxyPrintJob printJob) {
+            final JsonProxyPrintJob printJob, final PdfCreateInfo createInfo) {
 
         // ------------------
         final boolean duplex =
@@ -1205,8 +1210,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                         .get(IppDictJobTemplateAttr.ATTR_MEDIA));
 
         // ------------------
-        int numberOfSheets =
-                PdfPrintCollector.calcNumberOfPrintedSheets(request);
+        int numberOfSheets = PdfPrintCollector.calcNumberOfPrintedSheets(
+                request, createInfo.getBlankFillerPages());
 
         // ------------------
         final DocOut docOut = docLog.getDocOut();

@@ -59,11 +59,13 @@ import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.client.IppConnectException;
+import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.PrinterGroupMember;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
@@ -170,13 +172,13 @@ public final class JobTicketServiceImpl extends AbstractService
         protected void onPdfGenerated(final User lockedUser,
                 final ProxyPrintInboxReq request,
                 final LinkedHashMap<String, Integer> uuidPageCount,
-                final File pdfGenerated) {
+                final PdfCreateInfo createInfo) {
 
-            final UUID uuid = UUID.fromString(
-                    FilenameUtils.getBaseName(pdfGenerated.getName()));
+            final UUID uuid = UUID.fromString(FilenameUtils
+                    .getBaseName(createInfo.getPdfFile().getName()));
 
             try {
-                this.serviceImpl.addJobticketToCache(lockedUser, pdfGenerated,
+                this.serviceImpl.addJobticketToCache(lockedUser, createInfo,
                         uuid, request, uuidPageCount, this.submitDate,
                         this.deliveryDate);
             } catch (IOException e) {
@@ -188,7 +190,7 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public void proxyPrintPdf(final User lockedUser,
-            final ProxyPrintDocReq request, final File pdfFile,
+            final ProxyPrintDocReq request, final PdfCreateInfo createInfo,
             final DocContentPrintInInfo printInfo, final Date deliveryDate)
             throws IOException {
 
@@ -204,7 +206,9 @@ public final class JobTicketServiceImpl extends AbstractService
          * Move PDF file to ticket Outbox.
          */
         final File pdfFileTicket = getJobTicketFile(uuid, FILENAME_EXT_PDF);
-        FileUtils.moveFile(pdfFile, pdfFileTicket);
+        FileUtils.moveFile(createInfo.getPdfFile(), pdfFileTicket);
+
+        createInfo.setPdfFile(pdfFileTicket);
 
         /*
          * Add to cache.
@@ -213,7 +217,7 @@ public final class JobTicketServiceImpl extends AbstractService
                 new LinkedHashMap<>();
         uuidPageCount.put(uuid.toString(), request.getNumberOfPages());
 
-        this.addJobticketToCache(lockedUser, pdfFileTicket, uuid, request,
+        this.addJobticketToCache(lockedUser, createInfo, uuid, request,
                 uuidPageCount, ServiceContext.getTransactionDate(),
                 deliveryDate);
     }
@@ -224,8 +228,9 @@ public final class JobTicketServiceImpl extends AbstractService
      *
      * @param user
      *            The requesting {@link User}.
-     * @param pdfFileTicket
-     *            The PDF file to be printed by the Job Ticket.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the PDF file to be printed by
+     *            the Job Ticket.
      * @param uuid
      *            The Job Ticket {@link UUID}.
      * @param request
@@ -240,13 +245,14 @@ public final class JobTicketServiceImpl extends AbstractService
      * @throws IOException
      *             When file IO error occurs.
      */
-    private void addJobticketToCache(final User user, final File pdfFileTicket,
-            final UUID uuid, final AbstractProxyPrintReq request,
+    private void addJobticketToCache(final User user,
+            final PdfCreateInfo createInfo, final UUID uuid,
+            final AbstractProxyPrintReq request,
             final LinkedHashMap<String, Integer> uuidPageCount,
             final Date submitDate, final Date deliveryDate) throws IOException {
 
         final OutboxJobDto dto = outboxService().createOutboxJob(request,
-                submitDate, deliveryDate, pdfFileTicket, uuidPageCount);
+                submitDate, deliveryDate, createInfo, uuidPageCount);
 
         dto.setUserId(user.getId());
 
@@ -565,11 +571,10 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     /**
-     * Checks if capability of printer matches IPP option value requested by
-     * outbox print job.
+     * Checks if capability of printer matches the IPP option value requested.
      *
-     * @param job
-     *            The {@link OutboxJobDto}.
+     * @param optionsRequested
+     *            The requested {@link IppOptionMap}.
      * @param ippOptionKey
      *            The IPP option key.
      * @param ippOptionValueNone
@@ -579,18 +584,21 @@ public final class JobTicketServiceImpl extends AbstractService
      * @return {@code true} if job does not request the IPP option, or when
      *         printer has capability to fulfill job IPP option value.
      */
-    private static boolean isPrinterCapabilityMatch(final OutboxJobDto job,
-            final String ippOptionKey, final String ippOptionValueNone,
+    private static boolean isPrinterCapabilityMatch(
+            final IppOptionMap optionsRequested, final String ippOptionKey,
+            final String ippOptionValueNone,
             final Map<String, JsonProxyPrinterOpt> printerOptionLookup) {
 
-        final String jobOptionValue = job.getOptionValues().get(ippOptionKey);
+        final String jobOptionValue =
+                optionsRequested.getOptionValue(ippOptionKey);
 
         if (jobOptionValue == null) {
             // Option not requested: match.
             return true;
         }
 
-        if (job.isOptionPresent(ippOptionKey, ippOptionValueNone)) {
+        if (optionsRequested.isOptionPresent(ippOptionKey,
+                ippOptionValueNone)) {
             // non-choice option: match.
             return true;
         }
@@ -639,8 +647,10 @@ public final class JobTicketServiceImpl extends AbstractService
             return printerList;
         }
 
-        final boolean colorJob = job.isColorJob();
-        final boolean duplexJob = job.isDuplexJob();
+        final IppOptionMap optionMap = job.createIppOptionMap();
+
+        final boolean colorJob = optionMap.isColorJob();
+        final boolean duplexJob = optionMap.isDuplexJob();
 
         int iPreferred = -1;
         int iPrinter = 0;
@@ -700,12 +710,15 @@ public final class JobTicketServiceImpl extends AbstractService
                     //
             };
 
+            final IppOptionMap optionsRequested = job.createIppOptionMap();
+
             boolean isFinishingMatch = true;
 
             for (final String[] ippOptionCheck : finishingOptionsToCheck) {
 
-                if (!isPrinterCapabilityMatch(job, ippOptionCheck[0],
-                        ippOptionCheck[1], printerOptionlookup)) {
+                if (!isPrinterCapabilityMatch(optionsRequested,
+                        ippOptionCheck[0], ippOptionCheck[1],
+                        printerOptionlookup)) {
                     isFinishingMatch = false;
                     break;
                 }

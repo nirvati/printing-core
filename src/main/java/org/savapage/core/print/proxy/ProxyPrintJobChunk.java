@@ -52,6 +52,13 @@ public final class ProxyPrintJobChunk {
     private String jobName;
 
     /**
+     * The number of pages of logical sub-jobs. <b>Note</b>: Blank filler pages
+     * are <i>not</i> included in the count. When {@code null}, no logical
+     * sub-jobs are defined.
+     */
+    private List<Integer> logicalJobPages;
+
+    /**
      *
      * @return
      */
@@ -77,6 +84,25 @@ public final class ProxyPrintJobChunk {
         }
 
         return numberOfPages;
+    }
+
+    /**
+     * @return The number of pages of logical sub-jobs. <b>Note</b>: Blank
+     *         filler pages are <i>not</i> included in the count. When
+     *         {@code null}, no logical sub-jobs are defined.
+     */
+    public List<Integer> getLogicalJobPages() {
+        return logicalJobPages;
+    }
+
+    /**
+     * @param logicalJobPages
+     *            The number of pages of logical sub-jobs. <b>Note</b>: Blank
+     *            filler pages are <i>not</i> included in the count. When
+     *            {@code null}, no logical sub-jobs are defined.
+     */
+    public void setLogicalJobPages(List<Integer> logicalJobPages) {
+        this.logicalJobPages = logicalJobPages;
     }
 
     public IppMediaSourceCostDto getAssignedMediaSource() {

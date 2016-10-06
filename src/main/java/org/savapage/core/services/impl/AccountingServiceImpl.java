@@ -768,11 +768,11 @@ public final class AccountingServiceImpl extends AbstractService
     /**
      * Calculates the cost of a priont job.
      * <p>
-     * The pageCostTwoSided is applied to pages that are print on both sides of
-     * a sheet. If a job has an odd number of pages, the pageCostTwoSided is not
-     * applied to the last page. For example, if a 3 page document is printed as
-     * duplex, the pageCostTwoSided is applied to the first 2 pages: the last
-     * page has pageCostOneSided.
+     * The pageCostTwoSided is applied to pages that are printed on both sides
+     * of a sheet. If a job has an odd number of pages, the pageCostTwoSided is
+     * not applied to the last page. For example, if a 3 page document is
+     * printed as duplex, the pageCostTwoSided is applied to the first 2 pages:
+     * the last page has pageCostOneSided.
      * </p>
      *
      * @param nPages
@@ -928,10 +928,25 @@ public final class AccountingServiceImpl extends AbstractService
             discountPerc = BigDecimal.ZERO;
         }
 
-        return calcPrintJobCost(costParms.getNumberOfPages(),
-                costParms.getPagesPerSide(), costParms.getNumberOfCopies(),
-                costParms.isDuplex(), pageCostOneSided, pageCostTwoSided,
-                discountPerc);
+        //
+        final List<Integer> logicalNumberOfPages;
+
+        if (costParms.getLogicalNumberOfPages() == null) {
+            logicalNumberOfPages = new ArrayList<>();
+            logicalNumberOfPages
+                    .add(Integer.valueOf(costParms.getNumberOfPages()));
+        } else {
+            logicalNumberOfPages = costParms.getLogicalNumberOfPages();
+        }
+
+        BigDecimal jobCost = BigDecimal.ZERO;
+        for (final Integer numberOfPages : logicalNumberOfPages) {
+            jobCost = jobCost.add(
+                    calcPrintJobCost(numberOfPages, costParms.getPagesPerSide(),
+                            costParms.getNumberOfCopies(), costParms.isDuplex(),
+                            pageCostOneSided, pageCostTwoSided, discountPerc));
+        }
+        return jobCost;
     }
 
     /**
@@ -1037,6 +1052,7 @@ public final class AccountingServiceImpl extends AbstractService
             costParms.setIppMediaOption(
                     chunk.getAssignedMedia().getIppKeyword());
             costParms.setMediaSourceCost(chunk.getAssignedMediaSource());
+            costParms.setLogicalNumberOfPages(chunk.getLogicalJobPages());
 
             final BigDecimal chunkCost =
                     this.calcProxyPrintCost(printer, costParms);

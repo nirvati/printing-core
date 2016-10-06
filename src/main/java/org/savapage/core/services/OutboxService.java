@@ -37,6 +37,7 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
@@ -87,14 +88,14 @@ public interface OutboxService {
      *            The date the proxy print was submitted.
      * @param expiryDate
      *            The date the proxy print expires.
-     * @param pdfOutboxFile
-     *            The PDF file in the outbox.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the PDF file in the outbox.
      * @param uuidPageCount
      *            Object with the number of selected pages per input file UUID.
      * @return The {@link OutboxJobDto}.
      */
     OutboxJobDto createOutboxJob(AbstractProxyPrintReq request, Date submitDate,
-            Date expiryDate, File pdfOutboxFile,
+            Date expiryDate, PdfCreateInfo createInfo,
             LinkedHashMap<String, Integer> uuidPageCount);
 
     /**
@@ -231,15 +232,17 @@ public interface OutboxService {
      *            The requesting {@link User}, which should be locked.
      * @param request
      *            The {@link ProxyPrintDocReq}.
-     * @param pdfFile
-     *            The arbitrary (non-inbox) PDF file to print.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the arbitrary (non-inbox) PDF
+     *            file to print.
      * @param printInfo
      *            The {@link DocContentPrintInInfo}.
      * @throws IOException
      *             When file IO error occurs.
      */
-    void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request, File pdfFile,
-            DocContentPrintInInfo printInfo) throws IOException;
+    void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request,
+            final PdfCreateInfo createInfo, DocContentPrintInInfo printInfo)
+            throws IOException;
 
     /**
      *

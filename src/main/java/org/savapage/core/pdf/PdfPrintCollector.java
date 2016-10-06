@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -85,12 +85,17 @@ public final class PdfPrintCollector {
      *
      * @param request
      *            The {@link ProxyPrintSheetsCalcParms}.
+     * @param blankFillerPages
+     *            The total number of blank filler pages appended between
+     *            logical jobs (proxy print only).
      * @return The number of printed sheets.
      */
     public static int calcNumberOfPrintedSheets(
-            final ProxyPrintSheetsCalcParms request) {
+            final ProxyPrintSheetsCalcParms request,
+            final int blankFillerPages) {
 
-        return calcNumberOfPrintedSheets(request.getNumberOfPages(),
+        return calcNumberOfPrintedSheets(
+                request.getNumberOfPages() + blankFillerPages,
                 request.getNumberOfCopies(), request.isDuplex(),
                 request.getNup(), request.isOddOrEvenSheets(),
                 request.isCoverPageBefore(), request.isCoverPageAfter());
@@ -184,9 +189,8 @@ public final class PdfPrintCollector {
         /*
          * The pages needed for a full single copy.
          */
-        int nPagesNeeded =
-                calcNumberOfPrintedSheets(calcParms)
-                        / calcParms.getNumberOfCopies();
+        int nPagesNeeded = calcNumberOfPrintedSheets(calcParms, 0)
+                / calcParms.getNumberOfCopies();
 
         if (calcParms.getNup() > 1) {
             nPagesNeeded *= calcParms.getNup();
@@ -274,9 +278,8 @@ public final class PdfPrintCollector {
                     calcBlankAppendPagesOfCopy(calcParms);
 
             if (collate) {
-                nTotalOutPages =
-                        collectCollated(pdfCollector, collectedPdfCopy,
-                                pdfReader, calcParms, nBlankPagesToAppend);
+                nTotalOutPages = collectCollated(pdfCollector, collectedPdfCopy,
+                        pdfReader, calcParms, nBlankPagesToAppend);
             } else {
                 nTotalOutPages =
                         collectUncollated(pdfCollector, collectedPdfCopy,
@@ -316,8 +319,8 @@ public final class PdfPrintCollector {
     private static int collectCollated(final PdfPrintCollector pdfCollector,
             final PdfCopy collectedPdfCopy, final PdfReader pdfReader,
             final ProxyPrintSheetsCalcParms calcParms,
-            final int nBlankPagesToAppend) throws IOException,
-            DocumentException {
+            final int nBlankPagesToAppend)
+            throws IOException, DocumentException {
 
         final int nPagesMax = pdfReader.getNumberOfPages();
 
@@ -342,7 +345,7 @@ public final class PdfPrintCollector {
     }
 
     /**
-     * Collects collated output.
+     * Collects uncollated output.
      *
      * @param pdfCollector
      *            The {@link PdfPrintCollector}.
@@ -363,8 +366,8 @@ public final class PdfPrintCollector {
     private static int collectUncollated(final PdfPrintCollector pdfCollector,
             final PdfCopy collectedPdfCopy, final PdfReader pdfReader,
             final ProxyPrintSheetsCalcParms calcParms,
-            final int nBlankPagesToAppend) throws IOException,
-            DocumentException {
+            final int nBlankPagesToAppend)
+            throws IOException, DocumentException {
 
         /*
          * The number of pages in the un-collated sequence.
@@ -459,8 +462,8 @@ public final class PdfPrintCollector {
 
         if (pageContentsPresent) {
 
-            collectedPdfCopy.addPage(collectedPdfCopy.getImportedPage(
-                    pdfReader, nPage));
+            collectedPdfCopy.addPage(
+                    collectedPdfCopy.getImportedPage(pdfReader, nPage));
 
         } else {
             /*

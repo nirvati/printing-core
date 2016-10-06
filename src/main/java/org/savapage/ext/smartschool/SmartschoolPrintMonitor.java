@@ -75,6 +75,7 @@ import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.msg.UserMsgIndicator;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
@@ -2786,18 +2787,20 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
                 printReq.setCost(cost);
 
+                final PdfCreateInfo createInfo = new PdfCreateInfo(fileToPrint);
+
                 if (isJobTicketPrinter) {
                     // TODO: 4 hours?
                     final int hours = 4;
 
                     JOBTICKET_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                            fileToPrint, printInInfo,
+                            createInfo, printInInfo,
                             DateUtils.addHours(
                                     ServiceContext.getTransactionDate(),
                                     hours));
                 } else {
                     OUTBOX_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                            fileToPrint, printInInfo);
+                            createInfo, printInInfo);
                 }
                 /*
                  * This will refresh the User Web App with new status
@@ -2809,7 +2812,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             } else {
 
                 PROXY_PRINT_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                        fileToPrint);
+                        new PdfCreateInfo(fileToPrint));
             }
 
             daoContext.commit();

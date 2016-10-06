@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -60,6 +60,9 @@ public final class JsonHelper {
      */
     private static JsonFactory jsonFactory = new JsonFactory();
 
+    /**
+     * Private constructor.
+     */
     private JsonHelper() {
 
     }
@@ -67,6 +70,8 @@ public final class JsonHelper {
     /**
      * Serializes an {@link EnumSet}.
      *
+     * @param <E>
+     *            The enum type.
      * @param enumSet
      *            The {@link EnumSet}.
      * @return The serialized JSON result.
@@ -85,6 +90,8 @@ public final class JsonHelper {
     /**
      * De-serializes an {@link EnumSet}.
      *
+     * @param <E>
+     *            The enum type.
      * @param enumClass
      *            The enum class.
      * @param json
@@ -191,6 +198,41 @@ public final class JsonHelper {
             createStringIntegerMapOrNull(final String json) {
         try {
             return createStringIntegerMap(json);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * De-serializes a {@link Map} with string key and string value.
+     *
+     * @param json
+     *            The serialized JSON string.
+     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     * @throws IOException
+     *             When JSON syntax is invalid.
+     */
+    public static Map<String, String> createStringMap(final String json)
+            throws IOException {
+        try {
+            return mapper.readValue(json,
+                    new TypeReference<Map<String, String>>() {
+                    });
+        } catch (IllegalArgumentException e) {
+            throw new IOException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * De-serializes a {@link Map} with string key and string value.
+     *
+     * @param json
+     *            The serialized JSON string.
+     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     */
+    public static Map<String, String> createStringMapOrNull(final String json) {
+        try {
+            return createStringMap(json);
         } catch (Exception e) {
             return null;
         }

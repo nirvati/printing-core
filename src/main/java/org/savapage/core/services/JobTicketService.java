@@ -21,7 +21,6 @@
  */
 package org.savapage.core.services;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -33,6 +32,7 @@ import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
@@ -74,8 +74,9 @@ public interface JobTicketService extends StatefulService {
      *            The requesting {@link User}, which should be locked.
      * @param request
      *            The {@link ProxyPrintDocReq}.
-     * @param pdfFile
-     *            The arbitrary (non-inbox) PDF file to print.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the arbitrary (non-inbox) PDF
+     *            file to print.
      * @param printInfo
      *            The {@link DocContentPrintInInfo}.
      * @param deliveryDate
@@ -83,9 +84,9 @@ public interface JobTicketService extends StatefulService {
      * @throws IOException
      *             When file IO error occurs.
      */
-    void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request, File pdfFile,
-            DocContentPrintInInfo printInfo, Date deliveryDate)
-            throws IOException;
+    void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request,
+            final PdfCreateInfo createInfo, DocContentPrintInInfo printInfo,
+            Date deliveryDate) throws IOException;
 
     /**
      * Gets the pending Job Tickets.

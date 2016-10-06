@@ -37,6 +37,7 @@ import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.inbox.OutputProducer;
 import org.savapage.core.jpa.User;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
@@ -117,13 +118,13 @@ public abstract class ProxyPrintInboxPattern {
      * @param uuidPageCount
      *            Object filled with the number of selected pages per input file
      *            UUID.
-     * @param pdfGenerated
-     *            The generated PDF file.
+     * @param createInfo
+     *            The {@link PdfCreateInfo}.
      */
     protected abstract void onPdfGenerated(final User lockedUser,
             final ProxyPrintInboxReq request,
             final LinkedHashMap<String, Integer> uuidPageCount,
-            final File pdfGenerated);
+            final PdfCreateInfo createInfo);
 
     /**
      *
@@ -136,7 +137,7 @@ public abstract class ProxyPrintInboxPattern {
      */
     public final void print(final User lockedUser,
             final ProxyPrintInboxReq request)
-                    throws EcoPrintPdfTaskPendingException {
+            throws EcoPrintPdfTaskPendingException {
 
         final InboxService inboxService =
                 ServiceContext.getServiceFactory().getInboxService();
@@ -244,7 +245,7 @@ public abstract class ProxyPrintInboxPattern {
      */
     private void proxyPrintInboxChunk(final User lockedUser,
             final ProxyPrintInboxReq request, final InboxInfoDto inboxInfo)
-                    throws EcoPrintPdfTaskPendingException {
+            throws EcoPrintPdfTaskPendingException {
 
         /*
          * Generate the PDF file.
@@ -275,11 +276,15 @@ public abstract class ProxyPrintInboxPattern {
             pdfRequest.setApplyLetterhead(APPLY_LETTERHEAD);
             pdfRequest.setForPrinting(PDF_FOR_PRINTING);
 
-            pdfFileGenerated = OutputProducer.instance().generatePdf(pdfRequest,
-                    uuidPageCount, null);
+            pdfRequest.setPrintDuplex(request.isDuplex());
+            pdfRequest.setPrintNup(request.getNup());
 
-            this.onPdfGenerated(lockedUser, request, uuidPageCount,
-                    pdfFileGenerated);
+            final PdfCreateInfo createInfo = OutputProducer.instance()
+                    .generatePdf(pdfRequest, uuidPageCount, null);
+
+            pdfFileGenerated = createInfo.getPdfFile();
+
+            this.onPdfGenerated(lockedUser, request, uuidPageCount, createInfo);
 
             fileCreated = true;
 

@@ -21,7 +21,6 @@
  */
 package org.savapage.core.services;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -43,6 +42,7 @@ import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAttr;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
@@ -195,8 +195,8 @@ public interface DocLogService {
      * @param docLogCollect
      *            Collects data for the DocOut object using the generated PDF
      *            and the uuid page counts.
-     * @param pdfFile
-     *            The PDF output file.
+     * @param createInfo
+     *            The {@link PdfCreateInfo}.
      * @param uuidPageCount
      *            A {@link Map} with {@link DocLog} UUID keys of {@link DocIn}
      *            documents, with number of pages as value. Note:
@@ -204,7 +204,8 @@ public interface DocLogService {
      * @throws IOException
      *             When error reading the pdfFile (file size).
      */
-    void collectData4DocOut(User user, DocLog docLogCollect, final File pdfFile,
+    void collectData4DocOut(User user, DocLog docLogCollect,
+            PdfCreateInfo createInfo,
             LinkedHashMap<String, Integer> uuidPageCount) throws IOException;
 
     /**
