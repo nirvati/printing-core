@@ -1838,6 +1838,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          */
 
         /*
+         * Mantis #738.
+         */
+        boolean printNumberUpLandscape = false;
+
+        /*
          * No full bleed for now.
          */
         final boolean isFullBleed = false;
@@ -1954,6 +1959,15 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             }
 
             /*
+             * Mantis #738.
+             */
+            if (optionKeyword.equals(IppDictJobTemplateAttr.ATTR_NUMBER_UP)) {
+                printNumberUpLandscape =
+                        !optionValue.equals("1") && BooleanUtils.isTrue(
+                                request.getJobChunkInfo().isLandscape());
+            }
+
+            /*
              *
              */
             if (optionKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA)) {
@@ -1987,7 +2001,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             } else {
                 group.add(attr, optionValue);
             }
-        }
+        } // job options
 
         /*
          * NOTE: PWG5100.13 states that "A Client specifies that is has
@@ -2016,7 +2030,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 if (isFullBleed) {
                     group.add(keyword, syntax, "0");
                 }
-
             }
         }
 
@@ -2152,6 +2165,29 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             }
             group.add(IppDictJobTemplateAttr.ATTR_COPIES, IppInteger.instance(),
                     String.valueOf(copies));
+        }
+
+        /*
+         * Mantis #738: Apply correct number-up layout in landscape proxy print.
+         */
+        if (printNumberUpLandscape) {
+            /*
+             * When you want landscape n-up in logical "lrtb" layout, you MUST
+             * set BOTH "landscape" and layout to "rlbt" (because the layout is
+             * applied to the portrait orientation).
+             */
+            final AbstractIppDict nupDict = IppDictJobTemplateAttr.instance();
+
+            group.add(nupDict.createPpdOptionAttr(
+                    IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE));
+
+            /*
+             * Just to be sure: apply the CUPS default anyhow.
+             */
+            group.add(
+                    nupDict.createPpdOptionAttr(
+                            IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
+                    IppKeyword.NUMBER_UP_LAYOUT_LRTB);
         }
 
         return attrGroups;

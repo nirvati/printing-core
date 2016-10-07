@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -34,15 +34,16 @@ import org.slf4j.LoggerFactory;
 /**
  * A wrapper list of {@link IppAttrValue} objects.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public abstract class IppAttrList {
 
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(IppAttrList.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(IppAttrList.class);
 
     /**
      *
@@ -107,19 +108,18 @@ public abstract class IppAttrList {
             final IppAttrValue presentDefault = attrLookup.get(attrKey);
 
             doLookupUpdate =
-                    presentDefault == null
-                            || presentDefault.getSingleValue().equals(
-                                    IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
+                    presentDefault == null || presentDefault.getSingleValue()
+                            .equals(IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
 
             if (!doLookupUpdate && LOGGER.isDebugEnabled()) {
 
                 final StringBuilder msg = new StringBuilder();
 
                 msg.append("[")
-                        .append(attrLookup.get(
-                                IppDictPrinterDescAttr.ATTR_PRINTER_NAME)
-                                .getSingleValue()).append("] [")
-                        .append(attrKey).append("] [")
+                        .append(attrLookup
+                                .get(IppDictPrinterDescAttr.ATTR_PRINTER_NAME)
+                                .getSingleValue())
+                        .append("] [").append(attrKey).append("] [")
                         .append(attr.getAttribute().getSyntax().getValueTag())
                         .append("] is NOT overwritten.");
 
@@ -152,14 +152,13 @@ public abstract class IppAttrList {
                     final StringBuilder msg = new StringBuilder();
 
                     msg.append("[")
-                            .append(attrLookup.get(
-                                    IppDictPrinterDescAttr.ATTR_PRINTER_NAME)
+                            .append(attrLookup
+                                    .get(IppDictPrinterDescAttr.ATTR_PRINTER_NAME)
                                     .getSingleValue())
                             .append("] [")
-                            .append(attrKey)
-                            .append("] [")
-                            .append(attr.getAttribute().getSyntax()
-                                    .getValueTag()).append("]");
+                            .append(attrKey).append("] [").append(attr
+                                    .getAttribute().getSyntax().getValueTag())
+                            .append("]");
 
                     for (final String value : alreadyPresent.getValues()) {
                         msg.append(" [").append(value).append("]");
@@ -211,6 +210,16 @@ public abstract class IppAttrList {
     }
 
     /**
+     * Convenience method to add an {@link IppAttrValue} with blank value.
+     *
+     * @param attr
+     *            The {@link IppAttr}.
+     */
+    public final void add(final IppAttr attr) {
+        this.add(attr, "");
+    }
+
+    /**
      * Gets the attribute value of an attribute keyword.
      *
      * @param keyword
@@ -251,8 +260,8 @@ public abstract class IppAttrList {
      *            values does NOT have exactly ONE element.
      * @return Value found or the default.
      */
-    public final String
-            getAttrSingleValue(final String key, final String dfault) {
+    public final String getAttrSingleValue(final String key,
+            final String dfault) {
 
         final String value = getAttrSingleValue(key);
 

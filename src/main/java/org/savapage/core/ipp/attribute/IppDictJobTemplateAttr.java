@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -207,6 +207,18 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      * </p>
      */
     public static final String CUPS_ATTR_PAGE_TOP = "page-top";
+
+    /**
+     *
+     */
+    public static final String CUPS_ATTR_LANDSCAPE = "landscape";
+
+    /**
+     * N-Up printing places multiple document pages on a single printed page.
+     * The "number-up-layout" option chooses the layout of the pages on each
+     * output page.
+     */
+    public static final String CUPS_ATTR_NUMBER_UP_LAYOUT = "number-up-layout";
 
     /**
      * PWG5100.13: The RECOMMENDED "media-bottom-margin" member attribute

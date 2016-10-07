@@ -51,6 +51,12 @@ public final class ProxyPrintJobChunkInfo {
     private final List<ProxyPrintJobChunk> chunks = new ArrayList<>();
 
     /**
+     * {@code true} when one of the job pages has landscape orientation.
+     * {@code null} when unknown.
+     */
+    private final Boolean landscape;
+
+    /**
      * .
      */
     private static final InboxService INBOX_SERVICE =
@@ -68,6 +74,7 @@ public final class ProxyPrintJobChunkInfo {
     @SuppressWarnings("unused")
     private ProxyPrintJobChunkInfo() {
         this.filteredInboxInfo = null;
+        this.landscape = null;
     }
 
     /**
@@ -79,6 +86,7 @@ public final class ProxyPrintJobChunkInfo {
      */
     public ProxyPrintJobChunkInfo(final ProxyPrintJobChunk jobChunk) {
         this.filteredInboxInfo = null;
+        this.landscape = null;
         this.addChunk(jobChunk);
     }
 
@@ -98,6 +106,8 @@ public final class ProxyPrintJobChunkInfo {
         if (!INBOX_SERVICE.isInboxVanilla(inboxInfoIn)) {
             throw new ProxyPrintException("Inbox was edited by user");
         }
+
+        Boolean hasLandscape = Boolean.FALSE;
 
         this.filteredInboxInfo = INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
                 RangeAtom.FULL_PAGE_RANGE);
@@ -121,7 +131,13 @@ public final class ProxyPrintJobChunkInfo {
             this.addChunk(printJobChunkWlk);
 
             addJobRangesToJobChunk(printJobChunkWlk, iJob, nJobPages, jobRange);
+
+            if (inboxJob.showLandscape()) {
+                hasLandscape = Boolean.TRUE;
+            }
         }
+
+        this.landscape = hasLandscape;
     }
 
     /**
@@ -145,6 +161,8 @@ public final class ProxyPrintJobChunkInfo {
         if (!INBOX_SERVICE.isInboxVanilla(inboxInfoIn)) {
             throw new ProxyPrintException("Inbox was edited by user");
         }
+
+        Boolean hasLandscape = Boolean.FALSE;
 
         this.filteredInboxInfo = INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
                 RangeAtom.FULL_PAGE_RANGE);
@@ -184,8 +202,13 @@ public final class ProxyPrintJobChunkInfo {
             addJobRangesToJobChunk(printJobChunkWlk, iJob, nJobPages,
                     jobRangeWork);
 
+            if (inboxJob.showLandscape()) {
+                hasLandscape = Boolean.TRUE;
+            }
+
             break;
         }
+        this.landscape = hasLandscape;
     }
 
     /**
@@ -216,6 +239,8 @@ public final class ProxyPrintJobChunkInfo {
 
         final Iterator<InboxJobRange> iterPages =
                 filteredInboxInfo.getPages().iterator();
+
+        Boolean hasLandscape = Boolean.FALSE;
 
         while (iterPages.hasNext()) {
 
@@ -255,12 +280,19 @@ public final class ProxyPrintJobChunkInfo {
                     .setDrm(isDrm || BooleanUtils.isTrue(inboxJob.getDrm()));
 
             addJobRangesToJobChunk(printJobChunkWlk, iJob, nJobPages, jobRange);
+
+            if (inboxJob.showLandscape()) {
+                hasLandscape = Boolean.TRUE;
+            }
+
         }
 
         if (this.chunks.size() == 1) {
             this.chunks.get(0).setLogicalJobPages(
                     PROXY_PRINT_SERVICE.getLogicalJobPages(filteredInboxInfo));
         }
+
+        this.landscape = hasLandscape;
     }
 
     /**
@@ -308,6 +340,16 @@ public final class ProxyPrintJobChunkInfo {
      */
     public InboxInfoDto getFilteredInboxInfo() {
         return filteredInboxInfo;
+    }
+
+    /**
+     *
+     * @return {@code true} when one of the job pages has landscape orientation.
+     *         {@code null} when unknown.
+     *
+     */
+    public Boolean isLandscape() {
+        return this.landscape;
     }
 
 }

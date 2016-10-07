@@ -26,6 +26,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -195,6 +197,28 @@ public final class InboxInfoDto {
             this.rotate = rotate;
         }
 
+        /**
+         *
+         * @return {@code true} when job must be shown in landscape orientation.
+         */
+        @JsonIgnore
+        public boolean showLandscape() {
+
+            final boolean showLandscape;
+
+            if (this.getLandscape() == null) {
+                showLandscape = false;
+            } else {
+                final boolean isRotate = !StringUtils.isBlank(this.getRotate())
+                        && !this.getRotate().equals("0");
+                if (this.getLandscape().booleanValue()) {
+                    showLandscape = !isRotate;
+                } else {
+                    showLandscape = isRotate;
+                }
+            }
+            return showLandscape;
+        }
     }
 
     /**

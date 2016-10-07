@@ -126,6 +126,50 @@ public class IppKeyword extends AbstractIppAttrSyntax {
             "two-sided-short-edge";
 
     // ------------------------------------------------------------------------
+    // number-up-layout : https://www.cups.org/doc/options.html
+    // ------------------------------------------------------------------------
+
+    /**
+     * number-up-layout: Bottom to top, left to right.
+     */
+    public static final String NUMBER_UP_LAYOUT_BTLR = "btlr";
+
+    /**
+     * number-up-layout: Bottom to top, right to left.
+     */
+    public static final String NUMBER_UP_LAYOUT_BTRL = "btrl";
+
+    /**
+     * number-up-layout: Left to right, bottom to top.
+     */
+    public static final String NUMBER_UP_LAYOUT_LRBT = "lrbt";
+
+    /**
+     * number-up-layout: Left to right, top to bottom (default).
+     */
+    public static final String NUMBER_UP_LAYOUT_LRTB = "lrtb";
+
+    /**
+     * number-up-layout: Right to left, bottom to top.
+     */
+    public static final String NUMBER_UP_LAYOUT_RLBT = "rlbt";
+
+    /**
+     * number-up-layout: Right to left, top to bottom.
+     */
+    public static final String NUMBER_UP_LAYOUT_RLTB = "rltb";
+
+    /**
+     * number-up-layout: Top to bottom, left to right.
+     */
+    public static final String NUMBER_UP_LAYOUT_TBLR = "tblr";
+
+    /**
+     * number-up-layout: Top to bottom, right to left.
+     */
+    public static final String NUMBER_UP_LAYOUT_TBRL = "tbrl";
+
+    // ------------------------------------------------------------------------
     // finishings
     // ------------------------------------------------------------------------
     public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH_NONE = "3";
