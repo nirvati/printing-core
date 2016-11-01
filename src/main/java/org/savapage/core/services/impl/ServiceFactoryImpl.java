@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -38,10 +38,12 @@ import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.RfIdReaderService;
+import org.savapage.core.services.SOfficeService;
 import org.savapage.core.services.ServiceFactory;
 import org.savapage.core.services.StatefulService;
 import org.savapage.core.services.UserGroupService;
 import org.savapage.core.services.UserService;
+import org.savapage.core.services.helpers.SOfficeConfigProps;
 import org.savapage.ext.papercut.services.PaperCutService;
 import org.savapage.ext.papercut.services.impl.PaperCutServiceImpl;
 import org.savapage.ext.smartschool.services.SmartschoolProxyService;
@@ -120,6 +122,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
         public static final PaperCutService SERVICE = new PaperCutServiceImpl();
     }
 
+    private static class SOfficeServiceHolder {
+        public static final SOfficeService SERVICE =
+                new SOfficeServiceImpl(new SOfficeConfigProps());
+    }
+
     private static class UserServiceHolder {
         public static final UserService SERVICE = new UserServiceImpl();
     }
@@ -170,7 +177,8 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private final static StatefulService statefullServices[] =
             new StatefulService[] { EcoPrintPdfTaskServiceHolder.SERVICE,
-                    JobTicketServiceHolder.SERVICE };
+                    JobTicketServiceHolder.SERVICE,
+                    SOfficeServiceHolder.SERVICE };
 
     @Override
     public AccessControlService getAccessControlService() {
@@ -280,6 +288,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public SmartschoolProxyService getSmartSchoolProxyService() {
         return SmartSchoolProxyServiceHolder.SERVICE;
+    }
+
+    @Override
+    public SOfficeService getSOfficeService() {
+        return SOfficeServiceHolder.SERVICE;
     }
 
     @Override

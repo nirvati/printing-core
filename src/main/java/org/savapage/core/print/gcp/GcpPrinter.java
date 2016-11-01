@@ -56,8 +56,9 @@ import org.slf4j.LoggerFactory;
  * cached properties retrieved via Google Cloud Print API, and constants.
  * </p>
  * <p>
- * See: <a href= "https://developers.google.com/cloud-print/docs/devguide"
- * >Developer Guide for Printers and Connectors</a>.
+ * See:
+ * <a href= "https://developers.google.com/cloud-print/docs/devguide" >Developer
+ * Guide for Printers and Connectors</a>.
  * </p>
  *
  * @author Datraverse B.V.
@@ -65,8 +66,8 @@ import org.slf4j.LoggerFactory;
  */
 public final class GcpPrinter {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(GcpPrinter.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(GcpPrinter.class);
 
     /**
      * Status of the Google Cloud Printer.
@@ -99,7 +100,8 @@ public final class GcpPrinter {
      */
     public static final String GOOGLE_CLOUD_PRINT_IP = "127.0.0.1";
 
-    private static final String SETUP_URL = "http://savapage.org";
+    private static final String SETUP_URL =
+            CommunityDictEnum.SAVAPAGE_WWW_DOT_ORG_URL.getWord();
 
     private static final String SUPPORT_URL = SETUP_URL;
     private static final String UPDATE_URL = SETUP_URL;
@@ -251,8 +253,8 @@ public final class GcpPrinter {
                 msgKey = "gcp-online";
                 break;
             default:
-                throw new SpException("Unhandled GcpPrinter.Status [" + state
-                        + "]");
+                throw new SpException(
+                        "Unhandled GcpPrinter.Status [" + state + "]");
             }
         } else {
             msgKey = "gcp-disabled";
@@ -297,7 +299,8 @@ public final class GcpPrinter {
         boolean isConfigured = true;
 
         for (String key : new String[] { KEY_OAUTH_CLIENT_ID,
-                KEY_OAUTH_CLIENT_SECRET, KEY_GCP_PROXY, KEY_GCP_PRINTER_UUID }) {
+                KEY_OAUTH_CLIENT_SECRET, KEY_GCP_PROXY,
+                KEY_GCP_PRINTER_UUID }) {
             isConfigured =
                     isConfigured && StringUtils.isNotBlank(getProperty(key));
         }
@@ -420,9 +423,8 @@ public final class GcpPrinter {
          * Transient cache.
          */
         theAccessToken = token;
-        theAccessTokenExpiry =
-                DateUtils.addSeconds(new Date(), expiresIn
-                        - ACCESS_TOKEN_EXPIRY_MARGIN_SECS);
+        theAccessTokenExpiry = DateUtils.addSeconds(new Date(),
+                expiresIn - ACCESS_TOKEN_EXPIRY_MARGIN_SECS);
     }
 
     /**
@@ -555,9 +557,8 @@ public final class GcpPrinter {
      */
     private static String getPropertyFileComments() {
 
-        final String line =
-                "---------------------------"
-                        + "-------------------------------";
+        final String line = "---------------------------"
+                + "-------------------------------";
 
         return line + "\n " + CommunityDictEnum.SAVAPAGE.getWord()
                 + " Google Cloud Ready Printer"
@@ -681,8 +682,8 @@ public final class GcpPrinter {
      * client ID per printer manufacturer</i>.
      * </p>
      * <p>
-     * The client ID can be obtained as explained <a
-     * href="https://code.google.com/apis/console">here</a>.
+     * The client ID can be obtained as explained
+     * <a href="https://code.google.com/apis/console">here</a>.
      * </p>
      * <p>
      * Also see <a href="https://cloud.google.com/console#/project">Google Cloud

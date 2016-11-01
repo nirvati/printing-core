@@ -1151,6 +1151,55 @@ public interface IConfigProp {
         SMARTSCHOOL_SOAP_PRINT_POLL_SESSION_DURATION_SECS("smartschool.soap.print.poll.session.duration-secs", NUMBER_VALIDATOR, "3600"),
 
         /**
+         * .
+         */
+        SOFFICE_ENABLE("soffice.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * The LibreOffice home location. When empty, a probe to likely
+         * candidates is performed to retrieve the location.
+         */
+        SOFFICE_HOME("soffice.home"),
+
+        /**
+         * A temporary profile directory is created for each UNO connection
+         * process with its own defaults settings. With this config item you can
+         * provide a profile directory containing customized settings instead.
+         * This template directory will be copied to the temporary profile.
+         */
+        SOFFICE_PROFILE_TEMPLATE_DIR("soffice.profile.template-dir"),
+
+        /**
+         * A comma/space separated list of TCP/IP ports to localhost LibreOffice
+         * (UNO) connection instances to be launched by SavaPage.
+         */
+        SOFFICE_CONNECTION_PORTS("soffice.connection.ports", "2002,2003"),
+
+        /**
+         * The number of executed tasks after which the UNO connection is
+         * restarted. When {@code 0} (zero) the process is <i>never</i>
+         * restarted.
+         */
+        SOFFICE_CONNECTION_RESTART_TASK_COUNT("soffice.connection.restart-task-count", NUMBER_VALIDATOR, "200"),
+
+        /**
+         * Wait time (milliseconds) for a UNO connection to become available for
+         * task execution.
+         */
+        SOFFICE_TASK_QUEUE_TIMEOUT_MSEC("soffice.task.queue-timeout-msec", NUMBER_VALIDATOR, "10000"),
+
+        /**
+         * Wait time (milliseconds) for a conversion task to complete.
+         */
+        SOFFICE_TASK_EXEC_TIMEOUT_MSEC("soffice.task.exec-timeout-msec", NUMBER_VALIDATOR, "10000"),
+
+        /**
+         * Wait time (milliseconds) before doing a retry of a host process
+         * command.
+         */
+        SOFFICE_PROCESS_RETRY_TIMEOUT_MSEC("soffice.process.retry-timeout-msec", NUMBER_VALIDATOR, "30000"),
+
+        /**
          *
          */
         REPORTS_PDF_INTERNAL_FONT_FAMILY("reports.pdf.font-family", INTERNAL_FONT_FAMILY_VALIDATOR, DEFAULT_INTERNAL_FONT_FAMILY.toString()),

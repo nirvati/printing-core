@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -32,6 +32,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.doc.soffice.SOfficeHelper;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 
 /**
@@ -40,9 +41,8 @@ import org.savapage.core.fonts.InternalFontFamilyEnum;
  * References:
  * <ul>
  * <li><a href="http://filext.com/">FILExt.com</a></li>
- * <li><a href=
- * "http://reference.sitepoint.com/html/mime-types-full">reference.sitepoint
- * .com</a></li>
+ * <li><a href= "http://reference.sitepoint.com/html/mime-types-full">reference.
+ * sitepoint .com</a></li>
  * </ul>
  * </p>
  *
@@ -157,20 +157,21 @@ public final class DocContent {
         init(DocContentTypeEnum.HTML, "text/html", "html");
 
         init(DocContentTypeEnum.JPEG,
-                new String[] { "image/jpg", "image/jpeg" }, new String[] {
-                        "jpg", "jpeg", "jpe" });
+                new String[] { "image/jpg", "image/jpeg" },
+                new String[] { "jpg", "jpeg", "jpe" });
 
-        init(DocContentTypeEnum.PDF, new String[] { MIMETYPE_PDF,
-                "application/x-pdf", "application/acrobat",
-                "applications/vnd.pdf", "text/pdf", "text/x-pdf" },
+        init(DocContentTypeEnum.PDF,
+                new String[] { MIMETYPE_PDF, "application/x-pdf",
+                        "application/acrobat", "applications/vnd.pdf",
+                        "text/pdf", "text/x-pdf" },
                 new String[] { FILENAME_EXT_PDF });
 
         init(DocContentTypeEnum.PNG, "image/png", FILENAME_EXT_PNG);
 
-        init(DocContentTypeEnum.PS, new String[] { MIMETYPE_POSTSCRIPT,
-                "application/ps", "application/x-postscript",
-                "application/x-ps", "text/postscript",
-                "application/x-postscript-not-eps" },
+        init(DocContentTypeEnum.PS,
+                new String[] { MIMETYPE_POSTSCRIPT, "application/ps",
+                        "application/x-postscript", "application/x-ps",
+                        "text/postscript", "application/x-postscript-not-eps" },
                 new String[] { FILENAME_EXT_PS });
 
         init(DocContentTypeEnum.SVG, "image/svg+xml", "svg");
@@ -186,30 +187,35 @@ public final class DocContent {
 
         init(DocContentTypeEnum.VCARD, "text/x-vcard", "vcf");
 
-        init(DocContentTypeEnum.WMF, new String[] { "image/wmf",
-                "application/x-msmetafile", "application/wmf",
-                "application/x-wmf", "image/x-wmf", "image/x-win-metafile",
-                "zz-application/zz-winassoc-wmf" }, new String[] { "wmf" });
+        init(DocContentTypeEnum.WMF,
+                new String[] { "image/wmf", "application/x-msmetafile",
+                        "application/wmf", "application/x-wmf", "image/x-wmf",
+                        "image/x-win-metafile",
+                        "zz-application/zz-winassoc-wmf" },
+                new String[] { "wmf" });
 
-        init(DocContentTypeEnum.XPS, new String[] { "application/oxps",
-                "application/vnd.ms-xpsdocument" }, new String[] { "xps" });
+        init(DocContentTypeEnum.XPS,
+                new String[] { "application/oxps",
+                        "application/vnd.ms-xpsdocument" },
+                new String[] { "xps" });
 
         /*
          * ODF
          */
-        init(DocContentTypeEnum.ODT, new String[] {
-                "application/vnd.oasis.opendocument.text",
-                "application/x-vnd.oasis.opendocument.text" },
+        init(DocContentTypeEnum.ODT,
+                new String[] { "application/vnd.oasis.opendocument.text",
+                        "application/x-vnd.oasis.opendocument.text" },
                 new String[] { "odt" });
 
-        init(DocContentTypeEnum.ODS, new String[] {
-                "application/vnd.oasis.opendocument.spreadsheet",
-                "application/x-vnd.oasis.opendocument.spreadsheet" },
+        init(DocContentTypeEnum.ODS,
+                new String[] { "application/vnd.oasis.opendocument.spreadsheet",
+                        "application/x-vnd.oasis.opendocument.spreadsheet" },
                 new String[] { "ods" });
 
-        init(DocContentTypeEnum.ODP, new String[] {
-                "application/vnd.oasis.opendocument.presentation",
-                "application/x-vnd.oasis.opendocument.presentation" },
+        init(DocContentTypeEnum.ODP,
+                new String[] {
+                        "application/vnd.oasis.opendocument.presentation",
+                        "application/x-vnd.oasis.opendocument.presentation" },
                 new String[] { "odp" });
 
         /*
@@ -222,38 +228,47 @@ public final class DocContent {
         /*
          * Microsoft Office 97
          */
-        init(DocContentTypeEnum.DOC, new String[] { "application/msword",
-                "application/doc", "appl/text", "application/vnd.msword",
-                "application/vnd.ms-word", "application/winword",
-                "application/word", "application/x-msw6",
-                "application/x-msword" }, new String[] { "doc" });
+        init(DocContentTypeEnum.DOC,
+                new String[] { "application/msword", "application/doc",
+                        "appl/text", "application/vnd.msword",
+                        "application/vnd.ms-word", "application/winword",
+                        "application/word", "application/x-msw6",
+                        "application/x-msword" },
+                new String[] { "doc" });
 
-        init(DocContentTypeEnum.XLS, new String[] { "application/vnd.ms-excel",
-                "application/msexcel", "application/x-msexcel",
-                "application/x-ms-excel", "application/vnd.ms-excel",
-                "application/x-excel", "application/x-dos_ms_excel",
-                "application/xls" }, new String[] { "xls" });
+        init(DocContentTypeEnum.XLS,
+                new String[] { "application/vnd.ms-excel",
+                        "application/msexcel", "application/x-msexcel",
+                        "application/x-ms-excel", "application/vnd.ms-excel",
+                        "application/x-excel", "application/x-dos_ms_excel",
+                        "application/xls" },
+                new String[] { "xls" });
 
-        init(DocContentTypeEnum.PPT, new String[] {
-                "application/vnd.ms-powerpoint", "application/mspowerpoint",
-                "application/ms-powerpoint", "application/mspowerpnt",
-                "application/vnd-mspowerpoint", "application/powerpoint",
-                "application/x-powerpoint" }, new String[] { "ppt" });
+        init(DocContentTypeEnum.PPT,
+                new String[] { "application/vnd.ms-powerpoint",
+                        "application/mspowerpoint", "application/ms-powerpoint",
+                        "application/mspowerpnt",
+                        "application/vnd-mspowerpoint",
+                        "application/powerpoint", "application/x-powerpoint" },
+                new String[] { "ppt" });
 
         /*
          * Microsoft 2007.
          */
         init(DocContentTypeEnum.DOCX,
                 "application/vnd.openxmlformats-officedocument."
-                        + "wordprocessingml.document", "docx");
+                        + "wordprocessingml.document",
+                "docx");
 
         init(DocContentTypeEnum.XLSX,
                 "application/vnd.openxmlformats-officedocument."
-                        + "spreadsheetml.sheet", "xlsx");
+                        + "spreadsheetml.sheet",
+                "xlsx");
 
         init(DocContentTypeEnum.PPTX,
                 "application/vnd.openxmlformats-officedocument."
-                        + "presentationml.presentation", "pptx");
+                        + "presentationml.presentation",
+                "pptx");
     }
 
     /**
@@ -306,7 +321,8 @@ public final class DocContent {
 
         final StringBuilder html = new StringBuilder();
 
-        for (final DocContentTypeEnum contentType : DocContentTypeEnum.values()) {
+        for (final DocContentTypeEnum contentType : DocContentTypeEnum
+                .values()) {
             if (isSupported(contentType)) {
                 if (html.length() > 0) {
                     html.append(",");
@@ -432,13 +448,13 @@ public final class DocContent {
         case SXW:
         case SXC:
         case SXI:
-            return ConfigManager.instance().isConfigValue(
-                    Key.DOC_CONVERT_LIBRE_OFFICE_ENABLED)
-                    && OfficeToPdf.lazyIsInstalled();
+            return ConfigManager.instance()
+                    .isConfigValue(Key.DOC_CONVERT_LIBRE_OFFICE_ENABLED)
+                    && SOfficeHelper.lazyIsInstalled();
 
         case XPS:
-            return ConfigManager.instance().isConfigValue(
-                    Key.DOC_CONVERT_XPS_TO_PDF_ENABLED)
+            return ConfigManager.instance()
+                    .isConfigValue(Key.DOC_CONVERT_XPS_TO_PDF_ENABLED)
                     && XpsToPdf.lazyIsInstalled();
 
         case CUPS_PDF_BANNER:
@@ -490,9 +506,8 @@ public final class DocContent {
             InternalFontFamilyEnum font = preferredOutputFont;
 
             if (font == null) {
-                font =
-                        ConfigManager
-                                .getConfigFontFamily(Key.REPORTS_PDF_INTERNAL_FONT_FAMILY);
+                font = ConfigManager.getConfigFontFamily(
+                        Key.REPORTS_PDF_INTERNAL_FONT_FAMILY);
             }
             converter = new TextToPdf(font);
 
@@ -509,8 +524,8 @@ public final class DocContent {
      *            The content type.
      * @return {@code null} when NO file converter is available.
      */
-    public static IFileConverter createPdfFileConverter(
-            DocContentTypeEnum contentType) {
+    public static IFileConverter
+            createPdfFileConverter(DocContentTypeEnum contentType) {
 
         switch (contentType) {
         case PS:
@@ -536,6 +551,9 @@ public final class DocContent {
         case ODP:
         case SXI:
             // Presentation
+            if (SOfficeToPdf.isAvailable()) {
+                return new SOfficeToPdf();
+            }
             return new OfficeToPdf();
 
         default:
@@ -562,8 +580,8 @@ public final class DocContent {
      * @return {@code null} when not found.
      */
     public static DocContentTypeEnum getContentTypeFromFile(final String file) {
-        return getInstance().extFormat.get(FilenameUtils.getExtension(file)
-                .toLowerCase());
+        return getInstance().extFormat
+                .get(FilenameUtils.getExtension(file).toLowerCase());
     }
 
     /**
@@ -613,7 +631,7 @@ public final class DocContent {
      * @return
      */
     public static boolean isImage(final DocContentTypeEnum contentType) {
-        return StringUtils.defaultString(getMimeType(contentType)).startsWith(
-                "image");
+        return StringUtils.defaultString(getMimeType(contentType))
+                .startsWith("image");
     }
 }

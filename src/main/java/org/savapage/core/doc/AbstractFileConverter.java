@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractFileConverter implements IFileConverter {
@@ -42,13 +42,13 @@ public abstract class AbstractFileConverter implements IFileConverter {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(AbstractFileConverter.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(AbstractFileConverter.class);
 
     /**
      * .
      */
-    protected static enum ExecMode {
+    protected enum ExecMode {
         /**
          * ONE call to {@link ICommandExecutor#executeCommand()} can be
          * performed at a point in time.
@@ -85,7 +85,9 @@ public abstract class AbstractFileConverter implements IFileConverter {
      *            The input {@link File}.
      * @param filePdf
      *            The output PDF {@link File}.
-     * @return The shell command.
+     * @return The shell command, or {@code null} when no OS command is
+     *         applicable and
+     *         {@link #convertCustom(DocContentTypeEnum, File, File)} is used.
      */
     protected abstract String getOsCommand(DocContentTypeEnum contentType,
             File fileIn, File filePdf);
@@ -113,6 +115,7 @@ public abstract class AbstractFileConverter implements IFileConverter {
     }
 
     /**
+     * Gets the output file.
      *
      * @param fileIn
      *            The input {@link File}.
@@ -125,9 +128,103 @@ public abstract class AbstractFileConverter implements IFileConverter {
             final File fileIn) throws DocContentToPdfException {
 
         final File filePdf = getOutputFile(fileIn);
+        final String command = getOsCommand(contentType, fileIn, filePdf);
+
+        if (command == null) {
+            return convertWithService(contentType, fileIn, filePdf);
+        }
+
+        return convertWithOsCommand(contentType, fileIn, filePdf, command);
+    }
+
+    /**
+     * Performs a custom conversion.
+     *
+     * @param contentType
+     *            The type of input file.
+     * @param fileIn
+     *            The file to convert.
+     * @param fileOut
+     *            The output file.
+     */
+    protected void convertCustom(final DocContentTypeEnum contentType,
+            final File fileIn, final File fileOut)
+            throws DocContentToPdfException {
+        throw new SpException("Method not implemented");
+    }
+
+    /**
+     * Performs a conversion using a service.
+     *
+     * @param contentType
+     *            The type of input file.
+     * @param fileIn
+     *            The file to convert.
+     * @param filePdf
+     *            The output file.
+     * @return The output file.
+     * @throws DocContentToPdfException
+     *             if error.
+     */
+    private File convertWithService(final DocContentTypeEnum contentType,
+            final File fileIn, final File filePdf)
+            throws DocContentToPdfException {
 
         final String pdfName = filePdf.getAbsolutePath();
-        final String command = getOsCommand(contentType, fileIn, filePdf);
+
+        boolean pdfCreated = false;
+
+        try {
+            if (this.execMode == ExecMode.SINGLE_THREADED) {
+                synchronized (this) {
+                    convertCustom(contentType, fileIn, filePdf);
+                }
+            } else {
+                convertCustom(contentType, fileIn, filePdf);
+            }
+
+            pdfCreated = true;
+
+            if (filePdf.exists()) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("[" + pdfName + "] created.");
+                }
+            } else {
+                LOGGER.error("[" + pdfName + "] NOT created.");
+                throw new DocContentToPdfException("PDF is not created");
+            }
+
+        } finally {
+            if (!pdfCreated) {
+                File file2Delete = new File(pdfName);
+                if (file2Delete.exists()) {
+                    file2Delete.delete();
+                }
+            }
+        }
+        return filePdf;
+    }
+
+    /**
+     * Performs a conversion using an OS Command.
+     *
+     * @param contentType
+     *            The type of input file.
+     * @param fileIn
+     *            The file to convert.
+     * @param filePdf
+     *            The output file.
+     * @param command
+     *            The OS Command
+     * @return The output file.
+     * @throws DocContentToPdfException
+     *             if error.
+     */
+    public final File convertWithOsCommand(final DocContentTypeEnum contentType,
+            final File fileIn, final File filePdf, final String command)
+            throws DocContentToPdfException {
+
+        final String pdfName = filePdf.getAbsolutePath();
 
         LOGGER.debug(command);
 
@@ -178,8 +275,8 @@ public abstract class AbstractFileConverter implements IFileConverter {
 
                 LOGGER.error("Command [" + command + "] failed." + reason);
 
-                throw new DocContentToPdfException("PDF could not be created"
-                        + reason);
+                throw new DocContentToPdfException(
+                        "PDF could not be created" + reason);
             }
 
         } catch (IOException | InterruptedException e) {

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -24,33 +24,18 @@ package org.savapage.core.doc;
 import java.io.File;
 
 import org.savapage.core.SpException;
-import org.savapage.core.system.CommandExecutor;
-import org.savapage.core.system.ICommandExecutor;
 
 /**
+ * A {@link ExecMode#SINGLE_THREADED} implementation of Libre Office PDF
+ * conversion.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class OfficeToPdf extends AbstractFileConverter {
 
     /**
-     *
-     */
-    private static volatile Boolean cachedInstallIndication = null;
-
-    /**
-     *
-     * @return The name of the office suite.
-     */
-    public static String name() {
-        return "LibreOffice";
-    }
-
-    /**
-     * For now, we use in {@link ExecMode#SINGLE_THREADED}, since an OpenOffice
-     * headless instance is single-threaded. In the future we might scale up to
-     * a pool LibreOffice instances.
+     * Constructor.
      */
     public OfficeToPdf() {
         super(ExecMode.SINGLE_THREADED);
@@ -103,49 +88,6 @@ public class OfficeToPdf extends AbstractFileConverter {
                     + "found for content type [" + contentType + "]");
         }
 
-    }
-
-    /**
-     * Finds out if LibreOffice is installed using the indication from cache,
-     * i.e. the result of the last {@link #getLibreOfficeVersion()} call. If the
-     * cache is null {@link #getLibreOfficeVersion()} is called ad-hoc to find
-     * out.
-     *
-     * @return {@code true} if installed.
-     */
-    public static boolean lazyIsInstalled() {
-        if (cachedInstallIndication == null) {
-            getLibreOfficeVersion();
-        }
-        return cachedInstallIndication;
-    }
-
-    /**
-     * Retrieves the LibreOffice version from the system.
-     *
-     * @return The version string(s) or {@code null} when LibreOffice is not
-     *         installed.
-     */
-    public static String getLibreOfficeVersion() {
-
-        final String cmd = "libreoffice --version";
-
-        final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
-
-        try {
-
-            final int rc = exec.executeCommand();
-
-            cachedInstallIndication = (rc == 0);
-
-            if (!cachedInstallIndication) {
-                return null;
-            }
-            return exec.getStandardOutputFromCommand().toString();
-
-        } catch (Exception e) {
-            throw new SpException(e);
-        }
     }
 
 }
