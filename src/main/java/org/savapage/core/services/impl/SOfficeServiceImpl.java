@@ -80,14 +80,46 @@ public final class SOfficeServiceImpl extends AbstractService
      */
     private volatile boolean restarting = false;
 
-    /**
-     * Constructor.
-     *
-     * @param config
-     *            The configuration.
-     */
-    public SOfficeServiceImpl(final SOfficeConfig config) {
+
+    @Override
+    public void start(final SOfficeConfig config) {
         this.init(config);
+
+        if (this.running || !this.enabled) {
+            return;
+        }
+
+        for (final SOfficeWorker worker : this.pooledWorkers) {
+            worker.start();
+            releaseWorker(worker);
+        }
+
+        this.running = true;
+
+        final int nWorkers = this.pooledWorkers.length;
+
+        final String plural;
+        if (nWorkers == 1) {
+            plural = "";
+        } else {
+            plural = "s";
+        }
+
+        SpInfo.instance()
+                .log(String.format(
+                        "SOffice converter started with %d worker%s.", nWorkers,
+                        plural));
+
+        final String msg = Messages.getMessage(this.getClass(),
+                ConfigManager.getDefaultLocale(), "msg-soffice-started",
+                String.valueOf(nWorkers));
+
+        if (this.restarting) {
+            AppLogHelper.log(AppLogLevelEnum.INFO, msg);
+        }
+
+        AdminPublisher.instance().publish(PubTopicEnum.SOFFICE,
+                PubLevelEnum.CLEAR, msg);
     }
 
     /**
@@ -128,49 +160,12 @@ public final class SOfficeServiceImpl extends AbstractService
             throws SOfficeException {
         this.restarting = true;
         shutdown();
-        init(config);
-        start();
+        start(config);
         this.restarting = false;
     }
 
     @Override
-    public synchronized void start() throws SOfficeException {
-
-        if (this.running || !this.enabled) {
-            return;
-        }
-
-        for (final SOfficeWorker worker : this.pooledWorkers) {
-            worker.start();
-            releaseWorker(worker);
-        }
-
-        this.running = true;
-
-        final int nWorkers = this.pooledWorkers.length;
-
-        final String plural;
-        if (nWorkers == 1) {
-            plural = "";
-        } else {
-            plural = "s";
-        }
-
-        SpInfo.instance()
-                .log(String.format(
-                        "SOffice converter started with %d worker%s.", nWorkers,
-                        plural));
-
-        final String msg = Messages.getMessage(this.getClass(),
-                ConfigManager.getDefaultLocale(), "msg-soffice-started",
-                String.valueOf(nWorkers));
-
-        if (this.restarting) {
-            AppLogHelper.log(AppLogLevelEnum.INFO, msg);
-        }
-
-        AdminPublisher.instance().publish(PubTopicEnum.SOFFICE,
-                PubLevelEnum.CLEAR, msg);
+    public void start() throws SOfficeException {
     }
 
     @Override

@@ -39,6 +39,13 @@ public interface SOfficeService extends StatefulService {
     void shutdown();
 
     /**
+     *
+     * @param config
+     *            The configuration.
+     */
+    void start(SOfficeConfig config);
+
+    /**
      * Restarts the service.
      *
      * @param config

@@ -43,7 +43,6 @@ import org.savapage.core.services.ServiceFactory;
 import org.savapage.core.services.StatefulService;
 import org.savapage.core.services.UserGroupService;
 import org.savapage.core.services.UserService;
-import org.savapage.core.services.helpers.SOfficeConfigProps;
 import org.savapage.ext.papercut.services.PaperCutService;
 import org.savapage.ext.papercut.services.impl.PaperCutServiceImpl;
 import org.savapage.ext.smartschool.services.SmartschoolProxyService;
@@ -123,8 +122,7 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     }
 
     private static class SOfficeServiceHolder {
-        public static final SOfficeService SERVICE =
-                new SOfficeServiceImpl(new SOfficeConfigProps());
+        public static final SOfficeService SERVICE = new SOfficeServiceImpl();
     }
 
     private static class UserServiceHolder {

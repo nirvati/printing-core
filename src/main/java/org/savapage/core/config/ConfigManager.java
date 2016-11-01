@@ -107,6 +107,7 @@ import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.ServiceFactory;
+import org.savapage.core.services.helpers.SOfficeConfigProps;
 import org.savapage.core.users.ActiveDirectoryUserSource;
 import org.savapage.core.users.IExternalUserAuthenticator;
 import org.savapage.core.users.IUserSource;
@@ -1340,6 +1341,10 @@ public final class ConfigManager {
 
         //
         ServiceContext.getServiceFactory().start();
+
+        ServiceContext.getServiceFactory().getSOfficeService()
+                .start(new SOfficeConfigProps());
+
         ProxyPrintJobStatusMonitor.init();
     }
 
