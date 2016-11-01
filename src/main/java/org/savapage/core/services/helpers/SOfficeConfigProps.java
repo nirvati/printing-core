@@ -48,6 +48,8 @@ public final class SOfficeConfigProps extends SOfficeConfig {
                 && cm.isConfigValue(Key.DOC_CONVERT_LIBRE_OFFICE_ENABLED)
                 && SOfficeHelper.lazyIsInstalled());
 
+        this.setWorkDir(new File(ConfigManager.getAppTmpDir()));
+
         /*
          * Ports
          */

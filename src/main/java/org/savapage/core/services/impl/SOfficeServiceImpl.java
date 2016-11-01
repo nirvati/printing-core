@@ -26,6 +26,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.savapage.core.SpInfo;
+import org.savapage.core.cometd.AdminPublisher;
+import org.savapage.core.cometd.PubLevelEnum;
+import org.savapage.core.cometd.PubTopicEnum;
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.dao.enums.AppLogLevelEnum;
 import org.savapage.core.doc.soffice.SOfficeConfig;
 import org.savapage.core.doc.soffice.SOfficeException;
 import org.savapage.core.doc.soffice.SOfficeTask;
@@ -33,13 +38,16 @@ import org.savapage.core.doc.soffice.SOfficeUnoUrl;
 import org.savapage.core.doc.soffice.SOfficeWorker;
 import org.savapage.core.doc.soffice.SOfficeWorkerSettings;
 import org.savapage.core.services.SOfficeService;
+import org.savapage.core.util.AppLogHelper;
+import org.savapage.core.util.Messages;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class SOfficeServiceImpl implements SOfficeService {
+public final class SOfficeServiceImpl extends AbstractService
+        implements SOfficeService {
 
     /**
      * The {@link BlockingQueue} with workers.
@@ -66,6 +74,11 @@ public final class SOfficeServiceImpl implements SOfficeService {
      * {@code true} when service is enabled.
      */
     private volatile boolean enabled = false;
+
+    /**
+     * {@code true} when service is restarting.
+     */
+    private volatile boolean restarting = false;
 
     /**
      * Constructor.
@@ -113,9 +126,11 @@ public final class SOfficeServiceImpl implements SOfficeService {
     @Override
     public synchronized void restart(final SOfficeConfig config)
             throws SOfficeException {
+        this.restarting = true;
         shutdown();
         init(config);
         start();
+        this.restarting = false;
     }
 
     @Override
@@ -141,8 +156,21 @@ public final class SOfficeServiceImpl implements SOfficeService {
             plural = "s";
         }
 
-        SpInfo.instance().log(String.format(
-                "SOffice Service started (%d worker%s).", nWorkers, plural));
+        SpInfo.instance()
+                .log(String.format(
+                        "SOffice converter started with %d worker%s.", nWorkers,
+                        plural));
+
+        final String msg = Messages.getMessage(this.getClass(),
+                ConfigManager.getDefaultLocale(), "msg-soffice-started",
+                String.valueOf(nWorkers));
+
+        if (this.restarting) {
+            AppLogHelper.log(AppLogLevelEnum.INFO, msg);
+        }
+
+        AdminPublisher.instance().publish(PubTopicEnum.SOFFICE,
+                PubLevelEnum.CLEAR, msg);
     }
 
     @Override
@@ -152,7 +180,18 @@ public final class SOfficeServiceImpl implements SOfficeService {
             return;
         }
 
-        SpInfo.instance().log("Shutting down SOffice Service...");
+        final String msg = Messages.getMessage(this.getClass(),
+                ConfigManager.getDefaultLocale(), "msg-soffice-stopped");
+
+        if (this.restarting) {
+            AppLogHelper.log(AppLogLevelEnum.INFO, msg);
+        }
+
+        AdminPublisher.instance().publish(PubTopicEnum.SOFFICE,
+                PubLevelEnum.WARN, msg);
+
+        //
+        SpInfo.instance().log("Shutting down SOffice converter...");
 
         this.running = false;
 
@@ -162,7 +201,7 @@ public final class SOfficeServiceImpl implements SOfficeService {
             worker.shutdown();
         }
 
-        SpInfo.instance().log("... SOffice Service shutdown completed.");
+        SpInfo.instance().log("... SOffice converter shutdown completed.");
     }
 
     @Override

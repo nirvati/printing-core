@@ -121,6 +121,11 @@ public enum PubTopicEnum {
     SMTP("smtp"),
 
     /**
+     * SOffice.
+     */
+    SOFFICE("soffice"),
+
+    /**
      * User activity.
      */
     USER("user"),
