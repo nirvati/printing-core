@@ -27,6 +27,7 @@ import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.UnavailableException;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
@@ -57,19 +58,19 @@ import org.slf4j.LoggerFactory;
  * @author Datraverse B.V.
  *
  */
-public final class QueueServiceImpl extends AbstractService implements
-        QueueService {
+public final class QueueServiceImpl extends AbstractService
+        implements QueueService {
 
     /**
      * .
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(QueueServiceImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(QueueServiceImpl.class);
 
     @Override
     public boolean isRawPrintQueue(final IppQueue queue) {
-        return queue.getUrlPath().equals(
-                ReservedIppQueueEnum.RAW_PRINT.getUrlPath());
+        return queue.getUrlPath()
+                .equals(ReservedIppQueueEnum.RAW_PRINT.getUrlPath());
     }
 
     @Override
@@ -79,20 +80,20 @@ public final class QueueServiceImpl extends AbstractService implements
 
     @Override
     public boolean isMailPrintQueue(final IppQueue queue) {
-        return queue.getUrlPath().equals(
-                ReservedIppQueueEnum.MAILPRINT.getUrlPath());
+        return queue.getUrlPath()
+                .equals(ReservedIppQueueEnum.MAILPRINT.getUrlPath());
     }
 
     @Override
     public boolean isSmartSchoolQueue(final IppQueue queue) {
-        return queue.getUrlPath().equals(
-                ReservedIppQueueEnum.SMARTSCHOOL.getUrlPath());
+        return queue.getUrlPath()
+                .equals(ReservedIppQueueEnum.SMARTSCHOOL.getUrlPath());
     }
 
     @Override
     public boolean isWebPrintQueue(final IppQueue queue) {
-        return queue.getUrlPath().equals(
-                ReservedIppQueueEnum.WEBPRINT.getUrlPath());
+        return queue.getUrlPath()
+                .equals(ReservedIppQueueEnum.WEBPRINT.getUrlPath());
     }
 
     @Override
@@ -224,8 +225,8 @@ public final class QueueServiceImpl extends AbstractService implements
     }
 
     @Override
-    public IppQueue getOrCreateReservedQueue(
-            final ReservedIppQueueEnum reservedQueue) {
+    public IppQueue
+            getOrCreateReservedQueue(final ReservedIppQueueEnum reservedQueue) {
 
         IppQueue queue = ippQueueDAO().find(reservedQueue);
 
@@ -315,7 +316,8 @@ public final class QueueServiceImpl extends AbstractService implements
     public DocContentPrintRsp printDocContent(
             final ReservedIppQueueEnum reservedQueue, final User user,
             final boolean isUserTrusted, final DocContentPrintReq printReq,
-            final InputStream istrContent) throws DocContentPrintException {
+            final InputStream istrContent)
+            throws DocContentPrintException, UnavailableException {
 
         final DocLogProtocolEnum protocol = printReq.getProtocol();
         final String originatorEmail = printReq.getOriginatorEmail();
@@ -361,9 +363,8 @@ public final class QueueServiceImpl extends AbstractService implements
                 authWebAppUser = null;
             }
 
-            processor =
-                    new DocContentPrintProcessor(queue, originatorIp, title,
-                            authWebAppUser);
+            processor = new DocContentPrintProcessor(queue, originatorIp, title,
+                    authWebAppUser);
 
             /*
              * If we tracked the user down by his email address, we know he
@@ -376,7 +377,8 @@ public final class QueueServiceImpl extends AbstractService implements
 
             if (isAuthorized) {
 
-                if (contentType != null && DocContent.isSupported(contentType)) {
+                if (contentType != null
+                        && DocContent.isSupported(contentType)) {
 
                     /*
                      * Process content stream, write DocLog and move PDF to
@@ -392,15 +394,15 @@ public final class QueueServiceImpl extends AbstractService implements
                     printRsp.setDocumentUuid(processor.getUuidJob());
 
                 } else {
-                    throw new UnsupportedPrintJobContent("File type ["
-                            + fileName + "] NOT supported.");
+                    throw new UnsupportedPrintJobContent(
+                            "File type [" + fileName + "] NOT supported.");
                 }
 
             } else {
                 printRsp.setResult(PrintInResultEnum.USER_NOT_AUTHORIZED);
-                LOGGER.warn(String.format(
-                        "User [%s] not authorized for Queue [%s]",
-                        requestingUserId, reservedQueue.getUrlPath()));
+                LOGGER.warn(
+                        String.format("User [%s] not authorized for Queue [%s]",
+                                requestingUserId, reservedQueue.getUrlPath()));
             }
 
         } catch (Exception e) {
@@ -420,12 +422,18 @@ public final class QueueServiceImpl extends AbstractService implements
         final DocContentPrintException printException;
 
         if (processor.hasDeferredException()) {
+
             final Exception e = processor.getDeferredException();
+
+            if (e instanceof UnavailableException) {
+                throw (UnavailableException) e;
+            }
             printException = new DocContentPrintException(e.getMessage(), e);
+
         } else {
             if (processor.isDrmViolationDetected()) {
-                printException =
-                        new DocContentPrintException("Input is DRM restricted.");
+                printException = new DocContentPrintException(
+                        "Input is DRM restricted.");
             } else {
                 printException = null;
             }

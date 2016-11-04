@@ -31,9 +31,11 @@ import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.enums.AppLogLevelEnum;
+import org.savapage.core.doc.soffice.SOfficeBusyException;
 import org.savapage.core.doc.soffice.SOfficeConfig;
 import org.savapage.core.doc.soffice.SOfficeException;
 import org.savapage.core.doc.soffice.SOfficeTask;
+import org.savapage.core.doc.soffice.SOfficeTaskTimeoutException;
 import org.savapage.core.doc.soffice.SOfficeUnoUrl;
 import org.savapage.core.doc.soffice.SOfficeWorker;
 import org.savapage.core.doc.soffice.SOfficeWorkerSettings;
@@ -79,7 +81,6 @@ public final class SOfficeServiceImpl extends AbstractService
      * {@code true} when service is restarting.
      */
     private volatile boolean restarting = false;
-
 
     @Override
     public void start(final SOfficeConfig config) {
@@ -201,7 +202,7 @@ public final class SOfficeServiceImpl extends AbstractService
 
     @Override
     public void execute(final SOfficeTask task)
-            throws IllegalStateException, SOfficeException {
+            throws SOfficeBusyException, SOfficeTaskTimeoutException {
 
         if (!this.enabled) {
             throw new IllegalStateException(
@@ -220,7 +221,7 @@ public final class SOfficeServiceImpl extends AbstractService
             worker = acquireWorker();
 
             if (worker == null) {
-                throw new SOfficeException("No worker available.");
+                throw new SOfficeBusyException("No worker available.");
             }
 
             worker.execute(task);

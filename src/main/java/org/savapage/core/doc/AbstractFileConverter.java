@@ -27,6 +27,7 @@ import java.io.IOException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.UnavailableException;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
 import org.slf4j.Logger;
@@ -125,7 +126,8 @@ public abstract class AbstractFileConverter implements IFileConverter {
 
     @Override
     public final File convert(final DocContentTypeEnum contentType,
-            final File fileIn) throws DocContentToPdfException {
+            final File fileIn)
+            throws DocContentToPdfException, UnavailableException {
 
         final File filePdf = getOutputFile(fileIn);
         final String command = getOsCommand(contentType, fileIn, filePdf);
@@ -149,7 +151,7 @@ public abstract class AbstractFileConverter implements IFileConverter {
      */
     protected void convertCustom(final DocContentTypeEnum contentType,
             final File fileIn, final File fileOut)
-            throws DocContentToPdfException {
+            throws DocContentToPdfException, UnavailableException {
         throw new SpException("Method not implemented");
     }
 
@@ -168,7 +170,7 @@ public abstract class AbstractFileConverter implements IFileConverter {
      */
     private File convertWithService(final DocContentTypeEnum contentType,
             final File fileIn, final File filePdf)
-            throws DocContentToPdfException {
+            throws DocContentToPdfException, UnavailableException {
 
         final String pdfName = filePdf.getAbsolutePath();
 

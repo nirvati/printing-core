@@ -19,14 +19,28 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.doc;
+package org.savapage.core;
 
 /**
+ * Defines an exception that a service throws to indicate that it is permanently
+ * or temporarily unavailable.
  *
  * @author Rijk Ravestein
  *
  */
-public class DocContentToPdfException extends Exception {
+public final class UnavailableException extends Exception {
+
+    /**
+     *
+     */
+    public static enum State {
+        TEMPORARY, PERMANENT
+    }
+
+    /**
+     *
+     */
+    private final State state;
 
     /**
      *
@@ -34,39 +48,55 @@ public class DocContentToPdfException extends Exception {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Constructs a new {@link DocContentToPdfException} with the specified
-     * cause.
+     * Constructs a new {@link UnavailableException} with the specified cause.
      *
+     * @param state
+     *            The state.
      * @param cause
      *            The cause.
      */
-    public DocContentToPdfException(final Throwable cause) {
+    public UnavailableException(final State state, final Throwable cause) {
         super(cause);
+        this.state = state;
     }
 
     /**
-     * Constructs a new {@link DocContentToPdfException} with the specified
-     * detail message.
+     * Constructs a new {@link UnavailableException} with the specified detail
+     * message.
      *
+     * @param state
+     *            The state.
      * @param message
      *            The detail message.
      */
-    public DocContentToPdfException(final String message) {
+    public UnavailableException(final State state, final String message) {
         super(message);
+        this.state = state;
     }
 
     /**
-     * Constructs a new {@link DocContentToPdfException} with the specified
-     * detail message and cause.
+     * Constructs a new {@link UnavailableException} with the specified detail
+     * message and cause.
      *
+     * @param state
+     *            The state.
      * @param message
      *            The detail message.
      * @param cause
      *            The cause.
      */
-    public DocContentToPdfException(final String message,
+    public UnavailableException(final State state, final String message,
             final Throwable cause) {
         super(message, cause);
+        this.state = state;
+    }
+
+    /**
+     *
+     * @return The reason.
+     */
+    public State getState() {
+        return state;
     }
 
 }

@@ -125,10 +125,11 @@ public final class SOfficeWorker {
      *
      * @param task
      *            The task.
-     * @throws SOfficeException
-     *             if error.
+     * @throws SOfficeTaskTimeoutException
+     *             When task did not complete within time.
      */
-    public void execute(final SOfficeTask task) throws SOfficeException {
+    public void execute(final SOfficeTask task)
+            throws SOfficeTaskTimeoutException {
 
         final Future<?> futureTask = this.taskExecutor.submit(new Runnable() {
 
@@ -181,7 +182,8 @@ public final class SOfficeWorker {
 
             this.processManager.restartDueToTaskTimeout();
 
-            throw new SOfficeException("Task did not complete within time.", e);
+            throw new SOfficeTaskTimeoutException(
+                    "Task did not complete within time.", e);
 
         } catch (ExecutionException e) {
 

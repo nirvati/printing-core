@@ -19,54 +19,36 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.doc;
+package org.savapage.core.doc.soffice;
 
 /**
+ * Thrown when {@link SOfficeTask} did not complete within time.
  *
  * @author Rijk Ravestein
  *
  */
-public class DocContentToPdfException extends Exception {
+public final class SOfficeTaskTimeoutException extends Exception {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
 
     /**
-     * Constructs a new {@link DocContentToPdfException} with the specified
-     * cause.
-     *
-     * @param cause
-     *            The cause.
-     */
-    public DocContentToPdfException(final Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * Constructs a new {@link DocContentToPdfException} with the specified
-     * detail message.
      *
      * @param message
-     *            The detail message.
+     *            The message.
      */
-    public DocContentToPdfException(final String message) {
+    public SOfficeTaskTimeoutException(final String message) {
         super(message);
     }
 
     /**
-     * Constructs a new {@link DocContentToPdfException} with the specified
-     * detail message and cause.
      *
      * @param message
-     *            The detail message.
+     *            The message.
      * @param cause
      *            The cause.
      */
-    public DocContentToPdfException(final String message,
+    public SOfficeTaskTimeoutException(final String message,
             final Throwable cause) {
         super(message, cause);
     }
-
 }

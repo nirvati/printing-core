@@ -19,14 +19,16 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.doc;
+package org.savapage.core.doc.soffice;
 
 /**
+ * Represents an condition where SOffice is too busy to execute a Task. See
+ * {@link SOfficeSettings#getTaskQueueTimeout()}.
  *
  * @author Rijk Ravestein
  *
  */
-public class DocContentToPdfException extends Exception {
+public final class SOfficeBusyException extends Exception {
 
     /**
      *
@@ -34,39 +36,23 @@ public class DocContentToPdfException extends Exception {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Constructs a new {@link DocContentToPdfException} with the specified
-     * cause.
-     *
-     * @param cause
-     *            The cause.
-     */
-    public DocContentToPdfException(final Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * Constructs a new {@link DocContentToPdfException} with the specified
-     * detail message.
+     * Constructor.
      *
      * @param message
      *            The detail message.
      */
-    public DocContentToPdfException(final String message) {
+    public SOfficeBusyException(final String message) {
         super(message);
     }
 
     /**
-     * Constructs a new {@link DocContentToPdfException} with the specified
-     * detail message and cause.
+     * Constructor.
      *
-     * @param message
-     *            The detail message.
      * @param cause
      *            The cause.
      */
-    public DocContentToPdfException(final String message,
-            final Throwable cause) {
-        super(message, cause);
+    public SOfficeBusyException(final Throwable cause) {
+        super(cause);
     }
 
 }

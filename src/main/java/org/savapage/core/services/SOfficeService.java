@@ -21,9 +21,11 @@
  */
 package org.savapage.core.services;
 
+import org.savapage.core.doc.soffice.SOfficeBusyException;
 import org.savapage.core.doc.soffice.SOfficeConfig;
 import org.savapage.core.doc.soffice.SOfficeException;
 import org.savapage.core.doc.soffice.SOfficeTask;
+import org.savapage.core.doc.soffice.SOfficeTaskTimeoutException;
 
 /**
  *
@@ -60,10 +62,13 @@ public interface SOfficeService extends StatefulService {
      *
      * @param task
      *            The task.
-     * @throws SOfficeException
-     *             if an error occurs.
+     * @throws SOfficeBusyException
+     *             if task is rejected because service is too busy.
+     * @throws SOfficeTaskTimeoutException
+     *             When task did not complete within time.
      */
-    void execute(SOfficeTask task) throws SOfficeException;
+    void execute(SOfficeTask task)
+            throws SOfficeBusyException, SOfficeTaskTimeoutException;
 
     /**
      *

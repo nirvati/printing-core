@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.savapage.core.UnavailableException;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.IppQueueAttrEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
@@ -109,7 +110,8 @@ public interface QueueService {
          *            The default value.
          * @return {@code true} when key value represents true.
          */
-        public boolean isTrue(final IppQueueAttrEnum key, final boolean dfault) {
+        public boolean isTrue(final IppQueueAttrEnum key,
+                final boolean dfault) {
 
             final boolean bValue;
 
@@ -251,9 +253,8 @@ public interface QueueService {
      * @param jobBytes
      *            The number of bytes.
      */
-    void
-            addJobTotals(IppQueue queue, Date jobDate, int jobPages,
-                    long jobBytes);
+    void addJobTotals(IppQueue queue, Date jobDate, int jobPages,
+            long jobBytes);
 
     /**
      * Logs a PrintIn job, by adding a data point to the time series (database
@@ -285,11 +286,13 @@ public interface QueueService {
      * @return The {@link DocContentPrintRsp}.
      * @throws DocContentPrintException
      *             When something goes wrong during printing.
+     * @throws When
+     *             PFD conversion is unavailable.
      */
     DocContentPrintRsp printDocContent(ReservedIppQueueEnum reservedQueue,
-            User user, final boolean isUserTrusted,
-            DocContentPrintReq printReq, InputStream istrContent)
-            throws DocContentPrintException;
+            User user, final boolean isUserTrusted, DocContentPrintReq printReq,
+            InputStream istrContent)
+            throws DocContentPrintException, UnavailableException;
 
     /**
      * Checks if client IPv4 address has access to a queue.

@@ -117,11 +117,13 @@ public final class SOfficeDocConverter {
      *            input file.
      * @param outputFile
      *            output file
-     * @throws SOfficeException
-     *             if error.
+     * @throws SOfficeBusyException
+     *             if service is too busy.
+     * @throws SOfficeTaskTimeoutException
+     *             When task did not complete within time.
      */
     public void convert(final File inputFile, final File outputFile)
-            throws SOfficeException {
+            throws SOfficeBusyException, SOfficeTaskTimeoutException {
 
         final String outputExtension =
                 FilenameUtils.getExtension(outputFile.getName());
@@ -140,11 +142,14 @@ public final class SOfficeDocConverter {
      *            output file
      * @param outputFormat
      *            the output format.
-     * @throws SOfficeException
-     *             if error.
+     * @throws SOfficeBusyException
+     *             if service is too busy.
+     * @throws SOfficeTaskTimeoutException
+     *             When task did not complete within time.
      */
     public void convert(final File inputFile, final File outputFile,
-            final SOfficeDocFormat outputFormat) throws SOfficeException {
+            final SOfficeDocFormat outputFormat)
+            throws SOfficeBusyException, SOfficeTaskTimeoutException {
 
         final String inputExtension =
                 FilenameUtils.getExtension(inputFile.getName());

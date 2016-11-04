@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -39,6 +39,7 @@ import org.jivesoftware.smack.filter.MessageTypeFilter;
 import org.jivesoftware.smack.packet.Message.Type;
 import org.jivesoftware.smack.packet.Packet;
 import org.savapage.core.SpException;
+import org.savapage.core.UnavailableException;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
@@ -62,15 +63,15 @@ import org.slf4j.LoggerFactory;
  * Listens to Google Cloud Printer for incoming print jobs, and processes these
  * jobs.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class GcpListener {
 
     private static final String XMPP_SERVICENAME = "gmail.com";
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(GcpListener.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(GcpListener.class);
 
     /**
      * The {@link XMPPConnection}: {@code null} if disconnected (GCP printer is
@@ -107,8 +108,8 @@ public final class GcpListener {
     /**
      * Connects to XMPP with Jabber ID.
      * <p>
-     * See <a
-     * href="https://developers.google.com/cloud-print/docs/rawxmpp">https://
+     * See
+     * <a href="https://developers.google.com/cloud-print/docs/rawxmpp">https://
      * developers.google.com/cloud-print/docs/rawxmpp"</a>.
      * </p>
      * <p>
@@ -165,15 +166,14 @@ public final class GcpListener {
          * Workaround: HTTP (as opposed to HTTPS) connect on URL of the XMPP
          * server is used as a probe to check if the server can be reached.
          */
-        final String urlSpec =
-                "http://" + this.xmppConnection.getHost() + ":"
-                        + this.xmppConnection.getPort();
+        final String urlSpec = "http://" + this.xmppConnection.getHost() + ":"
+                + this.xmppConnection.getPort();
 
         final URL url = new URL(urlSpec);
 
         final HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setConnectTimeout(ConfigManager.instance().getConfigInt(
-                Key.GC_CONNECT_TIMEOUT_SECS) * 1000);
+        con.setConnectTimeout(ConfigManager.instance()
+                .getConfigInt(Key.GC_CONNECT_TIMEOUT_SECS) * 1000);
         con.connect();
         con.disconnect();
 
@@ -208,10 +208,8 @@ public final class GcpListener {
         /*
          * Setup a packet collector for incoming job notifications.
          */
-        this.jobCollector =
-                this.xmppConnection
-                        .createPacketCollector(new MessageTypeFilter(
-                                Type.normal));
+        this.jobCollector = this.xmppConnection
+                .createPacketCollector(new MessageTypeFilter(Type.normal));
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Created packet collector for incoming"
@@ -233,8 +231,6 @@ public final class GcpListener {
      * @throws MessagingException
      * @throws GcpPrinterNotFoundException
      * @throws GcpAuthException
-     *
-     * @throws Exception
      */
     public void processQueue() throws IOException, MessagingException,
             GcpPrinterNotFoundException, GcpAuthException {
@@ -263,12 +259,10 @@ public final class GcpListener {
      *
      * @param job
      * @throws IOException
-     * @throws MessagingException
      * @throws GcpAuthException
-     * @throws Exception
      */
-    private void processJob(final GcpJob job) throws IOException,
-            GcpAuthException {
+    private void processJob(final GcpJob job)
+            throws IOException, GcpAuthException {
 
         final String emailFrom = job.getOwnerId();
 
@@ -307,10 +301,10 @@ public final class GcpListener {
              *
              */
             final ConfigManager cm = ConfigManager.instance();
-            final String subject =
-                    cm.getConfigValue(Key.GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_SUBJECT);
-            final String content =
-                    cm.getConfigValue(Key.GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_BODY);
+            final String subject = cm.getConfigValue(
+                    Key.GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_SUBJECT);
+            final String content = cm
+                    .getConfigValue(Key.GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_BODY);
 
             this.sendEmail(emailFrom, subject, content);
 
@@ -334,9 +328,8 @@ public final class GcpListener {
 
                     nextJobStatus = "CANCELLED";
 
-                    String msg =
-                            localize("gcp-user-not-authorized", emailFrom,
-                                    user.getUserId());
+                    String msg = localize("gcp-user-not-authorized", emailFrom,
+                            user.getUserId());
 
                     AdminPublisher.instance().publish(PubTopicEnum.GCP_PRINT,
                             PubLevelEnum.INFO, msg);
@@ -347,7 +340,7 @@ public final class GcpListener {
                     break;
                 }
 
-            } catch (DocContentPrintException e) {
+            } catch (DocContentPrintException | UnavailableException e) {
 
                 final String rejectedReason = e.getMessage();
 
@@ -356,10 +349,9 @@ public final class GcpListener {
                             + "] rejected. Reason: " + rejectedReason);
                 }
 
-                final String subject =
-                        CommunityDictEnum.SAVAPAGE.getWord()
-                                + " Google Cloud Print: rejected file ["
-                                + job.getTitle() + "]";
+                final String subject = CommunityDictEnum.SAVAPAGE.getWord()
+                        + " Google Cloud Print: rejected file ["
+                        + job.getTitle() + "]";
                 final String body = "Reason: " + rejectedReason;
 
                 this.sendEmail(emailFrom, subject, body);
@@ -492,12 +484,11 @@ public final class GcpListener {
                 }
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Waiting ["
-                            + (++nInterval)
-                            + "] next ["
+                    LOGGER.trace("Waiting [" + (++nInterval) + "] next ["
                             + dateFormat.format(DateUtils.addSeconds(now,
-                                    waitForEventTimeoutSecs)) + "] till ["
-                            + dateFormat.format(maxDateSnapshot) + "] ...");
+                                    waitForEventTimeoutSecs))
+                            + "] till [" + dateFormat.format(maxDateSnapshot)
+                            + "] ...");
                 }
                 /*
                  * Wait for Print Job to arrives or ... ?
@@ -541,8 +532,8 @@ public final class GcpListener {
      * @throws GcpAuthException
      * @throws Exception
      */
-    public void onNotification(Packet p) throws IOException,
-            MessagingException, GcpPrinterNotFoundException, GcpAuthException {
+    public void onNotification(Packet p) throws IOException, MessagingException,
+            GcpPrinterNotFoundException, GcpAuthException {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("XMPP notification: " + p.toXML());

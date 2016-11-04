@@ -1191,7 +1191,7 @@ public interface IConfigProp {
         /**
          * Wait time (milliseconds) for a conversion task to complete.
          */
-        SOFFICE_TASK_EXEC_TIMEOUT_MSEC("soffice.task.exec-timeout-msec", NUMBER_VALIDATOR, "10000"),
+        SOFFICE_TASK_EXEC_TIMEOUT_MSEC("soffice.task.exec-timeout-msec", NUMBER_VALIDATOR, "20000"),
 
         /**
          * Wait time (milliseconds) before doing a retry of a host process

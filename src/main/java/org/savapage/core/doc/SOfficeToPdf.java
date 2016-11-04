@@ -23,9 +23,12 @@ package org.savapage.core.doc;
 
 import java.io.File;
 
+import org.savapage.core.UnavailableException;
+import org.savapage.core.doc.soffice.SOfficeBusyException;
 import org.savapage.core.doc.soffice.SOfficeCommonConvertTask;
 import org.savapage.core.doc.soffice.SOfficeDocFormat;
 import org.savapage.core.doc.soffice.SOfficeDocFormatRegistryDefault;
+import org.savapage.core.doc.soffice.SOfficeTaskTimeoutException;
 import org.savapage.core.services.SOfficeService;
 import org.savapage.core.services.ServiceContext;
 
@@ -72,12 +75,21 @@ public final class SOfficeToPdf extends AbstractFileConverter {
     @Override
     protected void convertCustom(final DocContentTypeEnum contentType,
             final File fileIn, final File fileOut)
-            throws DocContentToPdfException {
+            throws DocContentToPdfException, UnavailableException {
 
         final SOfficeCommonConvertTask task = new SOfficeCommonConvertTask(
                 fileIn, fileOut, PDF_OFFICE_FORMAT);
 
-        SOFFICE_SERVICE.execute(task);
+        try {
+            SOFFICE_SERVICE.execute(task);
+        } catch (SOfficeBusyException e) {
+            throw new UnavailableException(UnavailableException.State.TEMPORARY,
+                    e);
+        } catch (SOfficeTaskTimeoutException e) {
+            throw new DocContentToPdfException(
+                    "PDF conversion did not complete within time.", e);
+
+        }
     }
 
     /**

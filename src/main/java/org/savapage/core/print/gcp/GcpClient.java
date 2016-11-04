@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -38,6 +38,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.savapage.core.UnavailableException;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.doc.DocContent;
@@ -54,7 +55,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class GcpClient {
@@ -383,17 +384,17 @@ public class GcpClient {
      *
      * @param user
      * @param job
-     * @return The {@link PrintInResultEnum}.
-     * @throws IOException
+     * @return
      * @throws ClientProtocolException
-     * @throws DocContentPrintException
+     * @throws IOException
      * @throws IllegalStateException
+     * @throws DocContentPrintException
      * @throws GcpAuthException
-     * @throws Exception
+     * @throws UnavailableException
      */
     public PrintInResultEnum printJob(final User user, final GcpJob job)
             throws ClientProtocolException, IOException, IllegalStateException,
-            DocContentPrintException, GcpAuthException {
+            DocContentPrintException, GcpAuthException, UnavailableException {
 
         final HttpPost httppost = new HttpPost(job.getFileUrl());
         httppost.setHeader("Authorization", "OAuth " + this.getAccessToken());

@@ -41,13 +41,19 @@ public abstract class SOfficeSettings {
     /**
      * The retry timeout in milliseconds.
      */
-    public static final long DEFAULT_RETRY_TIMEOUT_MSEC =
-            120 * DateUtil.DURATION_MSEC_SECOND;
+    public static final long DEFAULT_PROCESS_RETRY_TIMEOUT_MSEC =
+            30 * DateUtil.DURATION_MSEC_SECOND;
 
     /**
     *
     */
     public static final long DEFAULT_TASK_EXECUTION_TIMEOUT =
+            20 * DateUtil.DURATION_MSEC_SECOND;
+
+    /**
+    *
+    */
+    public static final long DEFAULT_TASK_QUEUE_TIMEOUT =
             10 * DateUtil.DURATION_MSEC_SECOND;
 
     /**
@@ -100,7 +106,7 @@ public abstract class SOfficeSettings {
      * Wait time (milliseconds) for a UNO connection to become available for
      * task execution.
      */
-    private long taskQueueTimeout = 10 * DateUtil.DURATION_MSEC_SECOND;
+    private long taskQueueTimeout = DEFAULT_TASK_QUEUE_TIMEOUT;
 
     /**
      * Wait time (milliseconds) for a conversion task to complete.
@@ -117,7 +123,7 @@ public abstract class SOfficeSettings {
     /**
      * Wait time (milliseconds) before doing a retry of a host process command.
      */
-    private long processRetryTimeout = DEFAULT_RETRY_TIMEOUT_MSEC;
+    private long processRetryTimeout = DEFAULT_PROCESS_RETRY_TIMEOUT_MSEC;
 
     /**
      *
@@ -131,20 +137,40 @@ public abstract class SOfficeSettings {
         this.templateProfileDir = templateProfileDir;
     }
 
+    /**
+     *
+     * @return Wait time (milliseconds) for a UNO connection to become available
+     *         for task execution.
+     */
     public final long getTaskQueueTimeout() {
         return taskQueueTimeout;
     }
 
-    public final void setTaskQueueTimeout(final long taskQueueTimeout) {
-        this.taskQueueTimeout = taskQueueTimeout;
+    /**
+     *
+     * @param timeout
+     *            Wait time (milliseconds) for a UNO connection to become
+     *            available for task execution.
+     */
+    public final void setTaskQueueTimeout(final long timeout) {
+        this.taskQueueTimeout = timeout;
     }
 
+    /**
+     *
+     * @return Wait time (milliseconds) for a conversion task to complete.
+     */
     public final long getTaskExecutionTimeout() {
         return taskExecutionTimeout;
     }
 
-    public final void setTaskExecutionTimeout(final long taskExecutionTimeout) {
-        this.taskExecutionTimeout = taskExecutionTimeout;
+    /**
+     *
+     * @param timeout
+     *            Wait time (milliseconds) for a conversion task to complete.
+     */
+    public final void setTaskExecutionTimeout(final long timeout) {
+        this.taskExecutionTimeout = timeout;
     }
 
     public final int getTasksCountForProcessRestart() {
