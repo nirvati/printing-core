@@ -26,6 +26,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.savapage.core.util.RetryException;
+import org.savapage.core.util.RetryExecutor;
+import org.savapage.core.util.RetryTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -213,11 +216,11 @@ public final class SOfficeProcessManager {
         try {
             process.start();
 
-            new SOfficeRetryExecutor() {
+            new RetryExecutor() {
 
                 @Override
                 protected void attempt()
-                        throws SOfficeRetryException, Exception {
+                        throws RetryException, Exception {
                     try {
                         connection.connect();
                     } catch (ConnectException connectException) {
@@ -228,7 +231,7 @@ public final class SOfficeProcessManager {
                             /*
                              * Process is running; retry later.
                              */
-                            throw new SOfficeRetryException(connectException);
+                            throw new RetryException(connectException);
 
                         } else if (exitCode.equals(
                                 EXIT_CODE_USER_INSTALLATION_FILES_CREATED)) {
@@ -241,7 +244,7 @@ public final class SOfficeProcessManager {
                             }
                             process.start(true);
 
-                            throw new SOfficeRetryException(connectException);
+                            throw new RetryException(connectException);
 
                         } else {
 
@@ -294,7 +297,7 @@ public final class SOfficeProcessManager {
                         exitCode));
             }
 
-        } catch (SOfficeRetryTimeoutException e) {
+        } catch (RetryTimeoutException e) {
             doTerminateProcess();
         }
         process.deleteProfileDir();

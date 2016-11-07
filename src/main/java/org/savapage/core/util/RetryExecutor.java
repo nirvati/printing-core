@@ -19,26 +19,26 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.doc.soffice;
+package org.savapage.core.util;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public abstract class SOfficeRetryExecutor {
+public abstract class RetryExecutor {
 
     /**
      * Attempts a retry.
      *
-     * @throws SOfficeRetryException
+     * @throws RetryException
      *             for an error condition that is temporary, i.e. that could be
      *             resolved by simply retrying the same operation after an
      *             interval.
      * @throws Exception
      *             for all other error conditions.
      */
-    protected abstract void attempt() throws SOfficeRetryException, Exception;
+    protected abstract void attempt() throws RetryException, Exception;
 
     /**
      * Executes the {@link #attempt()} immediately, every "interval" till it
@@ -49,13 +49,13 @@ public abstract class SOfficeRetryExecutor {
      * @param timeout
      *            The timeout (milliseconds).
      *
-     * @throws SOfficeRetryTimeoutException
+     * @throws RetryTimeoutException
      *             when attempts did not succeed within timeout.
      * @throws Exception
      *             for all other error conditions.
      */
     public final void execute(final long interval, final long timeout)
-            throws SOfficeRetryTimeoutException, Exception {
+            throws RetryTimeoutException, Exception {
         this.execute(0L, interval, timeout);
     }
 
@@ -70,13 +70,13 @@ public abstract class SOfficeRetryExecutor {
      * @param timeout
      *            The timeout (milliseconds).
      *
-     * @throws SOfficeRetryTimeoutException
+     * @throws RetryTimeoutException
      *             when attempts did not succeed within timeout.
      * @throws Exception
      *             for all other error conditions.
      */
     public final void execute(final long delay, final long interval,
-            final long timeout) throws SOfficeRetryTimeoutException, Exception {
+            final long timeout) throws RetryTimeoutException, Exception {
 
         final long start = System.currentTimeMillis();
 
@@ -88,11 +88,11 @@ public abstract class SOfficeRetryExecutor {
             try {
                 attempt();
                 return;
-            } catch (SOfficeRetryException e) {
+            } catch (RetryException e) {
                 if (System.currentTimeMillis() - start < timeout) {
                     sleep(interval);
                 } else {
-                    throw new SOfficeRetryTimeoutException(e.getCause());
+                    throw new RetryTimeoutException(e.getCause());
                 }
             }
         }

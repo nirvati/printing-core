@@ -19,7 +19,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.doc.soffice;
+package org.savapage.core.util;
 
 /**
  * Represents an error condition that is temporary, i.e. that could be resolved
@@ -28,7 +28,7 @@ package org.savapage.core.doc.soffice;
  * @author Rijk Ravestein
  *
  */
-public final class SOfficeRetryException extends Exception {
+public final class RetryException extends Exception {
 
     /**
      *
@@ -40,7 +40,7 @@ public final class SOfficeRetryException extends Exception {
      * @param cause
      *            The cause.
      */
-    public SOfficeRetryException(final Throwable cause) {
+    public RetryException(final Throwable cause) {
         super(cause);
     }
 

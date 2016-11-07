@@ -19,14 +19,14 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.doc.soffice;
+package org.savapage.core.util;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class SOfficeRetryTimeoutException extends Exception {
+public final class RetryTimeoutException extends Exception {
 
     /**
      *
@@ -38,7 +38,7 @@ public final class SOfficeRetryTimeoutException extends Exception {
      * @param cause
      *            The cause.
      */
-    public SOfficeRetryTimeoutException(final Throwable cause) {
+    public RetryTimeoutException(final Throwable cause) {
         super(cause);
     }
 

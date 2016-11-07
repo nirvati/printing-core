@@ -30,6 +30,9 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.savapage.core.util.RetryException;
+import org.savapage.core.util.RetryExecutor;
+import org.savapage.core.util.RetryTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +106,7 @@ public final class SOfficeProcess {
     /**
      * Attempts to get the exit code of the office process.
      */
-    private class SExitCodeRetryExecutor extends SOfficeRetryExecutor {
+    private class SExitCodeRetryExecutor extends RetryExecutor {
 
         /**
          * The exit code of the process.
@@ -111,11 +114,11 @@ public final class SOfficeProcess {
         private int exitCode;
 
         @Override
-        protected void attempt() throws SOfficeRetryException, Exception {
+        protected void attempt() throws RetryException, Exception {
             try {
                 this.exitCode = process.exitValue();
             } catch (IllegalThreadStateException illegalThreadStateException) {
-                throw new SOfficeRetryException(illegalThreadStateException);
+                throw new RetryException(illegalThreadStateException);
             }
         }
 
@@ -391,11 +394,11 @@ public final class SOfficeProcess {
      * @param retryTimeout
      *            The retry timeout.
      * @return The exit code of the process.
-     * @throws SOfficeRetryTimeoutException
+     * @throws RetryTimeoutException
      *             when timeout.
      */
     public int getExitCode(final long retryInterval, final long retryTimeout)
-            throws SOfficeRetryTimeoutException {
+            throws RetryTimeoutException {
 
         try {
 
@@ -406,7 +409,7 @@ public final class SOfficeProcess {
 
             return retryable.getExitCode();
 
-        } catch (SOfficeRetryTimeoutException e) {
+        } catch (RetryTimeoutException e) {
             throw e;
 
         } catch (Exception e) {
@@ -422,14 +425,14 @@ public final class SOfficeProcess {
      * @param retryTimeout
      *            The retry timeout.
      * @return the exit code.
-     * @throws SOfficeRetryTimeoutException
+     * @throws RetryTimeoutException
      *             if timeout getting the exit code.
      * @throws IOException
      *             when kill fails.
      */
     public int terminateByForce(final long retryInterval,
             final long retryTimeout)
-            throws SOfficeRetryTimeoutException, IOException {
+            throws RetryTimeoutException, IOException {
 
         if (LOGGER.isInfoEnabled()) {
 

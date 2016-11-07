@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -36,6 +36,7 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.apache.xmlrpc.client.XmlRpcClientException;
 import org.apache.xmlrpc.client.XmlRpcHttpTransportException;
 import org.savapage.core.SpException;
+import org.savapage.core.SpInfo;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.circuitbreaker.CircuitBreakerOperation;
@@ -44,10 +45,13 @@ import org.savapage.core.circuitbreaker.CircuitTrippingException;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.util.RetryException;
+import org.savapage.core.util.RetryExecutor;
+import org.savapage.core.util.RetryTimeoutException;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class PaperCutServerProxy {
@@ -63,9 +67,10 @@ public final class PaperCutServerProxy {
     private final String authToken;
 
     /**
-     * .
+     * {@code true} when a {@link CircuitBreaker} is used to signal PaperCut
+     * connection status.
      */
-    private final boolean useCircuitBreaker;
+    private boolean useCircuitBreaker;
 
     /**
      * .
@@ -141,8 +146,8 @@ public final class PaperCutServerProxy {
      * @author Datraverse B.V.
      *
      */
-    private static class PaperCutCircuitBreakerOperation implements
-            CircuitBreakerOperation {
+    private static class PaperCutCircuitBreakerOperation
+            implements CircuitBreakerOperation {
 
         private final PaperCutServerProxy paperCutProxy;
         private final String method;
@@ -266,9 +271,8 @@ public final class PaperCutServerProxy {
      * @return
      * @throws PaperCutException
      */
-    private Object
-            execute(final String method, final Vector<Object> parameters)
-                    throws PaperCutException {
+    private Object execute(final String method, final Vector<Object> parameters)
+            throws PaperCutException {
 
         Object result = null;
 
@@ -293,13 +297,15 @@ public final class PaperCutServerProxy {
         } catch (XmlRpcException e) {
 
             if (e.linkedException instanceof UnknownHostException) {
-                throw new PaperCutConnectException(String.format(
-                        "Unknown host [%s]", e.linkedException.getMessage()), e);
+                throw new PaperCutConnectException(
+                        String.format("Unknown host [%s]",
+                                e.linkedException.getMessage()),
+                        e);
             }
 
             if (e.linkedException instanceof ConnectException) {
-                throw new PaperCutConnectException(String.format("%s",
-                        e.linkedException.getMessage()), e);
+                throw new PaperCutConnectException(
+                        String.format("%s", e.linkedException.getMessage()), e);
             }
 
             /*
@@ -420,6 +426,58 @@ public final class PaperCutServerProxy {
     }
 
     /**
+     * Waits till connected to PaperCut. This method tries to connect after a
+     * delay, every "interval", till connected or a timeout occurs.
+     *
+     * @param delay
+     *            The delay (milliseconds) before the first attempt is made.
+     * @param interval
+     *            The attempt interval (milliseconds).
+     * @param timeout
+     *            The timeout (milliseconds).
+     * @throws Exception
+     *             if error.
+     * @throws RetryTimeoutException
+     *             if timeout.
+     */
+    public void connect(final long delay, final long interval,
+            final long timeout) throws RetryTimeoutException, Exception {
+
+        final PaperCutServerProxy proxy = this;
+
+        final RetryExecutor exec = new RetryExecutor() {
+
+            private int nAttemps = 0;
+
+            @Override
+            protected void attempt() throws RetryException, Exception {
+                try {
+                    proxy.connect();
+                    if (nAttemps > 0) {
+                        SpInfo.instance().log("Connected to PaperCut.");
+                    }
+                } catch (PaperCutConnectException e) {
+                    if (nAttemps == 0) {
+                        SpInfo.instance().log("Connecting to PaperCut...");
+                    }
+                    nAttemps++;
+                    throw new RetryException(e);
+                }
+            }
+        };
+
+        final boolean savedBreakerUsage = this.isUseCircuitBreaker();
+
+        this.setUseCircuitBreaker(false);
+
+        try {
+            exec.execute(delay, interval, timeout);
+        } finally {
+            this.setUseCircuitBreaker(savedBreakerUsage);
+        }
+    }
+
+    /**
      * Disconnects from PaperCut.
      */
     public void disconnect() {
@@ -473,15 +531,16 @@ public final class PaperCutServerProxy {
         } else {
             user = new PaperCutUser();
 
-            user.setDisabledPrint(Boolean.parseBoolean(props
-                    .get(UserProperty.DISABLED_PRINT)));
+            user.setDisabledPrint(Boolean
+                    .parseBoolean(props.get(UserProperty.DISABLED_PRINT)));
 
-            user.setRestricted(Boolean.parseBoolean(props
-                    .get(UserProperty.RESTRICTED)));
+            user.setRestricted(
+                    Boolean.parseBoolean(props.get(UserProperty.RESTRICTED)));
 
             user.setFullName(props.get(UserProperty.FULL_NAME));
 
-            user.setBalance(Double.parseDouble(props.get(UserProperty.BALANCE)));
+            user.setBalance(
+                    Double.parseDouble(props.get(UserProperty.BALANCE)));
 
         }
 
@@ -675,6 +734,23 @@ public final class PaperCutServerProxy {
         final Vector<Object> params = createParams();
         params.add(composeSharedAccountName(topAccountName, subAccountName));
         call("api.addNewSharedAccount", params);
+    }
+
+    /**
+     * @return {@code true} when a {@link CircuitBreaker} is used to signal
+     *         PaperCut connection status.
+     */
+    public boolean isUseCircuitBreaker() {
+        return useCircuitBreaker;
+    }
+
+    /**
+     * @param useBreaker
+     *            {@code true} when a {@link CircuitBreaker} is used to signal
+     *            PaperCut connection status.
+     */
+    public void setUseCircuitBreaker(final boolean useBreaker) {
+        this.useCircuitBreaker = useBreaker;
     }
 
 }
