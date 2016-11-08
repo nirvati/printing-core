@@ -83,7 +83,7 @@ public final class SOfficeServiceImpl extends AbstractService
     private volatile boolean restarting = false;
 
     @Override
-    public void start(final SOfficeConfig config) {
+    public synchronized void start(final SOfficeConfig config) {
         this.init(config);
 
         if (this.running || !this.enabled) {

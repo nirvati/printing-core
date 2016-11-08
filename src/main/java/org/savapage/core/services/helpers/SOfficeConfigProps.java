@@ -44,9 +44,14 @@ public final class SOfficeConfigProps extends SOfficeConfig {
 
         final ConfigManager cm = ConfigManager.instance();
 
-        this.setEnabled(cm.isConfigValue(Key.SOFFICE_ENABLE)
-                && cm.isConfigValue(Key.DOC_CONVERT_LIBRE_OFFICE_ENABLED)
-                && SOfficeHelper.lazyIsInstalled());
+        final boolean dependentServices = cm.isConfigValue(Key.WEB_PRINT_ENABLE)
+                || cm.isConfigValue(Key.PRINT_IMAP_ENABLE);
+
+        this.setEnabled(
+                dependentServices && cm.isConfigValue(Key.SOFFICE_ENABLE)
+                        && cm.isConfigValue(
+                                Key.DOC_CONVERT_LIBRE_OFFICE_ENABLED)
+                        && SOfficeHelper.lazyIsInstalled());
 
         this.setWorkDir(new File(ConfigManager.getAppTmpDir()));
 
