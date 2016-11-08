@@ -94,8 +94,20 @@ public final class SOfficeConfigProps extends SOfficeConfig {
         this.setTaskExecutionTimeout(
                 cm.getConfigLong(Key.SOFFICE_TASK_EXEC_TIMEOUT_MSEC));
 
-        this.setProcessRetryTimeout(
-                cm.getConfigLong(Key.SOFFICE_PROCESS_RETRY_TIMEOUT_MSEC));
+        //
+        this.setProcessStartTimeout(
+                cm.getConfigLong(Key.SOFFICE_START_TIMEOUT_MSEC));
+
+        this.setProcessStartRetry(
+                cm.getConfigLong(Key.SOFFICE_START_RETRY_MSEC));
+
+        //
+        this.setProcessRespondTimeout(
+                cm.getConfigLong(Key.SOFFICE_RESPOND_TIMEOUT_MSEC));
+
+        this.setProcessRespondRetry(
+                cm.getConfigLong(Key.SOFFICE_RESPOND_RETRY_MSEC));
+
     }
 
 }

@@ -29,19 +29,9 @@ package org.savapage.core.doc.soffice;
 public class SOfficeProcessSettings extends SOfficeSettings {
 
     /**
-     * The default retry interval in milliseconds.
-     */
-    public static final long DEFAULT_RETRY_INTERVAL = 250L;
-
-    /**
      *
      */
     private final SOfficeUnoUrl unoUrl;
-
-    /**
-     * The retry interval in milliseconds.
-     */
-    private long retryInterval = DEFAULT_RETRY_INTERVAL;
 
     /**
      * Constructor.
@@ -57,7 +47,13 @@ public class SOfficeProcessSettings extends SOfficeSettings {
         this.setTemplateProfileDir(config.getTemplateProfileDir());
         this.setWorkDir(config.getWorkDir());
         this.setOfficeLocation(config.getOfficeLocation());
-        this.setProcessRetryTimeout(config.getProcessRetryTimeout());
+
+        this.setProcessStartTimeout(config.getProcessStartTimeout());
+        this.setProcessStartRetry(config.getProcessStartRetry());
+
+        this.setProcessRespondTimeout(config.getProcessRespondTimeout());
+        this.setProcessRespondRetry(config.getProcessRespondRetry());
+
         this.setTaskExecutionTimeout(config.getTaskExecutionTimeout());
         this.setTasksCountForProcessRestart(
                 config.getTasksCountForProcessRestart());
@@ -68,12 +64,5 @@ public class SOfficeProcessSettings extends SOfficeSettings {
         return unoUrl;
     }
 
-    public long getRetryInterval() {
-        return retryInterval;
-    }
-
-    public void setRetryInterval(long retryInterval) {
-        this.retryInterval = retryInterval;
-    }
 
 }

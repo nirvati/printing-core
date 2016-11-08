@@ -39,10 +39,27 @@ public abstract class SOfficeSettings {
     private static final String PROFILE_DIR_USER_SUBDIR = "user";
 
     /**
-     * The retry timeout in milliseconds.
+     * The timeout in milliseconds for process to start.
      */
-    public static final long DEFAULT_PROCESS_RETRY_TIMEOUT_MSEC =
+    public static final long DEFAULT_PROCESS_START_TIMEOUT_MSEC =
+            120 * DateUtil.DURATION_MSEC_SECOND;
+
+    /**
+     * The timeout in milliseconds for process to respond.
+     */
+    public static final long DEFAULT_PROCESS_RESPOND_TIMEOUT_MSEC =
             30 * DateUtil.DURATION_MSEC_SECOND;
+
+    /**
+     * The retry interval in milliseconds for process to start.
+     */
+    public static final long DEFAULT_PROCESS_START_RETRY_MSEC =
+            1 * DateUtil.DURATION_MSEC_SECOND;
+
+    /**
+     * The retry interval in milliseconds for process to respond.
+     */
+    public static final long DEFAULT_PROCESS_RESPOND_RETRY_MSEC = 250;
 
     /**
     *
@@ -121,9 +138,24 @@ public abstract class SOfficeSettings {
             DEFAULT_TASKCOUNT_FOR_PROCESS_RESTART;
 
     /**
-     * Wait time (milliseconds) before doing a retry of a host process command.
+     * Wait time (milliseconds) for host process to respond (after retries).
      */
-    private long processRetryTimeout = DEFAULT_PROCESS_RETRY_TIMEOUT_MSEC;
+    private long processRespondTimeout = DEFAULT_PROCESS_RESPOND_TIMEOUT_MSEC;
+
+    /**
+     * Wait time (milliseconds) for host process to start c(after retries).
+     */
+    private long processStartTimeout = DEFAULT_PROCESS_START_TIMEOUT_MSEC;
+
+    /**
+     * The retry interval in milliseconds for process to respond.
+     */
+    private long processRespondRetry = DEFAULT_PROCESS_RESPOND_RETRY_MSEC;
+
+    /**
+     * The retry interval in milliseconds for process to start.
+     */
+    private long processStartRetry = DEFAULT_PROCESS_START_RETRY_MSEC;
 
     /**
      *
@@ -183,22 +215,77 @@ public abstract class SOfficeSettings {
     }
 
     /**
-     * @return Wait time (milliseconds) before doing a retry of a host process
-     *         command.
+     * @return Wait time (milliseconds) for host process to respond (after
+     *         retries).
      */
-    public final long getProcessRetryTimeout() {
-        return processRetryTimeout;
+    public final long getProcessRespondTimeout() {
+        return processRespondTimeout;
     }
 
     /**
-     * @param retryTimeout
-     *            Wait time (milliseconds) before doing a retry of a host
-     *            process command.
+     * @param timeout
+     *            Wait time (milliseconds) for host process to respond (after
+     *            retries).
      */
-    public final void setProcessRetryTimeout(final long retryTimeout) {
-        this.processRetryTimeout = retryTimeout;
+    public final void setProcessRespondTimeout(final long timeout) {
+        this.processRespondTimeout = timeout;
     }
 
+    /**
+     * @return Wait time (milliseconds) for host process to start (after
+     *         retries).
+     */
+    public final long getProcessStartTimeout() {
+        return processStartTimeout;
+    }
+
+    /**
+     * @param timeout
+     *            Wait time (milliseconds) for host process to start (after
+     *            retries).
+     */
+    public final void setProcessStartTimeout(final long timeout) {
+        this.processStartTimeout = timeout;
+    }
+
+    /**
+     *
+     * @return The retry interval in milliseconds for process to respond.
+     */
+    public final long getProcessRespondRetry() {
+        return processRespondRetry;
+    }
+
+    /**
+     *
+     * @param retry
+     *            The retry interval in milliseconds for process to respond.
+     */
+    public final void setProcessRespondRetry(final long retry) {
+        this.processRespondRetry = retry;
+    }
+
+    /**
+     *
+     * @return The retry interval in milliseconds for process to start.
+     */
+    public final long getProcessStartRetry() {
+        return processStartRetry;
+    }
+
+    /**
+     *
+     * @param retry
+     *            The retry interval in milliseconds for process to start.
+     */
+    public final void setProcessStartRetry(final long retry) {
+        this.processStartRetry = retry;
+    }
+
+    /**
+     *
+     * @return
+     */
     public final File getOfficeLocation() {
         return officeLocation;
     }

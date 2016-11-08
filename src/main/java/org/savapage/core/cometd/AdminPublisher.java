@@ -279,4 +279,11 @@ public final class AdminPublisher extends CometdClientMixin {
         }
     }
 
+    /**
+     *
+     * @return {@code true} when up and running.
+     */
+    public static boolean isActive() {
+        return instance().myClientSession != null;
+    }
 }

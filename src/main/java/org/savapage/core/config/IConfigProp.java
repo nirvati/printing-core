@@ -1194,10 +1194,24 @@ public interface IConfigProp {
         SOFFICE_TASK_EXEC_TIMEOUT_MSEC("soffice.task.exec-timeout-msec", NUMBER_VALIDATOR, "20000"),
 
         /**
-         * Wait time (milliseconds) before doing a retry of a host process
-         * command.
+         * Retry interval (milliseconds) for host process to respond.
          */
-        SOFFICE_PROCESS_RETRY_TIMEOUT_MSEC("soffice.process.retry-timeout-msec", NUMBER_VALIDATOR, "30000"),
+        SOFFICE_RESPOND_RETRY_MSEC("soffice.respond.retry-msec", NUMBER_VALIDATOR, "250"),
+
+        /**
+         * Wait time (milliseconds) for host process to respond (after retries).
+         */
+        SOFFICE_RESPOND_TIMEOUT_MSEC("soffice.respond.timeout-msec", NUMBER_VALIDATOR, "30000"),
+
+        /**
+         * Retry interval (milliseconds) for host process to start.
+         */
+        SOFFICE_START_RETRY_MSEC("soffice.start.retry-msec", NUMBER_VALIDATOR, "1000"),
+
+        /**
+         * Wait time (milliseconds) for host process to start (after retries).
+         */
+        SOFFICE_START_TIMEOUT_MSEC("soffice.start.timeout-msec", NUMBER_VALIDATOR, "120000"),
 
         /**
          *

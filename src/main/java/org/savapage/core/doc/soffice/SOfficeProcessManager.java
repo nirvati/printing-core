@@ -123,7 +123,8 @@ public final class SOfficeProcessManager {
         final Future<?> future = executor.submit(new Runnable() {
             @Override
             public void run() {
-                doStartProcessAndConnect();
+                doStartProcessAndConnect(settings.getProcessStartRetry(),
+                        settings.getProcessStartTimeout());
             }
         });
 
@@ -164,7 +165,8 @@ public final class SOfficeProcessManager {
             @Override
             public void run() {
                 doStopProcess();
-                doStartProcessAndConnect();
+                doStartProcessAndConnect(settings.getProcessRespondRetry(),
+                        settings.getProcessRespondTimeout());
             }
         });
         try {
@@ -198,7 +200,8 @@ public final class SOfficeProcessManager {
             public void run() {
                 try {
                     doEnsureProcessExited();
-                    doStartProcessAndConnect();
+                    doStartProcessAndConnect(settings.getProcessRespondRetry(),
+                            settings.getProcessRespondTimeout());
                 } catch (SOfficeException e) {
                     LOGGER.error("Process restart failed.", e);
                 }
@@ -208,10 +211,15 @@ public final class SOfficeProcessManager {
 
     /**
      *
+     * @param retryInterval
+     *            The retry interval.
+     * @param retryTimeout
+     *            The timeout.
      * @throws SOfficeException
      *             if error.
      */
-    private void doStartProcessAndConnect() throws SOfficeException {
+    private void doStartProcessAndConnect(final long retryInterval,
+            final long retryTimeout) throws SOfficeException {
 
         try {
             process.start();
@@ -219,8 +227,7 @@ public final class SOfficeProcessManager {
             new RetryExecutor() {
 
                 @Override
-                protected void attempt()
-                        throws RetryException, Exception {
+                protected void attempt() throws RetryException, Exception {
                     try {
                         connection.connect();
                     } catch (ConnectException connectException) {
@@ -254,11 +261,13 @@ public final class SOfficeProcessManager {
                         }
                     }
                 }
-            }.execute(settings.getRetryInterval(),
-                    settings.getProcessRetryTimeout());
+            }.execute(retryInterval, retryTimeout);
 
+        } catch (RetryTimeoutException e) {
+            throw new SOfficeException(
+                    "Could not establish connection (timeout).");
         } catch (Exception e) {
-            throw new SOfficeException("Could not establish connection.", e);
+            throw new SOfficeException("Error establishing connection.", e);
         }
     }
 
@@ -289,8 +298,8 @@ public final class SOfficeProcessManager {
     private void doEnsureProcessExited() throws SOfficeException {
         try {
             final int exitCode =
-                    process.getExitCode(settings.getRetryInterval(),
-                            settings.getProcessRetryTimeout());
+                    process.getExitCode(settings.getProcessRespondRetry(),
+                            settings.getProcessRespondTimeout());
 
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info(String.format("Process exited with code %d.",
@@ -310,9 +319,9 @@ public final class SOfficeProcessManager {
      */
     private void doTerminateProcess() throws SOfficeException {
         try {
-            int exitCode =
-                    this.process.terminateByForce(settings.getRetryInterval(),
-                            this.settings.getProcessRetryTimeout());
+            int exitCode = this.process.terminateByForce(
+                    settings.getProcessRespondRetry(),
+                    settings.getProcessRespondTimeout());
 
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info(String.format(

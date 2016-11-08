@@ -119,8 +119,10 @@ public final class SOfficeServiceImpl extends AbstractService
             AppLogHelper.log(AppLogLevelEnum.INFO, msg);
         }
 
-        AdminPublisher.instance().publish(PubTopicEnum.SOFFICE,
-                PubLevelEnum.CLEAR, msg);
+        if (AdminPublisher.isActive()) {
+            AdminPublisher.instance().publish(PubTopicEnum.SOFFICE,
+                    PubLevelEnum.CLEAR, msg);
+        }
     }
 
     /**
@@ -183,8 +185,10 @@ public final class SOfficeServiceImpl extends AbstractService
             AppLogHelper.log(AppLogLevelEnum.INFO, msg);
         }
 
-        AdminPublisher.instance().publish(PubTopicEnum.SOFFICE,
-                PubLevelEnum.WARN, msg);
+        if (AdminPublisher.isActive()) {
+            AdminPublisher.instance().publish(PubTopicEnum.SOFFICE,
+                    PubLevelEnum.WARN, msg);
+        }
 
         //
         SpInfo.instance().log("Shutting down SOffice converter...");
