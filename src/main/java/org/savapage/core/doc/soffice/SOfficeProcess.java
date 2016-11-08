@@ -173,7 +173,8 @@ public final class SOfficeProcess {
      * @throws IOException
      *             When
      */
-    private long findPid(final SOfficeProcessQuery query) throws IOException {
+    private static long findPid(final SOfficeProcessQuery query)
+            throws IOException {
 
         final String regex = Pattern.quote(query.getCommand()) + ".*"
                 + Pattern.quote(query.getArgument());
@@ -236,10 +237,19 @@ public final class SOfficeProcess {
 
         if (!(existingPid == PID_NOT_FOUND || existingPid == PID_UNKNOWN)) {
 
-            throw new IllegalStateException(String.format(
-                    "Process with connection '%s' "
-                            + "is already running: pid %d",
-                    unoUrl.getAcceptString(), existingPid));
+            final String msg =
+                    String.format("Process '%s'(pid %d) already running",
+                            unoUrl.getAcceptString(), existingPid);
+
+            if (restart) {
+                throw new IllegalStateException(msg);
+            }
+
+            LOGGER.warn(String.format("%s: restart.", msg));
+
+            kill(existingPid);
+
+            existingPid = PID_NOT_FOUND;
         }
 
         if (!restart) {
@@ -431,8 +441,7 @@ public final class SOfficeProcess {
      *             when kill fails.
      */
     public int terminateByForce(final long retryInterval,
-            final long retryTimeout)
-            throws RetryTimeoutException, IOException {
+            final long retryTimeout) throws RetryTimeoutException, IOException {
 
         if (LOGGER.isInfoEnabled()) {
 

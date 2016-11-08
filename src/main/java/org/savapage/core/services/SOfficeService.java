@@ -41,6 +41,7 @@ public interface SOfficeService extends StatefulService {
     void shutdown();
 
     /**
+     * Starts the service. Method is idempotent.
      *
      * @param config
      *            The configuration.
