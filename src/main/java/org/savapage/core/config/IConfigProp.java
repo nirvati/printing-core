@@ -1920,7 +1920,7 @@ public interface IConfigProp {
         /**
          * Inactivity timeout (minutes) for the admin web interface.
          */
-        WEB_LOGIN_ADMIN_SESSION_TIMOUT_MINS("web-login.admin.session-timeout-mins", NUMBER_VALIDATOR, "1440"),
+        WEB_LOGIN_ADMIN_SESSION_TIMEOUT_MINS("web-login.admin.session-timeout-mins", NUMBER_VALIDATOR, "1440"),
 
         /**
          * Inactivity timeout (minutes) for the user web interface.
