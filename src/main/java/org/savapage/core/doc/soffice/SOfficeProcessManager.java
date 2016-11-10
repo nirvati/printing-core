@@ -131,7 +131,7 @@ public final class SOfficeProcessManager {
         try {
             future.get();
         } catch (Exception exception) {
-            throw new SOfficeException("Failed to start and connect",
+            throw new SOfficeException("Failed to start and connect.",
                     exception);
         }
     }
@@ -151,7 +151,7 @@ public final class SOfficeProcessManager {
         try {
             future.get();
         } catch (Exception exception) {
-            throw new SOfficeException("failed to start and connect",
+            throw new SOfficeException("Failed to stop process.",
                     exception);
         }
     }
@@ -172,7 +172,7 @@ public final class SOfficeProcessManager {
         try {
             future.get();
         } catch (Exception exception) {
-            throw new SOfficeException("failed to restart", exception);
+            throw new SOfficeException("Failed to restart.", exception);
         }
     }
 

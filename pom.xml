@@ -7,7 +7,7 @@
     <name>SavaPage Core Library</name>
     <properties>
         <LICENSE_NAME>GNU Affero General Public License (AGPL)</LICENSE_NAME>
-        <LICENSE_URL>http://www.gnu.org/licenses/agpl-3.0.txt</LICENSE_URL>
+        <LICENSE_URL>https://www.gnu.org/licenses/agpl-3.0.txt</LICENSE_URL>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -154,6 +154,11 @@
     </build>
     <dependencies>
         <!-- LOGGING DEPENDENCIES - LOG4J -->
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.22.0</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
@@ -371,9 +376,9 @@
         </dependency>
     </dependencies>
     <description>SavaPage is an Enterprise Printing Solution with a Web App for Print Preview, Editing, PDF Creation and Proxy Printing.</description>
-    <url>http://savapage.org</url>
+    <url>https://www.savapage.org</url>
     <organization>
-        <url>http://www.datraverse.com/en</url>
+        <url>https://www.datraverse.com</url>
         <name>Datraverse B.V.</name>
     </organization>
     <issueManagement>

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
  * <i>visible</i>.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class UserAuth {
@@ -88,12 +88,21 @@ public class UserAuth {
     public static final String MODE_CARD_IP = "nfc-network";
 
     /**
+     * Login method 'Google Sign-In'.
+     * <p>
+     * <b>NOTE</b>: Value is used as URL parameter at WebApp Login.
+     * </p>
+     */
+    public static final String MODE_GOOGLE_SIGN_IN = "google";
+
+
+    /**
      *
-     * @author Datraverse B.V.
+     * @author Rijk Ravestein
      *
      */
     public static enum Mode {
-        NAME, ID, CARD_LOCAL, CARD_IP
+        NAME, ID, CARD_LOCAL, CARD_IP, GOOGLE_SIGN_IN
     }
 
     private boolean visibleAuthName;
@@ -137,6 +146,8 @@ public class UserAuth {
             return MODE_ID;
         case NAME:
             return MODE_NAME;
+        case GOOGLE_SIGN_IN:
+            return MODE_GOOGLE_SIGN_IN;
         default:
             return null;
         }
@@ -157,6 +168,8 @@ public class UserAuth {
             return Mode.CARD_IP;
         } else if (mode.equals(MODE_CARD_LOCAL)) {
             return Mode.CARD_LOCAL;
+        } else if (mode.equals(MODE_GOOGLE_SIGN_IN)) {
+            return Mode.GOOGLE_SIGN_IN;
         }
         return null;
     }

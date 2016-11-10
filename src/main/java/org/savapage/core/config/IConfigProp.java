@@ -1899,6 +1899,20 @@ public interface IConfigProp {
         /**
          * .
          */
+        WEB_LOGIN_GOOGLE_ENABLE("web-login.google.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * The Google Sign-In Client ID.
+         * <p>
+         * For example:
+         * {@code SOMEUNIQUESTRING.apps.googleusercontent.com}
+         * </p>
+         */
+        WEB_LOGIN_GOOGLE_CLIENT_ID("web-login.google.client-id"),
+
+        /**
+         * .
+         */
         WEB_LOGIN_AUTHTOKEN_ENABLE("web-login.authtoken.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
