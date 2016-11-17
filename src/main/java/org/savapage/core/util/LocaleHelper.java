@@ -43,6 +43,15 @@ import org.savapage.core.config.IConfigProp.Key;
  */
 public final class LocaleHelper {
 
+    private static final String LOCALE_LANG_ENGLISH = "en";
+    private static final String LOCALE_LANG_DUTCH = "nl";
+    private static final String LOCALE_LANG_FRENCH = "fr";
+    private static final String LOCALE_LANG_GERMAN = "de";
+    private static final String LOCALE_LANG_SPANISH = "es";
+
+    private static final String LOCALE_CTRY_NL = "NL";
+    private static final String LOCALE_CTRY_ES = "ES";
+
     /**
      *
      */
@@ -232,7 +241,8 @@ public final class LocaleHelper {
         list.append(Locale.GERMANY.getLanguage()).append(',');
         list.append(Locale.US.getLanguage()).append(',');
         list.append(Locale.FRANCE.getLanguage()).append(',');
-        list.append("nl");
+        list.append(LOCALE_LANG_SPANISH).append(',');
+        list.append(LOCALE_LANG_DUTCH);
 
         return list.toString();
     }
@@ -254,17 +264,20 @@ public final class LocaleHelper {
 
         for (final String lang : StringUtils.split(langAvailable, " ,;:")) {
             switch (lang.toLowerCase()) {
-            case "de":
+            case LOCALE_LANG_GERMAN:
                 list.add(Locale.GERMANY);
                 break;
-            case "en":
+            case LOCALE_LANG_ENGLISH:
                 list.add(Locale.US);
                 break;
-            case "fr":
+            case LOCALE_LANG_SPANISH:
+                list.add(new Locale(LOCALE_LANG_SPANISH, LOCALE_CTRY_ES));
+                break;
+            case LOCALE_LANG_FRENCH:
                 list.add(Locale.FRANCE);
                 break;
-            case "nl":
-                list.add(new Locale("nl", "NL"));
+            case LOCALE_LANG_DUTCH:
+                list.add(new Locale(LOCALE_LANG_DUTCH, LOCALE_CTRY_NL));
                 break;
             default:
                 break;
