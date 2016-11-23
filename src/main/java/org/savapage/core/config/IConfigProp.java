@@ -1798,6 +1798,12 @@ public interface IConfigProp {
         WEBAPP_CARD_LOCAL_KEYSTROKES_MAX_MSECS("webapp.card-local.keystrokes-max-msecs", NUMBER_VALIDATOR, "500"),
 
         /**
+         * Time limit (milliseconds) to capture the keystrokes of the YubiKey OTP.
+         */
+        WEBAPP_YUBIKEY_KEYSTROKES_MAX_MSECS("webapp.yubikey.keystrokes-max-msecs", NUMBER_VALIDATOR, "1500"),
+
+
+        /**
          * Time limit (seconds) for a user to associate a new Card to his
          * account. After the time limit the dialog is automatically closed.
          */
@@ -1904,11 +1910,25 @@ public interface IConfigProp {
         /**
          * The Google Sign-In Client ID.
          * <p>
-         * For example:
-         * {@code SOMEUNIQUESTRING.apps.googleusercontent.com}
+         * For example: {@code SOMEUNIQUESTRING.apps.googleusercontent.com}
          * </p>
          */
         WEB_LOGIN_GOOGLE_CLIENT_ID("web-login.google.client-id"),
+
+        /**
+         * .
+         */
+        WEB_LOGIN_YUBIKEY_ENABLE("web-login.yubikey.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * .
+         */
+        YUBICO_API_CLIENT_ID("yubico.api.client-id"),
+
+        /**
+         * .
+         */
+        YUBICO_API_SECRET_KEY("yubico.api.secret-key"),
 
         /**
          * .

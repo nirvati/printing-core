@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -112,6 +112,15 @@ public interface UserService {
      * @return {@code blank} when not found.
      */
     String getPrimaryIdNumber(User user);
+
+    /**
+     * Gets the YubiKey Public ID of a User.
+     *
+     * @param user
+     *            The {@link User}.
+     * @return {@code blank} when not found.
+     */
+    String getYubiKeyPubID(User user);
 
     /**
      * Gets the Primary email address of a User.
@@ -253,6 +262,17 @@ public interface UserService {
      * @return The User or {@code null} when not found.
      */
     User findUserByNumber(String number);
+
+    /**
+     * Finds a {@link User} by YubiKey Public ID.
+     * <p>
+     * When offered Public ID is blank, {@code null} is returned.
+     * </p>
+     *
+     * @param publicID
+     * @return The User or {@code null} when not found.
+     */
+    User findUserByYubiKeyPubID(String publicID);
 
     /**
      * Finds a {@link User} by ID number that has {@link UUID}.

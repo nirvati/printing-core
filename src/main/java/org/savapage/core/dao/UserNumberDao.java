@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,7 +25,7 @@ import org.savapage.core.jpa.UserNumber;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface UserNumberDao extends GenericDao<UserNumber> {
@@ -34,6 +34,11 @@ public interface UserNumberDao extends GenericDao<UserNumber> {
      * The index of the primary {@link UserNumber}.
      */
     int INDEX_NUMBER_PRIMARY_NUMBER = 0;
+
+    /**
+     * The index of the YubiKey {@link UserNumber}.
+     */
+    int INDEX_NUMBER_YUBIKEY_NUMBER = 100;
 
     /**
      * Is this {@link UserNumber} a primary number?
@@ -45,12 +50,47 @@ public interface UserNumberDao extends GenericDao<UserNumber> {
     boolean isPrimaryNumber(UserNumber number);
 
     /**
+     * Is this {@link UserNumber} a YubiKey Public ID?
+     *
+     * @param number
+     *            The {@link UserNumber}.
+     * @return {@code true} if number is YubiKey Public ID.
+     */
+    boolean isYubiKeyPubID(UserNumber number);
+
+    /**
+     * Gets the YubiKey Public ID from a {@link UserNumber}.
+     *
+     * @param number
+     *            The {@link UserNumber}.
+     * @return {@code null} when not a YubiKey Public ID.
+     */
+    String getYubiKeyPubID(UserNumber number);
+
+    /**
+     * Composes the number stored in database for the YubiKey Public ID.
+     *
+     * @param publicId
+     *            the YubiKey Public ID.
+     * @return The composed database number value.
+     */
+    String composeYubiKeyDbNumber(String publicId);
+
+    /**
      * Makes number a primary {@link UserNumber}.
      *
      * @param number
      *            The {@link UserNumber}.
      */
     void assignPrimaryNumber(UserNumber number);
+
+    /**
+     * Makes number a YubiKey {@link UserNumber}.
+     *
+     * @param number
+     *            The {@link UserNumber}.
+     */
+    void assignYubiKeyNumber(UserNumber number);
 
     /**
      * Finds a {@link UserNumber} by number.
@@ -64,4 +104,12 @@ public interface UserNumberDao extends GenericDao<UserNumber> {
      */
     UserNumber findByNumber(String number);
 
+    /**
+     * Finds a {@link UserNumber} by YubiKey Public ID.
+     *
+     * @param yubiKeyID
+     *            The public ID of the YubiKey
+     * @return The {@link UserNumber} or {@code null} when not found.
+     */
+    UserNumber findByYubiKeyPubID(String yubiKeyID);
 }

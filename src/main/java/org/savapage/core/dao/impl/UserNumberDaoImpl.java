@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -30,20 +30,49 @@ import org.savapage.core.jpa.UserNumber;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class UserNumberDaoImpl extends GenericDaoImpl<UserNumber>
         implements UserNumberDao {
 
+    /**
+     *
+     */
+    private static final String NUMBER_PFX_YUBIKEY = "yubikey-";
+
     @Override
     public boolean isPrimaryNumber(final UserNumber number) {
-        return number.getIndexNumber() == INDEX_NUMBER_PRIMARY_NUMBER;
+        return number.getIndexNumber() == INDEX_NUMBER_PRIMARY_NUMBER
+                && !isYubiKeyPubID(number);
+    }
+
+    @Override
+    public boolean isYubiKeyPubID(final UserNumber number) {
+        return number.getNumber().startsWith(NUMBER_PFX_YUBIKEY);
+    }
+
+    @Override
+    public String getYubiKeyPubID(final UserNumber number) {
+        if (this.isYubiKeyPubID(number)) {
+            return number.getNumber().substring(NUMBER_PFX_YUBIKEY.length());
+        }
+        return null;
+    }
+
+    @Override
+    public String composeYubiKeyDbNumber(final String publicId) {
+        return String.format("%s%s", NUMBER_PFX_YUBIKEY, publicId);
     }
 
     @Override
     public void assignPrimaryNumber(final UserNumber number) {
         number.setIndexNumber(INDEX_NUMBER_PRIMARY_NUMBER);
+    }
+
+    @Override
+    public void assignYubiKeyNumber(final UserNumber number) {
+        number.setIndexNumber(INDEX_NUMBER_YUBIKEY_NUMBER);
     }
 
     @Override
@@ -53,9 +82,8 @@ public final class UserNumberDaoImpl extends GenericDaoImpl<UserNumber>
 
         if (StringUtils.isNotBlank(number)) {
 
-            final String jpql =
-                    "SELECT N FROM UserNumber N JOIN N.user U "
-                            + "WHERE N.number = :number";
+            final String jpql = "SELECT N FROM UserNumber N JOIN N.user U "
+                    + "WHERE N.number = :number";
 
             final Query query = getEntityManager().createQuery(jpql);
 
@@ -69,6 +97,12 @@ public final class UserNumberDaoImpl extends GenericDaoImpl<UserNumber>
 
         }
         return userNumber;
+    }
+
+    @Override
+    public UserNumber findByYubiKeyPubID(final String yubiKeyID) {
+        return this.findByNumber(
+                String.format("%s%s", NUMBER_PFX_YUBIKEY, yubiKeyID));
     }
 
 }

@@ -95,6 +95,13 @@ public class UserAuth {
      */
     public static final String MODE_GOOGLE_SIGN_IN = "google";
 
+    /**
+     * Login method for Yubico USB keys.
+     * <p>
+     * <b>NOTE</b>: Value is used as URL parameter at WebApp Login.
+     * </p>
+     */
+    public static final String MODE_YUBIKEY = "yubikey";
 
     /**
      *
@@ -102,7 +109,7 @@ public class UserAuth {
      *
      */
     public static enum Mode {
-        NAME, ID, CARD_LOCAL, CARD_IP, GOOGLE_SIGN_IN
+        NAME, ID, CARD_LOCAL, CARD_IP, GOOGLE_SIGN_IN, YUBIKEY
     }
 
     private boolean visibleAuthName;
@@ -148,6 +155,8 @@ public class UserAuth {
             return MODE_NAME;
         case GOOGLE_SIGN_IN:
             return MODE_GOOGLE_SIGN_IN;
+        case YUBIKEY:
+            return MODE_YUBIKEY;
         default:
             return null;
         }
@@ -170,6 +179,8 @@ public class UserAuth {
             return Mode.CARD_LOCAL;
         } else if (mode.equals(MODE_GOOGLE_SIGN_IN)) {
             return Mode.GOOGLE_SIGN_IN;
+        } else if (mode.equals(MODE_YUBIKEY)) {
+            return Mode.YUBIKEY;
         }
         return null;
     }

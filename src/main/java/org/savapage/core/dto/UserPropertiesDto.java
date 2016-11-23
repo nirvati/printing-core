@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,11 +28,12 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @JsonPropertyOrder({ "removeEmail", "removeEmailOther", "removeCard",
-        "removeId", "removePassword", "removePin", "removeUuid" })
+        "removeId", "removeYubiKey", "removePassword", "removePin",
+        "removeUuid" })
 @JsonInclude(Include.NON_NULL)
 public class UserPropertiesDto extends UserDto {
 
@@ -47,6 +48,9 @@ public class UserPropertiesDto extends UserDto {
 
     @JsonProperty("removeId")
     private Boolean removeId = false;
+
+    @JsonProperty("removeYubiKey")
+    private Boolean removeYubiKey = false;
 
     @JsonProperty("removePassword")
     private Boolean removePassword = false;
@@ -101,6 +105,14 @@ public class UserPropertiesDto extends UserDto {
 
     public void setRemoveId(Boolean removeId) {
         this.removeId = removeId;
+    }
+
+    public Boolean getRemoveYubiKey() {
+        return removeYubiKey;
+    }
+
+    public void setRemoveYubiKey(Boolean removeYubiKey) {
+        this.removeYubiKey = removeYubiKey;
     }
 
     public Boolean getRemovePassword() {

@@ -374,6 +374,11 @@
             <artifactId>juh</artifactId>
             <version>3.2.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.yubico</groupId>
+            <artifactId>yubico-validation-client2</artifactId>
+            <version>3.0.1</version>
+        </dependency>
     </dependencies>
     <description>SavaPage is an Enterprise Printing Solution with a Web App for Print Preview, Editing, PDF Creation and Proxy Printing.</description>
     <url>https://www.savapage.org</url>
