@@ -157,6 +157,7 @@ public final class UserServiceImpl extends AbstractService
         final String primaryEmail = dto.getEmail();
         final String cardNumber = dto.getCard();
         final String idNumber = dto.getId();
+        final String yubiKeyPubId = dto.getYubiKeyPubId();
 
         boolean isUpdated = false;
 
@@ -346,6 +347,45 @@ public final class UserServiceImpl extends AbstractService
             }
 
             this.assocPrimaryIdNumber(jpaUser, idNumber);
+            isUpdated = true;
+        }
+
+        /*
+         * YubiKey Public ID (remove).
+         */
+        if (StringUtils.isBlank(yubiKeyPubId)) {
+
+            if (dto.getRemoveYubiKey()) {
+                this.assocYubiKeyPubId(jpaUser, null);
+                isUpdated = true;
+            }
+
+        } else {
+
+            final int lengthYubiKey = YubiKeyOTP.PUBLIC_ID_LENGTH;
+
+            if (yubiKeyPubId.length() != lengthYubiKey) {
+                /*
+                 * INVARIANT: YubiKey Public ID MUST be valid.
+                 */
+                return createError("msg-yubikey-length-error",
+                        String.valueOf(lengthYubiKey));
+            }
+
+            final User jpaUserDuplicate =
+                    this.findUserByYubiKeyPubID(yubiKeyPubId);
+
+            if (jpaUserDuplicate != null
+                    && !jpaUserDuplicate.getUserId().equals(userid)) {
+
+                /*
+                 * INVARIANT: YubiKey Public ID MUST be unique.
+                 */
+                return createError("msg-user-duplicate-user-yubikey",
+                        dto.getId(), jpaUserDuplicate.getUserId());
+            }
+
+            this.assocYubiKeyPubId(jpaUser, yubiKeyPubId);
             isUpdated = true;
         }
 

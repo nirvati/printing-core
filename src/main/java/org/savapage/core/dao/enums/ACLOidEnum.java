@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -51,8 +51,7 @@ public enum ACLOidEnum {
     /**
      * The user inbox (SafePages).
      */
-    U_INBOX(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR),
-            EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND)),
+    U_INBOX(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR), EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND)),
 
     /**
      * Financial.
@@ -62,8 +61,7 @@ public enum ACLOidEnum {
     /**
      * Letterhead.
      */
-    U_LETTERHEAD(EnumSet.of(ACLPermissionEnum.READER,
-            ACLPermissionEnum.EDITOR));
+    U_LETTERHEAD(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR));
 
     /**
      *
@@ -258,19 +256,23 @@ public enum ACLOidEnum {
     }
 
     /**
+     * Converts permissions to privileges.
      *
      * @param mapIn
-     * @return
+     *            The permissions (can be {@code null}).
+     * @return The privileges, or an empty map when mapIn is {@code null}.
      */
     public static Map<ACLOidEnum, Integer> asMapPrivilege(
             final Map<ACLOidEnum, List<ACLPermissionEnum>> mapIn) {
 
         final Map<ACLOidEnum, Integer> mapOut = new HashMap<>();
 
-        for (final Entry<ACLOidEnum, List<ACLPermissionEnum>> entry : mapIn
-                .entrySet()) {
-            mapOut.put(entry.getKey(),
-                    ACLPermissionEnum.asPrivilege(entry.getValue()));
+        if (mapIn != null) {
+            for (final Entry<ACLOidEnum, List<ACLPermissionEnum>> entry : mapIn
+                    .entrySet()) {
+                mapOut.put(entry.getKey(),
+                        ACLPermissionEnum.asPrivilege(entry.getValue()));
+            }
         }
         return mapOut;
     }
