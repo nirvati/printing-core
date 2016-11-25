@@ -93,7 +93,7 @@ public class UserAuth {
      * <b>NOTE</b>: Value is used as URL parameter at WebApp Login.
      * </p>
      */
-    public static final String MODE_GOOGLE_SIGN_IN = "google";
+    public static final String MODE_GOOGLE = "google";
 
     /**
      * Login method for Yubico USB keys.
@@ -109,13 +109,15 @@ public class UserAuth {
      *
      */
     public static enum Mode {
-        NAME, ID, CARD_LOCAL, CARD_IP, GOOGLE_SIGN_IN, YUBIKEY
+        NAME, ID, CARD_LOCAL, CARD_IP, GOOGLE, YUBIKEY
     }
 
     private boolean visibleAuthName;
     private boolean visibleAuthId;
     private boolean visibleAuthCardLocal;
     private boolean visibleAuthCardIp;
+    private boolean visibleAuthGoogle;
+    private boolean visibleAuthYubikey;
 
     private Mode authModeDefault;
 
@@ -130,6 +132,8 @@ public class UserAuth {
     private boolean allowAuthId;
     private boolean allowAuthCardLocal;
     private boolean allowAuthCardIp;
+    private boolean allowAuthGoogle;
+    private boolean allowAuthYubikey;
 
     /**
      *
@@ -153,8 +157,8 @@ public class UserAuth {
             return MODE_ID;
         case NAME:
             return MODE_NAME;
-        case GOOGLE_SIGN_IN:
-            return MODE_GOOGLE_SIGN_IN;
+        case GOOGLE:
+            return MODE_GOOGLE;
         case YUBIKEY:
             return MODE_YUBIKEY;
         default:
@@ -177,8 +181,8 @@ public class UserAuth {
             return Mode.CARD_IP;
         } else if (mode.equals(MODE_CARD_LOCAL)) {
             return Mode.CARD_LOCAL;
-        } else if (mode.equals(MODE_GOOGLE_SIGN_IN)) {
-            return Mode.GOOGLE_SIGN_IN;
+        } else if (mode.equals(MODE_GOOGLE)) {
+            return Mode.GOOGLE;
         } else if (mode.equals(MODE_YUBIKEY)) {
             return Mode.YUBIKEY;
         }
@@ -238,6 +242,8 @@ public class UserAuth {
         boolean showAuthId = false;
         boolean showAuthCardLocal = false;
         boolean showAuthCardIp = false;
+        boolean showAuthYubiKey = false;
+        boolean showAuthGoogle = false;
 
         Mode authModeReq = null;
 
@@ -273,6 +279,10 @@ public class UserAuth {
                     customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_CARD_IP, false);
             this.allowAuthCardLocal = customAuth
                     .isTrue(DeviceAttrEnum.AUTH_MODE_CARD_LOCAL, false);
+            this.allowAuthYubikey =
+                    customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_YUBIKEY, false);
+            this.allowAuthGoogle =
+                    customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_GOOGLE, false);
 
             this.authModeDefault = UserAuth
                     .mode(customAuth.get(DeviceAttrEnum.AUTH_MODE_DEFAULT,
@@ -282,6 +292,8 @@ public class UserAuth {
             showAuthId = this.allowAuthId;
             showAuthCardIp = this.allowAuthCardIp;
             showAuthCardLocal = this.allowAuthCardLocal;
+            showAuthYubiKey = this.allowAuthYubikey;
+            showAuthGoogle = this.allowAuthGoogle;
 
             if (!isAdminWebAppContext) {
                 this.maxIdleSeconds = Integer.valueOf(customAuth.get(
@@ -322,6 +334,8 @@ public class UserAuth {
             showAuthName = cm.isConfigValue(Key.AUTH_MODE_NAME_SHOW);
             showAuthId = cm.isConfigValue(Key.AUTH_MODE_ID_SHOW);
             showAuthCardLocal = cm.isConfigValue(Key.AUTH_MODE_CARD_LOCAL_SHOW);
+            showAuthYubiKey = cm.isConfigValue(Key.AUTH_MODE_YUBIKEY);
+            showAuthGoogle = cm.isConfigValue(Key.AUTH_MODE_GOOGLE);
             showAuthCardIp = false;
 
             this.authModeDefault =
@@ -351,6 +365,12 @@ public class UserAuth {
             case NAME:
                 isValidDefault = this.allowAuthName && showAuthName;
                 break;
+            case GOOGLE:
+                isValidDefault = this.allowAuthGoogle && showAuthGoogle;
+                break;
+            case YUBIKEY:
+                isValidDefault = this.allowAuthYubikey && showAuthYubiKey;
+                break;
             default:
                 break;
             }
@@ -363,7 +383,6 @@ public class UserAuth {
                 this.maxIdleSeconds =
                         cm.getConfigInt(Key.WEBAPP_USER_MAX_IDLE_SECS);
             }
-
         }
 
         /*
@@ -383,6 +402,8 @@ public class UserAuth {
             this.visibleAuthCardLocal =
                     this.allowAuthCardLocal && showAuthCardLocal;
             this.visibleAuthCardIp = this.allowAuthCardIp && showAuthCardIp;
+            this.visibleAuthGoogle = this.allowAuthGoogle && showAuthGoogle;
+            this.visibleAuthYubikey = this.allowAuthYubikey && showAuthYubiKey;
 
             /*
              * INVARIANT: Admin WebApp SHOULD always be able to login with
@@ -400,6 +421,8 @@ public class UserAuth {
             this.visibleAuthId = false;
             this.visibleAuthCardLocal = false;
             this.visibleAuthCardIp = false;
+            this.visibleAuthGoogle = false;
+            this.visibleAuthYubikey = false;
 
             switch (authModeReq) {
             case CARD_IP:
@@ -413,6 +436,12 @@ public class UserAuth {
                 break;
             case NAME:
                 this.visibleAuthName = this.allowAuthName;
+                break;
+            case GOOGLE:
+                this.visibleAuthGoogle = this.allowAuthGoogle;
+                break;
+            case YUBIKEY:
+                this.visibleAuthYubikey = this.allowAuthYubikey;
                 break;
             default:
                 break;
@@ -439,13 +468,21 @@ public class UserAuth {
                 || (this.authModeDefault == Mode.CARD_LOCAL
                         && !this.visibleAuthCardLocal)
                 || (this.authModeDefault == Mode.CARD_IP
-                        && !this.visibleAuthCardIp);
+                        && !this.visibleAuthCardIp)
+                || (this.authModeDefault == Mode.GOOGLE
+                        && !this.visibleAuthGoogle)
+                || (this.authModeDefault == Mode.YUBIKEY
+                        && !this.visibleAuthYubikey);
 
         if (incorrectDefault) {
             /*
              * Assign the more advanced methods first.
              */
-            if (this.visibleAuthCardIp) {
+            if (this.visibleAuthGoogle) {
+                this.authModeDefault = Mode.GOOGLE;
+            } else if (this.visibleAuthYubikey) {
+                this.authModeDefault = Mode.YUBIKEY;
+            } else if (this.visibleAuthCardIp) {
                 this.authModeDefault = Mode.CARD_IP;
             } else if (this.visibleAuthCardLocal) {
                 this.authModeDefault = Mode.CARD_LOCAL;
@@ -455,7 +492,6 @@ public class UserAuth {
                 this.authModeDefault = Mode.NAME;
             }
         }
-
     }
 
     /**
@@ -477,7 +513,9 @@ public class UserAuth {
         return (allowAuthName && mode == UserAuth.Mode.NAME)
                 || (allowAuthId && mode == UserAuth.Mode.ID)
                 || (allowAuthCardLocal && mode == UserAuth.Mode.CARD_LOCAL)
-                || (allowAuthCardIp && mode == UserAuth.Mode.CARD_IP);
+                || (allowAuthCardIp && mode == UserAuth.Mode.CARD_IP)
+                || (allowAuthGoogle && mode == UserAuth.Mode.GOOGLE)
+                || (allowAuthYubikey && mode == UserAuth.Mode.YUBIKEY);
     }
 
     public boolean isVisibleAuthName() {
@@ -494,6 +532,10 @@ public class UserAuth {
 
     public boolean isVisibleAuthCardIp() {
         return visibleAuthCardIp;
+    }
+
+    public boolean isVisibleAuthYubikey() {
+        return visibleAuthYubikey;
     }
 
     public Mode getAuthModeDefault() {

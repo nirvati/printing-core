@@ -134,6 +134,8 @@ public interface IConfigProp {
     final String AUTH_MODE_V_ID = UserAuth.MODE_ID;
     final String AUTH_MODE_V_CARD_LOCAL = UserAuth.MODE_CARD_LOCAL;
     final String AUTH_MODE_V_CARD_IP = UserAuth.MODE_CARD_IP;
+    final String AUTH_MODE_V_GOOGLE = UserAuth.MODE_GOOGLE;
+    final String AUTH_MODE_V_YUBIKEY = UserAuth.MODE_YUBIKEY;
 
     final String LDAP_TYPE_V_APPLE = "APPLE_OPENDIR";
     final String LDAP_TYPE_V_OPEN_LDAP = "OPEN_LDAP";
@@ -385,6 +387,44 @@ public interface IConfigProp {
         AUTH_MODE_CARD_LOCAL("auth-mode.card-local", BOOLEAN_VALIDATOR, V_NO),
 
         /**
+        *
+        */
+        AUTH_MODE_YUBIKEY("auth-mode.yubikey", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+        *
+        */
+        AUTH_MODE_YUBIKEY_SHOW("auth-mode.yubikey.show", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * .
+         */
+        AUTH_MODE_YUBIKEY_API_CLIENT_ID("auth-mode.yubikey.api.client-id"),
+
+        /**
+         * .
+         */
+        AUTH_MODE_YUBIKEY_API_SECRET_KEY("auth-mode.yubikey.api.secret-key"),
+
+        /**
+        *
+        */
+        AUTH_MODE_GOOGLE("auth-mode.google", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+        *
+        */
+        AUTH_MODE_GOOGLE_SHOW("auth-mode.google.show", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * The Google Sign-In Client ID.
+         * <p>
+         * For example: {@code SOMEUNIQUESTRING.apps.googleusercontent.com}
+         * </p>
+         */
+        AUTH_MODE_GOOGLE_CLIENT_ID("auth-mode.google.client-id"),
+
+        /**
          *
          */
         AUTH_MODE_CARD_PIN_REQUIRED("auth-mode.card.pin-required", BOOLEAN_VALIDATOR, V_YES),
@@ -407,12 +447,18 @@ public interface IConfigProp {
         /**
          *
          */
-        AUTH_MODE_DEFAULT("auth-mode-default", null, AUTH_MODE_V_NAME, new String[] { AUTH_MODE_V_NAME, AUTH_MODE_V_ID, AUTH_MODE_V_CARD_LOCAL }),
+        AUTH_MODE_DEFAULT("auth-mode-default", null, AUTH_MODE_V_NAME, new String[] {
+                //
+                AUTH_MODE_V_NAME, AUTH_MODE_V_ID, AUTH_MODE_V_CARD_LOCAL,
+                //
+                AUTH_MODE_V_GOOGLE, AUTH_MODE_V_YUBIKEY }),
 
         /**
          * Authentication method.
          */
-        AUTH_METHOD("auth.method", null, AUTH_METHOD_V_NONE, new String[] { AUTH_METHOD_V_NONE, AUTH_METHOD_V_UNIX, AUTH_METHOD_V_LDAP }),
+        AUTH_METHOD("auth.method", null, AUTH_METHOD_V_NONE, new String[] {
+                //
+                AUTH_METHOD_V_NONE, AUTH_METHOD_V_UNIX, AUTH_METHOD_V_LDAP }),
 
         /**
          *
@@ -1798,10 +1844,10 @@ public interface IConfigProp {
         WEBAPP_CARD_LOCAL_KEYSTROKES_MAX_MSECS("webapp.card-local.keystrokes-max-msecs", NUMBER_VALIDATOR, "500"),
 
         /**
-         * Time limit (milliseconds) to capture the keystrokes of the YubiKey OTP.
+         * Time limit (milliseconds) to capture the keystrokes of the YubiKey
+         * OTP.
          */
         WEBAPP_YUBIKEY_KEYSTROKES_MAX_MSECS("webapp.yubikey.keystrokes-max-msecs", NUMBER_VALIDATOR, "1500"),
-
 
         /**
          * Time limit (seconds) for a user to associate a new Card to his
@@ -1901,34 +1947,6 @@ public interface IConfigProp {
          * that are available for users to choose for their Web App locale.
          */
         WEBAPP_LANGUAGE_AVAILABLE("webapp.language.available"),
-
-        /**
-         * .
-         */
-        WEB_LOGIN_GOOGLE_ENABLE("web-login.google.enable", BOOLEAN_VALIDATOR, V_NO),
-
-        /**
-         * The Google Sign-In Client ID.
-         * <p>
-         * For example: {@code SOMEUNIQUESTRING.apps.googleusercontent.com}
-         * </p>
-         */
-        WEB_LOGIN_GOOGLE_CLIENT_ID("web-login.google.client-id"),
-
-        /**
-         * .
-         */
-        WEB_LOGIN_YUBIKEY_ENABLE("web-login.yubikey.enable", BOOLEAN_VALIDATOR, V_NO),
-
-        /**
-         * .
-         */
-        YUBICO_API_CLIENT_ID("yubico.api.client-id"),
-
-        /**
-         * .
-         */
-        YUBICO_API_SECRET_KEY("yubico.api.secret-key"),
 
         /**
          * .

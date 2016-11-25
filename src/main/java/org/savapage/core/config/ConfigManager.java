@@ -1705,7 +1705,7 @@ public final class ConfigManager {
                 || key == Key.SMARTSCHOOL_1_SOAP_PRINT_ENDPOINT_PASSWORD
                 || key == Key.SMARTSCHOOL_2_SOAP_PRINT_ENDPOINT_PASSWORD
                 || key == Key.WEB_LOGIN_TTP_API_KEY
-                || key == Key.YUBICO_API_SECRET_KEY;
+                || key == Key.AUTH_MODE_YUBIKEY_API_SECRET_KEY;
     }
 
     /**

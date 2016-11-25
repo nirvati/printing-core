@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -32,15 +32,15 @@ import org.savapage.core.jpa.DeviceAttr;
 /**
  * {@link DeviceAttr} names. See {@link DeviceAttr#setName(String)}.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public enum DeviceAttrEnum {
 
     /**
      * Identical to {@link IConfigProp.Key#WEBAPP_USER_MAX_IDLE_SECS}.
      */
-    WEBAPP_USER_MAX_IDLE_SECS(DeviceAttrDao.WEBAPP_USER_PREFIX
-            + ".max-idle-secs"),
+    WEBAPP_USER_MAX_IDLE_SECS(DeviceAttrDao.WEBAPP_USER_PREFIX + ".max-idle-secs"),
 
     /**
      *
@@ -63,6 +63,16 @@ public enum DeviceAttrEnum {
     AUTH_MODE_CARD_LOCAL(DeviceAttrDao.AUTH_MODE_PREFIX + ".card-local"),
 
     /**
+     * Identical to {@link IConfigProp.Key#AUTH_MODE_YUBIKEY}.
+     */
+    AUTH_MODE_YUBIKEY(DeviceAttrDao.AUTH_MODE_PREFIX + ".yubikey"),
+
+    /**
+     * Identical to {@link IConfigProp.Key#AUTH_MODE_GOOGLE}.
+     */
+    AUTH_MODE_GOOGLE(DeviceAttrDao.AUTH_MODE_PREFIX + ".google"),
+
+    /**
      * Identical to {@link IConfigProp.Key#AUTH_MODE_ID_IS_MASKED}.
      */
     AUTH_MODE_ID_IS_MASKED(DeviceAttrDao.AUTH_MODE_PREFIX + ".id.is-masked"),
@@ -75,14 +85,12 @@ public enum DeviceAttrEnum {
     /**
      * Identical to {@link IConfigProp.Key#AUTH_MODE_CARD_PIN_REQUIRED}.
      */
-    AUTH_MODE_CARD_PIN_REQ(DeviceAttrDao.AUTH_MODE_PREFIX
-            + ".card.pin-required"),
+    AUTH_MODE_CARD_PIN_REQ(DeviceAttrDao.AUTH_MODE_PREFIX + ".card.pin-required"),
 
     /**
      * Identical to {@link IConfigProp.Key#AUTH_MODE_CARD_SELF_ASSOCIATION}.
      */
-    AUTH_MODE_CARD_SELF_ASSOC(DeviceAttrDao.AUTH_MODE_PREFIX
-            + ".card.self-association"),
+    AUTH_MODE_CARD_SELF_ASSOC(DeviceAttrDao.AUTH_MODE_PREFIX + ".card.self-association"),
 
     /**
      *
@@ -124,8 +132,7 @@ public enum DeviceAttrEnum {
     /**
      * Reserved for future use.
      */
-    CARD_NUMBER_VALIDITY_REGEX(DeviceAttrDao.CARD_NUMBER_PREFIX
-            + ".validity-regex");
+    CARD_NUMBER_VALIDITY_REGEX(DeviceAttrDao.CARD_NUMBER_PREFIX + ".validity-regex");
 
     /**
      *
