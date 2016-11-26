@@ -1531,13 +1531,15 @@ public final class ConfigManager {
     public void updateConfigKey(final Key key, final String value,
             final String actor) {
 
-        String val = value;
+        final String valUpdate;
 
-        if (isUserEncrypted(key)) {
-            val = CryptoUser.encrypt(value);
+        if (StringUtils.isNotBlank(value) && isUserEncrypted(key)) {
+            valUpdate = CryptoUser.encrypt(value);
+        } else {
+            valUpdate = value;
         }
 
-        myConfigProp.updateValue(key, val, actor);
+        myConfigProp.updateValue(key, valUpdate, actor);
     }
 
     /**
@@ -1695,7 +1697,7 @@ public final class ConfigManager {
      * @param key
      * @return
      */
-    private boolean isUserEncrypted(final IConfigProp.Key key) {
+    public boolean isUserEncrypted(final IConfigProp.Key key) {
         return key == Key.AUTH_LDAP_ADMIN_PASSWORD
                 || key == Key.CLIAPP_AUTH_ADMIN_PASSKEY
                 || key == Key.MAIL_SMTP_PASSWORD
