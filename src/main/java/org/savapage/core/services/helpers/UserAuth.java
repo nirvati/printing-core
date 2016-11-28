@@ -167,6 +167,37 @@ public class UserAuth {
     }
 
     /**
+     * Gets the UI text of an {@link Mode}.
+     *
+     * @param authMode
+     *            The {@link Mode} (can be {@code null}).
+     * @return The UI text.
+     */
+    public static String getUiText(final Mode authMode) {
+        if (authMode == null) {
+            // #21B7: CLOCKWISE TOP SEMICIRCLE ARROW
+            return "↷";
+        } else {
+            switch (authMode) {
+            case CARD_IP:
+            case CARD_LOCAL:
+                return "NFC";
+            case GOOGLE:
+                return "Google";
+            case YUBIKEY:
+                return "YubiKey";
+            case ID:
+                return "ID";
+            case NAME:
+                return "~";
+            default:
+                throw new SpException(String.format("AuthMode %s not handled.",
+                        authMode.toString()));
+            }
+        }
+    }
+
+    /**
      * Gets the {@link Mode} representation from the String.
      *
      * @param mode
@@ -329,13 +360,15 @@ public class UserAuth {
             this.allowAuthId = cm.isConfigValue(Key.AUTH_MODE_ID);
             this.allowAuthCardLocal =
                     cm.isConfigValue(Key.AUTH_MODE_CARD_LOCAL);
+            this.allowAuthYubikey = cm.isConfigValue(Key.AUTH_MODE_YUBIKEY);
+            this.allowAuthGoogle = cm.isConfigValue(Key.AUTH_MODE_GOOGLE);
             this.allowAuthCardIp = false;
 
             showAuthName = cm.isConfigValue(Key.AUTH_MODE_NAME_SHOW);
             showAuthId = cm.isConfigValue(Key.AUTH_MODE_ID_SHOW);
             showAuthCardLocal = cm.isConfigValue(Key.AUTH_MODE_CARD_LOCAL_SHOW);
-            showAuthYubiKey = cm.isConfigValue(Key.AUTH_MODE_YUBIKEY);
-            showAuthGoogle = cm.isConfigValue(Key.AUTH_MODE_GOOGLE);
+            showAuthYubiKey = cm.isConfigValue(Key.AUTH_MODE_YUBIKEY_SHOW);
+            showAuthGoogle = cm.isConfigValue(Key.AUTH_MODE_GOOGLE_SHOW);
             showAuthCardIp = false;
 
             this.authModeDefault =
