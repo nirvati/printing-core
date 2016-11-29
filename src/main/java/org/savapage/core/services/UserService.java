@@ -96,6 +96,13 @@ public interface UserService {
     boolean hasAssocPrimaryNumber(User user);
 
     /**
+     *
+     * @param user The {@link User}.
+     * @return {@code true} when (internal) user has a password.
+     */
+    boolean hasInternalPassword(User user);
+
+    /**
      * Gets the Primary Card number of a User.
      *
      * @param user
@@ -522,8 +529,19 @@ public interface UserService {
     void setUserAttrValue(User user, UserAttrEnum attrEnum, String attrValue);
 
     /**
+     * Encrypts an (internal) user password.
+     *
+     * @param userid
+     *            The user id.
+     * @param password
+     *            The plain password.
+     * @return The encrypted password.
+     */
+    String encryptUserPassword(String userid, String password);
+
+    /**
      * Logs a PrintIn job, by adding a data point to the time series (database
-     * IS updated).
+     * <b>is</b> updated).
      *
      * @param user
      *            The user.

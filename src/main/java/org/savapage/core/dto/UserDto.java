@@ -90,6 +90,9 @@ public class UserDto extends AbstractDto {
     @JsonProperty("internal")
     private Boolean internal = Boolean.FALSE;
 
+    @JsonProperty("internalPw")
+    private Boolean internalPw = Boolean.FALSE;
+
     @JsonProperty("admin")
     private Boolean admin = Boolean.FALSE;
 
@@ -289,6 +292,23 @@ public class UserDto extends AbstractDto {
 
     public void setInternal(Boolean internal) {
         this.internal = internal;
+    }
+
+    /**
+     *
+     * @return {@code true} when internal password is present.
+     */
+    public Boolean getInternalPw() {
+        return internalPw;
+    }
+
+    /**
+     *
+     * @param internalPw
+     *            {@code true} when internal password is present.
+     */
+    public void setInternalPw(Boolean internalPw) {
+        this.internalPw = internalPw;
     }
 
     public Boolean getAdmin() {

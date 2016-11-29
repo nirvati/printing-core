@@ -540,7 +540,10 @@ public final class UserServiceImpl extends AbstractService
         dto.setAdmin(user.getAdmin());
         dto.setPerson(user.getPerson());
         dto.setUserName(user.getUserId());
+
         dto.setInternal(user.getInternal());
+        dto.setInternalPw(user.getInternal().booleanValue()
+                && this.hasInternalPassword(user));
 
         dto.setId(this.getPrimaryIdNumber(user));
         dto.setYubiKeyPubId(this.getYubiKeyPubID(user));
@@ -1180,14 +1183,8 @@ public final class UserServiceImpl extends AbstractService
         return this.deleteUserFinalAction(userIdToDelete);
     }
 
-    /**
-     * Encrypts the user password.
-     *
-     * @param userid
-     * @param password
-     * @return
-     */
-    private static String encryptUserPassword(final String userid,
+    @Override
+    public String encryptUserPassword(final String userid,
             final String password) {
         return CryptoUser.getHashedUserPassword(userid, password);
     }
@@ -1720,6 +1717,12 @@ public final class UserServiceImpl extends AbstractService
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean hasInternalPassword(final User user) {
+        return this.getUserAttrValue(user,
+                UserAttrEnum.INTERNAL_PASSWORD) != null;
     }
 
     @Override
