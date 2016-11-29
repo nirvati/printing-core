@@ -134,7 +134,6 @@ public interface IConfigProp {
     final String AUTH_MODE_V_ID = UserAuth.MODE_ID;
     final String AUTH_MODE_V_CARD_LOCAL = UserAuth.MODE_CARD_LOCAL;
     final String AUTH_MODE_V_CARD_IP = UserAuth.MODE_CARD_IP;
-    final String AUTH_MODE_V_GOOGLE = UserAuth.MODE_GOOGLE;
     final String AUTH_MODE_V_YUBIKEY = UserAuth.MODE_YUBIKEY;
 
     final String LDAP_TYPE_V_APPLE = "APPLE_OPENDIR";
@@ -414,7 +413,7 @@ public interface IConfigProp {
         /**
         *
         */
-        AUTH_MODE_GOOGLE_SHOW("auth-mode.google.show", BOOLEAN_VALIDATOR, V_NO),
+        AUTH_MODE_GOOGLE_HOSTED_DOMAIN("auth-mode.google.hosted-domain"),
 
         /**
          * The Google Sign-In Client ID.
@@ -451,7 +450,7 @@ public interface IConfigProp {
                 //
                 AUTH_MODE_V_NAME, AUTH_MODE_V_ID, AUTH_MODE_V_CARD_LOCAL,
                 //
-                AUTH_MODE_V_GOOGLE, AUTH_MODE_V_YUBIKEY }),
+                AUTH_MODE_V_YUBIKEY }),
 
         /**
          * Authentication method.

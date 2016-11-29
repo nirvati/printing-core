@@ -368,7 +368,7 @@ public class UserAuth {
             showAuthId = cm.isConfigValue(Key.AUTH_MODE_ID_SHOW);
             showAuthCardLocal = cm.isConfigValue(Key.AUTH_MODE_CARD_LOCAL_SHOW);
             showAuthYubiKey = cm.isConfigValue(Key.AUTH_MODE_YUBIKEY_SHOW);
-            showAuthGoogle = cm.isConfigValue(Key.AUTH_MODE_GOOGLE_SHOW);
+            showAuthGoogle = this.allowAuthGoogle;
             showAuthCardIp = false;
 
             this.authModeDefault =
@@ -611,4 +611,11 @@ public class UserAuth {
         return allowAuthCardIp;
     }
 
+    public boolean isAllowAuthYubikey() {
+        return allowAuthYubikey;
+    }
+
+    public boolean isAllowAuthGoogle() {
+        return allowAuthGoogle;
+    }
 }
