@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -158,10 +158,10 @@ public final class AccessControlServiceImpl extends AbstractService
     @Override
     public boolean isAuthorized(final User user, final ACLRoleEnum role) {
 
-        final Boolean isUserAuthorized = isUserAuthorized(user, role);
+        final Boolean isUserAuth = isUserAuthorized(user, role);
 
-        if (isUserAuthorized != null) {
-            return isUserAuthorized.booleanValue();
+        if (isUserAuth != null) {
+            return isUserAuth.booleanValue();
         }
 
         /*
@@ -177,8 +177,9 @@ public final class AccessControlServiceImpl extends AbstractService
                         UserGroupMemberDao.GroupField.GROUP_NAME, true);
 
         for (final UserGroup group : groupList) {
-            if (BooleanUtils.isTrue(isGroupAuthorized(group, role))) {
-                return true;
+            final Boolean isGroupAuth = isGroupAuthorized(group, role);
+            if (isGroupAuth != null) {
+                return isGroupAuth.booleanValue();
             }
         }
 
@@ -193,8 +194,9 @@ public final class AccessControlServiceImpl extends AbstractService
             group = userGroupService().getExternalUserGroup();
         }
 
-        if (BooleanUtils.isTrue(isGroupAuthorized(group, role))) {
-            return true;
+        final Boolean isGroupAuth = isGroupAuthorized(group, role);
+        if (isGroupAuth != null) {
+            return isGroupAuth.booleanValue();
         }
 
         // All Users
@@ -403,8 +405,8 @@ public final class AccessControlServiceImpl extends AbstractService
         }
 
         // All Users
-        return getGroupPrivileges(
-                userGroupService().getAllUserGroup(), groupAttrEnum, oid);
+        return getGroupPrivileges(userGroupService().getAllUserGroup(),
+                groupAttrEnum, oid);
     }
 
 }
