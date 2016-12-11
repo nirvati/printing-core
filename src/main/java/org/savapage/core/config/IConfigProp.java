@@ -675,17 +675,6 @@ public interface IConfigProp {
         IPP_INTERNET_PRINTER_URI_BASE("ipp.internet-printer.uri-base", URI_VALIDATOR_OPT, ""),
 
         /**
-         * Printer name for JobTicket printing.
-         */
-        JOBTICKET_PROXY_PRINTER("jobticket.proxy-printer"),
-
-        /**
-         * Printer Group with compatible redirect printers for JobTicket
-         * Printer.
-         */
-        JOBTICKET_PROXY_PRINTER_GROUP("jobticket.proxy-printer-group"),
-
-        /**
          * See this <a href=
          * "http://docs.oracle.com/javase/jndi/tutorial/ldap/search/batch.html"
          * >explanation</a> and this <a href=

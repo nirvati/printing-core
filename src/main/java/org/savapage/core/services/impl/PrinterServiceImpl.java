@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -33,8 +33,6 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.SpException;
-import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.AccessControlScopeEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
@@ -84,6 +82,13 @@ public final class PrinterServiceImpl extends AbstractService
 
         final PrinterAttr attr = printerAttrDAO().findByName(printer.getId(),
                 PrinterAttrEnum.ACCESS_INTERNAL);
+        return printerAttrDAO().getBooleanValue(attr);
+    }
+
+    @Override
+    public boolean isJobTicketPrinter(final Printer printer) {
+        final PrinterAttr attr = printerAttrDAO().findByName(printer.getId(),
+                PrinterAttrEnum.JOBTICKET_ENABLE);
         return printerAttrDAO().getBooleanValue(attr);
     }
 
@@ -802,17 +807,6 @@ public final class PrinterServiceImpl extends AbstractService
             }
         }
         return false;
-    }
-
-    @Override
-    public boolean isJobTicketPrinter(final String printerName) {
-        return getJobTicketPrinterName().equals(printerName);
-    }
-
-    @Override
-    public String getJobTicketPrinterName() {
-        return StringUtils.defaultString(ConfigManager.instance()
-                .getConfigValue(Key.JOBTICKET_PROXY_PRINTER));
     }
 
     @Override

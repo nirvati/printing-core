@@ -2602,6 +2602,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         dto.setPpdExtFile(printerService().getAttributeValue(printer,
                 PrinterAttrEnum.CUSTOM_PPD_EXT_FILE));
+
+        dto.setJobTicket(
+                Boolean.valueOf(printerService().isJobTicketPrinter(printer)));
+        dto.setJobTicketGroup(printerService().getAttributeValue(printer,
+                PrinterAttrEnum.JOBTICKET_PRINTER_GROUP));
+
         /*
          * Printer Groups.
          */
@@ -2623,6 +2629,109 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         dto.setPrinterGroups(printerGroups);
         return dto;
+    }
+
+    /**
+     * Creates, updates or removes a printer boolean attribute in the database.
+     *
+     * @param printer
+     *            The printer.
+     * @param attribute
+     *            The printer attribute.
+     * @param attrValue
+     *            The attribute value.
+     */
+    private void setPrinterAttr(final Printer printer,
+            final PrinterAttrEnum attribute, final Boolean attrValue) {
+
+        final boolean boolValue = BooleanUtils.isTrue(attrValue);
+
+        final PrinterAttr printerAttr =
+                printerService().getAttribute(printer, attribute);
+
+        if (printerAttr == null) {
+
+            if (boolValue) {
+
+                final PrinterAttr attr = new PrinterAttr();
+
+                attr.setPrinter(printer);
+                attr.setName(attribute.getDbName());
+                attr.setValue(printerAttrDAO().getDbBooleanValue(boolValue));
+
+                printer.getAttributes().add(attr);
+
+                printerAttrDAO().create(attr);
+            }
+
+        } else {
+
+            final boolean currentValue =
+                    printerAttrDAO().getBooleanValue(printerAttr);
+
+            if (boolValue != currentValue) {
+
+                if (boolValue) {
+                    printerAttr.setValue(
+                            printerAttrDAO().getDbBooleanValue(boolValue));
+                    printerAttrDAO().update(printerAttr);
+                } else {
+                    printerService().removeAttribute(printer, attribute);
+                    printerAttrDAO().delete(printerAttr);
+                }
+            }
+        }
+    }
+
+    /**
+     * Creates, updates or removes a printer string attribute in the database.
+     *
+     * @param printer
+     *            The printer.
+     * @param attribute
+     *            The printer attribute.
+     * @param attrValue
+     *            The attribute value.
+     */
+    private void setPrinterAttr(final Printer printer,
+            final PrinterAttrEnum attribute, final String attrValue) {
+
+        final String strValue = StringUtils.defaultString(attrValue).trim();
+
+        final PrinterAttr printerAttr =
+                printerService().getAttribute(printer, attribute);
+
+        if (printerAttr == null) {
+
+            if (StringUtils.isNotBlank(strValue)) {
+
+                final PrinterAttr attr = new PrinterAttr();
+
+                attr.setPrinter(printer);
+                attr.setName(attribute.getDbName());
+                attr.setValue(strValue);
+
+                printer.getAttributes().add(attr);
+
+                printerAttrDAO().create(attr);
+            }
+
+        } else {
+
+            final String currentValue =
+                    StringUtils.defaultString(printerAttr.getValue());
+
+            if (!strValue.equals(currentValue)) {
+
+                if (StringUtils.isBlank(strValue)) {
+                    printerService().removeAttribute(printer, attribute);
+                    printerAttrDAO().delete(printerAttr);
+                } else {
+                    printerAttr.setValue(strValue);
+                    printerAttrDAO().update(printerAttr);
+                }
+            }
+        }
     }
 
     @Override
@@ -2654,95 +2763,21 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
-         * Internal access
-         */
-        final boolean internalPrinter =
-                dto.getInternal() != null && dto.getInternal().booleanValue();
-
-        final PrinterAttr attrInternal = printerService()
-                .getAttribute(jpaPrinter, PrinterAttrEnum.ACCESS_INTERNAL);
-
-        if (attrInternal == null) {
-
-            if (internalPrinter) {
-
-                final PrinterAttr attr = new PrinterAttr();
-
-                attr.setPrinter(jpaPrinter);
-                attr.setName(PrinterAttrEnum.ACCESS_INTERNAL.getDbName());
-                attr.setValue(
-                        printerAttrDAO().getDbBooleanValue(internalPrinter));
-
-                jpaPrinter.getAttributes().add(attr);
-
-                printerAttrDAO().create(attr);
-            }
-
-        } else {
-
-            final boolean currentInternalPrinter =
-                    printerAttrDAO().getBooleanValue(attrInternal);
-
-            if (internalPrinter != currentInternalPrinter) {
-
-                if (internalPrinter) {
-                    attrInternal.setValue(printerAttrDAO()
-                            .getDbBooleanValue(internalPrinter));
-                    printerAttrDAO().update(attrInternal);
-                } else {
-                    printerService().removeAttribute(jpaPrinter,
-                            PrinterAttrEnum.ACCESS_INTERNAL);
-                    printerAttrDAO().delete(attrInternal);
-                }
-            }
-        }
-
-        /*
-         * customCupsFile
-         */
-        final String ppdExtFile =
-                StringUtils.defaultString(dto.getPpdExtFile()).trim();
-
-        final PrinterAttr attrCustomPpdExtFile = printerService()
-                .getAttribute(jpaPrinter, PrinterAttrEnum.CUSTOM_PPD_EXT_FILE);
-
-        if (attrCustomPpdExtFile == null) {
-
-            if (StringUtils.isNotBlank(ppdExtFile)) {
-
-                final PrinterAttr attr = new PrinterAttr();
-
-                attr.setPrinter(jpaPrinter);
-                attr.setName(PrinterAttrEnum.CUSTOM_PPD_EXT_FILE.getDbName());
-                attr.setValue(ppdExtFile);
-
-                jpaPrinter.getAttributes().add(attr);
-
-                printerAttrDAO().create(attr);
-            }
-
-        } else {
-
-            final String currentCustomCupsFile =
-                    StringUtils.defaultString(attrCustomPpdExtFile.getValue());
-
-            if (!ppdExtFile.equals(currentCustomCupsFile)) {
-
-                if (StringUtils.isBlank(ppdExtFile)) {
-                    printerService().removeAttribute(jpaPrinter,
-                            PrinterAttrEnum.CUSTOM_PPD_EXT_FILE);
-                    printerAttrDAO().delete(attrCustomPpdExtFile);
-                } else {
-                    attrCustomPpdExtFile.setValue(ppdExtFile);
-                    printerAttrDAO().update(attrCustomPpdExtFile);
-                }
-            }
-        }
-
-        /*
          * Location.
          */
         jpaPrinter.setLocation(dto.getLocation());
+
+        //
+        setPrinterAttr(jpaPrinter, PrinterAttrEnum.ACCESS_INTERNAL,
+                dto.getInternal());
+        setPrinterAttr(jpaPrinter, PrinterAttrEnum.CUSTOM_PPD_EXT_FILE,
+                dto.getPpdExtFile());
+
+        //
+        setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOBTICKET_ENABLE,
+                dto.getJobTicket());
+        setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOBTICKET_PRINTER_GROUP,
+                dto.getJobTicketGroup());
 
         /*
          * Printer Groups.
@@ -2805,17 +2840,13 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             printerGroupMembers.add(member);
         }
 
-        /*
-         *
-         */
+        //
         jpaPrinter.setModifiedDate(now);
         jpaPrinter.setModifiedBy(requestingUser);
 
         printerDAO().update(jpaPrinter);
 
-        /*
-         *
-         */
+        //
         updateCachedPrinter(jpaPrinter);
     }
 
@@ -2825,10 +2856,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      *
      * @param printerName
      *            The unique name of the printer.
-     * @return
+     * @return The media-source option choices.
      */
     private List<JsonProxyPrinterOptChoice>
-            getMediaSourceChoices(String printerName) {
+            getMediaSourceChoices(final String printerName) {
 
         final JsonProxyPrinter proxyPrinter = getCachedPrinter(printerName);
 
@@ -2851,10 +2882,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      *
      * @param printer
      *            The Printer.
-     * @return
+     * @return the media costs.
      */
     private Map<String, IppMediaCostDto>
-            getCostByIppMediaName(Printer printer) {
+            getCostByIppMediaName(final Printer printer) {
 
         final Map<String, IppMediaCostDto> map = new HashMap<>();
 
@@ -2925,10 +2956,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      *
      * @param printer
      *            The Printer.
-     * @return
+     * @return the media costs.
      */
     private Map<String, IppMediaSourceCostDto>
-            getIppMediaSources(Printer printer) {
+            getIppMediaSources(final Printer printer) {
 
         final Map<String, IppMediaSourceCostDto> map = new HashMap<>();
 
@@ -3076,7 +3107,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
     @Override
     public List<IppMediaSourceCostDto>
-            getProxyPrinterCostMediaSource(Printer printer) {
+            getProxyPrinterCostMediaSource(final Printer printer) {
 
         final List<IppMediaSourceCostDto> list = new ArrayList<>();
 
@@ -3150,8 +3181,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @return
      * @throws ParseException
      */
-    private AbstractJsonRpcMethodResponse setPrinterSimpleCost(Printer printer,
-            String defaultCost, final Locale locale) {
+    private AbstractJsonRpcMethodResponse setPrinterSimpleCost(
+            final Printer printer, final String defaultCost,
+            final Locale locale) {
 
         try {
             printer.setDefaultCost(
@@ -3184,8 +3216,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      *            The Locale of the cost in the dtoList.
      * @return
      */
-    private AbstractJsonRpcMethodResponse setPrinterMediaCost(Printer printer,
-            List<IppMediaCostDto> dtoList, final Locale locale) {
+    private AbstractJsonRpcMethodResponse setPrinterMediaCost(
+            final Printer printer, final List<IppMediaCostDto> dtoList,
+            final Locale locale) {
 
         /*
          * Put into map for easy lookup of objects to handle. Validate along the

@@ -2578,7 +2578,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         final Printer printer = printerDao.findByName(printerNameSelected);
 
         final boolean isJobTicketPrinter =
-                PRINTER_SERVICE.isJobTicketPrinter(printer.getPrinterName());
+                PRINTER_SERVICE.isJobTicketPrinter(printer);
 
         /*
          * Determine Print Mode.

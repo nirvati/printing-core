@@ -49,6 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.print.attribute.standard.MediaSizeName;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.LetterheadNotFoundException;
@@ -370,13 +371,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printer.setAlias(cupsPrinter.getDbPrinter().getDisplayName());
             printer.setGroups(cupsPrinter.getGroups());
             printer.setPrinterUri(cupsPrinter.getPrinterUri());
-
-            final String jobTicketPrinterName =
-                    StringUtils.defaultString(ConfigManager.instance()
-                            .getConfigValue(Key.JOBTICKET_PROXY_PRINTER));
-
-            printer.setJobTicket(Boolean
-                    .valueOf(printer.getName().equals(jobTicketPrinterName)));
+            printer.setJobTicket(cupsPrinter.getJobTicket());
 
             /*
              * Create copy, localize and prune.
@@ -546,24 +541,25 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
+    public final boolean isJobTicketPrinterPresent() {
+        for (final JsonProxyPrinter printer : this.cupsPrinterCache.values()) {
+            if (BooleanUtils.isTrue(printer.getJobTicket())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public final JsonPrinterList getUserPrinterList(final Device terminal,
             final String userName)
             throws IppConnectException, IppSyntaxException {
 
         lazyInitPrinterCache();
 
-        final String jobTicketPrinterName =
-                printerService().getJobTicketPrinterName();
-
-        final boolean hasAccessToJobTicket;
-
-        if (StringUtils.isNotBlank(jobTicketPrinterName)) {
-            final User user = userDAO().findActiveUserByUserId(userName);
-            hasAccessToJobTicket = accessControlService().hasAccess(user,
-                    ACLRoleEnum.JOB_TICKET_CREATOR);
-        } else {
-            hasAccessToJobTicket = true;
-        }
+        final User user = userDAO().findActiveUserByUserId(userName);
+        final boolean hasAccessToJobTicket = accessControlService()
+                .hasAccess(user, ACLRoleEnum.JOB_TICKET_CREATOR);
 
         /*
          * The collected valid printers.
@@ -585,7 +581,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         for (final JsonProxyPrinter printer : this.cupsPrinterCache.values()) {
 
             final boolean isJobTicketPrinter =
-                    jobTicketPrinterName.equals(printer.getName());
+                    BooleanUtils.isTrue(printer.getJobTicket());
 
             if (isJobTicketPrinter && !hasAccessToJobTicket) {
                 continue;
@@ -845,6 +841,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
             final Printer dbPrinter) {
 
         proxyPrinter.setDbPrinter(dbPrinter);
+
+        proxyPrinter
+                .setJobTicket(printerService().isJobTicketPrinter(dbPrinter));
 
         final String ppdfExtFile = printerService().getAttributeValue(dbPrinter,
                 PrinterAttrEnum.CUSTOM_PPD_EXT_FILE);

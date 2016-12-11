@@ -52,7 +52,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
@@ -631,10 +631,13 @@ public final class JobTicketServiceImpl extends AbstractService
             return null;
         }
 
+        final Printer jobTicketPrinter =
+                printerDAO().findByName(job.getPrinterName());
+
         final List<RedirectPrinterDto> printerList = new ArrayList<>();
 
-        final String groupName = ConfigManager.instance()
-                .getConfigValue(Key.JOBTICKET_PROXY_PRINTER_GROUP);
+        final String groupName = printerService().getAttributeValue(
+                jobTicketPrinter, PrinterAttrEnum.JOBTICKET_PRINTER_GROUP);
 
         if (StringUtils.isBlank(groupName)) {
             return printerList;

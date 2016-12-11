@@ -398,6 +398,11 @@ public interface ProxyPrintService {
     boolean isPrinterCacheAvailable();
 
     /**
+     * @return {@code true} when at least one (1) Job Ticket Printer is present.
+     */
+    boolean isJobTicketPrinterPresent();
+
+    /**
      * Synchronizes (updates) the PrintOut jobs with the CUPS job state (if the
      * state changed). A match is made between printer, job-id and
      * creation-time. If there is no match, i.e. when creation times differs, no

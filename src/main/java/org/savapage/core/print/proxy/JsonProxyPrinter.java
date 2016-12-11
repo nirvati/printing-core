@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -125,6 +125,12 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      */
     @JsonIgnore
     private boolean injectPpdExt = false;
+
+    /**
+     * {@code true} when this is a job ticket printer.
+     */
+    @JsonIgnore
+    private Boolean jobTicket = Boolean.FALSE;
 
     /**
      * Gets the corresponding Database Printer Object.
@@ -419,6 +425,21 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
+     * @return {@code true} when this is a job ticket printer.
+     */
+    public Boolean getJobTicket() {
+        return jobTicket;
+    }
+
+    /**
+     * @param jobTicket
+     *            {@code true} when this is a job ticket printer.
+     */
+    public void setJobTicket(Boolean jobTicket) {
+        this.jobTicket = jobTicket;
+    }
+
+    /**
      * Creates a deep copy instance.
      *
      * @return The new copy.
@@ -443,6 +464,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.name = this.name;
         copy.ppd = this.ppd;
         copy.injectPpdExt = this.injectPpdExt;
+        copy.jobTicket = this.jobTicket;
         copy.ppdVersion = this.ppdVersion;
         copy.printerUri = this.printerUri;
         copy.state = this.state;
