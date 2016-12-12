@@ -1962,9 +1962,15 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
              * Mantis #738.
              */
             if (optionKeyword.equals(IppDictJobTemplateAttr.ATTR_NUMBER_UP)) {
-                printNumberUpLandscape =
-                        !optionValue.equals("1") && BooleanUtils.isTrue(
-                                request.getJobChunkInfo().isLandscape());
+                if (optionValue.equals("1")) {
+                    printNumberUpLandscape = false;
+                } else if (request.getJobChunkInfo() == null) {
+                    printNumberUpLandscape =
+                            BooleanUtils.isTrue(request.getLandscape());
+                } else {
+                    printNumberUpLandscape = BooleanUtils
+                            .isTrue(request.getJobChunkInfo().isLandscape());
+                }
             }
 
             /*

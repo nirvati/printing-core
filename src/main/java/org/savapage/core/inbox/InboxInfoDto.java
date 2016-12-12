@@ -327,6 +327,22 @@ public final class InboxInfoDto {
 
     /**
      *
+     * @return {@code true} when one of the job pages has landscape orientation.
+     */
+    @JsonIgnore
+    public boolean hasLandscape() {
+        for (final InboxJobRange jobRange : this.getPages()) {
+            final int iJob = jobRange.getJob().intValue();
+            final InboxJob inboxJob = this.getJobs().get(iJob);
+            if (inboxJob.showLandscape()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     *
      * @return
      */
     @JsonIgnore

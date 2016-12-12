@@ -152,6 +152,7 @@ public abstract class ProxyPrintInboxPattern {
         final String orgJobName = request.getJobName();
         final int orgNumberOfPages = request.getNumberOfPages();
         final Boolean orgFitToPage = request.getFitToPage();
+        final Boolean orgLandscape = request.getLandscape();
         final String orgMediaOption = request.getMediaOption();
         final String orgMediaSourceOption = request.getMediaSourceOption();
         final BigDecimal orgCost = request.getCost();
@@ -168,6 +169,9 @@ public abstract class ProxyPrintInboxPattern {
                         inboxService.filterInboxInfoPages(inboxInfo,
                                 request.getPageRanges());
 
+                request.setLandscape(
+                        Boolean.valueOf(filteredInboxInfo.hasLandscape()));
+
                 this.proxyPrintInboxChunk(lockedUser, request,
                         filteredInboxInfo);
 
@@ -175,6 +179,9 @@ public abstract class ProxyPrintInboxPattern {
 
                 final InboxInfoDto inboxInfo =
                         request.getJobChunkInfo().getFilteredInboxInfo();
+
+                request.setLandscape(
+                        Boolean.valueOf(inboxInfo.hasLandscape()));
 
                 for (final ProxyPrintJobChunk chunk : request.getJobChunkInfo()
                         .getChunks()) {
@@ -223,6 +230,7 @@ public abstract class ProxyPrintInboxPattern {
             request.setJobName(orgJobName);
             request.setNumberOfPages(orgNumberOfPages);
             request.setFitToPage(orgFitToPage);
+            request.setLandscape(orgLandscape);
             request.setMediaOption(orgMediaOption);
             request.setMediaSourceOption(orgMediaSourceOption);
             request.setCost(orgCost);

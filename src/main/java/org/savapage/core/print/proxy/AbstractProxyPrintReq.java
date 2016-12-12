@@ -126,6 +126,12 @@ public abstract class AbstractProxyPrintReq
 
     private Boolean fitToPage;
 
+    /**
+     * {@code true} when one of the job pages has landscape orientation.
+     * {@code null} when unknown.
+     */
+    private Boolean landscape;
+
     private ProxyPrintJobChunkInfo jobChunkInfo;
 
     private AccountTrxInfoSet accountTrxInfoSet;
@@ -516,6 +522,23 @@ public abstract class AbstractProxyPrintReq
 
     public void setFitToPage(Boolean fitToPage) {
         this.fitToPage = fitToPage;
+    }
+
+    /**
+     * @return {@code true} when one of the job pages has landscape orientation.
+     *         {@code null} when unknown.
+     */
+    public Boolean getLandscape() {
+        return landscape;
+    }
+
+    /**
+     * @param landscape
+     *            {@code true} when one of the job pages has landscape
+     *            orientation. {@code null} when unknown.
+     */
+    public void setLandscape(Boolean landscape) {
+        this.landscape = landscape;
     }
 
     public static int getNup(Map<String, String> optionValues) {

@@ -233,6 +233,13 @@ public final class OutboxInfoDto extends AbstractDto {
         private long submitTime;
         private long expiryTime;
         private Boolean fitToPage;
+
+        /**
+         * {@code true} when one of the job pages has landscape orientation.
+         * {@code null} when unknown.
+         */
+        private Boolean landscape;
+
         private Map<String, String> optionValues;
         private String comment;
 
@@ -411,6 +418,23 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setFitToPage(Boolean fitToPage) {
             this.fitToPage = fitToPage;
+        }
+
+        /**
+         * @return {@code true} when one of the job pages has landscape
+         *         orientation. {@code null} when unknown.
+         */
+        public Boolean getLandscape() {
+            return landscape;
+        }
+
+        /**
+         * @param landscape
+         *            {@code true} when one of the job pages has landscape
+         *            orientation. {@code null} when unknown.
+         */
+        public void setLandscape(Boolean landscape) {
+            this.landscape = landscape;
         }
 
         public Map<String, String> getOptionValues() {
