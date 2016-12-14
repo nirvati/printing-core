@@ -23,10 +23,12 @@ package org.savapage.core.job;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
@@ -59,6 +61,7 @@ import org.savapage.core.jpa.UserNumber;
 import org.savapage.core.rfid.RfidNumberFormat;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
+import org.savapage.core.users.AbstractUserSource;
 import org.savapage.core.users.CommonUser;
 import org.savapage.core.users.IUserSource;
 import org.savapage.core.util.AppLogHelper;
@@ -169,6 +172,24 @@ public final class SyncUsersJob extends AbstractJob {
      */
     private static final UserService USER_SERVICE =
             ServiceContext.getServiceFactory().getUserService();
+
+    /**
+     * A {@link Comparator} analogous to
+     * {@link AbstractUserSource.CommonUserComparator}. IMPORTANT: the
+     * {@link Comparator#compare(Object, Object)} method must use the same
+     * {@link String#compareTo(String)} method, so the same lexicographical
+     * ordering is achieved.
+     *
+     * @see Mantis #760
+     */
+    public static class DbUserNameComparator implements Comparator<User> {
+
+        @Override
+        public final int compare(final User o1, final User o2) {
+            return o1.getUserId().compareTo(o2.getUserId());
+        }
+
+    };
 
     @Override
     protected void onInterrupt() throws UnableToInterruptJobException {
@@ -1664,8 +1685,8 @@ public final class SyncUsersJob extends AbstractJob {
         int nInternalUsers = 0;
         int nInternalUsersUpd = 0;
 
-        final List<User> usersDb =
-                getListChunk(DaoContextImpl.peekEntityManager(), null, null);
+        final SortedSet<User> usersDb =
+                getAllDbUsers(DaoContextImpl.peekEntityManager());
 
         final SortedSet<CommonUser> users = getSourceUsers();
 
@@ -1836,38 +1857,31 @@ public final class SyncUsersJob extends AbstractJob {
     }
 
     /**
-     * Gets a chunk of (external AND internal) non-deleted users ordered
-     * ascending by userId.
+     * Gets all (external AND internal) non-deleted users sorted by userId.
      *
      * @param em
      *            The JPA entity manager. The caller is responsible for the
      *            close() of the entity manager.
-     * @param startPosition
-     *            The zero-based start position of the chunk related to the
-     *            total number of users. If {@code null}, then the chunk starts
-     *            with the first user.
-     * @param maxResults
-     *            The maximum number of users in the chunk. If {@code null},
-     *            then ALL (remaining users) are returned.
-     * @return
+     * @return The {@link SortedSet} of Users.
      */
-    @SuppressWarnings("unchecked")
-    private static List<User> getListChunk(final EntityManager em,
-            final Integer startPosition, final Integer maxResults) {
+    private static SortedSet<User> getAllDbUsers(final EntityManager em) {
 
         final String jpql = "SELECT U FROM User U" + " WHERE U.deleted = false"
                 + " ORDER BY U.userId ";
 
         final Query query = em.createQuery(jpql);
 
-        if (startPosition != null) {
-            query.setFirstResult(startPosition);
-        }
-        if (maxResults != null) {
-            query.setMaxResults(maxResults);
+        final SortedSet<User> ssetUser =
+                new TreeSet<>(new DbUserNameComparator());
+
+        @SuppressWarnings("unchecked")
+        final List<User> list = query.getResultList();
+
+        for (final User user : list) {
+            ssetUser.add(user);
         }
 
-        return query.getResultList();
+        return ssetUser;
     }
 
 }
