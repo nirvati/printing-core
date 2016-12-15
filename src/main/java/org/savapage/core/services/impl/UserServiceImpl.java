@@ -1101,7 +1101,19 @@ public final class UserServiceImpl extends AbstractService
                 daoAttr.create(attr);
             }
         } else if (attrValue == null) {
+
+            final Iterator<UserAttr> iter = user.getAttributes().iterator();
+
+            while (iter.hasNext()) {
+                final UserAttr attrWlk = iter.next();
+                if (attrWlk.getName().equals(attrEnum.getName())) {
+                    iter.remove();
+                    break;
+                }
+            }
+            userDAO().update(user);
             daoAttr.delete(attr);
+
         } else if (!attr.getValue().equals(attrValue)) {
             attr.setValue(attrValue);
             daoAttr.update(attr);
