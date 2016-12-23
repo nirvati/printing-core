@@ -101,13 +101,16 @@ public final class OutputProducer {
      * {@link SingletonHolder#INSTANCE}, not before.
      */
     private static class SingletonHolder {
+        /**
+         * The singleton.
+         */
         public static final OutputProducer INSTANCE = new OutputProducer();
     }
 
     /**
      * Gets the singleton instance.
      *
-     * @return
+     * @return The singleton.
      */
     public static OutputProducer instance() {
         return SingletonHolder.INSTANCE;
@@ -142,39 +145,51 @@ public final class OutputProducer {
             final boolean isLetterhead, final boolean isLetterheadPublic,
             final String sessionId) {
 
-        String job = jobName;
-        String page = pageIn;
-
         final InboxPageImageInfo pageImageInfo;
 
-        if (job == null) {
+        final String jobHomeDir;
+        final String jobFileName;
+        final String pageInJobFile;
 
-            pageImageInfo = INBOX_SERVICE.getPageImageInfo(user,
-                    Integer.parseInt(page));
+        if (isLetterhead) {
 
-            page = String.valueOf(pageImageInfo.getPageInFile());
-            job = pageImageInfo.getFile();
+            if (isLetterheadPublic) {
+                jobHomeDir = ConfigManager.getLetterheadDir();
+            } else {
+                jobHomeDir = String.format("%s%c%s",
+                        ConfigManager.getUserHomeDir(user), File.separatorChar,
+                        USER_LETTERHEADS_DIR_NAME);
+            }
+
+            pageImageInfo = new InboxPageImageInfo();
+            pageImageInfo.setFile(jobName);
+            pageImageInfo.setLandscape(false);
+            pageImageInfo.setPageInFile(Integer.valueOf(pageIn));
+
+            jobFileName = jobName;
+            pageInJobFile = pageIn;
 
         } else {
-            pageImageInfo = INBOX_SERVICE.getPageImageInfo(user, job,
-                    Integer.valueOf(page));
+            jobHomeDir = ConfigManager.getUserHomeDir(user);
+
+            if (jobName == null) {
+
+                pageImageInfo = INBOX_SERVICE.getPageImageInfo(user,
+                        Integer.parseInt(pageIn));
+
+                pageInJobFile = String.valueOf(pageImageInfo.getPageInFile());
+                jobFileName = pageImageInfo.getFile();
+
+            } else {
+                pageImageInfo = INBOX_SERVICE.getPageImageInfo(user, jobName,
+                        Integer.valueOf(pageIn));
+                jobFileName = jobName;
+                pageInJobFile = pageIn;
+            }
         }
 
         if (pageImageInfo == null) {
             throw new SpException("job not found");
-        }
-
-        //
-        final String homedir;
-
-        if (isLetterheadPublic) {
-            homedir = ConfigManager.getLetterheadDir();
-        } else if (isLetterhead) {
-            homedir =
-                    String.format("%s%c%s", ConfigManager.getUserHomeDir(user),
-                            File.separatorChar, USER_LETTERHEADS_DIR_NAME);
-        } else {
-            homedir = ConfigManager.getUserHomeDir(user);
         }
 
         /*
@@ -186,8 +201,8 @@ public final class OutputProducer {
         final StringBuilder imgFileBuilder = new StringBuilder(128);
 
         imgFileBuilder.append(ConfigManager.getAppTmpDir()).append("/")
-                .append(user).append("_").append(job).append("_").append(page)
-                .append("_").append(time).append("_");
+                .append(user).append("_").append(jobFileName).append("_")
+                .append(pageInJobFile).append("_").append(time).append("_");
 
         if (thumbnail) {
             imgFileBuilder.append("0");
@@ -204,12 +219,12 @@ public final class OutputProducer {
          */
         final StringBuilder srcFileBuilder = new StringBuilder(128);
 
-        if (InboxServiceImpl.isScanJobFilename(job)) {
+        if (InboxServiceImpl.isScanJobFilename(jobFileName)) {
 
-            srcFileBuilder.append(homedir).append("/").append(job);
+            srcFileBuilder.append(jobHomeDir).append("/").append(jobFileName);
 
-        } else if (InboxServiceImpl.isPdfJobFilename(job)) {
-            srcFileBuilder.append(homedir).append("/").append(job);
+        } else if (InboxServiceImpl.isPdfJobFilename(jobFileName)) {
+            srcFileBuilder.append(jobHomeDir).append("/").append(jobFileName);
         } else {
             throw new SpException("unknown job type");
         }
@@ -230,7 +245,7 @@ public final class OutputProducer {
 
         final String command = pdf2PngCommand.createCommand(srcFile,
                 pageImageInfo.isLandscape(), pageImageInfo.getRotation(),
-                imgFile, Integer.parseInt(page),
+                imgFile, Integer.parseInt(pageInJobFile),
                 Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN,
                 pageImageInfo.getRotate(), imgWidth);
 
