@@ -873,7 +873,16 @@ public final class AccountingServiceImpl extends AbstractService
         final IppMediaSourceCostDto mediaSourceCost =
                 costParms.getMediaSourceCost();
 
-        if (mediaSourceCost != null && !mediaSourceCost.isManualSource()) {
+        if (costParms.getCustomCostMediaSide() != null) {
+            /*
+             * Since custom cost already took IPP options into account, we do
+             * (and can) not distinguish between one- and two-sided.
+             */
+            pageCostOneSided = costParms.getCustomCostMediaSide();
+            pageCostTwoSided = pageCostOneSided;
+
+        } else if (mediaSourceCost != null
+                && !mediaSourceCost.isManualSource()) {
 
             final MediaCostDto pageCost =
                     mediaSourceCost.getMedia().getPageCost();
@@ -946,6 +955,12 @@ public final class AccountingServiceImpl extends AbstractService
                             costParms.getNumberOfCopies(), costParms.isDuplex(),
                             pageCostOneSided, pageCostTwoSided, discountPerc));
         }
+
+        if (costParms.getCustomCostCopy() != null) {
+            jobCost = jobCost.add(costParms.getCustomCostCopy().multiply(
+                    BigDecimal.valueOf(costParms.getNumberOfCopies())));
+        }
+
         return jobCost;
     }
 

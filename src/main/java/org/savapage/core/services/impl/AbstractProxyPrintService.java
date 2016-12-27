@@ -1746,6 +1746,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     job.getExternalSupplierInfo().getSupplier().toString());
         }
 
+        if (isJobTicket) {
+            docLog.setExternalId(job.getTicketNumber());
+        }
+
         /*
          * Collect the DocOut data and proxy print.
          */
@@ -1850,7 +1854,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
         }
 
-        this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.HOLD,
+        this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.TICKET,
                 pdfFileToPrint, true, monitorPaperCutPrintStatus);
 
         return job.getPages() * job.getCopies();

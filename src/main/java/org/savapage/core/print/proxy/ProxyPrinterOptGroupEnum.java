@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -38,6 +38,11 @@ public enum ProxyPrinterOptGroupEnum {
      *
      */
     JOB,
+
+    /**
+    * Option group with job ticket options.
+    */
+    JOB_TICKET,
 
     /**
      * Option group with advanced options like finishings.

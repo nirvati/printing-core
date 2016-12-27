@@ -48,6 +48,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
@@ -712,7 +713,8 @@ public final class OutboxServiceImpl extends AbstractService
 
         final Date dateNow = new Date();
 
-        final int nDecimals = 2;
+        final int nDecimals = ConfigManager.instance()
+                .getConfigInt(Key.FINANCIAL_USER_BALANCE_DECIMALS, 2);
 
         final DateFormat timeFormatter =
                 new SimpleDateFormat("yyyy-MM-dd' 'HH:mm");

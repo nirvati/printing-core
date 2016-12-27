@@ -89,6 +89,13 @@ public interface JobTicketService extends StatefulService {
             Date deliveryDate) throws IOException;
 
     /**
+     * Creates and formats a unique ticket number.
+     *
+     * @return The formatted ticket number.
+     */
+    String createTicketNumber();
+
+    /**
      * Gets the pending Job Tickets.
      *
      * @return The Job Tickets.

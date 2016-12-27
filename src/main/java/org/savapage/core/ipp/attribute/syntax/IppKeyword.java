@@ -178,6 +178,25 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE =
             "none";
 
+    // ------------------------------------------------------------------------
+    // finishings-external
+    // ------------------------------------------------------------------------
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_NONE =
+            "none";
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_LAMINATE =
+            "laminate";
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_BIND =
+            "bind";
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_GLUE =
+            "glue";
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_FOLDER =
+            "folder";
+
+    // ------------------------------------------------------------------------
+    //
+    // ------------------------------------------------------------------------
+    public static final String ORG_SAVAPAGE_ATTR_JOB_COVER_NONE = "none";
+
     /**
      * The SingletonHolder is loaded on the first execution of
      * {@link IppKeyword#instance()} or the first access to

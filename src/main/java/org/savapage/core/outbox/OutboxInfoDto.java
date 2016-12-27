@@ -210,6 +210,8 @@ public final class OutboxInfoDto extends AbstractDto {
          */
         private Long userId;
 
+        private String ticketNumber;
+
         private ExternalSupplierInfo externalSupplierInfo;
 
         private String file;
@@ -241,6 +243,7 @@ public final class OutboxInfoDto extends AbstractDto {
         private Boolean landscape;
 
         private Map<String, String> optionValues;
+
         private String comment;
 
         private LocaleInfo localeInfo;
@@ -262,6 +265,14 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setUserId(Long userId) {
             this.userId = userId;
+        }
+
+        public String getTicketNumber() {
+            return ticketNumber;
+        }
+
+        public void setTicketNumber(String ticketNumber) {
+            this.ticketNumber = ticketNumber;
         }
 
         public ExternalSupplierInfo getExternalSupplierInfo() {

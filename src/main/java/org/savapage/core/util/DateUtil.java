@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,6 +23,7 @@ package org.savapage.core.util;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
@@ -30,6 +31,11 @@ import java.util.Date;
  *
  */
 public final class DateUtil {
+
+    /**
+     * The last time used by {@link #uniqueCurrentTime()}.
+     */
+    private static final AtomicLong LAST_TIME_MS = new AtomicLong();
 
     /**
      * A second in milliseconds.
@@ -70,6 +76,31 @@ public final class DateUtil {
      *
      */
     private DateUtil() {
+    }
+
+    /**
+     * Gets a application wide unique current time in milliseconds.
+     * <p>
+     * See: <a href=
+     * "http://stackoverflow.com/questions/9191288/creating-a-unique-timestamp-in-java">
+     * stackoverflow.com</a>
+     * </p>
+     *
+     * @return The unique current time in milliseconds.
+     */
+    public static long uniqueCurrentTime() {
+
+        long now = System.currentTimeMillis();
+
+        while (true) {
+            long lastTime = LAST_TIME_MS.get();
+            if (lastTime >= now) {
+                now = lastTime + 1;
+            }
+            if (LAST_TIME_MS.compareAndSet(lastTime, now)) {
+                return now;
+            }
+        }
     }
 
     /**
@@ -115,7 +146,7 @@ public final class DateUtil {
      */
     public static String formatDuration(final long duration) {
 
-        long durationSeconds = duration / 1000;
+        long durationSeconds = duration / DURATION_MSEC_SECOND;
 
         long days = durationSeconds / 86400;
         long hours = (durationSeconds % 86400) / 3600;

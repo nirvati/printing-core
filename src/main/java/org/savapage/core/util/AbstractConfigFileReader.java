@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -41,9 +41,11 @@ public abstract class AbstractConfigFileReader {
      * Notifies a configuration line.
      *
      * @param line
+     *            The 1-based line number.
+     * @param content
      *            The line content.
      */
-    protected abstract void onConfigLine(String line);
+    protected abstract void onConfigLine(int line, String content);
 
     /**
      * Notifies start of reading.
@@ -54,6 +56,19 @@ public abstract class AbstractConfigFileReader {
      * Notifies end of reading.
      */
     protected abstract void onEof();
+
+    /**
+     *
+     */
+    protected File configFile;
+
+    /**
+     *
+     * @return
+     */
+    protected File getConfigFile() {
+        return this.configFile;
+    }
 
     /**
      * @param file
@@ -67,6 +82,8 @@ public abstract class AbstractConfigFileReader {
             return;
         }
 
+        this.configFile = file;
+
         this.onInit();
 
         BufferedReader br = null;
@@ -74,8 +91,10 @@ public abstract class AbstractConfigFileReader {
         try {
             br = new BufferedReader(new FileReader(file));
             String strLine;
-
+            int lineNr = 0;
             while ((strLine = br.readLine()) != null) {
+
+                lineNr++;
 
                 strLine = strLine.trim();
 
@@ -86,7 +105,7 @@ public abstract class AbstractConfigFileReader {
                     continue;
                 }
 
-                this.onConfigLine(strLine);
+                this.onConfigLine(lineNr, strLine);
             }
         } finally {
             if (br != null) {

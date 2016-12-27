@@ -21,6 +21,7 @@
  */
 package org.savapage.core.services.helpers;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.savapage.core.dto.IppMediaSourceCostDto;
@@ -53,6 +54,9 @@ public final class ProxyPrintCostParms {
      */
     private int pagesPerSide;
 
+    /**
+     * .
+     */
     private IppMediaSourceCostDto mediaSourceCost;
 
     private String ippMediaOption;
@@ -60,6 +64,20 @@ public final class ProxyPrintCostParms {
     private boolean duplex;
     private boolean ecoPrint;
 
+    /**
+     * Custom cost per media side. When not {@code null} this value is leading.
+     */
+    private BigDecimal customCostMediaSide;
+
+    /**
+     * Additional custom cost for one (1) copy.
+     */
+    private BigDecimal customCostCopy;
+
+    /**
+     *
+     * @return The number of copies.
+     */
     public int getNumberOfCopies() {
         return numberOfCopies;
     }
@@ -143,6 +161,42 @@ public final class ProxyPrintCostParms {
      */
     public void setLogicalNumberOfPages(List<Integer> logicalNumberOfPages) {
         this.logicalNumberOfPages = logicalNumberOfPages;
+    }
+
+    /**
+     *
+     * @return Custom cost per media side. When not {@code null} this value is
+     *         leading.
+     */
+    public BigDecimal getCustomCostMediaSide() {
+        return customCostMediaSide;
+    }
+
+    /**
+     *
+     * @param cost
+     *            Custom cost per media side. When not {@code null} this value
+     *            is leading.
+     */
+    public void setCustomCostMediaSide(final BigDecimal cost) {
+        this.customCostMediaSide = cost;
+    }
+
+    /**
+     *
+     * @return Additional custom cost for one (1) copy.
+     */
+    public BigDecimal getCustomCostCopy() {
+        return customCostCopy;
+    }
+
+    /**
+     *
+     * @param cost
+     *            Additional custom cost for one (1) copy.
+     */
+    public void setCustomCostCopy(final BigDecimal cost) {
+        this.customCostCopy = cost;
     }
 
 }

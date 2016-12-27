@@ -56,7 +56,7 @@ public abstract class ConfFileReader extends AbstractConfigFileReader {
     }
 
     @Override
-    protected final void onConfigLine(final String strLine) {
+    protected final void onConfigLine(final int lineNr, final String strLine) {
         /*
          * The key and value may be separated by '=', ':' or TAB (a
          * tab-delimited file).

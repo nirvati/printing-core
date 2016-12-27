@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -40,6 +40,12 @@ public final class JsonProxyPrinterOpt {
      */
     @JsonProperty("keyword")
     private String keyword;
+
+    /**
+     * {@code true} when this option is for JobTicket specification.
+     */
+    @JsonIgnore
+    private boolean jobTicket;
 
     /**
      * The PPD option keyword (can be {@code null} when neither present nor
@@ -96,12 +102,30 @@ public final class JsonProxyPrinterOpt {
         this.defchoice = opt.defchoice;
         this.defchoiceIpp = opt.defchoiceIpp;
         this.uiText = opt.uiText;
+        this.jobTicket = opt.jobTicket;
 
         this.choices = new ArrayList<>();
 
         for (final JsonProxyPrinterOptChoice choice : opt.choices) {
             this.choices.add(choice.copy());
         }
+    }
+
+    /**
+     * Checks if a choice is present.
+     *
+     * @param choice
+     *            The choice to check.
+     * @return {@code true} when choice is present.
+     */
+    @JsonIgnore
+    public boolean hasChoice(final String choice) {
+        for (final JsonProxyPrinterOptChoice choiceWlk : this.choices) {
+            if (choiceWlk.getChoice().equals(choice)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -203,6 +227,23 @@ public final class JsonProxyPrinterOpt {
      */
     public void setUiText(String text) {
         this.uiText = text;
+    }
+
+    /**
+     *
+     * @return {@code true} when this option is for JobTicket specification.
+     */
+    public boolean isJobTicket() {
+        return jobTicket;
+    }
+
+    /**
+     *
+     * @param jobTicket
+     *            {@code true} when this option is for JobTicket specification.
+     */
+    public void setJobTicket(boolean jobTicket) {
+        this.jobTicket = jobTicket;
     }
 
     /**

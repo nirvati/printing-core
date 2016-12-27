@@ -127,6 +127,16 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     public static final String ATTR_MEDIA_SIZE = "media-size";
 
     /**
+     * .
+     */
+    public static final String ATTR_MEDIA_COLOR = "media-color";
+
+    /**
+     * .
+     */
+    public static final String ATTR_MEDIA_TYPE = "media-type";
+
+    /**
      *
      */
     public static final String ATTR_MEDIA_SOURCE = "media-source";
@@ -262,10 +272,48 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     public static final String ATTR_OUTPUT_BIN = "output-bin";
 
     /**
+     * .
+     */
+    public static final String ORG_SAVAPAGE_ATTR_MEDIA_WEIGHT_METRIC =
+            ORG_SAVAPAGE_ATTR_PFX + "media-weight-metric";
+
+    /**
+     * .
+     */
+    public static final String ORG_SAVAPAGE_ATTR_JOB_COVER =
+            ORG_SAVAPAGE_ATTR_PFX + "job-cover";
+
+    /**
      * The prefix for Custom SavaPage IPP Job template finishings attributes.
      */
     public static final String ORG_SAVAPAGE_ATTR_PFX_FINISHINGS =
             ORG_SAVAPAGE_ATTR_PFX + "finishings-";
+
+    /**
+     * Custom SavaPage IPP Job template finishing attribute for external
+     * operator action.
+     */
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL =
+            ORG_SAVAPAGE_ATTR_PFX_FINISHINGS + "external";
+
+    /**
+     * .
+     */
+    public static final String[] JOBTICKET_ATTR_MEDIA =
+            new String[] { ATTR_MEDIA_COLOR, ATTR_MEDIA_TYPE,
+                    ORG_SAVAPAGE_ATTR_MEDIA_WEIGHT_METRIC };
+
+    /**
+     * .
+     */
+    public static final String[] JOBTICKET_ATTR_COPY =
+            new String[] { ORG_SAVAPAGE_ATTR_JOB_COVER, };
+
+    /**
+     * .
+     */
+    public static final String[] JOBTICKET_ATTR_FINISHINGS_EXT =
+            new String[] { ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL };
 
     /**
      * Custom SavaPage IPP Job template finishing attribute for Stapling.

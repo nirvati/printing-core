@@ -78,6 +78,7 @@ import org.savapage.core.ipp.attribute.syntax.IppMimeMediaType;
 import org.savapage.core.ipp.client.IppClient;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
+import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.ipp.operation.IppGetPrinterAttrOperation;
 import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.ipp.operation.IppStatusCode;
@@ -761,33 +762,107 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 attrKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA);
 
         for (final JsonProxyPrinterOptChoice optChoice : choices) {
+            localizePrinterOptChoice(locale, attrKeyword, isMedia, optChoice);
+        }
+    }
 
-            final String choice = optChoice.getChoice();
+    @Override
+    public void localizePrinterOptChoice(final Locale locale,
+            final String attrKeyword,
+            final JsonProxyPrinterOptChoice optChoice) {
 
-            String choiceTextDefault = choice;
+        localizePrinterOptChoice(locale, attrKeyword,
+                attrKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA),
+                optChoice);
+    }
 
-            if (isMedia) {
+    @Override
+    public String getJobTicketOptionsUiText(final Locale locale,
+            final String[] ippOptionKeys, final IppOptionMap optionMap) {
 
-                final IppMediaSizeEnum ippMediaSize =
-                        IppMediaSizeEnum.find(choice);
+        if (optionMap == null) {
+            return null;
+        }
 
-                if (ippMediaSize == null) {
-                    continue;
-                }
+        final StringBuilder uiText = new StringBuilder();
 
-                final MediaSizeName mediaSizeName =
-                        ippMediaSize.getMediaSizeName();
+        for (final String optKey : ippOptionKeys) {
 
-                choiceTextDefault = localizeWithDefault(locale,
-                        LOCALIZE_IPP_ATTR_PREFIX + attrKeyword + "-"
-                                + mediaSizeName.toString(),
-                        mediaSizeName.toString());
+            final String optValue = optionMap.getOptionValue(optKey);
+
+            if (optValue == null) {
+                continue;
             }
 
-            optChoice.setUiText(localizeWithDefault(locale,
-                    LOCALIZE_IPP_ATTR_PREFIX + attrKeyword + "-" + choice,
-                    choiceTextDefault));
+            if (IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL
+                    .equals(optKey)
+                    && IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_NONE
+                            .equals(optValue)) {
+                continue;
+            }
+            if (IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_COVER
+                    .equals(optKey)
+                    && IppKeyword.ORG_SAVAPAGE_ATTR_JOB_COVER_NONE
+                            .equals(optValue)) {
+                continue;
+            }
+
+            final JsonProxyPrinterOptChoice choice =
+                    new JsonProxyPrinterOptChoice();
+            choice.setChoice(optValue);
+
+            this.localizePrinterOptChoice(locale, optKey, choice);
+
+            uiText.append(" ").append(choice.getUiText());
+
         }
+        if (uiText.length() > 0) {
+            return uiText.toString().trim();
+        }
+
+        return null;
+    }
+
+    /**
+     *
+     * Localizes the text in a printer option choice.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param attrKeyword
+     *            The IPP option keyword.
+     * @param isMedia
+     *            {@code true] when this the "media" attribute.
+     * @param optChoice
+     *            The {@link JsonProxyPrinterOptChoice} object.
+     */
+    private void localizePrinterOptChoice(final Locale locale,
+            final String attrKeyword, final boolean isMedia,
+            final JsonProxyPrinterOptChoice optChoice) {
+
+        final String choice = optChoice.getChoice();
+
+        String choiceTextDefault = choice;
+
+        if (isMedia) {
+
+            final IppMediaSizeEnum ippMediaSize = IppMediaSizeEnum.find(choice);
+
+            if (ippMediaSize == null) {
+                return;
+            }
+
+            final MediaSizeName mediaSizeName = ippMediaSize.getMediaSizeName();
+
+            choiceTextDefault = localizeWithDefault(locale,
+                    LOCALIZE_IPP_ATTR_PREFIX + attrKeyword + "-"
+                            + mediaSizeName.toString(),
+                    mediaSizeName.toString());
+        }
+
+        optChoice.setUiText(localizeWithDefault(locale,
+                LOCALIZE_IPP_ATTR_PREFIX + attrKeyword + "-" + choice,
+                choiceTextDefault));
     }
 
     @Override
@@ -1899,6 +1974,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             } else {
                 proxyPrinterOpt = null;
                 optionKeywordPpd = null;
+            }
+
+            // IPP option for JobTicket specification.
+            if (proxyPrinterOpt != null && proxyPrinterOpt.isJobTicket()) {
+                continue;
             }
 
             // The actual attribute and options to send.

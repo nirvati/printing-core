@@ -614,9 +614,12 @@ public abstract class AbstractProxyPrintReq
     /**
      * Creates {@link ProxyPrintCostParms}.
      *
+     * @param proxyPrinter
+     *            The target proxy printer (can be {@code null}).
      * @return The {@link ProxyPrintCostParms}.
      */
-    public ProxyPrintCostParms createProxyPrintCostParms() {
+    public final ProxyPrintCostParms
+            createProxyPrintCostParms(final JsonProxyPrinter proxyPrinter) {
 
         final ProxyPrintCostParms costParms = new ProxyPrintCostParms();
 
@@ -626,6 +629,13 @@ public abstract class AbstractProxyPrintReq
         costParms.setNumberOfCopies(this.getNumberOfCopies());
         costParms.setPagesPerSide(this.getNup());
 
+        if (proxyPrinter != null) {
+            costParms.setCustomCostCopy(
+                    proxyPrinter.calcCustomCostCopy(getOptionValues()));
+            costParms.setCustomCostMediaSide(
+                    proxyPrinter.calcCustomCostMedia(getOptionValues()));
+        }
+
         return costParms;
     }
 
@@ -634,7 +644,7 @@ public abstract class AbstractProxyPrintReq
      * @return {@code true} if PDF must to be converted to grayscale before
      *         proxy printing.
      */
-    public boolean isConvertToGrayscale() {
+    public final boolean isConvertToGrayscale() {
         return convertToGrayscale;
     }
 
@@ -644,7 +654,7 @@ public abstract class AbstractProxyPrintReq
      *            {@code true} if PDF must to be converted to grayscale before
      *            proxy printing.
      */
-    public void setConvertToGrayscale(boolean convertToGrayscale) {
+    public final void setConvertToGrayscale(boolean convertToGrayscale) {
         this.convertToGrayscale = convertToGrayscale;
     }
 

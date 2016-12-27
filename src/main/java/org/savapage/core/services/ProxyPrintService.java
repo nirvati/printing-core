@@ -45,6 +45,7 @@ import org.savapage.core.ipp.IppSyntaxException;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.client.IppNotificationRecipient;
+import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.ipp.operation.IppStatusCode;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.Printer;
@@ -299,6 +300,35 @@ public interface ProxyPrintService {
      */
     void localizePrinterOptChoices(Locale locale, String attrKeyword,
             List<JsonProxyPrinterOptChoice> choices);
+
+    /**
+     * Localizes the text in a printer option choice.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param attrKeyword
+     *            The IPP option keyword.
+     * @param choice
+     *            The {@link JsonProxyPrinterOptChoice} object.
+     */
+    void localizePrinterOptChoice(Locale locale, String attrKeyword,
+            JsonProxyPrinterOptChoice choice);
+
+    /**
+     * Composes a localized Job Ticket UI text form a selected combination of
+     * IPP options values.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param ippOptionKeys
+     *            The IPP options keys to the option map
+     * @param optionMap
+     *            The {@link IppOptionMap} with IPP key/values.
+     * @return {@code null} when no options keys found in the map.
+     */
+
+    String getJobTicketOptionsUiText(Locale locale, String[] ippOptionKeys,
+            IppOptionMap optionMap);
 
     /**
      * Gets the valid printers for a user on a terminal (sorted on alias).

@@ -2792,7 +2792,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 final BigDecimal cost = ACCOUNTING_SERVICE.calcProxyPrintCost(
                         ServiceContext.getLocale(),
                         ServiceContext.getAppCurrencySymbol(), lockedUser,
-                        printer, printReq.createProxyPrintCostParms(),
+                        printer, printReq.createProxyPrintCostParms(null),
                         printReq.getJobChunkInfo());
 
                 printReq.setCost(cost);

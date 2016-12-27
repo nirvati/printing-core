@@ -79,6 +79,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
+import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +109,16 @@ public final class JobTicketServiceImpl extends AbstractService
      */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(JobTicketServiceImpl.class);
+
+    /**
+     *
+     */
+    private static final int TICKER_NUMBER_CHUNK_WIDTH = 4;
+
+    /**
+     *
+     */
+    private static final String TICKER_NUMBER_CHUNK_SEPARATOR = "-";
 
     /**
      *
@@ -255,6 +266,7 @@ public final class JobTicketServiceImpl extends AbstractService
                 submitDate, deliveryDate, createInfo, uuidPageCount);
 
         dto.setUserId(user.getId());
+        dto.setTicketNumber(this.createTicketNumber());
 
         final File jsonFileTicket = getJobTicketFile(uuid, FILENAME_EXT_JSON);
 
@@ -766,6 +778,61 @@ public final class JobTicketServiceImpl extends AbstractService
             index = new Random().nextInt(printers.size());
         }
         return printers.get(index);
+    }
+
+    @Override
+    public String createTicketNumber() {
+        return chunkFormatted(
+                shuffle(Long.toHexString(DateUtil.uniqueCurrentTime())),
+                TICKER_NUMBER_CHUNK_WIDTH, TICKER_NUMBER_CHUNK_SEPARATOR)
+                        .toUpperCase();
+    }
+
+    /**
+     * Shuffles characters in a string.
+     *
+     * @param input
+     *            The string to shuffle.
+     * @return The shuffled {@link StringBuilder} result.
+     */
+    private static StringBuilder shuffle(final String input) {
+
+        final List<Character> characters = new ArrayList<Character>();
+
+        for (final char c : input.toCharArray()) {
+            characters.add(c);
+        }
+
+        final StringBuilder shuffled = new StringBuilder(input.length());
+
+        while (characters.size() != 0) {
+            final int randPicker = (int) (Math.random() * characters.size());
+            shuffled.append(characters.remove(randPicker));
+        }
+        return shuffled;
+    }
+
+    /**
+     * Formats a string by inserting a separator between substring chunks.
+     *
+     * @param str
+     *            The {@link StringBuilder} to format.
+     * @param chunkWidth
+     *            The character width of the substring chunks.
+     * @param chunkSeparator
+     *            The separator between chunks.
+     * @return The formatted string.
+     */
+    private static String chunkFormatted(final StringBuilder str,
+            final int chunkWidth, final String chunkSeparator) {
+
+        int idx = str.length() - chunkWidth;
+
+        while (idx > 0) {
+            str.insert(idx, chunkSeparator);
+            idx = idx - chunkWidth;
+        }
+        return str.toString();
     }
 
 }
