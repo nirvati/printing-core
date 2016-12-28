@@ -562,10 +562,12 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     private static BigDecimal calcCost(final List<IppCostRule> rules,
             final Map<String, String> ippChoices) {
 
-        for (final IppCostRule rule : rules) {
-            final BigDecimal cost = rule.calcCost(ippChoices);
-            if (cost != null) {
-                return cost;
+        if (rules != null) {
+            for (final IppCostRule rule : rules) {
+                final BigDecimal cost = rule.calcCost(ippChoices);
+                if (cost != null) {
+                    return cost;
+                }
             }
         }
         return null;
