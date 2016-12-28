@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.ext.papercut.DelegatedPrintPeriodDto;
@@ -61,15 +62,21 @@ public interface PaperCutService {
     /**
      * Prepares the {@link AbstractProxyPrintReq} for External PaperCut Print
      * Status monitoring and notification to an external supplier.
+     * <p>
+     * Note: all cost is set to zero, since cost is applied after PaperCut
+     * reports that jobs are printed successfully.
+     * </p>
      *
      * @param printReq
      *            The {@link AbstractProxyPrintReq}.
      * @param supplierInfo
      *            The {@link ExternalSupplierInfo}: when {@code null},
      *            {@link ExternalSupplierEnum#SAVAPAGE} is assumed.
+     * @param printMode
+     *            when {@code null}, {@link PrintModeEnum#PUSH} is assumed.
      */
     void prepareForExtPaperCut(AbstractProxyPrintReq printReq,
-            ExternalSupplierInfo supplierInfo);
+            ExternalSupplierInfo supplierInfo, PrintModeEnum printMode);
 
     /**
      * Finds a PaperCut user.

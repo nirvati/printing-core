@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -43,6 +43,15 @@ public class RedirectPrinterDto extends AbstractDto {
      */
     private boolean preferred;
 
+    /**
+     *
+     */
+    private String deviceUri;
+
+    /**
+     *
+     * @return
+     */
     public Long getId() {
         return id;
     }
@@ -65,6 +74,14 @@ public class RedirectPrinterDto extends AbstractDto {
 
     public void setPreferred(boolean preferred) {
         this.preferred = preferred;
+    }
+
+    public String getDeviceUri() {
+        return deviceUri;
+    }
+
+    public void setDeviceUri(String deviceUri) {
+        this.deviceUri = deviceUri;
     }
 
 }

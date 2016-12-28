@@ -749,6 +749,7 @@ public final class JobTicketServiceImpl extends AbstractService
 
             redirectPrinter.setId(printer.getId());
             redirectPrinter.setName(printer.getDisplayName());
+            redirectPrinter.setDeviceUri(cupsPrinter.getDeviceUri().toString());
 
             iPrinter++;
         }

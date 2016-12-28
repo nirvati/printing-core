@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -86,6 +86,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
+import org.savapage.core.services.helpers.ProxyPrintCostResult;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.Messages;
 
@@ -689,6 +690,12 @@ public final class AccountingServiceImpl extends AbstractService
      * Creates an {@link AccountTrx} of {@link AccountTrx.AccountTrxTypeEnum},
      * updates the {@link Account} and adds the {@link AccountTrx} to the
      * {@link DocLog}.
+     * <p>
+     * Note: when {@link DocLog#getCostOriginal()} equals
+     * {@link BigDecimal#ZERO}, this is a so-called "shadow" transaction, whose
+     * amount is set after the transaction is fulfilled (e.g. when proxy
+     * printing is reported as completed).
+     * </p>
      *
      * @param account
      *            The {@link Account} to update.
@@ -697,10 +704,10 @@ public final class AccountingServiceImpl extends AbstractService
      * @param trxType
      *            The {@link AccountTrxTypeEnum} of the {@link AccountTrx}.
      * @param weightTotal
-     *            The total of all weights.
+     *            The total of all weights in the transaction set.
      * @param weight
-     *            The mathematical weight of the transaction in the context of a
-     *            transaction set.
+     *            The mathematical weight of the to be created transaction in
+     *            the context of a transaction set.
      * @param extDetails
      *            Free format details from external source.
      */
@@ -712,24 +719,37 @@ public final class AccountingServiceImpl extends AbstractService
         final Date trxDate = ServiceContext.getTransactionDate();
 
         /*
-         * Weighted amount.
+         * The total transaction amount.
          */
         BigDecimal trxAmount = docLog.getCostOriginal().negate();
 
-        if (weight != weightTotal) {
+        /*
+         * Amount is zero for a so-called "shadow" transaction. The zero amount
+         * is updated later on with the "real" value after the transaction is
+         * fulfilled (e.g. when proxy printing is completed).
+         */
+        final boolean isZeroAmount = trxAmount.equals(BigDecimal.ZERO);
+
+        /*
+         * The weighted amount for this account.
+         */
+        if (!isZeroAmount && weight != weightTotal) {
             trxAmount = calcWeightedAmount(trxAmount, weightTotal, weight,
                     ConfigManager.getFinancialDecimalsInDatabase());
         }
 
         /*
-         * Update account.
+         * Update account balance.
          */
-        account.setBalance(account.getBalance().add(trxAmount));
+        if (!isZeroAmount) {
 
-        account.setModifiedBy(actor);
-        account.setModifiedDate(trxDate);
+            account.setBalance(account.getBalance().add(trxAmount));
 
-        accountDAO().update(account);
+            account.setModifiedBy(actor);
+            account.setModifiedDate(trxDate);
+
+            accountDAO().update(account);
+        }
 
         /*
          * Create transaction
@@ -864,7 +884,7 @@ public final class AccountingServiceImpl extends AbstractService
     }
 
     @Override
-    public BigDecimal calcProxyPrintCost(final Printer printer,
+    public ProxyPrintCostResult calcProxyPrintCost(final Printer printer,
             final ProxyPrintCostParms costParms) {
 
         BigDecimal pageCostOneSided = BigDecimal.ZERO;
@@ -948,20 +968,25 @@ public final class AccountingServiceImpl extends AbstractService
             logicalNumberOfPages = costParms.getLogicalNumberOfPages();
         }
 
-        BigDecimal jobCost = BigDecimal.ZERO;
+        //
+        final ProxyPrintCostResult costResult = new ProxyPrintCostResult();
+
+        BigDecimal costMedia = BigDecimal.ZERO;
         for (final Integer numberOfPages : logicalNumberOfPages) {
-            jobCost = jobCost.add(
+            costMedia = costMedia.add(
                     calcPrintJobCost(numberOfPages, costParms.getPagesPerSide(),
                             costParms.getNumberOfCopies(), costParms.isDuplex(),
                             pageCostOneSided, pageCostTwoSided, discountPerc));
         }
 
+        costResult.setCostMedia(costMedia);
+
         if (costParms.getCustomCostCopy() != null) {
-            jobCost = jobCost.add(costParms.getCustomCostCopy().multiply(
+            costResult.setCostCopy(costParms.getCustomCostCopy().multiply(
                     BigDecimal.valueOf(costParms.getNumberOfCopies())));
         }
 
-        return jobCost;
+        return costResult;
     }
 
     /**
@@ -1069,12 +1094,12 @@ public final class AccountingServiceImpl extends AbstractService
             costParms.setMediaSourceCost(chunk.getAssignedMediaSource());
             costParms.setLogicalNumberOfPages(chunk.getLogicalJobPages());
 
-            final BigDecimal chunkCost =
+            final ProxyPrintCostResult chunkCost =
                     this.calcProxyPrintCost(printer, costParms);
 
-            chunk.setCost(chunkCost);
+            chunk.setCost(chunkCost.getCost());
 
-            totalCost = totalCost.add(chunkCost);
+            totalCost = totalCost.add(chunkCost.getCost());
         }
 
         validateProxyPrintUserCost(user, totalCost, locale, currencySymbol);
@@ -1109,7 +1134,6 @@ public final class AccountingServiceImpl extends AbstractService
         return formatUserBalance(
                 getActiveUserAccount(userId, AccountTypeEnum.USER), locale,
                 currencySymbol);
-
     }
 
     /**
@@ -1118,8 +1142,10 @@ public final class AccountingServiceImpl extends AbstractService
      * @param userAccount
      *            The {@link UserAccount}.
      * @param locale
+     *            The {@link Locale}.
      * @param currencySymbol
-     * @return
+     *            The currency symbol.
+     * @return The formatted balance.
      */
     private String formatUserBalance(final UserAccount userAccount,
             final Locale locale, final String currencySymbol) {

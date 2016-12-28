@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -42,7 +42,7 @@ import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -52,6 +52,7 @@ public class AccountTrx extends org.savapage.core.jpa.Entity {
     public static final String TABLE_NAME = "tbl_account_trx";
 
     public static final int COL_COMMENT_LENGTH = 255;
+    public static final int COL_TRX_TYPE_LENGTH = 20;
 
     @Id
     @Column(name = "account_trx_id")
@@ -112,8 +113,8 @@ public class AccountTrx extends org.savapage.core.jpa.Entity {
     /**
      * The amount of the transaction.
      */
-    @Column(name = "amount", nullable = false,
-            precision = DECIMAL_PRECISION_16, scale = DECIMAL_SCALE_6)
+    @Column(name = "amount", nullable = false, precision = DECIMAL_PRECISION_16,
+            scale = DECIMAL_SCALE_6)
     private BigDecimal amount;
 
     /**
@@ -157,7 +158,7 @@ public class AccountTrx extends org.savapage.core.jpa.Entity {
     /**
      * {@link AccountTrxTypeEnum}.
      */
-    @Column(name = "trx_type", length = 20, nullable = false)
+    @Column(name = "trx_type", length = COL_TRX_TYPE_LENGTH, nullable = false)
     private String trxType;
 
     // -------------------------------------------------------------------------
@@ -249,8 +250,8 @@ public class AccountTrx extends org.savapage.core.jpa.Entity {
      *
      * @since 0.9.9
      */
-    @Column(name = "ext_fee", nullable = true,
-            precision = DECIMAL_PRECISION_16, scale = DECIMAL_SCALE_8)
+    @Column(name = "ext_fee", nullable = true, precision = DECIMAL_PRECISION_16,
+            scale = DECIMAL_SCALE_8)
     private BigDecimal extFee;
 
     /**

@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -88,9 +88,18 @@ public final class PaperCutServiceImpl extends AbstractService
 
     @Override
     public void prepareForExtPaperCut(final AbstractProxyPrintReq printReq,
-            final ExternalSupplierInfo supplierInfo) {
+            final ExternalSupplierInfo supplierInfo,
+            final PrintModeEnum printMode) {
 
-        printReq.setPrintMode(PrintModeEnum.PUSH);
+        final PrintModeEnum printModeWrk;
+
+        if (printMode == null) {
+            printModeWrk = PrintModeEnum.PUSH;
+        } else {
+            printModeWrk = printMode;
+        }
+
+        printReq.setPrintMode(printModeWrk);
 
         final ExternalSupplierInfo supplierInfoWrk;
 
@@ -119,8 +128,8 @@ public final class PaperCutServiceImpl extends AbstractService
         }
 
         /*
-         * Set all cost to zero, since cost is taken from PaperCut after
-         * PaperCut reports that jobs are printed successfully.
+         * Set all cost to zero, since cost is applied after PaperCut reports
+         * that jobs are printed successfully.
          */
         printReq.setCost(BigDecimal.ZERO);
 

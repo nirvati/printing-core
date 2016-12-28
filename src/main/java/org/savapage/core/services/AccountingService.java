@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -57,6 +57,7 @@ import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
+import org.savapage.core.services.helpers.ProxyPrintCostResult;
 
 /**
  * Accounting services supporting the pay-per-print solution.
@@ -285,7 +286,7 @@ public interface AccountingService {
      *
      * @param ippMediaSourceName
      *            The name of the IPP media-source.
-     * @return
+     * @return The attribute.
      */
     PrinterDao.MediaSourceAttr getMediaSourceAttr(String ippMediaSourceName);
 
@@ -296,9 +297,9 @@ public interface AccountingService {
      *            The proxy {@link Printer}.
      * @param costParms
      *            The {@link ProxyPrintCostParms}.
-     * @return The cost as {@link BigDecimal}.
+     * @return The {@link ProxyPrintCostResult}.
      */
-    BigDecimal calcProxyPrintCost(Printer printer,
+    ProxyPrintCostResult calcProxyPrintCost(Printer printer,
             ProxyPrintCostParms costParms);
 
     /**
@@ -326,9 +327,10 @@ public interface AccountingService {
      * @throws ProxyPrintException
      *             When total cost exceeds user's credit limit.
      */
-    BigDecimal calcProxyPrintCost(Locale locale, String currencySymbol,
-            User user, Printer printer, ProxyPrintCostParms costParms,
-            ProxyPrintJobChunkInfo jobChunkInfo) throws ProxyPrintException;
+    BigDecimal calcProxyPrintCost(Locale locale,
+            String currencySymbol, User user, Printer printer,
+            ProxyPrintCostParms costParms, ProxyPrintJobChunkInfo jobChunkInfo)
+            throws ProxyPrintException;
 
     /**
      * Checks if cost exceeds user's credit limit: when exceeded a

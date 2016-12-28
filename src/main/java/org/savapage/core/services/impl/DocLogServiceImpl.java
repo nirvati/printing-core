@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -85,7 +85,7 @@ import org.savapage.ext.smartschool.SmartschoolPrintInData;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class DocLogServiceImpl extends AbstractService
@@ -195,7 +195,9 @@ public final class DocLogServiceImpl extends AbstractService
 
     /**
      * Commits the create of a {@link DocLog} containing the {@link DocOut)
-     * object and statistics update for a locked {@link User}. See Mantis #430.
+     * object and statistics update for a locked {@link User}.
+     *
+     * <p>See Mantis #430.</p>
      *
      * @param user
      *            The {@link User}
@@ -204,6 +206,8 @@ public final class DocLogServiceImpl extends AbstractService
      * @param accountTrxInfoSet
      *            The {@link AccountTrxInfoSet}. If {@code null} the
      *            {@link AccountTypeEnum#USER} is used for accounting.
+     * @param printOutPages
+     *            The number of document pages printed.
      */
     private void commitDocOutAndStatsUser(final User user, final DocOut docOut,
             final AccountTrxInfoSet accountTrxInfoSet,

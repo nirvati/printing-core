@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -27,18 +27,13 @@ import org.savapage.core.jpa.AccountTrx;
  * The trigger (reason why) for a credit assignment or change.
  * <p>
  * The string value of this enum is stored in the database. Therefore the length
- * of the enum value is limited. See {@link AccountTrx#setTrxType(String)}.
+ * of the enum value is limited. See {@link AccountTrx#COL_TRX_TYPE_LENGTH}.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum AccountTrxTypeEnum {
-
-    /**
-     * "Initial allocation".
-     */
-    INITIAL,
 
     /**
      * "Manual adjustment".
@@ -46,14 +41,9 @@ public enum AccountTrxTypeEnum {
     ADJUST,
 
     /**
-     * "Manual transaction" (deposit funds at point-of-sales).
+     * "Manual transaction" (deposit funds at point-of-sale).
      */
     DEPOSIT,
-
-    /**
-     * "Voucher use".
-     */
-    VOUCHER,
 
     /**
      * Funds transferred via a Payment Gateway.
@@ -61,11 +51,14 @@ public enum AccountTrxTypeEnum {
     GATEWAY,
 
     /**
-     * Used for both the "send" and "receive" part of a "move" transaction: a
-     * user transferring (part of) his account balance to the account of a
-     * fellow user.
+     * "Initial allocation".
      */
-    TRANSFER,
+    INITIAL,
+
+    /**
+     * PDF download.
+     */
+    PDF_OUT,
 
     /**
      *
@@ -78,7 +71,19 @@ public enum AccountTrxTypeEnum {
     PRINT_OUT,
 
     /**
-     * PDF download.
+     * Purchase at point-of-sale.
      */
-    PDF_OUT
+    PURCHASE,
+
+    /**
+     * Used for both the "send" and "receive" part of a "move" transaction: a
+     * user transferring (part of) his account balance to the account of a
+     * fellow user.
+     */
+    TRANSFER,
+
+    /**
+     * "Voucher use".
+     */
+    VOUCHER
 }

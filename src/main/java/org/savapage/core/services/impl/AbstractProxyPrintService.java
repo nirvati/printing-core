@@ -131,6 +131,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
+import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PpdExtFileReader;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
@@ -1725,7 +1726,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
 
         if (monitorPaperCutPrintStatus) {
-            paperCutService().prepareForExtPaperCut(printReq, supplierInfo);
+
+            final PrintModeEnum printModeWrk;
+
+            if (printMode == PrintModeEnum.TICKET) {
+                printModeWrk = printMode;
+            } else {
+                printModeWrk = null;
+            }
+            paperCutService().prepareForExtPaperCut(printReq, supplierInfo,
+                    printModeWrk);
         }
 
         /*
@@ -1747,7 +1757,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         if (isJobTicket) {
+
             docLog.setExternalId(job.getTicketNumber());
+
+            final JobTicketSupplierData supplierData =
+                    new JobTicketSupplierData();
+            supplierData.setCostMedia(job.getCost());
+            // TODO: supplierData.setCostCopy(job.getCostCopy());
+            docLog.setExternalData(supplierData.dataAsString());
         }
 
         /*

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
@@ -41,6 +42,7 @@ import org.savapage.core.dao.UserAccountDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
+import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocIn;
@@ -48,8 +50,10 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.User;
+import org.savapage.core.json.JsonAbstractBase;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.util.DateUtil;
 import org.savapage.ext.ExtSupplierConnectException;
 import org.savapage.ext.ExtSupplierException;
@@ -532,6 +536,9 @@ public abstract class PaperCutPrintMonitorPattern {
         //
         final PrintOut printOutLog = docLogOut.getDocOut().getPrintOut();
 
+        final PrintModeEnum printMode = EnumUtils.getEnum(PrintModeEnum.class,
+                printOutLog.getPrintMode());
+
         //
         final String indicatorDuplex;
 
@@ -609,10 +616,21 @@ public abstract class PaperCutPrintMonitorPattern {
                 this.getAccountTrxWeightTotal(docLogOut, docLogIn);
 
         /*
-         * Total printing cost reported by PaperCut.
+         * Which printing cost to use?
          */
-        final BigDecimal papercutUsageCost =
-                BigDecimal.valueOf(papercutLog.getUsageCost());
+        final BigDecimal weightTotalCost;
+
+        if (printMode == PrintModeEnum.TICKET
+                && docLogOut.getExternalData() != null) {
+
+            final JobTicketSupplierData supplierData = JsonAbstractBase.create(
+                    JobTicketSupplierData.class, docLogOut.getExternalData());
+
+            weightTotalCost = supplierData.getCostMedia();
+
+        } else {
+            weightTotalCost = BigDecimal.valueOf(papercutLog.getUsageCost());
+        }
 
         /*
          * Number of decimals for decimal scaling.
@@ -659,7 +677,7 @@ public abstract class PaperCutPrintMonitorPattern {
             final int weight = trx.getTransactionWeight().intValue();
 
             final BigDecimal weightedCost =
-                    ACCOUNTING_SERVICE.calcWeightedAmount(papercutUsageCost,
+                    ACCOUNTING_SERVICE.calcWeightedAmount(weightTotalCost,
                             weightTotal, weight, scale);
 
             final org.savapage.core.jpa.Account account = trx.getAccount();
@@ -882,7 +900,7 @@ public abstract class PaperCutPrintMonitorPattern {
 
         PAPERCUT_SERVICE.lazyAdjustSharedAccount(this.papercutServerProxy,
                 this.getSharedParentAccountName(),
-                this.getSharedJobsAccountName(), papercutUsageCost.negate(),
+                this.getSharedJobsAccountName(), weightTotalCost.negate(),
                 StringUtils.abbreviate(jobTrxComment.toString(),
                         PaperCutDbProxy.COL_LEN_TXN_COMMENT));
 
