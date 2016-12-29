@@ -24,7 +24,6 @@ package org.savapage.ext.smartschool;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
@@ -99,6 +98,7 @@ import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
+import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.users.IUserSource;
 import org.savapage.core.util.AppLogHelper;
@@ -2789,13 +2789,14 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
             if (printReq.getPrintMode() == PrintModeEnum.HOLD) {
 
-                final BigDecimal cost = ACCOUNTING_SERVICE.calcProxyPrintCost(
-                        ServiceContext.getLocale(),
-                        ServiceContext.getAppCurrencySymbol(), lockedUser,
-                        printer, printReq.createProxyPrintCostParms(null),
-                        printReq.getJobChunkInfo());
+                final ProxyPrintCostDto costResult = ACCOUNTING_SERVICE
+                        .calcProxyPrintCost(ServiceContext.getLocale(),
+                                ServiceContext.getAppCurrencySymbol(),
+                                lockedUser, printer,
+                                printReq.createProxyPrintCostParms(null),
+                                printReq.getJobChunkInfo());
 
-                printReq.setCost(cost);
+                printReq.setCostResult(costResult);
 
                 final PdfCreateInfo createInfo = new PdfCreateInfo(fileToPrint);
 

@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,14 +14,13 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.print.proxy;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +29,7 @@ import javax.print.attribute.standard.MediaSizeName;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.ipp.IppMediaSizeEnum;
+import org.savapage.core.services.helpers.ProxyPrintCostDto;
 
 /**
  *
@@ -47,8 +47,14 @@ public final class ProxyPrintJobChunk {
     private Boolean fitToPage;
     private boolean drm;
 
-    private BigDecimal cost;
+    /**
+     * .
+     */
+    private ProxyPrintCostDto costResult;
 
+    /**
+     *
+     */
     private String jobName;
 
     /**
@@ -138,12 +144,12 @@ public final class ProxyPrintJobChunk {
         this.drm = drm;
     }
 
-    public BigDecimal getCost() {
-        return cost;
+    public ProxyPrintCostDto getCostResult() {
+        return costResult;
     }
 
-    public void setCost(BigDecimal cost) {
-        this.cost = cost;
+    public void setCostResult(ProxyPrintCostDto costResult) {
+        this.costResult = costResult;
     }
 
     public String getJobName() {

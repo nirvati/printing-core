@@ -23,12 +23,19 @@ package org.savapage.core.services.helpers;
 
 import java.math.BigDecimal;
 
+import org.savapage.core.dto.AbstractDto;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class ProxyPrintCostResult {
+@JsonInclude(Include.NON_NULL)
+public final class ProxyPrintCostDto extends AbstractDto {
 
     /**
      * The total cost for media of the proxy print job.
@@ -41,9 +48,9 @@ public final class ProxyPrintCostResult {
     private BigDecimal costCopy;
 
     /**
-     * Constructor.
+     * Constructor. Sets all cost to {@link BigDecimal#ZERO}.
      */
-    public ProxyPrintCostResult() {
+    public ProxyPrintCostDto() {
         this.costMedia = BigDecimal.ZERO;
         this.costCopy = BigDecimal.ZERO;
     }
@@ -53,7 +60,8 @@ public final class ProxyPrintCostResult {
      * @return The total cost (media and external operations per copy) of the
      *         proxy print job.
      */
-    public BigDecimal getCost() {
+    @JsonIgnore
+    public BigDecimal getCostTotal() {
         return costMedia.add(costCopy);
     }
 

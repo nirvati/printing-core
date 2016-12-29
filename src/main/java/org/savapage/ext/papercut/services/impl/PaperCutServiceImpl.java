@@ -37,6 +37,7 @@ import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.services.impl.AbstractService;
 import org.savapage.ext.papercut.DelegatedPrintPeriodDto;
@@ -131,12 +132,12 @@ public final class PaperCutServiceImpl extends AbstractService
          * Set all cost to zero, since cost is applied after PaperCut reports
          * that jobs are printed successfully.
          */
-        printReq.setCost(BigDecimal.ZERO);
+        printReq.setCostResult(new ProxyPrintCostDto());
 
         if (printReq.getJobChunkInfo() != null) {
             for (final ProxyPrintJobChunk chunk : printReq.getJobChunkInfo()
                     .getChunks()) {
-                chunk.setCost(BigDecimal.ZERO);
+                chunk.setCostResult(new ProxyPrintCostDto());
                 chunk.setJobName(PaperCutHelper
                         .encodeProxyPrintJobName(chunk.getJobName()));
             }

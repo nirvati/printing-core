@@ -22,7 +22,6 @@
 package org.savapage.core.services.helpers;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.UUID;
@@ -155,7 +154,7 @@ public abstract class ProxyPrintInboxPattern {
         final Boolean orgLandscape = request.getLandscape();
         final String orgMediaOption = request.getMediaOption();
         final String orgMediaSourceOption = request.getMediaSourceOption();
-        final BigDecimal orgCost = request.getCost();
+        final ProxyPrintCostDto orgCostResult = request.getCostResult();
         final boolean orgDrm = request.isDrm();
 
         try {
@@ -180,8 +179,7 @@ public abstract class ProxyPrintInboxPattern {
                 final InboxInfoDto inboxInfo =
                         request.getJobChunkInfo().getFilteredInboxInfo();
 
-                request.setLandscape(
-                        Boolean.valueOf(inboxInfo.hasLandscape()));
+                request.setLandscape(Boolean.valueOf(inboxInfo.hasLandscape()));
 
                 for (final ProxyPrintJobChunk chunk : request.getJobChunkInfo()
                         .getChunks()) {
@@ -195,7 +193,7 @@ public abstract class ProxyPrintInboxPattern {
                             chunk.getAssignedMedia().getIppKeyword());
                     request.setMediaSourceOption(
                             chunk.getAssignedMediaSource().getSource());
-                    request.setCost(chunk.getCost());
+                    request.setCostResult(chunk.getCostResult());
                     request.setDrm(chunk.isDrm());
 
                     if (StringUtils.isBlank(orgJobName)) {
@@ -233,7 +231,7 @@ public abstract class ProxyPrintInboxPattern {
             request.setLandscape(orgLandscape);
             request.setMediaOption(orgMediaOption);
             request.setMediaSourceOption(orgMediaSourceOption);
-            request.setCost(orgCost);
+            request.setCostResult(orgCostResult);
             request.setDrm(orgDrm);
         }
     }

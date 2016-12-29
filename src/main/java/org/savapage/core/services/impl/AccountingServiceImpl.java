@@ -85,8 +85,8 @@ import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
+import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
-import org.savapage.core.services.helpers.ProxyPrintCostResult;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.Messages;
 
@@ -786,7 +786,7 @@ public final class AccountingServiceImpl extends AbstractService
     }
 
     /**
-     * Calculates the cost of a priont job.
+     * Calculates the media cost of a print job.
      * <p>
      * The pageCostTwoSided is applied to pages that are printed on both sides
      * of a sheet. If a job has an odd number of pages, the pageCostTwoSided is
@@ -811,7 +811,7 @@ public final class AccountingServiceImpl extends AbstractService
      *            The discount percentage. 10% is passed as 0.10
      * @return The {@link BigDecimal}.
      */
-    public static BigDecimal calcPrintJobCost(final int nPages,
+    public static BigDecimal calcProxyPrintCostMedia(final int nPages,
             final int nPagesPerSide, final int nCopies, final boolean duplex,
             final BigDecimal pageCostOneSided,
             final BigDecimal pageCostTwoSided, final BigDecimal discountPerc) {
@@ -884,7 +884,7 @@ public final class AccountingServiceImpl extends AbstractService
     }
 
     @Override
-    public ProxyPrintCostResult calcProxyPrintCost(final Printer printer,
+    public ProxyPrintCostDto calcProxyPrintCost(final Printer printer,
             final ProxyPrintCostParms costParms) {
 
         BigDecimal pageCostOneSided = BigDecimal.ZERO;
@@ -969,14 +969,14 @@ public final class AccountingServiceImpl extends AbstractService
         }
 
         //
-        final ProxyPrintCostResult costResult = new ProxyPrintCostResult();
+        final ProxyPrintCostDto costResult = new ProxyPrintCostDto();
 
         BigDecimal costMedia = BigDecimal.ZERO;
         for (final Integer numberOfPages : logicalNumberOfPages) {
-            costMedia = costMedia.add(
-                    calcPrintJobCost(numberOfPages, costParms.getPagesPerSide(),
-                            costParms.getNumberOfCopies(), costParms.isDuplex(),
-                            pageCostOneSided, pageCostTwoSided, discountPerc));
+            costMedia = costMedia.add(calcProxyPrintCostMedia(numberOfPages,
+                    costParms.getPagesPerSide(), costParms.getNumberOfCopies(),
+                    costParms.isDuplex(), pageCostOneSided, pageCostTwoSided,
+                    discountPerc));
         }
 
         costResult.setCostMedia(costMedia);
@@ -985,6 +985,50 @@ public final class AccountingServiceImpl extends AbstractService
             costResult.setCostCopy(costParms.getCustomCostCopy().multiply(
                     BigDecimal.valueOf(costParms.getNumberOfCopies())));
         }
+
+        return costResult;
+    }
+
+    @Override
+    public ProxyPrintCostDto calcProxyPrintCost(final Locale locale,
+            final String currencySymbol, final User user, final Printer printer,
+            final ProxyPrintCostParms costParms,
+            final ProxyPrintJobChunkInfo jobChunkInfo)
+            throws ProxyPrintException {
+
+        BigDecimal totalCostMedia = BigDecimal.ZERO;
+        BigDecimal totalCostCopy = BigDecimal.ZERO;
+
+        /*
+         * Traverse the chunks and calculate.
+         */
+        for (final ProxyPrintJobChunk chunk : jobChunkInfo.getChunks()) {
+
+            costParms.setNumberOfPages(chunk.getNumberOfPages());
+            costParms.setLogicalNumberOfPages(chunk.getLogicalJobPages());
+            costParms.setMediaSourceCost(chunk.getAssignedMediaSource());
+
+            costParms.setIppMediaOption(
+                    chunk.getAssignedMedia().getIppKeyword());
+
+            costParms.calcCustomCost();
+
+            final ProxyPrintCostDto chunkCostResult =
+                    this.calcProxyPrintCost(printer, costParms);
+
+            chunk.setCostResult(chunkCostResult);
+
+            totalCostCopy = totalCostCopy.add(chunkCostResult.getCostCopy());
+            totalCostMedia = totalCostMedia.add(chunkCostResult.getCostMedia());
+        }
+
+        final ProxyPrintCostDto costResult = new ProxyPrintCostDto();
+
+        costResult.setCostCopy(totalCostCopy);
+        costResult.setCostMedia(totalCostMedia);
+
+        validateProxyPrintUserCost(user, costResult.getCostTotal(), locale,
+                currencySymbol);
 
         return costResult;
     }
@@ -1072,39 +1116,6 @@ public final class AccountingServiceImpl extends AbstractService
                 }
             }
         }
-    }
-
-    @Override
-    public BigDecimal calcProxyPrintCost(final Locale locale,
-            final String currencySymbol, final User user, final Printer printer,
-            final ProxyPrintCostParms costParms,
-            final ProxyPrintJobChunkInfo jobChunkInfo)
-            throws ProxyPrintException {
-
-        BigDecimal totalCost = BigDecimal.ZERO;
-
-        /*
-         * Traverse the chunks and calculate.
-         */
-        for (final ProxyPrintJobChunk chunk : jobChunkInfo.getChunks()) {
-
-            costParms.setNumberOfPages(chunk.getNumberOfPages());
-            costParms.setIppMediaOption(
-                    chunk.getAssignedMedia().getIppKeyword());
-            costParms.setMediaSourceCost(chunk.getAssignedMediaSource());
-            costParms.setLogicalNumberOfPages(chunk.getLogicalJobPages());
-
-            final ProxyPrintCostResult chunkCost =
-                    this.calcProxyPrintCost(printer, costParms);
-
-            chunk.setCost(chunkCost.getCost());
-
-            totalCost = totalCost.add(chunkCost.getCost());
-        }
-
-        validateProxyPrintUserCost(user, totalCost, locale, currencySymbol);
-
-        return totalCost;
     }
 
     @Override

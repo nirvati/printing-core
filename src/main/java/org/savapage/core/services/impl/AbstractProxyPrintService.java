@@ -136,6 +136,7 @@ import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PpdExtFileReader;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.PrinterSnmpReader;
+import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 import org.savapage.core.services.helpers.ProxyPrintInboxReqChunker;
 import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
@@ -1717,7 +1718,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         printReq.putOptionValues(job.getOptionValues());
         printReq.setFitToPage(job.getFitToPage());
         printReq.setLandscape(job.getLandscape());
-        printReq.setCost(job.getCost());
+        printReq.setCostResult(job.getCostResult());
 
         printReq.setAccountTrxInfoSet(
                 outboxService().createAccountTrxInfoSet(job));
@@ -1762,8 +1763,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             final JobTicketSupplierData supplierData =
                     new JobTicketSupplierData();
-            supplierData.setCostMedia(job.getCost());
-            // TODO: supplierData.setCostCopy(job.getCostCopy());
+            supplierData.setCostMedia(job.getCostResult().getCostMedia());
+            supplierData.setCostCopy(job.getCostResult().getCostCopy());
             docLog.setExternalData(supplierData.dataAsString());
         }
 
@@ -1923,7 +1924,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             this.getValidateProxyPrinterAccess(cardUser, job.getPrinterName(),
                     ServiceContext.getTransactionDate());
 
-            totCost = totCost.add(job.getCost());
+            totCost = totCost.add(job.getCostTotal());
         }
 
         accountingService().validateProxyPrintUserCost(lockedUser, totCost,
@@ -2143,7 +2144,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             this.chunkProxyPrintRequest(user, printReq, PageScalingEnum.CROP,
                     false, null);
 
-            final ProxyPrintCostParms costParms = new ProxyPrintCostParms();
+            final ProxyPrintCostParms costParms = new ProxyPrintCostParms(null);
 
             /*
              * Set the common parameters for all print job chunks, and calculate
@@ -2155,11 +2156,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
             costParms.setNumberOfCopies(printReq.getNumberOfCopies());
             costParms.setPagesPerSide(printReq.getNup());
 
-            printReq.setCost(accountingService().calcProxyPrintCost(
+            printReq.setCostResult(accountingService().calcProxyPrintCost(
                     ServiceContext.getLocale(), currencySymbol, user, printer,
                     costParms, printReq.getJobChunkInfo()));
 
-            totalCost = totalCost.add(printReq.getCost());
+            totalCost = totalCost.add(printReq.getCostResult().getCostTotal());
         }
 
         /*
@@ -2221,8 +2222,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Financial data.
          */
-        docLog.setCost(request.getCost());
-        docLog.setCostOriginal(request.getCost());
+        docLog.setCost(request.getCostResult().getCostTotal());
+        docLog.setCostOriginal(request.getCostResult().getCostTotal());
         docLog.setRefunded(false);
         docLog.setInvoiced(true);
 
@@ -2452,7 +2453,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Calculate and validate cost.
          */
-        final ProxyPrintCostParms costParms = new ProxyPrintCostParms();
+        final ProxyPrintCostParms costParms = new ProxyPrintCostParms(null);
 
         /*
          * Set the common parameters.
@@ -2470,12 +2471,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
         costParms.setLogicalNumberOfPages(createInfo.getLogicalJobPages());
         costParms.setIppMediaOption(request.getMediaOption());
 
-        final BigDecimal cost = accountingService().calcProxyPrintCost(
-                ServiceContext.getLocale(),
-                ServiceContext.getAppCurrencySymbol(), lockedUser, printer,
-                costParms, request.getJobChunkInfo());
+        final ProxyPrintCostDto costResult = accountingService()
+                .calcProxyPrintCost(ServiceContext.getLocale(),
+                        ServiceContext.getAppCurrencySymbol(), lockedUser,
+                        printer, costParms, request.getJobChunkInfo());
 
-        request.setCost(cost);
+        request.setCostResult(costResult);
 
         /*
          * Create the DocLog container.
@@ -2534,7 +2535,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final Boolean orgFitToPage = request.getFitToPage();
         final String orgMediaOption = request.getMediaOption();
         final String orgMediaSourceOption = request.getMediaSourceOption();
-        final BigDecimal orgCost = request.getCost();
+        final ProxyPrintCostDto orgCostResult = request.getCostResult();
 
         try {
 
@@ -2589,7 +2590,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                                 chunk.getAssignedMediaSource().getSource());
                     }
 
-                    request.setCost(chunk.getCost());
+                    request.setCostResult(chunk.getCostResult());
 
                     if (StringUtils.isBlank(orgJobName)) {
                         request.setJobName(chunk.getJobName());
@@ -2631,7 +2632,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             request.setFitToPage(orgFitToPage);
             request.setMediaOption(orgMediaOption);
             request.setMediaSourceOption(orgMediaSourceOption);
-            request.setCost(orgCost);
+            request.setCostResult(orgCostResult);
         }
     }
 

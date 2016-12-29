@@ -34,6 +34,7 @@ import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.savapage.core.services.helpers.ProxyPrintCostDto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -231,7 +232,7 @@ public final class OutboxInfoDto extends AbstractDto {
         private boolean drm;
         private boolean ecoPrint;
         private boolean collate;
-        private BigDecimal cost;
+        private ProxyPrintCostDto costResult;
         private long submitTime;
         private long expiryTime;
         private Boolean fitToPage;
@@ -257,6 +258,13 @@ public final class OutboxInfoDto extends AbstractDto {
          *
          */
         private OutboxAccountTrxInfoSet accountTransactions;
+
+        /**
+         * Constructor.
+         */
+        public OutboxJobDto() {
+            this.costResult = new ProxyPrintCostDto();
+        }
 
         //
         public Long getUserId() {
@@ -372,12 +380,17 @@ public final class OutboxInfoDto extends AbstractDto {
             this.collate = collate;
         }
 
-        public BigDecimal getCost() {
-            return cost;
+        public ProxyPrintCostDto getCostResult() {
+            return costResult;
         }
 
-        public void setCost(BigDecimal cost) {
-            this.cost = cost;
+        public void setCostResult(ProxyPrintCostDto costResult) {
+            this.costResult = costResult;
+        }
+
+        @JsonIgnore
+        public BigDecimal getCostTotal() {
+            return this.costResult.getCostTotal();
         }
 
         public LocaleInfo getLocaleInfo() {

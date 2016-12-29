@@ -330,7 +330,7 @@ public final class OutboxServiceImpl extends AbstractService
         job.setRemoveGraphics(request.isRemoveGraphics());
         job.setEcoPrint(request.isEcoPrintShadow());
         job.setCollate(request.isCollate());
-        job.setCost(request.getCost());
+        job.setCostResult(request.getCostResult());
         job.setSubmitTime(submitDate.getTime());
         job.setExpiryTime(expiryDate.getTime());
         job.setFitToPage(request.getFitToPage());
@@ -730,13 +730,15 @@ public final class OutboxServiceImpl extends AbstractService
 
                 final OutboxJobDto job = entry.getValue();
 
-                costTotal = costTotal.add(job.getCost());
+                final BigDecimal jobCost = job.getCostTotal();
+
+                costTotal = costTotal.add(jobCost);
 
                 final LocaleInfo localeInfo = new LocaleInfo();
                 job.setLocaleInfo(localeInfo);
 
-                localeInfo.setCost(BigDecimalUtil.localize(job.getCost(),
-                        nDecimals, locale, currencySymbol, true));
+                localeInfo.setCost(BigDecimalUtil.localize(jobCost, nDecimals,
+                        locale, currencySymbol, true));
 
                 final Date submitDate = new Date(job.getSubmitTime());
                 final Date expiryDate = new Date(job.getExpiryTime());

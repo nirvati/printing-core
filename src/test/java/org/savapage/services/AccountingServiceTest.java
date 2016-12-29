@@ -59,7 +59,7 @@ public class AccountingServiceTest {
             final String pageCostOneSided, final String pageCostTwoSided,
             final String discountPerc, final String expectedPrintCost) {
 
-        assertTrue(AccountingServiceImpl.calcPrintJobCost(nPages,
+        assertTrue(AccountingServiceImpl.calcProxyPrintCostMedia(nPages,
                 nPagesPerSide, nCopies, duplex,
                 new BigDecimal(pageCostOneSided),
                 new BigDecimal(pageCostTwoSided), new BigDecimal(discountPerc))

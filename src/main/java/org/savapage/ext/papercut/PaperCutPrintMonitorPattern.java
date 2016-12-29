@@ -626,7 +626,7 @@ public abstract class PaperCutPrintMonitorPattern {
             final JobTicketSupplierData supplierData = JsonAbstractBase.create(
                     JobTicketSupplierData.class, docLogOut.getExternalData());
 
-            weightTotalCost = supplierData.getCostMedia();
+            weightTotalCost = supplierData.getCostTotal();
 
         } else {
             weightTotalCost = BigDecimal.valueOf(papercutLog.getUsageCost());

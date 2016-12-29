@@ -21,7 +21,6 @@
  */
 package org.savapage.core.print.proxy;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -33,6 +32,7 @@ import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
+import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 
 /**
@@ -116,7 +116,8 @@ public abstract class AbstractProxyPrintReq
     private String userMsg;
     private String userMsgKey;
     private Long idUser;
-    private BigDecimal cost;
+
+    private ProxyPrintCostDto costResult;
 
     private Date submitDate;
 
@@ -323,12 +324,12 @@ public abstract class AbstractProxyPrintReq
         this.idUser = idUser;
     }
 
-    public BigDecimal getCost() {
-        return cost;
+    public ProxyPrintCostDto getCostResult() {
+        return costResult;
     }
 
-    public void setCost(BigDecimal cost) {
-        this.cost = cost;
+    public void setCostResult(ProxyPrintCostDto costResult) {
+        this.costResult = costResult;
     }
 
     public boolean isAuthenticated() {
@@ -615,26 +616,24 @@ public abstract class AbstractProxyPrintReq
      * Creates {@link ProxyPrintCostParms}.
      *
      * @param proxyPrinter
-     *            The target proxy printer (can be {@code null}).
+     *            The target proxy printer (can be {@code null}, in which case
+     *            no custom media/copy costs are applicable).
      * @return The {@link ProxyPrintCostParms}.
      */
     public final ProxyPrintCostParms
             createProxyPrintCostParms(final JsonProxyPrinter proxyPrinter) {
 
-        final ProxyPrintCostParms costParms = new ProxyPrintCostParms();
+        final ProxyPrintCostParms costParms =
+                new ProxyPrintCostParms(proxyPrinter);
 
         costParms.setDuplex(this.isDuplex());
         costParms.setEcoPrint(this.isEcoPrintShadow());
         costParms.setGrayscale(this.isGrayscale());
         costParms.setNumberOfCopies(this.getNumberOfCopies());
         costParms.setPagesPerSide(this.getNup());
+        costParms.importIppOptionValues(getOptionValues());
 
-        if (proxyPrinter != null) {
-            costParms.setCustomCostCopy(
-                    proxyPrinter.calcCustomCostCopy(getOptionValues()));
-            costParms.setCustomCostMediaSide(
-                    proxyPrinter.calcCustomCostMedia(getOptionValues()));
-        }
+        costParms.calcCustomCost();
 
         return costParms;
     }

@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import org.savapage.core.SpException;
 import org.savapage.core.json.JsonAbstractBase;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -72,6 +73,21 @@ public final class JobTicketSupplierData extends JsonAbstractBase
      */
     public BigDecimal getCostCopy() {
         return costCopy;
+    }
+
+    /**
+     * @return Gets the sums of all costs.
+     */
+    @JsonIgnore
+    public BigDecimal getCostTotal() {
+        BigDecimal total = BigDecimal.ZERO;
+        if (costCopy != null) {
+            total = total.add(costCopy);
+        }
+        if (costMedia != null) {
+            total = total.add(costMedia);
+        }
+        return total;
     }
 
     /**

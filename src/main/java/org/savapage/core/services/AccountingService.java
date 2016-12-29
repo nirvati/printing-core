@@ -56,8 +56,8 @@ import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
+import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
-import org.savapage.core.services.helpers.ProxyPrintCostResult;
 
 /**
  * Accounting services supporting the pay-per-print solution.
@@ -297,9 +297,9 @@ public interface AccountingService {
      *            The proxy {@link Printer}.
      * @param costParms
      *            The {@link ProxyPrintCostParms}.
-     * @return The {@link ProxyPrintCostResult}.
+     * @return The {@link ProxyPrintCostDto}.
      */
-    ProxyPrintCostResult calcProxyPrintCost(Printer printer,
+    ProxyPrintCostDto calcProxyPrintCost(Printer printer,
             ProxyPrintCostParms costParms);
 
     /**
@@ -327,10 +327,9 @@ public interface AccountingService {
      * @throws ProxyPrintException
      *             When total cost exceeds user's credit limit.
      */
-    BigDecimal calcProxyPrintCost(Locale locale,
-            String currencySymbol, User user, Printer printer,
-            ProxyPrintCostParms costParms, ProxyPrintJobChunkInfo jobChunkInfo)
-            throws ProxyPrintException;
+    ProxyPrintCostDto calcProxyPrintCost(Locale locale, String currencySymbol,
+            User user, Printer printer, ProxyPrintCostParms costParms,
+            ProxyPrintJobChunkInfo jobChunkInfo) throws ProxyPrintException;
 
     /**
      * Checks if cost exceeds user's credit limit: when exceeded a

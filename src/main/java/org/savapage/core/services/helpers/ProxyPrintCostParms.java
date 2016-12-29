@@ -22,9 +22,13 @@
 package org.savapage.core.services.helpers;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.savapage.core.dto.IppMediaSourceCostDto;
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
+import org.savapage.core.print.proxy.JsonProxyPrinter;
 
 /**
  *
@@ -33,6 +37,9 @@ import org.savapage.core.dto.IppMediaSourceCostDto;
  */
 public final class ProxyPrintCostParms {
 
+    /**
+     *
+     */
     private int numberOfCopies;
 
     /**
@@ -65,6 +72,16 @@ public final class ProxyPrintCostParms {
     private boolean ecoPrint;
 
     /**
+     *
+     */
+    private final JsonProxyPrinter proxyPrinter;
+
+    /**
+     * Work area for calculating custom cost.
+     */
+    private Map<String, String> ippOptionValues;
+
+    /**
      * Custom cost per media side. When not {@code null} this value is leading.
      */
     private BigDecimal customCostMediaSide;
@@ -73,6 +90,18 @@ public final class ProxyPrintCostParms {
      * Additional custom cost for one (1) copy.
      */
     private BigDecimal customCostCopy;
+
+    /**
+     * Constructor.
+     *
+     * @param printer
+     *            The {@link JsonProxyPrinter} used to calculate custom
+     *            media/copy costs. Can be {@code null}, in which case no custom
+     *            costs are calculated/applied.
+     */
+    public ProxyPrintCostParms(final JsonProxyPrinter printer) {
+        this.proxyPrinter = printer;
+    }
 
     /**
      *
@@ -164,22 +193,24 @@ public final class ProxyPrintCostParms {
     }
 
     /**
+     * Imports IPP option values. All values are put in a new {@link Map}, since
+     * we use it as work area to calculate custom costs.
+     *
+     * @param optionValues
+     *            The IPP option values.
+     */
+    public void importIppOptionValues(Map<String, String> optionValues) {
+        this.ippOptionValues = new HashMap<>();
+        this.ippOptionValues.putAll(optionValues);
+    }
+
+    /**
      *
      * @return Custom cost per media side. When not {@code null} this value is
      *         leading.
      */
     public BigDecimal getCustomCostMediaSide() {
         return customCostMediaSide;
-    }
-
-    /**
-     *
-     * @param cost
-     *            Custom cost per media side. When not {@code null} this value
-     *            is leading.
-     */
-    public void setCustomCostMediaSide(final BigDecimal cost) {
-        this.customCostMediaSide = cost;
     }
 
     /**
@@ -191,12 +222,26 @@ public final class ProxyPrintCostParms {
     }
 
     /**
-     *
-     * @param cost
-     *            Additional custom cost for one (1) copy.
+     * (Re)calculates the custom media/copy costs.
+     * <p>
+     * NOTE: Use this method <i>after</i> {@link #setIppMediaOption(String)} and
+     * {@link #importIppOptionValues(Map)}
+     * </p>
      */
-    public void setCustomCostCopy(final BigDecimal cost) {
-        this.customCostCopy = cost;
-    }
+    public void calcCustomCost() {
 
+        if (this.proxyPrinter == null || this.ippOptionValues == null) {
+            this.customCostCopy = null;
+            this.customCostMediaSide = null;
+            return;
+        }
+
+        this.ippOptionValues.put(IppDictJobTemplateAttr.ATTR_MEDIA,
+                this.ippMediaOption);
+
+        this.customCostCopy =
+                this.proxyPrinter.calcCustomCostCopy(this.ippOptionValues);
+        this.customCostMediaSide =
+                this.proxyPrinter.calcCustomCostMedia(this.ippOptionValues);
+    }
 }
