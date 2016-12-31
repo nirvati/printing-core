@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -164,7 +164,7 @@ public interface JobTicketService extends StatefulService {
     OutboxJobDto cancelTicket(String fileName);
 
     /**
-     * Prints a Job Ticket.
+     * Prints and settles a Job Ticket.
      *
      * @param printer
      *            The redirect printer.
@@ -178,6 +178,20 @@ public interface JobTicketService extends StatefulService {
      */
     OutboxJobDto printTicket(Printer printer, String fileName)
             throws IOException, IppConnectException;
+
+    /**
+     * Settles a Job Ticket without printing it.
+     *
+     * @param printer
+     *            The redirect printer.
+     * @param fileName
+     *            The unique PDF file name of the job to print.
+     * @return The printed ticket or {@code null} when ticket was not found.
+     * @throws IOException
+     *             When IO error.
+     */
+    OutboxJobDto settleTicket(Printer printer, String fileName)
+            throws IOException;
 
     /**
      * Gets the list of {@link RedirectPrinterDto} compatible printers for a Job

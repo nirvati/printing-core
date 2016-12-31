@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -570,7 +570,7 @@ public interface ProxyPrintService {
             throws ProxyPrintException;
 
     /**
-     * Print a Job Ticket.
+     * Prints a Job Ticket.
      *
      * @param lockedUser
      *            The {@link User} who owns the Job Ticket, which should be
@@ -591,6 +591,27 @@ public interface ProxyPrintService {
     int proxyPrintJobTicket(User lockedUser, OutboxJobDto job,
             File pdfFileToPrint, ThirdPartyEnum extPrinterManager)
             throws IOException, IppConnectException;
+
+    /**
+     * Settles a Job Ticket without printing it.
+     *
+     * @param lockedUser
+     *            The {@link User} who owns the Job Ticket, which should be
+     *            locked.
+     * @param job
+     *            The {@link OutboxJobDto} Job Ticket.
+     * @param pdfFileNotToPrint
+     *            The PDF file <b>not</b> to print.
+     * @param extPrinterManager
+     *            The {@link ThirdPartyEnum} external print manager:
+     *            {@code null} when native SavaPage.
+     * @return The number of printed pages.
+     * @throws IOException
+     *             When IO error.
+     */
+    int settleJobTicket(User lockedUser, OutboxJobDto job,
+            File pdfFileNotToPrint, ThirdPartyEnum extPrinterManager)
+            throws IOException;
 
     /**
      * Sends Print Job to the CUPS Printer, and updates {@link User},

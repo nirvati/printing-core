@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://savapage.org>.
+ * Copyright (c) 2011-2016 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -106,6 +106,32 @@ public interface DocLogService {
             AccountTrxInfoSet accountTrxInfoSet);
 
     /**
+     * Logs the {@link DocOut} container with the {@link PrintOut} object, WITH
+     * accounting info.
+     * <p>
+     * <b>IMPORTANT</b>: This method has it <u>own transaction scopes</u>. Any
+     * open transaction is used: the end-result is a closed transaction.
+     * <ul>
+     * <li>The {@link DocLog} container is persisted in the database.</li>
+     * <li>Document statistics are updated in the database for
+     * {@link ConfigProperty} (global system), {@link User}, {@link UserAttr},
+     * {@link Printer} and {@link PrinterAttr}.</li>
+     * <li>{@link AccountTrx} objects are created when costs are GT zero.</li>
+     * </ul>
+     * </p>
+     *
+     * @param lockedUser
+     *            The {@link User} instance, which could be locked by the
+     *            caller. If not, the User wil be locked ad-hoc.
+     * @param printOut
+     *            The {@link PrintOut} instance with the {@link DocOut} object.
+     * @param accountTrxInfoSet
+     *            Information about the account transactions to be created.
+     */
+    void settlePrintOut(User lockedUser, PrintOut printOut,
+            AccountTrxInfoSet accountTrxInfoSet);
+
+    /**
      * Logs the {@link DocOut} object WITHOUT accounting info as created after
      * document <i>output</i> (like proxy print, download, send).
      * <p>
@@ -164,7 +190,7 @@ public interface DocLogService {
 
     /**
      * Gets the input {@link DocLog} from an External Supplier with a specific
-     * {@link ExternalSupplierStatusEnum}.
+     * {@link ExternalSupplierStatusEnum} and ID.
      *
      * @param supplier
      *            The supplier.

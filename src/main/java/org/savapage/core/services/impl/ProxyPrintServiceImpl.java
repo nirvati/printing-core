@@ -47,7 +47,6 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrinterDao;
-import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaCostDto;
@@ -84,8 +83,6 @@ import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.ipp.operation.IppStatusCode;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.jpa.DocLog;
-import org.savapage.core.jpa.DocOut;
-import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
 import org.savapage.core.jpa.PrinterGroup;
@@ -104,7 +101,6 @@ import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptGroup;
-import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.CupsPrinterClass;
@@ -112,7 +108,6 @@ import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.InetUtils;
-import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
 import org.savapage.ext.papercut.PaperCutHelper;
 import org.slf4j.Logger;
@@ -794,7 +789,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 continue;
             }
 
-            if (IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL
+            if (IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_EXT
                     .equals(optKey)
                     && IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_NONE
                             .equals(optValue)) {
@@ -1250,95 +1245,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         collectPrintOutData(request, docLog, jsonPrinter, printJob, createInfo);
     }
 
-    /**
-     * Collects data of the print event in the {@link DocLog} object.
-     *
-     * @param request
-     *            The {@link AbstractProxyPrintReq}.
-     * @param docLog
-     *            The documentation object to log the event.
-     * @param printer
-     *            The printer object.
-     * @param printJob
-     *            The job object.
-     * @param createInfo
-     *            The {@link PdfCreateInfo} of the printed PDF file.
-     */
-    private void collectPrintOutData(final AbstractProxyPrintReq request,
-            final DocLog docLog, final JsonProxyPrinter printer,
-            final JsonProxyPrintJob printJob, final PdfCreateInfo createInfo) {
-
-        // ------------------
-        final boolean duplex =
-                ProxyPrintInboxReq.isDuplex(request.getOptionValues());
-
-        final boolean grayscale =
-                ProxyPrintInboxReq.isGrayscale(request.getOptionValues());
-
-        final int nUp = ProxyPrintInboxReq.getNup(request.getOptionValues());
-
-        final String cupsPageSet = "all";
-        final String cupsJobSheets = "";
-
-        final MediaSizeName mediaSizeName =
-                IppMediaSizeEnum.findMediaSizeName(request.getOptionValues()
-                        .get(IppDictJobTemplateAttr.ATTR_MEDIA));
-
-        // ------------------
-        int numberOfSheets = PdfPrintCollector.calcNumberOfPrintedSheets(
-                request, createInfo.getBlankFillerPages());
-
-        // ------------------
-        final DocOut docOut = docLog.getDocOut();
-
-        docLog.setDeliveryProtocol(DocLogProtocolEnum.IPP.getDbName());
-
-        docOut.setDestination(printer.getName());
-        docOut.setEcoPrint(Boolean.valueOf(request.isEcoPrintShadow()));
-        docOut.setRemoveGraphics(Boolean.valueOf(request.isRemoveGraphics()));
-
-        docLog.setTitle(request.getJobName());
-
-        final PrintOut printOut = new PrintOut();
-        printOut.setDocOut(docOut);
-
-        printOut.setPrintMode(request.getPrintMode().toString());
-        printOut.setCupsJobId(printJob.getJobId());
-        printOut.setCupsJobState(printJob.getJobState());
-        printOut.setCupsCreationTime(printJob.getCreationTime());
-
-        printOut.setDuplex(duplex);
-        printOut.setReversePages(false);
-
-        printOut.setGrayscale(grayscale);
-
-        printOut.setCupsJobSheets(cupsJobSheets);
-        printOut.setCupsNumberUp(String.valueOf(nUp));
-        printOut.setCupsPageSet(cupsPageSet);
-
-        printOut.setNumberOfCopies(request.getNumberOfCopies());
-        printOut.setNumberOfSheets(numberOfSheets);
-
-        if (request.getNumberOfCopies() > 1) {
-            printOut.setCollateCopies(Boolean.valueOf(request.isCollate()));
-        }
-
-        printOut.setPaperSize(mediaSizeName.toString());
-
-        int[] size = MediaUtils.getMediaWidthHeight(mediaSizeName);
-        printOut.setPaperWidth(size[0]);
-        printOut.setPaperHeight(size[1]);
-
-        printOut.setNumberOfEsu(calcNumberOfEsu(numberOfSheets,
-                printOut.getPaperWidth(), printOut.getPaperHeight()));
-
-        printOut.setPrinter(printer.getDbPrinter());
-
-        printOut.setIppOptions(
-                JsonHelper.stringifyStringMap(request.getOptionValues()));
-
-        docOut.setPrintOut(printOut);
-    }
 
     /**
      * Gets the default {@link JsonProxyPrinter}.

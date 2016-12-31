@@ -542,9 +542,26 @@ public final class JobTicketServiceImpl extends AbstractService
         return this.removeTicket(uuid, true);
     }
 
-    @Override
-    public OutboxJobDto printTicket(final Printer printer,
-            final String fileName) throws IOException, IppConnectException {
+    /**
+     * Executes a Job Ticket request.
+     *
+     * @param printer
+     *            The redirect printer.
+     * @param fileName
+     *            The unique PDF file name of the job to print.
+     * @param settleOnly
+     *            {@code true} when ticket must be settled only, {@code false}
+     *            when ticket job must be proxy printed.
+     *
+     * @return The printed ticket or {@code null} when ticket was not found.
+     * @throws IOException
+     *             When IO error.
+     * @throws IppConnectException
+     *             When connection to CUPS fails.
+     */
+    private OutboxJobDto execTicket(final Printer printer,
+            final String fileName, final boolean settleOnly)
+            throws IOException, IppConnectException {
 
         final UUID uuid = uuidFromFileName(fileName);
         final OutboxJobDto dto = this.jobTicketCache.get(uuid);
@@ -568,18 +585,49 @@ public final class JobTicketServiceImpl extends AbstractService
 
         final User lockedUser = userDAO().lock(dto.getUserId());
 
-        proxyPrintService().proxyPrintJobTicket(lockedUser, dto,
-                getJobTicketFile(uuid, FILENAME_EXT_PDF), extPrinterManager);
-
-        if (extPrinterManager == null) {
-            return this.removeTicket(uuid, false);
+        if (settleOnly) {
+            proxyPrintService().settleJobTicket(lockedUser, dto,
+                    getJobTicketFile(uuid, FILENAME_EXT_PDF),
+                    extPrinterManager);
+        } else {
+            proxyPrintService().proxyPrintJobTicket(lockedUser, dto,
+                    getJobTicketFile(uuid, FILENAME_EXT_PDF),
+                    extPrinterManager);
         }
 
-        /*
-         * Just remove the ticket, do NOT notify. Notification is done in
-         * PaperCut Monitoring.
-         */
-        return this.removeTicket(uuid);
+        final OutboxJobDto dtoReturn;
+
+        if (extPrinterManager == null || settleOnly) {
+            dtoReturn = this.removeTicket(uuid, false);
+        } else {
+            /*
+             * Just remove the ticket, do NOT notify. When proxy printed,
+             * notification is done by third party (PaperCut) Monitoring.
+             */
+            dtoReturn = this.removeTicket(uuid);
+        }
+
+        return dtoReturn;
+    }
+
+    @Override
+    public OutboxJobDto printTicket(final Printer printer,
+            final String fileName) throws IOException, IppConnectException {
+        return execTicket(printer, fileName, false);
+    }
+
+    @Override
+    public OutboxJobDto settleTicket(final Printer printer,
+            final String fileName) throws IOException {
+
+        try {
+            return execTicket(printer, fileName, true);
+        } catch (IppConnectException e) {
+            /*
+             * This is not supposed to happen, because no proxy print is done.
+             */
+            throw new SpException(e.getMessage());
+        }
     }
 
     /**

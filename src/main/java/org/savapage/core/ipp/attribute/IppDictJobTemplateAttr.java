@@ -221,6 +221,11 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     /**
      *
      */
+    public static final String CUPS_ATTR_PAGE_SET = "page-set";
+
+    /**
+     *
+     */
     public static final String CUPS_ATTR_LANDSCAPE = "landscape";
 
     /**
@@ -293,8 +298,8 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      * Custom SavaPage IPP Job template finishing attribute for external
      * operator action.
      */
-    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL =
-            ORG_SAVAPAGE_ATTR_PFX_FINISHINGS + "external";
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_EXT =
+            ORG_SAVAPAGE_ATTR_PFX_FINISHINGS + "ext";
 
     /**
      * .
@@ -313,7 +318,7 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      * .
      */
     public static final String[] JOBTICKET_ATTR_FINISHINGS_EXT =
-            new String[] { ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL };
+            new String[] { ORG_SAVAPAGE_ATTR_FINISHINGS_EXT };
 
     /**
      * Custom SavaPage IPP Job template finishing attribute for Stapling.

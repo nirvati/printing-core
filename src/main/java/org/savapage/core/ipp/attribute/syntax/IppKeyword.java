@@ -34,6 +34,48 @@ import org.savapage.core.ipp.encoding.IppValueTag;
  */
 public class IppKeyword extends AbstractIppAttrSyntax {
 
+    /**
+     * All pages
+     */
+    public static final String CUPS_ATTR_PAGE_SET_ALL = "all";
+    /**
+     * Even pages.
+     */
+    public static final String CUPS_ATTR_PAGE_SET_EVEN = "even";
+    /**
+     * Odd pages.
+     */
+    public static final String CUPS_ATTR_PAGE_SET_ODD = "odd";
+
+    /**
+     * Do not produce a banner page.
+     */
+    public static final String ATTR_JOB_SHEETS_NONE = "none";
+    /**
+     * A banner page with a "classified" label at the top and bottom.
+     */
+    public static final String ATTR_JOB_SHEETS_CLASSIFIED = "classified";
+    /**
+     * A banner page with a "confidential" label at the top and bottom.
+     */
+    public static final String ATTR_JOB_SHEETS_CONFIDENTIAL = "confidential";
+    /**
+     * A banner page with a "secret" label at the top and bottom.
+     */
+    public static final String ATTR_JOB_SHEETS_SECRET = "secret";
+    /**
+     * A banner page with no label at the top and bottom.
+     */
+    public static final String ATTR_JOB_SHEETS_STANDARD = "standard";
+    /**
+     * A banner page with a "top secret" label at the top and bottom.
+     */
+    public static final String ATTR_JOB_SHEETS_TOPSECRET = "topsecret";
+    /**
+     * A banner page with an "unclassified" label at the top and bottom.
+     */
+    public static final String ATTR_JOB_SHEETS_UNCLASSIFIED = "unclassified";
+
     // ------------------------------------------------------------------------
     // compression: type3 keyword
     // ------------------------------------------------------------------------

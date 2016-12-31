@@ -193,11 +193,39 @@ public final class DocLogServiceImpl extends AbstractService
                 user.getUserId());
     }
 
+    @Override
+    public void settlePrintOut(final User user, final PrintOut printOut,
+            final AccountTrxInfoSet accountTrxInfoSet) {
+        //
+        final DocOut docOut = printOut.getDocOut();
+
+        final int printOutPages = docOut.getDocLog().getNumberOfPages()
+                * printOut.getNumberOfCopies();
+
+        /*
+         * Commit #1: Create DocLog and update User statistics.
+         */
+        commitDocOutAndStatsUser(user, docOut, accountTrxInfoSet,
+                printOutPages);
+
+        /*
+         * Commit #2: Update Printer statistics.
+         */
+        commitDocOutStatsPrinter(docOut, printOutPages);
+
+        /*
+         * Commit #3: Update global statistics.
+         */
+        commitDocOutStatsGlobal(docOut);
+    }
+
     /**
      * Commits the create of a {@link DocLog} containing the {@link DocOut)
      * object and statistics update for a locked {@link User}.
      *
-     * <p>See Mantis #430.</p>
+     * <p>
+     * See Mantis #430.
+     * </p>
      *
      * @param user
      *            The {@link User}
@@ -1160,7 +1188,6 @@ public final class DocLogServiceImpl extends AbstractService
 
         docLogCollect.getDocOut()
                 .setSignature(this.generateSignature(docLogCollect));
-
     }
 
     @Override

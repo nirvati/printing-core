@@ -58,7 +58,7 @@ public final class IppCostRuleTest {
 
         ippChoices.put(ippAttr, ippChoice);
         ippChoices.put(
-                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL,
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_EXT,
                 IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_LAMINATE);
 
         assertTrue(rule.calcCost(ippChoices).equals(amount));

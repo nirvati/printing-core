@@ -69,6 +69,7 @@ import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
+import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
@@ -84,6 +85,7 @@ import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.inbox.OutputProducer;
 import org.savapage.core.ipp.IppJobStateEnum;
+import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.IppSyntaxException;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
@@ -115,6 +117,7 @@ import org.savapage.core.json.rpc.impl.ResultPrinterSnmp;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfCreateRequest;
+import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
@@ -144,6 +147,8 @@ import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.snmp.SnmpClientSession;
 import org.savapage.core.snmp.SnmpConnectException;
+import org.savapage.core.util.DateUtil;
+import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
@@ -386,8 +391,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             if (isUserCopy) {
 
-                this.setPrinterMediaSourcesForUser(cupsPrinter.getDbPrinter(),
-                        printerCopy);
+                this.setPrinterMediaSourcesForUser(locale,
+                        cupsPrinter.getDbPrinter(), printerCopy);
 
                 removeOptGroup(printerCopy,
                         ProxyPrinterOptGroupEnum.REFERENCE_ONLY);
@@ -429,13 +434,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * permissions and sets the
      * {@link JsonPrinterDetail#setMediaSources(ArrayList)} .
      *
+     * @param locale
+     *            The {@link Locale}.
      * @param printer
      *            The {@link Printer} from the cache.
      * @param printerDetail
      *            The {@link JsonPrinterDetail} to prune.
      */
-    private void setPrinterMediaSourcesForUser(final Printer printer,
-            final JsonPrinterDetail printerDetail) {
+    private void setPrinterMediaSourcesForUser(final Locale locale,
+            final Printer printer, final JsonPrinterDetail printerDetail) {
 
         final ArrayList<IppMediaSourceMappingDto> mediaSources =
                 new ArrayList<>();
@@ -536,7 +543,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 new JsonProxyPrinterOptChoice();
 
         choiceAuto.setChoice(IppKeyword.MEDIA_SOURCE_AUTO);
-        choiceAuto.setUiText("Automatic"); // TODO
+        this.localizePrinterOptChoice(locale,
+                IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE, choiceAuto);
         mediaSourceChoices.add(0, choiceAuto);
 
         mediaSourceOption.setDefchoice(IppKeyword.MEDIA_SOURCE_AUTO);
@@ -1619,6 +1627,97 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     /**
+     * Collects data of the print event in the {@link DocLog} object.
+     *
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
+     * @param docLog
+     *            The documentation object to log the event.
+     * @param printer
+     *            The printer object.
+     * @param printJob
+     *            The job object.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} of the printed PDF file.
+     */
+    protected final void collectPrintOutData(
+            final AbstractProxyPrintReq request, final DocLog docLog,
+            final JsonProxyPrinter printer, final JsonProxyPrintJob printJob,
+            final PdfCreateInfo createInfo) {
+
+        // ------------------
+        final boolean duplex =
+                ProxyPrintInboxReq.isDuplex(request.getOptionValues());
+
+        final boolean grayscale =
+                ProxyPrintInboxReq.isGrayscale(request.getOptionValues());
+
+        final int nUp = ProxyPrintInboxReq.getNup(request.getOptionValues());
+
+        final String cupsPageSet = IppKeyword.CUPS_ATTR_PAGE_SET_ALL;
+        final String cupsJobSheets = "";
+
+        final MediaSizeName mediaSizeName =
+                IppMediaSizeEnum.findMediaSizeName(request.getOptionValues()
+                        .get(IppDictJobTemplateAttr.ATTR_MEDIA));
+
+        // ------------------
+        int numberOfSheets = PdfPrintCollector.calcNumberOfPrintedSheets(
+                request, createInfo.getBlankFillerPages());
+
+        // ------------------
+        final DocOut docOut = docLog.getDocOut();
+
+        docLog.setDeliveryProtocol(DocLogProtocolEnum.IPP.getDbName());
+
+        docOut.setDestination(printer.getName());
+        docOut.setEcoPrint(Boolean.valueOf(request.isEcoPrintShadow()));
+        docOut.setRemoveGraphics(Boolean.valueOf(request.isRemoveGraphics()));
+
+        docLog.setTitle(request.getJobName());
+
+        final PrintOut printOut = new PrintOut();
+        printOut.setDocOut(docOut);
+
+        printOut.setPrintMode(request.getPrintMode().toString());
+        printOut.setCupsJobId(printJob.getJobId());
+        printOut.setCupsJobState(printJob.getJobState());
+        printOut.setCupsCreationTime(printJob.getCreationTime());
+
+        printOut.setDuplex(duplex);
+        printOut.setReversePages(false);
+
+        printOut.setGrayscale(grayscale);
+
+        printOut.setCupsJobSheets(cupsJobSheets);
+        printOut.setCupsNumberUp(String.valueOf(nUp));
+        printOut.setCupsPageSet(cupsPageSet);
+
+        printOut.setNumberOfCopies(request.getNumberOfCopies());
+        printOut.setNumberOfSheets(numberOfSheets);
+
+        if (request.getNumberOfCopies() > 1) {
+            printOut.setCollateCopies(Boolean.valueOf(request.isCollate()));
+        }
+
+        printOut.setPaperSize(mediaSizeName.toString());
+
+        int[] size = MediaUtils.getMediaWidthHeight(mediaSizeName);
+        printOut.setPaperWidth(size[0]);
+        printOut.setPaperHeight(size[1]);
+
+        printOut.setNumberOfEsu(calcNumberOfEsu(numberOfSheets,
+                printOut.getPaperWidth(), printOut.getPaperHeight()));
+
+        printOut.setPrinter(printer.getDbPrinter());
+
+        printOut.setIppOptions(
+                JsonHelper.stringifyStringMap(request.getOptionValues()));
+
+        docOut.setPrintOut(printOut);
+    }
+
+    /**
      * Gets the {@link User} attached to the card number.
      *
      * @param cardNumber
@@ -1676,7 +1775,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     /**
-     * Prints an {@link OutboxJobDto}.
+     * Prints or Settles an {@link OutboxJobDto}.
      *
      * @param lockedUser
      *            The locked {@link User}.
@@ -1685,9 +1784,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * @param printMode
      *            The {@link PrintModeEnum}.
      * @param pdfFileToPrint
-     *            The file to print.
-     * @param isJobTicket
-     *            {@code true} when Job Ticket, {@code false} when HOLD print.
+     *            The file (not) to print.
      * @param monitorPaperCutPrintStatus
      *            {@code true} when print status of the {@link OutboxJobDto}
      *            must be monitored in PaperCut.
@@ -1698,10 +1795,19 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private void proxyPrintOutboxJob(final User lockedUser,
             final OutboxJobDto job, final PrintModeEnum printMode,
-            final File pdfFileToPrint, final boolean isJobTicket,
-            final boolean monitorPaperCutPrintStatus)
+            final File pdfFileToPrint, final boolean monitorPaperCutPrintStatus)
             throws IOException, IppConnectException {
 
+        //
+        final boolean isRealPrint = printMode != PrintModeEnum.TICKET_C
+                && printMode != PrintModeEnum.TICKET_E;
+
+        final boolean isSettleOnly = !isRealPrint;
+
+        final boolean isJobTicket =
+                isSettleOnly || printMode == PrintModeEnum.TICKET;
+
+        //
         final ProxyPrintDocReq printReq = new ProxyPrintDocReq(printMode);
 
         printReq.setDocumentUuid(FilenameUtils.getBaseName(job.getFile()));
@@ -1726,7 +1832,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         //
         final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
 
-        if (monitorPaperCutPrintStatus) {
+        if (isRealPrint && monitorPaperCutPrintStatus) {
 
             final PrintModeEnum printModeWrk;
 
@@ -1753,6 +1859,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         //
         if (docLog.getExternalSupplier() == null
                 && job.getExternalSupplierInfo() != null) {
+
             docLog.setExternalSupplier(
                     job.getExternalSupplierInfo().getSupplier().toString());
         }
@@ -1763,8 +1870,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             final JobTicketSupplierData supplierData =
                     new JobTicketSupplierData();
+
             supplierData.setCostMedia(job.getCostResult().getCostMedia());
             supplierData.setCostCopy(job.getCostResult().getCostCopy());
+
             docLog.setExternalData(supplierData.dataAsString());
         }
 
@@ -1780,7 +1889,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Print.
          */
-        proxyPrint(lockedUser, printReq, docLog, createInfo);
+        if (isRealPrint) {
+            proxyPrint(lockedUser, printReq, docLog, createInfo);
+        } else {
+            settleProxyPrint(lockedUser, printReq, docLog, createInfo);
+        }
+
+        if (isSettleOnly && monitorPaperCutPrintStatus) {
+            // TODO: add PaperCut transactions now.
+        }
 
         pdfFileToPrint.delete();
 
@@ -1789,11 +1906,293 @@ public abstract class AbstractProxyPrintService extends AbstractService
          * status, we know (assume) the job is completed. We notify for a HOLD
          * job.
          *
-         * IMPORTANT: Job Ticket handles its own notification.
+         * IMPORTANT: The Job Ticket client handles its own notification.
          */
         if (!isJobTicket && !monitorPaperCutPrintStatus) {
             outboxService().onOutboxJobCompleted(job);
         }
+    }
+
+    /**
+     * Publishes a proxy print event and sets the user message with
+     * {@link AbstractProxyPrintReq#setUserMsgKey(String)} and
+     * {@link AbstractProxyPrintReq#setUserMsg(String)}.
+     *
+     * @param lockedUser
+     *            The requesting {@link User}, which should be locked.
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
+     * @param docLog
+     *            The {@link DocLog} persisted in the database.
+     */
+    private void publishProxyPrintEvent(final User lockedUser,
+            final AbstractProxyPrintReq request, final DocLog docLog) {
+
+        final String userMsgKey;
+        final String userMsg;
+
+        if (request.getClearedObjects() == 0) {
+
+            userMsgKey = "msg-printed";
+            userMsg = localize(request.getLocale(), userMsgKey);
+
+        } else if (request.getClearedObjects() == 1) {
+
+            if (request.getClearScope() == InboxSelectScopeEnum.JOBS) {
+                userMsgKey = "msg-printed-deleted-job-one";
+            } else {
+                userMsgKey = "msg-printed-deleted-one";
+            }
+            userMsg = localize(request.getLocale(), userMsgKey);
+        } else {
+
+            if (request.getClearScope() == InboxSelectScopeEnum.JOBS) {
+                userMsgKey = "msg-printed-deleted-job-multiple";
+            } else {
+                userMsgKey = "msg-printed-deleted-multiple";
+            }
+            userMsg = localize(request.getLocale(), userMsgKey,
+                    String.valueOf(request.getClearedObjects()));
+        }
+
+        //
+        final String pagesMsgKey;
+
+        if (docLog.getNumberOfPages().intValue() == 1) {
+            pagesMsgKey = "msg-printed-for-admin-single-page";
+        } else {
+            pagesMsgKey = "msg-printed-for-admin-multiple-pages";
+        }
+
+        //
+        final PrintOut printOut = docLog.getDocOut().getPrintOut();
+
+        final String copiesMsgKey;
+
+        if (printOut.getNumberOfCopies().intValue() == 1) {
+            copiesMsgKey = "msg-printed-for-admin-single-copy";
+        } else {
+            copiesMsgKey = "msg-printed-for-admin-multiple-copies";
+        }
+
+        //
+        final String sheetsMsgKey;
+
+        if (printOut.getNumberOfSheets().intValue() == 1) {
+            sheetsMsgKey = "msg-printed-for-admin-single-sheet";
+        } else {
+            sheetsMsgKey = "msg-printed-for-admin-multiple-sheets";
+        }
+
+        AdminPublisher.instance().publish(PubTopicEnum.PROXY_PRINT,
+                PubLevelEnum.INFO,
+                localize(request.getLocale(), "msg-printed-for-admin",
+                        request.getPrintMode().uiText(request.getLocale()),
+                        printOut.getPrinter().getDisplayName(),
+                        lockedUser.getUserId(),
+                        //
+                        localize(request.getLocale(), pagesMsgKey,
+                                docLog.getNumberOfPages().toString()),
+                        //
+                        localize(request.getLocale(), copiesMsgKey,
+                                printOut.getNumberOfCopies().toString()),
+                        //
+                        localize(request.getLocale(), sheetsMsgKey,
+                                printOut.getNumberOfSheets().toString()))
+        //
+        );
+        request.setUserMsgKey(userMsgKey);
+        request.setUserMsg(userMsg);
+    }
+
+    /**
+     * Settles a proxy print without doing the actual printing. Updates
+     * {@link User}, {@link Printer} and global {@link IConfigProp} statistics.
+     * <p>
+     * Note: Invariants are NOT checked. The {@link InboxInfoDto} is NOT
+     * updated.
+     * </p>
+     *
+     * @param lockedUser
+     *            The requesting {@link User}, which should be locked.
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
+     * @param docLog
+     *            The {@link DocLog} to persist in the database.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the PDF file to send to the
+     *            printer.
+     */
+    private void settleProxyPrint(final User lockedUser,
+            final AbstractProxyPrintReq request, final DocLog docLog,
+            final PdfCreateInfo createInfo) {
+
+        /*
+         * Create fake CUPS print job.
+         */
+        final int cupsTimeNow =
+                (int) (ServiceContext.getTransactionDate().getTime()
+                        / DateUtil.DURATION_MSEC_SECOND);
+
+        final JsonProxyPrintJob printJob = new JsonProxyPrintJob();
+
+        printJob.setUser(lockedUser.getUserId());
+        printJob.setJobId(Integer.valueOf(0));
+        printJob.setJobState(
+                Integer.valueOf(IppJobStateEnum.IPP_JOB_COMPLETED.asInt()));
+        printJob.setCreationTime(cupsTimeNow);
+        printJob.setCompletedTime(cupsTimeNow);
+        printJob.setDest("");
+        printJob.setTitle(request.getJobName());
+
+        /*
+         * Collect the PrintOut data.
+         */
+        final JsonProxyPrinter jsonPrinter =
+                this.getJsonProxyPrinterCopy(request.getPrinterName());
+
+        collectPrintOutData(request, docLog, jsonPrinter, printJob, createInfo);
+
+        final PrintOut printOut = docLog.getDocOut().getPrintOut();
+
+        printOut.setCupsJobSheets("");
+        printOut.setCupsNumberUp(String.valueOf(request.getNup()));
+        printOut.setCupsPageSet(IppKeyword.CUPS_ATTR_PAGE_SET_ALL);
+
+        /*
+         * Persists the DocLog.
+         */
+        docLogService().logDocOut(lockedUser, docLog.getDocOut(),
+                request.getAccountTrxInfoSet());
+
+        request.setStatus(ProxyPrintInboxReq.Status.PRINTED); // TODO
+
+        /*
+         * Publish.
+         */
+        publishProxyPrintEvent(lockedUser, request, docLog);
+    }
+
+    /**
+     * Checks if {@link OutboxJobDto} has External Supplier other than
+     * {@link ExternalSupplierEnum#SAVAPAGE} and external print manager is
+     * {@link ThirdPartyEnum#PAPERCUT}. If so, things are corrected like this:
+     * <ol>
+     * <li>Change the DocLog of the PrintIn.
+     * <ul>
+     * <li>Change ExternalStatus from PENDING to PENDING_EXT</li>
+     * <li>Change ExternalSupplier from SAVAPAGE to the original external
+     * supplier.</li>
+     * </ul>
+     * </li>
+     * <li>AD-HOC create the AccountTrx's at the DocLog of the PrintIn document.
+     * </li>
+     * </ol>
+     * <p>
+     * <i>The correction will restore things to a situation as if the ticket
+     * from the External Supplier was printed directly to a PaperCut Managed
+     * Printer.</i>
+     * </p>
+     * <p>
+     * For example, when a {@link ExternalSupplierEnum#SMARTSCHOOL} ticket is
+     * printed to a SavaPage Job Ticket Printer, and released to a
+     * {@link ThirdPartyEnum#PAPERCUT} managed printer from there, it will be as
+     * if the external ticket was directly printed to the PaperCut managed
+     * printer: the SavaPage Ticket was just a detour.
+     * </p>
+     *
+     * @param job
+     *            The {@link OutboxJobDto} Job Ticket. *
+     * @param extPrinterManager
+     *            The {@link ThirdPartyEnum} external print manager:
+     *            {@code null} when native SavaPage.
+     *
+     * @return {@code true} when correction was performed, {@code false} when
+     *         correction was not needed.
+     */
+    private boolean validateJobTicketPaperCutSupplier(final OutboxJobDto job,
+            final ThirdPartyEnum extPrinterManager) {
+
+        /*
+         * INVARIANT: Print manager MUST be PaperCut.
+         */
+        if (extPrinterManager != ThirdPartyEnum.PAPERCUT) {
+            return false;
+        }
+
+        final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
+
+        /*
+         * INVARIANT: Current supplier of the job MUST NOT be SavaPage.
+         */
+        if (supplierInfo == null || supplierInfo
+                .getSupplier() == ExternalSupplierEnum.SAVAPAGE) {
+            return false;
+        }
+
+        final AccountTrxInfoSet accountTrxInfoSet =
+                outboxService().createAccountTrxInfoSet(job);
+
+        /*
+         * INVARIANT: Account Transactions MUST be present.
+         */
+        if (accountTrxInfoSet == null) {
+            return false;
+        }
+
+        /*
+         * Find the DocLog of the DocIn that lead to this ticket.
+         */
+        final DocLog docLogIn = docLogService().getSuppliedDocLog(
+                supplierInfo.getSupplier(), supplierInfo.getAccount(),
+                supplierInfo.getId(), ExternalSupplierStatusEnum.PENDING);
+
+        /*
+         * INVARIANT: DocLog MUST be present.
+         */
+        if (docLogIn == null) {
+            return false;
+        }
+
+        /*
+         * Correct status and ad-hoc create trx.
+         */
+        final DaoContext daoContext = ServiceContext.getDaoContext();
+
+        final boolean wasAdhocTransaction = daoContext.isTransactionActive();
+
+        if (!wasAdhocTransaction) {
+            daoContext.beginTransaction();
+        }
+
+        try {
+            docLogIn.setExternalStatus(
+                    ExternalSupplierStatusEnum.PENDING_EXT.toString());
+
+            docLogIn.setExternalSupplier(supplierInfo.getSupplier().toString());
+
+            accountingService().createAccountTrxs(accountTrxInfoSet, docLogIn,
+                    AccountTrxTypeEnum.PRINT_IN);
+
+            docLogDAO().update(docLogIn);
+
+            daoContext.commit();
+        } finally {
+            daoContext.rollback();
+        }
+
+        if (wasAdhocTransaction) {
+            daoContext.beginTransaction();
+        }
+
+        /*
+         * IMPORTANT: Remove AccountTrx's at the Job Ticket, so they are NOT
+         * created (again) at the DocLog of the DocOut object, when ticket is
+         * proxy printed.
+         */
+        job.setAccountTransactions(null);
+
+        return true;
     }
 
     @Override
@@ -1802,79 +2201,28 @@ public abstract class AbstractProxyPrintService extends AbstractService
             final ThirdPartyEnum extPrinterManager)
             throws IOException, IppConnectException {
 
-        final boolean monitorPaperCutPrintStatus =
-                extPrinterManager == ThirdPartyEnum.PAPERCUT;
-
-        final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
-
-        /*
-         * If job External Supplier is integrated with PaperCut after all, we
-         * must:
-         *
-         * (1) Change the DocLog/PrintIn: ExternalStatus from PENDING to
-         * PENDING_EXT, and ExternalSupplier from SAVAPAGE to the original
-         * external supplier.
-         *
-         * (2) AD-HOC create AccountTrx's at the Log/PrintIn document.
-         */
-
-        if (monitorPaperCutPrintStatus && supplierInfo != null && supplierInfo
-                .getSupplier() != ExternalSupplierEnum.SAVAPAGE) {
-
-            final AccountTrxInfoSet accountTrxInfoSet =
-                    outboxService().createAccountTrxInfoSet(job);
-
-            if (accountTrxInfoSet != null) {
-
-                final DocLog docLogIn = docLogService().getSuppliedDocLog(
-                        supplierInfo.getSupplier(), supplierInfo.getAccount(),
-                        supplierInfo.getId(),
-                        ExternalSupplierStatusEnum.PENDING);
-
-                if (docLogIn != null) {
-
-                    final DaoContext daoContext =
-                            ServiceContext.getDaoContext();
-
-                    final boolean wasAdhocTransaction =
-                            daoContext.isTransactionActive();
-
-                    if (!wasAdhocTransaction) {
-                        daoContext.beginTransaction();
-                    }
-
-                    try {
-                        docLogIn.setExternalStatus(
-                                ExternalSupplierStatusEnum.PENDING_EXT
-                                        .toString());
-                        docLogIn.setExternalSupplier(
-                                supplierInfo.getSupplier().toString());
-
-                        accountingService().createAccountTrxs(accountTrxInfoSet,
-                                docLogIn, AccountTrxTypeEnum.PRINT_IN);
-
-                        docLogDAO().update(docLogIn);
-
-                        daoContext.commit();
-                    } finally {
-                        daoContext.rollback();
-                    }
-
-                    if (wasAdhocTransaction) {
-                        daoContext.beginTransaction();
-                    }
-
-                    /*
-                     * Prevent AccountTrx's at DocLog/DocOut.
-                     */
-                    job.setAccountTransactions(null);
-                }
-            }
-        }
+        this.validateJobTicketPaperCutSupplier(job, extPrinterManager);
 
         this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.TICKET,
-                pdfFileToPrint, true, monitorPaperCutPrintStatus);
+                pdfFileToPrint, extPrinterManager == ThirdPartyEnum.PAPERCUT);
 
+        return job.getPages() * job.getCopies();
+    }
+
+    @Override
+    public final int settleJobTicket(final User lockedUser,
+            final OutboxJobDto job, final File pdfFileToPrint,
+            final ThirdPartyEnum extPrinterManager) throws IOException {
+
+        this.validateJobTicketPaperCutSupplier(job, extPrinterManager);
+
+        try {
+            this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.TICKET_E,
+                    pdfFileToPrint,
+                    extPrinterManager == ThirdPartyEnum.PAPERCUT);
+        } catch (IppConnectException e) {
+            throw new SpException(e.getMessage());
+        }
         return job.getPages() * job.getCopies();
     }
 
@@ -1944,7 +2292,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             try {
                 this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.HOLD,
-                        pdfFileToPrint, false, monitorPaperCutPrintStatus);
+                        pdfFileToPrint, monitorPaperCutPrintStatus);
 
                 pdfFileToPrint.delete();
 
@@ -2317,9 +2665,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         final String userid = lockedUser.getUserId();
 
-        final String userMsgKey;
-        final String userMsg;
-
         /*
          * Print the PDF file.
          */
@@ -2337,88 +2682,20 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             request.setStatus(ProxyPrintInboxReq.Status.PRINTED);
 
-            if (request.getClearedObjects() == 0) {
-
-                userMsgKey = "msg-printed";
-                userMsg = localize(request.getLocale(), userMsgKey);
-
-            } else if (request.getClearedObjects() == 1) {
-
-                if (request.getClearScope() == InboxSelectScopeEnum.JOBS) {
-                    userMsgKey = "msg-printed-deleted-job-one";
-                } else {
-                    userMsgKey = "msg-printed-deleted-one";
-                }
-                userMsg = localize(request.getLocale(), userMsgKey);
-            } else {
-
-                if (request.getClearScope() == InboxSelectScopeEnum.JOBS) {
-                    userMsgKey = "msg-printed-deleted-job-multiple";
-                } else {
-                    userMsgKey = "msg-printed-deleted-multiple";
-                }
-                userMsg = localize(request.getLocale(), userMsgKey,
-                        String.valueOf(request.getClearedObjects()));
-            }
-
-            final PrintOut printOut = docLog.getDocOut().getPrintOut();
-
-            //
-            final String pagesMsgKey;
-
-            if (docLog.getNumberOfPages().intValue() == 1) {
-                pagesMsgKey = "msg-printed-for-admin-single-page";
-            } else {
-                pagesMsgKey = "msg-printed-for-admin-multiple-pages";
-            }
-
-            //
-            final String copiesMsgKey;
-
-            if (printOut.getNumberOfCopies().intValue() == 1) {
-                copiesMsgKey = "msg-printed-for-admin-single-copy";
-            } else {
-                copiesMsgKey = "msg-printed-for-admin-multiple-copies";
-            }
-
-            //
-            final String sheetsMsgKey;
-
-            if (printOut.getNumberOfSheets().intValue() == 1) {
-                sheetsMsgKey = "msg-printed-for-admin-single-sheet";
-            } else {
-                sheetsMsgKey = "msg-printed-for-admin-multiple-sheets";
-            }
-
-            AdminPublisher.instance().publish(PubTopicEnum.PROXY_PRINT,
-                    PubLevelEnum.INFO,
-                    localize(request.getLocale(), "msg-printed-for-admin",
-                            request.getPrintMode().uiText(request.getLocale()),
-                            printOut.getPrinter().getDisplayName(),
-                            lockedUser.getUserId(),
-                            //
-                            localize(request.getLocale(), pagesMsgKey,
-                                    docLog.getNumberOfPages().toString()),
-                            //
-                            localize(request.getLocale(), copiesMsgKey,
-                                    printOut.getNumberOfCopies().toString()),
-                            //
-                            localize(request.getLocale(), sheetsMsgKey,
-                                    printOut.getNumberOfSheets().toString()))
-            //
-            );
+            publishProxyPrintEvent(lockedUser, request, docLog);
 
         } else {
+            final String userMsgKey = "msg-printer-not-found";
+            final String userMsg = localize(request.getLocale(), userMsgKey,
+                    request.getPrinterName());
+
             request.setStatus(
                     ProxyPrintInboxReq.Status.ERROR_PRINTER_NOT_FOUND);
-            userMsgKey = "msg-printer-not-found";
-            userMsg = localize(request.getLocale(), userMsgKey,
-                    request.getPrinterName());
+            request.setUserMsgKey(userMsgKey);
+            request.setUserMsg(userMsg);
+
             LOGGER.error(userMsg);
         }
-
-        request.setUserMsgKey(userMsgKey);
-        request.setUserMsg(userMsg);
     }
 
     @Override
