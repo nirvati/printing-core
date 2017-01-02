@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1799,13 +1800,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
             throws IOException, IppConnectException {
 
         //
-        final boolean isRealPrint = printMode != PrintModeEnum.TICKET_C
-                && printMode != PrintModeEnum.TICKET_E;
+        final boolean isSettlement =
+                EnumSet.of(PrintModeEnum.TICKET_C, PrintModeEnum.TICKET_E)
+                        .contains(printMode);
 
-        final boolean isSettleOnly = !isRealPrint;
+        final boolean isProxyPrint = !isSettlement;
 
         final boolean isJobTicket =
-                isSettleOnly || printMode == PrintModeEnum.TICKET;
+                isSettlement || printMode == PrintModeEnum.TICKET;
 
         //
         final ProxyPrintDocReq printReq = new ProxyPrintDocReq(printMode);
@@ -1832,7 +1834,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         //
         final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
 
-        if (isRealPrint && monitorPaperCutPrintStatus) {
+        if (isProxyPrint && monitorPaperCutPrintStatus) {
 
             final PrintModeEnum printModeWrk;
 
@@ -1889,13 +1891,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Print.
          */
-        if (isRealPrint) {
+        if (isProxyPrint) {
             proxyPrint(lockedUser, printReq, docLog, createInfo);
         } else {
             settleProxyPrint(lockedUser, printReq, docLog, createInfo);
         }
 
-        if (isSettleOnly && monitorPaperCutPrintStatus) {
+        if (isSettlement && monitorPaperCutPrintStatus) {
             // TODO: add PaperCut transactions now.
         }
 
