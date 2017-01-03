@@ -570,9 +570,9 @@ public final class PaperCutDbProxy {
         sql.append(", U.full_name as Name");
 
         sql.append(", CASE WHEN " + "length(split_part(MAX(TRX.txn_comment), '"
-                + DelegatedPrintCommentSyntax.FIELD_SEPARATOR + "', 1)) < 25 "
+                + PaperCutPrintCommentSyntax.FIELD_SEPARATOR + "', 1)) < 25 "
                 + "THEN split_part(MAX(TRX.txn_comment), '"
-                + DelegatedPrintCommentSyntax.FIELD_SEPARATOR + "', 1) "
+                + PaperCutPrintCommentSyntax.FIELD_SEPARATOR + "', 1) "
                 + "ELSE '' END as Klas");
 
         sql.append(", -SUM(TRX.amount) as Amount");
@@ -599,13 +599,13 @@ public final class PaperCutDbProxy {
         // Indicator Totals.
         final String[][] sumColInfo =
                 { { "5", "A4", "pages_a4" }, { "5", "A3", "pages_a3" },
-                        { "6", DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_OFF,
+                        { "6", PaperCutPrintCommentSyntax.INDICATOR_DUPLEX_OFF,
                                 "pages_singlex" },
-                        { "6", DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_ON,
+                        { "6", PaperCutPrintCommentSyntax.INDICATOR_DUPLEX_ON,
                                 "pages_duplex" },
-                        { "7", DelegatedPrintCommentSyntax.INDICATOR_COLOR_OFF,
+                        { "7", PaperCutPrintCommentSyntax.INDICATOR_COLOR_OFF,
                                 "pages_bw" },
-                        { "7", DelegatedPrintCommentSyntax.INDICATOR_COLOR_ON,
+                        { "7", PaperCutPrintCommentSyntax.INDICATOR_COLOR_ON,
                                 "pages_color" } };
 
         for (final String[] info : sumColInfo) {
@@ -638,7 +638,7 @@ public final class PaperCutDbProxy {
 
         // select students only.
         sql.append(" and LEFT(TRX.txn_comment, 1) != '")
-                .append(DelegatedPrintCommentSyntax.DUMMY_KLAS).append("'");
+                .append(PaperCutPrintCommentSyntax.DUMMY_KLAS).append("'");
 
         final List<String> klassen = dto.getClasses();
 
@@ -651,7 +651,7 @@ public final class PaperCutDbProxy {
                     sql.append(" OR ");
                 }
                 sql.append("TRX.txn_comment like '").append(escapeForSql(klas))
-                        .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                        .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                         .append("%'");
                 i++;
             }

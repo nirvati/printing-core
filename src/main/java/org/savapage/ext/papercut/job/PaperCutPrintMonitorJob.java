@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,12 +38,10 @@ import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.job.AbstractJob;
 import org.savapage.core.job.SpJobScheduler;
-import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
@@ -51,7 +49,6 @@ import org.savapage.ext.ExtSupplierConnectException;
 import org.savapage.ext.ExtSupplierException;
 import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutException;
-import org.savapage.ext.papercut.PaperCutHelper;
 import org.savapage.ext.papercut.PaperCutPrintJobListener;
 import org.savapage.ext.papercut.PaperCutPrintMonitorPattern;
 import org.savapage.ext.papercut.PaperCutPrinterUsageLog;
@@ -105,78 +102,6 @@ public final class PaperCutPrintMonitorJob extends AbstractJob
      */
     private CircuitBreaker breaker;
 
-    /**
-     * Monitoring PaperCut print status of jobs issued from
-     * {@link ExternalSupplierEnum#SAVAPAGE}.
-     */
-    private final class PaperCutPrintMonitor
-            extends PaperCutPrintMonitorPattern {
-
-        /**
-         *
-         * @param papercutServerProxy
-         *            The {@link PaperCutServerProxy}.
-         * @param papercutDbProxy
-         *            The {@link PaperCutDbProxy}.
-         * @param statusListener
-         *            The {@link PaperCutPrintJobListener}.
-         */
-        protected PaperCutPrintMonitor(
-                final PaperCutServerProxy papercutServerProxy,
-                final PaperCutDbProxy papercutDbProxy,
-                final PaperCutPrintJobListener statusListener) {
-
-            super(ExternalSupplierEnum.SAVAPAGE, papercutServerProxy,
-                    papercutDbProxy, statusListener);
-        }
-
-        @Override
-        protected String getUserAccountName() {
-            return ConfigManager.instance().getConfigValue(
-                    Key.PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL);
-        }
-
-        @Override
-        protected String getSharedParentAccountName() {
-            return ConfigManager.instance().getConfigValue(
-                    Key.PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_PARENT);
-        }
-
-        @Override
-        protected String getSharedJobsAccountName() {
-            return ConfigManager.instance().getConfigValue(
-                    Key.PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS);
-        }
-
-        @Override
-        protected int getAccountTrxWeightTotal(final DocLog docLogOut,
-                final DocLog docLogIn) {
-            return docLogOut.getDocOut().getPrintOut().getNumberOfCopies();
-        }
-
-        @Override
-        protected String getKlasFromAccountName(final String accountName) {
-            return PaperCutHelper.decomposeSharedAccountName(accountName);
-        }
-
-        @Override
-        protected Logger getLogger() {
-            return LOGGER;
-        }
-
-        @Override
-        protected boolean isDocInAccountTrx() {
-            return false;
-        }
-
-        @Override
-        protected String composeSharedSubAccountName(
-                final AccountTypeEnum accountType, final String accountName) {
-            return PaperCutHelper.composeSharedAccountName(accountType,
-                    accountName);
-        }
-    }
-
     @Override
     protected void onInterrupt() throws UnableToInterruptJobException {
         LOGGER.debug("Interrupted.");
@@ -228,7 +153,7 @@ public final class PaperCutPrintMonitorJob extends AbstractJob
             //
             final PaperCutPrintMonitorPattern monitor =
                     new PaperCutPrintMonitor(papercutServerProxy,
-                            papercutDbProxy, this);
+                            papercutDbProxy, this, LOGGER);
 
             //
             this.monitorPaperCut(monitor, MONITOR_SESSION_DURATION_SECS,

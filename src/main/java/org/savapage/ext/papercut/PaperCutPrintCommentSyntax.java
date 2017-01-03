@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <https://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -22,12 +22,13 @@
 package org.savapage.ext.papercut;
 
 /**
- * Syntax for SavaPage Delegated Print info in PaperCut transaction comment.
+ * Syntax for formatting SavaPage Print info in PaperCut Account Transaction
+ * comment.
  *
  * @author Rijk Ravestein
  *
  */
-public final class DelegatedPrintCommentSyntax {
+public final class PaperCutPrintCommentSyntax {
 
     /**
      * .
@@ -88,7 +89,7 @@ public final class DelegatedPrintCommentSyntax {
     /**
      * Hide instantiation.
      */
-    private DelegatedPrintCommentSyntax() {
+    private PaperCutPrintCommentSyntax() {
 
     }
 

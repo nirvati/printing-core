@@ -22,7 +22,9 @@
 package org.savapage.ext.papercut;
 
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PrintOut;
 
 /**
@@ -32,7 +34,7 @@ import org.savapage.core.jpa.PrintOut;
  * @author Rijk Ravestein
  *
  */
-public final class DelegatedPrintCommentProcessor {
+public final class PaperCutPrintCommentProcessor {
 
     /**
      * User requesting the print.
@@ -63,7 +65,6 @@ public final class DelegatedPrintCommentProcessor {
     private final String indicatorExternalId;
 
     private final String documentName;
-
     private final String trxComment;
 
     /**
@@ -73,11 +74,14 @@ public final class DelegatedPrintCommentProcessor {
 
     /**
      * @param docLogTrx
+     *            The {@link DocLog} container of the {@link AccountTrx}
+     *            objects.
      * @param docLogOut
+     *            The {@link DocLog} container of the {@link DocOut} object.
      * @param totalCopies
      *            Total number of printed copies.
      */
-    public DelegatedPrintCommentProcessor(final DocLog docLogTrx,
+    public PaperCutPrintCommentProcessor(final DocLog docLogTrx,
             final DocLog docLogOut, final int totalCopies) {
 
         final PrintOut printOutLog = docLogOut.getDocOut().getPrintOut();
@@ -94,18 +98,19 @@ public final class DelegatedPrintCommentProcessor {
                         printOutLog.getCupsJobId().toString());
 
         if (printOutLog.getGrayscale().booleanValue()) {
-            indicatorColor = DelegatedPrintCommentSyntax.INDICATOR_COLOR_OFF;
+            indicatorColor = PaperCutPrintCommentSyntax.INDICATOR_COLOR_OFF;
         } else {
-            indicatorColor = DelegatedPrintCommentSyntax.INDICATOR_COLOR_ON;
+            indicatorColor = PaperCutPrintCommentSyntax.INDICATOR_COLOR_ON;
         }
 
         if (printOutLog.getDuplex().booleanValue()) {
-            indicatorDuplex = DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_ON;
+            indicatorDuplex = PaperCutPrintCommentSyntax.INDICATOR_DUPLEX_ON;
         } else {
-            indicatorDuplex = DelegatedPrintCommentSyntax.INDICATOR_DUPLEX_OFF;
+            indicatorDuplex = PaperCutPrintCommentSyntax.INDICATOR_DUPLEX_OFF;
         }
-        this.documentName = docLogTrx.getTitle();
-        this.trxComment = docLogTrx.getLogComment();
+
+        this.documentName = StringUtils.defaultString(docLogTrx.getTitle());
+        this.trxComment = StringUtils.defaultString(docLogTrx.getLogComment());
 
         jobTrxComment = new StringBuilder();
     }
@@ -115,17 +120,17 @@ public final class DelegatedPrintCommentProcessor {
      */
     public void initProcess() {
         // user | copies | pages
-        jobTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
+        jobTrxComment.append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
                 .append(requestingUserId)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(totalNumberOfCopies)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(numberOfDocumentPages);
 
         // ... | A4 | S | G | id
-        jobTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR);
+        jobTrxComment.append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR);
 
         appendIndicatorFields(jobTrxComment);
 
@@ -160,30 +165,30 @@ public final class DelegatedPrintCommentProcessor {
         // requester | copies | pages
         final StringBuilder klasTrxComment = new StringBuilder();
 
-        klasTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
+        klasTrxComment.append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
                 .append(requestingUserId)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(copies)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(numberOfDocumentPages);
 
         // ... | A4 | S | G | id
-        klasTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR);
+        klasTrxComment.append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR);
 
         appendIndicatorFields(klasTrxComment);
 
         // ... | document | comment
         klasTrxComment
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(documentName)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(StringUtils.defaultString(trxComment))
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(trxComment)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_LAST);
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR_LAST);
 
         return klasTrxComment.toString();
     }
@@ -200,13 +205,13 @@ public final class DelegatedPrintCommentProcessor {
             final int copies) {
 
         // ... | user@class-n | copies-n
-        jobTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+        jobTrxComment.append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(requestingUserId)
                 //
-                .append(DelegatedPrintCommentSyntax.USER_CLASS_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.USER_CLASS_SEPARATOR)
                 .append(klasName)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(copies);
     }
 
@@ -225,35 +230,35 @@ public final class DelegatedPrintCommentProcessor {
 
         // class | requester | copies | pages
         userCopiesComment
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR_FIRST)
                 .append(StringUtils.defaultString(klasName,
-                        DelegatedPrintCommentSyntax.DUMMY_KLAS))
+                        PaperCutPrintCommentSyntax.DUMMY_KLAS))
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(requestingUserId)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(copies)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(numberOfDocumentPages);
 
         //
         // ... | A4 | S | G | id
-        userCopiesComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR);
+        userCopiesComment.append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR);
 
         appendIndicatorFields(userCopiesComment);
 
         // ... | document | comment
         userCopiesComment
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(documentName)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(StringUtils.defaultString(trxComment))
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(trxComment)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_LAST);
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR_LAST);
 
         return userCopiesComment.toString();
     }
@@ -268,24 +273,24 @@ public final class DelegatedPrintCommentProcessor {
         // ... |
         if (totalCopiesForKlasCounter != totalNumberOfCopies) {
 
-            jobTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+            jobTrxComment.append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                     .append(requestingUserId)
                     //
-                    .append(DelegatedPrintCommentSyntax.USER_CLASS_SEPARATOR)
-                    .append(DelegatedPrintCommentSyntax.DUMMY_KLAS)
+                    .append(PaperCutPrintCommentSyntax.USER_CLASS_SEPARATOR)
+                    .append(PaperCutPrintCommentSyntax.DUMMY_KLAS)
                     //
-                    .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                    .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                     .append(totalNumberOfCopies - totalCopiesForKlasCounter);
         }
 
         // ... | document | comment
-        jobTrxComment.append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+        jobTrxComment.append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(documentName)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(StringUtils.defaultString(trxComment))
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(trxComment)
                 //
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR_LAST);
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR_LAST);
 
         //
         return StringUtils.abbreviate(jobTrxComment.toString(),
@@ -306,11 +311,11 @@ public final class DelegatedPrintCommentProcessor {
     private StringBuilder appendIndicatorFields(final StringBuilder str) {
 
         str.append(indicatorPaperSize)
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(indicatorDuplex)
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(indicatorColor)
-                .append(DelegatedPrintCommentSyntax.FIELD_SEPARATOR)
+                .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(indicatorExternalId);
         return str;
     }

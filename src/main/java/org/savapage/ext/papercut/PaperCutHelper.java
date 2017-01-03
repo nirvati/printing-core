@@ -176,14 +176,14 @@ public final class PaperCutHelper {
         final StringBuilder sfx = new StringBuilder();
 
         if (StringUtils.isNotBlank(documentName)) {
-            sfx.append(DelegatedPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR);
+            sfx.append(PaperCutPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR);
         }
 
         if (StringUtils.isNotBlank(accountName)) {
             sfx.append(accountName);
         }
 
-        sfx.append(DelegatedPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR).append(
+        sfx.append(PaperCutPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR).append(
                 documentId);
 
         final String suffix = sfx.toString();
@@ -210,7 +210,7 @@ public final class PaperCutHelper {
 
         final String[] parts =
                 StringUtils.split(encodedJobName,
-                        DelegatedPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR);
+                        PaperCutPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR);
 
         if (parts.length < 3) {
             return null;

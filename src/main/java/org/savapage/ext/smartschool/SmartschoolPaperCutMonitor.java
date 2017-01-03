@@ -68,18 +68,18 @@ public final class SmartschoolPaperCutMonitor
     }
 
     @Override
-    protected String getUserAccountName() {
+    public String getUserAccountName() {
         return ConfigManager.instance()
                 .getConfigValue(Key.SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL);
     }
 
     @Override
-    protected String getSharedParentAccountName() {
+    public String getSharedParentAccountName() {
         return SMARTSCHOOL_SERVICE.getSharedParentAccountName();
     }
 
     @Override
-    protected String getSharedJobsAccountName() {
+    public String getSharedJobsAccountName() {
         return SMARTSCHOOL_SERVICE.getSharedJobsAccountName();
     }
 
@@ -98,7 +98,7 @@ public final class SmartschoolPaperCutMonitor
     }
 
     @Override
-    protected String getKlasFromAccountName(final String subAccountName) {
+    public String getKlasFromAccountName(final String subAccountName) {
         return SMARTSCHOOL_SERVICE
                 .getKlasFromComposedAccountName(subAccountName);
     }
@@ -114,7 +114,7 @@ public final class SmartschoolPaperCutMonitor
     }
 
     @Override
-    protected String composeSharedSubAccountName(
+    public String composeSharedSubAccountName(
             final AccountTypeEnum accountType, final String accountName) {
         /*
          * The account name is already in composed format.

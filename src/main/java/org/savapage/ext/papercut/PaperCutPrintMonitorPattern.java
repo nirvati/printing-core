@@ -30,7 +30,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
-import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.AccountTrxDao.ListFilter;
@@ -42,13 +41,11 @@ import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
-import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PrintOut;
-import org.savapage.core.jpa.User;
 import org.savapage.core.json.JsonAbstractBase;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
@@ -67,7 +64,8 @@ import org.slf4j.LoggerFactory;
  * @author Rijk Ravestein
  *
  */
-public abstract class PaperCutPrintMonitorPattern {
+public abstract class PaperCutPrintMonitorPattern
+        implements PaperCutAccountResolver {
 
     /**
      * The logger.
@@ -131,12 +129,6 @@ public abstract class PaperCutPrintMonitorPattern {
      *         linked with the {@link DocLog} of the {@link DocOut}.
      */
     protected abstract boolean isDocInAccountTrx();
-
-    /**
-     * @return PaperCut is configured with Multiple Personal Accounts, and this
-     *         is the account name to use for personal transactions.
-     */
-    protected abstract String getUserAccountName();
 
     /**
      *
@@ -380,6 +372,7 @@ public abstract class PaperCutPrintMonitorPattern {
     }
 
     /**
+     * Gets the total number of copies printed.
      * <p>
      * IMPORTANT: the accumulated weight of the individual Account transactions
      * need NOT be the same as the number of copies (since parts of the printing
@@ -399,45 +392,6 @@ public abstract class PaperCutPrintMonitorPattern {
      * @return The {@link Logger}.
      */
     protected abstract Logger getLogger();
-
-    /**
-     *
-     * @return
-     */
-    protected abstract String getSharedParentAccountName();
-
-    /**
-     * Uses SavaPage {@link Account} data to compose a shared (sub) account name
-     * for PaperCut.
-     *
-     * @param accountType
-     *            The SavaPage {@link AccountTypeEnum}.
-     * @param accountName
-     *            The SavaPage account name.
-     * @return The composed sub account name to be used in PaperCut.
-     */
-    protected abstract String composeSharedSubAccountName(
-            AccountTypeEnum accountType, String accountName);
-
-    /**
-     *
-     * @return
-     */
-    protected abstract String getSharedJobsAccountName();
-
-    /**
-     * Gets the klas (group or shared account) name from the composed account
-     * name.
-     * <p>
-     * Note: The klas (group) name is needed to compose the comment of a newly
-     * created PaperCut account transaction.
-     * </p>
-     *
-     * @param accountName
-     *            The (composed) SavaPage account name.
-     * @return The klas (group) name.
-     */
-    protected abstract String getKlasFromAccountName(String accountName);
 
     /**
      * @param docLogOut
@@ -601,150 +555,14 @@ public abstract class PaperCutPrintMonitorPattern {
         }
 
         /*
-         * Number of decimals for decimal scaling.
+         * Create PaperCut transactions.
          */
-        final int scale = ConfigManager.getFinancialDecimalsInDatabase();
+        final PaperCutAccountAdjustPattern accountAdjustPattern =
+                new PaperCutAccountAdjustPrint(papercutServerProxy, this,
+                        this.getLogger());
 
-        /*
-         * Create transaction comment processor.
-         */
-        final DelegatedPrintCommentProcessor trxCommentProcessor =
-                new DelegatedPrintCommentProcessor(docLogTrx, docLogOut,
-                        weightTotal);
-
-        trxCommentProcessor.initProcess();
-
-        /*
-         * Adjust the Personal and Shared Accounts in PaperCut and update the
-         * SavaPage AccountTrx's.
-         */
-        for (final AccountTrx trx : trxList) {
-
-            final int weight = trx.getTransactionWeight().intValue();
-
-            final BigDecimal weightedCost =
-                    ACCOUNTING_SERVICE.calcWeightedAmount(weightTotalCost,
-                            weightTotal, weight, scale);
-
-            final org.savapage.core.jpa.Account account = trx.getAccount();
-
-            /*
-             * PaperCut account adjustment.
-             */
-            final BigDecimal papercutAdjustment = weightedCost.negate();
-
-            final AccountTypeEnum accountType =
-                    AccountTypeEnum.valueOf(account.getAccountType());
-
-            if (accountType == AccountTypeEnum.SHARED
-                    || accountType == AccountTypeEnum.GROUP) {
-
-                /*
-                 * Adjust Shared [Parent]/[klas|group|shared] Account.
-                 */
-
-                /*
-                 * NOTE: Ignore account.getParent().getName(), which is SavaPage
-                 * internal, but use the top account name as used in PaperCut.
-                 */
-                final String topAccountName = this.getSharedParentAccountName();
-
-                final String subAccountName = this.composeSharedSubAccountName(
-                        accountType, account.getName());
-
-                final String klasName =
-                        this.getKlasFromAccountName(subAccountName);
-
-                final String klasTrxComment =
-                        trxCommentProcessor.processKlasTrx(klasName, weight);
-
-                if (this.getLogger().isDebugEnabled()) {
-
-                    this.getLogger().debug(String.format(
-                            "PaperCut shared account [%s] "
-                                    + "adjustment [%s] comment: %s",
-                            this.papercutServerProxy.composeSharedAccountName(
-                                    topAccountName, subAccountName),
-                            papercutAdjustment.toPlainString(),
-                            klasTrxComment));
-                }
-
-                PAPERCUT_SERVICE.lazyAdjustSharedAccount(
-                        this.papercutServerProxy, topAccountName,
-                        subAccountName, papercutAdjustment, klasTrxComment);
-
-            } else {
-
-                final String userCopiesComment = trxCommentProcessor
-                        .processUserTrx(trx.getExtDetails(), weight);
-
-                /*
-                 * Get the user of the transaction.
-                 */
-                final User user = USER_ACCOUNT_DAO
-                        .findByAccountId(trx.getAccount().getId()).getUser();
-                /*
-                 * Adjust Personal Account.
-                 */
-                if (this.getLogger().isDebugEnabled()) {
-
-                    this.getLogger()
-                            .debug(String.format(
-                                    "PaperCut personal account [%s] "
-                                            + "adjustment [%s] comment [%s]",
-                                    user.getUserId(),
-                                    papercutAdjustment.toPlainString(),
-                                    userCopiesComment.toString()));
-                }
-
-                try {
-                    PAPERCUT_SERVICE.adjustUserAccountBalance(
-                            this.papercutServerProxy, user.getUserId(),
-                            this.getUserAccountName(), papercutAdjustment,
-                            userCopiesComment.toString());
-
-                } catch (PaperCutException e) {
-                    this.getLogger()
-                            .error(String.format(
-                                    "PaperCut adjustment [%s] skipped: %s",
-                                    papercutAdjustment.toPlainString(),
-                                    e.getMessage()));
-                }
-            }
-
-            /*
-             * Update Account.
-             */
-            account.setBalance(account.getBalance().subtract(weightedCost));
-            ACCOUNT_DAO.update(account);
-
-            /*
-             * Update AccountTrx.
-             */
-            trx.setAmount(papercutAdjustment);
-            trx.setBalance(account.getBalance());
-
-            trx.setTransactedBy(ServiceContext.getActor());
-            trx.setTransactionDate(ServiceContext.getTransactionDate());
-
-            if (this.isDocInAccountTrx()) {
-                // Move from DocLog source to target.
-                trx.setDocLog(docLogOut);
-            }
-
-            ACCOUNT_TRX_DAO.update(trx);
-        }
-
-        /*
-         * Create a transaction in the shared Jobs account with a comment of
-         * formatted job data.
-         */
-        final String jobTrxComment = trxCommentProcessor.exitProcess();
-
-        PAPERCUT_SERVICE.lazyAdjustSharedAccount(this.papercutServerProxy,
-                this.getSharedParentAccountName(),
-                this.getSharedJobsAccountName(), weightTotalCost.negate(),
-                jobTrxComment);
+        accountAdjustPattern.process(docLogTrx, docLogOut,
+                this.isDocInAccountTrx(), weightTotalCost, weightTotal);
 
         /*
          * DocLog updates.

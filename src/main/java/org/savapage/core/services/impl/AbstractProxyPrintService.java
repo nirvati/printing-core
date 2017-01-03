@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -152,6 +152,12 @@ import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
 import org.savapage.core.util.Messages;
+import org.savapage.ext.papercut.PaperCutAccountAdjustPattern;
+import org.savapage.ext.papercut.PaperCutAccountAdjustPrint;
+import org.savapage.ext.papercut.PaperCutAccountResolver;
+import org.savapage.ext.papercut.PaperCutException;
+import org.savapage.ext.papercut.PaperCutServerProxy;
+import org.savapage.ext.papercut.job.PaperCutPrintMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1898,7 +1904,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         if (isSettlement && monitorPaperCutPrintStatus) {
-            // TODO: add PaperCut transactions now.
+            try {
+                settleProxyPrintPaperCut(docLog, job.getCopies(),
+                        job.getCostResult());
+            } catch (PaperCutException e) {
+                throw new IOException(e.getMessage(), e);
+            }
         }
 
         pdfFileToPrint.delete();
@@ -1913,6 +1924,67 @@ public abstract class AbstractProxyPrintService extends AbstractService
         if (!isJobTicket && !monitorPaperCutPrintStatus) {
             outboxService().onOutboxJobCompleted(job);
         }
+    }
+
+    /**
+     * Settles a proxy print in PaperCut.
+     *
+     * @param docLog
+     *            The {@link DocLog} container.
+     * @param copies
+     *            The number of printed copies.
+     * @param cost
+     *            The print cost.
+     * @throws PaperCutException
+     *             When logical PaperCut error.
+     */
+    private void settleProxyPrintPaperCut(final DocLog docLog, final int copies,
+            final ProxyPrintCostDto cost) throws PaperCutException {
+
+        final PaperCutAccountResolver accountResolver =
+                new PaperCutAccountResolver() {
+
+                    @Override
+                    public String getUserAccountName() {
+                        return PaperCutPrintMonitor.getAccountNameUser();
+                    }
+
+                    @Override
+                    public String getSharedParentAccountName() {
+                        return PaperCutPrintMonitor
+                                .getSharedAccountNameParent();
+                    }
+
+                    @Override
+                    public String getSharedJobsAccountName() {
+                        return PaperCutPrintMonitor.getSharedAccountNameJobs();
+                    }
+
+                    @Override
+                    public String
+                            getKlasFromAccountName(final String accountName) {
+                        return PaperCutPrintMonitor
+                                .extractKlasFromAccountName(accountName);
+                    }
+
+                    @Override
+                    public String composeSharedSubAccountName(
+                            final AccountTypeEnum accountType,
+                            final String accountName) {
+                        return PaperCutPrintMonitor.createSharedSubAccountName(
+                                accountType, accountName);
+                    }
+                };
+
+        final PaperCutServerProxy serverProxy =
+                PaperCutServerProxy.create(ConfigManager.instance(), true);
+
+        final PaperCutAccountAdjustPattern adjustPattern =
+                new PaperCutAccountAdjustPrint(serverProxy, accountResolver,
+                        LOGGER);
+
+        adjustPattern.process(docLog, docLog, false, cost.getCostTotal(),
+                copies);
     }
 
     /**
