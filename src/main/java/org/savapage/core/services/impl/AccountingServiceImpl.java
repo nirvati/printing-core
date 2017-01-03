@@ -67,6 +67,7 @@ import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.AccountVoucher;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PosPurchase;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
@@ -646,9 +647,14 @@ public final class AccountingServiceImpl extends AbstractService
     }
 
     @Override
-    public void createAccountTrx(final Account account, final DocLog docLog,
-            final AccountTrxTypeEnum trxType) {
-        createAccountTrx(account, docLog, trxType, 1, 1, null);
+    public void createAccountTrx(final Account account,
+            final PrintOut printOut) {
+
+        final DocLog docLog = printOut.getDocOut().getDocLog();
+        final int weight = printOut.getNumberOfCopies().intValue();
+
+        createAccountTrx(account, docLog, AccountTrxTypeEnum.PRINT_OUT, weight,
+                weight, null);
     }
 
     @Override

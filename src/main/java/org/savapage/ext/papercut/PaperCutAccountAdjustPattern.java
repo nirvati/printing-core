@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.UserAccountDao;
+import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocIn;
@@ -90,9 +91,9 @@ public abstract class PaperCutAccountAdjustPattern {
      * @param weightedCost
      *            The weighted cost.
      * @param isDocInAccountTrx
-     *            {@code true} when the {@link AccountTrx} is linked
-     *            with the {@link DocLog} of the {@link DocIn}, {@code false}
-     *            when linked with the {@link DocLog} of the {@link DocOut}.
+     *            {@code true} when the {@link AccountTrx} is linked with the
+     *            {@link DocLog} of the {@link DocIn}, {@code false} when linked
+     *            with the {@link DocLog} of the {@link DocOut}.
      * @param docLogOut
      *            The {@link DocLog} container of the {@link DocOut} object.
      */
@@ -150,7 +151,7 @@ public abstract class PaperCutAccountAdjustPattern {
                     ACCOUNTING_SERVICE.calcWeightedAmount(weightTotalCost,
                             weightTotal, weight, scale);
 
-            final org.savapage.core.jpa.Account account = trx.getAccount();
+            final Account account = trx.getAccount();
 
             /*
              * PaperCut account adjustment.

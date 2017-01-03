@@ -348,8 +348,7 @@ public final class DocLogServiceImpl extends AbstractService
                                             lockedUser, AccountTypeEnum.USER);
 
                             accountingService().createAccountTrx(
-                                    userAccount.getAccount(), docLog,
-                                    AccountTrxTypeEnum.PRINT_OUT);
+                                    userAccount.getAccount(), printOut);
                         }
 
                     } else {

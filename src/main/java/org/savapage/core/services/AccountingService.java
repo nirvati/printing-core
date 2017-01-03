@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -44,6 +44,7 @@ import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
@@ -411,18 +412,16 @@ public interface AccountingService {
     Account lazyGetSharedAccount(String accountName, Account accountTemplate);
 
     /**
-     * Creates an {@link AccountTrx} of {@link AccountTrx.AccountTrxTypeEnum}
-     * and updates the {@link Account}.
+     * Creates a single {@link AccountTrx} of
+     * {@link AccountTrxTypeEnum#PRINT_OUT} at the {@link DocLog} container of
+     * the {@link PrintOut} and updates the {@link Account}.
      *
      * @param account
      *            The {@link Account} to update.
-     * @param docLog
-     *            The {@link DocLog} to be accounted for.
-     * @param trxType
-     *            The {@link AccountTrxTypeEnum} of the {@link AccountTrx}.
+     * @param printOut
+     *            The {@link PrintOut} to be accounted for.
      */
-    void createAccountTrx(Account account, DocLog docLog,
-            AccountTrxTypeEnum trxType);
+    void createAccountTrx(Account account, PrintOut printOut);
 
     /**
      * Uses the {@link AccountTrxInfoSet} to create {@link AccountTrx} objects

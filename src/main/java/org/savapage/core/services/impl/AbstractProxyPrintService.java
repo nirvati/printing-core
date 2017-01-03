@@ -2136,7 +2136,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Persists the DocLog.
          */
-        docLogService().logDocOut(lockedUser, docLog.getDocOut(),
+        docLogService().settlePrintOut(lockedUser,
+                docLog.getDocOut().getPrintOut(),
                 request.getAccountTrxInfoSet());
 
         request.setStatus(ProxyPrintInboxReq.Status.PRINTED); // TODO
@@ -2150,7 +2151,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
     /**
      * Checks if {@link OutboxJobDto} has External Supplier other than
      * {@link ExternalSupplierEnum#SAVAPAGE} and external print manager is
-     * {@link ThirdPartyEnum#PAPERCUT}. If so, things are corrected like this:
+     * {@link ThirdPartyEnum#PAPERCUT}.
+     * <p>
+     * If so, the following corrections are performed:
+     * </p>
      * <ol>
      * <li>Change the DocLog of the PrintIn.
      * <ul>
@@ -2159,11 +2163,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * supplier.</li>
      * </ul>
      * </li>
-     * <li>AD-HOC create the AccountTrx's at the DocLog of the PrintIn document.
-     * </li>
+     * <li>If present, ad-hoc create the AccountTrx's at the DocLog of the
+     * PrintIn document.</li>
      * </ol>
      * <p>
-     * <i>The correction will restore things to a situation as if the ticket
+     * <i>The corrections will restore things to a situation as if the ticket
      * from the External Supplier was printed directly to a PaperCut Managed
      * Printer.</i>
      * </p>
@@ -2204,16 +2208,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
             return false;
         }
 
-        final AccountTrxInfoSet accountTrxInfoSet =
-                outboxService().createAccountTrxInfoSet(job);
-
-        /*
-         * INVARIANT: Account Transactions MUST be present.
-         */
-        if (accountTrxInfoSet == null) {
-            return false;
-        }
-
         /*
          * Find the DocLog of the DocIn that lead to this ticket.
          */
@@ -2245,8 +2239,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             docLogIn.setExternalSupplier(supplierInfo.getSupplier().toString());
 
-            accountingService().createAccountTrxs(accountTrxInfoSet, docLogIn,
-                    AccountTrxTypeEnum.PRINT_IN);
+            final AccountTrxInfoSet accountTrxInfoSet =
+                    outboxService().createAccountTrxInfoSet(job);
+
+            if (accountTrxInfoSet != null) {
+                accountingService().createAccountTrxs(accountTrxInfoSet,
+                        docLogIn, AccountTrxTypeEnum.PRINT_IN);
+            }
 
             docLogDAO().update(docLogIn);
 
