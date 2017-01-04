@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,8 +22,10 @@
 package org.savapage.core.print.proxy;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.print.attribute.standard.MediaSizeName;
 
@@ -228,7 +230,7 @@ public final class ProxyPrintJobChunkInfo {
                 selectedPageRanges);
 
         /*
-         * First Page.
+         * Prepare.
          */
         ProxyPrintJobChunk printJobChunkWlk = null;
 
@@ -242,10 +244,15 @@ public final class ProxyPrintJobChunkInfo {
 
         Boolean hasLandscape = Boolean.FALSE;
 
+        final List<String> chunkPageRangesWlk = new ArrayList<>();
+        final Set<Integer> chunkJobsWlk = new HashSet<>();
+        String chunkFirstDocNameWlk = null;
+
+        // Iterate.
         while (iterPages.hasNext()) {
 
             /*
-             * Next page.
+             * Next page range.
              */
             final InboxJobRange jobRange = iterPages.next();
 
@@ -261,7 +268,16 @@ public final class ProxyPrintJobChunkInfo {
             if (printJobChunkWlk == null
                     || mediaSizeNameItem != mediaSizeNameWlk) {
 
-                // create new
+                // Flush current
+                if (printJobChunkWlk != null) {
+                    composeChunkJobName(printJobChunkWlk, chunkFirstDocNameWlk,
+                            chunkPageRangesWlk, chunkJobsWlk.size());
+                }
+                chunkFirstDocNameWlk = inboxJob.getTitle();
+                chunkPageRangesWlk.clear();
+                chunkJobsWlk.clear();
+
+                // Create new.
                 mediaSizeNameItem = mediaSizeNameWlk;
 
                 printJobChunkWlk = new ProxyPrintJobChunk();
@@ -270,10 +286,12 @@ public final class ProxyPrintJobChunkInfo {
                 // Initialize DRM.
                 isDrm = BooleanUtils.isTrue(inboxJob.getDrm());
 
-                // Note: do NOT set chunk job name.
-
+                //
                 this.addChunk(printJobChunkWlk);
             }
+
+            chunkPageRangesWlk.add(jobRange.getRange());
+            chunkJobsWlk.add(jobRange.getJob());
 
             // Overwrite chunk with DRM of current job.
             printJobChunkWlk
@@ -284,7 +302,12 @@ public final class ProxyPrintJobChunkInfo {
             if (inboxJob.showLandscape()) {
                 hasLandscape = Boolean.TRUE;
             }
+        }
 
+        // Flush current
+        if (printJobChunkWlk != null) {
+            composeChunkJobName(printJobChunkWlk, chunkFirstDocNameWlk,
+                    chunkPageRangesWlk, chunkJobsWlk.size());
         }
 
         if (this.chunks.size() == 1) {
@@ -293,6 +316,44 @@ public final class ProxyPrintJobChunkInfo {
         }
 
         this.landscape = hasLandscape;
+    }
+
+    /**
+     * Sets a composed job name in a chunk.
+     *
+     * @param chunk
+     *            The chunk for which to set the job name.
+     * @param firstDocName
+     *            The name of the first document,
+     * @param chunkPageRanges
+     *            The collected page ranges (possibly from different source
+     *            documents).
+     * @param nDocsInChunk
+     *            The number of different documents in the chunk.
+     */
+    private static void composeChunkJobName(final ProxyPrintJobChunk chunk,
+            final String firstDocName, final List<String> chunkPageRanges,
+            final int nDocsInChunk) {
+
+        final StringBuilder name = new StringBuilder();
+
+        for (final String range : chunkPageRanges) {
+            if (name.length() == 0) {
+                name.append("(");
+            } else {
+                name.append(",");
+            }
+            if (range.isEmpty()) {
+                name.append("1-");
+            } else {
+                name.append(range);
+            }
+        }
+        name.append(") ").append(firstDocName);
+        if (nDocsInChunk > 1) {
+            name.append(" (+").append(nDocsInChunk - 1).append(")");
+        }
+        chunk.setJobName(name.toString());
     }
 
     /**
