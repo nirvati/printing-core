@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -321,6 +321,13 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             new String[] { ORG_SAVAPAGE_ATTR_FINISHINGS_EXT };
 
     /**
+     * All Job Tickets attributes.
+     */
+    private static final String[][] JOBTICKET_ATTR_ARRAYS =
+            { JOBTICKET_ATTR_MEDIA, JOBTICKET_ATTR_COPY,
+                    JOBTICKET_ATTR_FINISHINGS_EXT };
+
+    /**
      * Custom SavaPage IPP Job template finishing attribute for Stapling.
      */
     public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE =
@@ -343,6 +350,22 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      */
     public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET =
             ORG_SAVAPAGE_ATTR_PFX_FINISHINGS + "booklet";
+
+    /**
+     * Array of 2-element array elements, one for each finishings: the first
+     * element is the IPP option key, and the second element its NONE value.
+     */
+    public static final String[][] ORG_SAVAPAGE_ATTR_FINISHINGS_V_NONE = {
+            { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE },
+            { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD_NONE },
+            { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH_NONE },
+            { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE_NONE }
+            //
+    };
 
     /*
      * Defaults
@@ -907,6 +930,47 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
          * Use the default.
          */
         return getAttr(keyword);
+    }
+
+    /**
+     * Checks if an IPP option is exclusively used in Job Ticket context.
+     *
+     * @param keyword
+     *            The IPP option keyword.
+     * @return {@code true} if IPP option is exclusively used for Job Ticket.
+     */
+    public static boolean isJobTicketAttr(final String keyword) {
+
+        for (final String[] attrs : JOBTICKET_ATTR_ARRAYS) {
+            for (final String attr : attrs) {
+                if (attr.equals(keyword)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if an IPP option/value is a finishing with unspecified "none"
+     * value.
+     *
+     * @param keyword
+     *            The IPP option keyword.
+     * @param value
+     *            The IPP option value.
+     * @return {@code true} if IPP option/value is finishing with unspecified
+     *         "none" value.
+     */
+    public static boolean isNoneValueFinishing(final String keyword,
+            final String value) {
+
+        for (final String[] finishing : ORG_SAVAPAGE_ATTR_FINISHINGS_V_NONE) {
+            if (finishing[0].equals(keyword)) {
+                return finishing[1].equals(value);
+            }
+        }
+        return false;
     }
 
     /**

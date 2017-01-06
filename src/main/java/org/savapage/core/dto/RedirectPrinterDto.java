@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,15 @@
  */
 package org.savapage.core.dto;
 
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
+import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
+
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public class RedirectPrinterDto extends AbstractDto {
+public final class RedirectPrinterDto extends AbstractDto {
 
     /**
      * The database key of the printer.
@@ -49,6 +52,11 @@ public class RedirectPrinterDto extends AbstractDto {
     private String deviceUri;
 
     /**
+     * The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} option.
+     */
+    private JsonProxyPrinterOpt mediaSourceOpt;
+
+    /**
      *
      * @return
      */
@@ -56,7 +64,7 @@ public class RedirectPrinterDto extends AbstractDto {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(final Long id) {
         this.id = id;
     }
 
@@ -64,7 +72,7 @@ public class RedirectPrinterDto extends AbstractDto {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         this.name = name;
     }
 
@@ -72,7 +80,7 @@ public class RedirectPrinterDto extends AbstractDto {
         return preferred;
     }
 
-    public void setPreferred(boolean preferred) {
+    public void setPreferred(final boolean preferred) {
         this.preferred = preferred;
     }
 
@@ -80,8 +88,23 @@ public class RedirectPrinterDto extends AbstractDto {
         return deviceUri;
     }
 
-    public void setDeviceUri(String deviceUri) {
+    public void setDeviceUri(final String deviceUri) {
         this.deviceUri = deviceUri;
+    }
+
+    /**
+     * @return The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} option.
+     */
+    public JsonProxyPrinterOpt getMediaSourceOpt() {
+        return mediaSourceOpt;
+    }
+
+    /**
+     * @param mediaSource
+     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} option.
+     */
+    public void setMediaSourceOpt(final JsonProxyPrinterOpt mediaSource) {
+        this.mediaSourceOpt = mediaSource;
     }
 
 }

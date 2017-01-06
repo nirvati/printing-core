@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,9 @@ import java.util.List;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.client.IppConnectException;
+import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
@@ -168,6 +170,9 @@ public interface JobTicketService extends StatefulService {
      *
      * @param printer
      *            The redirect printer.
+     * @param ippMediaSource
+     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
+     *            the print job.
      * @param fileName
      *            The unique PDF file name of the job to print.
      * @return The printed ticket or {@code null} when ticket was not found.
@@ -176,8 +181,8 @@ public interface JobTicketService extends StatefulService {
      * @throws IppConnectException
      *             When connection to CUPS fails.
      */
-    OutboxJobDto printTicket(Printer printer, String fileName)
-            throws IOException, IppConnectException;
+    OutboxJobDto printTicket(Printer printer, String ippMediaSource,
+            String fileName) throws IOException, IppConnectException;
 
     /**
      * Settles a Job Ticket without printing it.
@@ -199,18 +204,28 @@ public interface JobTicketService extends StatefulService {
      *
      * @param fileName
      *            The unique PDF file name of the job ticket.
+     * @param optionFilter
+     *            An additional filter, apart from the Job Ticket specification,
+     *            of IPP option values that must be present in the redirect
+     *            printers.
      * @return The list of redirect printers (can be empty) or {@code null} when
      *         job ticket is not found.
      */
-    List<RedirectPrinterDto> getRedirectPrinters(String fileName);
+    List<RedirectPrinterDto> getRedirectPrinters(String fileName,
+            IppOptionMap optionFilter);
 
     /**
      * Gets a {@link RedirectPrinterDto} compatible printer for a Job Ticket.
      *
      * @param fileName
      *            The unique PDF file name of the job ticket.
+     * @param optionFilter
+     *            An additional filter, apart from the Job Ticket specification,
+     *            of IPP option values that must be present in the redirect
+     *            printer.
      * @return The redirect printer or {@code null} when no job ticket or
      *         printer is found.
      */
-    RedirectPrinterDto getRedirectPrinter(String fileName);
+    RedirectPrinterDto getRedirectPrinter(String fileName,
+            IppOptionMap optionFilter);
 }

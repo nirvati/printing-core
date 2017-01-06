@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1245,7 +1245,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         collectPrintOutData(request, docLog, jsonPrinter, printJob, createInfo);
     }
 
-
     /**
      * Gets the default {@link JsonProxyPrinter}.
      *
@@ -1914,11 +1913,25 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 optionValue = optionValuePpd;
             }
 
+            // Skip attributes exclusively used for Job Ticket.
+            if (IppDictJobTemplateAttr.isJobTicketAttr(optionKeyword)) {
+                continue;
+            }
+
             if (attr == null) {
-                final StringBuilder msg = new StringBuilder();
-                msg.append("IPP Attribute [").append(optionKeywordIpp)
-                        .append("] is unknown (attribute is skipped).");
-                LOGGER.error(msg.toString());
+                /*
+                 * Finishing options are not found when they are NOT mapped in
+                 * the PPDE. They can be skipped if they have a "none" value.
+                 * Any other value is signaled first.
+                 */
+                if (!IppDictJobTemplateAttr.isNoneValueFinishing(optionKeyword,
+                        optionValue)) {
+                    final StringBuilder msg = new StringBuilder();
+                    msg.append("IPP Attribute [").append(optionKeyword)
+                            .append("] with value [").append(optionValue)
+                            .append("] is unknown (attribute is skipped).");
+                    LOGGER.error(msg.toString());
+                }
                 continue;
             }
 

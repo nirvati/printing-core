@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,10 +21,14 @@
  */
 package org.savapage.core.ipp.helpers;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
+import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 
 /**
  *
@@ -34,14 +38,20 @@ import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 public final class IppOptionMap {
 
     /**
-     * PP option map.
+     * IPP option map.
      */
     private final Map<String, String> optionValues;
 
     /**
-     * Constructor.
+     *
+     * @return An empty instance.
      */
+    public static IppOptionMap createVoid() {
+        return new IppOptionMap(new HashMap<String, String>());
+    }
+
     /**
+     * Constructor.
      *
      * @param options
      *            The IPP option map.
@@ -173,6 +183,43 @@ public final class IppOptionMap {
     public boolean isOptionPresent(final String key, final String value) {
         final String found = this.optionValues.get(key);
         return found != null && found.equals(value);
+    }
+
+    /**
+     * Checks if each option value is a valid choices of a corresponding
+     * {@link JsonProxyPrinterOpt} object in the reference pool.
+     *
+     * @param referencePool
+     *            The IPP option key/value pool as reference.
+     * @return {@code true} if all option values are present in the pool.
+     */
+    public boolean areOptionValuesValid(
+            final Map<String, JsonProxyPrinterOpt> referencePool) {
+
+        for (final Entry<String, String> entry : this.optionValues.entrySet()) {
+
+            final JsonProxyPrinterOpt opt = referencePool.get(entry.getKey());
+
+            // Option not found in reference pool.
+            if (opt == null) {
+                return false;
+            }
+
+            boolean hasChoice = false;
+
+            for (final JsonProxyPrinterOptChoice choice : opt.getChoices()) {
+                if (choice.getChoice().equals(entry.getValue())) {
+                    hasChoice = true;
+                    break;
+                }
+            }
+
+            // Option choice not found.
+            if (!hasChoice) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
