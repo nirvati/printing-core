@@ -188,7 +188,7 @@ public interface IConfigProp {
     /**
      *
      */
-    final Long WEBPRINT_MAX_FILE_MB_V_DEFAULT = 5L;
+    final Long WEBPRINT_MAX_FILE_MB_V_DEFAULT = 10L;
 
     /**
      *
