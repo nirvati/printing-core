@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -900,12 +900,9 @@ public final class AccountingServiceImpl extends AbstractService
                 costParms.getMediaSourceCost();
 
         if (costParms.getCustomCostMediaSide() != null) {
-            /*
-             * Since custom cost already took IPP options into account, we do
-             * (and can) not distinguish between one- and two-sided.
-             */
+
             pageCostOneSided = costParms.getCustomCostMediaSide();
-            pageCostTwoSided = pageCostOneSided;
+            pageCostTwoSided = costParms.getCustomCostMediaSideDuplex();
 
         } else if (mediaSourceCost != null
                 && !mediaSourceCost.isManualSource()) {

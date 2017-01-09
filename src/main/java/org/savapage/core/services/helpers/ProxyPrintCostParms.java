@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
+import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
 
 /**
@@ -82,9 +83,16 @@ public final class ProxyPrintCostParms {
     private Map<String, String> ippOptionValues;
 
     /**
-     * Custom cost per media side. When not {@code null} this value is leading.
+     * Custom cost per single-sided media side. When not {@code null} this value
+     * is leading.
      */
     private BigDecimal customCostMediaSide;
+
+    /**
+     * Custom cost per duplex media side. When not {@code null} this value is
+     * leading.
+     */
+    private BigDecimal customCostMediaSideDuplex;
 
     /**
      * Additional custom cost for one (1) copy.
@@ -206,11 +214,19 @@ public final class ProxyPrintCostParms {
 
     /**
      *
-     * @return Custom cost per media side. When not {@code null} this value is
-     *         leading.
+     * @return Custom cost per single-sided media side. When not {@code null}
+     *         this value is leading.
      */
     public BigDecimal getCustomCostMediaSide() {
         return customCostMediaSide;
+    }
+
+    /**
+     * @return Custom cost per duplex media side. When not {@code null} this
+     *         value is leading.
+     */
+    public BigDecimal getCustomCostMediaSideDuplex() {
+        return customCostMediaSideDuplex;
     }
 
     /**
@@ -241,7 +257,33 @@ public final class ProxyPrintCostParms {
 
         this.customCostCopy =
                 this.proxyPrinter.calcCustomCostCopy(this.ippOptionValues);
-        this.customCostMediaSide =
+
+        //
+        final BigDecimal costWrk =
                 this.proxyPrinter.calcCustomCostMedia(this.ippOptionValues);
+
+        if (isDuplex()) {
+
+            this.customCostMediaSideDuplex = costWrk;
+
+            // Save sides option.
+            final String sidesSaved =
+                    this.ippOptionValues.get(IppDictJobTemplateAttr.ATTR_SIDES);
+
+            this.ippOptionValues.put(IppDictJobTemplateAttr.ATTR_SIDES,
+                    IppKeyword.SIDES_ONE_SIDED);
+
+            this.customCostMediaSide =
+                    this.proxyPrinter.calcCustomCostMedia(this.ippOptionValues);
+
+            // Restore sides option.
+            this.ippOptionValues.put(IppDictJobTemplateAttr.ATTR_SIDES,
+                    sidesSaved);
+
+        } else {
+            this.customCostMediaSide = costWrk;
+            this.customCostMediaSideDuplex = costWrk;
+        }
+
     }
 }
