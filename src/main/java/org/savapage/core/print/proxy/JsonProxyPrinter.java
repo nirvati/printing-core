@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -536,7 +536,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      */
     public BigDecimal
             calcCustomCostMedia(final Map<String, String> ippChoices) {
-        return calcCost(this.getCustomCostRulesMedia(), ippChoices);
+        return calcCost(this.getCustomCostRulesMedia(), ippChoices, false);
     }
 
     /**
@@ -547,7 +547,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      * @return {@code null} when none of the rules apply.
      */
     public BigDecimal calcCustomCostCopy(final Map<String, String> ippChoices) {
-        return calcCost(this.getCustomCostRulesCopy(), ippChoices);
+        return calcCost(this.getCustomCostRulesCopy(), ippChoices, true);
     }
 
     /**
@@ -557,20 +557,54 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      *            The list of cost rules.
      * @param ippChoices
      *            The IPP attribute key/choices.
+     * @param accumulate
+     *            If {@code true} all rules are checked, and the cost result of
+     *            each rule is accumulated. When {@code false} the cost of the
+     *            first rule with a non-null result is returned.
      * @return {@code null} when none of the rules apply.
      */
     private static BigDecimal calcCost(final List<IppCostRule> rules,
-            final Map<String, String> ippChoices) {
+            final Map<String, String> ippChoices, final boolean accumulate) {
 
-        if (rules != null) {
-            for (final IppCostRule rule : rules) {
-                final BigDecimal cost = rule.calcCost(ippChoices);
-                if (cost != null) {
+        if (rules == null) {
+            return null;
+        }
+
+        BigDecimal total = null;
+
+        for (final IppCostRule rule : rules) {
+
+            final BigDecimal cost = rule.calcCost(ippChoices);
+
+            if (cost != null) {
+                if (accumulate) {
+                    if (total == null) {
+                        total = cost;
+                    } else {
+                        total = total.add(cost);
+                    }
+                } else {
                     return cost;
                 }
             }
         }
-        return null;
+        return total;
+    }
+
+    /**
+     * @return {@code true} when custom media cost rules are present.
+     */
+    public boolean hasCustomCostRulesMedia() {
+        final List<IppCostRule> rules = this.getCustomCostRulesMedia();
+        return rules != null && !rules.isEmpty();
+    }
+
+    /**
+     * @return {@code true} when custom copy cost rules are present.
+     */
+    public boolean hasCustomCostRulesCopy() {
+        final List<IppCostRule> rules = this.getCustomCostRulesCopy();
+        return rules != null && !rules.isEmpty();
     }
 
 }

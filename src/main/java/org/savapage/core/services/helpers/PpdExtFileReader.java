@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -151,6 +151,11 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     private Map<String, JsonProxyPrinterOpt> ppdOptionMap;
 
     /**
+     * IPP Option as key to JsonProxyPrinterOpt with PPD/IPP mapping.
+     */
+    private Map<String, JsonProxyPrinterOpt> ppdOptionMapOnIpp;
+
+    /**
      * SpJobTicket Media Option as key to JsonProxyPrinterOpt.
      */
     private Map<String, JsonProxyPrinterOpt> jobTicketOptMapMedia;
@@ -249,6 +254,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     protected void onInit() {
 
         this.ppdOptionMap = new HashMap<>();
+        this.ppdOptionMapOnIpp = new HashMap<>();
 
         this.jobTicketOptMap = new HashMap<>();
 
@@ -424,6 +430,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 opt = optMap.get(ippAttr);
             } else if (this.optionsFromCUPS.containsKey(ippAttr)) {
                 opt = this.optionsFromCUPS.get(ippAttr);
+            } else if (this.ppdOptionMapOnIpp.containsKey(ippAttr)) {
+                opt = this.ppdOptionMapOnIpp.get(ippAttr);
             } else {
                 LOGGER.warn(String.format(
                         "%s line %d: IPP attribute \"%s\" is unknown",
@@ -542,11 +550,15 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      */
     private void onOptionMapping(final String ppdKeyword,
             final String ippKeyword) {
+
         final JsonProxyPrinterOpt opt =
                 this.lazyCreatePpdOptionMapping(ppdKeyword);
+
         opt.setKeyword(ippKeyword);
         opt.setKeywordPpd(
                 StringUtils.stripStart(ppdKeyword, PPD_OPTION_PFX_CHAR));
+
+        this.ppdOptionMapOnIpp.put(ippKeyword, opt);
     }
 
     /**

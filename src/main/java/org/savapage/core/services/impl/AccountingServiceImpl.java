@@ -840,9 +840,15 @@ public final class AccountingServiceImpl extends AbstractService
             pagesOneSided = new BigDecimal(nSides);
         }
 
-        return pageCostOneSided.multiply(pagesOneSided).multiply(copies)
-                .add(pageCostTwoSided.multiply(pagesTwoSided).multiply(copies))
-                .multiply(BigDecimal.ONE.subtract(discountPerc));
+        BigDecimal cost =
+                pageCostOneSided.multiply(pagesOneSided).multiply(copies);
+
+        if (pageCostTwoSided != null) {
+            cost = cost.add(
+                    pageCostTwoSided.multiply(pagesTwoSided).multiply(copies));
+        }
+
+        return cost.multiply(BigDecimal.ONE.subtract(discountPerc));
     }
 
     /**

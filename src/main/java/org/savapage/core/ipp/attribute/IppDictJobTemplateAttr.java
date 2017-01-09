@@ -302,17 +302,25 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             ORG_SAVAPAGE_ATTR_PFX_FINISHINGS + "ext";
 
     /**
-     * .
+     * The Job Ticket media attributes related to {@link #ATTR_MEDIA}.
      */
     public static final String[] JOBTICKET_ATTR_MEDIA =
             new String[] { ATTR_MEDIA_COLOR, ATTR_MEDIA_TYPE,
                     ORG_SAVAPAGE_ATTR_MEDIA_WEIGHT_METRIC };
 
     /**
+     * The Job Ticket media attributes related to
+     * {@link IppKeyword#MEDIA_TYPE_PAPER}.
+     */
+    public static final String[] JOBTICKET_ATTR_MEDIA_TYPE_PAPER =
+            new String[] { ATTR_MEDIA_COLOR,
+                    ORG_SAVAPAGE_ATTR_MEDIA_WEIGHT_METRIC };
+
+    /**
      * .
      */
     public static final String[] JOBTICKET_ATTR_COPY =
-            new String[] { ORG_SAVAPAGE_ATTR_JOB_COVER, };
+            new String[] { ORG_SAVAPAGE_ATTR_JOB_COVER };
 
     /**
      * .
@@ -326,6 +334,19 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     private static final String[][] JOBTICKET_ATTR_ARRAYS =
             { JOBTICKET_ATTR_MEDIA, JOBTICKET_ATTR_COPY,
                     JOBTICKET_ATTR_FINISHINGS_EXT };
+
+    /**
+     * Array of 2-element array elements, one for each Job Ticket copy
+     * attribute: the first element is the IPP option key, and the second
+     * element its NONE value.
+     */
+    public static final String[][] JOBTICKET_ATTR_COPY_V_NONE = {
+            { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_COVER,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_JOB_COVER_NONE },
+            { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_EXT,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_NONE }
+            //
+    };
 
     /**
      * Custom SavaPage IPP Job template finishing attribute for Stapling.

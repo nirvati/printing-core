@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -168,6 +168,13 @@ public class IppKeyword extends AbstractIppAttrSyntax {
             "two-sided-short-edge";
 
     // ------------------------------------------------------------------------
+    // media-type
+    // ------------------------------------------------------------------------
+    public static final String MEDIA_TYPE_PAPER = "paper";
+    public static final String MEDIA_TYPE_TRANSPARENCY = "transparency";
+    public static final String MEDIA_TYPE_LABELS = "labels";
+
+    // ------------------------------------------------------------------------
     // number-up-layout : https://www.cups.org/doc/options.html
     // ------------------------------------------------------------------------
 
@@ -234,10 +241,18 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_FOLDER =
             "folder";
 
-    // ------------------------------------------------------------------------
-    //
-    // ------------------------------------------------------------------------
+    /**
+     *
+     */
     public static final String ORG_SAVAPAGE_ATTR_JOB_COVER_NONE = "none";
+
+    /**
+     * Keyword name prefix for user extensions. NOTE: these are <b>not</b>
+     * "native" SavaPage IPP extensions, but installation specific extensions
+     * configured by SavaPage Fellows.
+     */
+    public static final String ORG_SAVAPAGE_EXT_ATTR_PREFIX =
+            "org.savapage.ext-";
 
     /**
      * The SingletonHolder is loaded on the first execution of
