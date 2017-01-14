@@ -965,7 +965,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         boolean isGlobalNonSecure = false;
 
-        if (terminal != null && deviceDAO().hasPrinterRestriction(terminal)) {
+        if (terminal != null && BooleanUtils.isNotTrue(terminal.getDisabled())
+                && deviceDAO().hasPrinterRestriction(terminal)) {
 
             terminalSecured.setValue(printerService().checkDeviceSecurity(
                     printer, DeviceTypeEnum.TERMINAL, terminal));
