@@ -95,6 +95,15 @@ public final class IppOptionMap {
 
     /**
      *
+     * @return {@code true} if this is a landscape job.
+     */
+    public boolean isLandscapeJob() {
+        return this.optionValues
+                .containsKey(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE);
+    }
+
+    /**
+     *
      * @return {@code true} if job requests punch finishing.
      */
     public boolean hasFinishingPunch() {
