@@ -22,6 +22,7 @@
 package org.savapage.core.services.impl;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +58,13 @@ public final class AccessControlServiceImpl extends AbstractService
      */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(AccessControlServiceImpl.class);
+
+    /**
+     * The {@link ACLRoleEnum} values that are granted access when indeterminate
+     * at "All User" top level.
+     */
+    private static final EnumSet<ACLRoleEnum> TOP_INDETERMINATE_GRANTED =
+            EnumSet.of(ACLRoleEnum.PRINT_CREATOR);
 
     /**
      * Checks if role is enabled in JSON String.
@@ -199,9 +207,19 @@ public final class AccessControlServiceImpl extends AbstractService
             return isGroupAuth.booleanValue();
         }
 
-        // All Users
-        if (BooleanUtils.isTrue(isGroupAuthorized(
-                userGroupService().getAllUserGroup(), role))) {
+        /*
+         * All Users: undetermined is handled as NOT authorized, except for some
+         * roles.
+         */
+        final Boolean isAllUserAuth =
+                isGroupAuthorized(userGroupService().getAllUserGroup(), role);
+
+        if (isAllUserAuth == null
+                && this.getTopIndeterminateGranted().contains(role)) {
+            return true;
+        }
+
+        if (BooleanUtils.isTrue(isAllUserAuth)) {
             return true;
         }
 
@@ -407,6 +425,11 @@ public final class AccessControlServiceImpl extends AbstractService
         // All Users
         return getGroupPrivileges(userGroupService().getAllUserGroup(),
                 groupAttrEnum, oid);
+    }
+
+    @Override
+    public EnumSet<ACLRoleEnum> getTopIndeterminateGranted() {
+        return TOP_INDETERMINATE_GRANTED;
     }
 
 }

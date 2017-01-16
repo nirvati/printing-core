@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,13 +14,14 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.services;
 
+import java.util.EnumSet;
 import java.util.List;
 
 import org.savapage.core.config.ConfigManager;
@@ -67,14 +68,12 @@ public interface AccessControlService {
      */
     boolean isAuthorized(User user, ACLRoleEnum role);
 
-
     /**
-     * Checks if {@link User} has access to an OID for role "User". Checks
-     * are done bottom-up, starting at the {@link User} and moving up to the
+     * Checks if {@link User} has access to an OID for role "User". Checks are
+     * done bottom-up, starting at the {@link User} and moving up to the
      * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
      * first encountered object with a defined {@link ACLOidEnum} is used for
-     * the check. When no reference object is found, the user <b>has</b>
-     * access.
+     * the check. When no reference object is found, the user <b>has</b> access.
      *
      * @param user
      *            The {@link User}.
@@ -135,5 +134,11 @@ public interface AccessControlService {
      * @return {@code null} when undetermined.
      */
     Integer getUserPrivileges(User user, ACLOidEnum oid);
+
+    /**
+     * @return The {@link ACLRoleEnum} values that are granted access when
+     *         indeterminate at "All User" top level.
+     */
+    EnumSet<ACLRoleEnum> getTopIndeterminateGranted();
 
 }

@@ -575,8 +575,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
         lazyInitPrinterCache();
 
         final User user = userDAO().findActiveUserByUserId(userName);
+
         final boolean hasAccessToJobTicket = accessControlService()
                 .hasAccess(user, ACLRoleEnum.JOB_TICKET_CREATOR);
+
+        final boolean hasAccessToProxyPrinter = accessControlService()
+                .hasAccess(user, ACLRoleEnum.PRINT_CREATOR);
 
         /*
          * The collected valid printers.
@@ -601,6 +605,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     BooleanUtils.isTrue(printer.getJobTicket());
 
             if (isJobTicketPrinter && !hasAccessToJobTicket) {
+                continue;
+            }
+
+            if (!isJobTicketPrinter && !hasAccessToProxyPrinter) {
                 continue;
             }
 
