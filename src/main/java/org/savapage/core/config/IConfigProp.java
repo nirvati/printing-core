@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1362,6 +1362,12 @@ public interface IConfigProp {
          */
         PRINT_IN_JOB_EXPIRY_MINS("print-in.job-expiry.mins", NUMBER_VALIDATOR, V_ZERO),
 
+
+        /**
+         * Enable "delivery time" option for Job Ticket (boolean).
+         */
+        JOBTICKET_DELIVERY_DATETIME_ENABLE("jobticket.delivery-datetime.enable", BOOLEAN_VALIDATOR, V_YES),
+
         /**
          * Enable Delegated Print (boolean).
          */
@@ -1433,6 +1439,11 @@ public interface IConfigProp {
          * {@link PrinterGroup#getGroupName()}
          */
         PROXY_PRINT_NON_SECURE_PRINTER_GROUP("proxy-print.non-secure-printer-group"),
+
+        /**
+         * Enable "remove graphics" option for Proxy Print (boolean).
+         */
+        PROXY_PRINT_REMOVE_GRAPHICS_ENABLE("proxy-print.remove-graphics.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * CRON expression: 10 minutes past midnight.

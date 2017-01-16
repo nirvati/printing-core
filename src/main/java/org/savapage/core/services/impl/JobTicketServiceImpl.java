@@ -147,13 +147,17 @@ public final class JobTicketServiceImpl extends AbstractService
          * @param service
          *            The parent service.
          * @param deliveryDate
-         *            The requested date of delivery.
+         *            The requested date of delivery (can be {@code null}).
          */
         ProxyPrintInbox(final JobTicketServiceImpl service,
                 final Date deliveryDate) {
             this.serviceImpl = service;
             this.submitDate = ServiceContext.getTransactionDate();
-            this.deliveryDate = deliveryDate;
+            if (deliveryDate == null) {
+                this.deliveryDate = submitDate;
+            } else {
+                this.deliveryDate = deliveryDate;
+            }
         }
 
         @Override
