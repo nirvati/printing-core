@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ package org.savapage.core.imaging;
 
 import java.io.File;
 
-import org.savapage.core.pdf.ITextPdfCreator;
+import org.savapage.core.pdf.PdfPageRotateHelper;
 
 /**
  * Command using Poppler.
@@ -105,15 +105,15 @@ public final class Pdf2PngPopplerCmd implements Pdf2ImgCommandExt {
          */
         final Integer rotate2Apply;
 
-        if (rotate != ITextPdfCreator.PDF_ROTATION_0.intValue()) {
+        if (rotate != PdfPageRotateHelper.PDF_ROTATION_0.intValue()) {
             rotate2Apply = Integer.valueOf(rotate);
         } else if (landscape && rotation != 0) {
-            rotate2Apply = ITextPdfCreator.PDF_ROTATION_90;
+            rotate2Apply = PdfPageRotateHelper.PDF_ROTATION_90;
         } else {
-            rotate2Apply = ITextPdfCreator.PDF_ROTATION_0;
+            rotate2Apply = PdfPageRotateHelper.PDF_ROTATION_0;
         }
 
-        if (rotate2Apply.equals(ITextPdfCreator.PDF_ROTATION_0)) {
+        if (rotate2Apply.equals(PdfPageRotateHelper.PDF_ROTATION_0)) {
             cmdBuffer.append(" > ");
         } else {
             cmdBuffer.append(" | convert -rotate ").append(rotate2Apply)

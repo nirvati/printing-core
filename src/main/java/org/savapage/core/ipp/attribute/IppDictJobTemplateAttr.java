@@ -229,6 +229,12 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     public static final String CUPS_ATTR_LANDSCAPE = "landscape";
 
     /**
+     * Rotates the page.
+     */
+    public static final String CUPS_ATTR_ORIENTATION_REQUESTED =
+            "orientation-requested";
+
+    /**
      * N-Up printing places multiple document pages on a single printed page.
      * The "number-up-layout" option chooses the layout of the pages on each
      * output page.

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -92,17 +92,19 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
     private static final int ITEXT_POINTS_PER_INCH = 72;
 
-    public static final Integer PDF_ROTATION_0 = Integer.valueOf(0);
-    public static final Integer PDF_ROTATION_90 = Integer.valueOf(90);
-    public static final Integer PDF_ROTATION_180 = Integer.valueOf(180);
-    public static final Integer PDF_ROTATION_270 = Integer.valueOf(270);
-    public static final Integer PDF_ROTATION_360 = Integer.valueOf(360);
-
     /**
      * The logger.
      */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ITextPdfCreator.class);
+
+    /**
+     *
+     */
+    private static final class SingletonPageRotationHelper {
+        public static final PdfPageRotateHelper INSTANCE =
+                new PdfPageRotateHelper();
+    }
 
     private String targetPdfCopyFilePath;
     private Document targetDocument;
@@ -553,10 +555,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
     /**
      * Gets the page rotation for a copy of a source PDF page.
-     * <p>
-     * When the current page size has portrait orientation (height LT width) the
-     * rotation to apply depends on the current page rotation.
-     * </p>
      *
      * @param srcPageSize
      *            The size of the source PDF page.
@@ -564,43 +562,39 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      *            The rotation of the source PDF page.
      * @param defaultRotation
      *            The default rotation (can be {@code null}).
+     * @param isForPrinting
+     *            {@code true} when rotating for print job, {@code false} if
+     *            rotating for PDF download.
      * @return The page rotation to apply to the PDF page copy.{@code null},
      *         when no rotation.
      */
     public static Integer getPdfCopyPageRotation(final Rectangle srcPageSize,
-            final int srcPageRotation, final Integer defaultRotation) {
+            final int srcPageRotation, final Integer defaultRotation,
+            final boolean isForPrinting) {
 
-        if (defaultRotation != null
-                && !defaultRotation.equals(PDF_ROTATION_0)) {
-            return defaultRotation;
-        }
-
-        final boolean isLandscape =
+        final boolean isLandscapePage =
                 srcPageSize.getHeight() < srcPageSize.getWidth();
 
-        if (!isLandscape) {
-            return defaultRotation;
-        }
+        final Integer rotation;
 
-        if (srcPageRotation == PDF_ROTATION_0.intValue()) {
+        if (isForPrinting) {
 
-            return PDF_ROTATION_0;
+            final Integer safePageRotation;
 
-        } else if (srcPageRotation == PDF_ROTATION_90.intValue()) {
-
-            return PDF_ROTATION_180;
-
-        } else if (srcPageRotation == PDF_ROTATION_180.intValue()) {
-
-            return PDF_ROTATION_90; // ??
-
-        } else if (srcPageRotation == PDF_ROTATION_270.intValue()) {
-
-            return PDF_ROTATION_360; // works, but why?
-
+            if (defaultRotation == null) {
+                safePageRotation = PdfPageRotateHelper.PDF_ROTATION_0;
+            } else {
+                safePageRotation = defaultRotation;
+            }
+            rotation = SingletonPageRotationHelper.INSTANCE
+                    .getPageRotationForPrinting(isLandscapePage,
+                            srcPageRotation, safePageRotation);
         } else {
-            throw new SpException("Unsupported PDF page rotation.");
+            rotation = SingletonPageRotationHelper.INSTANCE
+                    .getPageRotationForExport(isLandscapePage, srcPageRotation,
+                            defaultRotation);
         }
+        return rotation;
     }
 
     @Override
@@ -622,7 +616,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
             this.jobRotationWlk =
                     getPdfCopyPageRotation(this.readerWlk.getPageSize(i),
-                            this.readerWlk.getPageRotation(i), jobRotationInit);
+                            this.readerWlk.getPageRotation(i), jobRotationInit,
+                            this.isForPrinting());
 
             /*
              * Rotate for BOTH export and printing.

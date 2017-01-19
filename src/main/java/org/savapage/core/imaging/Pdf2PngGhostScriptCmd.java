@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https:/www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ package org.savapage.core.imaging;
 
 import java.io.File;
 
-import org.savapage.core.pdf.ITextPdfCreator;
+import org.savapage.core.pdf.PdfPageRotateHelper;
 
 /**
  * @deprecated Use {@link Pdf2PngPopplerCmd}. See Mantis #326.
@@ -62,7 +62,7 @@ public final class Pdf2PngGhostScriptCmd implements Pdf2ImgCommand {
         /*
          * Apply rotate?
          */
-        if (rotate == ITextPdfCreator.PDF_ROTATION_0.intValue()) {
+        if (rotate == PdfPageRotateHelper.PDF_ROTATION_0.intValue()) {
             cmdBuffer.append(" > ");
         } else {
             cmdBuffer.append(" | convert -rotate ").append(rotate)

@@ -1817,10 +1817,21 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          * able to accept an empty group.
          */
 
+        //
+        final boolean isLandscape;
+
+        if (request.getJobChunkInfo() == null) {
+            isLandscape = BooleanUtils.isTrue(request.getLandscape());
+        } else {
+            isLandscape = BooleanUtils
+                    .isTrue(request.getJobChunkInfo().isLandscape());
+        }
+
         /*
          * Mantis #738.
          */
         boolean printNumberUpLandscape = false;
+        String numberUp = IppKeyword.NUMBER_UP_1;
 
         /*
          * No full bleed for now.
@@ -1961,14 +1972,13 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
              * Mantis #738.
              */
             if (optionKeyword.equals(IppDictJobTemplateAttr.ATTR_NUMBER_UP)) {
-                if (optionValue.equals("1")) {
+
+                numberUp = optionValue;
+
+                if (numberUp.equals(IppKeyword.NUMBER_UP_1)) {
                     printNumberUpLandscape = false;
-                } else if (request.getJobChunkInfo() == null) {
-                    printNumberUpLandscape =
-                            BooleanUtils.isTrue(request.getLandscape());
                 } else {
-                    printNumberUpLandscape = BooleanUtils
-                            .isTrue(request.getJobChunkInfo().isLandscape());
+                    printNumberUpLandscape = isLandscape;
                 }
             }
 
@@ -2175,27 +2185,188 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         /*
          * Mantis #738: Apply correct number-up layout in landscape proxy print.
          */
-        if (printNumberUpLandscape) {
-            /*
-             * When you want landscape n-up in logical "lrtb" layout, you MUST
-             * set BOTH "landscape" and layout to "rlbt" (because the layout is
-             * applied to the portrait orientation).
-             */
-            final AbstractIppDict nupDict = IppDictJobTemplateAttr.instance();
+        dict = IppDictJobTemplateAttr.instance();
 
-            group.add(nupDict.createPpdOptionAttr(
-                    IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE));
+        final boolean correctForNumberUpLandscape = printNumberUpLandscape;
+        final boolean correctForLandscape = isLandscape;
 
-            /*
-             * Just to be sure: apply the CUPS default anyhow.
-             */
-            group.add(
-                    nupDict.createPpdOptionAttr(
-                            IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
-                    IppKeyword.NUMBER_UP_LAYOUT_LRTB);
-        }
+        reqPrintJobCorrectLandscape(dict, optionValues, group, numberUp,
+                correctForNumberUpLandscape, correctForLandscape);
+
+        //
+        // reqPrintJobCorrectLandscapeReverse(dict, optionValues, group,
+        // numberUp, correctForNumberUpLandscape, correctForLandscape);
 
         return attrGroups;
+    }
+
+    /**
+     * Corrects a Print Job request for landscape orientation.
+     * <p>
+     * Tested for:
+     * <ul>
+     * <li>Ricoh MPC5503 PPD</li>
+     * </ul>
+     * </p>
+     *
+     * @param dict
+     *            The IPP dictionary.
+     * @param optionValues
+     *            The IPP job option values.
+     * @param group
+     *            The IPP attribute group to append on.
+     * @param numberUp
+     *            The n-up value.
+     * @param correctForNumberUpLandscape
+     *            {@code true} when 2-up and more must be corrected.
+     * @param correctForLandscape
+     *            {@code true} when 1-up must be corrected.
+     */
+    private void reqPrintJobCorrectLandscape(final AbstractIppDict dict,
+            final Map<String, String> optionValues, final IppAttrGroup group,
+            final String numberUp, final boolean correctForNumberUpLandscape,
+            final boolean correctForLandscape) {
+        //
+        if (correctForNumberUpLandscape) {
+
+            switch (numberUp) {
+            /*
+             * 4-up, 9-up and 16-up give result in logical landscape
+             * orientation.
+             */
+            case IppKeyword.NUMBER_UP_4:
+            case IppKeyword.NUMBER_UP_9:
+            case IppKeyword.NUMBER_UP_16:
+
+                //
+                // LRTB (default)..... RLTB
+                // +----+----S ....... +----+----S
+                // |.*..|.*..| ....... |.*..|.*..|
+                // |.*1.|.*2.| ....... |.*2.|.*1.|
+                // |.*..|.*..|.........|.*..|.*..|
+                // |----+----|........ |----+----|
+                // |.*..|.*..|........ |.*..|.*..|
+                // |.*3.|.*4.|........ |.*4.|.*3.|
+                // |.*..|.*..|........ |.*..|.*..|
+                // +----+----+........ +----+----+
+                //
+                group.add(
+                        dict.createPpdOptionAttr(
+                                IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
+                        IppKeyword.NUMBER_UP_LAYOUT_RLTB);
+
+                // Set ad-hoc landscape indication in original request.
+                optionValues.put(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE,
+                        "");
+                break;
+
+            /*
+             * 2-up and 6-up result in portrait orientation.
+             */
+            default:
+                // No correction needed.
+                break;
+            }
+
+        } else if (correctForLandscape) {
+            // Set ad-hoc landscape indication in original request.
+            optionValues.put(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE, "");
+        }
+    }
+
+    /**
+     * Corrects a Print Job request for reverse landscape orientation.
+     * <i>Reserved for future use.</i>
+     * <p>
+     * Tested for:
+     * <ul>
+     * <li>Several Xerox PPD drivers</li>
+     * </ul>
+     * </p>
+     *
+     * @param dict
+     *            The IPP dictionary.
+     * @param optionValues
+     *            The IPP job option values.
+     * @param group
+     *            The IPP attribute group to append on.
+     * @param numberUp
+     *            The n-up value.
+     * @param correctForNumberUpLandscape
+     *            {@code true} when 2-up and more must be corrected.
+     * @param correctForLandscape
+     *            {@code true} when 1-up must be corrected.
+     */
+    private void reqPrintJobCorrectLandscapeReverse(final AbstractIppDict dict,
+            final Map<String, String> optionValues, final IppAttrGroup group,
+            final String numberUp, final boolean correctForNumberUpLandscape,
+            final boolean correctForLandscape) {
+
+        if (correctForNumberUpLandscape) {
+
+            switch (numberUp) {
+            /*
+             * 4-up, 9-up and 16-up give result in landscape orientation.
+             */
+            case IppKeyword.NUMBER_UP_4:
+            case IppKeyword.NUMBER_UP_9:
+            case IppKeyword.NUMBER_UP_16:
+
+                group.add(
+                        dict.createPpdOptionAttr(
+                                IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED),
+                        IppKeyword.ORIENTATION_REQUESTED_270_DEGREES);
+
+                group.add(dict.createPpdOptionAttr(
+                        IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
+                        // IppKeyword.NUMBER_UP_LAYOUT_LRTB); // OK
+                        IppKeyword.NUMBER_UP_LAYOUT_TBLR); // OK
+
+                // Set ad-hoc landscape indication in original request.
+                optionValues.put(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE,
+                        "");
+
+                break;
+
+            /*
+             * 2-up results in portrait orientation.
+             */
+
+            case IppKeyword.NUMBER_UP_2:
+                group.add(
+                        dict.createPpdOptionAttr(
+                                IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED),
+                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES);
+                break;
+
+            /*
+             * 6-up results in portrait orientation.
+             */
+            case IppKeyword.NUMBER_UP_6:
+
+                group.add(
+                        dict.createPpdOptionAttr(
+                                IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
+                        IppKeyword.NUMBER_UP_LAYOUT_LRBT);
+
+                group.add(
+                        dict.createPpdOptionAttr(
+                                IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED),
+                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES);
+
+                break;
+            }
+
+        } else if (correctForLandscape) {
+
+            group.add(
+                    dict.createPpdOptionAttr(
+                            IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED),
+                    IppKeyword.ORIENTATION_REQUESTED_270_DEGREES);
+
+            // Set ad-hoc landscape indication in original request.
+            optionValues.put(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE, "");
+        }
     }
 
     /**

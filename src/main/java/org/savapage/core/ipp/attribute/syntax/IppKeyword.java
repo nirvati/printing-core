@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.encoding.IppValueTag;
 
 /**
@@ -175,6 +176,16 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String MEDIA_TYPE_LABELS = "labels";
 
     // ------------------------------------------------------------------------
+    // number-up: https://www.cups.org/doc/options.html
+    // ------------------------------------------------------------------------
+    public static final String NUMBER_UP_1 = "1";
+    public static final String NUMBER_UP_2 = "2";
+    public static final String NUMBER_UP_4 = "4";
+    public static final String NUMBER_UP_6 = "6";
+    public static final String NUMBER_UP_9 = "9";
+    public static final String NUMBER_UP_16 = "16";
+
+    // ------------------------------------------------------------------------
     // number-up-layout : https://www.cups.org/doc/options.html
     // ------------------------------------------------------------------------
 
@@ -217,6 +228,51 @@ public class IppKeyword extends AbstractIppAttrSyntax {
      * number-up-layout: Top to bottom, right to left.
      */
     public static final String NUMBER_UP_LAYOUT_TBRL = "tbrl";
+
+    // ------------------------------------------------------------------------
+    // orientation-requested : https://www.cups.org/doc/options.html
+    // ------------------------------------------------------------------------
+    /**
+     * portrait orientation (no rotation). See
+     * {@link IppDictJobTemplateAttr#CUPS_ATTR_ORIENTATION_REQUESTED}.
+     */
+    public static final String ORIENTATION_REQUESTED_PORTRAIT = "3";
+
+    /**
+     * landscape orientation (90 degrees). See
+     * {@link IppDictJobTemplateAttr#CUPS_ATTR_ORIENTATION_REQUESTED}.
+     */
+    public static final String ORIENTATION_REQUESTED_LANDSCAPE = "4";
+
+    /**
+     * An alias for {@link #ORIENTATION_REQUESTED_LANDSCAPE}.
+     */
+    public static final String ORIENTATION_REQUESTED_90_DEGREES =
+            ORIENTATION_REQUESTED_LANDSCAPE;
+
+    /**
+     * reverse landscape or seascape orientation (270 degrees). See
+     * {@link IppDictJobTemplateAttr#CUPS_ATTR_ORIENTATION_REQUESTED}.
+     */
+    public static final String ORIENTATION_REQUESTED_REVERSE_LANDSCAPE = "5";
+
+    /**
+     * An alias for {@link #ORIENTATION_REQUESTED_REVERSE_LANDSCAPE}.
+     */
+    public static final String ORIENTATION_REQUESTED_270_DEGREES =
+            ORIENTATION_REQUESTED_REVERSE_LANDSCAPE;
+
+    /**
+     * reverse portrait or upside-down orientation (180 degrees). See
+     * {@link IppDictJobTemplateAttr#CUPS_ATTR_ORIENTATION_REQUESTED}.
+     */
+    public static final String ORIENTATION_REQUESTED_REVERSE_PORTRAIT = "6";
+
+    /**
+     * An alias for {@link #ORIENTATION_REQUESTED_REVERSE_PORTRAIT}.
+     */
+    public static final String ORIENTATION_REQUESTED_180_DEGREES =
+            ORIENTATION_REQUESTED_REVERSE_PORTRAIT;
 
     // ------------------------------------------------------------------------
     // finishings

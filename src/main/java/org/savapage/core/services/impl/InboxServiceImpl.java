@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -74,7 +74,7 @@ import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
-import org.savapage.core.pdf.ITextPdfCreator;
+import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
@@ -320,7 +320,7 @@ public final class InboxServiceImpl implements InboxService {
                 final boolean isLandscape = pageProps.isLandscape();
                 final int rotation = pageProps.getRotationFirstPage();
 
-                final Integer rotate = ITextPdfCreator.PDF_ROTATION_0;
+                final Integer rotate = PdfPageRotateHelper.PDF_ROTATION_0;
 
                 // if (isLandscape && rotation != 0) {
                 // rotate = ITextPdfCreator.PDF_ROTATION_90;
@@ -379,7 +379,7 @@ public final class InboxServiceImpl implements InboxService {
         final String rotate = job.getRotate();
 
         if (rotate == null) {
-            dto.setRotate(ITextPdfCreator.PDF_ROTATION_0.intValue());
+            dto.setRotate(PdfPageRotateHelper.PDF_ROTATION_0.intValue());
         } else {
             dto.setRotate(Integer.valueOf(rotate).intValue());
         }
@@ -1461,9 +1461,9 @@ public final class InboxServiceImpl implements InboxService {
 
         final InboxInfoDto jobs = readInboxInfo(user);
 
-        String rotation = ITextPdfCreator.PDF_ROTATION_0.toString();
+        String rotation = PdfPageRotateHelper.PDF_ROTATION_0.toString();
         if (rotate) {
-            rotation = ITextPdfCreator.PDF_ROTATION_90.toString();
+            rotation = PdfPageRotateHelper.PDF_ROTATION_90.toString();
         }
         jobs.getJobs().get(iJob).setRotate(rotation);
 

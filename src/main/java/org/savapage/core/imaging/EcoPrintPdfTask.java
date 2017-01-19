@@ -225,7 +225,7 @@ public final class EcoPrintPdfTask
 
                 final Integer jobRotationWlk =
                         ITextPdfCreator.getPdfCopyPageRotation(pageSize,
-                                pdfPageRotation, jobRotationInit);
+                                pdfPageRotation, jobRotationInit, true);
 
                 if (jobRotationWlk != null) {
 
