@@ -2237,23 +2237,22 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             case IppKeyword.NUMBER_UP_4:
             case IppKeyword.NUMBER_UP_9:
             case IppKeyword.NUMBER_UP_16:
-
                 //
-                // LRTB (default)..... RLTB
-                // +----+----S ....... +----+----S
-                // |.*..|.*..| ....... |.*..|.*..|
-                // |.*1.|.*2.| ....... |.*2.|.*1.|
-                // |.*..|.*..|.........|.*..|.*..|
-                // |----+----|........ |----+----|
-                // |.*..|.*..|........ |.*..|.*..|
-                // |.*3.|.*4.|........ |.*4.|.*3.|
-                // |.*..|.*..|........ |.*..|.*..|
-                // +----+----+........ +----+----+
+                // LRTB (default)..... RLTB................TBRL (preferred)
+                // +----+----S ....... +----+----S ....... +----+----S
+                // |.*..|.*..| ....... |.*..|.*..| ....... |.*..|.*..|
+                // |.*1.|.*2.| ....... |.*2.|.*1.| ....... |.*3.|.*1.|
+                // |.*..|.*..|.........|.*..|.*..|.........|.*..|.*..|
+                // |----+----|........ |----+----|........ |----+----|
+                // |.*..|.*..|........ |.*..|.*..|........ |.*..|.*..|
+                // |.*3.|.*4.|........ |.*4.|.*3.|........ |.*4.|.*2.|
+                // |.*..|.*..|........ |.*..|.*..|........ |.*..|.*..|
+                // +----+----+........ +----+----+........ +----+----+
                 //
                 group.add(
                         dict.createPpdOptionAttr(
                                 IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
-                        IppKeyword.NUMBER_UP_LAYOUT_RLTB);
+                        IppKeyword.NUMBER_UP_LAYOUT_TBRL); // Preferred
 
                 // Set ad-hoc landscape indication in original request.
                 optionValues.put(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE,
@@ -2263,9 +2262,19 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             /*
              * 2-up and 6-up result in portrait orientation.
              */
-            default:
-                // No correction needed.
+            case IppKeyword.NUMBER_UP_2:
+            case IppKeyword.NUMBER_UP_6:
+                group.add(
+                        dict.createPpdOptionAttr(
+                                IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED),
+                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES);
+
+                group.add(
+                        dict.createPpdOptionAttr(
+                                IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
+                        IppKeyword.NUMBER_UP_LAYOUT_TBRL);
                 break;
+
             }
 
         } else if (correctForLandscape) {
@@ -2331,7 +2340,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             /*
              * 2-up results in portrait orientation.
              */
-
             case IppKeyword.NUMBER_UP_2:
                 group.add(
                         dict.createPpdOptionAttr(

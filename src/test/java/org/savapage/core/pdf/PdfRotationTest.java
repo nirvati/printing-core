@@ -46,34 +46,6 @@ public final class PdfRotationTest {
                         PdfPageRotateHelper.PDF_ROTATION_0,
                         PdfPageRotateHelper.PDF_ROTATION_0)
                 .equals(PdfPageRotateHelper.PDF_ROTATION_0));
-        assertTrue(SingletonPageRotationHelper.INSTANCE
-                .getPageRotationForPrinting(false,
-                        PdfPageRotateHelper.PDF_ROTATION_0,
-                        PdfPageRotateHelper.PDF_ROTATION_360)
-                .equals(PdfPageRotateHelper.PDF_ROTATION_0));
-        assertTrue(SingletonPageRotationHelper.INSTANCE
-                .getPageRotationForPrinting(false,
-                        PdfPageRotateHelper.PDF_ROTATION_360,
-                        PdfPageRotateHelper.PDF_ROTATION_0)
-                .equals(PdfPageRotateHelper.PDF_ROTATION_0));
-
-        assertTrue(SingletonPageRotationHelper.INSTANCE
-                .getPageRotationForPrinting(false,
-                        PdfPageRotateHelper.PDF_ROTATION_0,
-                        PdfPageRotateHelper.PDF_ROTATION_90)
-                .equals(PdfPageRotateHelper.PDF_ROTATION_180));
-
-        assertTrue(SingletonPageRotationHelper.INSTANCE
-                .getPageRotationForPrinting(false,
-                        PdfPageRotateHelper.PDF_ROTATION_0,
-                        PdfPageRotateHelper.PDF_ROTATION_180)
-                .equals(PdfPageRotateHelper.PDF_ROTATION_180));
-
-        assertTrue(SingletonPageRotationHelper.INSTANCE
-                .getPageRotationForPrinting(false,
-                        PdfPageRotateHelper.PDF_ROTATION_0,
-                        PdfPageRotateHelper.PDF_ROTATION_270)
-                .equals(PdfPageRotateHelper.PDF_ROTATION_0));
     }
 
 }
