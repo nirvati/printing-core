@@ -554,38 +554,17 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      *            The rotation of the source PDF page.
      * @param defaultRotation
      *            The default rotation (can be {@code null}).
-     * @param isForPrinting
-     *            {@code true} when rotating for print job, {@code false} if
-     *            rotating for PDF download.
      * @return The page rotation to apply to the PDF page copy.{@code null},
      *         when no rotation.
      */
     public static Integer getPdfCopyPageRotation(final Rectangle srcPageSize,
-            final int srcPageRotation, final Integer defaultRotation,
-            final boolean isForPrinting) {
+            final int srcPageRotation, final Integer defaultRotation) {
 
         final boolean isLandscapePage =
                 srcPageSize.getHeight() < srcPageSize.getWidth();
 
-        final Integer rotation;
-
-        if (isForPrinting) {
-
-            final Integer safePageRotation;
-
-            if (defaultRotation == null) {
-                safePageRotation = PdfPageRotateHelper.PDF_ROTATION_0;
-            } else {
-                safePageRotation = defaultRotation;
-            }
-            rotation =
-                    PdfPageRotateHelper.instance().getPageRotationForPrinting(
-                            isLandscapePage, srcPageRotation, safePageRotation);
-        } else {
-            rotation = PdfPageRotateHelper.instance().getPageRotationForExport(
-                    isLandscapePage, srcPageRotation, defaultRotation);
-        }
-        return rotation;
+        return PdfPageRotateHelper.instance().getPageRotationForExport(
+                isLandscapePage, srcPageRotation, defaultRotation);
     }
 
     @Override
@@ -611,10 +590,9 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
              */
             if (!this.isForPrinting()) {
 
-                this.jobRotationWlk =
-                        getPdfCopyPageRotation(this.readerWlk.getPageSize(i),
-                                this.readerWlk.getPageRotation(i),
-                                jobRotationInit, this.isForPrinting());
+                this.jobRotationWlk = getPdfCopyPageRotation(
+                        this.readerWlk.getPageSize(i),
+                        this.readerWlk.getPageRotation(i), jobRotationInit);
 
                 if (this.jobRotationWlk != null) {
 
