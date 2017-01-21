@@ -35,6 +35,7 @@ import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.inbox.OutputProducer;
+import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfCreateRequest;
@@ -151,11 +152,12 @@ public abstract class ProxyPrintInboxPattern {
         final String orgJobName = request.getJobName();
         final int orgNumberOfPages = request.getNumberOfPages();
         final Boolean orgFitToPage = request.getFitToPage();
-        final Boolean orgLandscape = request.getLandscape();
         final String orgMediaOption = request.getMediaOption();
         final String orgMediaSourceOption = request.getMediaSourceOption();
         final ProxyPrintCostDto orgCostResult = request.getCostResult();
         final boolean orgDrm = request.isDrm();
+        final Boolean orgLandscape = request.getLandscape();
+        final PdfOrientationInfo orgOrientation = request.getPdfOrientation();
 
         try {
 
@@ -170,6 +172,9 @@ public abstract class ProxyPrintInboxPattern {
 
                 request.setLandscape(
                         Boolean.valueOf(filteredInboxInfo.hasLandscape()));
+
+                request.setPdfOrientation(
+                        filteredInboxInfo.getFirstPdfOrientation());
 
                 this.proxyPrintInboxChunk(lockedUser, request,
                         filteredInboxInfo);
@@ -195,6 +200,9 @@ public abstract class ProxyPrintInboxPattern {
                             chunk.getAssignedMediaSource().getSource());
                     request.setCostResult(chunk.getCostResult());
                     request.setDrm(chunk.isDrm());
+
+                    request.setPdfOrientation(
+                            request.getJobChunkInfo().getPdfOrientation());
 
                     if (StringUtils.isBlank(orgJobName)) {
                         request.setJobName(chunk.getJobName());
@@ -228,11 +236,12 @@ public abstract class ProxyPrintInboxPattern {
             request.setJobName(orgJobName);
             request.setNumberOfPages(orgNumberOfPages);
             request.setFitToPage(orgFitToPage);
-            request.setLandscape(orgLandscape);
             request.setMediaOption(orgMediaOption);
             request.setMediaSourceOption(orgMediaSourceOption);
             request.setCostResult(orgCostResult);
             request.setDrm(orgDrm);
+            request.setLandscape(orgLandscape);
+            request.setPdfOrientation(orgOrientation);
         }
     }
 

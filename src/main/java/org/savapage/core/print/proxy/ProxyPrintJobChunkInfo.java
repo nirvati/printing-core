@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
+import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ProxyPrintService;
@@ -59,6 +60,11 @@ public final class ProxyPrintJobChunkInfo {
     private final Boolean landscape;
 
     /**
+    *
+    */
+    private final PdfOrientationInfo pdfOrientation;
+
+    /**
      * .
      */
     private static final InboxService INBOX_SERVICE =
@@ -77,6 +83,7 @@ public final class ProxyPrintJobChunkInfo {
     private ProxyPrintJobChunkInfo() {
         this.filteredInboxInfo = null;
         this.landscape = null;
+        this.pdfOrientation = null;
     }
 
     /**
@@ -89,6 +96,7 @@ public final class ProxyPrintJobChunkInfo {
     public ProxyPrintJobChunkInfo(final ProxyPrintJobChunk jobChunk) {
         this.filteredInboxInfo = null;
         this.landscape = null;
+        this.pdfOrientation = null;
         this.addChunk(jobChunk);
     }
 
@@ -110,6 +118,7 @@ public final class ProxyPrintJobChunkInfo {
         }
 
         Boolean hasLandscape = Boolean.FALSE;
+        PdfOrientationInfo pdfOrientationWrk = null;
 
         this.filteredInboxInfo = INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
                 RangeAtom.FULL_PAGE_RANGE);
@@ -137,9 +146,14 @@ public final class ProxyPrintJobChunkInfo {
             if (inboxJob.showLandscape()) {
                 hasLandscape = Boolean.TRUE;
             }
+
+            if (pdfOrientationWrk == null) {
+                pdfOrientationWrk = inboxJob.createOrientationInfo();
+            }
         }
 
         this.landscape = hasLandscape;
+        this.pdfOrientation = pdfOrientationWrk;
     }
 
     /**
@@ -165,6 +179,7 @@ public final class ProxyPrintJobChunkInfo {
         }
 
         Boolean hasLandscape = Boolean.FALSE;
+        PdfOrientationInfo pdfOrientationWrk = null;
 
         this.filteredInboxInfo = INBOX_SERVICE.filterInboxInfoPages(inboxInfoIn,
                 RangeAtom.FULL_PAGE_RANGE);
@@ -208,9 +223,15 @@ public final class ProxyPrintJobChunkInfo {
                 hasLandscape = Boolean.TRUE;
             }
 
+            if (pdfOrientationWrk == null) {
+                pdfOrientationWrk = inboxJob.createOrientationInfo();
+            }
+
             break;
         }
+
         this.landscape = hasLandscape;
+        this.pdfOrientation = pdfOrientationWrk;
     }
 
     /**
@@ -243,6 +264,7 @@ public final class ProxyPrintJobChunkInfo {
                 filteredInboxInfo.getPages().iterator();
 
         Boolean hasLandscape = Boolean.FALSE;
+        PdfOrientationInfo pdfOrientationWrk = null;
 
         final List<String> chunkPageRangesWlk = new ArrayList<>();
         final Set<Integer> chunkJobsWlk = new HashSet<>();
@@ -302,6 +324,10 @@ public final class ProxyPrintJobChunkInfo {
             if (inboxJob.showLandscape()) {
                 hasLandscape = Boolean.TRUE;
             }
+
+            if (pdfOrientationWrk == null) {
+                pdfOrientationWrk = inboxJob.createOrientationInfo();
+            }
         }
 
         // Flush current
@@ -316,6 +342,7 @@ public final class ProxyPrintJobChunkInfo {
         }
 
         this.landscape = hasLandscape;
+        this.pdfOrientation = pdfOrientationWrk;
     }
 
     /**
@@ -411,6 +438,10 @@ public final class ProxyPrintJobChunkInfo {
      */
     public Boolean isLandscape() {
         return this.landscape;
+    }
+
+    public PdfOrientationInfo getPdfOrientation() {
+        return pdfOrientation;
     }
 
 }

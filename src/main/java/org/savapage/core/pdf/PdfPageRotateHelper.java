@@ -52,9 +52,25 @@ public final class PdfPageRotateHelper {
     private final Map<Integer, Map<Integer, Integer>> rotationMapLandscapePrint;
 
     /**
+    *
+    */
+    private static final class SingletonPageRotationHelper {
+        public static final PdfPageRotateHelper INSTANCE =
+                new PdfPageRotateHelper();
+    }
+
+    /**
+     *
+     * @return The singleton instance.
+     */
+    public static PdfPageRotateHelper instance() {
+        return SingletonPageRotationHelper.INSTANCE;
+    }
+
+    /**
      *
      */
-    PdfPageRotateHelper() {
+    private PdfPageRotateHelper() {
         this.rotationMapPortraitPrint = createRotationMapPortraitPrint();
         this.rotationMapLandscapePrint = createRotationMapLandscapePrint();
     }
@@ -162,7 +178,7 @@ public final class PdfPageRotateHelper {
 
     /**
      *
-     * @return the map for portrait.
+     * @return The rotations map for portrait PDF source page.
      */
     private static Map<Integer, Map<Integer, Integer>>
             createRotationMapPortraitPrint() {
@@ -227,7 +243,7 @@ public final class PdfPageRotateHelper {
     }
 
     /**
-     * @return the map for landscape.
+     * @return The rotations map for landscape PDF source page.
      */
     private static Map<Integer, Map<Integer, Integer>>
             createRotationMapLandscapePrint() {

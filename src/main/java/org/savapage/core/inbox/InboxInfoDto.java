@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -219,6 +220,20 @@ public final class InboxInfoDto {
             }
             return showLandscape;
         }
+
+        /**
+         *
+         * @return The {@link PdfOrientationInfo} of this inbox job.
+         */
+        @JsonIgnore
+        public PdfOrientationInfo createOrientationInfo() {
+            final PdfOrientationInfo pdfOrientation = new PdfOrientationInfo();
+            pdfOrientation
+                    .setLandscape(BooleanUtils.isTrue(this.getLandscape()));
+            pdfOrientation.setRotate(Integer.parseInt(this.getRotate()));
+            pdfOrientation.setRotation(this.getRotation());
+            return pdfOrientation;
+        }
     }
 
     /**
@@ -339,6 +354,23 @@ public final class InboxInfoDto {
             }
         }
         return false;
+    }
+
+    /**
+     *
+     * @return The {@link PdfOrientationInfo} of the first page encountered.
+     */
+    @JsonIgnore
+    public PdfOrientationInfo getFirstPdfOrientation() {
+
+        for (final InboxJobRange jobRange : this.getPages()) {
+
+            final int iJob = jobRange.getJob().intValue();
+            final InboxJob inboxJob = this.getJobs().get(iJob);
+
+            return inboxJob.createOrientationInfo();
+        }
+        return null;
     }
 
     /**

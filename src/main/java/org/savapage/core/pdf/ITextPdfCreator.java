@@ -98,14 +98,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ITextPdfCreator.class);
 
-    /**
-     *
-     */
-    private static final class SingletonPageRotationHelper {
-        public static final PdfPageRotateHelper INSTANCE =
-                new PdfPageRotateHelper();
-    }
-
     private String targetPdfCopyFilePath;
     private Document targetDocument;
     private PdfCopy targetPdfCopy;
@@ -586,26 +578,26 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             } else {
                 safePageRotation = defaultRotation;
             }
-            rotation = SingletonPageRotationHelper.INSTANCE
-                    .getPageRotationForPrinting(isLandscapePage,
-                            srcPageRotation, safePageRotation);
+            rotation =
+                    PdfPageRotateHelper.instance().getPageRotationForPrinting(
+                            isLandscapePage, srcPageRotation, safePageRotation);
         } else {
-            rotation = SingletonPageRotationHelper.INSTANCE
-                    .getPageRotationForExport(isLandscapePage, srcPageRotation,
-                            defaultRotation);
+            rotation = PdfPageRotateHelper.instance().getPageRotationForExport(
+                    isLandscapePage, srcPageRotation, defaultRotation);
         }
         return rotation;
     }
 
     @Override
-    protected void onExitJob(int blankPagesToAppend) throws Exception {
+    protected void onExitJob(final int blankPagesToAppend) throws Exception {
 
         this.readerWlk.selectPages(this.jobRangesWlk.toString());
         int pages = this.readerWlk.getNumberOfPages();
 
         final Integer jobRotationInit;
+
         if (this.jobRotationWlk == null) {
-            jobRotationInit = this.jobRotationWlk;
+            jobRotationInit = null;
         } else {
             jobRotationInit = Integer.valueOf(this.jobRotationWlk);
         }
@@ -614,19 +606,20 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
             ++i;
 
-            this.jobRotationWlk =
-                    getPdfCopyPageRotation(this.readerWlk.getPageSize(i),
-                            this.readerWlk.getPageRotation(i), jobRotationInit,
-                            this.isForPrinting());
-
             /*
-             * Rotate for BOTH export and printing.
+             * Rotate for export only.
              */
-            if (this.jobRotationWlk != null) {
+            if (!this.isForPrinting()) {
 
-                final int rotate = this.jobRotationWlk.intValue();
+                this.jobRotationWlk =
+                        getPdfCopyPageRotation(this.readerWlk.getPageSize(i),
+                                this.readerWlk.getPageRotation(i),
+                                jobRotationInit, this.isForPrinting());
 
-                if (rotate != 0) {
+                if (this.jobRotationWlk != null) {
+
+                    final int rotate = this.jobRotationWlk.intValue();
+
                     final PdfDictionary pageDict = this.readerWlk.getPageN(i);
                     pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
                 }

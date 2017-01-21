@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.savapage.core.dao.enums.PrintModeEnum;
+import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
@@ -132,6 +133,11 @@ public abstract class AbstractProxyPrintReq
      * {@code null} when unknown.
      */
     private Boolean landscape;
+
+    /**
+     *
+     */
+    private PdfOrientationInfo pdfOrientation;
 
     private ProxyPrintJobChunkInfo jobChunkInfo;
 
@@ -540,6 +546,14 @@ public abstract class AbstractProxyPrintReq
      */
     public void setLandscape(Boolean landscape) {
         this.landscape = landscape;
+    }
+
+    public PdfOrientationInfo getPdfOrientation() {
+        return pdfOrientation;
+    }
+
+    public void setPdfOrientation(PdfOrientationInfo pdfOrientation) {
+        this.pdfOrientation = pdfOrientation;
     }
 
     public static int getNup(Map<String, String> optionValues) {

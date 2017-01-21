@@ -32,16 +32,12 @@ import org.junit.Test;
  */
 public final class PdfRotationTest {
 
-    private static final class SingletonPageRotationHelper {
-        public static final PdfPageRotateHelper INSTANCE =
-                new PdfPageRotateHelper();
-    }
-
     @Test
     public void testPortrait() {
 
+        final PdfPageRotateHelper helper = PdfPageRotateHelper.instance();
         //
-        assertTrue(SingletonPageRotationHelper.INSTANCE
+        assertTrue(helper
                 .getPageRotationForPrinting(false,
                         PdfPageRotateHelper.PDF_ROTATION_0,
                         PdfPageRotateHelper.PDF_ROTATION_0)

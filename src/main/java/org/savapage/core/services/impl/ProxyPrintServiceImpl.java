@@ -56,6 +56,7 @@ import org.savapage.core.dto.MediaPageCostDto;
 import org.savapage.core.dto.ProxyPrinterCostDto;
 import org.savapage.core.dto.ProxyPrinterDto;
 import org.savapage.core.dto.ProxyPrinterMediaSourcesDto;
+import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.IppPrinterType;
 import org.savapage.core.ipp.IppSyntaxException;
@@ -94,6 +95,7 @@ import org.savapage.core.json.rpc.JsonRpcError.Code;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.pdf.PdfCreateInfo;
+import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
@@ -1817,20 +1819,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          * able to accept an empty group.
          */
 
-        //
-        final boolean isLandscape;
-
-        if (request.getJobChunkInfo() == null) {
-            isLandscape = BooleanUtils.isTrue(request.getLandscape());
-        } else {
-            isLandscape = BooleanUtils
-                    .isTrue(request.getJobChunkInfo().isLandscape());
-        }
-
         /*
          * Mantis #738.
          */
-        boolean printNumberUpLandscape = false;
         String numberUp = IppKeyword.NUMBER_UP_1;
 
         /*
@@ -1972,14 +1963,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
              * Mantis #738.
              */
             if (optionKeyword.equals(IppDictJobTemplateAttr.ATTR_NUMBER_UP)) {
-
                 numberUp = optionValue;
-
-                if (numberUp.equals(IppKeyword.NUMBER_UP_1)) {
-                    printNumberUpLandscape = false;
-                } else {
-                    printNumberUpLandscape = isLandscape;
-                }
             }
 
             /*
@@ -2183,25 +2167,26 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
-         * Mantis #738: Apply correct number-up layout in landscape proxy print.
+         * Mantis #738: Apply correct n-up layout in landscape proxy print.
          */
-        dict = IppDictJobTemplateAttr.instance();
+        final PdfOrientationInfo pdfOrientation;
 
-        final boolean correctForNumberUpLandscape = printNumberUpLandscape;
-        final boolean correctForLandscape = isLandscape;
+        if (request.getJobChunkInfo() == null) {
+            pdfOrientation = request.getPdfOrientation();
+        } else {
+            pdfOrientation = request.getJobChunkInfo().getPdfOrientation();
+        }
 
-        reqPrintJobCorrectLandscape(dict, optionValues, group, numberUp,
-                correctForNumberUpLandscape, correctForLandscape);
-
-        //
-        // reqPrintJobCorrectLandscapeReverse(dict, optionValues, group,
-        // numberUp, correctForNumberUpLandscape, correctForLandscape);
+        if (pdfOrientation != null) {
+            reqPrintJobCorrectForPdfRotation(optionValues, group,
+                    pdfOrientation, numberUp);
+        }
 
         return attrGroups;
     }
 
     /**
-     * Corrects a Print Job request for landscape orientation.
+     * Corrects a Print Job request for orientation and n-up layout.
      * <p>
      * Tested for:
      * <ul>
@@ -2209,34 +2194,100 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * </ul>
      * </p>
      *
-     * @param dict
-     *            The IPP dictionary.
      * @param optionValues
      *            The IPP job option values.
      * @param group
      *            The IPP attribute group to append on.
+     * @param pdfOrientation
+     *            The {@link PdfOrientationInfo}.
      * @param numberUp
      *            The n-up value.
-     * @param correctForNumberUpLandscape
-     *            {@code true} when 2-up and more must be corrected.
-     * @param correctForLandscape
-     *            {@code true} when 1-up must be corrected.
      */
-    private void reqPrintJobCorrectLandscape(final AbstractIppDict dict,
+    private void reqPrintJobCorrectForPdfRotation(
             final Map<String, String> optionValues, final IppAttrGroup group,
-            final String numberUp, final boolean correctForNumberUpLandscape,
-            final boolean correctForLandscape) {
-        //
-        if (correctForNumberUpLandscape) {
+            final PdfOrientationInfo pdfOrientation, final String numberUp) {
 
-            switch (numberUp) {
-            /*
-             * 4-up, 9-up and 16-up give result in logical landscape
-             * orientation.
-             */
-            case IppKeyword.NUMBER_UP_4:
-            case IppKeyword.NUMBER_UP_9:
-            case IppKeyword.NUMBER_UP_16:
+        final AbstractIppDict dict = IppDictJobTemplateAttr.instance();
+        final PdfPageRotateHelper rotateHelper = PdfPageRotateHelper.instance();
+
+        final Integer pdfRotationForPrint = rotateHelper
+                .getPageRotationForPrinting(pdfOrientation.getLandscape(),
+                        pdfOrientation.getRotation(),
+                        pdfOrientation.getRotate());
+
+        /*
+         * A portrait PDF document without PDF rotation needed, does not need
+         * correction.
+         */
+        if (!pdfOrientation.getLandscape() && pdfRotationForPrint
+                .equals(PdfPageRotateHelper.PDF_ROTATION_0)) {
+            return;
+        }
+
+        final String cupsOrientationRequested;
+        final String cupsNupLayout;
+        final boolean adhocLandscape;
+
+        switch (numberUp) {
+        /*
+         *
+         */
+        case IppKeyword.NUMBER_UP_1:
+
+            cupsNupLayout = null;
+
+            if (pdfRotationForPrint
+                    .equals(PdfPageRotateHelper.PDF_ROTATION_90)) {
+
+                /*
+                 * Landscape -> Landscape reverse
+                 */
+                cupsOrientationRequested =
+                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+
+            } else if (pdfRotationForPrint
+                    .equals(PdfPageRotateHelper.PDF_ROTATION_180)) {
+
+                cupsOrientationRequested =
+                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+            } else {
+                cupsOrientationRequested = null;
+            }
+
+            adhocLandscape = true;
+            break;
+
+        /*
+         * 4-up, 9-up and 16-up give result in logical landscape orientation.
+         */
+        case IppKeyword.NUMBER_UP_4:
+        case IppKeyword.NUMBER_UP_9:
+        case IppKeyword.NUMBER_UP_16:
+
+            if (pdfRotationForPrint
+                    .equals(PdfPageRotateHelper.PDF_ROTATION_90)) {
+                /*
+                 * Landscape -> Landscape reverse
+                 */
+                cupsOrientationRequested =
+                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+
+                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_BTLR;
+
+            } else if (pdfRotationForPrint
+                    .equals(PdfPageRotateHelper.PDF_ROTATION_180)) {
+
+                /*
+                 * Portrait -> Portrait reverse
+                 */
+                cupsOrientationRequested =
+                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+
+                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_BTLR;
+
+            } else {
+
+                cupsOrientationRequested = null;
                 //
                 // LRTB (default)..... RLTB................TBRL (preferred)
                 // +----+----S ....... +----+----S ....... +----+----S
@@ -2249,131 +2300,123 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 // |.*..|.*..|........ |.*..|.*..|........ |.*..|.*..|
                 // +----+----+........ +----+----+........ +----+----+
                 //
-                group.add(
-                        dict.createPpdOptionAttr(
-                                IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
-                        IppKeyword.NUMBER_UP_LAYOUT_TBRL); // Preferred
-
-                // Set ad-hoc landscape indication in original request.
-                optionValues.put(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE,
-                        "");
-                break;
-
-            /*
-             * 2-up and 6-up result in portrait orientation.
-             */
-            case IppKeyword.NUMBER_UP_2:
-            case IppKeyword.NUMBER_UP_6:
-                group.add(
-                        dict.createPpdOptionAttr(
-                                IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED),
-                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES);
-
-                group.add(
-                        dict.createPpdOptionAttr(
-                                IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
-                        IppKeyword.NUMBER_UP_LAYOUT_TBRL);
-                break;
-
+                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
             }
 
-        } else if (correctForLandscape) {
-            // Set ad-hoc landscape indication in original request.
-            optionValues.put(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE, "");
+            adhocLandscape = true;
+            break;
+
+        /*
+         * 2-up and 6-up result in portrait orientation.
+         */
+        case IppKeyword.NUMBER_UP_2:
+
+            if (pdfRotationForPrint
+                    .equals(PdfPageRotateHelper.PDF_ROTATION_90)) {
+                /*
+                 * Landscape -> Portrait
+                 */
+                cupsOrientationRequested =
+                        IppKeyword.ORIENTATION_REQUESTED_270_DEGREES;
+
+            } else if (pdfRotationForPrint
+                    .equals(PdfPageRotateHelper.PDF_ROTATION_180)) {
+                /*
+                 * Portrait -> Landscape reverse
+                 */
+                cupsOrientationRequested =
+                        IppKeyword.ORIENTATION_REQUESTED_270_DEGREES;
+
+            } else {
+                cupsOrientationRequested =
+                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+            }
+
+            cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
+            adhocLandscape = false;
+            break;
+
+        case IppKeyword.NUMBER_UP_6:
+
+            if (pdfRotationForPrint
+                    .equals(PdfPageRotateHelper.PDF_ROTATION_90)) {
+                /*
+                 * Landscape -> Portrait
+                 */
+                cupsOrientationRequested =
+                        IppKeyword.ORIENTATION_REQUESTED_270_DEGREES;
+                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_LRTB;
+
+            } else if (pdfRotationForPrint
+                    .equals(PdfPageRotateHelper.PDF_ROTATION_180)) {
+                /*
+                 * Portrait -> Landscape reverse
+                 */
+                cupsOrientationRequested =
+                        IppKeyword.ORIENTATION_REQUESTED_270_DEGREES;
+                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_LRTB;
+
+            } else {
+                cupsOrientationRequested =
+                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
+            }
+
+            adhocLandscape = false;
+            break;
+
+        default:
+            cupsNupLayout = null;
+            cupsOrientationRequested = null;
+            adhocLandscape = false;
+            break;
         }
-    }
 
-    /**
-     * Corrects a Print Job request for reverse landscape orientation.
-     * <i>Reserved for future use.</i>
-     * <p>
-     * Tested for:
-     * <ul>
-     * <li>Several Xerox PPD drivers</li>
-     * </ul>
-     * </p>
-     *
-     * @param dict
-     *            The IPP dictionary.
-     * @param optionValues
-     *            The IPP job option values.
-     * @param group
-     *            The IPP attribute group to append on.
-     * @param numberUp
-     *            The n-up value.
-     * @param correctForNumberUpLandscape
-     *            {@code true} when 2-up and more must be corrected.
-     * @param correctForLandscape
-     *            {@code true} when 1-up must be corrected.
-     */
-    private void reqPrintJobCorrectLandscapeReverse(final AbstractIppDict dict,
-            final Map<String, String> optionValues, final IppAttrGroup group,
-            final String numberUp, final boolean correctForNumberUpLandscape,
-            final boolean correctForLandscape) {
-
-        if (correctForNumberUpLandscape) {
-
-            switch (numberUp) {
-            /*
-             * 4-up, 9-up and 16-up give result in landscape orientation.
-             */
-            case IppKeyword.NUMBER_UP_4:
-            case IppKeyword.NUMBER_UP_9:
-            case IppKeyword.NUMBER_UP_16:
-
-                group.add(
-                        dict.createPpdOptionAttr(
-                                IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED),
-                        IppKeyword.ORIENTATION_REQUESTED_270_DEGREES);
-
-                group.add(dict.createPpdOptionAttr(
-                        IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
-                        // IppKeyword.NUMBER_UP_LAYOUT_LRTB); // OK
-                        IppKeyword.NUMBER_UP_LAYOUT_TBLR); // OK
-
-                // Set ad-hoc landscape indication in original request.
-                optionValues.put(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE,
-                        "");
-
-                break;
-
-            /*
-             * 2-up results in portrait orientation.
-             */
-            case IppKeyword.NUMBER_UP_2:
-                group.add(
-                        dict.createPpdOptionAttr(
-                                IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED),
-                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES);
-                break;
-
-            /*
-             * 6-up results in portrait orientation.
-             */
-            case IppKeyword.NUMBER_UP_6:
-
-                group.add(
-                        dict.createPpdOptionAttr(
-                                IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
-                        IppKeyword.NUMBER_UP_LAYOUT_LRBT);
-
-                group.add(
-                        dict.createPpdOptionAttr(
-                                IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED),
-                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES);
-
-                break;
-            }
-
-        } else if (correctForLandscape) {
-
+        //
+        if (cupsOrientationRequested != null) {
             group.add(
                     dict.createPpdOptionAttr(
                             IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED),
-                    IppKeyword.ORIENTATION_REQUESTED_270_DEGREES);
+                    cupsOrientationRequested);
+        }
 
+        if (cupsNupLayout != null) {
+            group.add(
+                    dict.createPpdOptionAttr(
+                            IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT),
+                    cupsNupLayout);
+        }
+
+        if (adhocLandscape) {
             // Set ad-hoc landscape indication in original request.
             optionValues.put(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE, "");
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            final StringBuilder msg = new StringBuilder();
+
+            msg.append("PDF source: ");
+
+            if (pdfOrientation.getLandscape()) {
+                msg.append("landscape");
+            } else {
+                msg.append("portrait");
+            }
+            msg.append(" rotation [").append(pdfOrientation.getRotation())
+                    .append("] user rotate [")
+                    .append(pdfOrientation.getRotate()).append("]");
+
+            msg.append(" | PDF rotate for print [").append(pdfRotationForPrint)
+                    .append("] | CUPS ").append(numberUp).append("-up");
+
+            if (cupsNupLayout != null) {
+                msg.append(" ").append(cupsNupLayout.toUpperCase());
+            }
+            if (cupsOrientationRequested != null) {
+                msg.append(" orientation [").append(cupsOrientationRequested)
+                        .append("]");
+            }
+            LOGGER.debug(msg.toString());
         }
     }
 
