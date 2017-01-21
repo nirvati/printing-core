@@ -135,6 +135,10 @@ public final class PdfPageRotateHelper {
             return userRotation;
         }
 
+        if (userRotation != null && userRotation.equals(PDF_ROTATION_0)) {
+            return pageRotation;
+        }
+
         if (!isLandscapePage) {
             return userRotation;
         }
