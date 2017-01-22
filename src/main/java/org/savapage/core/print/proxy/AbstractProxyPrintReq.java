@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -135,7 +135,7 @@ public abstract class AbstractProxyPrintReq
     private Boolean landscape;
 
     /**
-     *
+     * The PDF orientation of the first page to be proxy printed.
      */
     private PdfOrientationInfo pdfOrientation;
 
@@ -548,10 +548,17 @@ public abstract class AbstractProxyPrintReq
         this.landscape = landscape;
     }
 
+    /**
+     * @return The PDF orientation of the first page to be proxy printed.
+     */
     public PdfOrientationInfo getPdfOrientation() {
         return pdfOrientation;
     }
 
+    /**
+     * @param pdfOrientation
+     *            The PDF orientation of the first page to be proxy printed.
+     */
     public void setPdfOrientation(PdfOrientationInfo pdfOrientation) {
         this.pdfOrientation = pdfOrientation;
     }

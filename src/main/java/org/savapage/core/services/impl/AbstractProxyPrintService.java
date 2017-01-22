@@ -1841,6 +1841,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         printReq.putOptionValues(job.getOptionValues());
         printReq.setFitToPage(job.getFitToPage());
         printReq.setLandscape(job.getLandscape());
+        printReq.setPdfOrientation(job.getPdfOrientation());
         printReq.setCostResult(job.getCostResult());
 
         printReq.setAccountTrxInfoSet(

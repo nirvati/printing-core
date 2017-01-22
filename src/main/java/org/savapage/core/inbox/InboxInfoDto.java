@@ -230,8 +230,17 @@ public final class InboxInfoDto {
             final PdfOrientationInfo pdfOrientation = new PdfOrientationInfo();
             pdfOrientation
                     .setLandscape(BooleanUtils.isTrue(this.getLandscape()));
-            pdfOrientation.setRotate(Integer.parseInt(this.getRotate()));
+
             pdfOrientation.setRotation(this.getRotation());
+
+            final Integer rotateWrk;
+            if (this.getRotate() == null) {
+                rotateWrk = Integer.valueOf(0);
+            } else {
+                rotateWrk = Integer.parseInt(this.getRotate());
+            }
+            pdfOrientation.setRotate(rotateWrk);
+
             return pdfOrientation;
         }
     }

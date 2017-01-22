@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.savapage.core.dto.AbstractDto;
+import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
@@ -242,6 +243,11 @@ public final class OutboxInfoDto extends AbstractDto {
          * {@code null} when unknown.
          */
         private Boolean landscape;
+
+        /**
+         * The PDF orientation of the first page to be proxy printed.
+         */
+        private PdfOrientationInfo pdfOrientation;
 
         private Map<String, String> optionValues;
 
@@ -459,6 +465,21 @@ public final class OutboxInfoDto extends AbstractDto {
          */
         public void setLandscape(Boolean landscape) {
             this.landscape = landscape;
+        }
+
+        /**
+         * @return The PDF orientation of the first page to be proxy printed.
+         */
+        public PdfOrientationInfo getPdfOrientation() {
+            return pdfOrientation;
+        }
+
+        /**
+         * @param pdfOrientation
+         *            The PDF orientation of the first page to be proxy printed.
+         */
+        public void setPdfOrientation(PdfOrientationInfo pdfOrientation) {
+            this.pdfOrientation = pdfOrientation;
         }
 
         public Map<String, String> getOptionValues() {

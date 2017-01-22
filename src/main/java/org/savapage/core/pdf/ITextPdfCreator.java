@@ -586,21 +586,19 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             ++i;
 
             /*
-             * Rotate for export only.
+             * Rotate for export. Also rotate when for printing, because we need
+             * the intended orientation when we apply a letterhead.
              */
-            if (!this.isForPrinting()) {
+            this.jobRotationWlk =
+                    getPdfCopyPageRotation(this.readerWlk.getPageSize(i),
+                            this.readerWlk.getPageRotation(i), jobRotationInit);
 
-                this.jobRotationWlk = getPdfCopyPageRotation(
-                        this.readerWlk.getPageSize(i),
-                        this.readerWlk.getPageRotation(i), jobRotationInit);
+            if (this.jobRotationWlk != null) {
 
-                if (this.jobRotationWlk != null) {
+                final int rotate = this.jobRotationWlk.intValue();
 
-                    final int rotate = this.jobRotationWlk.intValue();
-
-                    final PdfDictionary pageDict = this.readerWlk.getPageN(i);
-                    pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
-                }
+                final PdfDictionary pageDict = this.readerWlk.getPageN(i);
+                pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
             }
 
             final PdfImportedPage importedPage;
@@ -915,7 +913,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             boolean rotateLetterhead = false;
 
             /*
-             * Rotate (back) to portrait for printing
+             * When printing rotate (back) to portrait for printing.
              */
             if (isForPrinting()) {
 
@@ -924,19 +922,20 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
                 if (rotateLetterhead) {
 
-                    int rotate;
+                    final Integer rotate;
 
                     if (isPageRotated) {
                         /*
-                         * We rotate back to its original.
+                         * Reverse any rotation.
                          */
-                        rotate = 0;
+                        rotate = PdfPageRotateHelper.PDF_ROTATION_0;
                     } else {
-                        rotate = 270;
+                        rotate = PdfPageRotateHelper.PDF_ROTATION_270;
                     }
 
                     PdfDictionary pageDict = this.readerWlk.getPageN(i);
-                    pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
+                    pageDict.put(PdfName.ROTATE,
+                            new PdfNumber(rotate.intValue()));
                 }
             }
 
