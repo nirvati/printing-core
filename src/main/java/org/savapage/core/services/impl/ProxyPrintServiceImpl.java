@@ -1861,6 +1861,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             // The IPP option keyword.
             final String optionKeywordIpp = entry.getKey();
 
+            // The IPP option value.
+            final String optionValueIpp = entry.getValue();
+
             // The mapped PPD option keyword.
             final String optionKeywordPpd;
 
@@ -1897,12 +1900,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
                 attr = dict.getAttr(optionKeywordIpp);
                 optionKeyword = optionKeywordIpp;
-                optionValue = entry.getValue();
+                optionValue = optionValueIpp;
 
             } else {
-
-                final String optionValueIpp = entry.getValue();
                 String optionValuePpd = null;
+
                 for (final JsonProxyPrinterOptChoice choice : proxyPrinterOpt
                         .getChoices()) {
                     if (choice.getChoice().equals(optionValueIpp)) {
@@ -1945,10 +1947,18 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     msg.append(" with mapped PPD option [")
                             .append(optionKeywordPpd).append("]");
                 }
-                msg.append(": mapped PPD value of [").append(entry.getValue())
+                msg.append(": mapped PPD value of [").append(optionValueIpp)
                         .append("] unknown (attribute is skipped).");
                 LOGGER.error(msg.toString());
                 continue;
+            }
+
+            if (LOGGER.isDebugEnabled()) {
+                final String msg =
+                        String.format("PrintJob Attr IPP [%s][%s] PPD [%s][%s]",
+                                optionKeywordIpp, optionValueIpp, optionKeyword,
+                                optionValue);
+                LOGGER.debug(msg.toString());
             }
 
             /*
@@ -1962,14 +1972,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             /*
              * Mantis #738.
              */
-            if (optionKeyword.equals(IppDictJobTemplateAttr.ATTR_NUMBER_UP)) {
-                numberUp = optionValue;
+            if (optionKeywordIpp.equals(IppDictJobTemplateAttr.ATTR_NUMBER_UP)) {
+                numberUp = optionValueIpp;
             }
 
             /*
              *
              */
-            if (optionKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA)) {
+            if (optionKeywordIpp.equals(IppDictJobTemplateAttr.ATTR_MEDIA)) {
                 /*
                  * Create here, apply later.
                  */
@@ -1977,7 +1987,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                         IppDictJobTemplateAttr.ATTR_MEDIA_SIZE);
 
                 final MediaSizeName sizeName =
-                        IppMediaSizeEnum.findMediaSizeName(optionValue);
+                        IppMediaSizeEnum.findMediaSizeName(optionValueIpp);
 
                 final int[] array = MediaUtils.getMediaWidthHeight(sizeName);
 
@@ -1989,7 +1999,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 collectionMediaSize.add("y-dimension", new IppInteger(0),
                         String.valueOf(array[1] * hundredthMM));
 
-            } else if (optionKeyword
+            } else if (optionKeywordIpp
                     .equals(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE)) {
                 /*
                  * Create here, apply later.
@@ -2119,7 +2129,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             group.addCollection(collection);
 
             if (collectionMediaSize != null) {
-
                 collection.addCollection(collectionMediaSize);
             }
 
