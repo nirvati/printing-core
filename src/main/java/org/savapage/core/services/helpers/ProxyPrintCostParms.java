@@ -100,6 +100,23 @@ public final class ProxyPrintCostParms {
     private BigDecimal customCostCopy;
 
     /**
+     * Cost for {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_COVER_TYPE}.
+     * When {@code null} a Cover is not applicable.
+     */
+    private BigDecimal customCostCoverPrint;
+
+    /**
+     * Number of media pages for
+     * {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_COVER_TYPE}. Value can be
+     * {@code 1} for
+     * {@link IppKeyword#ORG_SAVAPAGE_ATTR_COVER_TYPE_PRINTFRONT_EXT_PFX}, or
+     * {@code 2} for
+     * {@link IppKeyword#ORG_SAVAPAGE_ATTR_COVER_TYPE_PRINTBOTH_EXT_PFX}. If
+     * {@code 0} a Cover is not applicable.
+     */
+    private int customCoverPrintPages;
+
+    /**
      * Constructor.
      *
      * @param printer
@@ -238,6 +255,28 @@ public final class ProxyPrintCostParms {
     }
 
     /**
+     * @return Cost for
+     *         {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_COVER_TYPE}. When
+     *         {@code null} a Cover is not applicable.
+     */
+    public BigDecimal getCustomCostCoverPrint() {
+        return customCostCoverPrint;
+    }
+
+    /**
+     * @return Number of media pages for
+     *         {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_COVER_TYPE}.
+     *         Value can be {@code 1} for
+     *         {@link IppKeyword#ORG_SAVAPAGE_ATTR_COVER_TYPE_PRINTFRONT_EXT_PFX}
+     *         , or {@code 2} for
+     *         {@link IppKeyword#ORG_SAVAPAGE_ATTR_COVER_TYPE_PRINTBOTH_EXT_PFX}
+     *         . If {@code 0} a Cover is not applicable.
+     */
+    public int getCustomCoverPrintPages() {
+        return customCoverPrintPages;
+    }
+
+    /**
      * (Re)calculates the custom media/copy costs.
      * <p>
      * NOTE: Use this method <i>after</i> {@link #setIppMediaOption(String)} and
@@ -249,9 +288,40 @@ public final class ProxyPrintCostParms {
         if (this.proxyPrinter == null || this.ippOptionValues == null) {
             this.customCostCopy = null;
             this.customCostMediaSide = null;
+            this.customCostCoverPrint = null;
+            this.customCoverPrintPages = 0;
             return;
         }
 
+        /*
+         * Cover cost and pages
+         */
+        final String ippCoverChoice = this.ippOptionValues
+                .get(IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE);
+
+        if (ippCoverChoice == null) {
+
+            this.customCostCoverPrint = null;
+            this.customCoverPrintPages = 0;
+
+        } else {
+
+            this.customCostCoverPrint =
+                    this.proxyPrinter.getCustomCostCover(ippCoverChoice);
+
+            if (this.customCostCoverPrint == null) {
+                this.customCoverPrintPages = 0;
+            } else if (ippCoverChoice.startsWith(
+                    IppKeyword.ORG_SAVAPAGE_ATTR_COVER_TYPE_PRINTBOTH_EXT_PFX)) {
+                this.customCoverPrintPages = 2;
+            } else {
+                this.customCoverPrintPages = 1;
+            }
+
+        }
+        /*
+         * Media dependent cost.
+         */
         this.ippOptionValues.put(IppDictJobTemplateAttr.ATTR_MEDIA,
                 this.ippMediaOption);
 
@@ -286,4 +356,5 @@ public final class ProxyPrintCostParms {
         }
 
     }
+
 }

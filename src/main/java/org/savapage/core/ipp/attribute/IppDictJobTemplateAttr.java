@@ -291,8 +291,8 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     /**
      * .
      */
-    public static final String ORG_SAVAPAGE_ATTR_JOB_COVER =
-            ORG_SAVAPAGE_ATTR_PFX + "job-cover";
+    public static final String ORG_SAVAPAGE_ATTR_COVER_TYPE =
+            ORG_SAVAPAGE_ATTR_PFX + "cover-type";
 
     /**
      * The prefix for Custom SavaPage IPP Job template finishings attributes.
@@ -326,7 +326,7 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      * .
      */
     public static final String[] JOBTICKET_ATTR_COPY =
-            new String[] { ORG_SAVAPAGE_ATTR_JOB_COVER };
+            new String[] { ORG_SAVAPAGE_ATTR_COVER_TYPE };
 
     /**
      * .
@@ -347,8 +347,8 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      * element its NONE value.
      */
     public static final String[][] JOBTICKET_ATTR_COPY_V_NONE = {
-            { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_COVER,
-                    IppKeyword.ORG_SAVAPAGE_ATTR_JOB_COVER_NONE },
+            { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_COVER_TYPE_NO_COVER },
             { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_EXT,
                     IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_NONE }
             //

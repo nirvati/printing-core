@@ -977,22 +977,71 @@ public final class AccountingServiceImpl extends AbstractService
             logicalNumberOfPages = costParms.getLogicalNumberOfPages();
         }
 
-        //
         final ProxyPrintCostDto costResult = new ProxyPrintCostDto();
 
+        /*
+         * Media cost.
+         */
         BigDecimal costMedia = BigDecimal.ZERO;
+
+        // The number of cover pages, that are not charged as media.
+        int coverPagesCounter = costParms.getCustomCoverPrintPages();
+
         for (final Integer numberOfPages : logicalNumberOfPages) {
-            costMedia = costMedia.add(calcProxyPrintCostMedia(numberOfPages,
-                    costParms.getPagesPerSide(), costParms.getNumberOfCopies(),
-                    costParms.isDuplex(), pageCostOneSided, pageCostTwoSided,
-                    discountPerc));
+
+            final Integer numberOfPagesCost;
+
+            if (coverPagesCounter > 0) {
+
+                int pagesForCost = numberOfPages.intValue();
+
+                if (pagesForCost < coverPagesCounter) {
+                    coverPagesCounter -= pagesForCost;
+                    numberOfPagesCost = null;
+                } else {
+                    pagesForCost -= coverPagesCounter;
+                    numberOfPagesCost = Integer.valueOf(pagesForCost);
+                    coverPagesCounter = 0;
+                }
+
+            } else {
+                numberOfPagesCost = numberOfPages;
+            }
+
+            if (numberOfPagesCost != null) {
+                costMedia = costMedia.add(calcProxyPrintCostMedia(
+                        numberOfPagesCost, costParms.getPagesPerSide(),
+                        costParms.getNumberOfCopies(), costParms.isDuplex(),
+                        pageCostOneSided, pageCostTwoSided, discountPerc));
+            }
         }
 
         costResult.setCostMedia(costMedia);
 
+        /*
+         * Copy cost.
+         */
         if (costParms.getCustomCostCopy() != null) {
             costResult.setCostCopy(costParms.getCustomCostCopy().multiply(
                     BigDecimal.valueOf(costParms.getNumberOfCopies())));
+        }
+
+        /*
+         * Cover cost.
+         */
+        final BigDecimal costCover = costParms.getCustomCostCoverPrint();
+
+        if (costCover != null) {
+
+            BigDecimal costCopy = costResult.getCostCopy();
+
+            if (costCopy == null) {
+                costCopy = costCover;
+            } else {
+                costCopy.add(costCover);
+            }
+
+            costResult.setCostCopy(costCopy);
         }
 
         return costResult;

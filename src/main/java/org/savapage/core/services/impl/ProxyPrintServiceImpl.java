@@ -797,9 +797,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                             .equals(optValue)) {
                 continue;
             }
-            if (IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_COVER
+            if (IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE
                     .equals(optKey)
-                    && IppKeyword.ORG_SAVAPAGE_ATTR_JOB_COVER_NONE
+                    && IppKeyword.ORG_SAVAPAGE_ATTR_COVER_TYPE_NO_COVER
                             .equals(optValue)) {
                 continue;
             }

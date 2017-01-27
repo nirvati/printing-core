@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.savapage.core.dto.IppCostRule;
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.json.JsonAbstractBase;
@@ -548,6 +549,28 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      */
     public BigDecimal calcCustomCostCopy(final Map<String, String> ippChoices) {
         return calcCost(this.getCustomCostRulesCopy(), ippChoices, true);
+    }
+
+    /**
+     * Gets the cover costs according to the list of cost rules.
+     *
+     * @param ippCoverChoice
+     *            The IPP choice of attribute
+     *            {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_COVER_TYPE}.
+     * @return {@code null} when none of the rules apply.
+     */
+    public BigDecimal getCustomCostCover(final String ippCoverChoice) {
+
+        if (ippCoverChoice == null) {
+            return null;
+        }
+
+        final Map<String, String> singleIppChoice = new HashMap<>();
+
+        singleIppChoice.put(IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE,
+                ippCoverChoice);
+
+        return calcCost(this.getCustomCostRulesCopy(), singleIppChoice, false);
     }
 
     /**

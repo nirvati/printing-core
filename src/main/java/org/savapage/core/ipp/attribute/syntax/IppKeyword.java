@@ -300,7 +300,20 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     /**
      *
      */
-    public static final String ORG_SAVAPAGE_ATTR_JOB_COVER_NONE = "none";
+    public static final String ORG_SAVAPAGE_ATTR_COVER_TYPE_NO_COVER =
+            "no-cover";
+
+    /**
+     *
+     */
+    public static final String ORG_SAVAPAGE_ATTR_COVER_TYPE_PRINTFRONT_EXT_PFX =
+            "printfront.ext.";
+
+    /**
+     *
+     */
+    public static final String ORG_SAVAPAGE_ATTR_COVER_TYPE_PRINTBOTH_EXT_PFX =
+            "printboth.ext.";
 
     /**
      * Keyword name prefix for user extensions. NOTE: these are <b>not</b>
