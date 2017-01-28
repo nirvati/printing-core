@@ -47,6 +47,22 @@ import org.savapage.core.services.helpers.DocContentPrintInInfo;
 public interface JobTicketService extends StatefulService {
 
     /**
+     * Sends Copy Job to the OutBox.
+     * <p>
+     * Note: invariants are NOT checked.
+     * </p>
+     *
+     * @param user
+     *            The requesting {@link User}.
+     * @param request
+     *            The {@link ProxyPrintInboxReq}.
+     * @param deliveryDate
+     *            The requested date of delivery.
+     */
+    void createCopyJob(User user, ProxyPrintInboxReq request,
+            Date deliveryDate);
+
+    /**
      * Sends Print Job to the OutBox.
      * <p>
      * Note: invariants are NOT checked.

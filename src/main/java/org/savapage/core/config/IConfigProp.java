@@ -1362,6 +1362,11 @@ public interface IConfigProp {
          */
         PRINT_IN_JOB_EXPIRY_MINS("print-in.job-expiry.mins", NUMBER_VALIDATOR, V_ZERO),
 
+        /**
+         * Enable Copy Job option for Job Ticket (boolean). When {@code true} a
+         * job ticket for a copy job can be created.
+         */
+        JOBTICKET_COPIER_ENABLE("jobticket.copier.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
          * Enable "delivery time" option for Job Ticket (boolean).

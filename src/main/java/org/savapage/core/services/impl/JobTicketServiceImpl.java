@@ -387,6 +387,11 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
+    public void createCopyJob(final User user, final ProxyPrintInboxReq request,
+            final Date deliveryDate) {
+    }
+
+    @Override
     public void proxyPrintInbox(final User lockedUser,
             final ProxyPrintInboxReq request, final Date deliveryDate)
             throws EcoPrintPdfTaskPendingException {
