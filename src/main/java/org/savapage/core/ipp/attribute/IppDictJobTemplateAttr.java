@@ -224,11 +224,6 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     public static final String CUPS_ATTR_PAGE_SET = "page-set";
 
     /**
-     *
-     */
-    public static final String CUPS_ATTR_LANDSCAPE = "landscape";
-
-    /**
      * Rotates the page.
      */
     public static final String CUPS_ATTR_ORIENTATION_REQUESTED =
@@ -281,6 +276,12 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      * </p>
      */
     public static final String ATTR_OUTPUT_BIN = "output-bin";
+
+    /**
+    *
+    */
+    public static final String ORG_SAVAPAGE_ATTR_LANDSCAPE =
+            ORG_SAVAPAGE_ATTR_PFX + "landscape";
 
     /**
      * .

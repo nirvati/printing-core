@@ -1921,6 +1921,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             }
 
             if (attr == null) {
+
+                if (optionKeyword.equals(
+                        IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_LANDSCAPE)) {
+                    continue;
+                }
                 /*
                  * Finishing options are not found when they are NOT mapped in
                  * the PPDE. They can be skipped if they have a "none" value.
@@ -2389,7 +2394,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         if (adhocLandscape) {
             // Set ad-hoc landscape indication in original request.
-            optionValues.put(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE, "");
+            optionValues.put(IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_LANDSCAPE,
+                    "");
         }
 
         if (LOGGER.isDebugEnabled()) {

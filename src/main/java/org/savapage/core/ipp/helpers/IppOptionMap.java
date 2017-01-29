@@ -98,8 +98,8 @@ public final class IppOptionMap {
      * @return {@code true} if this is a landscape job.
      */
     public boolean isLandscapeJob() {
-        return this.optionValues
-                .containsKey(IppDictJobTemplateAttr.CUPS_ATTR_LANDSCAPE);
+        return this.optionValues.containsKey(
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_LANDSCAPE);
     }
 
     /**
