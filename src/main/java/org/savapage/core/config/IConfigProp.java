@@ -1832,6 +1832,21 @@ public interface IConfigProp {
         WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE("webapp.user.proxy-print.clear-inbox.scope", new EnumValidator<>(InboxSelectScopeEnum.class), InboxSelectScopeEnum.ALL.toString()),
 
         /**
+         * User WebApp: enable the "Print documents separately" option for proxy
+         * printing (Boolean). If {@code true} the option is enabled (shown).
+         */
+        WEBAPP_USER_PROXY_PRINT_SEPARATE_ENABLE("webapp.user.proxy-print.separate.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * User WebApp: the (default) "Print documents separately" option value
+         * for proxy printing when "All Documents" are selected (Boolean). If
+         * {@code true}, a separate proxy print job is created for each vanilla
+         * inbox document. If {@code false}, one (1) proxy print job is printed
+         * for a vanilla inbox.
+         */
+        WEBAPP_USER_PROXY_PRINT_SEPARATE("webapp.user.proxy-print.separate", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
          * User WebApp: must text of navigation buttons on main window be shown?
          */
         WEBAPP_USER_MAIN_NAV_BUTTON_TEXT("webapp.user.main.nav-button-text", new EnumValidator<>(OnOffEnum.class), OnOffEnum.AUTO.toString()),
