@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1184,6 +1184,26 @@ public final class DocLogServiceImpl extends AbstractService
 
         docLogCollect.setNumberOfPages(numberOfPages);
         docLogCollect.getDocOut().setDocsInOut(inoutList);
+
+        docLogCollect.getDocOut()
+                .setSignature(this.generateSignature(docLogCollect));
+    }
+
+    @Override
+    public void collectData4DocOutCopyJob(final User user,
+            final DocLog docLogCollect, final int numberOfPages) {
+
+        this.applyCreationDate(docLogCollect,
+                ServiceContext.getTransactionDate());
+
+        docLogCollect.setUser(user);
+        docLogCollect.setUuid(java.util.UUID.randomUUID().toString());
+        docLogCollect.setNumberOfBytes(Long.valueOf(0));
+
+        //final List<DocInOut> inoutList = new ArrayList<>();
+
+        docLogCollect.setNumberOfPages(numberOfPages);
+        //docLogCollect.getDocOut().setDocsInOut(inoutList);
 
         docLogCollect.getDocOut()
                 .setSignature(this.generateSignature(docLogCollect));

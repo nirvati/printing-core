@@ -1737,7 +1737,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * Gets the {@link User} attached to the card number.
      *
      * @param cardNumber
-     *            Tthe card number.
+     *            The card number.
      * @return The {@link user}.
      * @throws ProxyPrintException
      *             When card is not associated with a user.
@@ -1809,9 +1809,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * @throws IppConnectException
      *             When connection to CUPS fails.
      */
-    private void proxyPrintOutboxJob(final User lockedUser,
-            final OutboxJobDto job, final PrintModeEnum printMode,
-            final File pdfFileToPrint, final boolean monitorPaperCutPrintStatus)
+    private void execOutboxJob(final User lockedUser, final OutboxJobDto job,
+            final PrintModeEnum printMode, final File pdfFileToPrint,
+            final boolean monitorPaperCutPrintStatus)
             throws IOException, IppConnectException {
 
         //
@@ -1901,8 +1901,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final PdfCreateInfo createInfo = new PdfCreateInfo(pdfFileToPrint);
         createInfo.setBlankFillerPages(job.getFillerPages());
 
-        docLogService().collectData4DocOut(lockedUser, docLog, createInfo,
-                job.getUuidPageCount());
+        if (printMode == PrintModeEnum.TICKET_C) {
+            docLogService().collectData4DocOutCopyJob(lockedUser, docLog,
+                    printReq.getNumberOfPages());
+        } else {
+            docLogService().collectData4DocOut(lockedUser, docLog, createInfo,
+                    job.getUuidPageCount());
+        }
 
         /*
          * Print.
@@ -2286,7 +2291,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         this.validateJobTicketPaperCutSupplier(job, extPrinterManager);
 
-        this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.TICKET,
+        this.execOutboxJob(lockedUser, job, PrintModeEnum.TICKET,
                 pdfFileToPrint, extPrinterManager == ThirdPartyEnum.PAPERCUT);
 
         return job.getPages() * job.getCopies();
@@ -2300,9 +2305,18 @@ public abstract class AbstractProxyPrintService extends AbstractService
         this.validateJobTicketPaperCutSupplier(job, extPrinterManager);
 
         try {
-            this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.TICKET_E,
-                    pdfFileToPrint,
+
+            final PrintModeEnum printMode;
+
+            if (job.isCopyJobTicket()) {
+                printMode = PrintModeEnum.TICKET_C;
+            } else {
+                printMode = PrintModeEnum.TICKET_E;
+            }
+
+            this.execOutboxJob(lockedUser, job, printMode, pdfFileToPrint,
                     extPrinterManager == ThirdPartyEnum.PAPERCUT);
+
         } catch (IppConnectException e) {
             throw new SpException(e.getMessage());
         }
@@ -2374,7 +2388,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     .getOutboxFile(cardUser.getUserId(), job.getFile());
 
             try {
-                this.proxyPrintOutboxJob(lockedUser, job, PrintModeEnum.HOLD,
+                this.execOutboxJob(lockedUser, job, PrintModeEnum.HOLD,
                         pdfFileToPrint, monitorPaperCutPrintStatus);
 
                 pdfFileToPrint.delete();

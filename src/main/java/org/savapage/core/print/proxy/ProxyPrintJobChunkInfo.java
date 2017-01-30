@@ -36,6 +36,7 @@ import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
 import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.inbox.RangeAtom;
+import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
@@ -84,6 +85,34 @@ public final class ProxyPrintJobChunkInfo {
         this.filteredInboxInfo = null;
         this.landscape = null;
         this.pdfOrientation = null;
+    }
+
+    /**
+     * Creates a dummy {@link ProxyPrintJobChunkInfo} for a Copy Job Ticket.
+     *
+     * @param mediaSize
+     *            The {@link IppMediaSizeEnum} of the copy.
+     * @param numberOfPages
+     *            The number of hard copy pages of the original document.
+     * @return The dummy {@link ProxyPrintJobChunkInfo} .
+     */
+    public static ProxyPrintJobChunkInfo createCopyJobChunk(
+            final IppMediaSizeEnum mediaSize, final int numberOfPages) {
+
+        final ProxyPrintJobChunk jobChunk = new ProxyPrintJobChunk();
+
+        jobChunk.setAssignedMedia(mediaSize);
+        jobChunk.setAssignedMediaSource(null);
+
+        final ProxyPrintJobChunkRange chunkRange =
+                new ProxyPrintJobChunkRange();
+
+        chunkRange.pageBegin = Integer.valueOf(1);
+        chunkRange.pageEnd = Integer.valueOf(numberOfPages);
+
+        jobChunk.getRanges().add(chunkRange);
+
+        return new ProxyPrintJobChunkInfo(jobChunk);
     }
 
     /**

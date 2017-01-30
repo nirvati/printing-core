@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -49,7 +49,7 @@ import org.savapage.core.services.helpers.DocContentPrintInInfo;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface DocLogService {
@@ -233,6 +233,19 @@ public interface DocLogService {
     void collectData4DocOut(User user, DocLog docLogCollect,
             PdfCreateInfo createInfo,
             LinkedHashMap<String, Integer> uuidPageCount) throws IOException;
+
+    /**
+     * Collects data for the DocOut object of a Copy Job Ticket.
+     *
+     * @param user
+     *            The {@link User} to collect the data for.
+     * @param docLogCollect
+     *            Collects data for the DocOut object.
+     * @param numberOfPages
+     *            The number of pages of the orginal document.
+     */
+    void collectData4DocOutCopyJob(final User user, final DocLog docLogCollect,
+            final int numberOfPages);
 
     /**
      *

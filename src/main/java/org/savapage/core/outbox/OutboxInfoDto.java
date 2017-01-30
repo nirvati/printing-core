@@ -544,6 +544,14 @@ public final class OutboxInfoDto extends AbstractDto {
             return new IppOptionMap(this.getOptionValues());
         }
 
+        /**
+         *
+         * @return {@code true} when this is a Copy Job Ticket.
+         */
+        @JsonIgnore
+        public boolean isCopyJobTicket() {
+            return this.uuidPageCount == null;
+        }
     }
 
     /**

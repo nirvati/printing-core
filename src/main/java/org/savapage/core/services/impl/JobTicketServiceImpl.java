@@ -153,11 +153,8 @@ public final class JobTicketServiceImpl extends AbstractService
                 final Date deliveryDate) {
             this.serviceImpl = service;
             this.submitDate = ServiceContext.getTransactionDate();
-            if (deliveryDate == null) {
-                this.deliveryDate = submitDate;
-            } else {
-                this.deliveryDate = deliveryDate;
-            }
+            this.deliveryDate = this.serviceImpl
+                    .getTicketDeliveryDate(submitDate, deliveryDate);
         }
 
         @Override
@@ -244,14 +241,14 @@ public final class JobTicketServiceImpl extends AbstractService
      *            The requesting {@link User}.
      * @param createInfo
      *            The {@link PdfCreateInfo} with the PDF file to be printed by
-     *            the Job Ticket.
+     *            the Job Ticket. Is {@code null} when Copy Job Ticket.
      * @param uuid
      *            The Job Ticket {@link UUID}.
      * @param request
      *            The {@link AbstractProxyPrintReq}.
      * @param uuidPageCount
      *            Object filled with the number of selected pages per input file
-     *            UUID.
+     *            UUID. Is {@code null} when Copy Job Ticket.
      * @param submitDate
      *            The submit date.
      * @param deliveryDate
@@ -272,6 +269,10 @@ public final class JobTicketServiceImpl extends AbstractService
         dto.setTicketNumber(this.createTicketNumber());
 
         final File jsonFileTicket = getJobTicketFile(uuid, FILENAME_EXT_JSON);
+
+        if (createInfo == null) {
+            dto.setFile(jsonFileTicket.getName());
+        }
 
         Writer writer = null;
         try {
@@ -386,9 +387,43 @@ public final class JobTicketServiceImpl extends AbstractService
         // noop
     }
 
+    /**
+     * Determines the ticket delivery date.
+     *
+     * @param submitDate
+     *            The submit date
+     * @param deliveryDateCandidate
+     *            The delivery date candidate. Can be {@code null}.
+     * @return The determined delivery date.
+     */
+    private Date getTicketDeliveryDate(final Date submitDate,
+            final Date deliveryDateCandidate) {
+        if (deliveryDateCandidate == null) {
+            return submitDate;
+        } else {
+            return deliveryDateCandidate;
+        }
+    }
+
     @Override
     public void createCopyJob(final User user, final ProxyPrintInboxReq request,
             final Date deliveryDate) {
+
+        final String msgKey = "msg-user-print-jobticket";
+
+        request.setStatus(Status.WAITING_FOR_RELEASE);
+        request.setUserMsgKey(msgKey);
+        request.setUserMsg(localize(msgKey));
+
+        final UUID uuid = UUID.randomUUID();
+        final Date submitDate = ServiceContext.getTransactionDate();
+        try {
+            this.addJobticketToCache(user, null, uuid, request, null,
+                    submitDate,
+                    this.getTicketDeliveryDate(submitDate, deliveryDate));
+        } catch (IOException e) {
+            throw new SpException(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -604,7 +639,7 @@ public final class JobTicketServiceImpl extends AbstractService
         if (settleOnly) {
 
             proxyPrintService().settleJobTicket(lockedUser, dto,
-                    getJobTicketFile(uuid, FILENAME_EXT_PDF),
+                    getJobTicketFile(uuid, FILENAME_EXT_JSON),
                     extPrinterManager);
         } else {
 

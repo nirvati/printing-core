@@ -319,14 +319,16 @@ public final class OutboxServiceImpl extends AbstractService
 
         final OutboxJobDto job = new OutboxJobDto();
 
-        job.setFile(createInfo.getPdfFile().getName());
+        if (createInfo != null) {
+            job.setFile(createInfo.getPdfFile().getName());
+            job.setFillerPages(createInfo.getBlankFillerPages());
+            job.setSheets(calNumberOfSheets(request, createInfo));
+        }
         job.setPrinterName(request.getPrinterName());
         job.setJobName(request.getJobName());
         job.setComment(request.getComment());
         job.setCopies(request.getNumberOfCopies());
         job.setPages(request.getNumberOfPages());
-        job.setFillerPages(createInfo.getBlankFillerPages());
-        job.setSheets(calNumberOfSheets(request, createInfo));
         job.setRemoveGraphics(request.isRemoveGraphics());
         job.setEcoPrint(request.isEcoPrintShadow());
         job.setCollate(request.isCollate());

@@ -89,9 +89,11 @@ public interface OutboxService {
      * @param expiryDate
      *            The date the proxy print expires.
      * @param createInfo
-     *            The {@link PdfCreateInfo} with the PDF file in the outbox.
+     *            The {@link PdfCreateInfo} with the PDF file in the outbox. Is
+     *            {@code null} when Copy Job Ticket.
      * @param uuidPageCount
      *            Object with the number of selected pages per input file UUID.
+     *            Is {@code null} when Copy Job Ticket.
      * @return The {@link OutboxJobDto}.
      */
     OutboxJobDto createOutboxJob(AbstractProxyPrintReq request, Date submitDate,
