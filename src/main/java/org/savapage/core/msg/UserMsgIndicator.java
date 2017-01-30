@@ -45,6 +45,7 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.jpa.PrintOut;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
@@ -91,6 +92,16 @@ public final class UserMsgIndicator {
          * .
          */
         JOBTICKET_DENIED,
+
+        /**
+         * A Copy Job Ticket is settled.
+         */
+        JOBTICKET_SETTLED_COPY,
+
+        /**
+         * A Print Job Ticket is settled.
+         */
+        JOBTICKET_SETTLED_PRINT,
 
         /**
          * A print-in was denied.
@@ -616,6 +627,24 @@ public final class UserMsgIndicator {
                     "#" + String.valueOf(printOut.getCupsJobId()),
                     printOut.getPrinter().getDisplayName()));
         }
+        return msg;
+    }
+
+    /**
+     *
+     * @param dto
+     * @param locale
+     * @return
+     */
+    public JsonUserMsg createCopyJobTicketMsg(final OutboxJobDto dto,
+            final Locale locale) {
+
+        final JsonUserMsg msg = new JsonUserMsg();
+
+        msg.setLevel(JsonUserMsg.LEVEL_INFO);
+        msg.setText(String.format("Copy Job Ticket % is completed",
+                dto.getTicketNumber()));
+
         return msg;
     }
 
