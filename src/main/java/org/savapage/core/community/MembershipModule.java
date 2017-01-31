@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -33,7 +33,8 @@ import org.savapage.core.VersionInfo;
  * Member Card file for this module, as well as interpreting an issued Member
  * Card file.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class MembershipModule implements IMembershipModule {
 
@@ -80,9 +81,10 @@ public final class MembershipModule implements IMembershipModule {
             "member-participants-donated";
 
     @Override
-    public final Map<String, String> getEditableMemberCardProperties() {
+    public Map<String, String> getEditableMemberCardProperties() {
         Map<String, String> map = new HashMap<String, String>();
-        map.put(CARD_MEMBER_TYPE, CommunityMemberTypeEnum.COMMERCIAL.toString());
+        map.put(CARD_MEMBER_TYPE,
+                CommunityMemberTypeEnum.EDUCATIONAL.toString());
         map.put(CARD_MEMBER_PARTICIPANTS_DONATED, null);
         map.put(CARD_MEMBER_PARTICIPANTS, null);
         return map;
@@ -137,7 +139,7 @@ public final class MembershipModule implements IMembershipModule {
     }
 
     @Override
-    public final Map<String, String> getMemberCardProperties() {
+    public Map<String, String> getMemberCardProperties() {
         Map<String, String> map = new HashMap<String, String>();
         return map;
     }
@@ -149,32 +151,32 @@ public final class MembershipModule implements IMembershipModule {
     }
 
     @Override
-    public final String getProduct() {
+    public String getProduct() {
         return VersionInfo.PRODUCT;
     }
 
     @Override
-    public final String getModule() {
+    public String getModule() {
         return VersionInfo.MODULE;
     }
 
     @Override
-    public final String getVersionMajor() {
+    public String getVersionMajor() {
         return VersionInfo.VERSION_A_MAJOR;
     }
 
     @Override
-    public final String getVersionMinor() {
+    public String getVersionMinor() {
         return VersionInfo.VERSION_B_MINOR;
     }
 
     @Override
-    public final String getVersionRevision() {
+    public String getVersionRevision() {
         return VersionInfo.VERSION_C_REVISION;
     }
 
     @Override
-    public final String getVersionBuild() {
+    public String getVersionBuild() {
         return VersionInfo.VERSION_D_BUILD;
     }
 }
