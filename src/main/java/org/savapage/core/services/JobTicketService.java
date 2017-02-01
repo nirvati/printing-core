@@ -182,6 +182,18 @@ public interface JobTicketService extends StatefulService {
     OutboxJobDto cancelTicket(String fileName);
 
     /**
+     * Updates a Job Ticket.
+     *
+     * @param dto
+     *            The ticket.
+     * @return {@code true} when found and updated, {@code false} when not
+     *         found.
+     * @throws IOException
+     *             When file IO error occurs.
+     */
+    boolean updateTicket(OutboxJobDto dto) throws IOException;
+
+    /**
      * Prints and settles a Job Ticket.
      *
      * @param printer

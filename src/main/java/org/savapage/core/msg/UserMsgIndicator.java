@@ -91,6 +91,11 @@ public final class UserMsgIndicator {
         /**
          * .
          */
+        JOBTICKET_CHANGED,
+
+        /**
+         * .
+         */
         JOBTICKET_DENIED,
 
         /**

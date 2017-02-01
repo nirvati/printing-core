@@ -585,6 +585,30 @@ public final class JobTicketServiceImpl extends AbstractService
         return this.removeTicket(uuid, true);
     }
 
+    @Override
+    public boolean updateTicket(final OutboxJobDto dto) throws IOException {
+
+        final UUID uuid = uuidFromFileName(dto.getFile());
+
+        if (!this.jobTicketCache.containsKey(uuid)) {
+            return false;
+        }
+
+        this.jobTicketCache.put(uuid, dto);
+
+        final File jsonFileTicket = getJobTicketFile(uuid, FILENAME_EXT_JSON);
+
+        Writer writer = null;
+        try {
+            writer = new FileWriter(jsonFileTicket);
+            JsonHelper.write(dto, writer);
+            writer.close();
+        } finally {
+            IOUtils.closeQuietly(writer);
+        }
+        return true;
+    }
+
     /**
      * Executes a Job Ticket request.
      * <p>
