@@ -76,6 +76,7 @@ import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.DateUtil;
@@ -808,6 +809,8 @@ public final class JobTicketServiceImpl extends AbstractService
         int iPrinter = 0;
 
         // Check compatibility.
+        final String requestedMediaForJob =
+                job.getOptionValues().get(IppDictJobTemplateAttr.ATTR_MEDIA);
 
         for (final PrinterGroupMember member : printerGroup.getMembers()) {
 
@@ -893,7 +896,13 @@ public final class JobTicketServiceImpl extends AbstractService
             redirectPrinter.setDeviceUri(cupsPrinter.getDeviceUri().toString());
             redirectPrinter.setMediaSourceOpt(mediaSource);
 
-            //
+            final PrinterAttrLookup printerAttrLookup =
+                    new PrinterAttrLookup(printer);
+
+            redirectPrinter.setMediaSourceOptChoice(
+                    printerService().findMediaSourceForMedia(printerAttrLookup,
+                            mediaSource, requestedMediaForJob));
+
             printerList.add(redirectPrinter);
             iPrinter++;
         }

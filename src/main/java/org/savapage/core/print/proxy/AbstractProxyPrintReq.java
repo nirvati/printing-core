@@ -652,7 +652,9 @@ public abstract class AbstractProxyPrintReq
         costParms.setGrayscale(this.isGrayscale());
         costParms.setNumberOfCopies(this.getNumberOfCopies());
         costParms.setPagesPerSide(this.getNup());
-        costParms.importIppOptionValues(getOptionValues());
+        costParms.setIppMediaOption(this.getMediaOption());
+
+        costParms.importIppOptionValues(this.getOptionValues());
 
         costParms.calcCustomCost();
 

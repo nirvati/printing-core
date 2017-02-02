@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,6 +39,7 @@ import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.enums.ProxyPrintAuthModeEnum;
 import org.savapage.core.dao.helpers.JsonUserGroupAccess;
+import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.Printer;
@@ -55,8 +56,11 @@ import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcError.Code;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
+import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
+import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.util.JsonHelper;
 
 /**
@@ -881,6 +885,27 @@ public final class PrinterServiceImpl extends AbstractService
         } else {
             return ACCESS_DENIED;
         }
+    }
+
+    @Override
+    public JsonProxyPrinterOptChoice findMediaSourceForMedia(
+            final PrinterAttrLookup printerAttrLookup,
+            final JsonProxyPrinterOpt mediaSource,
+            final String requestedMedia) {
+
+        for (final JsonProxyPrinterOptChoice optChoice : mediaSource
+                .getChoices()) {
+
+            final IppMediaSourceCostDto assignedMediaSource = printerAttrLookup
+                    .get(new PrinterDao.MediaSourceAttr(optChoice.getChoice()));
+
+            if (assignedMediaSource != null && requestedMedia != null
+                    && requestedMedia.equals(
+                            assignedMediaSource.getMedia().getMedia())) {
+                return optChoice;
+            }
+        }
+        return null;
     }
 
 }

@@ -299,7 +299,8 @@ public final class ProxyPrintCostParms {
         final String ippCoverChoice = this.ippOptionValues
                 .get(IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE);
 
-        if (ippCoverChoice == null) {
+        if (ippCoverChoice == null || ippCoverChoice
+                .equals(IppKeyword.ORG_SAVAPAGE_ATTR_COVER_TYPE_NO_COVER)) {
 
             this.customCostCoverPrint = null;
             this.customCoverPrintPages = 0;

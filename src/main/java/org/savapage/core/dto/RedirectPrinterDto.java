@@ -23,6 +23,7 @@ package org.savapage.core.dto;
 
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
+import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 
 /**
  *
@@ -52,9 +53,16 @@ public final class RedirectPrinterDto extends AbstractDto {
     private String deviceUri;
 
     /**
-     * The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} option.
+     * The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} option op the
+     * printer.
      */
     private JsonProxyPrinterOpt mediaSourceOpt;
+
+    /**
+     * The default media-source choice. When {@code null}, no default is
+     * available.
+     */
+    private JsonProxyPrinterOptChoice mediaSourceOptChoice;
 
     /**
      *
@@ -105,6 +113,24 @@ public final class RedirectPrinterDto extends AbstractDto {
      */
     public void setMediaSourceOpt(final JsonProxyPrinterOpt mediaSource) {
         this.mediaSourceOpt = mediaSource;
+    }
+
+    /**
+     * @return The default media-source choice. When {@code null}, no default is
+     *         available.
+     */
+    public JsonProxyPrinterOptChoice getMediaSourceOptChoice() {
+        return mediaSourceOptChoice;
+    }
+
+    /**
+     * @param mediaSourceOptChoice
+     *            The default media-source choice. When {@code null}, no default
+     *            is available.
+     */
+    public void setMediaSourceOptChoice(
+            JsonProxyPrinterOptChoice mediaSourceOptChoice) {
+        this.mediaSourceOptChoice = mediaSourceOptChoice;
     }
 
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -41,6 +41,9 @@ import org.savapage.core.json.rpc.AbstractJsonRpcMessage;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
+import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
+import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
+import org.savapage.core.services.helpers.PrinterAttrLookup;
 
 /**
  *
@@ -372,4 +375,21 @@ public interface PrinterService {
      */
     boolean isHoldReleasePrinter(final Printer printer);
 
+    /**
+     * Finds the first "media-source" of a printer that matches a "media".
+     *
+     * @param printerAttrLookup
+     *            The {@link PrinterAttrLookup} containing the "media-source" to
+     *            "media" mapping.
+     * @param mediaSource
+     *            The "media-source" to search. See
+     *            {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE}
+     * @param requestedMedia
+     *            The requested "media", as value of
+     *            {@link IppDictJobTemplateAttr#ATTR_MEDIA}.
+     * @return The media source, or {@code null} when not found.
+     */
+    JsonProxyPrinterOptChoice findMediaSourceForMedia(
+            PrinterAttrLookup printerAttrLookup,
+            JsonProxyPrinterOpt mediaSource, String requestedMedia);
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -109,10 +109,15 @@ public final class PdfPrintCollector {
      * @param copies
      *            The number of copies to print.
      * @param duplex
+     *            {@code true} when duplex.
      * @param nUp
+     *            Number of virtual pages on a page.
      * @param oddOrEvenSheets
+     *            {@code true} when odd or even pages.
      * @param coverPageBefore
+     *            {@code true} when extra cover page is added before first page.
      * @param coverPageAfter
+     *            {@code true} when extra cover page is added after last page.
      * @return The number of printed sheets.
      */
     public static int calcNumberOfPrintedSheets(final int numberOfPages,
