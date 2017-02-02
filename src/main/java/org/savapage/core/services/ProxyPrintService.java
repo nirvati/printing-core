@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -478,17 +478,6 @@ public interface ProxyPrintService {
      */
     Map<String, String> getDefaultPrinterCostOptions(String printerName)
             throws ProxyPrintException;
-
-    /**
-     * Gets the number of pages of logical sub-jobs for proxy printing.
-     * <b>Note</b>: Blank filler pages are <i>not</i> included in the count.
-     *
-     * @param inboxInfo
-     *            The (filtered)
-     * @return {@code null} when no logical sub-jobs are applicable, because
-     *         inbox is not vanilla.
-     */
-    List<Integer> getLogicalJobPages(InboxInfoDto inboxInfo);
 
     /**
      * Sends a PDF file to the CUPS Printer, and updates {@link User},

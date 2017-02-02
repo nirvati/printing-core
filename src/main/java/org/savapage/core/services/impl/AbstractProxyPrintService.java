@@ -2796,23 +2796,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public final List<Integer>
-            getLogicalJobPages(final InboxInfoDto inboxInfo) {
-
-        if (!inboxService().isInboxVanilla(inboxInfo)) {
-            return null;
-        }
-
-        final List<Integer> logicalJobPages = new ArrayList<>();
-
-        for (InboxJobRange page : inboxInfo.getPages()) {
-            logicalJobPages
-                    .add(inboxInfo.getJobs().get(page.getJob()).getPages());
-        }
-        return logicalJobPages;
-    }
-
-    @Override
     public final void proxyPrintPdf(final User lockedUser,
             final ProxyPrintDocReq request, final PdfCreateInfo createInfo)
             throws IppConnectException, ProxyPrintException {

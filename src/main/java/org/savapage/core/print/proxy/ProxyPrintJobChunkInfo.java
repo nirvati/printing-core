@@ -365,11 +365,6 @@ public final class ProxyPrintJobChunkInfo {
                     chunkPageRangesWlk, chunkJobsWlk.size());
         }
 
-        if (this.chunks.size() == 1) {
-            this.chunks.get(0).setLogicalJobPages(
-                    PROXY_PRINT_SERVICE.getLogicalJobPages(filteredInboxInfo));
-        }
-
         this.landscape = hasLandscape;
         this.pdfOrientation = pdfOrientationWrk;
     }
