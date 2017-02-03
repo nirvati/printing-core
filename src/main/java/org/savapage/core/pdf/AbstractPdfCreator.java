@@ -415,8 +415,9 @@ public abstract class AbstractPdfCreator {
         // --------------------------------------------------------
         final List<InboxJobRange> pages = inboxInfo.getPages();
 
-        final boolean isVanillaJobs = INBOX_SERVICE.isInboxVanilla(inboxInfo);
-        final boolean doFillerPages = this.isForPrinting && isVanillaJobs;
+        final boolean doFillerPages =
+                this.isForPrinting && createReq.isForPrintingFillerPages()
+                        && INBOX_SERVICE.isInboxVanilla(inboxInfo);
 
         final int nJobRangeTot = pages.size();
         int nJobRangeWlk = 0;

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -33,13 +33,13 @@ import org.savapage.core.pdf.PdfPrintCollector;
  * <p>
  * References:
  * <ul>
- * <li><a
- * href="http://www.vogella.com/articles/JUnit/article.html">www.vogella.com</a>
+ * <li><a href="http://www.vogella.com/articles/JUnit/article.html">www.vogella.
+ * com</a>
  * <li>
  * </ul>
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class CalcSheetsTest {
@@ -57,9 +57,10 @@ public class CalcSheetsTest {
         int copies = 1;
 
         // ----------------
-        assertEquals("1 page, 1-up", 1, PdfPrintCollector.calcNumberOfPrintedSheets(
-                numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
-                coverPageBefore, coverPageAfter));
+        assertEquals("1 page, 1-up", 1,
+                PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages,
+                        copies, duplex, nUp, oddOrEvenSheets, coverPageBefore,
+                        coverPageAfter));
     }
 
     @Test
@@ -74,9 +75,10 @@ public class CalcSheetsTest {
         int nUp = 4;
         int copies = 1;
 
-        assertEquals("2 pages, 4-up", 1, PdfPrintCollector.calcNumberOfPrintedSheets(
-                numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
-                coverPageBefore, coverPageAfter));
+        assertEquals("2 pages, 4-up", 1,
+                PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages,
+                        copies, duplex, nUp, oddOrEvenSheets, coverPageBefore,
+                        coverPageAfter));
     }
 
     @Test
@@ -91,9 +93,10 @@ public class CalcSheetsTest {
         int nUp = 2;
         int copies = 1;
 
-        assertEquals("2 pages, 2-up", 1, PdfPrintCollector.calcNumberOfPrintedSheets(
-                numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
-                coverPageBefore, coverPageAfter));
+        assertEquals("2 pages, 2-up", 1,
+                PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages,
+                        copies, duplex, nUp, oddOrEvenSheets, coverPageBefore,
+                        coverPageAfter));
     }
 
     @Test
@@ -108,9 +111,10 @@ public class CalcSheetsTest {
         int nUp = 2;
         int copies = 1;
 
-        assertEquals("3 pages, 2-up", 2, PdfPrintCollector.calcNumberOfPrintedSheets(
-                numberOfPages, copies, duplex, nUp, oddOrEvenSheets,
-                coverPageBefore, coverPageAfter));
+        assertEquals("3 pages, 2-up", 2,
+                PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages,
+                        copies, duplex, nUp, oddOrEvenSheets, coverPageBefore,
+                        coverPageAfter));
     }
 
     @Test
@@ -126,8 +130,26 @@ public class CalcSheetsTest {
         int copies = 2;
 
         assertEquals("3 pages, 4-up, 2 copies", 2,
-                PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages, copies,
-                        duplex, nUp, oddOrEvenSheets, coverPageBefore,
+                PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages,
+                        copies, duplex, nUp, oddOrEvenSheets, coverPageBefore,
+                        coverPageAfter));
+    }
+
+    @Test
+    public void test6() {
+
+        boolean duplex = true;
+        boolean oddOrEvenSheets = false;
+        boolean coverPageBefore = false;
+        boolean coverPageAfter = false;
+
+        int numberOfPages = 4;
+        int nUp = 2;
+        int copies = 1;
+
+        assertEquals("4 pages, 2-up, duplex, 1 copy", 1,
+                PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages,
+                        copies, duplex, nUp, oddOrEvenSheets, coverPageBefore,
                         coverPageAfter));
     }
 

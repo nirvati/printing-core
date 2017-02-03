@@ -291,6 +291,9 @@ public abstract class ProxyPrintInboxPattern {
             pdfRequest.setApplyLetterhead(APPLY_LETTERHEAD);
             pdfRequest.setForPrinting(PDF_FOR_PRINTING);
 
+            // Reserved for future use.
+            pdfRequest.setForPrintingFillerPages(false);
+
             pdfRequest.setPrintDuplex(request.isDuplex());
             pdfRequest.setPrintNup(request.getNup());
 

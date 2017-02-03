@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -66,6 +66,13 @@ public final class PdfCreateRequest {
      * {@code true} if this is a PDF created for printing.
      */
     private boolean forPrinting;
+
+    /**
+     * If {@code true}, filler pages are added between concatenated vanilla
+     * documents so the first page of a vanilla document is on the front page of
+     * a printed sheet.
+     */
+    private boolean forPrintingFillerPages;
 
     /**
      * {@code true} when duplex (printing only).
@@ -141,6 +148,25 @@ public final class PdfCreateRequest {
 
     public void setForPrinting(boolean forPrinting) {
         this.forPrinting = forPrinting;
+    }
+
+    /**
+     * @return If {@code true}, filler pages are added between concatenated
+     *         vanilla documents so the first page of a vanilla document is on
+     *         the front page of a printed sheet.
+     */
+    public boolean isForPrintingFillerPages() {
+        return forPrintingFillerPages;
+    }
+
+    /**
+     * @param forPrintingFillerPages
+     *            If {@code true}, filler pages are added between concatenated
+     *            vanilla documents so the first page of a vanilla document is
+     *            on the front page of a printed sheet.
+     */
+    public void setForPrintingFillerPages(boolean forPrintingFillerPages) {
+        this.forPrintingFillerPages = forPrintingFillerPages;
     }
 
     /**
