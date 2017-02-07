@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,8 @@ package org.savapage.core.doc;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -334,32 +336,70 @@ public final class DocContent {
     }
 
     /**
-     *
-     * @return
+     * @return The list with supported documents. Entries on the list have key
+     *         (description) and value ({@code true} for Open Standard and
+     *         {@code false} for proprietary format).
      */
-    public static String getSupportedDocsInfo() {
+    public static List<AbstractMap.SimpleEntry<String, Boolean>>
+            getSupportedDocsInfo() {
 
-        final List<String> list = new ArrayList<>();
+        final List<AbstractMap.SimpleEntry<String, Boolean>> list =
+                new ArrayList<>();
 
-        if (isSupported(DocContentTypeEnum.DOCX)) {
-            list.add("Microsoft Office");
-        }
-
-        if (isSupported(DocContentTypeEnum.ODT)) {
-            list.add("OpenOffice");
-            list.add("LibreOffice");
-        }
-
+        /*
+         * Start with PDF as preferred format, and add other formats in
+         * deliberate order.
+         */
         for (DocContentTypeEnum contentType : new DocContentTypeEnum[] {
-                DocContentTypeEnum.RTF, DocContentTypeEnum.PDF,
-                DocContentTypeEnum.PS, DocContentTypeEnum.XPS,
-                DocContentTypeEnum.HTML, DocContentTypeEnum.TXT }) {
+                DocContentTypeEnum.PDF, DocContentTypeEnum.ODT,
+                DocContentTypeEnum.RTF, DocContentTypeEnum.HTML,
+                DocContentTypeEnum.PS, DocContentTypeEnum.TXT,
+                DocContentTypeEnum.XPS, DocContentTypeEnum.DOCX,
+                DocContentTypeEnum.DOC }) {
 
-            if (isSupported(contentType)) {
-                list.add(contentType.toString());
+            if (!isSupported(contentType)) {
+                continue;
             }
+
+            final String description;
+            final Boolean isOpenStandard;
+
+            switch (contentType) {
+            case ODT:
+                description = "Open Document Format";
+                isOpenStandard = Boolean.TRUE;
+                break;
+
+            case PS:
+                description = "PostScript";
+                isOpenStandard = Boolean.TRUE;
+                break;
+
+            case DOCX:
+                description = "OOXML";
+                isOpenStandard = Boolean.FALSE;
+                break;
+
+            case DOC:
+                description = "MS Office";
+                isOpenStandard = Boolean.FALSE;
+                break;
+
+            case XPS:
+                description = contentType.toString();
+                isOpenStandard = Boolean.FALSE;
+                break;
+
+            default:
+                description = contentType.toString();
+                isOpenStandard = Boolean.TRUE;
+                break;
+            }
+
+            list.add(new SimpleEntry<String, Boolean>(description,
+                    isOpenStandard));
         }
-        return getSupportedInfo(list);
+        return list;
     }
 
     /**
@@ -370,10 +410,13 @@ public final class DocContent {
 
         final List<String> list = new ArrayList<>();
 
+        /*
+         * Note: the DocContentTypeEnum order is deliberate.
+         */
         for (DocContentTypeEnum contentType : new DocContentTypeEnum[] {
-                DocContentTypeEnum.BMP, DocContentTypeEnum.GIF,
                 DocContentTypeEnum.JPEG, DocContentTypeEnum.PNG,
-                DocContentTypeEnum.SVG, DocContentTypeEnum.TIFF }) {
+                DocContentTypeEnum.GIF, DocContentTypeEnum.SVG,
+                DocContentTypeEnum.TIFF, DocContentTypeEnum.BMP }) {
             if (isSupported(contentType)) {
                 list.add(contentType.toString());
             }
