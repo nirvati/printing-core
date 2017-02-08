@@ -57,8 +57,8 @@ public final class InboxInfoDto {
         private String media;
 
         /**
-         * {@code true} if the PDF orientation of the PDF inbox document is
-         * landscape.
+         * {@code true} if the PDF mediabox orientation of the PDF inbox
+         * document is landscape.
          */
         private Boolean landscape;
 
@@ -147,8 +147,8 @@ public final class InboxInfoDto {
 
         /**
          *
-         * @return {@code true} if the PDF orientation of the PDF inbox document
-         *         is landscape.
+         * @return {@code true} if the PDF mediabox orientation of the PDF inbox
+         *         document is landscape.
          */
         public Boolean getLandscape() {
             return landscape;
@@ -157,8 +157,8 @@ public final class InboxInfoDto {
         /**
          *
          * @param landscape
-         *            {@code true} if the PDF orientation of the PDF inbox
-         *            document is landscape.
+         *            {@code true} if the PDF mediabox orientation of the PDF
+         *            inbox document is landscape.
          */
         public void setLandscape(final Boolean landscape) {
             this.landscape = landscape;

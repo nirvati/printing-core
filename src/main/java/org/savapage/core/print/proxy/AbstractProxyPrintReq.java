@@ -135,7 +135,7 @@ public abstract class AbstractProxyPrintReq
     private Boolean landscape;
 
     /**
-     * The PDF orientation of the first page to be proxy printed.
+     * The PDF inbox document orientation of the first page to be proxy printed.
      */
     private PdfOrientationInfo pdfOrientation;
 
@@ -549,7 +549,8 @@ public abstract class AbstractProxyPrintReq
     }
 
     /**
-     * @return The PDF orientation of the first page to be proxy printed.
+     * @return The PDF inbox document orientation of the first page to be proxy
+     *         printed.
      */
     public PdfOrientationInfo getPdfOrientation() {
         return pdfOrientation;
@@ -557,7 +558,8 @@ public abstract class AbstractProxyPrintReq
 
     /**
      * @param pdfOrientation
-     *            The PDF orientation of the first page to be proxy printed.
+     *            The PDF inbox document orientation of the first page to be
+     *            proxy printed.
      */
     public void setPdfOrientation(PdfOrientationInfo pdfOrientation) {
         this.pdfOrientation = pdfOrientation;

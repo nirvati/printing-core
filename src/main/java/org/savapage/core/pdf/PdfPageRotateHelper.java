@@ -24,8 +24,6 @@ package org.savapage.core.pdf;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.savapage.core.SpException;
-
 /**
  *
  * @author Rijk Ravestein
@@ -76,28 +74,27 @@ public final class PdfPageRotateHelper {
     }
 
     /**
-     * Gets the PDF page rotation to be applied for printing.
+     * Gets the logical PDF page rotation to be applied for printing, so the
+     * result is in <i>portrait</i> orientation.
      *
      * @param isLandscapePage
-     *            If {@code true}, the Rectangle size of the source PDF page
-     *            indicates landscape orientation.
+     *            If {@code true}, the mediabox rectangle size of the source PDF
+     *            page indicates landscape orientation.
      * @param pageRotation
      *            The current rotation of the source PDF page.
      * @param userRotation
-     *            The rotation applied by the user on the visible SafePages. If
-     *            {@code null}, no rotation is applied.
+     *            The rotation applied by the user on the visible SafePages.
      * @return The page rotation to apply to the PDF page copy. If {@code null},
      *         no rotation has to be applied.
      */
     public Integer getPageRotationForPrinting(final boolean isLandscapePage,
             final Integer pageRotation, final Integer userRotation) {
 
-        final Integer safePageRotation;
+        if (!userRotation.equals(PDF_ROTATION_0)
+                && !userRotation.equals(PDF_ROTATION_90)) {
 
-        if (userRotation == null) {
-            safePageRotation = PDF_ROTATION_0;
-        } else {
-            safePageRotation = userRotation;
+            throw new IllegalArgumentException(String.format(
+                    "Rotation [%d] is not supported", userRotation.intValue()));
         }
 
         final Map<Integer, Map<Integer, Integer>> rotationMap;
@@ -108,8 +105,7 @@ public final class PdfPageRotateHelper {
             rotationMap = this.rotationMapPortraitPrint;
         }
 
-        final Integer rotate =
-                rotationMap.get(pageRotation).get(safePageRotation);
+        final Integer rotate = rotationMap.get(pageRotation).get(userRotation);
 
         return rotate;
     }
@@ -118,50 +114,53 @@ public final class PdfPageRotateHelper {
      * Gets the PDF page rotation to be applied for export (download).
      *
      * @param isLandscapePage
-     *            If {@code true}, the Rectangle size of the source PDF page
-     *            indicates landscape orientation.
+     *            If {@code true}, the mediabox rectangle size of the source PDF
+     *            page indicates landscape orientation.
      * @param pageRotation
      *            The current rotation of the source PDF page.
      * @param userRotation
-     *            The rotation applied by the user on the visible SafePages. If
-     *            {@code null}, no rotation is applied.
-     * @return The page rotation to apply to the PDF page copy. If {@code null},
-     *         no rotation has to be applied.
+     *            The rotation applied by the user on the visible SafePages.
+     * @return The page rotation to apply to the PDF page copy.
      */
     public Integer getPageRotationForExport(final boolean isLandscapePage,
             final int pageRotation, final Integer userRotation) {
 
-        if (userRotation != null && !userRotation.equals(PDF_ROTATION_0)) {
-            return userRotation;
-        }
+        final Integer rotationForExport;
 
-        if (userRotation != null && userRotation.equals(PDF_ROTATION_0)) {
-            return pageRotation;
-        }
+        if (userRotation.equals(PDF_ROTATION_0)) {
 
-        if (!isLandscapePage) {
-            return userRotation;
-        }
-
-        if (pageRotation == PDF_ROTATION_0.intValue()) {
-
-            return PDF_ROTATION_0;
-
-        } else if (pageRotation == PDF_ROTATION_90.intValue()) {
-
-            return PDF_ROTATION_180;
-
-        } else if (pageRotation == PDF_ROTATION_180.intValue()) {
-
-            return PDF_ROTATION_90; // ??
-
-        } else if (pageRotation == PDF_ROTATION_270.intValue()) {
-
-            return PDF_ROTATION_360; // works, but why?
+            rotationForExport = pageRotation;
 
         } else {
-            throw new SpException("Unsupported PDF page rotation.");
+
+            if (!userRotation.equals(PDF_ROTATION_90)) {
+                throw new IllegalArgumentException(
+                        String.format("Rotation [%d] is not supported",
+                                userRotation.intValue()));
+            }
+
+            if (pageRotation == PDF_ROTATION_0.intValue()) {
+
+                rotationForExport = userRotation;
+
+            } else if (pageRotation == PDF_ROTATION_90.intValue()) {
+
+                rotationForExport = PDF_ROTATION_180;
+
+            } else if (pageRotation == PDF_ROTATION_180.intValue()) {
+
+                rotationForExport = PDF_ROTATION_270;
+
+            } else if (pageRotation == PDF_ROTATION_270.intValue()) {
+
+                rotationForExport = PDF_ROTATION_360;
+
+            } else {
+                throw new IllegalArgumentException(String.format(
+                        "PDF page rotation [%d] is invalid", pageRotation));
+            }
         }
+        return rotationForExport;
     }
 
     /**
@@ -172,6 +171,7 @@ public final class PdfPageRotateHelper {
      * @return the map.
      */
     private static Map<Integer, Integer>
+
             createMap(final Integer[][] keyValuePairs) {
         final Map<Integer, Integer> map = new HashMap<>();
         for (final Integer[] keyValue : keyValuePairs) {
@@ -181,65 +181,57 @@ public final class PdfPageRotateHelper {
     }
 
     /**
+     * Creates a map to be used to determine the logical PDF rotation needed for
+     * printing a <i>portrait</i> oriented PDF mediabox in <i>portrait</i>
+     * orientation. The map consists of:
+     * <ul>
+     * <li>Key: the current rotation of the source PDF page.</li>
+     * <li>Value: a map with key (user requested orientation) and value (the
+     * logical PDF rotation to apply)</li>
+     * </ul>
      *
-     * @return The rotations map for portrait PDF source page.
+     * @return The rotations map.
      */
     private static Map<Integer, Map<Integer, Integer>>
             createRotationMapPortraitPrint() {
 
         final Map<Integer, Map<Integer, Integer>> rotationMap = new HashMap<>();
 
-        rotationMap.put(PDF_ROTATION_0,
+        rotationMap.put(
+                // PDF rotation of portrait mediabox
+                PDF_ROTATION_0,
                 createMap(new Integer[][] {
-                        // SafePage PORTRAIT
+                        // Shown as PORTRAIT
                         { PDF_ROTATION_0, PDF_ROTATION_0 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_90, PDF_ROTATION_180 },
-                        // SafePage PORTRAIT (reverse)
-                        { PDF_ROTATION_180, PDF_ROTATION_180 },
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_270, PDF_ROTATION_0 },
-                        // SafePage PORTRAIT
-                        { PDF_ROTATION_360, PDF_ROTATION_0 } }));
+                        // Shown as LANDSCAPE
+                        { PDF_ROTATION_90, PDF_ROTATION_180 } }));
 
-        rotationMap.put(PDF_ROTATION_90,
+        rotationMap.put(
+                // PDF rotation of portrait mediabox
+                PDF_ROTATION_90,
                 createMap(new Integer[][] {
-                        // SafePage LANDSCAPE
+                        // Shown as LANDSCAPE
                         { PDF_ROTATION_0, PDF_ROTATION_180 },
-                        // SafePage PORTRAIT (reverse).
-                        { PDF_ROTATION_90, PDF_ROTATION_180 },
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_180, PDF_ROTATION_0 },
-                        // SafePage PORTRAIT
-                        { PDF_ROTATION_270, PDF_ROTATION_0 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_360, PDF_ROTATION_180 } }));
+                        // Shown as PORTRAIT (reverse).
+                        { PDF_ROTATION_90, PDF_ROTATION_180 } }));
 
-        rotationMap.put(PDF_ROTATION_180,
+        rotationMap.put(
+                // PDF rotation of portrait mediabox
+                PDF_ROTATION_180,
                 createMap(new Integer[][] {
-                        // SafePage PORTRAIT (reverse)
+                        // Shown as PORTRAIT (reverse)
                         { PDF_ROTATION_0, PDF_ROTATION_180 },
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_90, PDF_ROTATION_0 },
-                        // SafePage PORTRAIT
-                        { PDF_ROTATION_180, PDF_ROTATION_0 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_270, PDF_ROTATION_180 },
-                        // SafePage PORTRAIT (reverse)
-                        { PDF_ROTATION_360, PDF_ROTATION_180 } }));
+                        // Shown as LANDSCAPE (reverse)
+                        { PDF_ROTATION_90, PDF_ROTATION_0 } }));
 
-        rotationMap.put(PDF_ROTATION_270,
+        rotationMap.put(
+                // PDF rotation of portrait mediabox
+                PDF_ROTATION_270,
                 createMap(new Integer[][] {
-                        // SafePage LANDSCAPE (reverse)
+                        // Shown as LANDSCAPE (reverse)
                         { PDF_ROTATION_0, PDF_ROTATION_0 },
-                        // SafePage PORTRAIT
-                        { PDF_ROTATION_90, PDF_ROTATION_0 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_180, PDF_ROTATION_180 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_270, PDF_ROTATION_180 },
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_360, PDF_ROTATION_0 } }));
+                        // Shown as PORTRAIT
+                        { PDF_ROTATION_90, PDF_ROTATION_0 } }));
 
         rotationMap.put(PDF_ROTATION_360, rotationMap.get(PDF_ROTATION_0));
 
@@ -247,64 +239,57 @@ public final class PdfPageRotateHelper {
     }
 
     /**
-     * @return The rotations map for landscape PDF source page.
+     * Creates a map to be used to determine the logical PDF rotation needed for
+     * printing a <i>landscape</i> oriented PDF mediabox in <i>portrait</i>
+     * orientation. The map consists of:
+     * <ul>
+     * <li>Key: the current rotation of the source PDF page.</li>
+     * <li>Value: a map with key (user requested orientation) and value (the
+     * logical PDF rotation to apply)</li>
+     * </ul>
+     *
+     * @return The rotations map.
      */
     private static Map<Integer, Map<Integer, Integer>>
             createRotationMapLandscapePrint() {
 
         final Map<Integer, Map<Integer, Integer>> rotationMap = new HashMap<>();
 
-        rotationMap.put(PDF_ROTATION_0,
+        rotationMap.put(
+                // PDF rotation of landscape mediabox
+                PDF_ROTATION_0,
                 createMap(new Integer[][] {
-                        // SafePage LANDSCAPE
+                        // Shown as LANDSCAPE
                         { PDF_ROTATION_0, PDF_ROTATION_90 },
-                        // SafePage PORTRAIT
-                        { PDF_ROTATION_90, PDF_ROTATION_90 },
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_180, PDF_ROTATION_270 },
-                        // SafePage PORTRAIT (reverse)
-                        { PDF_ROTATION_270, PDF_ROTATION_270 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_360, PDF_ROTATION_90 } }));
+                        // Shown as PORTRAIT
+                        { PDF_ROTATION_90, PDF_ROTATION_90 } }));
 
-        rotationMap.put(PDF_ROTATION_90,
+        rotationMap.put(
+                // PDF rotation of landscape mediabox
+                PDF_ROTATION_90,
                 createMap(new Integer[][] {
-                        // SafePage PORTRAIT
+                        // Shown as PORTRAIT
                         { PDF_ROTATION_0, PDF_ROTATION_90 },
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_90, PDF_ROTATION_270 },
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_180, PDF_ROTATION_270 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_270, PDF_ROTATION_90 },
-                        // SafePage PORTRAIT
-                        { PDF_ROTATION_360, PDF_ROTATION_90 } }));
+                        // Shown as LANDSCAPE (reverse)
+                        { PDF_ROTATION_90, PDF_ROTATION_270 } }));
 
-        rotationMap.put(PDF_ROTATION_180,
+        rotationMap.put(
+                // PDF rotation of landscape mediabox
+                PDF_ROTATION_180,
                 createMap(new Integer[][] {
-                        // SafePage LANDSCAPE (reverse)
+                        // Shown as LANDSCAPE (reverse)
                         { PDF_ROTATION_0, PDF_ROTATION_270 },
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_90, PDF_ROTATION_270 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_180, PDF_ROTATION_90 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_270, PDF_ROTATION_90 },
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_360, PDF_ROTATION_270 } }));
+                        // Shown as LANDSCAPE (reverse)
+                        { PDF_ROTATION_90, PDF_ROTATION_270 } }));
 
-        rotationMap.put(PDF_ROTATION_270,
+        rotationMap.put(
+                // PDF rotation of landscape mediabox
+                PDF_ROTATION_270,
                 createMap(new Integer[][] {
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_0, PDF_ROTATION_270 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_90, PDF_ROTATION_90 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_180, PDF_ROTATION_90 },
-                        // SafePage LANDSCAPE
-                        { PDF_ROTATION_270, PDF_ROTATION_270 },
-                        // SafePage LANDSCAPE (reverse)
-                        { PDF_ROTATION_360, PDF_ROTATION_270 } }));
+                        // Shown as PORTRAIT
+                        { PDF_ROTATION_0, PDF_ROTATION_0 },
+                        // Shown as LANDSCAPE
+                        { PDF_ROTATION_90, PDF_ROTATION_0 } }));
 
         rotationMap.put(PDF_ROTATION_360, rotationMap.get(PDF_ROTATION_0));
 

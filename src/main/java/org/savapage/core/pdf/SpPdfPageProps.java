@@ -57,18 +57,32 @@ public final class SpPdfPageProps {
         this.size = size;
     }
 
+    /**
+     * @return The PDF mediabox width in millimeters.
+     */
     public int getMmWidth() {
         return mmWidth;
     }
 
+    /**
+     * @param mmWidth
+     *            The PDF mediabox width in millimeters.
+     */
     public void setMmWidth(int mmWidth) {
         this.mmWidth = mmWidth;
     }
 
+    /**
+     * @return The PDF mediabox height in millimeters.
+     */
     public int getMmHeight() {
         return mmHeight;
     }
 
+    /**
+     * @param mmHeight
+     *            The PDF mediabox height in millimeters.
+     */
     public void setMmHeight(int mmHeight) {
         this.mmHeight = mmHeight;
     }
@@ -89,6 +103,9 @@ public final class SpPdfPageProps {
         this.rotationFirstPage = rotationFirstPage;
     }
 
+    /**
+     * @return {@code true} when the PDF mediabox is in landscape orientation.
+     */
     public boolean isLandscape() {
         return this.mmHeight < this.mmWidth;
     }

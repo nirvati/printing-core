@@ -2204,7 +2204,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @param group
      *            The IPP attribute group to append on.
      * @param pdfOrientation
-     *            The {@link PdfOrientationInfo}.
+     *            The {@link PdfOrientationInfo} of the PDF inbox document
+     *            belonging to the first page to be proxy printed.
      * @param numberUp
      *            The n-up value.
      */
@@ -2248,13 +2249,18 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                  * Landscape -> Landscape reverse
                  */
                 cupsOrientationRequested =
-                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+                        IppKeyword.ORIENTATION_REQUESTED_270_DEGREES;
 
             } else if (pdfRotationForPrint
                     .equals(PdfPageRotateHelper.PDF_ROTATION_180)) {
 
-                cupsOrientationRequested =
-                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+                if (!pdfOrientation.getLandscape() && pdfOrientation.getRotate()
+                        .equals(PdfPageRotateHelper.PDF_ROTATION_90)) {
+                    cupsOrientationRequested = null;
+                } else {
+                    cupsOrientationRequested =
+                            IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+                }
             } else {
                 cupsOrientationRequested = null;
             }
@@ -2275,37 +2281,54 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                  * Landscape -> Landscape reverse
                  */
                 cupsOrientationRequested =
-                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+                        IppKeyword.ORIENTATION_REQUESTED_270_DEGREES;
 
-                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_BTLR;
+                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_LRTB;
 
             } else if (pdfRotationForPrint
                     .equals(PdfPageRotateHelper.PDF_ROTATION_180)) {
 
-                /*
-                 * Portrait -> Portrait reverse
-                 */
-                cupsOrientationRequested =
-                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+                if (!pdfOrientation.getLandscape() && pdfOrientation.getRotate()
+                        .equals(PdfPageRotateHelper.PDF_ROTATION_90)) {
 
-                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_BTLR;
+                    cupsOrientationRequested = null;
+                    cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
+
+                } else {
+                    /*
+                     * Portrait -> Portrait reverse
+                     */
+                    cupsOrientationRequested =
+                            IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+
+                    cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_BTLR;
+                }
 
             } else {
 
                 cupsOrientationRequested = null;
-                //
-                // LRTB (default)..... RLTB................TBRL (preferred)
-                // +----+----S ....... +----+----S ....... +----+----S
-                // |.*..|.*..| ....... |.*..|.*..| ....... |.*..|.*..|
-                // |.*1.|.*2.| ....... |.*2.|.*1.| ....... |.*3.|.*1.|
-                // |.*..|.*..|.........|.*..|.*..|.........|.*..|.*..|
-                // |----+----|........ |----+----|........ |----+----|
-                // |.*..|.*..|........ |.*..|.*..|........ |.*..|.*..|
-                // |.*3.|.*4.|........ |.*4.|.*3.|........ |.*4.|.*2.|
-                // |.*..|.*..|........ |.*..|.*..|........ |.*..|.*..|
-                // +----+----+........ +----+----+........ +----+----+
-                //
-                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
+
+                if (pdfOrientation.getLandscape()
+                        && pdfOrientation.getRotation()
+                                .equals(PdfPageRotateHelper.PDF_ROTATION_270)) {
+
+                    cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_LRTB;
+
+                } else {
+                    //
+                    // LRTB (default)..... RLTB................TBRL (preferred)
+                    // +----+----S ....... +----+----S ....... +----+----S
+                    // |.*..|.*..| ....... |.*..|.*..| ....... |.*..|.*..|
+                    // |.*1.|.*2.| ....... |.*2.|.*1.| ....... |.*3.|.*1.|
+                    // |.*..|.*..|.........|.*..|.*..|.........|.*..|.*..|
+                    // |----+----|........ |----+----|........ |----+----|
+                    // |.*..|.*..|........ |.*..|.*..|........ |.*..|.*..|
+                    // |.*3.|.*4.|........ |.*4.|.*3.|........ |.*4.|.*2.|
+                    // |.*..|.*..|........ |.*..|.*..|........ |.*..|.*..|
+                    // +----+----+........ +----+----+........ +----+----+
+                    //
+                    cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
+                }
             }
 
             adhocLandscape = true;
@@ -2323,6 +2346,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                  */
                 cupsOrientationRequested =
                         IppKeyword.ORIENTATION_REQUESTED_270_DEGREES;
+                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
 
             } else if (pdfRotationForPrint
                     .equals(PdfPageRotateHelper.PDF_ROTATION_180)) {
@@ -2331,13 +2355,22 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                  */
                 cupsOrientationRequested =
                         IppKeyword.ORIENTATION_REQUESTED_270_DEGREES;
+                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
 
             } else {
-                cupsOrientationRequested =
-                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+
+                if (pdfOrientation.getLandscape()
+                        && pdfOrientation.getRotation()
+                                .equals(PdfPageRotateHelper.PDF_ROTATION_270)) {
+                    cupsOrientationRequested = null;
+                    cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBLR;
+                } else {
+                    cupsOrientationRequested =
+                            IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+                    cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
+                }
             }
 
-            cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
             adhocLandscape = false;
             break;
 
@@ -2362,9 +2395,16 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_LRTB;
 
             } else {
-                cupsOrientationRequested =
-                        IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
-                cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
+                if (pdfOrientation.getLandscape()
+                        && pdfOrientation.getRotation()
+                                .equals(PdfPageRotateHelper.PDF_ROTATION_270)) {
+                    cupsOrientationRequested = null;
+                    cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_LRTB;
+                } else {
+                    cupsOrientationRequested =
+                            IppKeyword.ORIENTATION_REQUESTED_180_DEGREES;
+                    cupsNupLayout = IppKeyword.NUMBER_UP_LAYOUT_TBRL;
+                }
             }
 
             adhocLandscape = false;

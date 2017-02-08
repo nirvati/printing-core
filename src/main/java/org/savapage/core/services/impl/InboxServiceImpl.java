@@ -322,12 +322,6 @@ public final class InboxServiceImpl implements InboxService {
 
                 final Integer rotate = PdfPageRotateHelper.PDF_ROTATION_0;
 
-                // if (isLandscape && rotation != 0) {
-                // rotate = ITextPdfCreator.PDF_ROTATION_90;
-                // } else {
-                // rotate = ITextPdfCreator.PDF_ROTATION_0;
-                // }
-
                 job.setLandscape(Boolean.valueOf(isLandscape));
                 job.setRotation(Integer.valueOf(rotation));
                 job.setRotate(rotate.toString());
@@ -2422,7 +2416,7 @@ public final class InboxServiceImpl implements InboxService {
         info.setResolution(Integer.valueOf(ConfigManager.instance()
                 .getConfigInt(Key.ECO_PRINT_RESOLUTION_DPI)));
 
-        info.setRotation("0");
+        info.setRotation(PdfPageRotateHelper.PDF_ROTATION_0.toString());
 
         ECOPRINT_SERVICE.submitTask(info);
     }

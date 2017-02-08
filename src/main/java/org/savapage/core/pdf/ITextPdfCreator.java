@@ -294,13 +294,15 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         paper.setSize(mediabox.getWidth(), mediabox.getHeight());
         pageFormat.setPaper(paper);
 
+        // NOTE: the size in returned in PORTRAIT mode.
         final int[] size = MediaUtils.getMediaWidthHeight(pageFormat);
 
         int iSizeWidth = 0;
         int iSizeHeight = 1;
 
         /*
-         * Correct for landscape orientation.
+         * Since the size is in portrait mode, we swap height and width when the
+         * PDF mediabox reports landscape orientation.
          */
         if (mediabox.getWidth() > mediabox.getHeight()) {
             iSizeWidth = 1;
@@ -552,19 +554,19 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      *            The size of the source PDF page.
      * @param srcPageRotation
      *            The rotation of the source PDF page.
-     * @param defaultRotation
-     *            The default rotation (can be {@code null}).
-     * @return The page rotation to apply to the PDF page copy.{@code null},
-     *         when no rotation.
+     * @param userRotation
+     *            The rotation applied by the user on the visible SafePages.
+     *
+     * @return The page rotation to apply to the PDF page copy.
      */
     public static Integer getPdfCopyPageRotation(final Rectangle srcPageSize,
-            final int srcPageRotation, final Integer defaultRotation) {
+            final int srcPageRotation, final Integer userRotation) {
 
         final boolean isLandscapePage =
                 srcPageSize.getHeight() < srcPageSize.getWidth();
 
         return PdfPageRotateHelper.instance().getPageRotationForExport(
-                isLandscapePage, srcPageRotation, defaultRotation);
+                isLandscapePage, srcPageRotation, userRotation);
     }
 
     @Override
@@ -573,33 +575,26 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         this.readerWlk.selectPages(this.jobRangesWlk.toString());
         int pages = this.readerWlk.getNumberOfPages();
 
-        final Integer jobRotationInit;
-
-        if (this.jobRotationWlk == null) {
-            jobRotationInit = null;
-        } else {
-            jobRotationInit = Integer.valueOf(this.jobRotationWlk);
-        }
+        // Create a new instance for the user rotation.
+        final Integer jobUserRotation =
+                new Integer(this.jobRotationWlk.intValue());
 
         for (int i = 0; i < pages;) {
 
             ++i;
 
             /*
-             * Rotate for export. Also rotate when for printing, because we need
-             * the intended orientation when we apply a letterhead.
+             * Rotate for export AND printing. Unconditional rotation is needed
+             * at this stage, because we need the intended orientation when a
+             * letterhead is to be applied.
              */
             this.jobRotationWlk =
                     getPdfCopyPageRotation(this.readerWlk.getPageSize(i),
-                            this.readerWlk.getPageRotation(i), jobRotationInit);
+                            this.readerWlk.getPageRotation(i), jobUserRotation);
 
-            if (this.jobRotationWlk != null) {
-
-                final int rotate = this.jobRotationWlk.intValue();
-
-                final PdfDictionary pageDict = this.readerWlk.getPageN(i);
-                pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
-            }
+            final int rotate = this.jobRotationWlk.intValue();
+            final PdfDictionary pageDict = this.readerWlk.getPageN(i);
+            pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
 
             final PdfImportedPage importedPage;
 
@@ -854,9 +849,17 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         final boolean isLetterhead = myPdfFileLetterhead != null;
 
-        if (!(isForPrinting() || isLetterhead)) {
-            return;
+        if (isLetterhead) {
+            applyLetterhead();
         }
+    }
+
+    /**
+     * Applies the letterhead.
+     *
+     * @throws IOException
+     */
+    private void applyLetterhead() throws IOException {
 
         int nLetterheadPage = 0;
         int nLetterheadPageMax = 1;
@@ -864,10 +867,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         Rectangle lhPageSize = null;
         PdfImportedPage letterheadPage = null;
 
-        if (isLetterhead) {
-            this.letterheadReader = new PdfReader(myPdfFileLetterhead);
-            nLetterheadPageMax = myLetterheadJob.getPages();
-        }
+        this.letterheadReader = new PdfReader(myPdfFileLetterhead);
+        nLetterheadPageMax = myLetterheadJob.getPages();
 
         /*
          * Iterate over document's pages.
@@ -883,19 +884,20 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
              * orientation.
              */
             final int pageRotation = this.readerWlk.getPageRotation(i);
+
             final boolean isPageRotated = pageRotation != 0;
 
             /*
              * Gets the page size without taking rotation into account.
              */
-            Rectangle docPageSize = this.readerWlk.getPageSize(i);
+            final Rectangle docPageSize = this.readerWlk.getPageSize(i);
 
             /*
              * Virtual page width and height used for calculating the letterhead
              * translate an rotate.
              */
-            float virtualPageWidth;
-            float virtualPageHeight;
+            final float virtualPageWidth;
+            final float virtualPageHeight;
 
             if (isPageRotated) {
                 /*
@@ -910,234 +912,204 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 virtualPageHeight = docPageSize.getHeight();
             }
 
-            boolean rotateLetterhead = false;
-
-            /*
-             * When printing rotate (back) to portrait for printing.
-             */
-            if (isForPrinting()) {
-
-                rotateLetterhead =
-                        isPageRotated || (virtualPageHeight < virtualPageWidth);
-
-                if (rotateLetterhead) {
-
-                    final Integer rotate;
-
-                    if (isPageRotated) {
-                        /*
-                         * Reverse any rotation.
-                         */
-                        rotate = PdfPageRotateHelper.PDF_ROTATION_0;
-                    } else {
-                        rotate = PdfPageRotateHelper.PDF_ROTATION_270;
-                    }
-
-                    PdfDictionary pageDict = this.readerWlk.getPageN(i);
-                    pageDict.put(PdfName.ROTATE,
-                            new PdfNumber(rotate.intValue()));
-                }
-            }
-
             /*
              * Apply (rotated) letterhead
              */
-            if (isLetterhead) {
+
+            /*
+             * If the letterhead document has more than one page, each page of
+             * the letterhead is applied to the corresponding page of the output
+             * document. If the output document has more pages than the
+             * letterhead, then the final letterhead page is repeated across
+             * these remaining pages of the output document.
+             */
+            if (nLetterheadPage < nLetterheadPageMax) {
+
+                nLetterheadPage++;
+                lhPageSize = this.letterheadReader.getPageSize(nLetterheadPage);
 
                 /*
-                 * If the letterhead document has more than one page, each page
-                 * of the letterhead is applied to the corresponding page of the
-                 * output document. If the output document has more pages than
-                 * the letterhead, then the final letterhead page is repeated
-                 * across these remaining pages of the output document.
+                 * Create a PdfTemplate from the nth page of the letterhead
+                 * (PdfImportedPage is derived from PdfTemplate).
                  */
-                if (nLetterheadPage < nLetterheadPageMax) {
-
-                    nLetterheadPage++;
-                    lhPageSize =
-                            this.letterheadReader.getPageSize(nLetterheadPage);
-
-                    /*
-                     * Create a PdfTemplate from the nth page of the letterhead
-                     * (PdfImportedPage is derived from PdfTemplate).
-                     */
-                    letterheadPage = this.targetStamper.getImportedPage(
-                            this.letterheadReader, nLetterheadPage);
-                }
-
-                /*
-                 * Scale letterhead page and move it so that it fits within the
-                 * document's page (if document's page is cropped, this scale
-                 * might not be small enough).
-                 */
-
-                float hScale = virtualPageWidth / lhPageSize.getWidth();
-
-                float vScale = virtualPageHeight / lhPageSize.getHeight();
-
-                /*
-                 * Proportional scaling: pick the smallest scaling factor.
-                 */
-                float sX = (hScale < vScale) ? hScale : vScale;
-                float sY = sX;
-
-                float tX =
-                        (float) ((virtualPageWidth - lhPageSize.getWidth() * sX)
-                                / 2.0);
-
-                float tY = (float) ((virtualPageHeight
-                        - lhPageSize.getHeight() * sY) / 2.0);
-
-                /*
-                 * Add letterhead page as a layer ...
-                 */
-                PdfContentByte contentByte = null;
-
-                if (myLetterheadJob.getForeground()) {
-                    /*
-                     * ... 'on top of' the page content.
-                     */
-                    contentByte = this.targetStamper.getOverContent(i);
-                } else {
-                    /*
-                     * ... 'underneath' the page content.
-                     */
-                    contentByte = this.targetStamper.getUnderContent(i);
-                }
-
-                if (rotateLetterhead) {
-
-                    /*
-                     * There is one serious caveat when you rotate an object:
-                     * the coordinate of the rotation pivot is (0, 0).
-                     *
-                     * If you rotate something, you have to watch out that it is
-                     * not rotated 'off' your page.
-                     *
-                     * You may have to perform a translation to keep the object
-                     * on the page. Of course you can combine translation (tX,
-                     * tY), scaling (sX, sY) rotation (angle) in one matrix:
-                     *
-                     * NOTE:
-                     *
-                     * (1) The (0,0) origin in a PDF document is LOWER LEFT.
-                     */
-
-                    // ----------------------------------------------------
-                    // ROTATE angle + SCALE + TRANSLATE
-                    // ----------------------------------------------------
-                    // a : sX * Math.cos(angle)
-                    // b : sY * Math.sin(angle)
-                    // c : -sX * Math.sin(angle)
-                    // d : sY * Math.cos(angle)
-                    // e : tX
-                    // f : tY
-                    // ----------------------------------------------------
-
-                    /*
-                     * NOTE: rotation is anti-clockwise, so an angle of 90
-                     * degrees will work out as -90 degrees.
-                     */
-
-                    //
-                    // Initial
-                    //
-                    // +---------------+
-                    // | . . . . . . . |
-                    // | . . . . . . . |
-                    // | . . . . . . . |
-                    // +---------+ . . |
-                    // | x x x x | . . |
-                    // | x x x x | . . |
-                    // | x x x x | . . |
-                    // | x x x x | . . |
-                    // | x x x x | . . |
-                    // | x x x x | . . |
-                    // | x x x x | . . |
-                    // 0,0-------+-----+
-                    //
-                    //
-                    // Rotation (90 degrees)
-                    //
-                    // . . . . . . . . +---------------+
-                    // . . . . . . . . | . . . . . . . |
-                    // . . . . . . . . | . . . . . . . |
-                    // . . . . . . . . | . . . . . . . |
-                    // . . . . . . . . | . . . . . . . |
-                    // . . . . . . . . | . . . . . . . |
-                    // . . . . . . . . | . . . . . . . |
-                    // +---------------+ . . . . . . . |
-                    // | x x x x x x x | . . . . . . . |
-                    // | x x x x x x x | . . . . . . . |
-                    // | x x x x x x x | . . . . . . . |
-                    // | x x x x x x x | . . . . . . . |
-                    // +-------------0,0---------------+
-                    //
-                    //
-                    // Translate:
-                    //
-                    // +---------------+
-                    // | . . . . . . . |
-                    // | . . . . . . . |
-                    // | . . . . . . . |
-                    // +---------------+
-                    // | x x x x x x x |
-                    // | x x x x x x x |
-                    // | x x x x x x x |
-                    // | x x x x x x x |
-                    // +---------------+
-                    // | . . . . . . . |
-                    // | . . . . . . . |
-                    // | . . . . . . . |
-                    // 0,0-------------+
-                    //
-
-                    final double angle = Math.PI * .5; // 90 degree
-
-                    float sin = (float) Math.sin(angle);
-                    float cos = (float) Math.cos(angle);
-
-                    contentByte.addTemplate(letterheadPage,
-                            //
-                            sX * cos,
-                            //
-                            sY * sin,
-                            //
-                            -sX * sin,
-                            //
-                            sY * cos,
-                            //
-                            lhPageSize.getHeight() * sY,
-                            //
-                            tX);
-
-                } else {
-                    // ----------------------------------------------------
-                    // SCALE + TRANSLATE
-                    // ----------------------------------------------------
-                    // a : sX (scale, in x-direction)
-                    // b : 0
-                    // c : 0
-                    // d : sY (scale, in y-direction)
-                    // e : tX (translate, moves e pixels in x-direction)
-                    // f : tY (translate, moves f pixels in y-direction)
-                    // ----------------------------------------------------
-                    contentByte.addTemplate(letterheadPage,
-                            //
-                            sX,
-                            //
-                            0,
-                            //
-                            0,
-                            //
-                            sY,
-                            //
-                            tX,
-                            //
-                            tY);
-                }
+                letterheadPage = this.targetStamper.getImportedPage(
+                        this.letterheadReader, nLetterheadPage);
             }
 
+            /*
+             * Scale letterhead page and move it so that it fits within the
+             * document's page (if document's page is cropped, this scale might
+             * not be small enough).
+             */
+
+            final float hScale = virtualPageWidth / lhPageSize.getWidth();
+            final float vScale = virtualPageHeight / lhPageSize.getHeight();
+
+            /*
+             * Proportional scaling: pick the smallest scaling factor.
+             */
+            final float sX = (hScale < vScale) ? hScale : vScale;
+            final float sY = sX;
+
+            final float tX =
+                    (float) ((virtualPageWidth - lhPageSize.getWidth() * sX)
+                            / 2.0);
+
+            final float tY =
+                    (float) ((virtualPageHeight - lhPageSize.getHeight() * sY)
+                            / 2.0);
+
+            /*
+             * Add letterhead page as a layer ...
+             */
+            final PdfContentByte contentByte;
+
+            if (myLetterheadJob.getForeground()) {
+                /*
+                 * ... 'on top of' the page content.
+                 */
+                contentByte = this.targetStamper.getOverContent(i);
+            } else {
+                /*
+                 * ... 'underneath' the page content.
+                 */
+                contentByte = this.targetStamper.getUnderContent(i);
+            }
+
+            // Fixed. Is there any other option possible?
+            final boolean rotateLetterhead = false;
+
+            if (rotateLetterhead) {
+
+                /*
+                 * There is one serious caveat when you rotate an object: the
+                 * coordinate of the rotation pivot is (0, 0).
+                 *
+                 * If you rotate something, you have to watch out that it is not
+                 * rotated 'off' your page.
+                 *
+                 * You may have to perform a translation to keep the object on
+                 * the page. Of course you can combine translation (tX, tY),
+                 * scaling (sX, sY) rotation (angle) in one matrix:
+                 *
+                 * NOTE:
+                 *
+                 * (1) The (0,0) origin in a PDF document is LOWER LEFT.
+                 */
+
+                // ----------------------------------------------------
+                // ROTATE angle + SCALE + TRANSLATE
+                // ----------------------------------------------------
+                // a : sX * Math.cos(angle)
+                // b : sY * Math.sin(angle)
+                // c : -sX * Math.sin(angle)
+                // d : sY * Math.cos(angle)
+                // e : tX
+                // f : tY
+                // ----------------------------------------------------
+
+                /*
+                 * NOTE: rotation is anti-clockwise, so an angle of 90 degrees
+                 * will work out as -90 degrees.
+                 */
+
+                //
+                // Initial
+                //
+                // +---------------+
+                // | . . . . . . . |
+                // | . . . . . . . |
+                // | . . . . . . . |
+                // +---------+ . . |
+                // | x x x x | . . |
+                // | x x x x | . . |
+                // | x x x x | . . |
+                // | x x x x | . . |
+                // | x x x x | . . |
+                // | x x x x | . . |
+                // | x x x x | . . |
+                // 0,0-------+-----+
+                //
+                //
+                // Rotation (90 degrees)
+                //
+                // . . . . . . . . +---------------+
+                // . . . . . . . . | . . . . . . . |
+                // . . . . . . . . | . . . . . . . |
+                // . . . . . . . . | . . . . . . . |
+                // . . . . . . . . | . . . . . . . |
+                // . . . . . . . . | . . . . . . . |
+                // . . . . . . . . | . . . . . . . |
+                // +---------------+ . . . . . . . |
+                // | x x x x x x x | . . . . . . . |
+                // | x x x x x x x | . . . . . . . |
+                // | x x x x x x x | . . . . . . . |
+                // | x x x x x x x | . . . . . . . |
+                // +-------------0,0---------------+
+                //
+                //
+                // Translate:
+                //
+                // +---------------+
+                // | . . . . . . . |
+                // | . . . . . . . |
+                // | . . . . . . . |
+                // +---------------+
+                // | x x x x x x x |
+                // | x x x x x x x |
+                // | x x x x x x x |
+                // | x x x x x x x |
+                // +---------------+
+                // | . . . . . . . |
+                // | . . . . . . . |
+                // | . . . . . . . |
+                // 0,0-------------+
+                //
+
+                final double angle = Math.PI * .5; // 90 degree
+
+                float sin = (float) Math.sin(angle);
+                float cos = (float) Math.cos(angle);
+
+                contentByte.addTemplate(letterheadPage,
+                        //
+                        sX * cos,
+                        //
+                        sY * sin,
+                        //
+                        -sX * sin,
+                        //
+                        sY * cos,
+                        //
+                        lhPageSize.getHeight() * sY,
+                        //
+                        tX);
+
+            } else {
+                // ----------------------------------------------------
+                // SCALE + TRANSLATE
+                // ----------------------------------------------------
+                // a : sX (scale, in x-direction)
+                // b : 0
+                // c : 0
+                // d : sY (scale, in y-direction)
+                // e : tX (translate, moves e pixels in x-direction)
+                // f : tY (translate, moves f pixels in y-direction)
+                // ----------------------------------------------------
+                contentByte.addTemplate(letterheadPage,
+                        //
+                        sX,
+                        //
+                        0,
+                        //
+                        0,
+                        //
+                        sY,
+                        //
+                        tX,
+                        //
+                        tY);
+            }
         }
     }
 

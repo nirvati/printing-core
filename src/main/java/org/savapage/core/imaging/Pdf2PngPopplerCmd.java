@@ -101,17 +101,9 @@ public final class Pdf2PngPopplerCmd implements Pdf2ImgCommandExt {
         cmdBuffer.append(" \"").append(pdfFile.getAbsolutePath()).append("\"");
 
         /*
-         * Apply rotate?
+         * Apply user requested rotate.
          */
-        final Integer rotate2Apply;
-
-        if (rotate != PdfPageRotateHelper.PDF_ROTATION_0.intValue()) {
-            rotate2Apply = Integer.valueOf(rotate);
-        } else if (landscape && rotation != 0) {
-            rotate2Apply = PdfPageRotateHelper.PDF_ROTATION_90;
-        } else {
-            rotate2Apply = PdfPageRotateHelper.PDF_ROTATION_0;
-        }
+        final Integer rotate2Apply = Integer.valueOf(rotate);
 
         if (rotate2Apply.equals(PdfPageRotateHelper.PDF_ROTATION_0)) {
             cmdBuffer.append(" > ");
