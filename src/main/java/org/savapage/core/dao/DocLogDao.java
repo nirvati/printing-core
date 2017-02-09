@@ -50,7 +50,7 @@ public interface DocLogDao extends GenericDao<DocLog> {
      * Identifiers for DocLog type.
      */
     enum Type {
-        ALL, IN, OUT, PDF, PRINT
+        ALL, IN, OUT, PDF, PRINT, TICKET
     }
 
     /**
