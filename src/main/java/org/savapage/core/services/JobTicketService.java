@@ -59,12 +59,13 @@ public interface JobTicketService extends StatefulService {
      *            The {@link ProxyPrintInboxReq}.
      * @param deliveryDate
      *            The requested date of delivery.
+     * @return The job ticket created.
      */
-    void createCopyJob(User user, ProxyPrintInboxReq request,
+    OutboxJobDto createCopyJob(User user, ProxyPrintInboxReq request,
             Date deliveryDate);
 
     /**
-     * Sends Print Job to the OutBox.
+     * Sends Job Ticket(s) to the OutBox.
      * <p>
      * Note: invariants are NOT checked.
      * </p>
@@ -75,12 +76,15 @@ public interface JobTicketService extends StatefulService {
      *            The {@link ProxyPrintInboxReq}.
      * @param deliveryDate
      *            The requested date of delivery.
+     * @return The job tickets created.
+     *
      * @throws EcoPrintPdfTaskPendingException
      *             When {@link EcoPrintPdfTask} objects needed for this PDF are
      *             pending.
      */
-    void proxyPrintInbox(User lockedUser, ProxyPrintInboxReq request,
-            Date deliveryDate) throws EcoPrintPdfTaskPendingException;
+    List<OutboxJobDto> proxyPrintInbox(User lockedUser,
+            ProxyPrintInboxReq request, Date deliveryDate)
+            throws EcoPrintPdfTaskPendingException;
 
     /**
      * Sends Print Job to the OutBox.

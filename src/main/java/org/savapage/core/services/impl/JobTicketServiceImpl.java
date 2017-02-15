@@ -145,6 +145,11 @@ public final class JobTicketServiceImpl extends AbstractService
         private final Date deliveryDate;
 
         /**
+         * The job tickets created.
+         */
+        private final List<OutboxJobDto> ticketsCreated;
+
+        /**
          *
          * @param service
          *            The parent service.
@@ -157,6 +162,7 @@ public final class JobTicketServiceImpl extends AbstractService
             this.submitDate = ServiceContext.getTransactionDate();
             this.deliveryDate = this.serviceImpl
                     .getTicketDeliveryDate(submitDate, deliveryDate);
+            this.ticketsCreated = new ArrayList<>();
         }
 
         @Override
@@ -167,12 +173,7 @@ public final class JobTicketServiceImpl extends AbstractService
         @Override
         protected void onExit(final User lockedUser,
                 final ProxyPrintInboxReq request) {
-
-            final String msgKey = "msg-user-print-jobticket";
-
             request.setStatus(Status.WAITING_FOR_RELEASE);
-            request.setUserMsgKey(msgKey);
-            request.setUserMsg(serviceImpl.localize(msgKey));
         }
 
         @Override
@@ -191,14 +192,22 @@ public final class JobTicketServiceImpl extends AbstractService
                     .getBaseName(createInfo.getPdfFile().getName()));
 
             try {
-                this.serviceImpl.addJobticketToCache(lockedUser, createInfo,
-                        uuid, request, uuidPageCount, this.submitDate,
-                        this.deliveryDate);
+                final OutboxJobDto dto = this.serviceImpl.addJobticketToCache(
+                        lockedUser, createInfo, uuid, request, uuidPageCount,
+                        this.submitDate, this.deliveryDate);
+                ticketsCreated.add(dto);
             } catch (IOException e) {
                 throw new SpException(e.getMessage(), e);
             }
-
         }
+
+        /**
+         * @return The job tickets created.
+         */
+        public List<OutboxJobDto> getTicketsCreated() {
+            return ticketsCreated;
+        }
+
     }
 
     @Override
@@ -206,12 +215,6 @@ public final class JobTicketServiceImpl extends AbstractService
             final ProxyPrintDocReq request, final PdfCreateInfo createInfo,
             final DocContentPrintInInfo printInfo, final Date deliveryDate)
             throws IOException {
-
-        final String msgKey = "msg-user-print-jobticket";
-
-        request.setStatus(Status.WAITING_FOR_RELEASE);
-        request.setUserMsgKey(msgKey);
-        request.setUserMsg(localize(msgKey));
 
         final UUID uuid = UUID.fromString(request.getDocumentUuid());
 
@@ -230,9 +233,15 @@ public final class JobTicketServiceImpl extends AbstractService
                 new LinkedHashMap<>();
         uuidPageCount.put(uuid.toString(), request.getNumberOfPages());
 
-        this.addJobticketToCache(lockedUser, createInfo, uuid, request,
-                uuidPageCount, ServiceContext.getTransactionDate(),
-                deliveryDate);
+        final OutboxJobDto dto = this.addJobticketToCache(lockedUser,
+                createInfo, uuid, request, uuidPageCount,
+                ServiceContext.getTransactionDate(), deliveryDate);
+
+        final String msgKey = "msg-user-print-jobticket-print";
+
+        request.setStatus(Status.WAITING_FOR_RELEASE);
+        request.setUserMsgKey(msgKey);
+        request.setUserMsg(localize(msgKey, dto.getTicketNumber()));
     }
 
     /**
@@ -258,7 +267,7 @@ public final class JobTicketServiceImpl extends AbstractService
      * @throws IOException
      *             When file IO error occurs.
      */
-    private void addJobticketToCache(final User user,
+    private OutboxJobDto addJobticketToCache(final User user,
             final PdfCreateInfo createInfo, final UUID uuid,
             final AbstractProxyPrintReq request,
             final LinkedHashMap<String, Integer> uuidPageCount,
@@ -289,6 +298,8 @@ public final class JobTicketServiceImpl extends AbstractService
          * Add to cache.
          */
         this.jobTicketCache.put(uuid, dto);
+
+        return dto;
     }
 
     /**
@@ -408,31 +419,70 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public void createCopyJob(final User user, final ProxyPrintInboxReq request,
-            final Date deliveryDate) {
-
-        final String msgKey = "msg-user-print-jobticket";
-
-        request.setStatus(Status.WAITING_FOR_RELEASE);
-        request.setUserMsgKey(msgKey);
-        request.setUserMsg(localize(msgKey));
+    public OutboxJobDto createCopyJob(final User user,
+            final ProxyPrintInboxReq request, final Date deliveryDate) {
 
         final UUID uuid = UUID.randomUUID();
         final Date submitDate = ServiceContext.getTransactionDate();
+
+        final OutboxJobDto dto;
+
         try {
-            this.addJobticketToCache(user, null, uuid, request, null,
+            dto = this.addJobticketToCache(user, null, uuid, request, null,
                     submitDate,
                     this.getTicketDeliveryDate(submitDate, deliveryDate));
+
+            final String msgKey = "msg-user-print-jobticket-copy";
+
+            request.setStatus(Status.WAITING_FOR_RELEASE);
+            request.setUserMsgKey(msgKey);
+            request.setUserMsg(localize(msgKey, dto.getTicketNumber()));
+
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);
         }
+        return dto;
     }
 
     @Override
-    public void proxyPrintInbox(final User lockedUser,
+    public List<OutboxJobDto> proxyPrintInbox(final User lockedUser,
             final ProxyPrintInboxReq request, final Date deliveryDate)
             throws EcoPrintPdfTaskPendingException {
-        new ProxyPrintInbox(this, deliveryDate).print(lockedUser, request);
+
+        final ProxyPrintInbox executor =
+                new ProxyPrintInbox(this, deliveryDate);
+        executor.print(lockedUser, request);
+
+        final List<OutboxJobDto> tickets = executor.getTicketsCreated();
+
+        if (tickets.isEmpty()) {
+            throw new IllegalStateException("no job tickets created");
+        }
+
+        final String msgKey;
+        final String msgTxt;
+
+        if (tickets.size() == 1) {
+            msgKey = "msg-user-print-jobticket-print";
+            msgTxt = localize(msgKey, tickets.get(0).getTicketNumber());
+        } else {
+            final StringBuilder msg = new StringBuilder();
+            for (final OutboxJobDto dto : tickets) {
+                if (msg.length() > 0) {
+                    msg.append(", ");
+                }
+                // Replace soft-hyphen by hard-hyphen, so ticket is displayed as
+                // one.
+                msg.append(dto.getTicketNumber().replace('-', '\u2011'));
+            }
+            msgKey = "msg-user-print-jobticket-print-multiple";
+            msgTxt = localize(msgKey, msg.toString());
+        }
+
+        request.setUserMsgKey(msgKey);
+        request.setUserMsg(msgTxt);
+
+        return tickets;
     }
 
     @Override
@@ -639,9 +689,10 @@ public final class JobTicketServiceImpl extends AbstractService
      *             {@code null}: when "media" option is not specified in Job
      *             Ticket, or printer has no "auto" choice for "media-source".
      */
-    private OutboxJobDto execTicket(final String operator, final Printer printer,
-            final String ippMediaSource, final String fileName,
-            final boolean settleOnly) throws IOException, IppConnectException {
+    private OutboxJobDto execTicket(final String operator,
+            final Printer printer, final String ippMediaSource,
+            final String fileName, final boolean settleOnly)
+            throws IOException, IppConnectException {
 
         final UUID uuid = uuidFromFileName(fileName);
         final OutboxJobDto dto = this.jobTicketCache.get(uuid);
@@ -705,15 +756,15 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public OutboxJobDto printTicket(final String operator, final Printer printer,
-            final String ippMediaSource, final String fileName)
-            throws IOException, IppConnectException {
+    public OutboxJobDto printTicket(final String operator,
+            final Printer printer, final String ippMediaSource,
+            final String fileName) throws IOException, IppConnectException {
         return execTicket(operator, printer, ippMediaSource, fileName, false);
     }
 
     @Override
-    public OutboxJobDto settleTicket(final String operator, final Printer printer,
-            final String fileName) throws IOException {
+    public OutboxJobDto settleTicket(final String operator,
+            final Printer printer, final String fileName) throws IOException {
 
         try {
             return execTicket(operator, printer, null, fileName, true);
