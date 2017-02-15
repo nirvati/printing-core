@@ -54,8 +54,8 @@ public final class DbBackupJob extends AbstractJob {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(DbBackupJob.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(DbBackupJob.class);
 
     @Override
     protected void onInterrupt() throws UnableToInterruptJobException {
@@ -120,7 +120,8 @@ public final class DbBackupJob extends AbstractJob {
             }
 
             //
-            final File export = DbTools.exportDb(em);
+            final File export = DbTools.exportDb(em,
+                    cm.getConfigInt(Key.DB_EXPORT_QUERY_MAX_RESULTS));
 
             //
             if (LOGGER.isTraceEnabled()) {
@@ -134,9 +135,8 @@ public final class DbBackupJob extends AbstractJob {
                 LOGGER.trace("Database unlocked.");
             }
 
-            msg =
-                    AppLogHelper.logInfo(getClass(), "DbBackupJob.success",
-                            export.getName());
+            msg = AppLogHelper.logInfo(getClass(), "DbBackupJob.success",
+                    export.getName());
 
             // Mantis #235
             daoContext.beginTransaction();
@@ -153,9 +153,8 @@ public final class DbBackupJob extends AbstractJob {
             LoggerFactory.getLogger(this.getClass()).error(e.getMessage(), e);
 
             level = PubLevelEnum.ERROR;
-            msg =
-                    AppLogHelper.logError(getClass(), "DbBackupJob.error",
-                            e.getMessage());
+            msg = AppLogHelper.logError(getClass(), "DbBackupJob.error",
+                    e.getMessage());
 
         } finally {
 
@@ -185,14 +184,12 @@ public final class DbBackupJob extends AbstractJob {
                                 cm.getConfigInt(Key.SYS_BACKUP_DAYS_TO_KEEP));
 
                 if (nFilesDeleted == 1) {
-                    msg =
-                            AppLogHelper.logInfo(getClass(),
-                                    "CleanBackupDir.success.single");
+                    msg = AppLogHelper.logInfo(getClass(),
+                            "CleanBackupDir.success.single");
                 } else if (nFilesDeleted > 1) {
-                    msg =
-                            AppLogHelper.logInfo(getClass(),
-                                    "CleanBackupDir.success.plural",
-                                    String.valueOf(nFilesDeleted));
+                    msg = AppLogHelper.logInfo(getClass(),
+                            "CleanBackupDir.success.plural",
+                            String.valueOf(nFilesDeleted));
                 }
 
             } catch (Exception e) {
@@ -202,9 +199,8 @@ public final class DbBackupJob extends AbstractJob {
 
                 level = PubLevelEnum.ERROR;
 
-                msg =
-                        AppLogHelper.logError(getClass(),
-                                "CleanBackupDir.error", e.getMessage());
+                msg = AppLogHelper.logError(getClass(), "CleanBackupDir.error",
+                        e.getMessage());
 
             }
 
@@ -218,12 +214,12 @@ public final class DbBackupJob extends AbstractJob {
             try {
 
                 if (cm.isConfigValue(Key.DELETE_APP_LOG)) {
-                    SpJobScheduler.instance().scheduleOneShotJob(
-                            SpJobType.APP_LOG_CLEAN, 1L);
+                    SpJobScheduler.instance()
+                            .scheduleOneShotJob(SpJobType.APP_LOG_CLEAN, 1L);
                 }
                 if (cm.isConfigValue(Key.DELETE_DOC_LOG)) {
-                    SpJobScheduler.instance().scheduleOneShotJob(
-                            SpJobType.DOC_LOG_CLEAN, 1L);
+                    SpJobScheduler.instance()
+                            .scheduleOneShotJob(SpJobType.DOC_LOG_CLEAN, 1L);
                 }
 
                 if (ConfigManager.isDbInternal()) {
@@ -236,9 +232,8 @@ public final class DbBackupJob extends AbstractJob {
                 LoggerFactory.getLogger(this.getClass()).error(e.getMessage(),
                         e);
 
-                msg =
-                        AppLogHelper.logError(getClass(), "Scheduler.error",
-                                e.getMessage());
+                msg = AppLogHelper.logError(getClass(), "Scheduler.error",
+                        e.getMessage());
 
                 publisher.publish(PubTopicEnum.SCHEDULER, PubLevelEnum.ERROR,
                         msg);

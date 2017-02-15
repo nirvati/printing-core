@@ -75,6 +75,11 @@ public final class AppDb extends AbstractApp {
     private static final String CLI_OPTION_DB_RUN_SQL = "db-run-sql";
 
     /**
+     * The number of rows in the result set for export.
+     */
+    private static final int QUERY_MAX_RESULTS = 1000;
+
+    /**
      *
      */
     private AppDb() {
@@ -134,7 +139,7 @@ public final class AppDb extends AbstractApp {
                         .longOpt(CLI_OPTION_DB_RUN_SQL)
                         .desc("Runs an SQL statement. "
                                 + "NOTE: Only if requested by support.")
-                .build());
+                        .build());
 
         return options;
     }
@@ -269,13 +274,13 @@ public final class AppDb extends AbstractApp {
 
             } else if (cmd.hasOption(CLI_SWITCH_DBEXPORT)) {
 
-                displayExportedFilePath(
-                        DbTools.exportDb(DaoContextImpl.peekEntityManager()));
+                displayExportedFilePath(DbTools.exportDb(
+                        DaoContextImpl.peekEntityManager(), QUERY_MAX_RESULTS));
 
             } else if (cmd.hasOption(CLI_OPTION_DBEXPORT_TO)) {
 
                 displayExportedFilePath(DbTools.exportDb(
-                        DaoContextImpl.peekEntityManager(),
+                        DaoContextImpl.peekEntityManager(), QUERY_MAX_RESULTS,
                         new File(cmd.getOptionValue(CLI_OPTION_DBEXPORT_TO))));
 
             } else if (cmd.hasOption(CLI_OPTION_DBIMPORT)) {

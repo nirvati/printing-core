@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -959,20 +959,31 @@ public final class DbTools implements ServiceEntryPoint {
      * Also see {@link #importDb(File)}.
      * </p>
      *
+     * @param em
+     *            The {@link EntityManager}.
+     * @param queryMaxResults
+     *            The maximum number of rows in each query result set.
      * @return The exported file.
      * @throws IOException
+     *             When IO error.
      */
-    public static File exportDb(final EntityManager em) throws IOException {
-        return exportDb(em, new File(ConfigManager.getDbBackupHome()));
+    public static File exportDb(final EntityManager em,
+            final int queryMaxResults) throws IOException {
+        return exportDb(em, queryMaxResults,
+                new File(ConfigManager.getDbBackupHome()));
     }
 
     /**
      * Deletes {@code savapage*.zip} files in the standard backup directory
      * older than {@code backupDaysToKeep}.
      *
+     * @param now
+     *            Current date/time.
      * @param backupDaysToKeep
+     *            Number of days to keep the backup.
      * @return The number of files deleted.
      * @throws IOException
+     *             When IO error.
      */
     public static int cleanBackupDirectory(final Date now,
             final int backupDaysToKeep) throws IOException {
@@ -1027,12 +1038,24 @@ public final class DbTools implements ServiceEntryPoint {
      * @return
      * @throws IOException
      */
+    /**
+     *
+     * @param em
+     * @param queryMaxResults
+     *            The maximum number of rows in each query result set.
+     * @param schemaVersion
+     * @param dateExport
+     * @return
+     * @throws IOException
+     */
     public static File exportDbBeforeUpg(final EntityManager em,
-            final long schemaVersion, final Date dateExport)
-            throws IOException {
+            final int queryMaxResults, final long schemaVersion,
+            final Date dateExport) throws IOException {
 
-        return exportDb(em, new File(ConfigManager.getDbBackupHome() + "/"
-                + createSchemaUpgBackupDbFileName(schemaVersion, dateExport)));
+        return exportDb(em, queryMaxResults,
+                new File(ConfigManager.getDbBackupHome() + "/"
+                        + createSchemaUpgBackupDbFileName(schemaVersion,
+                                dateExport)));
     }
 
     /**
@@ -1092,6 +1115,10 @@ public final class DbTools implements ServiceEntryPoint {
      * the database.
      * </p>
      *
+     * @param em
+     *            The {@link EntityManager}.
+     * @param queryMaxResults
+     *            The maximum number of rows in each query result set.
      * @param fileExport
      *            The output file. When the file is a directory a default
      *            filename in this directory is constructed.
@@ -1099,7 +1126,8 @@ public final class DbTools implements ServiceEntryPoint {
      * @throws IOException
      *             When file i/o errors.
      */
-    public static File exportDb(final EntityManager em, final File fileExport)
+    public static File exportDb(final EntityManager em,
+            final int queryMaxResults, final File fileExport)
             throws IOException {
 
         final ConfigManager cm = ConfigManager.instance();
@@ -1194,7 +1222,7 @@ public final class DbTools implements ServiceEntryPoint {
              */
             for (Class<?> objClass : getSchemaEntitiesForXml(
                     getDbSchemaVersion())) {
-                exportDbTable(em, rootElement, objClass);
+                exportDbTable(em, queryMaxResults, rootElement, objClass);
             }
 
             writer.write(document);
@@ -1254,13 +1282,16 @@ public final class DbTools implements ServiceEntryPoint {
      *
      * @param em
      *            The JPA EntityManager.
+     * @param queryMaxResults
+     *            The maximum number of rows in each query result set.
      * @param rootElement
      *            The XML root element.
      * @param objClass
      *            The class of the JPA entity to export.
      */
     private static void exportDbTable(final EntityManager em,
-            final Element rootElement, final Class<?> objClass) {
+            final int queryMaxResults, final Element rootElement,
+            final Class<?> objClass) {
 
         final SimpleDateFormat xmlDateFormat =
                 new SimpleDateFormat(XML_DATEFORMAT_PATTERN);
@@ -1284,85 +1315,104 @@ public final class DbTools implements ServiceEntryPoint {
             }
 
             /*
-             * Execute statement.
+             * Create Query.
              */
             final Query query = createDbTableQueryForExport(em,
                     entityClassNameFull, entityClassNameSimple);
 
-            @SuppressWarnings("unchecked")
-            final List<org.savapage.core.jpa.xml.XEntityVersion> list =
-                    query.getResultList();
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Exporting [" + entityClassNameSimple + "] "
-                        + list.size() + " rows...");
-            }
+            int startPositionWlk = 0;
+            int resultListSizeWlk = queryMaxResults;
 
             /*
-             * Process rows.
+             * Process result chunks.
              */
-            for (final org.savapage.core.jpa.xml.XEntityVersion obj : list) {
+            while (resultListSizeWlk == queryMaxResults) {
 
-                final Element rowElement =
-                        entityElement.addElement(obj.xmlName());
+                /*
+                 * Get chunk.
+                 */
+                query.setFirstResult(startPositionWlk);
+                query.setMaxResults(queryMaxResults);
 
-                for (final PropertyDescriptor descr : binfo
-                        .getPropertyDescriptors()) {
+                @SuppressWarnings("unchecked")
+                final List<org.savapage.core.jpa.xml.XEntityVersion> list =
+                        query.getResultList();
 
-                    final String propName = descr.getName();
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace(String.format("Exporting [%s] rows %d - %d",
+                            entityClassNameSimple, startPositionWlk + 1,
+                            startPositionWlk + list.size()));
+                }
 
-                    /*
-                     *
-                     */
-                    if (propName.equals("class")) {
-                        continue;
-                    }
+                /*
+                 * Process rows.
+                 */
+                for (final XEntityVersion obj : list) {
 
-                    final String propVal = BeanUtils.getProperty(obj, propName);
+                    final Element rowElement =
+                            entityElement.addElement(obj.xmlName());
 
-                    if (propVal == null) {
-                        continue;
-                    }
+                    for (final PropertyDescriptor descr : binfo
+                            .getPropertyDescriptors()) {
 
-                    final Class<?> propClass = descr.getPropertyType();
+                        final String propName = descr.getName();
 
-                    final String text;
+                        /*
+                         *
+                         */
+                        if (propName.equals("class")) {
+                            continue;
+                        }
 
-                    if (propClass.equals(java.util.Date.class)) {
+                        final String propVal =
+                                BeanUtils.getProperty(obj, propName);
 
-                        text = xmlDateFormat
-                                .format(descr.getReadMethod().invoke(obj));
+                        if (propVal == null) {
+                            continue;
+                        }
 
-                    } else {
+                        final Class<?> propClass = descr.getPropertyType();
 
-                        boolean isSimpleType = false;
+                        final String text;
 
-                        for (Class<?> cls : SIMPLE_JPA_TYPES) {
-                            if (propClass.equals(cls)) {
-                                isSimpleType = true;
-                                break;
+                        if (propClass.equals(java.util.Date.class)) {
+
+                            text = xmlDateFormat
+                                    .format(descr.getReadMethod().invoke(obj));
+
+                        } else {
+
+                            boolean isSimpleType = false;
+
+                            for (Class<?> cls : SIMPLE_JPA_TYPES) {
+                                if (propClass.equals(cls)) {
+                                    isSimpleType = true;
+                                    break;
+                                }
+                            }
+
+                            if (isSimpleType) {
+                                text = XmlParseHelper
+                                        .removeIllegalChars(propVal);
+                            } else {
+                                text = null;
                             }
                         }
 
-                        if (isSimpleType) {
-                            text = XmlParseHelper.removeIllegalChars(propVal);
-                        } else {
-                            text = null;
+                        if (text != null) {
+                            final Element propElement =
+                                    rowElement.addElement(propName);
+                            propElement.setText(text);
                         }
                     }
-
-                    if (text != null) {
-                        final Element propElement =
-                                rowElement.addElement(propName);
-                        propElement.setText(text);
-                    }
                 }
-
+                resultListSizeWlk = list.size();
+                startPositionWlk += resultListSizeWlk;
             }
-
         } catch (Exception e) {
             throw new SpException(e);
         }
+
     }
 
     /**

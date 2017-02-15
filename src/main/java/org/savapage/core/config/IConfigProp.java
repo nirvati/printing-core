@@ -111,6 +111,12 @@ public interface IConfigProp {
     String DEFAULT_BATCH_COMMIT_CHUNK_SIZE = "100";
 
     /**
+     * Default number of rows in the result set for exporting tables for
+     * database backup.
+     */
+    String DEFAULT_EXPORT_QUERY_MAX_RESULTS = "1000";
+
+    /**
      *
      */
     InternalFontFamilyEnum DEFAULT_INTERNAL_FONT_FAMILY =
@@ -245,6 +251,12 @@ public interface IConfigProp {
          * See {@link DaoBatchCommitterImpl}.
          */
         DB_BATCH_COMMIT_CHUNK_SIZE("db.batch.commit-chunk-size", NUMBER_VALIDATOR, DEFAULT_BATCH_COMMIT_CHUNK_SIZE),
+
+        /**
+         * The number of rows in the result set for exporting tables to a
+         * database backup.
+         */
+        DB_EXPORT_QUERY_MAX_RESULTS("db.export.query-max-results", NUMBER_VALIDATOR, DEFAULT_EXPORT_QUERY_MAX_RESULTS),
 
         /**
          *

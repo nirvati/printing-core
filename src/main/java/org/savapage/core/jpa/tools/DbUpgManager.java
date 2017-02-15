@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  * greater, then the database is incrementally upgraded using the upg-*.sql
  * scripts from <code>[server-home]/lib/sql/Derby/upgrades/</code>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class DbUpgManager {
@@ -56,8 +56,8 @@ public class DbUpgManager {
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(DbUpgManager.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(DbUpgManager.class);
 
     /**
      * The SingletonHolder is loaded on the first execution of
@@ -114,9 +114,9 @@ public class DbUpgManager {
                 Long.parseLong(DbTools.getAppSchemaVersion());
 
         if (schemaVersionDb > schemaVersionApp) {
-            throw new SpException("Current database version ["
-                    + schemaVersionDb + "] is more recent than version ["
-                    + schemaVersionApp + "] as supported by the application "
+            throw new SpException("Current database version [" + schemaVersionDb
+                    + "] is more recent than version [" + schemaVersionApp
+                    + "] as supported by the application "
                     + "you are running now.  "
                     + "This normally occurs when you have downgraded"
                     + " the application.  Please restore a database"
@@ -139,8 +139,8 @@ public class DbUpgManager {
 
         if (schemaVersionDb < schemaVersionApp) {
 
-            SpInfo.instance().log(
-                    "Database upgrade required from schema version ["
+            SpInfo.instance()
+                    .log("Database upgrade required from schema version ["
                             + schemaVersionDb + "] to [" + schemaVersionApp
                             + "]");
 
@@ -149,13 +149,13 @@ public class DbUpgManager {
              */
             if (cm.isDbBackupBeforeUpg()) {
                 Date dateExport = new Date();
-                final File backupFile =
-                        DbTools.exportDbBeforeUpg(
-                                DaoContextImpl.peekEntityManager(),
+                final File backupFile = DbTools
+                        .exportDbBeforeUpg(DaoContextImpl.peekEntityManager(),
+                                cm.getConfigInt(
+                                        Key.DB_EXPORT_QUERY_MAX_RESULTS),
                                 schemaVersionDb, dateExport);
-                SpInfo.instance().log(
-                        "Backup file created before update: "
-                                + backupFile.getAbsolutePath());
+                SpInfo.instance().log("Backup file created before update: "
+                        + backupFile.getAbsolutePath());
             } else {
                 SpInfo.instance().log("No backup file created before update.");
             }
@@ -209,9 +209,8 @@ public class DbUpgManager {
             }
 
         } catch (Exception e) {
-            LOGGER.error(
-                    "Error occurred attempting to upgrade database: "
-                            + e.getMessage(), e);
+            LOGGER.error("Error occurred attempting to upgrade database: "
+                    + e.getMessage(), e);
             throw new SpException(e.getMessage(), e);
         }
 
@@ -219,11 +218,10 @@ public class DbUpgManager {
          * Did we executed all the required upgrade steps.
          */
         if (versionWlk != schemaVersionApp) {
-            final String msg =
-                    "Database schema upgrade from [" + versionFrom + "] to ["
-                            + schemaVersionApp
-                            + "] failed: no upgrades implemented "
-                            + "after upgrade to version [" + versionWlk + "].";
+            final String msg = "Database schema upgrade from [" + versionFrom
+                    + "] to [" + schemaVersionApp
+                    + "] failed: no upgrades implemented "
+                    + "after upgrade to version [" + versionWlk + "].";
             throw new SpException(msg);
         }
 
@@ -249,13 +247,14 @@ public class DbUpgManager {
             ConfigManager.instance().updateConfigKey(Key.SYS_SCHEMA_VERSION,
                     targetVersion, Entity.ACTOR_SYSTEM);
 
-            SpInfo.instance().log(
-                    "Upgraded to schema version [" + targetVersion + "]");
+            SpInfo.instance()
+                    .log("Upgraded to schema version [" + targetVersion + "]");
 
         } catch (Exception e) {
             throw new SpException(
                     "Error occurred trying to upgrade to schema version: "
-                            + targetVersion, e);
+                            + targetVersion,
+                    e);
         } finally {
         }
     }
@@ -266,8 +265,8 @@ public class DbUpgManager {
      * @return
      */
     private File getDbUpgradeScript(final String schemaVersion) {
-        return new File(ConfigManager.getDbScriptDir(), "upgrades/" + "upg-"
-                + schemaVersion + ".sql");
+        return new File(ConfigManager.getDbScriptDir(),
+                "upgrades/" + "upg-" + schemaVersion + ".sql");
     }
 
     /**
@@ -277,7 +276,8 @@ public class DbUpgManager {
      * @param sqlFile
      *            The SQL script file.
      */
-    public static void runSqlScript(final EntityManager em, final File sqlFile) {
+    public static void runSqlScript(final EntityManager em,
+            final File sqlFile) {
 
         String sqlFileName = sqlFile.getAbsolutePath();
 
@@ -293,9 +293,8 @@ public class DbUpgManager {
         List<String> statements = new ArrayList<>();
 
         try {
-            reader =
-                    new BufferedReader(new InputStreamReader(
-                            new FileInputStream(sqlFileName)));
+            reader = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(sqlFileName)));
 
             final StringBuilder statement = new StringBuilder();
             String line;
@@ -317,8 +316,8 @@ public class DbUpgManager {
                 }
             }
         } catch (IOException e) {
-            throw new SpException("Unable to read database script: "
-                    + sqlFileName);
+            throw new SpException(
+                    "Unable to read database script: " + sqlFileName);
         } finally {
             if (reader != null) {
                 try {
