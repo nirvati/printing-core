@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 import org.savapage.core.SpException;
+import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.jpa.User;
 import org.savapage.core.json.JsonAbstractBase;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -49,6 +51,12 @@ public final class JobTicketSupplierData extends JsonAbstractBase
      * Copy cost total of all printed copies.
      */
     private BigDecimal costCopy;
+
+    /**
+     * The {@link User#getUserId()} of the
+     * {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
+     */
+    private String operator;
 
     /**
      *
@@ -108,4 +116,31 @@ public final class JobTicketSupplierData extends JsonAbstractBase
         }
     }
 
-}
+    /**
+     * @return The {@link User#getUserId()} of the
+     *         {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
+     */
+    public String getOperator() {
+        return operator;
+    }
+
+    /**
+     * @param operator
+     *            The {@link User#getUserId()} of the
+     *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
+     */
+    public void setOperator(String operator) {
+        this.operator = operator;
+    }
+
+    /**
+     * Creates an object from data string.s
+     *
+     * @param data
+     *            The serialized data.
+     * @return The {@link JobTicketSupplierData} object.
+     */
+    public static JobTicketSupplierData createFromData(final String data) {
+        return JobTicketSupplierData
+                .create(JobTicketSupplierData.class, data);
+    }}

@@ -1793,6 +1793,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
     /**
      * Prints or Settles an {@link OutboxJobDto}.
      *
+     * @param operator
+     *            The {@link User#getUserId()} with
+     *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}. {@code null} when
+     *            <i>not</i> a Job Ticket.
      * @param lockedUser
      *            The locked {@link User}.
      * @param job
@@ -1809,9 +1813,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * @throws IppConnectException
      *             When connection to CUPS fails.
      */
-    private void execOutboxJob(final User lockedUser, final OutboxJobDto job,
-            final PrintModeEnum printMode, final File pdfFileToPrint,
-            final boolean monitorPaperCutPrintStatus)
+    private void execOutboxJob(final String operator, final User lockedUser,
+            final OutboxJobDto job, final PrintModeEnum printMode,
+            final File pdfFileToPrint, final boolean monitorPaperCutPrintStatus)
             throws IOException, IppConnectException {
 
         //
@@ -1891,6 +1895,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             supplierData.setCostMedia(job.getCostResult().getCostMedia());
             supplierData.setCostCopy(job.getCostResult().getCostCopy());
+            supplierData.setOperator(operator);
 
             docLog.setExternalData(supplierData.dataAsString());
         }
@@ -2284,23 +2289,24 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public final int proxyPrintJobTicket(final User lockedUser,
-            final OutboxJobDto job, final File pdfFileToPrint,
-            final ThirdPartyEnum extPrinterManager)
+    public final int proxyPrintJobTicket(final String operator,
+            final User lockedUser, final OutboxJobDto job,
+            final File pdfFileToPrint, final ThirdPartyEnum extPrinterManager)
             throws IOException, IppConnectException {
 
         this.validateJobTicketPaperCutSupplier(job, extPrinterManager);
 
-        this.execOutboxJob(lockedUser, job, PrintModeEnum.TICKET,
+        this.execOutboxJob(operator, lockedUser, job, PrintModeEnum.TICKET,
                 pdfFileToPrint, extPrinterManager == ThirdPartyEnum.PAPERCUT);
 
         return job.getPages() * job.getCopies();
     }
 
     @Override
-    public final int settleJobTicket(final User lockedUser,
-            final OutboxJobDto job, final File pdfFileToPrint,
-            final ThirdPartyEnum extPrinterManager) throws IOException {
+    public final int settleJobTicket(final String operator,
+            final User lockedUser, final OutboxJobDto job,
+            final File pdfFileToPrint, final ThirdPartyEnum extPrinterManager)
+            throws IOException {
 
         this.validateJobTicketPaperCutSupplier(job, extPrinterManager);
 
@@ -2314,7 +2320,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printMode = PrintModeEnum.TICKET_E;
             }
 
-            this.execOutboxJob(lockedUser, job, printMode, pdfFileToPrint,
+            this.execOutboxJob(operator, lockedUser, job, printMode,
+                    pdfFileToPrint,
                     extPrinterManager == ThirdPartyEnum.PAPERCUT);
 
         } catch (IppConnectException e) {
@@ -2388,7 +2395,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     .getOutboxFile(cardUser.getUserId(), job.getFile());
 
             try {
-                this.execOutboxJob(lockedUser, job, PrintModeEnum.HOLD,
+                this.execOutboxJob(null, lockedUser, job, PrintModeEnum.HOLD,
                         pdfFileToPrint, monitorPaperCutPrintStatus);
 
                 pdfFileToPrint.delete();

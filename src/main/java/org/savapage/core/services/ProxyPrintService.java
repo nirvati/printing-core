@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.print.attribute.standard.MediaSizeName;
 
 import org.savapage.core.config.IConfigProp;
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.ProxyPrinterCostDto;
@@ -561,6 +562,9 @@ public interface ProxyPrintService {
     /**
      * Prints a Job Ticket.
      *
+     * @param operator
+     *            The {@link User#getUserId()} with
+     *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
      * @param lockedUser
      *            The {@link User} who owns the Job Ticket, which should be
      *            locked.
@@ -577,13 +581,16 @@ public interface ProxyPrintService {
      * @throws IppConnectException
      *             When connection to CUPS fails.
      */
-    int proxyPrintJobTicket(User lockedUser, OutboxJobDto job,
+    int proxyPrintJobTicket(String operator, User lockedUser, OutboxJobDto job,
             File pdfFileToPrint, ThirdPartyEnum extPrinterManager)
             throws IOException, IppConnectException;
 
     /**
      * Settles a Job Ticket without printing it.
      *
+     * @param operator
+     *            The {@link User#getUserId()} with
+     *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
      * @param lockedUser
      *            The {@link User} who owns the Job Ticket, which should be
      *            locked.
@@ -598,7 +605,7 @@ public interface ProxyPrintService {
      * @throws IOException
      *             When IO error.
      */
-    int settleJobTicket(User lockedUser, OutboxJobDto job,
+    int settleJobTicket(String operator, User lockedUser, OutboxJobDto job,
             File pdfFileNotToPrint, ThirdPartyEnum extPrinterManager)
             throws IOException;
 

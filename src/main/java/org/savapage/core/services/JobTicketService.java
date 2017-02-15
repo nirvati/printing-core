@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
@@ -196,6 +197,9 @@ public interface JobTicketService extends StatefulService {
     /**
      * Prints and settles a Job Ticket.
      *
+     * @param operator
+     *            The {@link User#getUserId()} with
+     *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
      * @param printer
      *            The redirect printer.
      * @param ippMediaSource
@@ -209,12 +213,16 @@ public interface JobTicketService extends StatefulService {
      * @throws IppConnectException
      *             When connection to CUPS fails.
      */
-    OutboxJobDto printTicket(Printer printer, String ippMediaSource,
-            String fileName) throws IOException, IppConnectException;
+    OutboxJobDto printTicket(String operator, Printer printer,
+            String ippMediaSource, String fileName)
+            throws IOException, IppConnectException;
 
     /**
      * Settles a Job Ticket without printing it.
      *
+     * @param operator
+     *            The {@link User#getUserId()} with
+     *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
      * @param printer
      *            The redirect printer.
      * @param fileName
@@ -223,7 +231,7 @@ public interface JobTicketService extends StatefulService {
      * @throws IOException
      *             When IO error.
      */
-    OutboxJobDto settleTicket(Printer printer, String fileName)
+    OutboxJobDto settleTicket(String operator, Printer printer, String fileName)
             throws IOException;
 
     /**

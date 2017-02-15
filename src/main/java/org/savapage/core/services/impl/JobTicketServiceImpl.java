@@ -52,6 +52,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.dto.RedirectPrinterDto;
@@ -615,6 +616,9 @@ public final class JobTicketServiceImpl extends AbstractService
      * <p>
      * </p>
      *
+     * @param operator
+     *            The {@link User#getUserId()} with
+     *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
      * @param printer
      *            The redirect printer.
      * @param ippMediaSource
@@ -635,7 +639,7 @@ public final class JobTicketServiceImpl extends AbstractService
      *             {@code null}: when "media" option is not specified in Job
      *             Ticket, or printer has no "auto" choice for "media-source".
      */
-    private OutboxJobDto execTicket(final Printer printer,
+    private OutboxJobDto execTicket(final String operator, final Printer printer,
             final String ippMediaSource, final String fileName,
             final boolean settleOnly) throws IOException, IppConnectException {
 
@@ -663,7 +667,7 @@ public final class JobTicketServiceImpl extends AbstractService
 
         if (settleOnly) {
 
-            proxyPrintService().settleJobTicket(lockedUser, dto,
+            proxyPrintService().settleJobTicket(operator, lockedUser, dto,
                     getJobTicketFile(uuid, FILENAME_EXT_JSON),
                     extPrinterManager);
         } else {
@@ -681,7 +685,7 @@ public final class JobTicketServiceImpl extends AbstractService
             dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
                     ippMediaSource);
 
-            proxyPrintService().proxyPrintJobTicket(lockedUser, dto,
+            proxyPrintService().proxyPrintJobTicket(operator, lockedUser, dto,
                     getJobTicketFile(uuid, FILENAME_EXT_PDF),
                     extPrinterManager);
         }
@@ -701,18 +705,18 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public OutboxJobDto printTicket(final Printer printer,
+    public OutboxJobDto printTicket(final String operator, final Printer printer,
             final String ippMediaSource, final String fileName)
             throws IOException, IppConnectException {
-        return execTicket(printer, ippMediaSource, fileName, false);
+        return execTicket(operator, printer, ippMediaSource, fileName, false);
     }
 
     @Override
-    public OutboxJobDto settleTicket(final Printer printer,
+    public OutboxJobDto settleTicket(final String operator, final Printer printer,
             final String fileName) throws IOException {
 
         try {
-            return execTicket(printer, null, fileName, true);
+            return execTicket(operator, printer, null, fileName, true);
         } catch (IppConnectException e) {
             // This is not supposed to happen, because no proxy print is done.
             throw new IllegalStateException(e.getMessage());
