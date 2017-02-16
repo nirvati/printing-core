@@ -46,12 +46,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.mail.MessagingException;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
@@ -64,6 +68,7 @@ import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.PrinterGroupMember;
 import org.savapage.core.jpa.User;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobBaseDto;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
@@ -80,6 +85,7 @@ import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
+import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
@@ -661,6 +667,40 @@ public final class JobTicketServiceImpl extends AbstractService
         return true;
     }
 
+    @Override
+    public void notifyTicketCompletedByEmail(final OutboxJobBaseDto dto,
+            final String operator, final User user) {
+
+        final EmailMsgParms emailParms = new EmailMsgParms();
+
+        final String emailAddr = userService().getPrimaryEmailAddress(user);
+
+        if (emailAddr == null) {
+            LOGGER.warn(String.format(
+                    "No primary email address found for user [%s]",
+                    user.getUserId()));
+            return;
+        }
+
+        emailParms.setToAddress(emailAddr);
+        emailParms.setSubject(String.format("Job Ticket %s : finished",
+                dto.getTicketNumber()));
+
+        emailParms.setBody(String.format(
+                "Hello %s,\n\nYour job ticket has been processed. "
+                        + "Please pick up the output at our desk."
+                        + "\n\n--\nWith kind regards," + "\n\n%s"
+                        + "\nJob Ticket Operator",
+                user.getFullName(), operator));
+
+        try {
+            emailService().sendEmail(emailParms);
+        } catch (InterruptedException | CircuitBreakerException
+                | MessagingException | IOException e) {
+            throw new SpException(e.getMessage());
+        }
+    }
+
     /**
      * Executes a Job Ticket request.
      * <p>
@@ -721,6 +761,12 @@ public final class JobTicketServiceImpl extends AbstractService
             proxyPrintService().settleJobTicket(operator, lockedUser, dto,
                     getJobTicketFile(uuid, FILENAME_EXT_JSON),
                     extPrinterManager);
+
+            if (ConfigManager.instance().isConfigValue(
+                    Key.JOBTICKET_NOTIFY_EMAIL_COMPLETED_ENABLE)) {
+                notifyTicketCompletedByEmail(dto, operator, lockedUser);
+            }
+
         } else {
 
             if (ippMediaSource == null) {

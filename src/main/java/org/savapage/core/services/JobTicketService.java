@@ -34,6 +34,7 @@ import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobBaseDto;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
@@ -197,6 +198,19 @@ public interface JobTicketService extends StatefulService {
      *             When file IO error occurs.
      */
     boolean updateTicket(OutboxJobDto dto) throws IOException;
+
+    /**
+     * Notifies Job Ticket owner (by email) that ticket is completed.
+     *
+     * @param dto
+     *            The {@link OutboxJobBaseDto}.
+     * @param operator
+     *            The user id of the Job Ticket Operator.
+     * @param user
+     *            The Job Ticket owner.
+     */
+    void notifyTicketCompletedByEmail(OutboxJobBaseDto dto, String operator,
+            User user);
 
     /**
      * Prints and settles a Job Ticket.

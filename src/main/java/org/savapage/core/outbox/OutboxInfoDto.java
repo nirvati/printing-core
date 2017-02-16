@@ -202,25 +202,103 @@ public final class OutboxInfoDto extends AbstractDto {
     }
 
     /**
+    *
+    */
+    @JsonInclude(Include.NON_NULL)
+    public static class OutboxJobBaseDto {
+
+        private String ticketNumber;
+        private String jobName;
+        private String comment;
+
+        private boolean drm;
+        private boolean ecoPrint;
+        private boolean collate;
+
+        private int copies;
+        private int pages;
+
+        public String getTicketNumber() {
+            return ticketNumber;
+        }
+
+        public void setTicketNumber(String ticketNumber) {
+            this.ticketNumber = ticketNumber;
+        }
+
+        public String getJobName() {
+            return jobName;
+        }
+
+        public void setJobName(String jobName) {
+            this.jobName = jobName;
+        }
+
+        public int getCopies() {
+            return copies;
+        }
+
+        public void setCopies(int copies) {
+            this.copies = copies;
+        }
+
+        public int getPages() {
+            return pages;
+        }
+
+        public void setPages(int pages) {
+            this.pages = pages;
+        }
+
+        public boolean isDrm() {
+            return drm;
+        }
+
+        public void setDrm(boolean drm) {
+            this.drm = drm;
+        }
+
+        public boolean isEcoPrint() {
+            return ecoPrint;
+        }
+
+        public void setEcoPrint(boolean ecoPrint) {
+            this.ecoPrint = ecoPrint;
+        }
+
+        public boolean isCollate() {
+            return collate;
+        }
+
+        public void setCollate(boolean collate) {
+            this.collate = collate;
+        }
+
+        public String getComment() {
+            return comment;
+        }
+
+        public void setComment(String comment) {
+            this.comment = comment;
+        }
+
+    }
+
+    /**
      *
      */
     @JsonInclude(Include.NON_NULL)
-    public static final class OutboxJobDto {
+    public static final class OutboxJobDto extends OutboxJobBaseDto {
 
         /**
          * Is {@code null} when in User outbox.
          */
         private Long userId;
 
-        private String ticketNumber;
-
         private ExternalSupplierInfo externalSupplierInfo;
 
         private String file;
         private String printerName;
-        private String jobName;
-        private int copies;
-        private int pages;
 
         /**
          * The total number of blank filler pages appended between logical
@@ -230,9 +308,6 @@ public final class OutboxInfoDto extends AbstractDto {
 
         private int sheets;
         private boolean removeGraphics;
-        private boolean drm;
-        private boolean ecoPrint;
-        private boolean collate;
         private ProxyPrintCostDto costResult;
         private long submitTime;
         private long expiryTime;
@@ -250,8 +325,6 @@ public final class OutboxInfoDto extends AbstractDto {
         private PdfOrientationInfo pdfOrientation;
 
         private Map<String, String> optionValues;
-
-        private String comment;
 
         private LocaleInfo localeInfo;
 
@@ -281,14 +354,6 @@ public final class OutboxInfoDto extends AbstractDto {
             this.userId = userId;
         }
 
-        public String getTicketNumber() {
-            return ticketNumber;
-        }
-
-        public void setTicketNumber(String ticketNumber) {
-            this.ticketNumber = ticketNumber;
-        }
-
         public ExternalSupplierInfo getExternalSupplierInfo() {
             return externalSupplierInfo;
         }
@@ -314,29 +379,6 @@ public final class OutboxInfoDto extends AbstractDto {
             this.printerName = printerName;
         }
 
-        public String getJobName() {
-            return jobName;
-        }
-
-        public void setJobName(String jobName) {
-            this.jobName = jobName;
-        }
-
-        public int getCopies() {
-            return copies;
-        }
-
-        public void setCopies(int copies) {
-            this.copies = copies;
-        }
-
-        public int getPages() {
-            return pages;
-        }
-
-        public void setPages(int pages) {
-            this.pages = pages;
-        }
 
         public int getFillerPages() {
             return fillerPages;
@@ -360,30 +402,6 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setRemoveGraphics(boolean removeGraphics) {
             this.removeGraphics = removeGraphics;
-        }
-
-        public boolean isDrm() {
-            return drm;
-        }
-
-        public void setDrm(boolean drm) {
-            this.drm = drm;
-        }
-
-        public boolean isEcoPrint() {
-            return ecoPrint;
-        }
-
-        public void setEcoPrint(boolean ecoPrint) {
-            this.ecoPrint = ecoPrint;
-        }
-
-        public boolean isCollate() {
-            return collate;
-        }
-
-        public void setCollate(boolean collate) {
-            this.collate = collate;
         }
 
         public ProxyPrintCostDto getCostResult() {
@@ -488,14 +506,6 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setOptionValues(Map<String, String> optionValues) {
             this.optionValues = optionValues;
-        }
-
-        public String getComment() {
-            return comment;
-        }
-
-        public void setComment(String comment) {
-            this.comment = comment;
         }
 
         /**
