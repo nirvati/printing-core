@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
@@ -444,20 +445,40 @@ public final class UserMsgIndicator {
              */
             fos.getFD().sync();
 
-            //
+            // close after sync
             fos.close();
+
+            /*
+             * To be sure we check for existence. See comment at the catch()
+             * block.
+             */
+            if (fileTemp.exists()) {
+
+                java.nio.file.Files.move(
+                        FileSystems.getDefault()
+                                .getPath(fileTemp.getCanonicalPath()),
+                        FileSystems.getDefault()
+                                .getPath(fileTarget.getCanonicalPath()),
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                LOGGER.warn(String.format(
+                        "%s is written and synced, "
+                                + "but does not seem to exist",
+                        fileTemp.getCanonicalPath()));
+            }
+            //
             fos = null;
 
-            java.nio.file.Files.move(
-                    FileSystems.getDefault()
-                            .getPath(fileTemp.getCanonicalPath()),
-                    FileSystems.getDefault()
-                            .getPath(fileTarget.getCanonicalPath()),
-                    StandardCopyOption.ATOMIC_MOVE,
-                    StandardCopyOption.REPLACE_EXISTING);
+        } catch (NoSuchFileException e) {
+            /*
+             * For unknown reasons this exception sometimes occurs in certain
+             * setups. Do files reside on specially mounted disk?. This needs to
+             * be investigated. For now, we log the exception as a warning.
+             */
+            LOGGER.warn(e.getMessage());
 
         } finally {
-
             if (fos != null) {
                 try {
                     fos.close();
