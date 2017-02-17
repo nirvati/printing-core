@@ -462,10 +462,9 @@ public final class UserMsgIndicator {
                         StandardCopyOption.ATOMIC_MOVE,
                         StandardCopyOption.REPLACE_EXISTING);
             } else {
-                LOGGER.warn(String.format(
-                        "%s is written and synced, "
-                                + "but does not seem to exist",
-                        fileTemp.getCanonicalPath()));
+                LOGGER.warn(
+                        String.format("[%s] %s is written, but does not exist",
+                                msg.toString(), fileTemp.getCanonicalPath()));
             }
             //
             fos = null;
@@ -476,7 +475,8 @@ public final class UserMsgIndicator {
              * setups. Do files reside on specially mounted disk?. This needs to
              * be investigated. For now, we log the exception as a warning.
              */
-            LOGGER.warn(e.getMessage());
+            LOGGER.warn(String.format("[%s] %s: %s", msg.toString(),
+                    e.getClass().getSimpleName(), e.getMessage()));
 
         } finally {
             if (fos != null) {
