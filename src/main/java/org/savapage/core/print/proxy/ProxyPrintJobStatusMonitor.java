@@ -817,7 +817,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
         try {
             JOBTICKET_SERVICE.notifyTicketCompletedByEmail(dto,
                     StringUtils.defaultString(extData.getOperator()),
-                    docLog.getUser());
+                    docLog.getUser(), ConfigManager.getDefaultLocale());
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
         }

@@ -3160,9 +3160,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *
      * @param key
      *            The key of the string.
-     * @return
+     * @return The localized string.
      */
-    protected String localize(final String key) {
+    protected final String localize(final String key) {
         return Messages.getMessage(getClass(), key, null);
     }
 
@@ -3173,37 +3173,24 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The Locale
      * @param key
      *            The key of the string.
-     * @return
+     * @return The localized string.
      */
-    protected String localize(final Locale locale, final String key) {
+    protected final String localize(final Locale locale, final String key) {
         return Messages.getMessage(getClass(), locale, key);
     }
 
     /**
-     * Return a localized message string.
      *
      * @param locale
-     *            The Locale
+     *            The {@link Locale}.
      * @param key
-     *            The key of the message.
-     * @param args
-     *            The placeholder arguments for the message template.
-     *
-     * @return The message text.
-     */
-    protected String localize(final Locale locale, final String key,
-            final String... args) {
-        return Messages.getMessage(getClass(), locale, key, args);
-    }
-
-    /**
-     *
-     * @param key
+     *            The key of the string.
      * @param dfault
-     * @return
+     *            The default value.
+     * @return The localized string.
      */
-    protected String localizeWithDefault(final Locale locale, final String key,
-            final String dfault) {
+    protected final String localizeWithDefault(final Locale locale,
+            final String key, final String dfault) {
         if (Messages.containsKey(getClass(), key, locale)) {
             return Messages.getMessage(getClass(), locale, key);
         }

@@ -24,6 +24,7 @@ package org.savapage.core.services;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dto.RedirectPrinterDto;
@@ -208,9 +209,11 @@ public interface JobTicketService extends StatefulService {
      *            The user id of the Job Ticket Operator.
      * @param user
      *            The Job Ticket owner.
+     * @param locale
+     *            The locale for the email text.
      */
     void notifyTicketCompletedByEmail(OutboxJobBaseDto dto, String operator,
-            User user);
+            User user, Locale locale);
 
     /**
      * Prints and settles a Job Ticket.

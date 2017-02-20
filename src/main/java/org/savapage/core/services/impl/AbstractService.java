@@ -21,6 +21,8 @@
  */
 package org.savapage.core.services.impl;
 
+import java.util.Locale;
+
 import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.AccountVoucherDao;
@@ -253,8 +255,24 @@ public abstract class AbstractService {
      * @return The message text.
      */
     protected final String localize(final String key, final String... args) {
-        return Messages.getMessage(getClass(), ServiceContext.getLocale(), key,
-                args);
+        return localize(ServiceContext.getLocale(), key, args);
+    }
+
+    /**
+     * Return a localized message string.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param key
+     *            The key of the message.
+     * @param args
+     *            The placeholder arguments for the message template.
+     *
+     * @return The message text.
+     */
+    protected final String localize(final Locale locale, final String key,
+            final String... args) {
+        return Messages.getMessage(getClass(), locale, key, args);
     }
 
     /**

@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -669,7 +670,7 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public void notifyTicketCompletedByEmail(final OutboxJobBaseDto dto,
-            final String operator, final User user) {
+            final String operator, final User user, final Locale locale) {
 
         final EmailMsgParms emailParms = new EmailMsgParms();
 
@@ -683,16 +684,12 @@ public final class JobTicketServiceImpl extends AbstractService
         }
 
         emailParms.setToAddress(emailAddr);
-        emailParms.setSubject(String.format("Job Ticket %s : finished",
-                dto.getTicketNumber()));
-
-        emailParms.setBody(String.format(
-                "Hello %s,\n\nYour job ticket has been processed. "
-                        + "Please pick up the output at our desk."
-                        + "\n\n--\nWith kind regards," + "\n\n%s"
-                        + "\nJob Ticket Operator",
-                user.getFullName(), operator));
-
+        emailParms.setSubject(
+                localize(locale, "email-user-jobticket-completed-subject",
+                        dto.getTicketNumber()));
+        emailParms
+                .setBody(localize(locale, "email-user-jobticket-completed-body",
+                        user.getFullName(), operator));
         try {
             emailService().sendEmail(emailParms);
         } catch (InterruptedException | CircuitBreakerException
@@ -764,7 +761,8 @@ public final class JobTicketServiceImpl extends AbstractService
 
             if (ConfigManager.instance().isConfigValue(
                     Key.JOBTICKET_NOTIFY_EMAIL_COMPLETED_ENABLE)) {
-                notifyTicketCompletedByEmail(dto, operator, lockedUser);
+                notifyTicketCompletedByEmail(dto, operator, lockedUser,
+                        ConfigManager.getDefaultLocale());
             }
 
         } else {
