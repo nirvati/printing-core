@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,12 +14,16 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.dto;
+
+import java.util.Map;
+
+import org.savapage.core.dao.enums.ACLRoleEnum;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -28,15 +32,23 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-@JsonPropertyOrder({ "accounting" })
+@JsonPropertyOrder({ "accounting", "roleUpdate" })
 @JsonInclude(Include.NON_NULL)
 public class UserGroupPropertiesDto extends UserGroupDto {
 
+    /**
+     *
+     */
     @JsonProperty("accounting")
     private UserAccountingDto accounting;
+
+    /**
+     * The {@link ACLRoleEnum} instances that need to be updated.
+     */
+    private Map<ACLRoleEnum, Boolean> roleUpdate;
 
     /**
      *
@@ -57,6 +69,21 @@ public class UserGroupPropertiesDto extends UserGroupDto {
 
     public void setAccounting(UserAccountingDto accounting) {
         this.accounting = accounting;
+    }
+
+    /**
+     * @return The {@link ACLRoleEnum} instances that need to be updated.
+     */
+    public Map<ACLRoleEnum, Boolean> getRoleUpdate() {
+        return roleUpdate;
+    }
+
+    /**
+     * @param roleUpdate
+     *            The {@link ACLRoleEnum} instances that need to be updated.
+     */
+    public void setRoleUpdate(Map<ACLRoleEnum, Boolean> roleUpdate) {
+        this.roleUpdate = roleUpdate;
     }
 
 }

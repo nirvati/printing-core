@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -139,6 +139,16 @@ public abstract class AbstractAppApi extends AbstractApp {
     /**
     *
     */
+    protected static final String ARG_ROLE_YES = "Y";
+    protected static final String ARG_ROLE_NO = "N";
+    protected static final String ARG_ROLE_UNDETERMINED = "U";
+
+    protected static final String ARG_ROLE =
+            ARG_ROLE_YES + "|" + ARG_ROLE_NO + "|" + ARG_ROLE_UNDETERMINED;
+
+    /**
+    *
+    */
     protected static final String ARG_NUMBER = "number";
 
     /**
@@ -173,6 +183,35 @@ public abstract class AbstractAppApi extends AbstractApp {
         } catch (Exception e) {
             throw new SpException(e);
         }
+    }
+
+    /**
+     * Gets the {@link Boolean} value of {@link #ARG_ROLE} argument.
+     *
+     * @param arg
+     *            The role argument.
+     * @return {@code null} when {@link #ARG_ROLE_UNDETERMINED}.
+     */
+    protected final Boolean getArgRoleValue(final String arg) {
+        if (arg.equalsIgnoreCase(ARG_ROLE_YES)) {
+            return Boolean.TRUE;
+        }
+        if (arg.equalsIgnoreCase(ARG_ROLE_NO)) {
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param arg
+     *            The role argument.
+     * @return {@code true} if argument is valid.
+     */
+    protected final boolean isArgRoleValid(final String arg) {
+        return arg.equalsIgnoreCase(ARG_ROLE_YES)
+                || arg.equalsIgnoreCase(ARG_ROLE_NO)
+                || arg.equalsIgnoreCase(ARG_ROLE_UNDETERMINED);
     }
 
     /**

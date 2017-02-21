@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,17 +14,21 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.cli.server;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.cli.CommandLine;
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dto.UserAccountingDto;
-import org.savapage.core.dto.UserGroupPropertiesDto;
 import org.savapage.core.dto.UserAccountingDto.CreditLimitEnum;
+import org.savapage.core.dto.UserGroupPropertiesDto;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodParms;
 import org.savapage.core.json.rpc.ErrorDataBasic;
 import org.savapage.core.json.rpc.JsonRpcError;
@@ -34,7 +38,7 @@ import org.savapage.core.json.rpc.impl.ParamsSetUserGroupProperties;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class CliSetUserGroupProperties extends AbstractAppApi {
@@ -42,7 +46,7 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
     /**
      *
      */
-    private static final String API_VERSION = "0.10";
+    private static final String API_VERSION = "0.11";
 
     /**
      *
@@ -78,6 +82,42 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
             "credit-limit-none";
 
     /**
+     * Role.
+     */
+    private static final String CLI_OPT_ROLE_JOB_TICKET_CREATOR =
+            "role-job-ticket-creator";
+
+    private static final String CLI_OPT_ROLE_JOB_TICKET_OPERATOR =
+            "role-job-ticket-operator";
+
+    private static final String CLI_OPT_ROLE_WEB_CASHIER = "role-web-cashier";
+
+    private static final String CLI_OPT_ROLE_PRINT_CREATOR =
+            "role-print-creator";
+
+    private static final String CLI_OPT_ROLE_PRINT_DELEGATOR =
+            "role-print-delegator";
+
+    private static final String CLI_OPT_ROLE_PRINT_DELEGATE =
+            "role-print-delegate";
+
+    /**
+     * Mapping CLI role option to {@link ACLRoleEnum}.
+     */
+    private static final String[][] OPT_ROLE_MAP = new String[][] {
+            { CLI_OPT_ROLE_JOB_TICKET_CREATOR,
+                    ACLRoleEnum.JOB_TICKET_CREATOR.toString() },
+            { CLI_OPT_ROLE_JOB_TICKET_OPERATOR,
+                    ACLRoleEnum.JOB_TICKET_OPERATOR.toString() },
+            { CLI_OPT_ROLE_PRINT_CREATOR,
+                    ACLRoleEnum.PRINT_CREATOR.toString() },
+            { CLI_OPT_ROLE_PRINT_DELEGATE,
+                    ACLRoleEnum.PRINT_DELEGATE.toString() },
+            { CLI_OPT_ROLE_PRINT_DELEGATOR,
+                    ACLRoleEnum.PRINT_DELEGATOR.toString() },
+            { CLI_OPT_ROLE_WEB_CASHIER, ACLRoleEnum.WEB_CASHIER.toString() } };
+
+    /**
      *
      */
     private static Object[][] theOptions = new Object[][] {
@@ -100,15 +140,25 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
             { ARG_DECIMAL, CLI_OPT_CREDIT_LIMIT_AMOUNT,
                     "Assign custom credit limit amount to new users." },
 
-            {
-                    null,
-                    CLI_SWITCH_CREDIT_LIMIT_NONE,
+            { null, CLI_SWITCH_CREDIT_LIMIT_NONE,
                     "Assign no credit limit restriction to new users "
                             + "(opposed to --" + CLI_SWITCH_CREDIT_LIMIT
                             + " and --" + CLI_OPT_CREDIT_LIMIT_AMOUNT + ")." },
 
-    //
-            };
+            { ARG_ROLE, CLI_OPT_ROLE_JOB_TICKET_CREATOR,
+                    "Assign Job Ticket Creator role." },
+            { ARG_ROLE, CLI_OPT_ROLE_JOB_TICKET_OPERATOR,
+                    "Assign Job Ticket Operator role." },
+            { ARG_ROLE, CLI_OPT_ROLE_PRINT_CREATOR,
+                    "Assign Print Creator role." },
+            { ARG_ROLE, CLI_OPT_ROLE_PRINT_DELEGATE,
+                    "Assign Print Delegate role." },
+            { ARG_ROLE, CLI_OPT_ROLE_PRINT_DELEGATOR,
+                    "Assign Print Delegator role." },
+            { ARG_ROLE, CLI_OPT_ROLE_WEB_CASHIER, "Assign Web Cashier role." },
+
+            //
+    };
 
     @Override
     protected final String getApiVersion() {
@@ -153,8 +203,8 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
          * INVARIANT (Accounting): Credit limit option or switch can NOT be
          * combined with remove.
          */
-        if ((cmd.hasOption(CLI_SWITCH_CREDIT_LIMIT) || cmd
-                .hasOption(CLI_OPT_CREDIT_LIMIT_AMOUNT))
+        if ((cmd.hasOption(CLI_SWITCH_CREDIT_LIMIT)
+                || cmd.hasOption(CLI_OPT_CREDIT_LIMIT_AMOUNT))
                 && cmd.hasOption(CLI_SWITCH_CREDIT_LIMIT_NONE)) {
             return false;
         }
@@ -168,13 +218,25 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
             return false;
         }
 
+        /**
+         *
+         */
+        for (final String[] pair : OPT_ROLE_MAP) {
+            final String opt = pair[0];
+
+            if (cmd.hasOption(opt)
+                    && !isArgRoleValid(cmd.getOptionValue(opt))) {
+                return false;
+            }
+        }
+
         //
         return true;
     }
 
     @Override
-    protected final AbstractJsonRpcMethodParms createMethodParms(
-            final CommandLine cmd) {
+    protected final AbstractJsonRpcMethodParms
+            createMethodParms(final CommandLine cmd) {
 
         ParamsSetUserGroupProperties parms = new ParamsSetUserGroupProperties();
 
@@ -217,6 +279,21 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
         if (dto.getAccounting() != null) {
             dto.getAccounting().setLocale(getLocaleOption(cmd));
         }
+
+        /*
+         * Roles.
+         */
+        final Map<ACLRoleEnum, Boolean> roleUpdate = new HashMap<>();
+
+        for (final String[] pair : OPT_ROLE_MAP) {
+            value = cmd.getOptionValue(pair[0]);
+            if (value != null) {
+                roleUpdate.put(ACLRoleEnum.valueOf(pair[1]),
+                        getArgRoleValue(value));
+                dto.setRoleUpdate(roleUpdate);
+            }
+        }
+
         //
         return parms;
     }

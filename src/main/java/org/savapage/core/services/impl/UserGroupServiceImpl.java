@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,24 +25,31 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.dao.UserGroupAttrDao;
 import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.UserGroupDao.SchedulePeriodEnum;
 import org.savapage.core.dao.UserGroupMemberDao;
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
+import org.savapage.core.dao.enums.UserGroupAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.QuickSearchItemDto;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserGroupPropertiesDto;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroup;
+import org.savapage.core.jpa.UserGroupAttr;
 import org.savapage.core.jpa.UserGroupMember;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcError.Code;
@@ -56,10 +63,11 @@ import org.savapage.core.users.CommonUser;
 import org.savapage.core.users.IUserSource;
 import org.savapage.core.users.conf.InternalGroupList;
 import org.savapage.core.util.BigDecimalUtil;
+import org.savapage.core.util.JsonHelper;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class UserGroupServiceImpl extends AbstractService
@@ -337,7 +345,7 @@ public final class UserGroupServiceImpl extends AbstractService
     @Override
     public AbstractJsonRpcMethodResponse addUserGroup(
             final DaoBatchCommitter batchCommitter, final String groupName)
-                    throws IOException {
+            throws IOException {
 
         checkAddGroupInvariants(groupName);
 
@@ -661,7 +669,7 @@ public final class UserGroupServiceImpl extends AbstractService
     @Override
     public AbstractJsonRpcMethodResponse syncInternalUserGroup(
             final DaoBatchCommitter batchCommitter, final String groupName)
-                    throws IOException {
+            throws IOException {
 
         final UserGroup userGroup = checkSyncGroupInvariants(groupName);
         final SortedSet<CommonUser> source =
@@ -672,7 +680,7 @@ public final class UserGroupServiceImpl extends AbstractService
     @Override
     public AbstractJsonRpcMethodResponse syncUserGroup(
             final DaoBatchCommitter batchCommitter, final String groupName)
-                    throws IOException {
+            throws IOException {
 
         final UserGroup userGroup = checkSyncGroupInvariants(groupName);
 
@@ -691,37 +699,17 @@ public final class UserGroupServiceImpl extends AbstractService
         return syncUserGroupMembers(batchCommitter, userGroup, source);
     }
 
-    @Override
-    public AbstractJsonRpcMethodResponse setUserGroupProperties(
-            final UserGroupPropertiesDto dto) throws IOException {
-
-        final String groupName = dto.getGroupName();
-
-        /*
-         * INVARIANT: groupName MUST be present.
-         */
-        if (StringUtils.isBlank(groupName)) {
-            return createError("msg-usergroup-name-is-empty");
-        }
-
-        /*
-         * INVARIANT: Accounting MUST be present.
-         */
-        final UserAccountingDto accounting = dto.getAccounting();
-
-        if (accounting == null) {
-            return createError("msg-usergroup-accounting-is-empty");
-        }
-
-        final UserGroup jpaGroup = userGroupDAO().findByName(groupName);
-
-        /*
-         * INVARIANT: UserGroup MUST exist.
-         */
-        if (jpaGroup == null) {
-            return createError("msg-usergroup-not-found", groupName);
-        }
-
+    /**
+     * Sets User Group accounting properties.
+     *
+     * @param jpaGroup
+     *            The {@link UserGroup}.
+     * @param accounting
+     *            The accounting data.
+     * @return {@code null} if no error.
+     */
+    private AbstractJsonRpcMethodResponse setUserGroupProperties(
+            final UserGroup jpaGroup, final UserAccountingDto accounting) {
         boolean isUpdated = false;
 
         final Locale dtoLocale;
@@ -788,6 +776,138 @@ public final class UserGroupServiceImpl extends AbstractService
             jpaGroup.setModifiedBy(ServiceContext.getActor());
             jpaGroup.setModifiedDate(ServiceContext.getTransactionDate());
             userGroupDAO().update(jpaGroup);
+        }
+
+        return null;
+    }
+
+    /**
+     * Sets User Group ACLRole properties.
+     *
+     * @param userGroup
+     *            The {@link UserGroup}.
+     * @param roleUpdate
+     *            The roles.
+     * @throws IOException
+     *             When JSON IO errors.
+     */
+    private void setUserGroupProperties(final UserGroup userGroup,
+            final Map<ACLRoleEnum, Boolean> roleUpdate) throws IOException {
+
+        final UserGroupAttrEnum attrEnum = UserGroupAttrEnum.ACL_ROLES;
+
+        final UserGroupAttrDao daoAttr =
+                ServiceContext.getDaoContext().getUserGroupAttrDao();
+
+        final UserGroupAttr attr =
+                userGroupAttrDAO().findByName(userGroup, attrEnum);
+
+        final Map<ACLRoleEnum, Boolean> currentRoles;
+
+        if (attr == null) {
+            currentRoles = new HashMap<>();
+        } else {
+            currentRoles = JsonHelper.createEnumBooleanMap(ACLRoleEnum.class,
+                    attr.getValue());
+        }
+
+        /*
+         * Merge the update with the current roles.
+         */
+        for (final Entry<ACLRoleEnum, Boolean> entry : roleUpdate.entrySet()) {
+
+            final ACLRoleEnum key = entry.getKey();
+            final Boolean value = entry.getValue();
+
+            if (value == null) {
+                final String keyString = key.toString();
+                if (currentRoles.containsKey(keyString)) {
+                    currentRoles.remove(keyString);
+                }
+            } else {
+                currentRoles.put(key, value);
+            }
+        }
+
+        /*
+         * Process changes.
+         */
+
+        if (attr == null && currentRoles.isEmpty()) {
+            return;
+        }
+
+        final String jsonRoles = JsonHelper.stringifyObject(currentRoles);
+
+        if (attr == null) {
+
+            final UserGroupAttr attrNew = new UserGroupAttr();
+
+            attrNew.setUserGroup(userGroup);
+            attrNew.setName(attrEnum.getName());
+            attrNew.setValue(jsonRoles);
+
+            daoAttr.create(attrNew);
+
+        } else if (currentRoles.isEmpty()) {
+
+            daoAttr.delete(attr);
+
+        } else if (!attr.getValue().equals(jsonRoles)) {
+
+            attr.setValue(jsonRoles);
+            daoAttr.update(attr);
+        }
+    }
+
+    @Override
+    public AbstractJsonRpcMethodResponse setUserGroupProperties(
+            final UserGroupPropertiesDto dto) throws IOException {
+
+        final String groupName = dto.getGroupName();
+
+        /*
+         * INVARIANT: groupName MUST be present.
+         */
+        if (StringUtils.isBlank(groupName)) {
+            return createError("msg-usergroup-name-is-empty");
+        }
+
+        /*
+         * INVARIANT: Accounting or Roles MUST be present.
+         */
+        final UserAccountingDto accounting = dto.getAccounting();
+        final Map<ACLRoleEnum, Boolean> roleUpdate = dto.getRoleUpdate();
+
+        if (accounting == null && roleUpdate == null) {
+            return createError("msg-usergroup-data-is-empty");
+        }
+
+        final UserGroup jpaGroup = userGroupDAO().findByName(groupName);
+
+        /*
+         * INVARIANT: UserGroup MUST exist.
+         */
+        if (jpaGroup == null) {
+            return createError("msg-usergroup-not-found", groupName);
+        }
+
+        /*
+         * Accounting?
+         */
+        if (accounting != null) {
+            final AbstractJsonRpcMethodResponse rsp =
+                    this.setUserGroupProperties(jpaGroup, accounting);
+            if (rsp != null) {
+                return rsp;
+            }
+        }
+
+        /*
+         * Roles?
+         */
+        if (roleUpdate != null) {
+            this.setUserGroupProperties(jpaGroup, roleUpdate);
         }
 
         return JsonRpcMethodResult.createOkResult();
