@@ -379,7 +379,6 @@ public final class OutboxInfoDto extends AbstractDto {
             this.printerName = printerName;
         }
 
-
         public int getFillerPages() {
             return fillerPages;
         }
@@ -561,6 +560,15 @@ public final class OutboxInfoDto extends AbstractDto {
         @JsonIgnore
         public boolean isCopyJobTicket() {
             return this.uuidPageCount == null;
+        }
+
+        /**
+         *
+         * @return {@code true} when this is a Delegated Print Job Ticket.
+         */
+        @JsonIgnore
+        public boolean isDelegatedPrint() {
+            return this.accountTransactions != null;
         }
     }
 
