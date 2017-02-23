@@ -110,6 +110,7 @@ import org.savapage.core.jpa.UserAttr;
 import org.savapage.core.jpa.UserCard;
 import org.savapage.core.jpa.UserEmail;
 import org.savapage.core.jpa.UserGroup;
+import org.savapage.core.jpa.UserGroupAccount;
 import org.savapage.core.jpa.UserGroupAttr;
 import org.savapage.core.jpa.UserGroupMember;
 import org.savapage.core.jpa.UserNumber;
@@ -141,6 +142,7 @@ import org.savapage.core.jpa.schema.UserAccountV01;
 import org.savapage.core.jpa.schema.UserAttrV01;
 import org.savapage.core.jpa.schema.UserCardV01;
 import org.savapage.core.jpa.schema.UserEmailV01;
+import org.savapage.core.jpa.schema.UserGroupAccountV01;
 import org.savapage.core.jpa.schema.UserGroupAttrV01;
 import org.savapage.core.jpa.schema.UserGroupMemberV01;
 import org.savapage.core.jpa.schema.UserGroupV01;
@@ -176,6 +178,7 @@ import org.savapage.core.jpa.xml.XUserAccountV01;
 import org.savapage.core.jpa.xml.XUserAttrV01;
 import org.savapage.core.jpa.xml.XUserCardV01;
 import org.savapage.core.jpa.xml.XUserEmailV01;
+import org.savapage.core.jpa.xml.XUserGroupAccountV01;
 import org.savapage.core.jpa.xml.XUserGroupAttrV01;
 import org.savapage.core.jpa.xml.XUserGroupMemberV01;
 import org.savapage.core.jpa.xml.XUserGroupV01;
@@ -312,7 +315,9 @@ public final class DbTools implements ServiceEntryPoint {
             // since V01.00
             UserGroupAttrV01.class,
             // since V01.00
-            UserGroupMemberV01.class
+            UserGroupMemberV01.class,
+            // since V01.06
+            UserGroupAccountV01.class
 
             /* */
     };
@@ -455,6 +460,8 @@ public final class DbTools implements ServiceEntryPoint {
             XUserGroupAttrV01.class,
             // since V01.00
             XUserGroupMemberV01.class,
+            // since V01.06
+            XUserGroupAccountV01.class,
 
             // --------------------
             // since V01
@@ -534,6 +541,8 @@ public final class DbTools implements ServiceEntryPoint {
             UserGroupAttr.TABLE_NAME,
             // since V01.00
             UserGroupMember.TABLE_NAME,
+            // since V01.06
+            UserGroupAccount.TABLE_NAME,
 
             // since V01.02
             PosItem.TABLE_NAME,
