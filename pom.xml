@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>savapage-core</artifactId>
     <groupId>org.savapage</groupId>
-    <version>0.9.11</version>
+    <version>0.9.12</version>
     <name>SavaPage Core Library</name>
     <properties>
         <LICENSE_NAME>GNU Affero General Public License (AGPL)</LICENSE_NAME>
@@ -332,12 +332,12 @@
         <dependency>
             <groupId>org.savapage</groupId>
             <artifactId>savapage-common</artifactId>
-            <version>0.9.11</version>
+            <version>0.9.12</version>
         </dependency>
         <dependency>
             <groupId>org.savapage</groupId>
             <artifactId>savapage-i18n-en</artifactId>
-            <version>0.9.11</version>
+            <version>0.9.12</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
@@ -380,7 +380,7 @@
             <version>3.0.1</version>
         </dependency>
     </dependencies>
-    <description>SavaPage is an Enterprise Printing Solution with a Web App for Print Preview, Editing, PDF Creation and Proxy Printing.</description>
+    <description>SavaPage is a Free Software Solution that uses Open Standards and Commodity Hardware for Secure Pull-Printing, Pay-Per-Print, Delegated Print, Job Ticketing, Auditing and PDF Creation.</description>
     <url>https://www.savapage.org</url>
     <organization>
         <url>https://www.datraverse.com</url>
