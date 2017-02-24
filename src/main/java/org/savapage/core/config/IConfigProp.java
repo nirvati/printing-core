@@ -1746,6 +1746,18 @@ public interface IConfigProp {
         USER_SOURCE_UPDATE_USER_DETAILS("user-source.update-user-details", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * Client IP addresses (CIDR) that are allowed to use the User Client
+         * App (when void, all client addresses are allowed).
+         */
+        CLIAPP_IP_ADDRESSES_ALLOWED("cliapp.ip-addresses-allowed"),
+
+        /**
+         * Enable Client App authentication for clients that are denied for
+         * their IP address.
+         */
+        CLIAPP_AUTH_IP_ADDRESSES_DENIED_ENABLE("cliapp.auth.ip-addresses-denied.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
          * (boolean) Trust the User Client App system account name as user
          * identification?
          */
