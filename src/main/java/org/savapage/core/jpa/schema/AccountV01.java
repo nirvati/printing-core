@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -40,20 +40,19 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.savapage.core.jpa.Account.AccountTypeEnum;
+
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
-@Table(
-        name = AccountV01.TABLE_NAME,
-        indexes = {
-                @Index(name = "ix_account_1", columnList = "pin, sub_pin"),
-                @Index(name = "ix_account_2", columnList = "parent_id"),
-                @Index(
-                        name = "ix_account_3",
-                        columnList = "account_type, account_name_lower, sub_name_lower") })
+@Table(name = AccountV01.TABLE_NAME, indexes = {
+        @Index(name = "ix_account_1", columnList = "pin, sub_pin"),
+        @Index(name = "ix_account_2", columnList = "parent_id"),
+        @Index(name = "ix_account_3",
+                columnList = "account_type, account_name_lower, sub_name_lower") })
 public class AccountV01 implements SchemaEntityVersion {
 
     /**
@@ -66,8 +65,8 @@ public class AccountV01 implements SchemaEntityVersion {
     @TableGenerator(name = "accountPropGen", table = SequenceV01.TABLE_NAME,
             pkColumnName = "SEQUENCE_NAME",
             //
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
-            pkColumnValue = TABLE_NAME, allocationSize = 1)
+            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
+            allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "accountPropGen")
     private Long id;
@@ -155,8 +154,8 @@ public class AccountV01 implements SchemaEntityVersion {
      * The parent account.
      */
     @ManyToOne
-    @JoinColumn(name = "parent_id", foreignKey = @ForeignKey(
-            name = "FK_ACCOUNT_TO_PARENT"))
+    @JoinColumn(name = "parent_id",
+            foreignKey = @ForeignKey(name = "FK_ACCOUNT_TO_PARENT"))
     private AccountV01 parent;
 
     /**
@@ -186,6 +185,13 @@ public class AccountV01 implements SchemaEntityVersion {
     @OneToMany(targetEntity = UserAccountV01.class, mappedBy = "account",
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserAccountV01> members;
+
+    /**
+     * The LAZY UserGroupAccount list for {@link AccountTypeEnum#SHARED} only.
+     */
+    @OneToMany(targetEntity = UserGroupAccountV01.class, mappedBy = "account",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<UserGroupAccountV01> memberGroups;
 
     /**
      *
@@ -446,6 +452,22 @@ public class AccountV01 implements SchemaEntityVersion {
 
     public void setTransactions(List<AccountTrxV01> transactions) {
         this.transactions = transactions;
+    }
+
+    public List<UserAccountV01> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<UserAccountV01> members) {
+        this.members = members;
+    }
+
+    public List<UserGroupAccountV01> getMemberGroups() {
+        return memberGroups;
+    }
+
+    public void setMemberGroups(List<UserGroupAccountV01> memberGroups) {
+        this.memberGroups = memberGroups;
     }
 
 }

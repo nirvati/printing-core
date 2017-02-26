@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,19 +23,23 @@ package org.savapage.core.jpa.schema;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 import javax.persistence.UniqueConstraint;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -144,6 +148,13 @@ public class UserGroupV01 extends org.savapage.core.jpa.Entity implements
 
     @Column(name = "modified_by", length = 50, nullable = true)
     private String modifiedBy;
+
+    /**
+     * The LAZY UserGroupAccount list.
+     */
+    @OneToMany(targetEntity = UserGroupAccountV01.class, mappedBy = "userGroup",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<UserGroupAccountV01> accounts;
 
     // =========================================================================
 
@@ -273,6 +284,14 @@ public class UserGroupV01 extends org.savapage.core.jpa.Entity implements
 
     public void setModifiedBy(String modifiedBy) {
         this.modifiedBy = modifiedBy;
+    }
+
+    public List<UserGroupAccountV01> getAccounts() {
+        return accounts;
+    }
+
+    public void setAccounts(List<UserGroupAccountV01> accounts) {
+        this.accounts = accounts;
     }
 
 }

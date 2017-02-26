@@ -28,8 +28,12 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +64,7 @@ import org.savapage.core.dto.PosDepositReceiptDto;
 import org.savapage.core.dto.SharedAccountDisplayInfoDto;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserCreditTransferDto;
+import org.savapage.core.dto.UserGroupDto;
 import org.savapage.core.dto.UserPaymentGatewayDto;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
@@ -72,6 +77,7 @@ import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.UserGroup;
+import org.savapage.core.jpa.UserGroupAccount;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcError.Code;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
@@ -1399,11 +1405,28 @@ public final class AccountingServiceImpl extends AbstractService
         dto.setNotes(account.getNotes());
         dto.setDeleted(account.getDeleted());
 
+        /*
+         * User Group Access
+         */
+        final ArrayList<UserGroupDto> userGroupsDto = new ArrayList<>();
+        dto.setUserGroupAccess(userGroupsDto);
+
+        if (account.getMemberGroups() != null) {
+
+            for (final UserGroupAccount group : account.getMemberGroups()) {
+
+                final UserGroupDto groupDto = new UserGroupDto();
+                groupDto.setGroupName(group.getUserGroup().getGroupName());
+                userGroupsDto.add(groupDto);
+            }
+        }
+
         return dto;
     }
 
     @Override
     public AbstractJsonRpcMethodResponse
+
             lazyUpdateSharedAccount(final SharedAccountDisplayInfoDto dto) {
 
         /*
@@ -1544,6 +1567,7 @@ public final class AccountingServiceImpl extends AbstractService
             return createErrorMsg("msg-amount-error", balance);
         }
 
+        //
         if (newAccount) {
             account.setBalance(balanceNew);
             accountDAO().create(account);
@@ -1552,7 +1576,179 @@ public final class AccountingServiceImpl extends AbstractService
             accountDAO().update(account);
         }
 
+        /*
+         * UserGroup access.
+         */
+        final List<UserGroupDto> userGroupList = dto.getUserGroupAccess();
+
+        if (userGroupList != null) {
+
+            JsonRpcMethodError error =
+                    setUserGroupAccess(account, userGroupList);
+
+            if (error != null) {
+                return error;
+            }
+        }
+
         return JsonRpcMethodResult.createOkResult();
+    }
+
+    /**
+     * Sets {@link UserGroup} access at an Account (creates new
+     * {@link UserGroupAccount} objects and removes obsolete ones).
+     *
+     * @param account
+     *            The account.
+     * @param userGroupList
+     *            The access list to set.
+     * @return {@code null} when no error.
+     */
+    private JsonRpcMethodError setUserGroupAccess(final Account account,
+            final List<UserGroupDto> userGroupList) {
+        /*
+         * Create sorted lists for balanced line.
+         */
+        final SortedMap<String, UserGroupDto> sortedMemberGroupsDto =
+                new TreeMap<>();
+
+        for (final UserGroupDto dto : userGroupList) {
+            sortedMemberGroupsDto.put(dto.getGroupName().trim(), dto);
+        }
+
+        // Get (lazy initialize) the current member groups list.
+        List<UserGroupAccount> memberGroups = account.getMemberGroups();
+
+        if (memberGroups == null) {
+            memberGroups = new ArrayList<>();
+            account.setMemberGroups(memberGroups);
+        }
+
+        // Sorted map of current UserGroup members.
+        final SortedMap<String, UserGroupAccount> sortedMemberGroups =
+                new TreeMap<>();
+
+        for (final UserGroupAccount userGroupAccount : memberGroups) {
+            sortedMemberGroups.put(
+                    userGroupAccount.getUserGroup().getGroupName(),
+                    userGroupAccount);
+        }
+        /*
+         * Balanced line.
+         */
+        final Iterator<Entry<String, UserGroupAccount>> iterMemberGroups =
+                sortedMemberGroups.entrySet().iterator();
+
+        final Iterator<Entry<String, UserGroupDto>> iterMemberGroupsDto =
+                sortedMemberGroupsDto.entrySet().iterator();
+
+        boolean isUpdated = false;
+
+        UserGroupDto userGroupDtoWlk = null;
+        UserGroupAccount userGroupAccountWlk = null;
+
+        if (iterMemberGroups.hasNext()) {
+            userGroupAccountWlk = iterMemberGroups.next().getValue();
+        }
+
+        if (iterMemberGroupsDto.hasNext()) {
+            userGroupDtoWlk = iterMemberGroupsDto.next().getValue();
+        }
+
+        // Balanced line: process.
+        while (userGroupAccountWlk != null || userGroupDtoWlk != null) {
+
+            boolean readNextUserGroupAccount = false;
+            boolean readNextUserGroupDto = false;
+
+            String groupNameToAdd = null;
+
+            if (userGroupDtoWlk != null && userGroupAccountWlk != null) {
+
+                final String keyUserGroup =
+                        userGroupAccountWlk.getUserGroup().getGroupName();
+
+                final String keyDto = userGroupDtoWlk.getGroupName();
+
+                final int compare = keyUserGroup.compareTo(keyDto);
+
+                if (compare < 0) {
+                    // keyUserGroup < keyDto : Remove UserGroupAccount.
+                    userGroupAccountDAO().delete(userGroupAccountWlk);
+                    memberGroups.remove(userGroupAccountWlk);
+                    isUpdated = true;
+                    readNextUserGroupAccount = true;
+
+                } else if (compare > 0) {
+                    // keyUserGroup > keyDto : Add UserGroup from dto
+                    groupNameToAdd = keyDto;
+                    readNextUserGroupDto = true;
+
+                } else {
+                    // keyUserGroup == keyDto : no update.
+                    readNextUserGroupDto = true;
+                    readNextUserGroupAccount = true;
+                }
+
+            } else if (userGroupDtoWlk != null) {
+                // Add UserGroupAccount.
+                groupNameToAdd = userGroupDtoWlk.getGroupName();
+                readNextUserGroupDto = true;
+
+            } else {
+                // Remove UserGroupAccount.
+                userGroupAccountDAO().delete(userGroupAccountWlk);
+                memberGroups.remove(userGroupAccountWlk);
+                isUpdated = true;
+
+                readNextUserGroupAccount = true;
+            }
+            //
+            if (groupNameToAdd != null) {
+                final UserGroupAccount userGroupAccount =
+                        new UserGroupAccount();
+
+                final UserGroup userGroup =
+                        userGroupDAO().findByName(groupNameToAdd);
+
+                if (userGroup == null) {
+                    return createError("msg-user-group-name-unknown",
+                            groupNameToAdd);
+                }
+
+                userGroupAccount.setAccount(account);
+                userGroupAccount.setUserGroup(userGroup);
+
+                userGroupAccount.setCreatedBy(ServiceContext.getActor());
+                userGroupAccount
+                        .setCreatedDate(ServiceContext.getTransactionDate());
+
+                userGroupAccountDAO().create(userGroupAccount);
+                memberGroups.add(userGroupAccount);
+
+                isUpdated = true;
+            }
+            /*
+             * Next read(s).
+             */
+            if (readNextUserGroupAccount) {
+                userGroupAccountWlk = null;
+                if (iterMemberGroups.hasNext()) {
+                    userGroupAccountWlk = iterMemberGroups.next().getValue();
+                }
+            }
+            if (readNextUserGroupDto) {
+                userGroupDtoWlk = null;
+                if (iterMemberGroupsDto.hasNext()) {
+                    userGroupDtoWlk = iterMemberGroupsDto.next().getValue();
+                }
+            }
+        } // end-while
+
+        if (isUpdated) {
+            accountDAO().update(account);
+        }
+        return null;
     }
 
     @Override

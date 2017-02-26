@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -48,6 +48,7 @@ import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.dao.UserCardDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserEmailDao;
+import org.savapage.core.dao.UserGroupAccountDao;
 import org.savapage.core.dao.UserGroupAttrDao;
 import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.UserGroupMemberDao;
@@ -62,15 +63,15 @@ import org.slf4j.LoggerFactory;
  * <p>
  * A SingletonHolder is loaded on first access to one of its public static
  * members, not before. See <a href=
- * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
- * >The Singleton solution of Bill Pugh</a>.
+ * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh" >
+ * The Singleton solution of Bill Pugh</a>.
  * </p>
  * <p>
  * IMPORTANT: This global granularity can be applied because DAO's are singular
  * and do not point to other DOA's.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class DaoContextImpl implements DaoContext {
@@ -104,8 +105,8 @@ public final class DaoContextImpl implements DaoContext {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(DaoContextImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(DaoContextImpl.class);
 
     /**
      * The JPA entity manager.
@@ -250,8 +251,14 @@ public final class DaoContextImpl implements DaoContext {
                 new UserGroupDaoImpl();
 
         /**
-        *
-        */
+         * .
+         */
+        public static final UserGroupAccountDao USER_GROUP_ACCOUNT_DAO =
+                new UserGroupAccountDaoImpl();
+
+        /**
+         * .
+         */
         public static final UserGroupAttrDao USER_GROUP_ATTR_DAO =
                 new UserGroupAttrDaoImpl();
 
@@ -419,6 +426,11 @@ public final class DaoContextImpl implements DaoContext {
     }
 
     @Override
+    public UserGroupAccountDao getUserGroupAccountDao() {
+        return DaoHolder.USER_GROUP_ACCOUNT_DAO;
+    }
+
+    @Override
     public UserGroupAttrDao getUserGroupAttrDao() {
         return DaoHolder.USER_GROUP_ATTR_DAO;
     }
@@ -455,9 +467,8 @@ public final class DaoContextImpl implements DaoContext {
      */
     public static EntityManager lazyEntityManager() {
         if (instance().em == null) {
-            instance().em =
-                    ConfigManager.instance().getEntityManagerFactory()
-                            .createEntityManager();
+            instance().em = ConfigManager.instance().getEntityManagerFactory()
+                    .createEntityManager();
         }
         return instance().em;
     }

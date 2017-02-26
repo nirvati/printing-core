@@ -44,6 +44,7 @@ import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.dao.UserCardDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserEmailDao;
+import org.savapage.core.dao.UserGroupAccountDao;
 import org.savapage.core.dao.UserGroupAttrDao;
 import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.UserGroupMemberDao;
@@ -233,6 +234,10 @@ public abstract class AbstractService {
 
     protected static UserGroupDao userGroupDAO() {
         return ServiceContext.getDaoContext().getUserGroupDao();
+    }
+
+    protected static UserGroupAccountDao userGroupAccountDAO() {
+        return ServiceContext.getDaoContext().getUserGroupAccountDao();
     }
 
     protected static UserGroupAttrDao userGroupAttrDAO() {

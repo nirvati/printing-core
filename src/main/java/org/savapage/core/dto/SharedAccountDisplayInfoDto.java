@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,13 +14,14 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.dto;
 
+import java.util.List;
 import java.util.Locale;
 
 import org.savapage.core.jpa.Account;
@@ -46,6 +47,8 @@ public class SharedAccountDisplayInfoDto extends AccountDisplayInfoDto {
     private String notes;
     private Boolean deleted;
     private AccountTypeEnum accountType;
+
+    private List<UserGroupDto> userGroupAccess;
 
     public Long getId() {
         return id;
@@ -101,6 +104,14 @@ public class SharedAccountDisplayInfoDto extends AccountDisplayInfoDto {
 
     public void setAccountType(AccountTypeEnum accountType) {
         this.accountType = accountType;
+    }
+
+    public List<UserGroupDto> getUserGroupAccess() {
+        return userGroupAccess;
+    }
+
+    public void setUserGroupAccess(List<UserGroupDto> userGroupAccess) {
+        this.userGroupAccess = userGroupAccess;
     }
 
 }
