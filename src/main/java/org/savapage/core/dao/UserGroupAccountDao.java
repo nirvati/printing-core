@@ -21,6 +21,10 @@
  */
 package org.savapage.core.dao;
 
+import java.util.List;
+
+import org.savapage.core.dto.SharedAccountDto;
+import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroupAccount;
 
 /**
@@ -30,5 +34,12 @@ import org.savapage.core.jpa.UserGroupAccount;
  */
 public interface UserGroupAccountDao extends GenericDao<UserGroupAccount> {
 
-
+    /**
+     * Gets the sorted shared accounts for a {@link User}.
+     *
+     * @param user
+     *            The {@link User}.
+     * @return The list of shared accounts sorted by parent/child account name.
+     */
+    List<SharedAccountDto> getSortedSharedAccounts(User user);
 }
