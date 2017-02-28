@@ -22,8 +22,6 @@
 package org.savapage.core.dao.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.persistence.Query;
@@ -31,7 +29,6 @@ import javax.persistence.Query;
 import org.savapage.core.dao.UserGroupAccountDao;
 import org.savapage.core.dto.SharedAccountDto;
 import org.savapage.core.jpa.Account;
-import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroupAccount;
 
 /**
@@ -43,38 +40,136 @@ public final class UserGroupAccountDaoImpl extends
         GenericDaoImpl<UserGroupAccount> implements UserGroupAccountDao {
 
     /**
-     * .
+     * Applies the joins.
+     *
+     * @param jpql
+     *            The JPA query string.
      */
-    private static class SharedAccountComparator
-            implements Comparator<SharedAccountDto> {
+    private void applyJoins(final StringBuilder jpql) {
+        jpql.append("\nJOIN UGM.group UG");
+        jpql.append("\nJOIN UGM.user U");
+        jpql.append("\nJOIN UG.accounts UGA");
+        jpql.append("\nJOIN UGA.account A");
+    }
 
-        @Override
-        public final int compare(final SharedAccountDto o1,
-                final SharedAccountDto o2) {
-            return o1.nameAsText().compareTo(o2.nameAsText());
+    /**
+     * Applies the list filter to the JPQL string.
+     *
+     * @param jpql
+     *            The JPA query string.
+     * @param filter
+     *            The {@link ListFilter}.
+     */
+    private void applyListFilter(final StringBuilder jpql,
+            final ListFilter filter) {
+
+        final StringBuilder where = new StringBuilder();
+
+        int nWhere = 0;
+
+        //
+        if (nWhere > 0) {
+            where.append(" AND");
+        }
+        nWhere++;
+        where.append(" A.deleted = :selDeleted");
+
+        //
+        if (filter.getUserId() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" U.id = :userId");
+        }
+        //
+        if (filter.getContainingNameText() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" A.nameLower like :containingNameText");
         }
 
+        //
+        if (nWhere > 0) {
+            jpql.append(" WHERE ").append(where.toString());
+        }
+    }
+
+    /**
+     * Creates the List Query and sets the filter parameters.
+     *
+     * @param jpql
+     *            The JPA query string.
+     * @param filter
+     *            The {@link ListFilter}.
+     * @return The {@link Query}.
+     */
+    private Query createListQuery(final StringBuilder jpql,
+            final ListFilter filter) {
+
+        final Query query = getEntityManager().createQuery(jpql.toString());
+
+        if (filter.getUserId() != null) {
+            query.setParameter("userId", filter.getUserId());
+        }
+
+        if (filter.getContainingNameText() != null) {
+            query.setParameter("containingNameText",
+                    "%" + filter.getContainingNameText().toLowerCase() + "%");
+        }
+
+        query.setParameter("selDeleted", Boolean.FALSE);
+
+        return query;
     }
 
     @Override
-    public List<SharedAccountDto> getSortedSharedAccounts(final User user) {
+    public long getListCount(ListFilter filter) {
+
+        final StringBuilder jpql =
+                new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
+
+        jpql.append("SELECT COUNT(DISTINCT A) FROM UserGroupMember UGM");
+
+        applyJoins(jpql);
+        applyListFilter(jpql, filter);
+
+        final Query query = createListQuery(jpql, filter);
+        final Number countResult = (Number) query.getSingleResult();
+
+        return countResult.longValue();
+    }
+
+    @Override
+    public List<SharedAccountDto> getListChunk(ListFilter filter,
+            Integer startPosition, Integer maxResults) {
 
         final StringBuilder jpql =
                 new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
 
         jpql.append("SELECT DISTINCT A FROM UserGroupMember UGM");
-        jpql.append("\nJOIN UGM.group UG");
-        jpql.append("\nJOIN UGM.user U");
-        jpql.append("\nJOIN UG.accounts UGA");
-        jpql.append("\nJOIN UGA.account A");
-        jpql.append("\nWHERE U.id = :userId");
-        jpql.append(" ORDER BY A.name");
 
-        final Query query = getEntityManager().createQuery(jpql.toString());
-        query.setParameter("userId", user.getId());
+        applyJoins(jpql);
+        applyListFilter(jpql, filter);
 
-        // final SortedSet<SharedAccountDto> sortedSet =
-        // new TreeSet<>(new SharedAccountComparator());
+
+        final boolean sortAscending = true;
+
+        jpql.append("\nORDER BY A.name");
+        if (!sortAscending) {
+            jpql.append(" DESC");
+        }
+
+        final Query query = createListQuery(jpql, filter);
+
+        if (startPosition != null) {
+            query.setFirstResult(startPosition);
+        }
+        if (maxResults != null) {
+            query.setMaxResults(maxResults);
+        }
 
         @SuppressWarnings("unchecked")
         final List<Account> resultList = query.getResultList();
@@ -82,7 +177,9 @@ public final class UserGroupAccountDaoImpl extends
         final List<SharedAccountDto> sharedAccounts = new ArrayList<>();
 
         for (final Account account : resultList) {
+
             final SharedAccountDto dto = new SharedAccountDto();
+
             dto.setId(account.getId());
             dto.setName(account.getName());
 
@@ -94,8 +191,6 @@ public final class UserGroupAccountDaoImpl extends
 
             sharedAccounts.add(dto);
         }
-
-        Collections.sort(sharedAccounts, new SharedAccountComparator());
 
         return sharedAccounts;
     }

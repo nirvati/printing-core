@@ -24,7 +24,6 @@ package org.savapage.core.dao;
 import java.util.List;
 
 import org.savapage.core.dto.SharedAccountDto;
-import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroupAccount;
 
 /**
@@ -35,11 +34,50 @@ import org.savapage.core.jpa.UserGroupAccount;
 public interface UserGroupAccountDao extends GenericDao<UserGroupAccount> {
 
     /**
-     * Gets the sorted shared accounts for a {@link User}.
-     *
-     * @param user
-     *            The {@link User}.
-     * @return The list of shared accounts sorted by parent/child account name.
+     * .
      */
-    List<SharedAccountDto> getSortedSharedAccounts(User user);
+    class ListFilter {
+
+        private Long userId;
+        private String containingNameText;
+
+        public Long getUserId() {
+            return userId;
+        }
+
+        public void setUserId(Long userId) {
+            this.userId = userId;
+        }
+
+        public String getContainingNameText() {
+            return containingNameText;
+        }
+
+        public void setContainingNameText(String containingNameText) {
+            this.containingNameText = containingNameText;
+        }
+
+    }
+
+    /**
+     *
+     * @param filter
+     *            The {@link ListFilter}.
+     * @return The number of filtered instances.
+     */
+    long getListCount(ListFilter filter);
+
+    /**
+     * Gets the sorted shared accounts.
+     *
+     * @param filter
+     * @param startPosition
+     * @param maxResults
+     * @param orderBy
+     * @param sortAscending
+     * @return The list.
+     */
+    List<SharedAccountDto> getListChunk(ListFilter filter,
+            Integer startPosition, Integer maxResults);
+
 }

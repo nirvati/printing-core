@@ -93,6 +93,14 @@ public final class SharedAccountDto extends AbstractDto {
     }
 
     @JsonIgnore
+    public String nameAsQuickSearch() {
+        if (this.parentId == null) {
+            return this.name;
+        }
+        return String.format("%s (%s)", this.name, this.parentName);
+    }
+
+    @JsonIgnore
     private String composeName(final boolean isHtml) {
 
         if (this.parentId == null) {
