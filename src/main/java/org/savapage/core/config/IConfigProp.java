@@ -50,6 +50,7 @@ import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.dao.impl.DaoBatchCommitterImpl;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.UserAuth;
@@ -1395,6 +1396,24 @@ public interface IConfigProp {
          * Enable Delegated Print (boolean).
          */
         PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * Enable delegated print account type {@link AccountTypeEnum#GROUP}
+         * (boolean).
+         */
+        PROXY_PRINT_DELEGATE_ACCOUNT_GROUP_ENABLE("proxy-print.delegate.account.group.enable", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * Enable delegated print account type {@link AccountTypeEnum#USER}
+         * (boolean).
+         */
+        PROXY_PRINT_DELEGATE_ACCOUNT_USER_ENABLE("proxy-print.delegate.account.user.enable", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * Enable delegated print account type {@link AccountTypeEnum#SHARED}
+         * (boolean).
+         */
+        PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_ENABLE("proxy-print.delegate.account.shared.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * Enable Delegated Print integration with PaperCut (boolean).
