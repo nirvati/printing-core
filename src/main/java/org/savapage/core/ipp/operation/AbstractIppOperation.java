@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -144,18 +144,30 @@ public abstract class AbstractIppOperation {
             operation = new IppPrintJobOperation(remoteAddr, queue,
                     hasPrintAccessToQueue, trustedIppClientUserId,
                     trustedUserAsRequester);
+
         } else if (operationId == IppOperationId.VALIDATE_JOB.asInt()) {
             operation = new IppValidateJobOperation(remoteAddr, queue,
                     requestedQueueUrlPath, hasPrintAccessToQueue,
                     trustedIppClientUserId, trustedUserAsRequester);
+
         } else if (operationId == IppOperationId.GET_PRINTER_ATTR.asInt()) {
             operation = new IppGetPrinterAttrOperation();
+
         } else if (operationId == IppOperationId.GET_JOBS.asInt()) {
             operation = new IppGetJobsOperation();
+
         } else if (operationId == IppOperationId.CANCEL_JOB.asInt()) {
             operation = new IppCancelJobOperation();
+
         } else if (operationId == IppOperationId.GET_JOB_ATTR.asInt()) {
             operation = new IppGetJobAttrOperation();
+
+        } else if (operationId == IppOperationId.CUPS_GET_PRINTERS.asInt()) {
+            operation = new IppCupsGetPrintersOperation();
+
+        } else if (operationId == IppOperationId.CUPS_GET_DEFAULT.asInt()) {
+            operation = new IppCupsGetDefaultOperation();
+
         } else {
             operation = null;
         }
