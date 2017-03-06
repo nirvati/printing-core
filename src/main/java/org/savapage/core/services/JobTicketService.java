@@ -21,6 +21,7 @@
  */
 package org.savapage.core.services;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -33,6 +34,7 @@ import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.helpers.IppOptionMap;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobBaseDto;
@@ -187,6 +189,36 @@ public interface JobTicketService extends StatefulService {
      * @return The removed ticket or {@code null} when ticket was not found.
      */
     OutboxJobDto cancelTicket(String fileName);
+
+    /**
+     * Cancels a Job Ticket proxy print.
+     *
+     * @param fileName
+     *            The unique PDF file name of the job ticket.
+     * @return {@link Boolean#TRUE} when cancelled, {@link Boolean#FALSE} when
+     *         cancellation failed, or {@code null} when ticket was not found.
+     */
+    Boolean cancelTicketPrint(String fileName);
+
+    /**
+     * Gets the {@link PrintOut} of a job ticket.
+     *
+     * @param fileName
+     *            The unique PDF file name of the job ticket.
+     * @return The {@link PrintOut} or {@code null} when not present.
+     * @throws FileNotFoundException
+     *             When ticket is not found.
+     */
+    PrintOut getTicketPrintOut(String fileName) throws FileNotFoundException;
+
+    /**
+     * Closes a Job Ticket after proxy print.
+     *
+     * @param fileName
+     *            The unique PDF file name of the job to remove.
+     * @return The closed ticket or {@code null} when ticket was not found.
+     */
+    OutboxJobDto closeTicketPrint(String fileName);
 
     /**
      * Updates a Job Ticket.

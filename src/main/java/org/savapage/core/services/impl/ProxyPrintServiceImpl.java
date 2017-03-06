@@ -84,6 +84,7 @@ import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.ipp.operation.IppStatusCode;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
 import org.savapage.core.jpa.PrinterGroup;
@@ -1279,6 +1280,42 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         return printer;
     }
 
+    @Override
+    public boolean cancelPrintJob(final PrintOut printOut)
+            throws IppConnectException {
+
+        final String printerName = printOut.getPrinter().getPrinterName();
+        final String requestingUserName =
+                printOut.getDocOut().getDocLog().getUser().getUserId();
+
+        final JsonProxyPrinter proxyPrinter =
+                this.getCachedPrinter(printerName);
+
+        if (proxyPrinter == null) {
+            throw new IllegalStateException(
+                    String.format("Printer [%s] not found.", printerName));
+        }
+
+        final String printerUri = proxyPrinter.getPrinterUri().toString();
+        final URL urlCupsServer;
+
+        try {
+            urlCupsServer = this.getCupsServerUrl(proxyPrinter.getPrinterUri());
+        } catch (MalformedURLException e) {
+            throw new SpException(e);
+        }
+
+        final List<IppAttrGroup> response = new ArrayList<>();
+
+        final IppStatusCode statusCode =
+                ippClient.send(urlCupsServer,
+                        IppOperationId.CANCEL_JOB, reqCancelJobAttr(printerUri,
+                                printOut.getCupsJobId(), requestingUserName),
+                        response);
+
+        return statusCode == IppStatusCode.OK;
+    }
+
     /**
      * Retrieves the print job data using the URI of the printer or the job.
      *
@@ -1296,7 +1333,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final String uriPrinter, String uriJob, Integer jobId)
             throws IppConnectException {
 
-        List<IppAttrGroup> response = new ArrayList<>();
+        final List<IppAttrGroup> response = new ArrayList<>();
 
         IppStatusCode statusCode = null;
 
@@ -1718,7 +1755,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
     /**
      *
-     * @param reqUser
      * @param uriPrinter
      * @param jobId
      * @return
@@ -1744,6 +1780,41 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 uriPrinter);
         group.add(dict.getAttr(IppDictOperationAttr.ATTR_JOB_ID),
                 jobId.toString());
+
+        // ---------
+        return attrGroups;
+    }
+
+    /**
+     *
+     * @param uriPrinter
+     * @param jobId
+     * @param requestingUserName
+     * @return
+     */
+    private List<IppAttrGroup> reqCancelJobAttr(final String uriPrinter,
+            final Integer jobId, final String requestingUserName) {
+
+        final List<IppAttrGroup> attrGroups = new ArrayList<>();
+
+        IppAttrGroup group = null;
+        AbstractIppDict dict = null;
+
+        /*
+         * Group 1: Operation Attributes
+         */
+        group = createOperationGroup();
+        attrGroups.add(group);
+
+        dict = IppDictOperationAttr.instance();
+
+        // ---------
+        group.add(dict.getAttr(IppDictOperationAttr.ATTR_PRINTER_URI),
+                uriPrinter);
+        group.add(dict.getAttr(IppDictOperationAttr.ATTR_JOB_ID),
+                jobId.toString());
+        group.add(dict.getAttr(IppDictOperationAttr.ATTR_REQUESTING_USER_NAME),
+                requestingUserName);
 
         // ---------
         return attrGroups;

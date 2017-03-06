@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,19 +14,23 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <httpd://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.ipp;
 
+import java.util.Locale;
+
 import org.savapage.core.SpException;
+import org.savapage.core.util.LocaleHelper;
 
 /**
  * Enumeration of job states.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public enum IppJobStateEnum {
 
@@ -59,7 +63,7 @@ public enum IppJobStateEnum {
     /**
      * Text to be used in user interface.
      */
-    private final String uiText;
+    private final String logText;
 
     /**
      * Creates an enum value from an integer.
@@ -71,7 +75,7 @@ public enum IppJobStateEnum {
      */
     IppJobStateEnum(final int value, final String text) {
         this.bitPattern = value;
-        this.uiText = text;
+        this.logText = text;
     }
 
     /**
@@ -85,10 +89,19 @@ public enum IppJobStateEnum {
 
     /**
      *
-     * @return Text string to be used in user interface.
+     * @return Text string to be used for logging.
      */
-    public String asUiText() {
-        return this.uiText;
+    public String asLogText() {
+        return this.logText;
+    }
+
+    /**
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public String uiText(final Locale locale) {
+        return LocaleHelper.uiText(this, locale);
     }
 
     /**

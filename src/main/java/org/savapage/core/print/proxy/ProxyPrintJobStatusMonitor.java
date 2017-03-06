@@ -536,7 +536,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                         state = jobIter.getJobStateCups();
                     }
 
-                    msg.append(state.asUiText()).append(".");
+                    msg.append(state.asLogText()).append(".");
 
                     AdminPublisher.instance().publish(PubTopicEnum.CUPS,
                             PubLevelEnum.WARN, msg.toString());
@@ -656,7 +656,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                                         .defaultString(jobIter.getJobName()))
                                 .append("\" on printer ")
                                 .append(jobIter.getPrinterName()).append(" is ")
-                                .append(jobStateCups.asUiText()).append(".");
+                                .append(jobStateCups.asLogText()).append(".");
 
                         AdminPublisher.instance().publish(PubTopicEnum.CUPS,
                                 pubLevel, msg.toString());

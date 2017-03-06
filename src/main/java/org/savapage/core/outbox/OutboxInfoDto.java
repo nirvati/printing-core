@@ -31,7 +31,9 @@ import java.util.Map;
 
 import org.savapage.core.dto.AbstractDto;
 import org.savapage.core.inbox.PdfOrientationInfo;
+import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.helpers.IppOptionMap;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
@@ -291,10 +293,26 @@ public final class OutboxInfoDto extends AbstractDto {
     public static final class OutboxJobDto extends OutboxJobBaseDto {
 
         /**
-         * Is {@code null} when in User outbox.
+         * The primary database key of the {@link User}. Is {@code null} when in
+         * User outbox.
          */
         private Long userId;
 
+        /**
+         * The primary database key of the {@link PrintOut}. Is {@code null}
+         * when in User outbox.
+         */
+        private Long printOutId;
+
+        /**
+         *
+         */
+        @JsonIgnore
+        private IppJobStateEnum ippJobState;
+
+        /**
+         * .
+         */
         private ExternalSupplierInfo externalSupplierInfo;
 
         private String file;
@@ -352,6 +370,24 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setUserId(Long userId) {
             this.userId = userId;
+        }
+
+        public Long getPrintOutId() {
+            return printOutId;
+        }
+
+        public void setPrintOutId(Long printOutId) {
+            this.printOutId = printOutId;
+        }
+
+        @JsonIgnore
+        public IppJobStateEnum getIppJobState() {
+            return ippJobState;
+        }
+
+        @JsonIgnore
+        public void setIppJobState(IppJobStateEnum ippJobState) {
+            this.ippJobState = ippJobState;
         }
 
         public ExternalSupplierInfo getExternalSupplierInfo() {

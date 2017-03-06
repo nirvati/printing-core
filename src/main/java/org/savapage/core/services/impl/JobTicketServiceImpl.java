@@ -24,6 +24,7 @@ package org.savapage.core.services.impl;
 import static java.nio.file.FileVisitResult.CONTINUE;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -62,9 +63,11 @@ import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
+import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.helpers.IppOptionMap;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.PrinterGroupMember;
@@ -599,21 +602,21 @@ public final class JobTicketServiceImpl extends AbstractService
      *
      * @param uuid
      *            The {@link UUID}.
-     * @param isCanceled
-     *            {@code true} when ticket is canceled, {@code false} when
-     *            ticket is completed.
+     * @param isCompleted
+     *            {@code true} when ticket is completed, {@code false} when
+     *            ticket is canceled.
      * @return The {@link OutboxJobDto}.
      */
     private OutboxJobDto removeTicket(final UUID uuid,
-            final boolean isCanceled) {
+            final boolean isCompleted) {
 
         final OutboxJobDto job = this.removeTicket(uuid);
 
         if (job != null) {
-            if (isCanceled) {
-                outboxService().onOutboxJobCanceled(job);
-            } else {
+            if (isCompleted) {
                 outboxService().onOutboxJobCompleted(job);
+            } else {
+                outboxService().onOutboxJobCanceled(job);
             }
         }
         return job;
@@ -634,14 +637,90 @@ public final class JobTicketServiceImpl extends AbstractService
                     String.format("Job ticket [%s] is not owned by user [%s]",
                             uuid.toString(), userId.toString()));
         }
-
-        return this.removeTicket(uuid, true);
+        return this.removeTicket(uuid, false);
     }
 
     @Override
     public OutboxJobDto cancelTicket(final String fileName) {
         final UUID uuid = uuidFromFileName(fileName);
-        return this.removeTicket(uuid, true);
+        return this.removeTicket(uuid, false);
+    }
+
+    @Override
+    public PrintOut getTicketPrintOut(final String fileName)
+            throws FileNotFoundException {
+
+        final UUID uuid = uuidFromFileName(fileName);
+        final OutboxJobDto dto = this.jobTicketCache.get(uuid);
+
+        if (dto == null) {
+            throw new FileNotFoundException(
+                    String.format("Ticket %s not found.", fileName));
+        }
+
+        final Long printOutId = dto.getPrintOutId();
+
+        if (printOutId == null) {
+            return null;
+        }
+
+        final PrintOut printOut = printOutDAO().findById(printOutId);
+
+        if (printOut == null) {
+            throw new IllegalStateException(String.format(
+                    "Ticket %s: PrintOut not found.", dto.getTicketNumber()));
+        }
+
+        return printOut;
+    }
+
+    @Override
+    public Boolean cancelTicketPrint(final String fileName) {
+
+        final PrintOut printOut;
+
+        try {
+            printOut = this.getTicketPrintOut(fileName);
+        } catch (FileNotFoundException e1) {
+            return null;
+        }
+
+        if (printOut == null) {
+            throw new IllegalStateException(String
+                    .format("Ticket %s: PrintOut ID not found.", fileName));
+        }
+
+        try {
+            return Boolean
+                    .valueOf(proxyPrintService().cancelPrintJob(printOut));
+        } catch (IppConnectException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @Override
+    public OutboxJobDto closeTicketPrint(final String fileName) {
+
+        final PrintOut printOut;
+
+        try {
+            printOut = this.getTicketPrintOut(fileName);
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+
+        final UUID uuid = uuidFromFileName(fileName);
+
+        final OutboxJobDto dto = this.removeTicket(uuid, true);
+
+        if (dto == null) {
+            return null;
+        }
+
+        dto.setIppJobState(
+                IppJobStateEnum.asEnum(printOut.getCupsJobState().intValue()));
+
+        return dto;
     }
 
     @Override
@@ -753,11 +832,15 @@ public final class JobTicketServiceImpl extends AbstractService
 
         final User lockedUser = userDAO().lock(dto.getUserId());
 
+        final OutboxJobDto dtoReturn;
+
         if (settleOnly) {
 
             proxyPrintService().settleJobTicket(operator, lockedUser, dto,
                     getJobTicketFile(uuid, FILENAME_EXT_JSON),
                     extPrinterManager);
+
+            dtoReturn = this.removeTicket(uuid, true);
 
             if (ConfigManager.instance().isConfigValue(
                     Key.JOBTICKET_NOTIFY_EMAIL_COMPLETED_ENABLE)) {
@@ -780,22 +863,18 @@ public final class JobTicketServiceImpl extends AbstractService
             dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
                     ippMediaSource);
 
-            proxyPrintService().proxyPrintJobTicket(operator, lockedUser, dto,
-                    getJobTicketFile(uuid, FILENAME_EXT_PDF),
-                    extPrinterManager);
+            final PrintOut printOut =
+                    proxyPrintService()
+                            .proxyPrintJobTicket(operator, lockedUser, dto,
+                                    getJobTicketFile(uuid, FILENAME_EXT_PDF),
+                                    extPrinterManager)
+                            .getDocOut().getPrintOut();
+
+            dto.setPrintOutId(printOut.getId());
+            this.updateTicket(dto);
+            dtoReturn = dto;
         }
 
-        final OutboxJobDto dtoReturn;
-
-        if (extPrinterManager == null || settleOnly) {
-            dtoReturn = this.removeTicket(uuid, false);
-        } else {
-            /*
-             * Just remove the ticket, do NOT notify. When proxy printed,
-             * notification is done by third party (PaperCut) Monitoring.
-             */
-            dtoReturn = this.removeTicket(uuid);
-        }
         return dtoReturn;
     }
 

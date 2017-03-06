@@ -49,6 +49,8 @@ import org.savapage.core.ipp.client.IppNotificationRecipient;
 import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.ipp.operation.IppStatusCode;
 import org.savapage.core.jpa.Device;
+import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
@@ -575,14 +577,16 @@ public interface ProxyPrintService {
      * @param extPrinterManager
      *            The {@link ThirdPartyEnum} external print manager:
      *            {@code null} when native SavaPage.
-     * @return The number of printed pages.
+     * @return The committed {@link DocLog} instance related to the
+     *         {@link PrintOut}.
      * @throws IOException
      *             When IO error.
      * @throws IppConnectException
      *             When connection to CUPS fails.
      */
-    int proxyPrintJobTicket(String operator, User lockedUser, OutboxJobDto job,
-            File pdfFileToPrint, ThirdPartyEnum extPrinterManager)
+    DocLog proxyPrintJobTicket(String operator, User lockedUser,
+            OutboxJobDto job, File pdfFileToPrint,
+            ThirdPartyEnum extPrinterManager)
             throws IOException, IppConnectException;
 
     /**
@@ -838,5 +842,16 @@ public interface ProxyPrintService {
      */
     AbstractJsonRpcMessage readSnmp(ParamsPrinterSnmp params)
             throws SnmpConnectException;
+
+    /**
+     * Cancels a print job.
+     *
+     * @param printOut
+     *            The {@link PrintOut} object.
+     * @return {@code true} when successfully cancelled.
+     * @throws IppConnectException
+     *             When an connection error occurs.
+     */
+    boolean cancelPrintJob(PrintOut printOut) throws IppConnectException;
 
 }

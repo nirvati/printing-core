@@ -1808,12 +1808,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * @param monitorPaperCutPrintStatus
      *            {@code true} when print status of the {@link OutboxJobDto}
      *            must be monitored in PaperCut.
+     * @return The committed {@link DocLog} instance related to the
+     *         {@link PrintOut}.
      * @throws IOException
      *             When IO error.
      * @throws IppConnectException
      *             When connection to CUPS fails.
      */
-    private void execOutboxJob(final String operator, final User lockedUser,
+    private DocLog execOutboxJob(final String operator, final User lockedUser,
             final OutboxJobDto job, final PrintModeEnum printMode,
             final File pdfFileToPrint, final boolean monitorPaperCutPrintStatus)
             throws IOException, IppConnectException {
@@ -1932,7 +1934,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
         }
 
-        pdfFileToPrint.delete();
+        // Preserve PDF file when Job Ticket.
+        if (!isJobTicket) {
+            pdfFileToPrint.delete();
+        }
 
         /*
          * If this is NOT a job ticket and we do not monitor PaperCut print
@@ -1944,6 +1949,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
         if (!isJobTicket && !monitorPaperCutPrintStatus) {
             outboxService().onOutboxJobCompleted(job);
         }
+
+        return docLog;
     }
 
     /**
@@ -2289,17 +2296,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public final int proxyPrintJobTicket(final String operator,
+    public final DocLog proxyPrintJobTicket(final String operator,
             final User lockedUser, final OutboxJobDto job,
             final File pdfFileToPrint, final ThirdPartyEnum extPrinterManager)
             throws IOException, IppConnectException {
 
         this.validateJobTicketPaperCutSupplier(job, extPrinterManager);
 
-        this.execOutboxJob(operator, lockedUser, job, PrintModeEnum.TICKET,
-                pdfFileToPrint, extPrinterManager == ThirdPartyEnum.PAPERCUT);
-
-        return job.getPages() * job.getCopies();
+        return this.execOutboxJob(operator, lockedUser, job,
+                PrintModeEnum.TICKET, pdfFileToPrint,
+                extPrinterManager == ThirdPartyEnum.PAPERCUT);
     }
 
     @Override
