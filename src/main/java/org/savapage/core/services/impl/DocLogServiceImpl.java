@@ -1199,11 +1199,7 @@ public final class DocLogServiceImpl extends AbstractService
         docLogCollect.setUser(user);
         docLogCollect.setUuid(java.util.UUID.randomUUID().toString());
         docLogCollect.setNumberOfBytes(Long.valueOf(0));
-
-        //final List<DocInOut> inoutList = new ArrayList<>();
-
         docLogCollect.setNumberOfPages(numberOfPages);
-        //docLogCollect.getDocOut().setDocsInOut(inoutList);
 
         docLogCollect.getDocOut()
                 .setSignature(this.generateSignature(docLogCollect));
