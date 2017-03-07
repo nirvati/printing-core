@@ -748,7 +748,7 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public void notifyTicketCompletedByEmail(final OutboxJobBaseDto dto,
+    public String notifyTicketCompletedByEmail(final OutboxJobBaseDto dto,
             final String operator, final User user, final Locale locale) {
 
         final EmailMsgParms emailParms = new EmailMsgParms();
@@ -759,7 +759,7 @@ public final class JobTicketServiceImpl extends AbstractService
             LOGGER.warn(String.format(
                     "No primary email address found for user [%s]",
                     user.getUserId()));
-            return;
+            return null;
         }
 
         emailParms.setToAddress(emailAddr);
@@ -775,6 +775,8 @@ public final class JobTicketServiceImpl extends AbstractService
                 | MessagingException | IOException e) {
             throw new SpException(e.getMessage());
         }
+
+        return emailAddr;
     }
 
     /**
@@ -993,6 +995,10 @@ public final class JobTicketServiceImpl extends AbstractService
         for (final PrinterGroupMember member : printerGroup.getMembers()) {
 
             final Printer printer = member.getPrinter();
+
+            if (printer.getDisabled().booleanValue()) {
+                continue;
+            }
 
             final JsonProxyPrinter cupsPrinter = proxyPrintService()
                     .getCachedPrinter(printer.getPrinterName());

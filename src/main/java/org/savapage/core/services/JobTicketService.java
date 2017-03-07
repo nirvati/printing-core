@@ -243,8 +243,9 @@ public interface JobTicketService extends StatefulService {
      *            The Job Ticket owner.
      * @param locale
      *            The locale for the email text.
+     * @return The email address, or {@code null} when not send.
      */
-    void notifyTicketCompletedByEmail(OutboxJobBaseDto dto, String operator,
+    String notifyTicketCompletedByEmail(OutboxJobBaseDto dto, String operator,
             User user, Locale locale);
 
     /**
