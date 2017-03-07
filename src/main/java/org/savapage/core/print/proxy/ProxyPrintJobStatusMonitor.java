@@ -27,29 +27,20 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.SpInfo;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
-import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.PrintOutDao;
-import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.ipp.IppJobStateEnum;
-import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.msg.UserMsgIndicator;
-import org.savapage.core.outbox.OutboxInfoDto.OutboxJobBaseDto;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMixin.StatusSource;
-import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
-import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +48,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Processes {@link PrintJobStatus} events in a separate thread.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ProxyPrintJobStatusMonitor extends Thread {
@@ -73,12 +64,6 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
      */
     private static final ProxyPrintService PROXY_PRINT_SERVICE =
             ServiceContext.getServiceFactory().getProxyPrintService();;
-
-    /**
-     * .
-     */
-    private static final JobTicketService JOBTICKET_SERVICE =
-            ServiceContext.getServiceFactory().getJobTicketService();
 
     /**
      *
@@ -670,8 +655,6 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                         final String userid = updatePrintOutStatus(printOut,
                                 jobStateCups, jobIter.getCupsCompletedTime());
 
-                        checkJobTicketNotification(printOut, jobStateCups);
-
                         try {
 
                             writePrintOutUserMsg(userid,
@@ -739,87 +722,6 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
             UserMsgIndicator.write(userid, completedDate,
                     UserMsgIndicator.Msg.PRINT_OUT_COMPLETED, null);
-        }
-    }
-
-    /**
-     * Updates the {@link PrintOut} with CUPS status and completion time.
-     *
-     * @param printOut
-     *            The {@link PrintOut}.
-     * @param ippState
-     *            The {@link IppJobStateEnum}.
-     */
-    private void checkJobTicketNotification(final PrintOut printOut,
-            final IppJobStateEnum ippState) {
-
-        /*
-         * INVARIANT: Print must be completed.
-         */
-        if (ippState != IppJobStateEnum.IPP_JOB_COMPLETED) {
-            return;
-        }
-
-        final PrintModeEnum printMode =
-                EnumUtils.getEnum(PrintModeEnum.class, printOut.getPrintMode());
-
-        /*
-         * INVARIANT: Print mode must be a TICKET.
-         */
-        if (printMode == null || printMode != PrintModeEnum.TICKET) {
-            return;
-        }
-
-        /*
-         * INVARIANT: Notification must be enabled.
-         */
-        if (!ConfigManager.instance()
-                .isConfigValue(Key.JOBTICKET_NOTIFY_EMAIL_COMPLETED_ENABLE)) {
-            return;
-        }
-
-        //
-        final DocLog docLog = printOut.getDocOut().getDocLog();
-
-        final String ticketNumber = docLog.getExternalId();
-
-        final JobTicketSupplierData extData =
-                JobTicketSupplierData.createFromData(docLog.getExternalData());
-
-        /*
-         * INVARIANT: Job Ticket data must be available.
-         */
-        if (extData == null) {
-            LOGGER.error(String.format(
-                    "No JobTicketSupplierData available for Ticket %s",
-                    ticketNumber));
-            return;
-        }
-
-        /*
-         * Recreate basic Job Ticket data.
-         */
-        final OutboxJobBaseDto dto = new OutboxJobBaseDto();
-
-        dto.setCollate(BooleanUtils.isTrue(printOut.getCollateCopies()));
-        dto.setComment(docLog.getLogComment());
-        dto.setCopies(printOut.getNumberOfCopies());
-        dto.setDrm(BooleanUtils.isTrue(docLog.getDrmRestricted()));
-        dto.setEcoPrint(
-                BooleanUtils.isTrue(printOut.getDocOut().getEcoPrint()));
-        dto.setJobName(docLog.getTitle());
-        dto.setTicketNumber(ticketNumber);
-
-        /*
-         * Since, we do not want corrupt this processing thread, we map
-         * exceptions to error logging.
-         */
-        try {
-            JOBTICKET_SERVICE.notifyTicketCompletedByEmail(dto,
-                    StringUtils.defaultString(extData.getOperator()),
-                    docLog.getUser(), ConfigManager.getDefaultLocale());
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage());
         }
     }
 
