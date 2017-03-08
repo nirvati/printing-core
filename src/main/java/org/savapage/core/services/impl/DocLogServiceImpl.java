@@ -54,7 +54,6 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintInDeniedReasonEnum;
 import org.savapage.core.doc.DocContent;
-import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocInOut;
@@ -73,8 +72,8 @@ import org.savapage.core.json.TimeSeriesInterval;
 import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.SpPdfPageProps;
+import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
-import org.savapage.core.print.proxy.ProxyPrintJobStatusPrintOut;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
@@ -160,20 +159,17 @@ public final class DocLogServiceImpl extends AbstractService
          */
         if (printOut != null) {
 
-            final IppJobStateEnum jobState =
-                    IppJobStateEnum.asEnum(printOut.getCupsJobState());
+            final JsonProxyPrintJob printJob = new JsonProxyPrintJob();
 
-            final ProxyPrintJobStatusPrintOut jobStatus =
-                    new ProxyPrintJobStatusPrintOut(
-                            printOut.getPrinter().getPrinterName(),
-                            printOut.getCupsJobId(),
-                            printOut.getDocOut().getDocLog().getTitle(),
-                            jobState);
+            printJob.setCompletedTime(printOut.getCupsCompletedTime());
+            printJob.setCreationTime(printOut.getCupsCreationTime());
+            printJob.setJobId(printOut.getCupsJobId());
+            printJob.setJobState(printOut.getCupsJobState());
+            printJob.setTitle(docOut.getDocLog().getTitle());
+            printJob.setUser(user.getUserId());
 
-            jobStatus.setCupsCreationTime(printOut.getCupsCreationTime());
-            jobStatus.setCupsCompletedTime(printOut.getCupsCompletedTime());
-
-            ProxyPrintJobStatusMonitor.notify(jobStatus);
+            ProxyPrintJobStatusMonitor.notifyPrintOut(
+                    printOut.getPrinter().getPrinterName(), printJob);
         }
 
         /*

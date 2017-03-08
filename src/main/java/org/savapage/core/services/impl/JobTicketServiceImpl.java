@@ -59,6 +59,7 @@ import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.dto.RedirectPrinterDto;
@@ -77,11 +78,13 @@ import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
+import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
+import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
 import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.ServiceContext;
@@ -820,13 +823,22 @@ public final class JobTicketServiceImpl extends AbstractService
         }
 
         /*
-         * Replace with redirect printer.
+         * INVARIANT: Job Ticket can only have one (1) associated PrintOut.
          */
-        dto.setPrinterName(printer.getPrinterName());
+        if (dto.getPrintOutId() != null) {
+            throw new IllegalStateException(
+                    String.format("Ticket %s already has PrintOut history.",
+                            dto.getTicketNumber()));
+        }
+
+        /*
+         * Set redirect printer.
+         */
+        dto.setPrinterRedirect(printer.getPrinterName());
 
         final ThirdPartyEnum extPrinterManager;
 
-        if (paperCutService().isExtPaperCutPrint(dto.getPrinterName())) {
+        if (paperCutService().isExtPaperCutPrint(dto.getPrinterRedirect())) {
             extPrinterManager = ThirdPartyEnum.PAPERCUT;
         } else {
             extPrinterManager = null;
@@ -878,6 +890,78 @@ public final class JobTicketServiceImpl extends AbstractService
         }
 
         return dtoReturn;
+    }
+
+    @Override
+    public OutboxJobDto retryTicketPrint(final String operator,
+            final Printer printer, final String ippMediaSource,
+            final String fileName) throws IOException, IppConnectException {
+
+        final OutboxJobDto dto = this.getTicket(fileName);
+
+        // May be some other operator already closed the ticket.
+        if (dto == null) {
+            return null;
+        }
+
+        final User user = userDAO().findById(dto.getUserId());
+
+        /*
+         * Set dto before creating the print request.
+         */
+        dto.setPrinterRedirect(printer.getPrinterName());
+        dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
+                ippMediaSource);
+
+        final JsonProxyPrinter jsonPrinter =
+                proxyPrintService().getCachedPrinter(printer.getPrinterName());
+
+        // Create print request
+        final AbstractProxyPrintReq request = proxyPrintService()
+                .createProxyPrintDocReq(user, dto, PrintModeEnum.TICKET);
+
+        final UUID ticketUuid = uuidFromFileName(fileName);
+        final PdfCreateInfo createInfo = new PdfCreateInfo(
+                getJobTicketFile(ticketUuid, FILENAME_EXT_PDF));
+
+        createInfo.setBlankFillerPages(dto.getFillerPages());
+
+        // Re-use job name.
+        final PrintOut printOut = printOutDAO().findById(dto.getPrintOutId());
+        final String printJobTitle =
+                printOut.getDocOut().getDocLog().getTitle();
+
+        request.setJobName(printJobTitle);
+
+        // CUPS Print.
+        final JsonProxyPrintJob printJob = proxyPrintService().sendPdfToPrinter(
+                request, jsonPrinter, user.getUserId(), createInfo);
+
+        /*
+         * Update PintOut with new Printer and CUPS job data.
+         */
+        printOutDAO().updateCupsJobPrinter(dto.getPrintOutId(), printer,
+                printJob, request.getOptionValues());
+
+        ServiceContext.getDaoContext().commit();
+
+        // Notify the CUPS job status monitor of this new PrintOut.
+        ProxyPrintJobStatusMonitor.notifyPrintOut(printer.getPrinterName(),
+                printJob);
+
+        // Update the ticket.
+        this.updateTicket(dto);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(String.format(
+                    "retryTicketPrint: COMMIT PrintOut ID [%d] printer [%s] "
+                            + "job [%d] status [%s]",
+                    dto.getPrintOutId().longValue(), printer.getPrinterName(),
+                    printJob.getJobId().intValue(),
+                    IppJobStateEnum.asEnum(printJob.getJobState())));
+        }
+
+        return dto;
     }
 
     @Override
@@ -962,7 +1046,7 @@ public final class JobTicketServiceImpl extends AbstractService
         }
 
         final Printer jobTicketPrinter =
-                printerDAO().findByName(job.getPrinterName());
+                printerDAO().findByName(job.getPrinterJobTicket());
 
         final List<RedirectPrinterDto> printerList = new ArrayList<>();
 

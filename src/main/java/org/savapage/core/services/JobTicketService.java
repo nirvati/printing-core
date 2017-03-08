@@ -272,6 +272,31 @@ public interface JobTicketService extends StatefulService {
             throws IOException, IppConnectException;
 
     /**
+     * Retries a Job Ticket Print (typically after a job is cancelled, due to
+     * printer failure). Note: this method does <i>not</i> settle the ticket,
+     * since it is assumed this is already done at the first print trial.
+     *
+     * @param operator
+     *            The {@link User#getUserId()} with
+     *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
+     * @param printer
+     *            The (new) redirect printer.
+     * @param ippMediaSource
+     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
+     *            the print job.
+     * @param fileName
+     *            The unique PDF file name of the job to print.
+     * @return The printed ticket or {@code null} when ticket was not found.
+     * @throws IOException
+     *             When IO error.
+     * @throws IppConnectException
+     *             When connection to CUPS fails.
+     */
+    OutboxJobDto retryTicketPrint(String operator, Printer printer,
+            String ippMediaSource, String fileName)
+            throws IOException, IppConnectException;
+
+    /**
      * Settles a Job Ticket without printing it.
      *
      * @param operator

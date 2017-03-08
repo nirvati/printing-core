@@ -316,7 +316,17 @@ public final class OutboxInfoDto extends AbstractDto {
         private ExternalSupplierInfo externalSupplierInfo;
 
         private String file;
-        private String printerName;
+
+        /**
+         * Name of the Job Ticket printer.
+         */
+        private String printerJobTicket;
+
+        /**
+         * Name of the redirect printer. If {@code null} ticket is not printed
+         * yet.
+         */
+        private String printerRedirect;
 
         /**
          * The total number of blank filler pages appended between logical
@@ -407,12 +417,20 @@ public final class OutboxInfoDto extends AbstractDto {
             this.file = file;
         }
 
-        public String getPrinterName() {
-            return printerName;
+        public String getPrinterJobTicket() {
+            return printerJobTicket;
         }
 
-        public void setPrinterName(String printerName) {
-            this.printerName = printerName;
+        public void setPrinterJobTicket(String printerName) {
+            this.printerJobTicket = printerName;
+        }
+
+        public String getPrinterRedirect() {
+            return printerRedirect;
+        }
+
+        public void setPrinterRedirect(String printerName) {
+            this.printerRedirect = printerName;
         }
 
         public int getFillerPages() {
@@ -678,9 +696,9 @@ public final class OutboxInfoDto extends AbstractDto {
      * @throws IOException
      */
     public String prettyPrinted() throws IOException {
-        JsonFactory jsonFactory = new JsonFactory();
-        StringWriter sw = new StringWriter();
-        JsonGenerator jg = jsonFactory.createJsonGenerator(sw);
+        final JsonFactory jsonFactory = new JsonFactory();
+        final StringWriter sw = new StringWriter();
+        final JsonGenerator jg = jsonFactory.createJsonGenerator(sw);
         jg.useDefaultPrettyPrinter();
         getMapper().writeValue(jg, this);
         return sw.toString();

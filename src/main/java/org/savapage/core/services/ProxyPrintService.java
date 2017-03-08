@@ -34,6 +34,7 @@ import javax.print.attribute.standard.MediaSizeName;
 
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.ProxyPrinterCostDto;
@@ -64,6 +65,7 @@ import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
+import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
@@ -507,6 +509,26 @@ public interface ProxyPrintService {
             throws IppConnectException, ProxyPrintException;
 
     /**
+     * Sends a PDF file to a CUPS printer, and that is it. No database action is
+     * executed.
+     *
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
+     * @param jsonPrinter
+     *            The printer object.
+     * @param user
+     *            The requesting user.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the file to print.
+     * @return The print job data.
+     * @throws IppConnectException
+     *             When IPP connection error.
+     */
+    JsonProxyPrintJob sendPdfToPrinter(AbstractProxyPrintReq request,
+            JsonProxyPrinter jsonPrinter, String user, PdfCreateInfo createInfo)
+            throws IppConnectException;
+
+    /**
      * Prints one (1) copy of each job in a vanilla inbox job of the
      * {@link User} identified by card number, to the proxy printer associated
      * with the card reader. Printer defaults are used.
@@ -854,4 +876,17 @@ public interface ProxyPrintService {
      */
     boolean cancelPrintJob(PrintOut printOut) throws IppConnectException;
 
+    /**
+     * Creates a {@link ProxyPrintDocReq} for an {@link OutboxJobDto}.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param job
+     *            The {@link OutboxJobDto}.
+     * @param printMode
+     *            The {@link PrintModeEnum}.
+     * @return The {@link ProxyPrintDocReq}.
+     */
+    ProxyPrintDocReq createProxyPrintDocReq(User user, OutboxJobDto job,
+            PrintModeEnum printMode);
 }

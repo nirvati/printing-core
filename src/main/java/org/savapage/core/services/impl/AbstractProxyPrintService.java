@@ -1790,6 +1790,35 @@ public abstract class AbstractProxyPrintService extends AbstractService
         return printer;
     }
 
+    @Override
+    public final ProxyPrintDocReq createProxyPrintDocReq(final User user,
+            final OutboxJobDto job, final PrintModeEnum printMode) {
+
+        final ProxyPrintDocReq printReq = new ProxyPrintDocReq(printMode);
+
+        printReq.setDocumentUuid(FilenameUtils.getBaseName(job.getFile()));
+        printReq.setJobName(job.getJobName());
+        printReq.setComment(job.getComment());
+        printReq.setNumberOfPages(job.getPages());
+        printReq.setNumberOfCopies(job.getCopies());
+        printReq.setPrinterName(job.getPrinterRedirect());
+        printReq.setRemoveGraphics(job.isRemoveGraphics());
+        printReq.setEcoPrintShadow(job.isEcoPrint());
+        printReq.setCollate(job.isCollate());
+        printReq.setLocale(ServiceContext.getLocale());
+        printReq.setIdUser(user.getId());
+        printReq.putOptionValues(job.getOptionValues());
+        printReq.setFitToPage(job.getFitToPage());
+        printReq.setLandscape(job.getLandscape());
+        printReq.setPdfOrientation(job.getPdfOrientation());
+        printReq.setCostResult(job.getCostResult());
+
+        printReq.setAccountTrxInfoSet(
+                outboxService().createAccountTrxInfoSet(job));
+
+        return printReq;
+    }
+
     /**
      * Prints or Settles an {@link OutboxJobDto}.
      *
@@ -1830,30 +1859,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final boolean isJobTicket =
                 isSettlement || printMode == PrintModeEnum.TICKET;
 
-        //
-        final ProxyPrintDocReq printReq = new ProxyPrintDocReq(printMode);
+        final ProxyPrintDocReq printReq =
+                this.createProxyPrintDocReq(lockedUser, job, printMode);
 
-        printReq.setDocumentUuid(FilenameUtils.getBaseName(job.getFile()));
-        printReq.setJobName(job.getJobName());
-        printReq.setComment(job.getComment());
-        printReq.setNumberOfPages(job.getPages());
-        printReq.setNumberOfCopies(job.getCopies());
-        printReq.setPrinterName(job.getPrinterName());
-        printReq.setRemoveGraphics(job.isRemoveGraphics());
-        printReq.setEcoPrintShadow(job.isEcoPrint());
-        printReq.setCollate(job.isCollate());
-        printReq.setLocale(ServiceContext.getLocale());
-        printReq.setIdUser(lockedUser.getId());
-        printReq.putOptionValues(job.getOptionValues());
-        printReq.setFitToPage(job.getFitToPage());
-        printReq.setLandscape(job.getLandscape());
-        printReq.setPdfOrientation(job.getPdfOrientation());
-        printReq.setCostResult(job.getCostResult());
-
-        printReq.setAccountTrxInfoSet(
-                outboxService().createAccountTrxInfoSet(job));
-
-        //
         final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
 
         if (isProxyPrint && monitorPaperCutPrintStatus) {
@@ -2379,7 +2387,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         for (final OutboxJobDto job : jobs) {
 
-            this.getValidateProxyPrinterAccess(cardUser, job.getPrinterName(),
+            this.getValidateProxyPrinterAccess(cardUser,
+                    job.getPrinterJobTicket(),
                     ServiceContext.getTransactionDate());
 
             totCost = totCost.add(job.getCostTotal());

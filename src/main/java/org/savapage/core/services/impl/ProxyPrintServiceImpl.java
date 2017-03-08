@@ -1076,9 +1076,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     /**
+     * Gets the CUPS job-id from job-uri.
      *
      * @param jobUri
-     *            The URI.
+     *            The URI. For example: ipp://192.168.1.200:631/jobs/65
      * @return The job id.
      */
     private static String jobIdFromJobUri(final String jobUri) {
@@ -1086,10 +1087,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     @Override
-    protected void printPdf(final AbstractProxyPrintReq request,
+    public JsonProxyPrintJob sendPdfToPrinter(
+            final AbstractProxyPrintReq request,
             final JsonProxyPrinter jsonPrinter, final String user,
-            final PdfCreateInfo createInfo, final DocLog docLog)
-            throws IppConnectException {
+            final PdfCreateInfo createInfo) throws IppConnectException {
 
         final File filePdf = createInfo.getPdfFile();
 
@@ -1101,9 +1102,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             throw new SpException(e.getMessage());
         }
 
-        /*
-         * Construct.
-         */
         final String jobNameWork;
 
         if (StringUtils.isBlank(request.getJobName())) {
@@ -1211,7 +1209,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         request.setNumberOfCopies(numberOfCopiesSaved);
 
         /*
-         * Collect the PrintOut data.
+         * Collect the PrintJob data.
          */
         final IppAttrGroup group = response.get(1);
 
@@ -1224,26 +1222,36 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 group.getAttrSingleValue(IppDictOperationAttr.ATTR_JOB_ID);
 
         if (jobId == null) {
-
-            /*
-             * Create the job-id from job-uri. Example:
-             * ipp://192.168.1.200:631/jobs/65
-             */
             if (jobUri == null) {
                 throw new SpException("job id could not be determined.");
             }
-
             jobId = jobIdFromJobUri(jobUri);
         }
 
+        /*
+         * Retrieve the JOB status from CUPS.
+         *
+         * NOTE: if the "media-source" is "manual", the printJob is returned
+         * with status "processing".
+         */
         final JsonProxyPrintJob printJob = retrievePrintJobUri(urlCupsServer,
                 null, jobUri, Integer.valueOf(jobId, 10));
 
-        /*
-         * Note: if the "media-source" is "manual", the printJob is returned
-         * with status "processing".
-         */
-        printJob.setUser(user); // needed??
+        // Add extra info to print job state.
+        printJob.setUser(user);
+        printJob.setTitle(request.getJobName());
+
+        return printJob;
+    }
+
+    @Override
+    protected void printPdf(final AbstractProxyPrintReq request,
+            final JsonProxyPrinter jsonPrinter, final String user,
+            final PdfCreateInfo createInfo, final DocLog docLog)
+            throws IppConnectException {
+
+        final JsonProxyPrintJob printJob =
+                this.sendPdfToPrinter(request, jsonPrinter, user, createInfo);
 
         collectPrintOutData(request, docLog, jsonPrinter, printJob, createInfo);
     }

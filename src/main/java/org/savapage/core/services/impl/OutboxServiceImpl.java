@@ -324,7 +324,7 @@ public final class OutboxServiceImpl extends AbstractService
             job.setFillerPages(createInfo.getBlankFillerPages());
             job.setSheets(calNumberOfSheets(request, createInfo));
         }
-        job.setPrinterName(request.getPrinterName());
+        job.setPrinterJobTicket(request.getPrinterName());
         job.setJobName(request.getJobName());
         job.setComment(request.getComment());
         job.setCopies(request.getNumberOfCopies());
@@ -479,7 +479,7 @@ public final class OutboxServiceImpl extends AbstractService
 
             final OutboxJobDto job = entry.getValue();
 
-            if (printerNames.contains(job.getPrinterName())) {
+            if (printerNames.contains(job.getPrinterJobTicket())) {
                 jobs.add(job);
             }
         }
@@ -1017,7 +1017,7 @@ public final class OutboxServiceImpl extends AbstractService
     public boolean isMonitorPaperCutPrintStatus(final OutboxJobDto job) {
         return job.getAccountTransactions() != null
                 && job.getAccountTransactions().getTransactions() != null
-                && paperCutService().isExtPaperCutPrint(job.getPrinterName());
+                && paperCutService().isExtPaperCutPrint(job.getPrinterJobTicket());
     }
 
 }
