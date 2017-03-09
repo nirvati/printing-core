@@ -79,6 +79,28 @@ public interface PaperCutService {
             ExternalSupplierInfo supplierInfo, PrintModeEnum printMode);
 
     /**
+     * Prepares a {@link AbstractProxyPrintReq} for <i>retrying</i> with
+     * External PaperCut Print Status monitoring and notification to an external
+     * supplier.
+     * <p>
+     * Note: any cost is preserved.
+     * </p>
+     *
+     * @param printReq
+     *            The {@link AbstractProxyPrintReq}.
+     * @param supplierInfo
+     *            The {@link ExternalSupplierInfo}: when {@code null},
+     *            {@link ExternalSupplierEnum#SAVAPAGE} is assumed.
+     * @param printMode
+     *            when {@code null}, {@link PrintModeEnum#PUSH} is assumed.
+     * @return The {@link ExternalSupplierInfo} input, or when input
+     *         {@code null}, the newly created instance.
+     */
+    ExternalSupplierInfo prepareForExtPaperCutRetry(
+            AbstractProxyPrintReq printReq, ExternalSupplierInfo supplierInfo,
+            PrintModeEnum printMode);
+
+    /**
      * Finds a PaperCut user.
      *
      * @param papercut

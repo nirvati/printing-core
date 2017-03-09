@@ -59,6 +59,9 @@ import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dao.enums.DaoEnumHelper;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
@@ -68,6 +71,7 @@ import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.helpers.IppOptionMap;
+import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterGroup;
@@ -89,12 +93,15 @@ import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
+import org.savapage.ext.papercut.PaperCutHelper;
+import org.savapage.ext.smartschool.SmartschoolPrintInData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -933,12 +940,106 @@ public final class JobTicketServiceImpl extends AbstractService
 
         request.setJobName(printJobTitle);
 
-        // CUPS Print.
+        /*
+         * Update DocLog External Supplier status?
+         */
+        final DocLog docLog = printOut.getDocOut().getDocLog();
+
+        // current
+        final ExternalSupplierEnum extSupplierCurrent =
+                DaoEnumHelper.getExtSupplier(docLog);
+
+        final ExternalSupplierStatusEnum extSupplierStatusCurrent =
+                DaoEnumHelper.getExtSupplierStatus(docLog);
+
+        // retry
+        final ThirdPartyEnum extPrintManagerRetry = proxyPrintService()
+                .getExtPrinterManager(printer.getPrinterName());
+
+        final ExternalSupplierEnum extSupplierRetry;
+        final ExternalSupplierStatusEnum extSupplierStatusRetry;
+
+        final String documentTitleRetry;
+
+        if (extPrintManagerRetry == null) {
+
+            documentTitleRetry = null;
+
+            if (extSupplierCurrent == ExternalSupplierEnum.SAVAPAGE) {
+                extSupplierRetry = null;
+                extSupplierStatusRetry = null;
+            } else {
+                extSupplierRetry = extSupplierCurrent;
+                extSupplierStatusRetry = ExternalSupplierStatusEnum.PENDING;
+            }
+
+        } else if (extPrintManagerRetry == ThirdPartyEnum.PAPERCUT) {
+
+            final ExternalSupplierInfo supplierInfo;
+
+            if (extSupplierCurrent == null
+                    || extSupplierCurrent == ExternalSupplierEnum.SAVAPAGE) {
+
+                supplierInfo = null;
+                extSupplierRetry = ExternalSupplierEnum.SAVAPAGE;
+
+            } else if (extSupplierCurrent == ExternalSupplierEnum.SMARTSCHOOL) {
+
+                supplierInfo = new ExternalSupplierInfo();
+                supplierInfo.setSupplier(extSupplierCurrent);
+                supplierInfo.setId(docLog.getExternalId());
+                supplierInfo.setStatus(docLog.getExternalStatus());
+
+                final SmartschoolPrintInData extData = SmartschoolPrintInData
+                        .createFromData(docLog.getExternalData());
+
+                supplierInfo.setData(extData);
+                supplierInfo.setAccount(extData.getAccount());
+
+                extSupplierRetry = extSupplierCurrent;
+
+            } else {
+                throw new IllegalStateException(
+                        String.format("%s [%s] is not handled.",
+                                extSupplierCurrent.getClass().getSimpleName(),
+                                extSupplierCurrent.toString()));
+            }
+
+            /*
+             * Prepare for PaperCut in retry mode.
+             */
+            paperCutService().prepareForExtPaperCutRetry(request, supplierInfo,
+                    null);
+
+            documentTitleRetry = request.getJobName();
+            extSupplierStatusRetry =
+                    PaperCutHelper.getInitialPendingJobStatus();
+
+        } else {
+            throw new IllegalStateException(
+                    String.format("%s [%s] is not handled.",
+                            extPrintManagerRetry.getClass().getSimpleName(),
+                            extPrintManagerRetry.toString()));
+        }
+
+        /*
+         * Update any changes.
+         */
+        if (extSupplierCurrent != extSupplierRetry
+                || extSupplierStatusCurrent != extSupplierStatusRetry) {
+
+            docLogDAO().updateExtSupplier(docLog.getId(), extSupplierRetry,
+                    extSupplierStatusRetry, documentTitleRetry);
+        }
+
+        /*
+         * CUPS Print.
+         */
         final JsonProxyPrintJob printJob = proxyPrintService().sendPdfToPrinter(
                 request, jsonPrinter, user.getUserId(), createInfo);
 
         /*
-         * Update PintOut with new Printer and CUPS job data.
+         * Update PrintOut with new Printer and CUPS job data.
          */
         printOutDAO().updateCupsJobPrinter(dto.getPrintOutId(), printer,
                 printJob, request.getOptionValues());

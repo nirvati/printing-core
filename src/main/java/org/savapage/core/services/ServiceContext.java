@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -34,16 +34,18 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The context for each {@link ServiceEntryPoint}.
- * <p>
- * The static {@link #open()} and {@link #close()} methods MUST be called and
- * the start and end of the {@link ServiceEntryPoint} scope.
- * </p>
+ * <ul>
+ * <li>The static {@link #open()} and {@link #close()} methods MUST be called
+ * and the start and end of the {@link ServiceEntryPoint} scope.</li>
+ * <li>Important: use {@link #reopen()} in each cycle of a monitoring process.
+ * </li>
+ * </ul>
  * <p>
  * Note: A {@link ThreadLocal} instance of this class is created upon
  * {@link #open()} and removed upon {@link #close()}.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ServiceContext {
@@ -74,8 +76,8 @@ public final class ServiceContext {
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ServiceContext.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ServiceContext.class);
 
     /**
      *
@@ -129,6 +131,21 @@ public final class ServiceContext {
      * NO public instantiation allowed.
      */
     private ServiceContext() {
+    }
+
+    /**
+     * Reopens the service context by calling {@link #close()} and
+     * {@link #open()}.
+     * <p>
+     * NOTE: Use this method in each cycle of a monitoring process, before
+     * executing JPA queries. By reopening the {@link ServiceContext}, the
+     * {@link DaoContext} is also refreshed: <i>this makes database updates from
+     * other threads visible.</i>
+     * </p>
+     */
+    public static void reopen() {
+        close();
+        open();
     }
 
     /**

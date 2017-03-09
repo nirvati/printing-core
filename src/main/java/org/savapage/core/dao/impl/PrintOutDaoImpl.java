@@ -27,7 +27,6 @@ import java.util.Map;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
-import org.savapage.core.SpException;
 import org.savapage.core.dao.PrintOutDao;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.ipp.IppJobStateEnum;
@@ -87,23 +86,6 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
         final List<PrintOut> jobs = query.getResultList();
 
         return jobs;
-    }
-
-    /**
-     * Executes an update query, expecting one or zero rows updated/deleted.
-     *
-     * @param query
-     *            The query.
-     * @return {@code true} when row updated, {@code false} when not found.
-     */
-    private boolean executeSingleRowUpdate(final Query query) {
-
-        final int nRows = query.executeUpdate();
-
-        if (nRows > 1) {
-            throw new SpException("More then one (1) row updated");
-        }
-        return nRows == 1;
     }
 
     @Override

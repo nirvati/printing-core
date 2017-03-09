@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,6 +28,8 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.savapage.core.dao.DocLogDao;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.jpa.DocLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -273,6 +275,52 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         }
 
         return query;
+    }
+
+    @Override
+    public boolean updateExtSupplier(final Long docLogId,
+            final ExternalSupplierEnum extSupplier,
+            final ExternalSupplierStatusEnum extStatus,
+            final String documentTitle) {
+
+        //
+        final String externalSupplier;
+
+        if (extSupplier == null) {
+            externalSupplier = null;
+        } else {
+            externalSupplier = extSupplier.toString();
+        }
+
+        final String externalStatus;
+        if (extStatus == null) {
+            externalStatus = null;
+        } else {
+            externalStatus = extStatus.toString();
+        }
+
+        final StringBuilder jpql = new StringBuilder();
+
+        jpql.append("UPDATE DocLog SET externalSupplier = :externalSupplier"
+                + ", externalStatus = :externalStatus");
+
+        if (documentTitle != null) {
+            jpql.append(", title = :title");
+        }
+
+        jpql.append(" WHERE id = :id");
+
+        final Query query = getEntityManager().createQuery(jpql.toString());
+
+        query.setParameter("externalSupplier", externalSupplier)
+                .setParameter("externalStatus", externalStatus)
+                .setParameter("id", docLogId);
+
+        if (documentTitle != null) {
+            query.setParameter("title", documentTitle);
+        }
+
+        return executeSingleRowUpdate(query);
     }
 
 }

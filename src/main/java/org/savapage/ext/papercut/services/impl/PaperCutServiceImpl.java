@@ -32,7 +32,6 @@ import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
-import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
@@ -87,8 +86,23 @@ public final class PaperCutServiceImpl extends AbstractService
         return true;
     }
 
-    @Override
-    public void prepareForExtPaperCut(final AbstractProxyPrintReq printReq,
+    /**
+     * Prepares the base properties of a {@link AbstractProxyPrintReq} for
+     * External PaperCut Print Status monitoring and notification to an external
+     * supplier.
+     *
+     * @param printReq
+     *            The {@link AbstractProxyPrintReq}.
+     * @param supplierInfo
+     *            The {@link ExternalSupplierInfo}: when {@code null},
+     *            {@link ExternalSupplierEnum#SAVAPAGE} is assumed.
+     * @param printMode
+     *            when {@code null}, {@link PrintModeEnum#PUSH} is assumed.
+     * @return The {@link ExternalSupplierInfo} input, or when input
+     *         {@code null}, the newly created instance.
+     */
+    private ExternalSupplierInfo prepareForExtPaperCutCommon(
+            final AbstractProxyPrintReq printReq,
             final ExternalSupplierInfo supplierInfo,
             final PrintModeEnum printMode) {
 
@@ -111,10 +125,36 @@ public final class PaperCutServiceImpl extends AbstractService
             supplierInfoWrk = supplierInfo;
         }
 
-        supplierInfoWrk
-                .setStatus(ExternalSupplierStatusEnum.PENDING_EXT.toString());
+        supplierInfoWrk.setStatus(
+                PaperCutHelper.getInitialPendingJobStatus().toString());
 
         printReq.setSupplierInfo(supplierInfoWrk);
+
+        return supplierInfoWrk;
+    }
+
+    @Override
+    public ExternalSupplierInfo prepareForExtPaperCutRetry(
+            final AbstractProxyPrintReq printReq,
+            final ExternalSupplierInfo supplierInfo,
+            final PrintModeEnum printMode) {
+
+        final ExternalSupplierInfo supplierInfoReturn =
+                prepareForExtPaperCutCommon(printReq, supplierInfo, printMode);
+
+        printReq.setJobName(PaperCutHelper
+                .renewProxyPrintJobNameUUID(printReq.getJobName()));
+
+        return supplierInfoReturn;
+    }
+
+    @Override
+    public void prepareForExtPaperCut(final AbstractProxyPrintReq printReq,
+            final ExternalSupplierInfo supplierInfo,
+            final PrintModeEnum printMode) {
+
+        final ExternalSupplierInfo supplierInfoWrk =
+                prepareForExtPaperCutCommon(printReq, supplierInfo, printMode);
 
         /*
          * Encode job name into PaperCut format.

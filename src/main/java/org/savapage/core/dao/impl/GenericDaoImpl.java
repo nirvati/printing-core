@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,13 +25,15 @@ import java.lang.reflect.ParameterizedType;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
+import javax.persistence.Query;
 
+import org.savapage.core.SpException;
 import org.savapage.core.dao.GenericDao;
 import org.savapage.core.jpa.Entity;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  * @param <T>
  */
@@ -62,9 +64,8 @@ public class GenericDaoImpl<T extends Entity> implements GenericDao<T> {
 
     @SuppressWarnings("unchecked")
     public GenericDaoImpl() {
-        this.entityClass =
-                (Class<T>) ((ParameterizedType) getClass()
-                        .getGenericSuperclass()).getActualTypeArguments()[0];
+        this.entityClass = (Class<T>) ((ParameterizedType) getClass()
+                .getGenericSuperclass()).getActualTypeArguments()[0];
     }
 
     @Override
@@ -106,6 +107,23 @@ public class GenericDaoImpl<T extends Entity> implements GenericDao<T> {
      */
     protected final EntityManager getEntityManager() {
         return DaoContextImpl.lazyEntityManager();
+    }
+
+    /**
+     * Executes an update query, expecting one or zero rows updated/deleted.
+     *
+     * @param query
+     *            The query.
+     * @return {@code true} when row updated, {@code false} when not found.
+     */
+    protected final boolean executeSingleRowUpdate(final Query query) {
+
+        final int nRows = query.executeUpdate();
+
+        if (nRows > 1) {
+            throw new SpException("More then one (1) row updated");
+        }
+        return nRows == 1;
     }
 
 }

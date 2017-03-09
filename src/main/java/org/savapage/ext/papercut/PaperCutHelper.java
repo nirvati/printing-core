@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,7 +25,9 @@ import java.net.URI;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
+import org.savapage.core.services.helpers.ThirdPartyEnum;
 
 /**
  *
@@ -83,8 +85,30 @@ public final class PaperCutHelper {
      * @return The encoded unique name.
      */
     public static String encodeProxyPrintJobName(final String documentName) {
-        return encodeProxyPrintJobName(SAVAPAGE_PRINTJOB_ACCOUNT_NAME, UUID
-                .randomUUID().toString(), documentName);
+        return encodeProxyPrintJobName(SAVAPAGE_PRINTJOB_ACCOUNT_NAME,
+                UUID.randomUUID().toString(), documentName);
+    }
+
+    /**
+     * Replaces the UUID suffix of an encoded Job name with a new random one.
+     *
+     * @param documentName
+     *            The original encoded document name.
+     * @return The new encoded document name.
+     */
+    public static String renewProxyPrintJobNameUUID(final String documentName) {
+        /*
+         * Strip the UUID suffix.
+         */
+        final String[] words = StringUtils.split(documentName,
+                PaperCutPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR);
+        final String lastWord = words[words.length - 1];
+
+        /*
+         * Replace with new UUID.
+         */
+        return StringUtils.replace(documentName, lastWord,
+                UUID.randomUUID().toString());
     }
 
     /**
@@ -102,8 +126,8 @@ public final class PaperCutHelper {
 
         final StringBuilder name = new StringBuilder();
 
-        name.append(COMPOSED_ACCOUNT_NAME_PFX).append(
-                COMPOSED_ACCOUNT_NAME_SEPARATOR);
+        name.append(COMPOSED_ACCOUNT_NAME_PFX)
+                .append(COMPOSED_ACCOUNT_NAME_SEPARATOR);
 
         switch (accountType) {
         case GROUP:
@@ -115,9 +139,10 @@ public final class PaperCutHelper {
             break;
 
         default:
-            throw new IllegalArgumentException(String.format(
-                    "%s.%s is not supported", accountType.getClass()
-                            .getSimpleName(), accountType.toString()));
+            throw new IllegalArgumentException(
+                    String.format("%s.%s is not supported",
+                            accountType.getClass().getSimpleName(),
+                            accountType.toString()));
         }
 
         name.append(COMPOSED_ACCOUNT_NAME_SEPARATOR).append(accountName);
@@ -135,12 +160,11 @@ public final class PaperCutHelper {
      *            The composed account name.
      * @return The account name.
      */
-    public static String decomposeSharedAccountName(
-            final String composedAccountName) {
+    public static String
+            decomposeSharedAccountName(final String composedAccountName) {
 
-        final String[] parts =
-                StringUtils.split(composedAccountName,
-                        COMPOSED_ACCOUNT_NAME_SEPARATOR);
+        final String[] parts = StringUtils.split(composedAccountName,
+                COMPOSED_ACCOUNT_NAME_SEPARATOR);
 
         if (parts.length < 3) {
             return null;
@@ -183,8 +207,8 @@ public final class PaperCutHelper {
             sfx.append(accountName);
         }
 
-        sfx.append(PaperCutPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR).append(
-                documentId);
+        sfx.append(PaperCutPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR)
+                .append(documentId);
 
         final String suffix = sfx.toString();
 
@@ -208,9 +232,8 @@ public final class PaperCutHelper {
     public static String getAccountFromEncodedProxyPrintJobName(
             final String encodedJobName) {
 
-        final String[] parts =
-                StringUtils.split(encodedJobName,
-                        PaperCutPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR);
+        final String[] parts = StringUtils.split(encodedJobName,
+                PaperCutPrintCommentSyntax.JOB_NAME_INFO_SEPARATOR);
 
         if (parts.length < 3) {
             return null;
@@ -232,4 +255,12 @@ public final class PaperCutHelper {
                 && deviceUri.toString().startsWith("papercut:");
     }
 
+    /**
+     * @return The initial {@link ExternalSupplierStatusEnum} when issuing a job
+     *         to be monitored by {@link ThirdPartyEnum#PAPERCUT} Print
+     *         Management.
+     */
+    public static ExternalSupplierStatusEnum getInitialPendingJobStatus() {
+        return ExternalSupplierStatusEnum.PENDING_EXT;
+    }
 }

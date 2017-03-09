@@ -43,6 +43,7 @@ import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.job.AbstractJob;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
 import org.savapage.ext.ExtSupplierConnectException;
@@ -326,7 +327,11 @@ public final class PaperCutPrintMonitorJob extends AbstractJob
                 }
 
             } else if (!this.isInterrupted()) {
+
                 heartbeatCounter = 0;
+
+                ServiceContext.reopen(); // !!!
+
                 monitor.process();
             }
 
