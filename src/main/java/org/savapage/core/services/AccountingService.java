@@ -439,6 +439,21 @@ public interface AccountingService {
             AccountTrxTypeEnum trxType);
 
     /**
+     * Updates the {@link AccountTrx} and the {@link Account} balance, and
+     * optionally attaches the {@link AccountTrx} to another {@link DocLog}.
+     *
+     * @param trx
+     *            The {@link AccountTrx} to update.
+     * @param trxAmount
+     *            The transaction amount.
+     * @param trxDocLog
+     *            If {@code null} the {@link AccountTrx#setDocLog(DocLog)}
+     *            method of the transaction is <i>not</i> executed.
+     */
+    void chargeAccountTrxAmount(AccountTrx trx, BigDecimal trxAmount,
+            DocLog trxDocLog);
+
+    /**
      * Calculates the weighted amount in the context of the weight total.
      *
      * @param amount

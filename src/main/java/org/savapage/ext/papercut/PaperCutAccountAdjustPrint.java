@@ -23,11 +23,9 @@ package org.savapage.ext.papercut;
 
 import java.math.BigDecimal;
 
-import org.savapage.core.dao.AccountDao;
-import org.savapage.core.dao.AccountTrxDao;
-import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 import org.slf4j.Logger;
 
@@ -40,22 +38,19 @@ public final class PaperCutAccountAdjustPrint
         extends PaperCutAccountAdjustPattern {
 
     /**
-     *
+     * .
      */
-    private static final AccountDao ACCOUNT_DAO =
-            ServiceContext.getDaoContext().getAccountDao();
-
-    /**
-     *
-     */
-    private static final AccountTrxDao ACCOUNT_TRX_DAO =
-            ServiceContext.getDaoContext().getAccountTrxDao();
+    private static final AccountingService ACCOUNTING_SERVICE =
+            ServiceContext.getServiceFactory().getAccountingService();
 
     /**
      *
      * @param papercutServerProxy
+     *            The {@link PaperCutServerProxy}.
      * @param papercutAccountResolver
+     *            The {@link PaperCutAccountResolver}.
      * @param logger
+     *            The {@link Logger} listening to log events.
      */
     public PaperCutAccountAdjustPrint(
             final PaperCutServerProxy papercutServerProxy,
@@ -70,26 +65,16 @@ public final class PaperCutAccountAdjustPrint
             final BigDecimal weightedCost, final boolean isDocInAccountTrx,
             final DocLog docLogOut) {
 
-        final Account account = trx.getAccount();
-
-        account.setBalance(account.getBalance().subtract(weightedCost));
-        ACCOUNT_DAO.update(account);
-
-        /*
-         * Update AccountTrx.
-         */
-        trx.setAmount(weightedCost.negate());
-        trx.setBalance(account.getBalance());
-
-        trx.setTransactedBy(ServiceContext.getActor());
-        trx.setTransactionDate(ServiceContext.getTransactionDate());
+        final DocLog trxDocLog;
 
         if (isDocInAccountTrx) {
             // Move from DocLog source to target.
-            trx.setDocLog(docLogOut);
+            trxDocLog = docLogOut;
+        } else {
+            trxDocLog = null;
         }
 
-        ACCOUNT_TRX_DAO.update(trx);
+        ACCOUNTING_SERVICE.chargeAccountTrxAmount(trx, weightedCost, trxDocLog);
     }
 
 }

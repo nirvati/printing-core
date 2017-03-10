@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,6 +72,7 @@ import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.helpers.IppOptionMap;
+import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
@@ -94,6 +96,7 @@ import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
@@ -899,6 +902,55 @@ public final class JobTicketServiceImpl extends AbstractService
         return dtoReturn;
     }
 
+    /**
+     * Charges the printed copies to the various {@link AccountTrx}, and updates
+     * the {@link DocLog} cost totals
+     * <p>
+     * IMPORTANT: <i>Call this method when retrying with a direct print, after a
+     * failed (cancelled) ThirdParty Print operation.</i>
+     * </p>
+     *
+     * @param trxDocLog
+     *            The {@link DocLog} containing the transactions.
+     * @param printedCopies
+     *            The number of printed copies.
+     */
+    private void retryTicketPrintCharge(final DocLog trxDocLog,
+            final int printedCopies) {
+
+        final JobTicketSupplierData supplierData = JobTicketSupplierData.create(
+                JobTicketSupplierData.class, trxDocLog.getExternalData());
+
+        final BigDecimal costTotal = supplierData.getCostTotal();
+
+        /*
+         * Update DoLog with costs.
+         */
+        trxDocLog.setCost(costTotal);
+        trxDocLog.setCostOriginal(costTotal);
+
+        docLogDAO().update(trxDocLog);
+
+        /*
+         * Number of decimals for decimal scaling.
+         */
+        final int scale = ConfigManager.getFinancialDecimalsInDatabase();
+
+        final BigDecimal weightTotalCost = costTotal;
+        final int weightTotal = printedCopies;
+
+        for (final AccountTrx trx : trxDocLog.getTransactions()) {
+
+            final int weight = trx.getTransactionWeight().intValue();
+
+            final BigDecimal weightedCost =
+                    accountingService().calcWeightedAmount(weightTotalCost,
+                            weightTotal, weight, scale);
+
+            accountingService().chargeAccountTrxAmount(trx, weightedCost, null);
+        }
+    }
+
     @Override
     public OutboxJobDto retryTicketPrint(final String operator,
             final Printer printer, final String ippMediaSource,
@@ -968,6 +1020,9 @@ public final class JobTicketServiceImpl extends AbstractService
             if (extSupplierCurrent == ExternalSupplierEnum.SAVAPAGE) {
                 extSupplierRetry = null;
                 extSupplierStatusRetry = null;
+
+                retryTicketPrintCharge(docLog, request.getNumberOfCopies());
+
             } else {
                 extSupplierRetry = extSupplierCurrent;
                 extSupplierStatusRetry = ExternalSupplierStatusEnum.PENDING;

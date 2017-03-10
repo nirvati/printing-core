@@ -664,6 +664,34 @@ public final class AccountingServiceImpl extends AbstractService
     }
 
     @Override
+    public void chargeAccountTrxAmount(final AccountTrx trx,
+            final BigDecimal trxAmount, final DocLog trxDocLog) {
+
+        final Account account = trx.getAccount();
+
+        /*
+         * Update Account.
+         */
+        account.setBalance(account.getBalance().subtract(trxAmount));
+        accountDAO().update(account);
+
+        /*
+         * Update AccountTrx.
+         */
+        trx.setAmount(trxAmount.negate());
+        trx.setBalance(account.getBalance());
+
+        trx.setTransactedBy(ServiceContext.getActor());
+        trx.setTransactionDate(ServiceContext.getTransactionDate());
+
+        if (trxDocLog != null) {
+            trx.setDocLog(trxDocLog);
+        }
+
+        accountTrxDAO().update(trx);
+    }
+
+    @Override
     public void createAccountTrxs(final AccountTrxInfoSet accountTrxInfoSet,
             final DocLog docLog, final AccountTrxTypeEnum trxType) {
 
