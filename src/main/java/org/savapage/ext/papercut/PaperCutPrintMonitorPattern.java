@@ -30,13 +30,11 @@ import java.util.Set;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
-import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.AccountTrxDao.ListFilter;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.DocInOutDao;
 import org.savapage.core.dao.DocLogDao;
-import org.savapage.core.dao.UserAccountDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
@@ -47,7 +45,6 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.json.JsonAbstractBase;
-import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.util.DateUtil;
@@ -73,23 +70,11 @@ public abstract class PaperCutPrintMonitorPattern
     private static final Logger LOGGER =
             LoggerFactory.getLogger(PaperCutPrintMonitorPattern.class);
 
-    private static final AccountDao ACCOUNT_DAO =
-            ServiceContext.getDaoContext().getAccountDao();
-
     private static final AccountTrxDao ACCOUNT_TRX_DAO =
             ServiceContext.getDaoContext().getAccountTrxDao();
 
     private static final DocLogDao DOC_LOG_DAO =
             ServiceContext.getDaoContext().getDocLogDao();
-
-    private static final UserAccountDao USER_ACCOUNT_DAO =
-            ServiceContext.getDaoContext().getUserAccountDao();
-
-    /**
-     * .
-     */
-    private static final AccountingService ACCOUNTING_SERVICE =
-            ServiceContext.getServiceFactory().getAccountingService();
 
     /**
      * .
