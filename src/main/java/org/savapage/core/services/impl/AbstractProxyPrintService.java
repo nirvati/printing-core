@@ -568,6 +568,25 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
+    public final boolean areJobTicketPrintersOnly(final Device terminal,
+            final String userName)
+            throws IppConnectException, IppSyntaxException {
+
+        boolean isTicketPrinterFound = false;
+
+        for (final JsonPrinter printer : this
+                .getUserPrinterList(terminal, userName).getList()) {
+
+            if (BooleanUtils.isFalse(printer.getJobTicket())) {
+                return false;
+            }
+
+            isTicketPrinterFound = true;
+        }
+        return isTicketPrinterFound;
+    }
+
+    @Override
     public final JsonPrinterList getUserPrinterList(final Device terminal,
             final String userName)
             throws IppConnectException, IppSyntaxException {

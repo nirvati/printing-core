@@ -259,6 +259,7 @@ public interface ProxyPrintService {
      *            The {@link URI} of the IPP printer.
      * @return A list of {@link IppAttrGroup} instances.
      * @throws IppConnectException
+     *             When a connection error occurs.
      */
     List<IppAttrGroup> getIppPrinterAttr(String printerName, URI printerUri)
             throws IppConnectException;
@@ -355,9 +356,31 @@ public interface ProxyPrintService {
      *            The unique name of the requesting user.
      * @return The sorted {@link JsonPrinterList}.
      * @throws IppConnectException
+     *             When a connection error occurs.
      * @throws IppSyntaxException
+     *             When a syntax error.
      */
     JsonPrinterList getUserPrinterList(Device terminal, String userName)
+            throws IppConnectException, IppSyntaxException;
+
+    /**
+     * Checks if only Job Ticket printers are available for a user on a
+     * terminal.
+     *
+     * @param terminal
+     *            The {@link Device.DeviceTypeEnum#TERMINAL} definition of the
+     *            requesting client. Is {@code null} when NO definition is
+     *            available.
+     * @param userName
+     *            The unique name of the requesting user.
+     * @return {@code true} when only Job Ticket printers are available on
+     *         terminal for a user.
+     * @throws IppConnectException
+     *             When a connection error occurs.
+     * @throws IppSyntaxException
+     *             When a syntax error.
+     */
+    boolean areJobTicketPrintersOnly(Device terminal, String userName)
             throws IppConnectException, IppSyntaxException;
 
     /**
@@ -386,7 +409,9 @@ public interface ProxyPrintService {
      * Closes the service.
      *
      * @throws IppConnectException
+     *             When a connection error occurs.
      * @throws IppSyntaxException
+     *             When a syntax error.
      */
     void exit() throws IppConnectException, IppSyntaxException;
 
@@ -665,7 +690,9 @@ public interface ProxyPrintService {
      *            used.
      *
      * @throws IppConnectException
+     *             When a connection error occurs.
      * @throws IppSyntaxException
+     *             When a syntax error.
      */
     void startSubscription(String requestingUserName)
             throws IppConnectException, IppSyntaxException;
@@ -678,7 +705,9 @@ public interface ProxyPrintService {
      *            The requesting user. If {@code null} the current CUPS user is
      *            used.
      * @throws IppConnectException
+     *             When a connection error occurs.
      * @throws IppSyntaxException
+     *             When a syntax error.
      */
     void stopSubscription(String requestingUserName)
             throws IppConnectException, IppSyntaxException;
