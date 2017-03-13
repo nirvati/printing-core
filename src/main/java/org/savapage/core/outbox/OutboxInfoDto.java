@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dto.AbstractDto;
 import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.IppJobStateEnum;
@@ -318,9 +319,10 @@ public final class OutboxInfoDto extends AbstractDto {
         private String file;
 
         /**
-         * Name of the Job Ticket printer.
+         * The name of the main printer, which can be the printer for the
+         * Hold Job or the Job Ticket printer.
          */
-        private String printerJobTicket;
+        private String printer;
 
         /**
          * Name of the redirect printer. If {@code null} ticket is not printed
@@ -417,12 +419,12 @@ public final class OutboxInfoDto extends AbstractDto {
             this.file = file;
         }
 
-        public String getPrinterJobTicket() {
-            return printerJobTicket;
+        public String getPrinter() {
+            return printer;
         }
 
-        public void setPrinterJobTicket(String printerName) {
-            this.printerJobTicket = printerName;
+        public void setPrinter(String printerName) {
+            this.printer = printerName;
         }
 
         public String getPrinterRedirect() {
@@ -608,12 +610,19 @@ public final class OutboxInfoDto extends AbstractDto {
         }
 
         /**
-         *
          * @return {@code true} when this is a Copy Job Ticket.
          */
         @JsonIgnore
         public boolean isCopyJobTicket() {
-            return this.uuidPageCount == null;
+            return isJobTicket() && this.uuidPageCount == null;
+        }
+
+        /**
+         * @return {@code true} when this is a Job Ticket.
+         */
+        @JsonIgnore
+        public boolean isJobTicket() {
+            return StringUtils.isNotBlank(this.getTicketNumber());
         }
 
         /**

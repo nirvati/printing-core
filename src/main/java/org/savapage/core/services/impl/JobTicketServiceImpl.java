@@ -1202,7 +1202,7 @@ public final class JobTicketServiceImpl extends AbstractService
         }
 
         final Printer jobTicketPrinter =
-                printerDAO().findByName(job.getPrinterJobTicket());
+                printerDAO().findByName(job.getPrinter());
 
         final List<RedirectPrinterDto> printerList = new ArrayList<>();
 

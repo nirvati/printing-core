@@ -1820,7 +1820,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
         printReq.setComment(job.getComment());
         printReq.setNumberOfPages(job.getPages());
         printReq.setNumberOfCopies(job.getCopies());
-        printReq.setPrinterName(job.getPrinterRedirect());
+
+        if (job.isJobTicket()) {
+            printReq.setPrinterName(job.getPrinterRedirect());
+        } else {
+            printReq.setPrinterName(job.getPrinter());
+        }
+
         printReq.setRemoveGraphics(job.isRemoveGraphics());
         printReq.setEcoPrintShadow(job.isEcoPrint());
         printReq.setCollate(job.isCollate());
@@ -2407,7 +2413,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         for (final OutboxJobDto job : jobs) {
 
             this.getValidateProxyPrinterAccess(cardUser,
-                    job.getPrinterJobTicket(),
+                    job.getPrinter(),
                     ServiceContext.getTransactionDate());
 
             totCost = totCost.add(job.getCostTotal());
