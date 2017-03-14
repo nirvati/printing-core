@@ -1794,6 +1794,13 @@ public interface IConfigProp {
         CLIAPP_AUTH_TRUST_WEBAPP_USER_AUTH("cliapp.auth.trust-webapp-user-auth", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * The query string to be appended to the base URL when opening the User
+         * Web App in response to a print-in event. Do <i>not</i> prefix the
+         * value with a {@code '?'} or {@code '&'} character.
+         */
+        CLIAPP_URL_QUERY_PRINT_IN("cliapp.url-query.print-in"),
+
+        /**
          * .
          */
         ECO_PRINT_ENABLE("eco-print.enable", BOOLEAN_VALIDATOR, V_NO),
