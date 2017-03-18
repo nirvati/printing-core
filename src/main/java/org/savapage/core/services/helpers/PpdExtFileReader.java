@@ -64,6 +64,11 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             LoggerFactory.getLogger(PpdExtFileReader.class);
 
     /**
+     * The Line Continuation character.
+     */
+    private static final Character LINE_CONTINUE_CHAR = Character.valueOf('\\');
+
+    /**
      *
      */
     private static final ProxyPrintService PROXYPRINT_SERVICE =
@@ -245,6 +250,11 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             map.put(ippMediaAttr, opt);
         }
         return opt;
+    }
+
+    @Override
+    protected Character getLineContinuationChar() {
+        return LINE_CONTINUE_CHAR;
     }
 
     /**
