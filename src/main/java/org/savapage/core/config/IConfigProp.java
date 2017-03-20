@@ -1798,7 +1798,13 @@ public interface IConfigProp {
          * Web App in response to a print-in event. Do <i>not</i> prefix the
          * value with a {@code '?'} or {@code '&'} character.
          */
-        CLIAPP_URL_QUERY_PRINT_IN("cliapp.url-query.print-in"),
+        CLIAPP_PRINT_IN_URL_QUERY("cliapp.print-in.url-query"),
+
+        /**
+         * Action button text on print-in action dialog for opening User Web
+         * App.
+         */
+        CLIAPP_PRINT_IN_DIALOG_BUTTON_OPEN("cliapp.print-in.dialog.button-open"),
 
         /**
          * .
