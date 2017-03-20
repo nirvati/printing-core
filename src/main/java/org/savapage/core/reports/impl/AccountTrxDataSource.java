@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -29,7 +29,10 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
@@ -38,18 +41,26 @@ import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
+import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.helpers.AccountTrxPagerReq;
+import org.savapage.core.i18n.PrintOutNounEnum;
+import org.savapage.core.i18n.PrintOutVerbEnum;
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
+import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PosPurchase;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.User;
 import org.savapage.core.reports.AbstractJrDataSource;
+import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.BitcoinUtil;
 import org.savapage.core.util.CurrencyUtil;
+import org.savapage.core.util.JsonHelper;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
@@ -63,7 +74,15 @@ import net.sf.jasperreports.engine.JRField;
 public final class AccountTrxDataSource extends AbstractJrDataSource
         implements JRDataSource {
 
+    private static final String BULL_SEP = " • ";
+
     private static final int CHUNK_SIZE = 100;
+
+    /**
+     * .
+     */
+    private static final ProxyPrintService PROXYPRINT_SERVICE =
+            ServiceContext.getServiceFactory().getProxyPrintService();
 
     private List<AccountTrx> entryList = null;
     private Iterator<AccountTrx> iterator;
@@ -188,8 +207,17 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
                 where.append(", ");
             }
             nSelect++;
-            where.append(localized("accounttrxlist-sel-account",
-                    this.account.getName()));
+
+            final Account parent = this.account.getParent();
+            final String accountDisplay;
+            if (parent != null) {
+                accountDisplay = String.format("%s / %s", parent.getName(),
+                        this.account.getName());
+            } else {
+                accountDisplay = this.account.getName();
+            }
+            where.append(
+                    localized("accounttrxlist-sel-account", accountDisplay));
         }
 
         // Not yet...
@@ -273,7 +301,7 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
         final AccountTrxTypeEnum trxType =
                 AccountTrxTypeEnum.valueOf(this.accountTrxWlk.getTrxType());
 
-        final StringBuilder value = new StringBuilder(128);
+        final StringBuilder value = new StringBuilder(256);
 
         switch (jrField.getName()) {
 
@@ -312,6 +340,7 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
             if (trxType == AccountTrxTypeEnum.GATEWAY) {
                 value.append(this.accountTrxWlk.getExtMethod());
             }
+
             break;
 
         case "DESCRIPTION":
@@ -321,6 +350,19 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
                         StringUtils.defaultString(accountTrxWlk.getComment()));
             } else if (this.showDocLogTitle) {
                 value.append(StringUtils.defaultString(docLog.getTitle()));
+            }
+
+            final PrintOut printOut;
+
+            if (docLog == null || docLog.getDocOut() == null) {
+                printOut = null;
+            } else {
+                printOut = docLog.getDocOut().getPrintOut();
+            }
+
+            if (printOut != null) {
+                this.appendDescription(value, docLog, printOut,
+                        this.accountTrxWlk);
             }
 
             if (posPurchase != null) {
@@ -346,7 +388,7 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
                 }
 
                 if (value.length() > 0) {
-                    value.append(" • ");
+                    value.append(BULL_SEP);
                 }
 
                 value.append(this.accountTrxWlk.getExtCurrencyCode())
@@ -374,18 +416,16 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
 
                 if (StringUtils
                         .isNotBlank(this.accountTrxWlk.getExtMethodAddress())) {
-                    value.append(" • ")
+                    value.append(BULL_SEP)
                             .append(this.accountTrxWlk.getExtMethodAddress());
                 }
 
                 if (StringUtils
                         .isNotBlank(this.accountTrxWlk.getExtDetails())) {
-                    value.append(" • ")
+                    value.append(BULL_SEP)
                             .append(this.accountTrxWlk.getExtDetails());
                 }
-
             }
-
             break;
 
         default:
@@ -413,5 +453,105 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
         this.chunkCounter++;
 
         return true;
+    }
+
+    /**
+     * Appends PrintOut description.
+     *
+     * @param desc
+     *            The {@link StringBuilder} to append to.
+     * @param docLog
+     *            The {@link DocLog} container.
+     * @param printOut
+     *            The {@link PrintOut}.
+     * @param trx
+     *            The {@link AccountTrx}.
+     */
+    private void appendDescription(final StringBuilder desc,
+            final DocLog docLog, final PrintOut printOut,
+            final AccountTrx trx) {
+
+        final Locale locale = getLocale();
+
+        //
+        final int nCopies = trx.getTransactionWeight().intValue();
+
+        desc.append(BULL_SEP).append(nCopies).append(" ")
+                .append(PrintOutNounEnum.COPY.uiText(locale, nCopies > 1));
+
+        //
+        final int nSheets = nCopies * printOut.getNumberOfSheets().intValue()
+                / printOut.getNumberOfCopies().intValue();
+
+        desc.append(BULL_SEP).append(nSheets).append(" ")
+                .append(PrintOutNounEnum.SHEET.uiText(locale, nSheets > 1));
+
+        //
+        desc.append(BULL_SEP).append(printOut.getPaperSize().toUpperCase());
+
+        if (BooleanUtils.isTrue(printOut.getDuplex())) {
+            desc.append(BULL_SEP)
+                    .append(PrintOutNounEnum.DUPLEX.uiText(locale));
+        } else {
+            desc.append(BULL_SEP)
+                    .append(PrintOutNounEnum.SIMPLEX.uiText(locale));
+        }
+
+        if (BooleanUtils.isTrue(printOut.getGrayscale())) {
+            desc.append(BULL_SEP)
+                    .append(PrintOutNounEnum.GRAYSCALE.uiText(locale));
+        } else {
+            desc.append(BULL_SEP).append(PrintOutNounEnum.COLOR.uiText(locale));
+        }
+
+        //
+        final Map<String, String> ippOptions =
+                JsonHelper.createStringMapOrNull(printOut.getIppOptions());
+
+        if (ippOptions == null) {
+            return;
+        }
+
+        final IppOptionMap optionMap = new IppOptionMap(ippOptions);
+
+        if (optionMap.hasFinishingPunch()) {
+            desc.append(BULL_SEP).append(PrintOutVerbEnum.PUNCH.uiText(locale));
+        }
+        if (optionMap.hasFinishingStaple()) {
+            desc.append(BULL_SEP)
+                    .append(PrintOutVerbEnum.STAPLE.uiText(locale));
+        }
+        if (optionMap.hasFinishingFold()) {
+            desc.append(BULL_SEP).append(PrintOutVerbEnum.FOLD.uiText(locale));
+        }
+        if (optionMap.hasFinishingBooklet()) {
+            desc.append(BULL_SEP)
+                    .append(PrintOutNounEnum.BOOKLET.uiText(locale));
+        }
+
+        final String[][] ippAttrArrays =
+                { IppDictJobTemplateAttr.JOBTICKET_ATTR_MEDIA,
+                        IppDictJobTemplateAttr.JOBTICKET_ATTR_COPY,
+                        IppDictJobTemplateAttr.JOBTICKET_ATTR_FINISHINGS_EXT };
+
+        for (final String[] array : ippAttrArrays) {
+            String valueWrk = PROXYPRINT_SERVICE
+                    .getJobTicketOptionsUiText(locale, array, optionMap);
+            if (valueWrk != null) {
+                desc.append(BULL_SEP).append(valueWrk);
+            }
+        }
+
+        final PrintModeEnum printOutMode;
+        printOutMode =
+                EnumUtils.getEnum(PrintModeEnum.class, printOut.getPrintMode());
+
+        if (printOutMode == PrintModeEnum.TICKET
+                || printOutMode == PrintModeEnum.TICKET_C
+                || printOutMode == PrintModeEnum.TICKET_E) {
+            desc.append(BULL_SEP)
+                    .append(StringUtils.defaultString(docLog.getExternalId()));
+        }
+
     }
 }

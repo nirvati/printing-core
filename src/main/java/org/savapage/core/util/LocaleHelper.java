@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.ResourceBundle;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -180,10 +181,38 @@ public final class LocaleHelper {
      */
     public static <E extends Enum<E>> String uiText(final Enum<E> value,
             final Locale locale) {
-        return Messages
-                .loadXmlResource(value.getClass(),
-                        value.getClass().getSimpleName(), locale)
-                .getString(value.toString());
+        return getResourceBundle(value, locale).getString(value.toString());
+    }
+
+    /**
+     * Gets the localized user interface text of an {@link Enum} value.
+     *
+     * @param <E>
+     *            The Enum class.
+     * @param value
+     *            The Enum value.
+     * @param locale
+     *            The {@link Locale}.
+     * @param suffix
+     *            The value suffix to be appended to the Enum string value.
+     * @return The localized text.
+     */
+    public static <E extends Enum<E>> String uiText(final Enum<E> value,
+            final Locale locale, final String suffix) {
+        return getResourceBundle(value, locale)
+                .getString(String.format("%s%s", value.toString(), suffix));
+    }
+
+    /**
+     *
+     * @param value
+     * @param locale
+     * @return
+     */
+    private static <E extends Enum<E>> ResourceBundle
+            getResourceBundle(final Enum<E> value, final Locale locale) {
+        return Messages.loadXmlResource(value.getClass(),
+                value.getClass().getSimpleName(), locale);
     }
 
     /**
