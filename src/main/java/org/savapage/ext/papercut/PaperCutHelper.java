@@ -47,6 +47,20 @@ public final class PaperCutHelper {
     private static final String COMPOSED_ACCOUNT_NAME_CLASS_GROUP = "group";
 
     /**
+     * The number of words (split by {@link #COMPOSED_ACCOUNT_NAME_SEPARATOR}
+     * for a composed shared account name for PaperCut, for just a SavaPage
+     * parent account.
+     */
+    private static final int COMPOSED_ACCOUNT_WORDS_PARENT = 3;
+
+    /**
+     * The number of words (split by {@link #COMPOSED_ACCOUNT_NAME_SEPARATOR}
+     * for a composed shared account name for PaperCut, for a SavaPage
+     * parent/child account.
+     */
+    private static final int COMPOSED_ACCOUNT_WORDS_PARENT_CHILD = 4;
+
+    /**
      * No public instantiation.
      */
     private PaperCutHelper() {
@@ -112,17 +126,21 @@ public final class PaperCutHelper {
     }
 
     /**
-     * Uses SavaPage {@link Account} data to compose a shared account name for
-     * PaperCut.
+     * Uses SavaPage {@link Account} data to compose a shared sub account name
+     * for PaperCut.
      *
      * @param accountType
      *            The SavaPage {@link AccountTypeEnum}.
      * @param accountName
      *            The SavaPage account name.
+     * @param accountNameParent
+     *            The name of the SavaPage parent account. Is {@code null} when
+     *            parent account is irrelevant.
      * @return The composed sub account name to be used in PaperCut.
      */
     public static String composeSharedAccountName(
-            final AccountTypeEnum accountType, final String accountName) {
+            final AccountTypeEnum accountType, final String accountName,
+            final String accountNameParent) {
 
         final StringBuilder name = new StringBuilder();
 
@@ -145,16 +163,44 @@ public final class PaperCutHelper {
                             accountType.toString()));
         }
 
-        name.append(COMPOSED_ACCOUNT_NAME_SEPARATOR).append(accountName);
+        name.append(COMPOSED_ACCOUNT_NAME_SEPARATOR);
+
+        if (accountNameParent == null) {
+            name.append(accountName);
+        } else {
+            name.append(composeSharedAccountNameSuffix(accountName,
+                    accountNameParent));
+        }
 
         return name.toString();
     }
 
     /**
-     * Gets the SavaPage {@link Account} name from the compose a shared account
-     * name for PaperCut.
+     * Composes the suffix of the shared account name for PaperCut.
      *
-     * @see {@link #composeSharedAccountName(AccountTypeEnum, String)}.
+     * @param accountName
+     *            The SavaPage account name.
+     * @param accountNameParent
+     *            The name of the SavaPage parent account. Is {@code null} when
+     *            parent account is irrelevant.
+     * @return The composed suffix of the shared sub account name to be used in
+     *         PaperCut.
+     */
+    public static String composeSharedAccountNameSuffix(
+            final String accountName, final String accountNameParent) {
+        return String.format("%s%c%s", accountNameParent,
+                COMPOSED_ACCOUNT_NAME_SEPARATOR, accountName);
+    }
+
+    /**
+     * Gets the SavaPage {@link Account} name from the composed shared account
+     * name for PaperCut.
+     * <p>
+     * {@code "savapage.group.child"} returns {@code "child"} and
+     * {@code "savapage.group.parent.child"} returns {@code "parent.child"}.
+     * </p>
+     *
+     * @see {@link #composeSharedAccountName(AccountTypeEnum, String, String)}.
      *
      * @param composedAccountName
      *            The composed account name.
@@ -166,11 +212,18 @@ public final class PaperCutHelper {
         final String[] parts = StringUtils.split(composedAccountName,
                 COMPOSED_ACCOUNT_NAME_SEPARATOR);
 
-        if (parts.length < 3) {
-            return null;
+        if (parts.length < COMPOSED_ACCOUNT_WORDS_PARENT
+                || parts.length > COMPOSED_ACCOUNT_WORDS_PARENT_CHILD) {
+            throw new IllegalArgumentException(String.format(
+                    "Composed group [%s] syntax error.", composedAccountName));
         }
 
-        return parts[parts.length - 1];
+        if (parts.length == COMPOSED_ACCOUNT_WORDS_PARENT) {
+            return parts[parts.length - 1];
+        }
+
+        return String.format("%s%c%s", parts[parts.length - 2],
+                COMPOSED_ACCOUNT_NAME_SEPARATOR, parts[parts.length - 1]);
     }
 
     /**

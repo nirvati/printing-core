@@ -143,26 +143,31 @@ public final class PaperCutPrintMonitor extends PaperCutPrintMonitorPattern {
     }
 
     /**
-     * As
-     * {@link PaperCutAccountResolver#composeSharedSubAccountName(AccountTypeEnum, String)}
+     * Static version of
+     * {@link PaperCutAccountResolver#composeSharedSubAccountName(AccountTypeEnum, String, String)}
      * .
      *
      * @param accountType
      *            The SavaPage account type.
      * @param accountName
      *            The SavaPage account name.
+     * @param accountNameParent
+     *            The name of the SavaPage parent account. Is {@code null} when
+     *            account is not a child account, but a parent account itself.
      * @return The composed PaperCut name.
      */
     public static String createSharedSubAccountName(
-            final AccountTypeEnum accountType, final String accountName) {
+            final AccountTypeEnum accountType, final String accountName,
+            final String accountNameParent) {
         return PaperCutHelper.composeSharedAccountName(accountType,
-                accountName);
+                accountName, accountNameParent);
     }
 
     @Override
     public String composeSharedSubAccountName(final AccountTypeEnum accountType,
-            final String accountName) {
-        return createSharedSubAccountName(accountType, accountName);
+            final String accountName, final String accountNameParent) {
+        return createSharedSubAccountName(accountType, accountName,
+                accountNameParent);
     }
 
 }

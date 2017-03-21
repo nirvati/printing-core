@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -114,10 +114,11 @@ public final class SmartschoolPaperCutMonitor
     }
 
     @Override
-    public String composeSharedSubAccountName(
-            final AccountTypeEnum accountType, final String accountName) {
+    public String composeSharedSubAccountName(final AccountTypeEnum accountType,
+            final String accountName, final String accountNameParent) {
         /*
-         * The account name is already in composed format.
+         * Account name is already in composed format and parent account name is
+         * irrelevant.
          */
         return accountName;
     }

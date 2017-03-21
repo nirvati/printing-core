@@ -2030,9 +2030,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     @Override
                     public String composeSharedSubAccountName(
                             final AccountTypeEnum accountType,
-                            final String accountName) {
+                            final String accountName,
+                            final String accountNameParent) {
                         return PaperCutPrintMonitor.createSharedSubAccountName(
-                                accountType, accountName);
+                                accountType, accountName, accountNameParent);
                     }
                 };
 
@@ -2412,8 +2413,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         for (final OutboxJobDto job : jobs) {
 
-            this.getValidateProxyPrinterAccess(cardUser,
-                    job.getPrinter(),
+            this.getValidateProxyPrinterAccess(cardUser, job.getPrinter(),
                     ServiceContext.getTransactionDate());
 
             totCost = totCost.add(job.getCostTotal());

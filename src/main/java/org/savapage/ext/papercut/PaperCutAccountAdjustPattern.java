@@ -168,16 +168,24 @@ public abstract class PaperCutAccountAdjustPattern {
                  * Adjust Shared [Parent]/[klas|group|shared] Account.
                  */
 
+                final String accountNameParent;
+
+                if (accountType == AccountTypeEnum.SHARED
+                        && account.getParent() != null) {
+                    accountNameParent = account.getParent().getName();
+                } else {
+                    accountNameParent = null;
+                }
+
                 /*
-                 * NOTE: Ignore account.getParent().getName(), which is SavaPage
-                 * internal, but use the top account name as used in PaperCut.
+                 * Get the top account name as used in PaperCut.
                  */
                 final String topAccountName =
                         papercutAccountResolver.getSharedParentAccountName();
 
-                final String subAccountName =
-                        papercutAccountResolver.composeSharedSubAccountName(
-                                accountType, account.getName());
+                final String subAccountName = papercutAccountResolver
+                        .composeSharedSubAccountName(accountType,
+                                account.getName(), accountNameParent);
 
                 final String klasName = papercutAccountResolver
                         .getKlasFromAccountName(subAccountName);

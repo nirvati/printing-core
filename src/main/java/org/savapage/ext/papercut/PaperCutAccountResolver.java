@@ -45,10 +45,13 @@ public interface PaperCutAccountResolver {
      *            The SavaPage {@link AccountTypeEnum}.
      * @param accountName
      *            The SavaPage account name.
+     * @param accountNameParent
+     *            The name of the SavaPage parent account. Is {@code null} when
+     *            account is not a child account, but a parent account itself.
      * @return The composed sub account name to be used in PaperCut.
      */
     String composeSharedSubAccountName(AccountTypeEnum accountType,
-            String accountName);
+            String accountName, String accountNameParent);
 
     /**
      * @return The sub-account of {@link #getSharedParentAccountName()} holding
