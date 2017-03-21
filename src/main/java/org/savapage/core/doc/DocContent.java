@@ -110,6 +110,7 @@ public final class DocContent {
     public static final String FILENAME_EXT_PNG = "png";
     public static final String FILENAME_EXT_JPG = "jpg";
     public static final String FILENAME_EXT_PNM = "pnm";
+    public static final String FILENAME_EXT_XML = "xml";
 
     public final static String MIMETYPE_PDF = "application/pdf";
     public final static String MIMETYPE_POSTSCRIPT = "application/postscript";

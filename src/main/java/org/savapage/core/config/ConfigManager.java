@@ -151,6 +151,13 @@ public final class ConfigManager {
     public static final String SERVER_REL_PATH_CUSTOM_CUPS = "custom/cups";
 
     /**
+     * The relative path of the CUPS custom i18n XML files (relative to the
+     * {@code server} directory).
+     */
+    public static final String SERVER_REL_PATH_CUSTOM_CUPS_I18N =
+            SERVER_REL_PATH_CUSTOM_CUPS + "/i18n";
+
+    /**
      * The relative path of the HTML injectable files (relative to the
      * {@code server} directory).
      */
@@ -849,6 +856,14 @@ public final class ConfigManager {
     public static File getServerCustomCupsHome() {
         return new File(String.format("%s/%s", getServerHome(),
                 SERVER_REL_PATH_CUSTOM_CUPS));
+    }
+
+    /**
+     * @return The directory with the custom CUPS i18n files.
+     */
+    public static File getServerCustomCupsI18nHome() {
+        return new File(String.format("%s/%s", getServerHome(),
+                SERVER_REL_PATH_CUSTOM_CUPS_I18N));
     }
 
     /**

@@ -37,9 +37,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.ResourceBundle;
 
 import javax.print.attribute.standard.MediaSizeName;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
@@ -49,6 +51,7 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
+import org.savapage.core.doc.DocContent;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.MediaCostDto;
@@ -112,6 +115,7 @@ import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.InetUtils;
 import org.savapage.core.util.MediaUtils;
+import org.savapage.core.util.Messages;
 import org.savapage.ext.papercut.PaperCutHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,6 +133,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ProxyPrintServiceImpl.class);
 
+    private static final String CUSTOM_IPP_I18N_RESOURCE_NAME = "ipp-i18n";
+
     private static final String LOCALIZE_IPP_ATTR_PREFIX = "ipp-attr-";
 
     private final static String NOTIFY_PULL_METHOD = "ippget";
@@ -141,6 +147,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             "savapage:" + ConfigManager.getServerPort();
 
     private final IppClient ippClient = IppClient.instance();
+
+    /**
+     * {@code true} when custom IPP i18n files are present.
+     */
+    private final boolean hasCustomIppI18n;
 
     /**
      * A selection of IPP attribute keywords used in UI (Web App) for Page
@@ -231,12 +242,62 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      */
     public ProxyPrintServiceImpl() {
         super();
+        this.hasCustomIppI18n = hasCustomIppI18n();
     }
 
     @Override
     public void init() {
         super.init();
         ippClient.init();
+    }
+
+    /**
+     * Initializes the custom IPP i18n.
+     *
+     * @return {@code true} when custom CUPS i18n files are present.
+     */
+    private static boolean hasCustomIppI18n() {
+
+        final File[] files =
+                ConfigManager.getServerCustomCupsI18nHome().listFiles();
+
+        if (files == null || files.length == 0) {
+            return false;
+        }
+
+        for (final File file : files) {
+            if (FilenameUtils.getExtension(file.getName())
+                    .equals(DocContent.FILENAME_EXT_XML)
+                    && file.getName()
+                            .startsWith(CUSTOM_IPP_I18N_RESOURCE_NAME)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the localized IPP key string from custom resource.
+     *
+     * @param key
+     *            The key.
+     * @param locale
+     *            The locale.
+     * @return {@code null} if not found.
+     */
+    private String localizeCustomIpp(final String key, final Locale locale) {
+
+        if (this.hasCustomIppI18n) {
+
+            final ResourceBundle bundle = Messages.loadXmlResource(
+                    ConfigManager.getServerCustomCupsI18nHome(),
+                    CUSTOM_IPP_I18N_RESOURCE_NAME, locale);
+
+            if (bundle.containsKey(key)) {
+                return bundle.getString(key);
+            }
+        }
+        return null;
     }
 
     @Override
@@ -853,24 +914,43 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final MediaSizeName mediaSizeName = ippMediaSize.getMediaSizeName();
 
             choiceTextDefault = localizeWithDefault(locale,
-                    LOCALIZE_IPP_ATTR_PREFIX + attrKeyword + "-"
-                            + mediaSizeName.toString(),
+                    String.format("%s%s-%s", LOCALIZE_IPP_ATTR_PREFIX,
+                            attrKeyword, mediaSizeName.toString()),
                     mediaSizeName.toString());
         }
 
-        optChoice.setUiText(localizeWithDefault(locale,
-                LOCALIZE_IPP_ATTR_PREFIX + attrKeyword + "-" + choice,
-                choiceTextDefault));
+        final String key = String.format("%s%s-%s", LOCALIZE_IPP_ATTR_PREFIX,
+                attrKeyword, choice);
+        final String customChoice = localizeCustomIpp(key, locale);
+
+        final String finalChoice;
+
+        if (customChoice == null) {
+            finalChoice = localizeWithDefault(locale, key, choiceTextDefault);
+        } else {
+            finalChoice = customChoice;
+        }
+
+        optChoice.setUiText(finalChoice);
     }
 
     @Override
-    public void localizePrinterOption(final Locale locale,
+    public void localizePrinterOpt(final Locale locale,
             final JsonProxyPrinterOpt option) {
 
         final String attrKeyword = option.getKeyword();
-        option.setUiText(
-                localize(locale, LOCALIZE_IPP_ATTR_PREFIX + attrKeyword));
+        option.setUiText(localize(locale,
+                String.format("%s%s", LOCALIZE_IPP_ATTR_PREFIX, attrKeyword)));
         localizePrinterOptChoices(locale, attrKeyword, option.getChoices());
+    }
+
+    @Override
+    public String localizeMnemonic(final MediaSizeName mediaSizeName) {
+        return localizeWithDefault(ServiceContext.getLocale(),
+                String.format("%s%s-%s", LOCALIZE_IPP_ATTR_PREFIX,
+                        IppDictJobTemplateAttr.ATTR_MEDIA,
+                        mediaSizeName.toString()),
+                mediaSizeName.toString());
     }
 
     @Override
@@ -890,17 +970,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             }
 
             for (final JsonProxyPrinterOpt option : optGroup.getOptions()) {
-                localizePrinterOption(locale, option);
+                localizePrinterOpt(locale, option);
             }
         }
-    }
-
-    @Override
-    public String localizeMnemonic(final MediaSizeName mediaSizeName) {
-        return localizeWithDefault(ServiceContext.getLocale(),
-                LOCALIZE_IPP_ATTR_PREFIX + IppDictJobTemplateAttr.ATTR_MEDIA
-                        + "-" + mediaSizeName.toString(),
-                mediaSizeName.toString());
     }
 
     /**

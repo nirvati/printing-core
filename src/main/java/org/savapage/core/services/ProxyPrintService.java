@@ -291,7 +291,7 @@ public interface ProxyPrintService {
      * @param option
      *            The {@link JsonProxyPrinterOpt}.
      */
-    void localizePrinterOption(final Locale locale,
+    void localizePrinterOpt(final Locale locale,
             final JsonProxyPrinterOpt option);
 
     /**
