@@ -146,4 +146,13 @@ public final class IppMediaSourceCostDto extends AbstractDto {
         return this.source.equals(IppKeyword.MEDIA_SOURCE_MANUAL);
     }
 
+    /**
+    *
+    * @return {@code true} If media source is
+    *         {@link IppKeyword#MEDIA_SOURCE_AUTO}.
+    */
+   @JsonIgnore
+   public boolean isAutoSource() {
+       return this.source.equals(IppKeyword.MEDIA_SOURCE_AUTO);
+   }
 }
