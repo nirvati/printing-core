@@ -103,6 +103,7 @@ public final class ProxyPrintJobChunkInfo {
 
         jobChunk.setAssignedMedia(mediaSize);
         jobChunk.setAssignedMediaSource(null);
+        jobChunk.setIppMediaSource(null);
 
         final ProxyPrintJobChunkRange chunkRange =
                 new ProxyPrintJobChunkRange();

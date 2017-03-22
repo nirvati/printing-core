@@ -836,6 +836,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     @Override
+    public String localizePrinterOptValue(final Locale locale,
+            final String attrKeyword, final String value) {
+        final boolean isMedia =
+                attrKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA);
+        return localizePrinterOptChoice(locale, attrKeyword, isMedia, value);
+    }
+
+    @Override
     public String getJobTicketOptionsUiText(final Locale locale,
             final String[] ippOptionKeys, final IppOptionMap optionMap) {
 
@@ -899,7 +907,27 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final String attrKeyword, final boolean isMedia,
             final JsonProxyPrinterOptChoice optChoice) {
 
-        final String choice = optChoice.getChoice();
+        optChoice.setUiText(localizePrinterOptChoice(locale, attrKeyword,
+                isMedia, optChoice.getChoice()));
+    }
+
+    /**
+     *
+     * Localizes the text in a printer option choice.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param attrKeyword
+     *            The IPP option keyword.
+     * @param isMedia
+     *            {@code true] when this the "media" attribute.
+     * @param choice
+     *            The {@link JsonProxyPrinterOptChoice} object.
+     * @return The localized choice text.
+     */
+    private String localizePrinterOptChoice(final Locale locale,
+            final String attrKeyword, final boolean isMedia,
+            final String choice) {
 
         String choiceTextDefault = choice;
 
@@ -908,7 +936,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final IppMediaSizeEnum ippMediaSize = IppMediaSizeEnum.find(choice);
 
             if (ippMediaSize == null) {
-                return;
+                return choiceTextDefault;
             }
 
             final MediaSizeName mediaSizeName = ippMediaSize.getMediaSizeName();
@@ -931,7 +959,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             finalChoice = customChoice;
         }
 
-        optChoice.setUiText(finalChoice);
+        return finalChoice;
     }
 
     @Override
@@ -1048,6 +1076,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         for (final String choice : attrChoice.getValues()) {
 
+            // Do not add "auto" media source, but set an indication (see
+            // below).
             if (isMediaSource
                     && choice.equalsIgnoreCase(IppKeyword.MEDIA_SOURCE_AUTO)) {
                 hasAutoMediaSource = true;
@@ -1061,6 +1091,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 continue;
             }
 
+            // Skip media unknown in IppMediaSizeEnum.
             if (isMedia && IppMediaSizeEnum.find(choice) == null) {
                 continue;
             }

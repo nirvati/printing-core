@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -42,6 +42,14 @@ public final class ProxyPrintJobChunk {
 
     private MediaSizeName mediaSizeName;
 
+    /**
+     * The IPP media-source used for printing.
+     */
+    private String ippMediaSource;
+
+    /**
+     * The assigned media-source for cost calculation.
+     */
     private IppMediaSourceCostDto assignedMediaSource;
     private IppMediaSizeEnum assignedMedia;
     private Boolean fitToPage;
@@ -111,10 +119,35 @@ public final class ProxyPrintJobChunk {
         this.logicalJobPages = logicalJobPages;
     }
 
+    /**
+     *
+     * @return The IPP media-source used for printing.
+     */
+    public String getIppMediaSource() {
+        return ippMediaSource;
+    }
+
+    /**
+     *
+     * @param ippMediaSource
+     *            The IPP media-source used for printing.
+     */
+    public void setIppMediaSource(String ippMediaSource) {
+        this.ippMediaSource = ippMediaSource;
+    }
+
+    /**
+     * @return The assigned media-source for cost calculation.
+     */
     public IppMediaSourceCostDto getAssignedMediaSource() {
         return assignedMediaSource;
     }
 
+    /**
+     *
+     * @param assignedMediaSource
+     *            The assigned media-source for cost calculation.
+     */
     public void
             setAssignedMediaSource(IppMediaSourceCostDto assignedMediaSource) {
         this.assignedMediaSource = assignedMediaSource;

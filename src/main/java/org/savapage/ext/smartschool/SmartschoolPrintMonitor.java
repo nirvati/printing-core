@@ -2393,10 +2393,10 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
          * INVARIANT: If printer has media sources defined, a media-source MUST
          * be available that matches the media size of the document.
          */
-        final IppMediaSourceCostDto assignedMediaSource =
+        final IppMediaSourceCostDto assignedMediaSourceCost =
                 printerAttrLookup.findAnyMediaSourceForMedia(ippMediaSize);
 
-        if (assignedMediaSource == null) {
+        if (assignedMediaSourceCost == null) {
             throw new ProxyPrintException(localizedMsg("printer-media-not-foud",
                     printerName, ippMediaSize.getIppKeyword()));
         }
@@ -2413,8 +2413,10 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         if (isManagedByPaperCut && hasMediaSourceAuto) {
             printReq.setMediaSourceOption(IppKeyword.MEDIA_SOURCE_AUTO);
             jobChunk.setAssignedMediaSource(null);
+            jobChunk.setIppMediaSource(IppKeyword.MEDIA_SOURCE_AUTO);
         } else {
-            jobChunk.setAssignedMediaSource(assignedMediaSource);
+            jobChunk.setAssignedMediaSource(assignedMediaSourceCost);
+            jobChunk.setIppMediaSource(assignedMediaSourceCost.getSource());
         }
 
         /*

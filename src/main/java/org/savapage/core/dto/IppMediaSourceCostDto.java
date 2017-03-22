@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -36,7 +36,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Wrapper class for IPP media-source (tray).
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @JsonInclude(Include.NON_NULL)
@@ -114,8 +114,8 @@ public final class IppMediaSourceCostDto extends AbstractDto {
 
         if (this.media != null) {
             try {
-                this.media.setPageCost(MediaCostDto.toDatabaseObject(
-                        this.media.getPageCost(), locale));
+                this.media.setPageCost(MediaCostDto
+                        .toDatabaseObject(this.media.getPageCost(), locale));
             } catch (ParseException e) {
                 throw new SpException(e.getMessage());
             }
@@ -139,21 +139,11 @@ public final class IppMediaSourceCostDto extends AbstractDto {
     /**
      *
      * @return {@code true} If media source is
-     *         {@link IppKeyword#MEDIA_SOURCE_AUTO}.
+     *         {@link IppKeyword#MEDIA_SOURCE_MANUAL}.
      */
     @JsonIgnore
-    public boolean isAutoSource() {
-        return this.source.equals(IppKeyword.MEDIA_SOURCE_AUTO);
+    public boolean isManualSource() {
+        return this.source.equals(IppKeyword.MEDIA_SOURCE_MANUAL);
     }
-
-    /**
-    *
-    * @return {@code true} If media source is
-    *         {@link IppKeyword#MEDIA_SOURCE_MANUAL}.
-    */
-   @JsonIgnore
-   public boolean isManualSource() {
-       return this.source.equals(IppKeyword.MEDIA_SOURCE_MANUAL);
-   }
 
 }

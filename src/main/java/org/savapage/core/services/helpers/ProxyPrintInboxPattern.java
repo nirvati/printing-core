@@ -196,8 +196,14 @@ public abstract class ProxyPrintInboxPattern {
                     request.setFitToPage(chunk.getFitToPage());
                     request.setMediaOption(
                             chunk.getAssignedMedia().getIppKeyword());
-                    request.setMediaSourceOption(
-                            chunk.getAssignedMediaSource().getSource());
+
+                    if (chunk.getIppMediaSource() != null) {
+                        request.setMediaSourceOption(chunk.getIppMediaSource());
+                    } else {
+                        request.setMediaSourceOption(
+                                chunk.getAssignedMediaSource().getSource());
+                    }
+
                     request.setCostResult(chunk.getCostResult());
                     request.setDrm(chunk.isDrm());
 

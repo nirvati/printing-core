@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -104,18 +104,6 @@ public final class PrinterAttrLookup {
     }
 
     /**
-     * Gets the attribute value of a {@link IppKeyword#MEDIA_SOURCE_AUTO}.
-     *
-     * @return The {@link IppMediaSourceCostDto} object, or {@code null} when
-     *         not found.
-     */
-    public IppMediaSourceCostDto getMediaSourceAuto() {
-        final PrinterDao.MediaSourceAttr attr =
-                new PrinterDao.MediaSourceAttr(IppKeyword.MEDIA_SOURCE_AUTO);
-        return get(attr);
-    }
-
-    /**
      * Gets the attribute value of a {@link IppKeyword#MEDIA_SOURCE_MANUAL}.
      *
      * @return The {@link IppMediaSourceCostDto} object, or {@code null} when
@@ -201,8 +189,8 @@ public final class PrinterAttrLookup {
      *            The {@link IppMediaSizeEnum} to look for.
      * @return {@code null} when not found.
      */
-    public IppMediaSourceCostDto findAnyMediaSourceForMedia(
-            final IppMediaSizeEnum ippMediaSize) {
+    public IppMediaSourceCostDto
+            findAnyMediaSourceForMedia(final IppMediaSizeEnum ippMediaSize) {
 
         final List<IppMediaSourceCostDto> mediaSourceCostList =
                 findMediaSourcesForMedia(ippMediaSize);
@@ -221,9 +209,8 @@ public final class PrinterAttrLookup {
             /*
              * Pick a random media-source.
              */
-            iMediaSource =
-                    NumberUtil.getRandomNumber(0,
-                            mediaSourceCostList.size() - 1);
+            iMediaSource = NumberUtil.getRandomNumber(0,
+                    mediaSourceCostList.size() - 1);
         }
         return mediaSourceCostList.get(iMediaSource);
     }
@@ -236,8 +223,8 @@ public final class PrinterAttrLookup {
      *            The {@link IppMediaSizeEnum}.
      * @return {@code null} when not exactly one (1) found.
      */
-    public IppMediaSourceCostDto findUniqueMediaSourceForMedia(
-            final IppMediaSizeEnum ippMediaSize) {
+    public IppMediaSourceCostDto
+            findUniqueMediaSourceForMedia(final IppMediaSizeEnum ippMediaSize) {
 
         final IppMediaSourceCostDto ippMediaSourceCost;
 
@@ -268,8 +255,8 @@ public final class PrinterAttrLookup {
      *            The {@link IppMediaSizeEnum}.
      * @return The list of matching {@link IppMediaSourceCostDto} objects.
      */
-    public List<IppMediaSourceCostDto> findMediaSourcesForMedia(
-            final IppMediaSizeEnum ippMediaSize) {
+    public List<IppMediaSourceCostDto>
+            findMediaSourcesForMedia(final IppMediaSizeEnum ippMediaSize) {
 
         final List<IppMediaSourceCostDto> mediaSourceCostList =
                 new ArrayList<>();
@@ -294,9 +281,8 @@ public final class PrinterAttrLookup {
                 final IppMediaCostDto mediaCost =
                         ippMediaSourceCostWlk.getMedia();
 
-                if (mediaCost != null
-                        && mediaCost.getMedia().equals(
-                                ippMediaSize.getIppKeyword())) {
+                if (mediaCost != null && mediaCost.getMedia()
+                        .equals(ippMediaSize.getIppKeyword())) {
                     mediaSourceCostList.add(ippMediaSourceCostWlk);
                 }
             }

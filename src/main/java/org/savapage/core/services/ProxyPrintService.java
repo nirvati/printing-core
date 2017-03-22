@@ -321,6 +321,20 @@ public interface ProxyPrintService {
             JsonProxyPrinterOptChoice choice);
 
     /**
+     * Localizes the text of a printer option value.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param attrKeyword
+     *            The IPP option keyword.
+     * @param value
+     *            The keyword value.
+     * @return The localized value.
+     */
+    String localizePrinterOptValue(Locale locale, String attrKeyword,
+            String value);
+
+    /**
      * Composes a localized Job Ticket UI text form a selected combination of
      * IPP options values.
      *
