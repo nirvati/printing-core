@@ -836,7 +836,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     @Override
     public final boolean hasMediaSourceAuto(final String printerName) {
         final Boolean auto =
-                getCachedCupsPrinter(printerName).getManualMediaSource();
+                getCachedCupsPrinter(printerName).getAutoMediaSource();
         if (auto == null) {
             return false;
         }
