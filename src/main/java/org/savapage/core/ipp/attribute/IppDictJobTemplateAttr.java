@@ -380,6 +380,12 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             ORG_SAVAPAGE_ATTR_PFX_FINISHINGS + "booklet";
 
     /**
+     * Custom SavaPage IPP Job template finishing attribute for jog-offset.
+     */
+    public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET =
+            ORG_SAVAPAGE_ATTR_PFX_FINISHINGS + "jog-offset";
+
+    /**
      * Array of 2-element array elements, one for each finishings: the first
      * element is the IPP option key, and the second element its NONE value.
      */

@@ -166,6 +166,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     /* */
                     IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
                     /* */
+                    IppDictJobTemplateAttr.ATTR_OUTPUT_BIN,
+                    /* */
                     IppDictJobTemplateAttr.ATTR_MEDIA,
                     /* */
                     IppDictJobTemplateAttr.ATTR_SIDES,
@@ -232,7 +234,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     /* */
                     IppDictJobTemplateAttr.ATTR_SHEET_COLLATE,
                     /* */
-                    IppDictJobTemplateAttr.ATTR_PRINT_SCALING
+                    IppDictJobTemplateAttr.ATTR_PRINT_SCALING,
+                    /* */
+                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET
             //
             };
 
