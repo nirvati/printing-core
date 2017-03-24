@@ -116,8 +116,8 @@ public final class UserGroupAccountDaoImpl extends
         }
 
         if (filter.getContainingNameText() != null) {
-            query.setParameter("containingNameText",
-                    "%" + filter.getContainingNameText().toLowerCase() + "%");
+            query.setParameter("containingNameText", String.format("%%%s%%",
+                    filter.getContainingNameText().toLowerCase()));
         }
 
         query.setParameter("selDeleted", Boolean.FALSE);
@@ -153,7 +153,6 @@ public final class UserGroupAccountDaoImpl extends
 
         applyJoins(jpql);
         applyListFilter(jpql, filter);
-
 
         final boolean sortAscending = true;
 

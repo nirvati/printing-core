@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -261,8 +261,8 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
         final Query query = getEntityManager().createQuery(jpql);
 
         if (filter.getContainingText() != null) {
-            query.setParameter("containingText",
-                    "%" + filter.getContainingText().toLowerCase() + "%");
+            query.setParameter("containingText", String.format("%%%s%%",
+                    filter.getContainingText().toLowerCase()));
         }
 
         if (filter.getDisabled() != null) {

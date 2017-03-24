@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -276,16 +276,16 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
         }
 
         if (filter.getContainingIdText() != null) {
-            query.setParameter("containingIdText",
-                    "%" + filter.getContainingIdText().toLowerCase() + "%");
+            query.setParameter("containingIdText", String.format("%%%s%%",
+                    filter.getContainingIdText().toLowerCase()));
         }
         if (filter.getContainingNameText() != null) {
-            query.setParameter("containingNameText",
-                    "%" + filter.getContainingNameText().toLowerCase() + "%");
+            query.setParameter("containingNameText", String.format("%%%s%%",
+                    filter.getContainingNameText().toLowerCase()));
         }
         if (filter.getContainingEmailText() != null) {
-            query.setParameter("containingEmailText",
-                    "%" + filter.getContainingEmailText().toLowerCase() + "%");
+            query.setParameter("containingEmailText", String.format("%%%s%%",
+                    filter.getContainingEmailText().toLowerCase()));
         }
         if (filter.getInternal() != null) {
             query.setParameter("selInternal", filter.getInternal());

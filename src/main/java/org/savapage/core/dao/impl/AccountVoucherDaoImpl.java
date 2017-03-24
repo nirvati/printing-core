@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -51,10 +51,9 @@ public final class AccountVoucherDaoImpl extends GenericDaoImpl<AccountVoucher>
          * NOTE: The JPA 2.0 Criteria API does not currently support update and
          * delete operations.
          */
-        final String jpql =
-                "DELETE FROM AccountVoucher A "
-                        + "WHERE A.redeemedDate IS NULL "
-                        + "AND A.expiryDate <= :expiryDay";
+        final String jpql = "DELETE FROM AccountVoucher A "
+                + "WHERE A.redeemedDate IS NULL "
+                + "AND A.expiryDate <= :expiryDay";
         final Query query = getEntityManager().createQuery(jpql);
 
         query.setParameter("expiryDay", expiryDay);
@@ -67,10 +66,9 @@ public final class AccountVoucherDaoImpl extends GenericDaoImpl<AccountVoucher>
          * NOTE: The JPA 2.0 Criteria API does not currently support update and
          * delete operations.
          */
-        final String jpql =
-                "DELETE FROM AccountVoucher A "
-                        + "WHERE A.cardNumberBatch = :batch "
-                        + "AND A.redeemedDate IS NULL";
+        final String jpql = "DELETE FROM AccountVoucher A "
+                + "WHERE A.cardNumberBatch = :batch "
+                + "AND A.redeemedDate IS NULL";
         final Query query = getEntityManager().createQuery(jpql);
         query.setParameter("batch", batch);
         return query.executeUpdate();
@@ -95,9 +93,8 @@ public final class AccountVoucherDaoImpl extends GenericDaoImpl<AccountVoucher>
     @SuppressWarnings("unchecked")
     @Override
     public List<String> getBatches() {
-        final String jpql =
-                "SELECT DISTINCT A.cardNumberBatch "
-                        + "FROM AccountVoucher A ORDER BY A.cardNumberBatch";
+        final String jpql = "SELECT DISTINCT A.cardNumberBatch "
+                + "FROM AccountVoucher A ORDER BY A.cardNumberBatch";
         final Query query = getEntityManager().createQuery(jpql);
         return query.getResultList();
     }
@@ -184,13 +181,12 @@ public final class AccountVoucherDaoImpl extends GenericDaoImpl<AccountVoucher>
         final String joinClause;
 
         if (filter.getUserId() != null) {
-            joinClause =
-                    " JOIN A.accountTrx TRX "
-                            + " JOIN TRX.account AA WHERE AA.id ="
-                            + " (SELECT A.id FROM UserAccount UA"
-                            + " JOIN UA.user U" + " JOIN UA.account A"
-                            + " WHERE A.accountType = :accountType"
-                            + " AND lower(U.userId) like :userId)";
+            joinClause = " JOIN A.accountTrx TRX "
+                    + " JOIN TRX.account AA WHERE AA.id ="
+                    + " (SELECT A.id FROM UserAccount UA" + " JOIN UA.user U"
+                    + " JOIN UA.account A"
+                    + " WHERE A.accountType = :accountType"
+                    + " AND lower(U.userId) like :userId)";
         } else {
             joinClause = null;
         }
@@ -299,8 +295,8 @@ public final class AccountVoucherDaoImpl extends GenericDaoImpl<AccountVoucher>
 
         if (filter.getUserId() != null) {
             query.setParameter("accountType", AccountTypeEnum.USER.toString());
-            query.setParameter("userId", "%" + filter.getUserId().toLowerCase()
-                    + "%");
+            query.setParameter("userId",
+                    String.format("%%%s%%", filter.getUserId().toLowerCase()));
         }
 
         if (filter.getExpired() != null) {
@@ -320,12 +316,12 @@ public final class AccountVoucherDaoImpl extends GenericDaoImpl<AccountVoucher>
             query.setParameter("cardNumberBatch", filter.getBatch());
         }
         if (filter.getNumber() != null) {
-            query.setParameter("cardNumber", "%"
-                    + filter.getNumber().toLowerCase() + "%");
+            query.setParameter("cardNumber",
+                    String.format("%%%s%%", filter.getNumber().toLowerCase()));
         }
         if (filter.getVoucherType() != null) {
-            query.setParameter("voucherType", filter.getVoucherType()
-                    .toString());
+            query.setParameter("voucherType",
+                    filter.getVoucherType().toString());
         }
         return query;
     }

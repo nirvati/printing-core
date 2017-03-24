@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -33,11 +33,11 @@ import org.savapage.core.jpa.AppLog;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public final class AppLogDaoImpl extends GenericDaoImpl<AppLog> implements
-        AppLogDao {
+public final class AppLogDaoImpl extends GenericDaoImpl<AppLog>
+        implements AppLogDao {
 
     @Override
     public long getListCount(final ListFilter filter) {
@@ -169,8 +169,8 @@ public final class AppLogDaoImpl extends GenericDaoImpl<AppLog> implements
             query.setParameter("dateTo", filter.getDateTo());
         }
         if (filter.getContainingText() != null) {
-            query.setParameter("containingText", "%"
-                    + filter.getContainingText().toLowerCase() + "%");
+            query.setParameter("containingText", String.format("%%%s%%",
+                    filter.getContainingText().toLowerCase()));
         }
 
         return query;
@@ -186,10 +186,9 @@ public final class AppLogDaoImpl extends GenericDaoImpl<AppLog> implements
         /*
          * Go back in time and truncate.
          */
-        final Date dateBackInTime =
-                DateUtils.truncate(
-                        DateUtils.addDays(new Date(), -daysBackInTime),
-                        Calendar.DAY_OF_MONTH);
+        final Date dateBackInTime = DateUtils.truncate(
+                DateUtils.addDays(new Date(), -daysBackInTime),
+                Calendar.DAY_OF_MONTH);
 
         final String jpql = "DELETE FROM AppLog WHERE logDate <= :logdate";
         final Query query = getEntityManager().createQuery(jpql);
