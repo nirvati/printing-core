@@ -229,11 +229,20 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         }
 
         if (filter.getExternalId() != null) {
+
             if (nWhere > 0) {
                 where.append(" AND");
             }
             nWhere++;
             where.append(" D.externalId = :externalId");
+
+        } else if (filter.getContainingExternalIdText() != null) {
+
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" lower(D.externalId) like :containingExternalIdText");
         }
 
         if (nWhere > 0) {
@@ -272,6 +281,10 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
 
         if (filter.getExternalId() != null) {
             query.setParameter("externalId", filter.getExternalId());
+        } else if (filter.getContainingExternalIdText() != null) {
+            query.setParameter("containingExternalIdText", String.format(
+                    "%%%s%%",
+                    filter.getContainingExternalIdText().toLowerCase()));
         }
 
         return query;

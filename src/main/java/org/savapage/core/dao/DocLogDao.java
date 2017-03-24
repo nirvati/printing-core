@@ -75,6 +75,7 @@ public interface DocLogDao extends GenericDao<DocLog> {
         private DocLogProtocolEnum protocol;
         private ExternalSupplierEnum externalSupplier;
         private String externalId;
+        private String containingExternalIdText;
         private ExternalSupplierStatusEnum externalStatus;
 
         public DocLogProtocolEnum getProtocol() {
@@ -99,6 +100,14 @@ public interface DocLogDao extends GenericDao<DocLog> {
 
         public void setExternalId(String externalId) {
             this.externalId = externalId;
+        }
+
+        public String getContainingExternalIdText() {
+            return containingExternalIdText;
+        }
+
+        public void setContainingExternalIdText(String text) {
+            this.containingExternalIdText = text;
         }
 
         public ExternalSupplierStatusEnum getExternalStatus() {
