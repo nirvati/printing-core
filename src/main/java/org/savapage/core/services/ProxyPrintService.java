@@ -45,6 +45,7 @@ import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.ipp.IppSyntaxException;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.client.IppNotificationRecipient;
 import org.savapage.core.ipp.helpers.IppOptionMap;
@@ -249,6 +250,21 @@ public interface ProxyPrintService {
      */
     JsonPrinterDetail getPrinterDetailUserCopy(Locale locale,
             String printerName);
+
+    /**
+     * Gets a user copy of IPP option for a printer from the printer cache.
+     *
+     * @param printerName
+     *            The unique name of the printer.
+     * @param ippKeyword
+     *            The IPP keyword. E.g.
+     *            {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN}.
+     * @param locale
+     *            The {@link Locale} for the UI texts.
+     * @return The option choices, or {@code null} when no choices found.
+     */
+    JsonProxyPrinterOpt getPrinterOptUserCopy(String printerName,
+            String ippKeyword, Locale locale);
 
     /**
      * Gets the IPP attributes of a printer.

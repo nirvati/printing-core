@@ -53,7 +53,7 @@ public final class RedirectPrinterDto extends AbstractDto {
     private String deviceUri;
 
     /**
-     * The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} option op the
+     * The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} option of the
      * printer.
      */
     private JsonProxyPrinterOpt mediaSourceOpt;
@@ -63,6 +63,18 @@ public final class RedirectPrinterDto extends AbstractDto {
      * available.
      */
     private JsonProxyPrinterOptChoice mediaSourceOptChoice;
+
+    /**
+     * The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} option of the printer.
+     * {@code null} when not present.
+     */
+    private JsonProxyPrinterOpt outputBinOpt;
+
+    /**
+     * The default output-bin choice. When {@code null}, no default is
+     * available.
+     */
+    private JsonProxyPrinterOptChoice outputBinOptChoice;
 
     /**
      *
@@ -131,6 +143,41 @@ public final class RedirectPrinterDto extends AbstractDto {
     public void setMediaSourceOptChoice(
             JsonProxyPrinterOptChoice mediaSourceOptChoice) {
         this.mediaSourceOptChoice = mediaSourceOptChoice;
+    }
+
+    /**
+     * @return The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} option of the
+     *         printer. {@code null} when not present.
+     */
+    public JsonProxyPrinterOpt getOutputBinOpt() {
+        return outputBinOpt;
+    }
+
+    /**
+     * @param outputBinOpt
+     *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} option of
+     *            the printer. {@code null} when not present.
+     */
+    public void setOutputBinOpt(JsonProxyPrinterOpt outputBinOpt) {
+        this.outputBinOpt = outputBinOpt;
+    }
+
+    /**
+     * @return The default output-bin choice. When {@code null}, no default is
+     *         available.
+     */
+    public JsonProxyPrinterOptChoice getOutputBinOptChoice() {
+        return outputBinOptChoice;
+    }
+
+    /**
+     * @param outputBinOptChoice
+     *            The default output-bin choice. When {@code null}, no default
+     *            is available.
+     */
+    public void setOutputBinOptChoice(
+            JsonProxyPrinterOptChoice outputBinOptChoice) {
+        this.outputBinOptChoice = outputBinOptChoice;
     }
 
 }

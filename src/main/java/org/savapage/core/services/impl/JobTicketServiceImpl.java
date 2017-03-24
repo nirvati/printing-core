@@ -805,6 +805,9 @@ public final class JobTicketServiceImpl extends AbstractService
      * @param ippMediaSource
      *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
      *            the print job. Is irrelevant ({@code null}) when settleOnly.
+     * @param ippOutputBin
+     *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
+     *            the print job. Is irrelevant ({@code null}) when settleOnly.
      * @param fileName
      *            The unique PDF file name of the job to print.
      * @param settleOnly
@@ -822,8 +825,8 @@ public final class JobTicketServiceImpl extends AbstractService
      */
     private OutboxJobDto execTicket(final String operator,
             final Printer printer, final String ippMediaSource,
-            final String fileName, final boolean settleOnly)
-            throws IOException, IppConnectException {
+            final String ippOutputBin, final String fileName,
+            final boolean settleOnly) throws IOException, IppConnectException {
 
         final UUID uuid = uuidFromFileName(fileName);
         final OutboxJobDto dto = this.jobTicketCache.get(uuid);
@@ -886,6 +889,17 @@ public final class JobTicketServiceImpl extends AbstractService
              */
             dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
                     ippMediaSource);
+
+            /*
+             * Set or remove output-bin.
+             */
+            if (ippOutputBin == null) {
+                dto.getOptionValues()
+                        .remove(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN);
+            } else {
+                dto.getOptionValues().put(
+                        IppDictJobTemplateAttr.ATTR_OUTPUT_BIN, ippOutputBin);
+            }
 
             final PrintOut printOut =
                     proxyPrintService()
@@ -954,7 +968,8 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public OutboxJobDto retryTicketPrint(final String operator,
             final Printer printer, final String ippMediaSource,
-            final String fileName) throws IOException, IppConnectException {
+            final String ippOutputBin, final String fileName)
+            throws IOException, IppConnectException {
 
         final OutboxJobDto dto = this.getTicket(fileName);
 
@@ -971,6 +986,17 @@ public final class JobTicketServiceImpl extends AbstractService
         dto.setPrinterRedirect(printer.getPrinterName());
         dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
                 ippMediaSource);
+
+        /*
+         * Set or remove output-bin.
+         */
+        if (ippOutputBin == null) {
+            dto.getOptionValues()
+                    .remove(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN);
+        } else {
+            dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN,
+                    ippOutputBin);
+        }
 
         final JsonProxyPrinter jsonPrinter =
                 proxyPrintService().getCachedPrinter(printer.getPrinterName());
@@ -1123,8 +1149,10 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public OutboxJobDto printTicket(final String operator,
             final Printer printer, final String ippMediaSource,
-            final String fileName) throws IOException, IppConnectException {
-        return execTicket(operator, printer, ippMediaSource, fileName, false);
+            final String ippOutputBin, final String fileName)
+            throws IOException, IppConnectException {
+        return execTicket(operator, printer, ippMediaSource, ippOutputBin,
+                fileName, false);
     }
 
     @Override
@@ -1132,7 +1160,7 @@ public final class JobTicketServiceImpl extends AbstractService
             final Printer printer, final String fileName) throws IOException {
 
         try {
-            return execTicket(operator, printer, null, fileName, true);
+            return execTicket(operator, printer, null, null, fileName, true);
         } catch (IppConnectException e) {
             // This is not supposed to happen, because no proxy print is done.
             throw new IllegalStateException(e.getMessage());
@@ -1193,7 +1221,7 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public List<RedirectPrinterDto> getRedirectPrinters(final String fileName,
-            final IppOptionMap ippOptionFilter) {
+            final IppOptionMap ippOptionFilter, final Locale locale) {
 
         final OutboxJobDto job = this.getTicket(fileName);
 
@@ -1327,6 +1355,26 @@ public final class JobTicketServiceImpl extends AbstractService
                     printerService().findMediaSourceForMedia(printerAttrLookup,
                             mediaSource, requestedMediaForJob));
 
+            // Find the output-bin
+            final JsonProxyPrinterOpt printerOptWlk = printerOptionlookup
+                    .get(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN);
+
+            if (printerOptWlk != null) {
+                final JsonProxyPrinterOpt outputBin = printerOptWlk.copy();
+
+                proxyPrintService().localizePrinterOpt(locale, outputBin);
+
+                for (final JsonProxyPrinterOptChoice choice : outputBin
+                        .getChoices()) {
+                    if (choice.getChoice()
+                            .equals(printerOptWlk.getDefchoiceIpp())) {
+                        redirectPrinter.setOutputBinOptChoice(choice);
+                        break;
+                    }
+                }
+                redirectPrinter.setOutputBinOpt(outputBin);
+            }
+            //
             printerList.add(redirectPrinter);
             iPrinter++;
         }
@@ -1340,10 +1388,10 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public RedirectPrinterDto getRedirectPrinter(final String fileName,
-            final IppOptionMap optionFilter) {
+            final IppOptionMap optionFilter, final Locale locale) {
 
         final List<RedirectPrinterDto> printers =
-                this.getRedirectPrinters(fileName, optionFilter);
+                this.getRedirectPrinters(fileName, optionFilter, locale);
 
         if (printers == null || printers.isEmpty()) {
             return null;

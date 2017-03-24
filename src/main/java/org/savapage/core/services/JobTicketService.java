@@ -259,6 +259,9 @@ public interface JobTicketService extends StatefulService {
      * @param ippMediaSource
      *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
      *            the print job.
+     * @param ippOutputBin
+     *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
+     *            the print job.
      * @param fileName
      *            The unique PDF file name of the job to print.
      * @return The printed ticket or {@code null} when ticket was not found.
@@ -268,7 +271,7 @@ public interface JobTicketService extends StatefulService {
      *             When connection to CUPS fails.
      */
     OutboxJobDto printTicket(String operator, Printer printer,
-            String ippMediaSource, String fileName)
+            String ippMediaSource, String ippOutputBin, String fileName)
             throws IOException, IppConnectException;
 
     /**
@@ -284,6 +287,9 @@ public interface JobTicketService extends StatefulService {
      * @param ippMediaSource
      *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
      *            the print job.
+     * @param ippOutputBin
+     *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
+     *            the print job.
      * @param fileName
      *            The unique PDF file name of the job to print.
      * @return The printed ticket or {@code null} when ticket was not found.
@@ -293,7 +299,7 @@ public interface JobTicketService extends StatefulService {
      *             When connection to CUPS fails.
      */
     OutboxJobDto retryTicketPrint(String operator, Printer printer,
-            String ippMediaSource, String fileName)
+            String ippMediaSource, String ippOutputBin, String fileName)
             throws IOException, IppConnectException;
 
     /**
@@ -323,11 +329,13 @@ public interface JobTicketService extends StatefulService {
      *            An additional filter, apart from the Job Ticket specification,
      *            of IPP option values that must be present in the redirect
      *            printers.
+     * @param locale
+     *            The {@link Locale} for UI texts.
      * @return The list of redirect printers (can be empty) or {@code null} when
      *         job ticket is not found.
      */
     List<RedirectPrinterDto> getRedirectPrinters(String fileName,
-            IppOptionMap optionFilter);
+            IppOptionMap optionFilter, Locale locale);
 
     /**
      * Gets a {@link RedirectPrinterDto} compatible printer for a Job Ticket.
@@ -338,9 +346,11 @@ public interface JobTicketService extends StatefulService {
      *            An additional filter, apart from the Job Ticket specification,
      *            of IPP option values that must be present in the redirect
      *            printer.
+     * @param locale
+     *            The {@link Locale} for UI texts.
      * @return The redirect printer or {@code null} when no job ticket or
      *         printer is found.
      */
     RedirectPrinterDto getRedirectPrinter(String fileName,
-            IppOptionMap optionFilter);
+            IppOptionMap optionFilter, Locale locale);
 }

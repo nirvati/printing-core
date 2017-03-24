@@ -329,6 +329,27 @@ public abstract class AbstractProxyPrintService extends AbstractService
         return this.getPrinterDetailCopy(printerName, locale, true);
     }
 
+    @Override
+    public final JsonProxyPrinterOpt getPrinterOptUserCopy(
+            final String printerName, final String ippKeyword,
+            final Locale locale) {
+
+        final JsonProxyPrinter proxyPrinter = getCachedPrinter(printerName);
+
+        if (proxyPrinter != null) {
+            for (JsonProxyPrinterOptGroup group : proxyPrinter.getGroups()) {
+                for (JsonProxyPrinterOpt option : group.getOptions()) {
+                    if (option.getKeyword().equals(ippKeyword)) {
+                        final JsonProxyPrinterOpt optionCopy = option.copy();
+                        localizePrinterOpt(locale, optionCopy);
+                        return optionCopy;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * Gets a copy of the {@link JsonProxyPrinter} from the printer cache.
      *
