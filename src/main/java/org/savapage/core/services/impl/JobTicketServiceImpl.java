@@ -808,6 +808,9 @@ public final class JobTicketServiceImpl extends AbstractService
      * @param ippOutputBin
      *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
      *            the print job. Is irrelevant ({@code null}) when settleOnly.
+     * @param ippJogOffset
+     *            IPP value of
+     *            {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET}
      * @param fileName
      *            The unique PDF file name of the job to print.
      * @param settleOnly
@@ -825,8 +828,9 @@ public final class JobTicketServiceImpl extends AbstractService
      */
     private OutboxJobDto execTicket(final String operator,
             final Printer printer, final String ippMediaSource,
-            final String ippOutputBin, final String fileName,
-            final boolean settleOnly) throws IOException, IppConnectException {
+            final String ippOutputBin, final String ippJogOffset,
+            final String fileName, final boolean settleOnly)
+            throws IOException, IppConnectException {
 
         final UUID uuid = uuidFromFileName(fileName);
         final OutboxJobDto dto = this.jobTicketCache.get(uuid);
@@ -884,22 +888,8 @@ public final class JobTicketServiceImpl extends AbstractService
                         IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE));
             }
 
-            /*
-             * Set (overwrite) media-source.
-             */
-            dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
-                    ippMediaSource);
-
-            /*
-             * Set or remove output-bin.
-             */
-            if (ippOutputBin == null) {
-                dto.getOptionValues()
-                        .remove(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN);
-            } else {
-                dto.getOptionValues().put(
-                        IppDictJobTemplateAttr.ATTR_OUTPUT_BIN, ippOutputBin);
-            }
+            setRedirectPrinterOptions(dto, printer.getPrinterName(),
+                    ippMediaSource, ippOutputBin, ippJogOffset);
 
             final PrintOut printOut =
                     proxyPrintService()
@@ -965,11 +955,63 @@ public final class JobTicketServiceImpl extends AbstractService
         }
     }
 
+    /**
+     * Sets the redirect printers options of the {@link OutboxJobDto}.
+     *
+     * @param dto
+     *            The {@link OutboxJobDto}.
+     * @param redirectPrinterName
+     *            The name of the redirect printer.
+     * @param ippMediaSource
+     *            IPP value of {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE}.
+     * @param ippOutputBin
+     *            IPP value of {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN}.
+     * @param ippJogOffset
+     *            IPP value of
+     *            {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET}
+     *            .
+     */
+    private static void setRedirectPrinterOptions(final OutboxJobDto dto,
+            final String redirectPrinterName, final String ippMediaSource,
+            final String ippOutputBin, final String ippJogOffset) {
+
+        // Set printer name.
+        dto.setPrinterRedirect(redirectPrinterName);
+
+        // Set media-source.
+        dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
+                ippMediaSource);
+
+        //
+        String ippKeywordWlk;
+
+        /*
+         * Set or remove output-bin.
+         */
+        ippKeywordWlk = IppDictJobTemplateAttr.ATTR_OUTPUT_BIN;
+        if (ippOutputBin == null) {
+            dto.getOptionValues().remove(ippKeywordWlk);
+        } else {
+            dto.getOptionValues().put(ippKeywordWlk, ippOutputBin);
+        }
+
+        /*
+         * Set or remove jog-offset.
+         */
+        ippKeywordWlk =
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET;
+        if (ippOutputBin == null || ippJogOffset == null) {
+            dto.getOptionValues().remove(ippKeywordWlk);
+        } else {
+            dto.getOptionValues().put(ippKeywordWlk, ippJogOffset);
+        }
+    }
+
     @Override
     public OutboxJobDto retryTicketPrint(final String operator,
             final Printer printer, final String ippMediaSource,
-            final String ippOutputBin, final String fileName)
-            throws IOException, IppConnectException {
+            final String ippOutputBin, final String ippJogOffset,
+            final String fileName) throws IOException, IppConnectException {
 
         final OutboxJobDto dto = this.getTicket(fileName);
 
@@ -983,20 +1025,8 @@ public final class JobTicketServiceImpl extends AbstractService
         /*
          * Set dto before creating the print request.
          */
-        dto.setPrinterRedirect(printer.getPrinterName());
-        dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
-                ippMediaSource);
-
-        /*
-         * Set or remove output-bin.
-         */
-        if (ippOutputBin == null) {
-            dto.getOptionValues()
-                    .remove(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN);
-        } else {
-            dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN,
-                    ippOutputBin);
-        }
+        setRedirectPrinterOptions(dto, printer.getPrinterName(), ippMediaSource,
+                ippOutputBin, ippJogOffset);
 
         final JsonProxyPrinter jsonPrinter =
                 proxyPrintService().getCachedPrinter(printer.getPrinterName());
@@ -1149,10 +1179,10 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public OutboxJobDto printTicket(final String operator,
             final Printer printer, final String ippMediaSource,
-            final String ippOutputBin, final String fileName)
-            throws IOException, IppConnectException {
+            final String ippOutputBin, final String ippJogOffset,
+            final String fileName) throws IOException, IppConnectException {
         return execTicket(operator, printer, ippMediaSource, ippOutputBin,
-                fileName, false);
+                ippJogOffset, fileName, false);
     }
 
     @Override
@@ -1160,7 +1190,8 @@ public final class JobTicketServiceImpl extends AbstractService
             final Printer printer, final String fileName) throws IOException {
 
         try {
-            return execTicket(operator, printer, null, null, fileName, true);
+            return execTicket(operator, printer, null, null, null, fileName,
+                    true);
         } catch (IppConnectException e) {
             // This is not supposed to happen, because no proxy print is done.
             throw new IllegalStateException(e.getMessage());
@@ -1356,23 +1387,26 @@ public final class JobTicketServiceImpl extends AbstractService
                             mediaSource, requestedMediaForJob));
 
             // Find the output-bin
-            final JsonProxyPrinterOpt printerOptWlk = printerOptionlookup
-                    .get(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN);
+            final JsonProxyPrinterOpt outputBin =
+                    this.localizePrinterOpt(printerOptionlookup,
+                            IppDictJobTemplateAttr.ATTR_OUTPUT_BIN, locale);
 
-            if (printerOptWlk != null) {
-                final JsonProxyPrinterOpt outputBin = printerOptWlk.copy();
+            if (outputBin != null) {
 
-                proxyPrintService().localizePrinterOpt(locale, outputBin);
-
-                for (final JsonProxyPrinterOptChoice choice : outputBin
-                        .getChoices()) {
-                    if (choice.getChoice()
-                            .equals(printerOptWlk.getDefchoiceIpp())) {
-                        redirectPrinter.setOutputBinOptChoice(choice);
-                        break;
-                    }
-                }
                 redirectPrinter.setOutputBinOpt(outputBin);
+                redirectPrinter.setOutputBinOptChoice(
+                        this.getPrinterOptChoiceDefault(outputBin));
+
+                final JsonProxyPrinterOpt jogOffset =
+                        this.localizePrinterOpt(printerOptionlookup,
+                                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET,
+                                locale);
+
+                if (jogOffset != null) {
+                    redirectPrinter.setJogOffsetOpt(jogOffset);
+                    redirectPrinter.setJogOffsetOptChoice(
+                            this.getPrinterOptChoiceDefault(jogOffset));
+                }
             }
             //
             printerList.add(redirectPrinter);
@@ -1384,6 +1418,49 @@ public final class JobTicketServiceImpl extends AbstractService
         }
 
         return printerList;
+    }
+
+    /**
+     * Localizes a printer option.
+     *
+     * @param printerOptionlookup
+     * @param ippKeyword
+     *            The IPP option keyword.
+     * @param locale
+     *            The locale.
+     * @return The printer options, or {@code null} when not found.
+     */
+    private JsonProxyPrinterOpt localizePrinterOpt(
+            final Map<String, JsonProxyPrinterOpt> printerOptionlookup,
+            final String ippKeyword, final Locale locale) {
+
+        final JsonProxyPrinterOpt optWlk = printerOptionlookup.get(ippKeyword);
+
+        if (optWlk == null) {
+            return null;
+        }
+
+        final JsonProxyPrinterOpt optLocalized = optWlk.copy();
+        proxyPrintService().localizePrinterOpt(locale, optLocalized);
+
+        return optLocalized;
+    }
+
+    /**
+     *
+     * @param printerOpt
+     *            The printer option.
+     * @return {@code null} when not found.
+     */
+    private JsonProxyPrinterOptChoice
+            getPrinterOptChoiceDefault(final JsonProxyPrinterOpt printerOpt) {
+
+        for (final JsonProxyPrinterOptChoice choice : printerOpt.getChoices()) {
+            if (choice.getChoice().equals(printerOpt.getDefchoiceIpp())) {
+                return choice;
+            }
+        }
+        return null;
     }
 
     @Override

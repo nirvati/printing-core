@@ -262,6 +262,10 @@ public interface JobTicketService extends StatefulService {
      * @param ippOutputBin
      *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
      *            the print job.
+     * @param ippjogOffset
+     *            The
+     *            {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET}
+     *            value for the print job.
      * @param fileName
      *            The unique PDF file name of the job to print.
      * @return The printed ticket or {@code null} when ticket was not found.
@@ -271,8 +275,8 @@ public interface JobTicketService extends StatefulService {
      *             When connection to CUPS fails.
      */
     OutboxJobDto printTicket(String operator, Printer printer,
-            String ippMediaSource, String ippOutputBin, String fileName)
-            throws IOException, IppConnectException;
+            String ippMediaSource, String ippOutputBin, String ippjogOffset,
+            String fileName) throws IOException, IppConnectException;
 
     /**
      * Retries a Job Ticket Print (typically after a job is cancelled, due to
@@ -290,6 +294,10 @@ public interface JobTicketService extends StatefulService {
      * @param ippOutputBin
      *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
      *            the print job.
+     * @param ippjogOffset
+     *            The
+     *            {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET}
+     *            value for the print job.
      * @param fileName
      *            The unique PDF file name of the job to print.
      * @return The printed ticket or {@code null} when ticket was not found.
@@ -299,8 +307,8 @@ public interface JobTicketService extends StatefulService {
      *             When connection to CUPS fails.
      */
     OutboxJobDto retryTicketPrint(String operator, Printer printer,
-            String ippMediaSource, String ippOutputBin, String fileName)
-            throws IOException, IppConnectException;
+            String ippMediaSource, String ippOutputBin, String ippjogOffset,
+            String fileName) throws IOException, IppConnectException;
 
     /**
      * Settles a Job Ticket without printing it.

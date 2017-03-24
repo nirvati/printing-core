@@ -77,6 +77,19 @@ public final class RedirectPrinterDto extends AbstractDto {
     private JsonProxyPrinterOptChoice outputBinOptChoice;
 
     /**
+     * The
+     * {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET}
+     * option of the printer. {@code null} when not present.
+     */
+    private JsonProxyPrinterOpt jogOffsetOpt;
+
+    /**
+     * The default jog-offset choice. When {@code null}, no default is
+     * available.
+     */
+    private JsonProxyPrinterOptChoice jogOffsetOptChoice;
+
+    /**
      *
      * @return
      */
@@ -178,6 +191,44 @@ public final class RedirectPrinterDto extends AbstractDto {
     public void setOutputBinOptChoice(
             JsonProxyPrinterOptChoice outputBinOptChoice) {
         this.outputBinOptChoice = outputBinOptChoice;
+    }
+
+    /**
+     * @return The
+     *         {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET}
+     *         option of the printer. {@code null} when not present.
+     *
+     */
+    public JsonProxyPrinterOpt getJogOffsetOpt() {
+        return jogOffsetOpt;
+    }
+
+    /**
+     * @param jogOffsetOpt
+     *            The
+     *            {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET}
+     *            option of the printer. {@code null} when not present.
+     */
+    public void setJogOffsetOpt(JsonProxyPrinterOpt jogOffsetOpt) {
+        this.jogOffsetOpt = jogOffsetOpt;
+    }
+
+    /**
+     * @return The default jog-offset choice. When {@code null}, no default is
+     *         available.
+     *
+     */
+    public JsonProxyPrinterOptChoice getJogOffsetOptChoice() {
+        return jogOffsetOptChoice;
+    }
+
+    /**
+     * @param choice
+     *            The default jog-offset choice. When {@code null}, no default
+     *            is available.
+     */
+    public void setJogOffsetOptChoice(JsonProxyPrinterOptChoice choice) {
+        this.jogOffsetOptChoice = choice;
     }
 
 }
