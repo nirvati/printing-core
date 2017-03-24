@@ -146,6 +146,9 @@ public class DocLogPagerReq extends AbstractPagerReq {
         @JsonProperty("encrypted")
         private Boolean encrypted = null;
 
+        @JsonProperty("ticket_number")
+        private String ticketNumber = null;
+
         public Long getDateFrom() {
             return dateFrom;
         }
@@ -312,6 +315,14 @@ public class DocLogPagerReq extends AbstractPagerReq {
 
         public void setEncrypted(Boolean encrypted) {
             this.encrypted = encrypted;
+        }
+
+        public String getTicketNumber() {
+            return ticketNumber;
+        }
+
+        public void setTicketNumber(String ticketNumber) {
+            this.ticketNumber = ticketNumber;
         }
 
         public Integer getJobState() {
