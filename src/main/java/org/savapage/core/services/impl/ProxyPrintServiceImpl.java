@@ -848,6 +848,15 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     @Override
+    public String localizePrinterOpt(final Locale locale,
+            final String attrKeyword) {
+
+        return localizeWithDefault(locale,
+                String.format("%s%s", LOCALIZE_IPP_ATTR_PREFIX, attrKeyword),
+                attrKeyword);
+    }
+
+    @Override
     public String getJobTicketOptionsUiText(final Locale locale,
             final String[] ippOptionKeys, final IppOptionMap optionMap) {
 

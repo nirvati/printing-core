@@ -311,6 +311,17 @@ public interface ProxyPrintService {
             final JsonProxyPrinterOpt option);
 
     /**
+     * Localizes an IPP option keyword.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param attrKeyword
+     *            The IPP option keyword.
+     * @return the localized UI keyword.
+     */
+    String localizePrinterOpt(final Locale locale, final String attrKeyword);
+
+    /**
      * Localizes the texts in printer option choices.
      *
      * @param locale
