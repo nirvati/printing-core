@@ -767,7 +767,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         return String.format("%s %s • %s • %s",
                 CommunityDictEnum.SAVAPAGE.getWord(),
                 ConfigManager.getAppVersion(),
-                CommunityDictEnum.LIBRE_PRINT_MANAGEMENT.getWord(),
+                CommunityDictEnum.SAVAPAGE_SLOGAN.getWord(),
                 CommunityDictEnum.SAVAPAGE_DOT_ORG.getWord());
     }
 
