@@ -3470,7 +3470,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public final String validateCustomCostRules(final JsonProxyPrinter proxyPrinter,
+    public final String validateCustomCostRules(
+            final JsonProxyPrinter proxyPrinter,
             final Map<String, String> ippOptions, final Locale locale) {
         /*
          * Media
@@ -3485,12 +3486,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 final String ippKeyword =
                         IppDictJobTemplateAttr.ATTR_MEDIA_TYPE;
 
-                return String.format(
-                        "Combination of media options for \"%s / %s\" "
-                                + "is not supported.",
-                        this.localizePrinterOpt(locale, ippKeyword),
-                        this.localizePrinterOptValue(locale, ippKeyword,
-                                ippOptions.get(ippKeyword)));
+                return localize(locale,
+                        "msg-user-print-out-validation-media-warning",
+                        String.format("\"%s / %s\"",
+                                this.localizePrinterOpt(locale, ippKeyword),
+                                this.localizePrinterOptValue(locale, ippKeyword,
+                                        ippOptions.get(ippKeyword))));
             }
         }
 
@@ -3517,7 +3518,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                     if (msg == null) {
                         msg = new StringBuilder();
-                        msg.append("Combination of options for ");
                     } else {
                         msg.append(", ");
                     }
@@ -3531,8 +3531,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 }
 
                 if (msg != null) {
-                    msg.append(" is not supported.");
-                    return msg.toString();
+                    return localize(locale,
+                            "msg-user-print-out-validation-set-warning",
+                            msg.toString());
                 }
             }
         }
