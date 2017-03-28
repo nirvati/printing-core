@@ -959,4 +959,21 @@ public interface ProxyPrintService {
      */
     ProxyPrintDocReq createProxyPrintDocReq(User user, OutboxJobDto job,
             PrintModeEnum printMode);
+
+    /**
+     * Validates IPP choices according to the custom cost rules of the proxy
+     * printer. When valid, {@code null} is returned. Otherwise, a localized
+     * message is returned. When proxy printer does not have custom rules,
+     * {@code null} is returned.
+     *
+     * @param proxyPrinter
+     *            The proxy printer holding the custom rules.
+     * @param ippOptions
+     *            The IPP attribute key/choice pairs.
+     * @param locale
+     *            The locale for the UI message.
+     * @return The message string, or {@code null} when choices are valid.
+     */
+    String validateCustomCostRules(JsonProxyPrinter proxyPrinter,
+            Map<String, String> ippOptions, Locale locale);
 }

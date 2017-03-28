@@ -3468,4 +3468,74 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         return JsonRpcMethodResult.createResult(data);
     }
+
+    @Override
+    public final String validateCustomCostRules(final JsonProxyPrinter proxyPrinter,
+            final Map<String, String> ippOptions, final Locale locale) {
+        /*
+         * Media
+         */
+        if (proxyPrinter.hasCustomCostRulesMedia()) {
+
+            final BigDecimal cost =
+                    proxyPrinter.calcCustomCostMedia(ippOptions);
+
+            if (cost == null || cost.compareTo(BigDecimal.ZERO) == 0) {
+
+                final String ippKeyword =
+                        IppDictJobTemplateAttr.ATTR_MEDIA_TYPE;
+
+                return String.format(
+                        "Combination of media options for \"%s / %s\" "
+                                + "is not supported.",
+                        this.localizePrinterOpt(locale, ippKeyword),
+                        this.localizePrinterOptValue(locale, ippKeyword,
+                                ippOptions.get(ippKeyword)));
+            }
+        }
+
+        // Copy
+        if (proxyPrinter.hasCustomCostRulesCopy()) {
+
+            final BigDecimal cost = proxyPrinter.calcCustomCostCopy(ippOptions);
+
+            if (cost == null || cost.compareTo(BigDecimal.ZERO) == 0) {
+
+                StringBuilder msg = null;
+
+                final String[][] copyOptions =
+                        IppDictJobTemplateAttr.JOBTICKET_ATTR_COPY_V_NONE;
+
+                for (final String[] attrArray : copyOptions) {
+
+                    final String ippKey = attrArray[0];
+                    final String ippChoice = ippOptions.get(ippKey);
+
+                    if (ippChoice == null || ippChoice.equals(attrArray[1])) {
+                        continue;
+                    }
+
+                    if (msg == null) {
+                        msg = new StringBuilder();
+                        msg.append("Combination of options for ");
+                    } else {
+                        msg.append(", ");
+                    }
+
+                    msg.append("\"")
+                            .append(this.localizePrinterOpt(locale, ippKey))
+                            .append(" / ")
+                            .append(this.localizePrinterOptValue(locale, ippKey,
+                                    ippChoice))
+                            .append("\"");
+                }
+
+                if (msg != null) {
+                    msg.append(" is not supported.");
+                    return msg.toString();
+                }
+            }
+        }
+        return null;
+    }
 }
