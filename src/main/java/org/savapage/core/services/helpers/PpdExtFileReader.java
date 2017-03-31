@@ -436,12 +436,17 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
              */
             final JsonProxyPrinterOpt opt;
 
+            /*
+             * NOTE: The order of checking containsKey() is important. Check
+             * optionsFromCUPS as last, since ppdOptionMapOnIpp may contain
+             * overrides.
+             */
             if (optMap.containsKey(ippAttr)) {
                 opt = optMap.get(ippAttr);
-            } else if (this.optionsFromCUPS.containsKey(ippAttr)) {
-                opt = this.optionsFromCUPS.get(ippAttr);
             } else if (this.ppdOptionMapOnIpp.containsKey(ippAttr)) {
                 opt = this.ppdOptionMapOnIpp.get(ippAttr);
+            } else if (this.optionsFromCUPS.containsKey(ippAttr)) {
+                opt = this.optionsFromCUPS.get(ippAttr);
             } else {
                 LOGGER.warn(String.format(
                         "%s line %d: IPP attribute \"%s\" is unknown",
