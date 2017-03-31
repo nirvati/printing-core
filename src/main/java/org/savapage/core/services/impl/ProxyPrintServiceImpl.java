@@ -154,93 +154,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     private final boolean hasCustomIppI18n;
 
     /**
-     * A selection of IPP attribute keywords used in UI (Web App) for Page
-     * Options.
-     * <p>
-     * Note that the option order in the array is the top-down order as they
-     * appear in the Web App.
-     * </p>
-     */
-    private static final String[] IPP_ATTR_KEYWORDS_UI_PAGE_SETUP =
-            new String[] {
-                    /* */
-                    IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
-                    /* */
-                    IppDictJobTemplateAttr.ATTR_OUTPUT_BIN,
-                    /* */
-                    IppDictJobTemplateAttr.ATTR_MEDIA,
-                    /* */
-                    IppDictJobTemplateAttr.ATTR_SIDES,
-                    /* */
-                    IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
-                    /* */
-                    IppDictJobTemplateAttr.ATTR_PRINTER_RESOLUTION,
-                    /* */
-                    IppDictJobTemplateAttr.ATTR_NUMBER_UP
-            /*
-             * Mantis #408: disable ...
-             *
-             * IppDictJobTemplateAttr.ATTR_PRINT_QUALITY
-             *
-             * IppDictJobTemplateAttr.ATTR_ORIENTATION_REQUESTED
-             */
-            };
-
-    /**
-     * A selection of IPP attribute keywords used in UI (Web App) for Job
-     * Options.
-     * <p>
-     * Note that the option order in the array is the top-down order as they
-     * appear in the Web App.
-     * </p>
-     */
-    private static final String[] IPP_ATTR_KEYWORDS_UI_JOB = new String[] {
-            /*
-             * No entries intended.
-             */
-    };
-
-    /**
-     * A selection of IPP attribute keywords used in UI (Web App) for Advanced
-     * Options.
-     * <p>
-     * Note that the option order in the array is the top-down order as they
-     * appear in the Web App.
-     * </p>
-     */
-    private static final String[] IPP_ATTR_KEYWORDS_UI_ADVANCED = new String[] {
-            /* */
-            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE,
-            /* */
-            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH,
-            /* */
-            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD,
-            /* */
-            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET
-            /*
-             * Mantis #408: disable ...
-             *
-             * IppDictJobTemplateAttr.ATTR_FINISHINGS
-             * IppDictJobTemplateAttr.ATTR_OUTPUT_BIN
-             */
-    };
-
-    /**
-     * A selection of IPP attribute keywords NOT used in UI (Web App) but for
-     * reference only.
-     */
-    private static final String[] IPP_ATTR_KEYWORDS_REFERENCE_ONLY =
-            new String[] {
-                    /* */
-                    IppDictJobTemplateAttr.ATTR_SHEET_COLLATE,
-                    /* */
-                    IppDictJobTemplateAttr.ATTR_PRINT_SCALING,
-                    /* */
-                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET
-            //
-            };
-
-    /**
      *
      * @throws MalformedURLException
      */
@@ -606,16 +519,20 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     @Override
     public ProxyPrinterOptGroupEnum getUiOptGroup(final String keywordIpp) {
 
-        if (isIppKeywordPresent(IPP_ATTR_KEYWORDS_UI_ADVANCED, keywordIpp)) {
+        if (isIppKeywordPresent(IppDictJobTemplateAttr.ATTR_SET_UI_ADVANCED,
+                keywordIpp)) {
             return ProxyPrinterOptGroupEnum.ADVANCED;
         }
-        if (isIppKeywordPresent(IPP_ATTR_KEYWORDS_UI_JOB, keywordIpp)) {
+        if (isIppKeywordPresent(IppDictJobTemplateAttr.ATTR_SET_UI_JOB,
+                keywordIpp)) {
             return ProxyPrinterOptGroupEnum.JOB;
         }
-        if (isIppKeywordPresent(IPP_ATTR_KEYWORDS_UI_PAGE_SETUP, keywordIpp)) {
+        if (isIppKeywordPresent(IppDictJobTemplateAttr.ATTR_SET_UI_PAGE_SETUP,
+                keywordIpp)) {
             return ProxyPrinterOptGroupEnum.PAGE_SETUP;
         }
-        if (isIppKeywordPresent(IPP_ATTR_KEYWORDS_REFERENCE_ONLY, keywordIpp)) {
+        if (isIppKeywordPresent(IppDictJobTemplateAttr.ATTR_SET_REFERENCE_ONLY,
+                keywordIpp)) {
             return ProxyPrinterOptGroupEnum.REFERENCE_ONLY;
         }
         return null;
@@ -646,7 +563,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @param printer
      *            The printer to add the option group to.
      * @param ippAttrGroup
-     *            All the (raw) IPP options of the printer .
+     *            All the (raw) IPP options of the printer.
      * @param groupId
      *            The ID of the option group.
      * @param attrKeywords
@@ -785,18 +702,18 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         // ---------------------
         addUserPrinterOptGroup(printer, group,
                 ProxyPrinterOptGroupEnum.PAGE_SETUP,
-                IPP_ATTR_KEYWORDS_UI_PAGE_SETUP);
+                IppDictJobTemplateAttr.ATTR_SET_UI_PAGE_SETUP);
 
         addUserPrinterOptGroup(printer, group, ProxyPrinterOptGroupEnum.JOB,
-                IPP_ATTR_KEYWORDS_UI_JOB);
+                IppDictJobTemplateAttr.ATTR_SET_UI_JOB);
 
         addUserPrinterOptGroup(printer, group,
                 ProxyPrinterOptGroupEnum.ADVANCED,
-                IPP_ATTR_KEYWORDS_UI_ADVANCED);
+                IppDictJobTemplateAttr.ATTR_SET_UI_ADVANCED);
 
         addUserPrinterOptGroup(printer, group,
                 ProxyPrinterOptGroupEnum.REFERENCE_ONLY,
-                IPP_ATTR_KEYWORDS_REFERENCE_ONLY);
+                IppDictJobTemplateAttr.ATTR_SET_REFERENCE_ONLY);
 
         // -----------------------------------------
         printer.setDfault(
@@ -1026,7 +943,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @param printer
      *            The {@link JsonProxyPrinter}.
      * @param group
-     *            The {@link IppAttrGroup}.
+     *            The {@link IppAttrGroup} with all the (raw) IPP options of the
+     *            printer.
      * @param printerOptions
      *            The list of {@link JsonProxyPrinterOpt} to add the option to.
      * @param attrKeyword

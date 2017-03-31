@@ -424,6 +424,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                 removeOptGroup(printerCopy,
                         ProxyPrinterOptGroupEnum.REFERENCE_ONLY);
+
+                pruneUserPrinterIppOptions(cupsPrinter, printerCopy);
             }
 
         } else {
@@ -431,6 +433,45 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         return printerCopy;
+    }
+
+    /**
+     * Prunes printer IPP options that user is not allowed to set.
+     *
+     * @param cupsPrinter
+     *            The cupsPrinter.
+     * @param userPrinter
+     *            The printer to prune.
+     */
+    private static void pruneUserPrinterIppOptions(
+            final JsonProxyPrinter cupsPrinter,
+            final JsonPrinterDetail userPrinter) {
+
+        final Map<String, JsonProxyPrinterOpt> cachedOptionLookup =
+                cupsPrinter.getOptionsLookup();
+
+        for (final String kw : IppDictJobTemplateAttr.ATTR_SET_UI_PPDE_ONLY) {
+
+            final JsonProxyPrinterOpt opt = cachedOptionLookup.get(kw);
+
+            if (opt == null || opt.isPpdExt()) {
+                continue;
+            }
+
+            for (final JsonProxyPrinterOptGroup optGroup : userPrinter
+                    .getGroups()) {
+
+                final Iterator<JsonProxyPrinterOpt> iter =
+                        optGroup.getOptions().iterator();
+
+                while (iter.hasNext()) {
+                    if (iter.next().getKeyword().equals(kw)) {
+                        iter.remove();
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     /**

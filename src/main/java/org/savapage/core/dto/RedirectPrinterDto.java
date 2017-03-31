@@ -53,6 +53,11 @@ public final class RedirectPrinterDto extends AbstractDto {
     private String deviceUri;
 
     /**
+     * The localized media-type choice. {@code null} when no media-type chosen.
+     */
+    private JsonProxyPrinterOptChoice mediaTypeOptChoice;
+
+    /**
      * The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} option of the
      * printer.
      */
@@ -123,6 +128,24 @@ public final class RedirectPrinterDto extends AbstractDto {
 
     public void setDeviceUri(final String deviceUri) {
         this.deviceUri = deviceUri;
+    }
+
+    /**
+     * @return The localized media-type choice. {@code null} when no media-type
+     *         chosen.
+     */
+    public JsonProxyPrinterOptChoice getMediaTypeOptChoice() {
+        return mediaTypeOptChoice;
+    }
+
+    /**
+     * @param optChoice
+     *            The localized media-type choice. {@code null} when no
+     *            media-type chosen.
+     */
+    public void
+            setMediaTypeOptChoice(final JsonProxyPrinterOptChoice optChoice) {
+        this.mediaTypeOptChoice = optChoice;
     }
 
     /**

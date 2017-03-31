@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -120,12 +120,24 @@ public final class JsonProxyPrinterOpt {
      */
     @JsonIgnore
     public boolean hasChoice(final String choice) {
+        return getChoice(choice) != null;
+    }
+
+    /**
+     * Gets a choice.
+     *
+     * @param choice
+     *            The choice
+     * @return {@code null} when choice is not present.
+     */
+    @JsonIgnore
+    public JsonProxyPrinterOptChoice getChoice(final String choice) {
         for (final JsonProxyPrinterOptChoice choiceWlk : this.choices) {
             if (choiceWlk.getChoice().equals(choice)) {
-                return true;
+                return choiceWlk;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -260,4 +272,14 @@ public final class JsonProxyPrinterOpt {
     public void setChoices(final ArrayList<JsonProxyPrinterOptChoice> choices) {
         this.choices = choices;
     }
+
+    /**
+     *
+     * @return {@code true} when this option is an PPD extension.
+     */
+    @JsonIgnore
+    public boolean isPpdExt() {
+        return this.keywordPpd != null;
+    }
+
 }

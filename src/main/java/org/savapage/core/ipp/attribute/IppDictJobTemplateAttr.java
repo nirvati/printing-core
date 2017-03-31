@@ -286,12 +286,6 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     /**
      * .
      */
-    public static final String ORG_SAVAPAGE_ATTR_MEDIA_WEIGHT_METRIC =
-            ORG_SAVAPAGE_ATTR_PFX + "media-weight-metric";
-
-    /**
-     * .
-     */
     public static final String ORG_SAVAPAGE_ATTR_COVER_TYPE =
             ORG_SAVAPAGE_ATTR_PFX + "cover-type";
 
@@ -312,16 +306,14 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      * The Job Ticket media attributes related to {@link #ATTR_MEDIA}.
      */
     public static final String[] JOBTICKET_ATTR_MEDIA =
-            new String[] { ATTR_MEDIA_COLOR, ATTR_MEDIA_TYPE,
-                    ORG_SAVAPAGE_ATTR_MEDIA_WEIGHT_METRIC };
+            new String[] { ATTR_MEDIA_COLOR, ATTR_MEDIA_TYPE };
 
     /**
      * The Job Ticket media attributes related to
      * {@link IppKeyword#MEDIA_TYPE_PAPER}.
      */
     public static final String[] JOBTICKET_ATTR_MEDIA_TYPE_PAPER =
-            new String[] { ATTR_MEDIA_COLOR,
-                    ORG_SAVAPAGE_ATTR_MEDIA_WEIGHT_METRIC };
+            new String[] { ATTR_MEDIA_COLOR };
 
     /**
      * .
@@ -401,6 +393,91 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             //
     };
 
+    /**
+     * A set of IPP attribute keywords used in UI (Web App) that MUST have
+     * a PPDE override, to be displayed.
+     */
+    public static final String[] ATTR_SET_UI_PPDE_ONLY = new String[] {
+            /* */
+            ATTR_MEDIA_TYPE,
+            /* */
+            /* */
+            ATTR_OUTPUT_BIN };
+
+    /**
+     * A set of IPP attribute keywords used in UI (Web App) for Page
+     * Options.
+     * <p>
+     * Note that the option order in the array is the top-down order as they
+     * appear in the Web App.
+     * </p>
+     */
+    public static final String[] ATTR_SET_UI_PAGE_SETUP =
+            new String[] {
+                    /* */
+                    ATTR_MEDIA_SOURCE,
+                    /* */
+                    ATTR_OUTPUT_BIN,
+                    /* */
+                    ATTR_MEDIA,
+                    /* */
+                    ATTR_MEDIA_TYPE,
+                    /* */
+                    ATTR_SIDES,
+                    /* */
+                    ATTR_PRINT_COLOR_MODE,
+                    /* */
+                    ATTR_PRINTER_RESOLUTION,
+                    /* */
+                    ATTR_NUMBER_UP };
+
+    /**
+     * A set of IPP attribute keywords used in UI (Web App) for Job
+     * Options.
+     * <p>
+     * Note that the option order in the array is the top-down order as they
+     * appear in the Web App.
+     * </p>
+     */
+    public static final String[] ATTR_SET_UI_JOB = new String[] {
+            /*
+             * No entries intended.
+             */
+    };
+
+    /**
+     * A set of IPP attribute keywords used in UI (Web App) for Advanced
+     * Options.
+     * <p>
+     * Note that the option order in the array is the top-down order as they
+     * appear in the Web App.
+     * </p>
+     */
+    public static final String[] ATTR_SET_UI_ADVANCED = new String[] {
+            /* */
+            ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE,
+            /* */
+            ORG_SAVAPAGE_ATTR_FINISHINGS_PUNCH,
+            /* */
+            ORG_SAVAPAGE_ATTR_FINISHINGS_FOLD,
+            /* */
+            ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET };
+
+    /**
+     * A set of IPP attribute keywords NOT used in UI (Web App) but for
+     * reference only.
+     */
+    public static final String[] ATTR_SET_REFERENCE_ONLY =
+            new String[] {
+                    /* */
+                    ATTR_SHEET_COLLATE,
+                    /* */
+                    ATTR_PRINT_SCALING,
+                    /* */
+                    ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET
+            //
+            };
+
     /*
      * Defaults
      */
@@ -432,6 +509,8 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
 
     public static final String ATTR_MEDIA_SOURCE_DFLT =
             ATTR_MEDIA_SOURCE + _DFLT;
+
+    public static final String ATTR_MEDIA_TYPE_DFLT = ATTR_MEDIA_TYPE + _DFLT;
 
     public static final String ATTR_PRINTER_RESOLUTION_DFLT =
             ATTR_PRINTER_RESOLUTION + _DFLT;
@@ -484,6 +563,8 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
 
     public static final String ATTR_MEDIA_SOURCE_SUPP =
             ATTR_MEDIA_SOURCE + _SUPP;
+
+    public static final String ATTR_MEDIA_TYPE_SUPP = ATTR_MEDIA_TYPE + _SUPP;
 
     public static final String ATTR_PRINTER_RESOLUTION_SUPP =
             ATTR_PRINTER_RESOLUTION + _SUPP;
@@ -741,6 +822,15 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             // ALTERNATIVE: see attributesAlt
 
             /**
+             * media-type
+             */
+            // DEFAULT
+            new IppAttr(ATTR_MEDIA_TYPE, IppKeyword.instance()),
+            new IppAttr(ATTR_MEDIA_TYPE_DFLT, IppKeyword.instance()),
+            new IppAttr(ATTR_MEDIA_TYPE_SUPP, IppKeyword.instance()),
+            // ALTERNATIVE: see attributesAlt
+
+            /**
              * <pre>
              * +-------------------+----------------------+----------------------+
              * | printer-resolution| printer-resolution-  | printer-resolution-  |
@@ -880,6 +970,14 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             new IppAttr(ATTR_MEDIA_SOURCE_SUPP, IppName.instance()),
 
             /**
+             * media-source type3 keyword | name(MAX)
+             */
+            // ALTERNATIVE
+            new IppAttr(ATTR_MEDIA_TYPE, IppName.instance()),
+            new IppAttr(ATTR_MEDIA_TYPE_DFLT, IppName.instance()),
+            new IppAttr(ATTR_MEDIA_TYPE_SUPP, IppName.instance()),
+
+            /**
              * output-bin type3 keyword | name(MAX)
              */
             // ALTERNATIVE
@@ -951,6 +1049,11 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
         }
 
         if (keyword.startsWith(ATTR_MEDIA_SOURCE)
+                && (valueTag != IppValueTag.KEYWORD)) {
+            return dictionaryAlt.get(keyword);
+        }
+
+        if (keyword.startsWith(ATTR_MEDIA_TYPE)
                 && (valueTag != IppValueTag.KEYWORD)) {
             return dictionaryAlt.get(keyword);
         }

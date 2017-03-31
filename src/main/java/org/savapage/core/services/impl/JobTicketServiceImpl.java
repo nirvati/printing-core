@@ -1291,6 +1291,9 @@ public final class JobTicketServiceImpl extends AbstractService
         final String requestedMediaForJob =
                 job.getOptionValues().get(IppDictJobTemplateAttr.ATTR_MEDIA);
 
+        final String requestedMediaTypeForJob = job.getOptionValues()
+                .get(IppDictJobTemplateAttr.ATTR_MEDIA_TYPE);
+
         for (final PrinterGroupMember member : printerGroup.getMembers()) {
 
             final Printer printer = member.getPrinter();
@@ -1308,12 +1311,12 @@ public final class JobTicketServiceImpl extends AbstractService
                                 printer.getPrinterName()));
             }
 
-            // Duplex
+            // Duplex printer?
             if (duplexJob && !cupsPrinter.getDuplexDevice()) {
                 continue;
             }
 
-            // Color
+            // Color printer?
             final boolean colorPrinter = cupsPrinter.getColorDevice();
 
             if (colorJob && !colorPrinter) {
@@ -1355,6 +1358,25 @@ public final class JobTicketServiceImpl extends AbstractService
                 continue;
             }
 
+            // If media-type requested, find a match.
+            final JsonProxyPrinterOptChoice mediaTypeOptChoice;
+
+            if (requestedMediaTypeForJob == null) {
+                mediaTypeOptChoice = null;
+            } else {
+                final JsonProxyPrinterOpt mediaType =
+                        this.localizePrinterOpt(printerOptionlookup,
+                                IppDictJobTemplateAttr.ATTR_MEDIA_TYPE, locale);
+                if (mediaType == null) {
+                    continue;
+                }
+                mediaTypeOptChoice =
+                        mediaType.getChoice(requestedMediaTypeForJob);
+                if (mediaTypeOptChoice == null) {
+                    continue;
+                }
+            }
+
             // Extra filter
             if (!ippOptionFilter.areOptionValuesValid(printerOptionlookup)) {
                 continue;
@@ -1378,6 +1400,13 @@ public final class JobTicketServiceImpl extends AbstractService
             redirectPrinter.setName(printer.getDisplayName());
             redirectPrinter.setDeviceUri(cupsPrinter.getDeviceUri().toString());
             redirectPrinter.setMediaSourceOpt(mediaSource);
+
+            if (mediaTypeOptChoice != null) {
+                redirectPrinter.setMediaTypeOptChoice(mediaTypeOptChoice);
+                // proxyPrintService().localizePrinterOptValue(locale,
+                // IppDictJobTemplateAttr.ATTR_MEDIA_TYPE,
+                // requestedMediaTypeForJob));
+            }
 
             final PrinterAttrLookup printerAttrLookup =
                     new PrinterAttrLookup(printer);
@@ -1421,7 +1450,7 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     /**
-     * Localizes a printer option.
+     * Localizes a printer option, by returning a copy.
      *
      * @param printerOptionlookup
      * @param ippKeyword
