@@ -43,16 +43,19 @@ import org.savapage.core.util.NumberUtil;
 /**
  * Encapsulation of Printer attribute map.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class PrinterAttrLookup {
 
     /**
-    *
-    */
+     * .
+     */
     private final Map<String, String> lookup;
 
+    /**
+     *
+     */
     private final boolean mediaSourcePresent;
 
     /**

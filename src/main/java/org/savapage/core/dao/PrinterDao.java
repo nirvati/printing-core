@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -33,7 +33,7 @@ import org.savapage.core.jpa.PrinterAttr;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface PrinterDao extends GenericDao<Printer> {
@@ -97,8 +97,8 @@ public interface PrinterDao extends GenericDao<Printer> {
 
         private static final String TOKEN_MEDIA_SOURCE = "media-source";
 
-        public static final String MEDIA_SOURCE_PFX = TOKEN_MEDIA_SOURCE
-                + DELIM;
+        public static final String MEDIA_SOURCE_PFX =
+                TOKEN_MEDIA_SOURCE + DELIM;
 
         final private String ippMediaSourceName;
 
@@ -143,7 +143,8 @@ public interface PrinterDao extends GenericDao<Printer> {
          * @return
          */
         public String getKey() {
-            return MEDIA_SOURCE_PFX + this.ippMediaSourceName;
+            return String.format("%s%s", MEDIA_SOURCE_PFX,
+                    this.ippMediaSourceName);
         }
 
         /**
@@ -197,6 +198,10 @@ public interface PrinterDao extends GenericDao<Printer> {
             return ippAttr;
         }
 
+        /**
+         *
+         * @return The IPP keyword.
+         */
         public String getIppKeyword() {
             return this.ippKeyword;
         }
@@ -207,16 +212,18 @@ public interface PrinterDao extends GenericDao<Printer> {
          * @return The key is used for database storage.
          */
         public String getKey() {
-            return IPP_KEYWORD_PFX + this.ippKeyword;
+            return String.format("%s%s", IPP_KEYWORD_PFX, this.ippKeyword);
         }
 
         /**
          * Composes the key used to store/retrieve.
          *
+         * @param ippKeyword
+         *            The IPP keyword.
          * @return The key is used for database storage.
          */
         public static String getKey(final String ippKeyword) {
-            return IPP_KEYWORD_PFX + ippKeyword;
+            return String.format("%s%s", IPP_KEYWORD_PFX, ippKeyword);
         }
 
         /**
@@ -243,8 +250,8 @@ public interface PrinterDao extends GenericDao<Printer> {
         private static final String TOKEN_1_COST = "cost";
         private static final String TOKEN_2_MEDIA = "media";
 
-        public static final String COST_MEDIA_PFX = TOKEN_1_COST + DELIM
-                + TOKEN_2_MEDIA + DELIM;
+        public static final String COST_MEDIA_PFX =
+                TOKEN_1_COST + DELIM + TOKEN_2_MEDIA + DELIM;
 
         public static final String COST_3_MEDIA_DEFAULT =
                 IppMediaCostDto.DEFAULT_MEDIA;
