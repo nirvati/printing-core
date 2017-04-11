@@ -52,6 +52,13 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     private URI printerUri;
 
     /**
+     * If this is a CUPS printer class, the number of printer members. If
+     * {@code 0} (zero) this is <i>not</i> a printer class.
+     */
+    @JsonIgnore
+    private int cupsClassMembers;
+
+    /**
      * Corresponding Database Printer Object.
      */
     @JsonIgnore
@@ -454,6 +461,26 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     public void setPrinterUri(final URI printerUri) {
         this.printerUri = printerUri;
+    }
+
+    /**
+     * @return If this is a CUPS printer class, the number of printer members.
+     *         If {@code 0} (zero) this is <i>not</i> a printer class.
+     */
+    @JsonIgnore
+    public int getCupsClassMembers() {
+        return cupsClassMembers;
+    }
+
+    /**
+     * @param nMembers
+     *            If this is a CUPS printer class, the number of printer
+     *            members. If {@code 0} (zero) this is <i>not</i> a printer
+     *            class.
+     */
+    @JsonIgnore
+    public void setCupsClassMembers(final int nMembers) {
+        this.cupsClassMembers = nMembers;
     }
 
     /**

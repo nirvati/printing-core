@@ -418,8 +418,13 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 continue;
             }
 
-            initPrinterClassFromMember(printerMap.get(printerClass.getName()),
-                    proxyPrinterMember);
+            final JsonProxyPrinter proxyPrinterClass =
+                    printerMap.get(printerClass.getName());
+
+            proxyPrinterClass
+                    .setCupsClassMembers(printerClass.getMemberNames().size());
+
+            initPrinterClassFromMember(proxyPrinterClass, proxyPrinterMember);
 
             if (LOGGER.isTraceEnabled()) {
                 final String msg =
