@@ -335,6 +335,15 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
                     JOBTICKET_ATTR_FINISHINGS_EXT };
 
     /**
+     * Array of 2-element array elements, one for each attribute that makes a
+     * Job Ticket for settlement only: the first element is the IPP option key,
+     * and the second element its NONE value.
+     */
+    public static final String[][] JOBTICKET_ATTR_SETTLE_ONLY_V_NONE =
+            { { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_COVER_TYPE_NO_COVER } };
+
+    /**
      * Array of 2-element array elements, one for each Job Ticket copy
      * attribute: the first element is the IPP option key, and the second
      * element its NONE value.
@@ -394,8 +403,8 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     };
 
     /**
-     * A set of IPP attribute keywords used in UI (Web App) that MUST have
-     * a PPDE override, to be displayed.
+     * A set of IPP attribute keywords used in UI (Web App) that MUST have a
+     * PPDE override, to be displayed.
      */
     public static final String[] ATTR_SET_UI_PPDE_ONLY = new String[] {
             /* */
@@ -405,35 +414,32 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             ATTR_OUTPUT_BIN };
 
     /**
-     * A set of IPP attribute keywords used in UI (Web App) for Page
-     * Options.
+     * A set of IPP attribute keywords used in UI (Web App) for Page Options.
      * <p>
      * Note that the option order in the array is the top-down order as they
      * appear in the Web App.
      * </p>
      */
-    public static final String[] ATTR_SET_UI_PAGE_SETUP =
-            new String[] {
-                    /* */
-                    ATTR_MEDIA_SOURCE,
-                    /* */
-                    ATTR_OUTPUT_BIN,
-                    /* */
-                    ATTR_MEDIA,
-                    /* */
-                    ATTR_MEDIA_TYPE,
-                    /* */
-                    ATTR_SIDES,
-                    /* */
-                    ATTR_PRINT_COLOR_MODE,
-                    /* */
-                    ATTR_PRINTER_RESOLUTION,
-                    /* */
-                    ATTR_NUMBER_UP };
+    public static final String[] ATTR_SET_UI_PAGE_SETUP = new String[] {
+            /* */
+            ATTR_MEDIA_SOURCE,
+            /* */
+            ATTR_OUTPUT_BIN,
+            /* */
+            ATTR_MEDIA,
+            /* */
+            ATTR_MEDIA_TYPE,
+            /* */
+            ATTR_SIDES,
+            /* */
+            ATTR_PRINT_COLOR_MODE,
+            /* */
+            ATTR_PRINTER_RESOLUTION,
+            /* */
+            ATTR_NUMBER_UP };
 
     /**
-     * A set of IPP attribute keywords used in UI (Web App) for Job
-     * Options.
+     * A set of IPP attribute keywords used in UI (Web App) for Job Options.
      * <p>
      * Note that the option order in the array is the top-down order as they
      * appear in the Web App.
@@ -467,16 +473,15 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      * A set of IPP attribute keywords NOT used in UI (Web App) but for
      * reference only.
      */
-    public static final String[] ATTR_SET_REFERENCE_ONLY =
-            new String[] {
-                    /* */
-                    ATTR_SHEET_COLLATE,
-                    /* */
-                    ATTR_PRINT_SCALING,
-                    /* */
-                    ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET
+    public static final String[] ATTR_SET_REFERENCE_ONLY = new String[] {
+            /* */
+            ATTR_SHEET_COLLATE,
+            /* */
+            ATTR_PRINT_SCALING,
+            /* */
+            ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET
             //
-            };
+    };
 
     /*
      * Defaults

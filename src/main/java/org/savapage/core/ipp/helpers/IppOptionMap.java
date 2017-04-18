@@ -143,6 +143,23 @@ public final class IppOptionMap {
     }
 
     /**
+     * @return {@code true} when this is a Job Ticket meant for settlement only.
+     */
+    public boolean isJobTicketSettleOnly() {
+
+        final String[][] settleOnlyOptions =
+                IppDictJobTemplateAttr.JOBTICKET_ATTR_SETTLE_ONLY_V_NONE;
+
+        for (final String[] attrArray : settleOnlyOptions) {
+
+            if (isOptionPresentUnequal(attrArray[0], attrArray[1])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Checks if an option is present and has value unequal to compareValue.
      *
      * @param key
