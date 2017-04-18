@@ -1900,6 +1900,11 @@ public interface IConfigProp {
         WEBAPP_USER_PROXY_PRINT_CLEAR_PRINTER("webapp.user.proxy-print.clear-printer", BOOLEAN_VALIDATOR, V_NO),
 
         /**
+         * User WebApp: clear print delegate data after proxy printing.
+         */
+        WEBAPP_USER_PROXY_PRINT_CLEAR_DELEGATE("webapp.user.proxy-print.clear-delegate", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
          * User WebApp: enable the "Print documents separately" option for proxy
          * printing (Boolean). If {@code true} the option is enabled (shown).
          */
