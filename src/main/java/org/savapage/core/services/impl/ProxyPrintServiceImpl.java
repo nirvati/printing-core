@@ -773,9 +773,27 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     public String localizePrinterOpt(final Locale locale,
             final String attrKeyword) {
 
-        return localizeWithDefault(locale,
-                String.format("%s%s", LOCALIZE_IPP_ATTR_PREFIX, attrKeyword),
-                attrKeyword);
+        final String msgKey =
+                String.format("%s%s", LOCALIZE_IPP_ATTR_PREFIX, attrKeyword);
+
+        final String customOpt = localizeCustomIpp(msgKey, locale);
+
+        if (customOpt == null) {
+            return localizeWithDefault(locale, msgKey, attrKeyword);
+        } else {
+            return customOpt;
+        }
+    }
+
+    @Override
+    public void localizePrinterOpt(final Locale locale,
+            final JsonProxyPrinterOpt option) {
+
+        final String attrKeyword = option.getKeyword();
+
+        option.setUiText(localizePrinterOpt(locale, attrKeyword));
+
+        localizePrinterOptChoices(locale, attrKeyword, option.getChoices());
     }
 
     @Override
@@ -895,16 +913,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         return finalChoice;
-    }
-
-    @Override
-    public void localizePrinterOpt(final Locale locale,
-            final JsonProxyPrinterOpt option) {
-
-        final String attrKeyword = option.getKeyword();
-        option.setUiText(localize(locale,
-                String.format("%s%s", LOCALIZE_IPP_ATTR_PREFIX, attrKeyword)));
-        localizePrinterOptChoices(locale, attrKeyword, option.getChoices());
     }
 
     @Override
