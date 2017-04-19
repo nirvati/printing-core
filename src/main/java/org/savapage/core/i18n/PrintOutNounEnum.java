@@ -23,7 +23,11 @@ package org.savapage.core.i18n;
 
 import java.util.Locale;
 
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
+import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.jpa.PrintOut;
+import org.savapage.core.services.ProxyPrintService;
+import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.LocaleHelper;
 
 /**
@@ -41,13 +45,25 @@ public enum PrintOutNounEnum {
     BOOKLET,
 
     /**  */
-    COLOR, GRAYSCALE,
+    COLOR(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE, IppKeyword.PRINT_COLOR_MODE_COLOR),
+
+    /**  */
+    GRAYSCALE(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE, IppKeyword.PRINT_COLOR_MODE_MONOCHROME),
 
     /** */
-    DUPLEX, SIMPLEX,
+    DUPLEX,
+
+    /**  */
+    SIMPLEX,
 
     /** */
     PORTRAIT, LANDSCAPE;
+
+    /**
+     *
+     */
+    private static final ProxyPrintService PROXYPRINT_SERVICE =
+            ServiceContext.getServiceFactory().getProxyPrintService();
 
     /**
      *
@@ -64,20 +80,34 @@ public enum PrintOutNounEnum {
      */
     private final boolean hasPlural;
 
+    private final String ippAttr;
+    private final String ippChoice;
+
     /**
      *
      */
     PrintOutNounEnum() {
         this.hasPlural = false;
+        this.ippAttr = null;
+        this.ippChoice = null;
     }
 
     /**
      *
-     * @param plural
-     *            {@code true} when noun has a plural form.
      */
     PrintOutNounEnum(final boolean plural) {
         this.hasPlural = plural;
+        this.ippAttr = null;
+        this.ippChoice = null;
+    }
+
+    /**
+     *
+     */
+    PrintOutNounEnum(final String attr, final String choice) {
+        this.hasPlural = false;
+        this.ippAttr = attr;
+        this.ippChoice = choice;
     }
 
     /**
@@ -86,6 +116,12 @@ public enum PrintOutNounEnum {
      * @return The localized text.
      */
     public String uiText(final Locale locale) {
+
+        if (this.ippAttr != null) {
+            return PROXYPRINT_SERVICE.localizePrinterOptValue(locale,
+                    this.ippAttr, this.ippChoice);
+        }
+
         if (this.hasPlural) {
             return LocaleHelper.uiText(this, locale, SINGULAR_SUFFIX);
         }
