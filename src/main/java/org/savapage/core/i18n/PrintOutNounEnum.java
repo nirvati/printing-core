@@ -57,7 +57,17 @@ public enum PrintOutNounEnum {
     SIMPLEX,
 
     /** */
-    PORTRAIT, LANDSCAPE;
+    PORTRAIT, LANDSCAPE,
+
+    /**
+     *
+     */
+    FINISHING(true), TRAY(true),
+
+    /**
+     * Pass N as argument to get the UI text.
+     */
+    N_UP;
 
     /**
      *
@@ -151,4 +161,20 @@ public enum PrintOutNounEnum {
         return LocaleHelper.uiText(this, locale, sfx);
     }
 
+    /**
+     * Get the localized UI text with argument. To be used for {@link #N_UP}.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param args
+     *            The arguments.
+     * @return The localized text.
+     */
+    public String uiText(final Locale locale, final String... args) {
+        if (this == N_UP) {
+            return LocaleHelper.uiText(this, locale, args);
+        }
+        throw new IllegalArgumentException(String
+                .format("%s does not support arguments.", this.toString()));
+    }
 }

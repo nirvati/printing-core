@@ -246,6 +246,34 @@ public final class Messages extends MessagesBundleMixin {
     }
 
     /**
+     * Creates a MessageFormat with the given pattern and uses it to format the
+     * given arguments.
+     *
+     * @param pattern
+     *            The pattern.
+     * @param args
+     *            The arguments
+     * @return The formatted string.
+     */
+    public static String formatMessage(final String pattern,
+            final String... args) {
+        try {
+            /*
+             * Add an extra apostrophe ' to the MessageFormat pattern String to
+             * ensure the ' character is displayed.
+             */
+            return MessageFormat.format(pattern.replace("\'", "\'\'"),
+                    (Object[]) args);
+
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Error parsing message pattern [" + pattern + "]"
+                    + e.getMessage());
+            return pattern;
+        }
+
+    }
+
+    /**
      * Gets the localized message from {@code message*.xml} residing in the same
      * package as the requester class.
      *
@@ -264,32 +292,10 @@ public final class Messages extends MessagesBundleMixin {
 
         final String pattern = loadMessagePattern(reqClass, locale, key);
 
-        String msg;
-
         if ((args == null) || args.length == 0) {
-
-            msg = pattern;
-
-        } else {
-            try {
-                /*
-                 * Add an extra apostrophe ' to the MessageFormat pattern String
-                 * to ensure the ' character is displayed.
-                 */
-                msg = MessageFormat.format(pattern.replace("\'", "\'\'"),
-                        (Object[]) args);
-
-            } catch (IllegalArgumentException e) {
-
-                LOGGER.error("Error parsing message pattern [" + pattern
-                        + "] Locale [" + locale + "] : " + e.getMessage());
-                /*
-                 * use a substitute message
-                 */
-                msg = String.format("[%s]", key);
-            }
+            return pattern;
         }
-        return msg;
+        return formatMessage(pattern, args);
     }
 
     /**

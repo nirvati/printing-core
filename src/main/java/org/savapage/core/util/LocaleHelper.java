@@ -185,6 +185,25 @@ public final class LocaleHelper {
     }
 
     /**
+     * Gets the localized user interface text of an {@link Enum} value with
+     * arguments.
+     *
+     * @param <E>
+     *            The Enum class.
+     * @param value
+     *            The Enum value.
+     * @param locale
+     *            The {@link Locale}.
+     * @param args
+     *            The arguments.
+     * @return The localized text.
+     */
+    public static <E extends Enum<E>> String uiText(final Enum<E> value,
+            final Locale locale, final String... args) {
+        return Messages.formatMessage(uiText(value, locale), args);
+    }
+
+    /**
      * Gets the localized user interface text of an {@link Enum} value.
      *
      * @param <E>
