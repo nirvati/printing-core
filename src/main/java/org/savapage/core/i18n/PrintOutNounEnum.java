@@ -42,6 +42,9 @@ public enum PrintOutNounEnum {
     ACCOUNT(true), PAGE(true), COPY(true), SHEET(true),
 
     /** */
+    FINISHING(true), TRAY(true), SETTING(true),
+
+    /** */
     BOOKLET,
 
     /**  */
@@ -58,11 +61,6 @@ public enum PrintOutNounEnum {
 
     /** */
     PORTRAIT, LANDSCAPE,
-
-    /**
-     *
-     */
-    FINISHING(true), TRAY(true),
 
     /**
      * Pass N as argument to get the UI text.
