@@ -67,8 +67,13 @@ import org.savapage.core.util.FileSystemHelper;
  *
  */
 @Singleton
-public final class EmailServiceImpl extends AbstractService implements
-        EmailService {
+public final class EmailServiceImpl extends AbstractService
+        implements EmailService {
+
+    /**
+     *
+     */
+    private static final String MIME_MULTIPART_SUBTYPE_RELATED = "related";
 
     /**
      *
@@ -127,7 +132,8 @@ public final class EmailServiceImpl extends AbstractService implements
         /*
          * The timeout (milliseconds) for sending the mail messages.
          */
-        props.put("mail.smtp.timeout", conf.getConfigInt(Key.MAIL_SMTP_TIMEOUT));
+        props.put("mail.smtp.timeout",
+                conf.getConfigInt(Key.MAIL_SMTP_TIMEOUT));
 
         //
         props.put("mail.smtp.host", host);
@@ -198,17 +204,18 @@ public final class EmailServiceImpl extends AbstractService implements
         // from
         final InternetAddress addrFrom = new InternetAddress();
 
-        addrFrom.setAddress(conf
-                .getConfigValue(IConfigProp.Key.MAIL_FROM_ADDRESS));
-        addrFrom.setPersonal(conf
-                .getConfigValue(IConfigProp.Key.MAIL_FROM_NAME));
+        addrFrom.setAddress(
+                conf.getConfigValue(IConfigProp.Key.MAIL_FROM_ADDRESS));
+        addrFrom.setPersonal(
+                conf.getConfigValue(IConfigProp.Key.MAIL_FROM_NAME));
         msg.setFrom(addrFrom);
 
         // reply-to
-        if (conf.getConfigValue(IConfigProp.Key.MAIL_REPLY_TO_ADDRESS) != null) {
+        if (conf.getConfigValue(
+                IConfigProp.Key.MAIL_REPLY_TO_ADDRESS) != null) {
             final InternetAddress addrReplyTo = new InternetAddress();
-            addrReplyTo.setAddress(conf
-                    .getConfigValue(IConfigProp.Key.MAIL_REPLY_TO_ADDRESS));
+            addrReplyTo.setAddress(
+                    conf.getConfigValue(IConfigProp.Key.MAIL_REPLY_TO_ADDRESS));
             final String name =
                     conf.getConfigValue(IConfigProp.Key.MAIL_REPLY_TO_NAME);
             if (name != null) {
@@ -241,7 +248,14 @@ public final class EmailServiceImpl extends AbstractService implements
         mbp1.setHeader("Content-Type", msgParms.getContentType());
 
         // create the Multipart and its parts to it
-        final Multipart mp = new MimeMultipart();
+        final Multipart mp;
+
+        if (msgParms.getCidMap().isEmpty()) {
+            mp = new MimeMultipart();
+        } else {
+            mp = new MimeMultipart(MIME_MULTIPART_SUBTYPE_RELATED);
+        }
+
         mp.addBodyPart(mbp1);
 
         //
@@ -273,6 +287,7 @@ public final class EmailServiceImpl extends AbstractService implements
 
             mbp.setDataHandler(new DataHandler(entry.getValue()));
             mbp.setContentID(String.format("<%s>", entry.getKey()));
+            mbp.setDisposition(MimeBodyPart.INLINE);
 
             mp.addBodyPart(mbp);
         }
@@ -320,9 +335,8 @@ public final class EmailServiceImpl extends AbstractService implements
                     }
                 };
 
-        final CircuitBreaker breaker =
-                ConfigManager
-                        .getCircuitBreaker(CircuitBreakerEnum.SMTP_CONNECTION);
+        final CircuitBreaker breaker = ConfigManager
+                .getCircuitBreaker(CircuitBreakerEnum.SMTP_CONNECTION);
 
         breaker.execute(operation);
 
@@ -333,8 +347,8 @@ public final class EmailServiceImpl extends AbstractService implements
             throws MessagingException, IOException {
 
         final String fileBaseName =
-                String.format("%d-%s.%s", System.currentTimeMillis(), UUID
-                        .randomUUID().toString(), MIME_FILE_SUFFIX);
+                String.format("%d-%s.%s", System.currentTimeMillis(),
+                        UUID.randomUUID().toString(), MIME_FILE_SUFFIX);
 
         final Path filePathTemp =
                 Paths.get(ConfigManager.getAppTmpDir(), fileBaseName);
@@ -353,10 +367,8 @@ public final class EmailServiceImpl extends AbstractService implements
             IOUtils.closeQuietly(fos);
         }
 
-        final Path filePath =
-                Paths.get(ConfigManager.getServerHome(),
-                        ConfigManager.getServerRelativeEmailOutboxPath(),
-                        fileBaseName);
+        final Path filePath = Paths.get(ConfigManager.getServerHome(),
+                ConfigManager.getServerRelativeEmailOutboxPath(), fileBaseName);
 
         FileSystemHelper.doAtomicFileMove(filePathTemp, filePath);
     }
