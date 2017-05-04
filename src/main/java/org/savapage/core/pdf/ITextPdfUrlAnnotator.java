@@ -53,8 +53,8 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ITextPdfUrlAnnotator.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ITextPdfUrlAnnotator.class);
 
     /**
      * Regular expression for email address.
@@ -71,8 +71,8 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
     /**
      * Full mailto: pattern.
      */
-    private static final String PATTERN_MAILTO = "\\b(mailto:)"
-            + REGEX_EMAIL_ADDRESS;
+    private static final String PATTERN_MAILTO =
+            "\\b(mailto:)" + REGEX_EMAIL_ADDRESS;
 
     /**
      * Note: suffix punctuation {@code :,.;} is ignored.
@@ -83,14 +83,14 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
     /**
      * URL pattern for www.*.
      */
-    private static final String PATTERN_WWW = "\\b(www|WWW)\\."
-            + REGEX_URL_WITHOUT_SCHEME;
+    private static final String PATTERN_WWW =
+            "\\b(www|WWW)\\." + REGEX_URL_WITHOUT_SCHEME;
 
     /**
      * Full URL pattern.
      */
-    private static final String PATTERN_URL = "\\b(https?|ftp|file)://"
-            + REGEX_URL_WITHOUT_SCHEME;
+    private static final String PATTERN_URL =
+            "\\b(https?|ftp|file)://" + REGEX_URL_WITHOUT_SCHEME;
 
     /**
      * No border by default.
@@ -202,16 +202,15 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
             final float urx, final float ury, final URL url) {
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(String.format(
-                    "PDF url [%s] at x|y lower %f|%f upper %f|%f",
-                    url.toExternalForm(), llx, lly, urx, ury));
+            LOGGER.trace(
+                    String.format("PDF url [%s] at x|y lower %f|%f upper %f|%f",
+                            url.toExternalForm(), llx, lly, urx, ury));
         }
 
         final PdfAction action = new PdfAction(url);
 
-        final PdfAnnotation annLink =
-                new PdfAnnotation(stamper.getWriter(), llx, lly, urx, ury,
-                        action);
+        final PdfAnnotation annLink = new PdfAnnotation(stamper.getWriter(),
+                llx, lly, urx, ury, action);
 
         if (this.addBorderStyle) {
             annLink.setBorderStyle(new PdfBorderDictionary(0.5f,
@@ -259,8 +258,8 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
                 final String urlText =
                         String.format(urlFormat, matcher.group());
                 final URL url = new URL(urlText);
-                matchList.add(new AnnotationMatch(matcher.group(), matcher
-                        .start(), matcher.end(), url));
+                matchList.add(new AnnotationMatch(matcher.group(),
+                        matcher.start(), matcher.end(), url));
             } catch (MalformedURLException e) {
                 // Log and ignore
                 if (LOGGER.isWarnEnabled()) {
@@ -305,8 +304,8 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
         //
         searchText = new String(textAsChars);
 
-        matchList =
-                findLinks(Pattern.compile(PATTERN_WWW), searchText, "http://%s");
+        matchList = findLinks(Pattern.compile(PATTERN_WWW), searchText,
+                "https://%s");
         matchListTot.addAll(matchList);
 
         //
@@ -329,9 +328,8 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
         //
         searchText = new String(textAsChars);
 
-        matchList =
-                findLinks(Pattern.compile(PATTERN_EMAIL), searchText,
-                        "mailto:%s");
+        matchList = findLinks(Pattern.compile(PATTERN_EMAIL), searchText,
+                "mailto:%s");
         matchListTot.addAll(matchList);
 
         return matchListTot;
@@ -378,9 +376,8 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
             final float infoWidthPrefix =
                     infoRectTotal.getWidth() * fontWidthPrefix / fontWidthTotal;
 
-            final float infoWidthAnnotation =
-                    infoRectTotal.getWidth() * fontWidthAnnotation
-                            / fontWidthTotal;
+            final float infoWidthAnnotation = infoRectTotal.getWidth()
+                    * fontWidthAnnotation / fontWidthTotal;
 
             /*
              * Calculate info x-left x-right of the annotation.
@@ -418,8 +415,7 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
                 // same line
                 && rectangle.getBottom() == this.rectangleFirstWlk.getBottom()
                 // same font
-                && info.getFont()
-                        .getPostscriptFontName()
+                && info.getFont().getPostscriptFontName()
                         .equals(this.textRenderInfoStartWlk.getFont()
                                 .getPostscriptFontName())
         //
