@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -22,40 +22,22 @@
 package org.savapage.core.services.helpers.email;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.activation.DataSource;
-import javax.activation.URLDataSource;
 
-import org.apache.commons.io.IOUtils;
-import org.savapage.core.SpException;
-import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
-import org.stringtemplate.v4.ST;
+import org.savapage.core.template.email.EmailRenderResult;
+import org.savapage.core.template.email.EmailStationary;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class EmailMsgParms {
-
-    /**
-     * UUID for the main logo in the default email template.
-     */
-    private static final String CID_LOGO_MAIN =
-            "c8fd14b0-36cf-11e5-9028-406186940c49";
-
-    /**
-     * UUID for the mini logo in the default email template.
-     */
-    private static final String CID_LOGO_MINI =
-            "c2932e8e-36cf-11e5-80d9-406186940c49";
-
-    private static final char ST_DELIMITER_CHAR_START = '$';
-    private static final char ST_DELIMITER_CHAR_STOP = ST_DELIMITER_CHAR_START;
 
     /**
      * HTML content.
@@ -190,52 +172,33 @@ public final class EmailMsgParms {
     }
 
     /**
-     * Sets the message body using the default HTML template.
      *
      * @param headerText
      * @param content
+     * @param locale
+     * @param asHtml
+     *            If {@code true} rendered as HTML, otherwise as plain text
      */
-    public void setBodyFromTemplate(final String headerText,
-            final String content) {
+    public void setBodyInStationary(final String headerText,
+            final String content, final Locale locale, final boolean asHtml) {
 
-        this.contentType = CONTENT_TYPE_HTML;
-
-        cidMap.put(CID_LOGO_MAIN, new URLDataSource(
-                this.getClass().getResource("savapage-logo-text.png")));
-
-        cidMap.put(CID_LOGO_MINI, new URLDataSource(
-                this.getClass().getResource("savapage-logo-32x32.png")));
-
-        final ST tpl;
-
-        try {
-            tpl = new ST(
-                    IOUtils.toString(this.getClass()
-                            .getResourceAsStream("email-template.html")),
-                    ST_DELIMITER_CHAR_START, ST_DELIMITER_CHAR_STOP);
-
-        } catch (IOException e) {
-            throw new SpException(e.getMessage());
+        if (asHtml) {
+            this.contentType = CONTENT_TYPE_HTML;
+        } else {
+            this.contentType = CONTENT_TYPE_PLAIN;
         }
 
-        final Properties strings = new Properties();
+        final EmailStationary stat =
+                new EmailStationary(ConfigManager.getServerCustomTemplateHome(),
+                        headerText, content);
 
-        strings.setProperty("HEADER", headerText);
-        strings.setProperty("MAIN_A_HREF",
-                CommunityDictEnum.SAVAPAGE_WWW_DOT_ORG_URL.getWord());
-        strings.setProperty("MAIN_A_ALT",
-                CommunityDictEnum.SAVAPAGE_DOT_ORG.getWord());
-        strings.setProperty("MAIN_IMG_CID", CID_LOGO_MAIN);
-        strings.setProperty("CONTENT", content);
-        strings.setProperty("FOOTER_IMG_CID", CID_LOGO_MINI);
-        strings.setProperty("FOOTER_IMG_ALT",
-                CommunityDictEnum.SAVAPAGE.getWord());
-        strings.setProperty("FOOTER_APP_NAME",
-                ConfigManager.getAppNameVersion());
+        final EmailRenderResult result = stat.render(locale, asHtml);
 
-        // tpl.add("i18n", strings);
-        tpl.add("sp", strings);
+        this.body = result.getBody();
 
-        this.body = tpl.render();
+        if (result.hasCidMap()) {
+            this.cidMap.putAll(result.getCidMap().getMap());
+        }
     }
+
 }

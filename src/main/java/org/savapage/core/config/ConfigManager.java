@@ -145,6 +145,13 @@ public final class ConfigManager {
     private RunMode runMode = null;
 
     /**
+     * The relative path of the custom template files (relative to the
+     * {@code server} directory).
+     */
+    public static final String SERVER_REL_PATH_CUSTOM_TEMPLATE =
+            "custom/template";
+
+    /**
      * The relative path of the CUPS custom properties files (relative to the
      * {@code server} directory).
      */
@@ -848,6 +855,14 @@ public final class ConfigManager {
      */
     public static File getServerExtHome() {
         return new File(String.format("%s/ext", getServerHome()));
+    }
+
+    /**
+     * @return The directory with the custom template files.
+     */
+    public static File getServerCustomTemplateHome() {
+        return new File(String.format("%s%c%s", getServerHome(),
+                File.separatorChar, SERVER_REL_PATH_CUSTOM_TEMPLATE));
     }
 
     /**

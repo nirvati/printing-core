@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import javax.mail.MessagingException;
 
@@ -388,8 +389,8 @@ public final class GcpListener {
 
             emailParms.setToAddress(toAddress);
             emailParms.setSubject(subject);
-            emailParms.setBodyFromTemplate(subject,
-                    content.replace("\n", "<br/>"));
+            emailParms.setBodyInStationary(subject,
+                    content.replace("\n", "<br/>"), Locale.getDefault(), true);
 
             ServiceContext.getServiceFactory().getEmailService()
                     .writeEmail(emailParms);

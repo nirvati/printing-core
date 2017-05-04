@@ -779,9 +779,12 @@ public final class JobTicketServiceImpl extends AbstractService
         emailParms.setSubject(
                 localize(locale, "email-user-jobticket-completed-subject",
                         dto.getTicketNumber()));
-        emailParms
-                .setBody(localize(locale, "email-user-jobticket-completed-body",
-                        user.getFullName(), operator));
+
+        emailParms.setBodyInStationary(emailParms.getSubject(),
+                localize(locale, "email-user-jobticket-completed-body",
+                        user.getFullName(), operator),
+                locale, false);
+
         try {
             emailService().sendEmail(emailParms);
         } catch (InterruptedException | CircuitBreakerException

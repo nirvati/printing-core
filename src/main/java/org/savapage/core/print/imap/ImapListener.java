@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 import javax.mail.Flags;
@@ -1024,7 +1025,9 @@ public final class ImapListener extends MessageCountAdapter {
      *            The email address.
      * @param subject
      *            The subject of the message.
-     * @param body
+     * @param headerText
+     *            The content header text.
+     * @param content
      *            The body text with optional newline {@code \n} characters.
      */
     private void sendEmail(final String toAddress, final String subject,
@@ -1036,7 +1039,8 @@ public final class ImapListener extends MessageCountAdapter {
 
             emailParms.setToAddress(toAddress);
             emailParms.setSubject(subject);
-            emailParms.setBodyFromTemplate(headerText, content);
+            emailParms.setBodyInStationary(headerText, content,
+                    Locale.getDefault(), true);
 
             ServiceContext.getServiceFactory().getEmailService()
                     .writeEmail(emailParms);
