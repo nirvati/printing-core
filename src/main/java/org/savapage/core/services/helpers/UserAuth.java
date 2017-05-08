@@ -88,7 +88,7 @@ public class UserAuth {
     public static final String MODE_CARD_IP = "nfc-network";
 
     /**
-     * Login method 'Google Sign-In'.
+     * Login method 'Google OAuth'.
      * <p>
      * <b>NOTE</b>: Value is used as URL parameter at WebApp Login.
      * </p>

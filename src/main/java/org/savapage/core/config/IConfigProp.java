@@ -424,19 +424,6 @@ public interface IConfigProp {
         AUTH_MODE_GOOGLE("auth-mode.google", BOOLEAN_VALIDATOR, V_NO),
 
         /**
-        *
-        */
-        AUTH_MODE_GOOGLE_HOSTED_DOMAIN("auth-mode.google.hosted-domain"),
-
-        /**
-         * The Google Sign-In Client ID.
-         * <p>
-         * For example: {@code SOMEUNIQUESTRING.apps.googleusercontent.com}
-         * </p>
-         */
-        AUTH_MODE_GOOGLE_CLIENT_ID("auth-mode.google.client-id"),
-
-        /**
          *
          */
         AUTH_MODE_CARD_PIN_REQUIRED("auth-mode.card.pin-required", BOOLEAN_VALIDATOR, V_YES),

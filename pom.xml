@@ -155,11 +155,6 @@
     <dependencies>
         <!-- LOGGING DEPENDENCIES - LOG4J -->
         <dependency>
-            <groupId>com.google.api-client</groupId>
-            <artifactId>google-api-client</artifactId>
-            <version>1.22.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
             <version>10.12.1.1</version>
