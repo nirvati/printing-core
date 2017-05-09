@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -96,6 +96,11 @@ public class UserAuth {
     public static final String MODE_GOOGLE = "google";
 
     /**
+     * Generic OAuth.
+     */
+    public static final String MODE_OAUTH = "oauth";
+
+    /**
      * Login method for Yubico USB keys.
      * <p>
      * <b>NOTE</b>: Value is used as URL parameter at WebApp Login.
@@ -109,7 +114,20 @@ public class UserAuth {
      *
      */
     public static enum Mode {
-        NAME, ID, CARD_LOCAL, CARD_IP, GOOGLE, YUBIKEY
+        /** Username/password. */
+        NAME,
+        /** ID. */
+        ID,
+        /** Local NFC. */
+        CARD_LOCAL,
+        /** Network NFC. */
+        CARD_IP,
+        /** Google OAuth. */
+        GOOGLE,
+        /** OAuth (any). */
+        OAUTH,
+        /** YubiKey */
+        YUBIKEY
     }
 
     private boolean visibleAuthName;
@@ -159,6 +177,8 @@ public class UserAuth {
             return MODE_NAME;
         case GOOGLE:
             return MODE_GOOGLE;
+        case OAUTH:
+            return MODE_OAUTH;
         case YUBIKEY:
             return MODE_YUBIKEY;
         default:
@@ -184,6 +204,8 @@ public class UserAuth {
                 return "NFC";
             case GOOGLE:
                 return "Google";
+            case OAUTH:
+                return "OAuth";
             case YUBIKEY:
                 return "YubiKey";
             case ID:
@@ -214,6 +236,8 @@ public class UserAuth {
             return Mode.CARD_LOCAL;
         } else if (mode.equals(MODE_GOOGLE)) {
             return Mode.GOOGLE;
+        } else if (mode.equals(MODE_OAUTH)) {
+            return Mode.OAUTH;
         } else if (mode.equals(MODE_YUBIKEY)) {
             return Mode.YUBIKEY;
         }
