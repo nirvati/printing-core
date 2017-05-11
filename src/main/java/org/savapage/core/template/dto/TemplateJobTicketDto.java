@@ -29,6 +29,7 @@ package org.savapage.core.template.dto;
 public class TemplateJobTicketDto implements TemplateDto {
 
     private String number;
+    private String name;
     private String operator;
 
     public String getNumber() {
@@ -37,6 +38,14 @@ public class TemplateJobTicketDto implements TemplateDto {
 
     public void setNumber(String number) {
         this.number = number;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getOperator() {

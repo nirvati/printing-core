@@ -36,7 +36,7 @@ import org.savapage.core.ipp.encoding.IppValueTag;
 public class IppKeyword extends AbstractIppAttrSyntax {
 
     /**
-     * All pages
+     * All pages.
      */
     public static final String CUPS_ATTR_PAGE_SET_ALL = "all";
     /**
@@ -92,7 +92,7 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String COMPRESSION_DEFLATE = "deflate";
 
     /**
-     * GNU zip compression technology described in RFC 1952
+     * GNU zip compression technology described in RFC 1952.
      */
     public static final String COMPRESSION_GZIP = "gzip";
 
@@ -149,8 +149,24 @@ public class IppKeyword extends AbstractIppAttrSyntax {
 
     // ------------------------------------------------------------------------
     // print-scaling (PWG5100.16)
+    //
+    // NOTE: values 'auto', 'auto-fit' and 'fill' are currently not supported
+    // by SavaPage.
     // ------------------------------------------------------------------------
+
+    /**
+     * Scale the document to fit the printable area of the requested media size,
+     * preserving the aspect ratio of the document data without cropping the
+     * document.
+     */
     public static final String PRINT_SCALING_FIT = "fit";
+
+    /**
+     * 'Do not scale the document to fit the requested media size. If the
+     * document is larger than the requested media, center and clip the
+     * resulting output. If the document is smaller than the requested media,
+     * center the resulting output.
+     */
     public static final String PRINT_SCALING_NONE = "none";
 
     // ------------------------------------------------------------------------

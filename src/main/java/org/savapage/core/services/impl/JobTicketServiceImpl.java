@@ -101,6 +101,9 @@ import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
+import org.savapage.core.template.dto.TemplateJobTicketDto;
+import org.savapage.core.template.dto.TemplateUserDto;
+import org.savapage.core.template.email.JobTicketCompleted;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.ext.papercut.PaperCutHelper;
@@ -764,8 +767,6 @@ public final class JobTicketServiceImpl extends AbstractService
     public String notifyTicketCompletedByEmail(final OutboxJobBaseDto dto,
             final String operator, final User user, final Locale locale) {
 
-        final EmailMsgParms emailParms = new EmailMsgParms();
-
         final String emailAddr = userService().getPrimaryEmailAddress(user);
 
         if (emailAddr == null) {
@@ -775,15 +776,22 @@ public final class JobTicketServiceImpl extends AbstractService
             return null;
         }
 
-        emailParms.setToAddress(emailAddr);
-        emailParms.setSubject(
-                localize(locale, "email-user-jobticket-completed-subject",
-                        dto.getTicketNumber()));
+        //
+        final TemplateJobTicketDto templateDto = new TemplateJobTicketDto();
 
-        emailParms.setBodyInStationary(emailParms.getSubject(),
-                localize(locale, "email-user-jobticket-completed-body",
-                        user.getFullName(), operator),
-                locale, false);
+        templateDto.setNumber(dto.getTicketNumber());
+        templateDto.setOperator(operator);
+        templateDto.setName(dto.getJobName());
+
+        final TemplateUserDto templateUser = new TemplateUserDto();
+        templateUser.setFullName(user.getFullName());
+
+        final JobTicketCompleted tpl = new JobTicketCompleted(
+                ConfigManager.getServerCustomTemplateHome(), templateDto,
+                templateUser);
+
+        final EmailMsgParms emailParms =
+                EmailMsgParms.create(emailAddr, tpl, locale, false);
 
         try {
             emailService().sendEmail(emailParms);

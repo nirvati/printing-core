@@ -31,6 +31,7 @@ import javax.activation.DataSource;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.template.email.EmailRenderResult;
 import org.savapage.core.template.email.EmailStationary;
+import org.savapage.core.template.email.EmailTemplateMixin;
 
 /**
  *
@@ -169,6 +170,36 @@ public final class EmailMsgParms {
 
     public String getContentType() {
         return contentType;
+    }
+
+    /**
+     * Creates {@link EmailMsgParms}.
+     *
+     * @param emailAddr
+     *            The email address to send the message to.
+     * @param template
+     *            The template.
+     * @param locale
+     *            The locale
+     * @param asHtml
+     *            If {@code true} rendered as HTML, otherwise as plain text
+     * @return The {@link EmailMsgParms}.
+     */
+    public static EmailMsgParms create(final String emailAddr,
+            final EmailTemplateMixin template, final Locale locale,
+            final boolean asHtml) {
+
+        template.render(locale, asHtml);
+
+        final EmailRenderResult renderResult = template.render(locale, asHtml);
+
+        final EmailMsgParms emailParms = new EmailMsgParms();
+
+        emailParms.setToAddress(emailAddr);
+        emailParms.setBody(renderResult.getBody());
+        emailParms.setSubject(renderResult.getSubject());
+
+        return emailParms;
     }
 
     /**
