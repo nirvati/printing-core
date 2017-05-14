@@ -45,6 +45,7 @@ public class SharedAccountDisplayInfoDto extends AccountDisplayInfoDto {
     private Long parentId;
     private String parentName;
     private String notes;
+    private Boolean disabled;
     private Boolean deleted;
     private AccountTypeEnum accountType;
 
@@ -88,6 +89,14 @@ public class SharedAccountDisplayInfoDto extends AccountDisplayInfoDto {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public Boolean getDisabled() {
+        return disabled;
+    }
+
+    public void setDisabled(Boolean disabled) {
+        this.disabled = disabled;
     }
 
     public Boolean getDeleted() {

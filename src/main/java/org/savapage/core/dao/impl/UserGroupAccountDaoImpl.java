@@ -91,6 +91,14 @@ public final class UserGroupAccountDaoImpl extends
             where.append(" A.nameLower like :containingNameText");
         }
 
+        if (filter.getDisabled() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" A.disabled = :selDisabled");
+        }
+
         //
         if (nWhere > 0) {
             jpql.append(" WHERE ").append(where.toString());
@@ -121,6 +129,10 @@ public final class UserGroupAccountDaoImpl extends
         }
 
         query.setParameter("selDeleted", Boolean.FALSE);
+
+        if (filter.getDisabled() != null) {
+            query.setParameter("selDisabled", filter.getDisabled());
+        }
 
         return query;
     }

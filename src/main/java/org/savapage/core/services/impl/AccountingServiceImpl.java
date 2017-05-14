@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
@@ -1432,6 +1433,7 @@ public final class AccountingServiceImpl extends AbstractService
 
         dto.setNotes(account.getNotes());
         dto.setDeleted(account.getDeleted());
+        dto.setDisabled(account.getDisabled());
 
         /*
          * User Group Access
@@ -1575,6 +1577,7 @@ public final class AccountingServiceImpl extends AbstractService
         account.setParent(parent);
         account.setNotes(dto.getNotes());
         account.setDeleted(dto.getDeleted());
+        account.setDisabled(BooleanUtils.isTrue(dto.getDisabled()));
 
         final Locale dtoLocale;
 

@@ -40,6 +40,7 @@ public interface UserGroupAccountDao extends GenericDao<UserGroupAccount> {
 
         private Long userId;
         private String containingNameText;
+        private Boolean disabled;
 
         public Long getUserId() {
             return userId;
@@ -55,6 +56,14 @@ public interface UserGroupAccountDao extends GenericDao<UserGroupAccount> {
 
         public void setContainingNameText(String containingNameText) {
             this.containingNameText = containingNameText;
+        }
+
+        public Boolean getDisabled() {
+            return disabled;
+        }
+
+        public void setDisabled(Boolean disabled) {
+            this.disabled = disabled;
         }
 
     }
