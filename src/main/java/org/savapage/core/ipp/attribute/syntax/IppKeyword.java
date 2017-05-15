@@ -162,12 +162,36 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String PRINT_SCALING_FIT = "fit";
 
     /**
-     * 'Do not scale the document to fit the requested media size. If the
+     * Do not scale the document to fit the requested media size. If the
      * document is larger than the requested media, center and clip the
      * resulting output. If the document is smaller than the requested media,
      * center the resulting output.
      */
     public static final String PRINT_SCALING_NONE = "none";
+
+    /**
+     * If the “ipp-attribute-fidelity” attribute is true or the document is
+     * larger than the requested media, scale the document using the 'fit'
+     * method if the margins are nonzero, otherwise scale using the 'fill'
+     * method. If the “ipp-attribute-fidelity” attribute is false or unspecified
+     * and the document is smaller than the requested media, scale using the
+     * 'none' method.
+     */
+    public static final String PRINT_SCALING_AUTO = "auto";
+
+    /**
+     * If the “ipp-attribute-fidelity” attribute is true or the document is
+     * larger than the requested media, scale the document using the ‘fit’
+     * method. Otherwise, scale using the ‘none’ method.
+     */
+    public static final String PRINT_SCALING_AUTO_FIT = "auto-fit";
+
+    /**
+     * Scale the document to fill the requested media size, preserving the
+     * aspect ratio of the document data but potentially cropping portions of
+     * the document.
+     */
+    public static final String PRINT_SCALING_FILL = "fill";
 
     // ------------------------------------------------------------------------
     // media-source

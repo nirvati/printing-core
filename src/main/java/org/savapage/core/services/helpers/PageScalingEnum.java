@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -22,35 +22,50 @@
 package org.savapage.core.services.helpers;
 
 /**
+ * Page Scaling options according to PWG5100.16.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum PageScalingEnum {
 
     /**
-     * Print the whole page.
-     * <p>
-     * "Shrink to Printable Area": Document pages larger than the printable area
-     * are reduced to fit the printable area of the printer page.
-     * </p>
+     * If the “ipp-attribute-fidelity” attribute is true or the document is
+     * larger than the requested media, scale the document using the 'fit'
+     * method if the margins are nonzero, otherwise scale using the 'fill'
+     * method. If the “ipp-attribute-fidelity” attribute is false or unspecified
+     * and the document is smaller than the requested media, scale using the
+     * 'none' method.
+     *
      */
-    SHRINK,
+    AUTO,
 
     /**
-     * Preserve dimensions.
-     * <p>
-     * "None" : No page scaling is performed.
-     * </p>
+     * If the “ipp-attribute-fidelity” attribute is true or the document is
+     * larger than the requested media, scale the document using the ‘fit’
+     * method. Otherwise, scale using the ‘none’ method.
      */
-    CROP,
+    AUTO_FIT,
 
     /**
-     * Use maximum page area.
-     * <p>
-     * "Fit to Printable Area": Document pages are enlarged or reduced as
-     * required to fit the printable area of the printer page.
-     * </p>
+     * Scale the document to fill the requested media size, preserving the
+     * aspect ratio of the document data but potentially cropping portions of
+     * the document.
      */
-    EXPAND
+    FILL,
+
+    /**
+     * Scale the document to fit the printable area of the requested media size,
+     * preserving the aspect ratio of the document data without cropping the
+     * document.
+     */
+    FIT,
+
+    /**
+     * Do not scale the document to fit the requested media size. If the
+     * document is larger than the requested media, center and clip the
+     * resulting output. If the document is smaller than the requested media,
+     * center the resulting output.
+     */
+    NONE
 }

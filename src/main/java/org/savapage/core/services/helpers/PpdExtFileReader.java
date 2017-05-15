@@ -672,6 +672,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         final IppDictJobTemplateAttr ippDict =
                 IppDictJobTemplateAttr.instance();
 
+        boolean printScalingExt = false;
+
         // The mapped PPD options
         for (final JsonProxyPrinterOpt opt : reader.ppdOptionMap.values()) {
 
@@ -694,6 +696,10 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                         "%s: IPP attribute [%s] is not supported.", filePpdExt,
                         keywordIpp));
                 continue;
+            }
+
+            if (keywordIpp.equals(IppDictJobTemplateAttr.ATTR_PRINT_SCALING)) {
+                printScalingExt = true;
             }
 
             if (keywordIpp.equals(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE)) {
@@ -737,6 +743,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
         //
         proxyPrinter.setInjectPpdExt(true);
+        proxyPrinter.setPrintScalingExt(printScalingExt);
     }
 
     /**

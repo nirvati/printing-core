@@ -407,6 +407,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printer.setGroups(cupsPrinter.getGroups());
             printer.setPrinterUri(cupsPrinter.getPrinterUri());
             printer.setJobTicket(cupsPrinter.getJobTicket());
+            printer.setPrintScalingExt(cupsPrinter.isPrintScalingExt());
 
             /*
              * Create copy, localize and prune.
@@ -2695,7 +2696,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             /*
              * Chunk!
              */
-            this.chunkProxyPrintRequest(user, printReq, PageScalingEnum.CROP,
+            this.chunkProxyPrintRequest(user, printReq, PageScalingEnum.NONE,
                     false, null);
 
             final ProxyPrintCostParms costParms = new ProxyPrintCostParms(null);

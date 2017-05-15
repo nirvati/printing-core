@@ -521,9 +521,13 @@ public final class ProxyPrintInboxReqChunker {
 
         final boolean fitToPage;
 
-        if (this.requestedPageScaling == PageScalingEnum.CROP) {
+        if (this.requestedPageScaling == PageScalingEnum.NONE) {
 
             fitToPage = false;
+
+        } else if (this.requestedPageScaling == PageScalingEnum.FIT) {
+
+            fitToPage = true;
 
         } else if (printJobChunk.getMediaSizeName() == null) {
 
@@ -535,14 +539,7 @@ public final class ProxyPrintInboxReqChunker {
                     printJobChunk.getMediaSizeName(),
                     printJobChunk.getAssignedMedia().getMediaSizeName());
 
-            if (compare == 0) {
-                fitToPage = false;
-            } else if (compare < 0) {
-                fitToPage = this.requestedPageScaling == PageScalingEnum.EXPAND;
-            } else {
-                fitToPage = this.requestedPageScaling == PageScalingEnum.SHRINK;
-            }
-
+            fitToPage = compare != 0;
         }
 
         printJobChunk.setFitToPage(fitToPage);

@@ -141,6 +141,13 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     private boolean injectPpdExt = false;
 
     /**
+     * {@code true} when print-scaling was injected from a SavaPage PPD
+     * extension.
+     */
+    @JsonIgnore
+    private boolean printScalingExt = false;
+
+    /**
      * {@code true} when this is a job ticket printer.
      */
     @JsonIgnore
@@ -498,6 +505,23 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      */
     public void setInjectPpdExt(boolean injectPpdExt) {
         this.injectPpdExt = injectPpdExt;
+    }
+
+    /**
+     * @return {@code true} when page-scaling was injected from a SavaPage PPD
+     *         extension.
+     */
+    public boolean isPrintScalingExt() {
+        return printScalingExt;
+    }
+
+    /**
+     * @param printScalingExt
+     *            {@code true} when page-scaling was injected from a SavaPage
+     *            PPD extension.
+     */
+    public void setPrintScalingExt(boolean printScalingExt) {
+        this.printScalingExt = printScalingExt;
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -32,10 +32,17 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 @JsonInclude(Include.NON_NULL)
 public final class JsonPrinterDetail extends JsonPrinter {
+
+    /**
+     * {@code true} when print-scaling was injected from a SavaPage PPD
+     * extension.
+     */
+    private boolean printScalingExt = false;
 
     /**
      *
@@ -98,6 +105,23 @@ public final class JsonPrinterDetail extends JsonPrinter {
     }
 
     /**
+     * @return {@code true} when print-scaling was injected from a SavaPage PPD
+     *         extension.
+     */
+    public boolean isPrintScalingExt() {
+        return printScalingExt;
+    }
+
+    /**
+     * @param printScalingExt
+     *            {@code true} when print-scaling was injected from a SavaPage
+     *            PPD extension.
+     */
+    public void setPrintScalingExt(boolean printScalingExt) {
+        this.printScalingExt = printScalingExt;
+    }
+
+    /**
      * Creates a deep copy instance.
      *
      * @return The new copy.
@@ -108,8 +132,9 @@ public final class JsonPrinterDetail extends JsonPrinter {
 
         super.copy(copy);
 
-        copy.groups = new ArrayList<>();
+        copy.printScalingExt = this.printScalingExt;
 
+        copy.groups = new ArrayList<>();
         for (final JsonProxyPrinterOptGroup group : groups) {
             copy.groups.add(group.copy());
         }
