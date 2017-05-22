@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1560,7 +1560,9 @@ public final class UserServiceImpl extends AbstractService
                     userEmail.setAddress(keyDto);
                     userEmail.setDisplayName(keyDto);
 
-                    userEmailDAO().create(userEmail);
+                    if (!isNewInternalUser) {
+                        userEmailDAO().create(userEmail);
+                    }
                     userEmailList.add(userEmail);
 
                     readNextDto = true;
@@ -1588,7 +1590,9 @@ public final class UserServiceImpl extends AbstractService
                 userEmail.setAddress(keyDto);
                 userEmail.setDisplayName(keyDto);
 
-                userEmailDAO().create(userEmail);
+                if (!isNewInternalUser) {
+                    userEmailDAO().create(userEmail);
+                }
                 userEmailList.add(userEmail);
 
                 readNextDto = true;
