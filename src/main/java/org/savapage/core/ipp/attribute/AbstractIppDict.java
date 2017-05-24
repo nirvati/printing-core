@@ -65,6 +65,14 @@ public abstract class AbstractIppDict {
     protected static final String ORG_SAVAPAGE_ATTR_PFX = "org.savapage-";
 
     /**
+     * Keyword name prefix for Custom User Extensions. NOTE: these are
+     * <b>not</b> "native" SavaPage IPP extensions, but installation specific
+     * extensions configured by SavaPage Fellows.
+     */
+    protected static final String ORG_SAVAPAGE_EXT_ATTR_PFX =
+            "org.savapage.ext-";
+
+    /**
      *
      * @param attributes
      */
@@ -75,13 +83,34 @@ public abstract class AbstractIppDict {
     }
 
     /**
-     *
      * @param keyword
      *            The IPP attribute keyword (name).
-     * @return {@code true} when attribute is a custom SavaPage attribute.
+     * @return {@code true} when keyword is a custom SavaPage attribute, i.e.
+     *         whose name starts with {@link #ORG_SAVAPAGE_ATTR_PFX} .
      */
-    public final boolean isCustomAttr(final String keyword) {
+    public static boolean isCustomAttr(final String keyword) {
         return keyword.startsWith(ORG_SAVAPAGE_ATTR_PFX);
+    }
+
+    /**
+     * @param keyword
+     *            The IPP attribute keyword (name).
+     * @return {@code true} when keyword is a custom SavaPage EXT attribute,
+     *         i.e. whose name starts with {@link #ORG_SAVAPAGE_EXT_ATTR_PFX} .
+     */
+    public static boolean isCustomExtAttr(final String keyword) {
+        return keyword.startsWith(ORG_SAVAPAGE_EXT_ATTR_PFX);
+    }
+
+    /**
+     * @param value
+     *            The IPP Ext attribute value.
+     * @return {@code true} when value is a 'none' value of custom SavaPage EXT
+     *         attribute, i.e. whose name starts with
+     *         {@link #ORG_SAVAPAGE_EXT_ATTR_PFX} .
+     */
+    public static boolean isCustomExtAttrValueNone(final String value) {
+        return value.equals(IppKeyword.ORG_SAVAPAGE_EXT_ATTR_NONE);
     }
 
     /**

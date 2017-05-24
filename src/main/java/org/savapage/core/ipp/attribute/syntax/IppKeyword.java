@@ -338,6 +338,11 @@ public class IppKeyword extends AbstractIppAttrSyntax {
             "folder";
 
     /**
+     * The generic 'non' value for all org.savapage.ext-* options.
+     */
+    public static final String ORG_SAVAPAGE_EXT_ATTR_NONE = "none";
+
+    /**
      *
      */
     public static final String ORG_SAVAPAGE_ATTR_COVER_TYPE_NO_COVER =
@@ -354,14 +359,6 @@ public class IppKeyword extends AbstractIppAttrSyntax {
      */
     public static final String ORG_SAVAPAGE_ATTR_COVER_TYPE_PRINTBOTH_EXT_PFX =
             "printboth.ext.";
-
-    /**
-     * Keyword name prefix for user extensions. NOTE: these are <b>not</b>
-     * "native" SavaPage IPP extensions, but installation specific extensions
-     * configured by SavaPage Fellows.
-     */
-    public static final String ORG_SAVAPAGE_EXT_ATTR_PREFIX =
-            "org.savapage.ext-";
 
     /**
      * The SingletonHolder is loaded on the first execution of

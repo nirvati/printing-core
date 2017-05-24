@@ -684,7 +684,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             if (keywordIpp.startsWith(
                     IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_PFX_FINISHINGS)) {
                 optGroupEnum = PROXYPRINT_SERVICE.getUiOptGroup(keywordIpp);
-            } else if (ippDict.isCustomAttr(keywordIpp)
+            } else if (IppDictJobTemplateAttr.isCustomAttr(keywordIpp)
                     || ippDict.getAttr(keywordIpp) == null) {
                 optGroupEnum = null;
             } else {

@@ -44,6 +44,8 @@ import javax.print.attribute.standard.MediaSizeName;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
@@ -794,6 +796,60 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         option.setUiText(localizePrinterOpt(locale, attrKeyword));
 
         localizePrinterOptChoices(locale, attrKeyword, option.getChoices());
+    }
+
+    @Override
+    public List<Pair<String, String>> getJobTicketOptionsExtUiText(
+            final Locale locale, final Map<String, String> optionMap) {
+
+        if (optionMap == null) {
+            return null;
+        }
+
+        List<Pair<String, String>> list = new ArrayList<>();
+
+        for (final Entry<String, String> entry : optionMap.entrySet()) {
+
+            if (!IppDictJobTemplateAttr.isCustomExtAttr(entry.getKey())
+                    || IppDictJobTemplateAttr
+                            .isCustomExtAttrValueNone(entry.getValue())) {
+                continue;
+            }
+
+            if (list == null) {
+                list = new ArrayList<>();
+            }
+
+            list.add(new ImmutablePair<String, String>(
+                    localizePrinterOpt(locale, entry.getKey()),
+                    localizePrinterOptValue(locale, entry.getKey(),
+                            entry.getValue())));
+        }
+
+        return list;
+    }
+
+    @Override
+    public String getJobTicketOptionsExtHtml(final Locale locale,
+            final Map<String, String> optionMap) {
+
+        final List<Pair<String, String>> pairs =
+                getJobTicketOptionsExtUiText(locale, optionMap);
+
+        if (pairs == null || pairs.isEmpty()) {
+            return null;
+        }
+
+        final StringBuilder extOpts = new StringBuilder();
+
+        for (final Pair<String, String> pair : pairs) {
+
+            if (extOpts.length() > 0) {
+                extOpts.append(" • ");
+            }
+            extOpts.append(pair.getKey()).append(" ").append(pair.getValue());
+        }
+        return extOpts.toString();
     }
 
     @Override

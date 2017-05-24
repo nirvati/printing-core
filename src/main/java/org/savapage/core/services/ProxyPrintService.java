@@ -32,6 +32,7 @@ import java.util.Map;
 
 import javax.print.attribute.standard.MediaSizeName;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
@@ -199,7 +200,9 @@ public interface ProxyPrintService {
     /**
      *
      * @param printerName
+     *            The printer name.
      * @param jobId
+     *            The job id.
      * @return {@code null} when NOT found.
      * @throws IppConnectException
      *             When a connection error occurs.
@@ -362,7 +365,7 @@ public interface ProxyPrintService {
             String value);
 
     /**
-     * Composes a localized Job Ticket UI text form a selected combination of
+     * Composes a localized Job Ticket UI text from a selected combination of
      * IPP options values.
      *
      * @param locale
@@ -373,9 +376,34 @@ public interface ProxyPrintService {
      *            The {@link IppOptionMap} with IPP key/values.
      * @return {@code null} when no options keys found in the map.
      */
-
     String getJobTicketOptionsUiText(Locale locale, String[] ippOptionKeys,
             IppOptionMap optionMap);
+
+    /**
+     * Composes a list with localized Job Ticket Custom Extension Option
+     * key/value UI texts from a map of IPP options values.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param optionMap
+     *            The {@link Map} with IPP key/values.
+     * @return {@code null} when no options keys found in the map.
+     */
+    List<Pair<String, String>> getJobTicketOptionsExtUiText(Locale locale,
+            Map<String, String> optionMap);
+
+    /**
+     * Same as {@link #getJobTicketOptionsExtUiText(Locale, Map)}, but returning
+     * HTML representation.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param optionMap
+     *            The {@link Map} with IPP key/values.
+     * @return {@code null} when no options keys found in the map.
+     */
+    String getJobTicketOptionsExtHtml(Locale locale,
+            Map<String, String> optionMap);
 
     /**
      * Gets the valid printers for a user on a terminal (sorted on alias).

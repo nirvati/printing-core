@@ -34,6 +34,7 @@ import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
@@ -529,6 +530,7 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
                     .append(PrintOutNounEnum.BOOKLET.uiText(locale));
         }
 
+        //
         final String[][] ippAttrArrays =
                 { IppDictJobTemplateAttr.JOBTICKET_ATTR_MEDIA,
                         IppDictJobTemplateAttr.JOBTICKET_ATTR_COPY,
@@ -542,6 +544,18 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
             }
         }
 
+        //
+        final List<Pair<String, String>> extOpts = PROXYPRINT_SERVICE
+                .getJobTicketOptionsExtUiText(locale, ippOptions);
+
+        if (extOpts != null && !extOpts.isEmpty()) {
+            for (final Pair<String, String> pair : extOpts) {
+                desc.append(BULL_SEP).append(pair.getKey()).append(" ")
+                        .append(pair.getValue());
+            }
+        }
+
+        //
         final PrintModeEnum printOutMode;
         printOutMode =
                 EnumUtils.getEnum(PrintModeEnum.class, printOut.getPrintMode());

@@ -335,18 +335,24 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
                     JOBTICKET_ATTR_FINISHINGS_EXT };
 
     /**
-     * Array of 2-element array elements, one for each attribute that makes a
-     * Job Ticket for settlement only: the first element is the IPP option key,
-     * and the second element its NONE value.
+     * IPP Attributes that makes a Job Ticket for settlement only: array of
+     * 2-element array elements, one for each attribute:
+     * <ol>
+     * <li>The first element is the IPP option key.</li>
+     * <li>The second element its NONE value.</li>
+     * </ol>
      */
     public static final String[][] JOBTICKET_ATTR_SETTLE_ONLY_V_NONE =
             { { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE,
                     IppKeyword.ORG_SAVAPAGE_ATTR_COVER_TYPE_NO_COVER } };
 
     /**
-     * Array of 2-element array elements, one for each Job Ticket copy
-     * attribute: the first element is the IPP option key, and the second
-     * element its NONE value.
+     * IPP Attributes exclusively for *SPJobTicket/Copy: array of 2-element
+     * array elements:
+     * <ol>
+     * <li>The first element is the IPP option key.</li>
+     * <li>The second element its NONE value.</li>
+     * </ol>
      */
     public static final String[][] JOBTICKET_ATTR_COPY_V_NONE = {
             { IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE,
@@ -1082,6 +1088,10 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      * @return {@code true} if IPP option is exclusively used for Job Ticket.
      */
     public static boolean isJobTicketAttr(final String keyword) {
+
+        if (isCustomExtAttr(keyword)) {
+            return true;
+        }
 
         for (final String[] attrs : JOBTICKET_ATTR_ARRAYS) {
             for (final String attr : attrs) {

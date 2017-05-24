@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.dto.IppCostRule;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
@@ -622,6 +623,62 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
                 ippCoverChoice);
 
         return calcCost(this.getCustomCostRulesCopy(), singleIppChoice, false);
+    }
+
+    /**
+     * Checks if an option is valid according to at least one (1) of the Custom
+     * Copy Cost rules.
+     *
+     * @param option
+     *            The IPP option key/value pair.
+     * @param ippChoices
+     *            The full context of IPP choices.
+     * @return {@code null} when no rule applies. {@link Boolean#TRUE} when at
+     *         least one rule applies and is valid.
+     */
+    public Boolean isCustomCostOptionValid(final Pair<String, String> option,
+            final Map<String, String> ippChoices) {
+        return isCustomCostOptionValid(getCustomCostRulesCopy(), option,
+                ippChoices);
+    }
+
+    /**
+     * Checks if an option is valid according to at least one (1) of the rules.
+     *
+     * @param rules
+     *            The list of cost rules.
+     * @param option
+     *            The IPP option key/value pair.
+     * @param ippChoices
+     *            The full context of IPP choices.
+     * @return {@code null} when no rule applies. {@link Boolean#TRUE} when at
+     *         least one rule applies and is valid.
+     */
+    private static Boolean isCustomCostOptionValid(
+            final List<IppCostRule> rules, final Pair<String, String> option,
+            final Map<String, String> ippChoices) {
+
+        // Assume no rule found.
+        Boolean isValid = null;
+
+        for (final IppCostRule rule : rules) {
+
+            final Boolean result = rule.isOptionValid(option, ippChoices);
+
+            if (result == null) {
+                continue;
+            }
+
+            // The first valid rule is OK.
+            if (result.booleanValue()) {
+                return result;
+            }
+
+            // Assume FALSE.
+            isValid = result;
+        }
+
+        return isValid;
     }
 
     /**

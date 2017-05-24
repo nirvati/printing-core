@@ -53,6 +53,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PerformanceLogger;
 import org.savapage.core.PostScriptDrmException;
@@ -3540,45 +3542,66 @@ public abstract class AbstractProxyPrintService extends AbstractService
         // Copy
         if (proxyPrinter.hasCustomCostRulesCopy()) {
 
-            final BigDecimal cost = proxyPrinter.calcCustomCostCopy(ippOptions);
+            // Merge the Job Ticket options with the custom user options.
+            final String[][] copyOptions =
+                    IppDictJobTemplateAttr.JOBTICKET_ATTR_COPY_V_NONE;
 
-            if (cost == null || cost.compareTo(BigDecimal.ZERO) == 0) {
+            final List<String[]> copyOptionsAll = new ArrayList<>();
 
-                StringBuilder msg = null;
+            for (final String[] attrArray : copyOptions) {
+                copyOptionsAll.add(attrArray);
+            }
 
-                final String[][] copyOptions =
-                        IppDictJobTemplateAttr.JOBTICKET_ATTR_COPY_V_NONE;
-
-                for (final String[] attrArray : copyOptions) {
-
-                    final String ippKey = attrArray[0];
-                    final String ippChoice = ippOptions.get(ippKey);
-
-                    if (ippChoice == null || ippChoice.equals(attrArray[1])) {
-                        continue;
-                    }
-
-                    if (msg == null) {
-                        msg = new StringBuilder();
-                    } else {
-                        msg.append(", ");
-                    }
-
-                    msg.append("\"")
-                            .append(this.localizePrinterOpt(locale, ippKey))
-                            .append(" / ")
-                            .append(this.localizePrinterOptValue(locale, ippKey,
-                                    ippChoice))
-                            .append("\"");
-                }
-
-                if (msg != null) {
-                    return localize(locale,
-                            "msg-user-print-out-validation-set-warning",
-                            msg.toString());
+            for (final Entry<String, String> entry : ippOptions.entrySet()) {
+                if (IppDictJobTemplateAttr.isCustomExtAttr(entry.getKey())) {
+                    copyOptionsAll.add(new String[] { entry.getKey(),
+                            IppKeyword.ORG_SAVAPAGE_EXT_ATTR_NONE });
                 }
             }
+
+            //
+            StringBuilder msg = null;
+
+            for (final String[] attrArray : copyOptionsAll) {
+
+                final String ippKey = attrArray[0];
+                final String ippChoice = ippOptions.get(ippKey);
+
+                if (ippChoice == null || ippChoice.equals(attrArray[1])) {
+                    continue;
+                }
+
+                final Pair<String, String> option =
+                        new ImmutablePair<>(ippKey, ippChoice);
+
+                final Boolean isValid = proxyPrinter
+                        .isCustomCostOptionValid(option, ippOptions);
+
+                if (isValid == null || isValid.booleanValue()) {
+                    continue;
+                }
+
+                if (msg == null) {
+                    msg = new StringBuilder();
+                } else {
+                    msg.append(", ");
+                }
+
+                msg.append("\"").append(this.localizePrinterOpt(locale, ippKey))
+                        .append(" / ")
+                        .append(this.localizePrinterOptValue(locale, ippKey,
+                                ippChoice))
+                        .append("\"");
+            }
+
+            if (msg != null) {
+                return localize(locale,
+                        "msg-user-print-out-validation-set-warning",
+                        msg.toString());
+            }
         }
+
         return null;
     }
+
 }

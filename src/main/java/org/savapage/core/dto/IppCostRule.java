@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,6 +27,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * A rule to calculate cost according to the presence (or negation) of IPP
@@ -89,6 +91,39 @@ public final class IppCostRule {
     }
 
     /**
+     * Checks if this rule applies to an option, and is valid in the full
+     * context of IPP choices.
+     *
+     * @param option
+     *            The IPP key/value option pair to check.
+     * @param ippChoices
+     *            The full context of IPP choices.
+     * @return {@code null} when the rule does not apply to the option.
+     *         {@link Boolean#TRUE} when rules applies and is valid.
+     */
+    public Boolean isOptionValid(final Pair<String, String> option,
+            final Map<String, String> ippChoices) {
+
+        /*
+         * Traverse the IPP options of the rule.
+         */
+        for (final Entry<String, String> entry : ippRuleChoices.entrySet()) {
+
+            /*
+             * Check if option is part of the rule.
+             */
+            if (entry.getKey().equals(option.getKey())
+                    && entry.getValue().equals(option.getValue())) {
+                /*
+                 * Check if the rule applies.
+                 */
+                return calcCost(ippChoices) != null;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Calculates the cost for a collection of IPP attribute/choices according
      * to this rule. When the rule does not apply, {@code null} is returned.
      *
@@ -99,6 +134,10 @@ public final class IppCostRule {
      */
     public BigDecimal calcCost(final Map<String, String> ippChoices) {
 
+        /*
+         * Traverse the IPP options of the rule, and check if each option value
+         * equals the options offered.
+         */
         for (final Entry<String, String> entry : ippRuleChoices.entrySet()) {
 
             final String ippRuleAttr = entry.getKey();
@@ -117,6 +156,10 @@ public final class IppCostRule {
                     continue;
                 }
             }
+            /*
+             * The rule options is not offered, or the offered choice does not
+             * match the rule.
+             */
             return null;
         }
         return this.cost;
@@ -128,5 +171,26 @@ public final class IppCostRule {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * @return UI text for logging.
+     */
+    public String uiText() {
+
+        final StringBuilder txt = new StringBuilder();
+
+        txt.append(getName()).append(" : ").append(this.cost);
+
+        for (final Entry<String, String> entry : this.ippRuleChoices
+                .entrySet()) {
+            txt.append(" ").append(entry.getKey()).append("/");
+
+            if (this.ippRuleAttrNegate.contains(entry.getKey())) {
+                txt.append("!");
+            }
+            txt.append(entry.getValue());
+        }
+        return txt.toString();
     }
 }
