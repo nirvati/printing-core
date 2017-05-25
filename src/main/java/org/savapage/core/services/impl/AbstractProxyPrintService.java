@@ -3532,7 +3532,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                 return localize(locale,
                         "msg-user-print-out-validation-media-warning",
-                        String.format("\"%s / %s\"",
+                        String.format("\"%s : %s\"",
                                 this.localizePrinterOpt(locale, ippKeyword),
                                 this.localizePrinterOptValue(locale, ippKeyword,
                                         ippOptions.get(ippKeyword))));
@@ -3588,7 +3588,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 }
 
                 msg.append("\"").append(this.localizePrinterOpt(locale, ippKey))
-                        .append(" / ")
+                        .append(" : ")
                         .append(this.localizePrinterOptValue(locale, ippKey,
                                 ippChoice))
                         .append("\"");
@@ -3596,7 +3596,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             if (msg != null) {
                 return localize(locale,
-                        "msg-user-print-out-validation-set-warning",
+                        "msg-user-print-out-validation-finishing-warning",
                         msg.toString());
             }
         }
