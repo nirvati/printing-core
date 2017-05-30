@@ -368,8 +368,9 @@ public final class UserGroupServiceImpl extends AbstractService
                     null);
         }
 
+        // Note: nested is 'true'
         final SortedSet<CommonUser> members =
-                userSource.getUsersInGroup(groupName);
+                userSource.getUsersInGroup(groupName, true);
 
         final int nMembersTot = members.size();
 
