@@ -219,9 +219,9 @@ public final class EmailMsgParms {
             this.contentType = CONTENT_TYPE_PLAIN;
         }
 
-        final EmailStationary stat =
-                new EmailStationary(ConfigManager.getServerCustomTemplateHome(),
-                        headerText, content);
+        final EmailStationary stat = new EmailStationary(
+                ConfigManager.getServerCustomEmailTemplateHome(), headerText,
+                content);
 
         final EmailRenderResult result = stat.render(locale, asHtml);
 

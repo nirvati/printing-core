@@ -866,6 +866,28 @@ public final class ConfigManager {
     }
 
     /**
+     * @return The directory with the custom Email template files.
+     */
+    public static File getServerCustomEmailTemplateHome() {
+
+        final File customHome = getServerCustomTemplateHome();
+
+        String subPath =
+                instance().getConfigValue(Key.CUSTOM_TEMPLATE_HOME_MAIL);
+
+        if (StringUtils.isBlank(subPath)) {
+            subPath = instance().getConfigValue(Key.CUSTOM_TEMPLATE_HOME);
+        }
+
+        if (StringUtils.isBlank(subPath)) {
+            return customHome;
+        }
+
+        return new File(String.format("%s%c%s", customHome.getAbsolutePath(),
+                File.separatorChar, subPath));
+    }
+
+    /**
      * @return The directory with the custom CUPS files.
      */
     public static File getServerCustomCupsHome() {

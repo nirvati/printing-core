@@ -787,7 +787,7 @@ public final class JobTicketServiceImpl extends AbstractService
         templateUser.setFullName(user.getFullName());
 
         final JobTicketCompleted tpl = new JobTicketCompleted(
-                ConfigManager.getServerCustomTemplateHome(), templateDto,
+                ConfigManager.getServerCustomEmailTemplateHome(), templateDto,
                 templateUser);
 
         final EmailMsgParms emailParms =

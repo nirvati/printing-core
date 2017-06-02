@@ -1351,6 +1351,18 @@ public interface IConfigProp {
         MAIL_REPLY_TO_NAME("mail.reply.to.name", "DO NOT REPLY"),
 
         /**
+         * The path of the custom template files, relative to
+         * {@link ConfigManager#SERVER_REL_PATH_CUSTOM_TEMPLATE}.
+         */
+        CUSTOM_TEMPLATE_HOME("custom.template.home"),
+
+        /**
+         * The path of the custom Email template files, relative to
+         * {@link ConfigManager#SERVER_REL_PATH_CUSTOM_TEMPLATE}.
+         */
+        CUSTOM_TEMPLATE_HOME_MAIL("custom.template.home.mail"),
+
+        /**
          *
          */
         PRINT_IN_ALLOW_ENCRYPTED_PDF("print-in.allow-encrypted-pdf", BOOLEAN_VALIDATOR, V_YES),
