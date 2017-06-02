@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -97,7 +97,8 @@ public interface UserService {
 
     /**
      *
-     * @param user The {@link User}.
+     * @param user
+     *            The {@link User}.
      * @return {@code true} when (internal) user has a password.
      */
     boolean hasInternalPassword(User user);
@@ -642,6 +643,15 @@ public interface UserService {
      *             If an I/O error occurs.
      */
     void lazyUserHomeDir(String userId) throws IOException;
+
+    /**
+     * Checks whether the user's home directory exists.
+     *
+     * @param uid
+     *            The unique id of the user.
+     * @return {@code true} when user's home directory exists.
+     */
+    boolean doesUserHomeDirExist(final String uid);
 
     /**
      * Gets the saved PDF properties for a {@link User} from the database or by
