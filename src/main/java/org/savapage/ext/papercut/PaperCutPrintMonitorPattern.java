@@ -35,18 +35,22 @@ import org.savapage.core.dao.AccountTrxDao.ListFilter;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.DocInOutDao;
 import org.savapage.core.dao.DocLogDao;
+import org.savapage.core.dao.PrintOutDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
+import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.json.JsonAbstractBase;
+import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.JobTicketSupplierData;
+import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.DateUtil;
 import org.savapage.ext.ExtSupplierConnectException;
 import org.savapage.ext.ExtSupplierException;
@@ -76,11 +80,20 @@ public abstract class PaperCutPrintMonitorPattern
     private static final DocLogDao DOC_LOG_DAO =
             ServiceContext.getDaoContext().getDocLogDao();
 
+    private static final PrintOutDao PRINT_OUT_DAO =
+            ServiceContext.getDaoContext().getPrintOutDao();
+
     /**
      * .
      */
     private static final PaperCutService PAPERCUT_SERVICE =
             ServiceContext.getServiceFactory().getPaperCutService();
+
+    /**
+     * .
+     */
+    private static final ProxyPrintService PROXY_PRINT_SERVICE =
+            ServiceContext.getServiceFactory().getProxyPrintService();
 
     /**
      * Days after which a SavaPage print to PaperCut is set to error when the
@@ -472,12 +485,38 @@ public abstract class PaperCutPrintMonitorPattern
                 printOutLog.getPrintMode());
 
         /*
-         * Set status to COMPLETED.
+         * Set External Status to COMPLETED.
          */
         final String externalPrintJobStatus =
                 ExternalSupplierStatusEnum.COMPLETED.toString();
 
         docLogOut.setExternalStatus(externalPrintJobStatus);
+
+        /*
+         * Check if CUPS PrintOut status is completed as well. If not, Correct
+         * CUPS print status to completed according to PaperCut reporting.
+         * Mantis #833
+         */
+        final IppJobStateEnum cupsJobState = IppJobStateEnum
+                .asEnum(printOutLog.getCupsJobState().intValue());
+
+        if (cupsJobState != IppJobStateEnum.IPP_JOB_COMPLETED) {
+
+            LOGGER.warn(String.format(
+                    "%s reported %s: CUPS Job %d %s is corrected to %s.",
+                    ThirdPartyEnum.PAPERCUT.getUiText(), externalPrintJobStatus,
+                    printOutLog.getCupsJobId().intValue(),
+                    cupsJobState.asLogText(),
+                    IppJobStateEnum.IPP_JOB_COMPLETED.asLogText()));
+
+            printOutLog
+                    .setCupsJobState(IppJobStateEnum.IPP_JOB_COMPLETED.asInt());
+
+            printOutLog.setCupsCompletedTime(
+                    Integer.valueOf(PROXY_PRINT_SERVICE.getCupsSystemTime()));
+
+            PRINT_OUT_DAO.update(printOutLog);
+        }
 
         /*
          * Any transactions?

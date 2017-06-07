@@ -118,6 +118,7 @@ import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.InetUtils;
 import org.savapage.core.util.MediaUtils;
 import org.savapage.core.util.Messages;
+import org.savapage.core.util.NumberUtil;
 import org.savapage.ext.papercut.PaperCutHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2810,6 +2811,16 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     @Override
     public String getCupsApiVersion() {
         return null;
+    }
+
+    @Override
+    public int getCupsSystemTime() {
+        return (int) (System.currentTimeMillis() / NumberUtil.INT_THOUSAND);
+    }
+
+    @Override
+    public Date getCupsDate(final Integer cupsTime) {
+        return new Date(cupsTime.longValue() * NumberUtil.INT_THOUSAND);
     }
 
     @Override

@@ -173,6 +173,18 @@ public interface ProxyPrintService {
     URL getCupsAdminUrl();
 
     /**
+     * @return The CUPS time (seconds from epoch) of "now" (this very moment).
+     */
+    int getCupsSystemTime();
+
+    /**
+     *
+     * @param cupsTime The CUPS time (seconds from epoch).
+     * @return The CUPS date.
+     */
+    Date getCupsDate(Integer cupsTime);
+
+    /**
      *
      * @return {@code true} When connected to CUPS.
      */

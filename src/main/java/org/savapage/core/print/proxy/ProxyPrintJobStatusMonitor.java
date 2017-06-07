@@ -383,7 +383,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
         if (jobUpdate.isCompleted()) {
 
             // CUPS creation and completed time is in seconds.
-            final int timeNowSecs = (int) (System.currentTimeMillis() / 1000);
+            final int timeNowSecs = PROXY_PRINT_SERVICE.getCupsSystemTime();
 
             /*
              * Time comparison is valid for local CUPS. For (future)

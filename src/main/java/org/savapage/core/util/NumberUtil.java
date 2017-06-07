@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,9 +25,12 @@ import java.util.Random;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class NumberUtil {
+
+    public final static int INT_THOUSAND = 1000;
 
     private final static int UNIT_SI_1000 = 1000;
     private final static int UNIT_BINARY_1024 = 1024;
@@ -56,9 +59,9 @@ public final class NumberUtil {
      * <p>
      * <a href=
      * "http://stackoverflow.com/questions/3758606/how-to-convert-byte-size-into
-     * - human-readable-format-in-java
-     * ">http://stackoverflow.com/questions/3758606/how-to-convert-byte-size-int
-     * o - human-readable-format-in-java</a>
+     * - human-readable-format-in-java ">http://stackoverflow.com/questions/
+     * 3758606/how-to-convert-byte-size-int o -
+     * human-readable-format-in-java</a>
      * </p>
      *
      * @param bytes

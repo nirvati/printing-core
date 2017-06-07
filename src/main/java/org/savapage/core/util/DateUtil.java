@@ -21,8 +21,10 @@
  */
 package org.savapage.core.util;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -163,6 +165,21 @@ public final class DateUtil {
             return String.format("%dh %dm", hours, minutes);
         }
         return String.format("%dd %dh %dm", days, hours, minutes);
+    }
+
+    /**
+     * Gets as localized short time string of a Date.
+     *
+     * @param date
+     *            The date.
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized short time string. For example: "16:30".
+     */
+    public static String localizedShortTime(final Date date,
+            final Locale locale) {
+        return DateFormat.getTimeInstance(DateFormat.SHORT, locale)
+                .format(date);
     }
 
 }
