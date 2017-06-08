@@ -45,17 +45,15 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
 
     @Override
     public PrintOut findCupsJob(final String jobPrinterName,
-            final Integer jobId, final Integer jobCreationTime) {
+            final Integer jobId) {
 
         final String jpql = "SELECT O FROM PrintOut O JOIN O.printer P "
                 + "WHERE O.cupsJobId = :jobId "
-                + "AND O.cupsCreationTime = :creationTime "
                 + "AND P.printerName = :printerName";
 
         final Query query = getEntityManager().createQuery(jpql);
 
         query.setParameter("jobId", jobId);
-        query.setParameter("creationTime", jobCreationTime);
         query.setParameter("printerName",
                 ProxyPrinterName.getDaoName(jobPrinterName));
 
@@ -79,8 +77,8 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
                 + "ORDER BY P.printerName, O.cupsJobId";
 
         final Query query = getEntityManager().createQuery(jpql);
-        query.setParameter("cupsJobState", Integer.valueOf(
-                IppJobStateEnum.getFirstAbsentOnQueueOrdinal().asInt()));
+        query.setParameter("cupsJobState",
+                IppJobStateEnum.getFirstAbsentOnQueueOrdinal().asInteger());
 
         @SuppressWarnings("unchecked")
         final List<PrintOut> jobs = query.getResultList();
@@ -97,7 +95,7 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
 
         final Query query = getEntityManager().createQuery(jpql);
 
-        query.setParameter("cupsJobState", ippState.asInt())
+        query.setParameter("cupsJobState", ippState.asInteger())
                 .setParameter("cupsCompletedTime", cupsCompletedTime)
                 .setParameter("id", printOutId);
 

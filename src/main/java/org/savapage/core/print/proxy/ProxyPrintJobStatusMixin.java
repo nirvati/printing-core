@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -26,7 +26,7 @@ import org.savapage.core.jpa.PrintOut;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class ProxyPrintJobStatusMixin {
@@ -76,7 +76,7 @@ public abstract class ProxyPrintJobStatusMixin {
      *
      * @return Unix epoch time (seconds).
      */
-    public Integer getCupsCreationTime() {
+    public final Integer getCupsCreationTime() {
         return cupsCreationTime;
     }
 
@@ -85,19 +85,19 @@ public abstract class ProxyPrintJobStatusMixin {
      * @param cupsCreationTime
      *            Unix epoch time (seconds).
      */
-    public void setCupsCreationTime(Integer cupsCreationTime) {
+    public final void setCupsCreationTime(Integer cupsCreationTime) {
         this.cupsCreationTime = cupsCreationTime;
     }
 
-    public String getPrinterName() {
+    public final String getPrinterName() {
         return printerName;
     }
 
-    public Integer getJobId() {
+    public final Integer getJobId() {
         return jobId;
     }
 
-    public String getJobName() {
+    public final String getJobName() {
         return jobName;
     }
 
@@ -109,25 +109,32 @@ public abstract class ProxyPrintJobStatusMixin {
      *
      * @return Unix epoch time (seconds).
      */
-    public Integer getCupsCompletedTime() {
+    public final Integer getCupsCompletedTime() {
         return cupsCompletedTime;
     }
 
     /**
      *
-     * @param cupsCompletedTime
+     * @param completedTime
      *            Unix epoch time (seconds).
      */
-    public void setCupsCompletedTime(Integer cupsCompletedTime) {
-        this.cupsCompletedTime = cupsCompletedTime;
+    public final void setCupsCompletedTime(final Integer completedTime) {
+        this.cupsCompletedTime = completedTime;
     }
 
-    public boolean isCompleted() {
-        return this.cupsCompletedTime != null
-                && this.cupsCompletedTime.intValue() != 0;
+    /**
+     * @return {@code true} when the job state is finished. See
+     *         {@link IppJobStateEnum#isFinished()}.
+     */
+    public final boolean isFinished() {
+        return this.jobState.isFinished();
     }
 
-    public StatusSource getStatusSource() {
+    /**
+     *
+     * @return The source of the job status.
+     */
+    public final StatusSource getStatusSource() {
         return statusSource;
     }
 

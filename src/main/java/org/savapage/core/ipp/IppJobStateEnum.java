@@ -79,12 +79,21 @@ public enum IppJobStateEnum {
     }
 
     /**
-     * Gets the integer representing this enum value.
+     * Gets the int representing this enum value.
      *
-     * @return The integer.
+     * @return The int value.
      */
     public int asInt() {
         return this.bitPattern;
+    }
+
+    /**
+     * Gets the {@link Integer} representing this enum value.
+     *
+     * @return The Integer value.
+     */
+    public Integer asInteger() {
+        return Integer.valueOf(this.asInt());
     }
 
     /**
@@ -105,12 +114,21 @@ public enum IppJobStateEnum {
     }
 
     /**
-     * Checks if status means a job is present on queue.
+     * Checks if status means a job is present on CUPS queue.
      *
      * @return {@code true} when state is PENDING, HELD, PROCESSING or STOPPED.
      */
     public boolean isPresentOnQueue() {
         return bitPattern < getFirstAbsentOnQueueOrdinal().asInt();
+    }
+
+    /**
+     * Checks if status means a job is finished and left the CUPS queue.
+     *
+     * @return {@code true} when state is COMPLETED, CANCELED or ABORTED.
+     */
+    public boolean isFinished() {
+        return !this.isPresentOnQueue();
     }
 
     /**

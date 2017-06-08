@@ -44,12 +44,9 @@ public interface PrintOutDao extends GenericDao<PrintOut> {
      *            The name of the printer.
      * @param jobId
      *            The job ID.
-     * @param jobCreationTime
-     *            The time created.
      * @return The PrintOut object or {@code null} when not found.
      */
-    PrintOut findCupsJob(String jobPrinterName, final Integer jobId,
-            final Integer jobCreationTime);
+    PrintOut findCupsJob(String jobPrinterName, final Integer jobId);
 
     /**
      * Finds the CUPS jobs which are NOT registered as completed.

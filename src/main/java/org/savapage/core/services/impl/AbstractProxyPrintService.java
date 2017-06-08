@@ -1269,7 +1269,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                          * State change.
                          */
                         printOutWlk.setCupsJobState(
-                                cupsJob.getIppJobState().asInt());
+                                cupsJob.getIppJobState().asInteger());
                         printOutWlk.setCupsCompletedTime(
                                 cupsJob.getCompletedTime());
 
@@ -1307,8 +1307,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 // Set completed time to null, so we know we interpreted the
                 // status as completed.
                 printOutWlk.setCupsCompletedTime(null);
-                printOutWlk.setCupsJobState(Integer
-                        .valueOf(IppJobStateEnum.IPP_JOB_COMPLETED.asInt()));
+                printOutWlk.setCupsJobState(
+                        IppJobStateEnum.IPP_JOB_COMPLETED.asInteger());
                 printOutDAO().update(printOutWlk);
             }
         }
@@ -2238,8 +2238,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         printJob.setUser(lockedUser.getUserId());
         printJob.setJobId(Integer.valueOf(0));
-        printJob.setJobState(
-                Integer.valueOf(IppJobStateEnum.IPP_JOB_COMPLETED.asInt()));
+        printJob.setJobState(IppJobStateEnum.IPP_JOB_COMPLETED.asInteger());
         printJob.setCreationTime(cupsTimeNow);
         printJob.setCompletedTime(cupsTimeNow);
         printJob.setDest("");

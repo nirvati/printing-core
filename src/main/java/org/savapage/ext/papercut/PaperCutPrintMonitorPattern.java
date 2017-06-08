@@ -509,8 +509,8 @@ public abstract class PaperCutPrintMonitorPattern
                     cupsJobState.asLogText(),
                     IppJobStateEnum.IPP_JOB_COMPLETED.asLogText()));
 
-            printOutLog
-                    .setCupsJobState(IppJobStateEnum.IPP_JOB_COMPLETED.asInt());
+            printOutLog.setCupsJobState(
+                    IppJobStateEnum.IPP_JOB_COMPLETED.asInteger());
 
             printOutLog.setCupsCompletedTime(
                     Integer.valueOf(PROXY_PRINT_SERVICE.getCupsSystemTime()));
