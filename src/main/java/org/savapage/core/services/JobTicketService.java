@@ -249,6 +249,22 @@ public interface JobTicketService extends StatefulService {
             User user, Locale locale);
 
     /**
+     * Notifies Job Ticket owner (by email) that ticket is canceled.
+     *
+     * @param dto
+     *            The {@link OutboxJobBaseDto}.
+     * @param operator
+     *            The user id of the Job Ticket Operator.
+     * @param user
+     *            The Job Ticket owner.
+     * @param locale
+     *            The locale for the email text.
+     * @return The email address, or {@code null} when not send.
+     */
+    String notifyTicketCanceledByEmail(OutboxJobBaseDto dto, String operator,
+            User user, Locale locale);
+
+    /**
      * Prints and settles a Job Ticket.
      *
      * @param operator

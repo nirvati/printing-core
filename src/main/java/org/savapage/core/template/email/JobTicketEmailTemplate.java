@@ -22,7 +22,12 @@
 package org.savapage.core.template.email;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
+import org.savapage.core.template.TemplateAttrEnum;
+import org.savapage.core.template.dto.TemplateDto;
 import org.savapage.core.template.dto.TemplateJobTicketDto;
 import org.savapage.core.template.dto.TemplateUserDto;
 
@@ -31,7 +36,17 @@ import org.savapage.core.template.dto.TemplateUserDto;
  * @author Rijk Ravestein
  *
  */
-public final class JobTicketCompleted extends JobTicketEmailTemplate {
+public abstract class JobTicketEmailTemplate extends EmailTemplateMixin {
+
+    /**
+     *
+     */
+    private final TemplateJobTicketDto ticket;
+
+    /**
+     *
+     */
+    private final TemplateUserDto user;
 
     /**
      *
@@ -42,9 +57,19 @@ public final class JobTicketCompleted extends JobTicketEmailTemplate {
      * @param user
      *            The user.
      */
-    public JobTicketCompleted(final File customHome,
+    public JobTicketEmailTemplate(final File customHome,
             final TemplateJobTicketDto ticket, final TemplateUserDto user) {
-        super(customHome, ticket, user);
+        super(customHome);
+        this.ticket = ticket;
+        this.user = user;
+    }
+
+    @Override
+    protected final Map<String, TemplateDto> onRender(final Locale locale) {
+        final Map<String, TemplateDto> map = new HashMap<>();
+        map.put(TemplateAttrEnum.USER.asAttr(), this.user);
+        map.put(TemplateAttrEnum.TICKET.asAttr(), this.ticket);
+        return map;
     }
 
 }

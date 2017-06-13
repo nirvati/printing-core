@@ -1392,6 +1392,12 @@ public interface IConfigProp {
         JOBTICKET_NOTIFY_EMAIL_COMPLETED_ENABLE("jobticket.notify-email.completed.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * Enable notification by email to owner of job ticket when ticket is
+         * canceled (Boolean).
+         */
+        JOBTICKET_NOTIFY_EMAIL_CANCELED_ENABLE("jobticket.notify-email.canceled.enable", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * Enable Delegated Print (boolean).
          */
         PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable", BOOLEAN_VALIDATOR, V_NO),

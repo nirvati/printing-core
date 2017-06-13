@@ -31,7 +31,7 @@ import org.savapage.core.template.dto.TemplateUserDto;
  * @author Rijk Ravestein
  *
  */
-public final class JobTicketCompleted extends JobTicketEmailTemplate {
+public final class JobTicketCanceled extends JobTicketEmailTemplate {
 
     /**
      *
@@ -42,7 +42,7 @@ public final class JobTicketCompleted extends JobTicketEmailTemplate {
      * @param user
      *            The user.
      */
-    public JobTicketCompleted(final File customHome,
+    public JobTicketCanceled(final File customHome,
             final TemplateJobTicketDto ticket, final TemplateUserDto user) {
         super(customHome, ticket, user);
     }

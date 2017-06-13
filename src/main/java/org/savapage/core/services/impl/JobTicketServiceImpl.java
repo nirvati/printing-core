@@ -101,9 +101,10 @@ import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
-import org.savapage.core.template.dto.TemplateJobTicketDto;
-import org.savapage.core.template.dto.TemplateUserDto;
+import org.savapage.core.template.dto.TemplateDtoCreator;
+import org.savapage.core.template.email.JobTicketCanceled;
 import org.savapage.core.template.email.JobTicketCompleted;
+import org.savapage.core.template.email.JobTicketEmailTemplate;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.ext.papercut.PaperCutHelper;
@@ -767,6 +768,41 @@ public final class JobTicketServiceImpl extends AbstractService
     public String notifyTicketCompletedByEmail(final OutboxJobBaseDto dto,
             final String operator, final User user, final Locale locale) {
 
+        return notifyTicketEmail(
+                new JobTicketCompleted(
+                        ConfigManager.getServerCustomEmailTemplateHome(),
+                        TemplateDtoCreator.templateJobTicketDto(dto, operator),
+                        TemplateDtoCreator.templateUserDto(user)),
+                user, locale);
+    }
+
+    @Override
+    public String notifyTicketCanceledByEmail(final OutboxJobBaseDto dto,
+            final String operator, final User user, final Locale locale) {
+
+        return notifyTicketEmail(
+                new JobTicketCanceled(
+                        ConfigManager.getServerCustomEmailTemplateHome(),
+                        TemplateDtoCreator.templateJobTicketDto(dto, operator),
+                        TemplateDtoCreator.templateUserDto(user)),
+                user, locale);
+    }
+
+    /**
+     * Notifies Job Ticket owner (by email).
+     *
+     * @param tpl
+     *            The email template.
+     * @param user
+     *            The Job Ticket owner.
+     * @param locale
+     *            The locale for the email text.
+     * @return The email address, or {@code null} when not send.
+     *
+     */
+    private String notifyTicketEmail(final JobTicketEmailTemplate tpl,
+            final User user, final Locale locale) {
+
         final String emailAddr = userService().getPrimaryEmailAddress(user);
 
         if (emailAddr == null) {
@@ -775,20 +811,6 @@ public final class JobTicketServiceImpl extends AbstractService
                     user.getUserId()));
             return null;
         }
-
-        //
-        final TemplateJobTicketDto templateDto = new TemplateJobTicketDto();
-
-        templateDto.setNumber(dto.getTicketNumber());
-        templateDto.setOperator(operator);
-        templateDto.setName(dto.getJobName());
-
-        final TemplateUserDto templateUser = new TemplateUserDto();
-        templateUser.setFullName(user.getFullName());
-
-        final JobTicketCompleted tpl = new JobTicketCompleted(
-                ConfigManager.getServerCustomEmailTemplateHome(), templateDto,
-                templateUser);
 
         final EmailMsgParms emailParms =
                 EmailMsgParms.create(emailAddr, tpl, locale, false);
