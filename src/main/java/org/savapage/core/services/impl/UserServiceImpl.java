@@ -2902,11 +2902,6 @@ public final class UserServiceImpl extends AbstractService
         lazyCreateDir(outboxService().getUserOutboxDir(uid));
     }
 
-    @Override
-    public boolean doesUserHomeDirExist(final String uid)  {
-        return new File(ConfigManager.getUserHomeDir(uid)).exists();
-    }
-
     /**
      *
      * @param dir

@@ -645,15 +645,6 @@ public interface UserService {
     void lazyUserHomeDir(String userId) throws IOException;
 
     /**
-     * Checks whether the user's home directory exists.
-     *
-     * @param uid
-     *            The unique id of the user.
-     * @return {@code true} when user's home directory exists.
-     */
-    boolean doesUserHomeDirExist(final String uid);
-
-    /**
      * Gets the saved PDF properties for a {@link User} from the database or by
      * supplying a default.
      * <p>
