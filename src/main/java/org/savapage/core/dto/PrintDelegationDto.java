@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -30,6 +30,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Print Delegation data.
  *
+ * @author Rijk Ravestein
+ *
+ */
+/**
  * @author Rijk Ravestein
  *
  */
@@ -79,8 +83,26 @@ public final class PrintDelegationDto extends AbstractDto {
 
     private String name;
 
+    /**
+     * {@link DelegatorAccount} objects by
+     * {@link DelegatorAccount#getAccountId()} for groups on any
+     * {@link DelegatorAccountEnum} account.
+     */
     private Map<Long, DelegatorAccount> groups;
+
+    /**
+     * {@link DelegatorAccount} objects by
+     * {@link DelegatorAccount#getAccountId()} for individual users on a
+     * {@link DelegatorAccountEnum#USER} account.
+     */
     private Map<Long, DelegatorAccount> users;
+
+    /**
+     * {@link DelegatorAccount} objects by
+     * {@link DelegatorAccount#getAccountId()} for extra copies on a
+     * {@link DelegatorAccountEnum#SHARED} account.
+     */
+    private Map<Long, DelegatorAccount> copies;
 
     public String getName() {
         return name;
@@ -90,20 +112,61 @@ public final class PrintDelegationDto extends AbstractDto {
         this.name = name;
     }
 
+    /**
+     * @return {@link DelegatorAccount} objects by
+     *         {@link DelegatorAccount#getAccountId()} for groups on any
+     *         {@link DelegatorAccountEnum} account.
+     */
     public Map<Long, DelegatorAccount> getGroups() {
         return groups;
     }
 
+    /**
+     * @param groups
+     *            {@link DelegatorAccount} objects by
+     *            {@link DelegatorAccount#getAccountId()} for groups on any
+     *            {@link DelegatorAccountEnum} account.
+     */
     public void setGroups(Map<Long, DelegatorAccount> groups) {
         this.groups = groups;
     }
 
+    /**
+     * @return {@link DelegatorAccount} objects by
+     *         {@link DelegatorAccount#getAccountId()} for individual users on a
+     *         {@link DelegatorAccountEnum#USER} account.
+     */
     public Map<Long, DelegatorAccount> getUsers() {
         return users;
     }
 
+    /**
+     * @param users
+     *            {@link DelegatorAccount} objects by
+     *            {@link DelegatorAccount#getAccountId()} for individual users
+     *            on a {@link DelegatorAccountEnum#USER} account.
+     */
     public void setUsers(Map<Long, DelegatorAccount> users) {
         this.users = users;
+    }
+
+    /**
+     * @return {@link DelegatorAccount} objects by
+     *         {@link DelegatorAccount#getAccountId()} for extra copies on a
+     *         {@link DelegatorAccountEnum#SHARED} account.
+     */
+    public Map<Long, DelegatorAccount> getCopies() {
+        return copies;
+    }
+
+    /**
+     * @param copies
+     *            {@link DelegatorAccount} objects by
+     *            {@link DelegatorAccount#getAccountId()} for extra copies on a
+     *            {@link DelegatorAccountEnum#SHARED} account.
+     */
+    public void setCopies(Map<Long, DelegatorAccount> copies) {
+        this.copies = copies;
     }
 
 }

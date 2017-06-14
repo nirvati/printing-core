@@ -43,8 +43,8 @@ import org.savapage.core.services.helpers.AccountTrxInfoSet;
  * @author Rijk Ravestein
  *
  */
-public final class PrintDelegationServiceImpl extends AbstractService implements
-        PrintDelegationService {
+public final class PrintDelegationServiceImpl extends AbstractService
+        implements PrintDelegationService {
 
     /**
      * Creates an {@link AccountTrxInfo}.
@@ -88,9 +88,8 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
             final List<AccountTrxInfo> targetList, final User user,
             final String groupName) {
 
-        final UserAccount userAccount =
-                accountingService().lazyGetUserAccount(user,
-                        AccountTypeEnum.USER);
+        final UserAccount userAccount = accountingService()
+                .lazyGetUserAccount(user, AccountTypeEnum.USER);
 
         final int weightWlk = 1;
 
@@ -101,8 +100,8 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
     }
 
     @Override
-    public AccountTrxInfoSet createAccountTrxInfoSet(
-            final JsonPrintDelegation source) {
+    public AccountTrxInfoSet
+            createAccountTrxInfoSet(final JsonPrintDelegation source) {
 
         final List<AccountTrxInfo> targetList = new ArrayList<>();
 
@@ -165,9 +164,8 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
                     continue;
                 }
 
-                final int weightWlk =
-                        addUserAccountToTrxList(targetList, user, member
-                                .getGroup().getGroupName());
+                final int weightWlk = addUserAccountToTrxList(targetList, user,
+                        member.getGroup().getGroupName());
 
                 weightTotal += weightWlk;
                 weightGroup += weightWlk;
@@ -179,8 +177,8 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
                 final Account groupAccount =
                         accountingService().lazyGetUserGroupAccount(userGroup);
 
-                targetList.add(createAccountTrxInfo(groupAccount, weightGroup,
-                        null));
+                targetList.add(
+                        createAccountTrxInfo(groupAccount, weightGroup, null));
             }
         }
 
@@ -217,8 +215,35 @@ public final class PrintDelegationServiceImpl extends AbstractService implements
             sharedAccountWeights.put(idAccount, sharedWeight);
         }
 
-        // Process shared account totals.
-        for (final Entry<Long, Integer> entry : sharedAccountWeights.entrySet()) {
+        /*
+         * Extra copies: SHARED accounts.
+         */
+        for (final Entry<Long, Integer> entry : source.getCopiesAccountShared()
+                .entrySet()) {
+
+            final int weightWlk = entry.getValue().intValue();
+
+            if (weightWlk == 0) {
+                continue;
+            }
+
+            final Long idAccount = entry.getKey();
+
+            Integer sharedWeight = sharedAccountWeights.get(idAccount);
+
+            if (sharedWeight == null) {
+                sharedWeight = new Integer(0);
+            }
+
+            sharedWeight += weightWlk;
+            sharedAccountWeights.put(idAccount, sharedWeight);
+        }
+
+        /*
+         * Process shared account totals.
+         */
+        for (final Entry<Long, Integer> entry : sharedAccountWeights
+                .entrySet()) {
 
             final Long idAccount = entry.getKey();
             final Account account = accountDAO().findById(idAccount);

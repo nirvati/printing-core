@@ -74,6 +74,12 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
     @JsonProperty("u")
     private List<Long> users;
 
+    /**
+     * Extra copies on {@link Account} of {@link AccountTypeEnum#SHARED}.
+     */
+    @JsonProperty("c")
+    private Map<Long, Integer> copiesAccountShared;
+
     //
     public List<Long> getGroupsAccountGroup() {
         return groupsAccountGroup;
@@ -107,10 +113,20 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
         this.users = users;
     }
 
+    public Map<Long, Integer> getCopiesAccountShared() {
+        return copiesAccountShared;
+    }
+
+    public void setCopiesAccountShared(Map<Long, Integer> copiesAccountShared) {
+        this.copiesAccountShared = copiesAccountShared;
+    }
+
     /**
+     * Creates
      *
      * @param source
-     * @return
+     *            The {@link PrintDelegationDto}
+     * @return The {@link JsonPrintDelegation}.
      */
     public static JsonPrintDelegation create(final PrintDelegationDto source) {
 
@@ -167,6 +183,35 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
                 break;
 
             case SHARED:
+                // no break intended
+            case GROUP:
+                throw new IllegalStateException(String.format("%s.%s",
+                        DelegatorAccountEnum.class.getSimpleName(),
+                        sourceAccount.getAccountType().toString()));
+
+            default:
+                throw new SpException(String.format("Unhandled %s.%s",
+                        DelegatorAccountEnum.class.getSimpleName(),
+                        sourceAccount.getAccountType().toString()));
+            }
+        }
+
+        // Extra copies
+        target.setCopiesAccountShared(new HashMap<Long, Integer>());
+
+        for (final Entry<Long, PrintDelegationDto.DelegatorAccount> entry : source
+                .getCopies().entrySet()) {
+
+            final PrintDelegationDto.DelegatorAccount sourceAccount =
+                    entry.getValue();
+
+            switch (sourceAccount.getAccountType()) {
+            case SHARED:
+                target.getCopiesAccountShared().put(entry.getKey(),
+                        sourceAccount.getUserCount());
+                break;
+
+            case USER:
                 // no break intended
             case GROUP:
                 throw new IllegalStateException(String.format("%s.%s",
