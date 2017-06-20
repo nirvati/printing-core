@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -71,6 +71,7 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
     class GroupFilter {
 
         private Long groupId;
+        private Boolean disabledPrintOut;
 
         public Long getGroupId() {
             return groupId;
@@ -78,6 +79,14 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
 
         public void setGroupId(Long groupId) {
             this.groupId = groupId;
+        }
+
+        public Boolean getDisabledPrintOut() {
+            return disabledPrintOut;
+        }
+
+        public void setDisabledPrintOut(Boolean disabledPrintOut) {
+            this.disabledPrintOut = disabledPrintOut;
         }
 
     }
@@ -112,15 +121,6 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
      */
     List<UserGroup> getGroupChunk(UserFilter filter, Integer startPosition,
             Integer maxResults, GroupField orderBy, boolean sortAscending);
-
-    /**
-     * Gets the number of active (non-deleted) user members of a group.
-     *
-     * @param groupId
-     *            The ID of the {@link UserGroup}.
-     * @return The number of members.
-     */
-    long getUserCount(Long groupId);
 
     /**
      * Gets the number of active (non-deleted) user members of a group.

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -151,14 +151,6 @@ public final class UserGroupMemberDaoImpl
     }
 
     @Override
-    public long getUserCount(final Long groupId) {
-        final UserGroupMemberDao.GroupFilter filter =
-                new UserGroupMemberDao.GroupFilter();
-        filter.setGroupId(groupId);
-        return getUserCount(filter);
-    }
-
-    @Override
     public long getUserCount(final GroupFilter filter) {
 
         final StringBuilder jpql =
@@ -241,6 +233,16 @@ public final class UserGroupMemberDaoImpl
         nWhere++;
         where.append(" U.user.deleted = :deleted");
 
+        //
+        if (filter.getDisabledPrintOut() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" U.user.disabledPrintOut = :disabledPrintOut");
+        }
+
+        //
         if (nWhere > 0) {
             jpql.append(" WHERE ").append(where.toString());
         }
@@ -262,6 +264,11 @@ public final class UserGroupMemberDaoImpl
 
         query.setParameter("groupId", filter.getGroupId());
         query.setParameter("deleted", Boolean.FALSE);
+
+        if (filter.getDisabledPrintOut() != null) {
+            query.setParameter("disabledPrintOut",
+                    filter.getDisabledPrintOut());
+        }
 
         return query;
     }

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.savapage.core.dao.UserGroupMemberDao;
 import org.savapage.core.dao.helpers.JsonPrintDelegation;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
@@ -126,6 +127,11 @@ public final class PrintDelegationServiceImpl extends AbstractService
             weightTotal += addUserAccountToTrxList(targetList, user, null);
         }
 
+        // Filter for users in group.
+        final UserGroupMemberDao.GroupFilter userGroupFilter =
+                new UserGroupMemberDao.GroupFilter();
+        userGroupFilter.setDisabledPrintOut(Boolean.FALSE);
+
         /*
          * Groups: GROUP accounts.
          */
@@ -138,7 +144,14 @@ public final class PrintDelegationServiceImpl extends AbstractService
                 continue;
             }
 
-            int weightWlk = (int) userGroupMemberDAO().getUserCount(idGroup);
+            userGroupFilter.setGroupId(idGroup);
+
+            final int weightWlk =
+                    (int) userGroupMemberDAO().getUserCount(userGroupFilter);
+
+            if (weightWlk == 0) {
+                continue;
+            }
 
             final Account groupAccount =
                     accountingService().lazyGetUserGroupAccount(userGroup);
@@ -161,6 +174,10 @@ public final class PrintDelegationServiceImpl extends AbstractService
                 final User user = member.getUser();
 
                 if (user.getDeleted()) {
+                    continue;
+                }
+
+                if (user.getDisabledPrintOut()) {
                     continue;
                 }
 
@@ -196,8 +213,10 @@ public final class PrintDelegationServiceImpl extends AbstractService
                 continue;
             }
 
+            userGroupFilter.setGroupId(idGroup);
+
             final int weightWlk =
-                    (int) userGroupMemberDAO().getUserCount(idGroup);
+                    (int) userGroupMemberDAO().getUserCount(userGroupFilter);
 
             if (weightWlk == 0) {
                 continue;
