@@ -39,6 +39,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -66,10 +67,13 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 import org.hibernate.Session;
-import org.hibernate.cfg.Configuration;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Environment;
 import org.hibernate.jdbc.Work;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.hbm2ddl.SchemaExport.Action;
+import org.hibernate.tool.schema.TargetType;
 import org.hibernate.type.descriptor.java.JdbcTimestampTypeDescriptor;
 import org.savapage.core.SpException;
 import org.savapage.core.VersionInfo;
@@ -859,29 +863,20 @@ public final class DbTools implements ServiceEntryPoint {
         final boolean applyToDatabase =
                 (fileDropSql == null && fileCreateSql == null);
 
-        final Configuration configuration = new Configuration();
-
         final EntityManagerFactory theEmf =
                 ConfigManager.instance().getEntityManagerFactory();
 
-        final String jdbcUrl = theEmf.getProperties()
-                .get("javax.persistence.jdbc.url").toString();
+        final String hibernateDialect = theEmf.getProperties()
+                .get(DbConfig.HIBERNATE_DIALECT).toString();
+        final String hibernateDriver =
+                theEmf.getProperties().get(DbConfig.JPA_JDBC_DRIVER).toString();
+        final String jdbcUrl =
+                theEmf.getProperties().get(DbConfig.JPA_JDBC_URL).toString();
 
-        /*
-         * Use the @Entity classes of the supplied schema version.
-         */
-        for (Class<?> c : getSchemaEntities(schemaVersion)) {
-            configuration.addAnnotatedClass(c);
-        }
+        final Map<String, Object> settingsMap = new HashMap<>();
 
-        final String hibernateDialect =
-                theEmf.getProperties().get("hibernate.dialect").toString();
-
-        final String hibernateDriver = theEmf.getProperties()
-                .get("javax.persistence.jdbc.driver").toString();
-
-        configuration.setProperty(Environment.DIALECT, hibernateDialect)
-                .setProperty(Environment.DRIVER, hibernateDriver);
+        settingsMap.put(DbConfig.HIBERNATE_DIALECT, hibernateDialect);
+        settingsMap.put(DbConfig.HIBERNATE_DRIVER, hibernateDriver);
 
         if (applyToDatabase) {
 
@@ -906,37 +901,32 @@ public final class DbTools implements ServiceEntryPoint {
                 url = jdbcUrl;
             }
 
-            configuration.setProperty(Environment.URL, url);
-
-            final String hibernateUser = theEmf.getProperties()
-                    .get("javax.persistence.jdbc.user").toString();
-
-            final String hibernatePass = ConfigManager.getDbUserPassword();
-
-            configuration.setProperty(Environment.USER, hibernateUser);
-
-            /*
-             * Do NOT use theEmf.getProperties() to get the user password, since
-             * this will NOT deliver the password (why?).
-             */
-            configuration.setProperty(Environment.PASS, hibernatePass);
+            settingsMap.put(Environment.URL, url);
         }
 
-        final SchemaExport schema = new SchemaExport(configuration);
+        final MetadataSources metadata =
+                new MetadataSources(new StandardServiceRegistryBuilder()
+                        .applySettings(settingsMap).build());
 
         /*
-         * Never show schema statements on stdout.
+         * Use the @Entity classes of the supplied schema version.
          */
-        final boolean showOnStdout = false;
+        for (Class<?> c : getSchemaEntities(schemaVersion)) {
+            metadata.addAnnotatedClass(c);
+        }
+
+        final SchemaExport schema = new SchemaExport();
 
         if (applyToDatabase) {
 
             if (createNew) {
                 // Execute just create statements (create of new database).
-                schema.execute(showOnStdout, applyToDatabase, false, true);
+                schema.createOnly(EnumSet.of(TargetType.DATABASE),
+                        metadata.buildMetadata());
             } else {
                 // Execute drop + create statements (clean of current database).
-                schema.create(showOnStdout, applyToDatabase);
+                schema.create(EnumSet.of(TargetType.DATABASE),
+                        metadata.buildMetadata());
             }
 
         } else {
@@ -947,15 +937,16 @@ public final class DbTools implements ServiceEntryPoint {
             if (fileDropSql != null) {
                 schema.setOutputFile(fileDropSql.getAbsolutePath());
                 // only the drop statements
-                schema.execute(showOnStdout, applyToDatabase, true, false);
+                schema.execute(EnumSet.of(TargetType.SCRIPT), Action.DROP,
+                        metadata.buildMetadata());
             }
             if (fileCreateSql != null) {
                 schema.setOutputFile(fileCreateSql.getAbsolutePath());
                 // only the create statements
-                schema.execute(showOnStdout, applyToDatabase, false, true);
+                schema.execute(EnumSet.of(TargetType.SCRIPT), Action.CREATE,
+                        metadata.buildMetadata());
             }
         }
-
     }
 
     /**
@@ -1778,7 +1769,7 @@ public final class DbTools implements ServiceEntryPoint {
             session.doWork(new Work() {
 
                 @Override
-                public void execute(Connection conn) throws SQLException {
+                public void execute(final Connection conn) throws SQLException {
 
                     CallableStatement cs = null;
                     try {

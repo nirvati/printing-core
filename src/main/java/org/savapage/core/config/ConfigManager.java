@@ -100,6 +100,7 @@ import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.tools.DatabaseTypeEnum;
+import org.savapage.core.jpa.tools.DbConfig;
 import org.savapage.core.jpa.tools.DbUpgManager;
 import org.savapage.core.jpa.tools.DbVersionInfo;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
@@ -2418,44 +2419,32 @@ public final class ConfigManager {
             }
         }
 
-        config.put("javax.persistence.jdbc.driver",
+        config.put(DbConfig.JPA_JDBC_DRIVER,
                 "org.apache.derby.jdbc.EmbeddedDriver");
 
-        config.put("hibernate.dialect",
+        config.put(DbConfig.HIBERNATE_DIALECT,
                 "org.hibernate.dialect.DerbyTenSevenDialect");
     }
 
     /**
-     * Sets the Hibernate properties for PostgrSQL.
+     * Sets the Hibernate configuration for PostgrSQL.
      *
-     * @param properties
-     *            The properties.
+     * @param config
+     *            The configuration map.
      */
-    private void initHibernatePostgreSQL(final Map<String, Object> properties) {
-
-        properties.put("hibernate.dialect",
-                "org.hibernate.dialect.PostgreSQLDialect");
-
-        final String jdbcDriverDefault = "org.postgresql.Driver";
-        final String jdbcDriver;
+    private void initHibernatePostgreSQL(final Map<String, Object> config) {
 
         if (theServerProps != null) {
 
-            properties.put("javax.persistence.jdbc.user",
-                    theServerProps.getProperty(SERVER_PROP_DB_USER));
-            properties.put("javax.persistence.jdbc.password",
-                    getDbUserPassword());
-            properties.put("javax.persistence.jdbc.url",
-                    theServerProps.getProperty(SERVER_PROP_DB_URL));
-
-            jdbcDriver = theServerProps.getProperty(SERVER_PROP_DB_DRIVER,
-                    jdbcDriverDefault);
+            DbConfig.configHibernatePostgreSQL(config,
+                    theServerProps.getProperty(SERVER_PROP_DB_USER),
+                    getDbUserPassword(),
+                    theServerProps.getProperty(SERVER_PROP_DB_URL),
+                    theServerProps.getProperty(SERVER_PROP_DB_DRIVER));
 
         } else {
-            jdbcDriver = jdbcDriverDefault;
+            DbConfig.configHibernatePostgreSQL(config);
         }
-
-        properties.put("javax.persistence.jdbc.driver", jdbcDriver);
     }
 
     /**
@@ -2482,16 +2471,6 @@ public final class ConfigManager {
      */
     public void initHibernate(final DatabaseTypeEnum databaseTypeDefault) {
 
-        final Map<String, Object> configOverrides =
-                new HashMap<String, Object>();
-
-        /*
-         * The classname of a custom org.hibernate.connection.ConnectionProvider
-         * which provides JDBC connections to Hibernate. See Mantis #349.
-         */
-        configOverrides.put("hibernate.connection.provider_class",
-                "org.hibernate.connection.C3P0ConnectionProvider");
-
         /*
          * This is the place to override with MySQL or PostgreSQL driver/dialect
          */
@@ -2510,36 +2489,21 @@ public final class ConfigManager {
             useHibernateC3p0Parms = true;
         }
 
+        final Map<String, Object> configOverrides =
+                new HashMap<String, Object>();
+
+        /*
+         * The classname of a custom org.hibernate.connection.ConnectionProvider
+         * which provides JDBC connections to Hibernate. See Mantis #349.
+         */
+        configOverrides.put(DbConfig.HIBERNATE_CONNECTION_PROVIDER,
+                "org.hibernate.connection.C3P0ConnectionProvider");
+
         /*
          * Mantis #513: PostgreSQL: WebApp very slow.
          */
         if (useHibernateC3p0Parms) {
-            /*
-             * Minimum number of JDBC connections in the pool.
-             */
-            configOverrides.put("hibernate.c3p0.min_size", "5");
-            /*
-             * Maximum number of JDBC connections in the pool.
-             */
-            configOverrides.put("hibernate.c3p0.max_size", "400");
-
-            /*
-             * When an idle connection is removed from the pool (in second).
-             * Hibernate default: 0, never expire.
-             */
-            configOverrides.put("hibernate.c3p0.timeout", "600");
-
-            /*
-             * Number of prepared statements will be cached. Increase
-             * performance. Hibernate default: 0 , caching is disable.
-             */
-            configOverrides.put("hibernate.c3p0.max_statements", "50");
-
-            /*
-             * idle time in seconds before a connection is automatically
-             * validated. Hibernate default: 0.
-             */
-            configOverrides.put("hibernate.c3p0.idle_test_period", "120");
+            DbConfig.configHibernateC3p0(configOverrides);
         }
 
         //
@@ -2555,48 +2519,7 @@ public final class ConfigManager {
                     + "] is NOT supported");
         }
 
-        /*
-         * "The configuration for entity managers both inside an application
-         * server and in a standalone application reside in a persistence
-         * archive. A persistence archive is a JAR file which must define a
-         * persistence.xml file that resides in the META-INF folder."
-         *
-         * Use persistence.xml configuration. The map is a set of overrides that
-         * will take precedence over any properties defined in your
-         * persistence.xml file.
-         *
-         * See <persistence-unit name="savapage" ...> in
-         * resources/META-INF/persistence.xml
-         */
-        final String PERSISTENCE_UNIT_NAME = "savapage";
-
-        /*
-         * Since Mantis #348.
-         *
-         * Code below gives Hibernate warning HHH015016: deprecated
-         * javax.persistence.spi.PersistenceProvider (bug in Hibernate?).
-         */
-
-        // myEmf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME,
-        // configOverrides);
-
-        /*
-         * Since Mantis #348
-         */
-        final HibernatePersistenceProvider persistenceProvider =
-                new HibernatePersistenceProvider();
-
-        /*
-         * "An entity manager factory is typically create at application
-         * initialization time and closed at application end. It's creation is
-         * an expensive process. For those who are familiar with Hibernate, an
-         * entity manager factory is very much like a session factory. Actually,
-         * an entity manager factory is a wrapper on top of a session factory.
-         * Calls to the entityManagerFactory are thread safe."
-         */
-        this.myEmf = persistenceProvider.createEntityManagerFactory(
-                PERSISTENCE_UNIT_NAME, configOverrides);
-
+        this.myEmf = DbConfig.createEntityManagerFactory(configOverrides);
     }
 
     /**
@@ -2616,7 +2539,7 @@ public final class ConfigManager {
      *
      * @deprecated Use services from {@link ServiceFactory}.
      *
-     * @return
+     * @return The {@link EntityManager}.
      *
      */
     @Deprecated
