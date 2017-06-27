@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -360,6 +360,21 @@ public final class JsonHelper {
     public static String stringifyObjectMap(final Map<String, Object> map)
             throws IOException {
         return StringUtils.deleteWhitespace(mapper.writeValueAsString(map));
+    }
+
+    /**
+     * Creates a JSON string from a {@link Map}. Note: whitespace in the string
+     * is preserved.
+     *
+     * @param map
+     *            The {@link Map}.
+     * @return The JSON String.
+     * @throws IOException
+     *             When serialization fails.
+     */
+    public static String objectMapAsString(final Map<String, Object> map)
+            throws IOException {
+        return mapper.writeValueAsString(map);
     }
 
     /**

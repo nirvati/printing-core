@@ -123,95 +123,95 @@ public interface IConfigProp {
     InternalFontFamilyEnum DEFAULT_INTERNAL_FONT_FAMILY =
             InternalFontFamilyEnum.DEFAULT;
 
-    final String V_YES = "Y";
-    final String V_NO = "N";
+    String V_YES = "Y";
+    String V_NO = "N";
 
-    final String V_ZERO = "0";
+    String V_ZERO = "0";
 
     /**
      * Null value for numerics.
      */
-    final String V_NULL = "-1";
+    String V_NULL = "-1";
 
-    final String AUTH_METHOD_V_LDAP = "ldap";
-    final String AUTH_METHOD_V_UNIX = "unix";
-    final String AUTH_METHOD_V_NONE = "none";
+    String AUTH_METHOD_V_LDAP = "ldap";
+    String AUTH_METHOD_V_UNIX = "unix";
+    String AUTH_METHOD_V_NONE = "none";
 
-    final String AUTH_MODE_V_NAME = UserAuth.MODE_NAME;
-    final String AUTH_MODE_V_ID = UserAuth.MODE_ID;
-    final String AUTH_MODE_V_CARD_LOCAL = UserAuth.MODE_CARD_LOCAL;
-    final String AUTH_MODE_V_CARD_IP = UserAuth.MODE_CARD_IP;
-    final String AUTH_MODE_V_YUBIKEY = UserAuth.MODE_YUBIKEY;
+    String AUTH_MODE_V_NAME = UserAuth.MODE_NAME;
+    String AUTH_MODE_V_ID = UserAuth.MODE_ID;
+    String AUTH_MODE_V_CARD_LOCAL = UserAuth.MODE_CARD_LOCAL;
+    String AUTH_MODE_V_CARD_IP = UserAuth.MODE_CARD_IP;
+    String AUTH_MODE_V_YUBIKEY = UserAuth.MODE_YUBIKEY;
 
-    final String LDAP_TYPE_V_APPLE = "APPLE_OPENDIR";
-    final String LDAP_TYPE_V_OPEN_LDAP = "OPEN_LDAP";
-    final String LDAP_TYPE_V_E_DIR = "NOVELL_EDIRECTORY";
-    final String LDAP_TYPE_V_ACTIV = "ACTIVE_DIRECTORY";
+    String LDAP_TYPE_V_APPLE = "APPLE_OPENDIR";
+    String LDAP_TYPE_V_OPEN_LDAP = "OPEN_LDAP";
+    String LDAP_TYPE_V_E_DIR = "NOVELL_EDIRECTORY";
+    String LDAP_TYPE_V_ACTIV = "ACTIVE_DIRECTORY";
 
-    final String PAPERSIZE_V_SYSTEM = "";
-    final String PAPERSIZE_V_A4 = MediaSizeName.ISO_A4.toString();
-    final String PAPERSIZE_V_LETTER = MediaSizeName.NA_LETTER.toString();
+    String PAPERSIZE_V_SYSTEM = "";
+    String PAPERSIZE_V_A4 = MediaSizeName.ISO_A4.toString();
+    String PAPERSIZE_V_LETTER = MediaSizeName.NA_LETTER.toString();
 
     /**
      *
      */
-    final String SMTP_SECURITY_V_NONE = "";
+    String SMTP_SECURITY_V_NONE = "";
 
     /**
      * Set to Y to enable STARTTLS, or N to disable it. STARTTLS is for
      * connecting to an SMTP server port using a plain (non-encrypted)
      * connection, then elevating to an encrypted connection on the same port.
      */
-    final String SMTP_SECURITY_V_STARTTLS = "starttls";
+    String SMTP_SECURITY_V_STARTTLS = "starttls";
     /**
      *
      */
-    final String SMTP_SECURITY_V_SSL = "ssl";
-
-    /**
-     *
-     */
-    final String IMAP_SECURITY_V_NONE = "";
+    String SMTP_SECURITY_V_SSL = "ssl";
 
     /**
      *
      */
-    final String IMAP_SECURITY_V_STARTTLS = "starttls";
+    String IMAP_SECURITY_V_NONE = "";
 
     /**
      *
      */
-    final String IMAP_SECURITY_V_SSL = "ssl";
+    String IMAP_SECURITY_V_STARTTLS = "starttls";
 
     /**
      *
      */
-    final Integer IMAP_CONNECTION_TIMEOUT_V_DEFAULT = 10000;
-    final Integer IMAP_TIMEOUT_V_DEFAULT = 10000;
-
-    final Long IMAP_MAX_FILE_MB_V_DEFAULT = 5L;
-    final Integer IMAP_MAX_FILES_V_DEFAULT = 1;
+    String IMAP_SECURITY_V_SSL = "ssl";
 
     /**
      *
      */
-    final Long WEBPRINT_MAX_FILE_MB_V_DEFAULT = 10L;
+    Integer IMAP_CONNECTION_TIMEOUT_V_DEFAULT = 10000;
+    Integer IMAP_TIMEOUT_V_DEFAULT = 10000;
+
+    Long IMAP_MAX_FILE_MB_V_DEFAULT = 5L;
+    Integer IMAP_MAX_FILES_V_DEFAULT = 1;
 
     /**
      *
      */
-    final Integer WEBAPP_MAX_IDLE_SECS_V_NONE = 0;
-
-    final String CARD_NUMBER_FORMAT_V_DEC = "DEC";
-    final String CARD_NUMBER_FORMAT_V_HEX = "HEX";
-
-    final String CARD_NUMBER_FIRSTBYTE_V_LSB = "LSB";
-    final String CARD_NUMBER_FIRSTBYTE_V_MSB = "MSB";
+    Long WEBPRINT_MAX_FILE_MB_V_DEFAULT = 10L;
 
     /**
      *
      */
-    final Integer NUMBER_V_NONE = 0;
+    Integer WEBAPP_MAX_IDLE_SECS_V_NONE = 0;
+
+    String CARD_NUMBER_FORMAT_V_DEC = "DEC";
+    String CARD_NUMBER_FORMAT_V_HEX = "HEX";
+
+    String CARD_NUMBER_FIRSTBYTE_V_LSB = "LSB";
+    String CARD_NUMBER_FIRSTBYTE_V_MSB = "MSB";
+
+    /**
+     *
+     */
+    Integer NUMBER_V_NONE = 0;
 
     /**
      * .
