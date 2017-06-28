@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -667,6 +668,24 @@ public final class DocContent {
      */
     public static String getFileExtension(final DocContentTypeEnum format) {
         return getInstance().formatExt.get(format);
+    }
+
+    /**
+     *
+     * @param format
+     *            The content type
+     * @return The list of file extensions (without point prefix).
+     */
+    public static List<String>
+            getFileExtensions(final DocContentTypeEnum format) {
+        final List<String> list = new ArrayList<>();
+        for (final Entry<String, DocContentTypeEnum> entry : getInstance().extFormat
+                .entrySet()) {
+            if (entry.getValue() == format) {
+                list.add(entry.getKey());
+            }
+        }
+        return list;
     }
 
     /**
