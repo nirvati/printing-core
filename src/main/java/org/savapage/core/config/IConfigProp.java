@@ -2077,9 +2077,14 @@ public interface IConfigProp {
         WEB_LOGIN_USER_SESSION_TIMEOUT_MINS("web-login.user.session-timeout-mins", NUMBER_VALIDATOR, "60"),
 
         /**
-         *
+         * Enable Web Print.
          */
         WEB_PRINT_ENABLE("web-print.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * Enable drag & drop zone for Web Print.
+         */
+        WEB_PRINT_DROPZONE_ENABLE("web-print.dropzone-enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          *
