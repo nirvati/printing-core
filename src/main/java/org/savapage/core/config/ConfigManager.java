@@ -2286,7 +2286,11 @@ public final class ConfigManager {
     }
 
     /**
-     * Get the global application temp directory.
+     * Get the global temp directory for the SavaPage application.
+     * <p>
+     * Note: This does not affect temp directory settings for third party
+     * components.
+     * </p>
      *
      * @return The value of the server properties
      *         {@link #SERVER_PROP_APP_DIR_TMP} (when present) or the System
