@@ -318,26 +318,6 @@ public final class DocContent {
     }
 
     /**
-     *
-     * @return
-     */
-    public static String getHtmlAcceptString() {
-
-        final StringBuilder html = new StringBuilder();
-
-        for (final DocContentTypeEnum contentType : DocContentTypeEnum
-                .values()) {
-            if (isSupported(contentType)) {
-                if (html.length() > 0) {
-                    html.append(",");
-                }
-                html.append(".").append(getFileExtension(contentType));
-            }
-        }
-        return html.toString();
-    }
-
-    /**
      * @return The list with supported documents. Entries on the list have key
      *         (description) and value ({@code true} for Open Standard and
      *         {@code false} for proprietary format).
