@@ -1073,7 +1073,7 @@ public final class AccountingServiceImpl extends AbstractService
             if (costCopy == null) {
                 costCopy = costCover;
             } else {
-                costCopy.add(costCover);
+                costCopy = costCopy.add(costCover);
             }
 
             costResult.setCostCopy(costCopy);
@@ -2495,15 +2495,13 @@ public final class AccountingServiceImpl extends AbstractService
             if (minimalTransfer != null
                     && transferAmount.compareTo(minimalTransfer) < 0) {
 
-                return JsonRpcMethodError
-                        .createBasicError(Code.INVALID_PARAMS,
-                                localize("msg-amount-must-be-gt-eq",
-                                        BigDecimalUtil.localize(minimalTransfer,
-                                                userBalanceDecimals,
-                                                ServiceContext.getLocale(),
-                                                ServiceContext
-                                                        .getAppCurrencySymbol(),
-                                                true)));
+                return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
+                        localize("msg-amount-must-be-gt-eq",
+                                BigDecimalUtil.localize(minimalTransfer,
+                                        userBalanceDecimals,
+                                        ServiceContext.getLocale(),
+                                        ServiceContext.getAppCurrencySymbol(),
+                                        true)));
             }
 
             final BigDecimal maximalTransfer =
@@ -2513,15 +2511,13 @@ public final class AccountingServiceImpl extends AbstractService
             if (maximalTransfer != null
                     && transferAmount.compareTo(maximalTransfer) > 0) {
 
-                return JsonRpcMethodError
-                        .createBasicError(Code.INVALID_PARAMS,
-                                localize("msg-amount-must-be-lt-eq",
-                                        BigDecimalUtil.localize(maximalTransfer,
-                                                userBalanceDecimals,
-                                                ServiceContext.getLocale(),
-                                                ServiceContext
-                                                        .getAppCurrencySymbol(),
-                                                true)));
+                return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
+                        localize("msg-amount-must-be-lt-eq",
+                                BigDecimalUtil.localize(maximalTransfer,
+                                        userBalanceDecimals,
+                                        ServiceContext.getLocale(),
+                                        ServiceContext.getAppCurrencySymbol(),
+                                        true)));
             }
         } catch (ParseException e) {
             throw new SpException(e.getMessage(), e);
