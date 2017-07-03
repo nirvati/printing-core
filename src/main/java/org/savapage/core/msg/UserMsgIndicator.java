@@ -144,24 +144,24 @@ public final class UserMsgIndicator {
      * The base file name of the property file holding the date of the last user
      * message.
      */
-    final static String FILE_BASENAME = "msg.properties";
+    private static final String FILE_BASENAME = "msg.properties";
 
     /**
      * The key in the property file holding the date of the last user message.
      */
-    final static String PROP_DATE = "date";
+    private static final String PROP_DATE = "date";
 
     /**
      * The key in the property file holding the {@link Msg} of the last user
      * message.
      */
-    final static String PROP_MSG = "msg";
+    private static final String PROP_MSG = "msg";
 
     /**
      * The key in the property file holding the senderId of the last user
      * message.
      */
-    final static String PROP_SENDER_ID = "sender-id";
+    private static final String PROP_SENDER_ID = "sender-id";
 
     /**
      *
@@ -193,7 +193,9 @@ public final class UserMsgIndicator {
      * Reads the message indicator property file for a user.
      *
      * @param userId
+     *            The user id.
      * @throws IOException
+     *             When IO errors.
      */
     private UserMsgIndicator(final String userId) throws IOException {
 
@@ -668,7 +670,7 @@ public final class UserMsgIndicator {
         final JsonUserMsg msg = new JsonUserMsg();
 
         msg.setLevel(JsonUserMsg.LEVEL_INFO);
-        msg.setText(String.format("Copy Job Ticket % is completed",
+        msg.setText(String.format("Copy Job Ticket %s is completed",
                 dto.getTicketNumber()));
 
         return msg;

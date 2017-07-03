@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -64,6 +64,12 @@ public final class IppLogger {
             ServiceContext.getServiceFactory().getProxyPrintService();
 
     /**
+     * Utility class.
+     */
+    private IppLogger() {
+    }
+
+    /**
      * Produces log string for the UI and IPP properties of a {@link Printer}.
      *
      * @param printer
@@ -92,8 +98,6 @@ public final class IppLogger {
          * Collect printer options.
          */
         PROXY_PRINT_SERVICE.localize(locale, jsonPrinter);
-
-        jsonPrinter.getName();
 
         final Writer writer = new StringWriter();
 

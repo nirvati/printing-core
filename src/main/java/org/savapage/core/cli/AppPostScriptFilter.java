@@ -44,14 +44,22 @@ import org.savapage.core.print.server.PostScriptFilter;
  */
 public final class AppPostScriptFilter extends AbstractApp {
 
+    /** */
     private static final String CLI_SWITCH_NEGLECT_DRM = "neglect-drm";
+    /** */
     private static final String CLI_SWITCH_RESPECT_DRM = "respect-drm";
+    /** */
     private static final String CLI_OPTION_IN = "in";
+    /** */
     private static final String CLI_OPTION_OUT = "out";
 
+    /** */
     private static final int RETURN_DRM_FAILURE = 1;
+    /** */
     private static final int RETURN_DRM_NO = 10;
+    /** */
     private static final int RETURN_DRM_YES = 20;
+    /** */
     private static final int RETURN_DRM_NEGLECTED = 30;
 
     /**
@@ -67,9 +75,11 @@ public final class AppPostScriptFilter extends AbstractApp {
      *            {@link EXIT_FAILURE} when a DRM signature is encountered.
      * @return The process exit code.
      * @throws IOException
+     *             When IO error.
      */
-    private int process(BufferedReader reader, BufferedWriter writer,
-            boolean fRespectDRM) throws IOException {
+    private int process(final BufferedReader reader,
+            final BufferedWriter writer, final boolean fRespectDRM)
+            throws IOException {
 
         int ret = RETURN_DRM_FAILURE;
 
@@ -91,7 +101,7 @@ public final class AppPostScriptFilter extends AbstractApp {
     }
 
     @Override
-    protected int run(String[] args) throws Exception {
+    protected int run(final String[] args) throws Exception {
 
         final String cmdLineSyntax = "[OPTION] <file>";
 
@@ -125,10 +135,6 @@ public final class AppPostScriptFilter extends AbstractApp {
         init();
 
         int ret = RETURN_DRM_FAILURE;
-
-        if (args.length == 0) {
-            return ret;
-        }
 
         boolean fRespectDRM = cmd.hasOption(CLI_SWITCH_RESPECT_DRM);
         boolean fNeglectDRM = cmd.hasOption(CLI_SWITCH_NEGLECT_DRM);
@@ -217,8 +223,9 @@ public final class AppPostScriptFilter extends AbstractApp {
     /**
      *
      * @param args
+     *            The arguments.
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         int status = EXIT_CODE_EXCEPTION;
         AbstractApp app = new AppPostScriptFilter();
         try {

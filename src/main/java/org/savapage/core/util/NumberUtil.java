@@ -30,10 +30,12 @@ import java.util.Random;
  */
 public final class NumberUtil {
 
-    public final static int INT_THOUSAND = 1000;
-
-    private final static int UNIT_SI_1000 = 1000;
-    private final static int UNIT_BINARY_1024 = 1024;
+    /** */
+    public static final int INT_THOUSAND = 1000;
+    /** */
+    private static final int UNIT_SI_1000 = 1000;
+    /** */
+    private static final int UNIT_BINARY_1024 = 1024;
 
     /**
      *
@@ -75,20 +77,27 @@ public final class NumberUtil {
             final boolean si) {
 
         final int unit;
+        final String unitSfx;
+        final String unitSfx2;
 
         if (si) {
             unit = UNIT_SI_1000;
+            unitSfx = "kMGTPE";
+            unitSfx2 = "";
         } else {
             unit = UNIT_BINARY_1024;
+            unitSfx = "KMGTPE";
+            unitSfx2 = "i";
         }
 
         if (bytes < unit) {
             return bytes + " B";
         }
-        int exp = (int) (Math.log(bytes) / Math.log(unit));
-        String pre =
-                (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1) + (si ? "" : "i");
-        return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
+
+        final int exp = (int) (Math.log(bytes) / Math.log(unit));
+
+        return String.format("%.1f %c%sB", bytes / Math.pow(unit, exp),
+                unitSfx.charAt(exp - 1), unitSfx2);
     }
 
 }
