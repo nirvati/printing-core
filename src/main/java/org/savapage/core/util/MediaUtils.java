@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -31,6 +31,7 @@ import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.MediaSize;
 import javax.print.attribute.standard.MediaSizeName;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
@@ -39,7 +40,7 @@ import org.savapage.core.config.IConfigProp.Key;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class MediaUtils {
@@ -48,13 +49,9 @@ public final class MediaUtils {
      * The SingletonHolder is loaded on the first execution of
      * {@link MediaUtils#instance()} or the first access to
      * {@link SingletonHolder#INSTANCE}, not before.
-     * <p>
-     * <a href=
-     * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>
-     * </p>
      */
     private static class SingletonHolder {
+        /** */
         public static final MediaUtils INSTANCE = new MediaUtils();
     }
 
@@ -63,16 +60,20 @@ public final class MediaUtils {
      */
     private class MyMediaSizeName extends MediaSizeName {
 
-        /**
-         *
-         */
+        /** */
         private static final long serialVersionUID = 1L;
 
-        public MyMediaSizeName() {
+        /** */
+        MyMediaSizeName() {
             super(0);
         }
 
-        public MediaSizeName convert(String media) {
+        /**
+         *
+         * @param media
+         * @return
+         */
+        public MediaSizeName convert(final String media) {
 
             if (!media.startsWith("custom")) {
                 EnumSyntax[] syntax = getEnumValueTable();
@@ -88,6 +89,7 @@ public final class MediaUtils {
         }
     }
 
+    /** */
     private final MyMediaSizeName mediaConverter = new MyMediaSizeName();
 
     /*
@@ -99,8 +101,8 @@ public final class MediaUtils {
      * Currently known mapping of MediaSize attribute values of the CUPS
      * printing system to the Java JPS API enum values.
      *
-     * See <a
-     * href="http://tools.ietf.org/html/rfc2911">http://tools.ietf.org/html
+     * See
+     * <a href="http://tools.ietf.org/html/rfc2911">http://tools.ietf.org/html
      * /rfc2911</a>
      */
     private final Map<String, MediaSizeName> cups2MediaSize = new HashMap<>();
@@ -207,7 +209,8 @@ public final class MediaUtils {
         cups2MediaSize.put("EnvC5", MediaSizeName.ISO_C5);
         cups2MediaSize.put("EnvC6", MediaSizeName.ISO_C6);
 
-        for (Map.Entry<String, MediaSizeName> entry : cups2MediaSize.entrySet()) {
+        for (Map.Entry<String, MediaSizeName> entry : cups2MediaSize
+                .entrySet()) {
             mediaSize2Cups.put(entry.getValue(), entry.getKey());
         }
     }
@@ -230,9 +233,8 @@ public final class MediaUtils {
 
         MediaSizeName mediaSizeName;
 
-        final String papersize =
-                ConfigManager.instance().getConfigValue(
-                        Key.SYS_DEFAULT_PAPER_SIZE);
+        final String papersize = ConfigManager.instance()
+                .getConfigValue(Key.SYS_DEFAULT_PAPER_SIZE);
 
         if (papersize.equals(IConfigProp.PAPERSIZE_V_SYSTEM)) {
             mediaSizeName = MediaUtils.getHostDefaultMediaSize();
@@ -425,10 +427,13 @@ public final class MediaUtils {
 
             // Check inches
             size = ms.getSize(Size2DSyntax.INCH);
-            if (inchWidth == size[iSizeWidth]
-                    && inchHeight == size[iSizeHeight]) {
+
+            if (NumberUtils.compare(inchWidth, size[iSizeWidth]) == 0
+                    && NumberUtils.compare(inchHeight,
+                            size[iSizeHeight]) == 0) {
                 return name;
             }
+
             // Check millimeters
             size = ms.getSize(Size2DSyntax.MM);
             if (mmWidth == size[iSizeWidth] && mmHeight == size[iSizeHeight]) {

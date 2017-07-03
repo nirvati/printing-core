@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@ import org.savapage.core.util.MediaUtils;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class MediaUtilsTest {
@@ -46,10 +46,10 @@ public class MediaUtilsTest {
      *
      * @param mediaSizeName
      * @param landscape
-     * @return
+     * @return The page format.
      */
-    private PageFormat createPageFormat(MediaSizeName mediaSizeName,
-            boolean landscape) {
+    private PageFormat createPageFormat(final MediaSizeName mediaSizeName,
+            final boolean landscape) {
 
         final MediaSize mediaSize =
                 MediaSize.getMediaSizeForName(mediaSizeName);
@@ -73,19 +73,20 @@ public class MediaUtilsTest {
 
     @Test
     public void testPortait() {
-        assertEquals("A4 portrait", MediaSizeName.ISO_A4.toString(), MediaUtils
-                .getMediaSize(createPageFormat(MediaSizeName.ISO_A4, false))
-                .toString());
+        assertEquals("A4 portrait", MediaSizeName.ISO_A4.toString(),
+                MediaUtils
+                        .getMediaSize(
+                                createPageFormat(MediaSizeName.ISO_A4, false))
+                        .toString());
     }
 
     @Test
     public void testLandscape() {
 
-        assertEquals(
-                "A4 landscape",
-                MediaSizeName.ISO_A4.toString(),
-                MediaUtils.getMediaSize(
-                        createPageFormat(MediaSizeName.ISO_A4, true))
+        assertEquals("A4 landscape", MediaSizeName.ISO_A4.toString(),
+                MediaUtils
+                        .getMediaSize(
+                                createPageFormat(MediaSizeName.ISO_A4, true))
                         .toString());
     }
 
@@ -100,6 +101,19 @@ public class MediaUtilsTest {
 
         assertTrue(MediaUtils.compareMediaSize(MediaSizeName.ISO_A3,
                 MediaSizeName.ISO_A4) == 1);
+
+    }
+
+    @Test
+    public void getMediaSize() {
+
+        for (final MediaSizeName name : new MediaSizeName[] {
+                MediaSizeName.ISO_A4, MediaSizeName.ISO_A3,
+                MediaSizeName.ISO_A2, MediaSizeName.ISO_A1,
+                MediaSizeName.NA_LETTER }) {
+            assertEquals("A4", name.toString(), MediaUtils
+                    .getMediaSize(createPageFormat(name, false)).toString());
+        }
 
     }
 
