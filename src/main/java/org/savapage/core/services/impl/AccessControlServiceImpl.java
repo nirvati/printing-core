@@ -84,11 +84,10 @@ public final class AccessControlServiceImpl extends AbstractService
         final Map<ACLRoleEnum, Boolean> map =
                 JsonHelper.createEnumBooleanMap(ACLRoleEnum.class, json);
 
-        final String key = role.toString();
         final Boolean value;
 
-        if (map.containsKey(key)) {
-            value = map.get(key);
+        if (map.containsKey(role)) {
+            value = map.get(role);
         } else {
             value = null;
         }

@@ -821,9 +821,8 @@ public final class UserGroupServiceImpl extends AbstractService
             final Boolean value = entry.getValue();
 
             if (value == null) {
-                final String keyString = key.toString();
-                if (currentRoles.containsKey(keyString)) {
-                    currentRoles.remove(keyString);
+                if (currentRoles.containsKey(key)) {
+                    currentRoles.remove(key);
                 }
             } else {
                 currentRoles.put(key, value);
