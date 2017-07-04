@@ -68,11 +68,6 @@ public enum DeviceAttrEnum {
     AUTH_MODE_YUBIKEY(DeviceAttrDao.AUTH_MODE_PREFIX + ".yubikey"),
 
     /**
-     * Identical to {@link IConfigProp.Key#AUTH_MODE_GOOGLE}.
-     */
-    AUTH_MODE_GOOGLE(DeviceAttrDao.AUTH_MODE_PREFIX + ".google"),
-
-    /**
      * Identical to {@link IConfigProp.Key#AUTH_MODE_ID_IS_MASKED}.
      */
     AUTH_MODE_ID_IS_MASKED(DeviceAttrDao.AUTH_MODE_PREFIX + ".id.is-masked"),

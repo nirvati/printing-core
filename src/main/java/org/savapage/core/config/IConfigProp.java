@@ -419,11 +419,6 @@ public interface IConfigProp {
         AUTH_MODE_YUBIKEY_API_SECRET_KEY("auth-mode.yubikey.api.secret-key"),
 
         /**
-        *
-        */
-        AUTH_MODE_GOOGLE("auth-mode.google", BOOLEAN_VALIDATOR, V_NO),
-
-        /**
          *
          */
         AUTH_MODE_CARD_PIN_REQUIRED("auth-mode.card.pin-required", BOOLEAN_VALIDATOR, V_YES),
