@@ -682,6 +682,22 @@ public final class ConfigManager {
     }
 
     /**
+     * @return The SafePages home path.
+     */
+    public static String getSafePagesHomeDir() {
+
+        String homeSafePages =
+                theServerProps.getProperty(SERVER_PROP_APP_DIR_SAFEPAGES);
+
+        if (homeSafePages == null) {
+            homeSafePages = String.format("%s%c%s", getServerHome(),
+                    File.separatorChar, SERVER_REL_PATH_SAFEPAGES_DEFAULT);
+        }
+
+        return homeSafePages;
+    }
+
+    /**
      * Returns the location where the user's SafePages are stored.
      * <p>
      * The SafePages home of all users defaults to the
@@ -697,21 +713,12 @@ public final class ConfigManager {
      */
     public static String getUserHomeDir(final String user) {
 
-        String homeSafePages =
-                theServerProps.getProperty(SERVER_PROP_APP_DIR_SAFEPAGES);
-
-        if (homeSafePages == null) {
-            homeSafePages = String.format("%s%c%s", getServerHome(),
-                    File.separatorChar, SERVER_REL_PATH_SAFEPAGES_DEFAULT);
-        }
-
+        final String homeSafePages = getSafePagesHomeDir();
         final String md5hex = DigestUtils.md5Hex(user).toLowerCase();
 
-        final String userHomeDir = String.format("%s%c%c%c%c%c%s",
-                homeSafePages, File.separatorChar, md5hex.charAt(0),
-                File.separatorChar, md5hex.charAt(1), File.separatorChar, user);
-
-        return userHomeDir;
+        return String.format("%s%c%c%c%c%c%s", homeSafePages,
+                File.separatorChar, md5hex.charAt(0), File.separatorChar,
+                md5hex.charAt(1), File.separatorChar, user);
     }
 
     /**
