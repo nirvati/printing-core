@@ -85,8 +85,7 @@ public final class PGPHelper {
         /**
          * Buffer size of 64KB for encryption streaming.
          * <p>
-         * NOTE: should be power of 2 (one shifted bitwise 16 places). If the
-         * buffer is not a power of 2 in length only the largest power of 2
+         * NOTE: Size should be power of 2. If not, only the largest power of 2
          * bytes worth of the buffer will be used.
          * </p>
          */
@@ -406,14 +405,14 @@ public final class PGPHelper {
 
             // (3) In case we missed closes because of exception.
             IOUtils.closeQuietly(literalOut);
-            closeQuietly(literalDataGenerator);
+            closePGPDataGenerator(literalDataGenerator);
 
             // (4) Close the rest.
             IOUtils.closeQuietly(compressedOut);
-            closeQuietly(compressedDataGenerator);
+            closePGPDataGenerator(compressedDataGenerator);
 
             IOUtils.closeQuietly(encryptedOut);
-            closeQuietly(encryptedDataGenerator);
+            closePGPDataGenerator(encryptedDataGenerator);
 
             if (armor) {
                 IOUtils.closeQuietly(targetOut);
@@ -422,50 +421,37 @@ public final class PGPHelper {
     }
 
     /**
-     * Ugly solution (no common type accessible one closeQuietly method).
+     * Quietly closes a PGP*DataGenerator.
+     * <p>
+     * Note: this ugly solution is implemented because common interface type
+     * "StreamGenerator" (containing the close() method) cannot be resolved to a
+     * type (why?).
+     * </p>
      *
      * @param obj
-     *            Object to close;
+     *            The PGP*DataGenerator to close;
      */
-    private static void closeQuietly(final PGPLiteralDataGenerator obj) {
-        if (obj != null) {
-            try {
-                obj.close();
-            } catch (IOException e) {
-                // no code intended
+    private static void closePGPDataGenerator(final Object obj) {
+        if (obj == null) {
+            return;
+        }
+        try {
+            if (obj instanceof PGPLiteralDataGenerator) {
+                ((PGPLiteralDataGenerator) obj).close();
+
+            } else if (obj instanceof PGPCompressedDataGenerator) {
+                ((PGPCompressedDataGenerator) obj).close();
+
+            } else if (obj instanceof PGPEncryptedDataGenerator) {
+                ((PGPEncryptedDataGenerator) obj).close();
+
+            } else {
+                throw new IllegalArgumentException(String.format(
+                        "Unsupported class %s", obj.getClass().getName()));
             }
+        } catch (IOException e) {
+            // no code intended
         }
     }
 
-    /**
-     * Ugly solution (no common type accessible one closeQuietly method).
-     *
-     * @param obj
-     *            Object to close;
-     */
-    private static void closeQuietly(final PGPCompressedDataGenerator obj) {
-        if (obj != null) {
-            try {
-                obj.close();
-            } catch (IOException e) {
-                // no code intended
-            }
-        }
-    }
-
-    /**
-     * Ugly solution (no common type accessible one closeQuietly method).
-     *
-     * @param obj
-     *            Object to close;
-     */
-    private static void closeQuietly(final PGPEncryptedDataGenerator obj) {
-        if (obj != null) {
-            try {
-                obj.close();
-            } catch (IOException e) {
-                // no code intended
-            }
-        }
-    }
 }

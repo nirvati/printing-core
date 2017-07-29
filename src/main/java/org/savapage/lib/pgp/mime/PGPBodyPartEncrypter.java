@@ -54,13 +54,19 @@ import com.sun.mail.util.CRLFOutputStream;
  */
 public final class PGPBodyPartEncrypter {
 
-    /** */
+    /**
+     * The content part to encrypt.
+     */
     private BodyPart contentPart;
 
-    /** */
+    /**
+     * The RFC 1747 (Security Multiparts for MIME) Control part.
+     */
     private BodyPart controlPart;
 
-    /** */
+    /**
+     * The encrypted content part.
+     */
     private BodyPart encryptedPart;
 
     /**
@@ -68,7 +74,9 @@ public final class PGPBodyPartEncrypter {
      */
     private final PGPSecretKey secretKeyForSigning;
 
-    /** Passphrase for secret key. */
+    /**
+     * Passphrase for secret key.
+     */
     private final String passphrase;
 
     /**
@@ -123,12 +131,13 @@ public final class PGPBodyPartEncrypter {
     }
 
     /**
-     * Recursively updates the headers of a {@link MimeMultipart} or
-     * {@link MimePart}.
+     * Recursively updates the "Content-Type" and "Content-Transfer-Encoding"
+     * headers of a {@link MimeMultipart} or {@link MimePart}. <i>Update for
+     * each part is done only when headers are not already set.</i>
      * <p>
-     * This method is based on private {@code updateHeaders()} code from the
-     * {@link MimeBodyPart} and the {@link MimeMultipart} implementation from
-     * SUN.
+     * Note: This method is based on code from private method
+     * {@code updateHeaders()} from the {@link MimeBodyPart} and the
+     * {@link MimeMultipart} implementation from SUN.
      * </p>
      *
      * @param part
@@ -210,33 +219,33 @@ public final class PGPBodyPartEncrypter {
     public void encrypt() throws MessagingException {
 
         if (contentPart == null) {
-            throw new PGPMimeException("No content part to sign.");
+            throw new PGPMimeException("content part is missing.");
         }
 
         final String embeddedFileName = "plain.txt";
         final Date embeddedFileDate = new Date();
 
         //
-        ByteArrayOutputStream targetStream = null;
+        ByteArrayOutputStream contentStreamEncrypted = null;
         InputStream contentStream = null;
 
         controlPart = new MimeBodyPart();
         controlPart.setContent("Version: 1\n", "application/pgp-encrypted");
 
         try {
-            final String bodyPartStr = bodyPartAsString(contentPart);
+            contentStream =
+                    new ByteArrayInputStream(bodyPartAsString(contentPart)
+                            .getBytes(StandardCharsets.UTF_8));
 
-            targetStream = new ByteArrayOutputStream();
-
-            contentStream = new ByteArrayInputStream(
-                    bodyPartStr.getBytes(StandardCharsets.UTF_8));
+            contentStreamEncrypted = new ByteArrayOutputStream();
 
             PGPHelper.instance().encryptOnePassSignature(contentStream,
-                    targetStream, this.secretKeyForSigning, this.passphrase,
-                    this.publicKeys, embeddedFileName, embeddedFileDate);
+                    contentStreamEncrypted, this.secretKeyForSigning,
+                    this.passphrase, this.publicKeys, embeddedFileName,
+                    embeddedFileDate);
 
             encryptedPart = new MimeBodyPart();
-            encryptedPart.setText(targetStream.toString());
+            encryptedPart.setText(contentStreamEncrypted.toString());
 
             updateHeaders(encryptedPart);
 
@@ -246,35 +255,35 @@ public final class PGPBodyPartEncrypter {
         } catch (IOException | PGPBaseException e) {
             throw new PGPMimeException(e.getMessage(), e);
         } finally {
-            IOUtils.closeQuietly(targetStream);
+            IOUtils.closeQuietly(contentStreamEncrypted);
             IOUtils.closeQuietly(contentStream);
         }
     }
 
     /**
      * @param part
-     *            The content part.
+     *            The content part to encrypt.
      */
     public void setContentPart(final BodyPart part) {
         this.contentPart = part;
     }
 
     /**
-     * @return The content part.
+     * @return The content part to encrypt.
      */
     public BodyPart getContentPart() {
         return this.contentPart;
     }
 
     /**
-     * @return The encrypted part.
+     * @return The encrypted content part.
      */
     public BodyPart getEncryptedPart() {
         return this.encryptedPart;
     }
 
     /**
-     * @return The control part.
+     * @return The RFC 1747 (Security Multiparts for MIME) Control part.
      */
     public BodyPart getControlPart() {
         return this.controlPart;
