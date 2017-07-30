@@ -129,4 +129,62 @@ public final class PGPMimeHelper {
         }
     }
 
+    /**
+     * Creates a PGP signed {@link Multipart} from body content and file
+     * attachments.
+     *
+     * @param bodyContent
+     *            The body content.
+     * @param secretKeyRing
+     *            The {@link InputStream} of the private PGP key, used for
+     *            signing.
+     * @param secretKeyPassword
+     *            The password of the private PGP key.
+     * @param attachments
+     *            The mail attachments.
+     * @return The signed {@link Multipart}.
+     * @throws PGPMimeException
+     *             When error occurs.
+     */
+    public Multipart createSigned(final String bodyContent,
+            final InputStream secretKeyRing, final String secretKeyPassword,
+            final List<File> attachments) throws PGPMimeException {
+
+        final PGPHelper helper = PGPHelper.instance();
+
+        try {
+            final PGPBodyPartSigner signer = new PGPBodyPartSigner(
+                    helper.getSecretKey(secretKeyRing), secretKeyPassword);
+
+            final MimeBodyPart mbp = new MimeBodyPart();
+
+            mbp.setText(bodyContent);
+
+            final PGPMimeMultipart mme;
+
+            if (attachments.isEmpty()) {
+                mme = PGPMimeMultipart.create(mbp, signer);
+            } else {
+                final MimeMultipart mmultip = new MimeMultipart();
+
+                mmultip.addBodyPart(mbp);
+
+                for (final File attachment : attachments) {
+                    final MimeBodyPart mbp2 = new MimeBodyPart();
+                    mbp2.attachFile(attachment);
+                    mbp2.setFileName(attachment.getName());
+                    mmultip.addBodyPart(mbp2);
+                }
+
+                mme = PGPMimeMultipart.create(mmultip, signer);
+            }
+
+            return mme;
+
+        } catch (MessagingException | IOException | PGPBaseException e) {
+            throw new PGPMimeException(e.getMessage(), e);
+        }
+
+    }
+
 }

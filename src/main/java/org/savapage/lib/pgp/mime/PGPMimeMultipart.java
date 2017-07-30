@@ -41,25 +41,37 @@ import org.apache.commons.lang3.StringUtils;
 public final class PGPMimeMultipart extends MimeMultipart {
 
     /**
+     * RFC3156.
+     */
+    private static final String CONTENTTYPE_SIGN_PROTOCOL =
+            "application/pgp-signature";
+
+    /**
      *
      */
-    private static final String CONTENTTYPE_PROTOCOL =
+    private static final String CONTENTTYPE_SIGN_MIME_TYPE = "multipart/signed";
+
+    /**
+     *
+     */
+    private static final String CONTENTTYPE_ENCRYPT_PROTOCOL =
             "application/pgp-encrypted";
 
     /**
      *
      */
-    private static final String CONTENTTYPE_MIME_TYPE = "multipart/encrypted";
+    private static final String CONTENTTYPE_ENCRYPT_MIME_TYPE =
+            "multipart/encrypted";
 
     /**
-     * Create instance with content type. instance.
+     * Create instance with content type.
      *
      * @param contentType
      *            The content type.
      * @throws MessagingException
      *             When header update fails.
      */
-    protected PGPMimeMultipart(final String contentType)
+    private PGPMimeMultipart(final String contentType)
             throws MessagingException {
         super();
         this.contentType = contentType;
@@ -92,8 +104,25 @@ public final class PGPMimeMultipart extends MimeMultipart {
             final PGPBodyPartEncrypter encrypter) throws MessagingException {
 
         encrypter.setContentPart(bodyPart);
-
         return create(encrypter);
+    }
+
+    /**
+     * Creates instance of {@code bodyPart} using {@code signer}.
+     *
+     * @param bodyPart
+     *            The part to encrypt.
+     * @param signer
+     *            The PGP/MIME signer.
+     * @return The {@link PGPMimeMultipart} instance.
+     * @throws MessagingException
+     *             If encryption fails.
+     */
+    public static PGPMimeMultipart create(final BodyPart bodyPart,
+            final PGPBodyPartSigner signer) throws MessagingException {
+
+        signer.setContentPart(bodyPart);
+        return create(signer);
     }
 
     /**
@@ -112,8 +141,26 @@ public final class PGPMimeMultipart extends MimeMultipart {
 
         final BodyPart bodyPart = new MimeBodyPart();
         bodyPart.setContent(multiPart);
-
         return create(bodyPart, encrypter);
+    }
+
+    /**
+     * Creates instance of {@code multiPart} using {@code signer}.
+     *
+     * @param multiPart
+     *            The part to encrypt.
+     * @param signer
+     *            The PGP/MIME signer.
+     * @return The {@link PGPMimeMultipart} instance.
+     * @throws MessagingException
+     *             If encryption fails.
+     */
+    public static PGPMimeMultipart create(final MimeMultipart multiPart,
+            final PGPBodyPartSigner signer) throws MessagingException {
+
+        final BodyPart bodyPart = new MimeBodyPart();
+        bodyPart.setContent(multiPart);
+        return create(bodyPart, signer);
     }
 
     /**
@@ -135,14 +182,46 @@ public final class PGPMimeMultipart extends MimeMultipart {
 
         final String contentType =
                 String.format("%s; protocol=\"%s\"; boundary=\"%s\"",
-                        CONTENTTYPE_MIME_TYPE, CONTENTTYPE_PROTOCOL, boundery);
+                        CONTENTTYPE_ENCRYPT_MIME_TYPE,
+                        CONTENTTYPE_ENCRYPT_PROTOCOL, boundery);
 
         final PGPMimeMultipart mpart = new PGPMimeMultipart(contentType);
 
         mpart.addBodyPart(encrypter.getControlPart(), 0);
-        mpart.addBodyPart(encrypter.getEncryptedPart(), 1);
+        mpart.addBodyPart(encrypter.getProcessedPart(), 1);
 
         return (mpart);
+    }
+
+    /**
+     * Creates instance using {@code signer}.
+     *
+     * @param signer
+     *            The PGP/MIME signer.
+     * @return The {@link PGPMimeMultipart} instance.
+     * @throws MessagingException
+     *             If encryption fails.
+     */
+    private static PGPMimeMultipart create(final PGPBodyPartSigner signer)
+            throws MessagingException {
+
+        signer.sign();
+
+        final String boundery = String.format("signed.%s",
+                StringUtils.replace(UUID.randomUUID().toString(), "-", ""));
+
+        final String contentType =
+                String.format("%s; micalg=%s; protocol=\"%s\"; boundary=\"%s\"",
+                        CONTENTTYPE_SIGN_MIME_TYPE,
+                        signer.getHashAlgorithm().getMicalg(),
+                        CONTENTTYPE_SIGN_PROTOCOL, boundery);
+
+        final PGPMimeMultipart mpart = new PGPMimeMultipart(contentType);
+
+        mpart.addBodyPart(signer.getContentPart(), 0);
+        mpart.addBodyPart(signer.getProcessedPart(), 1);
+
+        return mpart;
     }
 
 }

@@ -21,6 +21,8 @@
  */
 package org.savapage.lib.pgp;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -36,8 +38,8 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
+import org.bouncycastle.bcpg.BCPGOutputStream;
 import org.bouncycastle.bcpg.CompressionAlgorithmTags;
-import org.bouncycastle.bcpg.HashAlgorithmTags;
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPCompressedDataGenerator;
@@ -61,6 +63,7 @@ import org.bouncycastle.openpgp.operator.PGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.PGPKeyEncryptionMethodGenerator;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
+import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
@@ -259,7 +262,8 @@ public final class PGPHelper {
     }
 
     /**
-     * Encrypts a file and signs it with a one pass signature.
+     * Encrypts a file and SHA-256 ASCII armed signs it with a one pass
+     * signature.
      *
      * @author John Opincar (C# example)
      * @author Bilal Soylu (C# to Java)
@@ -292,8 +296,8 @@ public final class PGPHelper {
 
         final BouncyCastleProvider bcProvider = new BouncyCastleProvider();
 
-        // For now, always do integrity checks and armor file.
-        final boolean armor = true;
+        // For now, always do integrity checks and use ASCII armor mode.
+        final boolean asciiArmor = true;
         final boolean withIntegrityCheck = true;
 
         // Objects to be closed when finished.
@@ -307,7 +311,7 @@ public final class PGPHelper {
 
         try {
 
-            if (armor) {
+            if (asciiArmor) {
                 targetOut = new ArmoredOutputStream(contentStreamEncrypted);
             } else {
                 targetOut = contentStreamEncrypted;
@@ -351,7 +355,7 @@ public final class PGPHelper {
 
             final PGPContentSignerBuilder csb = new BcPGPContentSignerBuilder(
                     secretKey.getPublicKey().getAlgorithm(),
-                    HashAlgorithmTags.SHA1);
+                    PGPHashAlgorithmEnum.SHA256.getBcTag());
 
             final PGPSignatureGenerator signatureGenerator =
                     new PGPSignatureGenerator(csb);
@@ -414,10 +418,82 @@ public final class PGPHelper {
             IOUtils.closeQuietly(encryptedOut);
             closePGPDataGenerator(encryptedDataGenerator);
 
-            if (armor) {
+            if (asciiArmor) {
                 IOUtils.closeQuietly(targetOut);
             }
         }
+    }
+
+    /**
+     * Creates a SHA-256 ASCII armed signature of content input.
+     *
+     * @param contentStream
+     *            The input to sign.
+     * @param signatureStream
+     *            The signed output.
+     * @param secretKey
+     *            The secret key to sign with.
+     * @param secretKeyPassphrase
+     *            The secret key passphrase.
+     * @param hashAlgorithm
+     *            The {@link PGPHashAlgorithmEnum}.
+     * @throws PGPBaseException
+     *             When errors occur.
+     */
+    public void createSignature(final InputStream contentStream,
+            final OutputStream signatureStream, final PGPSecretKey secretKey,
+            final String secretKeyPassphrase,
+            final PGPHashAlgorithmEnum hashAlgorithm) throws PGPBaseException {
+
+        final boolean asciiArmor = true;
+
+        // Objects to be closed when finished.
+        InputStream istr = null;
+        OutputStream ostr = null;
+        BCPGOutputStream pgostr = null;
+
+        try {
+            istr = new BufferedInputStream(contentStream);
+
+            if (asciiArmor) {
+                ostr = new ArmoredOutputStream(
+                        new BufferedOutputStream(signatureStream));
+            } else {
+                ostr = new BufferedOutputStream(signatureStream);
+            }
+
+            pgostr = new BCPGOutputStream(ostr);
+
+            final PGPPrivateKey pgpPrivateKey = secretKey.extractPrivateKey(
+                    new JcePBESecretKeyDecryptorBuilder().setProvider("BC")
+                    .build(secretKeyPassphrase.toCharArray()));
+
+            final PGPSignatureGenerator signatureGenerator =
+                    new PGPSignatureGenerator(new JcaPGPContentSignerBuilder(
+                            secretKey.getPublicKey().getAlgorithm(),
+                            hashAlgorithm.getBcTag()).setProvider("BC"));
+            signatureGenerator.init(PGPSignature.BINARY_DOCUMENT,
+                    pgpPrivateKey);
+
+            int ch;
+            while ((ch = istr.read()) >= 0) {
+                signatureGenerator.update((byte) ch);
+            }
+
+            istr.close();
+            signatureGenerator.generate().encode(pgostr);
+
+        } catch (PGPException | IOException e) {
+            throw new PGPBaseException(e.getMessage(), e);
+        } finally {
+            IOUtils.closeQuietly(istr);
+            IOUtils.closeQuietly(pgostr);
+
+            if (asciiArmor) {
+                IOUtils.closeQuietly(ostr);
+            }
+        }
+
     }
 
     /**
