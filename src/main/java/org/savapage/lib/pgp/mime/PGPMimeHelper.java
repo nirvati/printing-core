@@ -96,7 +96,7 @@ public final class PGPMimeHelper {
 
         try {
             final PGPBodyPartEncrypter encrypter = new PGPBodyPartEncrypter(
-                    helper.getSecretKey(secretKeyRing), secretKeyPassword,
+                    helper.readSecretKey(secretKeyRing), secretKeyPassword,
                     helper.getPublicKeyList(signPublicKeyList));
 
             final MimeBodyPart mbp = new MimeBodyPart();
@@ -154,7 +154,7 @@ public final class PGPMimeHelper {
 
         try {
             final PGPBodyPartSigner signer = new PGPBodyPartSigner(
-                    helper.getSecretKey(secretKeyRing), secretKeyPassword);
+                    helper.readSecretKey(secretKeyRing), secretKeyPassword);
 
             final MimeBodyPart mbp = new MimeBodyPart();
 

@@ -126,6 +126,29 @@ public final class PGPHelper {
     }
 
     /**
+     * Extracts the private key from secret key.
+     *
+     * @param secretKey
+     *            The secret key.
+     * @param secretKeyPassphrase
+     *            The secret key passphrase.
+     * @return The private key.
+     * @throws PGPBaseException
+     *             When errors.
+     */
+    public PGPPrivateKey extractPrivateKey(final PGPSecretKey secretKey,
+            final String secretKeyPassphrase) throws PGPBaseException {
+
+        try {
+            return secretKey.extractPrivateKey(
+                    new JcePBESecretKeyDecryptorBuilder().setProvider("BC")
+                    .build(secretKeyPassphrase.toCharArray()));
+        } catch (PGPException e) {
+            throw new PGPBaseException(e.getMessage(), e);
+        }
+    }
+
+    /**
      * Finds the first secret key in key ring or key file. A secret key contains
      * a private key that can be accessed with a password.
      *
@@ -135,7 +158,7 @@ public final class PGPHelper {
      * @throws PGPBaseException
      *             When errors or not found.
      */
-    public PGPSecretKey getSecretKey(final InputStream istr)
+    public PGPSecretKey readSecretKey(final InputStream istr)
             throws PGPBaseException {
 
         PGPSecretKey sKey = null;

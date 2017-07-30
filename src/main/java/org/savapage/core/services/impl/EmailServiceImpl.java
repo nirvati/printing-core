@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
@@ -37,7 +38,6 @@ import javax.activation.DataSource;
 import javax.inject.Singleton;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.SendFailedException;
 import javax.mail.internet.InternetAddress;
@@ -47,6 +47,8 @@ import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPSecretKey;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.circuitbreaker.CircuitBreakerOperation;
@@ -59,6 +61,9 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.FileSystemHelper;
+import org.savapage.lib.pgp.mime.PGPBodyPartEncrypter;
+import org.savapage.lib.pgp.mime.PGPBodyPartSigner;
+import org.savapage.lib.pgp.mime.PGPMimeMultipart;
 
 /**
  *
@@ -68,7 +73,7 @@ import org.savapage.core.util.FileSystemHelper;
  */
 @Singleton
 public final class EmailServiceImpl extends AbstractService
-        implements EmailService {
+implements EmailService {
 
     /**
      *
@@ -242,13 +247,10 @@ public final class EmailServiceImpl extends AbstractService
         // date
         msg.setSentDate(new java.util.Date());
 
-        // create and fill the first message part
-        final MimeBodyPart mbp1 = new MimeBodyPart();
-        mbp1.setText(msgParms.getBody());
-        mbp1.setHeader("Content-Type", msgParms.getContentType());
-
-        // create the Multipart and its parts to it
-        final Multipart mp;
+        /*
+         * Create the Multipart and its parts to it.
+         */
+        final MimeMultipart mp;
 
         if (msgParms.getCidMap().isEmpty()) {
             mp = new MimeMultipart();
@@ -256,9 +258,13 @@ public final class EmailServiceImpl extends AbstractService
             mp = new MimeMultipart(MIME_MULTIPART_SUBTYPE_RELATED);
         }
 
+        // create and fill the first message part
+        final MimeBodyPart mbp1 = new MimeBodyPart();
+        mbp1.setText(msgParms.getBody());
+        mbp1.setHeader("Content-Type", msgParms.getContentType());
+
         mp.addBodyPart(mbp1);
 
-        //
         if (msgParms.getFileAttach() != null) {
 
             final MimeBodyPart mbp2 = new MimeBodyPart();
@@ -292,10 +298,45 @@ public final class EmailServiceImpl extends AbstractService
             mp.addBodyPart(mbp);
         }
 
-        // add the Multipart to the message
-        msg.setContent(mp);
-
+        msg.setContent(applyPgpMime(mp, null));
         return msg;
+    }
+
+    /**
+     * Applies PGP/MIME on the vanilla MimeMultipart when PGP/MIME parameters
+     * are present.
+     *
+     * @param mp
+     *            The vanilla MimeMultipart.
+     * @param publicKeyList
+     *            The List of PGP public keys to sign with.
+     * @return The part to be used in the mail message, which is either the
+     *         vanilla message, or the vanilla message processed (signed and
+     *         optionally encrypted) to PGP/MIME.
+     * @throws MessagingException
+     *             When MIME message error.
+     */
+    private MimeMultipart applyPgpMime(final MimeMultipart mp,
+            final List<PGPPublicKey> publicKeyList) throws MessagingException {
+
+        final PGPSecretKey secretKey =
+                ConfigManager.instance().getPGPSecretKey();
+
+        if (secretKey == null) {
+            return mp;
+        }
+
+        final String passphrase = ConfigManager.getPGPSecretKeyPassphrase();
+
+        if (publicKeyList == null || publicKeyList.isEmpty()) {
+            final PGPBodyPartSigner signer =
+                    new PGPBodyPartSigner(secretKey, passphrase);
+            return PGPMimeMultipart.create(mp, signer);
+        }
+
+        final PGPBodyPartEncrypter encrypter =
+                new PGPBodyPartEncrypter(secretKey, passphrase, publicKeyList);
+        return PGPMimeMultipart.create(mp, encrypter);
     }
 
     /**
@@ -316,24 +357,24 @@ public final class EmailServiceImpl extends AbstractService
         final CircuitBreakerOperation operation =
                 new CircuitBreakerOperation() {
 
-                    @Override
-                    public Object execute(final CircuitBreaker circuitBreaker) {
+            @Override
+            public Object execute(final CircuitBreaker circuitBreaker) {
 
-                        if (!ConfigManager.isConnectedToInternet()) {
-                            throw new CircuitTrippingException(
-                                    "Not connected to the Internet.");
-                        }
+                if (!ConfigManager.isConnectedToInternet()) {
+                    throw new CircuitTrippingException(
+                            "Not connected to the Internet.");
+                }
 
-                        try {
-                            javax.mail.Transport.send(msg);
-                        } catch (SendFailedException e) {
-                            throw new CircuitNonTrippingException(e);
-                        } catch (MessagingException e) {
-                            throw new CircuitTrippingException(e);
-                        }
-                        return null;
-                    }
-                };
+                try {
+                    javax.mail.Transport.send(msg);
+                } catch (SendFailedException e) {
+                    throw new CircuitNonTrippingException(e);
+                } catch (MessagingException e) {
+                    throw new CircuitTrippingException(e);
+                }
+                return null;
+            }
+        };
 
         final CircuitBreaker breaker = ConfigManager
                 .getCircuitBreaker(CircuitBreakerEnum.SMTP_CONNECTION);

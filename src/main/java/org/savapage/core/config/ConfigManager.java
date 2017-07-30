@@ -27,6 +27,7 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -71,6 +72,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
+import org.bouncycastle.openpgp.PGPSecretKey;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.savapage.core.SpException;
 import org.savapage.core.SpInfo;
@@ -119,6 +121,8 @@ import org.savapage.core.users.conf.UserAliasList;
 import org.savapage.core.util.CurrencyUtil;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.InetUtils;
+import org.savapage.lib.pgp.PGPBaseException;
+import org.savapage.lib.pgp.PGPHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -236,11 +240,11 @@ public final class ConfigManager {
      */
     @SuppressWarnings("unchecked")
     private static final Class<? extends Exception>[] CIRCUIT_NON_TRIPPING_EXCEPTIONS =
-            new Class[] { CircuitNonTrippingException.class };
+    new Class[] { CircuitNonTrippingException.class };
 
     @SuppressWarnings("unchecked")
     private static final Class<? extends Exception>[] CIRCUIT_DAMAGING_EXCEPTIONS =
-            new Class[] { CircuitDamagingException.class };
+    new Class[] { CircuitDamagingException.class };
 
     /**
      * Captured system locale before it is changed.
@@ -316,6 +320,12 @@ public final class ConfigManager {
     private static final String SERVER_PROP_IPP_PRINTER_UUID =
             "ipp.printer-uuid";
 
+    private static final String SERVER_PROP_PGP_SECRETKEY_FILE =
+            "pgp.secretkey.file";
+
+    private static final String SERVER_PROP_PGP_SECRETKEY_PASSPHRASE =
+            "pgp.secretkey.passphrase";
+
     // ========================================================================
     // Undocumented ad-hoc properties for testing purposes.
     // ========================================================================
@@ -367,6 +377,11 @@ public final class ConfigManager {
      *
      */
     private DbVersionInfo myDbVersionInfo = null;
+
+    /**
+     *
+     */
+    private PGPSecretKey pgpSecretKey;
 
     /**
      *
@@ -429,6 +444,22 @@ public final class ConfigManager {
      */
     public CryptoApp cipher() {
         return myCipher;
+    }
+
+    /**
+     *
+     * @return {@code null} when not (properly) configured.
+     */
+    public PGPSecretKey getPGPSecretKey() {
+        return this.pgpSecretKey;
+    }
+
+    /**
+     *
+     * @return {@code null} when not configured.
+     */
+    public static String getPGPSecretKeyPassphrase() {
+        return theServerProps.getProperty(SERVER_PROP_PGP_SECRETKEY_PASSPHRASE);
     }
 
     /**
@@ -587,7 +618,7 @@ public final class ConfigManager {
      * @return he {@link CircuitBreaker} instance.
      */
     public static CircuitBreaker
-            getCircuitBreaker(final CircuitBreakerEnum breakerEnum) {
+    getCircuitBreaker(final CircuitBreakerEnum breakerEnum) {
 
         return instance().circuitBreakerRegistry.getOrCreateCircuitBreaker(
                 breakerEnum.toString(), breakerEnum.getFailureThreshHold(),
@@ -624,7 +655,7 @@ public final class ConfigManager {
         return !myConfigProp.getString(IConfigProp.Key.AUTH_METHOD)
                 .equals(IConfigProp.AUTH_METHOD_V_NONE)
                 && myConfigProp
-                        .getBoolean(IConfigProp.Key.USER_INSERT_LAZY_PRINT);
+                .getBoolean(IConfigProp.Key.USER_INSERT_LAZY_PRINT);
     }
 
     /**
@@ -1219,7 +1250,39 @@ public final class ConfigManager {
             throw new SpException("mode [" + mode + "] is not supported");
         }
 
+        initPGP();
+
         runMode = mode;
+    }
+
+    /**
+     * @throws
+     *
+     */
+    private void initPGP() {
+
+        final String secretFile =
+                theServerProps.getProperty(SERVER_PROP_PGP_SECRETKEY_FILE);
+
+        if (secretFile != null) {
+
+            final PGPHelper helper = PGPHelper.instance();
+
+            try {
+                this.pgpSecretKey = helper.readSecretKey(new FileInputStream(
+                        Paths.get(getServerHome(), secretFile).toFile()));
+
+                // Test passphrase.
+                helper.extractPrivateKey(this.pgpSecretKey, theServerProps
+                        .getProperty(SERVER_PROP_PGP_SECRETKEY_PASSPHRASE));
+
+                SpInfo.instance().log(String.format("PGP Key ID: %s",
+                        Long.toHexString(this.pgpSecretKey.getKeyID())));
+
+            } catch (FileNotFoundException | PGPBaseException e) {
+                LOGGER.error(e.getMessage());
+            }
+        }
     }
 
     /**
@@ -1373,10 +1436,10 @@ public final class ConfigManager {
              *
              */
             ServiceContext.getServiceFactory().getUserGroupService()
-                    .lazyCreateReservedGroups();
+            .lazyCreateReservedGroups();
 
             ServiceContext.getServiceFactory().getQueueService()
-                    .lazyCreateReservedQueues();
+            .lazyCreateReservedQueues();
 
             /*
              *
@@ -1403,7 +1466,7 @@ public final class ConfigManager {
         ServiceContext.getServiceFactory().start();
 
         ServiceContext.getServiceFactory().getSOfficeService()
-                .start(new SOfficeConfigProps());
+        .start(new SOfficeConfigProps());
 
         ProxyPrintJobStatusMonitor.init();
     }
@@ -1417,6 +1480,7 @@ public final class ConfigManager {
      * @param props
      *            The properties.
      * @throws IOException
+     *             When IO errors.
      */
     private void initAsCoreLibrary(final DatabaseTypeEnum databaseTypeDefault,
             final Properties props) throws IOException {
@@ -1851,7 +1915,7 @@ public final class ConfigManager {
      *         or not found.
      */
     public static InternalFontFamilyEnum
-            getConfigFontFamily(final IConfigProp.Key key) {
+    getConfigFontFamily(final IConfigProp.Key key) {
 
         InternalFontFamilyEnum font = IConfigProp.DEFAULT_INTERNAL_FONT_FAMILY;
 
