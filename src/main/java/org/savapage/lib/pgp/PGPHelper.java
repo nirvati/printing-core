@@ -23,12 +23,15 @@ package org.savapage.lib.pgp;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.URL;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.ArrayList;
@@ -76,9 +79,10 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodG
 public final class PGPHelper {
 
     /**
-     *
+     * String format for public key lookup.
      */
-    private final KeyFingerPrintCalculator keyFingerPrintCalculator;
+    private static final String URL_KEY_SERVER_LOOKUP_FORMAT =
+            "https://pgp.mit.edu//pks/lookup?op=get&search=%s";
 
     /**
      * Buffer for encryption streaming.
@@ -110,12 +114,19 @@ public final class PGPHelper {
         static final PGPHelper SINGLETON = new PGPHelper();
     }
 
+    /** */
+    private final BouncyCastleProvider bcProvider;
+
+    /** */
+    private final KeyFingerPrintCalculator keyFingerPrintCalculator;
+
     /**
      * Singleton instantiation.
      */
     private PGPHelper() {
-        Security.addProvider(new BouncyCastleProvider());
+        this.bcProvider = new BouncyCastleProvider();
         this.keyFingerPrintCalculator = new BcKeyFingerprintCalculator();
+        Security.addProvider(this.bcProvider);
     }
 
     /**
@@ -123,29 +134,6 @@ public final class PGPHelper {
      */
     public static PGPHelper instance() {
         return SingletonHolder.SINGLETON;
-    }
-
-    /**
-     * Extracts the private key from secret key.
-     *
-     * @param secretKey
-     *            The secret key.
-     * @param secretKeyPassphrase
-     *            The secret key passphrase.
-     * @return The private key.
-     * @throws PGPBaseException
-     *             When errors.
-     */
-    public PGPPrivateKey extractPrivateKey(final PGPSecretKey secretKey,
-            final String secretKeyPassphrase) throws PGPBaseException {
-
-        try {
-            return secretKey.extractPrivateKey(
-                    new JcePBESecretKeyDecryptorBuilder().setProvider("BC")
-                    .build(secretKeyPassphrase.toCharArray()));
-        } catch (PGPException e) {
-            throw new PGPBaseException(e.getMessage(), e);
-        }
     }
 
     /**
@@ -199,19 +187,45 @@ public final class PGPHelper {
     }
 
     /**
-     * Finds the first public key in the Key File or Key Ring File.
+     * Extracts the private key from secret key.
+     *
+     * @param secretKey
+     *            The secret key.
+     * @param secretKeyPassphrase
+     *            The secret key passphrase.
+     * @return The private key.
+     * @throws PGPBaseException
+     *             When errors.
+     */
+    public PGPPrivateKey extractPrivateKey(final PGPSecretKey secretKey,
+            final String secretKeyPassphrase) throws PGPBaseException {
+
+        try {
+            return secretKey
+                    .extractPrivateKey(new JcePBESecretKeyDecryptorBuilder()
+                            .setProvider(this.bcProvider)
+                            .build(secretKeyPassphrase.toCharArray()));
+        } catch (PGPException e) {
+            throw new PGPBaseException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Finds the first public <i>encryption</i> key in the Key File or Key Ring
+     * File, and fills a list with UIDs from the master key.
      *
      * @param istr
      *            {@link InputStream} of KeyRing or Key.
-     * @return The first encountered {@link PGPPublicKey}.
+     * @return The {@link PGPPublicKeyInfo}.
      * @throws PGPBaseException
      *             When errors encountered, or no public key found.
      */
-    public PGPPublicKey readPublicKey(final InputStream istr)
+    public PGPPublicKeyInfo readPublicKey(final InputStream istr)
             throws PGPBaseException {
 
         InputStream istrBinary = null;
-        PGPPublicKey publicKey = null;
+        PGPPublicKey encryptionKey = null;
+        PGPPublicKey masterKey = null;
 
         try {
             istrBinary = PGPUtil.getDecoderStream(istr);
@@ -222,20 +236,40 @@ public final class PGPHelper {
 
             final Iterator<PGPPublicKeyRing> iterKeyRing = pgpPub.getKeyRings();
 
-            while (publicKey == null && iterKeyRing.hasNext()) {
+            while ((encryptionKey == null || masterKey == null)
+                    && iterKeyRing.hasNext()) {
 
                 final PGPPublicKeyRing keyRing = iterKeyRing.next();
 
                 final Iterator<PGPPublicKey> iterPublicKey =
                         keyRing.getPublicKeys();
 
-                while (publicKey == null && iterPublicKey.hasNext()) {
+                while ((encryptionKey == null || masterKey == null)
+                        && iterPublicKey.hasNext()) {
+
                     final PGPPublicKey publicKeyCandidate =
                             iterPublicKey.next();
-                    if (publicKeyCandidate.isEncryptionKey()) {
-                        publicKey = publicKeyCandidate;
+
+                    if (encryptionKey == null
+                            && publicKeyCandidate.isEncryptionKey()) {
+                        encryptionKey = publicKeyCandidate;
+                    }
+
+                    // The master key contains the uids.
+                    if (masterKey == null && publicKeyCandidate.isMasterKey()) {
+                        masterKey = publicKeyCandidate;
                     }
                 }
+            }
+
+            if (encryptionKey == null) {
+                throw new PGPBaseException(
+                        "No Encryption Key found in PublicKeyRing.");
+            }
+
+            if (masterKey == null) {
+                throw new PGPBaseException(
+                        "No Master Key found in PublicKeyRing.");
             }
 
         } catch (IOException | PGPException e) {
@@ -244,25 +278,72 @@ public final class PGPHelper {
             IOUtils.closeQuietly(istrBinary);
         }
 
-        if (publicKey == null) {
-            throw new PGPBaseException("No PublicKey found in PublicKeyRing.");
-        }
+        return new PGPPublicKeyInfo(masterKey, encryptionKey);
+    }
 
-        return publicKey;
+    /**
+     * Downloads public ASCII armored public key from public key server and
+     * writes to output stream.
+     *
+     * @param hexKeyID
+     *            Hexadecimal KeyID, prefixed with "0x".
+     * @param ostr
+     *            The output stream.
+     * @throws PGPBaseException
+     *             When error retrieving or writing.
+     */
+    public static void downloadPublicKey(final String hexKeyID,
+            final OutputStream ostr) throws PGPBaseException {
+
+        InputStream istr = null;
+        BufferedReader reader = null;
+
+        try {
+            final URL url = new URL(
+                    String.format(URL_KEY_SERVER_LOOKUP_FORMAT, hexKeyID));
+
+            istr = url.openStream();
+            reader = new BufferedReader(new InputStreamReader(istr));
+
+            String line;
+
+            boolean processLine = false;
+
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("-----BEGIN ")) {
+                    processLine = true;
+                }
+                if (processLine) {
+                    ostr.write(line.getBytes());
+                    ostr.write('\n');
+                    if (line.startsWith("-----END ")) {
+                        break;
+                    }
+                }
+            }
+
+            reader.close();
+
+        } catch (IOException e) {
+            throw new PGPBaseException(e.getMessage(), e);
+        } finally {
+            IOUtils.closeQuietly(reader);
+            IOUtils.closeQuietly(istr);
+        }
     }
 
     /**
      *
      * @param publicKeyFiles
      *            List of public key files.
-     * @return List of {@link PGPPublicKey} objects.
+     * @return List of {@link PGPPublicKeyInfo} objects.
      * @throws PGPBaseException
      *             When error occurred.
      */
-    public List<PGPPublicKey> getPublicKeyList(final List<File> publicKeyFiles)
-            throws PGPBaseException {
+    public List<PGPPublicKeyInfo> getPublicKeyList(
+            final List<File> publicKeyFiles) throws PGPBaseException {
 
-        final List<PGPPublicKey> pgpPublicKeyList = new ArrayList<>();
+        final List<PGPPublicKeyInfo> pgpPublicKeyList = new ArrayList<>();
 
         for (final File file : publicKeyFiles) {
 
@@ -271,7 +352,7 @@ public final class PGPHelper {
             try {
                 signPublicKeyInputStream = new FileInputStream(file);
 
-                final PGPPublicKey encKey =
+                final PGPPublicKeyInfo encKey =
                         readPublicKey(signPublicKeyInputStream);
                 pgpPublicKeyList.add(encKey);
             } catch (FileNotFoundException e) {
@@ -297,9 +378,9 @@ public final class PGPHelper {
      * @param contentStreamEncrypted
      *            The encrypted output.
      * @param secretKey
-     *            The secret key to sign with.
-     * @param secretKeyPassphrase
-     *            The secret key passphrase.
+     *            The secret key container of the private key.
+     * @param privateKey
+     *            The private key to sign with.
      * @param publicKeyList
      *            The public keys to encrypt with.
      * @param embeddedFileName
@@ -312,12 +393,10 @@ public final class PGPHelper {
      */
     public void encryptOnePassSignature(final InputStream contentStream,
             final OutputStream contentStreamEncrypted,
-            final PGPSecretKey secretKey, final String secretKeyPassphrase,
-            final List<PGPPublicKey> publicKeyList,
+            final PGPSecretKey secretKey, final PGPPrivateKey privateKey,
+            final List<PGPPublicKeyInfo> publicKeyList,
             final String embeddedFileName, final Date embeddedFileDate)
                     throws PGPBaseException {
-
-        final BouncyCastleProvider bcProvider = new BouncyCastleProvider();
 
         // For now, always do integrity checks and use ASCII armor mode.
         final boolean asciiArmor = true;
@@ -346,16 +425,16 @@ public final class PGPHelper {
                             SymmetricKeyAlgorithmTags.CAST5);
 
             encryptorBuilder.setSecureRandom(new SecureRandom())
-            .setProvider(bcProvider)
+            .setProvider(this.bcProvider)
             .setWithIntegrityPacket(withIntegrityCheck);
 
             encryptedDataGenerator =
                     new PGPEncryptedDataGenerator(encryptorBuilder);
 
-            for (final PGPPublicKey pgpPublicKey : publicKeyList) {
+            for (final PGPPublicKeyInfo pgpPublicKeyInfo : publicKeyList) {
                 final PGPKeyEncryptionMethodGenerator method =
                         new JcePublicKeyKeyEncryptionMethodGenerator(
-                                pgpPublicKey);
+                                pgpPublicKeyInfo.getEncryptionKey());
                 encryptedDataGenerator.addMethod(method);
             }
 
@@ -369,13 +448,6 @@ public final class PGPHelper {
             compressedOut = compressedDataGenerator.open(encryptedOut);
 
             // Start signature
-            final JcePBESecretKeyDecryptorBuilder db =
-                    new JcePBESecretKeyDecryptorBuilder();
-            db.setProvider(bcProvider);
-
-            final PGPPrivateKey pgpPrivKey = secretKey.extractPrivateKey(
-                    db.build(secretKeyPassphrase.toCharArray()));
-
             final PGPContentSignerBuilder csb = new BcPGPContentSignerBuilder(
                     secretKey.getPublicKey().getAlgorithm(),
                     PGPHashAlgorithmEnum.SHA256.getBcTag());
@@ -383,7 +455,7 @@ public final class PGPHelper {
             final PGPSignatureGenerator signatureGenerator =
                     new PGPSignatureGenerator(csb);
 
-            signatureGenerator.init(PGPSignature.BINARY_DOCUMENT, pgpPrivKey);
+            signatureGenerator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
 
             // Find first signature to use.
             for (final Iterator<String> i =
@@ -455,9 +527,9 @@ public final class PGPHelper {
      * @param signatureStream
      *            The signed output.
      * @param secretKey
-     *            The secret key to sign with.
-     * @param secretKeyPassphrase
-     *            The secret key passphrase.
+     *            The secret key container of the private key.
+     * @param privateKey
+     *            The private key to sign with.
      * @param hashAlgorithm
      *            The {@link PGPHashAlgorithmEnum}.
      * @throws PGPBaseException
@@ -465,7 +537,7 @@ public final class PGPHelper {
      */
     public void createSignature(final InputStream contentStream,
             final OutputStream signatureStream, final PGPSecretKey secretKey,
-            final String secretKeyPassphrase,
+            final PGPPrivateKey privateKey,
             final PGPHashAlgorithmEnum hashAlgorithm) throws PGPBaseException {
 
         final boolean asciiArmor = true;
@@ -487,16 +559,13 @@ public final class PGPHelper {
 
             pgostr = new BCPGOutputStream(ostr);
 
-            final PGPPrivateKey pgpPrivateKey = secretKey.extractPrivateKey(
-                    new JcePBESecretKeyDecryptorBuilder().setProvider("BC")
-                    .build(secretKeyPassphrase.toCharArray()));
-
             final PGPSignatureGenerator signatureGenerator =
                     new PGPSignatureGenerator(new JcaPGPContentSignerBuilder(
                             secretKey.getPublicKey().getAlgorithm(),
-                            hashAlgorithm.getBcTag()).setProvider("BC"));
-            signatureGenerator.init(PGPSignature.BINARY_DOCUMENT,
-                    pgpPrivateKey);
+                            hashAlgorithm.getBcTag())
+                            .setProvider(this.bcProvider));
+
+            signatureGenerator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
 
             int ch;
             while ((ch = istr.read()) >= 0) {

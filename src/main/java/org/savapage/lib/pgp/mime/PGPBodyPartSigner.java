@@ -11,6 +11,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHashAlgorithmEnum;
@@ -31,14 +32,14 @@ public final class PGPBodyPartSigner extends PGPBodyPartProcessor {
 
     /**
      *
-     * @param secretKey
-     *            Secret key used for signing.
-     * @param secretKeyPassword
-     *            Passphrase for secret key.
+     * @param keySec
+     *            Secret key (container of private key).
+     * @param keyPrv
+     *            Private key for signing.
      */
-    public PGPBodyPartSigner(final PGPSecretKey secretKey,
-            final String secretKeyPassword) {
-        super(secretKey, secretKeyPassword);
+    public PGPBodyPartSigner(final PGPSecretKey keySec,
+            final PGPPrivateKey keyPrv) {
+        super(keySec, keyPrv);
     }
 
     /**
@@ -72,7 +73,7 @@ public final class PGPBodyPartSigner extends PGPBodyPartProcessor {
 
             PGPHelper.instance().createSignature(contentStream,
                     contentStreamSigned, this.getSecretKey(),
-                    this.getSecretKeyPassphrase(), this.hashAlgorithm);
+                    this.getPrivateKey(), this.hashAlgorithm);
 
             final BodyPart signedPart = new MimeBodyPart();
             signedPart.setContent(contentStreamSigned.toString(),

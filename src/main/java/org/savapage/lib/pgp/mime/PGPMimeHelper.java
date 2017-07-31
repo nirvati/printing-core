@@ -33,6 +33,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openpgp.PGPSecretKey;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 
@@ -73,8 +74,8 @@ public final class PGPMimeHelper {
      * @param secretKeyRing
      *            The {@link InputStream} of the private PGP key, used for
      *            signing.
-     * @param secretKeyPassword
-     *            The password of the private PGP key.
+     * @param secretKeyPassphrase
+     *            The passphrase of the private PGP key.
      * @param signPublicKeyList
      *            The list of public PGP key files, used for encryption.
      * @param attachments
@@ -88,16 +89,20 @@ public final class PGPMimeHelper {
      *             When error occurs.
      */
     public Multipart createSignedEncrypted(final String bodyContent,
-            final InputStream secretKeyRing, final String secretKeyPassword,
+            final InputStream secretKeyRing, final String secretKeyPassphrase,
             final List<File> signPublicKeyList, final List<File> attachments)
                     throws PGPMimeException {
 
         final PGPHelper helper = PGPHelper.instance();
 
         try {
-            final PGPBodyPartEncrypter encrypter = new PGPBodyPartEncrypter(
-                    helper.readSecretKey(secretKeyRing), secretKeyPassword,
-                    helper.getPublicKeyList(signPublicKeyList));
+            final PGPSecretKey secretKey = helper.readSecretKey(secretKeyRing);
+
+            final PGPBodyPartEncrypter encrypter =
+                    new PGPBodyPartEncrypter(secretKey,
+                            helper.extractPrivateKey(secretKey,
+                                    secretKeyPassphrase),
+                            helper.getPublicKeyList(signPublicKeyList));
 
             final MimeBodyPart mbp = new MimeBodyPart();
 
@@ -138,8 +143,8 @@ public final class PGPMimeHelper {
      * @param secretKeyRing
      *            The {@link InputStream} of the private PGP key, used for
      *            signing.
-     * @param secretKeyPassword
-     *            The password of the private PGP key.
+     * @param secretKeyPassphrase
+     *            The passphrase of the private PGP key.
      * @param attachments
      *            The mail attachments.
      * @return The signed {@link Multipart}.
@@ -147,14 +152,16 @@ public final class PGPMimeHelper {
      *             When error occurs.
      */
     public Multipart createSigned(final String bodyContent,
-            final InputStream secretKeyRing, final String secretKeyPassword,
+            final InputStream secretKeyRing, final String secretKeyPassphrase,
             final List<File> attachments) throws PGPMimeException {
 
         final PGPHelper helper = PGPHelper.instance();
 
         try {
-            final PGPBodyPartSigner signer = new PGPBodyPartSigner(
-                    helper.readSecretKey(secretKeyRing), secretKeyPassword);
+            final PGPSecretKey secretKey = helper.readSecretKey(secretKeyRing);
+
+            final PGPBodyPartSigner signer = new PGPBodyPartSigner(secretKey,
+                    helper.extractPrivateKey(secretKey, secretKeyPassphrase));
 
             final MimeBodyPart mbp = new MimeBodyPart();
 

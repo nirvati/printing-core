@@ -34,10 +34,11 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 
 import org.apache.commons.io.IOUtils;
-import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
+import org.savapage.lib.pgp.PGPPublicKeyInfo;
 
 /**
  * PGP/MIME sign and encrypt mail body part.
@@ -55,22 +56,22 @@ public final class PGPBodyPartEncrypter extends PGPBodyPartProcessor {
     /**
      * Public keys used for encryption.
      */
-    private final List<PGPPublicKey> publicKeys;
+    private final List<PGPPublicKeyInfo> publicKeys;
 
     /**
      * Constructor.
      *
-     * @param secretKey
-     *            Secret key for signing.
-     * @param secretKeyPassword
-     *            The password of the secret (private) key.
+     * @param keySec
+     *            Secret key (container of private key).
+     * @param keyPrv
+     *            Private key for signing.
      * @param publicKeyList
      *            Public keys for encryption.
      */
-    public PGPBodyPartEncrypter(final PGPSecretKey secretKey,
-            final String secretKeyPassword,
-            final List<PGPPublicKey> publicKeyList) {
-        super(secretKey, secretKeyPassword);
+    public PGPBodyPartEncrypter(final PGPSecretKey keySec,
+            final PGPPrivateKey keyPrv,
+            final List<PGPPublicKeyInfo> publicKeyList) {
+        super(keySec, keyPrv);
         this.publicKeys = publicKeyList;
     }
 
@@ -93,8 +94,9 @@ public final class PGPBodyPartEncrypter extends PGPBodyPartProcessor {
         InputStream contentStream = null;
         ByteArrayOutputStream contentStreamEncrypted = null;
 
-        controlPart = new MimeBodyPart();
-        controlPart.setContent("Version: 1\n", "application/pgp-encrypted");
+        this.controlPart = new MimeBodyPart();
+        this.controlPart.setContent("Version: 1\n",
+                "application/pgp-encrypted");
 
         try {
             contentStream =
@@ -105,8 +107,8 @@ public final class PGPBodyPartEncrypter extends PGPBodyPartProcessor {
 
             PGPHelper.instance().encryptOnePassSignature(contentStream,
                     contentStreamEncrypted, this.getSecretKey(),
-                    this.getSecretKeyPassphrase(), this.publicKeys,
-                    embeddedFileName, embeddedFileDate);
+                    this.getPrivateKey(), this.publicKeys, embeddedFileName,
+                    embeddedFileDate);
 
             final BodyPart encryptedPart = new MimeBodyPart();
             encryptedPart.setText(contentStreamEncrypted.toString());

@@ -72,6 +72,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
+import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.savapage.core.SpException;
@@ -373,19 +374,16 @@ public final class ConfigManager {
     private final CircuitBreakerRegistry circuitBreakerRegistry =
             new CircuitBreakerRegistry();
 
-    /**
-     *
-     */
+    /** */
     private DbVersionInfo myDbVersionInfo = null;
 
-    /**
-     *
-     */
+    /** */
     private PGPSecretKey pgpSecretKey;
 
-    /**
-     *
-     */
+    /** */
+    private PGPPrivateKey pgpPrivateKey;
+
+    /** */
     private ConfigManager() {
         runMode = null;
     }
@@ -447,7 +445,6 @@ public final class ConfigManager {
     }
 
     /**
-     *
      * @return {@code null} when not (properly) configured.
      */
     public PGPSecretKey getPGPSecretKey() {
@@ -455,11 +452,10 @@ public final class ConfigManager {
     }
 
     /**
-     *
-     * @return {@code null} when not configured.
+     * @return {@code null} when not (properly) configured.
      */
-    public static String getPGPSecretKeyPassphrase() {
-        return theServerProps.getProperty(SERVER_PROP_PGP_SECRETKEY_PASSPHRASE);
+    public PGPPrivateKey getPGPPrivateKey() {
+        return this.pgpPrivateKey;
     }
 
     /**
@@ -1272,9 +1268,9 @@ public final class ConfigManager {
                 this.pgpSecretKey = helper.readSecretKey(new FileInputStream(
                         Paths.get(getServerHome(), secretFile).toFile()));
 
-                // Test passphrase.
-                helper.extractPrivateKey(this.pgpSecretKey, theServerProps
-                        .getProperty(SERVER_PROP_PGP_SECRETKEY_PASSPHRASE));
+                this.pgpPrivateKey = helper.extractPrivateKey(this.pgpSecretKey,
+                        theServerProps.getProperty(
+                                SERVER_PROP_PGP_SECRETKEY_PASSPHRASE));
 
                 SpInfo.instance().log(String.format("PGP Key ID: %s",
                         Long.toHexString(this.pgpSecretKey.getKeyID())));

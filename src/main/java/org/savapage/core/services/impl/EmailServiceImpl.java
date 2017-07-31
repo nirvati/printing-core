@@ -47,7 +47,7 @@ import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
@@ -61,6 +61,7 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.FileSystemHelper;
+import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.mime.PGPBodyPartEncrypter;
 import org.savapage.lib.pgp.mime.PGPBodyPartSigner;
 import org.savapage.lib.pgp.mime.PGPMimeMultipart;
@@ -317,7 +318,7 @@ implements EmailService {
      *             When MIME message error.
      */
     private MimeMultipart applyPgpMime(final MimeMultipart mp,
-            final List<PGPPublicKey> publicKeyList) throws MessagingException {
+            final List<PGPPublicKeyInfo> publicKeyList) throws MessagingException {
 
         final PGPSecretKey secretKey =
                 ConfigManager.instance().getPGPSecretKey();
@@ -326,16 +327,17 @@ implements EmailService {
             return mp;
         }
 
-        final String passphrase = ConfigManager.getPGPSecretKeyPassphrase();
+        final PGPPrivateKey privateKey =
+                ConfigManager.instance().getPGPPrivateKey();
 
         if (publicKeyList == null || publicKeyList.isEmpty()) {
             final PGPBodyPartSigner signer =
-                    new PGPBodyPartSigner(secretKey, passphrase);
+                    new PGPBodyPartSigner(secretKey, privateKey);
             return PGPMimeMultipart.create(mp, signer);
         }
 
         final PGPBodyPartEncrypter encrypter =
-                new PGPBodyPartEncrypter(secretKey, passphrase, publicKeyList);
+                new PGPBodyPartEncrypter(secretKey, privateKey, publicKeyList);
         return PGPMimeMultipart.create(mp, encrypter);
     }
 
