@@ -33,9 +33,9 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openpgp.PGPSecretKey;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
+import org.savapage.lib.pgp.PGPSecretKeyInfo;
 
 /**
  * PGP/MIME helper methods.
@@ -96,13 +96,11 @@ public final class PGPMimeHelper {
         final PGPHelper helper = PGPHelper.instance();
 
         try {
-            final PGPSecretKey secretKey = helper.readSecretKey(secretKeyRing);
+            final PGPSecretKeyInfo secretKeyInfo =
+                    helper.readSecretKey(secretKeyRing, secretKeyPassphrase);
 
-            final PGPBodyPartEncrypter encrypter =
-                    new PGPBodyPartEncrypter(secretKey,
-                            helper.extractPrivateKey(secretKey,
-                                    secretKeyPassphrase),
-                            helper.getPublicKeyList(signPublicKeyList));
+            final PGPBodyPartEncrypter encrypter = new PGPBodyPartEncrypter(
+                    secretKeyInfo, helper.getPublicKeyList(signPublicKeyList));
 
             final MimeBodyPart mbp = new MimeBodyPart();
 
@@ -158,10 +156,11 @@ public final class PGPMimeHelper {
         final PGPHelper helper = PGPHelper.instance();
 
         try {
-            final PGPSecretKey secretKey = helper.readSecretKey(secretKeyRing);
+            final PGPSecretKeyInfo secretKeyInfo =
+                    helper.readSecretKey(secretKeyRing, secretKeyPassphrase);
 
-            final PGPBodyPartSigner signer = new PGPBodyPartSigner(secretKey,
-                    helper.extractPrivateKey(secretKey, secretKeyPassphrase));
+            final PGPBodyPartSigner signer =
+                    new PGPBodyPartSigner(secretKeyInfo);
 
             final MimeBodyPart mbp = new MimeBodyPart();
 

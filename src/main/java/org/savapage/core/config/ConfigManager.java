@@ -48,6 +48,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.text.MessageFormat;
 import java.util.Currency;
 import java.util.Date;
 import java.util.EnumSet;
@@ -57,6 +58,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.mail.internet.InternetAddress;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
@@ -72,8 +74,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
-import org.bouncycastle.openpgp.PGPPrivateKey;
-import org.bouncycastle.openpgp.PGPSecretKey;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.savapage.core.SpException;
 import org.savapage.core.SpInfo;
@@ -124,6 +124,7 @@ import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.InetUtils;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
+import org.savapage.lib.pgp.PGPSecretKeyInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -241,11 +242,11 @@ public final class ConfigManager {
      */
     @SuppressWarnings("unchecked")
     private static final Class<? extends Exception>[] CIRCUIT_NON_TRIPPING_EXCEPTIONS =
-    new Class[] { CircuitNonTrippingException.class };
+            new Class[] { CircuitNonTrippingException.class };
 
     @SuppressWarnings("unchecked")
     private static final Class<? extends Exception>[] CIRCUIT_DAMAGING_EXCEPTIONS =
-    new Class[] { CircuitDamagingException.class };
+            new Class[] { CircuitDamagingException.class };
 
     /**
      * Captured system locale before it is changed.
@@ -327,6 +328,25 @@ public final class ConfigManager {
     private static final String SERVER_PROP_PGP_SECRETKEY_PASSPHRASE =
             "pgp.secretkey.passphrase";
 
+    /**
+     * URL of the PGP Public Key Server: to search for a key.
+     */
+    private static final String SERVER_PROP_PGP_PUBLICKEY_SERVER_URL =
+            "pgp.publickey.server.url";
+    /**
+     * An URL to preview the content of PGP Public Key as template: {0} is to be
+     * replaced without hexKeyID, with "0x" prefix.
+     */
+    private static final String SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_VINDEX =
+            "pgp.publickey.server.url.vindex";
+
+    /**
+     * An URL template to get (download) the PGP Public Key: {0} is to be
+     * replaced without hexKeyID, with "0x" prefix.
+     */
+    private static final String SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_GET =
+            "pgp.publickey.server.url.get";
+
     // ========================================================================
     // Undocumented ad-hoc properties for testing purposes.
     // ========================================================================
@@ -378,10 +398,7 @@ public final class ConfigManager {
     private DbVersionInfo myDbVersionInfo = null;
 
     /** */
-    private PGPSecretKey pgpSecretKey;
-
-    /** */
-    private PGPPrivateKey pgpPrivateKey;
+    private PGPSecretKeyInfo pgpSecretKeyInfo;
 
     /** */
     private ConfigManager() {
@@ -447,15 +464,8 @@ public final class ConfigManager {
     /**
      * @return {@code null} when not (properly) configured.
      */
-    public PGPSecretKey getPGPSecretKey() {
-        return this.pgpSecretKey;
-    }
-
-    /**
-     * @return {@code null} when not (properly) configured.
-     */
-    public PGPPrivateKey getPGPPrivateKey() {
-        return this.pgpPrivateKey;
+    public PGPSecretKeyInfo getPGPSecretKeyInfo() {
+        return this.pgpSecretKeyInfo;
     }
 
     /**
@@ -614,7 +624,7 @@ public final class ConfigManager {
      * @return he {@link CircuitBreaker} instance.
      */
     public static CircuitBreaker
-    getCircuitBreaker(final CircuitBreakerEnum breakerEnum) {
+            getCircuitBreaker(final CircuitBreakerEnum breakerEnum) {
 
         return instance().circuitBreakerRegistry.getOrCreateCircuitBreaker(
                 breakerEnum.toString(), breakerEnum.getFailureThreshHold(),
@@ -651,7 +661,7 @@ public final class ConfigManager {
         return !myConfigProp.getString(IConfigProp.Key.AUTH_METHOD)
                 .equals(IConfigProp.AUTH_METHOD_V_NONE)
                 && myConfigProp
-                .getBoolean(IConfigProp.Key.USER_INSERT_LAZY_PRINT);
+                        .getBoolean(IConfigProp.Key.USER_INSERT_LAZY_PRINT);
     }
 
     /**
@@ -1252,33 +1262,93 @@ public final class ConfigManager {
     }
 
     /**
-     * @throws
-     *
+     * Initializes the PGP secret key.
      */
     private void initPGP() {
 
         final String secretFile =
                 theServerProps.getProperty(SERVER_PROP_PGP_SECRETKEY_FILE);
 
-        if (secretFile != null) {
-
-            final PGPHelper helper = PGPHelper.instance();
-
-            try {
-                this.pgpSecretKey = helper.readSecretKey(new FileInputStream(
-                        Paths.get(getServerHome(), secretFile).toFile()));
-
-                this.pgpPrivateKey = helper.extractPrivateKey(this.pgpSecretKey,
-                        theServerProps.getProperty(
-                                SERVER_PROP_PGP_SECRETKEY_PASSPHRASE));
-
-                SpInfo.instance().log(String.format("PGP Key ID: %s",
-                        Long.toHexString(this.pgpSecretKey.getKeyID())));
-
-            } catch (FileNotFoundException | PGPBaseException e) {
-                LOGGER.error(e.getMessage());
-            }
+        if (secretFile == null) {
+            return;
         }
+
+        final PGPHelper helper = PGPHelper.instance();
+
+        try {
+            this.pgpSecretKeyInfo = helper.readSecretKey(
+                    new FileInputStream(
+                            Paths.get(getServerHome(), secretFile).toFile()),
+                    theServerProps
+                            .getProperty(SERVER_PROP_PGP_SECRETKEY_PASSPHRASE));
+
+            SpInfo.instance().log(String.format("PGP Key ID [%s]",
+                    this.pgpSecretKeyInfo.formattedKeyID()));
+
+            for (final InternetAddress addr : this.pgpSecretKeyInfo.getUids()) {
+                SpInfo.instance()
+                        .log(String.format("PGP UID [%s]", addr.toString()));
+            }
+
+            SpInfo.instance().log(String.format("PGP Fingerprint [%s]",
+                    this.pgpSecretKeyInfo.formattedFingerPrint()));
+
+            // Elicit an exception when one of the URLss is wrong.
+            this.getPGPPublicKeySearchUrl();
+            this.getPGPPublicKeyDownloadUrl("TEST");
+            this.getPGPPublicKeyPreviewUrl("TEST");
+
+        } catch (FileNotFoundException | PGPBaseException
+                | MalformedURLException e) {
+            LOGGER.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Gets the URL of Web Page where PGP Public Key can be searched.
+     *
+     * @return The URL to search for a key.
+     * @throws MalformedURLException
+     *             If URL template is ill-formed.
+     */
+    public URL getPGPPublicKeySearchUrl() throws MalformedURLException {
+        return new URL(theServerProps
+                .getProperty(SERVER_PROP_PGP_PUBLICKEY_SERVER_URL));
+    }
+
+    /**
+     * Gets the URL to download the PGP Public Key.
+     *
+     * @param hexKeyID
+     *            Hexadecimal KeyID, without "0x" prefix.
+     * @return The URL to download the public ASCII armored key.
+     * @throws MalformedURLException
+     *             If URL template is ill-formed.
+     */
+    public URL getPGPPublicKeyDownloadUrl(final String hexKeyID)
+            throws MalformedURLException {
+        return new URL(
+                MessageFormat.format(
+                        theServerProps.getProperty(
+                                SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_GET),
+                        hexKeyID));
+    }
+
+    /**
+     * Gets the URL of Web Page to preview the content of the PGP Public Key.
+     *
+     * @param hexKeyID
+     *            Hexadecimal KeyID, without "0x" prefix.
+     * @return The URL to preview the public key.
+     * @throws MalformedURLException
+     *             If URL template is ill-formed.
+     */
+    public URL getPGPPublicKeyPreviewUrl(final String hexKeyID)
+            throws MalformedURLException {
+        return new URL(MessageFormat.format(
+                theServerProps.getProperty(
+                        SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_VINDEX),
+                hexKeyID));
     }
 
     /**
@@ -1432,10 +1502,10 @@ public final class ConfigManager {
              *
              */
             ServiceContext.getServiceFactory().getUserGroupService()
-            .lazyCreateReservedGroups();
+                    .lazyCreateReservedGroups();
 
             ServiceContext.getServiceFactory().getQueueService()
-            .lazyCreateReservedQueues();
+                    .lazyCreateReservedQueues();
 
             /*
              *
@@ -1462,7 +1532,7 @@ public final class ConfigManager {
         ServiceContext.getServiceFactory().start();
 
         ServiceContext.getServiceFactory().getSOfficeService()
-        .start(new SOfficeConfigProps());
+                .start(new SOfficeConfigProps());
 
         ProxyPrintJobStatusMonitor.init();
     }
@@ -1911,7 +1981,7 @@ public final class ConfigManager {
      *         or not found.
      */
     public static InternalFontFamilyEnum
-    getConfigFontFamily(final IConfigProp.Key key) {
+            getConfigFontFamily(final IConfigProp.Key key) {
 
         InternalFontFamilyEnum font = IConfigProp.DEFAULT_INTERNAL_FONT_FAMILY;
 

@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.ArrayList;
@@ -77,12 +78,6 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodG
  *
  */
 public final class PGPHelper {
-
-    /**
-     * String format for public key lookup.
-     */
-    private static final String URL_KEY_SERVER_LOOKUP_FORMAT =
-            "https://pgp.mit.edu//pks/lookup?op=get&search=%s";
 
     /**
      * Buffer for encryption streaming.
@@ -142,12 +137,14 @@ public final class PGPHelper {
      *
      * @param istr
      *            Input Key file or key ring file.
+     * @param passphrase
+     *            The secret key passphrase.
      * @return The first private key found.
      * @throws PGPBaseException
      *             When errors or not found.
      */
-    public PGPSecretKey readSecretKey(final InputStream istr)
-            throws PGPBaseException {
+    public PGPSecretKeyInfo readSecretKey(final InputStream istr,
+            final String passphrase) throws PGPBaseException {
 
         PGPSecretKey sKey = null;
         InputStream istrBinary = null;
@@ -183,7 +180,7 @@ public final class PGPHelper {
             throw new PGPBaseException("No SecretKey found in SecretKeyRing.");
         }
 
-        return sKey;
+        return new PGPSecretKeyInfo(sKey, extractPrivateKey(sKey, passphrase));
     }
 
     /**
@@ -197,7 +194,7 @@ public final class PGPHelper {
      * @throws PGPBaseException
      *             When errors.
      */
-    public PGPPrivateKey extractPrivateKey(final PGPSecretKey secretKey,
+    private PGPPrivateKey extractPrivateKey(final PGPSecretKey secretKey,
             final String secretKeyPassphrase) throws PGPBaseException {
 
         try {
@@ -285,24 +282,23 @@ public final class PGPHelper {
      * Downloads public ASCII armored public key from public key server and
      * writes to output stream.
      *
-     * @param hexKeyID
-     *            Hexadecimal KeyID, prefixed with "0x".
+     * @param lookupUrl
+     *            The lookup URL to download the a hexadecimal KeyID.
      * @param ostr
      *            The output stream.
-     * @throws PGPBaseException
-     *             When error retrieving or writing.
+     * @throws UnknownHostException
+     *             When well-formed URL points to unknown host.
+     * @throws IOException
+     *             When connectivity error.
      */
-    public static void downloadPublicKey(final String hexKeyID,
-            final OutputStream ostr) throws PGPBaseException {
+    public static void downloadPublicKey(final URL lookupUrl,
+            final OutputStream ostr) throws UnknownHostException, IOException {
 
         InputStream istr = null;
         BufferedReader reader = null;
 
         try {
-            final URL url = new URL(
-                    String.format(URL_KEY_SERVER_LOOKUP_FORMAT, hexKeyID));
-
-            istr = url.openStream();
+            istr = lookupUrl.openStream();
             reader = new BufferedReader(new InputStreamReader(istr));
 
             String line;
@@ -321,11 +317,6 @@ public final class PGPHelper {
                     }
                 }
             }
-
-            reader.close();
-
-        } catch (IOException e) {
-            throw new PGPBaseException(e.getMessage(), e);
         } finally {
             IOUtils.closeQuietly(reader);
             IOUtils.closeQuietly(istr);
@@ -396,7 +387,7 @@ public final class PGPHelper {
             final PGPSecretKey secretKey, final PGPPrivateKey privateKey,
             final List<PGPPublicKeyInfo> publicKeyList,
             final String embeddedFileName, final Date embeddedFileDate)
-                    throws PGPBaseException {
+            throws PGPBaseException {
 
         // For now, always do integrity checks and use ASCII armor mode.
         final boolean asciiArmor = true;
@@ -425,8 +416,8 @@ public final class PGPHelper {
                             SymmetricKeyAlgorithmTags.CAST5);
 
             encryptorBuilder.setSecureRandom(new SecureRandom())
-            .setProvider(this.bcProvider)
-            .setWithIntegrityPacket(withIntegrityCheck);
+                    .setProvider(this.bcProvider)
+                    .setWithIntegrityPacket(withIntegrityCheck);
 
             encryptedDataGenerator =
                     new PGPEncryptedDataGenerator(encryptorBuilder);
@@ -472,7 +463,7 @@ public final class PGPHelper {
             }
 
             signatureGenerator.generateOnePassVersion(false)
-            .encode(compressedOut);
+                    .encode(compressedOut);
 
             // Create the Literal Data generator output stream.
             literalDataGenerator = new PGPLiteralDataGenerator();
@@ -563,7 +554,7 @@ public final class PGPHelper {
                     new PGPSignatureGenerator(new JcaPGPContentSignerBuilder(
                             secretKey.getPublicKey().getAlgorithm(),
                             hashAlgorithm.getBcTag())
-                            .setProvider(this.bcProvider));
+                                    .setProvider(this.bcProvider));
 
             signatureGenerator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
 
@@ -585,7 +576,6 @@ public final class PGPHelper {
                 IOUtils.closeQuietly(ostr);
             }
         }
-
     }
 
     /**

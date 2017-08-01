@@ -25,72 +25,70 @@ import java.util.List;
 
 import javax.mail.internet.InternetAddress;
 
-import org.bouncycastle.openpgp.PGPPublicKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.bouncycastle.openpgp.PGPPrivateKey;
+import org.bouncycastle.openpgp.PGPSecretKey;
 
 /**
- * Convenience wrapper for PGP Public Key.
+ * Convenience wrapper for PGP Secret Key.
  *
  * @author Rijk Ravestein
  *
  */
-public final class PGPPublicKeyInfo extends PGPKeyInfo {
-
-    /** */
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(PGPPublicKeyInfo.class);
+public final class PGPSecretKeyInfo extends PGPKeyInfo {
 
     /**
-     * Public key with UIDs.
+     * Secret key.
      */
-    private final PGPPublicKey masterKey;
+    private final PGPSecretKey secretKey;
 
     /**
-     * Public key for encryption.
+     * Private Key.
      */
-    private final PGPPublicKey encryptionKey;
+    private final PGPPrivateKey privateKey;
 
     /**
      *
-     * @param master
-     *            Public key with UIDs.
-     * @param encryption
-     *            Public key for encryption.
+     * @param secKey
+     *            Secret key.
+     *
+     * @param privKey
+     *            Private key.
      */
-    public PGPPublicKeyInfo(final PGPPublicKey master,
-            final PGPPublicKey encryption) {
-        this.masterKey = master;
-        this.encryptionKey = encryption;
+    public PGPSecretKeyInfo(final PGPSecretKey secKey,
+            final PGPPrivateKey privKey) {
+        this.secretKey = secKey;
+        this.privateKey = privKey;
+
+        this.getSecretKey().getPublicKey();
     }
 
     /**
-     * @return Public key with UIDs.
+     * @return Secret key.
      */
-    public PGPPublicKey getMasterKey() {
-        return masterKey;
+    public PGPSecretKey getSecretKey() {
+        return secretKey;
     }
 
     /**
-     * @return Public key for encryption.
+     * @return Private key.
      */
-    public PGPPublicKey getEncryptionKey() {
-        return encryptionKey;
-    }
-
-    @Override
-    public List<InternetAddress> getUids() {
-        return getUids(this.masterKey);
+    public PGPPrivateKey getPrivateKey() {
+        return privateKey;
     }
 
     @Override
     public String formattedKeyID() {
-        return formattedKeyID(this.getMasterKey().getKeyID());
+        return formattedKeyID(this.getSecretKey().getKeyID());
     }
 
     @Override
     public String formattedFingerPrint() {
-        return formattedFingerPrint(this.getMasterKey().getFingerprint());
+        return formattedFingerPrint(
+                this.getSecretKey().getPublicKey().getFingerprint());
     }
 
+    @Override
+    public List<InternetAddress> getUids() {
+        return getUids(this.secretKey.getPublicKey());
+    }
 }

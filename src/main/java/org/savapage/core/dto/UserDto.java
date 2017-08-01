@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -41,10 +41,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *
  */
 @JsonPropertyOrder({ "userName", "password", "fullName", "email", "emailOther",
-        "card", "cardFormat", "cardFirstByte", "id;", "pin", "yubiKeyPubId",
-        "uuid", "admin", "person", "disabled", "keepEmailOther", "keepCard",
-        "keepPassword", "keepPin", "keepUuid", "accounting", "aclRoles",
-        "aclOidsUser", "aclOidsAdmin" })
+    "card", "cardFormat", "cardFirstByte", "id;", "pin", "yubiKeyPubId",
+    "pgpPubKeyId", "uuid", "admin", "person", "disabled", "keepEmailOther",
+    "keepCard", "keepPassword", "keepPin", "keepUuid", "accounting",
+    "aclRoles", "aclOidsUser", "aclOidsAdmin" })
 @JsonInclude(Include.NON_NULL)
 public class UserDto extends AbstractDto {
 
@@ -83,6 +83,9 @@ public class UserDto extends AbstractDto {
 
     @JsonProperty("yubiKeyPubId")
     private String yubiKeyPubId;
+
+    @JsonProperty("pgpPubKeyId")
+    private String pgpPubKeyId;
 
     @JsonProperty("uuid")
     private String uuid;
@@ -160,6 +163,7 @@ public class UserDto extends AbstractDto {
         emailOther = dto.emailOther;
         id = dto.id;
         yubiKeyPubId = dto.yubiKeyPubId;
+        pgpPubKeyId = dto.pgpPubKeyId;
         password = dto.password;
         pin = dto.pin;
         userName = dto.userName;
@@ -268,6 +272,14 @@ public class UserDto extends AbstractDto {
 
     public void setYubiKeyPubId(String pubId) {
         this.yubiKeyPubId = pubId;
+    }
+
+    public String getPgpPubKeyId() {
+        return pgpPubKeyId;
+    }
+
+    public void setPgpPubKeyId(String pgpPubKeyId) {
+        this.pgpPubKeyId = pgpPubKeyId;
     }
 
     public String getPin() {

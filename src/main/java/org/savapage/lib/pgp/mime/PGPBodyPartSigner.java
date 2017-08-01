@@ -11,11 +11,10 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 
 import org.apache.commons.io.IOUtils;
-import org.bouncycastle.openpgp.PGPPrivateKey;
-import org.bouncycastle.openpgp.PGPSecretKey;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHashAlgorithmEnum;
 import org.savapage.lib.pgp.PGPHelper;
+import org.savapage.lib.pgp.PGPSecretKeyInfo;
 
 /**
  *
@@ -32,14 +31,11 @@ public final class PGPBodyPartSigner extends PGPBodyPartProcessor {
 
     /**
      *
-     * @param keySec
-     *            Secret key (container of private key).
-     * @param keyPrv
-     *            Private key for signing.
+     * @param secretKeyInfo
+     *            the {@link secretKeyInfo}
      */
-    public PGPBodyPartSigner(final PGPSecretKey keySec,
-            final PGPPrivateKey keyPrv) {
-        super(keySec, keyPrv);
+    public PGPBodyPartSigner(final PGPSecretKeyInfo secretKeyInfo) {
+        super(secretKeyInfo);
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part+of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,6 +32,7 @@ import org.savapage.core.services.EmailService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
+import org.savapage.core.services.PGPPublicKeyService;
 import org.savapage.core.services.PrintDelegationService;
 import org.savapage.core.services.PrinterGroupService;
 import org.savapage.core.services.PrinterService;
@@ -137,6 +138,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     private static class RfIdReaderServiceHolder {
         public static final RfIdReaderService SERVICE =
                 new RfIdReaderServiceImpl();
+    }
+
+    private static class PGPPublicKeyServiceHolder {
+        public static final PGPPublicKeyServiceImpl SERVICE =
+                new PGPPublicKeyServiceImpl();
     }
 
     private static class PrintDelegationServiceHolder {
@@ -251,6 +257,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public PaperCutService getPaperCutService() {
         return PaperCutServiceHolder.SERVICE;
+    }
+
+    @Override
+    public PGPPublicKeyService getPGPPublicKeyService() {
+        return PGPPublicKeyServiceHolder.SERVICE;
     }
 
     @Override

@@ -35,6 +35,7 @@ import javax.mail.internet.MimeUtility;
 
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPSecretKey;
+import org.savapage.lib.pgp.PGPSecretKeyInfo;
 
 import com.sun.mail.util.CRLFOutputStream;
 
@@ -67,15 +68,12 @@ public abstract class PGPBodyPartProcessor {
 
     /**
      *
-     * @param keySec
-     *            Secret key (container of private key).
-     * @param keyPrv
-     *            Private key for signing.
+     * @param secretKeyInfo
+     *            the {@link secretKeyInfo}
      */
-    public PGPBodyPartProcessor(final PGPSecretKey keySec,
-            final PGPPrivateKey keyPrv) {
-        this.secretKey = keySec;
-        this.privateKey = keyPrv;
+    public PGPBodyPartProcessor(final PGPSecretKeyInfo secretKeyInfo) {
+        this.secretKey = secretKeyInfo.getSecretKey();
+        this.privateKey = secretKeyInfo.getPrivateKey();
     }
 
     /**

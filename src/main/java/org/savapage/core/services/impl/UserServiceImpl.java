@@ -547,6 +547,7 @@ public final class UserServiceImpl extends AbstractService
 
         dto.setId(this.getPrimaryIdNumber(user));
         dto.setYubiKeyPubId(this.getYubiKeyPubID(user));
+        dto.setPgpPubKeyId(this.getPGPPubKeyID(user));
         dto.setEmail(this.getPrimaryEmailAddress(user));
         dto.setCard(this.getPrimaryCardNumber(user));
 
@@ -696,9 +697,25 @@ public final class UserServiceImpl extends AbstractService
         final String primaryEmail = userDto.getEmail();
 
         /*
+         * PGP Public Key ID.
+         */
+        String pgpPubKeyId = userDto.getPgpPubKeyId();
+        if (pgpPubKeyId != null) {
+            pgpPubKeyId = pgpPubKeyId.toUpperCase();
+        }
+        final boolean hasPgpPubKeyId = StringUtils.isNotBlank(pgpPubKeyId);
+
+        if (hasPgpPubKeyId) {
+            JsonRpcMethodError error = validatePGPPubKeyID(pgpPubKeyId);
+            if (error != null) {
+                return error;
+            }
+        }
+
+        /*
          * PIN
          */
-        String pin = userDto.getPin();
+        final String pin = userDto.getPin();
         final boolean hasPIN = StringUtils.isNotBlank(pin);
 
         if (hasPIN) {
@@ -937,7 +954,7 @@ public final class UserServiceImpl extends AbstractService
 
             userDAO().create(jpaUser);
 
-            if (hasPIN || hasUuid) {
+            if (hasPIN || hasUuid || hasPgpPubKeyId) {
                 /*
                  * For a new User a create (persist()) is needed first, cause we
                  * need the generated primary key to encrypt the PIN / UUID.
@@ -947,6 +964,10 @@ public final class UserServiceImpl extends AbstractService
                 }
                 if (hasUuid) {
                     this.encryptStoreUserAttr(jpaUser, UserAttrEnum.UUID, uuid);
+                }
+                if (hasPgpPubKeyId) {
+                    this.setUserAttrValue(jpaUser, UserAttrEnum.PGP_PUBKEY_ID,
+                            pgpPubKeyId);
                 }
 
                 userDAO().update(jpaUser);
@@ -962,6 +983,10 @@ public final class UserServiceImpl extends AbstractService
                 this.removeUserAttr(jpaUser, UserAttrEnum.UUID);
             }
 
+            if (!hasPgpPubKeyId) {
+                this.removeUserAttr(jpaUser, UserAttrEnum.PGP_PUBKEY_ID);
+            }
+
             userDAO().update(jpaUser);
 
             if (!jpaUser.getPerson()) {
@@ -974,6 +999,11 @@ public final class UserServiceImpl extends AbstractService
 
             if (hasUuid) {
                 this.encryptStoreUserAttr(jpaUser, UserAttrEnum.UUID, uuid);
+            }
+
+            if (hasPgpPubKeyId) {
+                this.setUserAttrValue(jpaUser, UserAttrEnum.PGP_PUBKEY_ID,
+                        pgpPubKeyId);
             }
         }
 
@@ -1234,6 +1264,18 @@ public final class UserServiceImpl extends AbstractService
         } catch (Exception e) {
             return createError("msg-user-uuid-invalid");
         }
+        return null;
+    }
+
+    /**
+     * TODO: Checks if PGP Public Key ID is valid.
+     *
+     * @param pubKeyId
+     *            The PGP Public Key ID.
+     * @return {@code null} if valid.
+     */
+    private JsonRpcMethodError validatePGPPubKeyID(final String pubKeyId) {
+        // TODO
         return null;
     }
 
@@ -2201,6 +2243,27 @@ public final class UserServiceImpl extends AbstractService
                 }
             }
         }
+        return publicID;
+    }
+
+    @Override
+    public String getPGPPubKeyID(final User user) {
+
+        final String publicID;
+
+        final UserAttr attr =
+                userAttrDAO().findByName(user, UserAttrEnum.PGP_PUBKEY_ID);
+
+        if (attr == null) {
+            publicID = null;
+        } else {
+            publicID = attr.getValue();
+        }
+
+        if (StringUtils.isBlank(publicID)) {
+            return "";
+        }
+
         return publicID;
     }
 

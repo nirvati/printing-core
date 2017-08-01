@@ -107,8 +107,8 @@ public interface IConfigProp {
     String DEFAULT_WEBAPP_WATCHDOG_TIMEOUT_SECS = "10";
 
     /**
-    *
-    */
+     *
+     */
     String DEFAULT_BATCH_COMMIT_CHUNK_SIZE = "100";
 
     /**
@@ -399,13 +399,13 @@ public interface IConfigProp {
         AUTH_MODE_CARD_LOCAL("auth-mode.card-local", BOOLEAN_VALIDATOR, V_NO),
 
         /**
-        *
-        */
+         *
+         */
         AUTH_MODE_YUBIKEY("auth-mode.yubikey", BOOLEAN_VALIDATOR, V_NO),
 
         /**
-        *
-        */
+         *
+         */
         AUTH_MODE_YUBIKEY_SHOW("auth-mode.yubikey.show", BOOLEAN_VALIDATOR, V_YES),
 
         /**
@@ -1346,6 +1346,17 @@ public interface IConfigProp {
         MAIL_REPLY_TO_NAME("mail.reply.to.name", "DO NOT REPLY"),
 
         /**
+         * If "Y", mail is PGP/MIME signed (if PGP Secret Key is present).
+         */
+        MAIL_PGP_MIME_SIGN("mail.pgp.mime.sign", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * If "Y" <i>and</i> mail is PGP signed, it is also PGP encrypted, for
+         * each recipients.
+         */
+        MAIL_PGP_MIME_ENCRYPT("mail.pgp.mime.encrypt", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * The path of the custom template files, relative to
          * {@link ConfigManager#SERVER_REL_PATH_CUSTOM_TEMPLATE}.
          */
@@ -1462,13 +1473,13 @@ public interface IConfigProp {
         PROXY_PRINT_FAST_EXPIRY_MINS("proxy-print.fast-expiry-mins", NUMBER_VALIDATOR, "10"),
 
         /**
-          *
-          */
+         *
+         */
         PROXY_PRINT_HOLD_EXPIRY_MINS("proxy-print.hold-expiry-mins", NUMBER_VALIDATOR, "60"),
 
         /**
-          *
-          */
+         *
+         */
         PROXY_PRINT_DIRECT_EXPIRY_SECS("proxy-print.direct-expiry-secs", NUMBER_VALIDATOR, "20"),
 
         /**
@@ -2001,37 +2012,37 @@ public interface IConfigProp {
         WEBAPP_HTML_ADMIN_ABOUT(Key.WEBAPP_HTML_PFX + "admin.about"),
 
         /**
-        *
-        */
+         *
+         */
         WEBAPP_HTML_JOBTICKETS_ABOUT(Key.WEBAPP_HTML_PFX + "jobtickets.about"),
 
         /**
-        *
-        */
+         *
+         */
         WEBAPP_HTML_POS_ABOUT(Key.WEBAPP_HTML_PFX + "pos.about"),
         /**
-        *
-        */
+         *
+         */
         WEBAPP_HTML_USER_ABOUT(Key.WEBAPP_HTML_PFX + "user.about"),
 
         /**
-        *
-        */
+         *
+         */
         WEBAPP_HTML_ADMIN_LOGIN(Key.WEBAPP_HTML_PFX + "admin.login"),
 
         /**
-        *
-        */
+         *
+         */
         WEBAPP_HTML_JOBTICKETS_LOGIN(Key.WEBAPP_HTML_PFX + "jobtickets.login"),
 
         /**
-        *
-        */
+         *
+         */
         WEBAPP_HTML_POS_LOGIN(Key.WEBAPP_HTML_PFX + "pos.login"),
 
         /**
-        *
-        */
+         *
+         */
         WEBAPP_HTML_USER_LOGIN(Key.WEBAPP_HTML_PFX + "user.login"),
 
         /**
@@ -2408,7 +2419,7 @@ public interface IConfigProp {
                 validationResult = new ValidationResult(value);
                 if (value == null && defaultValue == null) {
                     validationResult
-                            .setStatus(ValidationStatusEnum.ERROR_EMPTY);
+                    .setStatus(ValidationStatusEnum.ERROR_EMPTY);
                     validationResult.setMessage("value is required");
                 }
             } else {

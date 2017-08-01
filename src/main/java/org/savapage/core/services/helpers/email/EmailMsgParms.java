@@ -23,6 +23,7 @@ package org.savapage.core.services.helpers.email;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -32,6 +33,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.template.email.EmailRenderResult;
 import org.savapage.core.template.email.EmailStationary;
 import org.savapage.core.template.email.EmailTemplateMixin;
+import org.savapage.lib.pgp.PGPPublicKeyInfo;
 
 /**
  *
@@ -84,6 +86,11 @@ public final class EmailMsgParms {
      *
      */
     private final Map<String, DataSource> cidMap = new HashMap<>();
+
+    /**
+     *
+     */
+    private List<PGPPublicKeyInfo> publicKeyList;
 
     /**
      *
@@ -230,6 +237,21 @@ public final class EmailMsgParms {
         if (result.hasCidMap()) {
             this.cidMap.putAll(result.getCidMap().getMap());
         }
+    }
+
+    /**
+     * @return The PGP public keys to encrypt with.
+     */
+    public List<PGPPublicKeyInfo> getPublicKeyList() {
+        return publicKeyList;
+    }
+
+    /**
+     * @param keyList
+     *            The PGP public keys to encrypt with.
+     */
+    public void setPublicKeyList(final List<PGPPublicKeyInfo> keyList) {
+        this.publicKeyList = keyList;
     }
 
 }

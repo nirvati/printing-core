@@ -131,6 +131,15 @@ public interface UserService {
     String getYubiKeyPubID(User user);
 
     /**
+     * Gets the PGP Public Key ID of a User.
+     *
+     * @param user
+     *            The {@link User}.
+     * @return {@code blank} when not found.
+     */
+    String getPGPPubKeyID(User user);
+
+    /**
      * Gets the Primary email address of a User.
      *
      * @param user

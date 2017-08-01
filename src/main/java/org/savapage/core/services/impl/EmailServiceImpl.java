@@ -47,8 +47,6 @@ import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.openpgp.PGPPrivateKey;
-import org.bouncycastle.openpgp.PGPSecretKey;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.circuitbreaker.CircuitBreakerOperation;
@@ -62,6 +60,7 @@ import org.savapage.core.services.EmailService;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
+import org.savapage.lib.pgp.PGPSecretKeyInfo;
 import org.savapage.lib.pgp.mime.PGPBodyPartEncrypter;
 import org.savapage.lib.pgp.mime.PGPBodyPartSigner;
 import org.savapage.lib.pgp.mime.PGPMimeMultipart;
@@ -299,7 +298,7 @@ implements EmailService {
             mp.addBodyPart(mbp);
         }
 
-        msg.setContent(applyPgpMime(mp, null));
+        msg.setContent(applyPgpMime(mp, msgParms.getPublicKeyList()));
         return msg;
     }
 
@@ -318,26 +317,26 @@ implements EmailService {
      *             When MIME message error.
      */
     private MimeMultipart applyPgpMime(final MimeMultipart mp,
-            final List<PGPPublicKeyInfo> publicKeyList) throws MessagingException {
+            final List<PGPPublicKeyInfo> publicKeyList)
+                    throws MessagingException {
 
-        final PGPSecretKey secretKey =
-                ConfigManager.instance().getPGPSecretKey();
+        final PGPSecretKeyInfo secretKeyInfo =
+                ConfigManager.instance().getPGPSecretKeyInfo();
 
-        if (secretKey == null) {
+        if (secretKeyInfo == null || !ConfigManager.instance()
+                .isConfigValue(Key.MAIL_PGP_MIME_SIGN)) {
             return mp;
         }
 
-        final PGPPrivateKey privateKey =
-                ConfigManager.instance().getPGPPrivateKey();
-
-        if (publicKeyList == null || publicKeyList.isEmpty()) {
+        if (publicKeyList == null || publicKeyList.isEmpty() || !ConfigManager
+                .instance().isConfigValue(Key.MAIL_PGP_MIME_ENCRYPT)) {
             final PGPBodyPartSigner signer =
-                    new PGPBodyPartSigner(secretKey, privateKey);
+                    new PGPBodyPartSigner(secretKeyInfo);
             return PGPMimeMultipart.create(mp, signer);
         }
 
         final PGPBodyPartEncrypter encrypter =
-                new PGPBodyPartEncrypter(secretKey, privateKey, publicKeyList);
+                new PGPBodyPartEncrypter(secretKeyInfo, publicKeyList);
         return PGPMimeMultipart.create(mp, encrypter);
     }
 

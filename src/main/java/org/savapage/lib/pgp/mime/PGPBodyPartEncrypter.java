@@ -34,11 +34,10 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 
 import org.apache.commons.io.IOUtils;
-import org.bouncycastle.openpgp.PGPPrivateKey;
-import org.bouncycastle.openpgp.PGPSecretKey;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
+import org.savapage.lib.pgp.PGPSecretKeyInfo;
 
 /**
  * PGP/MIME sign and encrypt mail body part.
@@ -61,17 +60,14 @@ public final class PGPBodyPartEncrypter extends PGPBodyPartProcessor {
     /**
      * Constructor.
      *
-     * @param keySec
-     *            Secret key (container of private key).
-     * @param keyPrv
-     *            Private key for signing.
+     * @param secretKeyInfo
+     *            the {@link secretKeyInfo}
      * @param publicKeyList
      *            Public keys for encryption.
      */
-    public PGPBodyPartEncrypter(final PGPSecretKey keySec,
-            final PGPPrivateKey keyPrv,
+    public PGPBodyPartEncrypter(final PGPSecretKeyInfo secretKeyInfo,
             final List<PGPPublicKeyInfo> publicKeyList) {
-        super(keySec, keyPrv);
+        super(secretKeyInfo);
         this.publicKeys = publicKeyList;
     }
 
