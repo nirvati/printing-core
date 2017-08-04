@@ -68,8 +68,8 @@ public final class PGPBodyPartSigner extends PGPBodyPartProcessor {
             contentStreamSigned = new ByteArrayOutputStream();
 
             PGPHelper.instance().createSignature(contentStream,
-                    contentStreamSigned, this.getSecretKey(),
-                    this.getPrivateKey(), this.hashAlgorithm);
+                    contentStreamSigned, this.getSecretKeyInfo(),
+                    this.hashAlgorithm, true);
 
             final BodyPart signedPart = new MimeBodyPart();
             signedPart.setContent(contentStreamSigned.toString(),

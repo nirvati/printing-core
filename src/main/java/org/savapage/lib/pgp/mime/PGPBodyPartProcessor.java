@@ -33,8 +33,6 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
 import javax.mail.internet.MimeUtility;
 
-import org.bouncycastle.openpgp.PGPPrivateKey;
-import org.bouncycastle.openpgp.PGPSecretKey;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
 
 import com.sun.mail.util.CRLFOutputStream;
@@ -47,14 +45,9 @@ import com.sun.mail.util.CRLFOutputStream;
 public abstract class PGPBodyPartProcessor {
 
     /**
-     * Secret key (container of private key).
+     * Secret key info.
      */
-    private final PGPSecretKey secretKey;
-
-    /**
-     * Private key for signing.
-     */
-    private final PGPPrivateKey privateKey;
+    private final PGPSecretKeyInfo secretKeyInfo;
 
     /**
      * The content part to sign.
@@ -68,12 +61,11 @@ public abstract class PGPBodyPartProcessor {
 
     /**
      *
-     * @param secretKeyInfo
+     * @param keyInfo
      *            the {@link secretKeyInfo}
      */
-    public PGPBodyPartProcessor(final PGPSecretKeyInfo secretKeyInfo) {
-        this.secretKey = secretKeyInfo.getSecretKey();
-        this.privateKey = secretKeyInfo.getPrivateKey();
+    public PGPBodyPartProcessor(final PGPSecretKeyInfo keyInfo) {
+        this.secretKeyInfo = keyInfo;
     }
 
     /**
@@ -184,17 +176,10 @@ public abstract class PGPBodyPartProcessor {
     }
 
     /**
-     * @return the secretKeyForSigning
+     * @return the Secret key info.
      */
-    protected PGPSecretKey getSecretKey() {
-        return secretKey;
-    }
-
-    /**
-     * @return Private key for signing.
-     */
-    protected PGPPrivateKey getPrivateKey() {
-        return privateKey;
+    protected PGPSecretKeyInfo getSecretKeyInfo() {
+        return secretKeyInfo;
     }
 
     /**

@@ -23,7 +23,6 @@ package org.savapage.lib.pgp.mime;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.Security;
 import java.util.List;
 
@@ -71,11 +70,8 @@ public final class PGPMimeHelper {
      *
      * @param bodyContent
      *            The body content.
-     * @param secretKeyRing
-     *            The {@link InputStream} of the private PGP key, used for
-     *            signing.
-     * @param secretKeyPassphrase
-     *            The passphrase of the private PGP key.
+     * @param secretKeyInfo
+     *            The Secret key container used for signing.
      * @param signPublicKeyList
      *            The list of public PGP key files, used for encryption.
      * @param attachments
@@ -89,16 +85,13 @@ public final class PGPMimeHelper {
      *             When error occurs.
      */
     public Multipart createSignedEncrypted(final String bodyContent,
-            final InputStream secretKeyRing, final String secretKeyPassphrase,
+            final PGPSecretKeyInfo secretKeyInfo,
             final List<File> signPublicKeyList, final List<File> attachments)
-                    throws PGPMimeException {
+            throws PGPMimeException {
 
         final PGPHelper helper = PGPHelper.instance();
 
         try {
-            final PGPSecretKeyInfo secretKeyInfo =
-                    helper.readSecretKey(secretKeyRing, secretKeyPassphrase);
-
             final PGPBodyPartEncrypter encrypter = new PGPBodyPartEncrypter(
                     secretKeyInfo, helper.getPublicKeyList(signPublicKeyList));
 
@@ -138,11 +131,8 @@ public final class PGPMimeHelper {
      *
      * @param bodyContent
      *            The body content.
-     * @param secretKeyRing
-     *            The {@link InputStream} of the private PGP key, used for
-     *            signing.
-     * @param secretKeyPassphrase
-     *            The passphrase of the private PGP key.
+     * @param secretKeyInfo
+     *            The Secret key container used for signing.
      * @param attachments
      *            The mail attachments.
      * @return The signed {@link Multipart}.
@@ -150,15 +140,10 @@ public final class PGPMimeHelper {
      *             When error occurs.
      */
     public Multipart createSigned(final String bodyContent,
-            final InputStream secretKeyRing, final String secretKeyPassphrase,
-            final List<File> attachments) throws PGPMimeException {
-
-        final PGPHelper helper = PGPHelper.instance();
+            final PGPSecretKeyInfo secretKeyInfo, final List<File> attachments)
+            throws PGPMimeException {
 
         try {
-            final PGPSecretKeyInfo secretKeyInfo =
-                    helper.readSecretKey(secretKeyRing, secretKeyPassphrase);
-
             final PGPBodyPartSigner signer =
                     new PGPBodyPartSigner(secretKeyInfo);
 
@@ -187,7 +172,7 @@ public final class PGPMimeHelper {
 
             return mme;
 
-        } catch (MessagingException | IOException | PGPBaseException e) {
+        } catch (MessagingException | IOException e) {
             throw new PGPMimeException(e.getMessage(), e);
         }
 

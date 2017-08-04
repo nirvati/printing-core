@@ -26,8 +26,6 @@ import java.util.List;
 import javax.mail.internet.InternetAddress;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Convenience wrapper for PGP Public Key.
@@ -36,10 +34,6 @@ import org.slf4j.LoggerFactory;
  *
  */
 public final class PGPPublicKeyInfo extends PGPKeyInfo {
-
-    /** */
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(PGPPublicKeyInfo.class);
 
     /**
      * Public key with UIDs.

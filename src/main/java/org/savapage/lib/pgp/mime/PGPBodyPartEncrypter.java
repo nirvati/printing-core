@@ -102,9 +102,8 @@ public final class PGPBodyPartEncrypter extends PGPBodyPartProcessor {
             contentStreamEncrypted = new ByteArrayOutputStream();
 
             PGPHelper.instance().encryptOnePassSignature(contentStream,
-                    contentStreamEncrypted, this.getSecretKey(),
-                    this.getPrivateKey(), this.publicKeys, embeddedFileName,
-                    embeddedFileDate);
+                    contentStreamEncrypted, this.getSecretKeyInfo(),
+                    this.publicKeys, embeddedFileName, embeddedFileDate, true);
 
             final BodyPart encryptedPart = new MimeBodyPart();
             encryptedPart.setText(contentStreamEncrypted.toString());

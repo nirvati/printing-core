@@ -26,6 +26,7 @@ import java.util.List;
 import javax.mail.internet.InternetAddress;
 
 import org.bouncycastle.openpgp.PGPPrivateKey;
+import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPSecretKey;
 
 /**
@@ -74,6 +75,13 @@ public final class PGPSecretKeyInfo extends PGPKeyInfo {
      */
     public PGPPrivateKey getPrivateKey() {
         return privateKey;
+    }
+
+    /**
+     * @return The public key.
+     */
+    public PGPPublicKey getPublicKey() {
+        return this.secretKey.getPublicKey();
     }
 
     @Override
