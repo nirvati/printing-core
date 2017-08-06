@@ -159,7 +159,7 @@ public final class PGPHelper {
     }
 
     /**
-     * Finds all secret keys in key ring or key file.
+     * Reads Secret Keys from Key File or Key Ring File.
      *
      * @param istr
      *            Input Key file or key ring file.
@@ -183,17 +183,23 @@ public final class PGPHelper {
                     new PGPSecretKeyRingCollection(istrBinary,
                             this.keyFingerPrintCalculator);
 
-            final Iterator<PGPSecretKeyRing> it = pgpPriv.getKeyRings();
+            final Iterator<PGPSecretKeyRing> iterRings = pgpPriv.getKeyRings();
 
-            while (it.hasNext()) {
+            while (iterRings.hasNext()) {
 
-                final Object readData = it.next();
+                final Object readData = iterRings.next();
 
                 if (readData instanceof PGPSecretKeyRing) {
                     final PGPSecretKeyRing pbr = (PGPSecretKeyRing) readData;
-                    final PGPSecretKey sKey = pbr.getSecretKey();
-                    list.add(new PGPSecretKeyInfo(sKey,
-                            extractPrivateKey(sKey, passphrase)));
+                    final Iterator<PGPSecretKey> iterKeys = pbr.getSecretKeys();
+                    while (iterKeys.hasNext()) {
+                        final PGPSecretKey key = iterKeys.next();
+                        if (key.isPrivateKeyEmpty()) {
+                            continue;
+                        }
+                        list.add(new PGPSecretKeyInfo(key,
+                                extractPrivateKey(key, passphrase)));
+                    }
                 }
             }
 
@@ -303,6 +309,55 @@ public final class PGPHelper {
         }
 
         return new PGPPublicKeyInfo(masterKey, encryptionKey);
+    }
+
+    /**
+     * Reads Public Keys from Key File or Key Ring File.
+     *
+     * @param istr
+     *            {@link InputStream} of KeyRing or Key file.
+     * @return The list of public keys.
+     * @throws PGPBaseException
+     *             When errors encountered, or no public key found.
+     */
+    public List<PGPPublicKey> readPublicKeyList(final InputStream istr)
+            throws PGPBaseException {
+
+        final List<PGPPublicKey> list = new ArrayList<>();
+
+        InputStream istrBinary = null;
+
+        try {
+            istrBinary = PGPUtil.getDecoderStream(istr);
+
+            final PGPPublicKeyRingCollection pgpPub =
+                    new PGPPublicKeyRingCollection(istrBinary,
+                            this.keyFingerPrintCalculator);
+
+            final Iterator<PGPPublicKeyRing> iterKeyRing = pgpPub.getKeyRings();
+
+            while (iterKeyRing.hasNext()) {
+
+                final PGPPublicKeyRing keyRing = iterKeyRing.next();
+
+                final Iterator<PGPPublicKey> iterPublicKey =
+                        keyRing.getPublicKeys();
+
+                while (iterPublicKey.hasNext()) {
+                    list.add(iterPublicKey.next());
+                }
+            }
+
+        } catch (IOException | PGPException e) {
+            throw new PGPBaseException(e.getMessage(), e);
+        } finally {
+            IOUtils.closeQuietly(istrBinary);
+        }
+
+        if (list.isEmpty()) {
+            throw new PGPBaseException("No PublicKey found in PublicKeyRing.");
+        }
+        return list;
     }
 
     /**
@@ -642,34 +697,40 @@ public final class PGPHelper {
      * Decrypts content encrypted with one or more public keys and signed with
      * private key as one pass signature.
      *
-     * @param istrEncryptedContent
-     *            The encrypted content InputStream.
-     * @param ostrPlainContent
-     *            The plain content OutputStream.
-     * @param publicKeyInfoList
-     *            The public keys content is encrypted with.
+     * @param istrEncrypted
+     *            The encrypted InputStream.
+     * @param signPublicKeyList
+     *            The {@link PGPPublicKey} list of the private key the content
+     *            was signed with.
      * @param secretKeyInfoList
-     *            A list of {@link PGPSecretKeyInfo} candidates that signed the
-     *            content.
+     *            The {@link PGPSecretKeyInfo} list of (one of) the public keys
+     *            the content was encrypted with.
+     * @param ostrClearContent
+     *            The clear content OutputStream.
      * @throws PGPBaseException
      *             When errors.
      */
-    public void decryptOnePassSignature(final InputStream istrEncryptedContent,
-            final OutputStream ostrPlainContent,
-            final List<PGPPublicKeyInfo> publicKeyInfoList,
-            final List<PGPSecretKeyInfo> secretKeyInfoList)
-            throws PGPBaseException {
+    public void decryptOnePassSignature(final InputStream istrEncrypted,
+            final List<PGPPublicKey> signPublicKeyList,
+            final List<PGPSecretKeyInfo> secretKeyInfoList,
+            final OutputStream ostrClearContent) throws PGPBaseException {
 
         // Objects to be closed when finished.
-        InputStream istrClearData = null;
+        InputStream clearDataInputStream = null;
 
         try {
+            // The private key we use to decrypt contents.
+            PGPPrivateKey privateKey = null;
+
+            // The PGP encrypted object representing the data to decrypt.
+            PGPPublicKeyEncryptedData encryptedData = null;
+
             /*
              * Get list of encrypted objects in the message. If first object is
              * a PGP marker: skip it.
              */
             PGPObjectFactory objectFactory = new PGPObjectFactory(
-                    PGPUtil.getDecoderStream(istrEncryptedContent),
+                    PGPUtil.getDecoderStream(istrEncrypted),
                     this.keyFingerPrintCalculator);
 
             final Object firstObject = objectFactory.nextObject();
@@ -679,88 +740,84 @@ public final class PGPHelper {
             } else {
                 dataList = (PGPEncryptedDataList) objectFactory.nextObject();
             }
+
             /*
-             * Find encrypted object associated with the private key of one of
-             * the PGPSecretKeyInfo signer candidates.
+             * Find the encrypted object associated with a private key in our
+             * key ring.
              */
-
-            // The private key of the signer: needed to decrypt the content.
-            PGPPrivateKey privateKey = null;
-
-            // The PGP encrypted object: the content to decrypt.
-            PGPPublicKeyEncryptedData encryptedData = null;
-
             @SuppressWarnings("rawtypes")
-            final Iterator iterDataObjects = dataList.getEncryptedDataObjects();
+            final Iterator dataObjectsIterator =
+                    dataList.getEncryptedDataObjects();
 
-            while (privateKey == null && iterDataObjects.hasNext()) {
+            while (privateKey == null && dataObjectsIterator.hasNext()) {
 
                 encryptedData =
-                        (PGPPublicKeyEncryptedData) iterDataObjects.next();
+                        (PGPPublicKeyEncryptedData) dataObjectsIterator.next();
 
                 for (final PGPSecretKeyInfo info : secretKeyInfoList) {
                     if (info.getSecretKey().getKeyID() == encryptedData
                             .getKeyID()) {
-                        // This object was encrypted for this key.
                         privateKey = info.getPrivateKey();
                         break;
                     }
                 }
             }
+
             if (privateKey == null) {
-                throw new PGPBaseException("No private key provided that can "
-                        + "decrypt signed content.");
+                throw new PGPBaseException("secret key for message not found");
             }
 
-            // Get handle to the decrypted data as an input stream.
+            // Get a handle to the decrypted data as an input stream
             final PublicKeyDataDecryptorFactory dataDecryptorFactory =
                     new BcPublicKeyDataDecryptorFactory(privateKey);
 
-            istrClearData = encryptedData.getDataStream(dataDecryptorFactory);
+            clearDataInputStream =
+                    encryptedData.getDataStream(dataDecryptorFactory);
 
             final PGPObjectFactory clearObjectFactory = new PGPObjectFactory(
-                    istrClearData, this.keyFingerPrintCalculator);
+                    clearDataInputStream, this.keyFingerPrintCalculator);
 
             Object message = clearObjectFactory.nextObject();
 
-            // Handle compressed data.
+            // Handle case where the data is compressed
             if (message instanceof PGPCompressedData) {
-                final PGPCompressedData compressedData =
-                        (PGPCompressedData) message;
+                PGPCompressedData compressedData = (PGPCompressedData) message;
                 objectFactory =
                         new PGPObjectFactory(compressedData.getDataStream(),
                                 this.keyFingerPrintCalculator);
                 message = objectFactory.nextObject();
             }
 
-            PGPOnePassSignature calcSignature = null;
-
+            PGPOnePassSignature calculatedSignature = null;
             if (message instanceof PGPOnePassSignatureList) {
 
-                calcSignature = ((PGPOnePassSignatureList) message).get(0);
+                calculatedSignature =
+                        ((PGPOnePassSignatureList) message).get(0);
 
                 PGPPublicKey signPublicKey = null;
 
-                for (final PGPPublicKeyInfo info : publicKeyInfoList) {
-                    if (info.getEncryptionKey().getKeyID() == calcSignature
-                            .getKeyID()) {
-                        signPublicKey = info.getEncryptionKey();
+                for (final PGPPublicKey key : signPublicKeyList) {
+                    if (key.getKeyID() == calculatedSignature.getKeyID()) {
+                        signPublicKey = key;
                         break;
                     }
                 }
                 if (signPublicKey == null) {
                     throw new PGPBaseException(
-                            "Public key for encrypted content not provided.");
+                            "Provided public key of signer does not match "
+                                    + "Key ID if the signature.");
                 }
 
                 final PGPContentVerifierBuilderProvider verifierBuilderProv =
                         new BcPGPContentVerifierBuilderProvider();
+                calculatedSignature.init(verifierBuilderProv, signPublicKey);
 
-                calcSignature.init(verifierBuilderProv, signPublicKey);
                 message = objectFactory.nextObject();
             }
+
             /*
-             * We must have literal data, to read the decrypted message from.
+             * We should have literal data now, to read the decrypted message
+             * from.
              */
             if (!(message instanceof PGPLiteralData)) {
                 throw new PGPBaseException("Unexpected message type "
@@ -776,26 +833,25 @@ public final class PGPHelper {
                  * InputStream.read() returns byte (range 0-255), so we can
                  * safely cast to char and byte.
                  */
-                calcSignature.update((byte) nextByte); // also update
+                calculatedSignature.update((byte) nextByte); // also update
                 /*
                  * calculated one pass signature result.append((char) nextByte);
                  * add to file instead of StringBuffer
                  */
-                ostrPlainContent.write((char) nextByte);
+                ostrClearContent.write((char) nextByte);
             }
-            ostrPlainContent.close();
+            ostrClearContent.close();
 
-            if (calcSignature != null) {
-
+            if (calculatedSignature != null) {
                 final PGPSignatureList signatureList =
                         (PGPSignatureList) objectFactory.nextObject();
                 final PGPSignature messageSignature = signatureList.get(0);
-
-                if (!calcSignature.verify(messageSignature)) {
+                if (!calculatedSignature.verify(messageSignature)) {
                     throw new PGPBaseException(
                             "Signature verification failed.");
                 }
             }
+
             if (encryptedData.isIntegrityProtected()
                     && !encryptedData.verify()) {
                 throw new PGPBaseException("Message failed integrity check.");
@@ -804,8 +860,7 @@ public final class PGPHelper {
         } catch (IOException | PGPException e) {
             throw new PGPBaseException(e.getMessage(), e);
         } finally {
-            IOUtils.closeQuietly(istrClearData);
+            IOUtils.closeQuietly(clearDataInputStream);
         }
     }
-
 }
