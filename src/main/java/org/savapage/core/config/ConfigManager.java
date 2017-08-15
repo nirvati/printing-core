@@ -1266,6 +1266,10 @@ public final class ConfigManager {
      */
     private void initPGP() {
 
+        if (theServerProps == null) {
+            return;
+        }
+
         final String secretFile =
                 theServerProps.getProperty(SERVER_PROP_PGP_SECRETKEY_FILE);
 
