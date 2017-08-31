@@ -1866,6 +1866,23 @@ public interface IConfigProp {
         WEBAPP_ADMIN_BITCOIN_WALLET_CACHE_EXPIRY_SECS("webapp.admin.bitcoin.wallet.cache-expiry-secs", NUMBER_VALIDATOR, "3600"),
 
         /**
+         * Number of job tickets to show in the list. A value of zero means all
+         * available tickets are shown.
+         */
+        WEBAPP_JOBTICKETS_LIST_SIZE("webapp.jobtickets.list-size", NUMBER_VALIDATOR, "10"),
+
+        /**
+         * The minimum number of job tickets that can be shown in the list. A value of zero means all
+         * available tickets are shown.
+         */
+        WEBAPP_JOBTICKETS_LIST_SIZE_MIN("webapp.jobtickets.list-size-min", NUMBER_VALIDATOR, "5"),
+
+        /**
+         * The maximum number of job tickets that can be shown in the list.
+         */
+        WEBAPP_JOBTICKETS_LIST_SIZE_MAX("webapp.jobtickets.list-size-max", NUMBER_VALIDATOR, "50"),
+
+        /**
          * Trust authenticated user in Client App on same IP address as User Web
          * App (Boolean, default TRUE).
          */
@@ -2419,7 +2436,7 @@ public interface IConfigProp {
                 validationResult = new ValidationResult(value);
                 if (value == null && defaultValue == null) {
                     validationResult
-                    .setStatus(ValidationStatusEnum.ERROR_EMPTY);
+                            .setStatus(ValidationStatusEnum.ERROR_EMPTY);
                     validationResult.setMessage("value is required");
                 }
             } else {
