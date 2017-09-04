@@ -41,7 +41,8 @@ public final class PaperCutHelper {
      */
     private static final String SAVAPAGE_PRINTJOB_ACCOUNT_NAME = "savapage";
 
-    private static final char COMPOSED_ACCOUNT_NAME_SEPARATOR = '.';
+    public static final char COMPOSED_ACCOUNT_NAME_SEPARATOR = '.';
+
     private static final String COMPOSED_ACCOUNT_NAME_PFX = "savapage";
     private static final String COMPOSED_ACCOUNT_NAME_CLASS_SHARED = "shared";
     private static final String COMPOSED_ACCOUNT_NAME_CLASS_GROUP = "group";

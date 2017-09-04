@@ -97,6 +97,7 @@ import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.Messages;
+import org.savapage.ext.papercut.PaperCutHelper;
 
 /**
  *
@@ -1456,7 +1457,6 @@ public final class AccountingServiceImpl extends AbstractService
 
     @Override
     public AbstractJsonRpcMethodResponse
-
             lazyUpdateSharedAccount(final SharedAccountDisplayInfoDto dto) {
 
         /*
@@ -1464,6 +1464,17 @@ public final class AccountingServiceImpl extends AbstractService
          */
         if (StringUtils.isBlank(dto.getName())) {
             return createErrorMsg("msg-shared-account-name-needed");
+        }
+
+        /*
+         * INVARIANT: Account name syntax MUST be valid.
+         */
+        final CharSequence reservedNameChars =
+                String.valueOf(PaperCutHelper.COMPOSED_ACCOUNT_NAME_SEPARATOR);
+
+        if (StringUtils.containsAny(reservedNameChars, dto.getName())) {
+            return createErrorMsg("msg-shared-account-name-syntax-error",
+                    reservedNameChars.toString());
         }
 
         final Account parent;
