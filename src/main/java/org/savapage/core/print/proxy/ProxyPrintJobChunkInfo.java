@@ -31,6 +31,7 @@ import javax.print.attribute.standard.MediaSizeName;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.inbox.InboxInfoDto;
 import org.savapage.core.inbox.InboxInfoDto.InboxJob;
 import org.savapage.core.inbox.InboxInfoDto.InboxJobRange;
@@ -90,20 +91,24 @@ public final class ProxyPrintJobChunkInfo {
     /**
      * Creates a dummy {@link ProxyPrintJobChunkInfo} for a Copy Job Ticket.
      *
-     * @param mediaSize
-     *            The {@link IppMediaSizeEnum} of the copy.
+     * @param mediaSourceCost
+     *            The {@link IppMediaSourceCostDto} of the copy.
      * @param numberOfPages
      *            The number of hard copy pages of the original document.
      * @return The dummy {@link ProxyPrintJobChunkInfo} .
      */
     public static ProxyPrintJobChunkInfo createCopyJobChunk(
-            final IppMediaSizeEnum mediaSize, final int numberOfPages) {
+            final IppMediaSourceCostDto mediaSourceCost,
+            final int numberOfPages) {
 
         final ProxyPrintJobChunk jobChunk = new ProxyPrintJobChunk();
 
+        final IppMediaSizeEnum mediaSize =
+                IppMediaSizeEnum.find(mediaSourceCost.getMedia().getMedia());
+
         jobChunk.setAssignedMedia(mediaSize);
-        jobChunk.setAssignedMediaSource(null);
-        jobChunk.setIppMediaSource(null);
+        jobChunk.setAssignedMediaSource(mediaSourceCost);
+        jobChunk.setIppMediaSource(mediaSourceCost.getSource());
 
         final ProxyPrintJobChunkRange chunkRange =
                 new ProxyPrintJobChunkRange();
