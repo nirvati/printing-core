@@ -246,7 +246,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
          *         {@link IppJobStateEnum#isFinished()}.
          */
         public boolean isFinished() {
-            return this.jobStateCups.isFinished();
+            // Mantis #858
+            return this.jobStateCups != null && this.jobStateCups.isFinished();
         }
 
     }
@@ -379,8 +380,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
         }
 
         /*
-         * Mantis #734: Correct missing CUPS job completion time.
-         * Mantis #834: Handle missing CUPS job completion time.
+         * Mantis #734: Correct missing CUPS job completion time. Mantis #834:
+         * Handle missing CUPS job completion time.
          *
          * For printers that got their jobs delivered from a Printer Class,
          * completion time is set to zero (0) by our SavaPage CUPS notifier.
