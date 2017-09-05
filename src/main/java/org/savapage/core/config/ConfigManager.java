@@ -1297,7 +1297,7 @@ public final class ConfigManager {
             SpInfo.instance().log(String.format("PGP Fingerprint [%s]",
                     this.pgpSecretKeyInfo.formattedFingerPrint()));
 
-            // Elicit an exception when one of the URLss is wrong.
+            // Elicit an exception when one of the URLs is wrong.
             this.getPGPPublicKeySearchUrl();
             this.getPGPPublicKeyDownloadUrl("TEST");
             this.getPGPPublicKeyPreviewUrl("TEST");
@@ -1311,13 +1311,18 @@ public final class ConfigManager {
     /**
      * Gets the URL of Web Page where PGP Public Key can be searched.
      *
-     * @return The URL to search for a key.
+     * @return The URL to search for a key, or {@code null} when unknown.
      * @throws MalformedURLException
      *             If URL template is ill-formed.
      */
     public URL getPGPPublicKeySearchUrl() throws MalformedURLException {
-        return new URL(theServerProps
-                .getProperty(SERVER_PROP_PGP_PUBLICKEY_SERVER_URL));
+
+        final String value = theServerProps
+                .getProperty(SERVER_PROP_PGP_PUBLICKEY_SERVER_URL);
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        return new URL(value);
     }
 
     /**
@@ -1325,17 +1330,20 @@ public final class ConfigManager {
      *
      * @param hexKeyID
      *            Hexadecimal KeyID, without "0x" prefix.
-     * @return The URL to download the public ASCII armored key.
+     * @return The URL to download the public ASCII armored key, or {@code null}
+     *         when unknown.
      * @throws MalformedURLException
      *             If URL template is ill-formed.
      */
     public URL getPGPPublicKeyDownloadUrl(final String hexKeyID)
             throws MalformedURLException {
-        return new URL(
-                MessageFormat.format(
-                        theServerProps.getProperty(
-                                SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_GET),
-                        hexKeyID));
+
+        final String value = theServerProps
+                .getProperty(SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_GET);
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        return new URL(MessageFormat.format(value, hexKeyID));
     }
 
     /**
@@ -1343,16 +1351,19 @@ public final class ConfigManager {
      *
      * @param hexKeyID
      *            Hexadecimal KeyID, without "0x" prefix.
-     * @return The URL to preview the public key.
+     * @return The URL to preview the public key, or {@code null} when unknown.
      * @throws MalformedURLException
      *             If URL template is ill-formed.
      */
     public URL getPGPPublicKeyPreviewUrl(final String hexKeyID)
             throws MalformedURLException {
-        return new URL(MessageFormat.format(
-                theServerProps.getProperty(
-                        SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_VINDEX),
-                hexKeyID));
+
+        final String value = theServerProps
+                .getProperty(SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_VINDEX);
+        if (StringUtils.isBlank(value)) {
+            return null;
+        }
+        return new URL(MessageFormat.format(value, hexKeyID));
     }
 
     /**
