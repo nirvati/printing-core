@@ -25,8 +25,10 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.nio.file.FileVisitResult;
@@ -68,6 +70,7 @@ import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
+import org.savapage.core.inbox.OutputProducer;
 import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.client.IppConnectException;
@@ -113,6 +116,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
 
 /**
  *
@@ -1599,6 +1608,63 @@ public final class JobTicketServiceImpl extends AbstractService
             idx = idx - chunkWidth;
         }
         return str.toString();
+    }
+
+    @Override
+    public File createJobTicketBanner(final String user,
+            final OutboxJobDto dto) {
+
+        final Font catFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD,
+                BaseColor.GRAY);
+
+        final Font normalFont = new Font(Font.FontFamily.HELVETICA, 12,
+                Font.NORMAL, BaseColor.DARK_GRAY);
+
+        final File filePdf = new File(
+                OutputProducer.createUniqueTempPdfName(user, "ticket-banner"));
+
+        final Document document = new Document();
+        OutputStream ostr = null;
+
+        try {
+            ostr = new FileOutputStream(filePdf);
+
+            // final PdfWriter writer =
+            PdfWriter.getInstance(document, ostr);
+
+            // document.setPageSize(arg0); // TODO
+            document.open();
+
+            final Paragraph secInfo = new Paragraph();
+            secInfo.add(new Paragraph(
+                    String.format("\nTicket %s\n\n", dto.getTicketNumber()),
+                    catFont));
+
+            secInfo.add(new Paragraph(String.format(
+                    "\nUser: %s" + "\nTitle: %s" + "\nCopies: %d"
+                            + "\nComment: %s" + "\nTime: %s",
+                    user, dto.getJobName(), dto.getCopies(), dto.getComment(),
+                    new Date().toString()), normalFont));
+
+            document.add(secInfo);
+
+        } catch (FileNotFoundException | DocumentException e) {
+            LOGGER.error(e.getMessage(), e);
+            throw new SpException(e.getMessage(), e);
+        } finally {
+            document.close();
+            IOUtils.closeQuietly(ostr);
+        }
+
+        return filePdf;
+    }
+
+    @Override
+    public int getJobTicketQueueSize() {
+        if (this.jobTicketCache == null) {
+            return 0;
+        }
+        return this.jobTicketCache.size();
     }
 
 }

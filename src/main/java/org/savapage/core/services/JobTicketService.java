@@ -21,6 +21,7 @@
  */
 package org.savapage.core.services;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
@@ -377,4 +378,23 @@ public interface JobTicketService extends StatefulService {
      */
     RedirectPrinterDto getRedirectPrinter(String fileName,
             IppOptionMap optionFilter, Locale locale);
+
+    /**
+     * Creates a single page PDF banner file to proxy print just before the job
+     * ticket.
+     *
+     * @param user
+     *            The unique user id.
+     * @param dto
+     *            The {@link OutboxJobDto} job ticket.
+     * @return The PDF file.
+     */
+    File createJobTicketBanner(String user, OutboxJobDto dto);
+
+    /**
+     *
+     * @return The number of tickets in queue.
+     */
+    int getJobTicketQueueSize();
+
 }

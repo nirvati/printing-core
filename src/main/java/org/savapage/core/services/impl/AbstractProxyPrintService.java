@@ -2018,7 +2018,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
          * Print.
          */
         if (isProxyPrint) {
+
+            boolean printBanner = false; // TEST
+
+            if (printBanner && isJobTicket) {
+                proxyPrintBanner(printReq, job, lockedUser.getUserId());
+            }
             proxyPrint(lockedUser, printReq, docLog, createInfo);
+
         } else {
             settleProxyPrint(lockedUser, printReq, docLog, createInfo);
         }
@@ -2843,6 +2850,54 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         return clearedObjects;
+    }
+
+    /**
+     * UNDER CONSTRUCTION.
+     *
+     * @param request
+     * @throws IppConnectException
+     */
+    private boolean proxyPrintBanner(final AbstractProxyPrintReq request,
+            final OutboxJobDto job, final String user)
+            throws IppConnectException {
+
+        final JsonProxyPrinter printer =
+                this.getJsonProxyPrinterCopy(request.getPrinterName());
+
+        if (printer == null) {
+            return false;
+        }
+
+        if (printer.getDbPrinter().getDisabled()
+                || printer.getDbPrinter().getDeleted()) {
+            return false;
+        }
+
+        final File filePdfBanner =
+                jobTicketService().createJobTicketBanner(user, job);
+
+        try {
+            final PdfCreateInfo createInfo = new PdfCreateInfo(filePdfBanner);
+
+            final ProxyPrintDocReq reqBanner =
+                    new ProxyPrintDocReq(PrintModeEnum.TICKET);
+
+            reqBanner.setNumberOfCopies(1);
+            reqBanner.setOptionValues(request.getOptionValues());
+            reqBanner.setJobName(
+                    String.format("Ticket-Banner-%s", job.getTicketNumber()));
+
+            // final JsonProxyPrintJob printJob =
+            this.sendPdfToPrinter(reqBanner, printer, user, createInfo);
+
+        } finally {
+            if (filePdfBanner != null && filePdfBanner.exists()) {
+                filePdfBanner.delete();
+            }
+        }
+
+        return true;
     }
 
     /**
