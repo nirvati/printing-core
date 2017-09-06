@@ -1358,12 +1358,31 @@ public final class ConfigManager {
     public URL getPGPPublicKeyPreviewUrl(final String hexKeyID)
             throws MalformedURLException {
 
+        final String value = this.getPGPPublicKeyPreviewUrlTemplate();
+        if (value == null) {
+            return null;
+        }
+        return new URL(MessageFormat.format(value, hexKeyID));
+    }
+
+    /**
+     * Gets the URL template of Web Page to preview the content of the PGP
+     * Public Key.
+     * <p>
+     * Placeholder <tt>{0}</tt> is to be replaced by the Hexadecimal KeyID,
+     * without "0x" prefix.
+     * </p>
+     *
+     * @return The template string, or {@code null} when unknown.
+     */
+    public String getPGPPublicKeyPreviewUrlTemplate() {
+
         final String value = theServerProps
                 .getProperty(SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_VINDEX);
         if (StringUtils.isBlank(value)) {
             return null;
         }
-        return new URL(MessageFormat.format(value, hexKeyID));
+        return value;
     }
 
     /**
