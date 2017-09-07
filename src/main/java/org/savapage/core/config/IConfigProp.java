@@ -1415,12 +1415,6 @@ public interface IConfigProp {
         PROXY_PRINT_DELEGATE_ACCOUNT_GROUP_ENABLE("proxy-print.delegate.account.group.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
-         * Enable delegated print account type {@link AccountTypeEnum#USER}
-         * (boolean).
-         */
-        PROXY_PRINT_DELEGATE_ACCOUNT_USER_ENABLE("proxy-print.delegate.account.user.enable", BOOLEAN_VALIDATOR, V_YES),
-
-        /**
          * Enable delegated print account type {@link AccountTypeEnum#SHARED}
          * (boolean).
          */
@@ -1872,8 +1866,8 @@ public interface IConfigProp {
         WEBAPP_JOBTICKETS_LIST_SIZE("webapp.jobtickets.list-size", NUMBER_VALIDATOR, "10"),
 
         /**
-         * The minimum number of job tickets that can be shown in the list. A value of zero means all
-         * available tickets are shown.
+         * The minimum number of job tickets that can be shown in the list. A
+         * value of zero means all available tickets are shown.
          */
         WEBAPP_JOBTICKETS_LIST_SIZE_MIN("webapp.jobtickets.list-size-min", NUMBER_VALIDATOR, "5"),
 
