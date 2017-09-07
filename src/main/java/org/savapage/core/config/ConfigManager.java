@@ -2295,12 +2295,17 @@ public final class ConfigManager {
     }
 
     /**
-     * Tells whether the setup for SavaPage is completed.
-     *
-     * @return
+     * @return {@code true} when setup for SavaPage is completed.
      */
     public boolean isSetupCompleted() {
         return isConfigValue(IConfigProp.Key.SYS_SETUP_COMPLETED);
+    }
+
+    /**
+     * @return {@code true} when SavaPage is in maintenance mode.
+     */
+    public static boolean isSysMaintenance() {
+        return instance().isConfigValue(IConfigProp.Key.SYS_MAINTENANCE);
     }
 
     /**
@@ -2310,6 +2315,10 @@ public final class ConfigManager {
         shutdownInProgress = true;
     }
 
+    /**
+     *
+     * @return {@code true} when shutdown is in progress.
+     */
     public static boolean isShutdownInProgress() {
         return shutdownInProgress;
     }

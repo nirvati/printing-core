@@ -1722,6 +1722,12 @@ public interface IConfigProp {
         SYS_SETUP_COMPLETED("system.setup-completed"),
 
         /**
+         * When system is in maintenance mode, only admins can login to Web Apps
+         * (regular users cannot).
+         */
+        SYS_MAINTENANCE("system.maintenance", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
          *
          */
         USER_CAN_CHANGE_PIN("user.can-change-pin", BOOLEAN_VALIDATOR, V_YES),
