@@ -86,6 +86,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.InboxPageImageChunker;
 import org.savapage.core.services.helpers.InboxPageImageInfo;
 import org.savapage.core.services.helpers.InboxPageMover;
+import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
@@ -147,12 +148,22 @@ public final class InboxServiceImpl implements InboxService {
         return new File(ConfigManager.getUserHomeDir(userId)).exists();
     }
 
+    /**
+     * @param user
+     *            The unique user id.
+     * @return The full File path of the user's
+     *         {@link #INBOX_DESCRIPT_FILE_NAME}.
+     */
+    private File getInboxInfoFile(final String user) {
+        return new File(
+                String.format("%s%c%s", ConfigManager.getUserHomeDir(user),
+                        File.separatorChar, INBOX_DESCRIPT_FILE_NAME));
+    }
+
     @Override
     public InboxInfoDto readInboxInfo(final String user) {
 
-        final String userdir = ConfigManager.getUserHomeDir(user);
-        final String filename = userdir + "/" + INBOX_DESCRIPT_FILE_NAME;
-
+        final File file = getInboxInfoFile(user);
         final ObjectMapper mapper = new ObjectMapper();
 
         InboxInfoDto jobinfo = null;
@@ -162,8 +173,6 @@ public final class InboxServiceImpl implements InboxService {
              * First check if file exists, if not (first time use, or reset)
              * return an empty job info object.
              */
-            File file = new File(filename);
-
             if (file.exists()) {
 
                 try {
@@ -173,8 +182,8 @@ public final class InboxServiceImpl implements InboxService {
                 } catch (JsonMappingException e) {
 
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Error mapping from file [" + filename
-                                + "]: create new.");
+                        LOGGER.debug("Error mapping from file ["
+                                + file.getAbsolutePath() + "]: create new.");
                     }
                     /*
                      * There has been a change in layout of the JSON file, so
@@ -188,10 +197,11 @@ public final class InboxServiceImpl implements InboxService {
                 jobinfo = new InboxInfoDto();
             }
         } catch (JsonParseException e) {
-            throw new SpException("Error parsing from file [" + filename + "]",
-                    e);
+            throw new SpException("Error parsing file ["
+                    + file.getAbsolutePath() + "] : " + e.getMessage());
         } catch (IOException e) {
-            throw new SpException("Error reading file [" + filename + "]", e);
+            throw new SpException("Error reading file ["
+                    + file.getAbsolutePath() + "]" + e.getMessage());
         }
         return jobinfo;
     }
@@ -199,14 +209,40 @@ public final class InboxServiceImpl implements InboxService {
     @Override
     public void storeInboxInfo(final String user, final InboxInfoDto jobinfo) {
 
-        final String filename =
-                String.format("%s%c%s", ConfigManager.getUserHomeDir(user),
-                        File.separatorChar, INBOX_DESCRIPT_FILE_NAME);
+        final boolean atomicMove = true; // Mantis #863
+
+        final File fileTarget = getInboxInfoFile(user);
+        final File fileSource;
+
+        if (atomicMove) {
+            fileSource = new File(String.format("%s%c%s_%s.%s",
+                    ConfigManager.getAppTmpDir(), File.separatorChar, user,
+                    INBOX_DESCRIPT_FILE_NAME, UUID.randomUUID().toString()));
+        } else {
+            fileSource = fileTarget;
+        }
 
         try {
-            JsonHelper.write(jobinfo, new FileWriter(new File(filename)));
+
+            JsonHelper.write(jobinfo, new FileWriter(fileSource));
+
         } catch (IOException e) {
-            throw new SpException("Error writing file [" + filename + "]", e);
+            throw new SpException("Error writing file ["
+                    + fileSource.getAbsolutePath() + "] : " + e.getMessage());
+        }
+
+        if (atomicMove) {
+            try {
+                FileSystemHelper.doAtomicFileMove(fileSource.toPath(),
+                        fileTarget.toPath());
+            } catch (IOException e) {
+                throw new SpException(
+                        "Error moving file [" + fileSource.getAbsolutePath()
+                                + "] to [" + fileTarget.getAbsolutePath()
+                                + "] : " + e.getMessage());
+            } finally {
+                fileSource.delete(); // just to be sure
+            }
         }
     }
 
