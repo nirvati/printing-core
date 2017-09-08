@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
@@ -38,6 +37,7 @@ import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import org.apache.commons.io.IOUtils;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.PrintOutDao;
@@ -407,9 +407,32 @@ public final class UserMsgIndicator {
             final Msg msg, final String senderId) throws IOException {
 
         FileOutputStream fos = null;
+        File fileTemp = null;
 
         try {
+            /*
+             * Check target location: Mantis #864.
+             */
+            final File fileTarget = indicatorFile(userId);
+            final File targetLocation = fileTarget.getParentFile();
 
+            if (targetLocation == null) {
+                LOGGER.error(String.format("[%s] [%s] has no parent.",
+                        msg.toString(), fileTarget.getAbsolutePath()));
+                return;
+            }
+
+            if (!targetLocation.isDirectory()) {
+                LOGGER.warn(String.format(
+                        "[%s] Parent of [%s] does not exist "
+                                + "or is not a directory.",
+                        msg.toString(), fileTarget.getAbsolutePath()));
+                return;
+            }
+
+            /*
+             * Write temp file.
+             */
             final Properties props = new Properties();
 
             props.put(PROP_DATE, String.valueOf(time));
@@ -418,10 +441,6 @@ public final class UserMsgIndicator {
             if (senderId != null) {
                 props.put(PROP_SENDER_ID, senderId);
             }
-
-            final File fileTarget = indicatorFile(userId);
-
-            File fileTemp = null;
 
             fileTemp = indicatorFileTemp(userId);
             fos = new FileOutputStream(fileTemp);
@@ -451,16 +470,12 @@ public final class UserMsgIndicator {
             fos.close();
 
             /*
-             * To be sure we check for existence. See comment at the catch()
+             * Before moving, check for existence. See comment at the catch()
              * block.
              */
             if (fileTemp.exists()) {
 
-                java.nio.file.Files.move(
-                        FileSystems.getDefault()
-                                .getPath(fileTemp.getCanonicalPath()),
-                        FileSystems.getDefault()
-                                .getPath(fileTarget.getCanonicalPath()),
+                java.nio.file.Files.move(fileTemp.toPath(), fileTarget.toPath(),
                         StandardCopyOption.ATOMIC_MOVE,
                         StandardCopyOption.REPLACE_EXISTING);
             } else {
@@ -476,17 +491,24 @@ public final class UserMsgIndicator {
              * For unknown reasons this exception sometimes occurs in certain
              * setups. Do files reside on specially mounted disk?. This needs to
              * be investigated. For now, we log the exception as a warning.
+             *
+             * Exception sometimes occurs on XFS File System on VMWare. Could it
+             * be that this combi causes problems?
+             *
+             * Could it be that the temp file is not seen at this point in time?
+             * As some admins report orphaned temp files, are these temp files
+             * only visible after the atomic move().
              */
             LOGGER.warn(String.format("[%s] %s: %s", msg.toString(),
                     e.getClass().getSimpleName(), e.getMessage()));
 
         } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (Exception e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
+
+            IOUtils.closeQuietly(fos);
+
+            // Mantis #864: extra safety, clean up the temp file.
+            if (fileTemp != null) {
+                fileTemp.delete();
             }
         }
     }
