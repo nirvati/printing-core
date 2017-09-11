@@ -276,6 +276,9 @@ public interface JobTicketService extends StatefulService {
      * @param ippMediaSource
      *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
      *            the print job.
+     * @param ippMediaSourceJobSheet
+     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
+     *            the Job Sheet print job.
      * @param ippOutputBin
      *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
      *            the print job.
@@ -292,8 +295,9 @@ public interface JobTicketService extends StatefulService {
      *             When connection to CUPS fails.
      */
     OutboxJobDto printTicket(String operator, Printer printer,
-            String ippMediaSource, String ippOutputBin, String ippjogOffset,
-            String fileName) throws IOException, IppConnectException;
+            String ippMediaSource, String ippMediaSourceJobSheet,
+            String ippOutputBin, String ippjogOffset, String fileName)
+            throws IOException, IppConnectException;
 
     /**
      * Retries a Job Ticket Print (typically after a job is cancelled, due to
@@ -308,6 +312,9 @@ public interface JobTicketService extends StatefulService {
      * @param ippMediaSource
      *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
      *            the print job.
+     * @param ippMediaSourceJobSheet
+     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
+     *            the Job Sheet print job.
      * @param ippOutputBin
      *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
      *            the print job.
@@ -324,8 +331,9 @@ public interface JobTicketService extends StatefulService {
      *             When connection to CUPS fails.
      */
     OutboxJobDto retryTicketPrint(String operator, Printer printer,
-            String ippMediaSource, String ippOutputBin, String ippjogOffset,
-            String fileName) throws IOException, IppConnectException;
+            String ippMediaSource, String ippMediaSourceJobSheet,
+            String ippOutputBin, String ippjogOffset, String fileName)
+            throws IOException, IppConnectException;
 
     /**
      * Settles a Job Ticket without printing it.
@@ -380,8 +388,8 @@ public interface JobTicketService extends StatefulService {
             IppOptionMap optionFilter, Locale locale);
 
     /**
-     * Creates a single page PDF banner file to proxy print just before the job
-     * ticket.
+     * Creates a single page PDF Job Sheet file to proxy print just before the
+     * job ticket.
      *
      * @param user
      *            The unique user id.
@@ -389,7 +397,7 @@ public interface JobTicketService extends StatefulService {
      *            The {@link OutboxJobDto} job ticket.
      * @return The PDF file.
      */
-    File createJobTicketBanner(String user, OutboxJobDto dto);
+    File createTicketJobSheet(String user, OutboxJobDto dto);
 
     /**
      *

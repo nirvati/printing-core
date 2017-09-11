@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -48,21 +48,27 @@ public final class ProxyPrintCostDto extends AbstractDto {
     private BigDecimal costCopy;
 
     /**
+     * The cost for the set of copies.
+     */
+    private BigDecimal costSet;
+
+    /**
      * Constructor. Sets all cost to {@link BigDecimal#ZERO}.
      */
     public ProxyPrintCostDto() {
         this.costMedia = BigDecimal.ZERO;
         this.costCopy = BigDecimal.ZERO;
+        this.costSet = BigDecimal.ZERO;
     }
 
     /**
      *
-     * @return The total cost (media and external operations per copy) of the
-     *         proxy print job.
+     * @return The total cost (media, external operations per copy and set
+     *         costs) of the proxy print job.
      */
     @JsonIgnore
     public BigDecimal getCostTotal() {
-        return costMedia.add(costCopy);
+        return costMedia.add(costCopy).add(costSet);
     }
 
     /**
@@ -97,6 +103,21 @@ public final class ProxyPrintCostDto extends AbstractDto {
      */
     public void setCostCopy(final BigDecimal cost) {
         this.costCopy = cost;
+    }
+
+    /**
+     * @return The cost for the set of copies.
+     */
+    public BigDecimal getCostSet() {
+        return costSet;
+    }
+
+    /**
+     * @param cost
+     *            The cost for the set of copies.
+     */
+    public void setCostSet(final BigDecimal cost) {
+        this.costSet = cost;
     }
 
 }

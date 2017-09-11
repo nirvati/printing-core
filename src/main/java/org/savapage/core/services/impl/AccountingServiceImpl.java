@@ -1055,6 +1055,13 @@ public final class AccountingServiceImpl extends AbstractService
         costResult.setCostMedia(costMedia);
 
         /*
+         * Set cost.
+         */
+        if (costParms.getCustomCostSet() != null) {
+            costResult.setCostSet(costParms.getCustomCostSet());
+        }
+
+        /*
          * Copy cost.
          */
         if (costParms.getCustomCostCopy() != null) {
@@ -1090,6 +1097,14 @@ public final class AccountingServiceImpl extends AbstractService
             final ProxyPrintJobChunkInfo jobChunkInfo)
             throws ProxyPrintException {
 
+        final BigDecimal totalCostSet;
+
+        if (costParms.getCustomCostSet() == null) {
+            totalCostSet = BigDecimal.ZERO;
+        } else {
+            totalCostSet = costParms.getCustomCostSet();
+        }
+
         BigDecimal totalCostMedia = BigDecimal.ZERO;
         BigDecimal totalCostCopy = BigDecimal.ZERO;
 
@@ -1118,6 +1133,7 @@ public final class AccountingServiceImpl extends AbstractService
 
         final ProxyPrintCostDto costResult = new ProxyPrintCostDto();
 
+        costResult.setCostSet(totalCostSet);
         costResult.setCostCopy(totalCostCopy);
         costResult.setCostMedia(totalCostMedia);
 

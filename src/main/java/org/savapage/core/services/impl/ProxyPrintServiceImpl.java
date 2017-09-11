@@ -746,9 +746,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final String attrKeyword,
             final List<JsonProxyPrinterOptChoice> choices) {
 
-        final boolean isMedia =
-                attrKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA);
-
+        final boolean isMedia = IppDictJobTemplateAttr.isMediaAttr(attrKeyword);
         for (final JsonProxyPrinterOptChoice optChoice : choices) {
             localizePrinterOptChoice(locale, attrKeyword, isMedia, optChoice);
         }
@@ -760,16 +758,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final JsonProxyPrinterOptChoice optChoice) {
 
         localizePrinterOptChoice(locale, attrKeyword,
-                attrKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA),
-                optChoice);
+                IppDictJobTemplateAttr.isMediaAttr(attrKeyword), optChoice);
     }
 
     @Override
     public String localizePrinterOptValue(final Locale locale,
             final String attrKeyword, final String value) {
-        final boolean isMedia =
-                attrKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA);
-        return localizePrinterOptChoice(locale, attrKeyword, isMedia, value);
+        return localizePrinterOptChoice(locale, attrKeyword,
+                IppDictJobTemplateAttr.isMediaAttr(attrKeyword), value);
     }
 
     @Override
@@ -941,7 +937,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         String choiceTextDefault = choice;
 
+        final String attrKeywordWrk;
+
         if (isMedia) {
+
+            attrKeywordWrk = IppDictJobTemplateAttr.ATTR_MEDIA;
 
             final IppMediaSizeEnum ippMediaSize = IppMediaSizeEnum.find(choice);
 
@@ -953,12 +953,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
             choiceTextDefault = localizeWithDefault(locale,
                     String.format("%s%s-%s", LOCALIZE_IPP_ATTR_PREFIX,
-                            attrKeyword, mediaSizeName.toString()),
+                            attrKeywordWrk, mediaSizeName.toString()),
                     mediaSizeName.toString());
+        } else {
+            attrKeywordWrk = attrKeyword;
         }
 
         final String key = String.format("%s%s-%s", LOCALIZE_IPP_ATTR_PREFIX,
-                attrKeyword, choice);
+                attrKeywordWrk, choice);
         final String customChoice = localizeCustomIpp(key, locale);
 
         final String finalChoice;
@@ -1055,8 +1057,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         String defChoiceFound = attrChoice.getValues().get(0);
 
-        final boolean isMedia =
-                attrKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA);
+        final boolean isMedia = IppDictJobTemplateAttr.isMediaAttr(attrKeyword);
 
         final boolean isMediaSource =
                 attrKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE);
@@ -1291,12 +1292,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 pdfFileToPrint = filePdf;
             }
 
-            response =
-                    ippClient.send(urlCupsServer, IppOperationId.PRINT_JOB,
-                            this.reqPrintJob(request, pdfFileToPrint,
-                                    jsonPrinter, user, jobNameWork,
-                                    jobNameWork),
-                            pdfFileToPrint);
+            response = ippClient.send(urlCupsServer, IppOperationId.PRINT_JOB,
+                    this.reqPrintJob(request, pdfFileToPrint, jsonPrinter, user,
+                            jobNameWork, jobNameWork),
+                    pdfFileToPrint);
 
         } catch (IOException e) {
 

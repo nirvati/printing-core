@@ -100,6 +100,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
     private static final String SP_JOBTICKET_COPY_SFX = "/Copy";
 
+    private static final String SP_JOBTICKET_SET_SFX = "/Set";
+
     private static final String SP_JOBTICKET_COST_SFX = "/Cost";
 
     private static final String SP_JOBTICKET_MEDIA =
@@ -113,6 +115,12 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
     private static final String SP_JOBTICKET_COPY_COST = SP_JOBTICKET_PFX
             + SP_JOBTICKET_COPY_SFX + SP_JOBTICKET_COST_SFX + ":";
+
+    private static final String SP_JOBTICKET_SET =
+            SP_JOBTICKET_PFX + SP_JOBTICKET_SET_SFX + ":";
+
+    private static final String SP_JOBTICKET_SET_COST = SP_JOBTICKET_PFX
+            + SP_JOBTICKET_SET_SFX + SP_JOBTICKET_COST_SFX + ":";
 
     /**
      * .
@@ -171,6 +179,11 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     private Map<String, JsonProxyPrinterOpt> jobTicketOptMapCopy;
 
     /**
+     * SpJobTicket Set Option as key to JsonProxyPrinterOpt.
+     */
+    private Map<String, JsonProxyPrinterOpt> jobTicketOptMapSet;
+
+    /**
      * SpJobTicket Media <i>and</i> Copy Options as key to JsonProxyPrinterOpt.
      */
     private Map<String, JsonProxyPrinterOpt> jobTicketOptMap;
@@ -184,6 +197,11 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      *
      */
     private List<IppCostRule> jobTicketCostRulesCopy;
+
+    /**
+     *
+     */
+    private List<IppCostRule> jobTicketCostRulesSet;
 
     /**
      * IPP printer options as retrieved from CUPS.
@@ -273,6 +291,9 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
         this.jobTicketOptMapCopy = new HashMap<>();
         this.jobTicketCostRulesCopy = new ArrayList<>();
+
+        this.jobTicketOptMapSet = new HashMap<>();
+        this.jobTicketCostRulesSet = new ArrayList<>();
     }
 
     /**
@@ -292,8 +313,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     }
 
     /**
-     * Notifies a {@link #SP_JOBTICKET_MEDIA} or {@link #SP_JOBTICKET_COPY}
-     * line.
+     * Notifies a {@link #SP_JOBTICKET_MEDIA}, {@link #SP_JOBTICKET_COPY} or
+     * {@link #SP_JOBTICKET_SET} line.
      *
      * @param map
      *            The map to lazy add on.
@@ -338,6 +359,23 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         }
 
         return opt;
+    }
+
+    /**
+     * Notifies a {@link #SP_JOBTICKET_SET} line.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param words
+     *            The words.
+     */
+    private void onSpJobTicketSet(final int lineNr, final String[] words) {
+        /*
+         * Example: org.savapage-job-sheets none *job-sheet-start
+         */
+        final JsonProxyPrinterOpt opt = onSpJobTicket(this.jobTicketOptMapSet,
+                this.getConfigFile(), lineNr, words);
+        this.jobTicketOptMap.put(opt.getKeyword(), opt);
     }
 
     /**
@@ -514,6 +552,18 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     }
 
     /**
+     * Notifies a {@link #SP_JOBTICKET_SET_COST} line.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param words
+     *            The words.
+     */
+    private void onSpJobTicketSetCost(final int lineNr, final String[] words) {
+        this.onSpJobTicketCost(lineNr, words, this.jobTicketOptMap,
+                this.jobTicketCostRulesSet);
+    }
+    /**
      * Notifies an SpJobTicket option.
      *
      * @param lineNr
@@ -538,6 +588,12 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             break;
         case SP_JOBTICKET_MEDIA_COST:
             this.onSpJobTicketMediaCost(lineNr, nextwords);
+            break;
+        case SP_JOBTICKET_SET:
+            this.onSpJobTicketSet(lineNr, nextwords);
+            break;
+        case SP_JOBTICKET_SET_COST:
+            this.onSpJobTicketSetCost(lineNr, nextwords);
             break;
         default:
             LOGGER.warn(String.format("%s line %d [%s] is NOT handled.",
@@ -722,7 +778,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             optGroupInject.getOptions().add(opt);
         }
 
-        // The SpJobTicket Copy/Media options
+        // SpJobTicket Set/Copy/Media options.
         final JsonProxyPrinterOptGroup optGroupJobTicket = lazyCreateOptGroup(
                 ProxyPrinterOptGroupEnum.JOB_TICKET, proxyPrinter.getGroups());
 
@@ -736,8 +792,13 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 .values()) {
             optGroupJobTicket.getOptions().add(opt);
         }
+        for (final JsonProxyPrinterOpt opt : reader.jobTicketOptMapSet
+                .values()) {
+            optGroupJobTicket.getOptions().add(opt);
+        }
 
         // Custom cost rules.
+        proxyPrinter.setCustomCostRulesSet(reader.jobTicketCostRulesSet);
         proxyPrinter.setCustomCostRulesCopy(reader.jobTicketCostRulesCopy);
         proxyPrinter.setCustomCostRulesMedia(reader.jobTicketCostRulesMedia);
 

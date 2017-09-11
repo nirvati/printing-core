@@ -100,6 +100,11 @@ public final class ProxyPrintCostParms {
     private BigDecimal customCostCopy;
 
     /**
+     * Additional custom cost for the set of copies.
+     */
+    private BigDecimal customCostSet;
+
+    /**
      * Cost for {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_COVER_TYPE}.
      * When {@code null} a Cover is not applicable.
      */
@@ -247,13 +252,18 @@ public final class ProxyPrintCostParms {
     }
 
     /**
-     *
      * @return Additional custom cost for one (1) copy.
      */
     public BigDecimal getCustomCostCopy() {
         return customCostCopy;
     }
 
+    /**
+     * @return Additional custom cost for the set of copies.
+     */
+    public BigDecimal getCustomCostSet() {
+        return customCostSet;
+    }
     /**
      * @return Cost for
      *         {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_COVER_TYPE}. When
@@ -286,6 +296,7 @@ public final class ProxyPrintCostParms {
     public void calcCustomCost() {
 
         if (this.proxyPrinter == null || this.ippOptionValues == null) {
+            this.customCostSet = null;
             this.customCostCopy = null;
             this.customCostMediaSide = null;
             this.customCostCoverPrint = null;
@@ -294,7 +305,13 @@ public final class ProxyPrintCostParms {
         }
 
         /*
-         * Cover cost and pages
+         * Set cost.
+         */
+        this.customCostSet =
+                this.proxyPrinter.calcCustomCostSet(this.ippOptionValues);
+
+        /*
+         * Cover cost and pages.
          */
         final String ippCoverChoice = this.ippOptionValues
                 .get(IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE);

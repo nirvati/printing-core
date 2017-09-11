@@ -337,6 +337,15 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String ORG_SAVAPAGE_ATTR_FINISHINGS_EXTERNAL_FOLDER =
             "folder";
 
+    // ------------------------------------------------------------------------
+    // org.savapage-job-sheets
+    // ------------------------------------------------------------------------
+    public static final String ORG_SAVAPAGE_ATTR_JOB_SHEETS_NONE = "none";
+    public static final String ORG_SAVAPAGE_ATTR_JOB_SHEETS_START =
+            "job-start-sheet";
+    public static final String ORG_SAVAPAGE_ATTR_JOB_SHEETS_END =
+            "job-end-sheet";
+
     /**
      * The generic 'non' value for all org.savapage.ext-* options.
      */

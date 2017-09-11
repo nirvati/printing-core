@@ -53,6 +53,11 @@ public final class JobTicketSupplierData extends JsonAbstractBase
     private BigDecimal costCopy;
 
     /**
+     * Cost total for set of copies.
+     */
+    private BigDecimal costSet;
+
+    /**
      * The {@link User#getUserId()} of the
      * {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
      */
@@ -107,6 +112,21 @@ public final class JobTicketSupplierData extends JsonAbstractBase
         this.costCopy = cost;
     }
 
+    /**
+     * @return Cost total for set of copies.
+     */
+    public BigDecimal getCostSet() {
+        return costSet;
+    }
+
+    /**
+     * @param cost
+     *            Cost total for set of copies.
+     */
+    public void setCostSet(final BigDecimal cost) {
+        this.costSet = cost;
+    }
+
     @Override
     public String dataAsString() {
         try {
@@ -141,6 +161,6 @@ public final class JobTicketSupplierData extends JsonAbstractBase
      * @return The {@link JobTicketSupplierData} object.
      */
     public static JobTicketSupplierData createFromData(final String data) {
-        return JobTicketSupplierData
-                .create(JobTicketSupplierData.class, data);
-    }}
+        return JobTicketSupplierData.create(JobTicketSupplierData.class, data);
+    }
+}

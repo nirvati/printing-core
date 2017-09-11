@@ -132,6 +132,7 @@ import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
+import org.savapage.core.print.proxy.TicketJobSheetDto;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
@@ -1995,6 +1996,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             supplierData.setCostMedia(job.getCostResult().getCostMedia());
             supplierData.setCostCopy(job.getCostResult().getCostCopy());
+            supplierData.setCostSet(job.getCostResult().getCostSet());
             supplierData.setOperator(operator);
 
             docLog.setExternalData(supplierData.dataAsString());
@@ -2019,12 +2021,39 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         if (isProxyPrint) {
 
-            boolean printBanner = false; // TEST
+            final TicketJobSheetDto jobSheetDto;
+            final File pdfTicketJobSheet;
 
-            if (printBanner && isJobTicket) {
-                proxyPrintBanner(printReq, job, lockedUser.getUserId());
+            if (isJobTicket) {
+
+                jobSheetDto = printReq.getTicketJobSheet();
+
+                if (jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.NONE) {
+                    pdfTicketJobSheet = null;
+                } else {
+                    pdfTicketJobSheet = jobTicketService()
+                            .createTicketJobSheet(lockedUser.getUserId(), job);
+                    jobSheetDto
+                            .setMediaSourceOption(job.getMediaSourceJobSheet());
+                }
+            } else {
+                jobSheetDto = null;
+                pdfTicketJobSheet = null;
             }
+
+            if (pdfTicketJobSheet != null && jobSheetDto
+                    .getSheet() == TicketJobSheetDto.Sheet.START) {
+                proxyPrintJobSheet(printReq, job, lockedUser.getUserId(),
+                        jobSheetDto, pdfTicketJobSheet);
+            }
+
             proxyPrint(lockedUser, printReq, docLog, createInfo);
+
+            if (jobSheetDto != null
+                    && jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.END) {
+                proxyPrintJobSheet(printReq, job, lockedUser.getUserId(),
+                        jobSheetDto, pdfTicketJobSheet);
+            }
 
         } else {
             settleProxyPrint(lockedUser, printReq, docLog, createInfo);
@@ -2853,51 +2882,80 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     /**
-     * UNDER CONSTRUCTION.
+     * Print a Job Sheet and deletes the PDF job sheet afterwards.
      *
-     * @param request
+     * @param reqMain
+     *            The print request of the main job.
+     * @param job
+     *            The {@link OutboxJobDto}.
+     * @param user
+     *            The unique user id.
+     * @param jobSheetDto
+     *            Job Sheet info.
+     * @param pdfJobSheet
+     *            The Job sheet PDF file.
      * @throws IppConnectException
+     *             When printing fails.
      */
-    private boolean proxyPrintBanner(final AbstractProxyPrintReq request,
-            final OutboxJobDto job, final String user)
+    private void proxyPrintJobSheet(final AbstractProxyPrintReq reqMain,
+            final OutboxJobDto job, final String user,
+            final TicketJobSheetDto jobSheetDto, final File pdfJobSheet)
             throws IppConnectException {
 
         final JsonProxyPrinter printer =
-                this.getJsonProxyPrinterCopy(request.getPrinterName());
+                this.getJsonProxyPrinterCopy(reqMain.getPrinterName());
 
         if (printer == null) {
-            return false;
+            throw new IllegalStateException(String.format(
+                    "Printer [%s] not found.", reqMain.getPrinterName()));
+        } else if (printer.getDbPrinter().getDeleted()) {
+            throw new IllegalStateException(String.format(
+                    "Printer [%s] is deleted.", reqMain.getPrinterName()));
+        } else if (printer.getDbPrinter().getDisabled()) {
+            throw new IllegalStateException(String.format(
+                    "Printer [%s] is disabled.", reqMain.getPrinterName()));
         }
-
-        if (printer.getDbPrinter().getDisabled()
-                || printer.getDbPrinter().getDeleted()) {
-            return false;
-        }
-
-        final File filePdfBanner =
-                jobTicketService().createJobTicketBanner(user, job);
 
         try {
-            final PdfCreateInfo createInfo = new PdfCreateInfo(filePdfBanner);
+            final PdfCreateInfo createInfo = new PdfCreateInfo(pdfJobSheet);
 
             final ProxyPrintDocReq reqBanner =
                     new ProxyPrintDocReq(PrintModeEnum.TICKET);
 
             reqBanner.setNumberOfCopies(1);
-            reqBanner.setOptionValues(request.getOptionValues());
+            reqBanner.setFitToPage(Boolean.TRUE);
+
             reqBanner.setJobName(
                     String.format("Ticket-Banner-%s", job.getTicketNumber()));
+
+            final Map<String, String> options = new HashMap<>();
+            options.put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
+                    jobSheetDto.getMediaSourceOption());
+
+            for (final Entry<String, String> entry : reqMain.getOptionValues()
+                    .entrySet()) {
+
+                switch (entry.getKey()) {
+                case IppDictJobTemplateAttr.ATTR_MEDIA:
+                case IppDictJobTemplateAttr.ATTR_OUTPUT_BIN:
+                    options.put(entry.getKey(), entry.getValue());
+                    break;
+
+                default:
+                    // no code intended;
+                    break;
+                }
+            }
+            reqBanner.setOptionValues(options);
 
             // final JsonProxyPrintJob printJob =
             this.sendPdfToPrinter(reqBanner, printer, user, createInfo);
 
         } finally {
-            if (filePdfBanner != null && filePdfBanner.exists()) {
-                filePdfBanner.delete();
+            if (pdfJobSheet != null && pdfJobSheet.exists()) {
+                pdfJobSheet.delete();
             }
         }
-
-        return true;
     }
 
     /**

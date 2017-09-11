@@ -319,8 +319,8 @@ public final class OutboxInfoDto extends AbstractDto {
         private String file;
 
         /**
-         * The name of the main printer, which can be the printer for the
-         * Hold Job or the Job Ticket printer.
+         * The name of the main printer, which can be the printer for the Hold
+         * Job or the Job Ticket printer.
          */
         private String printer;
 
@@ -342,6 +342,12 @@ public final class OutboxInfoDto extends AbstractDto {
         private long submitTime;
         private long expiryTime;
         private Boolean fitToPage;
+
+        /**
+         * The RFC2911 IPP {@code media-source} keyword of the Job Sheet.
+         */
+        @JsonIgnore
+        private String mediaSourceJobSheet;
 
         /**
          * {@code true} when one of the job pages has landscape orientation.
@@ -633,6 +639,26 @@ public final class OutboxInfoDto extends AbstractDto {
         public boolean isDelegatedPrint() {
             return this.accountTransactions != null;
         }
+
+        /**
+         * @return The RFC2911 IPP {@code media-source} keyword of the Job
+         *         Sheet.
+         */
+        @JsonIgnore
+        public String getMediaSourceJobSheet() {
+            return mediaSourceJobSheet;
+        }
+
+        /**
+         * @param mediaSource
+         *            The RFC2911 IPP {@code media-source} keyword of the Job
+         *            Sheet.
+         */
+        @JsonIgnore
+        public void setMediaSourceJobSheet(final String mediaSource) {
+            this.mediaSourceJobSheet = mediaSource;
+        }
+
     }
 
     /**

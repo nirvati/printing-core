@@ -847,6 +847,9 @@ public final class JobTicketServiceImpl extends AbstractService
      * @param ippMediaSource
      *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
      *            the print job. Is irrelevant ({@code null}) when settleOnly.
+     * @param ippMediaSourceJobSheet
+     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
+     *            the Job Sheet print job.
      * @param ippOutputBin
      *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
      *            the print job. Is irrelevant ({@code null}) when settleOnly.
@@ -870,9 +873,9 @@ public final class JobTicketServiceImpl extends AbstractService
      */
     private OutboxJobDto execTicket(final String operator,
             final Printer printer, final String ippMediaSource,
-            final String ippOutputBin, final String ippJogOffset,
-            final String fileName, final boolean settleOnly)
-            throws IOException, IppConnectException {
+            final String ippMediaSourceJobSheet, final String ippOutputBin,
+            final String ippJogOffset, final String fileName,
+            final boolean settleOnly) throws IOException, IppConnectException {
 
         final UUID uuid = uuidFromFileName(fileName);
         final OutboxJobDto dto = this.jobTicketCache.get(uuid);
@@ -931,7 +934,8 @@ public final class JobTicketServiceImpl extends AbstractService
             }
 
             setRedirectPrinterOptions(dto, printer.getPrinterName(),
-                    ippMediaSource, ippOutputBin, ippJogOffset);
+                    ippMediaSource, ippMediaSourceJobSheet, ippOutputBin,
+                    ippJogOffset);
 
             final PrintOut printOut =
                     proxyPrintService()
@@ -1006,6 +1010,9 @@ public final class JobTicketServiceImpl extends AbstractService
      *            The name of the redirect printer.
      * @param ippMediaSource
      *            IPP value of {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE}.
+     * @param ippMediaSourceJobSheet
+     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
+     *            the Job Sheet print job.
      * @param ippOutputBin
      *            IPP value of {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN}.
      * @param ippJogOffset
@@ -1015,7 +1022,8 @@ public final class JobTicketServiceImpl extends AbstractService
      */
     private static void setRedirectPrinterOptions(final OutboxJobDto dto,
             final String redirectPrinterName, final String ippMediaSource,
-            final String ippOutputBin, final String ippJogOffset) {
+            final String ippMediaSourceJobSheet, final String ippOutputBin,
+            final String ippJogOffset) {
 
         // Set printer name.
         dto.setPrinterRedirect(redirectPrinterName);
@@ -1023,6 +1031,9 @@ public final class JobTicketServiceImpl extends AbstractService
         // Set media-source.
         dto.getOptionValues().put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
                 ippMediaSource);
+
+        // Set media-source of job sheet.
+        dto.setMediaSourceJobSheet(ippMediaSourceJobSheet);
 
         //
         String ippKeywordWlk;
@@ -1052,8 +1063,9 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public OutboxJobDto retryTicketPrint(final String operator,
             final Printer printer, final String ippMediaSource,
-            final String ippOutputBin, final String ippJogOffset,
-            final String fileName) throws IOException, IppConnectException {
+            final String ippMediaSourceJobSheet, final String ippOutputBin,
+            final String ippJogOffset, final String fileName)
+            throws IOException, IppConnectException {
 
         final OutboxJobDto dto = this.getTicket(fileName);
 
@@ -1068,7 +1080,7 @@ public final class JobTicketServiceImpl extends AbstractService
          * Set dto before creating the print request.
          */
         setRedirectPrinterOptions(dto, printer.getPrinterName(), ippMediaSource,
-                ippOutputBin, ippJogOffset);
+                ippMediaSourceJobSheet, ippOutputBin, ippJogOffset);
 
         final JsonProxyPrinter jsonPrinter =
                 proxyPrintService().getCachedPrinter(printer.getPrinterName());
@@ -1221,10 +1233,12 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public OutboxJobDto printTicket(final String operator,
             final Printer printer, final String ippMediaSource,
-            final String ippOutputBin, final String ippJogOffset,
-            final String fileName) throws IOException, IppConnectException {
-        return execTicket(operator, printer, ippMediaSource, ippOutputBin,
-                ippJogOffset, fileName, false);
+            final String ippMediaSourceJobSheet, final String ippOutputBin,
+            final String ippJogOffset, final String fileName)
+            throws IOException, IppConnectException {
+        return execTicket(operator, printer, ippMediaSource,
+                ippMediaSourceJobSheet, ippOutputBin, ippJogOffset, fileName,
+                false);
     }
 
     @Override
@@ -1232,8 +1246,8 @@ public final class JobTicketServiceImpl extends AbstractService
             final Printer printer, final String fileName) throws IOException {
 
         try {
-            return execTicket(operator, printer, null, null, null, fileName,
-                    true);
+            return execTicket(operator, printer, null, null, null, null,
+                    fileName, true);
         } catch (IppConnectException e) {
             // This is not supposed to happen, because no proxy print is done.
             throw new IllegalStateException(e.getMessage());
@@ -1611,7 +1625,7 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public File createJobTicketBanner(final String user,
+    public File createTicketJobSheet(final String user,
             final OutboxJobDto dto) {
 
         final Font catFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD,

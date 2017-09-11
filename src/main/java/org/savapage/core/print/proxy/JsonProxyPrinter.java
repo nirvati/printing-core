@@ -78,6 +78,12 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     private List<IppCostRule> customCostRulesCopy;
 
     /**
+     * Custom cost rules for a printed set.
+     */
+    @JsonIgnore
+    private List<IppCostRule> customCostRulesSet;
+
+    /**
      *
      */
     public enum State {
@@ -195,7 +201,6 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
-     *
      * @return Custom cost rules for a printed copy.
      */
     @JsonIgnore
@@ -204,13 +209,29 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
-     *
      * @param rules
      *            Custom cost rules for a printed copy.
      */
     @JsonIgnore
     public void setCustomCostRulesCopy(final List<IppCostRule> rules) {
         this.customCostRulesCopy = rules;
+    }
+
+    /**
+     * @return Custom cost rules for a printed set.
+     */
+    @JsonIgnore
+    public List<IppCostRule> getCustomCostRulesSet() {
+        return customCostRulesSet;
+    }
+
+    /**
+     * @param rules
+     *            Custom cost rules for a printed set.
+     */
+    @JsonIgnore
+    public void setCustomCostRulesSet(final List<IppCostRule> rules) {
+        this.customCostRulesSet = rules;
     }
 
     /**
@@ -601,6 +622,17 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      */
     public BigDecimal calcCustomCostCopy(final Map<String, String> ippChoices) {
         return calcCost(this.getCustomCostRulesCopy(), ippChoices, true);
+    }
+
+    /**
+     * Calculates Set Cost of IPP choices according to the list of cost rules.
+     *
+     * @param ippChoices
+     *            The IPP attribute key/choices.
+     * @return {@code null} when none of the rules apply.
+     */
+    public BigDecimal calcCustomCostSet(final Map<String, String> ippChoices) {
+        return calcCost(this.getCustomCostRulesSet(), ippChoices, true);
     }
 
     /**
