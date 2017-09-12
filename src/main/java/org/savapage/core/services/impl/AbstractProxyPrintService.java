@@ -2026,15 +2026,17 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             if (isJobTicket) {
 
-                jobSheetDto = printReq.getTicketJobSheet();
+                jobSheetDto = jobTicketService()
+                        .getTicketJobSheet(printReq.createIppOptionMap());
 
                 if (jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.NONE) {
                     pdfTicketJobSheet = null;
                 } else {
-                    pdfTicketJobSheet = jobTicketService()
-                            .createTicketJobSheet(lockedUser.getUserId(), job);
                     jobSheetDto
                             .setMediaSourceOption(job.getMediaSourceJobSheet());
+
+                    pdfTicketJobSheet = jobTicketService().createTicketJobSheet(
+                            lockedUser.getUserId(), job, jobSheetDto);
                 }
             } else {
                 jobSheetDto = null;
@@ -2929,23 +2931,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     String.format("Ticket-Banner-%s", job.getTicketNumber()));
 
             final Map<String, String> options = new HashMap<>();
+
+            options.put(IppDictJobTemplateAttr.ATTR_MEDIA,
+                    jobSheetDto.getMediaOption());
             options.put(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE,
                     jobSheetDto.getMediaSourceOption());
+            options.put(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN,
+                    reqMain.getOptionValues()
+                            .get(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN));
 
-            for (final Entry<String, String> entry : reqMain.getOptionValues()
-                    .entrySet()) {
-
-                switch (entry.getKey()) {
-                case IppDictJobTemplateAttr.ATTR_MEDIA:
-                case IppDictJobTemplateAttr.ATTR_OUTPUT_BIN:
-                    options.put(entry.getKey(), entry.getValue());
-                    break;
-
-                default:
-                    // no code intended;
-                    break;
-                }
-            }
             reqBanner.setOptionValues(options);
 
             // final JsonProxyPrintJob printJob =

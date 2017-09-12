@@ -70,6 +70,12 @@ public final class RedirectPrinterDto extends AbstractDto {
     private JsonProxyPrinterOptChoice mediaSourceOptChoice;
 
     /**
+     * The default media-source choice for Job Sheet. When {@code null}, no
+     * default is available.
+     */
+    private JsonProxyPrinterOptChoice mediaSourceJobSheetOptChoice;
+
+    /**
      * The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} option of the printer.
      * {@code null} when not present.
      */
@@ -179,6 +185,24 @@ public final class RedirectPrinterDto extends AbstractDto {
     public void setMediaSourceOptChoice(
             JsonProxyPrinterOptChoice mediaSourceOptChoice) {
         this.mediaSourceOptChoice = mediaSourceOptChoice;
+    }
+
+    /**
+     * @return The default media-source choice for Job Sheet. When {@code null},
+     *         no default is available.
+     */
+    public JsonProxyPrinterOptChoice getMediaSourceJobSheetOptChoice() {
+        return mediaSourceJobSheetOptChoice;
+    }
+
+    /**
+     * @param mediaSourceJobSheetOptChoice
+     *            The default media-source choice for Job Sheet. When
+     *            {@code null}, no default is available.
+     */
+    public void setMediaSourceJobSheetOptChoice(
+            JsonProxyPrinterOptChoice mediaSourceJobSheetOptChoice) {
+        this.mediaSourceJobSheetOptChoice = mediaSourceJobSheetOptChoice;
     }
 
     /**

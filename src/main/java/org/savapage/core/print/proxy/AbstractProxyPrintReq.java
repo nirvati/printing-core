@@ -30,6 +30,7 @@ import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
@@ -532,47 +533,10 @@ public abstract class AbstractProxyPrintReq
     }
 
     /**
-     * @return Job-sheet info for Job Ticket.
+     * @return The {@link IppOptionMap}.
      */
-    public TicketJobSheetDto getTicketJobSheet() {
-
-        final TicketJobSheetDto dto = new TicketJobSheetDto();
-
-        final String value = this.optionValues
-                .get(IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_SHEETS);
-
-        final TicketJobSheetDto.Sheet sheet;
-
-        if (value == null) {
-            sheet = TicketJobSheetDto.Sheet.NONE;
-        } else {
-            switch (value) {
-            case IppKeyword.ORG_SAVAPAGE_ATTR_JOB_SHEETS_NONE:
-                sheet = TicketJobSheetDto.Sheet.NONE;
-                break;
-
-            case IppKeyword.ORG_SAVAPAGE_ATTR_JOB_SHEETS_START:
-                sheet = TicketJobSheetDto.Sheet.START;
-                break;
-
-            case IppKeyword.ORG_SAVAPAGE_ATTR_JOB_SHEETS_END:
-                sheet = TicketJobSheetDto.Sheet.END;
-                break;
-
-            default:
-                final String msg = String.format("%s: unknown value [%s]",
-                        IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_SHEETS,
-                        value);
-                throw new IllegalStateException(msg);
-            }
-        }
-
-        dto.setSheet(sheet);
-
-        dto.setMediaOption(this.optionValues.get(
-                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_SHEETS_MEDIA));
-
-        return dto;
+    public IppOptionMap createIppOptionMap() {
+        return new IppOptionMap(this.getOptionValues());
     }
 
     /**

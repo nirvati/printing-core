@@ -41,6 +41,7 @@ import java.util.List;
 
 import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.MediaSize;
+import javax.print.attribute.standard.MediaSizeName;
 
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
@@ -147,6 +148,30 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     /**
+     * Gets the {@link Rectangle} of {@link MediaSizeName}.
+     *
+     * @param mediaSizeName
+     *            The {@link MediaSizeName}.
+     *
+     * @return {@code null} when default page size not found.
+     */
+    public static Rectangle getPageSize(final MediaSizeName mediaSizeName) {
+
+        final Rectangle pageSize;
+
+        final float[] size = MediaSize.getMediaSizeForName(mediaSizeName)
+                .getSize(Size2DSyntax.INCH);
+
+        if (size == null) {
+            pageSize = null;
+        } else {
+            pageSize = new Rectangle(size[0] * ITEXT_POINTS_PER_INCH,
+                    size[1] * ITEXT_POINTS_PER_INCH);
+        }
+        return pageSize;
+    }
+
+    /**
      * Gets the {@link Rectangle} of default page size.
      *
      * @return {@code null} when default page size not found.
@@ -159,14 +184,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 .getConfigValue(Key.SYS_DEFAULT_PAPER_SIZE);
 
         if (papersize.equals(IConfigProp.PAPERSIZE_V_SYSTEM)) {
-
-            float[] size = MediaSize
-                    .getMediaSizeForName(MediaUtils.getHostDefaultMediaSize())
-                    .getSize(Size2DSyntax.INCH);
-
-            pageSize = new Rectangle(size[0] * ITEXT_POINTS_PER_INCH,
-                    size[1] * ITEXT_POINTS_PER_INCH);
-
+            pageSize = getPageSize(MediaUtils.getHostDefaultMediaSize());
         } else if (papersize.equals(IConfigProp.PAPERSIZE_V_LETTER)) {
             pageSize = PageSize.LETTER;
         } else if (papersize.equals(IConfigProp.PAPERSIZE_V_A4)) {

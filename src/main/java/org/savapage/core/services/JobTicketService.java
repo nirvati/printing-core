@@ -32,7 +32,6 @@ import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
-import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.jpa.PrintOut;
@@ -43,7 +42,9 @@ import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
+import org.savapage.core.print.proxy.TicketJobSheetDto;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.services.helpers.JobTicketExecParms;
 
 /**
  *
@@ -268,35 +269,16 @@ public interface JobTicketService extends StatefulService {
     /**
      * Prints and settles a Job Ticket.
      *
-     * @param operator
-     *            The {@link User#getUserId()} with
-     *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
-     * @param printer
-     *            The redirect printer.
-     * @param ippMediaSource
-     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
-     *            the print job.
-     * @param ippMediaSourceJobSheet
-     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
-     *            the Job Sheet print job.
-     * @param ippOutputBin
-     *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
-     *            the print job.
-     * @param ippjogOffset
-     *            The
-     *            {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET}
-     *            value for the print job.
-     * @param fileName
-     *            The unique PDF file name of the job to print.
+     * @param parms
+     *            The parameters.
+     *
      * @return The printed ticket or {@code null} when ticket was not found.
      * @throws IOException
      *             When IO error.
      * @throws IppConnectException
      *             When connection to CUPS fails.
      */
-    OutboxJobDto printTicket(String operator, Printer printer,
-            String ippMediaSource, String ippMediaSourceJobSheet,
-            String ippOutputBin, String ippjogOffset, String fileName)
+    OutboxJobDto printTicket(JobTicketExecParms parms)
             throws IOException, IppConnectException;
 
     /**
@@ -304,35 +286,16 @@ public interface JobTicketService extends StatefulService {
      * printer failure). Note: this method does <i>not</i> settle the ticket,
      * since it is assumed this is already done at the first print trial.
      *
-     * @param operator
-     *            The {@link User#getUserId()} with
-     *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
-     * @param printer
-     *            The (new) redirect printer.
-     * @param ippMediaSource
-     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
-     *            the print job.
-     * @param ippMediaSourceJobSheet
-     *            The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} value for
-     *            the Job Sheet print job.
-     * @param ippOutputBin
-     *            The {@link IppDictJobTemplateAttr#ATTR_OUTPUT_BIN} value for
-     *            the print job.
-     * @param ippjogOffset
-     *            The
-     *            {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET}
-     *            value for the print job.
-     * @param fileName
-     *            The unique PDF file name of the job to print.
+     * @param parms
+     *            The parameters.
+     *
      * @return The printed ticket or {@code null} when ticket was not found.
      * @throws IOException
      *             When IO error.
      * @throws IppConnectException
      *             When connection to CUPS fails.
      */
-    OutboxJobDto retryTicketPrint(String operator, Printer printer,
-            String ippMediaSource, String ippMediaSourceJobSheet,
-            String ippOutputBin, String ippjogOffset, String fileName)
+    OutboxJobDto retryTicketPrint(JobTicketExecParms parms)
             throws IOException, IppConnectException;
 
     /**
@@ -356,8 +319,8 @@ public interface JobTicketService extends StatefulService {
      * Gets the list of {@link RedirectPrinterDto} compatible printers for a Job
      * Ticket.
      *
-     * @param fileName
-     *            The unique PDF file name of the job ticket.
+     * @param job
+     *            The Job Ticket.
      * @param optionFilter
      *            An additional filter, apart from the Job Ticket specification,
      *            of IPP option values that must be present in the redirect
@@ -367,7 +330,7 @@ public interface JobTicketService extends StatefulService {
      * @return The list of redirect printers (can be empty) or {@code null} when
      *         job ticket is not found.
      */
-    List<RedirectPrinterDto> getRedirectPrinters(String fileName,
+    List<RedirectPrinterDto> getRedirectPrinters(OutboxJobDto job,
             IppOptionMap optionFilter, Locale locale);
 
     /**
@@ -393,11 +356,14 @@ public interface JobTicketService extends StatefulService {
      *
      * @param user
      *            The unique user id.
-     * @param dto
+     * @param jobDto
      *            The {@link OutboxJobDto} job ticket.
+     * @param jobSheetDto
+     *            Job Sheet information.
      * @return The PDF file.
      */
-    File createTicketJobSheet(String user, OutboxJobDto dto);
+    File createTicketJobSheet(String user, OutboxJobDto jobDto,
+            TicketJobSheetDto jobSheetDto);
 
     /**
      *
@@ -405,4 +371,11 @@ public interface JobTicketService extends StatefulService {
      */
     int getJobTicketQueueSize();
 
+    /**
+     *
+     * @param options
+     *            The Ticket options.
+     * @return Job Sheet info for Job Ticket.
+     */
+    TicketJobSheetDto getTicketJobSheet(IppOptionMap options);
 }

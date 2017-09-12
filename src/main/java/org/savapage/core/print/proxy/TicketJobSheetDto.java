@@ -100,4 +100,11 @@ public final class TicketJobSheetDto {
         this.sheet = sheet;
     }
 
+    /**
+     *
+     * @return {@code true} when Job Sheet is enabled.
+     */
+    public boolean isEnabled() {
+        return !this.sheet.equals(Sheet.NONE);
+    }
 }
