@@ -1866,6 +1866,11 @@ public interface IConfigProp {
         WEBAPP_ADMIN_BITCOIN_WALLET_CACHE_EXPIRY_SECS("webapp.admin.bitcoin.wallet.cache-expiry-secs", NUMBER_VALIDATOR, "3600"),
 
         /**
+         *
+         */
+        WEBAPP_JOBTICKETS_PRINT_ALL_ENABLE("webapp.jobtickets.print-all.enable", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * Number of job tickets to show in the list. A value of zero means all
          * available tickets are shown.
          */
