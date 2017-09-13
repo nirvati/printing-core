@@ -323,13 +323,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
     @Override
     public final JsonPrinterDetail
             getPrinterDetailCopy(final String printerName) {
-        return this.getPrinterDetailCopy(printerName, null, false);
+        return this.getPrinterDetailCopy(printerName, null, false, true);
     }
 
     @Override
     public final JsonPrinterDetail getPrinterDetailUserCopy(final Locale locale,
-            final String printerName) {
-        return this.getPrinterDetailCopy(printerName, locale, true);
+            final String printerName, final boolean isExtended) {
+        return this.getPrinterDetailCopy(printerName, locale, true, isExtended);
     }
 
     @Override
@@ -390,10 +390,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The user {@link Locale}.
      * @param isUserCopy
      *            {@code true} if this is a copy for a user.
+     * @param isExtended
+     *            {@code true} if this is an extended copy.
      * @return {@code null} when the printer is no longer part of the cache.
      */
     private JsonPrinterDetail getPrinterDetailCopy(final String printerName,
-            final Locale locale, final boolean isUserCopy) {
+            final Locale locale, final boolean isUserCopy,
+            final boolean isExtended) {
 
         final JsonPrinterDetail printerCopy;
 
@@ -432,11 +435,38 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 pruneUserPrinterIppOptions(cupsPrinter, printerCopy);
             }
 
+            if (!isExtended) {
+                restrictUserPrinterIppOptions(printerCopy);
+            }
+
         } else {
             printerCopy = null;
         }
 
         return printerCopy;
+    }
+
+    /**
+     * Restricts printer IPP options by pruning extended choices.
+     *
+     * @param userPrinter
+     *            The printer to restrict.
+     */
+    private static void
+            restrictUserPrinterIppOptions(final JsonPrinterDetail userPrinter) {
+
+        for (final JsonProxyPrinterOptGroup optGroup : userPrinter
+                .getGroups()) {
+            for (final JsonProxyPrinterOpt opt : optGroup.getOptions()) {
+                final Iterator<JsonProxyPrinterOptChoice> iter =
+                        opt.getChoices().iterator();
+                while (iter.hasNext()) {
+                    if (iter.next().isExtended()) {
+                        iter.remove();
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -793,6 +823,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         return printerList;
+
     }
 
     @Override

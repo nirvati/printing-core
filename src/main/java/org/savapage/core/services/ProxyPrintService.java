@@ -261,10 +261,12 @@ public interface ProxyPrintService {
      *            The user {@link Locale}.
      * @param printerName
      *            The printer name.
+     * @param isExtended
+     *            {@code true} if this is an extended copy.
      * @return {@code null} when the printer is no longer part of the cache.
      */
     JsonPrinterDetail getPrinterDetailUserCopy(Locale locale,
-            String printerName);
+            String printerName, boolean isExtended);
 
     /**
      * Gets a user copy of IPP option for a printer from the printer cache.

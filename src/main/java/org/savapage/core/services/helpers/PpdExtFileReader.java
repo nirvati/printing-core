@@ -133,6 +133,11 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     private static final String SP_JOBTICKET_ATTR_CHOICE_NEGATE = "!";
 
     /**
+     * An SPJobTicket prefix indicating an <i>extended</i> option choice.
+     */
+    private static final String SP_JOBTICKET_OPTION_CHOICE_EXTENDED = "+";
+
+    /**
      * Minimal number of arguments for option with
      * {@link #SP_JOBTICKET_COST_SFX}.
      */
@@ -344,17 +349,25 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
         for (final String choice : ArrayUtils.remove(words, 0)) {
 
-            final String ippChoice =
+            String ippChoice =
                     StringUtils.stripStart(choice, PPD_CHOICE_DEFAULT_PFX);
 
-            if (!choice.equals(ippChoice)) {
+            final boolean extended;
+
+            if (choice.equals(ippChoice)) {
+                ippChoice = StringUtils.stripStart(ippChoice,
+                        SP_JOBTICKET_OPTION_CHOICE_EXTENDED);
+                extended = !choice.equals(ippChoice);
+            } else {
                 opt.setDefchoice(ippChoice);
                 opt.setDefchoiceIpp(ippChoice);
+                extended = false;
             }
 
             final JsonProxyPrinterOptChoice optChoice =
                     opt.addChoice(ippChoice, ippChoice);
 
+            optChoice.setExtended(extended);
             optChoice.setChoicePpd(ippChoice);
         }
 
@@ -563,6 +576,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         this.onSpJobTicketCost(lineNr, words, this.jobTicketOptMap,
                 this.jobTicketCostRulesSet);
     }
+
     /**
      * Notifies an SpJobTicket option.
      *
