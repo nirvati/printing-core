@@ -194,6 +194,11 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String PRINT_SCALING_FILL = "fill";
 
     // ------------------------------------------------------------------------
+    // output-bin
+    // ------------------------------------------------------------------------
+    public static final String OUTPUT_BIN_AUTO = "auto";
+
+    // ------------------------------------------------------------------------
     // media-source
     // ------------------------------------------------------------------------
     public static final String MEDIA_SOURCE_AUTO = "auto";

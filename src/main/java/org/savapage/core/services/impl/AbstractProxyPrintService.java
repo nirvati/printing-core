@@ -2940,6 +2940,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     reqMain.getOptionValues()
                             .get(IppDictJobTemplateAttr.ATTR_OUTPUT_BIN));
 
+            // Overrule printer defaults.
+            options.put(IppDictJobTemplateAttr.ATTR_SIDES,
+                    IppKeyword.SIDES_ONE_SIDED);
+            options.put(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
+                    IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
+            options.put(IppDictJobTemplateAttr.ATTR_JOB_SHEETS,
+                    IppKeyword.ATTR_JOB_SHEETS_NONE);
+
+            //
             reqBanner.setOptionValues(options);
 
             // final JsonProxyPrintJob printJob =
