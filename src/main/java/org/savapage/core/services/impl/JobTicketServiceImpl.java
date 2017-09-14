@@ -25,10 +25,8 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.nio.file.FileVisitResult;
@@ -52,7 +50,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.mail.MessagingException;
-import javax.print.attribute.standard.MediaSizeName;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -70,7 +67,6 @@ import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
-import org.savapage.core.inbox.OutputProducer;
 import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
@@ -85,7 +81,6 @@ import org.savapage.core.jpa.PrinterGroupMember;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobBaseDto;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
-import org.savapage.core.pdf.ITextPdfCreator;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
@@ -107,6 +102,7 @@ import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
+import org.savapage.core.services.helpers.TicketJobSheetPdfCreator;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.template.dto.TemplateDtoCreator;
 import org.savapage.core.template.email.JobTicketCanceled;
@@ -114,19 +110,12 @@ import org.savapage.core.template.email.JobTicketCompleted;
 import org.savapage.core.template.email.JobTicketEmailTemplate;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
-import org.savapage.core.util.MediaUtils;
 import org.savapage.ext.papercut.PaperCutHelper;
 import org.savapage.ext.smartschool.SmartschoolPrintInData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.PdfWriter;
 
 /**
  *
@@ -1612,55 +1601,7 @@ public final class JobTicketServiceImpl extends AbstractService
     public File createTicketJobSheet(final String user,
             final OutboxJobDto jobDto, final TicketJobSheetDto jobSheetDto) {
 
-        final MediaSizeName sizeName = MediaUtils
-                .getMediaSizeFromInboxMedia(jobSheetDto.getMediaOption());
-
-        final Font catFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD,
-                BaseColor.GRAY);
-
-        final Font normalFont = new Font(Font.FontFamily.HELVETICA, 12,
-                Font.NORMAL, BaseColor.DARK_GRAY);
-
-        final File filePdf = new File(
-                OutputProducer.createUniqueTempPdfName(user, "ticket-banner"));
-
-        final Document document =
-                new Document(ITextPdfCreator.getPageSize(sizeName));
-
-        OutputStream ostr = null;
-
-        try {
-            ostr = new FileOutputStream(filePdf);
-
-            // final PdfWriter writer =
-            PdfWriter.getInstance(document, ostr);
-
-            document.open();
-
-            final Paragraph secInfo = new Paragraph();
-            secInfo.add(new Paragraph(
-                    String.format("\nTicket %s\n\n", jobDto.getTicketNumber()),
-                    catFont));
-
-            secInfo.add(new Paragraph(
-                    String.format(
-                            "\nUser: %s" + "\nTitle: %s" + "\nCopies: %d"
-                                    + "\nComment: %s" + "\nTime: %s",
-                            user, jobDto.getJobName(), jobDto.getCopies(),
-                            jobDto.getComment(), new Date().toString()),
-                    normalFont));
-
-            document.add(secInfo);
-
-        } catch (FileNotFoundException | DocumentException e) {
-            LOGGER.error(e.getMessage(), e);
-            throw new SpException(e.getMessage(), e);
-        } finally {
-            document.close();
-            IOUtils.closeQuietly(ostr);
-        }
-
-        return filePdf;
+        return new TicketJobSheetPdfCreator(user, jobDto, jobSheetDto).create();
     }
 
     @Override

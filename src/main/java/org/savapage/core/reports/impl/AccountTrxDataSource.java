@@ -378,7 +378,7 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
 
                 final boolean isExtBitcoin =
                         this.accountTrxWlk.getExtCurrencyCode()
-                                .equals(CurrencyUtil.BITCOIN_CURRENCY_CODE);
+                                .equals(CurrencyUtil.CURRENCY_CODE_BITCOIN);
 
                 final int decimalsWrk;
 

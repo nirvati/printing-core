@@ -351,8 +351,7 @@ public interface JobTicketService extends StatefulService {
             IppOptionMap optionFilter, Locale locale);
 
     /**
-     * Creates a single page PDF Job Sheet file to proxy print just before the
-     * job ticket.
+     * Creates a single page PDF Job Sheet file.
      *
      * @param user
      *            The unique user id.

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,7 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class CurrencyUtil {
@@ -36,7 +36,12 @@ public final class CurrencyUtil {
     /**
      * The Bitcoin currency code.
      */
-    public static final String BITCOIN_CURRENCY_CODE = "BTC";
+    public static final String CURRENCY_CODE_BITCOIN = "BTC";
+
+    /**
+     * The Euro currency code.
+     */
+    public static final String CURRENCY_CODE_EUR = "EUR";
 
     /**
      * Hide constructor.
@@ -59,8 +64,11 @@ public final class CurrencyUtil {
 
         final String currencyCodeWrk = StringUtils.defaultString(currencyCode);
 
-        if (currencyCodeWrk.equals(BITCOIN_CURRENCY_CODE)) {
+        if (currencyCodeWrk.equals(CURRENCY_CODE_BITCOIN)) {
             return "Ƀ";
+        }
+        if (currencyCodeWrk.equals(CURRENCY_CODE_EUR)) {
+            return "€";
         }
 
         try {

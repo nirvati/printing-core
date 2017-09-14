@@ -34,9 +34,27 @@ import org.savapage.core.util.LocaleHelper;
 public enum NounEnum {
 
     /** */
+    COMMENT,
+    /** */
+    COST,
+    /** */
+    DELEGATE(true),
+    /** */
+    DELEGATOR(true),
+    /** */
     MAINTENANCE,
     /** */
-    MODE(true);
+    MODE(true),
+    /** */
+    REMARK(true),
+    /** */
+    TIME,
+    /** */
+    TITLE,
+    /** */
+    TICKET(true),
+    /** */
+    USER(true);
 
     /**
      *
