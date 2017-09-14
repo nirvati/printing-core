@@ -249,8 +249,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         final boolean remoteCupsEnabled = ConfigManager.instance()
                 .isConfigValue(Key.CUPS_IPP_REMOTE_ENABLED);
 
-        final JsonProxyPrinter defaultPrinter = getCupsDefaultPrinter();
-
         /*
          * Get the list of CUPS printers.
          */
@@ -333,7 +331,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
              * Create JsonProxyPrinter object from PRINTER_ATTR group.
              */
             final JsonProxyPrinter proxyPrinterFromGroup =
-                    createUserPrinter(defaultPrinter, group);
+                    createUserPrinter(group);
 
             if (proxyPrinterFromGroup == null) {
                 continue;
@@ -518,7 +516,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 getIppPrinterAttr(printerName, printerUri);
 
         if (response.size() > 1) {
-            printer = createUserPrinter(null, response.get(1));
+            printer = createUserPrinter(response.get(1));
         }
 
         return printer;
@@ -609,15 +607,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * parameter are not copied to the output {@link JsonProxyPrinter}.
      * </p>
      *
-     * @param defaultPrinter
-     *            {@code null} when default printer is unknown.
      * @param group
      *            The (raw) IPP printer options.
      * @return the {@link JsonProxyPrinter} or {@code null} when printer
      *         definition is not valid somehow.
      */
-    private JsonProxyPrinter createUserPrinter(
-            final JsonProxyPrinter defaultPrinter, final IppAttrGroup group) {
+    private JsonProxyPrinter createUserPrinter(final IppAttrGroup group) {
 
         final JsonProxyPrinter printer = new JsonProxyPrinter();
 
@@ -722,10 +717,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         addUserPrinterOptGroup(printer, group,
                 ProxyPrinterOptGroupEnum.REFERENCE_ONLY,
                 IppDictJobTemplateAttr.ATTR_SET_REFERENCE_ONLY);
-
-        // -----------------------------------------
-        printer.setDfault(
-                defaultPrinter != null && defaultPrinter.hasSameName(printer));
 
         /*
          * TODO: The PPD values are used to see if a printer "changed", but this
@@ -1381,14 +1372,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             return null;
         }
 
-        final JsonProxyPrinter printer =
-                createUserPrinter(null, response.get(1));
-
-        if (printer != null) {
-            printer.setDfault(true);
-        }
-
-        return printer;
+        return createUserPrinter(response.get(1));
     }
 
     @Override

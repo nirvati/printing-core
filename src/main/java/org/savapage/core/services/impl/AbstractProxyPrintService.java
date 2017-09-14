@@ -303,23 +303,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
     }
 
-    /**
-     *
-     */
-    private String defaultPrinterName = null;
-
-    protected boolean hasDefaultPrinterName() {
-        return StringUtils.isNotBlank(defaultPrinterName);
-    }
-
-    protected String getDefaultPrinterName() {
-        return defaultPrinterName;
-    }
-
-    protected void setDefaultPrinterName(String defaultPrinterName) {
-        this.defaultPrinterName = defaultPrinterName;
-    }
-
     @Override
     public final JsonPrinterDetail
             getPrinterDetailCopy(final String printerName) {
@@ -814,16 +797,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
         });
 
         final JsonPrinterList printerList = new JsonPrinterList();
-
         printerList.setList(collectedPrinters);
-
-        if (hasDefaultPrinterName()) {
-            printerList
-                    .setDfault(getPrinterDetailCopy(getDefaultPrinterName()));
-        }
-
         return printerList;
-
     }
 
     @Override
@@ -1562,7 +1537,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Go on ....
          */
-        String defaultPrinter = null;
 
         /*
          * Mark all currently cached printers as 'not present'.
@@ -1651,25 +1625,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
              * Update the cache.
              */
             this.cupsPrinterCache.put(cupsPrinter.getName(), cupsPrinter);
-
             cachedCupsPrinter = cupsPrinter;
-
-            if (printerService()
-                    .canPrinterBeUsed(cachedCupsPrinter.getDbPrinter())) {
-                /*
-                 * Native default printer found that can be used.
-                 */
-                if (cachedCupsPrinter.getDfault()) {
-                    defaultPrinter = cachedCupsPrinter.getName();
-                }
-                /*
-                 * If no native default printer found (yet), set the first
-                 * printer that can be used as default.
-                 */
-                if (defaultPrinter == null) {
-                    defaultPrinter = cachedCupsPrinter.getName();
-                }
-            }
         }
 
         /*
@@ -1688,8 +1644,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 }
             }
         }
-
-        setDefaultPrinterName(defaultPrinter);
     }
 
     @Override

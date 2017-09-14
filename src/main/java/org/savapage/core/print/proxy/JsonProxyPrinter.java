@@ -98,8 +98,6 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonProperty("FileVersion")
     private String ppdVersion;
 
-    private Boolean dfault;
-
     @JsonProperty("is-accepting-jobs")
     private Boolean acceptingJobs;
 
@@ -284,14 +282,6 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
 
     public void setPpdVersion(String ppdVersion) {
         this.ppdVersion = ppdVersion;
-    }
-
-    public Boolean getDfault() {
-        return dfault;
-    }
-
-    public void setDfault(Boolean dfault) {
-        this.dfault = dfault;
     }
 
     public String getState() {
@@ -574,7 +564,6 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.acceptingJobs = this.acceptingJobs;
         copy.colorDevice = this.colorDevice;
         copy.dbPrinter = this.dbPrinter;
-        copy.dfault = this.dfault;
         copy.duplexDevice = this.duplexDevice;
         copy.info = this.info;
         copy.location = this.location;
