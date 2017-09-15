@@ -1638,10 +1638,12 @@ public final class JobTicketServiceImpl extends AbstractService
                 break;
 
             default:
-                final String msg = String.format("%s: unknown value [%s]",
+                sheet = TicketJobSheetDto.Sheet.NONE;
+                final String msg = String.format(
+                        "%s: unknown value [%s], using [%s]",
                         IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_SHEETS,
-                        value);
-                throw new IllegalStateException(msg);
+                        value, IppKeyword.ORG_SAVAPAGE_ATTR_JOB_SHEETS_NONE);
+                LOGGER.warn(msg);
             }
         }
 

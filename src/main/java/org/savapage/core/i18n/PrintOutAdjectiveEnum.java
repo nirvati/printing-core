@@ -35,7 +35,10 @@ import org.savapage.core.util.LocaleHelper;
 public enum PrintOutAdjectiveEnum {
 
     /** */
-    COLLATED, UNCOLLATED;
+    COLLATED, UNCOLLATED,
+
+    /** As in Personal/Shared Account. */
+    PERSONAL, SHARED;
 
     /**
      * @param locale

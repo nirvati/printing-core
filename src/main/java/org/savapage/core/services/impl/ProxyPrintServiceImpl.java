@@ -1356,6 +1356,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @return The default {@link JsonProxyPrinter} or {@code null} when not
      *         found.
      * @throws IppConnectException
+     *             When IPP connection error.
      */
     private JsonProxyPrinter getCupsDefaultPrinter()
             throws IppConnectException {
