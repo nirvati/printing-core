@@ -53,7 +53,15 @@ public final class PrintDelegationDto extends AbstractDto {
         @JsonProperty("id")
         private Long accountId;
 
+        /**
+         * The number of users.
+         */
         private Integer userCount;
+
+        /**
+         * The number of copies per user.
+         */
+        private Integer userCopies;
 
         public DelegatorAccountEnum getAccountType() {
             return accountType;
@@ -71,12 +79,34 @@ public final class PrintDelegationDto extends AbstractDto {
             this.accountId = accountId;
         }
 
+        /**
+         * @return The number of users.
+         */
         public Integer getUserCount() {
             return userCount;
         }
 
+        /**
+         * @param userCount
+         *            The number of users.
+         */
         public void setUserCount(Integer userCount) {
             this.userCount = userCount;
+        }
+
+        /**
+         * @return The number of copies per user.
+         */
+        public Integer getUserCopies() {
+            return userCopies;
+        }
+
+        /**
+         * @param userCopies
+         *            The number of copies per user.
+         */
+        public void setUserCopies(Integer userCopies) {
+            this.userCopies = userCopies;
         }
 
     }

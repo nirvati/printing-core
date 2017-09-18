@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,16 +14,15 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.dao.helpers;
 
-import java.util.ArrayList;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -48,31 +47,32 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public final class JsonPrintDelegation extends JsonAbstractBase {
 
     /**
-     * {@link UserGroup} IDs assigned to {@link Account} of
-     * {@link AccountTypeEnum#GROUP}.
+     * Map with key {@link UserGroup} ID assigned to {@link Account} of
+     * {@link AccountTypeEnum#GROUP}. Value is number of copies per user.
      */
     @JsonProperty("gg")
-    private List<Long> groupsAccountGroup;
+    private Map<Long, Integer> groupsAccountGroup;
 
     /**
-     * {@link UserGroup} IDs assigned to {@link Account} of
+     * {@link UserGroup} ID assigned to {@link Account} of
      * {@link AccountTypeEnum#USER}.
      */
     @JsonProperty("gu")
-    private List<Long> groupsAccountUser;
+    private Map<Long, Integer> groupsAccountUser;
 
     /**
-     * Assignments to {@link Account} of {@link AccountTypeEnum#SHARED}.
+     * Map with key {@link UserGroup} ID assigned to entry with {@link Account}
+     * of {@link AccountTypeEnum#SHARED} and number of copies per user.
      */
     @JsonProperty("gs")
-    private Map<Long, Long> groupsAccountShared;
+    private Map<Long, SimpleEntry<Long, Integer>> groupsAccountShared;
 
     /**
-     * {@link User} IDs assigned to {@link Account} of
-     * {@link AccountTypeEnum#USER}.
+     * Map with key {@link User} ID assigned to {@link Account} of
+     * {@link AccountTypeEnum#USER}. Value is number of copies.
      */
     @JsonProperty("u")
-    private List<Long> users;
+    private Map<Long, Integer> users;
 
     /**
      * Extra copies on {@link Account} of {@link AccountTypeEnum#SHARED}.
@@ -80,43 +80,93 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
     @JsonProperty("c")
     private Map<Long, Integer> copiesAccountShared;
 
-    //
-    public List<Long> getGroupsAccountGroup() {
+    /**
+     * @return Map with key {@link UserGroup} ID assigned to {@link Account} of
+     *         {@link AccountTypeEnum#GROUP}. Value is number of copies per
+     *         user.
+     */
+    public Map<Long, Integer> getGroupsAccountGroup() {
         return groupsAccountGroup;
     }
 
-    public void setGroupsAccountGroup(List<Long> groupsAccountGroup) {
+    /**
+     * @param groupsAccountGroup
+     *            Map with key {@link UserGroup} ID assigned to {@link Account}
+     *            of {@link AccountTypeEnum#GROUP}. Value is number of copies
+     *            per user.
+     */
+    public void setGroupsAccountGroup(Map<Long, Integer> groupsAccountGroup) {
         this.groupsAccountGroup = groupsAccountGroup;
     }
 
-    public List<Long> getGroupsAccountUser() {
+    /**
+     * @return Map with key {@link UserGroup} ID assigned to {@link Account} of
+     *         {@link AccountTypeEnum#USER}. Value is number of copies per user.
+     */
+    public Map<Long, Integer> getGroupsAccountUser() {
         return groupsAccountUser;
     }
 
-    public void setGroupsAccountUser(List<Long> groupsAccountUser) {
+    /**
+     * @param groupsAccountUser
+     *            Map with key {@link UserGroup} ID assigned to {@link Account}
+     *            of {@link AccountTypeEnum#USER}. Value is number of copies per
+     *            user.
+     */
+    public void setGroupsAccountUser(Map<Long, Integer> groupsAccountUser) {
         this.groupsAccountUser = groupsAccountUser;
     }
 
-    public Map<Long, Long> getGroupsAccountShared() {
+    /**
+     * @return Map with key {@link UserGroup} ID assigned to entry with
+     *         {@link Account} of {@link AccountTypeEnum#SHARED} and number of
+     *         copies per user.
+     */
+    public Map<Long, SimpleEntry<Long, Integer>> getGroupsAccountShared() {
         return groupsAccountShared;
     }
 
-    public void setGroupsAccountShared(Map<Long, Long> groupsAccountShared) {
+    /**
+     * @param groupsAccountShared
+     *            Map with key {@link UserGroup} ID assigned to entry with
+     *            {@link Account} of {@link AccountTypeEnum#SHARED} and number
+     *            of copies per user.
+     */
+    public void setGroupsAccountShared(
+            Map<Long, SimpleEntry<Long, Integer>> groupsAccountShared) {
         this.groupsAccountShared = groupsAccountShared;
     }
 
-    public List<Long> getUsers() {
+    /**
+     * @return Map with key {@link User} ID assigned to {@link Account} of
+     *         {@link AccountTypeEnum#USER}. Value is number of copies.
+     */
+    public Map<Long, Integer> getUsers() {
         return users;
     }
 
-    public void setUsers(List<Long> users) {
+    /**
+     * @param users
+     *            Map with key {@link User} ID assigned to {@link Account} of
+     *            {@link AccountTypeEnum#USER}. Value is number of copies.
+     */
+    public void setUsers(Map<Long, Integer> users) {
         this.users = users;
     }
 
+    /**
+     * @return Extra copies on {@link Account} of
+     *         {@link AccountTypeEnum#SHARED}.
+     */
     public Map<Long, Integer> getCopiesAccountShared() {
         return copiesAccountShared;
     }
 
+    /**
+     * @param copiesAccountShared
+     *            Extra copies on {@link Account} of
+     *            {@link AccountTypeEnum#SHARED}.
+     */
     public void setCopiesAccountShared(Map<Long, Integer> copiesAccountShared) {
         this.copiesAccountShared = copiesAccountShared;
     }
@@ -133,9 +183,10 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
         final JsonPrintDelegation target = new JsonPrintDelegation();
 
         // Groups
-        target.setGroupsAccountGroup(new ArrayList<Long>());
-        target.setGroupsAccountShared(new HashMap<Long, Long>());
-        target.setGroupsAccountUser(new ArrayList<Long>());
+        target.setGroupsAccountGroup(new HashMap<Long, Integer>());
+        target.setGroupsAccountShared(
+                new HashMap<Long, SimpleEntry<Long, Integer>>());
+        target.setGroupsAccountUser(new HashMap<Long, Integer>());
 
         for (final Entry<Long, PrintDelegationDto.DelegatorAccount> entry : source
                 .getGroups().entrySet()) {
@@ -147,16 +198,20 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
 
             switch (sourceAccount.getAccountType()) {
             case GROUP:
-                target.getGroupsAccountGroup().add(id);
+                target.getGroupsAccountGroup().put(id,
+                        sourceAccount.getUserCopies());
                 break;
 
             case USER:
-                target.getGroupsAccountUser().add(id);
+                target.getGroupsAccountUser().put(id,
+                        sourceAccount.getUserCopies());
                 break;
 
             case SHARED:
                 target.getGroupsAccountShared().put(id,
-                        sourceAccount.getAccountId());
+                        new SimpleEntry<Long, Integer>(
+                                sourceAccount.getAccountId(),
+                                sourceAccount.getUserCopies()));
                 break;
 
             default:
@@ -167,7 +222,7 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
         }
 
         // Users
-        target.setUsers(new ArrayList<Long>());
+        target.setUsers(new HashMap<Long, Integer>());
 
         for (final Entry<Long, PrintDelegationDto.DelegatorAccount> entry : source
                 .getUsers().entrySet()) {
@@ -179,7 +234,7 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
 
             switch (sourceAccount.getAccountType()) {
             case USER:
-                target.getUsers().add(id);
+                target.getUsers().put(id, entry.getValue().getUserCopies());
                 break;
 
             case SHARED:
@@ -225,7 +280,6 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
             }
         }
 
-        //
         return target;
     }
 
