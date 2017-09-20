@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -29,6 +29,7 @@ import java.text.ParseException;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.SpException;
 
 /**
  * Utility methods for {@link BigDecimal} conversions.
@@ -57,7 +58,7 @@ public final class BigDecimalUtil {
      */
     public static BigDecimal parse(final String localizedDecimal,
             final Locale locale, boolean currency, boolean groupingUsed)
-                    throws ParseException {
+            throws ParseException {
         final DecimalFormat df = getDecimalFormat(locale, currency);
         df.setParseBigDecimal(true);
         df.setGroupingUsed(groupingUsed);
@@ -87,12 +88,30 @@ public final class BigDecimalUtil {
      * @param decimal
      * @param fractionDigits
      * @param locale
-     * @return
+     * @return The localized string.
      * @throws ParseException
      */
     public static String localize(final BigDecimal decimal, int fractionDigits,
             final Locale locale, boolean groupingUsed) throws ParseException {
         return localize(decimal, fractionDigits, locale, false, groupingUsed);
+    }
+
+    /**
+     * Localizes a {@link BigDecimal} (throwing unchecked exception).
+     *
+     * @param decimal
+     * @param fractionDigits
+     * @param locale
+     * @return The localized string.
+     */
+    public static String localizeUc(final BigDecimal decimal,
+            int fractionDigits, final Locale locale, boolean groupingUsed) {
+        try {
+            return localize(decimal, fractionDigits, locale, false,
+                    groupingUsed);
+        } catch (ParseException e) {
+            throw new SpException(e);
+        }
     }
 
     /**
@@ -112,7 +131,7 @@ public final class BigDecimalUtil {
      */
     public static String localize(final BigDecimal decimal, int fractionDigits,
             final Locale locale, boolean currency, boolean groupingUsed)
-                    throws ParseException {
+            throws ParseException {
 
         final DecimalFormat df = getDecimalFormat(locale, currency);
 
@@ -173,7 +192,7 @@ public final class BigDecimalUtil {
     public static String localizeMinimalPrecision(final BigDecimal decimal,
             final int fractionDigitsMinimum, final Locale locale,
             final String currencySymbol, final boolean groupingUsed)
-                    throws ParseException {
+            throws ParseException {
 
         return localize(decimal,
                 getRightSizedPrecision(decimal, fractionDigitsMinimum), locale,
@@ -223,7 +242,7 @@ public final class BigDecimalUtil {
     public static String localize(final BigDecimal decimal,
             final int fractionDigits, final Locale locale,
             final String currencySymbol, final boolean groupingUsed)
-                    throws ParseException {
+            throws ParseException {
         final StringBuilder txt = new StringBuilder();
 
         if (StringUtils.isNotBlank(currencySymbol)) {
@@ -270,7 +289,7 @@ public final class BigDecimalUtil {
      */
     public static String toPlainString(final String localizedDecimal,
             final Locale locale, final boolean groupingUsed)
-                    throws ParseException {
+            throws ParseException {
         return BigDecimalUtil.toPlainString(BigDecimalUtil
                 .parse(localizedDecimal, locale, false, groupingUsed));
     }

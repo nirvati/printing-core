@@ -46,13 +46,17 @@ public enum NounEnum {
     /** */
     MODE(true),
     /** */
+    REFUND(true),
+    /** */
     REMARK(true),
+    /** */
+    TICKET(true),
     /** */
     TIME,
     /** */
     TITLE,
     /** */
-    TICKET(true),
+    TRANSACTION(true),
     /** */
     USER(true);
 
