@@ -230,6 +230,9 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String NUMBER_UP_9 = "9";
     public static final String NUMBER_UP_16 = "16";
 
+    public static final String[] ARRAY_NUMBER_UP = { NUMBER_UP_1, NUMBER_UP_2,
+            NUMBER_UP_4, NUMBER_UP_6, NUMBER_UP_9, NUMBER_UP_16 };
+
     // ------------------------------------------------------------------------
     // number-up-layout : https://www.cups.org/doc/options.html
     // ------------------------------------------------------------------------
@@ -273,6 +276,11 @@ public class IppKeyword extends AbstractIppAttrSyntax {
      * number-up-layout: Top to bottom, right to left.
      */
     public static final String NUMBER_UP_LAYOUT_TBRL = "tbrl";
+
+    public static final String[] ARRAY_NUMBER_UP_LAYOUT = {
+            NUMBER_UP_LAYOUT_BTLR, NUMBER_UP_LAYOUT_BTRL, NUMBER_UP_LAYOUT_LRBT,
+            NUMBER_UP_LAYOUT_LRTB, NUMBER_UP_LAYOUT_RLBT, NUMBER_UP_LAYOUT_RLTB,
+            NUMBER_UP_LAYOUT_TBLR, NUMBER_UP_LAYOUT_TBRL };
 
     // ------------------------------------------------------------------------
     // orientation-requested : https://www.cups.org/doc/options.html
@@ -318,6 +326,11 @@ public class IppKeyword extends AbstractIppAttrSyntax {
      */
     public static final String ORIENTATION_REQUESTED_180_DEGREES =
             ORIENTATION_REQUESTED_REVERSE_PORTRAIT;
+
+    public static final String[] ARRAY_ORIENTATION_REQUESTED =
+            { ORIENTATION_REQUESTED_LANDSCAPE, ORIENTATION_REQUESTED_PORTRAIT,
+                    ORIENTATION_REQUESTED_REVERSE_LANDSCAPE,
+                    ORIENTATION_REQUESTED_REVERSE_PORTRAIT };
 
     // ------------------------------------------------------------------------
     // finishings
@@ -411,4 +424,55 @@ public class IppKeyword extends AbstractIppAttrSyntax {
         writeUsAscii(ostr, value);
     }
 
+    /**
+     * Checks value of {@link IppDictJobTemplateAttr#ATTR_NUMBER_UP}.
+     *
+     * @param value
+     *            The candidate value.
+     * @return {@code true} when valid.
+     */
+    public static boolean checkNumberUp(final String value) {
+        return checkKeywordValue(ARRAY_NUMBER_UP, value);
+    }
+
+    /**
+     * Checks value of
+     * {@link IppDictJobTemplateAttr#CUPS_ATTR_ORIENTATION_REQUESTED}.
+     *
+     * @param value
+     *            The candidate value.
+     * @return {@code true} when valid.
+     */
+    public static boolean checkOrientationRequested(final String value) {
+        return checkKeywordValue(ARRAY_ORIENTATION_REQUESTED, value);
+    }
+
+    /**
+     * Checks value of
+     * {@link IppDictJobTemplateAttr#CUPS_ATTR_NUMBER_UP_LAYOUT}.
+     *
+     * @param value
+     *            The candidate value.
+     * @return {@code true} when valid.
+     */
+    public static boolean checkNumberUpLayout(final String value) {
+        return checkKeywordValue(ARRAY_NUMBER_UP_LAYOUT, value);
+    }
+
+    /**
+     * @param validValues
+     *            Array of valid values.
+     * @param value
+     *            The candidate value.
+     * @return {@code true} when valid.
+     */
+    private static boolean checkKeywordValue(final String[] validValues,
+            final String value) {
+        for (final String valueWlk : validValues) {
+            if (valueWlk.equals(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

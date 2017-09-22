@@ -67,6 +67,20 @@ public final class PdfPageRotateHelper {
 
     /**
      *
+     * @param rotation
+     *            The candidate rotation.
+     * @return {code true} when valid.
+     */
+    public static boolean isPdfRotationValid(final Integer rotation) {
+        return rotation.equals(PDF_ROTATION_0)
+                || rotation.equals(PDF_ROTATION_90)
+                || rotation.equals(PDF_ROTATION_180)
+                || rotation.equals(PDF_ROTATION_270)
+                || rotation.equals(PDF_ROTATION_360);
+    }
+
+    /**
+     *
      */
     private PdfPageRotateHelper() {
         this.rotationMapPortraitPrint = createRotationMapPortraitPrint();

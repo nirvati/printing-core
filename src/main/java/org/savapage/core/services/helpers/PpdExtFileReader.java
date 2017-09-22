@@ -33,9 +33,13 @@ import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dto.IppCostRule;
+import org.savapage.core.dto.IppNumberUpRule;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
+import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
@@ -144,6 +148,26 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     private static final int SP_JOBTICKET_COST_MIN_ARGS = 3;
 
     /**
+    *
+    */
+    private static final String SP_RULE_PFX = PPD_OPTION_PFX_CHAR + "SPRule";
+    private static final char SP_RULE_ATTR_CHOICE_SEPARATOR = '/';
+
+    private static final String SP_RULE_NUMBER_UP_SFX =
+            "/" + IppDictJobTemplateAttr.ATTR_NUMBER_UP;
+
+    private static final String SP_RULE_NUMBER_UP =
+            SP_RULE_PFX + SP_RULE_NUMBER_UP_SFX + ":";
+
+    private static final String SP_RULE_OPTION_DEPENDENT_PFX = "*";
+    private static final String SP_RULE_OPTION_CHOICE_NONE = "-";
+
+    /**
+     * Minimal number of arguments for option with {@link #SP_RULE_NUMBER_UP}.
+     */
+    private static final int SP_RULE_NUMBER_UP_MIN_ARGS = 7;
+
+    /**
      * The number of words after a PPD option constant.
      */
     private static final int PPD_OPTION_CONSTANT_WORDS = 1;
@@ -207,6 +231,11 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      *
      */
     private List<IppCostRule> jobTicketCostRulesSet;
+
+    /**
+     *
+     */
+    private List<IppNumberUpRule> numberUpRules;
 
     /**
      * IPP printer options as retrieved from CUPS.
@@ -299,6 +328,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
         this.jobTicketOptMapSet = new HashMap<>();
         this.jobTicketCostRulesSet = new ArrayList<>();
+
+        this.numberUpRules = new ArrayList<>();
     }
 
     /**
@@ -578,7 +609,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     }
 
     /**
-     * Notifies an SpJobTicket option.
+     * Notifies an SPJobTicket option.
      *
      * @param lineNr
      *            The 1-based line number.
@@ -608,6 +639,149 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             break;
         case SP_JOBTICKET_SET_COST:
             this.onSpJobTicketSetCost(lineNr, nextwords);
+            break;
+        default:
+            LOGGER.warn(String.format("%s line %d [%s] is NOT handled.",
+                    this.getConfigFile().getName(), lineNr, firstword));
+            break;
+        }
+    }
+
+    /**
+     * Notifies a {@link #SP_RULE_NUMBER_UP} line.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param words
+     *            The words.
+     */
+    private void onSpRuleNumberUp(final int lineNr, final String[] words) {
+
+        if (words.length < SP_RULE_NUMBER_UP_MIN_ARGS) {
+            LOGGER.warn(String.format("%s line %d: incomplete %s",
+                    getConfigFile().getName(), lineNr, SP_RULE_NUMBER_UP));
+            return;
+        }
+
+        final String alias = words[0].trim();
+        final IppNumberUpRule rule = new IppNumberUpRule(alias);
+
+        boolean isLineValid = true;
+
+        for (final String attrChoice : ArrayUtils.removeAll(words, 0)) {
+
+            final String[] splitWords = StringUtils.split(attrChoice,
+                    SP_RULE_ATTR_CHOICE_SEPARATOR);
+
+            if (splitWords.length != 2) {
+                LOGGER.warn(String.format("%s line %d: \"%s\" syntax invalid",
+                        getConfigFile().getName(), lineNr, attrChoice));
+                isLineValid = false;
+                continue;
+            }
+
+            final String attr = StringUtils
+                    .stripStart(splitWords[0], SP_RULE_OPTION_DEPENDENT_PFX)
+                    .toLowerCase();
+
+            final String choice = splitWords[1];
+
+            boolean isChoiceValid = true;
+
+            switch (attr) {
+            case "pdf-orientation":
+                rule.setLandscape(choice.equals("landscape"));
+                break;
+
+            case "pdf-rotation":
+                isChoiceValid = NumberUtils.isDigits(choice);
+                if (isChoiceValid) {
+                    final Integer rotation = Integer.valueOf(choice);
+                    if (PdfPageRotateHelper.isPdfRotationValid(rotation)) {
+                        rule.setPdfRotation(rotation.intValue());
+                    } else {
+                        isChoiceValid = false;
+                    }
+                }
+                break;
+
+            case "user-rotate":
+                isChoiceValid = NumberUtils.isDigits(choice);
+                if (isChoiceValid) {
+                    final Integer pdfRotation = Integer.valueOf(choice);
+                    if (PdfPageRotateHelper.isPdfRotationValid(pdfRotation)) {
+                        rule.setUserRotate(pdfRotation.intValue());
+                    } else {
+                        isChoiceValid = false;
+                    }
+                }
+                break;
+
+            case IppDictJobTemplateAttr.ATTR_NUMBER_UP:
+                isChoiceValid = IppKeyword.checkNumberUp(choice);
+                if (isChoiceValid) {
+                    rule.setNumberUp(choice);
+                }
+                break;
+
+            case IppDictJobTemplateAttr.CUPS_ATTR_ORIENTATION_REQUESTED:
+                if (!choice.equals(SP_RULE_OPTION_CHOICE_NONE)) {
+                    if (IppKeyword.checkOrientationRequested(choice)) {
+                        rule.setOrientationRequested(choice);
+                    } else {
+                        isChoiceValid = false;
+                    }
+                }
+                break;
+
+            case IppDictJobTemplateAttr.CUPS_ATTR_NUMBER_UP_LAYOUT:
+                if (!choice.equals(SP_RULE_OPTION_CHOICE_NONE)) {
+                    if (IppKeyword.checkNumberUpLayout(choice)) {
+                        rule.setNumberUpLayout(choice);
+                    } else {
+                        isChoiceValid = false;
+                    }
+                }
+                break;
+
+            default:
+                LOGGER.warn(
+                        String.format("%s line %d: attribute \"%s\" is unknown",
+                                getConfigFile().getName(), lineNr, attr));
+                isLineValid = false;
+                continue;
+            }
+
+            if (!isChoiceValid) {
+                LOGGER.warn(String.format(
+                        "%s line %d: attribute/choice \"%s/%s\" is invalid",
+                        getConfigFile().getName(), lineNr, attr, choice));
+                isLineValid = false;
+                continue;
+            }
+        }
+        if (!isLineValid) {
+            return;
+        }
+        this.numberUpRules.add(rule);
+    }
+
+    /**
+     * Notifies an SPRule option.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param firstword
+     *            The first word.
+     * @param nextwords
+     *            The next words.
+     */
+    private void onSpRule(final int lineNr, final String firstword,
+            final String[] nextwords) {
+
+        switch (firstword) {
+        case SP_RULE_NUMBER_UP:
+            this.onSpRuleNumberUp(lineNr, nextwords);
             break;
         default:
             LOGGER.warn(String.format("%s line %d [%s] is NOT handled.",
@@ -688,6 +862,16 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             if (words.length > 1) {
                 this.onSpJobTicket(lineNr, firstWord,
                         ArrayUtils.remove(words, 0));
+            } else {
+                LOGGER.warn(String.format("%s line %d: [%s] syntax error.",
+                        this.getConfigFile().getName(), lineNr, firstWord));
+            }
+            return;
+        }
+
+        if (firstWord.startsWith(SP_RULE_PFX)) {
+            if (words.length > 1) {
+                this.onSpRule(lineNr, firstWord, ArrayUtils.remove(words, 0));
             } else {
                 LOGGER.warn(String.format("%s line %d: [%s] syntax error.",
                         this.getConfigFile().getName(), lineNr, firstWord));
@@ -815,6 +999,9 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         proxyPrinter.setCustomCostRulesSet(reader.jobTicketCostRulesSet);
         proxyPrinter.setCustomCostRulesCopy(reader.jobTicketCostRulesCopy);
         proxyPrinter.setCustomCostRulesMedia(reader.jobTicketCostRulesMedia);
+
+        // Other rules.
+        proxyPrinter.setCustomNumberUpRules(reader.numberUpRules);
 
         //
         proxyPrinter.setInjectPpdExt(true);

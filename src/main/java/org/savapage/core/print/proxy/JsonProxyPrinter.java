@@ -30,6 +30,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.dto.IppCostRule;
+import org.savapage.core.dto.IppNumberUpRule;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.jpa.Printer;
@@ -70,6 +71,12 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      */
     @JsonIgnore
     private List<IppCostRule> customCostRulesMedia;
+
+    /**
+     * Custom rules for a handling number-up printing.
+     */
+    @JsonIgnore
+    private List<IppNumberUpRule> customNumberUpRules;
 
     /**
      * Custom cost rules for a printed copy.
@@ -230,6 +237,23 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     public void setCustomCostRulesSet(final List<IppCostRule> rules) {
         this.customCostRulesSet = rules;
+    }
+
+    /**
+     * @return Custom rules for a handling number-up printing.
+     */
+    @JsonIgnore
+    public List<IppNumberUpRule> getCustomNumberUpRules() {
+        return customNumberUpRules;
+    }
+
+    /**
+     * @param rules
+     *            Custom rules for a handling number-up printing.
+     */
+    @JsonIgnore
+    public void setCustomNumberUpRules(final List<IppNumberUpRule> rules) {
+        this.customNumberUpRules = rules;
     }
 
     /**
@@ -622,6 +646,26 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      */
     public BigDecimal calcCustomCostSet(final Map<String, String> ippChoices) {
         return calcCost(this.getCustomCostRulesSet(), ippChoices, true);
+    }
+
+    /**
+     * Finds a matching {@link IppNumberUpRule} for a template rule.
+     *
+     * @param template
+     *            The template rule with <i>independent</i> variables.
+     * @return The template rule object supplemented with <i>dependent</i>
+     *         variables, or {@code null} when no rule found.
+     */
+    public IppNumberUpRule findCustomRule(final IppNumberUpRule template) {
+        if (this.customNumberUpRules != null) {
+            for (final IppNumberUpRule wlk : this.customNumberUpRules) {
+                if (template.isParameterMatch(wlk)) {
+                    template.setDependentVars(wlk);
+                    return template;
+                }
+            }
+        }
+        return null;
     }
 
     /**
