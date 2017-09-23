@@ -292,6 +292,12 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String ORIENTATION_REQUESTED_PORTRAIT = "3";
 
     /**
+     * An alias for {@link #ORIENTATION_REQUESTED_PORTRAIT}.
+     */
+    public static final String ORIENTATION_REQUESTED_0_DEGREES =
+            ORIENTATION_REQUESTED_PORTRAIT;
+
+    /**
      * landscape orientation (90 degrees). See
      * {@link IppDictJobTemplateAttr#CUPS_ATTR_ORIENTATION_REQUESTED}.
      */

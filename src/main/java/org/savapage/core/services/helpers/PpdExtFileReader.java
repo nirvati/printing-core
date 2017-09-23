@@ -667,11 +667,22 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         final IppNumberUpRule rule = new IppNumberUpRule(alias);
 
         boolean isLineValid = true;
+        boolean isLandscapeOutput = false;
 
         for (final String attrChoice : ArrayUtils.removeAll(words, 0)) {
 
             final String[] splitWords = StringUtils.split(attrChoice,
                     SP_RULE_ATTR_CHOICE_SEPARATOR);
+
+            final String attr = StringUtils
+                    .stripStart(splitWords[0], SP_RULE_OPTION_DEPENDENT_PFX)
+                    .toLowerCase();
+
+            if (attr.equals(
+                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_LANDSCAPE)) {
+                isLandscapeOutput = true;
+                continue;
+            }
 
             if (splitWords.length != 2) {
                 LOGGER.warn(String.format("%s line %d: \"%s\" syntax invalid",
@@ -680,15 +691,12 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 continue;
             }
 
-            final String attr = StringUtils
-                    .stripStart(splitWords[0], SP_RULE_OPTION_DEPENDENT_PFX)
-                    .toLowerCase();
-
             final String choice = splitWords[1];
 
             boolean isChoiceValid = true;
 
             switch (attr) {
+
             case "pdf-orientation":
                 rule.setLandscape(choice.equals("landscape"));
                 break;
@@ -763,6 +771,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         if (!isLineValid) {
             return;
         }
+
+        rule.setLandscapePrint(isLandscapeOutput);
         this.numberUpRules.add(rule);
     }
 

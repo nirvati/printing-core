@@ -46,6 +46,7 @@ public final class IppNumberUpRule {
     // Dependent variables.
     private String orientationRequested;
     private String numberUpLayout;
+    private boolean landscapePrint;
 
     /**
      *
@@ -79,6 +80,20 @@ public final class IppNumberUpRule {
     public void setDependentVars(final IppNumberUpRule source) {
         this.numberUpLayout = source.numberUpLayout;
         this.orientationRequested = source.orientationRequested;
+        this.landscapePrint = source.landscapePrint;
+    }
+
+    /**
+     * Sets the <i>independent</i> variables from source.
+     *
+     * @param source
+     *            The source of the variables.
+     */
+    public void setInDependentVars(final IppNumberUpRule source) {
+        this.landscape = source.landscape;
+        this.pdfRotation = source.pdfRotation;
+        this.userRotate = source.userRotate;
+        this.numberUp = source.numberUp;
     }
 
     /**
@@ -89,10 +104,17 @@ public final class IppNumberUpRule {
         return name;
     }
 
+    /**
+     * @return {@code true} if orientation of input PDF is landscape.
+     */
     public boolean isLandscape() {
         return landscape;
     }
 
+    /**
+     * @param landscape
+     *            {@code true} if orientation of input PDF is landscape.
+     */
     public void setLandscape(boolean landscape) {
         this.landscape = landscape;
     }
@@ -135,6 +157,23 @@ public final class IppNumberUpRule {
 
     public void setNumberUpLayout(String numberUpLayout) {
         this.numberUpLayout = numberUpLayout;
+    }
+
+    /**
+     * @return {@code true} if orientation of generated PDF for printing is
+     *         landscape.
+     */
+    public boolean isLandscapePrint() {
+        return landscapePrint;
+    }
+
+    /**
+     * @param landscape
+     *            {@code true} if orientation of generated PDF for printing is
+     *            landscape.
+     */
+    public void setLandscapePrint(boolean landscape) {
+        this.landscapePrint = landscape;
     }
 
     public void setName(String name) {
