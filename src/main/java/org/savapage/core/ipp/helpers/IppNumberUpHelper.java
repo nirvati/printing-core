@@ -1,3 +1,24 @@
+/*
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * For more information, please contact Datraverse B.V. at this
+ * address: info@datraverse.com
+ */
 package org.savapage.core.ipp.helpers;
 
 import java.util.ArrayList;
@@ -7,6 +28,7 @@ import org.savapage.core.dto.IppNumberUpRule;
 import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.pdf.PdfPageRotateHelper;
+import org.savapage.core.services.helpers.PpdExtFileReader;
 
 /**
  *
@@ -82,25 +104,28 @@ public final class IppNumberUpHelper {
 
     /**
      * Internal rules as tested with CUPS "Generic PostScript Printer".
+     *
+     * Exceptions, like e.g.for Ricoh, are configured as SPRule in PPDE file.
+     * See: {@link PpdExtFileReader}.
      */
     private static final String[][] RULES = { //
             /*
              * Portrait.
              */
             { _P_, P___0, U__0, N_1, _____, ____, _P_ }, // OK
-            { _P_, P___0, U__0, N_2, C_180, TBRL, _L_ }, // OK
-            { _P_, P___0, U__0, N_4, _____, TBRL, _P_ }, // OK
-            { _P_, P___0, U__0, N_6, C_180, TBRL, _L_ }, // OK
+            { _P_, P___0, U__0, N_2, _____, LRTB, _L_ }, // OK +LH(_P_)
+            { _P_, P___0, U__0, N_4, _____, LRTB, _P_ }, // OK
+            { _P_, P___0, U__0, N_6, _____, LRTB, _L_ }, // OK +LH(_P_)
 
-            { _P_, P___0, U_90, N_1, _____, ____ }, //
-            { _P_, P___0, U_90, N_2, C_270, TBRL }, //
-            { _P_, P___0, U_90, N_4, _____, TBRL }, //
-            { _P_, P___0, U_90, N_6, C_270, LRTB }, //
+            { _P_, P___0, U_90, N_1, _____, ____, _P_ }, // OK
+            { _P_, P___0, U_90, N_2, _____, RLTB, _L_ }, // OK -LH
+            { _P_, P___0, U_90, N_4, _____, BTLR, _P_ }, // OK -LH
+            { _P_, P___0, U_90, N_6, _____, TBRL, _L_ }, // OK -LH
 
-            { _P_, P__90, U__0, N_1, C_180, ____, _P_ }, // OK, -Ricoh
-            { _P_, P__90, U__0, N_2, C_270, TBRL, _P_ }, // OK, -Xerox
-            { _P_, P__90, U__0, N_4, C_180, BTLR, _P_ }, // OK, -Ricoh
-            { _P_, P__90, U__0, N_6, C_270, LRTB, _P_ }, // OK, -Xerox
+            { _P_, P__90, U__0, N_1, C_180, ____, _P_ }, // OK -Ricoh
+            { _P_, P__90, U__0, N_2, C_180, TBLR, _P_ }, // OK -Ricoh
+            { _P_, P__90, U__0, N_4, C_180, BTLR, _P_ }, // OK -Ricoh
+            { _P_, P__90, U__0, N_6, C_180, BTLR, _P_ }, // OK -Ricoh
 
             { _P_, P__90, U_90, N_1, _____, ____ }, //
             { _P_, P__90, U_90, N_2, C_270, TBRL }, //
@@ -131,9 +156,9 @@ public final class IppNumberUpHelper {
              * Landscape.
              */
             { _L_, P___0, U__0, N_1, C_270, ____, _P_ }, // OK
-            { _L_, P___0, U__0, N_2, C_270, TBRL, _P_ }, // OK, -Xerox
+            { _L_, P___0, U__0, N_2, C_180, TBLR, _P_ }, // OK -Ricoh
             { _L_, P___0, U__0, N_4, C_270, LRTB, _P_ }, // OK
-            { _L_, P___0, U__0, N_6, C_270, LRTB, _P_ }, // OK, -Xerox
+            { _L_, P___0, U__0, N_6, C_180, BTLR, _P_ }, // OK -Ricoh
 
             { _L_, P___0, U_90, N_1, C_270, ____ }, //
             { _L_, P___0, U_90, N_2, C_270, TBRL }, //
@@ -160,16 +185,16 @@ public final class IppNumberUpHelper {
             { _L_, P_180, U_90, N_4, _____, TBRL }, //
             { _L_, P_180, U_90, N_6, C_180, TBRL }, //
 
-            // When driver printing a landscape oriented document.
+            // Driver Printing a landscape LibreOffice document.
             { _L_, P_270, U__0, N_1, _____, ____, _P_ }, // OK
             { _L_, P_270, U__0, N_2, _____, TBLR, _P_ }, // OK
-            { _L_, P_270, U__0, N_4, C__90, LRTB, _L_ }, // OK
-            { _L_, P_270, U__0, N_6, _____, BTLR, _P_ }, // OK
+            { _L_, P_270, U__0, N_4, C__90, LRTB, _L_ }, // OK -LH
+            { _L_, P_270, U__0, N_6, _____, BTLR, _P_ }, // OK -LH(Gen)
 
             { _L_, P_270, U_90, N_1, _____, ____, _L_ }, // OK
-            { _L_, P_270, U_90, N_2, _____, TBRL, _P_ }, // OK
+            { _L_, P_270, U_90, N_2, _____, TBRL, _P_ }, // OK -LH
             { _L_, P_270, U_90, N_4, _____, TBRL, _L_ }, // OK
-            { _L_, P_270, U_90, N_6, _____, TBRL, _P_ }, // OK
+            { _L_, P_270, U_90, N_6, _____, TBRL, _P_ }, // OK -LH
     };
 
     /** */
@@ -222,7 +247,8 @@ public final class IppNumberUpHelper {
      *         variables, or {@code null} when no rule found.
      */
     public IppNumberUpRule findCustomRuleTest(final IppNumberUpRule template) {
-        final String[][] testRules = {};
+        final String[][] testRules = { //
+        };
 
         if (testRules.length == 0) {
             return null;
