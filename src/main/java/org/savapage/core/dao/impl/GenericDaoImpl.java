@@ -37,7 +37,8 @@ import org.savapage.core.jpa.Entity;
  *
  * @param <T>
  */
-public class GenericDaoImpl<T extends Entity> implements GenericDao<T> {
+public abstract class GenericDaoImpl<T extends Entity>
+        implements GenericDao<T> {
 
     /**
      *
@@ -100,6 +101,17 @@ public class GenericDaoImpl<T extends Entity> implements GenericDao<T> {
         return getEntityManager().contains(entity)
                 && getEntityManager().getLockMode(entity).equals(DAO_LOCK_MODE);
     }
+
+    @Override
+    public final long count() {
+        return ((Number) getEntityManager().createQuery(this.getCountQuery())
+                .getSingleResult()).longValue();
+    }
+
+    /**
+     * @return The JPA query string to count all rows in the table.
+     */
+    protected abstract String getCountQuery();
 
     /**
      *

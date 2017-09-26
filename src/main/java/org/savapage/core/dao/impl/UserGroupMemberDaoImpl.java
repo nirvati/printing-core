@@ -39,6 +39,11 @@ public final class UserGroupMemberDaoImpl
         extends GenericDaoImpl<UserGroupMember> implements UserGroupMemberDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM UserGroupMember T";
+    }
+
+    @Override
     public int deleteGroup(final Long groupId) {
 
         final String jpql =

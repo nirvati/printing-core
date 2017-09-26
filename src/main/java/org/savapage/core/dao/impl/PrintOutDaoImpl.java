@@ -44,6 +44,11 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
         implements PrintOutDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM PrintOut T";
+    }
+
+    @Override
     public PrintOut findCupsJob(final String jobPrinterName,
             final Integer jobId) {
 

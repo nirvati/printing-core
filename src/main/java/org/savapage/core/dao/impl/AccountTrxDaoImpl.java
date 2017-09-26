@@ -39,6 +39,11 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         implements AccountTrxDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM AccountTrx T";
+    }
+
+    @Override
     public long getListCount(final ListFilter filter) {
 
         final StringBuilder jpql =

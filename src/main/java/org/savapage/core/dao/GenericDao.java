@@ -88,4 +88,10 @@ public interface GenericDao<T extends Entity> {
      * @return
      */
     boolean delete(T entity);
+
+    /**
+     * @return The number of rows.
+     */
+    long count();
+
 }

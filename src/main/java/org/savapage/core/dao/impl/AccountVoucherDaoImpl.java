@@ -46,6 +46,11 @@ public final class AccountVoucherDaoImpl extends GenericDaoImpl<AccountVoucher>
         implements AccountVoucherDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM AccountVoucher T";
+    }
+
+    @Override
     public int deleteExpired(final Date expiryDay) {
         /*
          * NOTE: The JPA 2.0 Criteria API does not currently support update and

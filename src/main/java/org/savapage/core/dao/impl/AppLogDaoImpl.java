@@ -40,6 +40,11 @@ public final class AppLogDaoImpl extends GenericDaoImpl<AppLog>
         implements AppLogDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM AppLog T";
+    }
+
+    @Override
     public long getListCount(final ListFilter filter) {
 
         final StringBuilder jpql =

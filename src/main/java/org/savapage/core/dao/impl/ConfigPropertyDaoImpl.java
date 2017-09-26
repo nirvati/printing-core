@@ -39,6 +39,11 @@ public final class ConfigPropertyDaoImpl extends GenericDaoImpl<ConfigProperty>
         implements ConfigPropertyDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM ConfigProperty T";
+    }
+
+    @Override
     public ConfigProperty findByName(final String propertyName) {
         return readProperty(propertyName, null);
     }

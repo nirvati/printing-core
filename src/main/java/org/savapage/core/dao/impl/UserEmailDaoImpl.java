@@ -1,7 +1,7 @@
 /*
 
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -31,11 +31,16 @@ import org.savapage.core.jpa.UserEmail;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public final class UserEmailDaoImpl extends GenericDaoImpl<UserEmail> implements
-        UserEmailDao {
+public final class UserEmailDaoImpl extends GenericDaoImpl<UserEmail>
+        implements UserEmailDao {
+
+    @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM UserEmail T";
+    }
 
     @Override
     public boolean isPrimaryEmail(final UserEmail email) {
@@ -55,9 +60,8 @@ public final class UserEmailDaoImpl extends GenericDaoImpl<UserEmail> implements
 
         if (StringUtils.isNotBlank(emailAddress)) {
 
-            final String jpql =
-                    "SELECT E FROM UserEmail E JOIN E.user U "
-                            + "WHERE E.address = :address";
+            final String jpql = "SELECT E FROM UserEmail E JOIN E.user U "
+                    + "WHERE E.address = :address";
 
             final Query query = getEntityManager().createQuery(jpql);
 

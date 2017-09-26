@@ -129,6 +129,11 @@ public interface DaoContext {
     /**
      * @return The DAO implementation.
      */
+    PdfOutDao getPdfOutDao();
+
+    /**
+     * @return The DAO implementation.
+     */
     PosPurchaseDao getPosPurchaseDao();
 
     /**

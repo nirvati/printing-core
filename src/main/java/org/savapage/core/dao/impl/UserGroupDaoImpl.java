@@ -45,6 +45,11 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup>
         implements UserGroupDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM UserGroup T";
+    }
+
+    @Override
     public ReservedUserGroupEnum findReservedGroup(final Long userGroupId) {
         final UserGroup userGroup = findById(userGroupId);
         if (userGroup == null) {

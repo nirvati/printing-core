@@ -42,6 +42,11 @@ import org.slf4j.LoggerFactory;
 public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         implements DocLogDao {
 
+    @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM DocLog T";
+    }
+
     /**
      * .
      */

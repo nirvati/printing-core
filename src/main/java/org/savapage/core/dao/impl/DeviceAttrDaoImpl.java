@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -30,18 +30,23 @@ import org.savapage.core.jpa.DeviceAttr;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class DeviceAttrDaoImpl extends GenericDaoImpl<DeviceAttr>
         implements DeviceAttrDao {
 
     @Override
-    public DeviceAttr
-            findByName(final Long deviceId, final DeviceAttrEnum name) {
-        final String jpql =
-                "SELECT A FROM DeviceAttr A JOIN A.device P "
-                        + "WHERE P.id = :deviceId AND A.name = :name";
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM DeviceAttr T";
+    }
+
+    @Override
+    public DeviceAttr findByName(final Long deviceId,
+            final DeviceAttrEnum name) {
+
+        final String jpql = "SELECT A FROM DeviceAttr A JOIN A.device P "
+                + "WHERE P.id = :deviceId AND A.name = :name";
 
         final Query query = getEntityManager().createQuery(jpql);
 

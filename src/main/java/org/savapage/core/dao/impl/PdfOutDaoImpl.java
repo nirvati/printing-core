@@ -21,20 +21,20 @@
  */
 package org.savapage.core.dao.impl;
 
-import org.savapage.core.dao.PrintInDao;
-import org.savapage.core.jpa.PrintIn;
+import org.savapage.core.dao.PdfOutDao;
+import org.savapage.core.jpa.PdfOut;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class PrintInDaoImpl extends GenericDaoImpl<PrintIn> implements
-        PrintInDao {
+public final class PdfOutDaoImpl extends GenericDaoImpl<PdfOut>
+        implements PdfOutDao {
 
     @Override
     protected String getCountQuery() {
-        return "SELECT COUNT(T.id) FROM PrintIn T";
+        return "SELECT COUNT(T.id) FROM PdfOut T";
     }
 
 }

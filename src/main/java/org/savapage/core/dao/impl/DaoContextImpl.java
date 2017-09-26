@@ -36,6 +36,7 @@ import org.savapage.core.dao.DocInOutDao;
 import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.IppQueueAttrDao;
 import org.savapage.core.dao.IppQueueDao;
+import org.savapage.core.dao.PdfOutDao;
 import org.savapage.core.dao.PosPurchaseDao;
 import org.savapage.core.dao.PrintInDao;
 import org.savapage.core.dao.PrintOutDao;
@@ -210,6 +211,11 @@ public final class DaoContextImpl implements DaoContext {
          *
          */
         public static final PrintOutDao PRINT_OUT_DAO = new PrintOutDaoImpl();
+
+        /**
+        *
+        */
+       public static final PdfOutDao PDF_OUT_DAO = new PdfOutDaoImpl();
 
         /**
          *
@@ -388,6 +394,11 @@ public final class DaoContextImpl implements DaoContext {
     @Override
     public PrintOutDao getPrintOutDao() {
         return DaoHolder.PRINT_OUT_DAO;
+    }
+
+    @Override
+    public PdfOutDao getPdfOutDao() {
+        return DaoHolder.PDF_OUT_DAO;
     }
 
     @Override

@@ -36,6 +36,11 @@ import org.savapage.core.jpa.UserNumber;
 public final class UserNumberDaoImpl extends GenericDaoImpl<UserNumber>
         implements UserNumberDao {
 
+    @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM UserNumber T";
+    }
+
     /**
      *
      */

@@ -42,6 +42,11 @@ public final class DeviceDaoImpl extends GenericDaoImpl<Device>
         implements DeviceDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM Device T";
+    }
+
+    @Override
     public Device findByName(final String deviceName) {
 
         final String psql =

@@ -46,7 +46,7 @@ public interface PrintOutDao extends GenericDao<PrintOut> {
      *            The job ID.
      * @return The PrintOut object or {@code null} when not found.
      */
-    PrintOut findCupsJob(String jobPrinterName, final Integer jobId);
+    PrintOut findCupsJob(String jobPrinterName, Integer jobId);
 
     /**
      * Finds the CUPS jobs which are NOT registered as completed.

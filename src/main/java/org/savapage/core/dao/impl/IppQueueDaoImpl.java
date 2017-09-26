@@ -40,6 +40,11 @@ public final class IppQueueDaoImpl extends GenericDaoImpl<IppQueue>
         implements IppQueueDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM IppQueue T";
+    }
+
+    @Override
     public void resetTotals(final Date resetDate, final String resetBy) {
 
         final String jpql = "UPDATE IppQueue Q SET "

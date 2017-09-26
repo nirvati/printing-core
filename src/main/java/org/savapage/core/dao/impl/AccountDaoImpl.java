@@ -42,6 +42,11 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account>
         implements AccountDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM Account T";
+    }
+
+    @Override
     public int pruneAccounts() {
 
         final String jpql = "SELECT A FROM Account A WHERE A.deleted = true "

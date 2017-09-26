@@ -47,6 +47,11 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
     }
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM User T";
+    }
+
+    @Override
     public User findByAccount(final Long accountId) {
 
         final String jpql = "SELECT UA.user FROM UserAccount UA "

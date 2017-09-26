@@ -47,6 +47,11 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
         implements PrinterDao {
 
     @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM Printer T";
+    }
+
+    @Override
     public CostMediaAttr getCostMediaAttr() {
         return new CostMediaAttr();
     }

@@ -19,22 +19,15 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.impl;
+package org.savapage.core.dao;
 
-import org.savapage.core.dao.PrintInDao;
-import org.savapage.core.jpa.PrintIn;
+import org.savapage.core.jpa.PdfOut;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class PrintInDaoImpl extends GenericDaoImpl<PrintIn> implements
-        PrintInDao {
-
-    @Override
-    protected String getCountQuery() {
-        return "SELECT COUNT(T.id) FROM PrintIn T";
-    }
+public interface PdfOutDao extends GenericDao<PdfOut> {
 
 }

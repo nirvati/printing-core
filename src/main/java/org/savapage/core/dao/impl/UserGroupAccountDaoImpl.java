@@ -39,6 +39,11 @@ import org.savapage.core.jpa.UserGroupAccount;
 public final class UserGroupAccountDaoImpl extends
         GenericDaoImpl<UserGroupAccount> implements UserGroupAccountDao {
 
+    @Override
+    protected String getCountQuery() {
+        return "SELECT COUNT(T.id) FROM UserGroupAccount T";
+    }
+
     /**
      * Applies the joins.
      *
