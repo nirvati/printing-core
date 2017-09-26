@@ -141,7 +141,11 @@ public final class SpJobScheduler {
              * not have members.
              */
             scheduleOneShotJob(SpJobType.APP_LOG_CLEAN, 1L);
-            scheduleOneShotJob(SpJobType.DOC_LOG_CLEAN, 1L);
+
+            if (ConfigManager.isCleanUpDocLogAtStart()) {
+                scheduleOneShotJob(SpJobType.DOC_LOG_CLEAN, 1L);
+            }
+
             scheduleOneShotJob(SpJobType.PRINTER_GROUP_CLEAN, 1L);
 
             /*

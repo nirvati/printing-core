@@ -71,6 +71,7 @@ import javax.persistence.Persistence;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
@@ -346,6 +347,12 @@ public final class ConfigManager {
      */
     private static final String SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_GET =
             "pgp.publickey.server.url.get";
+
+    /**
+     *
+     */
+    private static final String SERVER_PROP_START_CLEANUP_DOCLOG =
+            "start.cleanup-doclog";
 
     // ========================================================================
     // Undocumented ad-hoc properties for testing purposes.
@@ -776,6 +783,18 @@ public final class ConfigManager {
         }
         return theServerProps.getProperty(SERVER_PROP_CUPS_SERVER_PORT,
                 DEFAULT_CUPS_PORT);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static boolean isCleanUpDocLogAtStart() {
+        return theServerProps != null && BooleanUtils
+                .toBooleanObject(theServerProps.getProperty(
+                        SERVER_PROP_START_CLEANUP_DOCLOG,
+                        Boolean.TRUE.toString()))
+                .booleanValue();
     }
 
     /**
