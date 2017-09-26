@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,12 +25,13 @@ import java.util.Date;
 import java.util.List;
 
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.IppQueue;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface IppQueueDao extends GenericDao<IppQueue> {
@@ -117,9 +118,8 @@ public interface IppQueueDao extends GenericDao<IppQueue> {
      *            {@code true} when sorted ascending.
      * @return The chunk.
      */
-    List<IppQueue> getListChunk(final ListFilter filter,
-            final Integer startPosition, final Integer maxResults,
-            final Field orderBy, final boolean sortAscending);
+    List<IppQueue> getListChunk(ListFilter filter, Integer startPosition,
+            Integer maxResults, Field orderBy, boolean sortAscending);
 
     /**
      * Finds a reserved {@link IppQueue}.
@@ -137,7 +137,7 @@ public interface IppQueueDao extends GenericDao<IppQueue> {
      *            The unique URL path name of the queue.
      * @return The queue instance, or {@code null} when not found.
      */
-    IppQueue findByUrlPath(final String urlPath);
+    IppQueue findByUrlPath(String urlPath);
 
     /**
      * Resets the totals to zero for all {@link IppQueue} instances.
@@ -153,8 +153,10 @@ public interface IppQueueDao extends GenericDao<IppQueue> {
      * Removes queues (cascade delete) that are <i>logically</i> deleted, and
      * who do <i>not</i> have any related {@link DocLog}.
      *
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
      * @return The number of removed queues.
      */
-    int pruneQueues();
+    int pruneQueues(DaoBatchCommitter batchCommitter);
 
 }

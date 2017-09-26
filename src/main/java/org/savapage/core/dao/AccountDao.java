@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -26,13 +26,14 @@ import java.util.Date;
 import java.util.List;
 
 import org.savapage.core.dao.helpers.AggregateResult;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface AccountDao extends GenericDao<Account> {
@@ -177,9 +178,11 @@ public interface AccountDao extends GenericDao<Account> {
      * <i>logically</i> deleted, and which do <i>not</i> have any related
      * {@link AccountTrx}.
      *
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
      * @return The number of removed {@link Account} instances.
      */
-    int pruneAccounts();
+    int pruneAccounts(DaoBatchCommitter batchCommitter);
 
     /**
      * Gets balance statistics.

@@ -27,6 +27,7 @@ import java.util.List;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocLog;
@@ -166,7 +167,7 @@ public interface DocLogDao extends GenericDao<DocLog> {
      *
      * @return The DocLog instance from the database, or null when not found.
      */
-    DocLog findByUuid(final Long userId, final String uuid);
+    DocLog findByUuid(Long userId, String uuid);
 
     /**
      * Removes {@link DocLog} instances dating from daysBackInTime and older
@@ -178,9 +179,12 @@ public interface DocLogDao extends GenericDao<DocLog> {
      *
      * @param dateBackInTime
      *            The date criterion.
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
      * @return The number of deleted instances.
      */
-    int cleanDocOutHistory(Date dateBackInTime);
+    int cleanDocOutHistory(Date dateBackInTime,
+            DaoBatchCommitter batchCommitter);
 
     /**
      * Removes {@link DocLog} instances dating from daysBackInTime and older
@@ -192,9 +196,12 @@ public interface DocLogDao extends GenericDao<DocLog> {
      *
      * @param dateBackInTime
      *            The date criterion.
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
      * @return The number of deleted instances.
      */
-    int cleanDocInHistory(Date dateBackInTime);
+    int cleanDocInHistory(Date dateBackInTime,
+            DaoBatchCommitter batchCommitter);
 
     /**
      * Updates a {@link DocLog} instance with new external supplier data, and

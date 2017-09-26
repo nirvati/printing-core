@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
@@ -276,9 +277,12 @@ public interface UserDao extends GenericDao<User> {
      * Removes (cascade delete) logically deleted {@link User} objects, who do
      * not have any related {@link DocLog}.
      *
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
+     *
      * @return The number of removed users.
      */
-    int pruneUsers();
+    int pruneUsers(DaoBatchCommitter batchCommitter);
 
     /**
      * Counts the number of active users.

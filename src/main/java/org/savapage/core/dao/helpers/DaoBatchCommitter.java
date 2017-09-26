@@ -21,6 +21,8 @@
  */
 package org.savapage.core.dao.helpers;
 
+import java.time.Duration;
+
 /**
  * A helper class for chopping up a large batch of database actions into a
  * sequence of committed transactions.
@@ -51,9 +53,21 @@ public interface DaoBatchCommitter {
     void open();
 
     /**
-     * Closes the batch, committing any remaining increments.
+     * Opens when {@link #isClosed()}.
      */
-    void close();
+    void lazyOpen();
+
+    /**
+     * Closes the batch, committing any remaining increments.
+     *
+     * @return The {@link Duration} since the last {@link #open()}.
+     */
+    Duration close();
+
+    /**
+     * @return {@code true} if closed.
+     */
+    boolean isClosed();
 
     /**
      * Increments the batch item counter, starts a new the database transaction

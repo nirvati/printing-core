@@ -30,6 +30,7 @@ import javax.persistence.Query;
 import org.savapage.core.SpException;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.User;
 import org.savapage.core.services.ServiceContext;
 
@@ -333,30 +334,30 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
     }
 
     @Override
-    public int pruneUsers() {
+    public int pruneUsers(final DaoBatchCommitter batchCommitter) {
         /*
          * NOTE: We do NOT use bulk delete with JPQL since we want the option to
          * roll back the deletions as part of a transaction, and we want to use
          * cascade deletion. Therefore we use the remove() method in
          * EntityManager to delete individual records instead (so cascaded
-         * deleted are triggered).
+         * deletes are triggered).
          */
-        int nCount = 0;
+        int nDeleted = 0;
 
-        final String jpql = "SELECT U FROM User U WHERE U.deleted = true "
+        final String jpql = "SELECT U.id FROM User U WHERE U.deleted = true "
                 + "AND U.docLog IS EMPTY";
 
         final Query query = getEntityManager().createQuery(jpql);
 
         @SuppressWarnings("unchecked")
-        final List<User> list = query.getResultList();
+        final List<Long> list = query.getResultList();
 
-        for (final User user : list) {
-            this.delete(user);
-            nCount++;
+        for (final Long id : list) {
+            this.delete(this.findById(id));
+            nDeleted++;
+            batchCommitter.increment();
         }
-
-        return nCount;
+        return nDeleted;
     }
 
     @Override

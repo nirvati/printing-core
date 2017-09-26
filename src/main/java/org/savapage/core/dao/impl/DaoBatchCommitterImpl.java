@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,8 @@
  * address: info@datraverse.com
  */
 package org.savapage.core.dao.impl;
+
+import java.time.Duration;
 
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
@@ -62,6 +64,11 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     private boolean commitAtNextIncrement = false;
 
     /**
+     * Time of last {@link #open()}.
+     */
+    private long timeOpen;
+
+    /**
      *
      * @param ctx
      *            The {@link DaoContext} .
@@ -86,13 +93,20 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     }
 
     @Override
+    public void lazyOpen() {
+        if (this.isClosed()) {
+            this.open();
+        }
+    }
+
+    @Override
     public void open() {
 
         if (chunkItemCounter != CHUNK_ITEM_COUNTER_INIT) {
             throw new IllegalStateException(
                     "DaoBatchCommitter is already open.");
         }
-
+        this.timeOpen = System.currentTimeMillis();
         /*
          * Check for active transaction, since one might be open already.
          */
@@ -103,13 +117,19 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     }
 
     @Override
-    public void close() {
+    public Duration close() {
         if (testMode) {
             this.rollback(false);
         } else {
             this.commit(false);
         }
         this.chunkItemCounter = CHUNK_ITEM_COUNTER_INIT;
+        return Duration.ofMillis(System.currentTimeMillis() - this.timeOpen);
+    }
+
+    @Override
+    public boolean isClosed() {
+        return this.chunkItemCounter == CHUNK_ITEM_COUNTER_INIT;
     }
 
     @Override

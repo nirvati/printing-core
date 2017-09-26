@@ -30,6 +30,7 @@ import javax.persistence.Query;
 
 import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.helpers.AggregateResult;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 
@@ -47,22 +48,23 @@ public final class AccountDaoImpl extends GenericDaoImpl<Account>
     }
 
     @Override
-    public int pruneAccounts() {
+    public int pruneAccounts(final DaoBatchCommitter batchCommitter) {
 
-        final String jpql = "SELECT A FROM Account A WHERE A.deleted = true "
+        final String jpql = "SELECT A.id FROM Account A WHERE A.deleted = true "
                 + "AND A.transactions IS EMPTY";
 
         final Query query = getEntityManager().createQuery(jpql);
 
         @SuppressWarnings("unchecked")
-        final List<Account> list = query.getResultList();
+        final List<Long> list = query.getResultList();
 
         int nDeleted = 0;
 
-        for (final Account account : list) {
+        for (final Long id : list) {
             // cascaded delete
-            this.delete(account);
+            this.delete(this.findById(id));
             nDeleted++;
+            batchCommitter.increment();
         }
         return nDeleted;
     }

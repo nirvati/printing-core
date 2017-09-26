@@ -28,6 +28,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.savapage.core.dao.AccountTrxDao;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.AccountTrx;
 
 /**
@@ -231,9 +232,10 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
     }
 
     @Override
-    public int cleanHistory(final Date dateBackInTime) {
+    public int cleanHistory(final Date dateBackInTime,
+            final DaoBatchCommitter batchCommitter) {
 
-        final String jpql = "SELECT T FROM AccountTrx T WHERE"
+        final String jpql = "SELECT T.id FROM AccountTrx T WHERE"
                 + " transactionDate <= :transactionDate";
 
         final Query query = getEntityManager().createQuery(jpql);
@@ -241,17 +243,17 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         query.setParameter("transactionDate", dateBackInTime);
 
         @SuppressWarnings("unchecked")
-        final List<AccountTrx> list = query.getResultList();
+        final List<Long> list = query.getResultList();
 
         int nDeleted = 0;
 
-        for (final AccountTrx accountTrx : list) {
+        for (final Long id : list) {
             // cascaded delete
-            this.delete(accountTrx);
+            this.delete(findById(id));
+            batchCommitter.increment();
             nDeleted++;
         }
         return nDeleted;
-
     }
 
     @Override

@@ -29,6 +29,7 @@ import javax.persistence.Query;
 
 import org.savapage.core.SpException;
 import org.savapage.core.dao.PrinterDao;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.MediaCostDto;
@@ -131,27 +132,28 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
     }
 
     @Override
-    public int prunePrinters() {
+    public int prunePrinters(final DaoBatchCommitter batchCommitter) {
         /*
          * NOTE: We do NOT use bulk delete with JPQL since we want the option to
          * roll back the deletions as part of a transaction, and we want to use
          * cascade deletion. Therefore we use the remove() method in
          * EntityManager to delete individual records instead (so cascaded
-         * deleted are triggered).
+         * deletes are triggered).
          */
         int nCount = 0;
 
-        final String jpql = "SELECT P FROM Printer P WHERE P.deleted = true "
+        final String jpql = "SELECT P.id FROM Printer P WHERE P.deleted = true "
                 + "AND P.printsOut IS EMPTY";
 
         final Query query = getEntityManager().createQuery(jpql);
 
         @SuppressWarnings("unchecked")
-        final List<Printer> list = query.getResultList();
+        final List<Long> list = query.getResultList();
 
-        for (final Printer printer : list) {
-            this.delete(printer);
+        for (final Long id: list) {
+            this.delete(this.findById(id));
             nCount++;
+            batchCommitter.increment();
         }
 
         return nCount;

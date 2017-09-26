@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.jpa.PrintOut;
@@ -397,9 +398,11 @@ public interface PrinterDao extends GenericDao<Printer> {
      * Removes printers (cascade delete) who are logically deleted, and who do
      * not have any related DocLog.
      *
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
      * @return The number of removed printers.
      */
-    int prunePrinters();
+    int prunePrinters(DaoBatchCommitter batchCommitter);
 
     /**
      * Counts the number of {@link PrintOut} documents of a {@link Printer}.
@@ -408,7 +411,7 @@ public interface PrinterDao extends GenericDao<Printer> {
      *            The primary key of the {@link Printer}.
      * @return The count.
      */
-    long countPrintOuts(final Long id);
+    long countPrintOuts(Long id);
 
     /**
      * Finds the {@link Printer} by name, when not found {@code null} is

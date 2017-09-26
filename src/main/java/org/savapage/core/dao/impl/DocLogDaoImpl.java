@@ -30,6 +30,7 @@ import javax.persistence.Query;
 import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.DocLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,9 +77,10 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
     }
 
     @Override
-    public int cleanDocOutHistory(final Date dateBackInTime) {
+    public int cleanDocOutHistory(final Date dateBackInTime,
+            final DaoBatchCommitter batchCommitter) {
 
-        final String jpql = "SELECT D FROM DocLog D WHERE "
+        final String jpql = "SELECT D.id FROM DocLog D WHERE "
                 + "docOut IS NOT NULL AND createdDay <= :createdDay";
 
         final Query query = getEntityManager().createQuery(jpql);
@@ -86,38 +88,41 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         query.setParameter("createdDay", dateBackInTime);
 
         @SuppressWarnings("unchecked")
-        final List<DocLog> listOut = query.getResultList();
+        final List<Long> listOut = query.getResultList();
 
         int nDeleted = 0;
 
-        for (final DocLog docLog : listOut) {
+        for (final Long id : listOut) {
             // cascaded delete
-            this.delete(docLog);
+            this.delete(this.findById(id));
             nDeleted++;
+            batchCommitter.increment();
         }
-
         return nDeleted;
     }
 
     @Override
-    public int cleanDocInHistory(final Date dateBackInTime) {
+    public int cleanDocInHistory(final Date dateBackInTime,
+            final DaoBatchCommitter batchCommitter) {
 
-        final String jpql = "SELECT D FROM DocLog D WHERE "
+        final String jpql = "SELECT D.id FROM DocLog D WHERE "
                 + "docIn IS NOT NULL AND createdDay <= :createdDay";
 
         final Query query = getEntityManager().createQuery(jpql);
         query.setParameter("createdDay", dateBackInTime);
 
         @SuppressWarnings("unchecked")
-        final List<DocLog> listIn = query.getResultList();
+        final List<Long> listIn = query.getResultList();
 
         int nDeleted = 0;
 
-        for (final DocLog docLog : listIn) {
+        for (final Long id : listIn) {
+            final DocLog docLog = this.findById(id);
             if (docLog.getDocIn().getDocsInOut().isEmpty()) {
                 // cascaded delete
                 this.delete(docLog);
                 nDeleted++;
+                batchCommitter.increment();
             }
         }
         return nDeleted;

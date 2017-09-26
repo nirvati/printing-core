@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.AccountVoucher;
@@ -182,8 +183,10 @@ public interface AccountTrxDao extends GenericDao<AccountTrx> {
      *
      * @param dateBackInTime
      *            The transaction date criterion.
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
      * @return The number of deleted instances.
      */
-    int cleanHistory(Date dateBackInTime);
+    int cleanHistory(Date dateBackInTime, DaoBatchCommitter batchCommitter);
 
 }
