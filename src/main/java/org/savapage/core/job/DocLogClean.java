@@ -266,6 +266,67 @@ public final class DocLogClean extends AbstractJob {
     }
 
     /**
+     * @param publisher
+     * @param msgKey
+     * @param entity
+     * @param rowsBefore
+     */
+    private void onCleanStepBegin(final String entity, final long rowsBefore,
+            final AdminPublisher publisher, final String pubMsgKeyBase) {
+
+        SpInfo.instance().log(
+                String.format("| Cleaning %s [%d] ...", entity, rowsBefore));
+
+        publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
+                this.localizeSysMsg(String.format("%s.start", pubMsgKeyBase)));
+    }
+
+    /**
+     *
+     * @param entity
+     * @param duration
+     *            {@code null} when cleaning was not performed.
+     * @param nDeleted
+     * @param publisher
+     * @param pubMsgKeyBase
+     */
+    private void onCleanStepEnd(final String entity, final Duration duration,
+            final int nDeleted, final AdminPublisher publisher,
+            final String pubMsgKeyBase) {
+
+        final String formattedDuration;
+        if (duration == null) {
+            formattedDuration = "-";
+        } else {
+            formattedDuration = DateUtil.formatDuration(duration.toMillis());
+        }
+
+        SpInfo.instance().log(String.format("|   %s : %d %s cleaned.",
+                formattedDuration, nDeleted, entity));
+
+        if (nDeleted == 0) {
+
+            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
+                    this.localizeSysMsg(
+                            String.format("%s.success.zero", pubMsgKeyBase)));
+
+        } else if (nDeleted == 1) {
+
+            final String msg = AppLogHelper.logInfo(this.getClass(),
+                    String.format("%s.success.single", pubMsgKeyBase));
+
+            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+
+        } else {
+
+            final String msg = AppLogHelper.logInfo(this.getClass(),
+                    String.format("%s.success.plural", pubMsgKeyBase),
+                    String.valueOf(nDeleted));
+            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+        }
+    }
+
+    /**
      * <b>Step 1</b>: Removes {@link AccountTrx} instances dating from
      * daysBackInTime and older.
      *
@@ -287,41 +348,39 @@ public final class DocLogClean extends AbstractJob {
             final AdminPublisher publisher, final Date dateBackInTime,
             final DaoBatchCommitter batchCommitter) {
 
+        final String entity = "AccountTrx";
+        final String pubMsgKeyBase = "AccountTrxClean";
+
         final AccountTrxDao dao =
                 ServiceContext.getDaoContext().getAccountTrxDao();
 
-        if (docClean != null) {
-            SpInfo.instance().log(String.format(
-                    "| Cleaning AccountTrx from total [%d] ...", dao.count()));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("AccountTrxClean.start"));
-        }
-
-        batchCommitter.lazyOpen();
-        final int nDeleted = dao.cleanHistory(dateBackInTime, batchCommitter);
-        final Duration duration = batchCommitter.close();
+        final boolean performClean;
 
         if (docClean == null) {
-            return;
-        }
-
-        SpInfo.instance().log(String.format(
-                "|   Cleaned [%d] AccountTrx in %s: new total [%d]", nDeleted,
-                DateUtil.formatDuration(duration.toMillis()), dao.count()));
-
-        if (nDeleted == 0) {
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("AccountTrxClean.success.zero"));
-        } else if (nDeleted == 1) {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "AccountTrxClean.success.single");
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+            performClean = true;
         } else {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "AccountTrxClean.success.plural", String.valueOf(nDeleted));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+            final long rowsBefore = dao.count();
+            docClean.onCleanStepBegin(entity, rowsBefore, publisher,
+                    pubMsgKeyBase);
+            performClean = rowsBefore > 0;
         }
 
+        final int nDeleted;
+        final Duration duration;
+
+        if (performClean) {
+            batchCommitter.lazyOpen();
+            nDeleted = dao.cleanHistory(dateBackInTime, batchCommitter);
+            duration = batchCommitter.close();
+        } else {
+            nDeleted = 0;
+            duration = null;
+        }
+
+        if (docClean != null) {
+            docClean.onCleanStepEnd(entity, duration, nDeleted, publisher,
+                    pubMsgKeyBase);
+        }
     }
 
     /**
@@ -348,42 +407,37 @@ public final class DocLogClean extends AbstractJob {
             final AdminPublisher publisher, final Date dateBackInTime,
             final DaoBatchCommitter batchCommitter) {
 
+        final String entity = "DocLog/DocOut";
+        final String pubMsgKeyBase = "DocOutLogClean";
+
         final DocLogDao dao = ServiceContext.getDaoContext().getDocLogDao();
 
-        if (docClean != null) {
-            SpInfo.instance().log(String.format(
-                    "| Cleaning DocLog with DocOut" + " from total [%d] ...",
-                    dao.count()));
-
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("DocOutLogClean.start"));
-        }
-
-        batchCommitter.lazyOpen();
-        int nDeleted = dao.cleanDocOutHistory(dateBackInTime, batchCommitter);
-        final Duration duration = batchCommitter.close();
+        final boolean performClean;
 
         if (docClean == null) {
-            return;
+            performClean = true;
+        } else {
+            final long rowsBefore = dao.count();
+            docClean.onCleanStepBegin(entity, rowsBefore, publisher,
+                    pubMsgKeyBase);
+            performClean = rowsBefore > 0;
         }
 
-        SpInfo.instance().log(String.format(
-                "|   Cleaned [%d] DocLog with DocOut"
-                        + " in %s: new total [%d]",
-                nDeleted, DateUtil.formatDuration(duration.toMillis()),
-                dao.count()));
+        final int nDeleted;
+        final Duration duration;
 
-        if (nDeleted == 0) {
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("DocOutLogClean.success.zero"));
-        } else if (nDeleted == 1) {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "DocOutLogClean.success.single");
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+        if (performClean) {
+            batchCommitter.lazyOpen();
+            nDeleted = dao.cleanDocOutHistory(dateBackInTime, batchCommitter);
+            duration = batchCommitter.close();
         } else {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "DocOutLogClean.success.plural", String.valueOf(nDeleted));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+            nDeleted = 0;
+            duration = null;
+        }
+
+        if (docClean != null) {
+            docClean.onCleanStepEnd(entity, duration, nDeleted, publisher,
+                    pubMsgKeyBase);
         }
     }
 
@@ -410,43 +464,37 @@ public final class DocLogClean extends AbstractJob {
             final AdminPublisher publisher, final Date dateBackInTime,
             final DaoBatchCommitter batchCommitter) {
 
+        final String entity = "DocLog/DocIn";
+        final String pubMsgKeyBase = "DocInLogClean";
+
         final DocLogDao dao = ServiceContext.getDaoContext().getDocLogDao();
 
-        if (docClean != null) {
-            SpInfo.instance().log(String.format(
-                    "| Cleaning DocLog with DocIn" + " from total [%d] ...",
-                    dao.count()));
-
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("DocInLogClean.start"));
-        }
-
-        batchCommitter.lazyOpen();
-        int nDeleted = dao.cleanDocInHistory(dateBackInTime, batchCommitter);
-        final Duration duration = batchCommitter.close();
+        final boolean performClean;
 
         if (docClean == null) {
-            return;
+            performClean = true;
+        } else {
+            final long rowsBefore = dao.count();
+            docClean.onCleanStepBegin(entity, rowsBefore, publisher,
+                    pubMsgKeyBase);
+            performClean = rowsBefore > 0;
         }
 
-        SpInfo.instance()
-                .log(String.format(
-                        "|   Cleaned [%d] DocLog with DocIn"
-                                + " in %s: new total [%d]",
-                        nDeleted, DateUtil.formatDuration(duration.toMillis()),
-                        dao.count()));
+        final int nDeleted;
+        final Duration duration;
 
-        if (nDeleted == 0) {
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("DocInLogClean.success.zero"));
-        } else if (nDeleted == 1) {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "DocInLogClean.success.single");
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+        if (performClean) {
+            batchCommitter.lazyOpen();
+            nDeleted = dao.cleanDocInHistory(dateBackInTime, batchCommitter);
+            duration = batchCommitter.close();
         } else {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "DocInLogClean.success.plural", String.valueOf(nDeleted));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+            nDeleted = 0;
+            duration = null;
+        }
+
+        if (docClean != null) {
+            docClean.onCleanStepEnd(entity, duration, nDeleted, publisher,
+                    pubMsgKeyBase);
         }
     }
 
@@ -462,39 +510,37 @@ public final class DocLogClean extends AbstractJob {
             final AdminPublisher publisher,
             final DaoBatchCommitter batchCommitter) {
 
+        final String entity = "User";
+        final String pubMsgKeyBase = "DeletedUserClean";
+
         final UserDao dao = ServiceContext.getDaoContext().getUserDao();
 
-        if (docClean != null) {
-            SpInfo.instance().log(String.format(
-                    "| Cleaning User from total [%d] ...", dao.count()));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("DeletedUserClean.start"));
-        }
-
-        batchCommitter.lazyOpen();
-        int nDeleted = dao.pruneUsers(batchCommitter);
-        final Duration duration = batchCommitter.close();
+        final boolean performClean;
 
         if (docClean == null) {
-            return;
+            performClean = true;
+        } else {
+            final long rowsBefore = dao.count();
+            docClean.onCleanStepBegin(entity, rowsBefore, publisher,
+                    pubMsgKeyBase);
+            performClean = rowsBefore > 0;
         }
 
-        SpInfo.instance().log(String.format(
-                "|   Cleaned [%d] User in %s: new total [%d]", nDeleted,
-                DateUtil.formatDuration(duration.toMillis()), dao.count()));
+        final int nDeleted;
+        final Duration duration;
 
-        if (nDeleted == 0) {
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("DeletedUserClean.success.zero"));
-        } else if (nDeleted == 1) {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "DeletedUserClean.success.single");
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+        if (performClean) {
+            batchCommitter.lazyOpen();
+            nDeleted = dao.pruneUsers(batchCommitter);
+            duration = batchCommitter.close();
         } else {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "DeletedUserClean.success.plural",
-                    String.valueOf(nDeleted));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+            nDeleted = 0;
+            duration = null;
+        }
+
+        if (docClean != null) {
+            docClean.onCleanStepEnd(entity, duration, nDeleted, publisher,
+                    pubMsgKeyBase);
         }
     }
 
@@ -511,39 +557,37 @@ public final class DocLogClean extends AbstractJob {
             final AdminPublisher publisher,
             final DaoBatchCommitter batchCommitter) {
 
+        final String entity = "Printer";
+        final String pubMsgKeyBase = "DeletedPrinterClean";
+
         final PrinterDao dao = ServiceContext.getDaoContext().getPrinterDao();
 
-        if (docClean != null) {
-            SpInfo.instance().log(String.format(
-                    "| Cleaning Printer from total [%d] ...", dao.count()));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("DeletedPrinterClean.start"));
-        }
-
-        batchCommitter.lazyOpen();
-        int nDeleted = dao.prunePrinters(batchCommitter);
-        final Duration duration = batchCommitter.close();
+        final boolean performClean;
 
         if (docClean == null) {
-            return;
+            performClean = true;
+        } else {
+            final long rowsBefore = dao.count();
+            docClean.onCleanStepBegin(entity, rowsBefore, publisher,
+                    pubMsgKeyBase);
+            performClean = rowsBefore > 0;
         }
 
-        SpInfo.instance().log(String.format(
-                "|   Cleaned [%d] Printer in %s: new total [%d]", nDeleted,
-                DateUtil.formatDuration(duration.toMillis()), dao.count()));
+        final int nDeleted;
+        final Duration duration;
 
-        if (nDeleted == 0) {
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, docClean
-                    .localizeSysMsg("DeletedPrinterClean.success.zero"));
-        } else if (nDeleted == 1) {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "DeletedPrinterClean.success.single");
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+        if (performClean) {
+            batchCommitter.lazyOpen();
+            nDeleted = dao.prunePrinters(batchCommitter);
+            duration = batchCommitter.close();
         } else {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "DeletedPrinterClean.success.plural",
-                    String.valueOf(nDeleted));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+            nDeleted = 0;
+            duration = null;
+        }
+
+        if (docClean != null) {
+            docClean.onCleanStepEnd(entity, duration, nDeleted, publisher,
+                    pubMsgKeyBase);
         }
     }
 
@@ -559,39 +603,37 @@ public final class DocLogClean extends AbstractJob {
             final AdminPublisher publisher,
             final DaoBatchCommitter batchCommitter) {
 
+        final String entity = "IppQueue";
+        final String pubMsgKeyBase = "DeletedQueueClean";
+
         final IppQueueDao dao = ServiceContext.getDaoContext().getIppQueueDao();
 
-        if (docClean != null) {
-            SpInfo.instance().log(String.format(
-                    "| Cleaning IppQueue from total [%d] ...", dao.count()));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("DeletedQueueClean.start"));
-        }
-
-        batchCommitter.lazyOpen();
-        int nDeleted = dao.pruneQueues(batchCommitter);
-        final Duration duration = batchCommitter.close();
+        final boolean performClean;
 
         if (docClean == null) {
-            return;
+            performClean = true;
+        } else {
+            final long rowsBefore = dao.count();
+            docClean.onCleanStepBegin(entity, rowsBefore, publisher,
+                    pubMsgKeyBase);
+            performClean = rowsBefore > 0;
         }
 
-        SpInfo.instance().log(String.format(
-                "|   Cleaned [%d] IppQueue in %s: new total [%d]", nDeleted,
-                DateUtil.formatDuration(duration.toMillis()), dao.count()));
+        final int nDeleted;
+        final Duration duration;
 
-        if (nDeleted == 0) {
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("DeletedQueueClean.success.zero"));
-        } else if (nDeleted == 1) {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "DeletedQueueClean.success.single");
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+        if (performClean) {
+            batchCommitter.lazyOpen();
+            nDeleted = dao.pruneQueues(batchCommitter);
+            duration = batchCommitter.close();
         } else {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "DeletedQueueClean.success.plural",
-                    String.valueOf(nDeleted));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+            nDeleted = 0;
+            duration = null;
+        }
+
+        if (docClean != null) {
+            docClean.onCleanStepEnd(entity, duration, nDeleted, publisher,
+                    pubMsgKeyBase);
         }
     }
 
@@ -607,38 +649,38 @@ public final class DocLogClean extends AbstractJob {
             final AdminPublisher publisher,
             final DaoBatchCommitter batchCommitter) {
 
+        final String entity = "Account";
+        final String pubMsgKeyBase = "AccountClean";
+
         final AccountDao dao = ServiceContext.getDaoContext().getAccountDao();
 
-        if (docClean != null) {
-            SpInfo.instance().log(String.format(
-                    "| Cleaning Account from total [%d] ...", dao.count()));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("AccountClean.start"));
-        }
-
-        batchCommitter.lazyOpen();
-        final int nDeleted = dao.pruneAccounts(batchCommitter);
-        final Duration duration = batchCommitter.close();
+        final boolean performClean;
 
         if (docClean == null) {
-            return;
+            performClean = true;
+        } else {
+            final long rowsBefore = dao.count();
+            docClean.onCleanStepBegin(entity, rowsBefore, publisher,
+                    pubMsgKeyBase);
+            performClean = rowsBefore > 0;
         }
 
-        SpInfo.instance().log(String.format(
-                "|   Cleaned [%d] Account in %s: new total [%d]", nDeleted,
-                DateUtil.formatDuration(duration.toMillis()), dao.count()));
+        final int nDeleted;
+        final Duration duration;
 
-        if (nDeleted == 0) {
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO,
-                    docClean.localizeSysMsg("AccountClean.success.zero"));
-        } else if (nDeleted == 1) {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "AccountClean.success.single");
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+        if (performClean) {
+            batchCommitter.lazyOpen();
+            nDeleted = dao.pruneAccounts(batchCommitter);
+            duration = batchCommitter.close();
         } else {
-            final String msg = AppLogHelper.logInfo(docClean.getClass(),
-                    "AccountClean.success.plural", String.valueOf(nDeleted));
-            publisher.publish(PubTopicEnum.DB, PubLevelEnum.INFO, msg);
+            nDeleted = 0;
+            duration = null;
+        }
+
+        if (docClean != null) {
+            docClean.onCleanStepEnd(entity, duration, nDeleted, publisher,
+                    pubMsgKeyBase);
         }
     }
+
 }
