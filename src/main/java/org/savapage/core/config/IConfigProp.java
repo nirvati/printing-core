@@ -1953,6 +1953,16 @@ public interface IConfigProp {
         WEBAPP_USER_PROXY_PRINT_SEPARATE("webapp.user.proxy-print.separate", BOOLEAN_VALIDATOR, V_NO),
 
         /**
+         * URL with User WebApp help information.
+         */
+        WEBAPP_USER_HELP_URL("webapp.user.help.url", URL_VALIDATOR_OPT),
+
+        /**
+         * User WebApp: show help button in footer bar.
+         */
+        WEBAPP_USER_HELP_URL_FOOTER_BUTTON("webapp.user.help.url.footer-button", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * User WebApp: must text of navigation buttons on main window be shown?
          */
         WEBAPP_USER_MAIN_NAV_BUTTON_TEXT("webapp.user.main.nav-button-text", new EnumValidator<>(OnOffEnum.class), OnOffEnum.AUTO.toString()),
