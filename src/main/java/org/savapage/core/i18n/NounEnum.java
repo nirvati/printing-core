@@ -38,9 +38,13 @@ public enum NounEnum {
     /** */
     COST,
     /** */
+    DATABASE,
+    /** */
     DELEGATE(true),
     /** */
     DELEGATOR(true),
+    /** */
+    DOCUMENT(true),
     /** */
     MAINTENANCE,
     /** */
@@ -49,6 +53,8 @@ public enum NounEnum {
     REFUND(true),
     /** */
     REMARK(true),
+    /** */
+    STATISTICS,
     /** */
     TICKET(true),
     /** */
