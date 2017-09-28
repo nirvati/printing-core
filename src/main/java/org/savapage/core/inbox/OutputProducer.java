@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -162,6 +162,7 @@ public final class OutputProducer {
             }
 
             pageImageInfo = new InboxPageImageInfo();
+
             pageImageInfo.setFile(jobName);
             pageImageInfo.setLandscape(false);
             pageImageInfo.setPageInFile(Integer.valueOf(pageIn));
@@ -177,19 +178,29 @@ public final class OutputProducer {
                 pageImageInfo = INBOX_SERVICE.getPageImageInfo(user,
                         Integer.parseInt(pageIn));
 
+                if (pageImageInfo == null) {
+                    throw new IllegalStateException(
+                            String.format("Page image [%s] for user [%s] inbox"
+                                    + " not available.", pageIn, user));
+                }
+
                 pageInJobFile = String.valueOf(pageImageInfo.getPageInFile());
                 jobFileName = pageImageInfo.getFile();
 
             } else {
                 pageImageInfo = INBOX_SERVICE.getPageImageInfo(user, jobName,
                         Integer.valueOf(pageIn));
+
+                if (pageImageInfo == null) {
+                    throw new IllegalStateException(String.format(
+                            "Page image [%s] for user [%s]"
+                                    + " document [%s] not available.",
+                            pageIn, user, jobName));
+                }
+
                 jobFileName = jobName;
                 pageInJobFile = pageIn;
             }
-        }
-
-        if (pageImageInfo == null) {
-            throw new SpException("job not found");
         }
 
         /*
