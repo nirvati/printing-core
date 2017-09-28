@@ -193,7 +193,7 @@ public interface UserService {
      * @throws IOException
      *             When something went wrong.
      */
-    AbstractJsonRpcMethodResponse setUserProperties(final UserPropertiesDto dto)
+    AbstractJsonRpcMethodResponse setUserProperties(UserPropertiesDto dto)
             throws IOException;
 
     /**
@@ -205,7 +205,7 @@ public interface UserService {
      * @throws IOException
      *             When something went wrong.
      */
-    AbstractJsonRpcMethodResponse deleteUser(final String userIdToDelete)
+    AbstractJsonRpcMethodResponse deleteUser(String userIdToDelete)
             throws IOException;
 
     /**
@@ -224,8 +224,8 @@ public interface UserService {
      * @throws IOException
      *             When something went wrong.
      */
-    AbstractJsonRpcMethodResponse deleteUserAutoCorrect(
-            final String userIdToDelete) throws IOException;
+    AbstractJsonRpcMethodResponse deleteUserAutoCorrect(String userIdToDelete)
+            throws IOException;
 
     /**
      * Lists Users sorted by user name.
@@ -287,6 +287,7 @@ public interface UserService {
      * </p>
      *
      * @param publicID
+     *            Public YubiKey ID.
      * @return The User or {@code null} when not found.
      */
     User findUserByYubiKeyPubID(String publicID);
@@ -303,7 +304,7 @@ public interface UserService {
      *            The {@link UUID}.
      * @return The User or {@code null} when not found.
      */
-    User findUserByNumberUuid(final String number, final UUID uuid);
+    User findUserByNumberUuid(String number, UUID uuid);
 
     /**
      * Add/Replace the Primary Card to/of the {@link User}.
@@ -473,7 +474,7 @@ public interface UserService {
      *            The {@link UserAttrEnum} to search for.
      * @return The (un-encrypted) value string or {@code null} when not found.
      */
-    String getUserAttrValue(final User user, final UserAttrEnum attrEnum);
+    String getUserAttrValue(User user, UserAttrEnum attrEnum);
 
     /**
      * Removes an attribute from the User's list of attributes AND from the
@@ -502,7 +503,7 @@ public interface UserService {
      * @param value
      *            The value.
      */
-    void addUserAttr(User user, UserAttrEnum name, final String value);
+    void addUserAttr(User user, UserAttrEnum name, String value);
 
     /**
      * Adds the {@link UserAttrEnum#UUID} to the User's list of attributes and
@@ -664,6 +665,7 @@ public interface UserService {
      *            The {@link User}.
      * @return The {@link PdfProperties}.
      * @throws Exception
+     *             When errors.
      */
     PdfProperties getPdfProperties(User user) throws Exception;
 
