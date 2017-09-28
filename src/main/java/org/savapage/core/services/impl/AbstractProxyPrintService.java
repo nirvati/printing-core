@@ -59,6 +59,7 @@ import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PerformanceLogger;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
+import org.savapage.core.SpInfo;
 import org.savapage.core.circuitbreaker.CircuitStateEnum;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
@@ -77,6 +78,7 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.IppMediaSourceMappingDto;
@@ -1157,8 +1159,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public final SyncPrintJobsResult syncPrintJobs()
-            throws IppConnectException {
+    public final SyncPrintJobsResult syncPrintJobs(
+            final DaoBatchCommitter batchCommitter) throws IppConnectException {
+
+        SpInfo.instance().log(String.format("| Syncing CUPS jobs ..."));
 
         /*
          * Constants
@@ -1168,10 +1172,18 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Init batch.
          */
+        final long startTime = System.currentTimeMillis();
+
         final List<PrintOut> printOutList = printOutDAO().findActiveCupsJobs();
 
+        SpInfo.instance()
+                .log(String.format("|   %s : %d Active PrintOut jobs.",
+                        DateUtil.formatDuration(
+                                System.currentTimeMillis() - startTime),
+                        printOutList.size()));
         //
         final Map<Integer, PrintOut> lookupPrintOut = new HashMap<>();
+
         for (final PrintOut printOut : printOutList) {
             lookupPrintOut.put(printOut.getCupsJobId(), printOut);
         }
@@ -1230,7 +1242,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
 
             /*
-             * EOF, new printer or chunk filled
+             * EOF, new printer or chunk filled to the max.
              */
             if (printOut == null || !printer.equals(printerPrv)
                     || iChunk == nChunkMax) {
@@ -1281,6 +1293,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                                 cupsJob.getCompletedTime());
 
                         printOutDAO().update(printOutWlk);
+                        jobsUpdated++;
+                        batchCommitter.increment();
 
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace("printer [" + printerPrv + "] job ["
@@ -1288,7 +1302,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
                                     + cupsJob.getJobState() + "] completed ["
                                     + cupsJob.getCompletedTime() + "]");
                         }
-                        jobsUpdated++;
                     }
 
                 }
@@ -1316,7 +1329,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printOutWlk.setCupsCompletedTime(null);
                 printOutWlk.setCupsJobState(
                         IppJobStateEnum.IPP_JOB_COMPLETED.asInteger());
+
                 printOutDAO().update(printOutWlk);
+                batchCommitter.increment();
             }
         }
 
@@ -1325,6 +1340,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
             LOGGER.debug("Syncing [" + jobsActive + "] active PrintOut jobs "
                     + "with CUPS : updated [" + jobsUpdated + "], not found ["
                     + jobsNotFound + "]");
+        }
+
+        if (jobsActive > 0) {
+            SpInfo.instance().log(String.format("|      : %d PrintOut updated.",
+                    jobsUpdated));
+            SpInfo.instance().log(String.format(
+                    "|      : %d PrintOut not found in CUPS.", jobsNotFound));
         }
 
         return new SyncPrintJobsResult(jobsActive, jobsUpdated, jobsNotFound);

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,7 +28,8 @@ import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
-import org.savapage.core.dao.DaoContext;
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.SyncPrintJobsResult;
@@ -42,7 +43,8 @@ import org.slf4j.LoggerFactory;
  * the same time.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class CupsSyncPrintJobs extends AbstractJob {
 
@@ -71,58 +73,42 @@ public final class CupsSyncPrintJobs extends AbstractJob {
 
         final AdminPublisher publisher = AdminPublisher.instance();
 
-        /*
-         *
-         */
         String msg = null;
         PubLevelEnum level = PubLevelEnum.INFO;
 
-        final DaoContext daoContext = ServiceContext.getDaoContext();
-
-        daoContext.beginTransaction();
-
-        boolean rollback = true;
+        final DaoBatchCommitter batchCommitter = ServiceContext.getDaoContext()
+                .createBatchCommitter(ConfigManager.getDaoBatchChunkSize());
 
         publisher.publish(PubTopicEnum.CUPS, PubLevelEnum.INFO,
                 localizeSysMsg("CupsSyncPrintJobs.start"));
 
         try {
-
+            batchCommitter.lazyOpen();
             final SyncPrintJobsResult syncResult =
-                    proxyPrintService.syncPrintJobs();
-
-            daoContext.commit();
-            rollback = false;
+                    proxyPrintService.syncPrintJobs(batchCommitter);
+            batchCommitter.close();
 
             if (syncResult.getJobsActive() > 0) {
-                msg =
-                        AppLogHelper.logInfo(getClass(),
-                                "CupsSyncPrintJobs.success",
-                                String.valueOf(syncResult.getJobsActive()),
-                                String.valueOf(syncResult.getJobsUpdated()),
-                                String.valueOf(syncResult.getJobsNotFound()));
+                msg = AppLogHelper.logInfo(getClass(),
+                        "CupsSyncPrintJobs.success",
+                        String.valueOf(syncResult.getJobsActive()),
+                        String.valueOf(syncResult.getJobsUpdated()),
+                        String.valueOf(syncResult.getJobsNotFound()));
             } else {
-                msg =
-                        localizeSysMsg("CupsSyncPrintJobs.success",
-                                String.valueOf(syncResult.getJobsActive()),
-                                String.valueOf(syncResult.getJobsUpdated()),
-                                String.valueOf(syncResult.getJobsNotFound()));
+                msg = localizeSysMsg("CupsSyncPrintJobs.success",
+                        String.valueOf(syncResult.getJobsActive()),
+                        String.valueOf(syncResult.getJobsUpdated()),
+                        String.valueOf(syncResult.getJobsNotFound()));
             }
 
         } catch (Exception e) {
 
+            batchCommitter.rollback();
+
             LoggerFactory.getLogger(this.getClass()).error(e.getMessage(), e);
-
             level = PubLevelEnum.ERROR;
-            msg =
-                    AppLogHelper.logError(getClass(),
-                            "CupsSyncPrintJobs.error", e.getMessage());
-        } finally {
-
-            if (rollback) {
-                daoContext.rollback();
-            }
-
+            msg = AppLogHelper.logError(getClass(), "CupsSyncPrintJobs.error",
+                    e.getMessage());
         }
 
         if (msg != null) {

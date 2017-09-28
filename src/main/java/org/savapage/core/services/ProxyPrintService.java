@@ -36,6 +36,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
+import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.ProxyPrinterCostDto;
@@ -179,7 +180,8 @@ public interface ProxyPrintService {
 
     /**
      *
-     * @param cupsTime The CUPS time (seconds from epoch).
+     * @param cupsTime
+     *            The CUPS time (seconds from epoch).
      * @return The CUPS date.
      */
     Date getCupsDate(Integer cupsTime);
@@ -304,7 +306,7 @@ public interface ProxyPrintService {
      *            The IPP keyword.
      * @return {@code null} when printer option is not shown in UI.
      */
-    ProxyPrinterOptGroupEnum getUiOptGroup(final String keywordIpp);
+    ProxyPrinterOptGroupEnum getUiOptGroup(String keywordIpp);
 
     /**
      * Localizes the texts in all printer options.
@@ -324,8 +326,7 @@ public interface ProxyPrintService {
      * @param option
      *            The {@link JsonProxyPrinterOpt}.
      */
-    void localizePrinterOpt(final Locale locale,
-            final JsonProxyPrinterOpt option);
+    void localizePrinterOpt(Locale locale, JsonProxyPrinterOpt option);
 
     /**
      * Localizes an IPP option keyword.
@@ -551,11 +552,14 @@ public interface ProxyPrintService {
      * creation-time. If there is no match, i.e. when creation times differs, no
      * update is done.
      *
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
      * @return The {@link SyncPrintJobsResult}.
      * @throws IppConnectException
      *             When a connection error occurs.
      */
-    SyncPrintJobsResult syncPrintJobs() throws IppConnectException;
+    SyncPrintJobsResult syncPrintJobs(DaoBatchCommitter batchCommitter)
+            throws IppConnectException;
 
     /**
      * Gets the {@link Printer} object while validating {@link User} access.
@@ -571,7 +575,7 @@ public interface ProxyPrintService {
      *             When access is denied.
      */
     Printer getValidateProxyPrinterAccess(User user, String printerName,
-            final Date refDate) throws ProxyPrintException;
+            Date refDate) throws ProxyPrintException;
 
     /**
      * Checks the printer cache and collects the default printer options, needed
@@ -613,7 +617,7 @@ public interface ProxyPrintService {
      *             When a invariant is violated.
      */
     void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request,
-            final PdfCreateInfo createInfo)
+            PdfCreateInfo createInfo)
             throws IppConnectException, ProxyPrintException;
 
     /**
@@ -885,7 +889,7 @@ public interface ProxyPrintService {
      *            The unique name of the printer.
      * @return {@code true} if manual media-source is supported.
      */
-    boolean hasMediaSourceManual(final String printerName);
+    boolean hasMediaSourceManual(String printerName);
 
     /**
      * Checks if printer supports 'auto' media-source.
@@ -894,7 +898,7 @@ public interface ProxyPrintService {
      *            The unique name of the printer.
      * @return {@code true} if 'auto' media-source is supported.
      */
-    boolean hasMediaSourceAuto(final String printerName);
+    boolean hasMediaSourceAuto(String printerName);
 
     /**
      * Checks if the CUPS printer details have been successfully retrieved.
