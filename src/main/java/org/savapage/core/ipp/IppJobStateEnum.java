@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <httpd://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,7 +23,6 @@ package org.savapage.core.ipp;
 
 import java.util.Locale;
 
-import org.savapage.core.SpException;
 import org.savapage.core.util.LocaleHelper;
 
 /**
@@ -143,7 +142,8 @@ public enum IppJobStateEnum {
     /**
      *
      * @param value
-     * @return
+     *            The raw value.
+     * @return The enum value.
      */
     public static IppJobStateEnum asEnum(final int value) {
         if (value == IppJobStateEnum.IPP_JOB_ABORTED.asInt()) {
@@ -161,8 +161,9 @@ public enum IppJobStateEnum {
         } else if (value == IppJobStateEnum.IPP_JOB_STOPPED.asInt()) {
             return IPP_JOB_STOPPED;
         }
-        throw new SpException("value [" + value
-                + "] can not be converted to enum");
+
+        throw new IllegalStateException(
+                "value [" + value + "] can not be converted to enum.");
     }
 
 }
