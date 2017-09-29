@@ -278,6 +278,17 @@ public interface OutboxService {
             Date expiryRef);
 
     /**
+     * Gets the {@link OutboxJobDto} by key (PDF base filename).
+     *
+     * @param userId
+     *            The unique user id.
+     * @param pdfFilename
+     *            The unique PDF base filename.
+     * @return The {@link OutboxJobDto} or {@code null} when not found.
+     */
+    OutboxJobDto getOutboxJob(String userId, String pdfFilename);
+
+    /**
      * Creates the {@link AccountTrxInfoSet} from the {@link OutboxJobDto}
      * source.
      *

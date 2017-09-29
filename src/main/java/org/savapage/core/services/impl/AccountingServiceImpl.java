@@ -85,6 +85,8 @@ import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ResultPosDeposit;
 import org.savapage.core.msg.UserMsgIndicator;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfo;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkInfo;
@@ -705,6 +707,38 @@ public final class AccountingServiceImpl extends AbstractService
             createAccountTrx(trxInfo.getAccount(), docLog, trxType,
                     nTotalWeight, trxInfo.getWeight(), trxInfo.getExtDetails());
         }
+    }
+
+    @Override
+    public List<AccountTrx> createAccountTrxsUI(final OutboxJobDto outboxJob) {
+
+        final List<AccountTrx> list = new ArrayList<>();
+
+        final AccountDao dao = ServiceContext.getDaoContext().getAccountDao();
+
+        final int scale = ConfigManager.getFinancialDecimalsInDatabase();
+
+        final int weightTotal =
+                outboxJob.getAccountTransactions().getWeightTotal();
+
+        final BigDecimal costTotal = outboxJob.getCostTotal();
+
+        for (final OutboxAccountTrxInfo trxInfo : outboxJob
+                .getAccountTransactions().getTransactions()) {
+
+            final AccountTrx trx = new AccountTrx();
+
+            trx.setAccount(dao.findById(trxInfo.getAccountId()));
+            trx.setExtDetails(trxInfo.getExtDetails());
+            trx.setTransactionWeight(Integer.valueOf(trxInfo.getWeight()));
+
+            trx.setCurrencyCode(ConfigManager.getAppCurrencyCode());
+            trx.setAmount(this.calcWeightedAmount(costTotal, weightTotal,
+                    trxInfo.getWeight(), scale).negate());
+
+            list.add(trx);
+        }
+        return list;
     }
 
     /**

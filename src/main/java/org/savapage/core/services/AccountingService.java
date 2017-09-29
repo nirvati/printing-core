@@ -24,6 +24,7 @@ package org.savapage.core.services;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Currency;
+import java.util.List;
 import java.util.Locale;
 
 import org.savapage.core.concurrent.ReadWriteLockEnum;
@@ -53,6 +54,7 @@ import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.JsonRpcResult;
 import org.savapage.core.json.rpc.impl.ResultPosDeposit;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkInfo;
@@ -437,6 +439,16 @@ public interface AccountingService {
      */
     void createAccountTrxs(AccountTrxInfoSet accountTrxInfoSet, DocLog docLog,
             AccountTrxTypeEnum trxType);
+
+    /**
+     * Creates a list of {@link AccountTrx} objects to be used for UI display
+     * purposes only.
+     *
+     * @param outboxJob
+     *            {@link OutboxJobDto}.
+     * @return List of UI account transactions.
+     */
+    List<AccountTrx> createAccountTrxsUI(OutboxJobDto outboxJob);
 
     /**
      * Updates the {@link AccountTrx} and the {@link Account} balance, and

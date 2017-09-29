@@ -488,6 +488,16 @@ public final class OutboxServiceImpl extends AbstractService
     }
 
     @Override
+    public OutboxJobDto getOutboxJob(final String userId,
+            final String pdfFilename) {
+        final OutboxInfoDto outboxInfo = readOutboxInfo(userId);
+        if (outboxInfo == null || outboxInfo.getJobs() == null) {
+            return null;
+        }
+        return outboxInfo.getJobs().get(pdfFilename);
+    }
+
+    @Override
     public OutboxInfoDto pruneOutboxInfo(final String userId,
             final Date expiryRef) {
 
