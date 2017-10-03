@@ -30,6 +30,7 @@ import javax.persistence.Query;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.AccountTrx;
+import org.savapage.core.jpa.tools.DbSimpleEntity;
 
 /**
  *
@@ -235,25 +236,79 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
     public int cleanHistory(final Date dateBackInTime,
             final DaoBatchCommitter batchCommitter) {
 
-        final String jpql = "SELECT T.id FROM AccountTrx T WHERE"
-                + " transactionDate <= :transactionDate";
+        final String[] jpqlList = new String[2];
+        final String psqlDateParm = "transactionDate";
 
-        final Query query = getEntityManager().createQuery(jpql);
+        /*
+         * Step 1: Delete PosPurchaseItem.
+         */
+        jpqlList[0] = "" //
+                + "DELETE FROM " + DbSimpleEntity.POS_PURCHASE_ITEM
+                + " M WHERE M.id IN" + " (SELECT PI.id FROM "
+                + DbSimpleEntity.POS_PURCHASE_ITEM + " PI" //
+                + " JOIN " + DbSimpleEntity.POS_PURCHASE
+                + " P ON P.id = PI.purchase" //
+                + " JOIN " + DbSimpleEntity.ACCOUNT_TRX
+                + " A ON A.posPurchase = P.id" //
+                + " WHERE A.transactionDate <= :" + psqlDateParm + ")";
 
-        query.setParameter("transactionDate", dateBackInTime);
-
-        @SuppressWarnings("unchecked")
-        final List<Long> list = query.getResultList();
+        /*
+         * Step 2: Delete AccountTrx.
+         *
+         * Cascaded delete: PosPurchase, AccountVoucher
+         */
+        jpqlList[1] = "" //
+                + "DELETE FROM " + DbSimpleEntity.ACCOUNT_TRX
+                + " M WHERE M.id IN" + " (SELECT A.id FROM "
+                + DbSimpleEntity.ACCOUNT_TRX + " A" //
+                + " WHERE A.transactionDate <= :" + psqlDateParm + ")";
 
         int nDeleted = 0;
 
-        for (final Long id : list) {
-            // cascaded delete
-            this.delete(findById(id));
-            batchCommitter.increment();
-            nDeleted++;
+        for (int i = 0; i < jpqlList.length; i++) {
+
+            final String jpql = jpqlList[i];
+
+            final Query query = getEntityManager().createQuery(jpql);
+            query.setParameter(psqlDateParm, dateBackInTime);
+
+            final int count = query.executeUpdate();
+
+            if (i == 1) {
+                nDeleted = count;
+            }
         }
+
+        batchCommitter.increment();
+        batchCommitter.commit();
+
+        if (nDeleted > 0) {
+            this.cleanOrphaned(batchCommitter);
+        }
+
         return nDeleted;
+    }
+
+    @Override
+    public void cleanOrphaned(final DaoBatchCommitter batchCommitter) {
+
+        final String[] jpqlList = new String[2];
+
+        jpqlList[0] = "DELETE FROM " + DbSimpleEntity.POS_PURCHASE
+                + " WHERE id NOT IN" + " (SELECT posPurchase FROM "
+                + DbSimpleEntity.ACCOUNT_TRX
+                + " WHERE posPurchase IS NOT NULL)";
+
+        jpqlList[1] = "DELETE FROM " + DbSimpleEntity.ACCOUNT_VOUCHER
+                + " WHERE id NOT IN" + " (SELECT accountVoucher FROM "
+                + DbSimpleEntity.ACCOUNT_TRX
+                + " WHERE accountVoucher IS NOT NULL)";
+
+        for (final String jpql : jpqlList) {
+            getEntityManager().createQuery(jpql).executeUpdate();
+            batchCommitter.increment();
+            batchCommitter.commit();
+        }
     }
 
     @Override

@@ -29,9 +29,12 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.AccountTrx;
+import org.savapage.core.jpa.AccountVoucher;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
+import org.savapage.core.jpa.PosPurchase;
+import org.savapage.core.jpa.PosPurchaseItem;
 
 /**
  *
@@ -170,12 +173,33 @@ public interface DocLogDao extends GenericDao<DocLog> {
     DocLog findByUuid(Long userId, String uuid);
 
     /**
+     * Deletes {@link AccountTrx} instances dating from daysBackInTime and
+     * older.
+     * <ul>
+     * <li>For each deleted {@link AccountTrx}, associated
+     * {@link PosPurchaseItem} instances are deleted.</li>
+     * <li>Related {@link AccountVoucher} and {@link PosPurchase} are cleaned
+     * with {@link AccountTrxDao#cleanOrphaned(DaoBatchCommitter)}.</li>
+     * <li>All deletes are committed.</li>
+     * </ul>
+     *
+     * @param dateBackInTime
+     *            The date criterion.
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
+     * @return The number of deleted {@link AccountTrx} instances.
+     */
+    int cleanAccountTrxHistory(Date dateBackInTime,
+            DaoBatchCommitter batchCommitter);
+
+    /**
      * Removes {@link DocLog} instances dating from daysBackInTime and older
      * which DO have a {@link DocOut} association.
-     * <p>
-     * Note: For each removed {@link DocLog} the associated {@link DocOut}
-     * instance and {@link AccountTrx} instances are deleted by cascade.
-     * </p>
+     * <ul>
+     * <li>Associated (orphaned) {@link DocOut} instances are deleted as
+     * well.</li>
+     * <li>All deletes are committed.</li>
+     * </ul>
      *
      * @param dateBackInTime
      *            The date criterion.
@@ -189,10 +213,11 @@ public interface DocLogDao extends GenericDao<DocLog> {
     /**
      * Removes {@link DocLog} instances dating from daysBackInTime and older
      * which DO have a {@link DocIn} association.
-     * <p>
-     * Note: For each removed {@link DocLog} the associated {@link DocIn}
-     * instance and {@link AccountTrx} instances are deleted by cascade.
-     * </p>
+     * <ul>
+     * <li>Associated (orphaned) {@link DocIn} instances are deleted as
+     * well.</li>
+     * <li>All deletes are committed.</li>
+     * </ul>
      *
      * @param dateBackInTime
      *            The date criterion.

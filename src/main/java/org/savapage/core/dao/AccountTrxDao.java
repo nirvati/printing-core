@@ -29,6 +29,8 @@ import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.AccountVoucher;
+import org.savapage.core.jpa.PosPurchase;
+import org.savapage.core.jpa.PosPurchaseItem;
 import org.savapage.core.jpa.User;
 
 /**
@@ -158,7 +160,7 @@ public interface AccountTrxDao extends GenericDao<AccountTrx> {
      *            The {@link ListFilter}.
      * @return The number of filtered instances.
      */
-    long getListCount(final ListFilter filter);
+    long getListCount(ListFilter filter);
 
     /**
      *
@@ -169,24 +171,37 @@ public interface AccountTrxDao extends GenericDao<AccountTrx> {
      * @param sortAscending
      * @return The list.
      */
-    List<AccountTrx> getListChunk(final ListFilter filter,
-            final Integer startPosition, final Integer maxResults,
-            final Field orderBy, final boolean sortAscending);
+    List<AccountTrx> getListChunk(ListFilter filter, Integer startPosition,
+            Integer maxResults, Field orderBy, boolean sortAscending);
 
     /**
      * Removes {@link AccountTrx} instances dating from daysBackInTime and
      * older.
-     * <p>
-     * Note: For each removed {@link AccountTrx} any associated
-     * {@link AccountVoucher} instance is deleted by cascade.
-     * </p>
+     * <ul>
+     * <li>For each deleted {@link AccountTrx}, associated
+     * {@link PosPurchaseItem} instances are deleted. Related
+     * {@link AccountVoucher} and {@link PosPurchase} must be cleaned with
+     * {@link #cleanOrphaned(DaoBatchCommitter)}</li>
+     * <li>All deletes are committed.</li>
+     * </ul>
      *
      * @param dateBackInTime
      *            The transaction date criterion.
      * @param batchCommitter
      *            The {@link DaoBatchCommitter}.
-     * @return The number of deleted instances.
+     * @return The number of deleted {@link AccountTrx} instances.
      */
     int cleanHistory(Date dateBackInTime, DaoBatchCommitter batchCommitter);
 
+    /**
+     * Deletes {@link AccountVoucher} and {@link PosPurchase} instances that
+     * have non-existent {@link AccountTrx} parent.
+     * <ul>
+     * <li>All deletes are committed.</li>
+     * </ul>
+     *
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
+     */
+    void cleanOrphaned(DaoBatchCommitter batchCommitter);
 }

@@ -25,8 +25,6 @@ import java.time.Duration;
 import java.util.Calendar;
 import java.util.Date;
 
-import javax.persistence.EntityManager;
-
 import org.apache.commons.lang3.time.DateUtils;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -47,7 +45,6 @@ import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.AccountTrx;
-import org.savapage.core.jpa.AccountVoucher;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocInOut;
 import org.savapage.core.jpa.DocLog;
@@ -93,40 +90,36 @@ public final class DocLogClean extends AbstractJob {
     }
 
     /**
-     * Cleans up in 6 steps.
-     * <p>
-     * Step 1 and 2 delete (remove) {@link DocLog}, {@link DocOut} and
-     * {@link DocIn} objects (including CASCADED deletes of {@link AccountTrx},
-     * {@link PrintIn}, {@link DocInOut}, {@link PrintOut} and {@link PdfOut})
-     * dating from daysBackInTime and older.
-     * </p>
-     * <p>
-     * Step 3 removes {@link AccountTrx} objects (not related to an
-     * {@link DocLog} object) dating from daysBackInTime and older.
-     * </p>
-     * <p>
-     * Step 4, 5 and 6 remove logically deleted {@link User}, {@link Printer}
-     * and {@link IppQueue} instances that do NOT have any related
-     * {@link DocLog} anymore.
-     * </p>
-     * <p>
-     * Step 7 removes {@link Account} instances (cascade delete) that are
+     * Database history clean-up in 8 steps.
+     * <ul>
+     *
+     * <li>Step 1 removes {@link AccountTrx} objects (not related to a
+     * {@link DocLog} object) dating from daysBackInTime and older, including
+     * related objects.</li>
+     *
+     * <li>Step 2 removes {@link AccountTrx} objects related to {@link DocLog}
+     * objects, dating from daysBackInTime and older, including related
+     * objects.</li>
+     *
+     * <li>Step 3 and 4 delete {@link DocLog}, instances dating from
+     * daysBackInTime and older, including related {@link DocOut},
+     * {@link DocIn}, {@link PrintIn}, {@link DocInOut}, {@link PrintOut} and
+     * {@link PdfOut} objects.</li>
+     *
+     * <li>Step 5, 6 and 7 remove logically deleted {@link User},
+     * {@link Printer} and {@link IppQueue} instances that do NOT have any
+     * related {@link DocLog} anymore.</li>
+     *
+     * <li>Step 8 removes {@link Account} instances (cascade delete) that are
      * <i>logically</i> deleted, and which do <i>not</i> have any related
-     * {@link AccountTrx}.
-     * </p>
-     * <p>
+     * {@link AccountTrx}.</li>
+     *
+     * </ul>
+     *
      * <b>IMPORTANT</b>: After each step a commit is done.
-     * </p>
      * <p>
-     * <b>NOTE</b>: Records deleted with JPQL don't participate in
-     * all-or-nothing transactions nor trigger cascading deletion for child
-     * records.
-     * </p>
-     * <p>
-     * That is why we don't use bulk delete with JPQL, since we want the option
-     * to roll back the deletions as part of a transaction and use cascade
-     * deletion. We use the remove() method in EntityManager to delete
-     * individual records instead.
+     * <b>REMEMBER</b>: <i>Records deleted with JPQL don't trigger cascading
+     * deletion for child records.</i>
      * </p>
      */
     @Override
@@ -253,16 +246,18 @@ public final class DocLogClean extends AbstractJob {
                     DateUtils.addDays(new Date(), -daysBackInTimeDocLog),
                     Calendar.DAY_OF_MONTH);
 
-            cleanStep2DocOut(docClean, publisher, dateBackInTime,
+            cleanStep2DocAccountTrx(docClean, publisher, dateBackInTime,
                     batchCommitter);
-            cleanStep3DocIn(docClean, publisher, dateBackInTime,
+            cleanStep3DocOut(docClean, publisher, dateBackInTime,
+                    batchCommitter);
+            cleanStep4DocIn(docClean, publisher, dateBackInTime,
                     batchCommitter);
         }
 
-        cleanStep4PruneUsers(docClean, publisher, batchCommitter);
-        cleanStep5PrunePrinters(docClean, publisher, batchCommitter);
-        cleanStep6PruneQueues(docClean, publisher, batchCommitter);
-        cleanStep7PruneAccounts(docClean, publisher, batchCommitter);
+        cleanStep5PruneUsers(docClean, publisher, batchCommitter);
+        cleanStep6PrunePrinters(docClean, publisher, batchCommitter);
+        cleanStep7PruneQueues(docClean, publisher, batchCommitter);
+        cleanStep8PruneAccounts(docClean, publisher, batchCommitter);
     }
 
     /**
@@ -327,13 +322,8 @@ public final class DocLogClean extends AbstractJob {
     }
 
     /**
-     * <b>Step 1</b>: Removes {@link AccountTrx} instances dating from
-     * daysBackInTime and older.
-     *
-     * <p>
-     * Note: For each removed {@link AccountTrx} any associated
-     * {@link AccountVoucher} instance is deleted by cascade.
-     * </p>
+     * A wrapper for
+     * {@link AccountTrxDao#cleanHistory(Date, DaoBatchCommitter)}.
      *
      * @param docClean
      *            {@code null} when NOT run in {@link DocLogClean} context.
@@ -354,17 +344,14 @@ public final class DocLogClean extends AbstractJob {
         final AccountTrxDao dao =
                 ServiceContext.getDaoContext().getAccountTrxDao();
 
-        final boolean performClean;
+        final long rowsBefore = dao.count();
 
-        if (docClean == null) {
-            performClean = true;
-        } else {
-            final long rowsBefore = dao.count();
+        if (docClean != null) {
             docClean.onCleanStepBegin(entity, rowsBefore, publisher,
                     pubMsgKeyBase);
-            performClean = rowsBefore > 0;
         }
 
+        final boolean performClean = rowsBefore > 0;
         final int nDeleted;
         final Duration duration;
 
@@ -384,26 +371,79 @@ public final class DocLogClean extends AbstractJob {
     }
 
     /**
-     * <b>Step 2</b>: Removes {@link DocLog} instances dating from
-     * daysBackInTime and older which DO have a {@link DocOut} association.
-     * <p>
-     * IMPORTANT: Deleted DocInOut instances in Step 1, need to be committed
-     * first, so this step will get "clean" DocInOut relations.
-     * </p>
-     * <p>
-     * Note: For each removed {@link DocLog} the associated {@link DocOut}
-     * instance and {@link AccountTrx} instances are deleted by cascade.
-     * </p>
+     * A wrapper for
+     * {@link DocLogDao#cleanAccountTrxHistory(Date, DaoBatchCommitter)}.
      *
      * @param docClean
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param publisher
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param dateBackInTime
-     *            Date back in time.
+     *            History border date.
      * @param batchCommitter
      *            The {@link DaoBatchCommitter}.
-     * @return the number of deleted DocLog/DocOut objects.
      */
-    private static void cleanStep2DocOut(final DocLogClean docClean,
+    private static void cleanStep2DocAccountTrx(final DocLogClean docClean,
+            final AdminPublisher publisher, final Date dateBackInTime,
+            final DaoBatchCommitter batchCommitter) {
+
+        final String entity = "DocLog/AccountTrx";
+        final String pubMsgKeyBase = "AccountTrxClean";
+
+        final AccountTrxDao daoAccountTrx =
+                ServiceContext.getDaoContext().getAccountTrxDao();
+
+        final long rowsBefore = daoAccountTrx.count();
+
+        if (docClean != null) {
+            docClean.onCleanStepBegin(entity, rowsBefore, publisher,
+                    pubMsgKeyBase);
+        }
+
+        final DocLogDao daoDocLog =
+                ServiceContext.getDaoContext().getDocLogDao();
+
+        final boolean performClean;
+
+        if (rowsBefore > 0) {
+            performClean = daoDocLog.count() > 0;
+        } else {
+            performClean = false;
+        }
+
+        final int nDeleted;
+        final Duration duration;
+
+        if (performClean) {
+            batchCommitter.lazyOpen();
+            nDeleted = daoDocLog.cleanAccountTrxHistory(dateBackInTime,
+                    batchCommitter);
+            duration = batchCommitter.close();
+        } else {
+            nDeleted = 0;
+            duration = null;
+        }
+
+        if (docClean != null) {
+            docClean.onCleanStepEnd(entity, duration, nDeleted, publisher,
+                    pubMsgKeyBase);
+        }
+    }
+
+    /**
+     * A wrapper for
+     * {@link DocLogDao#cleanDocOutHistory(Date, DaoBatchCommitter)}.
+     *
+     * @param docClean
+     *            {@code null} when NOT run in {@link DocLogClean} context.
+     * @param publisher
+     *            {@code null} when NOT run in {@link DocLogClean} context.
+     * @param dateBackInTime
+     *            History border date.
+     * @param batchCommitter
+     *            The {@link DaoBatchCommitter}.
+     */
+    private static void cleanStep3DocOut(final DocLogClean docClean,
             final AdminPublisher publisher, final Date dateBackInTime,
             final DaoBatchCommitter batchCommitter) {
 
@@ -412,17 +452,14 @@ public final class DocLogClean extends AbstractJob {
 
         final DocLogDao dao = ServiceContext.getDaoContext().getDocLogDao();
 
-        final boolean performClean;
+        final long rowsBefore = dao.count();
 
-        if (docClean == null) {
-            performClean = true;
-        } else {
-            final long rowsBefore = dao.count();
+        if (docClean != null) {
             docClean.onCleanStepBegin(entity, rowsBefore, publisher,
                     pubMsgKeyBase);
-            performClean = rowsBefore > 0;
         }
 
+        final boolean performClean = rowsBefore > 0;
         final int nDeleted;
         final Duration duration;
 
@@ -430,6 +467,7 @@ public final class DocLogClean extends AbstractJob {
             batchCommitter.lazyOpen();
             nDeleted = dao.cleanDocOutHistory(dateBackInTime, batchCommitter);
             duration = batchCommitter.close();
+
         } else {
             nDeleted = 0;
             duration = null;
@@ -442,25 +480,19 @@ public final class DocLogClean extends AbstractJob {
     }
 
     /**
-     * Step 3: Removes {@link DocLog} instances dating from daysBackInTime and
-     * older with a {@link DocIn} association which do NOT have related
-     * {@link DocInOut} instances.
-     * <p>
-     * IMPORTANT: DocInOut instances were deleted (and committed) in Step 1, so
-     * this step will get "clean" DocInOut relations.
-     * </p>
-     * <p>
-     * Note: For each removed {@link DocLog} the associated {@link DocIn}
-     * instance and {@link AccountTrx} instances are deleted by cascade.
-     * </p>
+     * A wrapper for
+     * {@link DocLogDao#cleanDocInHistory(Date, DaoBatchCommitter)}.
      *
      * @param docClean
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param publisher
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param dateBackInTime
+     *            History border date.
      * @param batchCommitter
      *            The {@link DaoBatchCommitter}.
      */
-    private static void cleanStep3DocIn(final DocLogClean docClean,
+    private static void cleanStep4DocIn(final DocLogClean docClean,
             final AdminPublisher publisher, final Date dateBackInTime,
             final DaoBatchCommitter batchCommitter) {
 
@@ -469,24 +501,23 @@ public final class DocLogClean extends AbstractJob {
 
         final DocLogDao dao = ServiceContext.getDaoContext().getDocLogDao();
 
-        final boolean performClean;
+        final long rowsBefore = dao.count();
 
-        if (docClean == null) {
-            performClean = true;
-        } else {
-            final long rowsBefore = dao.count();
+        if (docClean != null) {
             docClean.onCleanStepBegin(entity, rowsBefore, publisher,
                     pubMsgKeyBase);
-            performClean = rowsBefore > 0;
         }
 
+        final boolean performClean = rowsBefore > 0;
         final int nDeleted;
         final Duration duration;
 
         if (performClean) {
+
             batchCommitter.lazyOpen();
             nDeleted = dao.cleanDocInHistory(dateBackInTime, batchCommitter);
             duration = batchCommitter.close();
+
         } else {
             nDeleted = 0;
             duration = null;
@@ -499,14 +530,16 @@ public final class DocLogClean extends AbstractJob {
     }
 
     /**
-     * <b>Step 4</b>: A wrapper for {@link UserDao#pruneUsers()}.
+     * A wrapper for {@link UserDao#pruneUsers(DaoBatchCommitter)}.
      *
      * @param docClean
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param publisher
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param batchCommitter
      *            The {@link DaoBatchCommitter}.
      */
-    private static void cleanStep4PruneUsers(final DocLogClean docClean,
+    private static void cleanStep5PruneUsers(final DocLogClean docClean,
             final AdminPublisher publisher,
             final DaoBatchCommitter batchCommitter) {
 
@@ -515,17 +548,14 @@ public final class DocLogClean extends AbstractJob {
 
         final UserDao dao = ServiceContext.getDaoContext().getUserDao();
 
-        final boolean performClean;
+        final long rowsBefore = dao.count();
 
-        if (docClean == null) {
-            performClean = true;
-        } else {
-            final long rowsBefore = dao.count();
+        if (docClean != null) {
             docClean.onCleanStepBegin(entity, rowsBefore, publisher,
                     pubMsgKeyBase);
-            performClean = rowsBefore > 0;
         }
 
+        final boolean performClean = rowsBefore > 0;
         final int nDeleted;
         final Duration duration;
 
@@ -545,15 +575,16 @@ public final class DocLogClean extends AbstractJob {
     }
 
     /**
-     * <b>Step 5</b>: A wrapper for {@link Printer#prunePrinters(EntityManager)}
-     * .
+     * A wrapper for {@link PrinterDao#prunePrinters(DaoBatchCommitter)}.
      *
      * @param docClean
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param publisher
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param batchCommitter
      *            The {@link DaoBatchCommitter}.
      */
-    private static void cleanStep5PrunePrinters(final DocLogClean docClean,
+    private static void cleanStep6PrunePrinters(final DocLogClean docClean,
             final AdminPublisher publisher,
             final DaoBatchCommitter batchCommitter) {
 
@@ -562,17 +593,14 @@ public final class DocLogClean extends AbstractJob {
 
         final PrinterDao dao = ServiceContext.getDaoContext().getPrinterDao();
 
-        final boolean performClean;
+        final long rowsBefore = dao.count();
 
-        if (docClean == null) {
-            performClean = true;
-        } else {
-            final long rowsBefore = dao.count();
+        if (docClean != null) {
             docClean.onCleanStepBegin(entity, rowsBefore, publisher,
                     pubMsgKeyBase);
-            performClean = rowsBefore > 0;
         }
 
+        final boolean performClean = rowsBefore > 0;
         final int nDeleted;
         final Duration duration;
 
@@ -592,14 +620,16 @@ public final class DocLogClean extends AbstractJob {
     }
 
     /**
-     * <b>Step 6</b>: A wrapper for {@link IppQueue#pruneQueues(EntityManager)}.
+     * A wrapper for {@link IppQueueDao#pruneQueues(DaoBatchCommitter)}.
      *
      * @param docClean
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param publisher
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param batchCommitter
      *            The {@link DaoBatchCommitter}.
      */
-    private static void cleanStep6PruneQueues(final DocLogClean docClean,
+    private static void cleanStep7PruneQueues(final DocLogClean docClean,
             final AdminPublisher publisher,
             final DaoBatchCommitter batchCommitter) {
 
@@ -608,17 +638,14 @@ public final class DocLogClean extends AbstractJob {
 
         final IppQueueDao dao = ServiceContext.getDaoContext().getIppQueueDao();
 
-        final boolean performClean;
+        final long rowsBefore = dao.count();
 
-        if (docClean == null) {
-            performClean = true;
-        } else {
-            final long rowsBefore = dao.count();
+        if (docClean != null) {
             docClean.onCleanStepBegin(entity, rowsBefore, publisher,
                     pubMsgKeyBase);
-            performClean = rowsBefore > 0;
         }
 
+        final boolean performClean = rowsBefore > 0;
         final int nDeleted;
         final Duration duration;
 
@@ -638,14 +665,16 @@ public final class DocLogClean extends AbstractJob {
     }
 
     /**
-     * <b>Step 7</b>:
+     * A wrapper for {@link AccountDao#pruneAccounts(DaoBatchCommitter)}.
      *
      * @param docClean
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param publisher
+     *            {@code null} when NOT run in {@link DocLogClean} context.
      * @param batchCommitter
      *            The {@link DaoBatchCommitter}.
      */
-    private static void cleanStep7PruneAccounts(final DocLogClean docClean,
+    private static void cleanStep8PruneAccounts(final DocLogClean docClean,
             final AdminPublisher publisher,
             final DaoBatchCommitter batchCommitter) {
 
@@ -654,17 +683,14 @@ public final class DocLogClean extends AbstractJob {
 
         final AccountDao dao = ServiceContext.getDaoContext().getAccountDao();
 
-        final boolean performClean;
+        final long rowsBefore = dao.count();
 
-        if (docClean == null) {
-            performClean = true;
-        } else {
-            final long rowsBefore = dao.count();
+        if (docClean != null) {
             docClean.onCleanStepBegin(entity, rowsBefore, publisher,
                     pubMsgKeyBase);
-            performClean = rowsBefore > 0;
         }
 
+        final boolean performClean = rowsBefore > 0;
         final int nDeleted;
         final Duration duration;
 
