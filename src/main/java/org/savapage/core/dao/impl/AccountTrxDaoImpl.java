@@ -27,6 +27,7 @@ import java.util.List;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import org.savapage.core.SpInfo;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.AccountTrx;
@@ -258,9 +259,7 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
          * Cascaded delete: PosPurchase, AccountVoucher
          */
         jpqlList[1] = "" //
-                + "DELETE FROM " + DbSimpleEntity.ACCOUNT_TRX
-                + " M WHERE M.id IN" + " (SELECT A.id FROM "
-                + DbSimpleEntity.ACCOUNT_TRX + " A" //
+                + "DELETE FROM " + DbSimpleEntity.ACCOUNT_TRX + " A "
                 + " WHERE A.transactionDate <= :" + psqlDateParm + ")";
 
         int nDeleted = 0;
@@ -277,6 +276,9 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
             if (i == 1) {
                 nDeleted = count;
             }
+
+            SpInfo.instance()
+                    .log(String.format("|          step %d: %d", i + 1, count));
         }
 
         batchCommitter.increment();
@@ -304,8 +306,16 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
                 + DbSimpleEntity.ACCOUNT_TRX
                 + " WHERE accountVoucher IS NOT NULL)";
 
-        for (final String jpql : jpqlList) {
-            getEntityManager().createQuery(jpql).executeUpdate();
+        for (int i = 0; i < jpqlList.length; i++) {
+
+            final String jpql = jpqlList[i];
+
+            final int count =
+                    getEntityManager().createQuery(jpql).executeUpdate();
+
+            SpInfo.instance().log(
+                    String.format("|               step %d: %d", i + 1, count));
+
             batchCommitter.increment();
             batchCommitter.commit();
         }

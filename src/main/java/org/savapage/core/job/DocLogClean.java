@@ -296,7 +296,7 @@ public final class DocLogClean extends AbstractJob {
             formattedDuration = DateUtil.formatDuration(duration.toMillis());
         }
 
-        SpInfo.instance().log(String.format("|   %s : %d %s cleaned.",
+        SpInfo.instance().log(String.format("|          %s : %d %s cleaned.",
                 formattedDuration, nDeleted, entity));
 
         if (nDeleted == 0) {

@@ -27,6 +27,7 @@ import java.util.List;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import org.savapage.core.SpInfo;
 import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
@@ -142,13 +143,12 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
                 + " WHERE L.docIn IS NOT NULL" //
                 + " AND L.createdDay <= :" + psqlDateParm + ")";
         /*
-         * Step 2: DocLog | Note: NO cascaded delete
+         * Step 2: DocLog.
          */
         jpqlList[1] = "" //
-                + "DELETE FROM " + DbSimpleEntity.DOC_LOG + " M WHERE M.id IN"
-                + " (SELECT L.id FROM " + DbSimpleEntity.DOC_LOG + " L" //
-                + " WHERE L.docIn IS NOT NULL" //
-                + " AND L.createdDay <= :" + psqlDateParm + ")";
+                + "DELETE FROM " + DbSimpleEntity.DOC_LOG + " L "
+                + " WHERE L.docIn IS NOT NULL AND L.createdDay <= :"
+                + psqlDateParm;
 
         final int nDeleted = this.cleanHistory(jpqlList, dateBackInTime,
                 psqlDateParm, 1, batchCommitter);
@@ -168,8 +168,16 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
                     + " WHERE id NOT IN" + " (SELECT printIn FROM "
                     + DbSimpleEntity.DOC_IN + " WHERE printIn IS NOT NULL)";
 
+            int i = 0;
+
             for (final String jpql : jpqlList) {
-                getEntityManager().createQuery(jpql).executeUpdate();
+
+                final int count =
+                        getEntityManager().createQuery(jpql).executeUpdate();
+
+                SpInfo.instance().log(String
+                        .format("|               step %d: %d", ++i, count));
+
                 batchCommitter.increment();
                 batchCommitter.commit();
             }
@@ -196,13 +204,12 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
                 + " IO ON IO.docOut = O.id" + " WHERE L.docOut IS NOT NULL" //
                 + " AND L.createdDay <= :" + psqlDateParm + ")";
         /*
-         * Step 2: DocLog | Note: NO cascaded delete
+         * Step 2: DocLog.
          */
         jpqlList[1] = "" //
-                + "DELETE FROM " + DbSimpleEntity.DOC_LOG + " M WHERE M.id IN"
-                + " (SELECT L.id FROM " + DbSimpleEntity.DOC_LOG + " L" //
-                + " WHERE L.docOut IS NOT NULL" //
-                + " AND L.createdDay <= :" + psqlDateParm + ")";
+                + "DELETE FROM " + DbSimpleEntity.DOC_LOG + " L "
+                + " WHERE L.docOut IS NOT NULL AND L.createdDay <= :"
+                + psqlDateParm;
 
         final int nDeleted = this.cleanHistory(jpqlList, dateBackInTime,
                 psqlDateParm, 1, batchCommitter);
@@ -227,8 +234,16 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
                     + " WHERE id NOT IN" + " (SELECT pdfOut FROM "
                     + DbSimpleEntity.DOC_OUT + " WHERE pdfOut IS NOT NULL)";
 
+            int i = 0;
+
             for (final String jpql : jpqlListOrphan) {
-                getEntityManager().createQuery(jpql).executeUpdate();
+
+                final int count =
+                        getEntityManager().createQuery(jpql).executeUpdate();
+
+                SpInfo.instance().log(String
+                        .format("|               step %d: %d", ++i, count));
+
                 batchCommitter.increment();
                 batchCommitter.commit();
             }
@@ -263,6 +278,9 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
             if (i == iDeleted) {
                 nDeleted = count;
             }
+
+            SpInfo.instance()
+                    .log(String.format("|          step %d: %d", i + 1, count));
         }
         return nDeleted;
     }
