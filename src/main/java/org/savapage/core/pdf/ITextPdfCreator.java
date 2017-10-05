@@ -452,7 +452,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             throw new PdfSecurityException(
                     "Password protected PDF not supported.");
         } catch (InvalidPdfException e) {
-            throw new PdfValidityException(e.getMessage());
+            throw new PdfValidityException(
+                    String.format("Invalid PDF: %s", e.getMessage()));
         } catch (IOException e) {
             throw new SpException(e);
 

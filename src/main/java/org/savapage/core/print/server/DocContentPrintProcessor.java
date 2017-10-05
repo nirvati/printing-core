@@ -56,6 +56,7 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.PdfSecurityException;
+import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.InboxService;
@@ -1183,34 +1184,34 @@ public final class DocContentPrintProcessor {
             if (exception instanceof PostScriptDrmException) {
 
                 if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("Distilling PostScript to PDF from user ["
-                            + userid + "] FAILED: " + exception.getMessage());
+                    LOGGER.warn(String.format(
+                            "User [%s] Distilling PostScript to PDF : %s",
+                            userid, exception.getMessage()));
                 }
-
                 setDeferredException(null);
 
-            } else if (exception instanceof PdfSecurityException) {
+            } else if ((exception instanceof PdfSecurityException)
+                    || (exception instanceof PdfValidityException)) {
 
                 if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("Opening PDF from user [" + userid
-                            + "] FAILED: " + exception.getMessage());
+                    LOGGER.warn(String.format("User [%s]: %s", userid,
+                            exception.getMessage()));
                 }
-
                 setDeferredException(null);
 
             } else if (exception instanceof UnsupportedPrintJobContent) {
 
                 if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("Unsupported Print Job content from user ["
-                            + userid + "] : " + exception.getMessage());
+                    if (LOGGER.isWarnEnabled()) {
+                        LOGGER.warn(String.format(
+                                "Unsupported Print Content from user [%s]: %s",
+                                userid, exception.getMessage()));
+                    }
                 }
-
                 setDeferredException(null);
 
             } else {
-
                 pubLevel = PubLevelEnum.ERROR;
-
                 LOGGER.error(exception.getMessage(), exception);
             }
         }
