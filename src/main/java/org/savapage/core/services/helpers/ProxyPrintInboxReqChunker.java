@@ -148,9 +148,10 @@ public final class ProxyPrintInboxReqChunker {
          */
         if (mediaSourceCostList.size() == 0) {
 
-            throw new ProxyPrintException(String.format(
-                    "%s no media-source for media [%s]", getErrorMessagePfx(),
-                    inboxIppMedia.getIppKeyword()));
+            throw new ProxyPrintException("No Media Source selected",
+                    String.format("%s no media-source selected for media [%s]",
+                            getErrorMessagePfx(),
+                            inboxIppMedia.getIppKeyword()));
         }
 
         if (IS_UNIQUE_MEDIASOURCE_REQUIRED) {

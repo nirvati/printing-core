@@ -21,6 +21,8 @@
  */
 package org.savapage.core.print.proxy;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * An exception for logical errors during Proxy Printing.
  *
@@ -94,4 +96,11 @@ public final class ProxyPrintException extends Exception {
         return logFileMessage;
     }
 
+    /**
+     *
+     * @return {@code true} when log file message is available.
+     */
+    public boolean hasLogFileMessage() {
+        return StringUtils.isNotBlank(this.logFileMessage);
+    }
 }
