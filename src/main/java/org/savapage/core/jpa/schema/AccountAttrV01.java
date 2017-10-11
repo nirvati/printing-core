@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -27,6 +27,7 @@ import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -35,11 +36,13 @@ import javax.persistence.UniqueConstraint;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
 @Table(name = AccountAttrV01.TABLE_NAME,
+        indexes = {
+                @Index(name = "ix_account_attr_1", columnList = "account_id") },
         uniqueConstraints = { @UniqueConstraint(name = "uc_account_attr_1",
                 columnNames = { "account_id", "attrib_name" }) })
 public class AccountAttrV01 implements SchemaEntityVersion {
@@ -51,10 +54,10 @@ public class AccountAttrV01 implements SchemaEntityVersion {
 
     @Id
     @Column(name = "account_attr_id")
-    @TableGenerator(name = "accountAttrPropGen",
-            table = SequenceV01.TABLE_NAME, pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
-            pkColumnValue = TABLE_NAME, allocationSize = 1)
+    @TableGenerator(name = "accountAttrPropGen", table = SequenceV01.TABLE_NAME,
+            pkColumnName = "SEQUENCE_NAME",
+            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
+            allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "accountAttrPropGen")
     private Long id;

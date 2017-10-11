@@ -99,6 +99,11 @@ public interface DaoContext {
     /**
      * @return The DAO implementation.
      */
+    CostChangeDao getCostChangeDao();
+
+    /**
+     * @return The DAO implementation.
+     */
     DocInOutDao getDocInOutDao();
 
     /**

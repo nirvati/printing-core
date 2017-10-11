@@ -113,9 +113,6 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         final int nDeleted = this.cleanHistory(jpqlList, dateBackInTime,
                 psqlDateParm, 1, batchCommitter);
 
-        batchCommitter.increment();
-        batchCommitter.commit();
-
         if (nDeleted > 0) {
             ServiceContext.getDaoContext().getAccountTrxDao()
                     .cleanOrphaned(batchCommitter);
@@ -127,7 +124,7 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
     public int cleanDocInHistory(final Date dateBackInTime,
             final DaoBatchCommitter batchCommitter) {
 
-        final String[] jpqlList = new String[2];
+        String[] jpqlList = new String[3];
         final String psqlDateParm = "createdDay";
 
         /*
@@ -136,29 +133,40 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         jpqlList[0] = "" //
                 + "DELETE FROM " + DbSimpleEntity.DOC_IN_OUT
                 + " M WHERE M.id IN" + " (SELECT IO.id FROM "
-                + DbSimpleEntity.DOC_LOG + " L" //
-                + " JOIN " + DbSimpleEntity.DOC_IN + " I ON I.id = L.docIn" //
-                + " JOIN " + DbSimpleEntity.DOC_IN_OUT
-                + " IO ON IO.docIn = I.id" //
-                + " WHERE L.docIn IS NOT NULL" //
-                + " AND L.createdDay <= :" + psqlDateParm + ")";
+                + DbSimpleEntity.DOC_IN_OUT + " IO" //
+                + " JOIN " + DbSimpleEntity.DOC_IN + " I ON I.id = IO.docIn" //
+                + " JOIN " + DbSimpleEntity.DOC_LOG + " L ON L.docIn = I.id" //
+                + " WHERE L.createdDay <= :" + psqlDateParm + ")";
+
         /*
-         * Step 2: DocLog.
+         * Step 2: CostChange.
          */
         jpqlList[1] = "" //
+                + "DELETE FROM " + DbSimpleEntity.COST_CHANGE
+                + " M WHERE M.id IN" + " (SELECT C.id FROM "
+                + DbSimpleEntity.COST_CHANGE + " C" //
+                + " JOIN " + DbSimpleEntity.DOC_LOG + " L ON L.id = C.docLog" //
+                + " WHERE C.docLog IS NOT NULL" //
+                + " AND L.docIn IS NOT NULL" //
+                + " AND L.createdDay <= :" + psqlDateParm + ")";
+
+        /*
+         * Step 3: DocLog.
+         */
+        jpqlList[2] = "" //
                 + "DELETE FROM " + DbSimpleEntity.DOC_LOG + " L "
                 + " WHERE L.docIn IS NOT NULL AND L.createdDay <= :"
                 + psqlDateParm;
 
         final int nDeleted = this.cleanHistory(jpqlList, dateBackInTime,
-                psqlDateParm, 1, batchCommitter);
-
-        batchCommitter.increment();
-        batchCommitter.commit();
+                psqlDateParm, 2, batchCommitter);
 
         if (nDeleted > 0) {
+
+            jpqlList = new String[2];
+
             /*
-             * Step 3: Delete orphaned: DocIn, PrintIn
+             * Step 4: Delete orphaned: DocIn, PrintIn
              */
             jpqlList[0] = "DELETE FROM " + DbSimpleEntity.DOC_IN
                     + " WHERE id NOT IN" + " (SELECT docIn FROM "
@@ -175,11 +183,16 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
                 final int count =
                         getEntityManager().createQuery(jpql).executeUpdate();
 
+                i++;
+
                 SpInfo.instance().log(String
-                        .format("|               step %d: %d", ++i, count));
+                        .format("|               step %d: %d ...", i, count));
 
                 batchCommitter.increment();
                 batchCommitter.commit();
+
+                SpInfo.instance().log(String.format(
+                        "|                    %d: %d committed.", i, count));
             }
         }
         return nDeleted;
@@ -189,7 +202,7 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
     public int cleanDocOutHistory(final Date dateBackInTime,
             final DaoBatchCommitter batchCommitter) {
 
-        final String[] jpqlList = new String[2];
+        final String[] jpqlList = new String[3];
         final String psqlDateParm = "createdDay";
 
         /*
@@ -198,28 +211,37 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         jpqlList[0] = "" //
                 + "DELETE FROM " + DbSimpleEntity.DOC_IN_OUT
                 + " M WHERE M.id IN" + " (SELECT IO.id FROM "
-                + DbSimpleEntity.DOC_LOG + " L" //
-                + " JOIN " + DbSimpleEntity.DOC_OUT + " O ON O.id = L.docOut" //
-                + " JOIN " + DbSimpleEntity.DOC_IN_OUT
-                + " IO ON IO.docOut = O.id" + " WHERE L.docOut IS NOT NULL" //
-                + " AND L.createdDay <= :" + psqlDateParm + ")";
+                + DbSimpleEntity.DOC_IN_OUT + " IO" //
+                + " JOIN " + DbSimpleEntity.DOC_OUT + " O ON O.id = IO.docOut"
+                + " JOIN " + DbSimpleEntity.DOC_LOG + " L ON L.docOut = O.id"
+                + " WHERE L.createdDay <= :" + psqlDateParm + ")";
+
         /*
-         * Step 2: DocLog.
+         * Step 2: CostChange.
          */
         jpqlList[1] = "" //
+                + "DELETE FROM " + DbSimpleEntity.COST_CHANGE
+                + " M WHERE M.id IN" + " (SELECT C.id FROM "
+                + DbSimpleEntity.COST_CHANGE + " C" //
+                + " JOIN " + DbSimpleEntity.DOC_LOG + " L ON L.id = C.docLog" //
+                + " WHERE C.docLog IS NOT NULL" //
+                + " AND L.docOut IS NOT NULL" //
+                + " AND L.createdDay <= :" + psqlDateParm + ")";
+
+        /*
+         * Step 3: DocLog.
+         */
+        jpqlList[2] = "" //
                 + "DELETE FROM " + DbSimpleEntity.DOC_LOG + " L "
                 + " WHERE L.docOut IS NOT NULL AND L.createdDay <= :"
                 + psqlDateParm;
 
         final int nDeleted = this.cleanHistory(jpqlList, dateBackInTime,
-                psqlDateParm, 1, batchCommitter);
-
-        batchCommitter.increment();
-        batchCommitter.commit();
+                psqlDateParm, 2, batchCommitter);
 
         if (nDeleted > 0) {
             /*
-             * Step 3: Delete orphaned: DocOut, PrintOut, PdfOut
+             * Step 4: Delete orphaned: DocOut, PrintOut, PdfOut
              */
             final String[] jpqlListOrphan = new String[3];
             jpqlListOrphan[0] = "DELETE FROM " + DbSimpleEntity.DOC_OUT
@@ -241,11 +263,16 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
                 final int count =
                         getEntityManager().createQuery(jpql).executeUpdate();
 
+                i++;
+
                 SpInfo.instance().log(String
-                        .format("|               step %d: %d", ++i, count));
+                        .format("|               step %d: %d ...", i, count));
 
                 batchCommitter.increment();
                 batchCommitter.commit();
+
+                SpInfo.instance().log(String.format(
+                        "|                    %d: %d committed.", i, count));
             }
         }
 
@@ -279,8 +306,14 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
                 nDeleted = count;
             }
 
-            SpInfo.instance()
-                    .log(String.format("|          step %d: %d", i + 1, count));
+            SpInfo.instance().log(
+                    String.format("|          step %d: %d ...", i + 1, count));
+
+            batchCommitter.increment();
+            batchCommitter.commit();
+
+            SpInfo.instance().log(String
+                    .format("|               %d: %d committed.", i + 1, count));
         }
         return nDeleted;
     }

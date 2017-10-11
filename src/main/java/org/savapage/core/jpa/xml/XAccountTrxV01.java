@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -31,11 +31,12 @@ import javax.persistence.Table;
 
 import org.savapage.core.jpa.schema.AccountTrxV01;
 import org.savapage.core.jpa.schema.AccountVoucherV01;
+import org.savapage.core.jpa.schema.CostChangeV01;
 import org.savapage.core.jpa.schema.PosPurchaseV01;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -61,16 +62,22 @@ public class XAccountTrxV01 extends XEntityVersion {
     private Long docLog;
 
     /**
-     * The optional EAGER {@link AccountVoucherV01} association.
+     * The optional {@link AccountVoucherV01} association.
      */
     @Column(name = "account_voucher_id", nullable = true)
     private Long accountVoucher;
 
     /**
-     * The optional EAGER {@link PosPurchaseV01} association.
+     * The optional {@link PosPurchaseV01} association.
      */
     @Column(name = "pos_purchase_id", nullable = true)
     private Long posPurchase;
+
+    /**
+     * The optional {@link CostChangeV01} association.
+     */
+    @Column(name = "cost_change_id", nullable = true)
+    private Long costChange;
 
     /**
      * The amount of the transaction.
@@ -89,6 +96,13 @@ public class XAccountTrxV01 extends XEntityVersion {
      */
     @Column(name = "is_credit", nullable = false)
     private Boolean isCredit;
+
+    /**
+     * Optional units responsible for the mathematical weight. For instance, the
+     * number of users, so trx_weight / trx_weight_unit = copies per user.
+     */
+    @Column(name = "trx_weight_unit", nullable = false)
+    private Integer transactionWeightUnit;
 
     /**
      * Mathematical weight of the transaction in the context of a transaction
@@ -110,8 +124,8 @@ public class XAccountTrxV01 extends XEntityVersion {
     private String transactedBy;
 
     /**
-     * An optional comment. E.g: "Bulk credit adjustment" |
-     * "from custom PHP application".
+     * An optional comment. E.g: "Bulk credit adjustment" | "from custom PHP
+     * application".
      */
     @Column(name = "trx_comment", length = 255, nullable = true)
     private String comment;
@@ -165,7 +179,6 @@ public class XAccountTrxV01 extends XEntityVersion {
     @Column(name = "ext_confirmations", nullable = true)
     private Integer extConfirmations;
 
-
     /**
      * When extMethod == OTHER
      *
@@ -211,8 +224,8 @@ public class XAccountTrxV01 extends XEntityVersion {
      *
      * @since 0.9.9
      */
-    @Column(name = "ext_fee", nullable = true,
-            precision = DECIMAL_PRECISION_16, scale = DECIMAL_SCALE_8)
+    @Column(name = "ext_fee", nullable = true, precision = DECIMAL_PRECISION_16,
+            scale = DECIMAL_SCALE_8)
     private BigDecimal extFee;
 
     /**
@@ -428,6 +441,22 @@ public class XAccountTrxV01 extends XEntityVersion {
 
     public void setExtFee(BigDecimal extFee) {
         this.extFee = extFee;
+    }
+
+    public Long getCostChange() {
+        return costChange;
+    }
+
+    public void setCostChange(Long costChange) {
+        this.costChange = costChange;
+    }
+
+    public Integer getTransactionWeightUnit() {
+        return transactionWeightUnit;
+    }
+
+    public void setTransactionWeightUnit(Integer transactionWeightUnit) {
+        this.transactionWeightUnit = transactionWeightUnit;
     }
 
 }

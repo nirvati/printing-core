@@ -23,6 +23,7 @@ package org.savapage.core.jpa.tools;
 
 import org.savapage.core.jpa.xml.XAccountTrxV01;
 import org.savapage.core.jpa.xml.XAccountVoucherV01;
+import org.savapage.core.jpa.xml.XCostChangeV01;
 import org.savapage.core.jpa.xml.XDocInOutV01;
 import org.savapage.core.jpa.xml.XDocInV01;
 import org.savapage.core.jpa.xml.XDocLogV01;
@@ -41,6 +42,9 @@ import org.savapage.core.jpa.xml.XPrintOutV01;
  *
  */
 public enum DbXEntityEnum {
+
+    /** */
+    COST_CHANGE(XCostChangeV01.class),
 
     /** */
     DOC_LOG(XDocLogV01.class),

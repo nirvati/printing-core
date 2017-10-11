@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -38,15 +38,15 @@ import javax.persistence.TableGenerator;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
-@Table(name = UserV01.TABLE_NAME, indexes = {
-// Note that we can NOT use a unique index since Users are LOGICALLY deleted.
-@Index(name = "ix_user_1", columnList = "user_name")
-//
-        })
+@Table(name = UserV01.TABLE_NAME,
+        indexes = { //
+                // Note that we can NOT use a unique index since Users are
+                // LOGICALLY deleted.
+                @Index(name = "ix_user_1", columnList = "user_name") })
 public class UserV01 implements SchemaEntityVersion {
 
     /**
@@ -58,8 +58,8 @@ public class UserV01 implements SchemaEntityVersion {
     @Column(name = "user_id")
     @TableGenerator(name = "userPropGen", table = SequenceV01.TABLE_NAME,
             pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
-            pkColumnValue = TABLE_NAME, allocationSize = 1)
+            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
+            allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "userPropGen")
     private Long id;
 
@@ -115,8 +115,8 @@ public class UserV01 implements SchemaEntityVersion {
             updatable = true)
     private Boolean disabledPdfOut = false;
 
-    @Column(name = "disabled_pdf_out_until", nullable = true,
-            insertable = true, updatable = true)
+    @Column(name = "disabled_pdf_out_until", nullable = true, insertable = true,
+            updatable = true)
     private Date disabledPdfOutUntil;
 
     //
@@ -150,12 +150,12 @@ public class UserV01 implements SchemaEntityVersion {
             updatable = true)
     private Integer numberOfPrintOutJobs = 0;
 
-    @Column(name = "total_print_out_pages", nullable = false,
-            insertable = true, updatable = true)
+    @Column(name = "total_print_out_pages", nullable = false, insertable = true,
+            updatable = true)
     private Integer numberOfPrintOutPages = 0;
 
-    @Column(name = "total_print_out_bytes", nullable = false,
-            insertable = true, updatable = true)
+    @Column(name = "total_print_out_bytes", nullable = false, insertable = true,
+            updatable = true)
     private Long numberOfPrintOutBytes = 0L;
 
     @Column(name = "total_print_out_sheets", nullable = false,
@@ -250,6 +250,13 @@ public class UserV01 implements SchemaEntityVersion {
     @OneToMany(targetEntity = UserGroupMemberV01.class, mappedBy = "user",
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserGroupMemberV01> groupMembership;
+
+    /**
+     * The LAZY CostChange list.
+     */
+    @OneToMany(targetEntity = CostChangeV01.class, mappedBy = "reqUser",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CostChangeV01> costChanges;
 
     public void setId(Long id) {
         this.id = id;
@@ -585,6 +592,14 @@ public class UserV01 implements SchemaEntityVersion {
 
     public void setGroupMembership(List<UserGroupMemberV01> groupMembership) {
         this.groupMembership = groupMembership;
+    }
+
+    public List<CostChangeV01> getCostChanges() {
+        return costChanges;
+    }
+
+    public void setCostChanges(List<CostChangeV01> costChanges) {
+        this.costChanges = costChanges;
     }
 
 }

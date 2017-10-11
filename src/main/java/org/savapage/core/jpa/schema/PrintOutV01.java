@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -37,14 +37,17 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 /**
- * LPR Print Output Document.
+ * CUPS Print Output Document.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
-@Table(name = PrintOutV01.TABLE_NAME, indexes = { @Index(
-        name = "ix_print_out_1", columnList = "cups_job_id") })
+@Table(name = PrintOutV01.TABLE_NAME,
+        indexes = { //
+                @Index(name = "ix_print_out_1", columnList = "cups_job_id"),
+                @Index(name = "ix_print_out_2", columnList = "cups_job_state"),
+                @Index(name = "ix_print_out_3", columnList = "printer_id") })
 public class PrintOutV01 implements SchemaEntityVersion {
 
     public static final String TABLE_NAME = "tbl_print_out";
@@ -53,8 +56,8 @@ public class PrintOutV01 implements SchemaEntityVersion {
     @Column(name = "print_out_id")
     @TableGenerator(name = "printOutPropGen", table = SequenceV01.TABLE_NAME,
             pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
-            pkColumnValue = TABLE_NAME, allocationSize = 1)
+            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
+            allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "printOutPropGen")
     private Long id;

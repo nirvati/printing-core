@@ -29,6 +29,7 @@ import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.AccountVoucherDao;
 import org.savapage.core.dao.AppLogDao;
 import org.savapage.core.dao.ConfigPropertyDao;
+import org.savapage.core.dao.CostChangeDao;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.DeviceAttrDao;
 import org.savapage.core.dao.DeviceDao;
@@ -147,6 +148,11 @@ public final class DaoContextImpl implements DaoContext {
         public static final ConfigPropertyDao CONFIG_PROPERTY_DAO =
                 new ConfigPropertyDaoImpl();
 
+        /**
+        *
+        */
+       public static final CostChangeDao COST_CHANGE_DAO =
+               new CostChangeDaoImpl();
         /**
          *
          */
@@ -334,6 +340,11 @@ public final class DaoContextImpl implements DaoContext {
     @Override
     public ConfigPropertyDao getConfigPropertyDao() {
         return DaoHolder.CONFIG_PROPERTY_DAO;
+    }
+
+    @Override
+    public CostChangeDao getCostChangeDao() {
+        return DaoHolder.COST_CHANGE_DAO;
     }
 
     @Override

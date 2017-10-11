@@ -277,12 +277,15 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
                 nDeleted = count;
             }
 
-            SpInfo.instance()
-                    .log(String.format("|          step %d: %d", i + 1, count));
-        }
+            SpInfo.instance().log(
+                    String.format("|          step %d: %d ...", i + 1, count));
 
-        batchCommitter.increment();
-        batchCommitter.commit();
+            batchCommitter.increment();
+            batchCommitter.commit();
+
+            SpInfo.instance().log(String
+                    .format("|               %d: %d committed.", i + 1, count));
+        }
 
         if (nDeleted > 0) {
             this.cleanOrphaned(batchCommitter);
@@ -294,7 +297,7 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
     @Override
     public void cleanOrphaned(final DaoBatchCommitter batchCommitter) {
 
-        final String[] jpqlList = new String[2];
+        final String[] jpqlList = new String[3];
 
         jpqlList[0] = "DELETE FROM " + DbSimpleEntity.POS_PURCHASE
                 + " WHERE id NOT IN" + " (SELECT posPurchase FROM "
@@ -306,6 +309,11 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
                 + DbSimpleEntity.ACCOUNT_TRX
                 + " WHERE accountVoucher IS NOT NULL)";
 
+        jpqlList[2] = "DELETE FROM " + DbSimpleEntity.COST_CHANGE
+                + " WHERE id NOT IN" + " (SELECT costChange FROM "
+                + DbSimpleEntity.ACCOUNT_TRX
+                + " WHERE costChange IS NOT NULL)";
+
         for (int i = 0; i < jpqlList.length; i++) {
 
             final String jpql = jpqlList[i];
@@ -313,11 +321,14 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
             final int count =
                     getEntityManager().createQuery(jpql).executeUpdate();
 
-            SpInfo.instance().log(
-                    String.format("|               step %d: %d", i + 1, count));
+            SpInfo.instance().log(String
+                    .format("|               step %d: %d ...", i + 1, count));
 
             batchCommitter.increment();
             batchCommitter.commit();
+
+            SpInfo.instance().log(String.format(
+                    "|                    %d: %d committed.", i + 1, count));
         }
     }
 

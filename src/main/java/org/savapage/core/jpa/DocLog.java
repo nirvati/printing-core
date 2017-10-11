@@ -173,6 +173,13 @@ public class DocLog extends org.savapage.core.jpa.Entity {
     private List<AccountTrx> transactions;
 
     /**
+     * The LAZY CostChange list.
+     */
+    @OneToMany(targetEntity = CostChange.class, mappedBy = "docLog",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CostChange> costChanges;
+
+    /**
      *
      */
     @Column(name = "cost", nullable = false, precision = 10, scale = 6)
@@ -456,6 +463,14 @@ public class DocLog extends org.savapage.core.jpa.Entity {
 
     public void setExternalData(String externalData) {
         this.externalData = externalData;
+    }
+
+    public List<CostChange> getCostChanges() {
+        return costChanges;
+    }
+
+    public void setCostChanges(List<CostChange> costChanges) {
+        this.costChanges = costChanges;
     }
 
 }

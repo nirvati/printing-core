@@ -86,6 +86,11 @@ public abstract class GenericDaoImpl<T extends Entity>
     }
 
     @Override
+    public final void refresh(final T entity) {
+        getEntityManager().refresh(entity);
+    }
+
+    @Override
     public final boolean delete(final T entity) {
         getEntityManager().remove(entity);
         return true;

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,12 +14,14 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.dao;
+
+import javax.persistence.EntityManager;
 
 import org.savapage.core.jpa.Entity;
 
@@ -29,7 +31,7 @@ import org.savapage.core.jpa.Entity;
  * http://stackoverflow.com/questions/12565973/java-ee-dao-dto-data-transfer-
  * object-design-patterns
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  * @param <T>
  */
@@ -80,6 +82,15 @@ public interface GenericDao<T extends Entity> {
      * @return The {@link Entity} instance.
      */
     T update(T entity);
+
+    /**
+     * Refresh the state of the instance from the database, overwriting changes
+     * made to the entity, if any. See {@link EntityManager#refresh(Object)}
+     *
+     * @param entity
+     *            The {@link Entity}.
+     */
+    void refresh(T entity);
 
     /**
      *

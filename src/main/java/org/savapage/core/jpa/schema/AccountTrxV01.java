@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -41,7 +41,7 @@ import javax.persistence.TableGenerator;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -50,7 +50,9 @@ import javax.persistence.TableGenerator;
         @Index(name = "ix_account_trx_2", columnList = "doc_id"),
         @Index(name = "ix_account_trx_3", columnList = "trx_date"),
         @Index(name = "ix_account_trx_4", columnList = "account_voucher_id"),
-        @Index(name = "ix_account_trx_5", columnList = "ext_id") })
+        @Index(name = "ix_account_trx_5", columnList = "ext_id"),
+        @Index(name = "ix_account_trx_6", columnList = "pos_purchase_id"),
+        @Index(name = "ix_account_trx_7", columnList = "cost_change_id") })
 public class AccountTrxV01 implements SchemaEntityVersion {
 
     /**
@@ -84,8 +86,8 @@ public class AccountTrxV01 implements SchemaEntityVersion {
      * Account.
      */
     @ManyToOne
-    @JoinColumn(name = "doc_id", nullable = true, foreignKey = @ForeignKey(
-            name = "FK_ACCOUNT_TRX_TO_DOCLOG"))
+    @JoinColumn(name = "doc_id", nullable = true,
+            foreignKey = @ForeignKey(name = "FK_ACCOUNT_TRX_TO_DOCLOG"))
     private DocLogV01 docLog;
 
     /**
@@ -93,10 +95,9 @@ public class AccountTrxV01 implements SchemaEntityVersion {
      */
     @OneToOne(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER,
             optional = true)
-    @JoinColumn(
-            name = "account_voucher_id",
-            nullable = true,
-            foreignKey = @ForeignKey(name = "FK_ACCOUNT_TRX_TO_ACCOUNT_VOUCHER"))
+    @JoinColumn(name = "account_voucher_id", nullable = true,
+            foreignKey = @ForeignKey(
+                    name = "FK_ACCOUNT_TRX_TO_ACCOUNT_VOUCHER"))
     private AccountVoucherV01 accountVoucher;
 
     /**
@@ -107,6 +108,15 @@ public class AccountTrxV01 implements SchemaEntityVersion {
     @JoinColumn(name = "pos_purchase_id", nullable = true,
             foreignKey = @ForeignKey(name = "FK_ACCOUNT_TRX_TO_POS_PURCHASE"))
     private PosPurchaseV01 posPurchase;
+
+    /**
+     * The optional EAGER {@link CostChangeV01} association.
+     */
+    @OneToOne(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER,
+            optional = true)
+    @JoinColumn(name = "cost_change_id", nullable = true,
+            foreignKey = @ForeignKey(name = "FK_ACCOUNT_TRX_TO_COST_CHANGE"))
+    private CostChangeV01 costChange;
 
     /**
      * The amount of the transaction.
@@ -125,6 +135,13 @@ public class AccountTrxV01 implements SchemaEntityVersion {
      */
     @Column(name = "is_credit", nullable = false)
     private Boolean isCredit;
+
+    /**
+     * Optional units responsible for the mathematical weight. For instance, the
+     * number of users, so trx_weight / trx_weight_unit = copies per user.
+     */
+    @Column(name = "trx_weight_unit", nullable = false)
+    private Integer transactionWeightUnit;
 
     /**
      * Mathematical weight of the transaction in the context of a transaction
@@ -146,8 +163,8 @@ public class AccountTrxV01 implements SchemaEntityVersion {
     private String transactedBy;
 
     /**
-     * An optional comment. E.g: "Bulk credit adjustment" |
-     * "from custom PHP application".
+     * An optional comment. E.g: "Bulk credit adjustment" | "from custom PHP
+     * application".
      */
     @Column(name = "trx_comment", length = 255, nullable = true)
     private String comment;
@@ -246,8 +263,7 @@ public class AccountTrxV01 implements SchemaEntityVersion {
      *
      * @since 0.9.9
      */
-    @Column(name = "ext_fee", nullable = true,
-            precision = 16, scale = 8)
+    @Column(name = "ext_fee", nullable = true, precision = 16, scale = 8)
     private BigDecimal extFee;
 
     /**
@@ -461,6 +477,22 @@ public class AccountTrxV01 implements SchemaEntityVersion {
 
     public void setExtFee(BigDecimal extFee) {
         this.extFee = extFee;
+    }
+
+    public CostChangeV01 getCostChange() {
+        return costChange;
+    }
+
+    public void setCostChange(CostChangeV01 costChange) {
+        this.costChange = costChange;
+    }
+
+    public Integer getTransactionWeightUnit() {
+        return transactionWeightUnit;
+    }
+
+    public void setTransactionWeightUnit(Integer transactionWeightUnit) {
+        this.transactionWeightUnit = transactionWeightUnit;
     }
 
 }

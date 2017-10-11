@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -44,7 +44,7 @@ import org.savapage.core.jpa.tools.DbTools;
  *
  * </ol>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class Entity {
@@ -54,14 +54,14 @@ public class Entity {
     public static final String ACTOR_INSTALL = "[install]";
     public static final String ACTOR_SYSTEM_API = ACTOR_SYSTEM + " (api)";
 
-    protected static final int DECIMAL_PRECISION_6 = 6;
-    protected static final int DECIMAL_PRECISION_8 = 8;
-    protected static final int DECIMAL_PRECISION_10 = 10;
-    protected static final int DECIMAL_PRECISION_16 = 16;
+    public static final int DECIMAL_PRECISION_6 = 6;
+    public static final int DECIMAL_PRECISION_8 = 8;
+    public static final int DECIMAL_PRECISION_10 = 10;
+    public static final int DECIMAL_PRECISION_16 = 16;
 
-    protected static final int DECIMAL_SCALE_2 = 2;
-    protected static final int DECIMAL_SCALE_6 = 6;
-    protected static final int DECIMAL_SCALE_8 = 8;
+    public static final int DECIMAL_SCALE_2 = 2;
+    public static final int DECIMAL_SCALE_6 = 6;
+    public static final int DECIMAL_SCALE_8 = 8;
 
     protected Entity() {
     }

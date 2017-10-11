@@ -44,10 +44,9 @@ import org.savapage.core.jpa.UserGroup;
  *
  */
 @Entity
-@Table(name = UserGroupAccountV01.TABLE_NAME,
-        indexes = {
-                @Index(name = "ix_user_group_account_1", columnList = "user_group_id"),
-                @Index(name = "ix_user_group_account_2", columnList = "account_id") })
+@Table(name = UserGroupAccountV01.TABLE_NAME, indexes = { //
+        @Index(name = "ix_user_group_account_1", columnList = "user_group_id"),
+        @Index(name = "ix_user_group_account_2", columnList = "account_id") })
 public class UserGroupAccountV01 implements SchemaEntityVersion {
 
     /**
@@ -70,7 +69,8 @@ public class UserGroupAccountV01 implements SchemaEntityVersion {
 
     @ManyToOne
     @JoinColumn(name = "user_group_id", nullable = false,
-            foreignKey = @ForeignKey(name = "FK_USER_GROUP_ACCOUNT_TO_USER_GROUP"))
+            foreignKey = @ForeignKey(
+                    name = "FK_USER_GROUP_ACCOUNT_TO_USER_GROUP"))
     private UserGroupV01 userGroup;
 
     @ManyToOne

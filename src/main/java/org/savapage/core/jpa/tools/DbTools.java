@@ -90,6 +90,7 @@ import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.AccountVoucher;
 import org.savapage.core.jpa.AppLog;
 import org.savapage.core.jpa.ConfigProperty;
+import org.savapage.core.jpa.CostChange;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DeviceAttr;
 import org.savapage.core.jpa.DocIn;
@@ -124,6 +125,7 @@ import org.savapage.core.jpa.schema.AccountV01;
 import org.savapage.core.jpa.schema.AccountVoucherV01;
 import org.savapage.core.jpa.schema.AppLogV01;
 import org.savapage.core.jpa.schema.ConfigPropertyV01;
+import org.savapage.core.jpa.schema.CostChangeV01;
 import org.savapage.core.jpa.schema.DeviceAttrV01;
 import org.savapage.core.jpa.schema.DeviceV01;
 import org.savapage.core.jpa.schema.DocInOutV01;
@@ -158,6 +160,7 @@ import org.savapage.core.jpa.xml.XAccountV01;
 import org.savapage.core.jpa.xml.XAccountVoucherV01;
 import org.savapage.core.jpa.xml.XAppLogV01;
 import org.savapage.core.jpa.xml.XConfigPropertyV01;
+import org.savapage.core.jpa.xml.XCostChangeV01;
 import org.savapage.core.jpa.xml.XDeviceAttrV01;
 import org.savapage.core.jpa.xml.XDeviceV01;
 import org.savapage.core.jpa.xml.XDocInOutV01;
@@ -295,6 +298,9 @@ public final class DbTools implements ServiceEntryPoint {
 
             // since V01.00
             AccountVoucherV01.class,
+
+            // since V01.07
+            CostChangeV01.class,
 
             // since V01.00
             AccountTrxV01.class,
@@ -443,6 +449,9 @@ public final class DbTools implements ServiceEntryPoint {
 
             // since V01.00
             XAccountVoucherV01.class,
+            // since V01.07
+            XCostChangeV01.class,
+
             // since V01.00
             XAccountTrxV01.class,
 
@@ -523,6 +532,8 @@ public final class DbTools implements ServiceEntryPoint {
             AccountTrx.TABLE_NAME,
             // since V01.00
             AccountVoucher.TABLE_NAME,
+            // since V01.07
+            CostChange.TABLE_NAME,
             // since V01.00
             Device.TABLE_NAME,
             // since V01.00

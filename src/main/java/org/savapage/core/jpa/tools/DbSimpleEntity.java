@@ -40,6 +40,8 @@ public final class DbSimpleEntity {
     public static final String ACCOUNT_VOUCHER =
             DbXEntityEnum.ACCOUNT_VOUCHER.psql();
     /** */
+    public static final String COST_CHANGE = DbXEntityEnum.COST_CHANGE.psql();
+    /** */
     public static final String POS_PURCHASE = DbXEntityEnum.POS_PURCHASE.psql();
     /** */
     public static final String POS_PURCHASE_ITEM =

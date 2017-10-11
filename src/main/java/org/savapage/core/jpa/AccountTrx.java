@@ -111,6 +111,17 @@ public class AccountTrx extends org.savapage.core.jpa.Entity {
     private PosPurchase posPurchase;
 
     /**
+     * The optional EAGER {@link CostChange} association.
+     * <p>
+     * foreignKey = @ForeignKey(name = "FK_ACCOUNT_TRX_TO_COST_CHANGE")
+     * </p>
+     */
+    @OneToOne(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER,
+            optional = true)
+    @JoinColumn(name = "cost_change_id", nullable = true)
+    private CostChange costChange;
+
+    /**
      * The amount of the transaction.
      */
     @Column(name = "amount", nullable = false, precision = DECIMAL_PRECISION_16,
@@ -129,6 +140,13 @@ public class AccountTrx extends org.savapage.core.jpa.Entity {
      */
     @Column(name = "is_credit", nullable = false)
     private Boolean isCredit;
+
+    /**
+     * Optional units responsible for the mathematical weight. For instance, the
+     * number of users, so trx_weight / trx_weight_unit = copies per user.
+     */
+    @Column(name = "trx_weight_unit", nullable = false)
+    private Integer transactionWeightUnit;
 
     /**
      * Mathematical weight of the transaction in the context of a transaction
@@ -468,6 +486,22 @@ public class AccountTrx extends org.savapage.core.jpa.Entity {
 
     public void setExtDetails(String extDetails) {
         this.extDetails = extDetails;
+    }
+
+    public CostChange getCostChange() {
+        return costChange;
+    }
+
+    public void setCostChange(CostChange costChange) {
+        this.costChange = costChange;
+    }
+
+    public Integer getTransactionWeightUnit() {
+        return transactionWeightUnit;
+    }
+
+    public void setTransactionWeightUnit(Integer transactionWeightUnit) {
+        this.transactionWeightUnit = transactionWeightUnit;
     }
 
 }

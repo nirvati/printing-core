@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -36,17 +36,20 @@ import javax.persistence.UniqueConstraint;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
 @Table(name = UserEmailV01.TABLE_NAME,
+        indexes = { //
+                @Index(name = "ix_user_email_1",
+                        columnList = "user_id, address"),
+                @Index(name = "ix_user_email_2", columnList = "user_id") },
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = { "address" },
                         name = "uc_user_email_1"),
                 @UniqueConstraint(columnNames = { "user_id", "index_number" },
-                        name = "uc_user_email_2") }, indexes = { @Index(
-                name = "ix_user_email_1", columnList = "user_id, address") })
+                        name = "uc_user_email_2") })
 public class UserEmailV01 implements SchemaEntityVersion {
 
     /**
@@ -67,8 +70,8 @@ public class UserEmailV01 implements SchemaEntityVersion {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(
-            name = "FK_USER_EMAIL_TO_USER"))
+    @JoinColumn(name = "user_id", nullable = false,
+            foreignKey = @ForeignKey(name = "FK_USER_EMAIL_TO_USER"))
     private UserV01 user;
 
     @Column(name = "index_number", nullable = false)

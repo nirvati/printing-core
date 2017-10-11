@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -37,7 +37,7 @@ import javax.persistence.TableGenerator;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -211,6 +211,13 @@ public class User extends org.savapage.core.jpa.Entity {
     @OneToMany(targetEntity = UserGroupMember.class, mappedBy = "user",
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserGroupMember> groupMembership;
+
+    /**
+     * The LAZY CostChange list.
+     */
+    @OneToMany(targetEntity = CostChange.class, mappedBy = "reqUser",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CostChange> costChanges;
 
     /**
      *
@@ -550,6 +557,14 @@ public class User extends org.savapage.core.jpa.Entity {
 
     public void setGroupMembership(List<UserGroupMember> groupMembership) {
         this.groupMembership = groupMembership;
+    }
+
+    public List<CostChange> getCostChanges() {
+        return costChanges;
+    }
+
+    public void setCostChanges(List<CostChange> costChanges) {
+        this.costChanges = costChanges;
     }
 
 }

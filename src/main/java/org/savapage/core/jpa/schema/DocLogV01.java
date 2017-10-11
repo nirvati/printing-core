@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -46,16 +46,20 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 /**
  * Document Log.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
-@Table(name = DocLogV01.TABLE_NAME, indexes = {
-//
-        @Index(name = "ix_doc_log_1", columnList = "user_id, uuid"),
+@Table(name = DocLogV01.TABLE_NAME,
+        indexes = { //
+                @Index(name = "ix_doc_log_1", columnList = "user_id, uuid"),
+                @Index(name = "ix_doc_log_2",
+                        columnList = "ext_supplier, ext_status"),
+                @Index(name = "ix_doc_log_3", columnList = "created_day"),
+                @Index(name = "ix_doc_log_4", columnList = "user_id"),
+                @Index(name = "ix_doc_log_5", columnList = "doc_in_id"),
+                @Index(name = "ix_doc_log_6", columnList = "doc_out_id")
         //
-        @Index(name = "ix_doc_log_2", columnList = "ext_supplier, ext_status")
-//
         })
 public class DocLogV01 implements SchemaEntityVersion {
 
@@ -68,15 +72,15 @@ public class DocLogV01 implements SchemaEntityVersion {
     @Column(name = "doc_id")
     @TableGenerator(name = "doclogPropGen", table = SequenceV01.TABLE_NAME,
             pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
-            pkColumnValue = TABLE_NAME, allocationSize = 1)
+            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
+            allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "doclogPropGen")
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(
-            name = "FK_DOC_LOG_TO_USER"))
+    @JoinColumn(name = "user_id", nullable = false,
+            foreignKey = @ForeignKey(name = "FK_DOC_LOG_TO_USER"))
     private UserV01 user;
 
     @Column(name = "created_date", nullable = false, insertable = true,
@@ -104,8 +108,8 @@ public class DocLogV01 implements SchemaEntityVersion {
             updatable = true)
     private String title;
 
-    @Column(name = "protocol", length = 16, nullable = false,
-            insertable = true, updatable = true)
+    @Column(name = "protocol", length = 16, nullable = false, insertable = true,
+            updatable = true)
     private String deliveryProtocol;
 
     @Column(name = "total_pages", nullable = true, insertable = true,
@@ -118,14 +122,14 @@ public class DocLogV01 implements SchemaEntityVersion {
 
     /**
      * <p>
-     * According to RFC 4288
-     * "Media Type Specifications and Registration Procedures", type (eg.
-     * "application") and subtype (eg "vnd...") both can be max 127 characters.
-     * That makes 127+1+127 = 255 if you include the slash.
+     * According to RFC 4288 "Media Type Specifications and Registration
+     * Procedures", type (eg. "application") and subtype (eg "vnd...") both can
+     * be max 127 characters. That makes 127+1+127 = 255 if you include the
+     * slash.
      * </p>
      */
-    @Column(name = "mimetype", length = 255, nullable = true,
-            insertable = true, updatable = true)
+    @Column(name = "mimetype", length = 255, nullable = true, insertable = true,
+            updatable = true)
     private String mimetype;
 
     @Column(name = "drm_restricted", nullable = false, insertable = true,
@@ -137,8 +141,8 @@ public class DocLogV01 implements SchemaEntityVersion {
      */
     @OneToOne(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER,
             optional = true)
-    @JoinColumn(name = "doc_in_id", nullable = true, foreignKey = @ForeignKey(
-            name = "FK_DOC_LOG_TO_DOC_IN"))
+    @JoinColumn(name = "doc_in_id", nullable = true,
+            foreignKey = @ForeignKey(name = "FK_DOC_LOG_TO_DOC_IN"))
     private DocInV01 docIn;
 
     /**
@@ -146,8 +150,8 @@ public class DocLogV01 implements SchemaEntityVersion {
      */
     @OneToOne(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER,
             optional = true)
-    @JoinColumn(name = "doc_out_id", nullable = true, foreignKey = @ForeignKey(
-            name = "FK_DOC_LOG_TO_DOC_OUT"))
+    @JoinColumn(name = "doc_out_id", nullable = true,
+            foreignKey = @ForeignKey(name = "FK_DOC_LOG_TO_DOC_OUT"))
     private DocOutV01 docOut;
 
     /**
@@ -156,6 +160,13 @@ public class DocLogV01 implements SchemaEntityVersion {
     @OneToMany(targetEntity = AccountTrxV01.class, mappedBy = "docLog",
             cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<AccountTrxV01> transactions;
+
+    /**
+     * The LAZY CostChange list.
+     */
+    @OneToMany(targetEntity = CostChangeV01.class, mappedBy = "docLog",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CostChangeV01> costChanges;
 
     /**
      *
@@ -406,6 +417,14 @@ public class DocLogV01 implements SchemaEntityVersion {
 
     public void setExternalData(String externalData) {
         this.externalData = externalData;
+    }
+
+    public List<CostChangeV01> getCostChanges() {
+        return costChanges;
+    }
+
+    public void setCostChanges(List<CostChangeV01> costChanges) {
+        this.costChanges = costChanges;
     }
 
 }
