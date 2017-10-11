@@ -100,6 +100,7 @@ import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.job.SpJobType;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
+import org.savapage.core.jpa.CostChange;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
@@ -157,8 +158,8 @@ import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
 import org.savapage.core.util.Messages;
-import org.savapage.ext.papercut.PaperCutAccountAdjustPattern;
 import org.savapage.ext.papercut.PaperCutAccountAdjustPrint;
+import org.savapage.ext.papercut.PaperCutAccountAdjustPrintRefund;
 import org.savapage.ext.papercut.PaperCutAccountResolver;
 import org.savapage.ext.papercut.PaperCutException;
 import org.savapage.ext.papercut.PaperCutServerProxy;
@@ -179,6 +180,43 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(AbstractProxyPrintService.class);
+
+    /**
+     *
+     */
+    private static final PaperCutAccountResolver PAPERCUT_ACCOUNT_RESOLVER =
+            new PaperCutAccountResolver() {
+
+                @Override
+                public String getUserAccountName() {
+                    return PaperCutPrintMonitor.getAccountNameUser();
+                }
+
+                @Override
+                public String getSharedParentAccountName() {
+                    return PaperCutPrintMonitor.getSharedAccountNameParent();
+                }
+
+                @Override
+                public String getSharedJobsAccountName() {
+                    return PaperCutPrintMonitor.getSharedAccountNameJobs();
+                }
+
+                @Override
+                public String getKlasFromAccountName(final String accountName) {
+                    return PaperCutPrintMonitor
+                            .extractKlasFromAccountName(accountName);
+                }
+
+                @Override
+                public String composeSharedSubAccountName(
+                        final AccountTypeEnum accountType,
+                        final String accountName,
+                        final String accountNameParent) {
+                    return PaperCutPrintMonitor.createSharedSubAccountName(
+                            accountType, accountName, accountNameParent);
+                }
+            };
 
     /**
      *
@@ -2111,51 +2149,29 @@ public abstract class AbstractProxyPrintService extends AbstractService
     private void settleProxyPrintPaperCut(final DocLog docLog, final int copies,
             final ProxyPrintCostDto cost) throws PaperCutException {
 
-        final PaperCutAccountResolver accountResolver =
-                new PaperCutAccountResolver() {
+        final PaperCutServerProxy serverProxy =
+                PaperCutServerProxy.create(ConfigManager.instance(), true);
 
-                    @Override
-                    public String getUserAccountName() {
-                        return PaperCutPrintMonitor.getAccountNameUser();
-                    }
+        final PaperCutAccountAdjustPrint adjustPattern =
+                new PaperCutAccountAdjustPrint(serverProxy,
+                        PAPERCUT_ACCOUNT_RESOLVER, LOGGER);
 
-                    @Override
-                    public String getSharedParentAccountName() {
-                        return PaperCutPrintMonitor
-                                .getSharedAccountNameParent();
-                    }
+        adjustPattern.process(docLog, docLog, false, cost.getCostTotal(),
+                copies);
+    }
 
-                    @Override
-                    public String getSharedJobsAccountName() {
-                        return PaperCutPrintMonitor.getSharedAccountNameJobs();
-                    }
-
-                    @Override
-                    public String
-                            getKlasFromAccountName(final String accountName) {
-                        return PaperCutPrintMonitor
-                                .extractKlasFromAccountName(accountName);
-                    }
-
-                    @Override
-                    public String composeSharedSubAccountName(
-                            final AccountTypeEnum accountType,
-                            final String accountName,
-                            final String accountNameParent) {
-                        return PaperCutPrintMonitor.createSharedSubAccountName(
-                                accountType, accountName, accountNameParent);
-                    }
-                };
+    @Override
+    public void refundProxyPrintPaperCut(final CostChange costChange)
+            throws PaperCutException {
 
         final PaperCutServerProxy serverProxy =
                 PaperCutServerProxy.create(ConfigManager.instance(), true);
 
-        final PaperCutAccountAdjustPattern adjustPattern =
-                new PaperCutAccountAdjustPrint(serverProxy, accountResolver,
-                        LOGGER);
+        final PaperCutAccountAdjustPrintRefund adjustPattern =
+                new PaperCutAccountAdjustPrintRefund(serverProxy,
+                        PAPERCUT_ACCOUNT_RESOLVER, LOGGER);
 
-        adjustPattern.process(docLog, docLog, false, cost.getCostTotal(),
-                copies);
+        adjustPattern.process(costChange);
     }
 
     /**

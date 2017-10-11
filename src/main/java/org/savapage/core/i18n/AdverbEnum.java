@@ -26,21 +26,15 @@ import java.util.Locale;
 import org.savapage.core.util.LocaleHelper;
 
 /**
- * UI Adjectives.
+ * UI Adverbs.
  *
  * @author Rijk Ravestein
  *
  */
-public enum AdjectiveEnum {
+public enum AdverbEnum {
 
     /** */
-    DOWLOADED, PRINTED, RECEIVED,
-
-    /** */
-    APPROVED, REJECTED,
-
-    /** */
-    PENDING;
+    AUTOMATICALLY, MANUALLY;
 
     /**
      * @param locale

@@ -52,6 +52,7 @@ import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.client.IppNotificationRecipient;
 import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.ipp.operation.IppStatusCode;
+import org.savapage.core.jpa.CostChange;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
@@ -85,6 +86,7 @@ import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
 import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.snmp.SnmpConnectException;
+import org.savapage.ext.papercut.PaperCutException;
 
 /**
  * Service for Proxy Printing.
@@ -746,6 +748,17 @@ public interface ProxyPrintService {
     int settleJobTicket(String operator, User lockedUser, OutboxJobDto job,
             File pdfFileNotToPrint, ThirdPartyEnum extPrinterManager)
             throws IOException;
+
+    /**
+     * Refunds a proxy print in {@link ThirdPartyEnum#PAPERCUT}.
+     *
+     * @param costChange
+     *            The {@link CostChange} of the refund.
+     * @throws PaperCutException
+     *             When logical PaperCut error.
+     */
+    void refundProxyPrintPaperCut(CostChange costChange)
+            throws PaperCutException;
 
     /**
      * Sends Print Job to the CUPS Printer, and updates {@link User},

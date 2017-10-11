@@ -86,13 +86,13 @@ public abstract class PaperCutPrintMonitorPattern
     /**
      * .
      */
-    private static final PaperCutService PAPERCUT_SERVICE =
+    protected static final PaperCutService PAPERCUT_SERVICE =
             ServiceContext.getServiceFactory().getPaperCutService();
 
     /**
      * .
      */
-    private static final ProxyPrintService PROXY_PRINT_SERVICE =
+    protected static final ProxyPrintService PROXY_PRINT_SERVICE =
             ServiceContext.getServiceFactory().getProxyPrintService();
 
     /**
@@ -581,7 +581,7 @@ public abstract class PaperCutPrintMonitorPattern
         /*
          * Create PaperCut transactions.
          */
-        final PaperCutAccountAdjustPattern accountAdjustPattern =
+        final PaperCutAccountAdjustPrint accountAdjustPattern =
                 new PaperCutAccountAdjustPrint(papercutServerProxy, this,
                         this.getLogger());
 

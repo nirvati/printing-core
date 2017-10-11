@@ -23,8 +23,11 @@ package org.savapage.ext.papercut;
 
 import java.math.BigDecimal;
 
+import org.savapage.core.config.ConfigManager;
 import org.savapage.core.jpa.AccountTrx;
+import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.DocOut;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 import org.slf4j.Logger;
@@ -40,7 +43,7 @@ public final class PaperCutAccountAdjustPrint
     /**
      * .
      */
-    private static final AccountingService ACCOUNTING_SERVICE =
+    protected static final AccountingService ACCOUNTING_SERVICE =
             ServiceContext.getServiceFactory().getAccountingService();
 
     /**
@@ -60,8 +63,88 @@ public final class PaperCutAccountAdjustPrint
         super(papercutServerProxy, papercutAccountResolver, logger);
     }
 
-    @Override
-    protected void onAccountTrx(final AccountTrx trx,
+    /**
+     * Creates PaperCut transactions from SavaPage {@link AccountTrx} objects.
+     *
+     * @param docLogTrx
+     *            The {@link DocLog} container of the {@link AccountTrx}
+     *            objects.
+     * @param docLogOut
+     *            The {@link DocLog} container of the {@link DocOut} object.
+     * @param isDocInAccountTrx
+     *            {@code true} when account transaction candidates are linked
+     *            with the {@link DocLog} of the {@link DocIn}, {@code false}
+     *            when linked with the {@link DocLog} of the {@link DocOut}.
+     * @param weightTotalCost
+     *            The printing cost total.
+     * @param weightTotal
+     *            Total number of copies printed.
+     *
+     * @throws PaperCutException
+     *             When a PaperCut error occurs.
+     */
+    public void process(final DocLog docLogTrx, final DocLog docLogOut,
+            final boolean isDocInAccountTrx, final BigDecimal weightTotalCost,
+            final int weightTotal) throws PaperCutException {
+
+        /*
+         * Number of decimals for decimal scaling.
+         */
+        final int scale = ConfigManager.getFinancialDecimalsInDatabase();
+
+        /*
+         * Create transaction comment processor.
+         */
+        final PaperCutPrintCommentProcessor trxCommentProcessor =
+                new PaperCutPrintCommentProcessor(docLogTrx, docLogOut,
+                        weightTotal);
+
+        trxCommentProcessor.initProcess();
+
+        /*
+         * Adjust the Personal and Shared Accounts in PaperCut and update the
+         * SavaPage AccountTrx's.
+         */
+        for (final AccountTrx trx : docLogTrx.getTransactions()) {
+
+            final int weight = trx.getTransactionWeight().intValue();
+
+            final BigDecimal weightedCost =
+                    ACCOUNTING_SERVICE.calcWeightedAmount(weightTotalCost,
+                            weightTotal, weight, scale);
+
+            /*
+             * PaperCut account adjustment.
+             */
+            final BigDecimal papercutAdjustment = weightedCost.negate();
+
+            this.onAdjustSharedAccount(trx, trxCommentProcessor,
+                    papercutAdjustment);
+
+            /*
+             * Notify SavaPage.
+             */
+            this.onAccountTrx(trx, weightedCost, isDocInAccountTrx, docLogOut);
+        }
+
+        this.onExit(trxCommentProcessor, weightTotalCost.negate());
+    }
+
+    /**
+     * Notifies an account transaction that was adjusted in PaperCut.
+     *
+     * @param trx
+     *            The {@link AccountTrx}.
+     * @param weightedCost
+     *            The weighted cost.
+     * @param isDocInAccountTrx
+     *            {@code true} when the {@link AccountTrx} is linked with the
+     *            {@link DocLog} of the {@link DocIn}, {@code false} when linked
+     *            with the {@link DocLog} of the {@link DocOut}.
+     * @param docLogOut
+     *            The {@link DocLog} container of the {@link DocOut} object.
+     */
+    private void onAccountTrx(final AccountTrx trx,
             final BigDecimal weightedCost, final boolean isDocInAccountTrx,
             final DocLog docLogOut) {
 

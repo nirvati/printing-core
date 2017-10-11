@@ -648,7 +648,9 @@ public final class AccountingServiceImpl extends AbstractService
 
         trx.setTrxType(trxType.toString());
 
-        trx.setTransactionWeight(Integer.valueOf(1));
+        final Integer weight = Integer.valueOf(1);
+        trx.setTransactionWeight(weight);
+        trx.setTransactionWeightUnit(weight);
 
         trx.setTransactedBy(ServiceContext.getActor());
         trx.setTransactionDate(ServiceContext.getTransactionDate());
@@ -718,6 +720,35 @@ public final class AccountingServiceImpl extends AbstractService
 
         final int scale = ConfigManager.getFinancialDecimalsInDatabase();
 
+        if (outboxJob.getAccountTransactions() == null) {
+
+            final AccountTrx trx = new AccountTrx();
+
+            final Account account = new Account();
+            account.setAccountType(AccountTypeEnum.USER.toString());
+            trx.setAccount(account);
+
+            final User user = ServiceContext.getDaoContext().getUserDao()
+                    .findById(outboxJob.getUserId());
+
+            if (user == null || user.getUserId() == null) {
+                account.setName("");
+            } else {
+                account.setName(user.getUserId());
+            }
+
+            final Integer weight = Integer.valueOf(outboxJob.getCopies());
+            trx.setTransactionWeight(weight);
+            trx.setTransactionWeightUnit(weight);
+
+            trx.setCurrencyCode(ConfigManager.getAppCurrencyCode());
+            trx.setAmount(outboxJob.getCostTotal().negate());
+
+            list.add(trx);
+
+            return list;
+        }
+
         final int weightTotal =
                 outboxJob.getAccountTransactions().getWeightTotal();
 
@@ -730,7 +761,10 @@ public final class AccountingServiceImpl extends AbstractService
 
             trx.setAccount(dao.findById(trxInfo.getAccountId()));
             trx.setExtDetails(trxInfo.getExtDetails());
-            trx.setTransactionWeight(Integer.valueOf(trxInfo.getWeight()));
+
+            final Integer weight = Integer.valueOf(trxInfo.getWeight());
+            trx.setTransactionWeight(weight);
+            trx.setTransactionWeightUnit(weight);
 
             trx.setCurrencyCode(ConfigManager.getAppCurrencyCode());
             trx.setAmount(this.calcWeightedAmount(costTotal, weightTotal,
@@ -844,6 +878,7 @@ public final class AccountingServiceImpl extends AbstractService
         trx.setTrxType(trxType.toString());
 
         trx.setTransactionWeight(weight);
+        trx.setTransactionWeightUnit(weight);
 
         trx.setTransactedBy(ServiceContext.getActor());
         trx.setTransactionDate(ServiceContext.getTransactionDate());
