@@ -910,6 +910,24 @@ public final class DbTools implements ServiceEntryPoint {
                         ConfigManager.getServerHome()) + ";create=true";
             } else {
                 url = jdbcUrl;
+
+                final String jdbcUser;
+
+                // Mantis #879
+                final boolean jdbcUserFromConfigManager = true;
+
+                if (jdbcUserFromConfigManager) {
+                    jdbcUser = ConfigManager.getPostgreSQLUser();
+                } else {
+                    // Mantis #879: the EMF returns value "****", why?
+                    jdbcUser = theEmf.getProperties()
+                            .get(DbConfig.JPA_JDBC_USER).toString();
+                }
+
+                settingsMap.put(Environment.USER, jdbcUser);
+
+                settingsMap.put(Environment.PASS, theEmf.getProperties()
+                        .get(DbConfig.JPA_JDBC_PASSWORD).toString());
             }
 
             settingsMap.put(Environment.URL, url);
