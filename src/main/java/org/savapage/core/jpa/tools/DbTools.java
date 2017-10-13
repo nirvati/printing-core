@@ -53,6 +53,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
@@ -61,11 +64,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
-import org.dom4j.io.XMLWriter;
 import org.hibernate.Session;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -1171,11 +1171,11 @@ public final class DbTools implements ServiceEntryPoint {
             exportFile = fileExport.getAbsolutePath();
         }
 
-        XMLWriter writer = null;
+        XMLStreamWriter writer = null;
 
         try {
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat();
+            final SimpleDateFormat dateFormat = new SimpleDateFormat();
             dateFormat.applyPattern("yyyy-MM-dd'T'HH-mm-ss");
 
             /*
@@ -1190,32 +1190,34 @@ public final class DbTools implements ServiceEntryPoint {
                     FilenameUtils.getBaseName(exportFile) + ".xml");
             zout.putNextEntry(ze);
 
-            writer = new XMLWriter(zout, OutputFormat.createPrettyPrint());
+            final XMLOutputFactory factory = XMLOutputFactory.newInstance();
+
+            writer = factory.createXMLStreamWriter(zout, "UTF-8");
 
             /*
              * XML document
              */
-            Document document = DocumentHelper.createDocument();
+            writer.writeStartDocument("UTF-8", "1.0");
 
             /*
              * Root element
              */
-            Element rootElement = document.addElement("data");
+            writer.writeStartElement("data");
 
             dateFormat.applyPattern("yyyy-MM-dd'T'HH:mm:ss");
             final String exportTime = dateFormat.format(dateExport).toString();
 
-            rootElement.addAttribute(XML_ATTR_APP_VERSION_MAJOR,
+            writer.writeAttribute(XML_ATTR_APP_VERSION_MAJOR,
                     VersionInfo.VERSION_A_MAJOR);
-            rootElement.addAttribute(XML_ATTR_APP_VERSION_MINOR,
+            writer.writeAttribute(XML_ATTR_APP_VERSION_MINOR,
                     VersionInfo.VERSION_B_MINOR);
-            rootElement.addAttribute(XML_ATTR_APP_VERSION_REVISION,
+            writer.writeAttribute(XML_ATTR_APP_VERSION_REVISION,
                     VersionInfo.VERSION_C_REVISION);
-            rootElement.addAttribute(XML_ATTR_APP_VERSION_BUILD,
+            writer.writeAttribute(XML_ATTR_APP_VERSION_BUILD,
                     VersionInfo.VERSION_D_BUILD);
-            rootElement.addAttribute(XML_ATTR_APP_SCHEMA_VERSION,
+            writer.writeAttribute(XML_ATTR_APP_SCHEMA_VERSION,
                     VersionInfo.DB_SCHEMA_VERSION_MAJOR);
-            rootElement.addAttribute(XML_ATTR_APP_SCHEMA_VERSION_MINOR,
+            writer.writeAttribute(XML_ATTR_APP_SCHEMA_VERSION_MINOR,
                     VersionInfo.DB_SCHEMA_VERSION_MINOR);
 
             /*
@@ -1225,22 +1227,22 @@ public final class DbTools implements ServiceEntryPoint {
              * We need the schema version from the database, because may be this
              * is a backup-before-upgrade.
              */
-            rootElement.addAttribute(XML_ATTR_SCHEMA_VERSION,
+            writer.writeAttribute(XML_ATTR_SCHEMA_VERSION,
                     getDbSchemaVersion());
 
-            rootElement.addAttribute(XML_ATTR_EXPORT_DATETIME, exportTime);
+            writer.writeAttribute(XML_ATTR_EXPORT_DATETIME, exportTime);
 
             //
             final DbVersionInfo dbVersionInfo = cm.getDbVersionInfo();
 
-            rootElement.addAttribute(XML_ATTR_DB_PRODUCT_NAME,
+            writer.writeAttribute(XML_ATTR_DB_PRODUCT_NAME,
                     dbVersionInfo.getProdName());
-            rootElement.addAttribute(XML_ATTR_DB_PRODUCT_VERSION,
+            writer.writeAttribute(XML_ATTR_DB_PRODUCT_VERSION,
                     dbVersionInfo.getProdVersion());
 
-            rootElement.addAttribute(XML_ATTR_DB_VERSION_MAJOR,
+            writer.writeAttribute(XML_ATTR_DB_VERSION_MAJOR,
                     String.valueOf(dbVersionInfo.getMajorVersion()));
-            rootElement.addAttribute(XML_ATTR_DB_VERSION_MINOR,
+            writer.writeAttribute(XML_ATTR_DB_VERSION_MINOR,
                     String.valueOf(dbVersionInfo.getMinorVersion()));
 
             /*
@@ -1251,18 +1253,32 @@ public final class DbTools implements ServiceEntryPoint {
              */
             for (Class<?> objClass : getSchemaEntitiesForXml(
                     getDbSchemaVersion())) {
-                exportDbTable(em, queryMaxResults, rootElement, objClass);
+                exportDbTable(em, queryMaxResults, writer, objClass);
             }
 
-            writer.write(document);
+            writer.writeEndElement(); // </data>
+            writer.writeEndDocument();
 
+            writer.flush();
+            writer.close();
+
+            zout.closeEntry();
+            zout.flush();
+            zout.close();
+
+            writer = null;
+
+        } catch (XMLStreamException e) {
+            throw new IOException(e.getMessage(), e);
         } finally {
-
             if (writer != null) {
-                writer.close();
+                try {
+                    writer.close();
+                } catch (XMLStreamException e) {
+                    LOGGER.error("Close failed: " + e.getMessage());
+                }
             }
         }
-
         return new File(exportFile);
     }
 
@@ -1313,13 +1329,13 @@ public final class DbTools implements ServiceEntryPoint {
      *            The JPA EntityManager.
      * @param queryMaxResults
      *            The maximum number of rows in each query result set.
-     * @param rootElement
-     *            The XML root element.
+     * @param writer
+     *            The {@link XMLStreamWriter}.
      * @param objClass
      *            The class of the JPA entity to export.
      */
     private static void exportDbTable(final EntityManager em,
-            final int queryMaxResults, final Element rootElement,
+            final int queryMaxResults, final XMLStreamWriter writer,
             final Class<?> objClass) {
 
         final SimpleDateFormat xmlDateFormat =
@@ -1334,9 +1350,8 @@ public final class DbTools implements ServiceEntryPoint {
             final BeanInfo binfo =
                     java.beans.Introspector.getBeanInfo(objClass);
 
-            final Element entityElement = rootElement.addElement("entity");
-
-            entityElement.addAttribute("name", entityClassNameSimple);
+            writer.writeStartElement("entity");
+            writer.writeAttribute("name", entityClassNameSimple);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Creating export query for ["
@@ -1378,17 +1393,13 @@ public final class DbTools implements ServiceEntryPoint {
                  */
                 for (final XEntityVersion obj : list) {
 
-                    final Element rowElement =
-                            entityElement.addElement(obj.xmlName());
+                    writer.writeStartElement(obj.xmlName());
 
                     for (final PropertyDescriptor descr : binfo
                             .getPropertyDescriptors()) {
 
                         final String propName = descr.getName();
 
-                        /*
-                         *
-                         */
                         if (propName.equals("class")) {
                             continue;
                         }
@@ -1413,7 +1424,7 @@ public final class DbTools implements ServiceEntryPoint {
 
                             boolean isSimpleType = false;
 
-                            for (Class<?> cls : SIMPLE_JPA_TYPES) {
+                            for (final Class<?> cls : SIMPLE_JPA_TYPES) {
                                 if (propClass.equals(cls)) {
                                     isSimpleType = true;
                                     break;
@@ -1429,19 +1440,25 @@ public final class DbTools implements ServiceEntryPoint {
                         }
 
                         if (text != null) {
-                            final Element propElement =
-                                    rowElement.addElement(propName);
-                            propElement.setText(text);
+                            writer.writeStartElement(propName);
+                            writer.writeCharacters(text);
+                            writer.writeEndElement();
                         }
                     }
+                    writer.writeEndElement(); // </>
                 }
+
+                writer.flush(); // !!
+
                 resultListSizeWlk = list.size();
                 startPositionWlk += resultListSizeWlk;
             }
+
+            writer.writeEndElement(); // </entity>
+
         } catch (Exception e) {
             throw new SpException(e);
         }
-
     }
 
     /**
