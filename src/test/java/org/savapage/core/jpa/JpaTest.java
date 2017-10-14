@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,16 +23,14 @@ package org.savapage.core.jpa;
 
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.Iterator;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+
 import org.junit.Test;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.jpa.tools.DbTools;
@@ -41,7 +39,7 @@ import org.savapage.core.util.XmlParseHelper;
 
 /**
  *
- * @author Datraverse B.V
+ * @author Rijk Ravestein
  *
  */
 public class JpaTest {
@@ -64,78 +62,86 @@ public class JpaTest {
 
         assertTrue(DbTools
                 .getEntityClassFromXmlAttr(
-                        "com.example." + testClass.getSimpleName()).getName()
-                .equals(testClass.getName()));
+                        "com.example." + testClass.getSimpleName())
+                .getName().equals(testClass.getName()));
 
     }
 
     /**
      * A test for Mantis #512.
      *
-     * @throws IOException
-     * @throws DocumentException
+     * @throws Exception
      */
     @Test
-    public void testXmlValues() throws IOException, DocumentException {
+    public void testXmlValues() throws Exception {
 
         /*
          * row[i][0] is the input, row[i][1] is the expected output when writing
          * to XML and reading with a SAX parser.
          */
-        final String[][] row = {
-                //
-                { "row\0", "row" }
-                //
-                , { "tab\t", "tab\t" }
-                //
-                , { "val\u0019", "val" }
-        //
-                };
+        final String[][] row = { //
+                { "row\0", "row" }, //
+                { "tab\t", "tab\t" }, //
+                { "val\u0019", "val" } //
+        };
 
         /*
          * XML document + root element
          */
-        Document document = DocumentHelper.createDocument();
+        final ByteArrayOutputStream bostr = new ByteArrayOutputStream();
 
-        final Element rootElement = document.addElement("root");
+        final XMLOutputFactory factoryOut = XMLOutputFactory.newInstance();
+        final XMLStreamWriter writer =
+                factoryOut.createXMLStreamWriter(bostr, "UTF-8");
+
+        writer.writeStartDocument("UTF-8", "1.0");
+        writer.writeStartElement("root");
 
         /*
          * Input of row elements with invalid XML content.
          */
         for (int i = 0; i < row.length; i++) {
-            final Element rowElement = rootElement.addElement("row");
-            rowElement.setText(XmlParseHelper.removeIllegalChars(row[i][0]));
+            writer.writeStartElement("row");
+            writer.writeCharacters(
+                    XmlParseHelper.removeIllegalChars(row[i][0]));
+            writer.writeEndElement();
         }
 
-        /*
-         * Write the document.
-         */
-        final StringWriter writer = new StringWriter();
-        document.write(writer);
+        writer.writeEndElement();
+        writer.writeEndDocument();
+        writer.close();
 
         /*
-         * Read the document with the SAXReader.
+         * Read the document.
          */
-        final SAXReader saxReader = new SAXReader();
+        final ByteArrayInputStream bistr =
+                new ByteArrayInputStream(bostr.toByteArray());
 
-        final StringReader reader = new StringReader(writer.toString());
+        final XMLInputFactory factoryIn = XMLInputFactory.newInstance();
+        final XMLStreamReader reader = factoryIn.createXMLStreamReader(bistr);
 
-        document = saxReader.read(reader);
-
-        @SuppressWarnings("unchecked")
-        final Iterator<Element> iterEntity = rootElement.elementIterator();
+        reader.next(); // root element
+        int readerPosition = reader.next(); // first row
 
         int i = 0;
 
-        while (iterEntity.hasNext()) {
+        while (readerPosition == XMLStreamReader.START_ELEMENT) {
 
-            final Element elementEntity = iterEntity.next();
-            final String value = elementEntity.getStringValue();
+            readerPosition = reader.next();
 
+            final StringBuilder result = new StringBuilder();
+
+            while (readerPosition == XMLStreamReader.CHARACTERS) {
+                result.append(reader.getText());
+                readerPosition = reader.next();
+            }
+
+            final String value = result.toString();
             assertTrue(value.equals(row[i][1]));
-
             i++;
-        }
 
+            readerPosition = reader.next();
+        }
     }
+
 }
