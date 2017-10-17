@@ -90,8 +90,8 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
          * Step 1: Delete PosPurchaseItem.
          */
         jpqlList[0] = "" //
-                + "DELETE FROM " + DbSimpleEntity.POS_PURCHASE_ITEM
-                + " M WHERE M.id IN" + " (SELECT PI.id FROM "
+                + "DELETE FROM " + DbSimpleEntity.POS_PURCHASE_ITEM + " M"
+                + " WHERE M.id IN" + " (SELECT PI.id FROM "
                 + DbSimpleEntity.POS_PURCHASE_ITEM + " PI" //
                 + " JOIN " + DbSimpleEntity.POS_PURCHASE
                 + " P ON P.id = PI.purchase" //
@@ -104,8 +104,8 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
          * Step 2: Delete AccountTrx.
          */
         jpqlList[1] = "" //
-                + "DELETE FROM " + DbSimpleEntity.ACCOUNT_TRX
-                + " M WHERE M.id IN" + " (SELECT A.id FROM "
+                + "DELETE FROM " + DbSimpleEntity.ACCOUNT_TRX + " M"
+                + " WHERE M.id IN" + " (SELECT A.id FROM "
                 + DbSimpleEntity.ACCOUNT_TRX + " A" //
                 + " JOIN " + DbSimpleEntity.DOC_LOG + " L ON A.docLog = L.id"
                 + " WHERE L.createdDay <= :" + psqlDateParm + ")";
@@ -131,8 +131,8 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
          * Step 1: Delete DocInOut.
          */
         jpqlList[0] = "" //
-                + "DELETE FROM " + DbSimpleEntity.DOC_IN_OUT
-                + " M WHERE M.id IN" + " (SELECT IO.id FROM "
+                + "DELETE FROM " + DbSimpleEntity.DOC_IN_OUT + " M"
+                + " WHERE M.id IN" + " (SELECT IO.id FROM "
                 + DbSimpleEntity.DOC_IN_OUT + " IO" //
                 + " JOIN " + DbSimpleEntity.DOC_IN + " I ON I.id = IO.docIn" //
                 + " JOIN " + DbSimpleEntity.DOC_LOG + " L ON L.docIn = I.id" //
@@ -142,8 +142,8 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
          * Step 2: CostChange.
          */
         jpqlList[1] = "" //
-                + "DELETE FROM " + DbSimpleEntity.COST_CHANGE
-                + " M WHERE M.id IN" + " (SELECT C.id FROM "
+                + "DELETE FROM " + DbSimpleEntity.COST_CHANGE + " M"
+                + " WHERE M.id IN" + " (SELECT C.id FROM "
                 + DbSimpleEntity.COST_CHANGE + " C" //
                 + " JOIN " + DbSimpleEntity.DOC_LOG + " L ON L.id = C.docLog" //
                 + " WHERE C.docLog IS NOT NULL" //
@@ -168,13 +168,19 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
             /*
              * Step 4: Delete orphaned: DocIn, PrintIn
              */
-            jpqlList[0] = "DELETE FROM " + DbSimpleEntity.DOC_IN
-                    + " WHERE id NOT IN" + " (SELECT docIn FROM "
-                    + DbSimpleEntity.DOC_LOG + " WHERE docIn IS NOT NULL)";
+            jpqlList[0] = "DELETE FROM " + DbSimpleEntity.DOC_IN + " M"
+                    + " WHERE M.id IN" + " (SELECT I.id FROM "
+                    + DbSimpleEntity.DOC_IN + " I" //
+                    + " LEFT JOIN " + DbSimpleEntity.DOC_LOG + " L"
+                    + " ON L.docIn = I.id" //
+                    + " WHERE L.docIn IS NULL)";
 
-            jpqlList[1] = "DELETE FROM " + DbSimpleEntity.PRINT_IN
-                    + " WHERE id NOT IN" + " (SELECT printIn FROM "
-                    + DbSimpleEntity.DOC_IN + " WHERE printIn IS NOT NULL)";
+            jpqlList[1] = "DELETE FROM " + DbSimpleEntity.PRINT_IN + " M"
+                    + " WHERE M.id IN" + " (SELECT P.id FROM "
+                    + DbSimpleEntity.PRINT_IN + " P" //
+                    + " LEFT JOIN " + DbSimpleEntity.DOC_IN + " I"
+                    + " ON I.printIn = P.id" //
+                    + " WHERE I.printIn IS NULL)";
 
             int i = 0;
 
@@ -209,8 +215,8 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
          * Step 1: Delete DocInOut.
          */
         jpqlList[0] = "" //
-                + "DELETE FROM " + DbSimpleEntity.DOC_IN_OUT
-                + " M WHERE M.id IN" + " (SELECT IO.id FROM "
+                + "DELETE FROM " + DbSimpleEntity.DOC_IN_OUT + " M"
+                + " WHERE M.id IN" + " (SELECT IO.id FROM "
                 + DbSimpleEntity.DOC_IN_OUT + " IO" //
                 + " JOIN " + DbSimpleEntity.DOC_OUT + " O ON O.id = IO.docOut"
                 + " JOIN " + DbSimpleEntity.DOC_LOG + " L ON L.docOut = O.id"
@@ -220,8 +226,8 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
          * Step 2: CostChange.
          */
         jpqlList[1] = "" //
-                + "DELETE FROM " + DbSimpleEntity.COST_CHANGE
-                + " M WHERE M.id IN" + " (SELECT C.id FROM "
+                + "DELETE FROM " + DbSimpleEntity.COST_CHANGE + " M"
+                + " WHERE M.id IN" + " (SELECT C.id FROM "
                 + DbSimpleEntity.COST_CHANGE + " C" //
                 + " JOIN " + DbSimpleEntity.DOC_LOG + " L ON L.id = C.docLog" //
                 + " WHERE C.docLog IS NOT NULL" //
@@ -244,17 +250,27 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
              * Step 4: Delete orphaned: DocOut, PrintOut, PdfOut
              */
             final String[] jpqlListOrphan = new String[3];
-            jpqlListOrphan[0] = "DELETE FROM " + DbSimpleEntity.DOC_OUT
-                    + " WHERE id NOT IN" + " (SELECT docOut FROM "
-                    + DbSimpleEntity.DOC_LOG + " WHERE docOut IS NOT NULL)";
 
-            jpqlListOrphan[1] = "DELETE FROM " + DbSimpleEntity.PRINT_OUT
-                    + " WHERE id NOT IN" + " (SELECT printOut FROM "
-                    + DbSimpleEntity.DOC_OUT + " WHERE printOut IS NOT NULL)";
+            jpqlListOrphan[0] = "DELETE FROM " + DbSimpleEntity.DOC_OUT + " M"
+                    + " WHERE M.id IN" + " (SELECT O.id FROM "
+                    + DbSimpleEntity.DOC_OUT + " O" //
+                    + " LEFT JOIN " + DbSimpleEntity.DOC_LOG + " L"
+                    + " ON L.docOut = O.id" //
+                    + " WHERE L.docOut IS NULL)";
 
-            jpqlListOrphan[2] = "DELETE FROM " + DbSimpleEntity.PDF_OUT
-                    + " WHERE id NOT IN" + " (SELECT pdfOut FROM "
-                    + DbSimpleEntity.DOC_OUT + " WHERE pdfOut IS NOT NULL)";
+            jpqlListOrphan[1] = "DELETE FROM " + DbSimpleEntity.PRINT_OUT + " M"
+                    + " WHERE M.id IN" + " (SELECT P.id FROM "
+                    + DbSimpleEntity.PRINT_OUT + " P" //
+                    + " LEFT JOIN " + DbSimpleEntity.DOC_OUT + " O"
+                    + " ON O.printOut = P.id" //
+                    + " WHERE O.printOut IS NULL)";
+
+            jpqlListOrphan[2] = "DELETE FROM " + DbSimpleEntity.PDF_OUT + " M"
+                    + " WHERE M.id IN" + " (SELECT P.id FROM "
+                    + DbSimpleEntity.PDF_OUT + " P" //
+                    + " LEFT JOIN " + DbSimpleEntity.DOC_OUT + " O"
+                    + " ON O.pdfOut = P.id" //
+                    + " WHERE O.pdfOut IS NULL)";
 
             int i = 0;
 

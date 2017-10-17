@@ -244,8 +244,8 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
          * Step 1: Delete PosPurchaseItem.
          */
         jpqlList[0] = "" //
-                + "DELETE FROM " + DbSimpleEntity.POS_PURCHASE_ITEM
-                + " M WHERE M.id IN" + " (SELECT PI.id FROM "
+                + "DELETE FROM " + DbSimpleEntity.POS_PURCHASE_ITEM + " M"
+                + " WHERE M.id IN" + " (SELECT PI.id FROM "
                 + DbSimpleEntity.POS_PURCHASE_ITEM + " PI" //
                 + " JOIN " + DbSimpleEntity.POS_PURCHASE
                 + " P ON P.id = PI.purchase" //
@@ -299,20 +299,26 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
 
         final String[] jpqlList = new String[3];
 
-        jpqlList[0] = "DELETE FROM " + DbSimpleEntity.POS_PURCHASE
-                + " WHERE id NOT IN" + " (SELECT posPurchase FROM "
-                + DbSimpleEntity.ACCOUNT_TRX
-                + " WHERE posPurchase IS NOT NULL)";
+        jpqlList[0] = "DELETE FROM " + DbSimpleEntity.POS_PURCHASE + " M"
+                + " WHERE M.id IN" + " (SELECT P.id FROM "
+                + DbSimpleEntity.POS_PURCHASE + " P" //
+                + " LEFT JOIN " + DbSimpleEntity.ACCOUNT_TRX + " A"
+                + " ON A.posPurchase = P.id" //
+                + " WHERE A.posPurchase IS NULL)";
 
-        jpqlList[1] = "DELETE FROM " + DbSimpleEntity.ACCOUNT_VOUCHER
-                + " WHERE id NOT IN" + " (SELECT accountVoucher FROM "
-                + DbSimpleEntity.ACCOUNT_TRX
-                + " WHERE accountVoucher IS NOT NULL)";
+        jpqlList[1] = "DELETE FROM " + DbSimpleEntity.ACCOUNT_VOUCHER + " M"
+                + " WHERE M.id IN" + " (SELECT V.id FROM "
+                + DbSimpleEntity.ACCOUNT_VOUCHER + " V" //
+                + " LEFT JOIN " + DbSimpleEntity.ACCOUNT_TRX + " A"
+                + " ON A.accountVoucher = V.id" //
+                + " WHERE A.accountVoucher IS NULL)";
 
-        jpqlList[2] = "DELETE FROM " + DbSimpleEntity.COST_CHANGE
-                + " WHERE id NOT IN" + " (SELECT costChange FROM "
-                + DbSimpleEntity.ACCOUNT_TRX
-                + " WHERE costChange IS NOT NULL)";
+        jpqlList[2] = "DELETE FROM " + DbSimpleEntity.COST_CHANGE + " M"
+                + " WHERE M.id IN" + " (SELECT C.id FROM "
+                + DbSimpleEntity.COST_CHANGE + " C" //
+                + " LEFT JOIN " + DbSimpleEntity.ACCOUNT_TRX + " A"
+                + " ON A.costChange = C.id" //
+                + " WHERE A.costChange IS NULL)";
 
         for (int i = 0; i < jpqlList.length; i++) {
 
