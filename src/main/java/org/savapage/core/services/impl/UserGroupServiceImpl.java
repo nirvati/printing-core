@@ -695,7 +695,7 @@ public final class UserGroupServiceImpl extends AbstractService
 
         final IUserSource userSource = ConfigManager.instance().getUserSource();
         final SortedSet<CommonUser> source =
-                userSource.getUsersInGroup(groupName);
+                userSource.getUsersInGroup(groupName, true);
 
         return syncUserGroupMembers(batchCommitter, userGroup, source);
     }
