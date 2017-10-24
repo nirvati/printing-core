@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -195,6 +195,39 @@ public final class TimedReadWriteLock {
     }
 
     /**
+     * Acquires the read lock only if it is free at the time of invocation.
+     *
+     * Acquires the lock if it is available and returns immediately with the
+     * value {@code true}. If the lock is not available then this method will
+     * return immediately with the value {@code false}.
+     *
+     * @return {@code true} if the lock was acquired and {@code false}
+     *         otherwise.
+     */
+    public boolean tryReadLock() {
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Try Read lock [" + Thread.currentThread().getName()
+                    + "]: " + Thread.currentThread().getStackTrace()[3]);
+        }
+        if (!rwLock.readLock().tryLock()) {
+            return false;
+        }
+        this.pushTimerTask(true);
+        return true;
+    }
+
+    /**
+     *
+     */
+    private void pushTimerTask(final boolean readLock) {
+        final WaitTimerTask job =
+                new WaitTimerTask(Thread.currentThread(), readLock);
+        lockTaskStack.get().push(job);
+        waitTimer.schedule(job, maxWait);
+    }
+
+    /**
      * Locks or unlocks a read lock.
      *
      * @param lock
@@ -210,13 +243,7 @@ public final class TimedReadWriteLock {
             }
 
             rwLock.readLock().lock();
-
-            final WaitTimerTask job =
-                    new WaitTimerTask(Thread.currentThread(), true);
-
-            lockTaskStack.get().push(job);
-
-            waitTimer.schedule(job, maxWait);
+            this.pushTimerTask(true);
 
         } else {
 
@@ -287,13 +314,7 @@ public final class TimedReadWriteLock {
             }
 
             rwLock.writeLock().lock();
-
-            final WaitTimerTask job =
-                    new WaitTimerTask(Thread.currentThread(), false);
-
-            lockTaskStack.get().push(job);
-
-            waitTimer.schedule(job, maxWait);
+            this.pushTimerTask(false);
 
         } else {
 
