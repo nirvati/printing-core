@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -26,95 +26,64 @@ import java.util.Map;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum JsonRpcMethodName {
 
-    /**
-     *
-     */
+    /**  */
     ADD_INTERNAL_USER("addInternalUser"),
 
-    /**
-     *
-     */
+    /**  */
     ADD_USER_GROUP("addUserGroup"),
 
-    /**
-    *
-    */
+    /**  */
     CHANGE_BASE_CURRENCY("changeBaseCurrency"),
 
-    /**
-     *
-     */
+    /**  */
     DELETE_USER("deleteUser"),
 
-    /**
-    *
-    */
+    /**  */
     DELETE_USER_GROUP("deleteUserGroup"),
 
-    /**
-     *
-     */
+    /**  */
     LIST_USERS("listUsers"),
 
-    /**
-     *
-     */
+    /**  */
     LIST_USER_GROUPS("listUserGroups"),
 
-    /**
-    *
-    */
+    /**  */
     LIST_USER_GROUP_MEMBERS("listUserGroupMembers"),
 
-    /**
-     *
-     */
+    /**  */
     LIST_USER_GROUP_MEMBERSHIPS("listUserGroupMemberships"),
 
-    /**
-    *
-    */
+    /**  */
     LIST_USER_SOURCE_GROUPS("listUserSourceGroups"),
 
-    /**
-    *
-    */
+    /**  */
     LIST_USER_SOURCE_GROUP_MEMBERS("listUserSourceGroupMembers"),
 
-    /**
-    *
-    */
+    /**  */
     LIST_USER_SOURCE_GROUP_NESTING("listUserSourceGroupNesting"),
 
-    /**
-     *
-     */
+    /**  */
     PRINTER_ACCESS_CONTROL("printerAccessControl"),
 
-    /**
-    *
-    */
+    /**  */
     PRINTER_SNMP("printerSnmp"),
 
-    /**
-     *
-     */
+    /**  */
     SET_USER_PROPERTIES("setUserProperties"),
 
-    /**
-    *
-    */
+    /**  */
     SET_USER_GROUP_PROPERTIES("setUserGroupProperties"),
 
-    /**
-     *
-     */
-    SYNC_USER_GROUP("syncUserGroup");
+    /**  */
+    SYNC_USER_GROUP("syncUserGroup"),
+
+    /**  */
+    SYSTEM_STATUS("systemStatus");
 
     /**
      * Developer-friendly method name.
@@ -123,7 +92,7 @@ public enum JsonRpcMethodName {
 
     /**
      *
-     * @author Datraverse B.V.
+     * @author Rijk Ravestein
      *
      */
     private static class Lookup {

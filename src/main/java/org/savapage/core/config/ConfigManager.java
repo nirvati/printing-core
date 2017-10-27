@@ -85,6 +85,7 @@ import org.savapage.core.circuitbreaker.CircuitDamagingException;
 import org.savapage.core.circuitbreaker.CircuitNonTrippingException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.community.MemberCard;
+import org.savapage.core.concurrent.ReadLockObtainFailedException;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.config.IConfigProp.LdapType;
@@ -1411,6 +1412,46 @@ public final class ConfigManager {
      */
     public boolean isAppReadyToUse() {
         return myConfigProp.isRunnable();
+    }
+
+    /**
+     * @return {@code true} when application is temporarily unavailable.
+     */
+    public static boolean isTempUnavailable() {
+
+        boolean acquired = false;
+
+        try {
+            ReadWriteLockEnum.DATABASE_READONLY.tryReadLock();
+            acquired = true;
+        } catch (ReadLockObtainFailedException e) {
+            acquired = false;
+        } finally {
+            if (acquired) {
+                ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+            }
+        }
+        return !acquired;
+    }
+
+    /**
+     * Gets the system status.
+     * @return The {@link SystemStatusEnum}.
+     */
+    public SystemStatusEnum getSystemStatus() {
+
+        final SystemStatusEnum stat;
+
+        if (!this.isAppReadyToUse()) {
+            stat = SystemStatusEnum.SETUP;
+        } else if (isSysMaintenance()) {
+            stat = SystemStatusEnum.MAINTENANCE;
+        } else if (isTempUnavailable()) {
+            stat = SystemStatusEnum.UNAVAILABLE;
+        } else {
+            stat = SystemStatusEnum.READY;
+        }
+        return stat;
     }
 
     /**

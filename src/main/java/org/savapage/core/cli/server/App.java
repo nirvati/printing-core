@@ -94,40 +94,24 @@ public final class App extends AbstractApp {
      */
     private static final AbstractAppApi[] APP_API_LIST = new AbstractAppApi[] {
             //
-            new CliAddInternalUser(),
-            //
-            new CliAddUserGroup(),
-            //
-            new CliChangeBaseCurrency(),
-            //
-            new CliDeleteUser(),
-            //
-            new CliDeleteUserGroup(),
-            //
-            new CliListUsers(),
-            //
-            new CliListUserGroups(),
-            //
-            new CliListUserGroupMembers(),
-            //
-            new CliListUserGroupMemberships(),
-            //
-            new CliListUserSourceGroups(),
-            //
-            new CliListUserSourceGroupMembers(),
-            //
-            new CliListUserSourceGroupNesting(),
-            //
-            new CliPrinterAccessControl(),
-            //
-            new CliPrinterSnmp(),
-            //
-            new CliSetUserProperties(),
-            //
-            new CliSetUserGroupProperties(),
-            //
-            new CliSyncUserGroup()
-            //
+            new CliAddInternalUser(), //
+            new CliAddUserGroup(), //
+            new CliChangeBaseCurrency(), //
+            new CliDeleteUser(), //
+            new CliDeleteUserGroup(), //
+            new CliListUsers(), //
+            new CliListUserGroups(), //
+            new CliListUserGroupMembers(), //
+            new CliListUserGroupMemberships(), //
+            new CliListUserSourceGroups(), //
+            new CliListUserSourceGroupMembers(), //
+            new CliListUserSourceGroupNesting(), //
+            new CliPrinterAccessControl(), //
+            new CliPrinterSnmp(), //
+            new CliSetUserProperties(), //
+            new CliSetUserGroupProperties(), //
+            new CliSyncUserGroup(), //
+            new CliSystemStatus() //
     };
 
     @Override

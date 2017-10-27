@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -43,7 +43,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * Example</a>
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
@@ -51,12 +51,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
         @Type(value = ResultDataBasic.class,
                 name = JsonRpcResultDataMixin.JsonSubType.BASIC),
+        @Type(value = ResultEnum.class,
+                name = JsonRpcResultDataMixin.JsonSubType.ENUM),
         @Type(value = ResultListUsers.class,
                 name = JsonRpcResultDataMixin.JsonSubType.USER_LIST),
         @Type(value = ResultListStrings.class,
                 name = JsonRpcResultDataMixin.JsonSubType.USER_GROUP_LIST),
-        @Type(
-                value = ResultListQuickSearchItem.class,
+        @Type(value = ResultListQuickSearchItem.class,
                 name = JsonRpcResultDataMixin.JsonSubType.QUICK_SEARCH_ITEM_LIST),
         @Type(value = ResultPosDeposit.class,
                 name = JsonRpcResultDataMixin.JsonSubType.POS_DEPOSIT),
@@ -64,13 +65,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
                 name = JsonRpcResultDataMixin.JsonSubType.USER_GROUP_ACCESS),
         @Type(value = ResultPrinterSnmp.class,
                 name = JsonRpcResultDataMixin.JsonSubType.PRINTER_SNMP)
-//
+        //
 })
 public class JsonRpcResultDataMixin {
 
     public static class JsonSubType {
 
         public static final String BASIC = "BASIC";
+        public static final String ENUM = "ENUM";
         public static final String USER_LIST = "USER_LIST";
         public static final String USER_GROUP_LIST = "USER_GROUP_LIST";
         public static final String QUICK_SEARCH_ITEM_LIST =
@@ -79,7 +81,6 @@ public class JsonRpcResultDataMixin {
         public static final String USER_GROUP_ACCESS = "USER_GROUP_ACCESS";
 
         public static final String PRINTER_SNMP = "PRINTER_SNMP";
-
     }
 
     protected JsonRpcResultDataMixin() {
