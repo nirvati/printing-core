@@ -474,11 +474,18 @@ public abstract class AbstractAppApi extends AbstractApp {
      */
     protected final URL getSecureServerUrl() throws IOException {
         /*
-         * We need the server hostname in the URL, since it must match the name
-         * in the (self-signed) SSL certificate.
+         * We MUST use the server IP address in the URL, since the JSON-RPC
+         * servlet MUST resolve the remote address to this same address.
+         *
+         * Reason: if hostname is used in the URL, the servlet will resolve the
+         * remote address to local loop address 127.0.0.1. This opens an access
+         * loophole, when remote access to SavaPage is proxied e.g. by Apache
+         * redirect, since in this case remote address is 127.0.0.1 in all
+         * cases.
          */
-        return new URL("https://" + InetUtils.getServerHostName() + ":"
-                + ConfigManager.getServerSslPort(serverProps) + "/jsonrpc");
+        return new URL(String.format("https://%s:%s/jsonrpc",
+                InetUtils.getServerHostAddress(),
+                ConfigManager.getServerSslPort(serverProps)));
     }
 
     /**

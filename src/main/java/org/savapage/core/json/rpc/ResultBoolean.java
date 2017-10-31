@@ -21,47 +21,26 @@
  */
 package org.savapage.core.json.rpc;
 
-import org.savapage.core.json.JsonAbstractBase;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
- * Common for JSON-RPC Request and Response.
  *
  * @author Rijk Ravestein
  *
  */
-@JsonPropertyOrder({ AbstractJsonRpcMessage.ATTR_JSONRPC,
-        AbstractJsonRpcMessage.ATTR_ID })
-@JsonInclude(Include.NON_NULL)
-public abstract class AbstractJsonRpcMessage extends JsonAbstractBase {
+@JsonPropertyOrder({ "value" })
+public class ResultBoolean extends JsonRpcResultDataMixin {
 
-    public static final String ATTR_JSONRPC = "jsonrpc";
-    public static final String ATTR_ID = "id";
+    @JsonProperty("value")
+    private boolean value;
 
-    @JsonProperty(AbstractJsonRpcMessage.ATTR_JSONRPC)
-    private String jsonrpc = JsonRpcConfig.RPC_VERSION;
-
-    @JsonProperty(AbstractJsonRpcMessage.ATTR_ID)
-    private String id;
-
-    public String getJsonrpc() {
-        return jsonrpc;
+    public boolean isValue() {
+        return value;
     }
 
-    public void setJsonrpc(String jsonrpc) {
-        this.jsonrpc = jsonrpc;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    public void setValue(boolean value) {
+        this.value = value;
     }
 
 }

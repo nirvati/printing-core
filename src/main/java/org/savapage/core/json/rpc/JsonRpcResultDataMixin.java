@@ -53,6 +53,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
                 name = JsonRpcResultDataMixin.JsonSubType.BASIC),
         @Type(value = ResultEnum.class,
                 name = JsonRpcResultDataMixin.JsonSubType.ENUM),
+        @Type(value = ResultBoolean.class,
+                name = JsonRpcResultDataMixin.JsonSubType.BOOL),
         @Type(value = ResultListUsers.class,
                 name = JsonRpcResultDataMixin.JsonSubType.USER_LIST),
         @Type(value = ResultListStrings.class,
@@ -72,7 +74,7 @@ public class JsonRpcResultDataMixin {
     public static class JsonSubType {
 
         public static final String BASIC = "BASIC";
-        public static final String ENUM = "ENUM";
+        public static final String ENUM = "enum";
         public static final String USER_LIST = "USER_LIST";
         public static final String USER_GROUP_LIST = "USER_GROUP_LIST";
         public static final String QUICK_SEARCH_ITEM_LIST =
@@ -81,6 +83,8 @@ public class JsonRpcResultDataMixin {
         public static final String USER_GROUP_ACCESS = "USER_GROUP_ACCESS";
 
         public static final String PRINTER_SNMP = "PRINTER_SNMP";
+
+        public static final String BOOL = "boolean";
     }
 
     protected JsonRpcResultDataMixin() {

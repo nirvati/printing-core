@@ -29,22 +29,11 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * @author Rijk Ravestein
  *
  */
-@JsonPropertyOrder({ "id", "value" })
+@JsonPropertyOrder({ "value" })
 public class ResultEnum extends JsonRpcResultDataMixin {
-
-    @JsonProperty("id")
-    private String id;
 
     @JsonProperty("value")
     private String value;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getValue() {
         return value;

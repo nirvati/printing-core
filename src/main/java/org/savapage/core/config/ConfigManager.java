@@ -1983,6 +1983,7 @@ public final class ConfigManager {
      */
     public boolean isUserEncrypted(final IConfigProp.Key key) {
         return key == Key.AUTH_LDAP_ADMIN_PASSWORD
+                || key == Key.API_JSONRPC_SECRET_KEY
                 || key == Key.CLIAPP_AUTH_ADMIN_PASSKEY
                 || key == Key.MAIL_SMTP_PASSWORD
                 || key == Key.PAPERCUT_DB_PASSWORD

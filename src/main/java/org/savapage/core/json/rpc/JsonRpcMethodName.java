@@ -38,6 +38,9 @@ public enum JsonRpcMethodName {
     ADD_USER_GROUP("addUserGroup"),
 
     /**  */
+    AUTH_USER_SOURCE("authUserSource"),
+
+    /**  */
     CHANGE_BASE_CURRENCY("changeBaseCurrency"),
 
     /**  */

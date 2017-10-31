@@ -19,49 +19,41 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.json.rpc;
+package org.savapage.core.json.rpc.impl;
 
-import org.savapage.core.json.JsonAbstractBase;
+import org.savapage.core.json.rpc.AbstractJsonRpcMethodParms;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
- * Common for JSON-RPC Request and Response.
  *
  * @author Rijk Ravestein
  *
  */
-@JsonPropertyOrder({ AbstractJsonRpcMessage.ATTR_JSONRPC,
-        AbstractJsonRpcMessage.ATTR_ID })
-@JsonInclude(Include.NON_NULL)
-public abstract class AbstractJsonRpcMessage extends JsonAbstractBase {
+@JsonPropertyOrder({ "username", "password" })
+public class ParamsAuthUserSource extends AbstractJsonRpcMethodParms {
 
-    public static final String ATTR_JSONRPC = "jsonrpc";
-    public static final String ATTR_ID = "id";
+    @JsonProperty("username")
+    private String userName;
 
-    @JsonProperty(AbstractJsonRpcMessage.ATTR_JSONRPC)
-    private String jsonrpc = JsonRpcConfig.RPC_VERSION;
+    @JsonProperty("password")
+    private String password;
 
-    @JsonProperty(AbstractJsonRpcMessage.ATTR_ID)
-    private String id;
-
-    public String getJsonrpc() {
-        return jsonrpc;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setJsonrpc(String jsonrpc) {
-        this.jsonrpc = jsonrpc;
+    public void setUserName(String user) {
+        this.userName = user;
     }
 
-    public String getId() {
-        return id;
+    public String getPassword() {
+        return password;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
 }

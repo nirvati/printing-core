@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -634,7 +634,11 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
         try {
             ctx = new InitialLdapContext(env, null);
         } catch (NamingException e) {
-            throw new SpException(e.getMessage(), e);
+            if (e.getCause() == null) {
+                throw new SpException(e.getMessage(), e);
+            }
+            throw new SpException(String.format("%s [%s]", e.getMessage(),
+                    e.getCause().getMessage()), e);
         }
 
         return ctx;
@@ -1053,7 +1057,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
      */
     protected final CommonUser commonUserFromGroupMember(final DirContext ctx,
             final String ldapUserFullNameField, final String member)
-                    throws NamingException {
+            throws NamingException {
 
         CommonUser cuser = null;
 

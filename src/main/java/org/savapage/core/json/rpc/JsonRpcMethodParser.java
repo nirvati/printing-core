@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 /**
  * Base class for all JSON-RPC Responses.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class JsonRpcMethodParser extends JsonAbstractBase {
@@ -46,7 +46,7 @@ public class JsonRpcMethodParser extends JsonAbstractBase {
     private String apiVersion;
 
     public String getMethod() {
-        return rootNode.get("method").textValue();
+        return rootNode.get(JsonRpcMethod.ATTR_METHOD).textValue();
     }
 
     public String getJsonrpc() {
@@ -96,16 +96,19 @@ public class JsonRpcMethodParser extends JsonAbstractBase {
                 getMapper().getFactory().createJsonParser(jsonInput);
 
         this.rootNode = getMapper().readTree(jp);
-        this.id = rootNode.get("id").textValue();
-        this.jsonrpc = rootNode.get("jsonrpc").textValue();
+        this.id = rootNode.get(AbstractJsonRpcMessage.ATTR_ID).textValue();
+        this.jsonrpc =
+                rootNode.get(AbstractJsonRpcMessage.ATTR_JSONRPC).textValue();
 
-        this.paramsNode = rootNode.get("params");
+        this.paramsNode = rootNode.get(JsonRpcMethod.ATTR_PARAMS);
+
         if (this.paramsNode != null) {
-            JsonNode node = this.paramsNode.get("apiKey");
+            JsonNode node = this.paramsNode
+                    .get(AbstractJsonRpcMethodParms.ATTR_API_KEY);
             if (node != null) {
                 this.apiKey = node.textValue();
             }
-            this.paramsNode.get("apiVersion");
+            this.paramsNode.get(AbstractJsonRpcMethodParms.ATTR_API_VERSION);
             if (node != null) {
                 this.apiVersion = node.textValue();
             }

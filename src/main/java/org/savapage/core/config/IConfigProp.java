@@ -880,6 +880,17 @@ public interface IConfigProp {
         /**
          *
          */
+        API_JSONRPC_SECRET_KEY("api.jsonrpc.secret-key"),
+
+        /**
+         * Client IP addresses (CIDR) that are allowed to use the JSON_RPC API
+         * (when void, all client addresses are allowed).
+         */
+        API_JSONRPC_IP_ADDRESSES_ALLOWED("api.jsonrpc.ext.ip-addresses-allowed"),
+
+        /**
+         *
+         */
         PRINT_IMAP_ENABLE("print.imap.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**

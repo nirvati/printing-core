@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -29,10 +29,12 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-@JsonPropertyOrder({ "error" })
+@JsonPropertyOrder({ AbstractJsonRpcMessage.ATTR_JSONRPC,
+        AbstractJsonRpcMessage.ATTR_ID, JsonRpcMethodResult.ATTR_RESULT,
+        "error" })
 @JsonInclude(Include.NON_NULL)
 public final class JsonRpcMethodError extends AbstractJsonRpcMethodResponse {
 
@@ -64,13 +66,13 @@ public final class JsonRpcMethodError extends AbstractJsonRpcMethodResponse {
      *
      * @param code
      *            The code.
-     * @param reason
-     *            The error reason.
+     * @param message
+     *            The error message.
      * @return The JSON-RPC error message.
      */
     public static JsonRpcMethodError createBasicError(
-            final JsonRpcError.Code code, final String reason) {
-        return createBasicError(code, null, reason);
+            final JsonRpcError.Code code, final String message) {
+        return createBasicError(code, message, "unknown");
     }
 
     /**
