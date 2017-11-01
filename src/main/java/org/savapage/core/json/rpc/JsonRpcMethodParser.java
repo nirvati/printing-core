@@ -121,10 +121,19 @@ public class JsonRpcMethodParser extends JsonAbstractBase {
      * @param clazz
      * @return
      * @throws JsonProcessingException
+     *             When error processing JSON.
+     * @throws JsonRpcParserException
+     *             When error parsing JSON.
      */
     public <T extends AbstractJsonRpcMethodParms> T getParams(Class<T> clazz)
-            throws JsonProcessingException {
-        return getMapper().treeToValue(paramsNode, clazz);
+            throws JsonProcessingException, JsonRpcParserException {
+        try {
+            return getMapper().treeToValue(paramsNode, clazz);
+        } catch (JsonProcessingException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new JsonRpcParserException(e.getMessage(), e);
+        }
     }
 
 }
