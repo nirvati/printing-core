@@ -1512,25 +1512,53 @@ public abstract class AbstractProxyPrintService extends AbstractService
     public final void lazyInitPrinterCache()
             throws IppConnectException, IppSyntaxException {
 
-        if (!this.isFirstTimeCupsContact.get()) {
-            return;
-        }
-
-        try {
-            updatePrinterCache();
-        } catch (MalformedURLException | URISyntaxException e) {
-            throw new IppConnectException(e);
+        if (this.isFirstTimeCupsContact.get()) {
+            initPrinterCache(true);
         }
     }
 
     @Override
     public final void initPrinterCache()
             throws IppConnectException, IppSyntaxException {
+        initPrinterCache(false);
+    }
+
+    /**
+     * Initializes the CUPS printer cache (clearing any existing one).
+     * <p>
+     * <b>Important</b>: This method performs a commit, and re-opens any
+     * transaction this was pending at the start of this method.
+     * </p>
+     *
+     * @param isLazyInit
+     *            {@code true} if this is a lazy init update.
+     * @throws IppConnectException
+     *             When a connection error occurs.
+     * @throws IppSyntaxException
+     *             When a syntax error.
+     */
+    private void initPrinterCache(final boolean isLazyInit)
+            throws IppConnectException, IppSyntaxException {
+
+        final DaoContext ctx = ServiceContext.getDaoContext();
+        final boolean currentTrxActive = ctx.isTransactionActive();
+
+        if (!currentTrxActive) {
+            ctx.beginTransaction();
+        }
 
         try {
-            updatePrinterCache();
+            updatePrinterCache(isLazyInit);
+            ctx.commit();
         } catch (MalformedURLException | URISyntaxException e) {
             throw new IppConnectException(e);
+        } finally {
+            if (ctx.isTransactionActive()) {
+                ctx.rollback();
+            }
+            if (currentTrxActive) {
+                ctx.beginTransaction();
+            }
         }
     }
 
@@ -1557,19 +1585,28 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * re-activated.</li>
      * </ul>
      *
+     * @param isLazyInit
+     *            {@code true} if this is a lazy init update.
      * @throws URISyntaxException
+     *             When URI syntax error.
      * @throws MalformedURLException
+     *             When URL malformed.
      * @throws IppConnectException
      *             When a connection error occurs.
      * @throws IppSyntaxException
      *             When a syntax error.
      */
-    protected synchronized final void updatePrinterCache()
+    private synchronized void updatePrinterCache(final boolean isLazyInit)
             throws MalformedURLException, IppConnectException,
             URISyntaxException, IppSyntaxException {
 
         final boolean firstTimeCupsContact =
                 this.isFirstTimeCupsContact.getAndSet(false);
+
+        // Concurrent lazy init try.
+        if (isLazyInit && !firstTimeCupsContact) {
+            return;
+        }
 
         final boolean connectedToCupsPrv =
                 !firstTimeCupsContact && isConnectedToCups();
@@ -1593,10 +1630,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
             SpJobScheduler.instance()
                     .scheduleOneShotJob(SpJobType.CUPS_SYNC_PRINT_JOBS, 1L);
         }
-
-        /*
-         * Go on ....
-         */
 
         /*
          * Mark all currently cached printers as 'not present'.
@@ -1703,6 +1736,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
                             + "] detected");
                 }
             }
+        }
+
+        if (isLazyInit) {
+            SpInfo.instance().log(String.format("| %s CUPS printers retrieved.",
+                    cupsPrinters.size()));
         }
     }
 
@@ -2501,6 +2539,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         final Date perfStartTime = PerformanceLogger.startTime();
 
+        /*
+         * Make sure the CUPS printer is cached.
+         */
+        try {
+            this.lazyInitPrinterCache();
+        } catch (Exception e) {
+            throw new ProxyPrintException(e);
+        }
+
         final User cardUser = getValidateUserOfCard(cardNumber);
 
         if (!outboxService().isOutboxPresent(cardUser.getUserId())) {
@@ -2521,15 +2568,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final List<OutboxJobDto> jobs =
                 outboxService().getOutboxJobs(lockedUser.getUserId(),
                         printerNames, ServiceContext.getTransactionDate());
-
-        /*
-         * Make sure the CUPS printer is cached.
-         */
-        try {
-            this.lazyInitPrinterCache();
-        } catch (Exception e) {
-            throw new ProxyPrintException(e);
-        }
 
         /*
          * Check printer access and total costs first (all-or-none).

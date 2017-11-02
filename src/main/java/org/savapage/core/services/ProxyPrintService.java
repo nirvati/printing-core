@@ -484,8 +484,8 @@ public interface ProxyPrintService {
      * </p>
      * <p>
      * HOWEVER, in practice we cannot depend CUPS is up-and-running, so we opt
-     * for a defensive strategy and lazy init of the printer cache and start
-     * CUPS event subscription in {@link #updatePrinterCache()}.
+     * for a defensive strategy and lazy init the printer cache and lazy start
+     * the CUPS event subscription.
      * </p>
      *
      */
@@ -515,6 +515,10 @@ public interface ProxyPrintService {
 
     /**
      * Initializes the CUPS printer cache when it does not exist.
+     * <p>
+     * <b>Important</b>: This method performs a commit, and re-opens any
+     * transaction this was pending at the start of this method.
+     * </p>
      *
      * @throws IppConnectException
      *             When a connection error occurs.
@@ -525,6 +529,10 @@ public interface ProxyPrintService {
 
     /**
      * Initializes the CUPS printer cache (clearing any existing one).
+     * <p>
+     * <b>Important</b>: This method performs a commit, and re-opens any
+     * transaction this was pending at the start of this method.
+     * </p>
      *
      * @throws IppConnectException
      *             When a connection error occurs.
