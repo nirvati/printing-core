@@ -27,9 +27,10 @@ import org.savapage.core.jpa.Entity;
 
 /**
  * Common DAO methods.
- *
+ * <p>
  * http://stackoverflow.com/questions/12565973/java-ee-dao-dto-data-transfer-
  * object-design-patterns
+ * </p>
  *
  * @author Rijk Ravestein
  *

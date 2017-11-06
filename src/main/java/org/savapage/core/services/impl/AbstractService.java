@@ -27,11 +27,15 @@ import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.AccountVoucherDao;
 import org.savapage.core.dao.AppLogDao;
+import org.savapage.core.dao.CostChangeDao;
 import org.savapage.core.dao.DeviceAttrDao;
 import org.savapage.core.dao.DeviceDao;
+import org.savapage.core.dao.DocInDao;
 import org.savapage.core.dao.DocLogDao;
+import org.savapage.core.dao.DocOutDao;
 import org.savapage.core.dao.IppQueueAttrDao;
 import org.savapage.core.dao.IppQueueDao;
+import org.savapage.core.dao.PdfOutDao;
 import org.savapage.core.dao.PosPurchaseDao;
 import org.savapage.core.dao.PrintInDao;
 import org.savapage.core.dao.PrintOutDao;
@@ -160,8 +164,20 @@ public abstract class AbstractService {
         return ServiceContext.getDaoContext().getAppLogDao();
     }
 
+    protected static CostChangeDao costChangeDAO() {
+        return ServiceContext.getDaoContext().getCostChangeDao();
+    }
+
+    protected static DocInDao docInDAO() {
+        return ServiceContext.getDaoContext().getDocInDao();
+    }
+
     protected static DocLogDao docLogDAO() {
         return ServiceContext.getDaoContext().getDocLogDao();
+    }
+
+    protected static DocOutDao docOutDAO() {
+        return ServiceContext.getDaoContext().getDocOutDao();
     }
 
     protected static DeviceDao deviceDAO() {
@@ -180,6 +196,9 @@ public abstract class AbstractService {
         return ServiceContext.getDaoContext().getIppQueueDao();
     }
 
+    protected static PdfOutDao pdfOutDAO() {
+        return ServiceContext.getDaoContext().getPdfOutDao();
+    }
     protected static PosPurchaseDao purchaseDAO() {
         return ServiceContext.getDaoContext().getPosPurchaseDao();
     }

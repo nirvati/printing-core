@@ -44,17 +44,20 @@ import javax.persistence.TableGenerator;
 @Table(name = User.TABLE_NAME)
 public class User extends org.savapage.core.jpa.Entity {
 
-    /**
-     *
-     */
+    /** */
     public static final String TABLE_NAME = "tbl_user";
+
+    /** */
+    public static final String ERASED_USER_ID = "";
+    /** */
+    public static final String ERASED_EXTERNAL_USER_NAME = "";
 
     @Id
     @Column(name = "user_id")
     @TableGenerator(name = "userPropGen", table = Sequence.TABLE_NAME,
             pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
-            pkColumnValue = TABLE_NAME, allocationSize = 1)
+            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
+            allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "userPropGen")
     private Long id;
 

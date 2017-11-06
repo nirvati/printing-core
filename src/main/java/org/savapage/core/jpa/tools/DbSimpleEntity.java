@@ -63,6 +63,12 @@ public final class DbSimpleEntity {
     public static final String PDF_OUT = DbXEntityEnum.PDF_OUT.psql();
 
     /** */
+    public static final String USER = DbXEntityEnum.USER.psql();
+
+    /** */
+    public static final String USER_ACCOUNT = DbXEntityEnum.USER_ACCOUNT.psql();
+
+    /** */
     private DbSimpleEntity() {
     }
 

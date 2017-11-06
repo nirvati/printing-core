@@ -33,6 +33,7 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.tools.DbSimpleEntity;
 import org.savapage.core.services.ServiceContext;
 import org.slf4j.Logger;
@@ -550,6 +551,16 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         }
 
         return executeSingleRowUpdate(query);
+    }
+
+    @Override
+    public int eraseUser(final User user) {
+        final String jpql = "UPDATE " + DbSimpleEntity.DOC_LOG
+                + " SET title = null, logComment = null "
+                + " WHERE user = :user)";
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("user", user.getId());
+        return query.executeUpdate();
     }
 
 }

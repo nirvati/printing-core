@@ -38,7 +38,7 @@ import org.savapage.core.jpa.User;
  * @author Rijk Ravestein
  *
  */
-public interface AccountTrxDao extends GenericDao<AccountTrx> {
+public interface AccountTrxDao extends UserErasableDao<AccountTrx> {
 
     /**
      * Field identifiers used for select and sort.

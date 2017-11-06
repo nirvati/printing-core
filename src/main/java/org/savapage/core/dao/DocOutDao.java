@@ -19,36 +19,15 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dao.impl;
+package org.savapage.core.dao;
 
-import javax.persistence.Query;
-
-import org.savapage.core.dao.CostChangeDao;
-import org.savapage.core.jpa.CostChange;
-import org.savapage.core.jpa.User;
-import org.savapage.core.jpa.tools.DbSimpleEntity;
+import org.savapage.core.jpa.DocOut;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class CostChangeDaoImpl extends GenericDaoImpl<CostChange>
-        implements CostChangeDao {
-
-    @Override
-    protected String getCountQuery() {
-        return "SELECT COUNT(T.id) FROM CostChange T";
-    }
-
-    @Override
-    public int eraseUser(final User user) {
-        final String jpql = "UPDATE " + DbSimpleEntity.COST_CHANGE
-                + " SET reqReason = null, chgReason = null "
-                + " WHERE reqUser = :user)";
-        final Query query = getEntityManager().createQuery(jpql);
-        query.setParameter("user", user.getId());
-        return query.executeUpdate();
-    }
+public interface DocOutDao extends UserErasableDao<DocOut> {
 
 }

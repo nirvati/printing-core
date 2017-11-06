@@ -34,7 +34,7 @@ import org.savapage.core.util.LocaleHelper;
 public enum AdjectiveEnum {
 
     /** */
-    DOWLOADED, PRINTED, RECEIVED,
+    DOWLOADED, ERASED, PRINTED, RECEIVED,
 
     /** */
     APPROVED, REJECTED,

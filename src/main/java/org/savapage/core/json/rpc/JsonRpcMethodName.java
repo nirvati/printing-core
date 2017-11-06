@@ -50,6 +50,9 @@ public enum JsonRpcMethodName {
     DELETE_USER_GROUP("deleteUserGroup"),
 
     /**  */
+    ERASE_USER("eraseUser"),
+
+    /**  */
     LIST_USERS("listUsers"),
 
     /**  */

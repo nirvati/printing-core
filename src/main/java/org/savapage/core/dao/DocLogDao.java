@@ -41,7 +41,7 @@ import org.savapage.core.jpa.PosPurchaseItem;
  * @author Rijk Ravestein
  *
  */
-public interface DocLogDao extends GenericDao<DocLog> {
+public interface DocLogDao extends UserErasableDao<DocLog> {
 
     /**
      * Field identifiers used for select and sort.

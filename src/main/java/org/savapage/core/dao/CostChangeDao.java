@@ -28,6 +28,6 @@ import org.savapage.core.jpa.CostChange;
  * @author Rijk Ravestein
  *
  */
-public interface CostChangeDao extends GenericDao<CostChange> {
+public interface CostChangeDao extends UserErasableDao<CostChange> {
 
 }

@@ -113,7 +113,12 @@ public class Account extends org.savapage.core.jpa.Entity {
         ALWAYS_OFF
     }
 
+    /** */
     public static final String TABLE_NAME = "tbl_account";
+
+    /** */
+    public static final String ERASED_ACCOUNT_NAME = "";
+
 
     @Id
     @Column(name = "account_id")

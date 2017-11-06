@@ -23,8 +23,8 @@ package org.savapage.core.dao.impl;
 
 import javax.persistence.Query;
 
-import org.savapage.core.dao.PdfOutDao;
-import org.savapage.core.jpa.PdfOut;
+import org.savapage.core.dao.DocInDao;
+import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.tools.DbSimpleEntity;
 
@@ -33,24 +33,21 @@ import org.savapage.core.jpa.tools.DbSimpleEntity;
  * @author Rijk Ravestein
  *
  */
-public final class PdfOutDaoImpl extends GenericDaoImpl<PdfOut>
-        implements PdfOutDao {
+public final class DocInDaoImpl extends GenericDaoImpl<DocIn>
+        implements DocInDao {
 
     @Override
     protected String getCountQuery() {
-        return "SELECT COUNT(T.id) FROM PdfOut T";
+        return "SELECT COUNT(T.id) FROM DocIn T";
     }
 
     @Override
     public int eraseUser(final User user) {
-        final String jpql = "UPDATE " + DbSimpleEntity.PDF_OUT
-                + " SET author = null, subject = null, keywords = null,"
-                + " passwordOwner = null, passwordUser = null" //
-                + " WHERE id IN" //
-                + " (SELECT P.id FROM " + DbSimpleEntity.DOC_LOG + " L"
-                + " JOIN " + DbSimpleEntity.DOC_OUT + " O ON O.id = L.docOut"
-                + " AND L.user = :user" //
-                + " JOIN " + DbSimpleEntity.PDF_OUT + " P ON P.id = O.pdfOut)";
+        final String jpql = "UPDATE " + DbSimpleEntity.DOC_IN
+                + " SET originatorIp = null WHERE id IN" //
+                + " (SELECT I.id FROM " + DbSimpleEntity.DOC_LOG + " L"
+                + " JOIN " + DbSimpleEntity.DOC_IN + " I ON I.id = L.docIn"
+                + " AND L.user = :user)";
         final Query query = getEntityManager().createQuery(jpql);
         query.setParameter("user", user.getId());
         return query.executeUpdate();

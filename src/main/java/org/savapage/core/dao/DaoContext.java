@@ -114,6 +114,16 @@ public interface DaoContext {
     /**
      * @return The DAO implementation.
      */
+    DocInDao getDocInDao();
+
+    /**
+     * @return The DAO implementation.
+     */
+    DocOutDao getDocOutDao();
+
+    /**
+     * @return The DAO implementation.
+     */
     DeviceDao getDeviceDao();
 
     /**

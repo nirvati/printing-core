@@ -34,6 +34,8 @@ import org.savapage.core.jpa.xml.XPosPurchaseItemV01;
 import org.savapage.core.jpa.xml.XPosPurchaseV01;
 import org.savapage.core.jpa.xml.XPrintInV01;
 import org.savapage.core.jpa.xml.XPrintOutV01;
+import org.savapage.core.jpa.xml.XUserAccountV01;
+import org.savapage.core.jpa.xml.XUserV01;
 
 /**
  * The actually used {@link XEntityVersion} classes.
@@ -69,7 +71,13 @@ public enum DbXEntityEnum {
     /** */
     POS_PURCHASE(XPosPurchaseV01.class),
     /** */
-    POS_PURCHASE_ITEM(XPosPurchaseItemV01.class);
+    POS_PURCHASE_ITEM(XPosPurchaseItemV01.class),
+
+    /** */
+    USER(XUserV01.class),
+
+    /** */
+    USER_ACCOUNT(XUserAccountV01.class);
 
     /** */
     private final Class<? extends XEntityVersion> clazz;

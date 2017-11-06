@@ -99,6 +99,7 @@ public final class App extends AbstractApp {
             new CliChangeBaseCurrency(), //
             new CliDeleteUser(), //
             new CliDeleteUserGroup(), //
+            new CliEraseUser(), //
             new CliListUsers(), //
             new CliListUserGroups(), //
             new CliListUserGroupMembers(), //

@@ -26,6 +26,8 @@ import javax.persistence.Query;
 
 import org.savapage.core.dao.PosPurchaseDao;
 import org.savapage.core.jpa.PosPurchase;
+import org.savapage.core.jpa.User;
+import org.savapage.core.jpa.tools.DbSimpleEntity;
 
 /**
  *
@@ -45,10 +47,9 @@ public final class PosPurchaseDaoImpl extends GenericDaoImpl<PosPurchase>
 
         final String prefixDb = prefix.toString();
 
-        final Query query =
-                getEntityManager().createQuery(
-                        "select max(P.receiptNumber) from PosPurchase P "
-                                + "where P.receiptNumber like :receiptNumber");
+        final Query query = getEntityManager()
+                .createQuery("select max(P.receiptNumber) from PosPurchase P "
+                        + "where P.receiptNumber like :receiptNumber");
 
         query.setParameter("receiptNumber", prefixDb + "%");
 
@@ -71,5 +72,22 @@ public final class PosPurchaseDaoImpl extends GenericDaoImpl<PosPurchase>
         final int highest = getHighestReceiptNumber(prefix);
         return String.format("%s%0" + RECEIPT_NUMBER_MIN_WIDTH + "d",
                 prefix.toString(), highest + 1);
+    }
+
+    @Override
+    public int eraseUser(final User user) {
+        final String jpql = "UPDATE " + DbSimpleEntity.POS_PURCHASE
+                + " SET comment = null WHERE id IN" //
+                + " (SELECT PP.id FROM " + DbSimpleEntity.USER_ACCOUNT + " UA"
+                + " JOIN " + DbSimpleEntity.ACCOUNT_TRX
+                + " TRX ON TRX.account = UA.account"
+                + " AND TRX.comment != null" //
+                + " JOIN " + DbSimpleEntity.POS_PURCHASE
+                + " PP ON TRX.posPurchase = PP.id" //
+                + " AND PP.comment != null" //
+                + " WHERE UA.user = :user)";
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("user", user.getId());
+        return query.executeUpdate();
     }
 }

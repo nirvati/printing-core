@@ -1182,8 +1182,8 @@ public final class UserServiceImpl extends AbstractService
     }
 
     @Override
-    public AbstractJsonRpcMethodResponse deleteUser(final String userIdToDelete)
-            throws IOException {
+    public AbstractJsonRpcMethodResponse deleteUser(final String userIdToDelete,
+            final boolean erase) throws IOException {
 
         final User user = userDAO().lockByUserId(userIdToDelete);
 
@@ -1191,7 +1191,7 @@ public final class UserServiceImpl extends AbstractService
             return createError("msg-user-not-found", userIdToDelete);
         }
 
-        this.performLogicalDelete(user);
+        this.performLogicalDelete(user, erase);
         userDAO().update(user);
 
         return this.deleteUserFinalAction(userIdToDelete);
@@ -1199,7 +1199,8 @@ public final class UserServiceImpl extends AbstractService
 
     @Override
     public AbstractJsonRpcMethodResponse deleteUserAutoCorrect(
-            final String userIdToDelete) throws IOException {
+            final String userIdToDelete, final boolean erase)
+            throws IOException {
 
         final List<User> users =
                 userDAO().checkActiveUserByUserId(userIdToDelete);
@@ -1218,7 +1219,7 @@ public final class UserServiceImpl extends AbstractService
         }
 
         for (final User user : users) {
-            this.performLogicalDelete(user);
+            this.performLogicalDelete(user, erase);
             userDAO().update(user);
         }
 
@@ -2424,6 +2425,61 @@ public final class UserServiceImpl extends AbstractService
     }
 
     /**
+     * Removes all User group memberships from the database.
+     *
+     * @param user
+     *            The {@link User}.
+     */
+    private void removeAllGroupMemberShips(final User user) {
+
+        final List<UserGroupMember> memberships = user.getGroupMembership();
+
+        if (memberships != null) {
+            for (final UserGroupMember membership : memberships) {
+                userGroupMemberDAO().delete(membership);
+            }
+            memberships.clear();
+        }
+    }
+
+    /**
+     * Removes identifying {@link UserAttr} from the database.
+     *
+     * @param user
+     *            The {@link User}.
+     */
+    private void eraseUserAttr(final User user) {
+
+        final List<UserAttr> attrList = user.getAttributes();
+        if (attrList == null) {
+            return;
+        }
+        final Iterator<UserAttr> iter = attrList.iterator();
+
+        while (iter.hasNext()) {
+
+            final UserAttr attr = iter.next();
+
+            switch (UserAttrEnum.asEnum(attr.getName())) {
+            case ACL_OIDS_ADMIN:
+            case ACL_OIDS_USER:
+            case ACL_ROLES:
+            case BITCOIN_PAYMENT_ADDRESS:
+            case INTERNAL_PASSWORD:
+            case PIN:
+            case PGP_PUBKEY_ID:
+            case PDF_PROPS:
+            case UUID:
+                userAttrDAO().delete(attr);
+                iter.remove();
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+    /**
      * Removes all User ID Numbers from the database.
      *
      * @param user
@@ -2442,7 +2498,7 @@ public final class UserServiceImpl extends AbstractService
     }
 
     @Override
-    public void performLogicalDelete(final User user) {
+    public void performLogicalDelete(final User user, final boolean erase) {
 
         final Date trxDate = ServiceContext.getTransactionDate();
 
@@ -2455,6 +2511,20 @@ public final class UserServiceImpl extends AbstractService
         removeAllIdNumbers(user);
         removeAllEmails(user);
 
+        if (erase) {
+
+            user.setUserId(User.ERASED_USER_ID);
+            user.setExternalUserName(User.ERASED_EXTERNAL_USER_NAME);
+
+            user.setFullName(null);
+            user.setDepartment(null);
+            user.setOffice(null);
+
+            eraseUserAttr(user);
+
+            removeAllGroupMemberShips(user);
+        }
+
         final List<UserAccount> userAccountList = user.getAccounts();
 
         if (userAccountList != null) {
@@ -2462,18 +2532,44 @@ public final class UserServiceImpl extends AbstractService
             for (final UserAccount userAccount : userAccountList) {
 
                 final Account account = userAccount.getAccount();
-
                 final AccountTypeEnum accountType =
                         AccountTypeEnum.valueOf(account.getAccountType());
 
-                if (accountType != Account.AccountTypeEnum.SHARED) {
+                if (accountType == Account.AccountTypeEnum.SHARED) {
+                    continue;
+                }
 
-                    account.setDeleted(true);
-                    account.setDeletedDate(trxDate);
-                    account.setModifiedBy(ServiceContext.getActor());
-                    account.setModifiedDate(trxDate);
+                account.setDeleted(true);
+                account.setDeletedDate(trxDate);
+                account.setModifiedBy(ServiceContext.getActor());
+                account.setModifiedDate(trxDate);
+
+                if (!erase) {
+                    continue;
+                }
+
+                account.setName(Account.ERASED_ACCOUNT_NAME);
+                account.setNameLower(Account.ERASED_ACCOUNT_NAME);
+                account.setNotes(null);
+                account.setPin(null);
+
+                if (account.getSubName() != null) {
+                    account.setSubName(Account.ERASED_ACCOUNT_NAME);
+                    account.setSubNameLower(Account.ERASED_ACCOUNT_NAME);
+                    account.setSubPin(null);
                 }
             }
+        }
+
+        if (erase) {
+            accountTrxDAO().eraseUser(user);
+            costChangeDAO().eraseUser(user);
+            purchaseDAO().eraseUser(user);
+
+            docLogDAO().eraseUser(user);
+            docInDAO().eraseUser(user);
+            docOutDAO().eraseUser(user);
+            pdfOutDAO().eraseUser(user);
         }
     }
 

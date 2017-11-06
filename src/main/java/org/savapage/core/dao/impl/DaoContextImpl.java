@@ -33,8 +33,10 @@ import org.savapage.core.dao.CostChangeDao;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.DeviceAttrDao;
 import org.savapage.core.dao.DeviceDao;
+import org.savapage.core.dao.DocInDao;
 import org.savapage.core.dao.DocInOutDao;
 import org.savapage.core.dao.DocLogDao;
+import org.savapage.core.dao.DocOutDao;
 import org.savapage.core.dao.IppQueueAttrDao;
 import org.savapage.core.dao.IppQueueDao;
 import org.savapage.core.dao.PdfOutDao;
@@ -120,169 +122,116 @@ public final class DaoContextImpl implements DaoContext {
      */
     private static class DaoHolder {
 
-        /**
-         *
-         */
+        /**  */
         public static final AccountDao ACCOUNT_DAO = new AccountDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final AccountTrxDao ACCOUNT_TRX_DAO =
                 new AccountTrxDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final AccountVoucherDao ACCOUNT_VOUCHER_DAO =
                 new AccountVoucherDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final AppLogDao APP_LOG_DAO = new AppLogDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final ConfigPropertyDao CONFIG_PROPERTY_DAO =
                 new ConfigPropertyDaoImpl();
 
-        /**
-        *
-        */
-       public static final CostChangeDao COST_CHANGE_DAO =
-               new CostChangeDaoImpl();
-        /**
-         *
-         */
+        /**  */
+        public static final CostChangeDao COST_CHANGE_DAO =
+                new CostChangeDaoImpl();
+
+        /**  */
+        public static final DocInDao DOC_IN_DAO = new DocInDaoImpl();
+
+        /**  */
         public static final DocInOutDao DOC_IN_OUT_DAO = new DocInOutDaoImpl();
 
-        /**
-        *
-        */
+        /**  */
         public static final DocLogDao DOC_LOG_DAO = new DocLogDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
+        public static final DocOutDao DOC_OUT_DAO = new DocOutDaoImpl();
+
+        /**  */
         public static final DeviceDao DEVICE_DAO = new DeviceDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final DeviceAttrDao DEVICE_ATTR_DAO =
                 new DeviceAttrDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final IppQueueDao IPP_QUEUE_DAO = new IppQueueDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final IppQueueAttrDao IPP_QUEUE_ATTR_DAO =
                 new IppQueueAttrDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final PrinterDao PRINTER_DAO = new PrinterDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final PrinterAttrDao PRINTER_ATTR_DAO =
                 new PrinterAttrDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final PrinterGroupMemberDao PRINTER_GROUP_MEMBER_DAO =
                 new PrinterGroupMemberDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final PrinterGroupDao PRINTER_GROUP_DAO =
                 new PrinterGroupDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final PrintInDao PRINT_IN_DAO = new PrintInDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final PrintOutDao PRINT_OUT_DAO = new PrintOutDaoImpl();
 
-        /**
-        *
-        */
-       public static final PdfOutDao PDF_OUT_DAO = new PdfOutDaoImpl();
+        /**  */
+        public static final PdfOutDao PDF_OUT_DAO = new PdfOutDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final PosPurchaseDao POS_PURCHASE_DAO =
                 new PosPurchaseDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final UserAccountDao USER_ACCOUNT_DAO =
                 new UserAccountDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final UserAttrDao USER_ATTR_DAO = new UserAttrDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final UserCardDao USER_CARD_DAO = new UserCardDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final UserDao USER_DAO = new UserDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final UserEmailDao USER_EMAIL_DAO =
                 new UserEmailDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final UserGroupDao USER_GROUP_DAO =
                 new UserGroupDaoImpl();
 
-        /**
-         * .
-         */
+        /**  */
         public static final UserGroupAccountDao USER_GROUP_ACCOUNT_DAO =
                 new UserGroupAccountDaoImpl();
 
-        /**
-         * .
-         */
+        /**  */
         public static final UserGroupAttrDao USER_GROUP_ATTR_DAO =
                 new UserGroupAttrDaoImpl();
 
-        /**
-        *
-        */
+        /**  */
         public static final UserGroupMemberDao USER_GROUP_MEMBER_DAO =
                 new UserGroupMemberDaoImpl();
 
-        /**
-         *
-         */
+        /**  */
         public static final UserNumberDao USER_NUMBER_DAO =
                 new UserNumberDaoImpl();
     }
@@ -348,6 +297,11 @@ public final class DaoContextImpl implements DaoContext {
     }
 
     @Override
+    public DocInDao getDocInDao() {
+        return DaoHolder.DOC_IN_DAO;
+    }
+
+    @Override
     public DocInOutDao getDocInOutDao() {
         return DaoHolder.DOC_IN_OUT_DAO;
     }
@@ -355,6 +309,11 @@ public final class DaoContextImpl implements DaoContext {
     @Override
     public DocLogDao getDocLogDao() {
         return DaoHolder.DOC_LOG_DAO;
+    }
+
+    @Override
+    public DocOutDao getDocOutDao() {
+        return DaoHolder.DOC_OUT_DAO;
     }
 
     @Override

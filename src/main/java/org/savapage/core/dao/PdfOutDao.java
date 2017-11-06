@@ -28,6 +28,6 @@ import org.savapage.core.jpa.PdfOut;
  * @author Rijk Ravestein
  *
  */
-public interface PdfOutDao extends GenericDao<PdfOut> {
+public interface PdfOutDao extends UserErasableDao<PdfOut> {
 
 }

@@ -31,6 +31,7 @@ import org.savapage.core.SpInfo;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.AccountTrx;
+import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.tools.DbSimpleEntity;
 
 /**
@@ -44,6 +45,21 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
     @Override
     protected String getCountQuery() {
         return "SELECT COUNT(T.id) FROM AccountTrx T";
+    }
+
+    @Override
+    public int eraseUser(final User user) {
+
+        final String jpql = "UPDATE " + DbSimpleEntity.ACCOUNT_TRX
+                + " X SET comment = null WHERE X.id IN"
+                + " (SELECT TRX.id FROM " + DbSimpleEntity.USER_ACCOUNT + " UA"
+                + " JOIN " + DbSimpleEntity.ACCOUNT_TRX
+                + " TRX ON TRX.account = UA.account AND TRX.comment != null"
+                + " WHERE UA.user = :user)";
+
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("user", user.getId());
+        return query.executeUpdate();
     }
 
     @Override
