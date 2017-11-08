@@ -24,9 +24,9 @@ package org.savapage.core.ipp.helpers;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.savapage.core.dto.IppNumberUpRule;
 import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.ipp.rules.IppRuleNumberUp;
 import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.services.helpers.PpdExtFileReader;
 
@@ -40,7 +40,7 @@ public final class IppNumberUpHelper {
     /**
      * Rules for a handling number-up printing.
      */
-    private final List<IppNumberUpRule> numberUpRules;
+    private final List<IppRuleNumberUp> numberUpRules;
 
     /** */
     private static final class SingletonPageRotationHelper {
@@ -207,13 +207,13 @@ public final class IppNumberUpHelper {
      * @param ruleArray
      * @return
      */
-    private static List<IppNumberUpRule>
+    private static List<IppRuleNumberUp>
             createRuleList(final String[][] ruleArray) {
 
-        final List<IppNumberUpRule> numberUpRules = new ArrayList<>();
+        final List<IppRuleNumberUp> numberUpRules = new ArrayList<>();
 
         for (final String[] wlk : ruleArray) {
-            final IppNumberUpRule rule = new IppNumberUpRule("internal");
+            final IppRuleNumberUp rule = new IppRuleNumberUp("internal");
 
             rule.setLandscape(wlk[IDX_ORIENTATION].equals(_L_));
             rule.setNumberUp(wlk[IDX_N_UP]);
@@ -246,7 +246,7 @@ public final class IppNumberUpHelper {
      * @return The template rule object supplemented with <i>dependent</i>
      *         variables, or {@code null} when no rule found.
      */
-    public IppNumberUpRule findCustomRuleTest(final IppNumberUpRule template) {
+    public IppRuleNumberUp findCustomRuleTest(final IppRuleNumberUp template) {
         final String[][] testRules = { //
         };
 
@@ -257,15 +257,15 @@ public final class IppNumberUpHelper {
     }
 
     /**
-     * Finds a matching {@link IppNumberUpRule} for a template rule.
+     * Finds a matching {@link IppRuleNumberUp} for a template rule.
      *
      * @param template
      *            The template rule with <i>independent</i> variables.
      * @return The template rule object supplemented with <i>dependent</i>
      *         variables, or {@code null} when no rule found.
      */
-    public IppNumberUpRule findCustomRule(final IppNumberUpRule template) {
-        final IppNumberUpRule test = findCustomRuleTest(template);
+    public IppRuleNumberUp findCustomRule(final IppRuleNumberUp template) {
+        final IppRuleNumberUp test = findCustomRuleTest(template);
         if (test != null) {
             return test;
         }
@@ -273,7 +273,7 @@ public final class IppNumberUpHelper {
     }
 
     /**
-     * Finds a matching {@link IppNumberUpRule} for a template rule.
+     * Finds a matching {@link IppRuleNumberUp} for a template rule.
      *
      * @param numberUpRules
      *            The list of rules.
@@ -282,11 +282,11 @@ public final class IppNumberUpHelper {
      * @return The template rule object supplemented with <i>dependent</i>
      *         variables, or {@code null} when no rule found.
      */
-    private static IppNumberUpRule findCustomRule(
-            final List<IppNumberUpRule> numberUpRules,
-            final IppNumberUpRule template) {
+    private static IppRuleNumberUp findCustomRule(
+            final List<IppRuleNumberUp> numberUpRules,
+            final IppRuleNumberUp template) {
 
-        IppNumberUpRule rule = null;
+        IppRuleNumberUp rule = null;
 
         final String savedNup = template.getNumberUp();
 
@@ -295,7 +295,7 @@ public final class IppNumberUpHelper {
             template.setNumberUp(N_4);
         }
 
-        for (final IppNumberUpRule wlk : numberUpRules) {
+        for (final IppRuleNumberUp wlk : numberUpRules) {
             if (template.isParameterMatch(wlk)) {
                 template.setDependentVars(wlk);
                 rule = template;
@@ -315,7 +315,7 @@ public final class IppNumberUpHelper {
      */
     @Deprecated
     public static void fillRuleTemplate(final PdfOrientationInfo pdfOrientation,
-            final String numberUp, final IppNumberUpRule templateRule) {
+            final String numberUp, final IppRuleNumberUp templateRule) {
 
         final String cupsOrientationRequested;
         final String cupsNupLayout;

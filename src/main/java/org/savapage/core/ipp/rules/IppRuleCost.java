@@ -19,7 +19,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dto;
+package org.savapage.core.ipp.rules;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -37,7 +37,7 @@ import org.apache.commons.lang3.tuple.Pair;
  * @author Rijk Ravestein
  *
  */
-public final class IppCostRule {
+public final class IppRuleCost {
 
     /**
      * The name of the rule.
@@ -66,7 +66,7 @@ public final class IppCostRule {
      * @param amount
      *            The cost amount when rule applies.
      */
-    public IppCostRule(final String rule, final BigDecimal amount) {
+    public IppRuleCost(final String rule, final BigDecimal amount) {
         this.name = rule;
         this.cost = amount;
     }

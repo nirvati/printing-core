@@ -28,23 +28,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
-import org.savapage.core.dto.IppCostRule;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.ipp.rules.IppRuleCost;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class IppCostRuleTest {
+public final class IppRuleCostTest {
 
     @Test
     public void test1() {
 
         final BigDecimal amount = BigDecimal.ONE;
 
-        final IppCostRule rule = new IppCostRule("test1", amount);
+        final IppRuleCost rule = new IppRuleCost("test1", amount);
 
         final String ippAttr = IppDictJobTemplateAttr.ATTR_MEDIA_COLOR;
         final String ippChoice = "white";

@@ -19,7 +19,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dto;
+package org.savapage.core.ipp.rules;
 
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 
@@ -30,7 +30,7 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
  * @author Rijk Ravestein
  *
  */
-public final class IppNumberUpRule {
+public final class IppRuleNumberUp {
 
     /**
      * The name of the rule.
@@ -53,7 +53,7 @@ public final class IppNumberUpRule {
      * @param rule
      *            The name of the rule.
      */
-    public IppNumberUpRule(final String rule) {
+    public IppRuleNumberUp(final String rule) {
         this.name = rule;
     }
 
@@ -64,7 +64,7 @@ public final class IppNumberUpRule {
      *            The rule to check with.
      * @return {@code true} when rules have same input parameters.
      */
-    public boolean isParameterMatch(final IppNumberUpRule rule) {
+    public boolean isParameterMatch(final IppRuleNumberUp rule) {
         return this.landscape == rule.landscape
                 && this.pdfRotation == rule.pdfRotation
                 && this.userRotate == rule.userRotate
@@ -77,7 +77,7 @@ public final class IppNumberUpRule {
      * @param source
      *            The source of the variables.
      */
-    public void setDependentVars(final IppNumberUpRule source) {
+    public void setDependentVars(final IppRuleNumberUp source) {
         this.numberUpLayout = source.numberUpLayout;
         this.orientationRequested = source.orientationRequested;
         this.landscapePrint = source.landscapePrint;
@@ -89,7 +89,7 @@ public final class IppNumberUpRule {
      * @param source
      *            The source of the variables.
      */
-    public void setInDependentVars(final IppNumberUpRule source) {
+    public void setInDependentVars(final IppRuleNumberUp source) {
         this.landscape = source.landscape;
         this.pdfRotation = source.pdfRotation;
         this.userRotate = source.userRotate;

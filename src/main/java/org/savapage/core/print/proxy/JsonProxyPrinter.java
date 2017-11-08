@@ -29,10 +29,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.savapage.core.dto.IppCostRule;
-import org.savapage.core.dto.IppNumberUpRule;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.ipp.rules.IppRuleCost;
+import org.savapage.core.ipp.rules.IppRuleExtra;
+import org.savapage.core.ipp.rules.IppRuleNumberUp;
+import org.savapage.core.ipp.rules.IppRuleSubst;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.json.JsonAbstractBase;
 
@@ -70,25 +72,37 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      * Custom cost rules for a printed media side.
      */
     @JsonIgnore
-    private List<IppCostRule> customCostRulesMedia;
+    private List<IppRuleCost> customCostRulesMedia;
 
     /**
      * Custom rules for a handling number-up printing.
      */
     @JsonIgnore
-    private List<IppNumberUpRule> customNumberUpRules;
+    private List<IppRuleNumberUp> customNumberUpRules;
+
+    /**
+     * Extra Rules for adding PPD options.
+     */
+    @JsonIgnore
+    private List<IppRuleExtra> customRulesExtra;
+
+    /**
+     * Extra Rules for substituting PPD option.
+     */
+    @JsonIgnore
+    private List<IppRuleSubst> customRulesSubst;
 
     /**
      * Custom cost rules for a printed copy.
      */
     @JsonIgnore
-    private List<IppCostRule> customCostRulesCopy;
+    private List<IppRuleCost> customCostRulesCopy;
 
     /**
      * Custom cost rules for a printed set.
      */
     @JsonIgnore
-    private List<IppCostRule> customCostRulesSet;
+    private List<IppRuleCost> customCostRulesSet;
 
     /**
      *
@@ -191,7 +205,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      * @return Custom cost rules for a printed media side.
      */
     @JsonIgnore
-    public List<IppCostRule> getCustomCostRulesMedia() {
+    public List<IppRuleCost> getCustomCostRulesMedia() {
         return customCostRulesMedia;
     }
 
@@ -201,7 +215,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      *            Custom cost rules for a printed media side.
      */
     @JsonIgnore
-    public void setCustomCostRulesMedia(final List<IppCostRule> rules) {
+    public void setCustomCostRulesMedia(final List<IppRuleCost> rules) {
         this.customCostRulesMedia = rules;
     }
 
@@ -209,7 +223,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      * @return Custom cost rules for a printed copy.
      */
     @JsonIgnore
-    public List<IppCostRule> getCustomCostRulesCopy() {
+    public List<IppRuleCost> getCustomCostRulesCopy() {
         return customCostRulesCopy;
     }
 
@@ -218,7 +232,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      *            Custom cost rules for a printed copy.
      */
     @JsonIgnore
-    public void setCustomCostRulesCopy(final List<IppCostRule> rules) {
+    public void setCustomCostRulesCopy(final List<IppRuleCost> rules) {
         this.customCostRulesCopy = rules;
     }
 
@@ -226,7 +240,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      * @return Custom cost rules for a printed set.
      */
     @JsonIgnore
-    public List<IppCostRule> getCustomCostRulesSet() {
+    public List<IppRuleCost> getCustomCostRulesSet() {
         return customCostRulesSet;
     }
 
@@ -235,7 +249,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      *            Custom cost rules for a printed set.
      */
     @JsonIgnore
-    public void setCustomCostRulesSet(final List<IppCostRule> rules) {
+    public void setCustomCostRulesSet(final List<IppRuleCost> rules) {
         this.customCostRulesSet = rules;
     }
 
@@ -243,7 +257,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      * @return Custom rules for a handling number-up printing.
      */
     @JsonIgnore
-    public List<IppNumberUpRule> getCustomNumberUpRules() {
+    public List<IppRuleNumberUp> getCustomNumberUpRules() {
         return customNumberUpRules;
     }
 
@@ -252,8 +266,42 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      *            Custom rules for a handling number-up printing.
      */
     @JsonIgnore
-    public void setCustomNumberUpRules(final List<IppNumberUpRule> rules) {
+    public void setCustomNumberUpRules(final List<IppRuleNumberUp> rules) {
         this.customNumberUpRules = rules;
+    }
+
+    /**
+     * @return Extra Rules for adding PPD options
+     */
+    @JsonIgnore
+    public List<IppRuleExtra> getCustomRulesExtra() {
+        return customRulesExtra;
+    }
+
+    /**
+     * @param rules
+     *            Extra Rules for adding PPD options
+     */
+    @JsonIgnore
+    public void setCustomRulesExtra(final List<IppRuleExtra> rules) {
+        this.customRulesExtra = rules;
+    }
+
+    /**
+     * @return Extra Rules for substituting PPD option.
+     */
+    @JsonIgnore
+    public List<IppRuleSubst> getCustomRulesSubst() {
+        return customRulesSubst;
+    }
+
+    /**
+     * @param rules
+     *            Extra Rules for substituting PPD option.
+     */
+    @JsonIgnore
+    public void setCustomRulesSubst(final List<IppRuleSubst> rules) {
+        this.customRulesSubst = rules;
     }
 
     /**
@@ -608,6 +656,9 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.customCostRulesCopy = this.customCostRulesCopy;
         copy.customCostRulesMedia = this.customCostRulesMedia;
 
+        copy.customRulesExtra = this.customRulesExtra;
+        copy.customRulesSubst = this.customRulesSubst;
+
         copy.groups = new ArrayList<>();
         copy.groups.addAll(this.getGroups());
 
@@ -649,16 +700,16 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
-     * Finds a matching {@link IppNumberUpRule} for a template rule.
+     * Finds a matching {@link IppRuleNumberUp} for a template rule.
      *
      * @param template
      *            The template rule with <i>independent</i> variables.
      * @return The template rule object supplemented with <i>dependent</i>
      *         variables, or {@code null} when no rule found.
      */
-    public IppNumberUpRule findCustomRule(final IppNumberUpRule template) {
+    public IppRuleNumberUp findCustomRule(final IppRuleNumberUp template) {
         if (this.customNumberUpRules != null) {
-            for (final IppNumberUpRule wlk : this.customNumberUpRules) {
+            for (final IppRuleNumberUp wlk : this.customNumberUpRules) {
                 if (template.isParameterMatch(wlk)) {
                     template.setDependentVars(wlk);
                     return template;
@@ -666,6 +717,53 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
             }
         }
         return null;
+    }
+
+    /**
+     * Finds the matching {@link IppRuleExtra} objects for a map of IPP options.
+     *
+     * @param ippOptionValues
+     *            The IPP option map.
+     * @return The list of matching (can be empty).
+     */
+    public List<IppRuleExtra>
+            findCustomRulesExtra(final Map<String, String> ippOptionValues) {
+
+        final List<IppRuleExtra> rulesFound = new ArrayList<>();
+
+        if (this.customRulesExtra != null) {
+
+            for (final IppRuleExtra wlk : this.customRulesExtra) {
+                if (wlk.doesRuleApply(ippOptionValues)) {
+                    rulesFound.add(wlk);
+                }
+            }
+        }
+        return rulesFound;
+    }
+
+    /**
+     * Finds the matching {@link IppRuleSubst} objects for a map of IPP options.
+     *
+     * @param ippOptionValues
+     *            The IPP option map.
+     * @return The map of matching rules with key IPP attribute (map can be
+     *         empty).
+     */
+    public Map<String, IppRuleSubst>
+            findCustomRulesSubst(final Map<String, String> ippOptionValues) {
+
+        final Map<String, IppRuleSubst> rulesFound = new HashMap<>();
+
+        if (this.customRulesSubst != null) {
+
+            for (final IppRuleSubst wlk : this.customRulesSubst) {
+                if (wlk.doesRuleApply(ippOptionValues)) {
+                    rulesFound.put(wlk.getMainIpp().getKey(), wlk);
+                }
+            }
+        }
+        return rulesFound;
     }
 
     /**
@@ -720,13 +818,13 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      *         least one rule applies and is valid.
      */
     private static Boolean isCustomCostOptionValid(
-            final List<IppCostRule> rules, final Pair<String, String> option,
+            final List<IppRuleCost> rules, final Pair<String, String> option,
             final Map<String, String> ippChoices) {
 
         // Assume no rule found.
         Boolean isValid = null;
 
-        for (final IppCostRule rule : rules) {
+        for (final IppRuleCost rule : rules) {
 
             final Boolean result = rule.isOptionValid(option, ippChoices);
 
@@ -759,7 +857,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      *            first rule with a non-null result is returned.
      * @return {@code null} when none of the rules apply.
      */
-    private static BigDecimal calcCost(final List<IppCostRule> rules,
+    private static BigDecimal calcCost(final List<IppRuleCost> rules,
             final Map<String, String> ippChoices, final boolean accumulate) {
 
         if (rules == null) {
@@ -768,7 +866,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
 
         BigDecimal total = null;
 
-        for (final IppCostRule rule : rules) {
+        for (final IppRuleCost rule : rules) {
 
             final BigDecimal cost = rule.calcCost(ippChoices);
 
@@ -791,7 +889,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      * @return {@code true} when custom media cost rules are present.
      */
     public boolean hasCustomCostRulesMedia() {
-        final List<IppCostRule> rules = this.getCustomCostRulesMedia();
+        final List<IppRuleCost> rules = this.getCustomCostRulesMedia();
         return rules != null && !rules.isEmpty();
     }
 
@@ -799,7 +897,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      * @return {@code true} when custom copy cost rules are present.
      */
     public boolean hasCustomCostRulesCopy() {
-        final List<IppCostRule> rules = this.getCustomCostRulesCopy();
+        final List<IppRuleCost> rules = this.getCustomCostRulesCopy();
         return rules != null && !rules.isEmpty();
     }
 

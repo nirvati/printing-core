@@ -27,18 +27,24 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.dto.IppCostRule;
-import org.savapage.core.dto.IppNumberUpRule;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.ipp.rules.IppRuleCost;
+import org.savapage.core.ipp.rules.IppRuleNumberUp;
+import org.savapage.core.ipp.rules.IppRuleExtra;
+import org.savapage.core.ipp.rules.IppRuleSubst;
 import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
@@ -126,14 +132,10 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     private static final String SP_JOBTICKET_SET_COST = SP_JOBTICKET_PFX
             + SP_JOBTICKET_SET_SFX + SP_JOBTICKET_COST_SFX + ":";
 
-    /**
-     * .
-     */
+    /** */
     private static final char SP_JOBTICKET_ATTR_CHOICE_SEPARATOR = '/';
 
-    /**
-     * .
-     */
+    /** */
     private static final String SP_JOBTICKET_ATTR_CHOICE_NEGATE = "!";
 
     /**
@@ -147,9 +149,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      */
     private static final int SP_JOBTICKET_COST_MIN_ARGS = 3;
 
-    /**
-    *
-    */
+    /* ==================================================================== */
     private static final String SP_RULE_PFX = PPD_OPTION_PFX_CHAR + "SPRule";
     private static final char SP_RULE_ATTR_CHOICE_SEPARATOR = '/';
 
@@ -166,6 +166,28 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      * Minimal number of arguments for option with {@link #SP_RULE_NUMBER_UP}.
      */
     private static final int SP_RULE_NUMBER_UP_MIN_ARGS = 7;
+
+    /* ==================================================================== */
+    private static final String SP_EXTRA_PFX = PPD_OPTION_PFX_CHAR + "SPExtra";
+    private static final String SP_EXTRA_PPD_OPTION_PFX = "*";
+
+    /**
+     * Minimal number of arguments for option with {@link #SP_EXTRA_PFX}.
+     */
+    private static final int SP_EXTRA_MIN_ARGS = 2;
+
+    /* ==================================================================== */
+    private static final String SP_SUBST_PFX = PPD_OPTION_PFX_CHAR + "SPSubst";
+    private static final String SP_SUBST_PPD_VALUE_PFX = "*";
+    /** */
+    private static final String SP_SUBST_ATTR_CHOICE_NEGATE = "!";
+
+    /**
+     * Minimal number of arguments for option with {@link #SP_EXTRA_PFX}.
+     */
+    private static final int SP_SUBST_MIN_ARGS = 2;
+
+    /* ==================================================================== */
 
     /**
      * The number of words after a PPD option constant.
@@ -220,22 +242,32 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     /**
      *
      */
-    private List<IppCostRule> jobTicketCostRulesMedia;
+    private List<IppRuleCost> jobTicketCostRulesMedia;
 
     /**
      *
      */
-    private List<IppCostRule> jobTicketCostRulesCopy;
+    private List<IppRuleCost> jobTicketCostRulesCopy;
 
     /**
      *
      */
-    private List<IppCostRule> jobTicketCostRulesSet;
+    private List<IppRuleCost> jobTicketCostRulesSet;
 
     /**
      *
      */
-    private List<IppNumberUpRule> numberUpRules;
+    private List<IppRuleNumberUp> numberUpRules;
+
+    /**
+     *
+     */
+    private List<IppRuleExtra> rulesExtra;
+
+    /**
+     *
+     */
+    private List<IppRuleSubst> rulesSubst;
 
     /**
      * IPP printer options as retrieved from CUPS.
@@ -330,6 +362,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         this.jobTicketCostRulesSet = new ArrayList<>();
 
         this.numberUpRules = new ArrayList<>();
+        this.rulesExtra = new ArrayList<>();
+        this.rulesSubst = new ArrayList<>();
     }
 
     /**
@@ -472,7 +506,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      */
     private void onSpJobTicketCost(final int lineNr, final String[] words,
             final Map<String, JsonProxyPrinterOpt> optMap,
-            final List<IppCostRule> costRules) {
+            final List<IppRuleCost> costRules) {
 
         if (words.length < SP_JOBTICKET_COST_MIN_ARGS) {
             LOGGER.warn(
@@ -495,7 +529,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         final String alias = words[1].trim();
 
         //
-        final IppCostRule costRule = new IppCostRule(alias, cost);
+        final IppRuleCost costRule = new IppRuleCost(alias, cost);
 
         boolean isLineValid = true;
 
@@ -664,7 +698,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         }
 
         final String alias = words[0].trim();
-        final IppNumberUpRule rule = new IppNumberUpRule(alias);
+        final IppRuleNumberUp rule = new IppRuleNumberUp(alias);
 
         boolean isLineValid = true;
         boolean isLandscapeOutput = false;
@@ -801,6 +835,167 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     }
 
     /**
+     * Notifies an SPExtra option.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param firstword
+     *            The first word.
+     * @param nextwords
+     *            The next words.
+     */
+    private void onSpExtra(final int lineNr, final String firstword,
+            final String[] nextwords) {
+
+        final String[] splitFirstWords =
+                StringUtils.split(StringUtils.removeEnd(firstword, ":"),
+                        SP_RULE_ATTR_CHOICE_SEPARATOR);
+
+        if (splitFirstWords.length < 3
+                || nextwords.length < SP_EXTRA_MIN_ARGS) {
+            LOGGER.warn(String.format("%s line %d: incomplete %s",
+                    getConfigFile().getName(), lineNr, SP_EXTRA_PFX));
+            return;
+        }
+
+        final String alias = nextwords[0].trim();
+
+        final IppRuleExtra rule = new IppRuleExtra(alias);
+
+        Pair<String, String> pairWlk = new ImmutablePair<String, String>(
+                splitFirstWords[1], splitFirstWords[2]);
+
+        rule.setMainIpp(pairWlk);
+
+        final List<Pair<String, String>> listDepend = new ArrayList<>();
+        final List<Pair<String, String>> listExtra = new ArrayList<>();
+
+        boolean isLineValid = true;
+
+        for (final String attrChoice : ArrayUtils.removeAll(nextwords, 0)) {
+
+            final String[] splitWords = StringUtils.split(attrChoice,
+                    SP_RULE_ATTR_CHOICE_SEPARATOR);
+
+            final String attr = StringUtils.stripStart(splitWords[0],
+                    SP_EXTRA_PPD_OPTION_PFX);
+
+            if (splitWords.length != 2) {
+                LOGGER.warn(String.format("%s line %d: \"%s\" syntax invalid",
+                        getConfigFile().getName(), lineNr, attrChoice));
+                isLineValid = false;
+                continue;
+            }
+
+            final String choice = splitWords[1];
+
+            pairWlk = new ImmutablePair<String, String>(attr, choice);
+
+            if (splitWords[0].startsWith(SP_EXTRA_PPD_OPTION_PFX)) {
+                listExtra.add(pairWlk);
+            } else {
+                listDepend.add(pairWlk);
+            }
+        }
+
+        if (!isLineValid) {
+            return;
+        }
+
+        rule.setDependentIpp(listDepend);
+        rule.setExtraPPD(listExtra);
+
+        this.rulesExtra.add(rule);
+    }
+
+    /**
+     * Notifies an SPSubst option.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param firstword
+     *            The first word.
+     * @param nextwords
+     *            The next words.
+     */
+    private void onSpSubst(final int lineNr, final String firstword,
+            final String[] nextwords) {
+        final String[] splitFirstWords =
+                StringUtils.split(StringUtils.removeEnd(firstword, ":"),
+                        SP_RULE_ATTR_CHOICE_SEPARATOR);
+
+        if (splitFirstWords.length < 3
+                || nextwords.length < SP_SUBST_MIN_ARGS) {
+            LOGGER.warn(String.format("%s line %d: incomplete %s",
+                    getConfigFile().getName(), lineNr, SP_SUBST_PFX));
+            return;
+        }
+
+        final String alias = nextwords[0].trim();
+
+        final IppRuleSubst rule = new IppRuleSubst(alias);
+
+        rule.setMainIpp(new ImmutablePair<String, String>(splitFirstWords[1],
+                splitFirstWords[2]));
+        rule.setPpdValue(null);
+
+        final List<Pair<String, String>> listDepend = new ArrayList<>();
+        final Set<String> dependentIppNegate = new HashSet<>();
+
+        boolean isLineValid = true;
+
+        for (final String attrChoice : ArrayUtils.removeAll(nextwords, 0)) {
+
+            if (attrChoice.startsWith(SP_SUBST_PPD_VALUE_PFX)) {
+
+                if (rule.getPpdValue() == null) {
+                    rule.setPpdValue(StringUtils.stripStart(attrChoice,
+                            SP_SUBST_PPD_VALUE_PFX));
+                } else {
+                    isLineValid = false;
+                }
+                continue;
+            }
+
+            final String[] splitWords = StringUtils.split(attrChoice,
+                    SP_RULE_ATTR_CHOICE_SEPARATOR);
+
+            if (splitWords.length != 2) {
+                LOGGER.warn(String.format("%s line %d: \"%s\" syntax invalid",
+                        getConfigFile().getName(), lineNr, attrChoice));
+                isLineValid = false;
+                continue;
+            }
+
+            final String ippAttr = splitWords[0];
+            final String ippChoiceRaw = splitWords[1];
+            final boolean isChoiceNegate =
+                    ippChoiceRaw.startsWith(SP_SUBST_ATTR_CHOICE_NEGATE);
+
+            final String ippChoice;
+
+            if (isChoiceNegate) {
+                ippChoice = StringUtils.substring(ippChoiceRaw, 1);
+                dependentIppNegate.add(ippAttr);
+            } else {
+                ippChoice = ippChoiceRaw;
+            }
+
+            listDepend
+                    .add(new ImmutablePair<String, String>(ippAttr, ippChoice));
+        }
+
+        if (!isLineValid) {
+            return;
+        }
+
+        rule.setDependentIpp(listDepend);
+        rule.setDependentIppNegate(dependentIppNegate);
+
+        this.rulesSubst.add(rule);
+    }
+
+    /**
      * Notifies a PPD constant.
      *
      * @param ppdOption
@@ -882,6 +1077,26 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         if (firstWord.startsWith(SP_RULE_PFX)) {
             if (words.length > 1) {
                 this.onSpRule(lineNr, firstWord, ArrayUtils.remove(words, 0));
+            } else {
+                LOGGER.warn(String.format("%s line %d: [%s] syntax error.",
+                        this.getConfigFile().getName(), lineNr, firstWord));
+            }
+            return;
+        }
+
+        if (firstWord.startsWith(SP_EXTRA_PFX)) {
+            if (words.length > 1) {
+                this.onSpExtra(lineNr, firstWord, ArrayUtils.remove(words, 0));
+            } else {
+                LOGGER.warn(String.format("%s line %d: [%s] syntax error.",
+                        this.getConfigFile().getName(), lineNr, firstWord));
+            }
+            return;
+        }
+
+        if (firstWord.startsWith(SP_SUBST_PFX)) {
+            if (words.length > 1) {
+                this.onSpSubst(lineNr, firstWord, ArrayUtils.remove(words, 0));
             } else {
                 LOGGER.warn(String.format("%s line %d: [%s] syntax error.",
                         this.getConfigFile().getName(), lineNr, firstWord));
@@ -1012,6 +1227,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
         // Other rules.
         proxyPrinter.setCustomNumberUpRules(reader.numberUpRules);
+        proxyPrinter.setCustomRulesExtra(reader.rulesExtra);
+        proxyPrinter.setCustomRulesSubst(reader.rulesSubst);
 
         //
         proxyPrinter.setInjectPpdExt(true);

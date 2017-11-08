@@ -56,7 +56,6 @@ import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
-import org.savapage.core.dto.IppNumberUpRule;
 import org.savapage.core.dto.MediaCostDto;
 import org.savapage.core.dto.MediaPageCostDto;
 import org.savapage.core.dto.ProxyPrinterCostDto;
@@ -89,6 +88,9 @@ import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.ipp.operation.IppGetPrinterAttrOperation;
 import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.ipp.operation.IppStatusCode;
+import org.savapage.core.ipp.rules.IppRuleNumberUp;
+import org.savapage.core.ipp.rules.IppRuleExtra;
+import org.savapage.core.ipp.rules.IppRuleSubst;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
@@ -2022,6 +2024,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
+         * Subst PPD options.
+         */
+        final Map<String, IppRuleSubst> mapIppRuleSubst =
+                jsonPrinter.findCustomRulesSubst(optionValues);
+
+        /*
          * Traverse the job options.
          */
         for (final Entry<String, String> entry : optionValues.entrySet()) {
@@ -2080,7 +2088,20 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 }
                 attr = dict.createPpdOptionAttr(optionKeywordPpd);
                 optionKeyword = optionKeywordPpd;
-                optionValue = optionValuePpd;
+
+                if (mapIppRuleSubst.containsKey(optionKeywordIpp)) {
+
+                    optionValue =
+                            mapIppRuleSubst.get(optionKeywordIpp).getPpdValue();
+
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug(String.format("%s/%s -> %s/%s",
+                                optionKeywordIpp, optionValueIpp, optionKeyword,
+                                optionValue));
+                    }
+                } else {
+                    optionValue = optionValuePpd;
+                }
             }
 
             // Skip attributes exclusively used for Job Ticket.
@@ -2356,7 +2377,113 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     group, pdfOrientation, numberUp);
         }
 
+        if (jsonPrinter.isInjectPpdExt()) {
+            reqPrintJobCorrectForRulesSubst(jsonPrinter, printerOptionsLookup,
+                    optionValues, group);
+            reqPrintJobCorrectForRulesExtra(jsonPrinter, optionValues, group);
+        }
+
         return attrGroups;
+    }
+
+    /**
+     * Corrects for missing {@link IppDictJobTemplateAttr#ATTR_SHEET_COLLATE}
+     * option when an {@link IppRuleSubst} instance is applicable after all.
+     *
+     * @param jsonPrinter
+     *            The printer.
+     * @param printerOptionsLookup
+     *            The printer options look-up.
+     * @param optionValuesOrg
+     *            The original IPP job option values.
+     * @param group
+     *            The IPP attribute group to append on.
+     */
+    private void reqPrintJobCorrectForRulesSubst(
+            final JsonProxyPrinter jsonPrinter,
+            final Map<String, JsonProxyPrinterOpt> printerOptionsLookup,
+            final Map<String, String> optionValuesOrg,
+            final IppAttrGroup group) {
+
+        // Are rules present?
+        if (jsonPrinter.getCustomRulesSubst().isEmpty()) {
+            return;
+        }
+
+        // Is sheet-collate is already substituted?
+        if (optionValuesOrg
+                .containsKey(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE)) {
+            return;
+        }
+
+        final JsonProxyPrinterOpt proxyPrinterOpt = printerOptionsLookup
+                .get(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE);
+
+        // Is sheet-collate present as printer option?
+        if (proxyPrinterOpt == null
+                || proxyPrinterOpt.getKeywordPpd() == null) {
+            return;
+        }
+
+        final Map<String, String> optionValuesWork = new HashMap<>();
+        optionValuesWork.putAll(optionValuesOrg);
+
+        optionValuesWork.put(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE,
+                IppKeyword.SHEET_COLLATE_COLLATED);
+
+        final Map<String, IppRuleSubst> ruleMapAdhoc =
+                jsonPrinter.findCustomRulesSubst(optionValuesWork);
+
+        // Is sheet-collate rule present?
+        if (!ruleMapAdhoc
+                .containsKey(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE)) {
+            return;
+        }
+
+        final String ppdValue = ruleMapAdhoc
+                .get(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE).getPpdValue();
+
+        final AbstractIppDict dict = IppDictJobTemplateAttr.instance();
+
+        group.add(dict.createPpdOptionAttr(proxyPrinterOpt.getKeywordPpd()),
+                ppdValue);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(String.format("Added: %s/%s",
+                    proxyPrinterOpt.getKeywordPpd(), ppdValue));
+        }
+    }
+
+    /**
+     * Corrects a Print Job request with Extra PPD options.
+     *
+     * @param jsonPrinter
+     *            The printer.
+     * @param optionValues
+     *            The IPP job option values.
+     * @param group
+     *            The IPP attribute group to append on.
+     */
+    private void reqPrintJobCorrectForRulesExtra(
+            final JsonProxyPrinter jsonPrinter,
+            final Map<String, String> optionValues, final IppAttrGroup group) {
+
+        final AbstractIppDict dict = IppDictJobTemplateAttr.instance();
+
+        for (final IppRuleExtra rule : jsonPrinter
+                .findCustomRulesExtra(optionValues)) {
+
+            for (final Pair<String, String> pair : rule.getExtraPPD()) {
+
+                group.add(dict.createPpdOptionAttr(pair.getKey()),
+                        pair.getValue());
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(String.format("Added: %s/%s", pair.getKey(),
+                            pair.getValue()));
+                }
+            }
+        }
     }
 
     /**
@@ -2379,7 +2506,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final Map<String, String> optionValues, final IppAttrGroup group,
             final PdfOrientationInfo pdfOrientation, final String numberUp) {
 
-        final IppNumberUpRule templateRule = new IppNumberUpRule("template");
+        final IppRuleNumberUp templateRule = new IppRuleNumberUp("template");
 
         templateRule.setLandscape(pdfOrientation.getLandscape());
         templateRule.setPdfRotation(pdfOrientation.getRotation().intValue());
@@ -2387,7 +2514,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         templateRule.setNumberUp(numberUp);
 
         //
-        IppNumberUpRule numberUpRule = jsonPrinter.findCustomRule(templateRule);
+        IppRuleNumberUp numberUpRule = jsonPrinter.findCustomRule(templateRule);
 
         if (numberUpRule == null) {
             numberUpRule =
