@@ -88,8 +88,8 @@ import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.ipp.operation.IppGetPrinterAttrOperation;
 import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.ipp.operation.IppStatusCode;
-import org.savapage.core.ipp.rules.IppRuleNumberUp;
 import org.savapage.core.ipp.rules.IppRuleExtra;
+import org.savapage.core.ipp.rules.IppRuleNumberUp;
 import org.savapage.core.ipp.rules.IppRuleSubst;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.jpa.DocLog;
@@ -2381,6 +2381,26 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             reqPrintJobCorrectForRulesSubst(jsonPrinter, printerOptionsLookup,
                     optionValues, group);
             reqPrintJobCorrectForRulesExtra(jsonPrinter, optionValues, group);
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            for (final Entry<String, String> entry : optionValues.entrySet()) {
+                LOGGER.debug(String.format("IPP: %s/%s", entry.getKey(),
+                        entry.getValue()));
+            }
+            for (final IppAttrValue val : group.getAttributes()) {
+                LOGGER.debug(String.format("PPD %s/%s",
+                        val.getAttribute().getKeyword(), val.getSingleValue()));
+            }
+            for (final IppAttrCollection col : group.getCollections()) {
+                LOGGER.debug(
+                        String.format("PPD Collection: %s", col.getKeyword()));
+                for (final IppAttrValue val : col.getAttributes()) {
+                    LOGGER.debug(String.format("\t%s/%s",
+                            val.getAttribute().getKeyword(),
+                            val.getSingleValue()));
+                }
+            }
         }
 
         return attrGroups;

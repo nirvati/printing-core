@@ -42,8 +42,8 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.rules.IppRuleCost;
-import org.savapage.core.ipp.rules.IppRuleNumberUp;
 import org.savapage.core.ipp.rules.IppRuleExtra;
+import org.savapage.core.ipp.rules.IppRuleNumberUp;
 import org.savapage.core.ipp.rules.IppRuleSubst;
 import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
@@ -170,6 +170,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     /* ==================================================================== */
     private static final String SP_EXTRA_PFX = PPD_OPTION_PFX_CHAR + "SPExtra";
     private static final String SP_EXTRA_PPD_OPTION_PFX = "*";
+    private static final String SP_EXTRA_ATTR_CHOICE_NEGATE = "!";
 
     /**
      * Minimal number of arguments for option with {@link #SP_EXTRA_PFX}.
@@ -179,7 +180,6 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     /* ==================================================================== */
     private static final String SP_SUBST_PFX = PPD_OPTION_PFX_CHAR + "SPSubst";
     private static final String SP_SUBST_PPD_VALUE_PFX = "*";
-    /** */
     private static final String SP_SUBST_ATTR_CHOICE_NEGATE = "!";
 
     /**
@@ -862,13 +862,12 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
         final IppRuleExtra rule = new IppRuleExtra(alias);
 
-        Pair<String, String> pairWlk = new ImmutablePair<String, String>(
-                splitFirstWords[1], splitFirstWords[2]);
+        rule.setMainIpp(new ImmutablePair<String, String>(splitFirstWords[1],
+                splitFirstWords[2]));
 
-        rule.setMainIpp(pairWlk);
-
-        final List<Pair<String, String>> listDepend = new ArrayList<>();
-        final List<Pair<String, String>> listExtra = new ArrayList<>();
+        final List<Pair<String, String>> listIppExtra = new ArrayList<>();
+        final Set<String> extraIppNegate = new HashSet<>();
+        final List<Pair<String, String>> listPpdExtra = new ArrayList<>();
 
         boolean isLineValid = true;
 
@@ -887,14 +886,26 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 continue;
             }
 
-            final String choice = splitWords[1];
-
-            pairWlk = new ImmutablePair<String, String>(attr, choice);
+            final String ippChoiceRaw = splitWords[1];
 
             if (splitWords[0].startsWith(SP_EXTRA_PPD_OPTION_PFX)) {
-                listExtra.add(pairWlk);
+                listPpdExtra.add(
+                        new ImmutablePair<String, String>(attr, ippChoiceRaw));
             } else {
-                listDepend.add(pairWlk);
+                final boolean isChoiceNegate =
+                        ippChoiceRaw.startsWith(SP_EXTRA_ATTR_CHOICE_NEGATE);
+
+                final String ippChoice;
+
+                if (isChoiceNegate) {
+                    ippChoice = StringUtils.substring(ippChoiceRaw, 1);
+                    extraIppNegate.add(attr);
+                } else {
+                    ippChoice = ippChoiceRaw;
+                }
+
+                listIppExtra.add(
+                        new ImmutablePair<String, String>(attr, ippChoice));
             }
         }
 
@@ -902,8 +913,9 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             return;
         }
 
-        rule.setDependentIpp(listDepend);
-        rule.setExtraPPD(listExtra);
+        rule.setExtraIpp(listIppExtra);
+        rule.setExtraIppNegate(extraIppNegate);
+        rule.setExtraPPD(listPpdExtra);
 
         this.rulesExtra.add(rule);
     }
@@ -937,10 +949,11 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
         rule.setMainIpp(new ImmutablePair<String, String>(splitFirstWords[1],
                 splitFirstWords[2]));
+
         rule.setPpdValue(null);
 
-        final List<Pair<String, String>> listDepend = new ArrayList<>();
-        final Set<String> dependentIppNegate = new HashSet<>();
+        final List<Pair<String, String>> listIppExtra = new ArrayList<>();
+        final Set<String> extraIppNegate = new HashSet<>();
 
         boolean isLineValid = true;
 
@@ -976,12 +989,12 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
             if (isChoiceNegate) {
                 ippChoice = StringUtils.substring(ippChoiceRaw, 1);
-                dependentIppNegate.add(ippAttr);
+                extraIppNegate.add(ippAttr);
             } else {
                 ippChoice = ippChoiceRaw;
             }
 
-            listDepend
+            listIppExtra
                     .add(new ImmutablePair<String, String>(ippAttr, ippChoice));
         }
 
@@ -989,8 +1002,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             return;
         }
 
-        rule.setDependentIpp(listDepend);
-        rule.setDependentIppNegate(dependentIppNegate);
+        rule.setExtraIpp(listIppExtra);
+        rule.setExtraIppNegate(extraIppNegate);
 
         this.rulesSubst.add(rule);
     }

@@ -21,41 +21,14 @@
  */
 package org.savapage.core.ipp.rules;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.tuple.Pair;
-
 /**
  * A rule to substitute an PPD option value.
  *
  * @author Rijk Ravestein
  *
  */
-public final class IppRuleSubst implements IppRuleChecker {
-
-    /**
-     * The name of the rule.
-     */
-    private final String name;
-
-    /**
-     * Main IPP attribute.
-     */
-    private Pair<String, String> mainIpp;
-
-    /**
-     * Dependent IPP attributes.
-     */
-    private List<Pair<String, String>> dependentIpp;
-
-    /**
-     * The set of dependent IPP attribute keys with a value that must not be
-     * chosen.
-     */
-    private Set<String> dependentIppNegate = new HashSet<>();
+public final class IppRuleSubst extends IppRuleGeneric
+        implements IppRuleChecker {
 
     /**
      * The PPD value.
@@ -68,81 +41,22 @@ public final class IppRuleSubst implements IppRuleChecker {
      *            The name of the rule.
      */
     public IppRuleSubst(final String rule) {
-        this.name = rule;
+        super(rule);
     }
 
     /**
-     *
-     * @return The identifying name.
+     * @return The PPD value.
      */
-    public String getName() {
-        return name;
-    }
-
-    public Pair<String, String> getMainIpp() {
-        return mainIpp;
-    }
-
-    public void setMainIpp(Pair<String, String> mainIpp) {
-        this.mainIpp = mainIpp;
-    }
-
-    public List<Pair<String, String>> getDependentIpp() {
-        return dependentIpp;
-    }
-
-    public void setDependentIpp(List<Pair<String, String>> dependentIpp) {
-        this.dependentIpp = dependentIpp;
-    }
-
     public String getPpdValue() {
         return ppdValue;
     }
 
-    public void setPpdValue(String ppdValue) {
-        this.ppdValue = ppdValue;
+    /**
+     * @param value
+     *            The PPD value.
+     */
+    public void setPpdValue(final String value) {
+        this.ppdValue = value;
     }
 
-    public Set<String> getDependentIppNegate() {
-        return dependentIppNegate;
-    }
-
-    public void setDependentIppNegate(Set<String> dependentIppNegate) {
-        this.dependentIppNegate = dependentIppNegate;
-    }
-
-    @Override
-    public boolean doesRuleApply(final Map<String, String> ippOptionValues) {
-
-        final String mainIppValue =
-                ippOptionValues.get(this.getMainIpp().getKey());
-
-        if (mainIppValue == null
-                || !mainIppValue.equals(this.getMainIpp().getValue())) {
-            return false;
-        }
-
-        boolean ruleApply = true;
-
-        for (final Pair<String, String> pair : this.getDependentIpp()) {
-
-            final String ippRuleAttr = pair.getKey();
-            final String ippValue = ippOptionValues.get(ippRuleAttr);
-
-            final boolean isChosen = ippValue != null
-                    && ippValue.equals(pair.getValue());
-            final boolean mustBeChosen =
-                    !this.getDependentIppNegate().contains(ippRuleAttr);
-
-            if ((isChosen && mustBeChosen)
-                    || (!isChosen && !mustBeChosen)) {
-                continue;
-            }
-
-            ruleApply = false;
-            break;
-        }
-
-        return ruleApply;
-    }
 }
