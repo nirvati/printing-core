@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -318,12 +319,14 @@ public final class DocContent {
     }
 
     /**
+     * @param excludeTypes
+     *            The documents types to be excluded.
      * @return The list with supported documents. Entries on the list have key
      *         (description) and value ({@code true} for Open Standard and
      *         {@code false} for proprietary format).
      */
     public static List<AbstractMap.SimpleEntry<String, Boolean>>
-            getSupportedDocsInfo() {
+            getSupportedDocsInfo(final Set<DocContentTypeEnum> excludeTypes) {
 
         final List<AbstractMap.SimpleEntry<String, Boolean>> list =
                 new ArrayList<>();
@@ -339,7 +342,8 @@ public final class DocContent {
                 DocContentTypeEnum.XPS, DocContentTypeEnum.DOCX,
                 DocContentTypeEnum.DOC }) {
 
-            if (!isSupported(contentType)) {
+            if (excludeTypes.contains(contentType)
+                    || !isSupported(contentType)) {
                 continue;
             }
 
@@ -385,10 +389,12 @@ public final class DocContent {
     }
 
     /**
-     *
+     * @param excludeTypes
+     *            The documents types to be excluded.
      * @return
      */
-    public static String getSupportedGraphicsInfo() {
+    public static String getSupportedGraphicsInfo(
+            final Set<DocContentTypeEnum> excludeTypes) {
 
         final List<String> list = new ArrayList<>();
 
@@ -399,9 +405,13 @@ public final class DocContent {
                 DocContentTypeEnum.JPEG, DocContentTypeEnum.PNG,
                 DocContentTypeEnum.GIF, DocContentTypeEnum.SVG,
                 DocContentTypeEnum.TIFF, DocContentTypeEnum.BMP }) {
-            if (isSupported(contentType)) {
-                list.add(contentType.toString());
+
+            if (excludeTypes.contains(contentType)
+                    || !isSupported(contentType)) {
+                continue;
             }
+
+            list.add(contentType.toString());
         }
         return getSupportedInfo(list);
     }
@@ -414,15 +424,11 @@ public final class DocContent {
 
         final StringBuilder supported = new StringBuilder();
 
-        if (list.isEmpty()) {
-            supported.append("-");
-        } else {
-            for (int i = 0; i < list.size(); i++) {
-                if (i > 0) {
-                    supported.append(", ");
-                }
-                supported.append(list.get(i));
+        for (int i = 0; i < list.size(); i++) {
+            if (i > 0) {
+                supported.append(", ");
             }
+            supported.append(list.get(i));
         }
         return supported.toString();
     }
@@ -595,6 +601,17 @@ public final class DocContent {
      */
     public static DocContentTypeEnum getContentTypeFromMime(final String mime) {
         return getInstance().mimeFormat.get(mime.toLowerCase());
+    }
+
+    /**
+     * Gets the DocContentType of a file extension (without leading point).
+     *
+     * @param ext
+     *            The file extension.
+     * @return {@code null} when not found.
+     */
+    public static DocContentTypeEnum getContentTypeFromExt(final String ext) {
+        return getInstance().extFormat.get(ext.toLowerCase());
     }
 
     /**

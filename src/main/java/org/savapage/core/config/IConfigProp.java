@@ -2090,7 +2090,8 @@ public interface IConfigProp {
 
         /**
          * A comma/space separated list with {@link Locale#getLanguage()} codes
-         * that are available for users to choose for their Web App locale.
+         * that are available for users to choose for their Web App locale. When
+         * blank, all languages choices are offered to the user.
          */
         WEBAPP_LANGUAGE_AVAILABLE("webapp.language.available"),
 
@@ -2139,6 +2140,18 @@ public interface IConfigProp {
          *
          */
         WEB_PRINT_MAX_FILE_MB("web-print.max-file-mb", NUMBER_VALIDATOR, WEBPRINT_MAX_FILE_MB_V_DEFAULT.toString()),
+
+        /**
+         * Enable graphics files for Web Print.
+         */
+        WEB_PRINT_GRAPHICS_ENABLE("web-print.graphics.enable", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * A comma/space separated list of file extensions (without leading
+         * point), that are excluded for Web Print. For example:
+         * "rtf,html,ps,txt".
+         */
+        WEB_PRINT_FILE_EXT_EXCLUDE("web-print.file-ext.exclude"),
 
         /**
          *
