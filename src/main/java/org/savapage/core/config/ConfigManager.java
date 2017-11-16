@@ -167,6 +167,12 @@ public final class ConfigManager {
     public static final String SERVER_REL_PATH_CUSTOM_CUPS = "custom/cups";
 
     /**
+     * The relative path of the custom i18n properties files (relative to the
+     * {@code server} directory).
+     */
+    public static final String SERVER_REL_PATH_CUSTOM_I18N = "custom/i18n";
+
+    /**
      * The relative path of the CUPS custom i18n XML files (relative to the
      * {@code server} directory).
      */
@@ -969,6 +975,21 @@ public final class ConfigManager {
     }
 
     /**
+     * Gets the location of a custom resource for Wicket container class.
+     *
+     * @param clazz
+     *            The class of the Wicket component.
+     * @return The directory with the custom i18n files.
+     */
+    public static File getServerCustomI18nHome(final Class<?> clazz) {
+
+        return Paths.get(getServerHome(),
+                SERVER_REL_PATH_CUSTOM_I18N, StringUtils.replace(
+                        clazz.getPackage().getName(), ".", File.separator))
+                .toFile();
+    }
+
+    /**
      * @return The directory with the custom HTML injectable files.
      */
     public static File getServerCustomHtmlHome() {
@@ -1436,6 +1457,7 @@ public final class ConfigManager {
 
     /**
      * Gets the system status.
+     *
      * @return The {@link SystemStatusEnum}.
      */
     public SystemStatusEnum getSystemStatus() {
