@@ -69,6 +69,18 @@ public interface AccessControlService {
     boolean isAuthorized(User user, ACLRoleEnum role);
 
     /**
+     * Checks if UserGroup is authorized for a Role.
+     *
+     * @param group
+     *            The {@link UserGroup}.
+     * @param role
+     *            The {@link ACLRoleEnum};
+     * @return {@code true} when authorized, {@code false} when not,
+     *         {@code null} when undetermined.
+     */
+    Boolean isGroupAuthorized(UserGroup group, ACLRoleEnum role);
+
+    /**
      * Checks if {@link User} has access to an OID for role "User". Checks are
      * done bottom-up, starting at the {@link User} and moving up to the
      * {@link UserGroup} objects where user is {@link UserGroupMember} of. The

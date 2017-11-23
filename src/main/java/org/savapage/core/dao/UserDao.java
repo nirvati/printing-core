@@ -24,11 +24,14 @@ package org.savapage.core.dao;
 import java.util.Date;
 import java.util.List;
 
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
+import org.savapage.core.jpa.UserAttr;
+import org.savapage.core.jpa.UserGroupAttr;
 
 /**
  *
@@ -50,9 +53,39 @@ public interface UserDao extends GenericDao<User> {
         USERID, EMAIL
     }
 
-    /**
-     *
-     */
+    /** */
+    class ACLFilter {
+
+        private ACLRoleEnum aclRole;
+        private boolean aclUserInternal;
+        private boolean aclUserExternal;
+
+        public ACLRoleEnum getAclRole() {
+            return aclRole;
+        }
+
+        public void setAclRole(ACLRoleEnum aclRole) {
+            this.aclRole = aclRole;
+        }
+
+        public boolean isAclUserInternal() {
+            return aclUserInternal;
+        }
+
+        public void setAclUserInternal(boolean aclUserInternal) {
+            this.aclUserInternal = aclUserInternal;
+        }
+
+        public boolean isAclUserExternal() {
+            return aclUserExternal;
+        }
+
+        public void setAclUserExternal(boolean aclUserExternal) {
+            this.aclUserExternal = aclUserExternal;
+        }
+    }
+
+    /** */
     class ListFilter {
 
         private Long userGroupId;
@@ -64,6 +97,12 @@ public interface UserDao extends GenericDao<User> {
         private Boolean person;
         private Boolean disabled;
         private Boolean deleted;
+
+        /**
+         * The {@link ACLRoleEnum} as present in ({@link UserAttr} or in any
+         * {@link UserGroupAttr} where user is member of.
+         */
+        private ACLFilter aclFilter;
 
         public Long getUserGroupId() {
             return userGroupId;
@@ -137,6 +176,13 @@ public interface UserDao extends GenericDao<User> {
             this.deleted = deleted;
         }
 
+        public ACLFilter getAclFilter() {
+            return aclFilter;
+        }
+
+        public void setAclFilter(ACLFilter aclFilter) {
+            this.aclFilter = aclFilter;
+        }
     }
 
     /**

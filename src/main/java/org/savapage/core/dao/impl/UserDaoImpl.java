@@ -30,6 +30,7 @@ import javax.persistence.Query;
 import org.savapage.core.SpException;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
+import org.savapage.core.dao.enums.UserGroupAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.User;
 import org.savapage.core.services.ServiceContext;
@@ -81,13 +82,29 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
         return user;
     }
 
+    /**
+     *
+     * @param jpql
+     */
+    private void appendAclJoin(final StringBuilder jpql) {
+
+        jpql.append(" LEFT JOIN UserAttr UA ON UA.user = U "
+                + "AND UA.name = :roleName");
+
+        jpql.append(" LEFT JOIN UserGroupMember UGM ON UGM.user = U");
+
+        jpql.append(" LEFT JOIN UserGroupAttr UGA ON UGA.userGroup = UGM.group "
+                + "AND UGA.name = :roleNameGroup");
+    }
+
     @Override
     public long getListCount(final ListFilter filter) {
 
         final StringBuilder jpql =
                 new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
 
-        jpql.append("SELECT COUNT(U.id) FROM ");
+        jpql.append("SELECT COUNT(*) FROM User X WHERE X.id IN "
+                + "(SELECT DISTINCT U.id FROM ");
 
         if (filter.getUserGroupId() == null) {
             jpql.append("User U");
@@ -95,11 +112,17 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             jpql.append("UserGroupMember M JOIN M.user U JOIN M.group G");
         }
 
+        if (filter.getAclFilter() != null) {
+            appendAclJoin(jpql);
+        }
+
         if (filter.getContainingEmailText() != null) {
             jpql.append(" JOIN U.emails E");
         }
 
         applyListFilter(jpql, filter);
+
+        jpql.append(")");
 
         final Query query = createListQuery(jpql, filter);
         final Number countResult = (Number) query.getSingleResult();
@@ -126,6 +149,10 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             jpql.append("User U");
         } else {
             jpql.append("UserGroupMember M JOIN M.user U JOIN M.group G");
+        }
+
+        if (filter.getAclFilter() != null) {
+            appendAclJoin(jpql);
         }
 
         if (filter.getContainingEmailText() == null) {
@@ -259,6 +286,47 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             where.append(" U.deleted = :selDeleted");
         }
 
+        if (filter.getAclFilter() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+
+            where.append("(");
+
+            if (filter.getAclFilter().isAclUserExternal()
+                    || filter.getAclFilter().isAclUserInternal()) {
+
+                where.append("(" + "UA.name = null AND UGA.name = null");
+
+                if (filter.getAclFilter().isAclUserExternal()
+                        && filter.getAclFilter().isAclUserInternal()) {
+                    // All users are authorized by default.
+
+                } else if (filter.getAclFilter().isAclUserExternal()) {
+                    // Only external users are authorized by default.
+                    where.append(" AND U.internal = false");
+                } else if (filter.getAclFilter().isAclUserInternal()) {
+                    // Only internal users are authorized by default.
+                    where.append(" AND U.internal = true");
+                }
+
+                where.append(") OR");
+
+            }
+
+            where.append(" (UA.name != null AND UA.value LIKE :jsonRole"
+                    + " AND UA.value LIKE :jsonRoleValue)");
+
+            where.append(" OR (UA.name = null AND UGA.value LIKE :jsonRole"
+                    + " AND UGA.value LIKE :jsonRoleValue)");
+
+            where.append(" OR (UA.name != null AND UA.value NOT LIKE :jsonRole"
+                    + " AND UGA.value LIKE :jsonRoleValue)");
+
+            where.append(")");
+        }
+
         if (nWhere > 0) {
             jpql.append(" WHERE ").append(where.toString());
         }
@@ -276,6 +344,26 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             final ListFilter filter) {
 
         final Query query = getEntityManager().createQuery(jpql.toString());
+
+        if (filter.getAclFilter() != null) {
+
+            query.setParameter("roleName",
+                    UserGroupAttrEnum.ACL_ROLES.getName());
+
+            query.setParameter("roleNameGroup",
+                    UserGroupAttrEnum.ACL_ROLES.getName());
+
+            /*
+             * INVARIANT: JSON string does NOT contain whitespace.
+             */
+            final String jsonRole = String.format("\"%s\"",
+                    filter.getAclFilter().getAclRole().toString());
+
+            query.setParameter("jsonRole", String.format("%%%s%%", jsonRole));
+            query.setParameter("jsonRoleValue", String.format("%%%s:%s%%",
+                    jsonRole, Boolean.TRUE.toString()));
+
+        }
 
         if (filter.getUserGroupId() != null) {
             query.setParameter("userGroupId", filter.getUserGroupId());

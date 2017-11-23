@@ -1432,6 +1432,11 @@ public interface IConfigProp {
         PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_ENABLE("proxy-print.delegate.account.shared.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * Enable multiple delegated print copies (boolean).
+         */
+        PROXY_PRINT_DELEGATE_MULTIPLE_MEMBER_COPIES_ENABLE("proxy-print.delegate.multiple-member-copies.enable", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * Enable Delegated Print integration with PaperCut (boolean).
          */
         PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE("proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR, V_NO),

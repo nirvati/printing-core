@@ -138,7 +138,8 @@ public final class AccessControlServiceImpl extends AbstractService
      * @return {@code true} when authorized, {@code false} when not,
      *         {@code null} when undetermined.
      */
-    private static Boolean isGroupAuthorized(final UserGroup group,
+    @Override
+    public Boolean isGroupAuthorized(final UserGroup group,
             final ACLRoleEnum role) {
 
         final UserGroupAttr groupAttr = userGroupAttrDAO().findByName(group,
