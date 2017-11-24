@@ -26,6 +26,7 @@ import java.util.List;
 import javax.persistence.Query;
 
 import org.savapage.core.dao.UserGroupMemberDao;
+import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroup;
 import org.savapage.core.jpa.UserGroupMember;
@@ -155,6 +156,22 @@ public final class UserGroupMemberDaoImpl
         return query;
     }
 
+    /**
+     * Appends JOIN statements.
+     *
+     * @param jpql
+     *            String to append on.
+     * @param filter
+     *            The filter.
+     */
+    private void applyJoin(final StringBuilder jpql, final GroupFilter filter) {
+
+        if (filter.getAclRoleNotFalse() != null) {
+            jpql.append(" LEFT JOIN UserAttr UA ON UA.user = U.user "
+                    + "AND UA.name = :roleName");
+        }
+    }
+
     @Override
     public long getUserCount(final GroupFilter filter) {
 
@@ -163,9 +180,11 @@ public final class UserGroupMemberDaoImpl
 
         jpql.append("SELECT COUNT(U.id) FROM UserGroupMember U");
 
+        applyJoin(jpql, filter);
         applyUserFilter(jpql, filter);
 
         final Query query = createUserQuery(jpql, filter);
+
         final Number countResult = (Number) query.getSingleResult();
         return countResult.longValue();
 
@@ -182,6 +201,7 @@ public final class UserGroupMemberDaoImpl
 
         jpql.append("SELECT U.user FROM UserGroupMember U");
 
+        applyJoin(jpql, filter);
         applyUserFilter(jpql, filter);
 
         //
@@ -247,6 +267,15 @@ public final class UserGroupMemberDaoImpl
             where.append(" U.user.disabledPrintOut = :disabledPrintOut");
         }
 
+        if (filter.getAclRoleNotFalse() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" (UA.name = null OR UA.value NOT LIKE :jsonRole"
+                    + " OR UA.value LIKE :jsonRoleValue)");
+        }
+
         //
         if (nWhere > 0) {
             jpql.append(" WHERE ").append(where.toString());
@@ -274,6 +303,23 @@ public final class UserGroupMemberDaoImpl
             query.setParameter("disabledPrintOut",
                     filter.getDisabledPrintOut());
         }
+
+        if (filter.getAclRoleNotFalse() != null) {
+
+            query.setParameter("roleName",
+                    UserAttrEnum.ACL_ROLES.getName());
+
+            /*
+             * INVARIANT: JSON string does NOT contain whitespace.
+             */
+            final String jsonRole = String.format("\"%s\"",
+                    filter.getAclRoleNotFalse().toString());
+
+            query.setParameter("jsonRole", String.format("%%%s%%", jsonRole));
+            query.setParameter("jsonRoleValue", String.format("%%%s:%s%%",
+                    jsonRole, Boolean.TRUE.toString()));
+        }
+
 
         return query;
     }

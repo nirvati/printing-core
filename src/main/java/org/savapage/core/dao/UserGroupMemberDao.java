@@ -23,6 +23,7 @@ package org.savapage.core.dao;
 
 import java.util.List;
 
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroup;
 import org.savapage.core.jpa.UserGroupMember;
@@ -73,6 +74,11 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
         private Long groupId;
         private Boolean disabledPrintOut;
 
+        /**
+         * Absent or Present.
+         */
+        private ACLRoleEnum aclRoleNotFalse;
+
         public Long getGroupId() {
             return groupId;
         }
@@ -87,6 +93,14 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
 
         public void setDisabledPrintOut(Boolean disabledPrintOut) {
             this.disabledPrintOut = disabledPrintOut;
+        }
+
+        public ACLRoleEnum getAclRoleNotFalse() {
+            return aclRoleNotFalse;
+        }
+
+        public void setAclRoleNotFalse(ACLRoleEnum aclRoleNotFalse) {
+            this.aclRoleNotFalse = aclRoleNotFalse;
         }
 
     }
