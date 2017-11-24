@@ -32,8 +32,6 @@ public final class QuickSearchFilterUserGroupDto extends QuickSearchFilterDto {
 
     private ACLRoleEnum aclRole;
 
-    private Integer startPosition;
-
     public ACLRoleEnum getAclRole() {
         return aclRole;
     }
@@ -41,14 +39,5 @@ public final class QuickSearchFilterUserGroupDto extends QuickSearchFilterDto {
     public void setAclRole(ACLRoleEnum aclRole) {
         this.aclRole = aclRole;
     }
-
-    public Integer getStartPosition() {
-        return startPosition;
-    }
-
-    public void setStartPosition(Integer startPosition) {
-        this.startPosition = startPosition;
-    }
-
 
 }

@@ -28,12 +28,9 @@ import org.savapage.core.dao.enums.ACLRoleEnum;
  * @author Rijk Ravestein
  *
  */
-public class QuickSearchUserGroupMemberFilterDto extends AbstractDto {
+public class QuickSearchUserGroupMemberFilterDto extends QuickSearchFilterDto {
 
     private Long groupId;
-    private String filter;
-    private Integer startPosition;
-    private Integer maxResults;
     private ACLRoleEnum aclRole;
 
     /**
@@ -48,31 +45,6 @@ public class QuickSearchUserGroupMemberFilterDto extends AbstractDto {
 
     public void setGroupId(Long groupId) {
         this.groupId = groupId;
-    }
-
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
-
-
-    public Integer getStartPosition() {
-        return startPosition;
-    }
-
-    public void setStartPosition(Integer startPosition) {
-        this.startPosition = startPosition;
-    }
-
-    public Integer getMaxResults() {
-        return maxResults;
-    }
-
-    public void setMaxResults(Integer maxResults) {
-        this.maxResults = maxResults;
     }
 
     public ACLRoleEnum getAclRole() {

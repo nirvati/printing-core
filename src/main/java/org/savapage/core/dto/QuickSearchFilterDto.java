@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,13 +23,15 @@ package org.savapage.core.dto;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class QuickSearchFilterDto extends AbstractDto {
 
     private String filter;
+    private Integer startPosition;
     private Integer maxResults;
+    private Integer totalResults;
 
     /**
      *
@@ -45,12 +47,28 @@ public class QuickSearchFilterDto extends AbstractDto {
         this.filter = filter;
     }
 
+    public Integer getStartPosition() {
+        return startPosition;
+    }
+
+    public void setStartPosition(Integer startPosition) {
+        this.startPosition = startPosition;
+    }
+
     public Integer getMaxResults() {
         return maxResults;
     }
 
     public void setMaxResults(Integer maxResults) {
         this.maxResults = maxResults;
+    }
+
+    public Integer getTotalResults() {
+        return totalResults;
+    }
+
+    public void setTotalResults(Integer totalResults) {
+        this.totalResults = totalResults;
     }
 
 }
