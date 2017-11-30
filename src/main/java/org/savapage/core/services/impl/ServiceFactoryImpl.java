@@ -182,7 +182,7 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     private final static StatefulService statefullServices[] =
             new StatefulService[] { EcoPrintPdfTaskServiceHolder.SERVICE,
                     JobTicketServiceHolder.SERVICE,
-                    SOfficeServiceHolder.SERVICE };
+                    SOfficeServiceHolder.SERVICE, EmailServiceHolder.SERVICE };
 
     @Override
     public AccessControlService getAccessControlService() {
