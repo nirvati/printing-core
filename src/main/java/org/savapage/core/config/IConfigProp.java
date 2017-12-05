@@ -1943,6 +1943,11 @@ public interface IConfigProp {
         WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE("webapp.user.proxy-print.clear-inbox.scope", new EnumValidator<>(InboxSelectScopeEnum.class), InboxSelectScopeEnum.ALL.toString()),
 
         /**
+         * User WebApp: show clearing scope (Boolean).
+         */
+        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_PROMPT("webapp.user.proxy-print.clear-inbox.prompt", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * User WebApp: clear selected printer (including options) after proxy
          * printing.
          */
@@ -1952,6 +1957,11 @@ public interface IConfigProp {
          * User WebApp: clear print delegate data after proxy printing.
          */
         WEBAPP_USER_PROXY_PRINT_CLEAR_DELEGATE("webapp.user.proxy-print.clear-delegate", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+         * User WebApp: Add user ID to delegator name?
+         */
+        WEBAPP_USER_PROXY_PRINT_DELEGATOR_NAME_ID("webapp.user.proxy-print.delegator.name-id", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * User WebApp: enable the "Print documents separately" option for proxy
