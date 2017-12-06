@@ -34,7 +34,7 @@ import org.savapage.core.util.LocaleHelper;
 public enum AdverbEnum {
 
     /** */
-    AUTOMATICALLY, MANUALLY;
+    AUTOMATICALLY, MANUALLY, OFF, ON;
 
     /**
      * @param locale

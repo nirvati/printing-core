@@ -1964,6 +1964,12 @@ public interface IConfigProp {
         WEBAPP_USER_PROXY_PRINT_DELEGATOR_NAME_ID("webapp.user.proxy-print.delegator.name-id", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * User WebApp: Can application of selected copies for delegates be
+         * switched off in Print Dialog?
+         */
+        WEBAPP_USER_PROXY_PRINT_DELEGATE_COPIES_APPLY_SWITCH("webapp.user.proxy-print.delegate-copies-apply-switch", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * User WebApp: enable the "Print documents separately" option for proxy
          * printing (Boolean). If {@code true} the option is enabled (shown).
          */
