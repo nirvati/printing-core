@@ -39,7 +39,7 @@ import org.savapage.core.util.LocaleHelper;
 public enum PrintOutNounEnum {
 
     /** */
-    ACCOUNT(true), PAGE(true), COPY(true), SHEET(true),
+    JOB(true), ACCOUNT(true), PAGE(true), COPY(true), SHEET(true),
 
     /** */
     FINISHING(true), TRAY(true), SETTING(true),

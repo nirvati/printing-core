@@ -46,6 +46,8 @@ public enum NounEnum {
     /** */
     DOCUMENT(true),
     /** */
+    INVOICING,
+    /** */
     MAINTENANCE,
     /** */
     MODE(true),
