@@ -46,11 +46,15 @@ public enum NounEnum {
     /** */
     DOCUMENT(true),
     /** */
+    GROUP(true),
+    /** */
     INVOICING,
     /** */
     MAINTENANCE,
     /** */
     MODE(true),
+    /** */
+    QUEUE(true),
     /** */
     REFUND(true),
     /** */
