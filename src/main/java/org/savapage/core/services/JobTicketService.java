@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.SortedMap;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dto.RedirectPrinterDto;
@@ -65,10 +66,13 @@ public interface JobTicketService extends StatefulService {
      *            The {@link ProxyPrintInboxReq}.
      * @param deliveryDate
      *            The requested date of delivery.
+     * @param tag
+     *            The tag (to be pre-pended to the generated ticket number). Can
+     *            be {@code null} or empty.
      * @return The job ticket created.
      */
     OutboxJobDto createCopyJob(User user, ProxyPrintInboxReq request,
-            Date deliveryDate);
+            Date deliveryDate, String tag);
 
     /**
      * Sends Job Ticket(s) to the OutBox.
@@ -82,6 +86,9 @@ public interface JobTicketService extends StatefulService {
      *            The {@link ProxyPrintInboxReq}.
      * @param deliveryDate
      *            The requested date of delivery.
+     * @param tag
+     *            The tag (to be pre-pended to the generated ticket number). Can
+     *            be {@code null} or empty.
      * @return The job tickets created.
      *
      * @throws EcoPrintPdfTaskPendingException
@@ -89,7 +96,7 @@ public interface JobTicketService extends StatefulService {
      *             pending.
      */
     List<OutboxJobDto> proxyPrintInbox(User lockedUser,
-            ProxyPrintInboxReq request, Date deliveryDate)
+            ProxyPrintInboxReq request, Date deliveryDate, String tag)
             throws EcoPrintPdfTaskPendingException;
 
     /**
@@ -110,12 +117,15 @@ public interface JobTicketService extends StatefulService {
      *            The {@link DocContentPrintInInfo}.
      * @param deliveryDate
      *            The requested date of delivery.
+     * @param tag
+     *            The tag (to be pre-pended to the generated ticket number). Can
+     *            be {@code null} or empty.
      * @throws IOException
      *             When file IO error occurs.
      */
     void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request,
-            final PdfCreateInfo createInfo, DocContentPrintInInfo printInfo,
-            Date deliveryDate) throws IOException;
+            PdfCreateInfo createInfo, DocContentPrintInInfo printInfo,
+            Date deliveryDate, String tag) throws IOException;
 
     /**
      * Creates and formats a unique ticket number.
@@ -377,4 +387,12 @@ public interface JobTicketService extends StatefulService {
      * @return Job Sheet info for Job Ticket.
      */
     TicketJobSheetDto getTicketJobSheet(IppOptionMap options);
+
+    /**
+     *
+     * @return The map of tags sorted by key (word) and value (id). Map is empty
+     *         when no tags are defined.
+     */
+    SortedMap<String, String> getTicketTags();
+
 }

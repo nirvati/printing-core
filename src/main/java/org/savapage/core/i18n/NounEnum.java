@@ -62,6 +62,8 @@ public enum NounEnum {
     /** */
     STATISTICS,
     /** */
+    TAG(true),
+    /** */
     TICKET(true),
     /** */
     TIME,

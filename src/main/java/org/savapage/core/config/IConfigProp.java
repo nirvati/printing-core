@@ -1415,6 +1415,23 @@ public interface IConfigProp {
         JOBTICKET_NOTIFY_EMAIL_CANCELED_ENABLE("jobticket.notify-email.canceled.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * A comma separated list of Job Ticket tags to be applied as job ticker
+         * number prefix. Each tag on the list is formatted as "TAG/word", where
+         * "TAG" is a unique N-letter upper-case mnemonic, "/" is a fixed
+         * separator, and "word" is a case-sensitive single word used in UI
+         * context.
+         *
+         * E.g. "MATH/Maths,PHYS/Physics,CHEM/Chemistry". When "MATH" tag is
+         * applied, a generated ticket number looks like "MATH/EE1-FA3E-6596".
+         */
+        JOBTICKET_TAGS("jobticket.tags"),
+
+        /**
+         * Enable {@link IConfigProp.Key#JOBTICKET_TAGS} (boolean).
+         */
+        JOBTICKET_TAGS_ENABLE("jobticket.tags.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
          * Enable Delegated Print (boolean).
          */
         PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable", BOOLEAN_VALIDATOR, V_NO),

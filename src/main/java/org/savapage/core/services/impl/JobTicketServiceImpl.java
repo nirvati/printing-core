@@ -46,6 +46,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -146,10 +148,11 @@ public final class JobTicketServiceImpl extends AbstractService
      */
     private static final int TICKER_NUMBER_CHUNK_WIDTH = 4;
 
-    /**
-     *
-     */
+    /** */
     private static final String TICKER_NUMBER_CHUNK_SEPARATOR = "-";
+
+    /** */
+    private static final String TICKER_NUMBER_PREFIX_TAG_SEPARATOR = "/";
 
     /**
      *
@@ -175,6 +178,12 @@ public final class JobTicketServiceImpl extends AbstractService
         private final Date deliveryDate;
 
         /**
+         * The tag (to be pre-pended to the generated ticket number). Can be
+         * {@code null} or empty.
+         */
+        private final String tag;
+
+        /**
          * The job tickets created.
          */
         private final List<OutboxJobDto> ticketsCreated;
@@ -183,15 +192,21 @@ public final class JobTicketServiceImpl extends AbstractService
          *
          * @param service
          *            The parent service.
-         * @param deliveryDate
+         * @param reqDeliveryDate
          *            The requested date of delivery (can be {@code null}).
+         * @param reqTag
+         *            The tag (to be pre-pended to the generated ticket number).
+         *            Can be {@code null} or empty.
+         *
          */
         ProxyPrintInbox(final JobTicketServiceImpl service,
-                final Date deliveryDate) {
+                final Date reqDeliveryDate, final String reqTag) {
+
             this.serviceImpl = service;
             this.submitDate = ServiceContext.getTransactionDate();
             this.deliveryDate = this.serviceImpl
-                    .getTicketDeliveryDate(submitDate, deliveryDate);
+                    .getTicketDeliveryDate(submitDate, reqDeliveryDate);
+            this.tag = reqTag;
             this.ticketsCreated = new ArrayList<>();
         }
 
@@ -224,7 +239,7 @@ public final class JobTicketServiceImpl extends AbstractService
             try {
                 final OutboxJobDto dto = this.serviceImpl.addJobticketToCache(
                         lockedUser, createInfo, uuid, request, uuidPageCount,
-                        this.submitDate, this.deliveryDate);
+                        this.submitDate, this.deliveryDate, this.tag);
                 ticketsCreated.add(dto);
             } catch (IOException e) {
                 throw new SpException(e.getMessage(), e);
@@ -243,8 +258,8 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public void proxyPrintPdf(final User lockedUser,
             final ProxyPrintDocReq request, final PdfCreateInfo createInfo,
-            final DocContentPrintInInfo printInfo, final Date deliveryDate)
-            throws IOException {
+            final DocContentPrintInInfo printInfo, final Date deliveryDate,
+            final String tag) throws IOException {
 
         final UUID uuid = UUID.fromString(request.getDocumentUuid());
 
@@ -265,7 +280,7 @@ public final class JobTicketServiceImpl extends AbstractService
 
         final OutboxJobDto dto = this.addJobticketToCache(lockedUser,
                 createInfo, uuid, request, uuidPageCount,
-                ServiceContext.getTransactionDate(), deliveryDate);
+                ServiceContext.getTransactionDate(), deliveryDate, tag);
 
         final String msgKey = "msg-user-print-jobticket-print";
 
@@ -294,6 +309,10 @@ public final class JobTicketServiceImpl extends AbstractService
      *            The submit date.
      * @param deliveryDate
      *            The requested date of delivery.
+     * @param tag
+     *            The tag (to be pre-pended to the generated ticket number). Can
+     *            be {@code null} or empty.
+     * @return The Job Ticket added to the cache.
      * @throws IOException
      *             When file IO error occurs.
      */
@@ -301,14 +320,33 @@ public final class JobTicketServiceImpl extends AbstractService
             final PdfCreateInfo createInfo, final UUID uuid,
             final AbstractProxyPrintReq request,
             final LinkedHashMap<String, Integer> uuidPageCount,
-            final Date submitDate, final Date deliveryDate) throws IOException {
+            final Date submitDate, final Date deliveryDate, final String tag)
+            throws IOException {
 
         final OutboxJobDto dto = outboxService().createOutboxJob(request,
                 submitDate, deliveryDate, createInfo, uuidPageCount);
 
         dto.setUserId(user.getId());
-        dto.setTicketNumber(this.createTicketNumber());
 
+        //
+        final StringBuilder ticketNumber = new StringBuilder();
+
+        if (tag != null && StringUtils.isNotBlank(tag.trim())) {
+
+            if (StringUtils.contains(tag, TICKER_NUMBER_PREFIX_TAG_SEPARATOR)) {
+                throw new IllegalArgumentException(String.format(
+                        "Job Ticket tag [%s] contains invalid character [%s].",
+                        tag, TICKER_NUMBER_PREFIX_TAG_SEPARATOR));
+            }
+
+            ticketNumber.append(tag.trim())
+                    .append(TICKER_NUMBER_PREFIX_TAG_SEPARATOR);
+        }
+
+        ticketNumber.append(this.createTicketNumber());
+        dto.setTicketNumber(ticketNumber.toString());
+
+        //
         final File jsonFileTicket = getJobTicketFile(uuid, FILENAME_EXT_JSON);
 
         if (createInfo == null) {
@@ -450,7 +488,8 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public OutboxJobDto createCopyJob(final User user,
-            final ProxyPrintInboxReq request, final Date deliveryDate) {
+            final ProxyPrintInboxReq request, final Date deliveryDate,
+            final String tag) {
 
         final UUID uuid = UUID.randomUUID();
         final Date submitDate = ServiceContext.getTransactionDate();
@@ -460,7 +499,7 @@ public final class JobTicketServiceImpl extends AbstractService
         try {
             dto = this.addJobticketToCache(user, null, uuid, request, null,
                     submitDate,
-                    this.getTicketDeliveryDate(submitDate, deliveryDate));
+                    this.getTicketDeliveryDate(submitDate, deliveryDate), tag);
 
             final String msgKey = "msg-user-print-jobticket-copy";
 
@@ -476,11 +515,12 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public List<OutboxJobDto> proxyPrintInbox(final User lockedUser,
-            final ProxyPrintInboxReq request, final Date deliveryDate)
-            throws EcoPrintPdfTaskPendingException {
+            final ProxyPrintInboxReq request, final Date deliveryDate,
+            final String tag) throws EcoPrintPdfTaskPendingException {
 
         final ProxyPrintInbox executor =
-                new ProxyPrintInbox(this, deliveryDate);
+                new ProxyPrintInbox(this, deliveryDate, tag);
+
         executor.print(lockedUser, request);
 
         final List<OutboxJobDto> tickets = executor.getTicketsCreated();
@@ -1653,6 +1693,31 @@ public final class JobTicketServiceImpl extends AbstractService
                 IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_SHEETS_MEDIA));
 
         return dto;
+    }
+
+    @Override
+    public SortedMap<String, String> getTicketTags() {
+
+        final TreeMap<String, String> map = new TreeMap<>();
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        if (!cm.isConfigValue(Key.JOBTICKET_TAGS_ENABLE)) {
+            return map;
+        }
+
+        for (final String tag : cm.getConfigSet(Key.JOBTICKET_TAGS)) {
+
+            final String[] res =
+                    StringUtils.split(tag, TICKER_NUMBER_PREFIX_TAG_SEPARATOR);
+            if (res.length != 2) {
+                throw new IllegalArgumentException(String
+                        .format("Job Ticket tag [%s]: invalid format.", tag));
+            }
+            map.put(res[1], res[0]);
+        }
+
+        return map;
     }
 
 }
