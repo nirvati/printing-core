@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.AccountDao;
+import org.savapage.core.i18n.JobTicketNounEnum;
 import org.savapage.core.i18n.NounEnum;
 import org.savapage.core.i18n.PrintOutNounEnum;
 import org.savapage.core.inbox.OutputProducer;
@@ -160,8 +161,8 @@ public final class TicketJobSheetPdfCreator {
             final Paragraph secInfo = new Paragraph();
 
             secInfo.add(new Paragraph(String.format("%s %s\n",
-                    NounEnum.TICKET.uiText(locale), job.getTicketNumber()),
-                    FONT_CAT));
+                    JobTicketNounEnum.TICKET.uiText(locale),
+                    job.getTicketNumber()), FONT_CAT));
 
             onDocumentInfo(secInfo);
             onAccountTrxInfo(secInfo);

@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import org.apache.commons.io.FilenameUtils;
@@ -169,6 +170,55 @@ public final class LocaleHelper {
     }
 
     /**
+     * Gets the (customized) localized user interface text of an {@link Enum}
+     * value.
+     *
+     * @param <E>
+     *            The Enum class.
+     * @param value
+     *            The Enum value.
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public static <E extends Enum<E>> String uiTextCustom(final Enum<E> value,
+            final Locale locale) {
+        return uiTextCustom(value, locale, null);
+    }
+
+    /**
+     * Gets the (customized) localized user interface text of an {@link Enum}
+     * value.
+     *
+     * @param <E>
+     *            The Enum class.
+     * @param value
+     *            The Enum value.
+     * @param locale
+     *            The {@link Locale}.
+     * @param suffix
+     *            The value suffix to be appended to the Enum string value.
+     * @return The localized text.
+     */
+    public static <E extends Enum<E>> String uiTextCustom(final Enum<E> value,
+            final Locale locale, final String suffix) {
+
+        final String key;
+        if (StringUtils.isBlank(suffix)) {
+            key = value.toString();
+        } else {
+            key = String.format("%s%s", value.toString(), suffix);
+        }
+
+        ResourceBundle bundle = getResourceBundleCustom(value, locale);
+
+        if (bundle == null || !bundle.containsKey(key)) {
+            bundle = getResourceBundle(value, locale);
+        }
+        return bundle.getString(key);
+    }
+
+    /**
      * Gets the localized user interface text of an {@link Enum} value.
      *
      * @param <E>
@@ -232,6 +282,25 @@ public final class LocaleHelper {
             getResourceBundle(final Enum<E> value, final Locale locale) {
         return Messages.loadXmlResource(value.getClass(),
                 value.getClass().getSimpleName(), locale);
+    }
+
+    /**
+     *
+     * @param value
+     * @param locale
+     * @return {@code null} when resource is not found.
+     */
+    private static <E extends Enum<E>> ResourceBundle
+            getResourceBundleCustom(final Enum<E> value, final Locale locale) {
+        try {
+            return Messages.loadXmlResource(
+                    ConfigManager.getServerCustomI18nHome(value.getClass()),
+                    value.getClass().getSimpleName(), locale);
+
+        } catch (MissingResourceException e) {
+            // no code intended;
+        }
+        return null;
     }
 
     /**

@@ -26,49 +26,17 @@ import java.util.Locale;
 import org.savapage.core.util.LocaleHelper;
 
 /**
- * Common UI Nouns.
+ * Job Ticket UI Nouns (prepared for customization).
  *
  * @author Rijk Ravestein
  *
  */
-public enum NounEnum {
+public enum JobTicketNounEnum {
 
     /** */
-    COMMENT,
+    TAG(true),
     /** */
-    COST,
-    /** */
-    DATABASE,
-    /** */
-    DELEGATE(true),
-    /** */
-    DELEGATOR(true),
-    /** */
-    DOCUMENT(true),
-    /** */
-    GROUP(true),
-    /** */
-    INVOICING,
-    /** */
-    MAINTENANCE,
-    /** */
-    MODE(true),
-    /** */
-    QUEUE(true),
-    /** */
-    REFUND(true),
-    /** */
-    REMARK(true),
-    /** */
-    STATISTICS,
-    /** */
-    TIME,
-    /** */
-    TITLE,
-    /** */
-    TRANSACTION(true),
-    /** */
-    USER(true);
+    TICKET(true);
 
     /**
      *
@@ -88,7 +56,7 @@ public enum NounEnum {
     /**
      *
      */
-    NounEnum() {
+    JobTicketNounEnum() {
         this.hasPlural = false;
     }
 
@@ -97,7 +65,7 @@ public enum NounEnum {
      * @param plural
      *            {@code true} when noun has a plural form.
      */
-    NounEnum(final boolean plural) {
+    JobTicketNounEnum(final boolean plural) {
         this.hasPlural = plural;
     }
 
@@ -109,9 +77,9 @@ public enum NounEnum {
     public String uiText(final Locale locale) {
 
         if (this.hasPlural) {
-            return LocaleHelper.uiText(this, locale, SINGULAR_SUFFIX);
+            return LocaleHelper.uiTextCustom(this, locale, SINGULAR_SUFFIX);
         }
-        return LocaleHelper.uiText(this, locale);
+        return LocaleHelper.uiTextCustom(this, locale);
     }
 
     /**
@@ -124,7 +92,7 @@ public enum NounEnum {
     public String uiText(final Locale locale, final boolean plural) {
 
         if (!this.hasPlural) {
-            return LocaleHelper.uiText(this, locale);
+            return LocaleHelper.uiTextCustom(this, locale);
         }
 
         final String sfx;
@@ -134,7 +102,7 @@ public enum NounEnum {
         } else {
             sfx = SINGULAR_SUFFIX;
         }
-        return LocaleHelper.uiText(this, locale, sfx);
+        return LocaleHelper.uiTextCustom(this, locale, sfx);
     }
 
 }
