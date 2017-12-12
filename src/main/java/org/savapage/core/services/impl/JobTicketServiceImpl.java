@@ -67,6 +67,7 @@ import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.dto.JobTicketTagDto;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.ipp.IppJobStateEnum;
@@ -1696,28 +1697,69 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public SortedMap<String, String> getTicketTags() {
-
-        final TreeMap<String, String> map = new TreeMap<>();
+    public SortedMap<String, JobTicketTagDto> getTicketTagsByWord() {
 
         final ConfigManager cm = ConfigManager.instance();
+
+        final TreeMap<String, JobTicketTagDto> map = new TreeMap<>();
 
         if (!cm.isConfigValue(Key.JOBTICKET_TAGS_ENABLE)) {
             return map;
         }
 
-        for (final String tag : cm.getConfigSet(Key.JOBTICKET_TAGS)) {
+        for (final JobTicketTagDto dto : parseTicketTags(
+                cm.getConfigValue(Key.JOBTICKET_TAGS))) {
+            map.put(dto.getWord(), dto);
+        }
+        return map;
+    }
+
+    @Override
+    public List<JobTicketTagDto> parseTicketTags(final String tagsRaw) {
+
+        final List<JobTicketTagDto> list = new ArrayList<>();
+
+        final String regexKey = "^[A-Z0-9]+$";
+        final int maxKeyLen = 5;
+
+        final String tags =
+                StringUtils.remove(StringUtils.remove(tagsRaw, '\n'), '\r');
+
+        for (final String tag : StringUtils.split(tags, ',')) {
 
             final String[] res =
                     StringUtils.split(tag, TICKER_NUMBER_PREFIX_TAG_SEPARATOR);
+
             if (res.length != 2) {
                 throw new IllegalArgumentException(String
                         .format("Job Ticket tag [%s]: invalid format.", tag));
             }
-            map.put(res[1], res[0]);
+
+            final String tagID = res[0];
+            final String tagWord = res[1];
+
+            if (!tagID.matches(regexKey)) {
+                throw new IllegalArgumentException(String.format(
+                        "Job Ticket tag [%s]: ID [%s] "
+                                + "does not match regex [%s].",
+                        tag, tagID, regexKey));
+            }
+
+            if (tagID.length() > maxKeyLen) {
+                throw new IllegalArgumentException(String.format(
+                        "Job Ticket tag [%s]: ID [%s] "
+                                + "has more then %d characters.",
+                        tag, tagID, maxKeyLen));
+            }
+
+            final JobTicketTagDto dto = new JobTicketTagDto();
+            dto.setId(tagID);
+            dto.setWord(tagWord);
+
+            list.add(dto);
         }
 
-        return map;
+        return list;
     }
 
 }

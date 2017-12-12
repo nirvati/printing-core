@@ -30,6 +30,7 @@ import java.util.Locale;
 import java.util.SortedMap;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dto.JobTicketTagDto;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
@@ -389,10 +390,27 @@ public interface JobTicketService extends StatefulService {
     TicketJobSheetDto getTicketJobSheet(IppOptionMap options);
 
     /**
+     * Get the ticket tags from cache, sorted by tag word.
      *
-     * @return The map of tags sorted by key (word) and value (id). Map is empty
-     *         when no tags are defined.
+     * @return The sorted tags, or empty when no tags are defined or tags are
+     *         disabled.
+     *
+     * @throws IllegalArgumentException
+     *             When error parsing formatted tags string.
      */
-    SortedMap<String, String> getTicketTags();
+    SortedMap<String, JobTicketTagDto> getTicketTagsByWord();
+
+    /**
+     * Parses formatted ticket tags string.
+     *
+     * @param tags
+     *            The formatted string.
+     *
+     * @return The list of tags.
+     *
+     * @throws IllegalArgumentException
+     *             When invalid format.
+     */
+    List<JobTicketTagDto> parseTicketTags(String tags);
 
 }
