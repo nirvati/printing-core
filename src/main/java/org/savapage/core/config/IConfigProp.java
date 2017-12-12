@@ -1424,7 +1424,7 @@ public interface IConfigProp {
          * E.g. "MATH/Maths,PHYS/Physics,CHEM/Chemistry". When "MATH" tag is
          * applied, a generated ticket number looks like "MATH/EE1-FA3E-6596".
          */
-        JOBTICKET_TAGS("jobticket.tags"),
+        JOBTICKET_TAGS("jobticket.tags", KeyType.MULTI_LINE),
 
         /**
          * Enable {@link IConfigProp.Key#JOBTICKET_TAGS} (boolean).
