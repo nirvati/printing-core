@@ -1432,6 +1432,12 @@ public interface IConfigProp {
         JOBTICKET_TAGS_ENABLE("jobticket.tags.enable", BOOLEAN_VALIDATOR, V_NO),
 
         /**
+         * Is tag required, when {@link IConfigProp.Key#JOBTICKET_TAGS_ENABLE} ?
+         * (boolean).
+         */
+        JOBTICKET_TAGS_REQUIRED("jobticket.tags.required", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * Enable Delegated Print (boolean).
          */
         PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable", BOOLEAN_VALIDATOR, V_NO),

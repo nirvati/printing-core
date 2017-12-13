@@ -464,12 +464,8 @@ public final class JobTicketServiceImpl extends AbstractService
             throw new SpException(e.getMessage(), e);
         }
 
-        final ConfigManager cm = ConfigManager.instance();
-
-        if (cm.isConfigValue(Key.JOBTICKET_TAGS_ENABLE)) {
-            JobTicketTagCache.setTicketTags(JobTicketTagCache
-                    .parseTicketTags(cm.getConfigValue(Key.JOBTICKET_TAGS)));
-        }
+        JobTicketTagCache.setTicketTags(JobTicketTagCache.parseTicketTags(
+                ConfigManager.instance().getConfigValue(Key.JOBTICKET_TAGS)));
     }
 
     @Override
