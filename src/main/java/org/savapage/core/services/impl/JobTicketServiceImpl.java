@@ -36,6 +36,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -46,8 +47,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -102,6 +101,7 @@ import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.JobTicketExecParms;
 import org.savapage.core.services.helpers.JobTicketSupplierData;
+import org.savapage.core.services.helpers.JobTicketTagCache;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
@@ -457,10 +457,18 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public void start() {
+
         try {
             this.jobTicketCache = createTicketCache();
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);
+        }
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        if (cm.isConfigValue(Key.JOBTICKET_TAGS_ENABLE)) {
+            JobTicketTagCache.setTicketTags(JobTicketTagCache
+                    .parseTicketTags(cm.getConfigValue(Key.JOBTICKET_TAGS)));
         }
     }
 
@@ -1697,69 +1705,18 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public SortedMap<String, JobTicketTagDto> getTicketTagsByWord() {
-
-        final ConfigManager cm = ConfigManager.instance();
-
-        final TreeMap<String, JobTicketTagDto> map = new TreeMap<>();
-
-        if (!cm.isConfigValue(Key.JOBTICKET_TAGS_ENABLE)) {
-            return map;
-        }
-
-        for (final JobTicketTagDto dto : parseTicketTags(
-                cm.getConfigValue(Key.JOBTICKET_TAGS))) {
-            map.put(dto.getWord(), dto);
-        }
-        return map;
+    public Collection<JobTicketTagDto> getTicketTagsByWord() {
+        return JobTicketTagCache.getTicketTagsByWord();
     }
 
     @Override
-    public List<JobTicketTagDto> parseTicketTags(final String tagsRaw) {
-
-        final List<JobTicketTagDto> list = new ArrayList<>();
-
-        final String regexKey = "^[A-Z0-9]+$";
-        final int maxKeyLen = 5;
-
-        final String tags =
-                StringUtils.remove(StringUtils.remove(tagsRaw, '\n'), '\r');
-
-        for (final String tag : StringUtils.split(tags, ',')) {
-
-            final String[] res =
-                    StringUtils.split(tag, TICKER_NUMBER_PREFIX_TAG_SEPARATOR);
-
-            if (res.length != 2) {
-                throw new IllegalArgumentException(String
-                        .format("Job Ticket tag [%s]: invalid format.", tag));
-            }
-
-            final String tagID = res[0];
-            final String tagWord = res[1];
-
-            if (!tagID.matches(regexKey)) {
-                throw new IllegalArgumentException(String.format(
-                        "Job Ticket tag [%s]: ID [%s] "
-                                + "does not match regex [%s].",
-                        tag, tagID, regexKey));
-            }
-
-            if (tagID.length() > maxKeyLen) {
-                throw new IllegalArgumentException(String.format(
-                        "Job Ticket tag [%s]: ID [%s] "
-                                + "has more then %d characters.",
-                        tag, tagID, maxKeyLen));
-            }
-
-            final JobTicketTagDto dto = new JobTicketTagDto();
-            dto.setId(tagID);
-            dto.setWord(tagWord);
-
-            list.add(dto);
+    public JobTicketTagDto getTicketNumberTag(final String ticketNumber) {
+        final String[] words = StringUtils.split(ticketNumber,
+                TICKER_NUMBER_PREFIX_TAG_SEPARATOR);
+        if (words.length == 2) {
+            return JobTicketTagCache.getTicketTag(words[0]);
         }
-
-        return list;
+        return null;
     }
 
 }

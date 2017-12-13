@@ -24,10 +24,10 @@ package org.savapage.core.services;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.SortedMap;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dto.JobTicketTagDto;
@@ -398,19 +398,15 @@ public interface JobTicketService extends StatefulService {
      * @throws IllegalArgumentException
      *             When error parsing formatted tags string.
      */
-    SortedMap<String, JobTicketTagDto> getTicketTagsByWord();
+    Collection<JobTicketTagDto> getTicketTagsByWord();
 
     /**
-     * Parses formatted ticket tags string.
+     * Gets the {@link JobTicketTagDto} from a ticket number.
      *
-     * @param tags
-     *            The formatted string.
-     *
-     * @return The list of tags.
-     *
-     * @throws IllegalArgumentException
-     *             When invalid format.
+     * @param ticketNumber
+     *            The ticket number.
+     * @return {@code null| when not present.
      */
-    List<JobTicketTagDto> parseTicketTags(String tags);
+    JobTicketTagDto getTicketNumberTag(String ticketNumber);
 
 }
