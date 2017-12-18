@@ -1380,16 +1380,6 @@ public final class JobTicketServiceImpl extends AbstractService
                 continue;
             }
 
-            if (iPreferred < 0) {
-                if (colorJob) {
-                    if (colorPrinter) {
-                        iPreferred = iPrinter;
-                    }
-                } else if (!colorPrinter) {
-                    iPreferred = iPrinter;
-                }
-            }
-
             final Map<String, JsonProxyPrinterOpt> printerOptionlookup =
                     cupsPrinter.getOptionsLookup();
 
@@ -1450,6 +1440,24 @@ public final class JobTicketServiceImpl extends AbstractService
                 continue;
             }
 
+            // Collate
+            if (job.getCopies() > 1 && job.getPages() > 1) {
+
+                final JsonProxyPrinterOpt collateOpt = printerOptionlookup
+                        .get(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE);
+
+                if (collateOpt != null) {
+                    final String collateChoice;
+                    if (job.isCollate()) {
+                        collateChoice = IppKeyword.SHEET_COLLATE_COLLATED;
+                    } else {
+                        collateChoice = IppKeyword.SHEET_COLLATE_UNCOLLATED;
+                    }
+                    if (collateOpt.getChoice(collateChoice) == null) {
+                        continue;
+                    }
+                }
+            }
             //
             final RedirectPrinterDto redirectPrinter = new RedirectPrinterDto();
 
@@ -1505,8 +1513,18 @@ public final class JobTicketServiceImpl extends AbstractService
                             this.getPrinterOptChoiceDefault(jogOffset));
                 }
             }
-            //
+
             printerList.add(redirectPrinter);
+
+            if (iPreferred < 0) {
+                if (colorJob) {
+                    if (colorPrinter) {
+                        iPreferred = iPrinter;
+                    }
+                } else if (!colorPrinter) {
+                    iPreferred = iPrinter;
+                }
+            }
             iPrinter++;
         }
 
