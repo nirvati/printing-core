@@ -24,6 +24,7 @@ package org.savapage.core.services.impl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
 
 import org.apache.commons.io.IOUtils;
@@ -58,12 +59,15 @@ public final class PGPPublicKeyServiceImpl extends AbstractService
         ByteArrayInputStream bis = null;
 
         try {
-            PGPHelper.downloadPublicKey(ConfigManager.instance()
-                    .getPGPPublicKeyDownloadUrl(hexKeyID), bos);
 
-            bis = new ByteArrayInputStream(bos.toByteArray());
+            final URL url = ConfigManager.instance()
+                    .getPGPPublicKeyDownloadUrl(hexKeyID);
 
-            return PGPHelper.instance().readPublicKey(bis);
+            if (url != null) {
+                PGPHelper.downloadPublicKey(url, bos);
+                bis = new ByteArrayInputStream(bos.toByteArray());
+                return PGPHelper.instance().readPublicKey(bis);
+            }
 
         } catch (MalformedURLException e) {
             throw new PGPBaseException(e.getMessage(), e);
