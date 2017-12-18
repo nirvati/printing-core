@@ -200,11 +200,15 @@ public final class EmailMsgParms {
 
         final EmailRenderResult renderResult = template.render(locale, asHtml);
 
-        final EmailMsgParms emailParms = new EmailMsgParms();
+        final EmailMsgParms emailParms = new EmailMsgParms(asHtml);
 
         emailParms.setToAddress(emailAddr);
         emailParms.setBody(renderResult.getBody());
         emailParms.setSubject(renderResult.getSubject());
+
+        if (renderResult.getCidMap() != null) {
+            emailParms.getCidMap().putAll(renderResult.getCidMap().getMap());
+        }
 
         return emailParms;
     }

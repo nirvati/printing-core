@@ -1415,6 +1415,11 @@ public interface IConfigProp {
         JOBTICKET_NOTIFY_EMAIL_CANCELED_ENABLE("jobticket.notify-email.canceled.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * Send job ticket email notification with content-type as "text/html".
+         */
+        JOBTICKET_NOTIFY_EMAIL_CONTENT_TYPE_HTML("jobticket.notify-email.content-type.html", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
          * A comma separated list of Job Ticket tags to be applied as job ticker
          * number prefix. Each tag on the list is formatted as "TAG/word", where
          * "TAG" is a unique N-letter upper-case mnemonic, "/" is a fixed

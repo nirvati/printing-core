@@ -860,8 +860,11 @@ public final class JobTicketServiceImpl extends AbstractService
             return null;
         }
 
+        final boolean asHtml = ConfigManager.instance()
+                .isConfigValue(Key.JOBTICKET_NOTIFY_EMAIL_CONTENT_TYPE_HTML);
+
         final EmailMsgParms emailParms =
-                EmailMsgParms.create(emailAddr, tpl, locale, false);
+                EmailMsgParms.create(emailAddr, tpl, locale, asHtml);
 
         try {
             emailService().sendEmail(emailParms);
@@ -1268,8 +1271,6 @@ public final class JobTicketServiceImpl extends AbstractService
      *            The requested {@link IppOptionMap}.
      * @param ippOptionKey
      *            The IPP option key.
-     * @param ippOptionValueNone
-     *            The IPP option value representing a "none" choice.
      * @param printerOptionLookup
      *            The lookup of printer IPP options.
      * @return {@code true} if job does not request the IPP option, or when
@@ -1277,7 +1278,6 @@ public final class JobTicketServiceImpl extends AbstractService
      */
     private static boolean isPrinterCapabilityMatch(
             final IppOptionMap optionsRequested, final String ippOptionKey,
-            final String ippOptionValueNone,
             final Map<String, JsonProxyPrinterOpt> printerOptionLookup) {
 
         final String jobOptionValue =
@@ -1285,12 +1285,6 @@ public final class JobTicketServiceImpl extends AbstractService
 
         if (jobOptionValue == null) {
             // Option not requested: match.
-            return true;
-        }
-
-        if (optionsRequested.isOptionPresent(ippOptionKey,
-                ippOptionValueNone)) {
-            // non-choice option: match.
             return true;
         }
 
@@ -1394,8 +1388,7 @@ public final class JobTicketServiceImpl extends AbstractService
             for (final String[] ippOptionCheck : finishingOptionsToCheck) {
 
                 if (!isPrinterCapabilityMatch(optionsRequested,
-                        ippOptionCheck[0], ippOptionCheck[1],
-                        printerOptionlookup)) {
+                        ippOptionCheck[0], printerOptionlookup)) {
                     isMatch = false;
                     break;
                 }
