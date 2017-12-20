@@ -112,6 +112,7 @@ import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptGroup;
+import org.savapage.core.print.proxy.ProxyPrintLogger;
 import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.CupsPrinterClass;
@@ -1286,10 +1287,16 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 pdfFileToPrint = filePdf;
             }
 
-            response = ippClient.send(urlCupsServer, IppOperationId.PRINT_JOB,
+            final IppOperationId ippOperation = IppOperationId.PRINT_JOB;
+
+            final List<IppAttrGroup> ippRequest =
                     this.reqPrintJob(request, pdfFileToPrint, jsonPrinter, user,
-                            jobNameWork, jobNameWork),
+                            jobNameWork, jobNameWork);
+
+            response = ippClient.send(urlCupsServer, ippOperation, ippRequest,
                     pdfFileToPrint);
+
+            ProxyPrintLogger.log(ippOperation, ippRequest, response);
 
         } catch (IOException e) {
 
@@ -2313,7 +2320,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             group.addCollection(collection);
 
             if (collectionMediaSize != null) {
-
                 collection.addCollection(collectionMediaSize);
             }
 
@@ -2343,6 +2349,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     }
                 }
             }
+
         }
 
         /*
