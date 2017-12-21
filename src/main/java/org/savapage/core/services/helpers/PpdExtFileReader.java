@@ -1195,9 +1195,12 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             }
 
             if (keywordIpp.equals(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE)) {
-                // Both choices must be present.
-                proxyPrinter.setSheetCollate(
-                        Boolean.valueOf(opt.getChoices().size() == 2));
+
+                proxyPrinter.setSheetCollated(opt
+                        .getChoice(IppKeyword.SHEET_COLLATE_COLLATED) != null);
+
+                proxyPrinter.setSheetUncollated(opt.getChoice(
+                        IppKeyword.SHEET_COLLATE_UNCOLLATED) != null);
             }
 
             final JsonProxyPrinterOpt optPresent =

@@ -462,7 +462,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         printerClass.setManualMediaSource(printerMember.getManualMediaSource());
         printerClass.setPpd(printerMember.getPpd());
         printerClass.setPpdVersion(printerMember.getPpdVersion());
-        printerClass.setSheetCollate(printerMember.getSheetCollate());
+        printerClass.setSheetCollated(printerMember.getSheetCollated());
+        printerClass.setSheetUncollated(printerMember.getSheetUncollated());
     }
 
     /**
@@ -1066,7 +1067,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         final boolean isSheetCollate =
                 attrKeyword.equals(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE);
 
-        int nSheetCollateChoices = 0;
+        boolean sheetCollated = false;
+        boolean sheetUncollated = false;
         boolean isDuplexPrinter = false;
         boolean hasManualMediaSource = false;
         boolean hasAutoMediaSource = false;
@@ -1100,7 +1102,13 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     .equalsIgnoreCase(IppKeyword.MEDIA_SOURCE_MANUAL)) {
                 hasManualMediaSource = true;
             } else if (isSheetCollate) {
-                nSheetCollateChoices++;
+                if (choice
+                        .equalsIgnoreCase(IppKeyword.SHEET_COLLATE_COLLATED)) {
+                    sheetCollated = true;
+                } else if (choice.equalsIgnoreCase(
+                        IppKeyword.SHEET_COLLATE_UNCOLLATED)) {
+                    sheetUncollated = true;
+                }
             }
 
             if (choice.equals(defChoice)) {
@@ -1123,8 +1131,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             printer.setAutoMediaSource(Boolean.valueOf(hasAutoMediaSource));
             printer.setManualMediaSource(Boolean.valueOf(hasManualMediaSource));
         } else if (isSheetCollate) {
-            // Both choices must be present.
-            printer.setSheetCollate(Boolean.valueOf(nSheetCollateChoices == 2));
+            printer.setSheetCollated(sheetCollated);
+            printer.setSheetUncollated(sheetUncollated);
         }
 
     }
@@ -1220,8 +1228,13 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         if (request.getNumberOfCopies() > 1) {
 
-            clientSideCollate =
-                    BooleanUtils.isFalse(jsonPrinter.getSheetCollate());
+            if (request.isCollate()) {
+                clientSideCollate =
+                        BooleanUtils.isFalse(jsonPrinter.getSheetCollated());
+            } else {
+                clientSideCollate =
+                        BooleanUtils.isFalse(jsonPrinter.getSheetUncollated());
+            }
 
             if (!clientSideCollate) {
 
@@ -2349,7 +2362,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     }
                 }
             }
-
         }
 
         /*
@@ -2437,7 +2449,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             return;
         }
 
-        // Is sheet-collate is already substituted?
+        // Is sheet-collate already substituted?
         if (optionValuesOrg
                 .containsKey(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE)) {
             return;

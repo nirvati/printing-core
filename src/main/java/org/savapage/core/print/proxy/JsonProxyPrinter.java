@@ -146,12 +146,18 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     private Boolean autoMediaSource;
 
     /**
-     * {@code true} when printer supports both
-     * {@link IppKeyword#SHEET_COLLATE_COLLATED} and
+     * {@code true} when printer supports
+     * {@link IppKeyword#SHEET_COLLATE_COLLATED}.
+     */
+    @JsonProperty("sheetCollated")
+    private Boolean sheetCollated;
+
+    /**
+     * {@code true} when printer supports
      * {@link IppKeyword#SHEET_COLLATE_UNCOLLATED}.
      */
-    @JsonProperty("sheetCollate")
-    private Boolean sheetCollate;
+    @JsonProperty("sheetUncollated")
+    private Boolean sheetUncollated;
 
     @JsonProperty("modelname")
     private String modelName;
@@ -429,22 +435,37 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
-     * @return {@code true} when printer supports both
-     *         {@link IppKeyword#SHEET_COLLATE_COLLATED} and
-     *         {@link IppKeyword#SHEET_COLLATE_UNCOLLATED}.
+     * @return {@code true} when printer supports
+     *         {@link IppKeyword#SHEET_COLLATE_COLLATED}.
      */
-    public Boolean getSheetCollate() {
-        return sheetCollate;
+    public Boolean getSheetCollated() {
+        return sheetCollated;
     }
 
     /**
      * @param sheetCollate
-     *            {@code true} when printer supports both
-     *            {@link IppKeyword#SHEET_COLLATE_COLLATED} and
+     *            {@code true} when printer supports
+     *            {@link IppKeyword#SHEET_COLLATE_COLLATED}.
+     */
+    public void setSheetCollated(Boolean sheetCollated) {
+        this.sheetCollated = sheetCollated;
+    }
+
+    /**
+     * @return {@code true} when printer supports
+     *         {@link IppKeyword#SHEET_COLLATE_UNCOLLATED}.
+     */
+    public Boolean getSheetUncollated() {
+        return sheetUncollated;
+    }
+
+    /**
+     * @param sheetCollate
+     *            {@code true} when printer supports
      *            {@link IppKeyword#SHEET_COLLATE_UNCOLLATED}.
      */
-    public void setSheetCollate(Boolean sheetCollate) {
-        this.sheetCollate = sheetCollate;
+    public void setSheetUncollated(Boolean sheetUncollated) {
+        this.sheetUncollated = sheetUncollated;
     }
 
     public String getModelName() {
@@ -641,7 +662,8 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.location = this.location;
         copy.manualMediaSource = this.manualMediaSource;
         copy.autoMediaSource = this.autoMediaSource;
-        copy.sheetCollate = this.sheetCollate;
+        copy.sheetCollated = this.sheetCollated;
+        copy.sheetUncollated = this.sheetUncollated;
         copy.manufacturer = this.manufacturer;
         copy.modelName = this.modelName;
         copy.name = this.name;
