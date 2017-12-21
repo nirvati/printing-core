@@ -1349,7 +1349,8 @@ public final class JobTicketServiceImpl extends AbstractService
 
             final Printer printer = member.getPrinter();
 
-            if (printer.getDisabled().booleanValue()) {
+            if (printer.getDisabled().booleanValue()
+                    || printer.getDeleted().booleanValue()) {
                 continue;
             }
 
