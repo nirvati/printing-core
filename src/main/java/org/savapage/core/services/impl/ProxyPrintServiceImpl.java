@@ -2495,6 +2495,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
     /**
      * Corrects a Print Job request with Extra PPD options.
+     * <p>
+     * Note: Existing PPD options are <i>replaced</i> by the Extra options:
+     * <i>replacement is a hack, to be used for testing purposes only.</i>
+     * </p>
      *
      * @param jsonPrinter
      *            The printer.
@@ -2514,12 +2518,38 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
             for (final Pair<String, String> pair : rule.getExtraPPD()) {
 
-                group.add(dict.createPpdOptionAttr(pair.getKey()),
-                        pair.getValue());
+                boolean addExtra = true;
 
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(String.format("Added: %s/%s", pair.getKey(),
-                            pair.getValue()));
+                /*
+                 * Find attribute to replace it. This is a hack, to be used for
+                 * testing purposes only.
+                 */
+                for (final IppAttrValue attrVal : group.getAttributes()) {
+
+                    if (attrVal.getAttribute().getKeyword()
+                            .equals(pair.getKey())) {
+
+                        final List<String> values = attrVal.getValues();
+                        values.clear();
+                        values.add(pair.getValue());
+
+                        if (LOGGER.isWarnEnabled()) {
+                            LOGGER.warn(String.format("Replaced: %s/%s",
+                                    pair.getKey(), pair.getValue()));
+                        }
+
+                        addExtra = false;
+                        break;
+                    }
+                }
+
+                if (addExtra) {
+                    group.add(dict.createPpdOptionAttr(pair.getKey()),
+                            pair.getValue());
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug(String.format("Added: %s/%s",
+                                pair.getKey(), pair.getValue()));
+                    }
                 }
             }
         }
