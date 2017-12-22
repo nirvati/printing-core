@@ -22,6 +22,7 @@
 package org.savapage.core.template.email;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.nio.file.Paths;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import javax.activation.DataSource;
-import javax.activation.FileDataSource;
+import javax.activation.URLDataSource;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.savapage.core.template.TemplateMixin;
@@ -133,12 +134,26 @@ public abstract class EmailTemplateMixin extends TemplateMixin {
                     EnumUtils.getEnum(EmailCidEnum.class, resourceName);
 
             if (cidEnum == null) {
+
                 final File resourceFile =
                         Paths.get(this.customDirectory.getAbsolutePath(),
                                 resourceName).toFile();
 
                 if (resourceFile.exists()) {
-                    dataSrc = new FileDataSource(resourceFile);
+
+                    DataSource dataSrcWrk = null;
+
+                    try {
+                        dataSrcWrk =
+                                new URLDataSource(resourceFile.toURI().toURL());
+                    } catch (MalformedURLException e) {
+                        LOGGER.error(
+                                String.format("URL for File [%s] is malformed.",
+                                        resourceFile.getAbsolutePath()));
+                    }
+
+                    dataSrc = dataSrcWrk;
+
                 } else {
                     LOGGER.error(String.format("File [%s] does not exist",
                             resourceFile.getAbsolutePath()));
