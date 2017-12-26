@@ -53,6 +53,9 @@ public enum JsonRpcMethodName {
     ERASE_USER("eraseUser"),
 
     /**  */
+    GET_CONFIG_PROPERTY("getConfigProperty"),
+
+    /**  */
     LIST_USERS("listUsers"),
 
     /**  */
@@ -78,6 +81,9 @@ public enum JsonRpcMethodName {
 
     /**  */
     PRINTER_SNMP("printerSnmp"),
+
+    /**  */
+    SET_CONFIG_PROPERTY("setConfigProperty"),
 
     /**  */
     SET_USER_PROPERTIES("setUserProperties"),

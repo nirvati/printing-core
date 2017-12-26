@@ -19,47 +19,34 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.config.validator;
+package org.savapage.core.services;
+
+import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
+import org.savapage.core.json.rpc.impl.ParamsNameValue;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public enum ValidationStatusEnum {
+public interface ConfigPropertyService {
+
     /**
-     * .
+     * Gets a property.
+     *
+     * @param name
+     *            The unique property name.
+     * @return The JSON RPC response.
      */
-    OK,
+    AbstractJsonRpcMethodResponse getPropertyValue(String name);
 
-    /** */
-    ERROR_ACCESS_DENIED,
-
-    /** */
-    ERROR_EMPTY,
-
-    /** */
-    ERROR_ENUM,
-
-    /** */
-    ERROR_SYNTAX,
-
-    /** */
-    ERROR_YN,
-
-    /** */
-    ERROR_LOCALE,
-
-    /** */
-    ERROR_CURRENCY,
-
-    /** */
-    ERROR_NOT_NUMERIC,
-
-    /** */
-    ERROR_NOT_DECIMAL,
-
-    /** */
-    ERROR_RANGE
+    /**
+     * Sets a property.
+     *
+     * @param parm
+     *            The parameter object.
+     * @return The JSON RPC response.
+     */
+    AbstractJsonRpcMethodResponse setPropertyValue(ParamsNameValue parm);
 
 }

@@ -19,47 +19,39 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.config.validator;
+package org.savapage.core.json.rpc.impl;
+
+import org.savapage.core.json.rpc.AbstractJsonRpcMethodParms;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public enum ValidationStatusEnum {
-    /**
-     * .
-     */
-    OK,
+public class ParamsNameValue extends AbstractJsonRpcMethodParms {
 
-    /** */
-    ERROR_ACCESS_DENIED,
+    @JsonProperty("name")
+    private String name;
 
-    /** */
-    ERROR_EMPTY,
+    @JsonProperty("value")
+    private String value;
 
-    /** */
-    ERROR_ENUM,
+    public String getName() {
+        return name;
+    }
 
-    /** */
-    ERROR_SYNTAX,
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    /** */
-    ERROR_YN,
+    public String getValue() {
+        return value;
+    }
 
-    /** */
-    ERROR_LOCALE,
-
-    /** */
-    ERROR_CURRENCY,
-
-    /** */
-    ERROR_NOT_NUMERIC,
-
-    /** */
-    ERROR_NOT_DECIMAL,
-
-    /** */
-    ERROR_RANGE
+    public void setValue(String value) {
+        this.value = value;
+    }
 
 }

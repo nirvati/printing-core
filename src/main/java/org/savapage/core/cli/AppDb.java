@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -42,7 +42,13 @@ import org.savapage.core.jpa.tools.DbProcessListener;
 import org.savapage.core.jpa.tools.DbTools;
 import org.savapage.core.jpa.tools.DbUpgManager;
 import org.savapage.core.jpa.tools.DbVersionInfo;
+import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
+import org.savapage.core.json.rpc.ErrorDataBasic;
+import org.savapage.core.json.rpc.ResultString;
+import org.savapage.core.json.rpc.impl.ParamsNameValue;
+import org.savapage.core.services.ConfigPropertyService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.impl.ConfigPropertyServiceImpl;
 
 /**
  * End-user command-line application for database operations.
@@ -52,9 +58,11 @@ import org.savapage.core.services.ServiceContext;
  */
 public final class AppDb extends AbstractApp {
 
-    /**
-     *
-     */
+    /** */
+    private static final String NOTE_AS_REQUESTED_BY_SUPPORT =
+            "NOTE: Only perform as requested by SavaPage Support.";
+
+    /** */
     private static final int SQL_ERROR_TRX_ROLLBACK = 40000;
 
     /** */
@@ -73,6 +81,12 @@ public final class AppDb extends AbstractApp {
 
     /** */
     private static final String CLI_OPTION_DB_RUN_SQL = "db-run-sql";
+
+    /** */
+    private static final String CLI_OPTION_CONFIG_PROP_GET = "db-config-get";
+
+    /** */
+    private static final String CLI_OPTION_CONFIG_PROP_SET = "db-config-set";
 
     /**
      * The number of rows in the result set for export.
@@ -131,15 +145,29 @@ public final class AppDb extends AbstractApp {
                 .longOpt(CLI_OPTION_DB_RUN_SQL_SCRIPT)
                 .desc("Runs SQL statements from the "
                         + "specified script file. "
-                        + "NOTE: Only if requested by support.")
+                        + NOTE_AS_REQUESTED_BY_SUPPORT)
                 .build());
 
-        options.addOption(
-                Option.builder().hasArg(true).argName("STATEMENT")
-                        .longOpt(CLI_OPTION_DB_RUN_SQL)
-                        .desc("Runs an SQL statement. "
-                                + "NOTE: Only if requested by support.")
-                        .build());
+        options.addOption(Option.builder().hasArg(true).argName("STATEMENT")
+                .longOpt(CLI_OPTION_DB_RUN_SQL)
+                .desc("Runs an SQL statement. " + NOTE_AS_REQUESTED_BY_SUPPORT)
+                .build());
+
+        options.addOption(Option.builder().hasArg(true).argName("NAME")
+                .longOpt(CLI_OPTION_CONFIG_PROP_GET)
+                .desc("Gets configuration property value. "
+                        + SENTENCE_ADV_OPTION)
+                .build());
+
+        final Option opt = Option.builder().hasArg(true).argName("NAME=VALUE")
+                .longOpt(CLI_OPTION_CONFIG_PROP_SET)
+                .desc("Sets configuration property value. "
+                        + SENTENCE_ADV_OPTION)
+                .build();
+        opt.setArgs(2);
+        opt.setValueSeparator('=');
+
+        options.addOption(opt);
 
         return options;
     }
@@ -147,7 +175,9 @@ public final class AppDb extends AbstractApp {
     /**
      *
      * @param file
+     *            The file.
      * @throws IOException
+     *             When file path error.
      */
     private static void displayExportedFilePath(final File file)
             throws IOException {
@@ -199,7 +229,7 @@ public final class AppDb extends AbstractApp {
         final DbProcessListener listener = new DbProcessListener() {
 
             @Override
-            public void onLogEvent(String message) {
+            public void onLogEvent(final String message) {
                 logOut.println(message);
             }
         };
@@ -224,8 +254,11 @@ public final class AppDb extends AbstractApp {
                 DbVersionInfo info =
                         ConfigManager.instance().getDbVersionInfo();
 
-                getDisplayStream().println("Connecting to " + info.getProdName()
-                        + " " + info.getProdVersion());
+                if (!cmd.hasOption(CLI_OPTION_CONFIG_PROP_GET)
+                        && !cmd.hasOption(CLI_OPTION_CONFIG_PROP_SET)) {
+                    getDisplayStream().println("Connecting to "
+                            + info.getProdName() + " " + info.getProdVersion());
+                }
             }
 
             /*
@@ -327,6 +360,29 @@ public final class AppDb extends AbstractApp {
                     }
                 }
 
+            } else if (cmd.hasOption(CLI_OPTION_CONFIG_PROP_GET)) {
+
+                getConfigProperty(
+                        cmd.getOptionValue(CLI_OPTION_CONFIG_PROP_GET));
+
+            } else if (cmd.hasOption(CLI_OPTION_CONFIG_PROP_SET)) {
+
+                final String[] argsWlk =
+                        cmd.getOptionValues(CLI_OPTION_CONFIG_PROP_SET);
+
+                daoContext.beginTransaction();
+                boolean rollback = true;
+                try {
+                    setConfigProperty(argsWlk[0], argsWlk[1]);
+                    rollback = false;
+                } finally {
+                    if (rollback) {
+                        daoContext.rollback();
+                    } else {
+                        daoContext.commit();
+                    }
+                }
+
             } else {
 
                 usage(cmdLineSyntax, options);
@@ -370,6 +426,49 @@ public final class AppDb extends AbstractApp {
     }
 
     /**
+     *
+     * @param name
+     *            The config property name.
+     * @throws IllegalArgumentException
+     *             If property is unknown.
+     */
+    private static void getConfigProperty(final String name) {
+        final ConfigPropertyService svc = new ConfigPropertyServiceImpl();
+        final AbstractJsonRpcMethodResponse rsp = svc.getPropertyValue(name);
+        if (rsp.isError()) {
+            throw new IllegalArgumentException(rsp.asError().getError()
+                    .data(ErrorDataBasic.class).getReason());
+        } else {
+            getDisplayStream().println(rsp.asResult().getResult()
+                    .data(ResultString.class).getValue());
+        }
+    }
+
+    /**
+     *
+     * @param name
+     *            The config property name.
+     * @param value
+     *            The config property value.
+     * @throws IllegalArgumentException
+     *             If property is unknown, or cannot be accessed for update.
+     */
+    private static void setConfigProperty(final String name,
+            final String value) {
+        final ConfigPropertyService svc = new ConfigPropertyServiceImpl();
+
+        final ParamsNameValue parm = new ParamsNameValue();
+        parm.setName(name);
+        parm.setValue(value);
+
+        final AbstractJsonRpcMethodResponse rsp = svc.setPropertyValue(parm);
+        if (rsp.isError()) {
+            throw new IllegalArgumentException(rsp.asError().getError()
+                    .data(ErrorDataBasic.class).getReason());
+        }
+    }
+
+    /**
      * IMPORTANT: MUST return void, use System.exit() to get an exit code on JVM
      * execution.
      *
@@ -378,11 +477,9 @@ public final class AppDb extends AbstractApp {
     public static void main(String[] args) {
         int status = EXIT_CODE_EXCEPTION;
         AppDb app = new AppDb();
-        // try {
         try {
             status = app.run(args);
         } catch (Exception e) {
-            // e.printStackTrace();
             AppDb.getErrorDisplayStream().println(e.getMessage());
         }
         System.exit(status);

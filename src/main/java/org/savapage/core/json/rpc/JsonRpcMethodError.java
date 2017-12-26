@@ -99,7 +99,11 @@ public final class JsonRpcMethodError extends AbstractJsonRpcMethodResponse {
         error.setData(data);
 
         error.setCode(code.asInt());
-        error.setMessage(message);
+        if (message == null) {
+            error.setMessage(code.toString());
+        } else {
+            error.setMessage(message);
+        }
 
         data.setReason(reason);
 

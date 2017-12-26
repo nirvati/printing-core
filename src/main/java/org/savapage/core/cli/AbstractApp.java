@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -39,7 +39,7 @@ import org.savapage.core.services.ServiceEntryPoint;
 /**
  * Command Line Interface (CLI) Application.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractApp implements ServiceEntryPoint {
@@ -48,6 +48,20 @@ public abstract class AbstractApp implements ServiceEntryPoint {
      * Width (number of characters) of the usage text block.
      */
     private static final int HELP_FORMATTER_WIDTH = 85;
+
+    /** */
+    private static final String SENTENCE_CONTACT_SUPPORT_BEFORE_USE =
+            "Please contact SavaPage Support before use.";
+
+    /** */
+    protected static final String SENTENCE_ADV_COMMAND =
+            "This is an advanced command. "
+                    + SENTENCE_CONTACT_SUPPORT_BEFORE_USE;
+
+    /** */
+    protected static final String SENTENCE_ADV_OPTION =
+            "This is an advanced option. "
+                    + SENTENCE_CONTACT_SUPPORT_BEFORE_USE;
 
     /** */
     protected static final String CLI_SWITCH_HELP = "h";
@@ -110,9 +124,11 @@ public abstract class AbstractApp implements ServiceEntryPoint {
      *            The command line options.
      *
      */
-    protected final void
-            usage(final String cmdLineSyntax, final Options options) {
-        HelpFormatter formatter = new HelpFormatter();
+    protected final void usage(final String cmdLineSyntax,
+            final Options options) {
+
+        final HelpFormatter formatter = new HelpFormatter();
+        formatter.setWidth(this.getUsageFormatterWidth());
         formatter.printHelp(cmdLineSyntax, options);
     }
 
@@ -147,10 +163,18 @@ public abstract class AbstractApp implements ServiceEntryPoint {
      */
     protected final void usage(final String cmdLineSyntax,
             final String descript, final Options options) {
-        HelpFormatter formatter = new HelpFormatter();
+        final HelpFormatter formatter = new HelpFormatter();
+        formatter.setWidth(this.getUsageFormatterWidth());
         getDisplayStream().println(descript);
         getDisplayStream().println();
         formatter.printHelp(cmdLineSyntax + System.lineSeparator(), options);
+    }
+
+    /**
+     * @return The width (number of characters) of the usage text block.
+     */
+    protected int getUsageFormatterWidth() {
+        return HELP_FORMATTER_WIDTH;
     }
 
     /**
@@ -175,7 +199,7 @@ public abstract class AbstractApp implements ServiceEntryPoint {
 
         HelpFormatter formatter = new HelpFormatter();
 
-        formatter.setWidth(HELP_FORMATTER_WIDTH);
+        formatter.setWidth(this.getUsageFormatterWidth());
 
         formatter.setOptionComparator(new Comparator<Option>() {
 

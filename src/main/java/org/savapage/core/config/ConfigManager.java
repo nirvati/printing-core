@@ -2025,7 +2025,12 @@ public final class ConfigManager {
     }
 
     /**
+     * Gets the enum of the configuration key.
      *
+     * @param key
+     *            The string representation of the key.
+     * @return The enum representation of the key, or {@code null} when the key
+     *         is not found.
      */
     public IConfigProp.Key getConfigKey(final String key) {
         return myConfigProp.getKey(key);
@@ -2279,6 +2284,16 @@ public final class ConfigManager {
      */
     public boolean isConfigValue(final IConfigProp.Key key) {
         return myConfigProp.getBoolean(key);
+    }
+
+    /**
+     *
+     * @param key
+     *            The key.
+     * @return {@code true} if Key can be updated by Public API, like JSON-RPC.
+     */
+    public boolean isConfigApiUpdatable(final IConfigProp.Key key) {
+        return myConfigProp.isApiUpdatable(key);
     }
 
     /**

@@ -55,6 +55,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
                 name = JsonRpcResultDataMixin.JsonSubType.ENUM),
         @Type(value = ResultBoolean.class,
                 name = JsonRpcResultDataMixin.JsonSubType.BOOL),
+        @Type(value = ResultString.class,
+                name = JsonRpcResultDataMixin.JsonSubType.STRING),
         @Type(value = ResultListUsers.class,
                 name = JsonRpcResultDataMixin.JsonSubType.USER_LIST),
         @Type(value = ResultListStrings.class,
@@ -85,6 +87,7 @@ public class JsonRpcResultDataMixin {
         public static final String PRINTER_SNMP = "PRINTER_SNMP";
 
         public static final String BOOL = "boolean";
+        public static final String STRING = "string";
     }
 
     protected JsonRpcResultDataMixin() {

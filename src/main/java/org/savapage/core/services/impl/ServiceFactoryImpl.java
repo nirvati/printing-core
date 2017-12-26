@@ -25,6 +25,7 @@ import org.savapage.core.services.AccessControlService;
 import org.savapage.core.services.AccountVoucherService;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.AppLogService;
+import org.savapage.core.services.ConfigPropertyService;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.EcoPrintPdfTaskService;
@@ -86,6 +87,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private static class AppLogServiceHolder {
         public static final AppLogService SERVICE = new AppLogServiceImpl();
+    }
+
+    private static class ConfigPropertyServiceHolder {
+        public static final ConfigPropertyService SERVICE =
+                new ConfigPropertyServiceImpl();
     }
 
     private static class DeviceServiceHolder {
@@ -197,6 +203,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public AccountVoucherService getAccountVoucherService() {
         return AccountVoucherServiceHolder.SERVICE;
+    }
+
+    @Override
+    public ConfigPropertyService getConfigPropertyService() {
+        return ConfigPropertyServiceHolder.SERVICE;
     }
 
     @Override

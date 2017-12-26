@@ -72,6 +72,13 @@ public interface ServiceFactory {
     AccountVoucherService getAccountVoucherService();
 
     /**
+     * Gets the {@link ConfigPropertyService} singleton.
+     *
+     * @return The singleton.
+     */
+    ConfigPropertyService getConfigPropertyService();
+
+    /**
      * Gets the {@link DeviceService} singleton.
      *
      * @return The singleton.

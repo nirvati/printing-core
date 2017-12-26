@@ -748,4 +748,9 @@ public final class ConfigPropImpl implements IConfigProp {
         return getProp(key).isBigDecimal();
     }
 
+    @Override
+    public boolean isApiUpdatable(final Key key) {
+        return getProp(key).isApiUpdatable();
+    }
+
 }
