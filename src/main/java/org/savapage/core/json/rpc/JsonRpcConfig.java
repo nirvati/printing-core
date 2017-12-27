@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,24 +25,21 @@ import org.savapage.core.community.MemberCard;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class JsonRpcConfig {
 
-    /**
-     *
-     */
-    public final static String RPC_VERSION = "2.0";
+    /** */
+    public static final String RPC_VERSION = "2.0";
 
-    /**
-     *
-     */
-    public final static String INTERNET_MEDIA_TYPE = "application/json";
+    /** */
+    public static final String INTERNET_MEDIA_TYPE = "application/json";
 
-    /**
-     *
-     */
+    /** */
+    public static final String CHAR_ENCODING = "UTF-8";
+
+    /** */
     public static final String TYPE_INFO_PROPERTY = "@type";
 
     /**
@@ -52,16 +49,19 @@ public class JsonRpcConfig {
      * IMPORTANT: changing this value invalidates any previously issued API KEY.
      * </p>
      */
-    public final static String API_INTERNAL_ID = "savapage-internal";
+    public static final String API_INTERNAL_ID = "savapage-internal";
 
     /**
      * Checks is the apiKey is valid.
      *
+     * @param apiId
+     *            The content that was signed.
      * @param apiKey
-     *            The apiKey.
+     *            The apiKey signature.
      * @return {@code true} when valid
      */
-    public static boolean isApiKeyValid(String apiId, String apiKey) {
+    public static boolean isApiKeyValid(final String apiId,
+            final String apiKey) {
         boolean isValid = true;
         try {
             MemberCard.instance().validateContent(apiId, apiKey);

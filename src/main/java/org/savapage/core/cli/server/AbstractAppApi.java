@@ -796,11 +796,11 @@ public abstract class AbstractAppApi extends AbstractApp {
          *
          */
         HttpEntity entity = null;
-        ContentType contentType =
-                ContentType.create(JsonRpcConfig.INTERNET_MEDIA_TYPE);
+
+        final ContentType contentType = ContentType.create(
+                JsonRpcConfig.INTERNET_MEDIA_TYPE, JsonRpcConfig.CHAR_ENCODING);
 
         entity = new StringEntity(jsonIn, contentType);
-
         httpPost.setEntity(entity);
 
         /*
