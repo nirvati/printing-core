@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2017 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -27,13 +27,16 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.quartz.CronTrigger;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -710,17 +713,49 @@ public final class SpJobScheduler {
      * Interrupts running job type with a group.
      *
      * @param typeOfJob
+     *            The job type.
      * @param group
+     *            The job group.
      * @return {@code true} if at least one instance of the identified job was
      *         found and interrupted.
      */
-    public boolean interruptJob(final SpJobType typeOfJob, final String group) {
+    private boolean interruptJob(final SpJobType typeOfJob,
+            final String group) {
         try {
             return myScheduler
                     .interrupt(new JobKey(typeOfJob.toString(), group));
         } catch (SchedulerException e) {
             throw new SpException(e.getMessage(), e);
         }
+    }
+
+    /**
+     *
+     * @param jobTypes
+     *            Set of job types.
+     * @return {@code true} if one of the jobs in the set is currently
+     *         executing.
+     */
+    public static boolean
+            isJobCurrentlyExecuting(final EnumSet<SpJobType> jobTypes) {
+
+        final Scheduler scheduler = instance().myScheduler;
+
+        try {
+            for (final JobExecutionContext ctx : scheduler
+                    .getCurrentlyExecutingJobs()) {
+
+                final SpJobType jobType = EnumUtils.getEnum(SpJobType.class,
+                        ctx.getTrigger().getJobKey().getName());
+
+                if (jobType != null && jobTypes.contains(jobType)) {
+                    return true;
+                }
+            }
+        } catch (SchedulerException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+        return false;
     }
 
     /**
@@ -766,7 +801,7 @@ public final class SpJobScheduler {
 
         long startTime = System.currentTimeMillis() + milliSecondsFromNow;
 
-        SimpleTrigger trigger = (SimpleTrigger) newTrigger()
+        final SimpleTrigger trigger = (SimpleTrigger) newTrigger()
                 .withIdentity("once." + jobName, jobGroup)
                 .startAt(new Date(startTime)).forJob(jobName, jobGroup).build();
 
@@ -793,9 +828,10 @@ public final class SpJobScheduler {
                  * Example: Unable to store Job : 'DEFAULT.DbBackup', because
                  * one already exists with this identification.
                  */
-                final String msg = "Error scheduling one-shot job [" + jobName
-                        + "][" + jobGroup + "] : " + e.getMessage();
-                throw new SpException(msg, e);
+                final String msg = String.format(
+                        "Error scheduling one-shot job [%s] [%s] : %s",
+                        jobGroup, jobName, e.getMessage());
+                throw new IllegalStateException(msg, e);
             }
         }
     }

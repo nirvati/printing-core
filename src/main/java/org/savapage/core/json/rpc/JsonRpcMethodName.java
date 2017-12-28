@@ -95,6 +95,9 @@ public enum JsonRpcMethodName {
     SYNC_USER_GROUP("syncUserGroup"),
 
     /**  */
+    SYNC_USERS_AND_GROUPS("syncUsersAndGroups"),
+
+    /**  */
     SYSTEM_STATUS("systemStatus");
 
     /**

@@ -114,6 +114,7 @@ public final class App extends AbstractApp {
             new CliSetUserProperties(), //
             new CliSetUserGroupProperties(), //
             new CliSyncUserGroup(), //
+            new CliSyncUsersAndGroups(), //
             new CliSystemStatus() //
     };
 
