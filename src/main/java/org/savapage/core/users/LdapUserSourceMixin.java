@@ -55,6 +55,7 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.config.IConfigProp.LdapType;
 import org.savapage.core.jpa.User;
+import org.savapage.core.net.TrustSelfSignedCertSocketFactory;
 import org.savapage.core.rfid.RfidNumberFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -627,6 +628,15 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
             env.put(Context.SECURITY_PRINCIPAL, adminDn);
             env.put(Context.SECURITY_CREDENTIALS,
                     cm.getConfigValue(Key.AUTH_LDAP_ADMIN_PASSWORD));
+        }
+
+        if (cm.isConfigValue(Key.AUTH_LDAP_USE_SSL)) {
+            env.put(Context.SECURITY_PROTOCOL, "ssl");
+            if (cm.isConfigValue(
+                    Key.AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED)) {
+                env.put("java.naming.ldap.factory.socket",
+                        TrustSelfSignedCertSocketFactory.class.getName());
+            }
         }
 
         final InitialLdapContext ctx;

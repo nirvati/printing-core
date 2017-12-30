@@ -52,6 +52,7 @@ import org.savapage.core.dao.impl.DaoBatchCommitterImpl;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.PrinterGroup;
+import org.savapage.core.json.rpc.JsonRpcMethodName;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.UserAuth;
 import org.savapage.core.util.Messages;
@@ -128,7 +129,13 @@ public interface IConfigProp {
 
     String V_ZERO = "0";
 
+    /**
+     * Is updatable with {@link JsonRpcMethodName#SET_CONFIG_PROPERTY}.
+     */
     boolean API_UPDATABLE_ON = true;
+    /**
+     * <b>Not</b> updatable with {@link JsonRpcMethodName#SET_CONFIG_PROPERTY}.
+     */
     boolean API_UPDATABLE_OFF = !API_UPDATABLE_ON;
 
     /**
@@ -268,9 +275,12 @@ public interface IConfigProp {
         FINANCIAL_GLOBAL_CREDIT_LIMIT("financial.global.credit-limit", KeyType.BIG_DECIMAL, "0.00"),
 
         /**
-         * ISO 4217 codes, like EUR, USD, JPY, ...
+         * ISO 4217 codes, like EUR, USD, JPY, etc. A <i>blank</i> Currency Code
+         * is API updatable with {@link JsonRpcMethodName#SET_CONFIG_PROPERTY}
+         * When set, it can only be "changed" by server command
+         * {@link JsonRpcMethodName#CHANGE_BASE_CURRENCY}.
          */
-        FINANCIAL_GLOBAL_CURRENCY_CODE("financial.global.currency-code", CURRENCY_VALIDATOR),
+        FINANCIAL_GLOBAL_CURRENCY_CODE("financial.global.currency-code", CURRENCY_VALIDATOR, API_UPDATABLE_ON),
 
         /**
          * A comma separated list of Point-of-Sale payment methods.
@@ -476,17 +486,22 @@ public interface IConfigProp {
         /**
          * LDAP Host name or IP address.
          */
-        AUTH_LDAP_HOST("auth.ldap.host", "localhost"),
+        AUTH_LDAP_HOST("auth.ldap.host", "localhost", API_UPDATABLE_ON),
 
         /**
          * LDAP host IP port number.
          */
-        AUTH_LDAP_PORT("auth.ldap.port", IP_PORT_VALIDATOR, "389"),
+        AUTH_LDAP_PORT("auth.ldap.port", IP_PORT_VALIDATOR, "389", API_UPDATABLE_ON),
 
         /**
          * Use SSL for the LDAP connection.
          */
-        AUTH_LDAP_USE_SSL("auth.ldap.use-ssl", BOOLEAN_VALIDATOR, V_NO),
+        AUTH_LDAP_USE_SSL("auth.ldap.use-ssl", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
+         * Trust self-signed certificate for LDAP SSL?
+         */
+        AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED("auth.ldap.use-ssl.trust-self-signed", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          *
@@ -588,7 +603,7 @@ public interface IConfigProp {
         /**
          *
          */
-        ENV_CO2_GRAMS_PER_SHEET("environment.co2-grams-per-sheet", "5.1"),
+        ENV_CO2_GRAMS_PER_SHEET("environment.co2-grams-per-sheet", "5.1", API_UPDATABLE_OFF),
 
         /**
          *
@@ -598,7 +613,7 @@ public interface IConfigProp {
         /**
          *
          */
-        ENV_WATT_HOURS_PER_SHEET("environment.watt-hours-per-sheet", "12.5"),
+        ENV_WATT_HOURS_PER_SHEET("environment.watt-hours-per-sheet", "12.5", API_UPDATABLE_OFF),
 
         /**
          * The base URL, i.e. "protocol://authority" <i>without</i> the path, of
@@ -660,7 +675,7 @@ public interface IConfigProp {
         /**
          *
          */
-        INTERNAL_USERS_NAME_PREFIX("internal-users.username-prefix", "guest-"),
+        INTERNAL_USERS_NAME_PREFIX("internal-users.username-prefix", "guest-", API_UPDATABLE_OFF),
 
         /**
          *
@@ -864,7 +879,7 @@ public interface IConfigProp {
         /**
          * PaperCut Server host.
          */
-        PAPERCUT_SERVER_HOST("papercut.server.host", "localhost"),
+        PAPERCUT_SERVER_HOST("papercut.server.host", "localhost", API_UPDATABLE_ON),
 
         /**
          * PaperCut Server port.
@@ -879,7 +894,7 @@ public interface IConfigProp {
         /**
          * PaperCut XML-RPC path. E.g.{@code /rpc/api/xmlrpc}
          */
-        PAPERCUT_XMLRPC_URL_PATH("papercut.xmlrpc.url-path", "/rpc/api/xmlrpc"),
+        PAPERCUT_XMLRPC_URL_PATH("papercut.xmlrpc.url-path", "/rpc/api/xmlrpc", API_UPDATABLE_OFF),
 
         /**
          *
@@ -922,7 +937,7 @@ public interface IConfigProp {
         /**
          *
          */
-        PRINT_IMAP_SECURITY("print.imap.security", IMAP_SECURITY_V_STARTTLS),
+        PRINT_IMAP_SECURITY("print.imap.security", IMAP_SECURITY_V_STARTTLS, API_UPDATABLE_OFF),
 
         /**
          * Username for IMAP authentication.
@@ -942,12 +957,12 @@ public interface IConfigProp {
         /**
          *
          */
-        PRINT_IMAP_INBOX_FOLDER("print.imap.folder.inbox", "Inbox"),
+        PRINT_IMAP_INBOX_FOLDER("print.imap.folder.inbox", "Inbox", API_UPDATABLE_OFF),
 
         /**
          *
          */
-        PRINT_IMAP_TRASH_FOLDER("print.imap.folder.trash", "Trash"),
+        PRINT_IMAP_TRASH_FOLDER("print.imap.folder.trash", "Trash", API_UPDATABLE_OFF),
 
         /**
          *
@@ -985,17 +1000,17 @@ public interface IConfigProp {
         /**
          * User used for simulation and testing.
          */
-        SMARTSCHOOL_SIMULATION_USER("smartschool.simulation.user", DEFAULT_SMARTSCHOOL_SIMULATION_USER),
+        SMARTSCHOOL_SIMULATION_USER("smartschool.simulation.user", DEFAULT_SMARTSCHOOL_SIMULATION_USER, API_UPDATABLE_OFF),
 
         /**
          * Student user 1 used for simulation and testing.
          */
-        SMARTSCHOOL_SIMULATION_STUDENT_1("smartschool.simulation.student-1", DEFAULT_SMARTSCHOOL_SIMULATION_STUDENT_1),
+        SMARTSCHOOL_SIMULATION_STUDENT_1("smartschool.simulation.student-1", DEFAULT_SMARTSCHOOL_SIMULATION_STUDENT_1, API_UPDATABLE_OFF),
 
         /**
          * Student user 2 used for simulation and testing.
          */
-        SMARTSCHOOL_SIMULATION_STUDENT_2("smartschool.simulation.student-2", DEFAULT_SMARTSCHOOL_SIMULATION_STUDENT_2),
+        SMARTSCHOOL_SIMULATION_STUDENT_2("smartschool.simulation.student-2", DEFAULT_SMARTSCHOOL_SIMULATION_STUDENT_2, API_UPDATABLE_OFF),
 
         /**
          * The simulation variant of
@@ -1014,20 +1029,20 @@ public interface IConfigProp {
          * PaperCut printer assigned to Smartschool will be configured to charge
          * to this account.
          */
-        SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT("smartschool.papercut.account.shared.parent", "Smartschool"),
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT("smartschool.papercut.account.shared.parent", "Smartschool", API_UPDATABLE_OFF),
 
         /**
          * The sub-account of
          * {@link #SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_PARENT} holding Print Job
          * transactions.
          */
-        SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS("smartschool.papercut.account.shared.child.jobs", "Jobs"),
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS("smartschool.papercut.account.shared.child.jobs", "Jobs", API_UPDATABLE_OFF),
 
         /**
          * This is one of the “Multiple Personal Accounts” in PaperCut and is
          * used by SavaPage to charge printing costs to individual persons.
          */
-        SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL("smartschool.papercut.account.personal", "Smartschool"),
+        SMARTSCHOOL_PAPERCUT_ACCOUNT_PERSONAL("smartschool.papercut.account.personal", "Smartschool", API_UPDATABLE_OFF),
 
         /**
          * The PaperCut account_type (like "USER-001", "USER-002") of the
@@ -1217,7 +1232,7 @@ public interface IConfigProp {
          * A comma/space separated list of TCP/IP ports to localhost LibreOffice
          * (UNO) connection instances to be launched by SavaPage.
          */
-        SOFFICE_CONNECTION_PORTS("soffice.connection.ports", "2002,2003"),
+        SOFFICE_CONNECTION_PORTS("soffice.connection.ports", "2002,2003", API_UPDATABLE_OFF),
 
         /**
          * The number of executed tasks after which the UNO connection is
@@ -1283,7 +1298,7 @@ public interface IConfigProp {
         /**
          *
          */
-        MAIL_SMTP_HOST("mail.smtp.host", "localhost"),
+        MAIL_SMTP_HOST("mail.smtp.host", "localhost", API_UPDATABLE_ON),
 
         /**
          * The port to connect to on the SMTP server. Common ports include 25 or
@@ -1296,7 +1311,7 @@ public interface IConfigProp {
          * (non-encrypted) connection, then elevating to an encrypted connection
          * on the same port.
          */
-        MAIL_SMTP_SECURITY("mail.smtp.security", SMTP_SECURITY_V_NONE),
+        MAIL_SMTP_SECURITY("mail.smtp.security", SMTP_SECURITY_V_NONE, API_UPDATABLE_OFF),
 
         /**
          * Username for SMTP authentication. Commonly an email address.
@@ -1343,12 +1358,12 @@ public interface IConfigProp {
         /**
          *
          */
-        MAIL_FROM_ADDRESS("mail.from.address", NOT_EMPTY_VALIDATOR),
+        MAIL_FROM_ADDRESS("mail.from.address", NOT_EMPTY_VALIDATOR, API_UPDATABLE_ON),
 
         /**
          *
          */
-        MAIL_FROM_NAME("mail.from.name", CommunityDictEnum.SAVAPAGE.getWord()),
+        MAIL_FROM_NAME("mail.from.name", CommunityDictEnum.SAVAPAGE.getWord(), API_UPDATABLE_ON),
 
         /**
          *
@@ -1358,7 +1373,7 @@ public interface IConfigProp {
         /**
          *
          */
-        MAIL_REPLY_TO_NAME("mail.reply.to.name", "DO NOT REPLY"),
+        MAIL_REPLY_TO_NAME("mail.reply.to.name", "DO NOT REPLY", API_UPDATABLE_ON),
 
         /**
          * If "Y", mail is PGP/MIME signed (if PGP Secret Key is present).
@@ -1479,21 +1494,21 @@ public interface IConfigProp {
          * PaperCut printer assigned to Delegated Print will be configured to
          * charge to this account.
          */
-        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_PARENT("proxy-print.delegate.papercut.account.shared.parent", "SavaPage"),
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_PARENT("proxy-print.delegate.papercut.account.shared.parent", "SavaPage", API_UPDATABLE_OFF),
 
         /**
          * The sub-account of
          * {@link #PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_PARENT} holding
          * Print Job transactions.
          */
-        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS("proxy-print.delegate.papercut.account.shared.child.jobs", "Jobs"),
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_SHARED_CHILD_JOBS("proxy-print.delegate.papercut.account.shared.child.jobs", "Jobs", API_UPDATABLE_OFF),
 
         /**
          * This is one of the “Multiple Personal Accounts” in PaperCut and is
          * used by SavaPage to charge Delegated Print costs to individual
          * persons.
          */
-        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL("proxy-print.delegate.papercut.account.personal", "SavaPage"),
+        PROXY_PRINT_DELEGATE_PAPERCUT_ACCOUNT_PERSONAL("proxy-print.delegate.papercut.account.personal", "SavaPage", API_UPDATABLE_OFF),
 
         /**
          * The PaperCut account_type (like "USER-001", "USER-002") of the
@@ -1543,28 +1558,28 @@ public interface IConfigProp {
         /**
          * CRON expression: 10 minutes past midnight.
          */
-        SCHEDULE_DAILY("schedule.daily", "0 10 0 * * ?"),
+        SCHEDULE_DAILY("schedule.daily", "0 10 0 * * ?", API_UPDATABLE_OFF),
 
         /**
          * CRON expression: 12:55am each day (before 1am to miss DST
          * switch-overs).
          */
-        SCHEDULE_DAILY_MAINT("schedule.daily-maintenance", "0 55 0 * * ?"),
+        SCHEDULE_DAILY_MAINT("schedule.daily-maintenance", "0 55 0 * * ?", API_UPDATABLE_OFF),
 
         /**
          * CRON expression.
          */
-        SCHEDULE_HOURLY("schedule.hourly", "0 0 * * * ?"),
+        SCHEDULE_HOURLY("schedule.hourly", "0 0 * * * ?", API_UPDATABLE_OFF),
 
         /**
          * CRON expression.
          */
-        SCHEDULE_MONTHLY("schedule.monthly", "0 30 0 1 * ?"),
+        SCHEDULE_MONTHLY("schedule.monthly", "0 30 0 1 * ?", API_UPDATABLE_OFF),
 
         /**
          * CRON expression: 20 minutes past midnight on Sunday morning.
          */
-        SCHEDULE_WEEKLY("schedule.weekly", "0 20 0 ? * 1"),
+        SCHEDULE_WEEKLY("schedule.weekly", "0 20 0 ? * 1", API_UPDATABLE_OFF),
 
         /**
          *
@@ -1669,47 +1684,47 @@ public interface IConfigProp {
         /**
          *
          */
-        STATS_TOTAL_RESET_DATE("stats.total.reset-date", String.valueOf(System.currentTimeMillis())),
+        STATS_TOTAL_RESET_DATE("stats.total.reset-date", String.valueOf(System.currentTimeMillis()), API_UPDATABLE_OFF),
 
         /**
          *
          */
-        STATS_TOTAL_PDF_OUT_PAGES("stats.total.pdf-out.pages", "0"),
+        STATS_TOTAL_PDF_OUT_PAGES("stats.total.pdf-out.pages", "0", API_UPDATABLE_OFF),
 
         /**
          *
          */
-        STATS_TOTAL_PDF_OUT_BYTES("stats.total.pdf-out.bytes", "0"),
+        STATS_TOTAL_PDF_OUT_BYTES("stats.total.pdf-out.bytes", "0", API_UPDATABLE_OFF),
 
         /**
          *
          */
-        STATS_TOTAL_PRINT_IN_PAGES("stats.total.print-in.pages", "0"),
+        STATS_TOTAL_PRINT_IN_PAGES("stats.total.print-in.pages", "0", API_UPDATABLE_OFF),
 
         /**
          *
          */
-        STATS_TOTAL_PRINT_IN_BYTES("stats.total.print-in.bytes", "0"),
+        STATS_TOTAL_PRINT_IN_BYTES("stats.total.print-in.bytes", "0", API_UPDATABLE_OFF),
 
         /**
          *
          */
-        STATS_TOTAL_PRINT_OUT_PAGES("stats.total.print-out.pages", "0"),
+        STATS_TOTAL_PRINT_OUT_PAGES("stats.total.print-out.pages", "0", API_UPDATABLE_OFF),
 
         /**
          *
          */
-        STATS_TOTAL_PRINT_OUT_SHEETS("stats.total.print-out.sheets", "0"),
+        STATS_TOTAL_PRINT_OUT_SHEETS("stats.total.print-out.sheets", "0", API_UPDATABLE_OFF),
 
         /**
          *
          */
-        STATS_TOTAL_PRINT_OUT_ESU("stats.total.print-out.esu", "0"),
+        STATS_TOTAL_PRINT_OUT_ESU("stats.total.print-out.esu", "0", API_UPDATABLE_OFF),
 
         /**
          *
          */
-        STATS_TOTAL_PRINT_OUT_BYTES("stats.total.print-out.bytes", "0"),
+        STATS_TOTAL_PRINT_OUT_BYTES("stats.total.print-out.bytes", "0", API_UPDATABLE_OFF),
 
         /**
          * Make a backup before a database schema upgrade.
@@ -1734,12 +1749,12 @@ public interface IConfigProp {
         /**
          *
          */
-        SYS_DEFAULT_LOCALE("system.default-locale", LOCALE_VALIDATOR),
+        SYS_DEFAULT_LOCALE("system.default-locale", LOCALE_VALIDATOR, API_UPDATABLE_ON),
 
         /**
          *
          */
-        SYS_DEFAULT_PAPER_SIZE("system.default-papersize", PAPERSIZE_V_SYSTEM),
+        SYS_DEFAULT_PAPER_SIZE("system.default-papersize", PAPERSIZE_V_SYSTEM, API_UPDATABLE_OFF),
 
         /**
          * The DNS name of the server. Used to give user feedback for URL's,
@@ -1762,7 +1777,7 @@ public interface IConfigProp {
          * defaults to "0" for pre v0.9.3 databases.
          * </p>
          */
-        SYS_SCHEMA_VERSION_MINOR("system.schema-version-minor", "0"),
+        SYS_SCHEMA_VERSION_MINOR("system.schema-version-minor", "0", API_UPDATABLE_OFF),
 
         /**
          * Do NOT set a value since it is present in installation database.
@@ -2236,7 +2251,8 @@ public interface IConfigProp {
          * @param name
          *            The property name.
          * @param isApiUpdatable
-         *            {@code true} if value can be updated by public API.
+         *            {@code true} if value can be updated with
+         *            {@link JsonRpcMethodName#SET_CONFIG_PROPERTY}.
          */
         Key(final String name, final boolean isApiUpdatable) {
             this.property = this.createProperty(KeyType.SINGLE_LINE, name, null,
@@ -2248,6 +2264,7 @@ public interface IConfigProp {
          * @param name
          *            The property name.
          * @param keyType
+         *            Type of key.
          */
         Key(final String name, final KeyType keyType) {
             this.property = this.createProperty(keyType, name, null, "", null);
@@ -2256,11 +2273,17 @@ public interface IConfigProp {
         /**
          *
          * @param name
+         *            The property name.
          * @param defaultValue
+         *            The initial value.
+         * @param isApiUpdatable
+         *            {@code true} if value can be updated with
+         *            {@link JsonRpcMethodName#SET_CONFIG_PROPERTY}.
          */
-        Key(final String name, final String defaultValue) {
+        Key(final String name, final String defaultValue,
+                final boolean isApiUpdatable) {
             this.property = this.createProperty(KeyType.SINGLE_LINE, name, null,
-                    defaultValue, null);
+                    defaultValue, null, isApiUpdatable);
         }
 
         /**
@@ -2268,6 +2291,7 @@ public interface IConfigProp {
          * @param name
          *            The property name.
          * @param validator
+         *            The validator.
          */
         Key(final String name, final ConfigPropValidator validator) {
             this.property = this.createProperty(KeyType.SINGLE_LINE, name,
@@ -2278,8 +2302,26 @@ public interface IConfigProp {
          *
          * @param name
          *            The property name.
+         * @param validator
+         *            The validator.
+         * @param isApiUpdatable
+         *            {@code true} if value can be updated with
+         *            {@link JsonRpcMethodName#SET_CONFIG_PROPERTY}.
+         */
+        Key(final String name, final ConfigPropValidator validator,
+                final boolean isApiUpdatable) {
+            this.property = this.createProperty(KeyType.SINGLE_LINE, name,
+                    validator, "", null, isApiUpdatable);
+        }
+
+        /**
+         *
+         * @param name
+         *            The property name.
          * @param keyType
+         *            Type of key.
          * @param defaultValue
+         *            The initial value.
          */
         Key(final String name, final KeyType keyType,
                 final String defaultValue) {
@@ -2292,8 +2334,11 @@ public interface IConfigProp {
          * @param name
          *            The property name.
          * @param keyType
+         *            Type of key.
          * @param validator
+         *            The validator.
          * @param defaultValue
+         *            The initial value.
          */
         Key(final String name, final KeyType keyType,
                 final ConfigPropValidator validator,
@@ -2307,7 +2352,9 @@ public interface IConfigProp {
          * @param name
          *            The property name.
          * @param validator
+         *            The validator.
          * @param defaultValue
+         *            The initial value.
          */
         Key(final String name, final ConfigPropValidator validator,
                 final String defaultValue) {
@@ -2320,25 +2367,54 @@ public interface IConfigProp {
          * @param name
          *            The property name.
          * @param validator
+         *            The validator.
          * @param defaultValue
-         * @param values
+         *            The initial value.
+         * @param isApiUpdatable
+         *            {@code true} if value can be updated with
+         *            {@link JsonRpcMethodName#SET_CONFIG_PROPERTY}.
          */
         Key(final String name, final ConfigPropValidator validator,
-                final String defaultValue, String[] values,
+                final String defaultValue, final boolean isApiUpdatable) {
+            this.property = this.createProperty(KeyType.SINGLE_LINE, name,
+                    validator, defaultValue, null, isApiUpdatable);
+        }
+
+        /**
+         *
+         * @param name
+         *            The property name.
+         * @param validator
+         *            The validator.
+         * @param defaultValue
+         *            The initial value.
+         * @param values
+         *            List of possible values.
+         * @param isApiUpdatable
+         *            {@code true} if value can be updated with
+         *            {@link JsonRpcMethodName#SET_CONFIG_PROPERTY}.
+         */
+        Key(final String name, final ConfigPropValidator validator,
+                final String defaultValue, final String[] values,
                 final boolean isApiUpdatable) {
             this.property = this.createProperty(KeyType.SINGLE_LINE, name,
                     validator, defaultValue, values, isApiUpdatable);
         }
 
         /**
+         * Creates property.
          *
          * @param keyType
+         *            Type of key.
          * @param name
          *            The property name.
          * @param validator
+         *            The validator.
          * @param defaultValue
+         *            The initial value.
          * @param values
-         * @return
+         *            List of possible values.
+         * @return The property.
          */
         private Prop createProperty(final KeyType keyType, final String name,
                 final ConfigPropValidator validator, final String defaultValue,
@@ -2369,13 +2445,19 @@ public interface IConfigProp {
         /**
          *
          * @param keyType
+         *            Type of key.
          * @param name
+         *            The property name.
          * @param validator
+         *            The validator.
          * @param defaultValue
+         *            The initial value.
          * @param values
+         *            List of possible values.
          * @param isApiUpdatable
-         *            {@code true} if value can be updated by public API.
-         * @return
+         *            {@code true} if value can be updated with
+         *            {@link JsonRpcMethodName#SET_CONFIG_PROPERTY}.
+         * @return The property.
          */
         private Prop createProperty(final KeyType keyType, final String name,
                 final ConfigPropValidator validator, final String defaultValue,
@@ -2388,7 +2470,7 @@ public interface IConfigProp {
 
         /**
          *
-         * @return
+         * @return The property.
          */
         public Prop getProperty() {
             return property;
