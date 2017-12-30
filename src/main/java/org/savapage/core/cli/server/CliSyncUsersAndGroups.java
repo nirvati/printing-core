@@ -27,7 +27,6 @@ import org.savapage.core.json.rpc.ErrorDataBasic;
 import org.savapage.core.json.rpc.JsonRpcError;
 import org.savapage.core.json.rpc.JsonRpcMethodName;
 import org.savapage.core.json.rpc.JsonRpcResult;
-import org.savapage.core.json.rpc.ResultDataBasic;
 import org.savapage.core.json.rpc.impl.ParamsSyncUsers;
 
 /**
@@ -129,11 +128,6 @@ public class CliSyncUsersAndGroups extends AbstractAppApi {
 
     @Override
     protected final boolean onResultResponse(final JsonRpcResult result) {
-
-        final ResultDataBasic data = result.data(ResultDataBasic.class);
-
-        getDisplayStream().println(data.getMessage());
-
         return false;
     }
 
