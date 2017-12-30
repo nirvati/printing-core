@@ -527,6 +527,17 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                     env.put(Context.SECURITY_PRINCIPAL, dn);
                     env.put(Context.SECURITY_CREDENTIALS, password);
 
+                    final ConfigManager cm = ConfigManager.instance();
+
+                    if (cm.isConfigValue(Key.AUTH_LDAP_USE_SSL)) {
+                        env.put(Context.SECURITY_PROTOCOL, "ssl");
+                        if (cm.isConfigValue(
+                                Key.AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED)) {
+                            env.put("java.naming.ldap.factory.socket",
+                                    TrustSelfSignedCertSocketFactory.class.getName());
+                        }
+                    }
+
                     ctx = new InitialDirContext(env);
                     /*
                      *
