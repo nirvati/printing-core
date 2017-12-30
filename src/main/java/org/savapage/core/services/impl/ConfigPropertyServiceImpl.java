@@ -21,6 +21,7 @@
  */
 package org.savapage.core.services.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.validator.ValidationResult;
@@ -75,7 +76,26 @@ public final class ConfigPropertyServiceImpl extends AbstractService
             return createError("msg-config-property-not-found", parm.getName());
         }
 
-        if (!CONFIG_MNGR.isConfigApiUpdatable(key)) {
+        final boolean hasAccess;
+
+        if (CONFIG_MNGR.isConfigApiUpdatable(key)) {
+
+            switch (key) {
+            case FINANCIAL_GLOBAL_CURRENCY_CODE:
+                hasAccess =
+                        StringUtils.isBlank(CONFIG_MNGR.getConfigValue(key));
+                break;
+
+            default:
+                hasAccess = true;
+                break;
+            }
+
+        } else {
+            hasAccess = false;
+        }
+
+        if (!hasAccess) {
             return createErrorMsg("msg-config-property-update-failure",
                     parm.getName(),
                     ValidationStatusEnum.ERROR_ACCESS_DENIED.toString());
