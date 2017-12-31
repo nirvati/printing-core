@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,6 +32,7 @@ import javax.print.attribute.standard.MediaSizeName;
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.validator.BooleanValidator;
+import org.savapage.core.config.validator.CidrRangesValidator;
 import org.savapage.core.config.validator.ConfigPropValidator;
 import org.savapage.core.config.validator.CurrencyCodeValidator;
 import org.savapage.core.config.validator.DecimalValidator;
@@ -905,7 +906,7 @@ public interface IConfigProp {
          * Client IP addresses (CIDR) that are allowed to use the JSON_RPC API
          * (when void, all client addresses are allowed).
          */
-        API_JSONRPC_IP_ADDRESSES_ALLOWED("api.jsonrpc.ext.ip-addresses-allowed", API_UPDATABLE_OFF),
+        API_JSONRPC_IP_ADDRESSES_ALLOWED("api.jsonrpc.ext.ip-addresses-allowed", CIDR_RANGES_VALIDATOR_OPT, API_UPDATABLE_OFF),
 
         /**
          *
@@ -1842,7 +1843,7 @@ public interface IConfigProp {
          * Client IP addresses (CIDR) that are allowed to use the User Client
          * App (when void, all client addresses are allowed).
          */
-        CLIAPP_IP_ADDRESSES_ALLOWED("cliapp.ip-addresses-allowed", API_UPDATABLE_ON),
+        CLIAPP_IP_ADDRESSES_ALLOWED("cliapp.ip-addresses-allowed", CIDR_RANGES_VALIDATOR_OPT, API_UPDATABLE_ON),
 
         /**
          * Enable Client App authentication for clients that are denied for
@@ -2224,7 +2225,7 @@ public interface IConfigProp {
         /**
          *
          */
-        WEB_PRINT_LIMIT_IP_ADDRESSES("web-print.limit-ip-addresses", API_UPDATABLE_ON);
+        WEB_PRINT_LIMIT_IP_ADDRESSES("web-print.limit-ip-addresses", CIDR_RANGES_VALIDATOR_OPT, API_UPDATABLE_ON);
 
         /**
          * Prefix for Web App theme keys.
@@ -2478,44 +2479,32 @@ public interface IConfigProp {
 
     };
 
-    /**
-     * .
-     */
+    /** */
     BooleanValidator BOOLEAN_VALIDATOR = new BooleanValidator();
 
-    /**
-     * .
-     */
+    /** */
+    CidrRangesValidator CIDR_RANGES_VALIDATOR_OPT =
+            new CidrRangesValidator(true);
+
+    /** */
     IpPortValidator IP_PORT_VALIDATOR = new IpPortValidator();
 
-    /**
-     * .
-     */
+    /** */
     NumberValidator NUMBER_VALIDATOR = new NumberValidator(false);
 
-    /**
-     * .
-     */
+    /** */
     NumberValidator NUMBER_VALIDATOR_OPT = new NumberValidator(true);
 
-    /**
-     * .
-     */
+    /** */
     LocaleValidator LOCALE_VALIDATOR = new LocaleValidator();
 
-    /**
-     * .
-     */
+    /** */
     CurrencyCodeValidator CURRENCY_VALIDATOR = new CurrencyCodeValidator(false);
 
-    /**
-     * .
-     */
+    /** */
     NotEmptyValidator NOT_EMPTY_VALIDATOR = new NotEmptyValidator();
 
-    /**
-     * .
-     */
+    /** */
     UrlValidator URL_VALIDATOR = new UrlValidator(false);
 
     /**
@@ -2528,15 +2517,11 @@ public interface IConfigProp {
      */
     UriValidator URI_VALIDATOR_OPT = new UriValidator(true);
 
-    /**
-     * .
-     */
+    /** */
     NumberValidator ACCOUNTING_DECIMAL_VALIDATOR = new NumberValidator(0L,
             Integer.valueOf(MAX_FINANCIAL_DECIMALS_IN_DB).longValue(), false);
 
-    /**
-     * .
-     */
+    /** */
     InternalFontFamilyValidator INTERNAL_FONT_FAMILY_VALIDATOR =
             new InternalFontFamilyValidator();
 
