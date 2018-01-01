@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -87,6 +87,7 @@ import org.savapage.core.json.rpc.impl.ResultPosDeposit;
 import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
+import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkInfo;
@@ -1139,6 +1140,14 @@ public final class AccountingServiceImpl extends AbstractService
         }
 
         /*
+         * Sheet cost.
+         */
+        if (costParms.getCustomCostSheet() != null) {
+            costResult.setCostSheet(costParms.getCustomCostSheet().multiply(
+                    BigDecimal.valueOf(costParms.getNumberOfSheets())));
+        }
+
+        /*
          * Cover cost.
          */
         final BigDecimal costCover = costParms.getCustomCostCoverPrint();
@@ -1175,12 +1184,19 @@ public final class AccountingServiceImpl extends AbstractService
         }
 
         BigDecimal totalCostMedia = BigDecimal.ZERO;
+        BigDecimal totalCostSheet = BigDecimal.ZERO;
         BigDecimal totalCostCopy = BigDecimal.ZERO;
 
         /*
          * Traverse the chunks and calculate.
          */
         for (final ProxyPrintJobChunk chunk : jobChunkInfo.getChunks()) {
+
+            // Number of sheets
+            costParms.setNumberOfSheets(PdfPrintCollector
+                    .calcNumberOfPrintedSheets(chunk.getNumberOfPages(),
+                            costParms.getNumberOfCopies(), costParms.isDuplex(),
+                            costParms.getPagesPerSide(), false, false, false));
 
             costParms.setNumberOfPages(chunk.getNumberOfPages());
             costParms.setLogicalNumberOfPages(chunk.getLogicalJobPages());
@@ -1197,6 +1213,7 @@ public final class AccountingServiceImpl extends AbstractService
             chunk.setCostResult(chunkCostResult);
 
             totalCostCopy = totalCostCopy.add(chunkCostResult.getCostCopy());
+            totalCostSheet = totalCostSheet.add(chunkCostResult.getCostSheet());
             totalCostMedia = totalCostMedia.add(chunkCostResult.getCostMedia());
         }
 

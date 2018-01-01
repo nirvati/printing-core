@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -219,6 +219,7 @@ public final class OutboxInfoDto extends AbstractDto {
         private boolean collate;
 
         private int copies;
+        private int sheets;
         private int pages;
 
         public String getTicketNumber() {
@@ -243,6 +244,14 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setCopies(int copies) {
             this.copies = copies;
+        }
+
+        public int getSheets() {
+            return sheets;
+        }
+
+        public void setSheets(int sheets) {
+            this.sheets = sheets;
         }
 
         public int getPages() {
@@ -336,7 +345,6 @@ public final class OutboxInfoDto extends AbstractDto {
          */
         private int fillerPages;
 
-        private int sheets;
         private boolean removeGraphics;
         private ProxyPrintCostDto costResult;
         private long submitTime;
@@ -447,14 +455,6 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setFillerPages(int fillerPages) {
             this.fillerPages = fillerPages;
-        }
-
-        public int getSheets() {
-            return sheets;
-        }
-
-        public void setSheets(int sheets) {
-            this.sheets = sheets;
         }
 
         public boolean isRemoveGraphics() {

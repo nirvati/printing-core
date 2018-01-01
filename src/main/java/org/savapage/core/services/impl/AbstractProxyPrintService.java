@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -96,6 +96,7 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.client.IppNotificationRecipient;
+import org.savapage.core.ipp.rules.IppRuleConstraint;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.job.SpJobType;
 import org.savapage.core.jpa.Account;
@@ -180,6 +181,78 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(AbstractProxyPrintService.class);
+
+    /**
+     *
+     * @author Rijk Ravestein
+     *
+     */
+    private static final class StandardRuleConstraintList {
+
+        /** */
+        public static final StandardRuleConstraintList INSTANCE =
+                new StandardRuleConstraintList();
+
+        /** */
+        private final List<IppRuleConstraint> rules = new ArrayList<>();
+
+        /**
+         * Constructor.
+         */
+        private StandardRuleConstraintList() {
+
+            //
+            final ImmutablePair<String, String> pairBooklet =
+                    new ImmutablePair<String, String>(
+                            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET,
+                            IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE);
+
+            final Set<String> setBookletNegate = new HashSet<>();
+            setBookletNegate.add(
+                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET);
+
+            for (final String nUp : new String[] { IppKeyword.NUMBER_UP_1,
+                    IppKeyword.NUMBER_UP_4, IppKeyword.NUMBER_UP_6,
+                    IppKeyword.NUMBER_UP_9 }) {
+
+                final IppRuleConstraint rule = new IppRuleConstraint(
+                        String.format("booklet-number-up-%s", nUp));
+                final List<Pair<String, String>> pairs = new ArrayList<>();
+
+                pairs.add(pairBooklet);
+                pairs.add(new ImmutablePair<String, String>(
+                        IppDictJobTemplateAttr.ATTR_NUMBER_UP, nUp));
+
+                rule.setIppContraints(pairs);
+                rule.setIppNegateSet(setBookletNegate);
+
+                this.rules.add(rule);
+            }
+
+            //
+            final IppRuleConstraint rule =
+                    new IppRuleConstraint("booklet-one-sided");
+            final List<Pair<String, String>> pairs = new ArrayList<>();
+
+            pairs.add(pairBooklet);
+            pairs.add(new ImmutablePair<String, String>(
+                    IppDictJobTemplateAttr.ATTR_SIDES,
+                    IppKeyword.SIDES_ONE_SIDED));
+
+            rule.setIppContraints(pairs);
+            rule.setIppNegateSet(setBookletNegate);
+            this.rules.add(rule);
+        }
+
+        /**
+         *
+         * @return The standard constraint rules.
+         */
+        public List<IppRuleConstraint> getRules() {
+            return rules;
+        }
+
+    }
 
     /**
      *
@@ -3112,6 +3185,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Set the parameters for this single PDF file.
          */
+        costParms.setNumberOfSheets(PdfPrintCollector.calcNumberOfPrintedSheets(
+                request, createInfo.getBlankFillerPages()));
         costParms.setNumberOfPages(request.getNumberOfPages());
         costParms.setLogicalNumberOfPages(createInfo.getLogicalJobPages());
         costParms.setIppMediaOption(request.getMediaOption());
@@ -3690,11 +3765,79 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
+    public final Set<String> validateContraints(
+            final JsonProxyPrinter proxyPrinter,
+            final Map<String, String> ippOptions) {
+
+        final Set<String> keywords = new HashSet<>();
+
+        validateContraints(ippOptions,
+                StandardRuleConstraintList.INSTANCE.getRules(), keywords);
+
+        if (proxyPrinter.hasCustomRulesConstraint()) {
+            validateContraints(ippOptions,
+                    proxyPrinter.getCustomRulesConstraint(), keywords);
+        }
+        return keywords;
+    }
+
+    /**
+     * Validates IPP choices according to constraints.
+     *
+     * @param ippOptions
+     *            The IPP attribute key/choice pairs.
+     * @param rules
+     *            The constraint rules.
+     * @param keywords
+     *            The {@link Set} to append conflicting IPP option keywords on.
+     * @return The {@link Set} with conflicting IPP option keywords.
+     */
+    public final Set<String> validateContraints(
+            final Map<String, String> ippOptions,
+            final List<IppRuleConstraint> rules, final Set<String> keywords) {
+
+        for (final IppRuleConstraint rule : rules) {
+            if (rule.doesRuleApply(ippOptions)) {
+                for (final Pair<String, String> pair : rule
+                        .getIppContraints()) {
+                    keywords.add(pair.getKey());
+                }
+            }
+        }
+        return keywords;
+    }
+
+    @Override
+    public final String validateContraintsMsg(
+            final JsonProxyPrinter proxyPrinter,
+            final Map<String, String> ippOptions, final Locale locale) {
+
+        final Set<String> conflictingIppKeywords =
+                this.validateContraints(proxyPrinter, ippOptions);
+
+        if (conflictingIppKeywords.isEmpty()) {
+            return null;
+        }
+
+        final StringBuilder builder = new StringBuilder();
+
+        for (final String attrKeyword : conflictingIppKeywords) {
+            builder.append("\"")
+                    .append(this.localizePrinterOpt(locale, attrKeyword))
+                    .append("\"").append(", ");
+        }
+
+        return localize(locale, "msg-user-print-out-incompatible-options",
+                StringUtils.removeEnd(builder.toString(), ", "));
+    }
+
+    @Override
     public final String validateCustomCostRules(
             final JsonProxyPrinter proxyPrinter,
             final Map<String, String> ippOptions, final Locale locale) {
+
         /*
-         * Media
+         * Media: if cost rules are present, a rule MUST be found.
          */
         if (proxyPrinter.hasCustomCostRulesMedia()) {
 
@@ -3715,34 +3858,45 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
         }
 
-        // Copy
+        final StringBuilder msg = new StringBuilder();
+
+        /*
+         * Copy Sheet Rules are NOT used to validate IPP options.
+         */
+
+        /*
+         * If Copy Cost Rules are present, AND a Job Ticket Copy option or
+         * Custom finishing option is chosen, a cost rule MUST be present.
+         *
+         * IMPORTANT: this validation is deprecated and is replaced by
+         * SPConstraint.
+         */
         if (proxyPrinter.hasCustomCostRulesCopy()) {
 
-            // Merge the Job Ticket options with the custom user options.
-            final String[][] copyOptions =
-                    IppDictJobTemplateAttr.JOBTICKET_ATTR_COPY_V_NONE;
+            /*
+             * Collect all Job Ticket Copy options and Custom finishing options
+             * with their NONE choice.
+             */
+            final List<String[]> copyOptionsNone = new ArrayList<>();
 
-            final List<String[]> copyOptionsAll = new ArrayList<>();
-
-            for (final String[] attrArray : copyOptions) {
-                copyOptionsAll.add(attrArray);
+            for (final String[] attrArray : IppDictJobTemplateAttr.JOBTICKET_ATTR_COPY_V_NONE) {
+                copyOptionsNone.add(attrArray);
             }
 
             for (final Entry<String, String> entry : ippOptions.entrySet()) {
                 if (IppDictJobTemplateAttr.isCustomExtAttr(entry.getKey())) {
-                    copyOptionsAll.add(new String[] { entry.getKey(),
+                    copyOptionsNone.add(new String[] { entry.getKey(),
                             IppKeyword.ORG_SAVAPAGE_EXT_ATTR_NONE });
                 }
             }
 
-            //
-            StringBuilder msg = null;
-
-            for (final String[] attrArray : copyOptionsAll) {
+            // Validate.
+            for (final String[] attrArray : copyOptionsNone) {
 
                 final String ippKey = attrArray[0];
                 final String ippChoice = ippOptions.get(ippKey);
 
+                // Skip when option not found, or NONE choice?
                 if (ippChoice == null || ippChoice.equals(attrArray[1])) {
                     continue;
                 }
@@ -3751,15 +3905,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
                         new ImmutablePair<>(ippKey, ippChoice);
 
                 final Boolean isValid = proxyPrinter
-                        .isCustomCostOptionValid(option, ippOptions);
+                        .isCustomCopyCostOptionValid(option, ippOptions);
 
                 if (isValid == null || isValid.booleanValue()) {
                     continue;
                 }
 
-                if (msg == null) {
-                    msg = new StringBuilder();
-                } else {
+                if (msg.length() > 0) {
                     msg.append(", ");
                 }
 
@@ -3769,12 +3921,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
                                 ippChoice))
                         .append("\"");
             }
+        }
 
-            if (msg != null) {
-                return localize(locale,
-                        "msg-user-print-out-validation-finishing-warning",
-                        msg.toString());
-            }
+        if (msg.length() > 0) {
+            return localize(locale,
+                    "msg-user-print-out-validation-finishing-warning",
+                    msg.toString());
         }
 
         return null;

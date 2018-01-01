@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.print.attribute.standard.MediaSizeName;
 
@@ -1026,6 +1027,36 @@ public interface ProxyPrintService {
      */
     ProxyPrintDocReq createProxyPrintDocReq(User user, OutboxJobDto job,
             PrintModeEnum printMode);
+
+    /**
+     * Validates IPP choices according to generic and proxy printer specific
+     * constraints.
+     *
+     * @param proxyPrinter
+     *            The proxy printer holding the custom rules.
+     * @param ippOptions
+     *            The IPP attribute key/choice pairs.
+     * @return The {@link Set} with conflicting IPP option keywords. When set is
+     *         empty all choices are valid.
+     */
+    Set<String> validateContraints(JsonProxyPrinter proxyPrinter,
+            Map<String, String> ippOptions);
+
+    /**
+     * Validates IPP choices according to generic and proxy printer specific
+     * constraints. When valid, {@code null} is returned. Otherwise, a localized
+     * message is returned.
+     *
+     * @param proxyPrinter
+     *            The proxy printer holding the custom rules.
+     * @param ippOptions
+     *            The IPP attribute key/choice pairs.
+     * @param locale
+     *            The locale for the UI message.
+     * @return The message string, or {@code null} when choices are valid.
+     */
+    String validateContraintsMsg(JsonProxyPrinter proxyPrinter,
+            Map<String, String> ippOptions, Locale locale);
 
     /**
      * Validates IPP choices according to the custom cost rules of the proxy

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,10 +38,11 @@ import org.savapage.core.print.proxy.JsonProxyPrinter;
  */
 public final class ProxyPrintCostParms {
 
-    /**
-     *
-     */
+    /** */
     private int numberOfCopies;
+
+    /** */
+    private int numberOfSheets;
 
     /**
      * The total number of pages. <b>Note</b>: Blank filler pages are <i>not</i>
@@ -95,6 +96,11 @@ public final class ProxyPrintCostParms {
     private BigDecimal customCostMediaSideDuplex;
 
     /**
+     * Additional custom cost for one (1) sheet.
+     */
+    private BigDecimal customCostSheet;
+
+    /**
      * Additional custom cost for one (1) copy.
      */
     private BigDecimal customCostCopy;
@@ -143,6 +149,14 @@ public final class ProxyPrintCostParms {
 
     public void setNumberOfCopies(int numberOfCopies) {
         this.numberOfCopies = numberOfCopies;
+    }
+
+    public int getNumberOfSheets() {
+        return numberOfSheets;
+    }
+
+    public void setNumberOfSheets(int numberOfSheets) {
+        this.numberOfSheets = numberOfSheets;
     }
 
     public int getNumberOfPages() {
@@ -259,11 +273,19 @@ public final class ProxyPrintCostParms {
     }
 
     /**
+     * @return Additional custom cost for one (1) sheet.
+     */
+    public BigDecimal getCustomCostSheet() {
+        return customCostSheet;
+    }
+
+    /**
      * @return Additional custom cost for the set of copies.
      */
     public BigDecimal getCustomCostSet() {
         return customCostSet;
     }
+
     /**
      * @return Cost for
      *         {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_COVER_TYPE}. When
@@ -298,6 +320,7 @@ public final class ProxyPrintCostParms {
         if (this.proxyPrinter == null || this.ippOptionValues == null) {
             this.customCostSet = null;
             this.customCostCopy = null;
+            this.customCostSheet = null;
             this.customCostMediaSide = null;
             this.customCostCoverPrint = null;
             this.customCoverPrintPages = 0;
@@ -337,6 +360,13 @@ public final class ProxyPrintCostParms {
             }
 
         }
+
+        /*
+         * Sheet cost.
+         */
+        this.customCostSheet =
+                this.proxyPrinter.calcCustomCostSheet(this.ippOptionValues);
+
         /*
          * Media dependent cost.
          */

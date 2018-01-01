@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -43,6 +43,11 @@ public final class ProxyPrintCostDto extends AbstractDto {
     private BigDecimal costMedia;
 
     /**
+     * The total cost for external operations per sheet.
+     */
+    private BigDecimal costSheet;
+
+    /**
      * The total cost for external operations per copy.
      */
     private BigDecimal costCopy;
@@ -57,6 +62,7 @@ public final class ProxyPrintCostDto extends AbstractDto {
      */
     public ProxyPrintCostDto() {
         this.costMedia = BigDecimal.ZERO;
+        this.costSheet = BigDecimal.ZERO;
         this.costCopy = BigDecimal.ZERO;
         this.costSet = BigDecimal.ZERO;
     }
@@ -68,7 +74,7 @@ public final class ProxyPrintCostDto extends AbstractDto {
      */
     @JsonIgnore
     public BigDecimal getCostTotal() {
-        return costMedia.add(costCopy).add(costSet);
+        return costMedia.add(costSheet).add(costCopy).add(costSet);
     }
 
     /**
@@ -89,7 +95,6 @@ public final class ProxyPrintCostDto extends AbstractDto {
     }
 
     /**
-     *
      * @return The total cost for external operations per copy.
      */
     public BigDecimal getCostCopy() {
@@ -97,12 +102,26 @@ public final class ProxyPrintCostDto extends AbstractDto {
     }
 
     /**
-     *
      * @param cost
      *            The total cost for external operations per copy.
      */
     public void setCostCopy(final BigDecimal cost) {
         this.costCopy = cost;
+    }
+
+    /**
+     * @return The total cost for external operations per sheet.
+     */
+    public BigDecimal getCostSheet() {
+        return costSheet;
+    }
+
+    /**
+     * @param cost
+     *            The total cost for external operations per sheet.
+     */
+    public void setCostSheet(final BigDecimal cost) {
+        this.costSheet = cost;
     }
 
     /**

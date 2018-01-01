@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -66,34 +66,54 @@ public abstract class IppRuleGeneric implements IppRuleChecker {
     }
 
     /**
-     *
      * @return The identifying name.
      */
     public String getName() {
         return name;
     }
 
+    /**
+     * @return Independent main IPP attribute.
+     */
     public final Pair<String, String> getMainIpp() {
         return mainIpp;
     }
 
-    public final void setMainIpp(final Pair<String, String> mainIpp) {
-        this.mainIpp = mainIpp;
+    /**
+     * @param mainIppPair
+     *            Independent main IPP attribute.
+     */
+    public final void setMainIpp(final Pair<String, String> mainIppPair) {
+        this.mainIpp = mainIppPair;
     }
 
+    /**
+     * @return Extra independent IPP attributes.
+     */
     public final List<Pair<String, String>> getExtraIpp() {
         return extraIpp;
     }
 
-    public final void setExtraIpp(List<Pair<String, String>> list) {
+    /**
+     * @param list
+     *            Extra independent IPP attributes.
+     */
+    public final void setExtraIpp(final List<Pair<String, String>> list) {
         this.extraIpp = list;
     }
 
+    /**
+     * @return The set of IPP rule attribute keys with the negated value.
+     */
     public final Set<String> getExtraIppNegate() {
         return extraIppNegate;
     }
 
-    public final void setExtraIppNegate(Set<String> ippNegate) {
+    /**
+     * @param ippNegate
+     *            The set of IPP rule attribute keys with the negated value.
+     */
+    public final void setExtraIppNegate(final Set<String> ippNegate) {
         this.extraIppNegate = ippNegate;
     }
 
@@ -108,18 +128,36 @@ public abstract class IppRuleGeneric implements IppRuleChecker {
                 || !mainIppValue.equals(this.getMainIpp().getValue())) {
             return false;
         }
+        return doesRuleApply(ippOptionValues, this.getExtraIpp(),
+                this.getExtraIppNegate());
+    }
+
+    /**
+     * Checks if a rule applies to a map of IPP options.
+     *
+     * @param ippOptionValues
+     *            The IPP options.
+     * @param ippPairRules
+     *            List of rules as IPP option name/value pairs.
+     * @param ippNegateSet
+     *            The set of IPP rule attribute keys with the negated value.
+     * @return {@code true} if rule applies.
+     */
+    public static boolean doesRuleApply(
+            final Map<String, String> ippOptionValues,
+            final List<Pair<String, String>> ippPairRules,
+            final Set<String> ippNegateSet) {
 
         boolean ruleApply = true;
 
-        for (final Pair<String, String> pair : this.getExtraIpp()) {
+        for (final Pair<String, String> pair : ippPairRules) {
 
             final String ippRuleAttr = pair.getKey();
             final String ippValue = ippOptionValues.get(ippRuleAttr);
 
             final boolean isChosen =
                     ippValue != null && ippValue.equals(pair.getValue());
-            final boolean mustBeChosen =
-                    !this.getExtraIppNegate().contains(ippRuleAttr);
+            final boolean mustBeChosen = !ippNegateSet.contains(ippRuleAttr);
 
             if ((isChosen && mustBeChosen) || (!isChosen && !mustBeChosen)) {
                 continue;
@@ -131,4 +169,5 @@ public abstract class IppRuleGeneric implements IppRuleChecker {
 
         return ruleApply;
     }
+
 }

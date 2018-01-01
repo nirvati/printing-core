@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -319,11 +319,16 @@ public final class OutboxServiceImpl extends AbstractService
 
         final OutboxJobDto job = new OutboxJobDto();
 
-        if (createInfo != null) {
-            job.setFile(createInfo.getPdfFile().getName());
+        if (createInfo == null) {
+            job.setFillerPages(0);
+        } else {
             job.setFillerPages(createInfo.getBlankFillerPages());
-            job.setSheets(calNumberOfSheets(request, createInfo));
+            job.setFile(createInfo.getPdfFile().getName());
         }
+
+        job.setSheets(PdfPrintCollector.calcNumberOfPrintedSheets(request,
+                job.getFillerPages()));
+
         job.setPrinter(request.getPrinterName());
         job.setJobName(request.getJobName());
         job.setComment(request.getComment());
@@ -427,23 +432,6 @@ public final class OutboxServiceImpl extends AbstractService
         } catch (IOException e) {
             throw new SpException(e.getMessage());
         }
-    }
-
-    /**
-     * Calculates the number of sheets as requested in the
-     * {@link AbstractProxyPrintReq} request.
-     *
-     * @param request
-     *            The request.
-     * @param createInfo
-     *            The {@link PdfCreateInfo} with the PDF file to be printed by
-     *            the Job Ticket.
-     * @return The number of sheets.
-     */
-    private static int calNumberOfSheets(final AbstractProxyPrintReq request,
-            final PdfCreateInfo createInfo) {
-        return PdfPrintCollector.calcNumberOfPrintedSheets(request,
-                createInfo.getBlankFillerPages());
     }
 
     /**

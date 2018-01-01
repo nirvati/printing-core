@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,7 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.ipp.rules.IppRuleConstraint;
 import org.savapage.core.ipp.rules.IppRuleCost;
 import org.savapage.core.ipp.rules.IppRuleExtra;
 import org.savapage.core.ipp.rules.IppRuleNumberUp;
@@ -75,10 +76,22 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     private List<IppRuleCost> customCostRulesMedia;
 
     /**
+     * Custom cost rules for a printed sheet.
+     */
+    @JsonIgnore
+    private List<IppRuleCost> customCostRulesSheet;
+
+    /**
      * Custom rules for a handling number-up printing.
      */
     @JsonIgnore
     private List<IppRuleNumberUp> customNumberUpRules;
+
+    /**
+     * Constraint Rules.
+     */
+    @JsonIgnore
+    private List<IppRuleConstraint> customRulesConstraint;
 
     /**
      * Extra Rules for adding PPD options.
@@ -207,7 +220,6 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
-     *
      * @return Custom cost rules for a printed media side.
      */
     @JsonIgnore
@@ -216,13 +228,28 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
-     *
      * @param rules
      *            Custom cost rules for a printed media side.
      */
     @JsonIgnore
     public void setCustomCostRulesMedia(final List<IppRuleCost> rules) {
         this.customCostRulesMedia = rules;
+    }
+
+    /**
+     * @return Custom cost rules for a printed sheet.
+     */
+    public List<IppRuleCost> getCustomCostRulesSheet() {
+        return customCostRulesSheet;
+    }
+
+    /**
+     * @param rules
+     *            Custom cost rules for a printed sheet.
+     */
+    public void
+            setCustomCostRulesSheet(List<IppRuleCost> customCostRulesSheet) {
+        this.customCostRulesSheet = customCostRulesSheet;
     }
 
     /**
@@ -274,6 +301,24 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     public void setCustomNumberUpRules(final List<IppRuleNumberUp> rules) {
         this.customNumberUpRules = rules;
+    }
+
+    /**
+     * @return Constraint rules.
+     */
+    @JsonIgnore
+    public List<IppRuleConstraint> getCustomRulesConstraint() {
+        return customRulesConstraint;
+    }
+
+    /**
+     * @param customRulesConstraint
+     *            Constraint rules.
+     */
+    @JsonIgnore
+    public void setCustomRulesConstraint(
+            List<IppRuleConstraint> customRulesConstraint) {
+        this.customRulesConstraint = customRulesConstraint;
     }
 
     /**
@@ -677,7 +722,9 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.stateReasons = this.stateReasons;
         copy.customCostRulesCopy = this.customCostRulesCopy;
         copy.customCostRulesMedia = this.customCostRulesMedia;
+        copy.customCostRulesSheet = this.customCostRulesSheet;
 
+        copy.customRulesConstraint = this.customRulesConstraint;
         copy.customRulesExtra = this.customRulesExtra;
         copy.customRulesSubst = this.customRulesSubst;
 
@@ -697,6 +744,18 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     public BigDecimal
             calcCustomCostMedia(final Map<String, String> ippChoices) {
         return calcCost(this.getCustomCostRulesMedia(), ippChoices, false);
+    }
+
+    /**
+     * Calculates Sheet Cost of IPP choices according to the list of cost rules.
+     *
+     * @param ippChoices
+     *            The IPP attribute key/choices.
+     * @return {@code null} when none of the rules apply.
+     */
+    public BigDecimal
+            calcCustomCostSheet(final Map<String, String> ippChoices) {
+        return calcCost(this.getCustomCostRulesSheet(), ippChoices, false);
     }
 
     /**
@@ -812,6 +871,24 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
 
     /**
      * Checks if an option is valid according to at least one (1) of the Custom
+     * Sheet Cost rules.
+     *
+     * @param option
+     *            The IPP option key/value pair.
+     * @param ippChoices
+     *            The full context of IPP choices.
+     * @return {@code null} when no rule applies. {@link Boolean#TRUE} when at
+     *         least one rule applies and is valid.
+     */
+    public Boolean isCustomSheetCostOptionValid(
+            final Pair<String, String> option,
+            final Map<String, String> ippChoices) {
+        return isCustomCostOptionValid(getCustomCostRulesCopy(), option,
+                ippChoices);
+    }
+
+    /**
+     * Checks if an option is valid according to at least one (1) of the Custom
      * Copy Cost rules.
      *
      * @param option
@@ -821,7 +898,8 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      * @return {@code null} when no rule applies. {@link Boolean#TRUE} when at
      *         least one rule applies and is valid.
      */
-    public Boolean isCustomCostOptionValid(final Pair<String, String> option,
+    public Boolean isCustomCopyCostOptionValid(
+            final Pair<String, String> option,
             final Map<String, String> ippChoices) {
         return isCustomCostOptionValid(getCustomCostRulesCopy(), option,
                 ippChoices);
@@ -908,7 +986,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
-     * @return {@code true} when custom media cost rules are present.
+     * @return {@code true} when custom Media cost rules are present.
      */
     public boolean hasCustomCostRulesMedia() {
         final List<IppRuleCost> rules = this.getCustomCostRulesMedia();
@@ -916,10 +994,26 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
-     * @return {@code true} when custom copy cost rules are present.
+     * @return {@code true} when custom Sheet cost rules are present.
+     */
+    public boolean hasCustomCostRulesSheet() {
+        final List<IppRuleCost> rules = this.getCustomCostRulesSheet();
+        return rules != null && !rules.isEmpty();
+    }
+
+    /**
+     * @return {@code true} when custom Copy cost rules are present.
      */
     public boolean hasCustomCostRulesCopy() {
         final List<IppRuleCost> rules = this.getCustomCostRulesCopy();
+        return rules != null && !rules.isEmpty();
+    }
+
+    /**
+     * @return {@code true} when custom constraint rules are present.
+     */
+    public boolean hasCustomRulesConstraint() {
+        final List<IppRuleConstraint> rules = this.getCustomRulesConstraint();
         return rules != null && !rules.isEmpty();
     }
 
