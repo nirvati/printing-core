@@ -115,7 +115,7 @@
 	</columnHeader>
 	<detail>
 		<band height="25" splitType="Stretch">
-			<textField>
+			<textField isStretchWithOverflow="true">
 				<reportElement x="0" y="0" width="100" height="20" uuid="ed3fc4d1-96c4-4e17-b949-5e6b3640bcfb"/>
 				<box padding="3"/>
 				<textElement markup="none">
@@ -123,7 +123,7 @@
 				</textElement>
 				<textFieldExpression><![CDATA[$F{USER_NAME}]]></textFieldExpression>
 			</textField>
-			<textField>
+			<textField isStretchWithOverflow="true">
 				<reportElement x="100" y="0" width="200" height="20" uuid="cf9a98c6-c905-4d54-accb-ddad768217eb"/>
 				<box padding="3"/>
 				<textElement markup="none">
@@ -163,7 +163,7 @@
 				</textElement>
 				<textFieldExpression><![CDATA[$F{JOB_TOTAL}]]></textFieldExpression>
 			</textField>
-			<textField>
+			<textField isStretchWithOverflow="true">
 				<reportElement x="575" y="0" width="225" height="20" uuid="37c428ab-91b0-4ce3-9f89-d30754490990"/>
 				<box padding="3"/>
 				<textElement markup="none">
