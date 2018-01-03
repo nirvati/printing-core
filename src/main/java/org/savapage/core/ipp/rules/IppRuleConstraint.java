@@ -97,6 +97,16 @@ public final class IppRuleConstraint implements IppRuleChecker {
 
     @Override
     public boolean doesRuleApply(final Map<String, String> ippOptionValues) {
+
+        /*
+         * The rule does NOT apply when not all IPP attributes of the rule are
+         * present in the option map.
+         */
+        for (final Pair<String, String> pair : this.ippContraints) {
+            if (!ippOptionValues.containsKey(pair.getKey())) {
+                return false;
+            }
+        }
         return IppRuleGeneric.doesRuleApply(ippOptionValues, this.ippContraints,
                 this.ippNegateSet);
     }
