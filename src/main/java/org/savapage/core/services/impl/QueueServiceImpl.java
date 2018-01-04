@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -30,6 +30,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.UnavailableException;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.IppQueueAttrEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
@@ -55,17 +56,18 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class QueueServiceImpl extends AbstractService
         implements QueueService {
 
-    /**
-     * .
-     */
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(QueueServiceImpl.class);
+
+    /** */
+    private static final ConfigManager CONFIG_MNGR = ConfigManager.instance();
 
     @Override
     public boolean isRawPrintQueue(final IppQueue queue) {
@@ -310,6 +312,41 @@ public final class QueueServiceImpl extends AbstractService
     @Override
     public boolean isReservedQueue(final String urlPath) {
         return this.getReservedQueue(urlPath) != null;
+    }
+
+    @Override
+    public boolean isActiveQueue(final IppQueue queue) {
+
+        final ReservedIppQueueEnum queueReserved =
+                this.getReservedQueue(queue.getUrlPath());
+
+        if (queueReserved == null || queueReserved.isDriverPrint()) {
+            return !(queue.getDeleted().booleanValue()
+                    || queue.getDisabled().booleanValue());
+        }
+
+        final boolean enabled;
+
+        switch (queueReserved) {
+        case GCP:
+            enabled = CONFIG_MNGR.isConfigValue(Key.GCP_ENABLE);
+            break;
+        case MAILPRINT:
+            enabled = CONFIG_MNGR.isConfigValue(Key.PRINT_IMAP_ENABLE);
+            break;
+        case SMARTSCHOOL:
+            enabled = CONFIG_MNGR.isConfigValue(Key.SMARTSCHOOL_1_ENABLE)
+                    || CONFIG_MNGR.isConfigValue(Key.SMARTSCHOOL_2_ENABLE);
+            break;
+        case WEBPRINT:
+            enabled = CONFIG_MNGR.isConfigValue(Key.WEB_PRINT_ENABLE);
+            break;
+        default:
+            throw new IllegalStateException(String.format("%s is not handled.",
+                    queueReserved.toString()));
+
+        }
+        return enabled;
     }
 
     @Override

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -37,9 +37,6 @@ import org.savapage.core.services.helpers.PrinterAttrLookup;
  */
 public final class PrinterAttrDaoImpl extends GenericDaoImpl<PrinterAttr>
         implements PrinterAttrDao {
-
-    private static final String V_YES = "Y";
-    private static final String V_NO = "N";
 
     /**
      * This SQL LIKE value is used to select all rolling statistics.

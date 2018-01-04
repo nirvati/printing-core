@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -58,6 +58,8 @@ public interface PrinterDao extends GenericDao<Printer> {
         private String containingText;
         private Boolean disabled;
         private Boolean deleted;
+        private Boolean internal;
+        private Boolean jobTicket;
 
         public String getContainingText() {
             return containingText;
@@ -81,6 +83,22 @@ public interface PrinterDao extends GenericDao<Printer> {
 
         public void setDeleted(Boolean deleted) {
             this.deleted = deleted;
+        }
+
+        public Boolean getInternal() {
+            return internal;
+        }
+
+        public void setInternal(Boolean internal) {
+            this.internal = internal;
+        }
+
+        public Boolean getJobTicket() {
+            return jobTicket;
+        }
+
+        public void setJobTicket(Boolean jobTicket) {
+            this.jobTicket = jobTicket;
         }
 
     }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,9 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.savapage.core.SpException;
+import org.savapage.core.dao.PrinterAttrDao;
 import org.savapage.core.dao.PrinterDao;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.dto.IppMediaCostDto;
@@ -150,7 +152,7 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
         @SuppressWarnings("unchecked")
         final List<Long> list = query.getResultList();
 
-        for (final Long id: list) {
+        for (final Long id : list) {
             this.delete(this.findById(id));
             nCount++;
             batchCommitter.increment();
@@ -284,6 +286,29 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
     }
 
     /**
+     * Applies PrinterAttr constraint to the JPQL string.
+     *
+     * @param where
+     *            The {@link StringBuilder} to append to.
+     * @param attrName
+     *            The attribute name.
+     * @param attrValue
+     *            The attribute value.
+     */
+    private void applyPrinterAttrConstraint(final StringBuilder where,
+            final PrinterAttrEnum attrName, final boolean attrValue) {
+
+        where.append("(A.name = \'").append(attrName.getDbName())
+                .append("\' AND A.value = \'");
+        if (attrValue) {
+            where.append(PrinterAttrDao.V_YES);
+        } else {
+            where.append(PrinterAttrDao.V_NO);
+        }
+        where.append("\')");
+    }
+
+    /**
      * Applies the list filter to the JPQL string.
      *
      * @param jpql
@@ -321,11 +346,38 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
             nWhere++;
             where.append(" P.deleted = :selDeleted");
         }
+
+        if (filter.getInternal() != null || filter.getJobTicket() != null) {
+
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+
+            where.append(
+                    " P NOT IN (SELECT A.printer FROM PrinterAttr A WHERE ");
+
+            if (filter.getInternal() != null) {
+                applyPrinterAttrConstraint(where,
+                        PrinterAttrEnum.ACCESS_INTERNAL,
+                        !filter.getInternal().booleanValue());
+            }
+            if (filter.getJobTicket() != null) {
+                if (filter.getInternal() != null) {
+                    where.append(" OR ");
+                }
+                applyPrinterAttrConstraint(where,
+                        PrinterAttrEnum.JOBTICKET_ENABLE,
+                        !filter.getJobTicket().booleanValue());
+            }
+
+            where.append(")");
+        }
+
         //
         if (nWhere > 0) {
             jpql.append(" WHERE ").append(where.toString());
         }
-
     }
 
     @Override

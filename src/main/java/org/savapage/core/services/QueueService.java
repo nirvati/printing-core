@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -39,14 +39,12 @@ import org.savapage.core.print.server.DocContentPrintRsp;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface QueueService {
 
-    /**
-     *
-     */
+    /** */
     int MAX_TIME_SERIES_INTERVALS_DAYS = 40;
 
     /**
@@ -152,6 +150,17 @@ public interface QueueService {
     IppQueue getOrCreateReservedQueue(ReservedIppQueueEnum reservedQueue);
 
     /**
+     * Does {@link IppQueue} represent an active queue. A driver (regular and
+     * reserved) queue is active when not deleted and not disabled. A driverless
+     * reserved queue is active when enabled by configuration.
+     *
+     * @param queue
+     *            The {@link IppQueue} .
+     * @return {@code true} when queue is active.
+     */
+    boolean isActiveQueue(IppQueue queue);
+
+    /**
      * Checks if urlPath represents a reserved queue (the check is
      * case-insensitive).
      *
@@ -160,7 +169,7 @@ public interface QueueService {
      * @return {@link ReservedIppQueueEnum} or {@code null} when URL path is a
      *         user-defined queue.
      */
-    ReservedIppQueueEnum getReservedQueue(final String urlPath);
+    ReservedIppQueueEnum getReservedQueue(String urlPath);
 
     /**
      * Checks if urlPath represents a reserved queue (the check is
@@ -239,7 +248,7 @@ public interface QueueService {
      * @param queue
      *            The queue.
      */
-    void undoLogicalDeleted(final IppQueue queue);
+    void undoLogicalDeleted(IppQueue queue);
 
     /**
      * Adds totals of a job to an {@link IppQueue} (database is NOT updated).
@@ -286,11 +295,11 @@ public interface QueueService {
      * @return The {@link DocContentPrintRsp}.
      * @throws DocContentPrintException
      *             When something goes wrong during printing.
-     * @throws When
-     *             PFD conversion is unavailable.
+     * @throws UnavailableException
+     *             When PFD conversion is unavailable.
      */
     DocContentPrintRsp printDocContent(ReservedIppQueueEnum reservedQueue,
-            User user, final boolean isUserTrusted, DocContentPrintReq printReq,
+            User user, boolean isUserTrusted, DocContentPrintReq printReq,
             InputStream istrContent)
             throws DocContentPrintException, UnavailableException;
 

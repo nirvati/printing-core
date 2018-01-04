@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -53,6 +53,7 @@ import java.util.Currency;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -90,6 +91,7 @@ import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.config.IConfigProp.LdapType;
 import org.savapage.core.config.IConfigProp.Prop;
+import org.savapage.core.config.validator.EnumSetValidator;
 import org.savapage.core.config.validator.ValidationResult;
 import org.savapage.core.crypto.CryptoApp;
 import org.savapage.core.crypto.CryptoUser;
@@ -2092,6 +2094,39 @@ public final class ConfigManager {
     public <E extends Enum<E>> E getConfigEnum(final Class<E> enumClass,
             final IConfigProp.Key key) {
         return EnumUtils.getEnum(enumClass, this.getConfigValue(key));
+    }
+
+    /**
+     * Gets the enum set config value.
+     *
+     * @param enumClass
+     *            The enum class.
+     * @param key
+     *            The {@link Key}.
+     * @param <E>
+     *            The enum type.
+     * @return The enum set (can be empty).
+     */
+    public <E extends Enum<E>> EnumSet<E> getConfigEnumSet(
+            final Class<E> enumClass, final IConfigProp.Key key) {
+        return EnumSetValidator.getEnumSet(enumClass, this.getConfigValue(key));
+    }
+
+    /**
+     * Gets the enum list config value (in order of appearance).
+     *
+     * @param enumClass
+     *            The enum class.
+     * @param key
+     *            The {@link Key}.
+     * @param <E>
+     *            The enum type.
+     * @return The enum list (can be empty).
+     */
+    public <E extends Enum<E>> List<E> getConfigEnumList(
+            final Class<E> enumClass, final IConfigProp.Key key) {
+        return EnumSetValidator.getEnumList(enumClass,
+                this.getConfigValue(key));
     }
 
     /**

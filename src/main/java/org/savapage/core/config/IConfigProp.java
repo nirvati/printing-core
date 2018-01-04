@@ -36,6 +36,7 @@ import org.savapage.core.config.validator.CidrRangesValidator;
 import org.savapage.core.config.validator.ConfigPropValidator;
 import org.savapage.core.config.validator.CurrencyCodeValidator;
 import org.savapage.core.config.validator.DecimalValidator;
+import org.savapage.core.config.validator.EnumSetValidator;
 import org.savapage.core.config.validator.EnumValidator;
 import org.savapage.core.config.validator.InternalFontFamilyValidator;
 import org.savapage.core.config.validator.IpPortValidator;
@@ -54,6 +55,7 @@ import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.json.rpc.JsonRpcMethodName;
+import org.savapage.core.services.helpers.DocLogScopeEnum;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.UserAuth;
 import org.savapage.core.util.Messages;
@@ -631,7 +633,7 @@ public interface IConfigProp {
         /**
          * Google Cloud Print enabled (boolean).
          */
-        GCP_ENABLE("gcp.enable", BOOLEAN_VALIDATOR, V_NO),
+        GCP_ENABLE("gcp.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_OFF),
 
         /**
          * Max seconds to wait for a GCP connect.
@@ -911,7 +913,7 @@ public interface IConfigProp {
         /**
          *
          */
-        PRINT_IMAP_ENABLE("print.imap.enable", BOOLEAN_VALIDATOR, V_NO),
+        PRINT_IMAP_ENABLE("print.imap.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_OFF),
 
         /**
          *
@@ -1958,6 +1960,11 @@ public interface IConfigProp {
         WEBAPP_USER_AUTH_TRUST_CLIAPP_AUTH("webapp.user.auth.trust-cliapp-auth", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         *
+         */
+        WEBAPP_USER_DOCLOG_SELECT_TYPE_DEFAULT_ORDER("webapp.user.doclog.select.type.default-order", new EnumSetValidator<>(DocLogScopeEnum.class)),
+
+        /**
          * Max idle seconds after which automatic logout occurs.
          */
         WEBAPP_USER_MAX_IDLE_SECS("webapp.user.max-idle-secs", NUMBER_VALIDATOR, WEBAPP_MAX_IDLE_SECS_V_NONE.toString()),
@@ -2198,7 +2205,7 @@ public interface IConfigProp {
         /**
          * Enable Web Print.
          */
-        WEB_PRINT_ENABLE("web-print.enable", BOOLEAN_VALIDATOR, V_NO),
+        WEB_PRINT_ENABLE("web-print.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_OFF),
 
         /**
          * Enable drag & drop zone for Web Print.
