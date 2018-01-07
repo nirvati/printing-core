@@ -194,14 +194,24 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 new StandardRuleConstraintList();
 
         /** */
-        private final List<IppRuleConstraint> rules = new ArrayList<>();
+        private static final String ALIAS_PFX = "sp";
+
+        /** */
+        private static final String ALIAS_BOOKLET_PFX = "booklet";
+
+        /** */
+        private final List<IppRuleConstraint> rulesBooklet = new ArrayList<>();
 
         /**
          * Constructor.
          */
         private StandardRuleConstraintList() {
+            addBookletConstraints();
+        }
 
-            //
+        /** */
+        private void addBookletConstraints() {
+
             final ImmutablePair<String, String> pairBooklet =
                     new ImmutablePair<String, String>(
                             IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET,
@@ -215,8 +225,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     IppKeyword.NUMBER_UP_4, IppKeyword.NUMBER_UP_6,
                     IppKeyword.NUMBER_UP_9 }) {
 
-                final IppRuleConstraint rule = new IppRuleConstraint(
-                        String.format("booklet-number-up-%s", nUp));
+                final IppRuleConstraint rule =
+                        new IppRuleConstraint(String.format("%s-%s-%s-%s",
+                                ALIAS_PFX, ALIAS_BOOKLET_PFX,
+                                IppDictJobTemplateAttr.ATTR_NUMBER_UP, nUp));
                 final List<Pair<String, String>> pairs = new ArrayList<>();
 
                 pairs.add(pairBooklet);
@@ -226,12 +238,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 rule.setIppContraints(pairs);
                 rule.setIppNegateSet(setBookletNegate);
 
-                this.rules.add(rule);
+                this.rulesBooklet.add(rule);
             }
 
             //
             final IppRuleConstraint rule =
-                    new IppRuleConstraint("booklet-one-sided");
+                    new IppRuleConstraint(String.format("%s-%s-%s", ALIAS_PFX,
+                            ALIAS_BOOKLET_PFX, IppKeyword.SIDES_ONE_SIDED));
+
             final List<Pair<String, String>> pairs = new ArrayList<>();
 
             pairs.add(pairBooklet);
@@ -241,15 +255,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             rule.setIppContraints(pairs);
             rule.setIppNegateSet(setBookletNegate);
-            this.rules.add(rule);
+            this.rulesBooklet.add(rule);
         }
 
         /**
          *
-         * @return The standard constraint rules.
+         * @return The pore-defined Booklet constraint rules.
          */
-        public List<IppRuleConstraint> getRules() {
-            return rules;
+        public List<IppRuleConstraint> getRulesBooklet() {
+            return rulesBooklet;
         }
 
     }
@@ -3771,8 +3785,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         final Set<String> keywords = new HashSet<>();
 
-        validateContraints(ippOptions,
-                StandardRuleConstraintList.INSTANCE.getRules(), keywords);
+        if (ConfigManager.instance()
+                .isConfigValue(Key.IPP_EXT_CONSTRAINT_BOOKLET_ENABLE)) {
+
+            validateContraints(ippOptions,
+                    StandardRuleConstraintList.INSTANCE.getRulesBooklet(),
+                    keywords);
+        }
 
         if (proxyPrinter.hasCustomRulesConstraint()) {
             validateContraints(ippOptions,

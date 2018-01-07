@@ -686,6 +686,11 @@ public interface IConfigProp {
         INTERNAL_USERS_PW_LENGTH_MIN("internal-users.password-length-min", NUMBER_VALIDATOR, "6"),
 
         /**
+        *
+        */
+        IPP_EXT_CONSTRAINT_BOOKLET_ENABLE("ipp.ext.constraint.booklet.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
          * The base URL, i.e. "protocol://authority" <i>without</i> the path, of
          * the IPP Internet Printer URI (no trailing slash) (optional).
          */
