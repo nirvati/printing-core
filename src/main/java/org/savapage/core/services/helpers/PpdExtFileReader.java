@@ -462,8 +462,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     }
 
     /**
-     * Notifies a {@link #SP_JOBTICKET_MEDIA}, {@link #SP_JOBTICKET_COPY} or
-     * {@link #SP_JOBTICKET_SET} line.
+     * Notifies a {@link #SP_JOBTICKET_MEDIA}, {@link #SP_JOBTICKET_SHEET} ,
+     * {@link #SP_JOBTICKET_COPY} or {@link #SP_JOBTICKET_SET} line.
      *
      * @param map
      *            The map to lazy add on.
