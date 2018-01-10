@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -24,10 +24,12 @@ package org.savapage.core.util;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.savapage.core.SpException;
@@ -57,6 +59,26 @@ public final class InetUtils {
      * No public instantiation.
      */
     private InetUtils() {
+    }
+
+    /**
+     * Checks if localhost port is in use.
+     *
+     * @param port
+     *            The IP port.
+     * @return {@code true} when in us.
+     */
+    public static boolean isPortInUse(int port) {
+        boolean inUse = true;
+        Socket socket = null;
+        try {
+            socket = new Socket(IP_LOOP_BACK_ADDR, port);
+        } catch (Exception e) {
+            inUse = false;
+        } finally {
+            IOUtils.closeQuietly(socket);
+        }
+        return inUse;
     }
 
     /**
@@ -120,8 +142,8 @@ public final class InetUtils {
                  */
                 if (addr instanceof Inet4Address) {
 
-                    if (!addr.getHostAddress().startsWith(
-                            IP_LOOP_BACK_ADDR_PREFIX)) {
+                    if (!addr.getHostAddress()
+                            .startsWith(IP_LOOP_BACK_ADDR_PREFIX)) {
                         /*
                          * Bingo, this is a non-loop back address.
                          */
@@ -200,8 +222,8 @@ public final class InetUtils {
         }
 
         return !(address.isSiteLocalAddress() || address.isAnyLocalAddress()
-                || address.isLinkLocalAddress() || address.isLoopbackAddress() || address
-                    .isMulticastAddress());
+                || address.isLinkLocalAddress() || address.isLoopbackAddress()
+                || address.isMulticastAddress());
     }
 
 }
