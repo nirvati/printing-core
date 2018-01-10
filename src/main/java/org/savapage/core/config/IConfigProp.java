@@ -1487,6 +1487,12 @@ public interface IConfigProp {
         PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_ENABLE("proxy-print.delegate.account.shared.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * Enable delegated User Group selection for print account type
+         * {@link AccountTypeEnum#SHARED} (boolean).
+         */
+        PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_GROUP_ENABLE("proxy-print.delegate.account.shared.group.enable", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          * Enable multiple delegated print copies (boolean).
          */
         PROXY_PRINT_DELEGATE_MULTIPLE_MEMBER_COPIES_ENABLE("proxy-print.delegate.multiple-member-copies.enable", BOOLEAN_VALIDATOR, V_YES),
