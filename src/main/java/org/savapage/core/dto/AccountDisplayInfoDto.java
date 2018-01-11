@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -54,12 +54,11 @@ public class AccountDisplayInfoDto extends AbstractDto {
         OVERDRAFT
     }
 
-    /**
-     * The locale (languageTag) of the amount strings (e.g. {@code en-US}) See
-     * {@link Locale#toLanguageTag()}.
-     */
-    @JsonProperty("locale")
-    String locale;
+    @JsonProperty("localeLang")
+    String localeLanguage;
+
+    @JsonProperty("localeCtry")
+    String localeCountry;
 
     @JsonProperty("balance")
     private String balance;
@@ -74,12 +73,20 @@ public class AccountDisplayInfoDto extends AbstractDto {
     @JsonProperty("creditLimit")
     private String creditLimit;
 
-    public String getLocale() {
-        return locale;
+    public String getLocaleLanguage() {
+        return localeLanguage;
     }
 
-    public void setLocale(String locale) {
-        this.locale = locale;
+    public void setLocaleLanguage(String localeLanguage) {
+        this.localeLanguage = localeLanguage;
+    }
+
+    public String getLocaleCountry() {
+        return localeCountry;
+    }
+
+    public void setLocaleCountry(String localeCountry) {
+        this.localeCountry = localeCountry;
     }
 
     public String getBalance() {
