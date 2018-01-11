@@ -1603,36 +1603,18 @@ public final class AccountingServiceImpl extends AbstractService
             }
         }
 
-        /*
-         * INVARIANT: Top Account name MUST be case insensitive unique among top
-         * accounts.
-         *
-         * INVARIANT: Account name must be case insensitive unique among sibling
-         * sub accounts.
-         */
-        final Account accountDuplicate;
-
-        if (parent == null) {
-            accountDuplicate =
-                    accountDAO().findActiveSharedAccountByName(dto.getName());
-        } else {
-            accountDuplicate = accountDAO().findActiveSharedChildAccountByName(
-                    parent.getId(), dto.getName());
-        }
-
-        if (accountDuplicate != null
-                && !accountDuplicate.getId().equals(dto.getId())) {
-            return createErrorMsg("msg-shared-account-name-in-use");
-        }
-
         //
         final Account account;
         final boolean newAccount = dto.getId() == null;
 
+        final String prevAccountName;
+
         if (newAccount) {
+            prevAccountName = dto.getName();
             account = this.createSharedAccountTemplate(dto.getName(), parent);
         } else {
             account = accountDAO().findById(dto.getId());
+            prevAccountName = account.getName();
         }
 
         /*
@@ -1644,14 +1626,55 @@ public final class AccountingServiceImpl extends AbstractService
         }
 
         /*
-         * INVARIANT: Account MUST be of type SHARED.
+         * INVARIANT: Account MUST be of type SHARED or GROUP.
          */
-        checkAccountSharedOrGroup(account);
+        final AccountTypeEnum accountType = checkAccountSharedOrGroup(account);
 
         /*
          * Is this a top account?
          */
         final boolean topAccount = account.getParent() == null;
+
+        /*
+         * INVARIANT: Group Account MUST be a top account.
+         */
+        if (accountType == AccountTypeEnum.GROUP && !topAccount) {
+            throw new IllegalArgumentException(
+                    String.format("No parent account allowed for account [%s]",
+                            dto.getName()));
+        }
+        /*
+         * INVARIANT: Name of Group Account can NOT be changed (must be the same
+         * initial name).
+         */
+        if (accountType == AccountTypeEnum.GROUP
+                && !prevAccountName.equals(dto.getName())) {
+            throw new IllegalArgumentException(String.format(
+                    "Name of account [%s] can not be changed.", dto.getName()));
+        }
+
+        final Account accountDuplicate;
+
+        if (parent == null) {
+            /*
+             * INVARIANT: Top Account name MUST be case insensitive unique among
+             * top accounts.
+             */
+            accountDuplicate = accountDAO()
+                    .findActiveAccountByName(dto.getName(), accountType);
+        } else {
+            /*
+             * INVARIANT: Account name must be case insensitive unique among
+             * sibling sub accounts.
+             */
+            accountDuplicate = accountDAO().findActiveSharedChildAccountByName(
+                    parent.getId(), dto.getName());
+        }
+
+        if (accountDuplicate != null
+                && !accountDuplicate.getId().equals(dto.getId())) {
+            return createErrorMsg("msg-shared-account-name-in-use");
+        }
 
         /*
          * Logical delete.
@@ -1694,8 +1717,9 @@ public final class AccountingServiceImpl extends AbstractService
 
         final Locale dtoLocale;
 
-        if (dto.getLocale() != null) {
-            dtoLocale = Locale.forLanguageTag(dto.getLocale());
+        if (dto.getLocaleLanguage() != null && dto.getLocaleCountry() != null) {
+            dtoLocale =
+                    new Locale(dto.getLocaleLanguage(), dto.getLocaleCountry());
         } else {
             dtoLocale = ServiceContext.getLocale();
         }
@@ -1977,7 +2001,9 @@ public final class AccountingServiceImpl extends AbstractService
             throw new SpException(e);
         }
 
-        dto.setLocale(locale.getDisplayLanguage());
+        dto.setLocaleLanguage(locale.getLanguage());
+        dto.setLocaleCountry(locale.getCountry());
+
         dto.setCreditLimit(formattedCreditLimit);
         dto.setStatus(status);
     }
