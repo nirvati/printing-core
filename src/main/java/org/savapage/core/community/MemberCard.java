@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -38,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.SpInfo;
-import org.savapage.core.VersionInfo;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
@@ -54,41 +53,38 @@ import net.iharder.Base64;
 /**
  * Runtime Membership status information.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class MemberCard {
 
     /**
-     *
+     * @return {@link DaoContext}.
      */
     private static DaoContext getDaoContext() {
         return ServiceContext.getDaoContext();
     }
 
     /**
+     * Threshold days to warn about member card expiration.
+     */
+    public static final int DAYS_WARN_BEFORE_EXPIRE = 30;
+
+    /**
      * The SingletonHolder is loaded on the first execution of
      * {@link MemberCard#instance()} or the first access to
      * {@link SingletonHolder#INSTANCE}, not before.
-     * <p>
-     * <a href=
-     * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>
-     * </p>
      */
     private static class SingletonHolder {
+        /** */
         public static final MemberCard INSTANCE = new MemberCard();
     }
 
-    /**
-     *
-     */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(MemberCard.class);
+    /** */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(MemberCard.class);
 
-    /**
-     *
-     */
+    /** */
     public enum Stat {
 
         /**
@@ -127,11 +123,6 @@ public final class MemberCard {
         WRONG_VERSION,
 
         /**
-         * Member Card is for wrong version, but within grace period.
-         */
-        WRONG_VERSION_WITH_GRACE,
-
-        /**
          * Member Card expired.
          */
         EXPIRED,
@@ -143,83 +134,30 @@ public final class MemberCard {
 
     };
 
-    /**
-     *
-     */
-    private enum MembershipUpgInsurance {
-        /**
-         * No upgrade insurance.
-         */
-        NONE,
-
-        /**
-         * Membership upgrade insurance is active.
-         */
-        ACTIVE,
-
-        /**
-         * Membership insurance expired.
-         */
-        EXPIRED
-    };
-
-    /**
-     *
-     */
+    /** */
     private final MembershipModule myLicModule = new MembershipModule();
 
-    /**
-     *
-     */
+    /** */
     private static final String MEMBERCARD_FILE_BASENAME =
             "savapage.membercard";
 
-    /**
-     *
-     */
+    /** */
     private static final int VISITOR_PERIOD_DAYS = 40;
 
-    /**
-     *
-     */
-    private static final int DAYS_WARN_BEFORE_UPG_EXPIRE = 30;
-
-    /**
-     * If a membership started within 90 days of a major release then user is
-     * eligible to run this new version.
-     */
-    private static final int DAYS_UPG_GRACE = 90;
-
-    /**
-     *
-     */
-    private static final String ALLOW_UPDATES_WITHIN_NEXT_VERSION =
-            "ALLOW_UPDATES_WITHIN_NEXT_VERSION";
-
-    /**
-     *
-     */
-    @SuppressWarnings("unused")
-    private static final String ALLOW_UPDATES_WITHIN_SAME_VERSION =
-            "ALLOW_UPDATES_WITHIN_SAME_VERSION";
-
-    /**
-     *
-     */
-    private static final String BASE64_PUBLIC_KEY_MEMBERCARD =
-            ""
-                    + "H4sIAAAAAAAAAFvzloG1uIhBJCuxLFGvODW5tCizpFLPO7UyKLVg70//zR2zljozMbD4MHAm5qTn"
-                    + "AyUzcksYhHxAyvVzEvPS9YNLijLz0q2jGdhT85LzU1JTShiYop18GNjS8otyE0sKGeoYGH0YWEoq"
-                    + "C1JLGKQhGmH26EPsUQkBSlpXFJQwMLsEO5YWgQxY81n8BxtHyAMmBoaKAgYGxj0GTYw7gFiHjV2r"
-                    + "zeOcBQsjkCPP1NjI8Lc+uFG2VEgz6L7XHL03T55/E9weZPPeheGwnH3DtkC1TNdYB6XA35G2vRG/"
-                    + "9h/9usvg2+nZoTnXG60bZE3yP6UlbM+eGbB0yfz5L1iqBZQO+e9eef3f9mPSP6zDnx9bsUyUn+V3"
-                    + "87fLR+UOM5mGCEeJTTT6Vvp5nXbida33n5SYJede9GA8ziTKMD0hoF9UmfvMpkk7mxa9buH+ECHz"
-                    + "FeS07w8XtF6bbXvv9J7VMWY7wndWTlm/+5fVq6af4T7ctuxN6YGR4X27rkT6PytkF2hs2OIpVqj8"
-                    + "wkdDTHj7eU6jnhPLHtqIVXWH1PRqPFi8Tk5787LSiXmL67l/KZomffydVMWoYn1mycd9KwIndK5o"
-                    + "vv8w6ul8tkndaXEN1aGqKYw+1v/Oe2oxN7YygNzR7Mq4rUZo3bE9M2fK7GxM4dl9xIS9btXqn0rZ"
-                    + "Cwq63t2unqymNCVWstMpetbp91e8tPlmR225npl+uNzSTf/Yd5lS+Yn1jMssz365u/YW25ezuz/0"
-                    + "/1/XfKjozO3M3ttrjq4TFlht48qpdnpd8aH5QeUfm/OWH517WOlq1A4uLQ7BUw8/MJneLmFgjdAz"
-                    + "NbCsK2KQxJbQwAmAAQqEgDFexMAHVgdKYXqueaW5yJLAdMIWEOrk4+kMALl/vou9AgAA";
+    /** */
+    private static final String BASE64_PUBLIC_KEY_MEMBERCARD = ""
+            + "H4sIAAAAAAAAAFvzloG1uIhBJCuxLFGvODW5tCizpFLPO7UyKLVg70//zR2zljozMbD4MHAm5qTn"
+            + "AyUzcksYhHxAyvVzEvPS9YNLijLz0q2jGdhT85LzU1JTShiYop18GNjS8otyE0sKGeoYGH0YWEoq"
+            + "C1JLGKQhGmH26EPsUQkBSlpXFJQwMLsEO5YWgQxY81n8BxtHyAMmBoaKAgYGxj0GTYw7gFiHjV2r"
+            + "zeOcBQsjkCPP1NjI8Lc+uFG2VEgz6L7XHL03T55/E9weZPPeheGwnH3DtkC1TNdYB6XA35G2vRG/"
+            + "9h/9usvg2+nZoTnXG60bZE3yP6UlbM+eGbB0yfz5L1iqBZQO+e9eef3f9mPSP6zDnx9bsUyUn+V3"
+            + "87fLR+UOM5mGCEeJTTT6Vvp5nXbida33n5SYJede9GA8ziTKMD0hoF9UmfvMpkk7mxa9buH+ECHz"
+            + "FeS07w8XtF6bbXvv9J7VMWY7wndWTlm/+5fVq6af4T7ctuxN6YGR4X27rkT6PytkF2hs2OIpVqj8"
+            + "wkdDTHj7eU6jnhPLHtqIVXWH1PRqPFi8Tk5787LSiXmL67l/KZomffydVMWoYn1mycd9KwIndK5o"
+            + "vv8w6ul8tkndaXEN1aGqKYw+1v/Oe2oxN7YygNzR7Mq4rUZo3bE9M2fK7GxM4dl9xIS9btXqn0rZ"
+            + "Cwq63t2unqymNCVWstMpetbp91e8tPlmR225npl+uNzSTf/Yd5lS+Yn1jMssz365u/YW25ezuz/0"
+            + "/1/XfKjozO3M3ttrjq4TFlht48qpdnpd8aH5QeUfm/OWH517WOlq1A4uLQ7BUw8/MJneLmFgjdAz"
+            + "NbCsK2KQxJbQwAmAAQqEgDFexMAHVgdKYXqueaW5yJLAdMIWEOrk4+kMALl/vou9AgAA";
 
     /**
      * As an extra security measure we use this value to check the MD5 of the
@@ -228,9 +166,7 @@ public final class MemberCard {
     public static final String MD5_PUBLIC_KEY_MEMBERCARD =
             "5958cd46c39f140056190cd4ac2323e4";
 
-    /**
-     *
-     */
+    /** */
     private java.security.PublicKey thePublicMemberCardKey = null;
 
     /**
@@ -249,54 +185,21 @@ public final class MemberCard {
      */
     private long memberParticipants = 0;
 
-    /**
-     *
-     */
+    /** */
     private final MemberCardManager myLicManager = new MemberCardManager();
 
-    /**
-     *
-     */
-    private MembershipUpgInsurance myLicUpgInsurance =
-            MembershipUpgInsurance.NONE;
-
-    /**
-     *
-     */
+    /** */
     private Stat myMembershipStat = Stat.VALID;
 
-    /**
-     *
-     */
+    /** */
     private Date myCardExpDate = null;
 
-    /**
-     *
-     */
+    /** */
     @SuppressWarnings("unused")
     private boolean myCardExpiring = false;
 
-    /**
-     *
-     */
-    @SuppressWarnings("unused")
-    private Date myCardSupportExpDate = null;
-
-    /**
-     *
-     */
+    /** */
     private Date myCardIssueDate = null;
-
-    /**
-     *
-     */
-    private Date myCardUpgExpDate = null;
-
-    /**
-     *
-     */
-    @SuppressWarnings("unused")
-    private boolean myCardUpgExpiring = false;
 
     /**
      * User friendly formatted membership expiration string.
@@ -308,16 +211,14 @@ public final class MemberCard {
      */
     private Long myMembershipDaysTillExpiry = null;
 
-    /**
-     *
-     */
+    /** */
     private MemberCard() {
     }
 
     /**
      * Gets the singleton instance.
      *
-     * @return
+     * @return The singleton.
      */
     public static MemberCard instance() {
         return SingletonHolder.INSTANCE;
@@ -330,6 +231,7 @@ public final class MemberCard {
      * number.
      * </p>
      *
+     * @return Max number of users.
      */
     private static long getVisitorEditionUsers() {
         return 5;
@@ -371,12 +273,11 @@ public final class MemberCard {
     }
 
     /**
-     *
-     * @return
+     * @return Member Card file.
      */
     public static File getMemberCardFile() {
-        return new File(ConfigManager.getServerHome() + "/"
-                + MEMBERCARD_FILE_BASENAME);
+        return new File(
+                ConfigManager.getServerHome() + "/" + MEMBERCARD_FILE_BASENAME);
     }
 
     /**
@@ -455,8 +356,9 @@ public final class MemberCard {
             cm.updateConfigKey(Key.COMMUNITY_VISITOR_START_DATE,
                     cm.createInitialVisitorStartDate(), Entity.ACTOR_SYSTEM);
         } else {
-            cm.updateConfigKey(Key.COMMUNITY_VISITOR_START_DATE, cm.cipher()
-                    .encryptVisitorStartDate(start), Entity.ACTOR_SYSTEM);
+            cm.updateConfigKey(Key.COMMUNITY_VISITOR_START_DATE,
+                    cm.cipher().encryptVisitorStartDate(start),
+                    Entity.ACTOR_SYSTEM);
         }
     }
 
@@ -469,6 +371,8 @@ public final class MemberCard {
 
     /**
      * Resets the visitor period (starting a new period NOW).
+     *
+     * @return The new date.
      */
     private Date resetVisitorPeriod() {
         final Date now = new Date();
@@ -479,7 +383,7 @@ public final class MemberCard {
     /**
      * Initializes the Membership information. Checks the Member Card file
      * properties (if present), interprets the membership state and resets or
-     * clears the start of the visitor/grace period.
+     * clears the start of the visitor period.
      * <p>
      * Special care is taken for <i>membership state transitions</i> and the use
      * of {@link #resetVisitorPeriod()} and {@link #clearVisitorPeriod()}.
@@ -489,9 +393,6 @@ public final class MemberCard {
      * <li>When NO Member Card file is present, the start of the VISITOR period
      * is reset when not already set AND no users are present. This makes sure
      * the visitor period is set at first installation.</li>
-     * <li>When a Member Card file is present the visitor period is used for a
-     * GRACE period when user upgraded to a more recent major version. The
-     * visitor period is reset each time the membership is valid (again).</li>
      * </ul>
      * </p>
      * <p>
@@ -519,10 +420,8 @@ public final class MemberCard {
                 istrMemberCard = new FileInputStream(memberCardFile);
 
                 final boolean bZipped = true;
-                myMemberCardProps =
-                        myLicManager.readMemberCardProps(
-                                getMemberCardPublicKey(), istrMemberCard,
-                                bZipped);
+                myMemberCardProps = myLicManager.readMemberCardProps(
+                        getMemberCardPublicKey(), istrMemberCard, bZipped);
 
                 myHasMemberCardFile = true;
 
@@ -566,9 +465,8 @@ public final class MemberCard {
                      *
                      * Force visitor period to expired.
                      */
-                    visitorPeriodStart =
-                            DateUtils.addDays(new Date(),
-                                    -VISITOR_PERIOD_DAYS - 1);
+                    visitorPeriodStart = DateUtils.addDays(new Date(),
+                            -VISITOR_PERIOD_DAYS - 1);
                     writeVisitorPeriodStart(visitorPeriodStart);
                 }
             }
@@ -579,9 +477,8 @@ public final class MemberCard {
 
                 final Date now = new Date();
 
-                myCardExpDate =
-                        DateUtils.addDays(visitorPeriodStart,
-                                VISITOR_PERIOD_DAYS);
+                myCardExpDate = DateUtils.addDays(visitorPeriodStart,
+                        VISITOR_PERIOD_DAYS);
                 myMembershipExpDateString =
                         DateFormat.getDateInstance().format(myCardExpDate);
 
@@ -609,7 +506,7 @@ public final class MemberCard {
     }
 
     /**
-     * Returns the days remaining in the visiting or grace period.
+     * Returns the days remaining in the visiting period.
      *
      * @param refDate
      *            The reference date.
@@ -630,39 +527,77 @@ public final class MemberCard {
     }
 
     /**
+     * Recalculate time dependent {@link Stat}.
      *
-     * @return
+     * @param refDate
+     *            The reference date.
+     */
+    public void recalcStatus(final Date refDate) {
+
+        switch (this.getStatus()) {
+
+        case VALID:
+            if (this.getDaysLeftInMemberCard(refDate) < 0) {
+                this.changeStatus(Stat.EXPIRED);
+            }
+            break;
+
+        case VISITOR:
+            if (this.getDaysLeftInVisitorPeriod(refDate) < 0) {
+                this.changeStatus(Stat.VISITOR_EXPIRED);
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    /**
+     * Returns the days remaining in the member card.
+     *
+     * @param refDate
+     *            The reference date.
+     * @return {@code null} when NO end date is specified.
+     */
+    public Long getDaysLeftInMemberCard(final Date refDate) {
+
+        if (this.myCardExpDate == null) {
+            return null;
+        }
+
+        return (this.myCardExpDate.getTime() - refDate.getTime())
+                / DateUtils.MILLIS_PER_DAY;
+    }
+
+    /**
+     * @return Product name.
      */
     public String getProduct() {
-        return myMemberCardProps.getProperty(
-                MemberCardManager.CARD_PROP_COMMUNITY, "");
+        return myMemberCardProps
+                .getProperty(MemberCardManager.CARD_PROP_COMMUNITY, "");
     }
 
     /**
      * Checks the Membership properties, interprets the membership state and
-     * resets or clears the start of the visitor/grace period.
+     * resets or clears the start of the visitor period.
      * <p>
      * See {@link #init()} for more detailed description of initialization and
      * checking in general.
      * </p>
+     *
+     * @param userCount
+     *            Number of active users.
      */
     private void check(final long userCount) {
 
         final Date now = new Date();
 
-        /*
-         * Force NullPointerException when used to early.
-         */
-        myMembershipStat = null; //
-
-        /*
-         * ====================================================================
-         * Get basic properties
-         * ====================================================================
-         */
-        final String orgUsers =
-                myMemberCardProps
-                        .getProperty(MembershipModule.CARD_MEMBER_PARTICIPANTS);
+        // ====================================================================
+        // Get basic properties
+        // ====================================================================
+        final String orgUsers = myMemberCardProps
+                .getProperty(MembershipModule.CARD_MEMBER_PARTICIPANTS);
 
         if (orgUsers == null) {
             this.memberParticipants = 0L;
@@ -672,37 +607,6 @@ public final class MemberCard {
 
         myCardIssueDate =
                 getMembershipPropDate(MemberCardManager.CARD_PROP_ISSUED_DATE);
-
-        /*
-         * Upgrade assurance
-         */
-        myCardUpgExpDate = getMembershipPropDate("updates-expiry-date");
-        myCardUpgExpiring = false;
-
-        if (myCardUpgExpDate == null) {
-
-            myLicUpgInsurance = MembershipUpgInsurance.NONE;
-
-        } else {
-
-            if (myCardUpgExpDate.after(now)) {
-
-                myLicUpgInsurance = MembershipUpgInsurance.ACTIVE;
-
-                myCardUpgExpiring =
-                        myCardUpgExpDate.before(DateUtils.addDays(now,
-                                DAYS_WARN_BEFORE_UPG_EXPIRE));
-
-            } else {
-                myLicUpgInsurance = MembershipUpgInsurance.EXPIRED;
-            }
-        }
-
-        /*
-         * Support contract
-         */
-        myCardSupportExpDate = getMembershipPropDate("support-expiry-date");
-        // TODO - just like upgrade assurance
 
         /*
          * Expiry
@@ -728,25 +632,19 @@ public final class MemberCard {
 
             if (now.before(myCardExpDate)) {
 
-                myCardExpiring =
-                        myCardExpDate.before(DateUtils.addDays(now,
-                                DAYS_WARN_BEFORE_UPG_EXPIRE));
+                myCardExpiring = myCardExpDate.before(
+                        DateUtils.addDays(now, DAYS_WARN_BEFORE_EXPIRE));
 
             } else {
-
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(CommunityDictEnum.MEMBERSHIP.getWord()
-                            + " expired since [" + myMembershipExpDateString
-                            + "]");
-                }
+                LOGGER.debug("{} expired since [{}].",
+                        CommunityDictEnum.MEMBERSHIP.getWord(),
+                        myMembershipExpDateString);
             }
         }
 
-        /*
-         * ====================================================================
-         * Evaluate the status
-         * ====================================================================
-         */
+        // ====================================================================
+        // Evaluate the status
+        // ====================================================================
         String key = null;
         String value = null;
 
@@ -775,14 +673,12 @@ public final class MemberCard {
         key = MemberCardManager.CARD_PROP_MEMBERSHIP_MODULES;
         value = myMemberCardProps.getProperty(key, "");
 
-        StringTokenizer st =
-                new StringTokenizer(value,
-                        MemberCardManager.CARD_PROP_PROCUCT_DELIMITER);
+        StringTokenizer st = new StringTokenizer(value,
+                MemberCardManager.CARD_PROP_PROCUCT_DELIMITER);
 
         boolean bModFound = false;
 
         while (st.hasMoreTokens()) {
-
             if (st.nextToken().equals(myLicModule.getModule())) {
                 bModFound = true;
                 break;
@@ -794,61 +690,32 @@ public final class MemberCard {
             myMembershipStat = Stat.WRONG_MODULE;
 
             LOGGER.error(CommunityDictEnum.MEMBERSHIP.getWord()
-                    + " is for module(s) " + "[" + value
-                    + "], this is module [" + myLicModule.getModule() + "]");
+                    + " is for module(s) " + "[" + value + "], this is module ["
+                    + myLicModule.getModule() + "]");
             return;
         }
 
         /*
-         * Version
+         * Check Version when no expiry date present.
          */
-        value = getMembershipVersionMajor();
+        if (myCardExpDate == null) {
 
-        final int deltaVersion =
-                Integer.parseInt(myLicModule.getVersionMajor())
-                        - Integer.parseInt(value);
+            value = getMembershipVersionMajor();
 
-        if (deltaVersion < 0) {
-            /*
-             * DOWNGRADE
-             */
-            myMembershipStat = Stat.WRONG_VERSION;
-        }
+            final int deltaVersion =
+                    Integer.parseInt(myLicModule.getVersionMajor())
+                            - Integer.parseInt(value);
 
-        if (deltaVersion > 0) {
-
-            myMembershipStat = Stat.WRONG_VERSION;
-
-            if (myLicUpgInsurance == MembershipUpgInsurance.ACTIVE) {
-
-                myMembershipStat = Stat.VALID;
-
-            } else if (myLicUpgInsurance == MembershipUpgInsurance.NONE) {
-
-                if (VersionInfo.getBuildDate().before(
-                        DateUtils.addDays(myCardIssueDate, DAYS_UPG_GRACE))) {
-                    myMembershipStat = Stat.VALID;
-                }
-
-            } else if (myLicUpgInsurance == MembershipUpgInsurance.EXPIRED) {
-
-                final String policy =
-                        myMemberCardProps.getProperty("updates-expiry-policy",
-                                ALLOW_UPDATES_WITHIN_NEXT_VERSION);
-
-                if (policy.equals(ALLOW_UPDATES_WITHIN_NEXT_VERSION)
-                        && deltaVersion == 1) {
-                    myMembershipStat = Stat.VALID;
-                }
+            if (deltaVersion != 0) {
+                myMembershipStat = Stat.WRONG_VERSION;
             }
         }
 
         if (!myMembershipStat.equals(Stat.VALID)) {
 
-            LOGGER.error(CommunityDictEnum.MEMBERSHIP.getWord()
-                    + " is for version " + "[" + value
-                    + "], module has version [" + myLicModule.getVersionMajor()
-                    + "]");
+            LOGGER.warn("{} is for version [{}], module has version [{}].",
+                    CommunityDictEnum.MEMBERSHIP.getWord(), value,
+                    myLicModule.getVersionMajor());
 
             if (visitorPeriodStart == null) {
                 /*
@@ -856,52 +723,29 @@ public final class MemberCard {
                  */
                 visitorPeriodStart = resetVisitorPeriod();
             }
-
-            final String msg =
-                    CommunityDictEnum.MEMBERSHIP.getWord() + " is for version "
-                            + "[" + value + "], module has version ["
-                            + myLicModule.getVersionMajor() + "]";
-
-            if (DateUtils.addDays(visitorPeriodStart, DAYS_UPG_GRACE)
-                    .after(now)) {
-                myMembershipStat = Stat.WRONG_VERSION_WITH_GRACE;
-                LOGGER.error(msg + " [" + getDaysLeftInVisitorPeriod(now)
-                        + "] days remaining to upgrade "
-                        + CommunityDictEnum.MEMBERSHIP.getWord() + ".");
-            } else {
-                LOGGER.error(msg);
-            }
             return;
         }
 
         /*
          * Expiry
          */
-        if (myCardExpDate != null) {
-            if (now.after(myCardExpDate)) {
-                myMembershipStat = Stat.EXPIRED;
-                return;
-            }
+        if (myCardExpDate != null && now.after(myCardExpDate)) {
+            myMembershipStat = Stat.EXPIRED;
+            return;
         }
 
         /*
          * Users
          */
         if (getMemberParticipants() < userCount) {
-            final String msg =
-                    CommunityDictEnum.MEMBERSHIP.getWord()
-                            + " exceeded. Valid for ["
-                            + getMemberParticipants() + "] users, ["
-                            + userCount + "] users found.";
-
             myMembershipStat = Stat.EXCEEDED;
-            LOGGER.error(msg);
+            LOGGER.warn("{} exceeded. Valid for [{}] users, [{}] users found.",
+                    CommunityDictEnum.MEMBERSHIP.getWord(),
+                    String.valueOf(getMemberParticipants()),
+                    String.valueOf(userCount));
             return;
         }
 
-        /*
-         *
-         */
         clearVisitorPeriod();
     }
 
@@ -953,7 +797,7 @@ public final class MemberCard {
 
     /**
      *
-     * @return
+     * @return The name of the issuer.
      */
     public String getMembershipIssuer() {
         if (hasMemberCardFile()) {
@@ -979,33 +823,32 @@ public final class MemberCard {
 
     /**
      *
-     * @return
+     * @return Major version.
      */
     public String getMembershipVersionMajor() {
         if (hasMemberCardFile()) {
-            return myMemberCardProps
-                    .getProperty(MembershipModule.CARD_PROP_MEMBERCARD_VERSION_MAJOR);
+            return myMemberCardProps.getProperty(
+                    MembershipModule.CARD_PROP_MEMBERCARD_VERSION_MAJOR);
         }
         return "";
     }
 
     /**
      *
-     * @return
+     * @return Full version info.
      */
     public String getMembershipVersion() {
 
         if (!hasMemberCardFile()) {
             return "";
         }
-        return String
-                .format("%s.%s.%s",
-                        myMemberCardProps
-                                .getProperty(MembershipModule.CARD_PROP_MEMBERCARD_VERSION_MAJOR),
-                        myMemberCardProps
-                                .getProperty(MembershipModule.CARD_PROP_MEMBERCARD_VERSION_MINOR),
-                        myMemberCardProps
-                                .getProperty(MembershipModule.CARD_PROP_MEMBERCARD_VERSION_REVISION));
+        return String.format("%s.%s.%s",
+                myMemberCardProps.getProperty(
+                        MembershipModule.CARD_PROP_MEMBERCARD_VERSION_MAJOR),
+                myMemberCardProps.getProperty(
+                        MembershipModule.CARD_PROP_MEMBERCARD_VERSION_MINOR),
+                myMemberCardProps.getProperty(
+                        MembershipModule.CARD_PROP_MEMBERCARD_VERSION_REVISION));
 
     }
 
@@ -1015,6 +858,20 @@ public final class MemberCard {
      */
     public Stat getStatus() {
         return myMembershipStat;
+    }
+
+    /**
+     * Changes the membership status.
+     *
+     * @param stat
+     *            The new status.
+     */
+    private synchronized void changeStatus(final Stat stat) {
+        if (this.myMembershipStat != stat) {
+            LOGGER.warn("Changed member status from {} to {}.",
+                    this.myMembershipStat, stat);
+            this.myMembershipStat = stat;
+        }
     }
 
     /**
@@ -1048,10 +905,8 @@ public final class MemberCard {
         case WRONG_MODULE:
         case WRONG_COMMUNITY:
         case WRONG_VERSION:
-        case WRONG_VERSION_WITH_GRACE:
-            txtStatus =
-                    localize(locale, "membership-status-invalid",
-                            CommunityDictEnum.MEMBERSHIP.getWord());
+            txtStatus = localize(locale, "membership-status-invalid",
+                    CommunityDictEnum.MEMBERSHIP.getWord());
             break;
 
         case VALID:
@@ -1059,21 +914,19 @@ public final class MemberCard {
             if (this.isVisitorCard()) {
                 txtStatus = CommunityDictEnum.VISITOR.getWord();
             } else {
-                txtStatus = CommunityDictEnum.FELLOW.getWord();
+                txtStatus = CommunityDictEnum.MEMBER.getWord();
             }
 
             break;
 
         case EXCEEDED:
-            txtStatus =
-                    localize(locale, "membership-status-exceeded",
-                            CommunityDictEnum.MEMBERSHIP.getWord());
+            txtStatus = localize(locale, "membership-status-exceeded",
+                    CommunityDictEnum.MEMBERSHIP.getWord());
             break;
 
         case EXPIRED:
-            txtStatus =
-                    localize(locale, "membership-status-expired",
-                            CommunityDictEnum.MEMBERSHIP.getWord());
+            txtStatus = localize(locale, "membership-status-expired",
+                    CommunityDictEnum.MEMBERSHIP.getWord());
             break;
 
         case VISITOR_EDITION:
@@ -1085,14 +938,13 @@ public final class MemberCard {
             break;
 
         case VISITOR_EXPIRED:
-            txtStatus =
-                    localize(locale, "membership-status-expired",
-                            CommunityDictEnum.VISITOR.getWord());
+            txtStatus = localize(locale, "membership-status-expired",
+                    CommunityDictEnum.VISITOR.getWord());
             break;
 
         default:
-            throw new SpException("Enum [" + this.getStatus()
-                    + "] not handled.");
+            throw new SpException(
+                    "Enum [" + this.getStatus() + "] not handled.");
         }
 
         return txtStatus;
@@ -1101,7 +953,8 @@ public final class MemberCard {
     /**
      *
      * @return The public key used for verifying the Member Card.
-     * @throws {@link MemberCardException}
+     * @throws MemberCardException
+     *             When public key is tampered with.
      */
     private java.security.PublicKey getMemberCardPublicKey()
             throws MemberCardException {
@@ -1111,16 +964,15 @@ public final class MemberCard {
             byte[] decoded;
 
             try {
-                decoded =
-                        Base64.decode(BASE64_PUBLIC_KEY_MEMBERCARD, Base64.GZIP
-                                | Base64.DO_BREAK_LINES);
+                decoded = Base64.decode(BASE64_PUBLIC_KEY_MEMBERCARD,
+                        Base64.GZIP | Base64.DO_BREAK_LINES);
             } catch (IOException ex) {
                 throw new MemberCardException(ex.getMessage(), ex);
             }
 
             final InputStream istr = new java.io.ByteArrayInputStream(decoded);
-            if (false == myLicManager.getMD5(istr).equals(
-                    MD5_PUBLIC_KEY_MEMBERCARD)) {
+
+            if (!myLicManager.getMD5(istr).equals(MD5_PUBLIC_KEY_MEMBERCARD)) {
                 throw new MemberCardException("public key is tampered with.");
             }
 
@@ -1145,15 +997,13 @@ public final class MemberCard {
         String strDate = myMemberCardProps.getProperty(key, "");
         if (strDate.length() != 0) {
             try {
-                SimpleDateFormat formatter =
-                        new SimpleDateFormat(
-                                MemberCardManager.CARD_PROP_DATE_FORMAT);
+                SimpleDateFormat formatter = new SimpleDateFormat(
+                        MemberCardManager.CARD_PROP_DATE_FORMAT);
                 date = formatter.parse(strDate);
             } catch (ParseException ex) {
-                throw new SpException(
-                        CommunityDictEnum.MEMBERSHIP.getWord()
-                                + " expiry date [" + strDate + "] : "
-                                + ex.getMessage(), ex);
+                throw new SpException(CommunityDictEnum.MEMBERSHIP.getWord()
+                        + " expiry date [" + strDate + "] : " + ex.getMessage(),
+                        ex);
             }
         }
         return date;
@@ -1195,11 +1045,10 @@ public final class MemberCard {
 
         if (hasMemberCardFile()) {
 
-            final String users =
-                    String.format("%s [%s] %s [%d]",
-                            CommunityDictEnum.PARTICIPANTS.getWord(),
-                            this.memberParticipants,
-                            CommunityDictEnum.USERS.getWord(), userCount);
+            final String users = String.format("%s [%s] %s [%d]",
+                    CommunityDictEnum.PARTICIPANTS.getWord(),
+                    this.memberParticipants, CommunityDictEnum.USERS.getWord(),
+                    userCount);
 
             ret.append(linePfx).append(CommunityDictEnum.SAVAPAGE.getWord())
                     .append(" ").append(CommunityDictEnum.COMMUNITY.getWord())
@@ -1208,12 +1057,12 @@ public final class MemberCard {
             if (isVisitorCard()) {
                 ret.append(CommunityDictEnum.VISITOR.getWord());
             } else {
-                ret.append(CommunityDictEnum.FELLOW.getWord());
+                ret.append(CommunityDictEnum.MEMBER.getWord());
             }
 
-            ret.append(" [")
-                    .append(StringUtils.defaultString(getMemberOrganisation(),
-                            "-")).append("]");
+            ret.append(" [").append(
+                    StringUtils.defaultString(getMemberOrganisation(), "-"))
+                    .append("]");
 
             ret.append("\n").append(linePfx)
                     .append(CommunityDictEnum.MEMBERSHIP.getWord())
@@ -1225,19 +1074,18 @@ public final class MemberCard {
             switch (myMembershipStat) {
 
             case WRONG_COMMUNITY:
-                ret.append(CommunityDictEnum.MEMBERSHIP.getWord()).append(
-                        " is not valid for this product.");
+                ret.append(CommunityDictEnum.MEMBERSHIP.getWord())
+                        .append(" is not valid for this product.");
                 break;
 
             case WRONG_VERSION:
-            case WRONG_VERSION_WITH_GRACE:
-                ret.append(CommunityDictEnum.MEMBERSHIP.getWord()).append(
-                        " is not valid for the installed version.");
+                ret.append(CommunityDictEnum.MEMBERSHIP.getWord())
+                        .append(" is not valid for the installed version.");
                 break;
 
             case WRONG_MODULE:
-                ret.append(CommunityDictEnum.MEMBERSHIP.getWord()).append(
-                        " is not valid for this module.");
+                ret.append(CommunityDictEnum.MEMBERSHIP.getWord())
+                        .append(" is not valid for this module.");
                 break;
 
             case EXPIRED:
@@ -1280,8 +1128,8 @@ public final class MemberCard {
             switch (myMembershipStat) {
 
             case VISITOR_EDITION:
-                ret.append(CommunityDictEnum.VISITING_GUEST.getWord()).append(
-                        ".");
+                ret.append(CommunityDictEnum.VISITING_GUEST.getWord())
+                        .append(".");
                 break;
 
             case VISITOR:

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -53,7 +53,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.SpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +65,8 @@ import org.slf4j.LoggerFactory;
  */
 public final class MemberCardManager {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(MemberCardManager.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(MemberCardManager.class);
 
     private static final String CARD_MODULE_PROP_HYPHEN = "-";
     public static final String CARD_PROP_PROCUCT_DELIMITER = ",";
@@ -244,11 +244,11 @@ public final class MemberCardManager {
      *
      * @param key
      * @param cstrKeyFile
-     * @throws {@link MemberCardException}
+     * @throws {@link
+     *             MemberCardException}
      */
-    private void
-            writeKeyToFile(java.security.Key key, final String cstrKeyFile)
-                    throws MemberCardException {
+    private void writeKeyToFile(java.security.Key key, final String cstrKeyFile)
+            throws MemberCardException {
 
         FileOutputStream fos = null;
         ObjectOutputStream oos = null;
@@ -379,8 +379,8 @@ public final class MemberCardManager {
                 bos.write((byte) Integer.parseInt(strHex, 16));
             }
         } catch (Exception ex) {
-            throw new MemberCardException("Error interpreting signature ["
-                    + strSignature + "]", ex);
+            throw new MemberCardException(
+                    "Error interpreting signature [" + strSignature + "]", ex);
         }
 
         return bos.toByteArray();
@@ -402,18 +402,19 @@ public final class MemberCardManager {
     /**
      *
      * @return the key as string
-     * @throws {@link MemberCardException}
+     * @throws {@link
+     *             MemberCardException}
      */
-    public String
-            publicMemberCardKeyAsString(java.io.InputStream istrPublicKey)
-                    throws MemberCardException {
+    public String publicMemberCardKeyAsString(java.io.InputStream istrPublicKey)
+            throws MemberCardException {
         return readKeyFromStream(istrPublicKey).toString();
     }
 
     /**
      *
      * @return
-     * @throws {@link MemberCardException}.
+     * @throws {@link
+     *             MemberCardException}.
      */
     public java.security.PublicKey getPublicKeyMemberCard(
             java.io.InputStream istrPublicKey) throws MemberCardException {
@@ -437,7 +438,8 @@ public final class MemberCardManager {
      * @param cstrPrivateKeyFile
      * @param istr
      * @return the signature string
-     * @throws {@link MemberCardException}
+     * @throws {@link
+     *             MemberCardException}
      */
     public String createSignatureString(final PrivateKey privateMemberCardKey,
             final java.io.InputStream istr) throws MemberCardException {
@@ -491,11 +493,10 @@ public final class MemberCardManager {
      * @throws MemberCardException
      *             When errors occur.
      */
-    public void
-            signMemberCard(final String cstrPrivateKeyFile,
-                    final String cstrMemberCardFileIn,
-                    final java.io.OutputStream ostrSignedMemberCard,
-                    final boolean bZip) throws MemberCardException {
+    public void signMemberCard(final String cstrPrivateKeyFile,
+            final String cstrMemberCardFileIn,
+            final java.io.OutputStream ostrSignedMemberCard, final boolean bZip)
+            throws MemberCardException {
 
         try {
 
@@ -594,16 +595,20 @@ public final class MemberCardManager {
      */
     public Map<String, String> getEditableMemberCardProperties() {
 
-        SimpleDateFormat formatter =
+        final SimpleDateFormat formatter =
                 new SimpleDateFormat(CARD_PROP_DATE_FORMAT);
-        final String strDateToday = formatter.format(new Date());
 
-        Map<String, String> map = new HashMap<String, String>();
+        final Date today = new Date();
+        final Date nextYearDay = DateUtils.addYears(today, 1);
+
+        final Map<String, String> map = new HashMap<String, String>();
+
         map.put(CARD_PROP_ISSUED_BY, CARD_VAL_ISSUED_BY);
         map.put(CARD_PROP_MEMBER_NAME, null);
-        map.put(CARD_PROP_ISSUED_DATE, strDateToday);
-        map.put(CARD_PROP_EXPIRY_DATE, "");
+        map.put(CARD_PROP_ISSUED_DATE, formatter.format(today));
+        map.put(CARD_PROP_EXPIRY_DATE, formatter.format(nextYearDay));
         map.put(CARD_PROP_VISITOR, PROP_VAL_FALSE);
+
         return map;
     }
 
@@ -651,12 +656,8 @@ public final class MemberCardManager {
 
         switch (key) {
 
-        case CARD_PROP_EXPIRY_DATE:
-            isValid =
-                    StringUtils.isBlank(value) || isMemberCardDateValid(value);
-            break;
-
         case CARD_PROP_ISSUED_DATE:
+        case CARD_PROP_EXPIRY_DATE:
             isValid = isMemberCardDateValid(value);
             break;
 
@@ -677,8 +678,8 @@ public final class MemberCardManager {
      *            The module.
      * @return The properties.
      */
-    public Map<String, String> getEditableMemberCardProperties(
-            final IMembershipModule module) {
+    public Map<String, String>
+            getEditableMemberCardProperties(final IMembershipModule module) {
         return module.getEditableMemberCardProperties();
     }
 
@@ -688,7 +689,8 @@ public final class MemberCardManager {
      */
     public Map<String, String> getMemberCardProperties() {
         final Map<String, String> map = new HashMap<String, String>();
-        map.put(CARD_PROP_UNIQUE_ID, String.valueOf(System.currentTimeMillis()));
+        map.put(CARD_PROP_UNIQUE_ID,
+                String.valueOf(System.currentTimeMillis()));
         return map;
     }
 
@@ -698,8 +700,8 @@ public final class MemberCardManager {
      *            The module
      * @return The properties.
      */
-    public Map<String, String> getMemberCardProperties(
-            final IMembershipModule module) {
+    public Map<String, String>
+            getMemberCardProperties(final IMembershipModule module) {
 
         final String pfxCardProp = module.getModule() + CARD_MODULE_PROP_HYPHEN;
 
@@ -746,10 +748,9 @@ public final class MemberCardManager {
                 // becomes november 30
                 // .........................................................
                 if (!formatter.format(dateMemberCard).equals(strDateExpire)) {
-                    throw new SpException(
-                            CommunityDictEnum.MEMBERSHIP.getWord()
-                                    + " expiry date [" + strDateExpire
-                                    + "] is an INVALID date");
+                    throw new SpException(CommunityDictEnum.MEMBERSHIP.getWord()
+                            + " expiry date [" + strDateExpire
+                            + "] is an INVALID date");
                 }
                 if (dateNow.after(dateMemberCard)) {
                     throw new MemberCardExpiredException(
@@ -798,10 +799,9 @@ public final class MemberCardManager {
                 // becomes november 30
                 // .........................................................
                 if (!formatter.format(dateMemberCard).equals(strDateIssued)) {
-                    throw new SpException(
-                            CommunityDictEnum.MEMBERSHIP.getWord()
-                                    + " issued date [" + strDateIssued
-                                    + "] is an INVALID date");
+                    throw new SpException(CommunityDictEnum.MEMBERSHIP.getWord()
+                            + " issued date [" + strDateIssued
+                            + "] is an INVALID date");
                 }
                 if (dateNow.before(dateMemberCard)) {
                     throw new MemberCardExpiredException(
@@ -870,9 +870,8 @@ public final class MemberCardManager {
                 throw new MemberCardException(key + " not found");
             }
 
-            StringTokenizer st =
-                    new StringTokenizer(value,
-                            MemberCardManager.CARD_PROP_PROCUCT_DELIMITER);
+            StringTokenizer st = new StringTokenizer(value,
+                    MemberCardManager.CARD_PROP_PROCUCT_DELIMITER);
             boolean bFound = false;
             while (st.hasMoreTokens()) {
                 if (st.nextToken().equals(module.getModule())) {
@@ -893,10 +892,8 @@ public final class MemberCardManager {
         // Check version
         // .............................................
         {
-            key =
-                    module.getModule()
-                            + CARD_MODULE_PROP_HYPHEN
-                            + MemberCardManager.CARD_PROP_SAVAPAGE_VERSION_MAJOR;
+            key = module.getModule() + CARD_MODULE_PROP_HYPHEN
+                    + MemberCardManager.CARD_PROP_SAVAPAGE_VERSION_MAJOR;
             value = props.getProperty(key);
             if (null == value) {
                 throw new MemberCardException(key + " not found");
@@ -985,14 +982,13 @@ public final class MemberCardManager {
      * @throws MemberCardExpiredException
      * @throws MemberCardFatalException
      */
-    public final boolean isMemberCardValid(
-            final java.security.PublicKey pubKey,
+    public final boolean isMemberCardValid(final java.security.PublicKey pubKey,
             final java.io.InputStream istrSigned, final boolean bZip,
             final Properties memberCardProps, final IMembershipModule module)
             throws MemberCardException, MemberCardExpiredException,
             MemberCardFatalException {
-        boolean bValid =
-                checkMemberCardFormat(pubKey, istrSigned, bZip, memberCardProps);
+        boolean bValid = checkMemberCardFormat(pubKey, istrSigned, bZip,
+                memberCardProps);
         if (!bValid) {
             throw new MemberCardException("signature is not verified");
         }
@@ -1090,7 +1086,8 @@ public final class MemberCardManager {
             bValid = dsa.verify(mySignatureStringAsBytes(strSignature));
 
             final ByteArrayInputStream bisMemberCardContent =
-                    new ByteArrayInputStream(bosMemberCardContent.toByteArray());
+                    new ByteArrayInputStream(
+                            bosMemberCardContent.toByteArray());
 
             memberCardProps.load(bisMemberCardContent);
 
