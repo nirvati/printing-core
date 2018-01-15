@@ -1076,9 +1076,10 @@ public final class ConfigManager {
      * @return
      */
     public static String getAppVersionBuild() {
-        return String.format("%s.%s.%s (Build %s)", VersionInfo.VERSION_A_MAJOR,
-                VersionInfo.VERSION_B_MINOR, VersionInfo.VERSION_C_REVISION,
-                VersionInfo.VERSION_D_BUILD);
+        return String.format("%s.%s.%s%s (Build %s)",
+                VersionInfo.VERSION_A_MAJOR, VersionInfo.VERSION_B_MINOR,
+                VersionInfo.VERSION_C_REVISION, VersionInfo.VERSION_D_STATUS,
+                VersionInfo.VERSION_E_BUILD);
     }
 
     /**

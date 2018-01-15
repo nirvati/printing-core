@@ -177,6 +177,6 @@ public final class MembershipModule implements IMembershipModule {
 
     @Override
     public String getVersionBuild() {
-        return VersionInfo.VERSION_D_BUILD;
+        return VersionInfo.VERSION_E_BUILD;
     }
 }

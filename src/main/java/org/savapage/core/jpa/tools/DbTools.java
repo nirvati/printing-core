@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1212,7 +1212,7 @@ public final class DbTools implements ServiceEntryPoint {
             writer.writeAttribute(XML_ATTR_APP_VERSION_REVISION,
                     VersionInfo.VERSION_C_REVISION);
             writer.writeAttribute(XML_ATTR_APP_VERSION_BUILD,
-                    VersionInfo.VERSION_D_BUILD);
+                    VersionInfo.VERSION_E_BUILD);
             writer.writeAttribute(XML_ATTR_APP_SCHEMA_VERSION,
                     VersionInfo.DB_SCHEMA_VERSION_MAJOR);
             writer.writeAttribute(XML_ATTR_APP_SCHEMA_VERSION_MINOR,
