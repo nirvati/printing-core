@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -276,8 +277,8 @@ public final class MemberCard {
      * @return Member Card file.
      */
     public static File getMemberCardFile() {
-        return new File(
-                ConfigManager.getServerHome() + "/" + MEMBERCARD_FILE_BASENAME);
+        return Paths.get(ConfigManager.getServerHome(),
+                MEMBERCARD_FILE_BASENAME).toFile();
     }
 
     /**
