@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
@@ -53,8 +53,8 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
     /**
     *
     */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ActiveDirectoryUserSource.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ActiveDirectoryUserSource.class);
 
     /**
      *
@@ -64,8 +64,8 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
     /**
      * sAMAccountType Value for SAM_USER_OBJECT.
      * <p>
-     * See <a
-     * href="http://msdn.microsoft.com/en-us/library/cc228417.aspx">here</a>.
+     * See
+     * <a href="http://msdn.microsoft.com/en-us/library/cc228417.aspx">here</a>.
      * </p>
      */
     private static final long SAM_USER_OBJECT = 0x30000000;
@@ -74,8 +74,8 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
      * The matching rule is true only if all bits from the property match the
      * value. This rule is like the bitwise AND operator.
      * <p>
-     * See: <a
-     * href="http://support.microsoft.com/kb/269181">http://support.microsoft.
+     * See: <a href=
+     * "http://support.microsoft.com/kb/269181">http://support.microsoft.
      * com/kb/269181</a>
      * </p>
      * <p>
@@ -101,9 +101,9 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
     /**
      * LDAP filter to retrieve enabled users only.
      */
-    private static final String LDAP_UAC_FILTER_ENABLED_USERS = "(!("
-            + USER_ACCOUNT_CONTROL + ":" + LDAP_MATCHING_RULE_BIT_AND + ":="
-            + UF_ACCOUNTDISABLE + "))";
+    private static final String LDAP_UAC_FILTER_ENABLED_USERS =
+            "(!(" + USER_ACCOUNT_CONTROL + ":" + LDAP_MATCHING_RULE_BIT_AND
+                    + ":=" + UF_ACCOUNTDISABLE + "))";
 
     /**
      * Dummy LDAP filter to retrieve all users.
@@ -163,6 +163,11 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
     }
 
     @Override
+    protected boolean allowDisabledUsers() {
+        return this.allowDisabledUsers;
+    }
+
+    @Override
     protected String createUserNameSearchPattern() {
         return getLdapConfigValue(Key.LDAP_SCHEMA_USER_NAME_SEARCH);
     }
@@ -215,25 +220,15 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
 
         final boolean enabled;
 
-        if (this.allowDisabledUsers) {
+        final Attribute userAccountControl =
+                userAttributes.get(USER_ACCOUNT_CONTROL);
 
-            enabled = true;
-
-        } else if (this.filterDisabledUsersLocally) {
-
-            final Attribute userAccountControl =
-                    userAttributes.get(USER_ACCOUNT_CONTROL);
-
-            if (userAccountControl == null || userAccountControl.get() == null) {
-                enabled = false;
-            } else {
-                final int uac =
-                        Integer.valueOf(userAccountControl.get().toString());
-                enabled = (uac & UF_ACCOUNTDISABLE) != UF_ACCOUNTDISABLE;
-            }
+        if (userAccountControl == null || userAccountControl.get() == null) {
+            enabled = false;
         } else {
-
-            enabled = true;
+            final int uac =
+                    Integer.valueOf(userAccountControl.get().toString());
+            enabled = (uac & UF_ACCOUNTDISABLE) != UF_ACCOUNTDISABLE;
         }
         return enabled;
     }
@@ -264,8 +259,8 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
             // Just one (1) group expected.
             controls.setCountLimit(1);
 
-            controls.setReturningAttributes(new String[] { this.ldapDnField,
-                    this.ldapGroupField });
+            controls.setReturningAttributes(
+                    new String[] { this.ldapDnField, this.ldapGroupField });
 
             final String ldapFilterExpression =
                     getGroupSearchExpression(groupName);
@@ -276,13 +271,11 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
 
                 final SearchResult searchResultGroup = results.next();
 
-                final String nestedGroupName =
-                        searchResultGroup.getAttributes()
-                                .get(this.ldapGroupField).get().toString();
+                final String nestedGroupName = searchResultGroup.getAttributes()
+                        .get(this.ldapGroupField).get().toString();
 
-                final String groupDn =
-                        searchResultGroup.getAttributes().get(this.ldapDnField)
-                                .get().toString();
+                final String groupDn = searchResultGroup.getAttributes()
+                        .get(this.ldapDnField).get().toString();
 
                 if (formatted) {
                     nestedGroupList.add(groupDn);
@@ -301,8 +294,8 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
 
         } catch (NamingException e) {
 
-            nestedGroupList.add("ERROR [" + e.getClass().getName() + "] "
-                    + e.getMessage());
+            nestedGroupList.add(
+                    "ERROR [" + e.getClass().getName() + "] " + e.getMessage());
 
         } finally {
             closeResources(results, ctx);
@@ -342,8 +335,8 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
         searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         searchControls.setCountLimit(0);
 
-        searchControls.setReturningAttributes(new String[] { this.ldapDnField,
-                this.ldapGroupField });
+        searchControls.setReturningAttributes(
+                new String[] { this.ldapDnField, this.ldapGroupField });
 
         /*
          * Paging the results.
@@ -367,20 +360,17 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
 
                     final SearchResult searchResult = results.next();
 
-                    final String nestedGroupName =
-                            searchResult.getAttributes()
-                                    .get(this.ldapGroupField).get().toString();
+                    final String nestedGroupName = searchResult.getAttributes()
+                            .get(this.ldapGroupField).get().toString();
 
-                    final String nestedGroupDn =
-                            searchResult.getAttributes().get(this.ldapDnField)
-                                    .get().toString();
+                    final String nestedGroupDn = searchResult.getAttributes()
+                            .get(this.ldapDnField).get().toString();
 
                     if (formatted) {
 
-                        String nestedName =
-                                String.format("%s%s",
-                                        StringUtils.repeat("    ", iLevel),
-                                        nestedGroupDn);
+                        String nestedName = String.format("%s%s",
+                                StringUtils.repeat("    ", iLevel),
+                                nestedGroupDn);
 
                         if (collectedGroups.contains(nestedGroupDn)) {
                             nestedName += " [...]";
@@ -414,9 +404,10 @@ public final class ActiveDirectoryUserSource extends LdapUserSourceMixin {
             collectedGroups.add(nestedGroupDn);
 
             // recurse.
-            collectGroupHierarchy(ldapContext, nestedGroupList,
-                    collectedGroups, nestedGroupDn, iLevel + 1, formatted);
+            collectGroupHierarchy(ldapContext, nestedGroupList, collectedGroups,
+                    nestedGroupDn, iLevel + 1, formatted);
         }
 
     }
+
 }

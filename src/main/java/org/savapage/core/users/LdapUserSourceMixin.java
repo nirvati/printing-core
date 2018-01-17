@@ -215,6 +215,12 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
 
     /**
      *
+     * @return {@true} when disabled users from LDAP are allowed.
+     */
+    protected abstract boolean allowDisabledUsers();
+
+    /**
+     *
      * @param key
      * @return
      */
@@ -534,7 +540,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                         if (cm.isConfigValue(
                                 Key.AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED)) {
                             env.put("java.naming.ldap.factory.socket",
-                                    TrustSelfSignedCertSocketFactory.class.getName());
+                                    TrustSelfSignedCertSocketFactory.class
+                                            .getName());
                         }
                     }
 
@@ -643,8 +650,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
 
         if (cm.isConfigValue(Key.AUTH_LDAP_USE_SSL)) {
             env.put(Context.SECURITY_PROTOCOL, "ssl");
-            if (cm.isConfigValue(
-                    Key.AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED)) {
+            if (cm.isConfigValue(Key.AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED)) {
                 env.put("java.naming.ldap.factory.socket",
                         TrustSelfSignedCertSocketFactory.class.getName());
             }
@@ -895,7 +901,8 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
 
                         final CommonUser cuser = createCommonUser(attributes);
 
-                        if (cuser != null) {
+                        if (cuser != null && (cuser.isEnabled()
+                                || this.allowDisabledUsers())) {
                             sset.add(cuser);
                         }
                     }
@@ -907,7 +914,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                 hasNextPage = ldapPager.hasNextPage();
             }
 
-        } catch (NameNotFoundException e) {
+        } catch (
+
+        NameNotFoundException e) {
             throw new SpException(
                     "LDAP base context [" + this.baseDN + "] not found", e);
         } catch (NamingException e) {
@@ -971,21 +980,12 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                             ldapUserFullNameField, groupMember);
 
                     if (cuser == null) {
-
-                        if (LOGGER.isTraceEnabled()) {
-
-                            final StringBuilder builder = new StringBuilder();
-
-                            builder.append("Group member [").append(groupMember)
-                                    .append("] is not a user.");
-
-                            LOGGER.trace(builder.toString());
-                        }
-
-                    } else {
-
+                        LOGGER.trace("Group member [{}] is not a user.",
+                                groupMember);
+                    } else if (cuser.isEnabled() || this.allowDisabledUsers()) {
                         sset.add(cuser);
-
+                    } else {
+                        LOGGER.trace("User [{}] is disabled.", groupMember);
                     }
                 }
             }

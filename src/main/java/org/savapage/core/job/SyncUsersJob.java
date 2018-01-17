@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,6 +34,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -364,17 +365,29 @@ public final class SyncUsersJob extends AbstractJob {
     }
 
     /**
-     * Gets the next User from the User Source.
+     * Gets the next User from the User Source, and increments disabledCounter
+     * when user is disabled.
      *
      * @param iter
      *            The {@link Iterator}/
+     * @param disabledCounter
+     *            Counter for disabled users.
      * @return {@code null} when EOF.
      */
-    private CommonUser nextSrc(final Iterator<CommonUser> iter) {
+    private CommonUser nextSrc(final Iterator<CommonUser> iter,
+            final MutableInt disabledCounter) {
+
+        final CommonUser user;
+
         if (iter.hasNext()) {
-            return iter.next();
+            user = iter.next();
+            if (!user.isEnabled()) {
+                disabledCounter.increment();
+            }
+        } else {
+            user = null;
         }
-        return null;
+        return user;
     }
 
     /**
@@ -1096,12 +1109,10 @@ public final class SyncUsersJob extends AbstractJob {
         }
 
         if (this.isTest) {
-            return !isExistingUser
-                    || !StringUtils
-                            .defaultString(
-                                    USER_SERVICE.getPrimaryEmailAddress(user))
-                            .equalsIgnoreCase(
-                                    StringUtils.defaultString(emailAddressSrc));
+            return !isExistingUser || !StringUtils
+                    .defaultString(USER_SERVICE.getPrimaryEmailAddress(user))
+                    .equalsIgnoreCase(
+                            StringUtils.defaultString(emailAddressSrc));
         }
 
         final UserEmailDao userEmailDao =
@@ -1702,7 +1713,9 @@ public final class SyncUsersJob extends AbstractJob {
         /*
          * Initial reads + batch committer.
          */
-        CommonUser userSrc = nextSrc(iterSrc);
+        final MutableInt disabledCounter = new MutableInt();
+
+        CommonUser userSrc = nextSrc(iterSrc, disabledCounter);
         User userDb = nextDb(iterDb);
 
         this.batchCommitter = ServiceContext.getDaoContext()
@@ -1746,7 +1759,7 @@ public final class SyncUsersJob extends AbstractJob {
                  */
                 addUser(userSrc, syncDate, syncActor);
                 nAdded++;
-                userSrc = nextSrc(iterSrc);
+                userSrc = nextSrc(iterSrc, disabledCounter);
                 continue;
             }
 
@@ -1777,7 +1790,7 @@ public final class SyncUsersJob extends AbstractJob {
                     }
                 }
 
-                userSrc = nextSrc(iterSrc);
+                userSrc = nextSrc(iterSrc, disabledCounter);
                 userDb = nextDb(iterDb);
 
             } else if (compare < 0) {
@@ -1802,8 +1815,7 @@ public final class SyncUsersJob extends AbstractJob {
 
                 addUser(userSrc, syncDate, syncActor);
                 nAdded++;
-                userSrc = nextSrc(iterSrc);
-
+                userSrc = nextSrc(iterSrc, disabledCounter);
             }
 
         } // end-while
@@ -1816,44 +1828,49 @@ public final class SyncUsersJob extends AbstractJob {
         /*
          *
          */
-        String msg = null;
+        final String msgUsers;
 
         if (isDeleteUsers) {
 
             if (isUpdateUsers) {
-                msg = "Users: identical [" + nIdentical + "] added [" + nAdded
-                        + "] updated [" + nUpdated + "] deleted [" + nDeleted
-                        + "] internal [" + nInternalUsers + "]";
+                msgUsers = String.format(
+                        "identical [%d] added [%d] updated [%d] deleted [%d]",
+                        nIdentical, nAdded, nUpdated, nDeleted);
             } else {
-                msg = "Users: same [" + nSameUser + "] added [" + nAdded
-                        + "] deleted [" + nDeleted + "] internal ["
-                        + nInternalUsers + "]";
+                msgUsers = String.format("same [%d] added [%d] deleted [%d]",
+                        nSameUser, nAdded, nDeleted);
             }
 
         } else {
 
             if (isUpdateUsers) {
-                msg = "Users: identical [" + nIdentical + "] added [" + nAdded
-                        + "] updated [" + nUpdated + "] non-exist [" + nNonExist
-                        + "] internal [" + nInternalUsers + "]";
+                msgUsers = String.format(
+                        "identical [%d] added [%d] updated [%d] non-exist [%d]",
+                        nIdentical, nAdded, nUpdated, nNonExist);
 
             } else {
-                msg = "Users: same [" + nSameUser + "] added [" + nAdded
-                        + "] non-exist [" + nNonExist + "] internal ["
-                        + nInternalUsers + "]";
+                msgUsers = String.format("same [%d] added [%d] non-exist [%d] ",
+                        nSameUser, nAdded, nNonExist);
             }
         }
 
-        pubMsg(msg);
+        pubMsg(String.format("Users: %s internal [%d] disabled [%d]", msgUsers,
+                nInternalUsers, disabledCounter.intValue()));
 
-        msg = "Files: present [" + NumberUtil
-                .humanReadableByteCount(nBytesUserFilesPresent, true) + "]";
+        //
+        final StringBuilder filesMsg = new StringBuilder();
+
+        filesMsg.append("Files: present [")
+                .append(NumberUtil
+                        .humanReadableByteCount(nBytesUserFilesPresent, true))
+                .append("]");
 
         if (nBytesUserFilesDeleted > 0) {
-            msg += " deleted [" + NumberUtil
-                    .humanReadableByteCount(nBytesUserFilesDeleted, true) + "]";
+            filesMsg.append(" deleted [").append(NumberUtil
+                    .humanReadableByteCount(nBytesUserFilesDeleted, true))
+                    .append("]");
         }
-        pubMsg(msg);
+        pubMsg(filesMsg.toString());
     }
 
     /**
