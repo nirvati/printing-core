@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,13 +14,14 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.config.validator;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.config.IConfigProp;
 
 /**
@@ -30,21 +31,51 @@ import org.savapage.core.config.IConfigProp;
  */
 public final class BooleanValidator implements ConfigPropValidator {
 
+    /**
+     * {@code true} if value is optional.
+     */
+    private final boolean isOptional;
+
+    /**
+     *
+     * @param optional
+     *            {@code true} if value is optional.
+     */
+    public BooleanValidator(final boolean optional) {
+        this.isOptional = optional;
+    }
+
+    /** */
+    private static final String getErrorMsg() {
+        return "Value must be [" + IConfigProp.V_YES + "] or ["
+                + IConfigProp.V_NO + "]";
+    }
+
     @Override
     public ValidationResult validate(final String value) {
 
         final ValidationResult res = new ValidationResult(value);
 
-        final boolean valid = (value != null && (value.equals(IConfigProp.V_YES)
-                || value.equals(IConfigProp.V_NO)));
+        if (StringUtils.isBlank(value)) {
 
-        if (!valid) {
-            res.setStatus(ValidationStatusEnum.ERROR_YN);
-        }
+            if (!this.isOptional) {
+                res.setStatus(ValidationStatusEnum.ERROR_EMPTY);
+                res.setMessage(getErrorMsg());
+            }
 
-        if (!res.isValid()) {
-            res.setMessage("Value should be [" + IConfigProp.V_YES + "] or ["
-                    + IConfigProp.V_NO + "]");
+        } else {
+
+            final boolean valid =
+                    (value != null && (value.equals(IConfigProp.V_YES)
+                            || value.equals(IConfigProp.V_NO)));
+
+            if (!valid) {
+                res.setStatus(ValidationStatusEnum.ERROR_YN);
+            }
+
+            if (!res.isValid()) {
+                res.setMessage(getErrorMsg());
+            }
         }
         return res;
     }

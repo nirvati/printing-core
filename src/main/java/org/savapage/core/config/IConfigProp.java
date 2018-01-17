@@ -763,22 +763,24 @@ public interface IConfigProp {
         LDAP_SCHEMA_DN_FIELD("ldap.schema.dn-field", API_UPDATABLE_ON),
 
         /**
-         * Boolean to allow or deny disabled users.
+         * Boolean to allow or deny disabled users. When blank, LDAP default is
+         * used.
          * <p>
          * Note: Active Directory only.
          * </p>
          */
-        LDAP_ALLOW_DISABLED_USERS("ldap.disabled-users.allow", API_UPDATABLE_ON),
+        LDAP_ALLOW_DISABLED_USERS("ldap.disabled-users.allow", BOOLEAN_VALIDATOR_OPT, API_UPDATABLE_ON),
 
         /**
          * Boolean to indicate if filtering out disabled users is done locally
          * (by checking the userAccountControl attribute), or remotely (by AND
-         * in userAccountControl in the LDAP query).
+         * in userAccountControl in the LDAP query). When blank, LDAP default is
+         * used.
          * <p>
          * Note: Active Directory only.
          * </p>
          */
-        LDAP_FILTER_DISABLED_USERS_LOCALLY("ldap.disabled-users.local-filter", API_UPDATABLE_ON),
+        LDAP_FILTER_DISABLED_USERS_LOCALLY("ldap.disabled-users.local-filter", BOOLEAN_VALIDATOR_OPT, API_UPDATABLE_ON),
 
         /**
          * If {@code Y}, then the group member field contains the user's
@@ -2498,7 +2500,10 @@ public interface IConfigProp {
     };
 
     /** */
-    BooleanValidator BOOLEAN_VALIDATOR = new BooleanValidator();
+    BooleanValidator BOOLEAN_VALIDATOR = new BooleanValidator(false);
+
+    /** */
+    BooleanValidator BOOLEAN_VALIDATOR_OPT = new BooleanValidator(true);
 
     /** */
     CidrRangesValidator CIDR_RANGES_VALIDATOR_OPT =
