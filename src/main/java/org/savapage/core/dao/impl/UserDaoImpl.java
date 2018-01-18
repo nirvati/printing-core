@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,9 @@ import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.dao.enums.UserGroupAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
+import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.User;
+import org.savapage.core.jpa.tools.DbSimpleEntity;
 import org.savapage.core.services.ServiceContext;
 
 /**
@@ -421,14 +423,35 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
         query.executeUpdate();
     }
 
+    /**
+     * Counts the number of user {@link AccountTrx} instances.
+     *
+     * @param userDbKey
+     *            The database primary key of a {@link User}.
+     * @return The count.
+     */
+    private long getUserAccountTrxCount(final Long userDbKey) {
+        final String jpql = "SELECT COUNT(TRX.id) FROM "
+                + DbSimpleEntity.USER_ACCOUNT + " UA" + " JOIN "
+                + DbSimpleEntity.ACCOUNT_TRX + " TRX "
+                + "ON TRX.account = UA.account" + " WHERE UA.user = :user";
+
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("user", userDbKey);
+
+        final Number countResult = (Number) query.getSingleResult();
+        return countResult.longValue();
+    }
+
     @Override
     public int pruneUsers(final DaoBatchCommitter batchCommitter) {
         /*
          * NOTE: We do NOT use bulk delete with JPQL since we want the option to
          * roll back the deletions as part of a transaction, and we want to use
-         * cascade deletion. Therefore we use the remove() method in
-         * EntityManager to delete individual records instead (so cascaded
-         * deletes are triggered).
+         * CASCADE deletion.
+         *
+         * Therefore we use the remove() method in EntityManager to delete
+         * individual records instead (so CASCADED deletes are triggered).
          */
         int nDeleted = 0;
 
@@ -441,6 +464,16 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
         final List<Long> list = query.getResultList();
 
         for (final Long id : list) {
+            /*
+             * Do NOT delete a user when AccountTrx are present. Reason: when
+             * printing was charged via Delegated Print, no DocLog are present
+             * for this user. Or, user could have redeemed a voucher, and never
+             * have printed. Ergo: When AccountTrx are completely cleaned, user
+             * can be deleted.
+             */
+            if (getUserAccountTrxCount(id) > 0) {
+                continue;
+            }
             this.delete(this.findById(id));
             nDeleted++;
             batchCommitter.increment();

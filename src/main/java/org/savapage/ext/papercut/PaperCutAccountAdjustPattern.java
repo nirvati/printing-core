@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,6 +28,7 @@ import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.User;
+import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.ext.papercut.services.PaperCutService;
 import org.slf4j.Logger;
@@ -148,8 +149,16 @@ public abstract class PaperCutAccountAdjustPattern {
             /*
              * Get the user of the transaction.
              */
-            final User user = USER_ACCOUNT_DAO
-                    .findByAccountId(trx.getAccount().getId()).getUser();
+            final UserAccount userAccount =
+                    USER_ACCOUNT_DAO.findByAccountId(trx.getAccount().getId());
+
+            if (userAccount == null) {
+                throw new IllegalStateException(String.format(
+                        "User Account not found: %s", userCopiesComment));
+            }
+
+            final User user = userAccount.getUser();
+
             /*
              * Adjust Personal Account.
              */

@@ -42,6 +42,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.savapage.core.SpException;
@@ -824,13 +825,16 @@ public final class OutboxServiceImpl extends AbstractService
                 .getTransactions()) {
 
             /*
-             * INVARIANT: Account MUST be active?
+             * INVARIANT: Account MUST be present.
              */
             final Account account =
                     accountDAO().findById(sourceTrxInfo.getAccountId());
 
-            if (account.getDeleted()) {
-                // TODO
+            if (account == null) {
+                throw new IllegalStateException(String.format(
+                        "Account [%d] [%s] not found.",
+                        sourceTrxInfo.getAccountId(), StringUtils
+                                .defaultString(sourceTrxInfo.getExtDetails())));
             }
 
             //
