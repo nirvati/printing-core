@@ -34,6 +34,7 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.validator.BooleanValidator;
 import org.savapage.core.config.validator.CidrRangesValidator;
 import org.savapage.core.config.validator.ConfigPropValidator;
+import org.savapage.core.config.validator.CronExpressionValidator;
 import org.savapage.core.config.validator.CurrencyCodeValidator;
 import org.savapage.core.config.validator.DecimalValidator;
 import org.savapage.core.config.validator.EnumSetValidator;
@@ -1574,28 +1575,28 @@ public interface IConfigProp {
         /**
          * CRON expression: 10 minutes past midnight.
          */
-        SCHEDULE_DAILY("schedule.daily", "0 10 0 * * ?", API_UPDATABLE_OFF),
+        SCHEDULE_DAILY("schedule.daily", CRON_EXPR_VALIDATOR, "0 10 0 * * ?", API_UPDATABLE_OFF),
 
         /**
          * CRON expression: 12:55am each day (before 1am to miss DST
          * switch-overs).
          */
-        SCHEDULE_DAILY_MAINT("schedule.daily-maintenance", "0 55 0 * * ?", API_UPDATABLE_OFF),
+        SCHEDULE_DAILY_MAINT("schedule.daily-maintenance", CRON_EXPR_VALIDATOR, "0 55 0 * * ?", API_UPDATABLE_OFF),
 
         /**
          * CRON expression.
          */
-        SCHEDULE_HOURLY("schedule.hourly", "0 0 * * * ?", API_UPDATABLE_OFF),
+        SCHEDULE_HOURLY("schedule.hourly", CRON_EXPR_VALIDATOR, "0 0 * * * ?", API_UPDATABLE_OFF),
 
         /**
          * CRON expression.
          */
-        SCHEDULE_MONTHLY("schedule.monthly", "0 30 0 1 * ?", API_UPDATABLE_OFF),
+        SCHEDULE_MONTHLY("schedule.monthly", CRON_EXPR_VALIDATOR, "0 30 0 1 * ?", API_UPDATABLE_OFF),
 
         /**
          * CRON expression: 20 minutes past midnight on Sunday morning.
          */
-        SCHEDULE_WEEKLY("schedule.weekly", "0 20 0 ? * 1", API_UPDATABLE_OFF),
+        SCHEDULE_WEEKLY("schedule.weekly", CRON_EXPR_VALIDATOR, "0 20 0 ? * 1", API_UPDATABLE_OFF),
 
         /**
          *
@@ -2547,6 +2548,9 @@ public interface IConfigProp {
     /** */
     InternalFontFamilyValidator INTERNAL_FONT_FAMILY_VALIDATOR =
             new InternalFontFamilyValidator();
+
+    /** */
+    CronExpressionValidator CRON_EXPR_VALIDATOR = new CronExpressionValidator();
 
     /**
      * .
