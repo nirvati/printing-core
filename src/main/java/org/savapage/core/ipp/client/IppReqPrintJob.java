@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -129,7 +129,7 @@ public final class IppReqPrintJob extends IppReqCommon {
     }
 
     /**
-     * Corrects a Print Job request for orientation and n-up layout.
+     * Corrects a Print Job request for n-up.
      *
      * @param jsonPrinter
      *            The printer.
@@ -143,7 +143,7 @@ public final class IppReqPrintJob extends IppReqCommon {
      * @param numberUp
      *            The n-up value.
      */
-    private static void correctForPdfRotation(
+    private static void correctForNup(
             final JsonProxyPrinter jsonPrinter,
             final Map<String, String> optionValues, final IppAttrGroup group,
             final PdfOrientationInfo pdfOrientation, final String numberUp) {
@@ -162,11 +162,10 @@ public final class IppReqPrintJob extends IppReqCommon {
             numberUpRule =
                     IppNumberUpHelper.instance().findCustomRule(templateRule);
         }
+
         if (numberUpRule == null) {
-            IppNumberUpHelper.fillRuleTemplate(pdfOrientation, numberUp,
-                    templateRule);
-            numberUpRule = templateRule;
-            LOGGER.warn("Using deprecated method for handling n-up");
+            LOGGER.debug("No correction for n-up.");
+            return;
         }
 
         final String cupsOrientationRequested =
@@ -218,7 +217,7 @@ public final class IppReqPrintJob extends IppReqCommon {
                         .append("]");
             }
 
-            msg.append(" | PDF out: [");
+            msg.append(" | PDF out [");
             if (numberUpRule.isLandscapePrint()) {
                 msg.append("landscape");
             } else {
@@ -524,7 +523,7 @@ public final class IppReqPrintJob extends IppReqCommon {
         }
 
         if (pdfOrientation != null) {
-            correctForPdfRotation(
+            correctForNup(
                     PROXYPRINT_SERVICE.getCachedPrinter(
                             this.jsonPrinter.getName()),
                     optionValues, group, pdfOrientation,

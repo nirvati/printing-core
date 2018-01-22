@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,8 +21,6 @@
  */
 package org.savapage.core.pdf;
 
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 /**
@@ -34,14 +32,7 @@ public final class PdfRotationTest {
 
     @Test
     public void testPortrait() {
-
-        final PdfPageRotateHelper helper = PdfPageRotateHelper.instance();
-        //
-        assertTrue(helper
-                .getPageRotationForPrinting(false,
-                        PdfPageRotateHelper.PDF_ROTATION_0,
-                        PdfPageRotateHelper.PDF_ROTATION_0)
-                .equals(PdfPageRotateHelper.PDF_ROTATION_0));
+        // Reserved for future use.
     }
 
 }

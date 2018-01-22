@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -194,11 +194,11 @@ public abstract class AbstractPdfCreator {
     /**
      *
      * @param jobPfdName
-     * @param rotation
+     * @param userRotation The user rotation for the job.
      * @throws Exception
      */
     protected abstract void onInitJob(final String jobPfdName,
-            final Integer rotation) throws Exception;
+            final Integer userRotation) throws Exception;
 
     /**
      *

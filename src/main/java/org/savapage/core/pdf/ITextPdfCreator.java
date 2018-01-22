@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -481,6 +481,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             this.targetDocument = new Document();
 
             this.targetPdfCopy = new PdfCopy(this.targetDocument, ostr);
+
             this.targetDocument.open();
 
         } catch (Exception e) {
@@ -515,13 +516,13 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     @Override
-    protected void onInitJob(final String jobPfdName, final Integer rotation)
-            throws Exception {
+    protected void onInitJob(final String jobPfdName,
+            final Integer userRotation) throws Exception {
 
         this.jobPdfFileWlk = new File(jobPfdName);
         this.readerWlk = new PdfReader(jobPfdName);
 
-        this.jobRotationWlk = rotation;
+        this.jobRotationWlk = userRotation;
         this.jobRangesWlk = new StringBuilder();
     }
 
@@ -567,7 +568,9 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     /**
-     * Gets the page rotation for a copy of a source PDF page.
+     * Applies the requested page rotation by user to the source PDF page
+     * rotation, and returns the PDF page rotation to be applied for export
+     * (download).
      *
      * @param srcPageSize
      *            The size of the source PDF page.
@@ -581,11 +584,18 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     public static Integer getPdfCopyPageRotation(final Rectangle srcPageSize,
             final int srcPageRotation, final Integer userRotation) {
 
-        final boolean isLandscapePage =
-                srcPageSize.getHeight() < srcPageSize.getWidth();
-
         return PdfPageRotateHelper.instance().getPageRotationForExport(
-                isLandscapePage, srcPageRotation, userRotation);
+                isLandscapePage(srcPageSize), srcPageRotation, userRotation);
+    }
+
+    /**
+     *
+     * @param pdfPageSize
+     *            The PDF page size.
+     * @return {@code true} when landscape orientation.
+     */
+    private static boolean isLandscapePage(final Rectangle pdfPageSize) {
+        return pdfPageSize.getHeight() < pdfPageSize.getWidth();
     }
 
     @Override
@@ -607,13 +617,23 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
              * at this stage, because we need the intended orientation when a
              * letterhead is to be applied.
              */
-            this.jobRotationWlk =
-                    getPdfCopyPageRotation(this.readerWlk.getPageSize(i),
-                            this.readerWlk.getPageRotation(i), jobUserRotation);
+            final int pageRotationPrv = this.readerWlk.getPageRotation(i);
 
-            final int rotate = this.jobRotationWlk.intValue();
+            final int pageRotationNew =
+                    getPdfCopyPageRotation(this.readerWlk.getPageSize(i),
+                            pageRotationPrv, jobUserRotation).intValue();
+
             final PdfDictionary pageDict = this.readerWlk.getPageN(i);
-            pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
+
+            if (pageRotationPrv != pageRotationNew) {
+                pageDict.put(PdfName.ROTATE, new PdfNumber(pageRotationNew));
+            }
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Page {}: rotate {}->{} | landscape [{}]", i,
+                        pageRotationPrv, pageRotationNew,
+                        isLandscapePage(this.readerWlk.getPageSize(i)));
+            }
 
             final PdfImportedPage importedPage;
 
@@ -621,6 +641,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
                 importedPage =
                         this.targetPdfCopy.getImportedPage(this.readerWlk, i);
+
             } else {
                 /*
                  * Replace page without /Contents with our own blank content.
