@@ -143,8 +143,7 @@ public final class IppReqPrintJob extends IppReqCommon {
      * @param numberUp
      *            The n-up value.
      */
-    private static void correctForNup(
-            final JsonProxyPrinter jsonPrinter,
+    private static void correctForNup(final JsonProxyPrinter jsonPrinter,
             final Map<String, String> optionValues, final IppAttrGroup group,
             final PdfOrientationInfo pdfOrientation, final String numberUp) {
 
@@ -351,10 +350,8 @@ public final class IppReqPrintJob extends IppReqCommon {
                         values.clear();
                         values.add(ppdValueNew);
 
-                        if (LOGGER.isWarnEnabled()) {
-                            LOGGER.warn(String.format("Replaced: %s/%s",
-                                    ppdOptionOrg, ppdValueNew));
-                        }
+                        LOGGER.warn("Replaced: {}/{}", ppdOptionOrg,
+                                ppdValueNew);
 
                         addExtra = false;
                         break;
@@ -374,13 +371,14 @@ public final class IppReqPrintJob extends IppReqCommon {
                         final Iterator<IppAttrCollection> iter =
                                 collection.getCollections().iterator();
 
+                        boolean isReplaced = false;
                         while (iter.hasNext()) {
                             final IppAttrCollection collectionNested =
                                     iter.next();
-
                             if (collectionNested.getKeyword().equals(
                                     IppDictJobTemplateAttr.ATTR_MEDIA_SIZE)) {
                                 iter.remove();
+                                isReplaced = true;
                                 break;
                             }
                         }
@@ -388,7 +386,18 @@ public final class IppReqPrintJob extends IppReqCommon {
                         // Add new.
                         collection.addCollection(mediaSizeCollection);
 
+                        if (isReplaced) {
+                            LOGGER.warn("Replaced {} with {}",
+                                    IppDictJobTemplateAttr.ATTR_MEDIA_SIZE,
+                                    ppdValueNew);
+                        } else {
+                            LOGGER.warn("Set {} to {}",
+                                    IppDictJobTemplateAttr.ATTR_MEDIA_SIZE,
+                                    ppdValueNew);
+                        }
+
                         addExtra = false;
+
                         break;
                     }
                 }
@@ -414,6 +423,7 @@ public final class IppReqPrintJob extends IppReqCommon {
                 }
             }
         }
+
     }
 
     /**
