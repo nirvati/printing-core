@@ -2883,7 +2883,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             /*
              * Chunk!
              */
-            this.chunkProxyPrintRequest(user, printReq, PageScalingEnum.NONE,
+            this.chunkProxyPrintRequest(user, printReq, PageScalingEnum.FIT,
                     false, null);
 
             final ProxyPrintCostParms costParms = new ProxyPrintCostParms(null);
