@@ -1295,7 +1295,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
             final List<IppAttrGroup> ippRequest =
                     new IppReqPrintJob(request, pdfFileToPrint, jsonPrinter,
-                            user, jobNameWork, jobNameWork).build();
+                            user, jobNameWork, jobNameWork, createInfo).build();
 
             response = ippClient.send(urlCupsServer, ippOperation, ippRequest,
                     pdfFileToPrint);

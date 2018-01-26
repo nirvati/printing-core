@@ -50,6 +50,7 @@ import org.savapage.core.ipp.helpers.IppNumberUpHelper;
 import org.savapage.core.ipp.rules.IppRuleExtra;
 import org.savapage.core.ipp.rules.IppRuleNumberUp;
 import org.savapage.core.ipp.rules.IppRuleSubst;
+import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
@@ -81,6 +82,7 @@ public final class IppReqPrintJob extends IppReqCommon {
     private final String reqUser;
     private final String docName;
     private final String jobName;
+    private final PdfCreateInfo pdfCreateInfo;
 
     /*
      * NOTE: PWG5100.13 states that "A Client specifies that is has borderless
@@ -115,10 +117,13 @@ public final class IppReqPrintJob extends IppReqCommon {
      *            The document name.
      * @param printJobName
      *            The print job name.
+     * @param createInfo
+     *            The PDF creation info.
      */
     public IppReqPrintJob(final AbstractProxyPrintReq printRequest,
             final File file, final JsonProxyPrinter printer, final String user,
-            final String documentName, final String printJobName) {
+            final String documentName, final String printJobName,
+            final PdfCreateInfo createInfo) {
 
         this.request = printRequest;
         this.fileToPrint = file;
@@ -126,6 +131,7 @@ public final class IppReqPrintJob extends IppReqCommon {
         this.reqUser = user;
         this.docName = documentName;
         this.jobName = printJobName;
+        this.pdfCreateInfo = createInfo;
     }
 
     /**
@@ -526,7 +532,9 @@ public final class IppReqPrintJob extends IppReqCommon {
          */
         final PdfOrientationInfo pdfOrientation;
 
-        if (this.request.getJobChunkInfo() == null) {
+        if (this.pdfCreateInfo.getPdfOrientationInfo() != null) {
+            pdfOrientation = this.pdfCreateInfo.getPdfOrientationInfo();
+        } else if (this.request.getJobChunkInfo() == null) {
             pdfOrientation = this.request.getPdfOrientation();
         } else {
             pdfOrientation = this.request.getJobChunkInfo().getPdfOrientation();
@@ -540,6 +548,7 @@ public final class IppReqPrintJob extends IppReqCommon {
                     numberUpRequested.toString());
         }
 
+        //
         if (this.jsonPrinter.isInjectPpdExt()) {
             correctForRulesSubst(this.jsonPrinter, printerOptionsLookup,
                     optionValues, group);

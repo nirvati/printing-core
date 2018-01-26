@@ -321,8 +321,10 @@ public final class OutboxServiceImpl extends AbstractService
         final OutboxJobDto job = new OutboxJobDto();
 
         if (createInfo == null) {
+            // Copy job
             job.setFillerPages(0);
         } else {
+            // Print job
             job.setFillerPages(createInfo.getBlankFillerPages());
             job.setFile(createInfo.getPdfFile().getName());
         }
@@ -342,8 +344,16 @@ public final class OutboxServiceImpl extends AbstractService
         job.setSubmitTime(submitDate.getTime());
         job.setExpiryTime(expiryDate.getTime());
         job.setFitToPage(request.getFitToPage());
-        job.setLandscape(request.getLandscape());
-        job.setPdfOrientation(request.getPdfOrientation());
+
+        if (createInfo != null && createInfo.getPdfOrientationInfo() != null) {
+            job.setPdfOrientation(createInfo.getPdfOrientationInfo());
+            job.setLandscape(
+                    createInfo.getPdfOrientationInfo().getLandscape());
+        } else {
+            job.setPdfOrientation(request.getPdfOrientation());
+            job.setLandscape(request.getLandscape());
+        }
+
         job.setDrm(request.isDrm());
         job.putOptionValues(request.getOptionValues());
         job.setUuidPageCount(uuidPageCount);

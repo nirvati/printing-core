@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,6 +27,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
+ * Information about PDF page orientation (portrait, landscape) and (user) page
+ * rotation.
  *
  * @author Rijk Ravestein
  *
@@ -59,7 +61,7 @@ public class PdfOrientationInfo {
     }
 
     /**
-     * @return The PDF rotation the PDF inbox document.
+     * @return The PDF rotation of the PDF inbox document.
      */
     public Integer getRotation() {
         return rotation;

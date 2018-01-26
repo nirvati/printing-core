@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,9 @@ package org.savapage.core.pdf;
 
 import java.io.File;
 import java.util.List;
+
+import org.savapage.core.inbox.PdfOrientationInfo;
+import org.savapage.core.ipp.rules.IppRuleNumberUp;
 
 /**
  * Information about a created PDF file.
@@ -49,6 +52,12 @@ public final class PdfCreateInfo {
      * sub-jobs are defined.
      */
     private List<Integer> logicalJobPages;
+
+    /**
+     * The {@link PdfOrientationInfo} of the first page, used to find the
+     * {@link IppRuleNumberUp}.
+     */
+    private PdfOrientationInfo pdfOrientationInfo;
 
     /**
      *
@@ -115,6 +124,24 @@ public final class PdfCreateInfo {
      */
     public void setLogicalJobPages(List<Integer> logicalJobPages) {
         this.logicalJobPages = logicalJobPages;
+    }
+
+    /**
+     * @return The {@link PdfOrientationInfo} of the first page, used to find
+     *         the {@link IppRuleNumberUp} (can be {@code null}).
+     */
+    public PdfOrientationInfo getPdfOrientationInfo() {
+        return pdfOrientationInfo;
+    }
+
+    /**
+     * @param orientationInfo
+     *            The {@link PdfOrientationInfo} of the first page, used to find
+     *            the {@link IppRuleNumberUp}.
+     */
+    public void
+            setPdfOrientationInfo(final PdfOrientationInfo orientationInfo) {
+        this.pdfOrientationInfo = orientationInfo;
     }
 
 }

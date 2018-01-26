@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import org.savapage.core.SpException;
 import org.savapage.core.doc.ImageToPdf;
-import org.savapage.core.pdf.ITextPdfCreator;
+import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
@@ -223,13 +223,13 @@ public final class EcoPrintPdfTask
                 final int pdfPageRotation =
                         readerWlk.getPageSize(i + 1).getRotation();
 
-                final Integer jobRotationWlk =
-                        ITextPdfCreator.getPdfCopyPageRotation(pageSize,
+                final int jobRotationWlk =
+                        PdfPageRotateHelper.applyUserRotate(
                                 pdfPageRotation, jobRotationInit);
 
-                if (jobRotationWlk != null) {
+                if (jobRotationWlk != pdfPageRotation) {
 
-                    final int rotate = jobRotationWlk.intValue();
+                    final int rotate = jobRotationWlk;
                     rotatePdfPage = rotate != 0;
 
                     if (rotatePdfPage) {

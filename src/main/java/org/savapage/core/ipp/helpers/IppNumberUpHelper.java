@@ -21,15 +21,19 @@
  */
 package org.savapage.core.ipp.helpers;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.rules.IppRuleNumberUp;
 import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.services.helpers.PpdExtFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.itextpdf.awt.geom.AffineTransform;
 
 /**
  *
@@ -192,16 +196,103 @@ public final class IppNumberUpHelper {
 
             // Driver Printing a landscape LibreOffice document.
             { _L_, P_270, U__0, N_1, _____, ____, _P_ }, // OK
-            { _L_, P_270, U__0, N_2, _____, TBLR, _P_ }, // OK
-            { _L_, P_270, U__0, N_4, _____, BTLR, _L_ }, // OK -LH
-            { _L_, P_270, U__0, N_6, _____, BTLR, _P_ }, // OK -LH
+            { _L_, P_270, U__0, N_2, _____, TBLR, _L_ }, // OK
+            { _L_, P_270, U__0, N_4, _____, LRTB, _P_ }, // OK
+            { _L_, P_270, U__0, N_6, _____, LRTB, _L_ }, // OK
 
             { _L_, P_270, U_90, N_1, _____, ____, _L_ }, // OK
             { _L_, P_270, U_90, N_2, _____, TBRL, _P_ }, // OK -LH
-            { _L_, P_270, U_90, N_4, _____, BTLR, _L_ }, // OK -LH
+            { _L_, P_270, U_90, N_4, _____, TBRL, _L_ }, // OK
             { _L_, P_270, U_90, N_6, _____, TBRL, _P_ }, // OK -LH
+
     };
 
+    // -----------------------------------------------------------------------
+    /** */
+    private static final Integer PORTRAIT = Integer.valueOf(0);
+    /** */
+    private static final Integer LANDSCAPE = Integer.valueOf(1);
+
+    /** */
+    public static final Integer PDF_ROTATION_0 =
+            PdfPageRotateHelper.PDF_ROTATION_0;
+    /** */
+    public static final Integer PDF_ROTATION_90 =
+            PdfPageRotateHelper.PDF_ROTATION_90;
+    /** */
+    public static final Integer PDF_ROTATION_180 =
+            PdfPageRotateHelper.PDF_ROTATION_180;
+    /** */
+    public static final Integer PDF_ROTATION_270 =
+            PdfPageRotateHelper.PDF_ROTATION_270;
+
+    /** */
+    public static final Integer CTM_ROTATION_0 = PDF_ROTATION_0;
+    /** */
+    public static final Integer CTM_ROTATION_90 = PDF_ROTATION_90;
+    /** */
+    public static final Integer CTM_ROTATION_180 = PDF_ROTATION_180;
+    /** */
+    public static final Integer CTM_ROTATION_270 = PDF_ROTATION_270;
+
+    /** */
+    public static final Integer N_UP_1 =
+            Integer.valueOf(IppKeyword.NUMBER_UP_1);
+    /** */
+    public static final Integer N_UP_2 =
+            Integer.valueOf(IppKeyword.NUMBER_UP_2);
+    /** */
+    public static final Integer N_UP_4 =
+            Integer.valueOf(IppKeyword.NUMBER_UP_4);
+    /** */
+    public static final Integer N_UP_6 =
+            Integer.valueOf(IppKeyword.NUMBER_UP_6);
+    /** */
+    public static final Integer N_UP_9 =
+            Integer.valueOf(IppKeyword.NUMBER_UP_9);
+
+    /** 0-based index. */
+    private static final int I_PAGE_ORIENTATION = 0;
+    /** 0-based index. */
+    private static final int I_PAGE_ROTATION = 1;
+    /** 0-based index. */
+    private static final int I_CTM_ROTATION = 2;
+    /** 0-based index. */
+    private static final int I_NUMBER_UP = 3;
+    /** 0-based index. */
+    private static final int I_EFF_ORIENTATION = 4;
+    /** 0-based index. */
+    private static final int I_EFF_ROTATION = 5;
+
+    /**
+     * Rules to determine the key values for the {@link #RULES} array.
+     */
+    private static final Integer[][] RULES_RULE_KEY = new Integer[][] {
+            // ---------------------------------------------
+            //
+            // ---------------------------------------------
+            { LANDSCAPE, PDF_ROTATION_0, CTM_ROTATION_0, null, //
+                    LANDSCAPE, PDF_ROTATION_0 }, //
+            // ---------------------------------------------
+            // CTM
+            // ---------------------------------------------
+            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, N_UP_1, //
+                    PORTRAIT, PDF_ROTATION_0 }, // OK
+
+            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, N_UP_2, //
+                    PORTRAIT, PDF_ROTATION_90 }, // OK -staple
+
+            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, N_UP_4, //
+                    PORTRAIT, PDF_ROTATION_0 }, // OK
+
+            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, N_UP_6, //
+                    LANDSCAPE, PDF_ROTATION_270 }, // OK -staple
+
+            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, N_UP_9, //
+                    PORTRAIT, PDF_ROTATION_0 }, // OK
+    };
+
+    // -----------------------------------------------------------------------
     /** */
     private IppNumberUpHelper() {
         this.numberUpRules = createRuleList(RULES);
@@ -329,6 +420,83 @@ public final class IppNumberUpHelper {
 
         template.setNumberUp(savedNup);
         return rule;
+    }
+
+    /**
+     * Gets the {@link PdfOrientationInfo} to find the proper
+     * {@link IppRuleNumberUp}.
+     * <p>
+     * NOTE: The PDF page rotation is set according to the requested user
+     * rotate, after which user rotate is set to {@link #ROTATION_0}.
+     * </p>
+     *
+     * @param ctm
+     *            The CTM of the PDF page (can be {@code null}.
+     * @param pageRotation
+     *            The PDF page rotation.
+     * @param landscape
+     *            {@code true} when page has landscape orientation.
+     * @param userRotate
+     *            Rotation requested by user.
+     * @param numberUp
+     *            number-up.
+     * @return The PDF orientation info.
+     * @throws IOException
+     *             When IO errors.
+     */
+    public static PdfOrientationInfo getOrientationInfo(
+            final AffineTransform ctm, final int pageRotation,
+            final boolean landscape, final Integer userRotate,
+            final int numberUp) throws IOException {
+        final Integer contentRotation;
+
+        if (ctm == null) {
+            contentRotation = PDF_ROTATION_0;
+        } else {
+            contentRotation = PdfPageRotateHelper.getPageContentRotation(ctm);
+        }
+
+        // Apply user rotate.
+        final Integer pageRotationUser = Integer.valueOf(
+                PdfPageRotateHelper.applyUserRotate(pageRotation, userRotate));
+
+        final Integer pageOrientation;
+
+        if (landscape) {
+            pageOrientation = LANDSCAPE;
+        } else {
+            pageOrientation = PORTRAIT;
+        }
+
+        // Set defaults.
+        Integer ruleRotation = pageRotationUser;
+        Integer ruleOrientation = pageOrientation;
+
+        if (!contentRotation.equals(PDF_ROTATION_0)) {
+
+            for (final Integer[] rule : RULES_RULE_KEY) {
+
+                if (rule[I_PAGE_ORIENTATION].equals(pageOrientation)
+                        && rule[I_PAGE_ROTATION].equals(pageRotationUser)
+                        && rule[I_CTM_ROTATION].equals(contentRotation)) {
+
+                    if (rule[I_NUMBER_UP] == null
+                            || rule[I_NUMBER_UP].intValue() == numberUp) {
+                        ruleOrientation = rule[I_EFF_ORIENTATION];
+                        ruleRotation = rule[I_EFF_ROTATION];
+                        break;
+                    }
+                }
+            }
+        }
+
+        final PdfOrientationInfo pdfOrientation = new PdfOrientationInfo();
+
+        pdfOrientation.setLandscape(ruleOrientation.equals(LANDSCAPE));
+        pdfOrientation.setRotation(ruleRotation);
+        pdfOrientation.setRotate(PdfPageRotateHelper.PDF_ROTATION_0);
+
+        return pdfOrientation;
     }
 
 }

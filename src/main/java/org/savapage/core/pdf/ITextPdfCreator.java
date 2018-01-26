@@ -52,11 +52,13 @@ import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.doc.IFileConverter;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.ipp.helpers.IppNumberUpHelper;
 import org.savapage.core.json.PdfProperties;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.itextpdf.awt.geom.AffineTransform;
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -101,14 +103,21 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
     private String targetPdfCopyFilePath;
     private Document targetDocument;
+
     private PdfCopy targetPdfCopy;
+    private int nPagesAdded2Target;
+
     private PdfStamper targetStamper;
 
     private PdfReader readerWlk;
     private PdfReader letterheadReader;
 
     private StringBuilder jobRangesWlk;
-    private Integer jobRotationWlk;
+
+    /**
+     * The user rotate of the current job.
+     */
+    private Integer jobUserRotateWlk;
 
     private File jobPdfFileWlk;
 
@@ -472,6 +481,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         this.onExitConvertToGrayscale = this.isGrayscalePdf();
 
         this.targetPdfCopyFilePath = String.format("%s.tmp", this.pdfFile);
+        this.nPagesAdded2Target = 0;
 
         try {
 
@@ -516,13 +526,13 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     @Override
-    protected void onInitJob(final String jobPfdName,
-            final Integer userRotation) throws Exception {
+    protected void onInitJob(final String jobPfdName, final Integer userRotate)
+            throws Exception {
 
         this.jobPdfFileWlk = new File(jobPfdName);
         this.readerWlk = new PdfReader(jobPfdName);
 
-        this.jobRotationWlk = userRotation;
+        this.jobUserRotateWlk = userRotate;
         this.jobRangesWlk = new StringBuilder();
     }
 
@@ -567,80 +577,70 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         return this.singleBlankPagePdfReader;
     }
 
-    /**
-     * Applies the requested page rotation by user to the source PDF page
-     * rotation, and returns the PDF page rotation to be applied for export
-     * (download).
-     *
-     * @param srcPageSize
-     *            The size of the source PDF page.
-     * @param srcPageRotation
-     *            The rotation of the source PDF page.
-     * @param userRotation
-     *            The rotation applied by the user on the visible SafePages.
-     *
-     * @return The page rotation to apply to the PDF page copy.
-     */
-    public static Integer getPdfCopyPageRotation(final Rectangle srcPageSize,
-            final int srcPageRotation, final Integer userRotation) {
-
-        return PdfPageRotateHelper.instance().getPageRotationForExport(
-                isLandscapePage(srcPageSize), srcPageRotation, userRotation);
-    }
-
-    /**
-     *
-     * @param pdfPageSize
-     *            The PDF page size.
-     * @return {@code true} when landscape orientation.
-     */
-    private static boolean isLandscapePage(final Rectangle pdfPageSize) {
-        return pdfPageSize.getHeight() < pdfPageSize.getWidth();
-    }
-
     @Override
     protected void onExitJob(final int blankPagesToAppend) throws Exception {
 
         this.readerWlk.selectPages(this.jobRangesWlk.toString());
-        int pages = this.readerWlk.getNumberOfPages();
 
-        // Create a new instance for the user rotation.
-        final Integer jobUserRotation =
-                new Integer(this.jobRotationWlk.intValue());
+        /*
+         * Lazy initialize on first page of first job.
+         */
+        if (this.isForPrinting() && this.firstPageOrientationInfo == null) {
 
-        for (int i = 0; i < pages;) {
+            final int firstPage = 1;
 
-            ++i;
+            final AffineTransform ctm = PdfPageRotateHelper
+                    .getPdfPageCTM(this.readerWlk, firstPage);
 
-            /*
-             * Rotate for export AND printing. Unconditional rotation is needed
-             * at this stage, because we need the intended orientation when a
-             * letterhead is to be applied.
-             */
-            final int pageRotationPrv = this.readerWlk.getPageRotation(i);
+            this.firstPageOrientationInfo =
+                    IppNumberUpHelper.getOrientationInfo(ctm,
+                            this.readerWlk.getPageRotation(firstPage),
+                            PdfPageRotateHelper.isLandscapePage(
+                                    this.readerWlk.getPageSize(firstPage)),
+                            this.jobUserRotateWlk, this.getPrintNup());
+        }
 
-            final int pageRotationNew =
-                    getPdfCopyPageRotation(this.readerWlk.getPageSize(i),
-                            pageRotationPrv, jobUserRotation).intValue();
+        final int pages = this.readerWlk.getNumberOfPages();
 
-            final PdfDictionary pageDict = this.readerWlk.getPageN(i);
+        /*
+         * Traverse pages.
+         */
+        for (int nPage =
+                1; nPage <= pages; nPage++, this.nPagesAdded2Target++) {
 
-            if (pageRotationPrv != pageRotationNew) {
+            final int pageRotationCur = this.readerWlk.getPageRotation(nPage);
+            final int pageRotationNew;
+
+            if (this.isForPrinting() && this.nPagesAdded2Target > 1) {
+
+                pageRotationNew = PdfPageRotateHelper.getAlignedRotation(
+                        this.readerWlk, this.firstPageOrientationInfo, nPage,
+                        this.jobUserRotateWlk);
+            } else {
+
+                pageRotationNew = PdfPageRotateHelper.applyUserRotate(
+                        pageRotationCur, this.jobUserRotateWlk);
+            }
+
+            final PdfDictionary pageDict = this.readerWlk.getPageN(nPage);
+
+            if (pageRotationCur != pageRotationNew) {
                 pageDict.put(PdfName.ROTATE, new PdfNumber(pageRotationNew));
             }
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Page {}: rotate {}->{} | landscape [{}]", i,
-                        pageRotationPrv, pageRotationNew,
-                        isLandscapePage(this.readerWlk.getPageSize(i)));
+                LOGGER.debug("Page {}: rotate {}->{} | landscape [{}]", nPage,
+                        pageRotationCur, pageRotationNew,
+                        PdfPageRotateHelper.isLandscapePage(
+                                this.readerWlk.getPageSize(nPage)));
             }
 
             final PdfImportedPage importedPage;
 
-            if (isPageContentsPresent(this.readerWlk, i)) {
+            if (isPageContentsPresent(this.readerWlk, nPage)) {
 
-                importedPage =
-                        this.targetPdfCopy.getImportedPage(this.readerWlk, i);
+                importedPage = this.targetPdfCopy
+                        .getImportedPage(this.readerWlk, nPage);
 
             } else {
                 /*
@@ -655,7 +655,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                     LOGGER.info(String.format(
                             "File [%s] page [%d] has NO /Contents: "
                                     + "replaced by blank content.",
-                            this.jobPdfFileWlk.getName(), i));
+                            this.jobPdfFileWlk.getName(), nPage));
                 }
             }
             this.targetPdfCopy.addPage(importedPage);
