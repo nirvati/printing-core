@@ -366,6 +366,8 @@ public abstract class AbstractPdfCreator {
 
         this.removeGraphics = createReq.isRemoveGraphics();
 
+        this.firstPageOrientationInfo = null;
+
         /*
          * INVARIANT: if PDF is meant for export, DRM-restricted content is not
          * allowed.

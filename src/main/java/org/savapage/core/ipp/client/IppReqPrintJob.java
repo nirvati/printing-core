@@ -160,7 +160,15 @@ public final class IppReqPrintJob extends IppReqCommon {
         templateRule.setUserRotate(pdfOrientation.getRotate().intValue());
         templateRule.setNumberUp(numberUp);
 
-        //
+        final Integer pageContentRotation = pdfOrientation.getContentRotation();
+
+        if (pageContentRotation == null
+                || pageContentRotation.intValue() == 0) {
+            templateRule.setPdfContentRotation(0);
+        } else {
+            templateRule.setPdfContentRotation(pageContentRotation.intValue());
+        }
+
         IppRuleNumberUp numberUpRule = jsonPrinter.findCustomRule(templateRule);
 
         if (numberUpRule == null) {

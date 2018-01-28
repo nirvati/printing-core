@@ -21,19 +21,15 @@
  */
 package org.savapage.core.ipp.helpers;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.rules.IppRuleNumberUp;
 import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.services.helpers.PpdExtFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.itextpdf.awt.geom.AffineTransform;
 
 /**
  *
@@ -93,6 +89,9 @@ public final class IppNumberUpHelper {
     private static final String U__0 = P___0;
     private static final String U_90 = P__90;
 
+    private static final String CTM___0 = P___0;
+    private static final String CTM_270 = P_270;
+
     private static final String N_1 = IppKeyword.NUMBER_UP_1;
     private static final String N_2 = IppKeyword.NUMBER_UP_2;
     private static final String N_4 = IppKeyword.NUMBER_UP_4;
@@ -102,11 +101,12 @@ public final class IppNumberUpHelper {
 
     final static int IDX_ORIENTATION = 0;
     final static int IDX_PDF_ROTATION = 1;
-    final static int IDX_USER_ROTATE = 2;
-    final static int IDX_N_UP = 3;
-    final static int IDX_CUPS_ORIENTATION = 4;
-    final static int IDX_CUPS_N_UP_LAYOUT = 5;
-    final static int IDX_CUPS_N_UP_ORIENTATION = 6;
+    final static int IDX_PDF_CONTENT_ROTATION = 2;
+    final static int IDX_USER_ROTATE = 3;
+    final static int IDX_N_UP = 4;
+    final static int IDX_CUPS_ORIENTATION = 5;
+    final static int IDX_CUPS_N_UP_LAYOUT = 6;
+    final static int IDX_CUPS_N_UP_ORIENTATION = 7;
 
     private static final String ____ = null;
     private static final String _____ = null;
@@ -121,178 +121,99 @@ public final class IppNumberUpHelper {
             /*
              * Portrait.
              */
-            { _P_, P___0, U__0, N_1, _____, ____, _P_ }, // OK
-            { _P_, P___0, U__0, N_2, _____, LRTB, _L_ }, // OK +LH(_P_)
-            { _P_, P___0, U__0, N_4, _____, LRTB, _P_ }, // OK
-            { _P_, P___0, U__0, N_6, _____, LRTB, _L_ }, // OK +LH(_P_)
+            { _P_, P___0, CTM___0, U__0, N_1, _____, ____, _P_ }, // OK
+            { _P_, P___0, CTM___0, U__0, N_2, _____, LRTB, _L_ }, // OK +LH(_P_)
+            { _P_, P___0, CTM___0, U__0, N_4, _____, LRTB, _P_ }, // OK
+            { _P_, P___0, CTM___0, U__0, N_6, _____, LRTB, _L_ }, // OK +LH(_P_)
 
-            { _P_, P___0, U_90, N_1, _____, ____, _P_ }, // OK
-            { _P_, P___0, U_90, N_2, _____, RLTB, _L_ }, // OK -LH
-            { _P_, P___0, U_90, N_4, _____, BTLR, _P_ }, // OK -LH
-            { _P_, P___0, U_90, N_6, _____, TBRL, _L_ }, // OK -LH
+            { _P_, P___0, CTM___0, U_90, N_1, _____, ____, _P_ }, // OK
+            { _P_, P___0, CTM___0, U_90, N_2, _____, RLTB, _L_ }, // OK -LH
+            { _P_, P___0, CTM___0, U_90, N_4, _____, BTLR, _P_ }, // OK -LH
+            { _P_, P___0, CTM___0, U_90, N_6, _____, TBRL, _L_ }, // OK -LH
 
-            { _P_, P__90, U__0, N_1, C_180, ____, _P_ }, // OK -Ricoh
-            { _P_, P__90, U__0, N_2, C_180, TBLR, _P_ }, // OK -Ricoh
-            { _P_, P__90, U__0, N_4, C_180, BTLR, _P_ }, // OK -Ricoh
-            { _P_, P__90, U__0, N_6, C_180, BTLR, _P_ }, // OK -Ricoh
+            { _P_, P__90, CTM___0, U__0, N_1, C_180, ____, _P_ }, // OK -Ricoh
+            { _P_, P__90, CTM___0, U__0, N_2, C_180, TBLR, _P_ }, // OK -Ricoh
+            { _P_, P__90, CTM___0, U__0, N_4, C_180, BTLR, _P_ }, // OK -Ricoh
+            { _P_, P__90, CTM___0, U__0, N_6, C_180, BTLR, _P_ }, // OK -Ricoh
 
-            { _P_, P__90, U_90, N_1, _____, ____ }, //
-            { _P_, P__90, U_90, N_2, C_270, TBRL }, //
-            { _P_, P__90, U_90, N_4, _____, TBRL }, //
-            { _P_, P__90, U_90, N_6, C_270, LRTB }, //
+            { _P_, P__90, CTM___0, U_90, N_1, _____, ____ }, //
+            { _P_, P__90, CTM___0, U_90, N_2, C_270, TBRL }, //
+            { _P_, P__90, CTM___0, U_90, N_4, _____, TBRL }, //
+            { _P_, P__90, CTM___0, U_90, N_6, C_270, LRTB }, //
 
-            { _P_, P_180, U__0, N_1, C_180, ____ }, //
-            { _P_, P_180, U__0, N_2, C_270, TBRL }, //
-            { _P_, P_180, U__0, N_4, C_180, BTLR }, //
-            { _P_, P_180, U__0, N_6, C_270, LRTB }, //
+            { _P_, P_180, CTM___0, U__0, N_1, C_180, ____ }, //
+            { _P_, P_180, CTM___0, U__0, N_2, C_270, TBRL }, //
+            { _P_, P_180, CTM___0, U__0, N_4, C_180, BTLR }, //
+            { _P_, P_180, CTM___0, U__0, N_6, C_270, LRTB }, //
 
-            { _P_, P_180, U_90, N_1, _____, ____ }, //
-            { _P_, P_180, U_90, N_2, C_180, TBRL }, //
-            { _P_, P_180, U_90, N_4, _____, TBRL }, //
-            { _P_, P_180, U_90, N_6, C_180, TBRL }, //
+            { _P_, P_180, CTM___0, U_90, N_1, _____, ____ }, //
+            { _P_, P_180, CTM___0, U_90, N_2, C_180, TBRL }, //
+            { _P_, P_180, CTM___0, U_90, N_4, _____, TBRL }, //
+            { _P_, P_180, CTM___0, U_90, N_6, C_180, TBRL }, //
 
-            { _P_, P_270, U__0, N_1, _____, ____ }, //
-            { _P_, P_270, U__0, N_2, C_180, TBRL }, //
-            { _P_, P_270, U__0, N_4, _____, TBRL }, //
-            { _P_, P_270, U__0, N_6, C_180, TBRL }, //
+            { _P_, P_270, CTM___0, U__0, N_1, _____, ____ }, //
+            { _P_, P_270, CTM___0, U__0, N_2, C_180, TBRL }, //
+            { _P_, P_270, CTM___0, U__0, N_4, _____, TBRL }, //
+            { _P_, P_270, CTM___0, U__0, N_6, C_180, TBRL }, //
 
-            { _P_, P_270, U_90, N_1, _____, ____ }, //
-            { _P_, P_270, U_90, N_2, C_180, TBRL }, //
-            { _P_, P_270, U_90, N_4, _____, TBRL }, //
-            { _P_, P_270, U_90, N_6, C_180, TBRL }, //
+            { _P_, P_270, CTM___0, U_90, N_1, _____, ____ }, //
+            { _P_, P_270, CTM___0, U_90, N_2, C_180, TBRL }, //
+            { _P_, P_270, CTM___0, U_90, N_4, _____, TBRL }, //
+            { _P_, P_270, CTM___0, U_90, N_6, C_180, TBRL }, //
 
             /*
              * Landscape.
              */
-            { _L_, P___0, U__0, N_1, C_270, ____, _P_ }, // OK
-            { _L_, P___0, U__0, N_2, C_180, TBLR, _P_ }, // OK -Ricoh
-            { _L_, P___0, U__0, N_4, C_270, LRTB, _P_ }, // OK
-            { _L_, P___0, U__0, N_6, C_180, BTLR, _P_ }, // OK -Ricoh
+            { _L_, P___0, CTM___0, U__0, N_1, C_270, ____, _P_ }, // OK
+            { _L_, P___0, CTM___0, U__0, N_2, C_180, TBLR, _P_ }, // OK -Ricoh
+            { _L_, P___0, CTM___0, U__0, N_4, C_270, LRTB, _P_ }, // OK
+            { _L_, P___0, CTM___0, U__0, N_6, C_180, BTLR, _P_ }, // OK -Ricoh
 
-            { _L_, P___0, U_90, N_1, C_270, ____ }, //
-            { _L_, P___0, U_90, N_2, C_270, TBRL }, //
-            { _L_, P___0, U_90, N_4, C_270, LRTB }, //
-            { _L_, P___0, U_90, N_6, C_270, LRTB }, //
+            { _L_, P___0, CTM___0, U_90, N_1, C_270, ____ }, //
+            { _L_, P___0, CTM___0, U_90, N_2, C_270, TBRL }, //
+            { _L_, P___0, CTM___0, U_90, N_4, C_270, LRTB }, //
+            { _L_, P___0, CTM___0, U_90, N_6, C_270, LRTB }, //
 
-            { _L_, P__90, U__0, N_1, C_270, ____ }, //
-            { _L_, P__90, U__0, N_2, C_270, TBRL }, //
-            { _L_, P__90, U__0, N_4, C_270, LRTB }, //
-            { _L_, P__90, U__0, N_6, C_270, LRTB }, //
+            { _L_, P__90, CTM___0, U__0, N_1, C_270, ____ }, //
+            { _L_, P__90, CTM___0, U__0, N_2, C_270, TBRL }, //
+            { _L_, P__90, CTM___0, U__0, N_4, C_270, LRTB }, //
+            { _L_, P__90, CTM___0, U__0, N_6, C_270, LRTB }, //
 
-            { _L_, P__90, U_90, N_1, _____, ____ }, //
-            { _L_, P__90, U_90, N_2, C_180, TBRL }, //
-            { _L_, P__90, U_90, N_4, _____, TBRL }, //
-            { _L_, P__90, U_90, N_6, C_180, TBRL }, //
+            { _L_, P__90, CTM___0, U_90, N_1, _____, ____ }, //
+            { _L_, P__90, CTM___0, U_90, N_2, C_180, TBRL }, //
+            { _L_, P__90, CTM___0, U_90, N_4, _____, TBRL }, //
+            { _L_, P__90, CTM___0, U_90, N_6, C_180, TBRL }, //
 
-            { _L_, P_180, U__0, N_1, _____, ____ }, //
-            { _L_, P_180, U__0, N_2, C_180, TBRL }, //
-            { _L_, P_180, U__0, N_4, _____, TBRL }, //
-            { _L_, P_180, U__0, N_6, C_180, TBRL }, //
+            { _L_, P_180, CTM___0, U__0, N_1, _____, ____ }, //
+            { _L_, P_180, CTM___0, U__0, N_2, C_180, TBRL }, //
+            { _L_, P_180, CTM___0, U__0, N_4, _____, TBRL }, //
+            { _L_, P_180, CTM___0, U__0, N_6, C_180, TBRL }, //
 
-            { _L_, P_180, U_90, N_1, _____, ____ }, //
-            { _L_, P_180, U_90, N_2, C_180, TBRL }, //
-            { _L_, P_180, U_90, N_4, _____, TBRL }, //
-            { _L_, P_180, U_90, N_6, C_180, TBRL }, //
+            { _L_, P_180, CTM___0, U_90, N_1, _____, ____ }, //
+            { _L_, P_180, CTM___0, U_90, N_2, C_180, TBRL }, //
+            { _L_, P_180, CTM___0, U_90, N_4, _____, TBRL }, //
+            { _L_, P_180, CTM___0, U_90, N_6, C_180, TBRL }, //
 
             // Driver Printing a landscape LibreOffice document.
-            { _L_, P_270, U__0, N_1, _____, ____, _P_ }, // OK
-            { _L_, P_270, U__0, N_2, _____, TBLR, _L_ }, // OK
-            { _L_, P_270, U__0, N_4, _____, LRTB, _P_ }, // OK
-            { _L_, P_270, U__0, N_6, _____, LRTB, _L_ }, // OK
+            { _L_, P_270, CTM___0, U__0, N_1, _____, ____, _P_ }, // OK
+            { _L_, P_270, CTM___0, U__0, N_2, _____, TBLR, _L_ }, // OK
+            { _L_, P_270, CTM___0, U__0, N_4, _____, LRTB, _P_ }, // OK
+            { _L_, P_270, CTM___0, U__0, N_6, _____, LRTB, _L_ }, // OK
 
-            { _L_, P_270, U_90, N_1, _____, ____, _L_ }, // OK
-            { _L_, P_270, U_90, N_2, _____, TBRL, _P_ }, // OK -LH
-            { _L_, P_270, U_90, N_4, _____, TBRL, _L_ }, // OK
-            { _L_, P_270, U_90, N_6, _____, TBRL, _P_ }, // OK -LH
+            { _L_, P_270, CTM___0, U_90, N_1, _____, ____, _L_ }, // OK
+            { _L_, P_270, CTM___0, U_90, N_2, _____, TBRL, _P_ }, // OK -LH
+            { _L_, P_270, CTM___0, U_90, N_4, _____, TBRL, _L_ }, // OK
+            { _L_, P_270, CTM___0, U_90, N_6, _____, TBRL, _P_ }, // OK -LH
 
-    };
-
-    // -----------------------------------------------------------------------
-    /** */
-    private static final Integer PORTRAIT = Integer.valueOf(0);
-    /** */
-    private static final Integer LANDSCAPE = Integer.valueOf(1);
-
-    /** */
-    public static final Integer PDF_ROTATION_0 =
-            PdfPageRotateHelper.PDF_ROTATION_0;
-    /** */
-    public static final Integer PDF_ROTATION_90 =
-            PdfPageRotateHelper.PDF_ROTATION_90;
-    /** */
-    public static final Integer PDF_ROTATION_180 =
-            PdfPageRotateHelper.PDF_ROTATION_180;
-    /** */
-    public static final Integer PDF_ROTATION_270 =
-            PdfPageRotateHelper.PDF_ROTATION_270;
-
-    /** */
-    public static final Integer CTM_ROTATION_0 = PDF_ROTATION_0;
-    /** */
-    public static final Integer CTM_ROTATION_90 = PDF_ROTATION_90;
-    /** */
-    public static final Integer CTM_ROTATION_180 = PDF_ROTATION_180;
-    /** */
-    public static final Integer CTM_ROTATION_270 = PDF_ROTATION_270;
-
-    /** */
-    public static final Integer N_UP_1 =
-            Integer.valueOf(IppKeyword.NUMBER_UP_1);
-    /** */
-    public static final Integer N_UP_2 =
-            Integer.valueOf(IppKeyword.NUMBER_UP_2);
-    /** */
-    public static final Integer N_UP_4 =
-            Integer.valueOf(IppKeyword.NUMBER_UP_4);
-    /** */
-    public static final Integer N_UP_6 =
-            Integer.valueOf(IppKeyword.NUMBER_UP_6);
-    /** */
-    public static final Integer N_UP_9 =
-            Integer.valueOf(IppKeyword.NUMBER_UP_9);
-
-    /** 0-based index. */
-    private static final int I_PAGE_ORIENTATION = 0;
-    /** 0-based index. */
-    private static final int I_PAGE_ROTATION = 1;
-    /** 0-based index. */
-    private static final int I_CTM_ROTATION = 2;
-    /** 0-based index. */
-    private static final int I_NUMBER_UP = 3;
-    /** 0-based index. */
-    private static final int I_EFF_ORIENTATION = 4;
-    /** 0-based index. */
-    private static final int I_EFF_ROTATION = 5;
-
-    /**
-     * Rules to determine the key values for the {@link #RULES} array.
-     */
-    private static final Integer[][] RULES_RULE_KEY = new Integer[][] {
-            // ---------------------------------------------
-            //
-            // ---------------------------------------------
-            { LANDSCAPE, PDF_ROTATION_0, CTM_ROTATION_0, null, //
-                    LANDSCAPE, PDF_ROTATION_0 }, //
-            // ---------------------------------------------
+            // ----------------------------------------------------
             // CTM
-            // ---------------------------------------------
-            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, N_UP_1, //
-                    PORTRAIT, PDF_ROTATION_0 }, // OK
-
-            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, N_UP_2, //
-                    PORTRAIT, PDF_ROTATION_90 }, // OK -staple
-
-            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, N_UP_4, //
-                    PORTRAIT, PDF_ROTATION_0 }, // OK
-
-            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, N_UP_6, //
-                    LANDSCAPE, PDF_ROTATION_270 }, // OK -staple
-
-            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, N_UP_9, //
-                    PORTRAIT, PDF_ROTATION_0 }, // OK
+            // ----------------------------------------------------
+            { _L_, P_270, CTM_270, U__0, N_1, _____, ____, _P_ }, // OK
+            { _L_, P_270, CTM_270, U__0, N_2, C_180, LRTB, _P_ }, // OK
+            { _L_, P_270, CTM_270, U__0, N_4, _____, LRTB, _L_ }, // OK
+            { _L_, P_270, CTM_270, U__0, N_6, C_180, LRTB, _P_ }, // OK -Ricoh
     };
 
-    // -----------------------------------------------------------------------
     /** */
     private IppNumberUpHelper() {
         this.numberUpRules = createRuleList(RULES);
@@ -314,6 +235,8 @@ public final class IppNumberUpHelper {
             rule.setLandscape(wlk[IDX_ORIENTATION].equals(_L_));
             rule.setNumberUp(wlk[IDX_N_UP]);
             rule.setPdfRotation(Integer.parseInt(wlk[IDX_PDF_ROTATION]));
+            rule.setPdfContentRotation(
+                    Integer.parseInt(wlk[IDX_PDF_CONTENT_ROTATION]));
             rule.setUserRotate(Integer.parseInt(wlk[IDX_USER_ROTATE]));
 
             rule.setNumberUpLayout(wlk[IDX_CUPS_N_UP_LAYOUT]);
@@ -376,14 +299,18 @@ public final class IppNumberUpHelper {
      *
      * @param template
      *            The template rule with <i>independent</i> variables.
+     * @param contentRotationRule
+     *            If {@code true}, a page content rotation rule must be found.
      * @return The template rule object supplemented with <i>dependent</i>
      *         variables, or {@code null} when no rule found.
      */
     public IppRuleNumberUp findCustomRule(final IppRuleNumberUp template) {
-        final IppRuleNumberUp test = findCustomRuleTest(template);
-        if (test != null) {
-            return test;
+
+        final IppRuleNumberUp rule = findCustomRuleTest(template);
+        if (rule != null) {
+            return rule;
         }
+
         return findCustomRule(this.numberUpRules, template);
     }
 
@@ -420,83 +347,6 @@ public final class IppNumberUpHelper {
 
         template.setNumberUp(savedNup);
         return rule;
-    }
-
-    /**
-     * Gets the {@link PdfOrientationInfo} to find the proper
-     * {@link IppRuleNumberUp}.
-     * <p>
-     * NOTE: The PDF page rotation is set according to the requested user
-     * rotate, after which user rotate is set to {@link #ROTATION_0}.
-     * </p>
-     *
-     * @param ctm
-     *            The CTM of the PDF page (can be {@code null}.
-     * @param pageRotation
-     *            The PDF page rotation.
-     * @param landscape
-     *            {@code true} when page has landscape orientation.
-     * @param userRotate
-     *            Rotation requested by user.
-     * @param numberUp
-     *            number-up.
-     * @return The PDF orientation info.
-     * @throws IOException
-     *             When IO errors.
-     */
-    public static PdfOrientationInfo getOrientationInfo(
-            final AffineTransform ctm, final int pageRotation,
-            final boolean landscape, final Integer userRotate,
-            final int numberUp) throws IOException {
-        final Integer contentRotation;
-
-        if (ctm == null) {
-            contentRotation = PDF_ROTATION_0;
-        } else {
-            contentRotation = PdfPageRotateHelper.getPageContentRotation(ctm);
-        }
-
-        // Apply user rotate.
-        final Integer pageRotationUser = Integer.valueOf(
-                PdfPageRotateHelper.applyUserRotate(pageRotation, userRotate));
-
-        final Integer pageOrientation;
-
-        if (landscape) {
-            pageOrientation = LANDSCAPE;
-        } else {
-            pageOrientation = PORTRAIT;
-        }
-
-        // Set defaults.
-        Integer ruleRotation = pageRotationUser;
-        Integer ruleOrientation = pageOrientation;
-
-        if (!contentRotation.equals(PDF_ROTATION_0)) {
-
-            for (final Integer[] rule : RULES_RULE_KEY) {
-
-                if (rule[I_PAGE_ORIENTATION].equals(pageOrientation)
-                        && rule[I_PAGE_ROTATION].equals(pageRotationUser)
-                        && rule[I_CTM_ROTATION].equals(contentRotation)) {
-
-                    if (rule[I_NUMBER_UP] == null
-                            || rule[I_NUMBER_UP].intValue() == numberUp) {
-                        ruleOrientation = rule[I_EFF_ORIENTATION];
-                        ruleRotation = rule[I_EFF_ROTATION];
-                        break;
-                    }
-                }
-            }
-        }
-
-        final PdfOrientationInfo pdfOrientation = new PdfOrientationInfo();
-
-        pdfOrientation.setLandscape(ruleOrientation.equals(LANDSCAPE));
-        pdfOrientation.setRotation(ruleRotation);
-        pdfOrientation.setRotate(PdfPageRotateHelper.PDF_ROTATION_0);
-
-        return pdfOrientation;
     }
 
 }

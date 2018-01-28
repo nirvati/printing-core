@@ -24,6 +24,7 @@ package org.savapage.core.pdf;
 import java.io.IOException;
 
 import org.savapage.core.inbox.PdfOrientationInfo;
+import org.savapage.core.ipp.rules.IppRuleNumberUp;
 
 import com.itextpdf.awt.geom.AffineTransform;
 import com.itextpdf.text.Rectangle;
@@ -97,6 +98,33 @@ public final class PdfPageRotateHelper {
                     { -1, 0, 0, -1, ROTATION_180 }, //
                     { 0, -1, 1, 0, ROTATION_270 } //
             };
+
+    // ------------------------------------------------------------------
+    //
+    // ------------------------------------------------------------------
+
+    /** */
+    private static final Integer PORTRAIT = Integer.valueOf(0);
+    /** */
+    private static final Integer LANDSCAPE = Integer.valueOf(1);
+
+    /** 0-based index. */
+    private static final int I_PAGE_ORIENTATION = 0;
+    /** 0-based index. */
+    private static final int I_PAGE_ROTATION = 1;
+    /** 0-based index. */
+    private static final int I_CTM_ROTATION = 2;
+    /** 0-based index. */
+    private static final int I_EFF_ORIENTATION = 3;
+
+    /**
+     * Rules to determine the key values for the {@link #RULES} array.
+     */
+    private static final Integer[][] RULES_RULE_KEY = { //
+            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, PORTRAIT } //
+    };
+
+    // ------------------------------------------------------------------
 
     /**
      * Gets the PDF page <i>content</i> rotation.
@@ -216,12 +244,72 @@ public final class PdfPageRotateHelper {
     }
 
     /**
+     * Is PDF page seen in landscape orientation?
+     *
+     * @param ctm
+     *            The CTM of the PDF page (can be {@code null}.
+     * @param pageRotation
+     *            The PDF page rotation.
+     * @param landscape
+     *            {@code true} when page rectangle has landscape orientation.
+     * @param userRotate
+     *            Rotation requested by user.
+     * @return {@code true} when seen in landscape.
+     * @throws IOException
+     *             When IO errors.
+     */
+    public static boolean isSeenAsLandscape(final AffineTransform ctm,
+            final int pageRotation, final boolean landscape,
+            final Integer userRotate) {
+
+        final Integer contentRotation;
+
+        if (ctm == null) {
+            contentRotation = PDF_ROTATION_0;
+        } else {
+            contentRotation = PdfPageRotateHelper.getPageContentRotation(ctm);
+        }
+
+        // Apply user rotate.
+        final Integer pageRotationUser = Integer.valueOf(
+                PdfPageRotateHelper.applyUserRotate(pageRotation, userRotate));
+
+        final Integer pageOrientation;
+
+        if (PdfPageRotateHelper.isSeenAsLandscape(landscape,
+                pageRotationUser)) {
+            pageOrientation = LANDSCAPE;
+        } else {
+            pageOrientation = PORTRAIT;
+        }
+
+        // Set default.
+        Integer ruleOrientation = pageOrientation;
+
+        if (!contentRotation.equals(PDF_ROTATION_0)) {
+
+            for (final Integer[] rule : RULES_RULE_KEY) {
+
+                if (rule[I_PAGE_ORIENTATION].equals(pageOrientation)
+                        && rule[I_PAGE_ROTATION].equals(pageRotationUser)
+                        && rule[I_CTM_ROTATION].equals(contentRotation)) {
+
+                    ruleOrientation = rule[I_EFF_ORIENTATION];
+                    break;
+                }
+            }
+        }
+
+        return ruleOrientation.equals(LANDSCAPE);
+    }
+
+    /**
      *
      * @param pageLandscape
      * @param pageRotation
      * @return {@code true} when seen as landscape on paper or in viewer.
      */
-    private static boolean isSeenAsLandscape(final boolean pageLandscape,
+    public static boolean isSeenAsLandscape(final boolean pageLandscape,
             final int pageRotation) {
 
         if (pageLandscape) {
@@ -232,50 +320,33 @@ public final class PdfPageRotateHelper {
     }
 
     /**
-     *
-     * @param info
-     *            The PDF orientation info.
-     * @return {@code true} when seen as landscape on paper or in viewer.
-     */
-    private static boolean isSeenAsLandscape(final PdfOrientationInfo info) {
-        return isSeenAsLandscape(info.getLandscape(),
-                info.getRotation().intValue());
-    }
-
-    /**
      * Gets the page rotation for a PDF page, so its orientation will be the
      * same as the perceived orientation of the standard.
      *
      * @param reader
      *            The PDF reader.
-     * @param standard
-     *            The standard orientation to align to.
+     * @param alignToLandscape
+     *            If {@code true}, page must be aligned to landscape.
      * @param nPage
      *            The 1-based page ordinal.
-     * @param userRotate
-     *            Rotation requested by SavaPage user.
      * @return The rotation aligned to the standard.
      * @throws IOException
      *             When IO errors.
      */
     public static int getAlignedRotation(final PdfReader reader,
-            final PdfOrientationInfo standard, final int nPage,
-            final Integer userRotate_NOT_USED) throws IOException {
-
-        // final int pageRotationUser = PdfPageRotateHelper
-        // .applyUserRotate(pageRotation, userRotate);
+            final boolean alignToLandscape, final int nPage)
+            throws IOException {
 
         final boolean pageLandscape =
                 isLandscapePage(reader.getPageSize(nPage));
         final int pageRotation = reader.getPageRotation(nPage);
 
-        final boolean seenLandscapeCur = isSeenAsLandscape(standard);
         final boolean seenLandscapeNxt =
                 isSeenAsLandscape(pageLandscape, pageRotation);
 
         final int alignedRotation;
 
-        if (seenLandscapeCur) {
+        if (alignToLandscape) {
 
             if (seenLandscapeNxt) {
                 alignedRotation = pageRotation;
@@ -303,13 +374,6 @@ public final class PdfPageRotateHelper {
             }
 
         }
-
-        // if (!standard.getLandscape() && next.getLandscape()) {
-        // // Align to portrait
-        // if (standard.getRotation().intValue() == 0) {
-        // return PDF_ROTATION_270;
-        // }
-        // }
 
         return alignedRotation;
     }
@@ -369,6 +433,45 @@ public final class PdfPageRotateHelper {
 
         throw new IllegalArgumentException(String
                 .format("PDF page rotation [%d] is invalid", pageRotation));
+    }
+
+    /**
+     * Gets the {@link PdfOrientationInfo} to find the proper
+     * {@link IppRuleNumberUp}.
+     *
+     * @param ctm
+     *            The CTM of the PDF page (can be {@code null}.
+     * @param pageRotation
+     *            The PDF page rotation.
+     * @param landscape
+     *            {@code true} when page has landscape orientation.
+     * @param userRotate
+     *            Rotation requested by user.
+     * @return The PDF orientation info.
+     * @throws IOException
+     *             When IO errors.
+     */
+    public static PdfOrientationInfo getOrientationInfo(
+            final AffineTransform ctm, final int pageRotation,
+            final boolean landscape, final Integer userRotate)
+            throws IOException {
+
+        final Integer contentRotation;
+
+        if (ctm == null) {
+            contentRotation = PDF_ROTATION_0;
+        } else {
+            contentRotation = getPageContentRotation(ctm);
+        }
+
+        final PdfOrientationInfo pdfOrientation = new PdfOrientationInfo();
+
+        pdfOrientation.setLandscape(landscape);
+        pdfOrientation.setRotation(pageRotation);
+        pdfOrientation.setRotate(userRotate);
+        pdfOrientation.setContentRotation(contentRotation);
+
+        return pdfOrientation;
     }
 
 }

@@ -863,6 +863,18 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 }
                 break;
 
+            case "pdf-content-rotation":
+                isChoiceValid = NumberUtils.isDigits(choice);
+                if (isChoiceValid) {
+                    final Integer rotation = Integer.valueOf(choice);
+                    if (PdfPageRotateHelper.isPdfRotationValid(rotation)) {
+                        rule.setPdfContentRotation(rotation.intValue());
+                    } else {
+                        isChoiceValid = false;
+                    }
+                }
+                break;
+
             case "user-rotate":
                 isChoiceValid = NumberUtils.isDigits(choice);
                 if (isChoiceValid) {

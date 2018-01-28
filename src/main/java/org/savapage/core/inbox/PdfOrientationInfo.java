@@ -43,9 +43,14 @@ public class PdfOrientationInfo {
     private boolean landscape;
 
     /**
-     * The PDF rotation the PDF inbox document.
+     * The PDF page rotation.
      */
     private Integer rotation;
+
+    /**
+     * The PDF page content rotation (can be {@code null}).
+     */
+    private Integer contentRotation;
 
     /**
      * The rotation on the PDF inbox document set by the User.
@@ -76,6 +81,21 @@ public class PdfOrientationInfo {
     }
 
     /**
+     * @return The PDF page content rotation (can be {@code null}).
+     */
+    public Integer getContentRotation() {
+        return contentRotation;
+    }
+
+    /**
+     * @param rotation
+     *            The PDF page content rotation (can be {@code null}).
+     */
+    public void setContentRotation(Integer contentRotation) {
+        this.contentRotation = rotation;
+    }
+
+    /**
      * @return The rotation on the PDF inbox document set by the User.
      */
     public Integer getRotate() {
@@ -99,6 +119,7 @@ public class PdfOrientationInfo {
         obj.setLandscape(false);
         obj.setRotate(PdfPageRotateHelper.PDF_ROTATION_0);
         obj.setRotation(PdfPageRotateHelper.PDF_ROTATION_0);
+        obj.setContentRotation(null);
         return obj;
     }
 }

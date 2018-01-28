@@ -52,7 +52,6 @@ import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.doc.IFileConverter;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
-import org.savapage.core.ipp.helpers.IppNumberUpHelper;
 import org.savapage.core.json.PdfProperties;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
@@ -138,6 +137,11 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      * {@code true} if the created pdf is to be converted to grayscale onExit.
      */
     private boolean onExitConvertToGrayscale = false;
+
+    /**
+     * .
+     */
+    private Boolean firstPageSeenAsLandscape;
 
     /**
      * Create a {@link BaseFont} for an {@link InternalFontFamilyEnum}.
@@ -482,6 +486,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         this.targetPdfCopyFilePath = String.format("%s.tmp", this.pdfFile);
         this.nPagesAdded2Target = 0;
+        this.firstPageSeenAsLandscape = null;
 
         try {
 
@@ -585,19 +590,26 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         /*
          * Lazy initialize on first page of first job.
          */
-        if (this.isForPrinting() && this.firstPageOrientationInfo == null) {
+        if (this.isForPrinting() && this.firstPageSeenAsLandscape == null) {
 
             final int firstPage = 1;
 
             final AffineTransform ctm = PdfPageRotateHelper
                     .getPdfPageCTM(this.readerWlk, firstPage);
 
-            this.firstPageOrientationInfo =
-                    IppNumberUpHelper.getOrientationInfo(ctm,
+            this.firstPageSeenAsLandscape =
+                    PdfPageRotateHelper.isSeenAsLandscape(ctm,
                             this.readerWlk.getPageRotation(firstPage),
                             PdfPageRotateHelper.isLandscapePage(
                                     this.readerWlk.getPageSize(firstPage)),
-                            this.jobUserRotateWlk, this.getPrintNup());
+                            this.jobUserRotateWlk);
+
+            this.firstPageOrientationInfo =
+                    PdfPageRotateHelper.getOrientationInfo(ctm,
+                            this.readerWlk.getPageRotation(firstPage),
+                            PdfPageRotateHelper.isLandscapePage(
+                                    this.readerWlk.getPageSize(firstPage)),
+                            this.jobUserRotateWlk);
         }
 
         final int pages = this.readerWlk.getNumberOfPages();
@@ -614,8 +626,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             if (this.isForPrinting() && this.nPagesAdded2Target > 1) {
 
                 pageRotationNew = PdfPageRotateHelper.getAlignedRotation(
-                        this.readerWlk, this.firstPageOrientationInfo, nPage,
-                        this.jobUserRotateWlk);
+                        this.readerWlk, this.firstPageSeenAsLandscape, nPage);
             } else {
 
                 pageRotationNew = PdfPageRotateHelper.applyUserRotate(

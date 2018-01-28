@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,6 +40,7 @@ public final class IppRuleNumberUp {
     // Independent variables.
     private boolean landscape;
     private int pdfRotation;
+    private int pdfContentRotation;
     private int userRotate;
     private String numberUp;
 
@@ -55,6 +56,8 @@ public final class IppRuleNumberUp {
      */
     public IppRuleNumberUp(final String rule) {
         this.name = rule;
+        this.pdfContentRotation = 0;
+        this.userRotate = 0;
     }
 
     /**
@@ -67,6 +70,7 @@ public final class IppRuleNumberUp {
     public boolean isParameterMatch(final IppRuleNumberUp rule) {
         return this.landscape == rule.landscape
                 && this.pdfRotation == rule.pdfRotation
+                && this.pdfContentRotation == rule.pdfContentRotation
                 && this.userRotate == rule.userRotate
                 && this.numberUp.equals(rule.numberUp);
     }
@@ -92,6 +96,7 @@ public final class IppRuleNumberUp {
     public void setInDependentVars(final IppRuleNumberUp source) {
         this.landscape = source.landscape;
         this.pdfRotation = source.pdfRotation;
+        this.pdfContentRotation = source.pdfContentRotation;
         this.userRotate = source.userRotate;
         this.numberUp = source.numberUp;
     }
@@ -125,6 +130,14 @@ public final class IppRuleNumberUp {
 
     public void setPdfRotation(int pdfRotation) {
         this.pdfRotation = pdfRotation;
+    }
+
+    public int getPdfContentRotation() {
+        return pdfContentRotation;
+    }
+
+    public void setPdfContentRotation(int pdfContentRotation) {
+        this.pdfContentRotation = pdfContentRotation;
     }
 
     public int getUserRotate() {
