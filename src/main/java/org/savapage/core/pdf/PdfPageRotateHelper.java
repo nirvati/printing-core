@@ -267,17 +267,16 @@ public final class PdfPageRotateHelper {
         if (ctm == null) {
             contentRotation = PDF_ROTATION_0;
         } else {
-            contentRotation = PdfPageRotateHelper.getPageContentRotation(ctm);
+            contentRotation = getPageContentRotation(ctm);
         }
 
         // Apply user rotate.
-        final Integer pageRotationUser = Integer.valueOf(
-                PdfPageRotateHelper.applyUserRotate(pageRotation, userRotate));
+        final Integer pageRotationUser =
+                Integer.valueOf(applyUserRotate(pageRotation, userRotate));
 
         final Integer pageOrientation;
 
-        if (PdfPageRotateHelper.isSeenAsLandscape(landscape,
-                pageRotationUser)) {
+        if (isSeenAsLandscape(landscape, pageRotationUser)) {
             pageOrientation = LANDSCAPE;
         } else {
             pageOrientation = PORTRAIT;

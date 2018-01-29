@@ -92,7 +92,7 @@ public class PdfOrientationInfo {
      *            The PDF page content rotation (can be {@code null}).
      */
     public void setContentRotation(Integer contentRotation) {
-        this.contentRotation = rotation;
+        this.contentRotation = contentRotation;
     }
 
     /**

@@ -90,6 +90,7 @@ public final class IppNumberUpHelper {
     private static final String U_90 = P__90;
 
     private static final String CTM___0 = P___0;
+    private static final String CTM__90 = P__90;
     private static final String CTM_270 = P_270;
 
     private static final String N_1 = IppKeyword.NUMBER_UP_1;
@@ -194,16 +195,25 @@ public final class IppNumberUpHelper {
             { _L_, P_180, CTM___0, U_90, N_4, _____, TBRL }, //
             { _L_, P_180, CTM___0, U_90, N_6, C_180, TBRL }, //
 
-            // Driver Printing a landscape LibreOffice document.
+            // ----------------------------------------------------
+            // The block below is also the vanilla result of Driver Printing a
+            // landscape LibreOffice document. However, N_4 and and N_6 do not
+            // give correct layout: therefore user rotate MUST be applied to get
+            // that right.
+            // ----------------------------------------------------
             { _L_, P_270, CTM___0, U__0, N_1, _____, ____, _P_ }, // OK
             { _L_, P_270, CTM___0, U__0, N_2, _____, TBLR, _L_ }, // OK
             { _L_, P_270, CTM___0, U__0, N_4, _____, LRTB, _P_ }, // OK
             { _L_, P_270, CTM___0, U__0, N_6, _____, LRTB, _L_ }, // OK
 
+            // ----------------------------------------------------
+            // Driver Printing a landscape LibreOffice document
+            // with user rotate correction.
+            // ----------------------------------------------------
             { _L_, P_270, CTM___0, U_90, N_1, _____, ____, _L_ }, // OK
-            { _L_, P_270, CTM___0, U_90, N_2, _____, TBRL, _P_ }, // OK -LH
-            { _L_, P_270, CTM___0, U_90, N_4, _____, TBRL, _L_ }, // OK
-            { _L_, P_270, CTM___0, U_90, N_6, _____, TBRL, _P_ }, // OK -LH
+            { _L_, P_270, CTM___0, U_90, N_2, _____, TBLR, _P_ }, // OK -Ricoh
+            { _L_, P_270, CTM___0, U_90, N_4, _____, BTLR, _L_ }, // OK -Ricoh
+            { _L_, P_270, CTM___0, U_90, N_6, _____, BTLR, _P_ }, // OK -Ricoh
 
             // ----------------------------------------------------
             // CTM
@@ -212,6 +222,13 @@ public final class IppNumberUpHelper {
             { _L_, P_270, CTM_270, U__0, N_2, C_180, LRTB, _P_ }, // OK
             { _L_, P_270, CTM_270, U__0, N_4, _____, LRTB, _L_ }, // OK
             { _L_, P_270, CTM_270, U__0, N_6, C_180, LRTB, _P_ }, // OK -Ricoh
+
+            // EcoPrint
+            { _L_, P__90, CTM__90, U_90, N_1, _____, ____, _P_ }, // OK
+            { _L_, P__90, CTM__90, U_90, N_2, C_180, LRTB, _P_ }, // OK
+            { _L_, P__90, CTM__90, U_90, N_4, C_180, BTLR, _L_ }, // +/-
+            { _L_, P__90, CTM__90, U_90, N_6, C_180, BTLR, _L_ }, // +-
+
     };
 
     /** */
@@ -305,6 +322,15 @@ public final class IppNumberUpHelper {
      *         variables, or {@code null} when no rule found.
      */
     public IppRuleNumberUp findCustomRule(final IppRuleNumberUp template) {
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Template\n" //
+                    + "PDF landscape   [{}] rotation [{}] content [{}]\n" //
+                    + "USR rotate      [{}] n-up [{}]", //
+                    template.isLandscape(), template.getPdfRotation(),
+                    template.getPdfContentRotation(), template.getUserRotate(),
+                    template.getNumberUp());
+        }
 
         final IppRuleNumberUp rule = findCustomRuleTest(template);
         if (rule != null) {

@@ -35,9 +35,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.savapage.core.SpException;
 import org.savapage.core.doc.ImageToPdf;
 import org.savapage.core.pdf.PdfPageRotateHelper;
-import org.savapage.core.pdf.PdfSecurityException;
-import org.savapage.core.pdf.PdfValidityException;
-import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
 import org.savapage.core.util.DateUtil;
@@ -184,13 +181,7 @@ public final class EcoPrintPdfTask
         int nPagesMax = 0;
         double fractionFilteredTot = 0.0;
 
-        final Integer jobRotationInit =
-                Integer.valueOf(this.taskInfo.getRotation());
         try {
-
-            final SpPdfPageProps pdfDocProps = SpPdfPageProps
-                    .create(this.taskInfo.getPdfIn().getAbsolutePath());
-
             final PdfReader readerWlk = new PdfReader(
                     new FileInputStream(this.taskInfo.getPdfIn()));
 
@@ -211,37 +202,29 @@ public final class EcoPrintPdfTask
 
             for (int i = 0; i < nPagesMax; i++) {
 
+                final int nPage = i + 1;
+
                 this.checkExecutorTerminating();
+
+                final Rectangle pageSize = readerWlk.getPageSize(nPage);
+                final int pageRotation = readerWlk.getPageRotation(nPage);
+
+                final boolean pageLandscape =
+                        PdfPageRotateHelper.isLandscapePage(pageSize);
+
+                final boolean seenAsLandscape = PdfPageRotateHelper
+                        .isSeenAsLandscape(pageLandscape, pageRotation);
 
                 /*
                  * Set page size and margins first.
                  */
-                final boolean rotatePdfPage;
+                if (pageLandscape && !seenAsLandscape) {
 
-                final Rectangle pageSize = readerWlk.getPageSize(i + 1);
+                    final PdfDictionary pageDict = readerWlk.getPageN(i + 1);
 
-                final int pdfPageRotation =
-                        readerWlk.getPageSize(i + 1).getRotation();
+                    pageDict.put(PdfName.ROTATE, new PdfNumber(
+                            PdfPageRotateHelper.PDF_ROTATION_90.intValue()));
 
-                final int jobRotationWlk =
-                        PdfPageRotateHelper.applyUserRotate(
-                                pdfPageRotation, jobRotationInit);
-
-                if (jobRotationWlk != pdfPageRotation) {
-
-                    final int rotate = jobRotationWlk;
-                    rotatePdfPage = rotate != 0;
-
-                    if (rotatePdfPage) {
-                        final PdfDictionary pageDict =
-                                readerWlk.getPageN(i + 1);
-                        pageDict.put(PdfName.ROTATE, new PdfNumber(rotate));
-                    }
-                } else {
-                    rotatePdfPage = false;
-                }
-
-                if (rotatePdfPage) {
                     targetDocument.setPageSize(pageSize.rotate());
                 } else {
                     targetDocument.setPageSize(pageSize);
@@ -262,11 +245,11 @@ public final class EcoPrintPdfTask
                         UUID.randomUUID().toString()));
 
                 final Pdf2ImgCommand cmd = new Pdf2PngPopplerCmd();
+
                 final String command = cmd.createCommand(taskInfo.getPdfIn(),
-                        pdfDocProps.isLandscape(),
-                        pdfDocProps.getRotationFirstPage(), imageOut, i,
-                        taskInfo.getResolution().intValue(),
-                        jobRotationInit.intValue());
+                        pageLandscape, pageRotation, imageOut, i,
+                        // seenAsLandscape, 0, imageOut, i,
+                        taskInfo.getResolution().intValue(), 0);
 
                 final ICommandExecutor exec =
                         CommandExecutor.createSimple(command);
@@ -309,8 +292,7 @@ public final class EcoPrintPdfTask
             //
             finished = true;
 
-        } catch (PdfSecurityException | PdfValidityException | IOException
-                | DocumentException | SpException e) {
+        } catch (IOException | DocumentException | SpException e) {
 
             LOGGER.error(e.getMessage());
 

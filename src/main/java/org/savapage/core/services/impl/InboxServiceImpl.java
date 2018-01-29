@@ -2452,8 +2452,6 @@ public final class InboxServiceImpl implements InboxService {
         info.setResolution(Integer.valueOf(ConfigManager.instance()
                 .getConfigInt(Key.ECO_PRINT_RESOLUTION_DPI)));
 
-        info.setRotation(PdfPageRotateHelper.PDF_ROTATION_0.toString());
-
         ECOPRINT_SERVICE.submitTask(info);
     }
 
