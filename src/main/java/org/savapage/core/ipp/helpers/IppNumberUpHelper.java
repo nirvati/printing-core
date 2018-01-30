@@ -100,23 +100,38 @@ public final class IppNumberUpHelper {
     private static final String N_9 = IppKeyword.NUMBER_UP_9;
     private static final String N_16 = IppKeyword.NUMBER_UP_16;
 
-    final static int IDX_ORIENTATION = 0;
-    final static int IDX_PDF_ROTATION = 1;
-    final static int IDX_PDF_CONTENT_ROTATION = 2;
-    final static int IDX_USER_ROTATE = 3;
-    final static int IDX_N_UP = 4;
-    final static int IDX_CUPS_ORIENTATION = 5;
-    final static int IDX_CUPS_N_UP_LAYOUT = 6;
-    final static int IDX_CUPS_N_UP_ORIENTATION = 7;
+    /** Index in {@link #RULES} item for independent variable. */
+    private static final int IDX_ORIENTATION = 0;
+    /** Index in {@link #RULES} item for independent variable. */
+    private static final int IDX_PDF_ROTATION = 1;
+    /** Index in {@link #RULES} item for independent variable. */
+    private static final int IDX_PDF_CONTENT_ROTATION = 2;
+    /** Index in {@link #RULES} item for independent variable. */
+    private static final int IDX_USER_ROTATE = 3;
+    /** Index in {@link #RULES} item for independent variable. */
+    private static final int IDX_N_UP = 4;
+    /** Index in {@link #RULES} item for dependent variable. */
+    private static final int IDX_CUPS_ORIENTATION = 5;
+    /** Index in {@link #RULES} item for dependent variable. */
+    private static final int IDX_CUPS_N_UP_LAYOUT = 6;
+    /** Index in {@link #RULES} item for dependent variable. */
+    private static final int IDX_CUPS_N_UP_ORIENTATION = 7;
 
     private static final String ____ = null;
     private static final String _____ = null;
 
     /**
-     * Internal rules as tested with CUPS "Generic PostScript Printer".
-     *
-     * Exceptions, like e.g.for Ricoh, are configured as SPRule in PPDE file.
+     * Internal number-up rules as tested with CUPS "Generic PostScript
+     * Printer".
+     * <p>
+     * The independent variables hold the values of the first page of the PDF
+     * input, and user requested number-up and page rotation, "as is", i.e.
+     * these are not the values in the resulting PDF output.
+     * </p>
+     * <p>
+     * Exceptions, like e.g. for Ricoh, are configured as SPRule in PPDE file.
      * See: {@link PpdExtFileReader}.
+     * </p>
      */
     private static final String[][] RULES = { //
             /*
@@ -301,9 +316,9 @@ public final class IppNumberUpHelper {
         if (rule != null) {
             LOGGER.warn(
                     "Test Rule\n" //
-                            + "PDF landscape   [{}] rotation [{}]\n" //
-                            + "USR rotate      [{}] n-up [{}]\n" //
-                            + "--> orientation [{}] layout [{}]",
+                            + "PDF  landscape   [{}] rotation [{}]\n" //
+                            + "User rotate      [{}] n-up [{}]\n" //
+                            + "---> orientation [{}] layout [{}]",
                     rule.isLandscape(), rule.getPdfRotation(),
                     rule.getUserRotate(), rule.getNumberUp(),
                     rule.getOrientationRequested(), rule.getNumberUpLayout());
@@ -324,9 +339,10 @@ public final class IppNumberUpHelper {
     public IppRuleNumberUp findCustomRule(final IppRuleNumberUp template) {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Template\n" //
-                    + "PDF landscape   [{}] rotation [{}] content [{}]\n" //
-                    + "USR rotate      [{}] n-up [{}]", //
+            LOGGER.debug(
+                    "Template\n" //
+                            + "PDF  landscape [{}] rotation [{}] content [{}]\n" //
+                            + "User rotate    [{}] n-up [{}]", //
                     template.isLandscape(), template.getPdfRotation(),
                     template.getPdfContentRotation(), template.getUserRotate(),
                     template.getNumberUp());
