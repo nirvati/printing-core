@@ -210,21 +210,11 @@ public final class IppNumberUpHelper {
             { _L_, P_180, CTM___0, U_90, N_4, _____, TBRL }, //
             { _L_, P_180, CTM___0, U_90, N_6, C_180, TBRL }, //
 
-            // ----------------------------------------------------
-            // The block below is also the vanilla result of Driver Printing a
-            // landscape LibreOffice document. However, N_4 and and N_6 do not
-            // give correct layout: therefore user rotate MUST be applied to get
-            // that right.
-            // ----------------------------------------------------
             { _L_, P_270, CTM___0, U__0, N_1, _____, ____, _P_ }, // OK
             { _L_, P_270, CTM___0, U__0, N_2, _____, TBLR, _L_ }, // OK
             { _L_, P_270, CTM___0, U__0, N_4, _____, LRTB, _P_ }, // OK
             { _L_, P_270, CTM___0, U__0, N_6, _____, LRTB, _L_ }, // OK
 
-            // ----------------------------------------------------
-            // Driver Printing a landscape LibreOffice document
-            // with user rotate correction.
-            // ----------------------------------------------------
             { _L_, P_270, CTM___0, U_90, N_1, _____, ____, _L_ }, // OK
             { _L_, P_270, CTM___0, U_90, N_2, _____, TBLR, _P_ }, // OK -Ricoh
             { _L_, P_270, CTM___0, U_90, N_4, _____, BTLR, _L_ }, // OK -Ricoh
