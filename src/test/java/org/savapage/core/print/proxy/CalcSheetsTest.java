@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <https://savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -148,6 +148,42 @@ public class CalcSheetsTest {
         int copies = 1;
 
         assertEquals("4 pages, 2-up, duplex, 1 copy", 1,
+                PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages,
+                        copies, duplex, nUp, oddOrEvenSheets, coverPageBefore,
+                        coverPageAfter));
+    }
+
+    @Test
+    public void test7() {
+
+        boolean duplex = false;
+        boolean oddOrEvenSheets = false;
+        boolean coverPageBefore = false;
+        boolean coverPageAfter = false;
+
+        int numberOfPages = 7;
+        int nUp = 4;
+        int copies = 1;
+
+        assertEquals("7 pages, 4-up, 1 copy", 2,
+                PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages,
+                        copies, duplex, nUp, oddOrEvenSheets, coverPageBefore,
+                        coverPageAfter));
+    }
+
+    @Test
+    public void test8() {
+
+        boolean duplex = true;
+        boolean oddOrEvenSheets = false;
+        boolean coverPageBefore = false;
+        boolean coverPageAfter = false;
+
+        int numberOfPages = 8;
+        int nUp = 4;
+        int copies = 1;
+
+        assertEquals("8 pages, 4-up, duplex, 1 copy", 1,
                 PdfPrintCollector.calcNumberOfPrintedSheets(numberOfPages,
                         copies, duplex, nUp, oddOrEvenSheets, coverPageBefore,
                         coverPageAfter));

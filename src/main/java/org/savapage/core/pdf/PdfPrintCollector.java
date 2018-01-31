@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -125,14 +125,20 @@ public final class PdfPrintCollector {
             final boolean oddOrEvenSheets, final boolean coverPageBefore,
             final boolean coverPageAfter) {
 
-        int nPages = numberOfPages;
+        int nPages;
 
         // NOTE: the order of handling the print options is important.
 
-        if (nPages <= nUp) {
+        if (nUp == 1) {
+            nPages = numberOfPages;
+        } else if (nUp >= numberOfPages) {
             nPages = 1;
-        } else if (nUp != 1) {
-            nPages = (nPages / nUp) + (nPages % nUp);
+        } else {
+            int nPagesCalc = (numberOfPages / nUp);
+            if (numberOfPages % nUp > 0) {
+                nPagesCalc++;
+            }
+            nPages = nPagesCalc;
         }
 
         /*
