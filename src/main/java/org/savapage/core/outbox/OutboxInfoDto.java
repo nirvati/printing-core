@@ -530,7 +530,7 @@ public final class OutboxInfoDto extends AbstractDto {
         }
 
         /**
-         * @return {@code true} when one of the job pages has landscape
+         * @return {@code true} when first page is perceived as landscape
          *         orientation. {@code null} when unknown.
          */
         public Boolean getLandscape() {
@@ -539,7 +539,7 @@ public final class OutboxInfoDto extends AbstractDto {
 
         /**
          * @param landscape
-         *            {@code true} when one of the job pages has landscape
+         *            {@code true} when first page is perceived as landscape
          *            orientation. {@code null} when unknown.
          */
         public void setLandscape(Boolean landscape) {

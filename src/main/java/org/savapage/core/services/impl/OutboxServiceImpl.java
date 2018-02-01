@@ -64,11 +64,13 @@ import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfoSet;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
+import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.pdf.PdfPrintCollector;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq.Status;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
+import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfo;
@@ -347,8 +349,8 @@ public final class OutboxServiceImpl extends AbstractService
 
         if (createInfo != null && createInfo.getPdfOrientationInfo() != null) {
             job.setPdfOrientation(createInfo.getPdfOrientationInfo());
-            job.setLandscape(
-                    createInfo.getPdfOrientationInfo().getLandscape());
+            job.setLandscape(PdfPageRotateHelper
+                    .isSeenAsLandscape(createInfo.getPdfOrientationInfo()));
         } else {
             job.setPdfOrientation(request.getPdfOrientation());
             job.setLandscape(request.getLandscape());
@@ -910,8 +912,11 @@ public final class OutboxServiceImpl extends AbstractService
         final OutboxInfoDto outboxInfo =
                 pruneOutboxInfo(user.getUserId(), expiryRef);
 
-        for (final OutboxJobDto dto : jobTicketService()
-                .getTickets(user.getId())) {
+        final JobTicketService.JobTicketFilter filter =
+                new JobTicketService.JobTicketFilter();
+        filter.setUserId(user.getId());
+
+        for (final OutboxJobDto dto : jobTicketService().getTickets(filter)) {
             outboxInfo.addJob(dto.getFile(), dto);
         }
 

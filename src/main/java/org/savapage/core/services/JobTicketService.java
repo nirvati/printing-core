@@ -47,6 +47,8 @@ import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.TicketJobSheetDto;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.JobTicketExecParms;
+import org.savapage.core.services.helpers.JobTicketQueueInfo;
+import org.savapage.core.services.helpers.JobTicketWrapperDto;
 
 /**
  *
@@ -54,6 +56,37 @@ import org.savapage.core.services.helpers.JobTicketExecParms;
  *
  */
 public interface JobTicketService extends StatefulService {
+
+    /** */
+    class JobTicketFilter {
+
+        /**
+         * The {@link User} database key.
+         */
+        private Long userId;
+
+        /**
+         * Part of a ticket id as case-insensitive search argument.
+         */
+        private String searchTicketId;
+
+        public Long getUserId() {
+            return userId;
+        }
+
+        public void setUserId(Long userId) {
+            this.userId = userId;
+        }
+
+        public String getSearchTicketId() {
+            return searchTicketId;
+        }
+
+        public void setSearchTicketId(String searchTicketId) {
+            this.searchTicketId = searchTicketId;
+        }
+
+    }
 
     /**
      * Sends Copy Job to the OutBox.
@@ -136,11 +169,30 @@ public interface JobTicketService extends StatefulService {
     String createTicketNumber();
 
     /**
+     *
+     * @return Ticket Queue information.
+     */
+    JobTicketQueueInfo getTicketQueueInfo();
+
+    /**
      * Gets the pending Job Tickets.
      *
+     * @param filter
+     *            The filter.
      * @return The Job Tickets.
      */
-    List<OutboxJobDto> getTickets();
+    List<OutboxJobDto> getTickets(JobTicketFilter filter);
+
+    /**
+     * Gets the pending Job Tickets numbers.
+     *
+     * @param filter
+     *            The filter.
+     * @param maxItems
+     *            Max items to return.
+     * @return The Job Tickets numbers.
+     */
+    List<String> getTicketNumbers(JobTicketFilter filter, int maxItems);
 
     /**
      * Gets the pending Job Ticket.
@@ -150,15 +202,6 @@ public interface JobTicketService extends StatefulService {
      * @return The Job Ticket or {@code null} when not found.
      */
     OutboxJobDto getTicket(String fileName);
-
-    /**
-     * Gets the pending Job Tickets of a {@link User}.
-     *
-     * @param userId
-     *            The {@link User} database key.
-     * @return The Job Tickets.
-     */
-    List<OutboxJobDto> getTickets(Long userId);
 
     /**
      * Gets the pending Job Ticket belonging to a {@link User} job file.
@@ -244,6 +287,18 @@ public interface JobTicketService extends StatefulService {
      *             When file IO error occurs.
      */
     boolean updateTicket(OutboxJobDto dto) throws IOException;
+
+    /**
+     * Updates a Job Ticket.
+     *
+     * @param wrapper
+     *            The ticket wrapper.
+     * @return {@code true} when found and updated, {@code false} when not
+     *         found.
+     * @throws IOException
+     *             When file IO error occurs.
+     */
+    boolean updateTicket(JobTicketWrapperDto wrapper) throws IOException;
 
     /**
      * Notifies Job Ticket owner (by email) that ticket is completed.

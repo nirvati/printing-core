@@ -246,6 +246,36 @@ public final class PdfPageRotateHelper {
     /**
      * Is PDF page seen in landscape orientation?
      *
+     * @param info
+     *            The PDF orientation info.
+     * @return {@code true} when seen in landscape.
+     * @throws IOException
+     *             When IO errors.
+     */
+    public static boolean isSeenAsLandscape(final PdfOrientationInfo info) {
+
+        final int contentRotation;
+        final int pageRotation;
+
+        if (info.getContentRotation() == null) {
+            contentRotation = ROTATION_0;
+        } else {
+            contentRotation = info.getContentRotation().intValue();
+        }
+
+        if (info.getRotation() == null) {
+            pageRotation = ROTATION_0;
+        } else {
+            pageRotation = info.getRotation().intValue();
+        }
+
+        return isSeenAsLandscape(contentRotation, pageRotation,
+                info.getLandscape(), info.getRotate());
+    }
+
+    /**
+     * Is PDF page seen in landscape orientation?
+     *
      * @param ctm
      *            The CTM of the PDF page (can be {@code null}.
      * @param pageRotation
@@ -262,13 +292,36 @@ public final class PdfPageRotateHelper {
             final int pageRotation, final boolean landscape,
             final Integer userRotate) {
 
-        final Integer contentRotation;
+        final int contentRotation;
 
         if (ctm == null) {
-            contentRotation = PDF_ROTATION_0;
+            contentRotation = ROTATION_0;
         } else {
-            contentRotation = getPageContentRotation(ctm);
+            contentRotation = getPageContentRotation(ctm).intValue();
         }
+
+        return isSeenAsLandscape(contentRotation, pageRotation,
+                landscape, userRotate);
+    }
+
+    /**
+     * Is PDF page seen in landscape orientation?
+     *
+     * @param contentRotation
+     *            The PDF page content rotation.
+     * @param pageRotation
+     *            The PDF page rotation.
+     * @param landscape
+     *            {@code true} when page rectangle has landscape orientation.
+     * @param userRotate
+     *            Rotation requested by user.
+     * @return {@code true} when seen in landscape.
+     * @throws IOException
+     *             When IO errors.
+     */
+    private static boolean isSeenAsLandscape(final int contentRotation,
+            final int pageRotation, final boolean landscape,
+            final Integer userRotate) {
 
         // Apply user rotate.
         final Integer pageRotationUser =
@@ -285,7 +338,7 @@ public final class PdfPageRotateHelper {
         // Set default.
         Integer ruleOrientation = pageOrientation;
 
-        if (!contentRotation.equals(PDF_ROTATION_0)) {
+        if (contentRotation != ROTATION_0) {
 
             for (final Integer[] rule : RULES_RULE_KEY) {
 

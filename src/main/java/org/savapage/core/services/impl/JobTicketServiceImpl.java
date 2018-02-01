@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -100,8 +100,11 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.JobTicketExecParms;
+import org.savapage.core.services.helpers.JobTicketQueueInfo;
+import org.savapage.core.services.helpers.JobTicketStats;
 import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.services.helpers.JobTicketTagCache;
+import org.savapage.core.services.helpers.JobTicketWrapperDto;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
@@ -155,10 +158,11 @@ public final class JobTicketServiceImpl extends AbstractService
     /** */
     private static final String TICKER_NUMBER_PREFIX_TAG_SEPARATOR = "/";
 
-    /**
-     *
-     */
+    /** By UUID */
     private ConcurrentHashMap<UUID, OutboxJobDto> jobTicketCache;
+
+    /** */
+    private JobTicketQueueInfo jobTicketQueueInfo;
 
     /**
      * Implementation of execution pattern for proxy printing from the user
@@ -367,6 +371,7 @@ public final class JobTicketServiceImpl extends AbstractService
          * Add to cache.
          */
         this.jobTicketCache.put(uuid, dto);
+        incrementStats(dto);
 
         return dto;
     }
@@ -389,14 +394,80 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     /**
+     *
+     * @param dto
+     * @return
+     */
+    private static JobTicketQueueInfo.Scope getScope(final OutboxJobDto dto) {
+        if (dto.isCopyJobTicket()) {
+            return JobTicketQueueInfo.Scope.COPY;
+        } else {
+            return JobTicketQueueInfo.Scope.PRINT;
+        }
+    }
+
+    /**
+     * @param queueInfo
+     * @param dto
+     */
+    private static void incrementStats(final JobTicketQueueInfo queueInfo,
+            final OutboxJobDto dto) {
+        queueInfo.increment(getScope(dto), JobTicketStats.create(dto));
+    }
+
+    /**
+     * @param queueInfo
+     * @param dto
+     */
+    private static void decrementStats(final JobTicketQueueInfo queueInfo,
+            final OutboxJobDto dto) {
+        queueInfo.decrement(getScope(dto), JobTicketStats.create(dto));
+    }
+
+    /**
+     * @param dto
+     */
+    private void incrementStats(final OutboxJobDto dto) {
+        synchronized (this.jobTicketQueueInfo) {
+            incrementStats(this.jobTicketQueueInfo, dto);
+        }
+    }
+
+    /**
+     * @param dto
+     *            The ticket.
+     */
+    private void decrementStats(final OutboxJobDto dto) {
+        synchronized (this.jobTicketQueueInfo) {
+            decrementStats(this.jobTicketQueueInfo, dto);
+        }
+    }
+
+    /**
+     *
+     * @param wrapper
+     *            The ticket wrapper.
+     */
+    private void updateStats(final JobTicketWrapperDto wrapper) {
+
+        synchronized (this.jobTicketQueueInfo) {
+            this.jobTicketQueueInfo.decrement(getScope(wrapper.getTicket()),
+                    wrapper.getInitialStats());
+            incrementStats(this.jobTicketQueueInfo, wrapper.getTicket());
+        }
+    }
+
+    /**
      * Creates a job ticket cache.
      *
+     * @param queueInfo
+     *            The queue info to update.
      * @return The cache.
      * @throws IOException
      *             When IO error.
      */
-    private static ConcurrentHashMap<UUID, OutboxJobDto> createTicketCache()
-            throws IOException {
+    private static ConcurrentHashMap<UUID, OutboxJobDto> createTicketCache(
+            final JobTicketQueueInfo queueInfo) throws IOException {
 
         final ConcurrentHashMap<UUID, OutboxJobDto> jobTicketMap =
                 new ConcurrentHashMap<>();
@@ -421,7 +492,11 @@ public final class JobTicketServiceImpl extends AbstractService
                 try {
                     final OutboxJobDto dto =
                             JsonHelper.read(OutboxJobDto.class, file.toFile());
+
                     jobTicketMap.put(uuid, dto);
+
+                    incrementStats(queueInfo, dto);
+
                 } catch (JsonMappingException e) {
 
                     /*
@@ -458,8 +533,10 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public void start() {
 
+        this.jobTicketQueueInfo = new JobTicketQueueInfo();
+
         try {
-            this.jobTicketCache = createTicketCache();
+            this.jobTicketCache = createTicketCache(this.jobTicketQueueInfo);
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);
         }
@@ -561,13 +638,15 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public List<OutboxJobDto> getTickets() {
-        return filterTickets(null);
+    public JobTicketQueueInfo getTicketQueueInfo() {
+        synchronized (this.jobTicketQueueInfo) {
+            return this.jobTicketQueueInfo.getCopy();
+        }
     }
 
     @Override
-    public List<OutboxJobDto> getTickets(final Long userId) {
-        return filterTickets(userId);
+    public List<OutboxJobDto> getTickets(final JobTicketFilter filter) {
+        return filterTickets(filter.getUserId(), filter.getSearchTicketId());
     }
 
     @Override
@@ -588,12 +667,48 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public int cancelTickets(final Long userId) {
         int nRemoved = 0;
-        for (final OutboxJobDto dto : filterTickets(userId)) {
+        for (final OutboxJobDto dto : filterTickets(userId, null)) {
             if (cancelTicket(dto.getFile()) != null) {
                 nRemoved++;
             }
         }
         return nRemoved;
+    }
+
+    @Override
+    public List<String> getTicketNumbers(final JobTicketFilter filter,
+            final int maxItems) {
+
+        final Long userId = filter.getUserId();
+        final String searchTicketId = filter.getSearchTicketId();
+
+        final List<String> tickets = new ArrayList<>();
+
+        final String searchSeq =
+                StringUtils.defaultString(searchTicketId).toLowerCase();
+
+        int nItems = 0;
+
+        for (final OutboxJobDto dto : this.jobTicketCache.values()) {
+
+            if (userId != null && !dto.getUserId().equals(userId)) {
+                continue;
+            }
+
+            if (!searchSeq.isEmpty() && !StringUtils
+                    .contains(dto.getTicketNumber().toLowerCase(), searchSeq)) {
+                continue;
+            }
+
+            tickets.add(dto.getTicketNumber());
+
+            nItems++;
+
+            if (nItems == maxItems) {
+                break;
+            }
+        }
+        return tickets;
     }
 
     /**
@@ -602,16 +717,29 @@ public final class JobTicketServiceImpl extends AbstractService
      * @param userId
      *            The {@link User} database key as filter, when {@code null}
      *            tickets from all users are selected.
+     * @param searchTicketId
+     *            Part of a ticket id as case-insensitive search argument.
      * @return The Job Tickets.
      */
-    private List<OutboxJobDto> filterTickets(final Long userId) {
+    private List<OutboxJobDto> filterTickets(final Long userId,
+            final String searchTicketId) {
+
         final List<OutboxJobDto> tickets = new ArrayList<>();
+
+        final String searchSeq =
+                StringUtils.defaultString(searchTicketId).toLowerCase();
 
         for (final Entry<UUID, OutboxJobDto> entry : this.jobTicketCache
                 .entrySet()) {
 
             if (userId != null
                     && !entry.getValue().getUserId().equals(userId)) {
+                continue;
+            }
+
+            if (!searchSeq.isEmpty() && !StringUtils.contains(
+                    entry.getValue().getTicketNumber().toLowerCase(),
+                    searchSeq)) {
                 continue;
             }
 
@@ -658,7 +786,10 @@ public final class JobTicketServiceImpl extends AbstractService
         getJobTicketFile(uuid, FILENAME_EXT_JSON).delete();
         getJobTicketFile(uuid, FILENAME_EXT_PDF).delete();
 
-        return this.jobTicketCache.remove(uuid);
+        final OutboxJobDto dto = this.jobTicketCache.remove(uuid);
+        this.decrementStats(dto);
+
+        return dto;
     }
 
     /**
@@ -789,6 +920,15 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
+    public boolean updateTicket(final JobTicketWrapperDto wrapper)
+            throws IOException {
+
+        final boolean result = this.updateTicket(wrapper.getTicket());
+        this.updateStats(wrapper);
+        return result;
+    }
+
+    @Override
     public boolean updateTicket(final OutboxJobDto dto) throws IOException {
 
         final UUID uuid = uuidFromFileName(dto.getFile());
@@ -797,7 +937,7 @@ public final class JobTicketServiceImpl extends AbstractService
             return false;
         }
 
-        this.jobTicketCache.put(uuid, dto);
+        final OutboxJobDto dtoPrev = this.jobTicketCache.put(uuid, dto);
 
         final File jsonFileTicket = getJobTicketFile(uuid, FILENAME_EXT_JSON);
 
