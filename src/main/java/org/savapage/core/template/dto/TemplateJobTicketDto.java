@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,7 @@ public class TemplateJobTicketDto implements TemplateDto {
     private String number;
     private String name;
     private String operator;
+    private String returnMessage;
 
     public String getNumber() {
         return number;
@@ -54,6 +55,14 @@ public class TemplateJobTicketDto implements TemplateDto {
 
     public void setOperator(String operator) {
         this.operator = operator;
+    }
+
+    public String getReturnMessage() {
+        return returnMessage;
+    }
+
+    public void setReturnMessage(String msg) {
+        this.returnMessage = msg;
     }
 
 }

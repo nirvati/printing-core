@@ -111,6 +111,7 @@ import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.services.helpers.TicketJobSheetPdfCreator;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.template.dto.TemplateDtoCreator;
+import org.savapage.core.template.dto.TemplateJobTicketDto;
 import org.savapage.core.template.email.JobTicketCanceled;
 import org.savapage.core.template.email.JobTicketCompleted;
 import org.savapage.core.template.email.JobTicketEmailTemplate;
@@ -966,13 +967,17 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public String notifyTicketCanceledByEmail(final OutboxJobBaseDto dto,
-            final String operator, final User user, final Locale locale) {
+            final String operator, final User user, final String reason,
+            final Locale locale) {
 
-        return notifyTicketEmail(
-                new JobTicketCanceled(
-                        ConfigManager.getServerCustomEmailTemplateHome(),
-                        TemplateDtoCreator.templateJobTicketDto(dto, operator),
-                        TemplateDtoCreator.templateUserDto(user)),
+        final TemplateJobTicketDto templateJobTicketDto =
+                TemplateDtoCreator.templateJobTicketDto(dto, operator);
+
+        templateJobTicketDto.setReturnMessage(reason);
+
+        return notifyTicketEmail(new JobTicketCanceled(
+                ConfigManager.getServerCustomEmailTemplateHome(),
+                templateJobTicketDto, TemplateDtoCreator.templateUserDto(user)),
                 user, locale);
     }
 
