@@ -95,6 +95,24 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      */
     private static final String PPD_OPTION_PFX_CHAR = "*";
 
+    /**
+     * PPD attribute.
+     */
+    private static final String PPD_ATTR_LANDSCAPE_ORIENTATION =
+            PPD_OPTION_PFX_CHAR + "LandscapeOrientation:";
+
+    /**
+     * PPD attribute value.
+     */
+    private static final String PPD_ATTR_LANDSCAPE_ORIENTATION_PLUS90 =
+            "Plus90";
+
+    /**
+     * PPD attribute value.
+     */
+    private static final String PPD_ATTR_LANDSCAPE_ORIENTATION_MINUS90 =
+            "Minus90";
+
     /** */
     private static final String SP_CONSTRAINT =
             PPD_OPTION_PFX_CHAR + "SPConstraint:";
@@ -293,6 +311,11 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
     /**
      *
+     */
+    private Boolean ppdLandscapeMinus90;
+
+    /**
+     *
      * @param cupsOptionsLookup
      *            IPP printer options as retrieved from CUPS.
      */
@@ -385,6 +408,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         this.rulesConstraint = new ArrayList<>();
         this.rulesExtra = new ArrayList<>();
         this.rulesSubst = new ArrayList<>();
+
+        this.ppdLandscapeMinus90 = null;
     }
 
     /**
@@ -1137,6 +1162,28 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     }
 
     /**
+     * Notifies {@link #PPD_ATTR_LANDSCAPE_ORIENTATION} attribute.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param value
+     *            Attribute value.
+     */
+    private void onAttrLandscapeOrientation(final int lineNr,
+            final String value) {
+
+        if (value.equalsIgnoreCase(PPD_ATTR_LANDSCAPE_ORIENTATION_MINUS90)) {
+            ppdLandscapeMinus90 = Boolean.TRUE;
+        } else if (value
+                .equalsIgnoreCase(PPD_ATTR_LANDSCAPE_ORIENTATION_PLUS90)) {
+            ppdLandscapeMinus90 = Boolean.FALSE;
+        } else {
+            logSyntaxError(lineNr, value);
+        }
+
+    }
+
+    /**
      * Notifies a PPD constant.
      *
      * @param ppdOption
@@ -1216,6 +1263,15 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         }
 
         final String firstWord = words[0].trim();
+
+        if (firstWord.equalsIgnoreCase(PPD_ATTR_LANDSCAPE_ORIENTATION)) {
+            if (words.length == 2) {
+                this.onAttrLandscapeOrientation(lineNr, words[1]);
+            } else {
+                logSyntaxError(lineNr, firstWord);
+            }
+            return;
+        }
 
         if (firstWord.startsWith(SP_JOBTICKET_PFX)) {
             if (words.length > 1) {
@@ -1390,6 +1446,12 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         proxyPrinter.setCustomRulesConstraint(reader.rulesConstraint);
         proxyPrinter.setCustomRulesExtra(reader.rulesExtra);
         proxyPrinter.setCustomRulesSubst(reader.rulesSubst);
+
+        // PPD attributes
+        if (reader.ppdLandscapeMinus90 != null) {
+            proxyPrinter.setPpdLandscapeMinus90(
+                    reader.ppdLandscapeMinus90.booleanValue());
+        }
 
         //
         proxyPrinter.setInjectPpdExt(true);

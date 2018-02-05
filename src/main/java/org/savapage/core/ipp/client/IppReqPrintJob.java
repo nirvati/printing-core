@@ -46,7 +46,7 @@ import org.savapage.core.ipp.attribute.syntax.IppInteger;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.attribute.syntax.IppMimeMediaType;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
-import org.savapage.core.ipp.helpers.IppNumberUpHelper;
+import org.savapage.core.ipp.helpers.IppNumberUpFactory;
 import org.savapage.core.ipp.rules.IppRuleExtra;
 import org.savapage.core.ipp.rules.IppRuleNumberUp;
 import org.savapage.core.ipp.rules.IppRuleSubst;
@@ -172,8 +172,8 @@ public final class IppReqPrintJob extends IppReqCommon {
         IppRuleNumberUp numberUpRule = jsonPrinter.findCustomRule(templateRule);
 
         if (numberUpRule == null) {
-            numberUpRule =
-                    IppNumberUpHelper.instance().findCustomRule(templateRule);
+            numberUpRule = IppNumberUpFactory.createFinder().findNumberUpRule(
+                    jsonPrinter.isPpdLandscapeMinus90(), templateRule);
         }
 
         if (numberUpRule == null) {

@@ -32,11 +32,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * @deprecated Use {@link IppNumberUpResolver} instead.
  *
  * @author Rijk Ravestein
  *
  */
-public final class IppNumberUpHelper {
+@Deprecated
+public final class IppNumberUpHelper implements IppNumberUpRuleFinder {
 
     /** */
     private static final Logger LOGGER =
@@ -292,7 +294,7 @@ public final class IppNumberUpHelper {
      * @return The template rule object supplemented with <i>dependent</i>
      *         variables, or {@code null} when no rule found.
      */
-    public IppRuleNumberUp findCustomRuleTest(final IppRuleNumberUp template) {
+    private IppRuleNumberUp findCustomRuleTest(final IppRuleNumberUp template) {
         final String[][] testRules = { //
         };
 
@@ -316,22 +318,14 @@ public final class IppNumberUpHelper {
         return rule;
     }
 
-    /**
-     * Finds a matching {@link IppRuleNumberUp} for a template rule.
-     *
-     * @param template
-     *            The template rule with <i>independent</i> variables.
-     * @param contentRotationRule
-     *            If {@code true}, a page content rotation rule must be found.
-     * @return The template rule object supplemented with <i>dependent</i>
-     *         variables, or {@code null} when no rule found.
-     */
-    public IppRuleNumberUp findCustomRule(final IppRuleNumberUp template) {
+    @Override
+    public IppRuleNumberUp findNumberUpRule(final boolean landscapeMinus90,
+            final IppRuleNumberUp template) {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(
                     "Template\n" //
-                            + "PDF  landscape [{}] rotation [{}] content [{}]\n" //
+                            + "PDF  landscape [{}] rotation [{}] content [{}]\n"
                             + "User rotate    [{}] n-up [{}]", //
                     template.isLandscape(), template.getPdfRotation(),
                     template.getPdfContentRotation(), template.getUserRotate(),

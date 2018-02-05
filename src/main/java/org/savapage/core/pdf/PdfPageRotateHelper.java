@@ -24,7 +24,8 @@ package org.savapage.core.pdf;
 import java.io.IOException;
 
 import org.savapage.core.inbox.PdfOrientationInfo;
-import org.savapage.core.ipp.rules.IppRuleNumberUp;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.itextpdf.awt.geom.AffineTransform;
 import com.itextpdf.text.Rectangle;
@@ -41,6 +42,10 @@ import com.itextpdf.text.pdf.RandomAccessFileOrArray;
  *
  */
 public final class PdfPageRotateHelper {
+
+    /** */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PdfPageRotateHelper.class);
 
     /** */
     public static final int ROTATION_0 = 0;
@@ -115,13 +120,112 @@ public final class PdfPageRotateHelper {
     /** 0-based index. */
     private static final int I_CTM_ROTATION = 2;
     /** 0-based index. */
-    private static final int I_EFF_ORIENTATION = 3;
+    private static final int I_VIEWED_ORIENTATION = 3;
 
     /**
-     * Rules to determine the key values for the {@link #RULES} array.
+     * Rules to determine the "viewed" orientation of a PDF page, depending on
+     * page (rectangle) orientation, page rotation and page content orientation.
      */
-    private static final Integer[][] RULES_RULE_KEY = { //
-            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, PORTRAIT } //
+    private static final Integer[][] RULES_VIEWED_ORIENTATION = { //
+            //
+            { LANDSCAPE, PDF_ROTATION_0, CTM_ROTATION_0, LANDSCAPE }, //
+            { LANDSCAPE, PDF_ROTATION_180, CTM_ROTATION_0, LANDSCAPE }, //
+            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_0, PORTRAIT }, //
+            { LANDSCAPE, PDF_ROTATION_90, CTM_ROTATION_0, PORTRAIT }, //
+            //
+            { PORTRAIT, PDF_ROTATION_0, CTM_ROTATION_0, PORTRAIT }, //
+            { PORTRAIT, PDF_ROTATION_180, CTM_ROTATION_0, PORTRAIT }, //
+            { PORTRAIT, PDF_ROTATION_270, CTM_ROTATION_0, LANDSCAPE }, //
+            { PORTRAIT, PDF_ROTATION_90, CTM_ROTATION_0, LANDSCAPE }, //
+            //
+            { LANDSCAPE, PDF_ROTATION_0, CTM_ROTATION_180, LANDSCAPE }, //
+            { LANDSCAPE, PDF_ROTATION_180, CTM_ROTATION_180, LANDSCAPE }, //
+            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_180, PORTRAIT }, //
+            { LANDSCAPE, PDF_ROTATION_90, CTM_ROTATION_180, PORTRAIT }, //
+            //
+            { PORTRAIT, PDF_ROTATION_0, CTM_ROTATION_180, PORTRAIT }, //
+            { PORTRAIT, PDF_ROTATION_180, CTM_ROTATION_180, PORTRAIT }, //
+            { PORTRAIT, PDF_ROTATION_270, CTM_ROTATION_180, LANDSCAPE }, //
+            { PORTRAIT, PDF_ROTATION_90, CTM_ROTATION_180, LANDSCAPE }, // {
+            //
+            { LANDSCAPE, PDF_ROTATION_0, CTM_ROTATION_270, LANDSCAPE }, //
+            { LANDSCAPE, PDF_ROTATION_180, CTM_ROTATION_270, LANDSCAPE }, //
+            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_270, PORTRAIT }, //
+            { LANDSCAPE, PDF_ROTATION_90, CTM_ROTATION_270, PORTRAIT }, //
+            //
+            { PORTRAIT, PDF_ROTATION_0, CTM_ROTATION_270, PORTRAIT }, //
+            { PORTRAIT, PDF_ROTATION_180, CTM_ROTATION_270, PORTRAIT }, //
+            { PORTRAIT, PDF_ROTATION_270, CTM_ROTATION_270, LANDSCAPE }, //
+            { PORTRAIT, PDF_ROTATION_90, CTM_ROTATION_270, LANDSCAPE }, // {
+            //
+            { LANDSCAPE, PDF_ROTATION_0, CTM_ROTATION_90, LANDSCAPE }, //
+            { LANDSCAPE, PDF_ROTATION_180, CTM_ROTATION_90, LANDSCAPE }, //
+            { LANDSCAPE, PDF_ROTATION_270, CTM_ROTATION_90, PORTRAIT }, //
+            { LANDSCAPE, PDF_ROTATION_90, CTM_ROTATION_90, PORTRAIT }, //
+            //
+            { PORTRAIT, PDF_ROTATION_0, CTM_ROTATION_90, PORTRAIT }, //
+            { PORTRAIT, PDF_ROTATION_180, CTM_ROTATION_90, PORTRAIT }, //
+            { PORTRAIT, PDF_ROTATION_270, CTM_ROTATION_90, LANDSCAPE }, //
+            { PORTRAIT, PDF_ROTATION_90, CTM_ROTATION_90, LANDSCAPE } //
+    };
+
+    // ------------------------------------------------------------------
+    /**
+     * {@link #RULES_ROTATE_TO_ORIENTATION} index for PDF page rotation.
+     */
+    private static final int IDX_R_PAGE = 0;
+
+    /**
+     * {@link #RULES_ROTATE_TO_ORIENTATION} index for PDF page content rotation.
+     */
+    private static final int IDX_R_CONTENT = 1;
+
+    /**
+     * {@link #RULES_ROTATE_TO_ORIENTATION} index for Portrait -> Landscape.
+     */
+    private static final int IDX_R_P_TO_L = 2;
+
+    /**
+     * {@link #RULES_ROTATE_TO_ORIENTATION} index for Landscape -> Portrait.
+     */
+    private static final int IDX_R_L_TO_P = 3;
+
+    /**
+     * Rules to determine page rotate to landscape and portrait.
+     */
+    private static final int[][] RULES_ROTATE_TO_ORIENTATION = { //
+
+            // --------------------------------------
+            // .. page . content . P->L .. L->P
+            // --------------------------------------
+            { /**/ 0, /* */ 0, /* */90, /**/270 }, // ?, OK
+            { /**/ 0, /* */90, /* */90, /* */90 }, // OK, ?
+            { /**/ 0, /**/180, /* */90, /**/270 }, // ?, ?
+            { /**/ 0, /**/270, /**/270, /* */90 }, // ?, ?
+
+            // --------------------------------------
+            // . page .. content . P->L ... L->P
+            // --------------------------------------
+            { /**/180, /*  */0, /* */90, /* */90 }, // ?, ?
+            { /**/180, /* */90, /**/270, /**/270 }, // ?, ?
+            { /**/180, /**/180, /* */90, /* */90 }, // ?, ?
+            { /**/180, /**/270, /**/270, /**/270 }, // ?, ?
+
+            // --------------------------------------
+            // . page .. content . P->L ... L->P
+            // --------------------------------------
+            { /**/ 90, /*  */0, /*  */0, /*  */0 }, // ?, ?
+            { /**/ 90, /* */90, /**/180, /**/180 }, // OK, ?
+            { /**/ 90, /**/180, /*  */0, /*  */0 }, // ?, ?
+            { /**/ 90, /**/270, /*  */0, /*  */0 }, // ?, ?
+
+            // --------------------------------------
+            // . page .. content . P->L ... L->P
+            // --------------------------------------
+            { /**/270, /*  */0, /*  */0, /*  */0 }, // OK, ?
+            { /**/270, /* */90, /*  */0, /*  */0 }, // ?, ?
+            { /**/270, /**/180, /*  */0, /*  */0 }, // ?, ?
+            { /**/270, /**/270, /*  */0, /*  */0 }, // ?, ?
     };
 
     // ------------------------------------------------------------------
@@ -130,10 +234,15 @@ public final class PdfPageRotateHelper {
      * Gets the PDF page <i>content</i> rotation.
      *
      * @param ctm
-     *            Current Transformation Matrix of page.
+     *            Current Transformation Matrix of page. Value {@code null} is
+     *            interpreted as {@link #PDF_ROTATION_0}.
      * @return The page content rotation.
      */
     public static Integer getPageContentRotation(final AffineTransform ctm) {
+
+        if (ctm == null) {
+            return PDF_ROTATION_0;
+        }
 
         final double[] matrix =
                 new double[PAGE_CONTENT_CM_ROTATION_RULES[0].length - 1];
@@ -292,16 +401,8 @@ public final class PdfPageRotateHelper {
             final int pageRotation, final boolean landscape,
             final Integer userRotate) {
 
-        final int contentRotation;
-
-        if (ctm == null) {
-            contentRotation = ROTATION_0;
-        } else {
-            contentRotation = getPageContentRotation(ctm).intValue();
-        }
-
-        return isSeenAsLandscape(contentRotation, pageRotation,
-                landscape, userRotate);
+        return isSeenAsLandscape(getPageContentRotation(ctm).intValue(),
+                pageRotation, landscape, userRotate);
     }
 
     /**
@@ -328,25 +429,32 @@ public final class PdfPageRotateHelper {
                 Integer.valueOf(applyUserRotate(pageRotation, userRotate));
 
         final Integer pageOrientation;
-
-        if (isSeenAsLandscape(landscape, pageRotationUser)) {
+        if (landscape) {
             pageOrientation = LANDSCAPE;
         } else {
             pageOrientation = PORTRAIT;
         }
 
+        final Integer pageOrientationSeen;
+
+        if (isSeenAsLandscape(landscape, pageRotationUser)) {
+            pageOrientationSeen = LANDSCAPE;
+        } else {
+            pageOrientationSeen = PORTRAIT;
+        }
+
         // Set default.
-        Integer ruleOrientation = pageOrientation;
+        Integer ruleOrientation = pageOrientationSeen;
 
         if (contentRotation != ROTATION_0) {
 
-            for (final Integer[] rule : RULES_RULE_KEY) {
+            for (final Integer[] rule : RULES_VIEWED_ORIENTATION) {
 
                 if (rule[I_PAGE_ORIENTATION].equals(pageOrientation)
                         && rule[I_PAGE_ROTATION].equals(pageRotationUser)
                         && rule[I_CTM_ROTATION].equals(contentRotation)) {
 
-                    ruleOrientation = rule[I_EFF_ORIENTATION];
+                    ruleOrientation = rule[I_VIEWED_ORIENTATION];
                     break;
                 }
             }
@@ -372,6 +480,52 @@ public final class PdfPageRotateHelper {
     }
 
     /**
+     * Gets the new new PDF page rotation to rotate to landscape or portait.
+     *
+     * @param toLandscape
+     *            If {@code true}, rotate to landscape.
+     * @param pageLandscape
+     *            If {@code true}, PDF page orientation is landscape.
+     * @param pageRotation
+     *            The current PDF page rotation.
+     * @param contentRotation
+     *            The PDF page <i>content</i> rotation.
+     * @return The new PDF page rotation.
+     */
+    public static int rotateToOrientationSeen(final boolean toLandscape,
+            final boolean pageLandscape, final int pageRotation,
+            final int contentRotation) {
+
+        for (final int[] rule : RULES_ROTATE_TO_ORIENTATION) {
+
+            if (rule[IDX_R_PAGE] == pageRotation
+                    && rule[IDX_R_CONTENT] == contentRotation) {
+
+                final int rotate;
+
+                if (rule.length < IDX_R_L_TO_P) {
+                    rotate = pageRotation;
+                } else if (toLandscape) {
+                    rotate = rule[IDX_R_P_TO_L];
+                } else {
+                    rotate = rule[IDX_R_L_TO_P];
+                }
+
+                LOGGER.debug(
+                        "To landscape [{}] From landscape [{}] page [{}]"
+                                + " content [{}] -> page [{}]",
+                        toLandscape, pageLandscape, pageRotation,
+                        contentRotation, rotate);
+
+                return rotate;
+            }
+        }
+
+        throw new IllegalArgumentException(String.format(
+                "No rule found for [%d, %d]", pageRotation, contentRotation));
+    }
+
+    /**
      * Gets the page rotation for a PDF page, so its orientation will be the
      * same as the perceived orientation of the standard.
      *
@@ -389,45 +543,23 @@ public final class PdfPageRotateHelper {
             final boolean alignToLandscape, final int nPage)
             throws IOException {
 
+        final AffineTransform ctm = getPdfPageCTM(reader, nPage);
+
         final boolean pageLandscape =
                 isLandscapePage(reader.getPageSize(nPage));
+
         final int pageRotation = reader.getPageRotation(nPage);
 
-        final boolean seenLandscapeNxt =
-                isSeenAsLandscape(pageLandscape, pageRotation);
+        final boolean seenLandscapeNxt = isSeenAsLandscape(ctm, pageRotation,
+                pageLandscape, Integer.valueOf(0));
 
-        final int alignedRotation;
-
-        if (alignToLandscape) {
-
-            if (seenLandscapeNxt) {
-                alignedRotation = pageRotation;
-            } else {
-                // portrait -> landscape
-                if (pageLandscape) {
-                    alignedRotation = ROTATION_0;
-                } else {
-                    alignedRotation = ROTATION_90;
-                }
-            }
-
-        } else {
-
-            if (seenLandscapeNxt) {
-                // landscape -> portrait
-                if (pageLandscape) {
-                    alignedRotation = ROTATION_270;
-                } else {
-                    alignedRotation = ROTATION_0;
-                }
-
-            } else {
-                alignedRotation = pageRotation;
-            }
-
+        if ((alignToLandscape && seenLandscapeNxt)
+                || (!alignToLandscape && !seenLandscapeNxt)) {
+            return pageRotation;
         }
 
-        return alignedRotation;
+        return rotateToOrientationSeen(alignToLandscape, pageLandscape,
+                pageRotation, getPageContentRotation(ctm));
     }
 
     /**
@@ -488,8 +620,7 @@ public final class PdfPageRotateHelper {
     }
 
     /**
-     * Gets the {@link PdfOrientationInfo} to find the proper
-     * {@link IppRuleNumberUp}.
+     * Gets the {@link PdfOrientationInfo} by applying user rotate.
      *
      * @param ctm
      *            The CTM of the PDF page (can be {@code null}.
@@ -508,20 +639,12 @@ public final class PdfPageRotateHelper {
             final boolean landscape, final Integer userRotate)
             throws IOException {
 
-        final Integer contentRotation;
-
-        if (ctm == null) {
-            contentRotation = PDF_ROTATION_0;
-        } else {
-            contentRotation = getPageContentRotation(ctm);
-        }
-
         final PdfOrientationInfo pdfOrientation = new PdfOrientationInfo();
 
         pdfOrientation.setLandscape(landscape);
-        pdfOrientation.setRotation(pageRotation);
-        pdfOrientation.setRotate(userRotate);
-        pdfOrientation.setContentRotation(contentRotation);
+        pdfOrientation.setRotation(applyUserRotate(pageRotation, userRotate));
+        pdfOrientation.setRotate(Integer.valueOf(0));
+        pdfOrientation.setContentRotation(getPageContentRotation(ctm));
 
         return pdfOrientation;
     }

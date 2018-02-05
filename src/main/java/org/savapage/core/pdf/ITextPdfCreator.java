@@ -597,19 +597,17 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             final AffineTransform ctm = PdfPageRotateHelper
                     .getPdfPageCTM(this.readerWlk, firstPage);
 
+            final int page1Rotation = this.readerWlk.getPageRotation(firstPage);
+            final boolean page1Landscape = PdfPageRotateHelper
+                    .isLandscapePage(this.readerWlk.getPageSize(firstPage));
+
             this.firstPageSeenAsLandscape =
-                    PdfPageRotateHelper.isSeenAsLandscape(ctm,
-                            this.readerWlk.getPageRotation(firstPage),
-                            PdfPageRotateHelper.isLandscapePage(
-                                    this.readerWlk.getPageSize(firstPage)),
-                            this.jobUserRotateWlk);
+                    PdfPageRotateHelper.isSeenAsLandscape(ctm, page1Rotation,
+                            page1Landscape, this.jobUserRotateWlk);
 
             this.firstPageOrientationInfo =
-                    PdfPageRotateHelper.getOrientationInfo(ctm,
-                            this.readerWlk.getPageRotation(firstPage),
-                            PdfPageRotateHelper.isLandscapePage(
-                                    this.readerWlk.getPageSize(firstPage)),
-                            this.jobUserRotateWlk);
+                    PdfPageRotateHelper.getOrientationInfo(ctm, page1Rotation,
+                            page1Landscape, this.jobUserRotateWlk);
         }
 
         final int pages = this.readerWlk.getNumberOfPages();
@@ -623,7 +621,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             final int pageRotationCur = this.readerWlk.getPageRotation(nPage);
             final int pageRotationNew;
 
-            if (this.isForPrinting() && this.nPagesAdded2Target > 1) {
+            if (this.isForPrinting() && this.nPagesAdded2Target > 0) {
 
                 pageRotationNew = PdfPageRotateHelper.getAlignedRotation(
                         this.readerWlk, this.firstPageSeenAsLandscape, nPage);

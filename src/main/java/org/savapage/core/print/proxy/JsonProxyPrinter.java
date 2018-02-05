@@ -118,6 +118,18 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     private List<IppRuleCost> customCostRulesSet;
 
     /**
+     * If {@code true}, PDF landscape sheets are +90 rotated to portrait print
+     * area, so user can -90 rotate the printed sheet to view in landscape. If
+     * {@code false} (default), vice versa.
+     * <p>
+     * This corresponds to PPD attribute "LandscapeOrientation" (default
+     * "Plus90");
+     * </p>
+     */
+    @JsonIgnore
+    private boolean ppdLandscapeMinus90;
+
+    /**
      *
      */
     public enum State {
@@ -405,6 +417,27 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
 
     public void setPpdVersion(String ppdVersion) {
         this.ppdVersion = ppdVersion;
+    }
+
+    /**
+     * @return If {@code true}, PDF landscape sheets are +90 rotated to portrait
+     *         print area, so user can -90 rotate the printed sheet to view in
+     *         landscape. If {@code false} (default), vice versa.
+     */
+    @JsonIgnore
+    public boolean isPpdLandscapeMinus90() {
+        return this.ppdLandscapeMinus90;
+    }
+
+    /**
+     * @param minus90
+     *            If {@code true}, PDF landscape sheets are +90 rotated to
+     *            portrait print area, so user can -90 rotate the printed sheet
+     *            to view in landscape. If {@code false} (default), vice versa.
+     */
+    @JsonIgnore
+    public void setPpdLandscapeMinus90(final boolean minus90) {
+        this.ppdLandscapeMinus90 = minus90;
     }
 
     public String getState() {
@@ -716,6 +749,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.injectPpdExt = this.injectPpdExt;
         copy.jobTicket = this.jobTicket;
         copy.ppdVersion = this.ppdVersion;
+        copy.ppdLandscapeMinus90 = this.ppdLandscapeMinus90;
         copy.printerUri = this.printerUri;
         copy.state = this.state;
         copy.stateChangeTime = this.stateChangeTime;
