@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -277,11 +277,18 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      */
     public static final String ATTR_OUTPUT_BIN = "output-bin";
 
-    /**
-    *
-    */
+    /** */
     public static final String ORG_SAVAPAGE_ATTR_LANDSCAPE =
             ORG_SAVAPAGE_ATTR_PFX + "landscape";
+
+    /**
+     * (Boolean) 180 degrees rotation of "Finished Page". [PWG5100.3]: "One side
+     * of a sheet in a Finished Document, i.e., one side of a sheet as perceived
+     * by a person after any cutting, folding, and/or booklet making" making.
+     * ... The lay term is 'page'."
+     */
+    public static final String ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180 =
+            ORG_SAVAPAGE_INT_ATTR_PFX + "page-rotate180";
 
     /**
      * .
@@ -338,6 +345,7 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      */
     public static final String[] JOBTICKET_ATTR_SET = new String[] {
             ORG_SAVAPAGE_ATTR_JOB_SHEETS, ORG_SAVAPAGE_ATTR_JOB_SHEETS_MEDIA };
+
     /**
      * .
      */
@@ -458,6 +466,8 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             ATTR_PRINT_COLOR_MODE,
             /* */
             ATTR_PRINTER_RESOLUTION,
+            /* */
+            ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180,
             /* */
             ATTR_NUMBER_UP };
 

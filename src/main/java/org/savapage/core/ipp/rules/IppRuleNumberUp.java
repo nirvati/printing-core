@@ -43,6 +43,7 @@ public final class IppRuleNumberUp {
     private int pdfContentRotation;
     private int userRotate;
     private String numberUp;
+    private boolean finishedPageRotate180;
 
     // Dependent variables.
     private String orientationRequested;
@@ -72,7 +73,8 @@ public final class IppRuleNumberUp {
                 && this.pdfRotation == rule.pdfRotation
                 && this.pdfContentRotation == rule.pdfContentRotation
                 && this.userRotate == rule.userRotate
-                && this.numberUp.equals(rule.numberUp);
+                && this.numberUp.equals(rule.numberUp)
+                && this.finishedPageRotate180 == rule.finishedPageRotate180;
     }
 
     /**
@@ -99,6 +101,7 @@ public final class IppRuleNumberUp {
         this.pdfContentRotation = source.pdfContentRotation;
         this.userRotate = source.userRotate;
         this.numberUp = source.numberUp;
+        this.finishedPageRotate180 = source.finishedPageRotate180;
     }
 
     /**
@@ -187,6 +190,20 @@ public final class IppRuleNumberUp {
      */
     public void setLandscapePrint(boolean landscape) {
         this.landscapePrint = landscape;
+    }
+
+    /**
+     * @return
+     */
+    public boolean isFinishedPageRotate180() {
+        return finishedPageRotate180;
+    }
+
+    /**
+     * @param finishedPageRotate180
+     */
+    public void setFinishedPageRotate180(boolean finishedPageRotate180) {
+        this.finishedPageRotate180 = finishedPageRotate180;
     }
 
     public void setName(String name) {

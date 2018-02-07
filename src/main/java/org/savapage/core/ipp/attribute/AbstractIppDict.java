@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -67,10 +67,16 @@ public abstract class AbstractIppDict {
     /**
      * Keyword name prefix for Custom User Extensions. NOTE: these are
      * <b>not</b> "native" SavaPage IPP extensions, but installation specific
-     * extensions configured by SavaPage Fellows.
+     * extensions configured by SavaPage Community Members.
      */
     protected static final String ORG_SAVAPAGE_EXT_ATTR_PFX =
             "org.savapage.ext-";
+
+    /**
+     * Keyword name prefix for Custom Internal Extensions.
+     */
+    protected static final String ORG_SAVAPAGE_INT_ATTR_PFX =
+            "org.savapage.int-";
 
     /**
      *
@@ -95,8 +101,19 @@ public abstract class AbstractIppDict {
     /**
      * @param keyword
      *            The IPP attribute keyword (name).
+     * @return {@code true} when keyword is a custom SavaPage INT attribute,
+     *         i.e. whose name starts with {@link #ORG_SAVAPAGE_INT_ATTR_PFX}.
+     */
+    public static boolean isCustomIntAttr(final String keyword) {
+        return keyword.startsWith(ORG_SAVAPAGE_INT_ATTR_PFX);
+    }
+
+
+    /**
+     * @param keyword
+     *            The IPP attribute keyword (name).
      * @return {@code true} when keyword is a custom SavaPage EXT attribute,
-     *         i.e. whose name starts with {@link #ORG_SAVAPAGE_EXT_ATTR_PFX} .
+     *         i.e. whose name starts with {@link #ORG_SAVAPAGE_EXT_ATTR_PFX}.
      */
     public static boolean isCustomExtAttr(final String keyword) {
         return keyword.startsWith(ORG_SAVAPAGE_EXT_ATTR_PFX);

@@ -993,10 +993,50 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     /**
+     * Adds an {@code IppBoolean} option to the printerOptions parameter.
+     *
+     * @param printerOptions
+     *            The list of {@link JsonProxyPrinterOpt} to add the option to.
+     * @param attrKeyword
+     *            The IPP attribute keyword.
+     * @param defaultChoice
+     *            The default choice.
+     */
+    private void addOptionBoolean(
+            final ArrayList<JsonProxyPrinterOpt> printerOptions,
+            final String attrKeyword, final boolean defaultChoice) {
+
+        final JsonProxyPrinterOpt option = new JsonProxyPrinterOpt();
+
+        option.setKeyword(attrKeyword);
+        option.setUiText(attrKeyword);
+        final ArrayList<JsonProxyPrinterOptChoice> choices = new ArrayList<>();
+
+        JsonProxyPrinterOptChoice choice = new JsonProxyPrinterOptChoice();
+        choice.setChoice(IppBoolean.FALSE);
+        choice.setUiText(IppBoolean.FALSE);
+        choices.add(choice);
+
+        choice = new JsonProxyPrinterOptChoice();
+        choice.setChoice(IppBoolean.TRUE);
+        choice.setUiText(IppBoolean.TRUE);
+        choices.add(choice);
+
+        option.setChoices(choices);
+
+        if (defaultChoice) {
+            option.setDefchoice(IppBoolean.TRUE);
+        } else {
+            option.setDefchoice(IppBoolean.FALSE);
+        }
+
+        printerOptions.add(option);
+    }
+
+    /**
      * Adds an option to the printerOptions parameter.
      * <p>
-     * See <a href="https://secure.datraverse.nl/mantis/view.php?id=185">Mantis
-     * #185</a>.
+     * See Mantis #185.
      * </p>
      *
      * @param printer
@@ -1013,6 +1053,15 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final IppAttrGroup group,
             final ArrayList<JsonProxyPrinterOpt> printerOptions,
             final String attrKeyword) {
+
+        /*
+         * Handle internal attributes first.
+         */
+        if (attrKeyword.equals(
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180)) {
+            this.addOptionBoolean(printerOptions, attrKeyword, false);
+            return;
+        }
 
         /*
          * INVARIANT: More than one (1) choice.

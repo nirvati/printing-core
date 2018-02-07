@@ -102,6 +102,38 @@ public final class IppNumberUpResolver implements IppNumberUpRuleFinder {
             { MINUS_90, _L_, N_6, C_270, LRTB, _P_ }, //
     };
 
+    /**
+     * Number-up rules for viewed pages.
+     */
+    private static final String[][] N_UP_RULES_ROTATE180 = { //
+
+            // -------------------------------------------------
+            // *LandscapeOrientation: Plus90 (Generic)
+            // -------------------------------------------------
+            { PLUS__90, _P_, N_1, C_180, ____, _P_ }, // OK
+            { PLUS__90, _P_, N_2, _____, LRTB, _L_ }, //
+            { PLUS__90, _P_, N_4, C_180, LRTB, _P_ }, // OK
+            { PLUS__90, _P_, N_6, _____, LRTB, _L_ }, // OK
+
+            { PLUS__90, _L_, N_1, C__90, ____, _L_ }, //
+            { PLUS__90, _L_, N_2, _____, LRTB, _P_ }, //
+            { PLUS__90, _L_, N_4, C__90, LRTB, _L_ }, //
+            { PLUS__90, _L_, N_6, C_270, LRTB, _P_ }, //
+
+            // -------------------------------------------------
+            // *LandscapeOrientation: Minus90 (Ricoh)
+            // -------------------------------------------------
+            { MINUS_90, _P_, N_1, C_180, ____, _P_ }, // OK
+            { MINUS_90, _P_, N_2, C_180, LRTB, _L_ }, // OK
+            { MINUS_90, _P_, N_4, C_180, LRTB, _P_ }, // OK
+            { MINUS_90, _P_, N_6, C_180, LRTB, _L_ }, // OK
+
+            { MINUS_90, _L_, N_1, C_180, ____, _L_ }, //
+            { MINUS_90, _L_, N_2, C__90, LRTB, _P_ }, //
+            { MINUS_90, _L_, N_4, C__90, LRTB, _L_ }, //
+            { MINUS_90, _L_, N_6, C__90, LRTB, _P_ }, //
+    };
+
     @Override
     public IppRuleNumberUp findNumberUpRule(final boolean landscapeMinus90,
             final IppRuleNumberUp template) {
@@ -142,7 +174,16 @@ public final class IppNumberUpResolver implements IppNumberUpRuleFinder {
         }
 
         //
-        for (final String[] line : N_UP_RULES) {
+        final String[][] numberUpRules;
+
+        if (template.isFinishedPageRotate180()) {
+            numberUpRules = N_UP_RULES_ROTATE180;
+        } else {
+            numberUpRules = N_UP_RULES;
+        }
+
+        //
+        for (final String[] line : numberUpRules) {
 
             if (line[I_ORIENTATION_PRINTER].equals(orientationPrinter)
                     && line[I_ORIENTATION_VIEWED].equals(orientationViewed)

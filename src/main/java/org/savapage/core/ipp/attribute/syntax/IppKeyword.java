@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -337,6 +337,12 @@ public class IppKeyword extends AbstractIppAttrSyntax {
             { ORIENTATION_REQUESTED_LANDSCAPE, ORIENTATION_REQUESTED_PORTRAIT,
                     ORIENTATION_REQUESTED_REVERSE_LANDSCAPE,
                     ORIENTATION_REQUESTED_REVERSE_PORTRAIT };
+
+    // ------------------------------------------------------------------------
+    // internal
+    // ------------------------------------------------------------------------
+    public static final String ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180_OFF =
+            IppBoolean.FALSE;
 
     // ------------------------------------------------------------------------
     // finishings

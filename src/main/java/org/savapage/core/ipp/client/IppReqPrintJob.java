@@ -160,6 +160,13 @@ public final class IppReqPrintJob extends IppReqCommon {
         templateRule.setUserRotate(pdfOrientation.getRotate().intValue());
         templateRule.setNumberUp(numberUp);
 
+        //
+        final String rotate180 = optionValues.get(
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180);
+
+        templateRule.setFinishedPageRotate180(
+                rotate180 != null && rotate180.equals(IppBoolean.TRUE));
+
         final Integer pageContentRotation = pdfOrientation.getContentRotation();
 
         if (pageContentRotation == null
@@ -689,12 +696,18 @@ public final class IppReqPrintJob extends IppReqCommon {
                 continue;
             }
 
+            // Skip internal only attributes.
+            if (IppDictJobTemplateAttr.isCustomIntAttr(optionKeyword)) {
+                continue;
+            }
+
             if (attr == null) {
 
                 if (optionKeyword.equals(
                         IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_LANDSCAPE)) {
                     continue;
                 }
+
                 /*
                  * Finishing options are not found when they are NOT mapped in
                  * the PPDE. They can be skipped if they have a "none" value.

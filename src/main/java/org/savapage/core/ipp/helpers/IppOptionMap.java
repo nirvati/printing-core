@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -103,7 +103,15 @@ public final class IppOptionMap {
     }
 
     /**
-     *
+     * @return {@code true} if job requests 180 degrees page rotate.
+     */
+    public boolean hasPageRotate180() {
+        return isOptionPresentUnequal(
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180,
+                IppKeyword.ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180_OFF);
+    }
+
+    /**
      * @return {@code true} if job requests punch finishing.
      */
     public boolean hasFinishingPunch() {
