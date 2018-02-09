@@ -1927,6 +1927,10 @@ public interface IConfigProp {
         /**
          *
          */
+        WEBAPP_NUMBER_UP_REVIEW_ENABLE("webapp.number-up-preview.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+        /**
+         *
+         */
         WEBAPP_WATCHDOG_HEARTBEAT_SECS("webapp.watchdog.heartbeat-secs", NUMBER_VALIDATOR, DEFAULT_WEBAPP_WATCHDOG_HEARTBEAT_SECS),
 
         /**
