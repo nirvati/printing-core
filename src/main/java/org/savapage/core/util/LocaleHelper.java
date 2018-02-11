@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -49,11 +49,13 @@ public final class LocaleHelper {
     private static final String LOCALE_LANG_DUTCH = "nl";
     private static final String LOCALE_LANG_FRENCH = "fr";
     private static final String LOCALE_LANG_GERMAN = "de";
+    private static final String LOCALE_LANG_POLISH = "pl";
     private static final String LOCALE_LANG_RUSSIAN = "ru";
     private static final String LOCALE_LANG_SPANISH = "es";
 
     private static final String LOCALE_CTRY_NL = "NL";
     private static final String LOCALE_CTRY_ES = "ES";
+    private static final String LOCALE_CTRY_PL = "PL";
     private static final String LOCALE_CTRY_RU = "RU";
 
     /**
@@ -361,6 +363,7 @@ public final class LocaleHelper {
         list.append(Locale.US.getLanguage()).append(',');
         list.append(Locale.FRANCE.getLanguage()).append(',');
         list.append(LOCALE_LANG_SPANISH).append(',');
+        list.append(LOCALE_LANG_POLISH).append(',');
         list.append(LOCALE_LANG_RUSSIAN).append(',');
         list.append(LOCALE_LANG_DUTCH);
 
@@ -398,6 +401,9 @@ public final class LocaleHelper {
                 break;
             case LOCALE_LANG_SPANISH:
                 list.add(new Locale(LOCALE_LANG_SPANISH, LOCALE_CTRY_ES));
+                break;
+            case LOCALE_LANG_POLISH:
+                list.add(new Locale(LOCALE_LANG_POLISH, LOCALE_CTRY_PL));
                 break;
             case LOCALE_LANG_RUSSIAN:
                 list.add(new Locale(LOCALE_LANG_RUSSIAN, LOCALE_CTRY_RU));
