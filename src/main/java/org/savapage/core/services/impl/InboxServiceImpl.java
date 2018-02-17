@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -50,6 +50,7 @@ import javax.print.attribute.standard.MediaSizeName;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
 import org.savapage.core.LetterheadNotFoundException;
@@ -349,20 +350,26 @@ public final class InboxServiceImpl implements InboxService {
                 job.setDrm(docLog.getDrmRestricted());
 
                 /*
-                 * Landscape, rotation, rotate, media.
+                 * Landscape, page rotation, content rotation, user rotate,
+                 * media.
                  */
                 final SpPdfPageProps pageProps = getPdfPageProps(filePath);
 
                 final boolean isLandscape = pageProps.isLandscape();
                 final int rotation = pageProps.getRotationFirstPage();
+                final int contentRotation =
+                        pageProps.getContentRotationFirstPage();
 
                 final Integer rotate = PdfPageRotateHelper.PDF_ROTATION_0;
 
                 job.setLandscape(Boolean.valueOf(isLandscape));
                 job.setRotation(Integer.valueOf(rotation));
+                job.setContentRotation(Integer.valueOf(contentRotation));
                 job.setRotate(rotate.toString());
                 job.setMedia(pageProps.getSize());
-
+                job.setLandscapeView(Boolean.valueOf(
+                        PdfPageRotateHelper.isSeenAsLandscape(contentRotation,
+                                rotation, isLandscape, rotate.intValue())));
                 /*
                  * Append
                  */
@@ -1491,12 +1498,37 @@ public final class InboxServiceImpl implements InboxService {
 
         final InboxInfoDto jobs = readInboxInfo(user);
 
-        String rotation = PdfPageRotateHelper.PDF_ROTATION_0.toString();
-        if (rotate) {
-            rotation = PdfPageRotateHelper.PDF_ROTATION_90.toString();
-        }
-        jobs.getJobs().get(iJob).setRotate(rotation);
+        //
+        final Integer userRotate;
 
+        if (rotate) {
+            userRotate = PdfPageRotateHelper.PDF_ROTATION_90;
+        } else {
+            userRotate = PdfPageRotateHelper.PDF_ROTATION_0;
+        }
+
+        final InboxJob job = jobs.getJobs().get(iJob);
+        job.setRotate(userRotate.toString());
+
+        final int rotation;
+        if (job.getRotation() == null) {
+            rotation = 0;
+        } else {
+            rotation = job.getRotation().intValue();
+        }
+
+        final int contentRotation;
+        if (job.getContentRotation() == null) {
+            contentRotation = 0;
+        } else {
+            contentRotation = job.getContentRotation().intValue();
+        }
+
+        job.setLandscapeView(Boolean
+                .valueOf(PdfPageRotateHelper.isSeenAsLandscape(contentRotation,
+                        rotation, BooleanUtils.isTrue(job.getLandscape()),
+                        userRotate.intValue())));
+        //
         if (undelete) {
 
             final ArrayList<InboxInfoDto.InboxJobRange> jobPagesNew =

@@ -21,6 +21,7 @@
  */
 package org.savapage.core.pdf;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.savapage.core.inbox.PdfOrientationInfo;
@@ -420,7 +421,7 @@ public final class PdfPageRotateHelper {
      * @throws IOException
      *             When IO errors.
      */
-    private static boolean isSeenAsLandscape(final int contentRotation,
+    public static boolean isSeenAsLandscape(final int contentRotation,
             final int pageRotation, final boolean landscape,
             final Integer userRotate) {
 
@@ -477,6 +478,47 @@ public final class PdfPageRotateHelper {
                     || pageRotation == ROTATION_360;
         }
         return pageRotation == ROTATION_90 || pageRotation == ROTATION_270;
+    }
+
+    /**
+     * Is PDF page seen in landscape orientation?
+     *
+     * @param pdfFile
+     *            The PDF file.
+     * @param page
+     *            The 1-based page ordinal.
+     * @param userRotate
+     *            Rotation requested by user.
+     * @return {@code true} when seen in landscape.
+     * @throws IOException
+     *             When IO errors.
+     */
+    public static boolean isSeenAsLandscape(final File pdfFile, final int page,
+            final int userRotate) throws IOException {
+
+        PdfReader readerWlk = null;
+
+        try {
+            readerWlk = new PdfReader(pdfFile.getAbsolutePath());
+
+            readerWlk.selectPages(String.valueOf(page));
+
+            final int firstPage = 1;
+
+            final AffineTransform ctm = getPdfPageCTM(readerWlk, firstPage);
+            final int page1Rotation = readerWlk.getPageRotation(firstPage);
+            final boolean page1Landscape =
+                    isLandscapePage(readerWlk.getPageSize(firstPage));
+
+            return isSeenAsLandscape(ctm, page1Rotation, page1Landscape,
+                    Integer.valueOf(userRotate));
+
+        } finally {
+
+            if (readerWlk != null) {
+                readerWlk.close();
+            }
+        }
     }
 
     /**

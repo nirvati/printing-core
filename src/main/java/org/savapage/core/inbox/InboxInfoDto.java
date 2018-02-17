@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -57,15 +57,25 @@ public final class InboxInfoDto {
         private String media;
 
         /**
-         * {@code true} if the PDF mediabox orientation of the PDF inbox
-         * document is landscape.
+         * {@code true} if the mediabox orientation of the first PDF page is
+         * landscape.
          */
         private Boolean landscape;
 
         /**
-         * The PDF rotation the PDF inbox document.
+         * {@code true} if the first PDF page is viewed in landscape mode.
+         */
+        private Boolean landscapeView;
+
+        /**
+         * The rotation of first PDF page.
          */
         private Integer rotation;
+
+        /**
+         * The content rotation of first PDF page (can be {@code null}).
+         */
+        private Integer contentRotation;
 
         /**
          * The rotation on the PDF inbox document set by the User.
@@ -165,6 +175,23 @@ public final class InboxInfoDto {
         }
 
         /**
+         * @return {@code true} if the first PDF page is viewed in landscape
+         *         mode.
+         */
+        public Boolean getLandscapeView() {
+            return landscapeView;
+        }
+
+        /**
+         * @param landscapeView
+         *            {@code true} if the first PDF page is viewed in landscape
+         *            mode.
+         */
+        public void setLandscapeView(Boolean landscapeView) {
+            this.landscapeView = landscapeView;
+        }
+
+        /**
          *
          * @return The PDF rotation the PDF inbox document.
          */
@@ -179,6 +206,24 @@ public final class InboxInfoDto {
          */
         public void setRotation(Integer rotation) {
             this.rotation = rotation;
+        }
+
+        /**
+         *
+         * @return The content rotation of first PDF page (can be {@code null}).
+         */
+        public Integer getContentRotation() {
+            return contentRotation;
+        }
+
+        /**
+         *
+         * @param contentRotation
+         *            The content rotation of first PDF page (can be
+         *            {@code null}).
+         */
+        public void setContentRotation(Integer contentRotation) {
+            this.contentRotation = contentRotation;
         }
 
         /**

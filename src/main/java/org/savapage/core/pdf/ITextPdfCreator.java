@@ -445,6 +445,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         SpPdfPageProps pageProps = null;
         PdfReader reader = null;
 
+        final int firstPage = 1;
+
         try {
             /*
              * Instantiating/opening can throw a BadPasswordException or
@@ -457,9 +459,15 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 throw new PdfSecurityException("Encrypted PDF not supported.");
             }
 
-            pageProps = this.createPageProps(reader.getPageSize(1));
+            pageProps = this.createPageProps(reader.getPageSize(firstPage));
             pageProps.setNumberOfPages(reader.getNumberOfPages());
-            pageProps.setRotationFirstPage(reader.getPageRotation(1));
+            pageProps.setRotationFirstPage(reader.getPageRotation(firstPage));
+
+            final AffineTransform ctm =
+                    PdfPageRotateHelper.getPdfPageCTM(reader, firstPage);
+
+            pageProps.setContentRotationFirstPage(
+                    PdfPageRotateHelper.getPageContentRotation(ctm).intValue());
 
         } catch (com.itextpdf.text.exceptions.BadPasswordException e) {
             throw new PdfSecurityException(

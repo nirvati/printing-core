@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,6 +39,7 @@ public final class SpPdfPageProps {
     int numberOfPages = 0;
 
     int rotationFirstPage = 0;
+    int contentRotationFirstPage = 0;
 
     /**
      * @return the IPP RFC2911 "media" name.
@@ -101,6 +102,14 @@ public final class SpPdfPageProps {
 
     public void setRotationFirstPage(int rotationFirstPage) {
         this.rotationFirstPage = rotationFirstPage;
+    }
+
+    public int getContentRotationFirstPage() {
+        return contentRotationFirstPage;
+    }
+
+    public void setContentRotationFirstPage(int contentRotationFirstPage) {
+        this.contentRotationFirstPage = contentRotationFirstPage;
     }
 
     /**

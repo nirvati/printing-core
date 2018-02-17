@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -46,6 +46,7 @@ public final class PageImages {
 
         private String title;
         private String rotate;
+        private Boolean landscapeView;
         private Boolean drm;
         private Integer pages;
         private Integer pagesSelected;
@@ -71,6 +72,14 @@ public final class PageImages {
 
         public void setRotate(String rotate) {
             this.rotate = rotate;
+        }
+
+        public Boolean getLandscapeView() {
+            return landscapeView;
+        }
+
+        public void setLandscapeView(Boolean landscapeView) {
+            this.landscapeView = landscapeView;
         }
 
         public Integer getPages() {
@@ -243,18 +252,21 @@ public final class PageImages {
      * @param title
      * @param pages
      * @param rotate
+     * @param landscapeView
      * @param drm
      * @param mediaInbox
      *            The inbox media, e.g. 'iso-a4'.
      */
     public void addJob(final String title, final Integer pages,
-            final String rotate, final Boolean drm, final String mediaInbox) {
+            final String rotate, final Boolean landscapeView, final Boolean drm,
+            final String mediaInbox) {
 
         final PageImageJob job = new PageImageJob();
 
         job.setTitle(title);
         job.setPages(pages);
         job.setRotate(rotate);
+        job.setLandscapeView(landscapeView);
         job.setDrm(drm);
         job.setPagesSelected(0);
 
