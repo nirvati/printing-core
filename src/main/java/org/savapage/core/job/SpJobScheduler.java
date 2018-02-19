@@ -848,7 +848,7 @@ public final class SpJobScheduler {
         final String jobName = job.getKey().getName();
         final String jobGroup = job.getKey().getGroup();
 
-        CronTrigger trigger = createTrigger(jobName, jobGroup, configKey);
+        final CronTrigger trigger = createTrigger(jobName, jobGroup, configKey);
 
         if (trigger != null) {
             try {
@@ -883,8 +883,8 @@ public final class SpJobScheduler {
      * @param jobName
      * @param jobGroup
      * @param configKey
-     *            The string representation this value is used as key for the
-     *            trigger.
+     *            The string representation of this value is used as part of the
+     *            key for the trigger.
      * @return
      */
     private CronTrigger createTrigger(String jobName, String jobGroup,
@@ -915,10 +915,4 @@ public final class SpJobScheduler {
                 .startNow().withSchedule(cronSchedule(cronExp)).build();
     }
 
-    /*
-     * private void reportCronParseError(String expression, String configKey) {
-     * getApplicationLogManager().log(getClass(), ApplicationLogLevelEnum.ERROR,
-     * "TaskSchedulerImpl.unable-to-parse-cron-expression", new String[] {
-     * expression, configKey }); }
-     */
 }
