@@ -2063,9 +2063,9 @@ public interface IConfigProp {
         WEBAPP_USER_HELP_URL("webapp.user.help.url", URL_VALIDATOR_OPT),
 
         /**
-         * User WebApp: show help button in footer bar.
+         * User WebApp: show help URL in web app
          */
-        WEBAPP_USER_HELP_URL_FOOTER_BUTTON("webapp.user.help.url.footer-button", BOOLEAN_VALIDATOR, V_YES),
+        WEBAPP_USER_HELP_URL_ENABLE("webapp.user.help.url.enable", BOOLEAN_VALIDATOR, V_YES),
 
         /**
          * User WebApp: must text of navigation buttons on main window be shown?
