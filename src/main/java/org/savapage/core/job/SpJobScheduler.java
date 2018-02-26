@@ -41,6 +41,7 @@ import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
+import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.simpl.PropertySettingJobFactory;
 import org.savapage.core.SpException;
@@ -599,6 +600,60 @@ public final class SpJobScheduler {
                 .usingJobData(data).build();
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
+    }
+
+    /**
+     *
+     * @param jobType
+     * @return
+     */
+    private static JobKey createScheduledJobKey(final SpJobType jobType) {
+        return new JobKey(jobType.toString(), JOB_GROUP_SCHEDULED);
+    }
+
+    /**
+     * Gets the Trigger of a scheduled job.
+     *
+     * @param jobType
+     *            The Job type.
+     * @return The trigger, or .
+     */
+    private static Trigger getScheduledTrigger(final SpJobType jobType) {
+
+        final JobKey jobKey = createScheduledJobKey(jobType);
+
+        final Scheduler scheduler = instance().myScheduler;
+
+        try {
+
+            @SuppressWarnings("unchecked")
+            final List<Trigger> triggers =
+                    (List<Trigger>) scheduler.getTriggersOfJob(jobKey);
+
+            if (triggers == null || triggers.isEmpty()) {
+                return null;
+            }
+            return triggers.get(0);
+
+        } catch (SchedulerException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+    }
+
+    /**
+     * Gets the next fire time of a scheduled job.
+     *
+     * @param jobType
+     *            The Job type.
+     * @return Next fire time, or null when not found.
+     */
+    public static Date getNextScheduledTime(final SpJobType jobType) {
+
+        final Trigger trigger = getScheduledTrigger(jobType);
+        if (trigger == null) {
+            return null;
+        }
+        return trigger.getNextFireTime();
     }
 
     /**
