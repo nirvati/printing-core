@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,12 +26,22 @@ import java.util.List;
 
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import org.savapage.core.SpInfo;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
+import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.User;
+import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.tools.DbSimpleEntity;
 
 /**
@@ -388,6 +398,35 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         final List<AccountTrx> list = query.getResultList();
 
         return list;
+    }
+
+    @Override
+    public TypedQuery<AccountTrx> getExportQuery(final User user) {
+
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+
+        final CriteriaQuery<AccountTrx> q = cb.createQuery(AccountTrx.class);
+        final Root<AccountTrx> root = q.from(AccountTrx.class);
+        final Join<Account, AccountTrx> rootAccount = root.join("account");
+
+        // Subquery user accounts
+        final Subquery<Long> sq = q.subquery(Long.class);
+        final Root<UserAccount> userAccount = sq.from(UserAccount.class);
+        final Join<Account, UserAccount> account = userAccount.join("account");
+
+        final Path<User> pathUser = userAccount.join("user").get("id");
+        final Predicate predicate = cb.equal(pathUser, user.getId());
+        sq.where(predicate);
+
+        final Path<Long> accountID = account.get("id");
+        sq.select(accountID);
+        q.where(cb.in(rootAccount.get("id")).value(sq));
+
+        q.orderBy(cb.desc(root.get("transactionDate")));
+
+        final CriteriaQuery<AccountTrx> select = q.select(root);
+
+        return getEntityManager().createQuery(select);
     }
 
 }

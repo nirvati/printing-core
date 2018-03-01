@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,8 @@ package org.savapage.core.dao;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.TypedQuery;
+
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
@@ -35,6 +37,7 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PosPurchase;
 import org.savapage.core.jpa.PosPurchaseItem;
+import org.savapage.core.jpa.User;
 
 /**
  *
@@ -255,4 +258,14 @@ public interface DocLogDao extends UserErasableDao<DocLog> {
      */
     boolean updateExtSupplier(Long docLogId, ExternalSupplierEnum extSupplier,
             ExternalSupplierStatusEnum extStatus, String documentTitle);
+
+    /**
+     * Creates a {@link TypedQuery} to use for export.
+     *
+     * @param user
+     *            The user
+     * @return The a {@link TypedQuery}.
+     */
+    TypedQuery<DocLog> getExportQuery(User user);
+
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,12 @@ import java.util.List;
 
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.savapage.core.SpInfo;
 import org.savapage.core.dao.DocLogDao;
@@ -561,6 +567,25 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         final Query query = getEntityManager().createQuery(jpql);
         query.setParameter("user", user.getId());
         return query.executeUpdate();
+    }
+
+    @Override
+    public TypedQuery<DocLog> getExportQuery(final User user) {
+
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+
+        final CriteriaQuery<DocLog> q = cb.createQuery(DocLog.class);
+
+        final Root<DocLog> root = q.from(DocLog.class);
+
+        final Path<User> pathUser = root.join("user").get("id");
+        final Predicate predicate = cb.equal(pathUser, user.getId());
+
+        q.where(predicate);
+        q.orderBy(cb.desc(root.get("createdDate")));
+
+        final CriteriaQuery<DocLog> select = q.select(root);
+        return getEntityManager().createQuery(select);
     }
 
 }

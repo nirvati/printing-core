@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,8 @@ package org.savapage.core.dao;
 
 import java.util.Date;
 import java.util.List;
+
+import javax.persistence.TypedQuery;
 
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
@@ -204,4 +206,14 @@ public interface AccountTrxDao extends UserErasableDao<AccountTrx> {
      *            The {@link DaoBatchCommitter}.
      */
     void cleanOrphaned(DaoBatchCommitter batchCommitter);
+
+    /**
+     * Creates a {@link TypedQuery} for export.
+     *
+     * @param user
+     *            The user
+     * @return The a {@link TypedQuery}.
+     */
+    TypedQuery<AccountTrx> getExportQuery(User user);
+
 }

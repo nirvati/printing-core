@@ -37,6 +37,7 @@ import org.savapage.core.config.validator.ConfigPropValidator;
 import org.savapage.core.config.validator.CronExpressionValidator;
 import org.savapage.core.config.validator.CurrencyCodeValidator;
 import org.savapage.core.config.validator.DecimalValidator;
+import org.savapage.core.config.validator.EmailAddressValidator;
 import org.savapage.core.config.validator.EnumSetValidator;
 import org.savapage.core.config.validator.EnumValidator;
 import org.savapage.core.config.validator.InternalFontFamilyValidator;
@@ -1983,6 +1984,16 @@ public interface IConfigProp {
         WEBAPP_USER_DOCLOG_SELECT_TYPE_DEFAULT_ORDER("webapp.user.doclog.select.type.default-order", new EnumSetValidator<>(DocLogScopeEnum.class)),
 
         /**
+         * Is GDPR enabled in User Web App.
+         */
+        WEBAPP_USER_GDPR_ENABLE("webapp.user.gdpr.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /**
+         * Contact email address for GDPR (erase) requests.
+         */
+        WEBAPP_USER_GDPR_CONTACT_EMAIL("webapp.user.gdpr.contact.email", EMAIL_VALIDATOR_OPT, API_UPDATABLE_ON),
+
+        /**
          * Max idle seconds after which automatic logout occurs.
          */
         WEBAPP_USER_MAX_IDLE_SECS("webapp.user.max-idle-secs", NUMBER_VALIDATOR, WEBAPP_MAX_IDLE_SECS_V_NONE.toString()),
@@ -2513,6 +2524,11 @@ public interface IConfigProp {
     /** */
     CidrRangesValidator CIDR_RANGES_VALIDATOR_OPT =
             new CidrRangesValidator(true);
+
+    /**
+     * URI is not required (may be empty).
+     */
+    EmailAddressValidator EMAIL_VALIDATOR_OPT = new EmailAddressValidator(true);
 
     /** */
     IpPortValidator IP_PORT_VALIDATOR = new IpPortValidator();
