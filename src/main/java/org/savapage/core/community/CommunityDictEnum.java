@@ -43,74 +43,63 @@ public enum CommunityDictEnum {
      */
     SAVAPAGE_SLOGAN("Open Print Portal"),
 
-    /**
-     *
-     */
+    /** */
     SAVAPAGE_DOT_ORG("savapage.org"),
 
-    /**
-    *
-    */
+    /** */
     SAVAPAGE_WWW_DOT_ORG("www.savapage.org"),
 
-    /**
-    *
-    */
+    /** */
     SAVAPAGE_WWW_DOT_ORG_URL("https://www.savapage.org"),
 
-    /**
-     * .
-     */
+    /** */
     COMMUNITY_SOURCE_CODE_URL("https://gitlab.com/savapage"),
 
-    /**
-     * .
-     */
+    /** */
     COMMUNITY("Community"),
 
-    /**
-     * .
-     */
+    /** */
     DATRAVERSE_BV("Datraverse B.V."),
 
-    /**
-     * .
-     */
+    /** */
     DATRAVERSE_BV_URL("https://www.datraverse.com"),
 
     /**
-     * .
+     * URL European Union.
      */
+    EU_URL("https://europa.eu/"),
+
+    /**
+     * URL of GDPR. Note: SSL Server Certificate issued to Organization (O):
+     * European Commission.
+     */
+    EU_GDPR_URL("https://ec.europa.eu/info/law/law-topic/data-protection_en"),
+
+    /** */
+    EU_FULL_TXT("European Union"),
+
+    /** */
+    EU_GDPR_FULL_TXT("General Data Protection Regulation"),
+
+    /** */
     SAVAPAGE_SUPPORT("SavaPage Support"),
 
-    /**
-     * .
-     */
+    /** */
     SAVAPAGE_SUPPORT_URL("https://support.savapage.org"),
 
-    /**
-     * .
-     */
+    /** */
     MEMBER("Member"),
 
-    /**
-     * .
-     */
+    /** */
     MEMBER_CARD("Member Card"),
 
-    /**
-     * .
-     */
+    /** */
     MEMBERSHIP("Membership"),
 
-    /**
-     * .
-     */
+    /** */
     VISITOR("Visitor"),
 
-    /**
-     * .
-     */
+    /** */
     VISITING_GUEST("Visiting Guest"),
 
     /**  */
