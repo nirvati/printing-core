@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,8 @@
  * address: info@datraverse.com
  */
 package org.savapage.core.dao.impl;
+
+import java.util.List;
 
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
@@ -167,6 +169,33 @@ public final class UserAccountDaoImpl extends GenericDaoImpl<UserAccount>
         }
 
         return userAccount;
+    }
+
+    @Override
+    public List<UserAccount> findByUserId(final Long id) {
+
+        /*
+         * select s from UserAccount s where s.user.id=:id
+         */
+        final CriteriaBuilder criteriaBuilder =
+                getEntityManager().getCriteriaBuilder();
+
+        final CriteriaQuery<UserAccount> criteriaQuery =
+                criteriaBuilder.createQuery(UserAccount.class);
+
+        final Root<UserAccount> from = criteriaQuery.from(UserAccount.class);
+
+        final Path<User> pathUser = from.join("user").get("id");
+
+        final Predicate predicate = criteriaBuilder.equal(pathUser, id);
+        criteriaQuery.where(predicate);
+
+        final CriteriaQuery<UserAccount> select = criteriaQuery.select(from);
+
+        final TypedQuery<UserAccount> typedQuery =
+                getEntityManager().createQuery(select);
+
+        return typedQuery.getResultList();
     }
 
 }
