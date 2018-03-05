@@ -40,6 +40,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -68,6 +69,7 @@ import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserDto;
 import org.savapage.core.dto.UserEmailDto;
 import org.savapage.core.dto.UserPropertiesDto;
+import org.savapage.core.i18n.AdverbEnum;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.User;
@@ -91,6 +93,7 @@ import org.savapage.core.services.UserService;
 import org.savapage.core.users.CommonUser;
 import org.savapage.core.users.IUserSource;
 import org.savapage.core.users.conf.InternalGroupList;
+import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.EmailValidator;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.NumberUtil;
@@ -3125,4 +3128,19 @@ public final class UserServiceImpl extends AbstractService
                 objProps.stringify());
     }
 
+    @Override
+    public boolean isErased(final User user) {
+        return user.getDeleted()
+                && user.getUserId().equals(User.ERASED_USER_ID);
+    }
+
+    @Override
+    public String getUserIdUi(final User user, final Locale locale) {
+        if (this.isErased(user)) {
+            return String.format("%s-%s",
+                    AdverbEnum.ANONYMOUS.uiText(locale).toLowerCase(),
+                    DateUtil.dateAsIso8601(user.getDeletedDate()));
+        }
+        return user.getUserId();
+    }
 }

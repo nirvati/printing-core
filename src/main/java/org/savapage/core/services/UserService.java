@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@ package org.savapage.core.services;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.savapage.core.config.IConfigProp;
@@ -689,5 +690,26 @@ public interface UserService {
      *             When JSON things go wrong.
      */
     void setPdfProperties(User user, PdfProperties objProps) throws IOException;
+
+    /**
+     * Checks if user is erased.
+     *
+     * @param user
+     *            The {@link User}.
+     * @return {@code true} when user is erased.
+     */
+    boolean isErased(User user);
+
+    /**
+     * Gets the UI string for userId. If user is erased, an anonymized name is
+     * returned.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param locale
+     *            The locale.
+     * @return The UI string.
+     */
+    String getUserIdUi(User user, Locale locale);
 
 }
