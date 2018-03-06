@@ -87,6 +87,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.InboxPageImageChunker;
 import org.savapage.core.services.helpers.InboxPageImageInfo;
 import org.savapage.core.services.helpers.InboxPageMover;
+import org.savapage.core.services.helpers.PageRangeException;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
@@ -496,27 +497,81 @@ public final class InboxServiceImpl implements InboxService {
         return calcNumberOfPages(jobinfo.getJobs(), jobinfo.getPages());
     }
 
-    /**
-     * Calculates the number of selected pages in the document.
-     *
-     * @param selectedRanges
-     *            The selected document ranges.
-     * @param nTotPages
-     *            The total number of pages in the document.
-     * @return The number of pages.
-     */
-    public static int calcSelectedDocPages(final List<RangeAtom> selectedRanges,
-            final int nTotPages) {
+    @Override
+    public int calcPagesInRanges(final InboxInfoDto jobs, final int iJob,
+            final String rangesIn, final StringBuilder sortedRangesOut)
+            throws PageRangeException {
 
-        int nPages = 0;
+        final boolean isAllDocuments = iJob < 0;
+        final int nPagesInScope;
 
-        for (RangeAtom atom : selectedRanges) {
-            int nPageFrom = atom.pageBegin == null ? 1 : atom.pageBegin;
-            int nPageTo = atom.pageEnd == null ? nTotPages : atom.pageEnd;
-            nPages += nPageTo - nPageFrom + 1;
+        if (isAllDocuments) {
+            nPagesInScope = this.calcNumberOfPagesInJobs(jobs);
+        } else {
+            nPagesInScope = jobs.getJobs().get(iJob).getPages().intValue();
         }
 
-        return nPages;
+        if (StringUtils.isBlank(rangesIn)) {
+            return nPagesInScope;
+        }
+
+        /*
+         * Remove inner spaces.
+         */
+        final String ranges = rangesIn.trim().replace(" ", "");
+
+        final List<RangeAtom> rangeAtoms;
+
+        try {
+            rangeAtoms = this.createSortedRangeArray(ranges);
+        } catch (Exception e) {
+            throw new PageRangeException(PageRangeException.Reason.SYNTAX,
+                    nPagesInScope, ranges);
+        }
+
+        int nPagesSelected = 0;
+
+        int nPageToWlk = 0;
+
+        for (final RangeAtom atom : rangeAtoms) {
+
+            final int nPageFrom;
+            if (atom.pageBegin == null) {
+                nPageFrom = 1;
+            } else {
+                nPageFrom = atom.pageBegin.intValue();
+            }
+
+            final int nPageTo;
+            if (atom.pageEnd == null) {
+                nPageTo = nPagesInScope;
+            } else {
+                nPageTo = atom.pageEnd.intValue();
+            }
+
+            if (nPageFrom <= nPageToWlk) {
+                throw new PageRangeException(PageRangeException.Reason.SYNTAX,
+                        nPagesInScope, ranges);
+            }
+
+            if (nPageFrom > nPageTo || nPageFrom > nPagesInScope
+                    || nPageTo > nPagesInScope) {
+
+                throw new PageRangeException(PageRangeException.Reason.RANGE,
+                        nPagesInScope, ranges);
+            }
+
+            nPagesSelected += nPageTo - nPageFrom + 1;
+
+            nPageToWlk = nPageTo;
+        }
+
+        if (sortedRangesOut != null) {
+            sortedRangesOut.setLength(0);
+            sortedRangesOut.append(RangeAtom.asText(rangeAtoms));
+        }
+
+        return nPagesSelected;
     }
 
     @Override
@@ -660,9 +715,10 @@ public final class InboxServiceImpl implements InboxService {
             if (ranges.isEmpty()) {
                 ranges = this.createSortedRangeArray("1-");
             }
-            for (RangeAtom atom : ranges) {
-                int nPageFrom = atom.pageBegin == null ? 1 : atom.pageBegin;
-                int nPageTo = atom.pageEnd == null
+            for (final RangeAtom atom : ranges) {
+                final int nPageFrom =
+                        atom.pageBegin == null ? 1 : atom.pageBegin;
+                final int nPageTo = atom.pageEnd == null
                         ? jobs.get(page.getJob()).getPages() : atom.pageEnd;
                 nPages += nPageTo - nPageFrom + 1;
             }
@@ -722,7 +778,6 @@ public final class InboxServiceImpl implements InboxService {
                 if (end != null) {
                     atom.pageEnd = Integer.parseInt(end);
                     if (atom.pageEnd < atom.pageBegin) {
-                        // TODO: localize text
                         throw new SpException("range \"" + rangesIn
                                 + "\" has invalid syntax");
                     }

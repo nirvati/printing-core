@@ -275,15 +275,36 @@ public final class LocaleHelper {
     }
 
     /**
+     * Gets the resource bundle of an enum.
      *
+     * @param <E>
+     *            The Enum class.
      * @param value
+     *            The Enum value.
      * @param locale
-     * @return
+     *            The {@link Locale}.
+     * @return The {@link ResourceBundle}.
      */
     private static <E extends Enum<E>> ResourceBundle
             getResourceBundle(final Enum<E> value, final Locale locale) {
         return Messages.loadXmlResource(value.getClass(),
                 value.getClass().getSimpleName(), locale);
+    }
+
+    /**
+     * Gets the XML resource bundle of an Exception class.
+     *
+     * @param <E>
+     *            The Exception class.
+     * @param clazz
+     *            The class.
+     * @param locale
+     *            The {@link Locale}.
+     * @return The {@link ResourceBundle}.
+     */
+    private static <E extends Exception> ResourceBundle
+            getResourceBundle(final Class<E> clazz, final Locale locale) {
+        return Messages.loadXmlResource(clazz, clazz.getSimpleName(), locale);
     }
 
     /**
@@ -303,6 +324,30 @@ public final class LocaleHelper {
             // no code intended;
         }
         return null;
+    }
+
+    /**
+     * Gets the localized user interface text from XML resource bundle of class
+     * with arguments.
+     *
+     * @param <E>
+     *            The Exception class.
+     * @param clazz
+     *            The class.
+     * @param clazz
+     *            The class.
+     * @param locale
+     *            The {@link Locale}.
+     * @param key
+     *            The message key.
+     * @param args
+     *            The arguments.
+     * @return The localized text.
+     */
+    public static <E extends Exception> String uiText(final Class<E> clazz,
+            final Locale locale, final String key, final String... args) {
+        return Messages.formatMessage(
+                getResourceBundle(clazz, locale).getString(key), args);
     }
 
     /**

@@ -45,6 +45,7 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
 import org.savapage.core.services.helpers.InboxPageImageInfo;
+import org.savapage.core.services.helpers.PageRangeException;
 
 /**
  *
@@ -586,6 +587,25 @@ public interface InboxService {
      */
     int calcNumberOfPages(List<InboxInfoDto.InboxJob> jobs,
             List<InboxJobRange> pages);
+
+    /**
+     * Calculates the number of pages in selected page ranges.
+     *
+     * @param jobs
+     *            The {@link InboxInfoDto}.
+     * @param iJob
+     *            0-based job index. When {@code -1}, the scope is <i>all</i>
+     *            documents.
+     * @param rangesIn
+     *            The page ranges.
+     * @param sortedRangesOut
+     *            The sorted rangesIn as output (can be {@code null}).
+     * @return Number of pages in selected range.
+     * @throws PageRangeException
+     *             When rangesIn has syntax- or logical error.
+     */
+    int calcPagesInRanges(InboxInfoDto jobs, int iJob, String rangesIn,
+            StringBuilder sortedRangesOut) throws PageRangeException;
 
     /**
      * Checks if the file represents a supported job type. It is irrelevant if
