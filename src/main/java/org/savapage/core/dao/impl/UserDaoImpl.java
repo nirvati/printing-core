@@ -26,6 +26,10 @@ import java.util.List;
 
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 import org.savapage.core.SpException;
 import org.savapage.core.dao.UserDao;
@@ -526,6 +530,27 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
     @Override
     public User findActiveUserByUserId(final String userId) {
         return readUser(userId, null, null, null);
+    }
+
+    @Override
+    public List<User> findDeletedUsersByUserId(final String userId) {
+
+        /*
+         * SELECT U FROM User U WHERE U.userId = :userId AND U.deleted = true
+         */
+        final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
+        final CriteriaQuery<User> criteriaQuery = cb.createQuery(User.class);
+        final Root<User> root = criteriaQuery.from(User.class);
+
+        criteriaQuery.where(cb.and(cb.equal(root.get("userId"), userId),
+                cb.equal(root.get("deleted"), Boolean.TRUE)));
+
+        final CriteriaQuery<User> select = criteriaQuery.select(root);
+
+        final TypedQuery<User> typedQuery =
+                getEntityManager().createQuery(select);
+
+        return typedQuery.getResultList();
     }
 
     @Override

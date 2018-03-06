@@ -1636,7 +1636,7 @@ public final class SyncUsersJob extends AbstractJob {
             this.batchCommitter.commitAtNextIncrement();
         }
 
-        USER_SERVICE.performLogicalDelete(userDb, false);
+        USER_SERVICE.performLogicalDelete(userDb);
 
         ServiceContext.getDaoContext().getUserDao().update(userDb);
 

@@ -1154,7 +1154,7 @@ public final class UserServiceImpl extends AbstractService
     }
 
     /**
-     * Perform the final actions after a user delete.
+     * Perform the final actions after a user delete (clean SafePages).
      *
      * @param userIdToDelete
      *            The unique user name to delete.
@@ -1185,25 +1185,59 @@ public final class UserServiceImpl extends AbstractService
     }
 
     @Override
-    public AbstractJsonRpcMethodResponse deleteUser(final String userIdToDelete,
-            final boolean erase) throws IOException {
+    public AbstractJsonRpcMethodResponse deleteUser(final String uid) {
 
-        final User user = userDAO().lockByUserId(userIdToDelete);
-
+        final User user = userDAO().lockByUserId(uid);
         if (user == null) {
-            return createError("msg-user-not-found", userIdToDelete);
+            return createError("msg-user-not-found", uid);
         }
 
-        this.performLogicalDelete(user, erase);
+        final AbstractJsonRpcMethodResponse rsp = this.deleteUser(user);
+        if (rsp.isError()) {
+            return rsp;
+        }
         userDAO().update(user);
+        return rsp;
+    }
 
-        return this.deleteUserFinalAction(userIdToDelete);
+    /**
+     * Logically deletes a user.
+     *
+     * @param user
+     *            The user.
+     * @return The JSON-RPC Return message (either a result or an error);
+     */
+    private AbstractJsonRpcMethodResponse deleteUser(final User user) {
+        this.performLogicalDelete(user);
+        return this.deleteUserFinalAction(user.getUserId());
+    }
+
+    @Override
+    public AbstractJsonRpcMethodResponse eraseUser(final String uid) {
+
+        // Erase active user.
+        final User user = userDAO().lockByUserId(uid);
+        if (user != null) {
+            final AbstractJsonRpcMethodResponse rsp = this.deleteUser(user);
+            if (rsp.isError()) {
+                return rsp;
+            }
+            this.performErase(user);
+            userDAO().update(user);
+        }
+
+        // Erase deleted users.
+        for (final User userWlk : userDAO().findDeletedUsersByUserId(uid)) {
+            this.performErase(userWlk);
+            userDAO().update(userWlk);
+        }
+
+        return JsonRpcMethodResult.createOkResult();
     }
 
     @Override
     public AbstractJsonRpcMethodResponse deleteUserAutoCorrect(
-            final String userIdToDelete, final boolean erase)
-            throws IOException {
+            final String userIdToDelete) throws IOException {
 
         final List<User> users =
                 userDAO().checkActiveUserByUserId(userIdToDelete);
@@ -1222,7 +1256,7 @@ public final class UserServiceImpl extends AbstractService
         }
 
         for (final User user : users) {
-            this.performLogicalDelete(user, erase);
+            this.performLogicalDelete(user);
             userDAO().update(user);
         }
 
@@ -2501,32 +2535,19 @@ public final class UserServiceImpl extends AbstractService
     }
 
     @Override
-    public void performLogicalDelete(final User user, final boolean erase) {
+    public void performLogicalDelete(final User user) {
 
         final Date trxDate = ServiceContext.getTransactionDate();
 
         user.setDeleted(true);
         user.setDeletedDate(trxDate);
+
         user.setModifiedBy(ServiceContext.getActor());
         user.setModifiedDate(trxDate);
 
         removeAllCards(user);
         removeAllIdNumbers(user);
         removeAllEmails(user);
-
-        if (erase) {
-
-            user.setUserId(User.ERASED_USER_ID);
-            user.setExternalUserName(User.ERASED_EXTERNAL_USER_NAME);
-
-            user.setFullName(null);
-            user.setDepartment(null);
-            user.setOffice(null);
-
-            eraseUserAttr(user);
-
-            removeAllGroupMemberShips(user);
-        }
 
         final List<UserAccount> userAccountList = user.getAccounts();
 
@@ -2546,10 +2567,48 @@ public final class UserServiceImpl extends AbstractService
                 account.setDeletedDate(trxDate);
                 account.setModifiedBy(ServiceContext.getActor());
                 account.setModifiedDate(trxDate);
+            }
+        }
+    }
 
-                if (!erase) {
+    /**
+     * Erases a user.
+     *
+     * @param user
+     *            The user.
+     */
+    private void performErase(final User user) {
+
+        final Date trxDate = ServiceContext.getTransactionDate();
+
+        user.setModifiedBy(ServiceContext.getActor());
+        user.setModifiedDate(trxDate);
+
+        user.setUserId(User.ERASED_USER_ID);
+        user.setExternalUserName(User.ERASED_EXTERNAL_USER_NAME);
+
+        user.setFullName(null);
+        user.setDepartment(null);
+        user.setOffice(null);
+
+        eraseUserAttr(user);
+
+        final List<UserAccount> userAccountList = user.getAccounts();
+
+        if (userAccountList != null) {
+
+            for (final UserAccount userAccount : userAccountList) {
+
+                final Account account = userAccount.getAccount();
+                final AccountTypeEnum accountType =
+                        AccountTypeEnum.valueOf(account.getAccountType());
+
+                if (accountType == Account.AccountTypeEnum.SHARED) {
                     continue;
                 }
+
+                account.setModifiedBy(ServiceContext.getActor());
+                account.setModifiedDate(trxDate);
 
                 account.setName(Account.ERASED_ACCOUNT_NAME);
                 account.setNameLower(Account.ERASED_ACCOUNT_NAME);
@@ -2564,16 +2623,14 @@ public final class UserServiceImpl extends AbstractService
             }
         }
 
-        if (erase) {
-            accountTrxDAO().eraseUser(user);
-            costChangeDAO().eraseUser(user);
-            purchaseDAO().eraseUser(user);
+        accountTrxDAO().eraseUser(user);
+        costChangeDAO().eraseUser(user);
+        purchaseDAO().eraseUser(user);
 
-            docLogDAO().eraseUser(user);
-            docInDAO().eraseUser(user);
-            docOutDAO().eraseUser(user);
-            pdfOutDAO().eraseUser(user);
-        }
+        docLogDAO().eraseUser(user);
+        docInDAO().eraseUser(user);
+        docOutDAO().eraseUser(user);
+        pdfOutDAO().eraseUser(user);
     }
 
     @Override
@@ -3139,7 +3196,7 @@ public final class UserServiceImpl extends AbstractService
         if (this.isErased(user)) {
             return String.format("%s-%s",
                     AdverbEnum.ANONYMOUS.uiText(locale).toLowerCase(),
-                    DateUtil.dateAsIso8601(user.getDeletedDate()));
+                    DateUtil.dateAsIso8601(user.getModifiedDate()));
         }
         return user.getUserId();
     }

@@ -200,16 +200,20 @@ public interface UserService {
     /**
      * Logically deletes a User.
      *
-     * @param userIdToDelete
-     *            The unique user name to delete.
-     * @param erase
-     *            If {@code true}, all identifying user data is erased.
+     * @param uid
+     *            The unique user ID to delete.
      * @return The JSON-RPC Return message (either a result or an error);
-     * @throws IOException
-     *             When something went wrong.
      */
-    AbstractJsonRpcMethodResponse deleteUser(String userIdToDelete,
-            boolean erase) throws IOException;
+    AbstractJsonRpcMethodResponse deleteUser(String uid);
+
+    /**
+     * Erases all instances of a user ID (both active and deleted).
+     *
+     * @param uid
+     *            The user ID to erase.
+     * @return The JSON-RPC Return message (either a result or an error);
+     */
+    AbstractJsonRpcMethodResponse eraseUser(String uid);
 
     /**
      * Logically deletes a user and auto-corrects the inconsistent situation
@@ -223,14 +227,12 @@ public interface UserService {
      *
      * @param userIdToDelete
      *            The unique user name to delete.
-     * @param erase
-     *            If {@code true}, all identifying user data is erased.
      * @return The JSON-RPC Return message (either a result or an error);
      * @throws IOException
      *             When something went wrong.
      */
-    AbstractJsonRpcMethodResponse deleteUserAutoCorrect(String userIdToDelete,
-            boolean erase) throws IOException;
+    AbstractJsonRpcMethodResponse deleteUserAutoCorrect(String userIdToDelete)
+            throws IOException;
 
     /**
      * Lists Users sorted by user name.
@@ -466,10 +468,8 @@ public interface UserService {
      *
      * @param user
      *            The {@link User}.
-     * @param erase
-     *            If {@code true}, all identifying user data is erased.
      */
-    void performLogicalDelete(User user, boolean erase);
+    void performLogicalDelete(User user);
 
     /**
      * Gets the (un-encrypted) {@link UserAttr#getValue()} from

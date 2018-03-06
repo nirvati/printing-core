@@ -309,6 +309,15 @@ public interface UserDao extends GenericDao<User> {
     User findByAccount(Long accountId);
 
     /**
+     * Finds the logically deleted {@link User} objects by user id.
+     *
+     * @param userId
+     *            The unique user id of the user.
+     * @return The list of users.
+     */
+    List<User> findDeletedUsersByUserId(String userId);
+
+    /**
      * Resets the jobs, bytes and sheets totals to zero for all {@link User}
      * instances.
      *
