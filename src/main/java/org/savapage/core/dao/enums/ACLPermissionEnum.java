@@ -89,7 +89,7 @@ public enum ACLPermissionEnum {
     // --------------------------------------------
     // NO permissions.
     // --------------------------------------------
-    public static final int BIT_NONE = 0x0;
+    private static final int BIT_NONE = 0x0;
 
     // --------------------------------------------
     // Reader
@@ -243,6 +243,13 @@ public enum ACLPermissionEnum {
      */
     public String uiText(final Locale locale) {
         return LocaleHelper.uiText(this, locale);
+    }
+
+    /**
+     * @return Integer value for no privileges.
+     */
+    public static Integer noPrivileges() {
+        return Integer.valueOf(BIT_NONE);
     }
 
     /**

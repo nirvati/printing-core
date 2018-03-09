@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -24,6 +24,7 @@ package org.savapage.core.dao.enums;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.savapage.core.SpException;
 import org.savapage.core.jpa.UserGroupAttr;
 
 /**
@@ -128,4 +129,22 @@ public enum UserGroupAttrEnum {
     public final String getName() {
         return this.name;
     }
+
+    /**
+     * Gets the enum value based on the {@link ACLOidEnum} role.
+     *
+     * @param oid
+     *            The {@link ACLOidEnum}
+     * @return The enum value.
+     */
+    public static UserGroupAttrEnum valueOf(final ACLOidEnum oid) {
+        if (oid.isUserRole()) {
+            return ACL_OIDS_USER;
+        } else if (oid.isAdminRole()) {
+            return ACL_OIDS_ADMIN;
+        }
+        throw new SpException(
+                String.format("No role found for %s.", oid.toString()));
+    }
+
 }

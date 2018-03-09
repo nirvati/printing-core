@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,7 @@
  */
 package org.savapage.core.dao.enums;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +44,48 @@ import org.savapage.core.util.LocaleHelper;
  */
 public enum ACLOidEnum {
 
+    /** */
+    A_ABOUT(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_ACCOUNTS(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_CONFIG_EDITOR(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_DASHBOARD(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_DEVICES(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_DOCUMENTS(EnumSet.of(ACLPermissionEnum.READER)),
+
+    /** */
+    A_LOG(EnumSet.of(ACLPermissionEnum.READER)),
+
+    /** */
+    A_OPTIONS(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_PRINTERS(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_QUEUES(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_TRANSACTIONS(EnumSet.of(ACLPermissionEnum.READER)),
+
+    /** */
+    A_USERS(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_USER_GROUPS(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_VOUCHERS(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
     /**
      * Details of authenticated user.
      */
@@ -62,6 +105,33 @@ public enum ACLOidEnum {
      * Letterhead.
      */
     U_LETTERHEAD(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR));
+
+    /**
+     * OIDs for user role. The enum order is the top to bottom order in the UI.
+     */
+    private static final ACLOidEnum[] USER_ENUMS_ARRAY =
+            new ACLOidEnum[] { U_INBOX, U_USER, U_FINANCIAL, U_LETTERHEAD };
+
+    /**
+     * OIDs for user role. The enum order is lost.
+     */
+    private static final EnumSet<ACLOidEnum> USER_ENUMS =
+            EnumSet.copyOf(Arrays.asList(USER_ENUMS_ARRAY));
+
+    /**
+     * OIDs for administrator role. The enum order is the top to bottom order in
+     * the UI.
+     */
+    private static final ACLOidEnum[] ADMIN_ENUMS_ARRAY =
+            new ACLOidEnum[] { A_DASHBOARD, A_USERS, A_USER_GROUPS, A_ACCOUNTS,
+                    A_TRANSACTIONS, A_QUEUES, A_PRINTERS, A_DEVICES, A_OPTIONS,
+                    A_DOCUMENTS, A_LOG, A_ABOUT, A_VOUCHERS, A_CONFIG_EDITOR };
+
+    /**
+     * OIDs for administrator role. The enum order is lost.
+     */
+    private static final EnumSet<ACLOidEnum> ADMIN_ENUMS =
+            EnumSet.copyOf(Arrays.asList(ADMIN_ENUMS_ARRAY));
 
     /**
      *
@@ -176,7 +246,7 @@ public enum ACLOidEnum {
      * @return
      */
     public static EnumSet<ACLOidEnum> getUserOids() {
-        return EnumSet.allOf(ACLOidEnum.class);
+        return USER_ENUMS;
     }
 
     /**
@@ -184,7 +254,35 @@ public enum ACLOidEnum {
      * @return
      */
     public static EnumSet<ACLOidEnum> getAdminOids() {
-        return EnumSet.noneOf(ACLOidEnum.class);
+        return ADMIN_ENUMS;
+    }
+
+    /**
+     * @return The UI ordered list.
+     */
+    public static List<ACLOidEnum> getUserOidList() {
+        return Arrays.asList(USER_ENUMS_ARRAY);
+    }
+
+    /**
+     * @return The UI ordered list.
+     */
+    public static List<ACLOidEnum> getAdminOidList() {
+        return Arrays.asList(ADMIN_ENUMS_ARRAY);
+    }
+
+    /**
+     * @return {@code true} when this is an OID for a User role.
+     */
+    public boolean isUserRole() {
+        return getUserOids().contains(this);
+    }
+
+    /**
+     * @return {@code true} when this is an OID for an Administrator role.
+     */
+    public boolean isAdminRole() {
+        return getAdminOids().contains(this);
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -81,11 +81,15 @@ public interface AccessControlService {
     Boolean isGroupAuthorized(UserGroup group, ACLRoleEnum role);
 
     /**
-     * Checks if {@link User} has access to an OID for role "User". Checks are
-     * done bottom-up, starting at the {@link User} and moving up to the
-     * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
-     * first encountered object with a defined {@link ACLOidEnum} is used for
-     * the check. When no reference object is found, the user <b>has</b> access.
+     * Checks if {@link User} has access to an OID. Checks are done bottom-up,
+     * starting at the {@link User} and moving up to the {@link UserGroup}
+     * objects where user is {@link UserGroupMember} of. The first encountered
+     * object with a defined {@link ACLOidEnum} is used for the check. When no
+     * reference object is found, the user <b>has</b> access.
+     * <p>
+     * NOTE: User has access when {@link ConfigManager#isInternalAdmin(String)}
+     * and {@link ACLOidEnum#isAdminRole()}.
+     * </p>
      *
      * @param user
      *            The {@link User}.
@@ -93,15 +97,20 @@ public interface AccessControlService {
      *            The OID.
      * @return {@code true} when access.
      */
-    boolean hasUserAccess(User user, ACLOidEnum oid);
+    boolean hasAccess(User user, ACLOidEnum oid);
 
     /**
-     * Checks if {@link User} has permission for an OID for role "User". Checks
-     * are done bottom-up, starting at the {@link User} and moving up to the
+     * Checks if {@link User} has permission for an OID. Checks are done
+     * bottom-up, starting at the {@link User} and moving up to the
      * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
      * first encountered object with a defined {@link ACLOidEnum} is used for
      * the check. When no reference object is found, the user <b>is</b>
      * authorized.
+     * <p>
+     * NOTE: User has permission when
+     * {@link ConfigManager#isInternalAdmin(String)} and
+     * {@link ACLOidEnum#isAdminRole()}.
+     * </p>
      *
      * @param user
      *            The {@link User}.
@@ -111,10 +120,10 @@ public interface AccessControlService {
      *            The requested permission.
      * @return {@code true} when permitted.
      */
-    boolean hasUserPermission(User user, ACLOidEnum oid,
-            ACLPermissionEnum perm);
+    boolean hasPermission(User user, ACLOidEnum oid, ACLPermissionEnum perm);
 
     /**
+     * Checks if requested permission is part of permission list.
      *
      * @param perms
      *            The permissions.
@@ -122,11 +131,16 @@ public interface AccessControlService {
      *            The requested permission.
      * @return {@code true} when permitted.
      */
-    boolean hasUserPermission(List<ACLPermissionEnum> perms,
+    boolean hasPermission(List<ACLPermissionEnum> perms,
             ACLPermissionEnum permRequested);
 
     /**
-     * Gets the OID permissions for an OID a User for role "User".
+     * Gets the OID permissions for an OID a User.
+     * <p>
+     * NOTE: {@code null} is returned when
+     * {@link ConfigManager#isInternalAdmin(String)} and
+     * {@link ACLOidEnum#isAdminRole()}.
+     * </p>
      *
      * @param user
      *            The {@link User}.
@@ -134,10 +148,15 @@ public interface AccessControlService {
      *            The OID.
      * @return {@code null} when undetermined.
      */
-    List<ACLPermissionEnum> getUserPermission(User user, ACLOidEnum oid);
+    List<ACLPermissionEnum> getPermission(User user, ACLOidEnum oid);
 
     /**
-     * Gets the OID privileges bitmask for an OID a User for role "User".
+     * Gets the OID privileges bitmask for an OID a User.
+     * <p>
+     * NOTE: {@code null} is returned when
+     * {@link ConfigManager#isInternalAdmin(String)} and
+     * {@link ACLOidEnum#isAdminRole()}.
+     * </p>
      *
      * @param user
      *            The {@link User}.
@@ -145,7 +164,7 @@ public interface AccessControlService {
      *            The OID.
      * @return {@code null} when undetermined.
      */
-    Integer getUserPrivileges(User user, ACLOidEnum oid);
+    Integer getPrivileges(User user, ACLOidEnum oid);
 
     /**
      * @return The {@link ACLRoleEnum} values that are granted access when
