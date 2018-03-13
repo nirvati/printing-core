@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -68,6 +68,12 @@ public final class PaperCutPrintCommentProcessor {
     private final String trxComment;
 
     /**
+     * {@code 1} or {@code -1} for plus or minus sign to be used for number of
+     * copies in the comment.
+     */
+    private final int copiesSign;
+
+    /**
      *
      */
     private final StringBuilder jobTrxComment;
@@ -80,11 +86,20 @@ public final class PaperCutPrintCommentProcessor {
      *            The {@link DocLog} container of the {@link DocOut} object.
      * @param totalCopies
      *            Total number of printed copies.
+     * @param isRefund
+     *            {@code true} when this is a refund comment.
      */
     public PaperCutPrintCommentProcessor(final DocLog docLogTrx,
-            final DocLog docLogOut, final int totalCopies) {
+            final DocLog docLogOut, final int totalCopies,
+            final boolean isRefund) {
 
         final PrintOut printOutLog = docLogOut.getDocOut().getPrintOut();
+
+        if (isRefund) {
+            this.copiesSign = -1;
+        } else {
+            this.copiesSign = 1;
+        }
 
         this.requestingUserId = docLogTrx.getUser().getUserId();
         this.totalNumberOfCopies = totalCopies;
@@ -124,10 +139,10 @@ public final class PaperCutPrintCommentProcessor {
                 .append(requestingUserId)
                 //
                 .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(totalNumberOfCopies)
+                .append(this.copiesSign * this.totalNumberOfCopies)
                 //
                 .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(numberOfDocumentPages);
+                .append(this.numberOfDocumentPages);
 
         // ... | A4 | S | G | id
         jobTrxComment.append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR);
@@ -169,7 +184,7 @@ public final class PaperCutPrintCommentProcessor {
                 .append(requestingUserId)
                 //
                 .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(copies)
+                .append(this.copiesSign * copies)
                 //
                 .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                 .append(numberOfDocumentPages);
@@ -212,7 +227,7 @@ public final class PaperCutPrintCommentProcessor {
                 .append(klasName)
                 //
                 .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(copies);
+                .append(this.copiesSign * copies);
     }
 
     /**
@@ -238,10 +253,10 @@ public final class PaperCutPrintCommentProcessor {
                 .append(requestingUserId)
                 //
                 .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(copies)
+                .append(this.copiesSign * copies)
                 //
                 .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
-                .append(numberOfDocumentPages);
+                .append(this.numberOfDocumentPages);
 
         //
         // ... | A4 | S | G | id
@@ -280,7 +295,8 @@ public final class PaperCutPrintCommentProcessor {
                     .append(PaperCutPrintCommentSyntax.DUMMY_KLAS)
                     //
                     .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
-                    .append(totalNumberOfCopies - totalCopiesForKlasCounter);
+                    .append(this.copiesSign * (totalNumberOfCopies
+                            - totalCopiesForKlasCounter));
         }
 
         // ... | document | comment

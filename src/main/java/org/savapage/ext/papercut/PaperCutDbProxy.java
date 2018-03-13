@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -569,14 +569,14 @@ public final class PaperCutDbProxy {
         sql.append(" ACC.account_name_lower as Userid");
         sql.append(", U.full_name as Name");
 
-        sql.append(", CASE WHEN " + "length(split_part(MAX(TRX.txn_comment), '"
+        sql.append(", MAX(CASE WHEN " + "length(split_part(TRX.txn_comment, '"
                 + PaperCutPrintCommentSyntax.FIELD_SEPARATOR + "', 1)) < 25 "
-                + "THEN split_part(MAX(TRX.txn_comment), '"
+                + "THEN split_part(TRX.txn_comment, '"
                 + PaperCutPrintCommentSyntax.FIELD_SEPARATOR + "', 1) "
-                + "ELSE '' END as Klas");
+                + "ELSE '' END) as Klas");
 
         sql.append(", -SUM(TRX.amount) as Amount");
-        sql.append(", COUNT(Trx.amount) as prints");
+        sql.append(", COUNT(Trx.amount) as Transactions");
 
         //
         final String syntaxVersionTestClause =
@@ -635,10 +635,6 @@ public final class PaperCutDbProxy {
         } else {
             sql.append("= '").append(dto.getPersonalAccountType()).append("'");
         }
-
-        // select students only.
-        sql.append(" and LEFT(TRX.txn_comment, 1) != '")
-                .append(PaperCutPrintCommentSyntax.DUMMY_KLAS).append("'");
 
         final List<String> klassen = dto.getClasses();
 
