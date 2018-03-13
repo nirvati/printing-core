@@ -378,10 +378,6 @@ public final class AccessControlServiceImpl extends AbstractService
     @Override
     public Integer getPrivileges(final User user, final ACLOidEnum oid) {
 
-        if (user == null) {
-            return ACLPermissionEnum.noPrivileges();
-        }
-
         if (oid.isAdminRole()
                 && ConfigManager.isInternalAdmin(user.getUserId())) {
             return null;
