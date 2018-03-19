@@ -300,12 +300,12 @@ public interface IConfigProp {
         /**
          *
          */
-        FINANCIAL_PRINTER_COST_DECIMALS("financial.printer.cost-decimals", ACCOUNTING_DECIMAL_VALIDATOR, DEFAULT_FINANCIAL_PRINTER_COST_DECIMALS),
+        FINANCIAL_PRINTER_COST_DECIMALS("financial.printer.cost-decimals", ACCOUNTING_DECIMAL_VALIDATOR, DEFAULT_FINANCIAL_PRINTER_COST_DECIMALS, API_UPDATABLE_ON),
 
         /**
          *
          */
-        FINANCIAL_USER_BALANCE_DECIMALS("financial.user.balance-decimals", ACCOUNTING_DECIMAL_VALIDATOR, DEFAULT_FINANCIAL_USER_BALANCE_DECIMALS),
+        FINANCIAL_USER_BALANCE_DECIMALS("financial.user.balance-decimals", ACCOUNTING_DECIMAL_VALIDATOR, DEFAULT_FINANCIAL_USER_BALANCE_DECIMALS, API_UPDATABLE_ON),
 
         /**
          * .
@@ -598,12 +598,12 @@ public interface IConfigProp {
         /**
          *
          */
-        DOC_CONVERT_XPS_TO_PDF_ENABLED("doc.convert.xpstopdf-enabled", BOOLEAN_VALIDATOR, V_NO),
+        DOC_CONVERT_XPS_TO_PDF_ENABLED("doc.convert.xpstopdf-enabled", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          *
          */
-        DOC_CONVERT_LIBRE_OFFICE_ENABLED("doc.convert.libreoffice-enabled", BOOLEAN_VALIDATOR, V_NO),
+        DOC_CONVERT_LIBRE_OFFICE_ENABLED("doc.convert.libreoffice-enabled", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          *
@@ -1224,7 +1224,7 @@ public interface IConfigProp {
         /**
          * .
          */
-        SOFFICE_ENABLE("soffice.enable", BOOLEAN_VALIDATOR, V_NO),
+        SOFFICE_ENABLE("soffice.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * The LibreOffice home location. When empty, a probe to likely
@@ -1426,29 +1426,29 @@ public interface IConfigProp {
          * Enable Copy Job option for Job Ticket (boolean). When {@code true} a
          * job ticket for a copy job can be created.
          */
-        JOBTICKET_COPIER_ENABLE("jobticket.copier.enable", BOOLEAN_VALIDATOR, V_NO),
+        JOBTICKET_COPIER_ENABLE("jobticket.copier.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * Enable "delivery time" option for Job Ticket (boolean).
          */
-        JOBTICKET_DELIVERY_DATETIME_ENABLE("jobticket.delivery-datetime.enable", BOOLEAN_VALIDATOR, V_YES),
+        JOBTICKET_DELIVERY_DATETIME_ENABLE("jobticket.delivery-datetime.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * Enable notification by email to owner of job ticket when ticket is
          * completed (Boolean).
          */
-        JOBTICKET_NOTIFY_EMAIL_COMPLETED_ENABLE("jobticket.notify-email.completed.enable", BOOLEAN_VALIDATOR, V_YES),
+        JOBTICKET_NOTIFY_EMAIL_COMPLETED_ENABLE("jobticket.notify-email.completed.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * Enable notification by email to owner of job ticket when ticket is
          * canceled (Boolean).
          */
-        JOBTICKET_NOTIFY_EMAIL_CANCELED_ENABLE("jobticket.notify-email.canceled.enable", BOOLEAN_VALIDATOR, V_YES),
+        JOBTICKET_NOTIFY_EMAIL_CANCELED_ENABLE("jobticket.notify-email.canceled.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * Send job ticket email notification with content-type as "text/html".
          */
-        JOBTICKET_NOTIFY_EMAIL_CONTENT_TYPE_HTML("jobticket.notify-email.content-type.html", BOOLEAN_VALIDATOR, V_NO),
+        JOBTICKET_NOTIFY_EMAIL_CONTENT_TYPE_HTML("jobticket.notify-email.content-type.html", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * A comma separated list of Job Ticket tags to be applied as job ticker
@@ -1465,46 +1465,46 @@ public interface IConfigProp {
         /**
          * Enable {@link IConfigProp.Key#JOBTICKET_TAGS} (boolean).
          */
-        JOBTICKET_TAGS_ENABLE("jobticket.tags.enable", BOOLEAN_VALIDATOR, V_NO),
+        JOBTICKET_TAGS_ENABLE("jobticket.tags.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * Is tag required, when {@link IConfigProp.Key#JOBTICKET_TAGS_ENABLE} ?
          * (boolean).
          */
-        JOBTICKET_TAGS_REQUIRED("jobticket.tags.required", BOOLEAN_VALIDATOR, V_YES),
+        JOBTICKET_TAGS_REQUIRED("jobticket.tags.required", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * Enable Delegated Print (boolean).
          */
-        PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable", BOOLEAN_VALIDATOR, V_NO),
+        PROXY_PRINT_DELEGATE_ENABLE("proxy-print.delegate.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * Enable delegated print account type {@link AccountTypeEnum#GROUP}
          * (boolean).
          */
-        PROXY_PRINT_DELEGATE_ACCOUNT_GROUP_ENABLE("proxy-print.delegate.account.group.enable", BOOLEAN_VALIDATOR, V_YES),
+        PROXY_PRINT_DELEGATE_ACCOUNT_GROUP_ENABLE("proxy-print.delegate.account.group.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * Enable delegated print account type {@link AccountTypeEnum#SHARED}
          * (boolean).
          */
-        PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_ENABLE("proxy-print.delegate.account.shared.enable", BOOLEAN_VALIDATOR, V_YES),
+        PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_ENABLE("proxy-print.delegate.account.shared.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * Enable delegated User Group selection for print account type
          * {@link AccountTypeEnum#SHARED} (boolean).
          */
-        PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_GROUP_ENABLE("proxy-print.delegate.account.shared.group.enable", BOOLEAN_VALIDATOR, V_YES),
+        PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_GROUP_ENABLE("proxy-print.delegate.account.shared.group.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * Enable multiple delegated print copies (boolean).
          */
-        PROXY_PRINT_DELEGATE_MULTIPLE_MEMBER_COPIES_ENABLE("proxy-print.delegate.multiple-member-copies.enable", BOOLEAN_VALIDATOR, V_YES),
+        PROXY_PRINT_DELEGATE_MULTIPLE_MEMBER_COPIES_ENABLE("proxy-print.delegate.multiple-member-copies.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * Enable Delegated Print integration with PaperCut (boolean).
          */
-        PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE("proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR, V_NO),
+        PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE("proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * The shared top-level account that must be present in PaperCut.
@@ -1571,7 +1571,7 @@ public interface IConfigProp {
         /**
          * Enable "remove graphics" option for Proxy Print (boolean).
          */
-        PROXY_PRINT_REMOVE_GRAPHICS_ENABLE("proxy-print.remove-graphics.enable", BOOLEAN_VALIDATOR, V_YES),
+        PROXY_PRINT_REMOVE_GRAPHICS_ENABLE("proxy-print.remove-graphics.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * CRON expression: 10 minutes past midnight.
@@ -1811,7 +1811,7 @@ public interface IConfigProp {
         /**
          *
          */
-        USER_CAN_CHANGE_PIN("user.can-change-pin", BOOLEAN_VALIDATOR, V_YES),
+        USER_CAN_CHANGE_PIN("user.can-change-pin", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * .
@@ -1942,7 +1942,7 @@ public interface IConfigProp {
         /**
          * Admin WebApp: show technical info on dashboard?
          */
-        WEBAPP_ADMIN_DASHBOARD_SHOW_TECH_INFO("webapp.admin.dashboard.show-tech-info", BOOLEAN_VALIDATOR, V_NO),
+        WEBAPP_ADMIN_DASHBOARD_SHOW_TECH_INFO("webapp.admin.dashboard.show-tech-info", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * Number of seconds after which cached Bitcoin wallet information
@@ -1953,7 +1953,7 @@ public interface IConfigProp {
         /**
          *
          */
-        WEBAPP_JOBTICKETS_PRINT_ALL_ENABLE("webapp.jobtickets.print-all.enable", BOOLEAN_VALIDATOR, V_YES),
+        WEBAPP_JOBTICKETS_PRINT_ALL_ENABLE("webapp.jobtickets.print-all.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * Number of job tickets to show in the list. A value of zero means all
@@ -1981,7 +1981,7 @@ public interface IConfigProp {
         /**
          *
          */
-        WEBAPP_USER_DOCLOG_SELECT_TYPE_DEFAULT_ORDER("webapp.user.doclog.select.type.default-order", new EnumSetValidator<>(DocLogScopeEnum.class)),
+        WEBAPP_USER_DOCLOG_SELECT_TYPE_DEFAULT_ORDER("webapp.user.doclog.select.type.default-order", new EnumSetValidator<>(DocLogScopeEnum.class), API_UPDATABLE_ON),
 
         /**
          * Is GDPR enabled in User Web App.
@@ -2013,51 +2013,51 @@ public interface IConfigProp {
         /**
          * User WebApp: Max. copies for proxy printing.
          */
-        WEBAPP_USER_PROXY_PRINT_MAX_COPIES("webapp.user.proxy-print.max-copies", NUMBER_VALIDATOR, "30"),
+        WEBAPP_USER_PROXY_PRINT_MAX_COPIES("webapp.user.proxy-print.max-copies", NUMBER_VALIDATOR, "30", API_UPDATABLE_ON),
 
         /**
          * User WebApp: enable a fixed inbox clearing scope after a proxy print
          * job is issued.
          */
-        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_ENABLE("webapp.user.proxy-print.clear-inbox.enable", BOOLEAN_VALIDATOR, V_NO),
+        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_ENABLE("webapp.user.proxy-print.clear-inbox.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * User WebApp: the fixed inbox clearing scope after proxy printing.
          */
-        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE("webapp.user.proxy-print.clear-inbox.scope", new EnumValidator<>(InboxSelectScopeEnum.class), InboxSelectScopeEnum.ALL.toString()),
+        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_SCOPE("webapp.user.proxy-print.clear-inbox.scope", new EnumValidator<>(InboxSelectScopeEnum.class), InboxSelectScopeEnum.ALL.toString(), API_UPDATABLE_ON),
 
         /**
          * User WebApp: show clearing scope (Boolean).
          */
-        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_PROMPT("webapp.user.proxy-print.clear-inbox.prompt", BOOLEAN_VALIDATOR, V_YES),
+        WEBAPP_USER_PROXY_PRINT_CLEAR_INBOX_PROMPT("webapp.user.proxy-print.clear-inbox.prompt", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * User WebApp: clear selected printer (including options) after proxy
          * printing.
          */
-        WEBAPP_USER_PROXY_PRINT_CLEAR_PRINTER("webapp.user.proxy-print.clear-printer", BOOLEAN_VALIDATOR, V_NO),
+        WEBAPP_USER_PROXY_PRINT_CLEAR_PRINTER("webapp.user.proxy-print.clear-printer", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * User WebApp: clear print delegate data after proxy printing.
          */
-        WEBAPP_USER_PROXY_PRINT_CLEAR_DELEGATE("webapp.user.proxy-print.clear-delegate", BOOLEAN_VALIDATOR, V_NO),
+        WEBAPP_USER_PROXY_PRINT_CLEAR_DELEGATE("webapp.user.proxy-print.clear-delegate", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * User WebApp: Add user ID to delegator name?
          */
-        WEBAPP_USER_PROXY_PRINT_DELEGATOR_NAME_ID("webapp.user.proxy-print.delegator.name-id", BOOLEAN_VALIDATOR, V_YES),
+        WEBAPP_USER_PROXY_PRINT_DELEGATOR_NAME_ID("webapp.user.proxy-print.delegator.name-id", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * User WebApp: Can application of selected copies for delegates be
          * switched off in Print Dialog?
          */
-        WEBAPP_USER_PROXY_PRINT_DELEGATE_COPIES_APPLY_SWITCH("webapp.user.proxy-print.delegate-copies-apply-switch", BOOLEAN_VALIDATOR, V_YES),
+        WEBAPP_USER_PROXY_PRINT_DELEGATE_COPIES_APPLY_SWITCH("webapp.user.proxy-print.delegate-copies-apply-switch", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * User WebApp: enable the "Print documents separately" option for proxy
          * printing (Boolean). If {@code true} the option is enabled (shown).
          */
-        WEBAPP_USER_PROXY_PRINT_SEPARATE_ENABLE("webapp.user.proxy-print.separate.enable", BOOLEAN_VALIDATOR, V_NO),
+        WEBAPP_USER_PROXY_PRINT_SEPARATE_ENABLE("webapp.user.proxy-print.separate.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * User WebApp: the (default) "Print documents separately" option value
@@ -2066,22 +2066,22 @@ public interface IConfigProp {
          * inbox document. If {@code false}, one (1) proxy print job is printed
          * for a vanilla inbox.
          */
-        WEBAPP_USER_PROXY_PRINT_SEPARATE("webapp.user.proxy-print.separate", BOOLEAN_VALIDATOR, V_NO),
+        WEBAPP_USER_PROXY_PRINT_SEPARATE("webapp.user.proxy-print.separate", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * URL with User WebApp help information.
          */
-        WEBAPP_USER_HELP_URL("webapp.user.help.url", URL_VALIDATOR_OPT),
+        WEBAPP_USER_HELP_URL("webapp.user.help.url", URL_VALIDATOR_OPT, API_UPDATABLE_ON),
 
         /**
          * User WebApp: show help URL in web app
          */
-        WEBAPP_USER_HELP_URL_ENABLE("webapp.user.help.url.enable", BOOLEAN_VALIDATOR, V_YES),
+        WEBAPP_USER_HELP_URL_ENABLE("webapp.user.help.url.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * User WebApp: must text of navigation buttons on main window be shown?
          */
-        WEBAPP_USER_MAIN_NAV_BUTTON_TEXT("webapp.user.main.nav-button-text", new EnumValidator<>(OnOffEnum.class), OnOffEnum.AUTO.toString()),
+        WEBAPP_USER_MAIN_NAV_BUTTON_TEXT("webapp.user.main.nav-button-text", new EnumValidator<>(OnOffEnum.class), OnOffEnum.AUTO.toString(), API_UPDATABLE_ON),
 
         /**
          * WebApp: enable (show) driver download in About Dialog?
@@ -2249,7 +2249,7 @@ public interface IConfigProp {
         /**
          * Enable graphics files for Web Print.
          */
-        WEB_PRINT_GRAPHICS_ENABLE("web-print.graphics.enable", BOOLEAN_VALIDATOR, V_YES),
+        WEB_PRINT_GRAPHICS_ENABLE("web-print.graphics.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * A comma/space separated list of file extensions (without leading
