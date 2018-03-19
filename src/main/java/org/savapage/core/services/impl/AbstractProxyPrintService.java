@@ -3420,11 +3420,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
             pdfRequest.setApplyLetterhead(true);
             pdfRequest.setForPrinting(true);
 
-            // Reserved for future use.
-            pdfRequest.setForPrintingFillerPages(false);
-
             pdfRequest.setPrintDuplex(request.isDuplex());
             pdfRequest.setPrintNup(request.getNup());
+
+            pdfRequest.setForPrintingFillerPages(
+                    request.isDuplex() || request.getNup() > 0);
 
             final PdfCreateInfo createInfo = outputProducer()
                     .generatePdf(pdfRequest, uuidPageCount, docLog);
