@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -53,6 +53,12 @@ public final class JsonProxyPrinterOptChoice {
      */
     @JsonProperty("uiText")
     private String uiText;
+
+    /**
+     * The UI CSS class of the icon (can be {@code null}).
+     */
+    @JsonProperty("uiIconClass")
+    private String uiIconClass;
 
     /**
      *
@@ -118,6 +124,21 @@ public final class JsonProxyPrinterOptChoice {
     }
 
     /**
+     * @return The UI CSS class of the icon (can be {@code null}).
+     */
+    public String getUiIconClass() {
+        return uiIconClass;
+    }
+
+    /**
+     * @param uiIconClass
+     *            The UI CSS class of the icon (can be {@code null}).
+     */
+    public void setUiIconClass(String uiIconClass) {
+        this.uiIconClass = uiIconClass;
+    }
+
+    /**
      *
      * @return A copy of this instance.
      */
@@ -129,6 +150,7 @@ public final class JsonProxyPrinterOptChoice {
         copy.extended = this.extended;
         copy.choicePpd = this.choicePpd;
         copy.uiText = this.uiText;
+        copy.uiIconClass = this.uiIconClass;
 
         return copy;
     }

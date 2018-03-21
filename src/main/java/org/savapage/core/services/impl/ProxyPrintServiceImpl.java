@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -133,8 +133,13 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
     private static final String CUSTOM_IPP_I18N_RESOURCE_NAME = "ipp-i18n";
 
+    /** Key prefix of IPP option (choice) text.*/
     private static final String LOCALIZE_IPP_ATTR_PREFIX = "ipp-attr-";
 
+    /** Key prefix of IPP option choice(s) icon CSS class. */
+    private static final String LOCALIZE_IPP_ICON_PREFIX = "ipp-icon-";
+
+    /** */
     private final static String NOTIFY_PULL_METHOD = "ippget";
 
     /**
@@ -988,6 +993,37 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
             for (final JsonProxyPrinterOpt option : optGroup.getOptions()) {
                 localizePrinterOpt(locale, option);
+                attachCssIcons(locale, option);
+            }
+        }
+    }
+
+    /**
+     * Attaches CSS icon class to each of the printer option choices.
+     *
+     * @param locale
+     *            The locale.
+     * @param option
+     *            The printer option.
+     */
+    private void attachCssIcons(final Locale locale,
+            final JsonProxyPrinterOpt option) {
+
+        final String cssDefault = localizeCustomIpp(String.format("%s%s",
+                LOCALIZE_IPP_ICON_PREFIX, option.getKeyword()), locale);
+
+        for (final JsonProxyPrinterOptChoice choice : option.getChoices()) {
+
+            final String cssChoice =
+                    localizeCustomIpp(
+                            String.format("%s%s-%s", LOCALIZE_IPP_ICON_PREFIX,
+                                    option.getKeyword(), choice.getChoice()),
+                            locale);
+
+            if (cssChoice == null) {
+                choice.setUiIconClass(cssDefault);
+            } else {
+                choice.setUiIconClass(cssChoice);
             }
         }
     }
