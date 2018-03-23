@@ -50,8 +50,6 @@ public enum NounEnum {
     /** */
     INVOICING,
     /** */
-    MAINTENANCE,
-    /** */
     MODE(true),
     /** */
     QUEUE(true),
