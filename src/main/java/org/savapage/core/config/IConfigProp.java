@@ -1928,7 +1928,7 @@ public interface IConfigProp {
         /**
          *
          */
-        WEBAPP_NUMBER_UP_REVIEW_ENABLE("webapp.number-up-preview.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+        WEBAPP_NUMBER_UP_PREVIEW_ENABLE("webapp.number-up-preview.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
         /**
          *
          */
