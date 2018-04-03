@@ -299,7 +299,7 @@ public class DocLog extends org.savapage.core.jpa.Entity {
      * @param rawTitle
      *            The raw title.
      */
-    public final void setTitle(final String rawTitle) {
+    public void setTitle(final String rawTitle) {
         this.title = StringUtils.abbreviate(rawTitle, COL_TITLE_LENGTH);
     }
 
@@ -403,7 +403,7 @@ public class DocLog extends org.savapage.core.jpa.Entity {
      * @param rawComment
      *            The raw log comment.
      */
-    public final void setLogComment(final String rawComment) {
+    public void setLogComment(final String rawComment) {
         this.logComment =
                 StringUtils.abbreviate(rawComment, COL_LOG_COMMENT_LENGTH);
     }
