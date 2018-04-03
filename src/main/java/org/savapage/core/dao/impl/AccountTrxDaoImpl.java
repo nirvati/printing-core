@@ -286,7 +286,7 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
          */
         jpqlList[1] = "" //
                 + "DELETE FROM " + DbSimpleEntity.ACCOUNT_TRX + " A "
-                + " WHERE A.transactionDate <= :" + psqlDateParm + ")";
+                + " WHERE A.transactionDate <= :" + psqlDateParm;
 
         int nDeleted = 0;
 
