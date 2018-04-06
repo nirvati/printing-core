@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
-import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.imaging.EcoPrintPdfTask;
@@ -138,12 +137,16 @@ public final class OutputProducer {
      * @param sessionId
      *            A unique session id used for the name of the image file. If
      *            <code>null</code> or empty, it is not used.
+     *
      * @return The created image file.
+     *
+     * @throws InboxPageNotFoundException
+     *             When inbox page is not found.
      */
     public File allocatePageImage(final String user, final String jobName,
             final String pageIn, final boolean thumbnail,
             final boolean isLetterhead, final boolean isLetterheadPublic,
-            final String sessionId) {
+            final String sessionId) throws InboxPageNotFoundException {
 
         final InboxPageImageInfo pageImageInfo;
 
@@ -179,7 +182,7 @@ public final class OutputProducer {
                         Integer.parseInt(pageIn));
 
                 if (pageImageInfo == null) {
-                    throw new IllegalStateException(
+                    throw new InboxPageNotFoundException(
                             String.format("Page image [%s] for user [%s] inbox"
                                     + " not available.", pageIn, user));
                 }
@@ -192,7 +195,7 @@ public final class OutputProducer {
                         Integer.valueOf(pageIn));
 
                 if (pageImageInfo == null) {
-                    throw new IllegalStateException(String.format(
+                    throw new InboxPageNotFoundException(String.format(
                             "Page image [%s] for user [%s]"
                                     + " document [%s] not available.",
                             pageIn, user, jobName));
@@ -272,85 +275,26 @@ public final class OutputProducer {
                         "image [" + imgFileBuilder + "] could not be created.");
             }
         } catch (Exception e) {
-            throw new SpException(e);
+            throw new InboxPageNotFoundException(e.getMessage());
         }
 
         return imgFile;
     }
 
     /**
-     * Produces a warning message instead of the actual job page.
-     *
-     * @param user
-     * @param job
-     * @param page
-     * @param sessionId
-     *            A unique session id used for the name of the image file. If
-     *            <code>null</code> or empty, it is not used.
-     * @return
-     */
-    public File allocateWarningPageImage(final String user, final String job,
-            final String page, final String msg, final String sessionId) {
-
-        // final String tmpdir = ConfigManager.getUserTempDir(user);
-
-        /*
-         * Make filename unique.
-         */
-        long time = System.currentTimeMillis();
-
-        String imgFile = ConfigManager.getAppTmpDir() + "/" + user + "_" + job
-                + "_" + page + "_" + time;
-
-        if (sessionId != null && !sessionId.isEmpty()) {
-            imgFile += "_" + sessionId;
-        }
-        imgFile += "." + ImageUrl.FILENAME_EXT_IMAGE;
-
-        String label = CommunityDictEnum.SAVAPAGE.getWord() + "\\n\\n" + msg;
-
-        String bg = "red";
-        String fill = "white";
-        // size is in A4 ratio 210x297
-        // Alternatives ...
-        // -size 410x594 -gravity center -pointsize 40
-        // -size 1190x1683 -gravity center -pointsize 60
-        // TODO: adapt the size
-        String command = "convert -flatten -background " + bg + " -fill " + fill
-                + " -size 410x594 -gravity center -pointsize 40 label:\""
-                + label + "\" \"" + imgFile + "\"";
-
-        LOGGER.trace(command);
-
-        ICommandExecutor exec = CommandExecutor.createSimple(command);
-        try {
-            if (exec.executeCommand() != 0) {
-                LOGGER.error(command);
-                LOGGER.error(exec.getStandardErrorFromCommand().toString());
-                throw new SpException(
-                        "image [" + imgFile + "] could not be created.");
-            }
-        } catch (Exception e) {
-            throw new SpException(e);
-        }
-
-        return new File(imgFile);
-    }
-
-    /**
      * Releases (deletes) the PDF file.
      *
      * @param pdf
+     *            The PDF file.
      */
     public void releasePdf(final File pdf) {
         if (pdf.delete()) {
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(
-                        "deleted temp file [" + pdf.getAbsolutePath() + "]");
+                LOGGER.trace("deleted temp file [{}", pdf.getAbsolutePath());
             }
         } else {
-            LOGGER.error("delete of temp file [" + pdf.getAbsolutePath()
-                    + "] FAILED");
+            LOGGER.error("delete of temp file [{}] FAILED.",
+                    pdf.getAbsolutePath());
         }
     }
 
@@ -358,10 +302,11 @@ public final class OutputProducer {
      * Creates a full path unique (meaningless) PDF file name.
      *
      * @param user
+     *            The user.
      * @param purpose
      *            A simple tag to insert into the filename (to add some
      *            meaningful).
-     * @return
+     * @return The file path.
      */
     public static String createUniqueTempPdfName(final User user,
             final String purpose) {
@@ -371,18 +316,22 @@ public final class OutputProducer {
     /**
      * Creates a full path unique (meaningless) PDF file name.
      *
-     * @param user
+     * @param userid
+     *            The user id.
      * @param purpose
      *            A simple tag to insert into the filename (to add some
      *            meaning).
-     * @return
+     * @return The file path.
      */
     public static String createUniqueTempPdfName(final String userid,
             final String purpose) {
+
         final Date now = new Date();
-        return ConfigManager.getAppTmpDir() + "/savapage-" + purpose + "-"
-                + now.getTime() + "-" + userid + "."
-                + DocContent.FILENAME_EXT_PDF;
+        final StringBuilder name = new StringBuilder();
+        return name.append(ConfigManager.getAppTmpDir()).append("/savapage-")
+                .append(purpose).append("-").append(now.getTime()).append("-")
+                .append(userid).append(".").append(DocContent.FILENAME_EXT_PDF)
+                .toString();
     }
 
     /**
