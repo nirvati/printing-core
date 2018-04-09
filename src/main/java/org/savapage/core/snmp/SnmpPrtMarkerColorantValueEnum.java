@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@ package org.savapage.core.snmp;
  *
  * <a href="http://tools.ietf.org/html/rfc1759.html">RFC1759</a>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum SnmpPrtMarkerColorantValueEnum {

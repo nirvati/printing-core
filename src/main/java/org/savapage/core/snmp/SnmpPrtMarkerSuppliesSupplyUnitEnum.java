@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -29,17 +29,17 @@ import java.util.Map;
  *
  * <a href="http://tools.ietf.org/html/rfc1759.html">RFC1759</a>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum SnmpPrtMarkerSuppliesSupplyUnitEnum {
 
     /**
-     * Not in RFC 1759
+     * Not in RFC 1759.
      */
     OTHER(1, "other"),
     /**
-     * Not in RFC 1759
+     * Not in RFC 1759.
      */
     UNKNOWN(2, "unknown"),
     /**
@@ -51,15 +51,15 @@ public enum SnmpPrtMarkerSuppliesSupplyUnitEnum {
      */
     MICROMETERS(4, "micrometers"),
     /**
-     * Not in RFC 1759
+     * Not in RFC 1759.
      */
     IMPRESSIONS(7, "impressions"),
     /**
-     * Not in RFC 1759
+     * Not in RFC 1759.
      */
     SHEETS(8, "sheets"),
     /**
-     * Not in RFC 1759
+     * Not in RFC 1759.
      */
     HOURS(11, "hours"),
     /**
@@ -79,11 +79,11 @@ public enum SnmpPrtMarkerSuppliesSupplyUnitEnum {
      */
     TENTHS_OF_MILLILITERS(15, "mm^-1"),
     /**
-     * Not in RFC 1759
+     * Not in RFC 1759.
      */
     FEET(16, "feet"),
     /**
-     * Not in RFC 1759
+     * Not in RFC 1759.
      */
     METERS(17, "meters"),
 
@@ -96,7 +96,7 @@ public enum SnmpPrtMarkerSuppliesSupplyUnitEnum {
      */
     ITEMS(18, "items"),
     /**
-     * Not in RFC 1759
+     * Not in RFC 1759.
      */
     PERCENT(19, "percent");
 
@@ -111,19 +111,19 @@ public enum SnmpPrtMarkerSuppliesSupplyUnitEnum {
     private final String uiText;
 
     /**
-   *
-   */
+    *
+    */
     private static class Lookup {
 
         /**
-       *
-       */
+        *
+        */
         private final Map<Integer, SnmpPrtMarkerSuppliesSupplyUnitEnum> enumLookup =
                 new HashMap<Integer, SnmpPrtMarkerSuppliesSupplyUnitEnum>();
 
         /**
-       *
-       */
+        *
+        */
         public Lookup() {
             for (SnmpPrtMarkerSuppliesSupplyUnitEnum value : SnmpPrtMarkerSuppliesSupplyUnitEnum
                     .values()) {
@@ -180,8 +180,8 @@ public enum SnmpPrtMarkerSuppliesSupplyUnitEnum {
      * @return The {@link SnmpPrtMarkerSuppliesSupplyUnitEnum} or {@code null}
      *         when not found.
      */
-    public static SnmpPrtMarkerSuppliesSupplyUnitEnum asEnum(
-            final Integer number) {
+    public static SnmpPrtMarkerSuppliesSupplyUnitEnum
+            asEnum(final Integer number) {
         return LookupHolder.INSTANCE.get(number);
     }
 

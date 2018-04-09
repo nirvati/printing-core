@@ -22,7 +22,7 @@
 package org.savapage.core.json.rpc.impl;
 
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodParms;
-import org.savapage.core.snmp.SnmpVersion;
+import org.savapage.core.snmp.SnmpVersionEnum;
 
 /**
  *
@@ -36,7 +36,7 @@ public final class ParamsPrinterSnmp extends AbstractJsonRpcMethodParms {
     private String port;
     private String community;
     private String locale;
-    private SnmpVersion version;
+    private SnmpVersionEnum version;
 
     public String getPrinterName() {
         return printerName;
@@ -78,11 +78,11 @@ public final class ParamsPrinterSnmp extends AbstractJsonRpcMethodParms {
         this.locale = locale;
     }
 
-    public SnmpVersion getVersion() {
+    public SnmpVersionEnum getVersion() {
         return version;
     }
 
-    public void setVersion(SnmpVersion version) {
+    public void setVersion(SnmpVersionEnum version) {
         this.version = version;
     }
 

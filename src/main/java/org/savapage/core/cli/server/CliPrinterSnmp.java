@@ -31,7 +31,7 @@ import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
 import org.savapage.core.json.rpc.impl.ResultAttribute;
 import org.savapage.core.json.rpc.impl.ResultPrinterSnmp;
 import org.savapage.core.snmp.SnmpClientSession;
-import org.savapage.core.snmp.SnmpVersion;
+import org.savapage.core.snmp.SnmpVersionEnum;
 
 /**
  *
@@ -79,7 +79,7 @@ public class CliPrinterSnmp extends AbstractAppApi {
     /**
      *
      */
-    private static final SnmpVersion SNMP_VERSION_DEFAULT = SnmpVersion.V1;
+    private static final SnmpVersionEnum SNMP_VERSION_DEFAULT = SnmpVersionEnum.V1;
 
     /**
      *
@@ -116,7 +116,7 @@ public class CliPrinterSnmp extends AbstractAppApi {
                             Boolean.FALSE },
 
                     {
-                            SnmpVersion.formattedCmdLineOptions(),
+                            SnmpVersionEnum.formattedCmdLineOptions(),
                             CLI_OPT_VERSION,
                             String.format("SNMP version (default \"%s\").",
                                     SNMP_VERSION_DEFAULT.getCmdLineOption()),
@@ -182,7 +182,7 @@ public class CliPrinterSnmp extends AbstractAppApi {
          * Other.
          */
         if (cmd.hasOption(CLI_OPT_VERSION)
-                && SnmpVersion.enumFromCmdLineOption(cmd
+                && SnmpVersionEnum.enumFromCmdLineOption(cmd
                         .getOptionValue(CLI_OPT_VERSION)) == null) {
             return false;
         }
@@ -203,7 +203,7 @@ public class CliPrinterSnmp extends AbstractAppApi {
         parms.setCommunity(cmd.getOptionValue(CLI_OPT_COMMUNITY));
 
         if (cmd.hasOption(CLI_OPT_VERSION)) {
-            parms.setVersion(SnmpVersion.enumFromCmdLineOption(cmd
+            parms.setVersion(SnmpVersionEnum.enumFromCmdLineOption(cmd
                     .getOptionValue(CLI_OPT_VERSION)));
         } else {
             parms.setVersion(SNMP_VERSION_DEFAULT);

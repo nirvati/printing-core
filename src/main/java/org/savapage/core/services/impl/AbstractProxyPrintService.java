@@ -151,10 +151,12 @@ import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 import org.savapage.core.services.helpers.ProxyPrintInboxReqChunker;
 import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
+import org.savapage.core.services.helpers.SnmpPrinterQueryDto;
 import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.snmp.SnmpClientSession;
 import org.savapage.core.snmp.SnmpConnectException;
+import org.savapage.core.util.CupsPrinterUriHelper;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
@@ -3682,6 +3684,29 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
+    public final List<SnmpPrinterQueryDto> getSnmpQueries() {
+
+        final List<SnmpPrinterQueryDto> list = new ArrayList<>();
+
+        for (final JsonProxyPrinter printer : this.cupsPrinterCache.values()) {
+
+            final String host =
+                    CupsPrinterUriHelper.resolveHost(printer.getDeviceUri());
+
+            if (host != null) {
+
+                final SnmpPrinterQueryDto dto = new SnmpPrinterQueryDto();
+
+                dto.setUriHost(host);
+                dto.setPrinter(printer.getDbPrinter());
+
+                list.add(dto);
+            }
+        }
+        return list;
+    }
+
+    @Override
     public final AbstractJsonRpcMessage readSnmp(final ParamsPrinterSnmp params)
             throws SnmpConnectException {
 
@@ -3694,24 +3719,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
             final JsonProxyPrinter printer = this.getCachedPrinter(printerName);
 
             /*
-             * INVARIANT: printer MUST present in cache.
+             * INVARIANT: printer MUST be present in cache.
              */
             if (printer == null) {
                 return JsonRpcMethodError.createBasicError(Code.INVALID_REQUEST,
                         "Printer [" + printerName + "] is unknown.", null);
             }
 
-            final URI printerUri = printer.getPrinterUri();
-
-            if (printerUri != null) {
-
-                final String scheme = printerUri.getScheme();
-
-                if (scheme != null && (scheme.endsWith("socket")
-                        || scheme.equalsIgnoreCase("ipp"))) {
-                    host = printerUri.getHost();
-                }
-            }
+            host = CupsPrinterUriHelper.resolveHost(printer.getDeviceUri());
 
         } else {
             host = params.getHost();

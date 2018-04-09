@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,7 +28,7 @@ import java.util.Map;
  *
  * <a href="http://tools.ietf.org/html/rfc1759.html">RFC1759</a>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum SnmpPrtMarkerSuppliesClassEnum {
@@ -37,12 +37,14 @@ public enum SnmpPrtMarkerSuppliesClassEnum {
      * .
      */
     OTHER(1, "other"),
+
     /**
-     * .
+     * Supply that is consumed.
      */
     CONSUMED(3, "consumed"),
+
     /**
-     * .
+     * Receptacle that is filled.
      */
     FILLED(4, "filled");
 
@@ -103,7 +105,8 @@ public enum SnmpPrtMarkerSuppliesClassEnum {
      * @param value
      * @param uiText
      */
-    private SnmpPrtMarkerSuppliesClassEnum(final int value, final String uiText) {
+    private SnmpPrtMarkerSuppliesClassEnum(final int value,
+            final String uiText) {
         this.value = value;
         this.uiText = uiText;
     }

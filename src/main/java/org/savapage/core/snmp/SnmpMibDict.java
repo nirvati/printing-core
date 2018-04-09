@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -143,10 +143,10 @@ public final class SnmpMibDict {
             new OID(PFX_HOST + ".3.2.1.3.1");
 
     /**
-     * RFC2790:
-     * <a href="http://oid-info.com/get/1.3.6.1.2.1.25.3.5.1.1"> {iso(1)
-     * identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1) host(25)
-     * hrDevice(3) hrPrinterTable(5) hrPrinterEntry(1) hrPrinterStatus(1)} </a>
+     * RFC2790: <a href="http://oid-info.com/get/1.3.6.1.2.1.25.3.5.1.1">
+     * {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1)
+     * host(25) hrDevice(3) hrPrinterTable(5) hrPrinterEntry(1)
+     * hrPrinterStatus(1)} </a>
      * <p>
      * <i>The current status of this printer device.</i>
      * </p>
@@ -175,51 +175,58 @@ public final class SnmpMibDict {
      * The private MIB branch for Canon.
      */
     private static final String PFX_CANON =
-            PFX_ENTERPRISES + SnmpPrinterVendorEnum.CANON.getEnterprise();
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.CANON.enterpriseAsString();
 
     /**
      * The private MIB branch for Epson.
      */
     private static final String PFX_EPSON =
-            PFX_ENTERPRISES + SnmpPrinterVendorEnum.EPSON.getEnterprise();
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.EPSON.enterpriseAsString();
 
     /**
      * The private MIB branch for HP.
      */
     private static final String PFX_HP =
-            PFX_ENTERPRISES + SnmpPrinterVendorEnum.HP.getEnterprise();
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.HP.enterpriseAsString();
 
     /**
      * The private MIB branch for KONICA MINOLTA HOLDINGS, INC.
      */
     @SuppressWarnings("unused")
     private static final String PFX_KONICA =
-            PFX_ENTERPRISES + SnmpPrinterVendorEnum.KONICA.getEnterprise();
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.KONICA.enterpriseAsString();
 
     /**
      * The private MIB branch for Kyocera.
      */
     @SuppressWarnings("unused")
-    private static final String PFX_KYOCERA =
-            PFX_ENTERPRISES + SnmpPrinterVendorEnum.KYOCERA.getEnterprise();
+    private static final String PFX_KYOCERA = PFX_ENTERPRISES
+            + SnmpPrinterVendorEnum.KYOCERA.enterpriseAsString();
 
     /**
      * The private MIB branch for Lexmark.
      */
-    private static final String PFX_LEXMARK =
-            PFX_ENTERPRISES + SnmpPrinterVendorEnum.LEXMARK.getEnterprise();
+    private static final String PFX_LEXMARK = PFX_ENTERPRISES
+            + SnmpPrinterVendorEnum.LEXMARK.enterpriseAsString();
 
     /**
      * The private MIB branch for Oki.
      */
     private static final String PFX_OKI =
-            PFX_ENTERPRISES + SnmpPrinterVendorEnum.OKI.getEnterprise();
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.OKI.enterpriseAsString();
 
     /**
      * The private MIB branch for Ricoh.
      */
     private static final String PFX_RICOH =
-            PFX_ENTERPRISES + SnmpPrinterVendorEnum.RICOH.getEnterprise();
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.RICOH.enterpriseAsString();
+
+    /**
+     * The private MIB branch for Xerox.
+     */
+    @SuppressWarnings("unused")
+    private static final String PFX_XEROX =
+            PFX_ENTERPRISES + SnmpPrinterVendorEnum.XEROX.enterpriseAsString();
 
     /**
      * "A recorded serial number for this device that indexes some type device
@@ -458,9 +465,8 @@ public final class SnmpMibDict {
             new OID(PFX_LEXMARK + ".6.2.3.1.5.1");
 
     /**
-     * RFC1759:
-     * <a href="http://oid-info.com/get/1.3.6.1.2.1.43.10.2.1.3"> {iso(1)
-     * identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1)
+     * RFC1759: <a href="http://oid-info.com/get/1.3.6.1.2.1.43.10.2.1.3">
+     * {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1)
      * printmib(43) prtMarker(10) prtMarkerTable(2) prtMarkerEntry(1)
      * prtMarkerCounterUnit(3)}
      * <p>
@@ -471,9 +477,8 @@ public final class SnmpMibDict {
             new OID(PFX_PRINTERS + ".10.2.1.3.1.1");
 
     /**
-     * RFC1759:
-     * <a href="http://oid-info.com/get/1.3.6.1.2.1.43.10.2.1.4"> {iso(1)
-     * identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1)
+     * RFC1759: <a href="http://oid-info.com/get/1.3.6.1.2.1.43.10.2.1.4">
+     * {iso(1) identified-organization(3) dod(6) internet(1) mgmt(2) mib-2(1)
      * printmib(43) prtMarker(10) prtMarkerTable(2) prtMarkerEntry(1)
      * prtMarkerLifeCount(4)}</a>
      * <p>

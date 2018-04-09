@@ -19,8 +19,58 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
+package org.savapage.core.services.helpers;
+
+import org.savapage.core.jpa.Printer;
 
 /**
+ * Query parameters for printer SNMP.
+ *
+ * @author Rijk Ravestein
  *
  */
-package org.savapage.core.snmp;
+public final class SnmpPrinterQueryDto {
+
+    /**
+     * The host of the printer device URI.
+     */
+    private String uriHost;
+
+    /**
+     * The printer.
+     */
+    private Printer printer;
+
+    /**
+     * @return The host of the printer device URI.
+     */
+    public String getUriHost() {
+        return uriHost;
+    }
+
+    /**
+     * @param uriHost
+     *            The host of the printer device URI.
+     */
+    public void setUriHost(String uriHost) {
+        this.uriHost = uriHost;
+    }
+
+    /**
+     *
+     * @return The printer.
+     */
+    public Printer getPrinter() {
+        return printer;
+    }
+
+    /**
+     *
+     * @param printer
+     *            The printer.
+     */
+    public void setPrinter(Printer printer) {
+        this.printer = printer;
+    }
+
+}

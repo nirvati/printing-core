@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -27,11 +27,11 @@ import java.util.Map;
 /**
  * The type of supply.
  *
- * See n<a href="http://tools.ietf.org/html/rfc1759.html">RFC1759</a> and <a
- * href="http://www.iana.org/assignments/ianaprinter-mib/ianaprinter-mib"
+ * See n<a href="http://tools.ietf.org/html/rfc1759.html">RFC1759</a> and
+ * <a href="http://www.iana.org/assignments/ianaprinter-mib/ianaprinter-mib"
  * >IANA</a>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum SnmpPrtMarkerSuppliesTypeEnum {
@@ -245,7 +245,8 @@ public enum SnmpPrtMarkerSuppliesTypeEnum {
      * @param value
      * @param uiText
      */
-    private SnmpPrtMarkerSuppliesTypeEnum(final int value, final String uiText) {
+    private SnmpPrtMarkerSuppliesTypeEnum(final int value,
+            final String uiText) {
         this.value = value;
         this.uiText = uiText;
     }

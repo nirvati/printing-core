@@ -84,6 +84,7 @@ import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
+import org.savapage.core.services.helpers.SnmpPrinterQueryDto;
 import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.snmp.SnmpConnectException;
@@ -989,6 +990,13 @@ public interface ProxyPrintService {
      *         {@link ProxyPrintInboxReq#getClearScope()}).
      */
     int clearInbox(User lockedUser, ProxyPrintInboxReq request);
+
+    /**
+     * Gets list of SNMP printers queries.
+     *
+     * @return The list of queries.
+     */
+    public List<SnmpPrinterQueryDto> getSnmpQueries();
 
     /**
      * Reads SNMP printer info.

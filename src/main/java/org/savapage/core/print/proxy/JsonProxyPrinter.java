@@ -50,9 +50,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public final class JsonProxyPrinter extends JsonAbstractBase {
 
+    /** */
     @JsonIgnore
     private URI deviceUri;
 
+    /** */
     @JsonIgnore
     private URI printerUri;
 

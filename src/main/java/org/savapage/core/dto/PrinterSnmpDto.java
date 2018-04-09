@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,15 +14,13 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.dto;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -47,11 +45,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class PrinterSnmpDto extends AbstractDto {
 
+    private Integer enterprise;
     private SnmpPrinterVendorEnum vendor;
     private String systemDescription;
     private String serialNumber;
@@ -62,6 +61,14 @@ public final class PrinterSnmpDto extends AbstractDto {
     private Map<SnmpPrtMarkerSuppliesTypeEnum, List<SnmpPrtMarkerSuppliesEntry>> suppliesEntries;
     private Date dateStarted;
     private Set<SnmpPrinterErrorStateEnum> errorStates;
+
+    public Integer getEnterprise() {
+        return enterprise;
+    }
+
+    public void setEnterprise(Integer enterprise) {
+        this.enterprise = enterprise;
+    }
 
     public SnmpPrinterVendorEnum getVendor() {
         return vendor;
@@ -126,10 +133,8 @@ public final class PrinterSnmpDto extends AbstractDto {
         return suppliesEntries;
     }
 
-    public
-            void
-            setSuppliesEntries(
-                    Map<SnmpPrtMarkerSuppliesTypeEnum, List<SnmpPrtMarkerSuppliesEntry>> suppliesEntries) {
+    public void setSuppliesEntries(
+            Map<SnmpPrtMarkerSuppliesTypeEnum, List<SnmpPrtMarkerSuppliesEntry>> suppliesEntries) {
         this.suppliesEntries = suppliesEntries;
     }
 
@@ -172,7 +177,8 @@ public final class PrinterSnmpDto extends AbstractDto {
         list.add(new ResultAttribute("Vendor", attrValueWlk));
 
         //
-        list.add(new ResultAttribute("Description", this.getSystemDescription()));
+        list.add(new ResultAttribute("Description",
+                this.getSystemDescription()));
         list.add(new ResultAttribute("Serial#", this.getSerialNumber()));
 
         //
@@ -187,7 +193,8 @@ public final class PrinterSnmpDto extends AbstractDto {
 
             builder = new StringBuilder(128);
 
-            for (final SnmpPrinterErrorStateEnum state : this.getErrorStates()) {
+            for (final SnmpPrinterErrorStateEnum state : this
+                    .getErrorStates()) {
                 builder.append(String.format("%s ", state.toString()));
             }
             list.add(new ResultAttribute("Error state", builder.toString()));
@@ -207,8 +214,8 @@ public final class PrinterSnmpDto extends AbstractDto {
             builder = new StringBuilder(128);
             builder.append(this.getMarkerLifeCount());
             if (this.getMarkerCounterUnit() != null) {
-                builder.append(" ").append(
-                        this.getMarkerCounterUnit().getUiText());
+                builder.append(" ")
+                        .append(this.getMarkerCounterUnit().getUiText());
             }
             attrValueWlk = builder.toString();
         }
@@ -246,8 +253,8 @@ public final class PrinterSnmpDto extends AbstractDto {
                             supplies.getSupplyUnit();
 
                     if (supplyUnit != null) {
-                        builder.append(String.format(" %s",
-                                supplyUnit.toString()));
+                        builder.append(
+                                String.format(" %s", supplyUnit.toString()));
                         showMaxCapacity =
                                 supplyUnit != SnmpPrtMarkerSuppliesSupplyUnitEnum.PERCENT;
                     } else {
@@ -267,8 +274,8 @@ public final class PrinterSnmpDto extends AbstractDto {
                             maxCapacityTxt = String.valueOf(maxCapacity);
                         }
 
-                        builder.append(String.format(" of %s MAX",
-                                maxCapacityTxt));
+                        builder.append(
+                                String.format(" of %s MAX", maxCapacityTxt));
                     }
 
                     //
@@ -276,8 +283,8 @@ public final class PrinterSnmpDto extends AbstractDto {
                             supplies.getColorantEntry();
 
                     if (colorant != null) {
-                        builder.append(String.format(" %s", colorant.getValue()
-                                .toString()));
+                        builder.append(String.format(" %s",
+                                colorant.getValue().toString()));
                     }
 
                     // builder.append(String.format(" [IS %s]", supplies
@@ -294,18 +301,15 @@ public final class PrinterSnmpDto extends AbstractDto {
     }
 
     /**
-     *
      * @return The formatted text.
-     * @throws IOException
-     *             When an IO error occurs.
      */
     @JsonIgnore
-    public String asFormattedText() throws IOException {
+    public String asFormattedText() {
 
-        final StringWriter writer = new StringWriter(1024);
+        final StringBuilder writer = new StringBuilder(1024);
         final String lineSep = System.getProperty("line.separator");
 
-        for (ResultAttribute attr : asAttributes()) {
+        for (ResultAttribute attr : this.asAttributes()) {
             writer.append(
                     String.format("%-25s: %s", attr.getKey(), attr.getValue()))
                     .append(lineSep);

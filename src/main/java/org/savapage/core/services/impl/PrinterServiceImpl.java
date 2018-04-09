@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,9 +24,11 @@ package org.savapage.core.services.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -39,7 +41,9 @@ import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.enums.ProxyPrintAuthModeEnum;
 import org.savapage.core.dao.helpers.JsonUserGroupAccess;
+import org.savapage.core.dao.helpers.ProxyPrinterSnmpInfoDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
+import org.savapage.core.dto.PrinterSnmpDto;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.Printer;
@@ -61,6 +65,11 @@ import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
+import org.savapage.core.snmp.SnmpPrtMarkerColorantEntry;
+import org.savapage.core.snmp.SnmpPrtMarkerColorantValueEnum;
+import org.savapage.core.snmp.SnmpPrtMarkerSuppliesClassEnum;
+import org.savapage.core.snmp.SnmpPrtMarkerSuppliesEntry;
+import org.savapage.core.snmp.SnmpPrtMarkerSuppliesTypeEnum;
 import org.savapage.core.util.JsonHelper;
 
 /**
@@ -906,6 +915,115 @@ public final class PrinterServiceImpl extends AbstractService
             }
         }
         return null;
+    }
+
+    @Override
+    public void setSmtpInfo(final Printer printer, final PrinterSnmpDto info)
+            throws IOException {
+
+        setPrinterAttrValue(
+                printerAttrDAO().findByName(printer.getId(),
+                        PrinterAttrEnum.SNMP_DATE),
+                printer, PrinterAttrEnum.SNMP_DATE,
+                String.valueOf(ServiceContext.getTransactionDate().getTime()));
+
+        setPrinterAttrValue(
+                printerAttrDAO().findByName(printer.getId(),
+                        PrinterAttrEnum.SNMP_INFO),
+                printer, PrinterAttrEnum.SNMP_INFO,
+                createSmtpInfo(info).stringify());
+    }
+
+    /**
+     * Creates SNMP printer info.
+     *
+     * @param info
+     *            The "raw" {@link PrinterSnmpDto}.
+     * @return The {@link ProxyPrinterSnmpInfoDto}.
+     */
+    private static ProxyPrinterSnmpInfoDto
+            createSmtpInfo(final PrinterSnmpDto info) {
+
+        if (info.getSuppliesEntries() == null) {
+            return null;
+        }
+
+        final ProxyPrinterSnmpInfoDto obj = new ProxyPrinterSnmpInfoDto();
+
+        obj.setVendor(info.getEnterprise());
+        obj.setModel(info.getSystemDescription());
+        obj.setSerial(info.getSerialNumber());
+
+        for (final Entry<SnmpPrtMarkerSuppliesTypeEnum, List<SnmpPrtMarkerSuppliesEntry>> entry : info
+                .getSuppliesEntries().entrySet()) {
+
+            switch (entry.getKey()) {
+            case TONER:
+                obj.setSupplies(ProxyPrinterSnmpInfoDto.Supplies.TONER);
+                break;
+            case INK:
+                obj.setSupplies(ProxyPrinterSnmpInfoDto.Supplies.INK);
+                break;
+            default:
+                continue;
+            }
+
+            final Map<SnmpPrtMarkerColorantValueEnum, Integer> colorants =
+                    new HashMap<>();
+
+            for (final SnmpPrtMarkerSuppliesEntry supplies : entry.getValue()) {
+
+                if (supplies
+                        .getSuppliesClass() != SnmpPrtMarkerSuppliesClassEnum.CONSUMED) {
+                    continue;
+                }
+
+                final SnmpPrtMarkerColorantEntry colorantEntry =
+                        supplies.getColorantEntry();
+
+                if (colorantEntry == null) {
+                    continue;
+                }
+
+                final int perc;
+                if (supplies.getLevel() == 0
+                        || supplies.getMaxCapacity() == 0) {
+                    perc = 0;
+                } else {
+                    perc = (100 * supplies.getLevel())
+                            / supplies.getMaxCapacity();
+                }
+
+                final SnmpPrtMarkerColorantValueEnum color;
+
+                switch (colorantEntry.getValue()) {
+                case UNKNOWN:
+                case OTHER:
+                    if (StringUtils.containsIgnoreCase(
+                            supplies.getDescription(), "black")) {
+                        color = SnmpPrtMarkerColorantValueEnum.BLACK;
+                        break;
+                    } else if (StringUtils.containsIgnoreCase(
+                            supplies.getDescription(), "tri-color")) {
+                        color = SnmpPrtMarkerColorantValueEnum.OTHER;
+                        break;
+                    }
+
+                default:
+                    color = colorantEntry.getValue();
+                    break;
+                }
+
+                colorants.put(color, Integer.valueOf(perc));
+            }
+
+            obj.setMarkers(colorants);
+
+            // Just get the first one, ignore the rest.
+            break;
+        }
+
+        return obj;
     }
 
 }

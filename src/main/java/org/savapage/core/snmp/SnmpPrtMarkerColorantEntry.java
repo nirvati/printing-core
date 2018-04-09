@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -31,16 +31,31 @@ import org.snmp4j.smi.OID;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class SnmpPrtMarkerColorantEntry {
 
-    final private int index;
-    final private int markerIndex;
-    final private SnmpPrtMarkerColorantRoleEnum role;
-    final private int tonality;
-    final private SnmpPrtMarkerColorantValueEnum value;
+    /** */
+    private int index;
+
+    /** */
+    private int markerIndex;
+
+    /** */
+    private SnmpPrtMarkerColorantRoleEnum role;
+
+    /** */
+    private int tonality;
+
+    /** */
+    private SnmpPrtMarkerColorantValueEnum value;
+
+    /**
+     * Constructor needed for JSON de-serialization.
+     */
+    public SnmpPrtMarkerColorantEntry() {
+    }
 
     /**
      *
@@ -67,6 +82,11 @@ public final class SnmpPrtMarkerColorantEntry {
         return index;
     }
 
+    /** */
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
     /**
      *
      * @return The value of prtMarkerIndex corresponding to the marker sub-unit
@@ -76,16 +96,36 @@ public final class SnmpPrtMarkerColorantEntry {
         return markerIndex;
     }
 
+    /** */
+    public void setMarkerIndex(int markerIndex) {
+        this.markerIndex = markerIndex;
+    }
+
     public SnmpPrtMarkerColorantRoleEnum getRole() {
         return role;
+    }
+
+    /** */
+    public void setRole(SnmpPrtMarkerColorantRoleEnum role) {
+        this.role = role;
     }
 
     public int getTonality() {
         return tonality;
     }
 
+    /** */
+    public void setTonality(int tonality) {
+        this.tonality = tonality;
+    }
+
     public SnmpPrtMarkerColorantValueEnum getValue() {
         return value;
+    }
+
+    /** */
+    public void setValue(SnmpPrtMarkerColorantValueEnum value) {
+        this.value = value;
     }
 
     /**
@@ -93,17 +133,16 @@ public final class SnmpPrtMarkerColorantEntry {
      * @param client
      * @return
      */
-    public static Map<Integer, SnmpPrtMarkerColorantEntry> retrieve(
-            final SnmpClientSession client) {
+    public static Map<Integer, SnmpPrtMarkerColorantEntry>
+            retrieve(final SnmpClientSession client) {
 
         final Map<Integer, SnmpPrtMarkerColorantEntry> colorantMap =
                 new HashMap<>();
 
-        final OID[] oids =
-                { SnmpMibDict.OID_PRT_MARKER_COLORANT_MARKER_INDEX,
-                        SnmpMibDict.OID_PRT_MARKER_COLORANT_ROLE,
-                        SnmpMibDict.OID_PRT_MARKER_COLORANT_TONALITY,
-                        SnmpMibDict.OID_PRT_MARKER_COLORANT_VALUE };
+        final OID[] oids = { SnmpMibDict.OID_PRT_MARKER_COLORANT_MARKER_INDEX,
+                SnmpMibDict.OID_PRT_MARKER_COLORANT_ROLE,
+                SnmpMibDict.OID_PRT_MARKER_COLORANT_TONALITY,
+                SnmpMibDict.OID_PRT_MARKER_COLORANT_VALUE };
         int i = 0;
 
         for (final List<String> list : client.getTableAsStrings(oids)) {
@@ -134,20 +173,19 @@ public final class SnmpPrtMarkerColorantEntry {
 
             if (EnumUtils.isValidEnum(SnmpPrtMarkerColorantValueEnum.class,
                     colorantValueUpper)) {
-                colorantValue =
-                        SnmpPrtMarkerColorantValueEnum
-                                .valueOf(colorantValueUpper);
+                colorantValue = SnmpPrtMarkerColorantValueEnum
+                        .valueOf(colorantValueUpper);
             } else {
                 colorantValue = SnmpPrtMarkerColorantValueEnum.UNKNOWN;
             }
 
             final SnmpPrtMarkerColorantEntry entry =
                     new SnmpPrtMarkerColorantEntry(index.intValue(),
-                    //
+                            //
                             Integer.valueOf(list.get(0)),
                             //
-                            SnmpPrtMarkerColorantRoleEnum.asEnum(Integer
-                                    .valueOf(list.get(1))),
+                            SnmpPrtMarkerColorantRoleEnum
+                                    .asEnum(Integer.valueOf(list.get(1))),
                             //
                             Integer.valueOf(list.get(2)).intValue(),
                             //

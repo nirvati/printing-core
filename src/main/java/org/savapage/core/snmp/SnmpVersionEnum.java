@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,22 +28,22 @@ import org.snmp4j.mp.SnmpConstants;
  * @author Rijk Ravestein
  *
  */
-public enum SnmpVersion {
+public enum SnmpVersionEnum {
 
     /**
      * SNMP Version 1.
      */
     V1(SnmpConstants.version1, "1"),
+
     /**
      * SNMP Version 2c.
      */
     V2C(SnmpConstants.version2c, "2c");
 
-    /**
-     *
-     */
+    /** */
     private final int version;
 
+    /** */
     private final String cmdLineOption;
 
     /**
@@ -53,7 +53,7 @@ public enum SnmpVersion {
      * @param cmdLineValue
      *            The value used as command line option.
      */
-    private SnmpVersion(final int versionValue, final String cmdLineValue) {
+    SnmpVersionEnum(final int versionValue, final String cmdLineValue) {
         this.version = versionValue;
         this.cmdLineOption = cmdLineValue;
     }
@@ -75,15 +75,15 @@ public enum SnmpVersion {
     }
 
     /**
-     * Gets the {@link SnmpVersion} value belonging to the command line option
-     * value.
+     * Gets the {@link SnmpVersionEnum} value belonging to the command line
+     * option value.
      *
      * @param option
      *            The command line option value.
      * @return {@code null} when not found.
      */
-    public static SnmpVersion enumFromCmdLineOption(final String option) {
-        for (final SnmpVersion value : SnmpVersion.values()) {
+    public static SnmpVersionEnum enumFromCmdLineOption(final String option) {
+        for (final SnmpVersionEnum value : SnmpVersionEnum.values()) {
             if (value.getCmdLineOption().equalsIgnoreCase(option)) {
                 return value;
             }
@@ -100,7 +100,7 @@ public enum SnmpVersion {
         final StringBuilder opt = new StringBuilder();
 
         int i = 0;
-        for (final SnmpVersion value : SnmpVersion.values()) {
+        for (final SnmpVersionEnum value : SnmpVersionEnum.values()) {
             if (i > 0) {
                 opt.append("|");
             }

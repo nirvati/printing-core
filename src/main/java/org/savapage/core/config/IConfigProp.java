@@ -989,12 +989,34 @@ public interface IConfigProp {
         /**
          *
          */
-        PRINT_IMAP_MAX_FILE_MB("print.imap.max-file-mb", NUMBER_VALIDATOR, IMAP_MAX_FILE_MB_V_DEFAULT.toString()),
+        PRINT_IMAP_MAX_FILE_MB("print.imap.max-file-mb", NUMBER_VALIDATOR, IMAP_MAX_FILE_MB_V_DEFAULT.toString(), API_UPDATABLE_ON),
 
         /**
          *
          */
-        PRINT_IMAP_MAX_FILES("print.imap.max-files", NUMBER_VALIDATOR, IMAP_MAX_FILES_V_DEFAULT.toString()),
+        PRINT_IMAP_MAX_FILES("print.imap.max-files", NUMBER_VALIDATOR, IMAP_MAX_FILES_V_DEFAULT.toString(), API_UPDATABLE_ON),
+
+        /**
+         *
+         */
+        PRINTER_SNMP_READ_TRIGGER_MINS("printer.snmp.read.trigger-mins", NUMBER_VALIDATOR, "240", API_UPDATABLE_ON),
+        /**
+         *
+         */
+        PRINTER_SNMP_READ_RETRIES("printer.snmp.read.retries", NUMBER_VALIDATOR, "2", API_UPDATABLE_ON),
+        /**
+         *
+         */
+        PRINTER_SNMP_READ_TIMEOUT_MSECS("printer.snmp.read.timeout-millis", NUMBER_VALIDATOR, "1500", API_UPDATABLE_ON),
+
+        /**
+         *
+         */
+        PRINTER_SNMP_MARKER_PERC_WARN("printer.snmp.marker.percent.warn", NUMBER_VALIDATOR, "30", API_UPDATABLE_ON),
+        /**
+         *
+         */
+        PRINTER_SNMP_MARKER_PERC_ALERT("printer.snmp.marker.percent.alert", NUMBER_VALIDATOR, "10", API_UPDATABLE_ON),
 
         /**
          * Insert requesting users ad-hoc when printing from Smartschool to the

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -94,7 +94,17 @@ public enum PrinterAttrEnum {
      * {@code 1342562400000,2,1,0,...,0,8,1}
      * </p>
      */
-    PRINT_OUT_ROLLING_DAY_ESU(PrinterAttrDao.STATS_ROLLING_PREFIX + "-day.esu");
+    PRINT_OUT_ROLLING_DAY_ESU(PrinterAttrDao.STATS_ROLLING_PREFIX + "-day.esu"),
+
+    /**
+     * Date of {@link #SNMP_INFO}.
+     */
+    SNMP_DATE("snmp.date"),
+
+    /**
+     * SNMP information at {@link #SNMP_DATE}.
+     */
+    SNMP_INFO("snmp.info");
 
     /**
      *

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -29,7 +29,7 @@ package org.savapage.core.snmp;
  * Network Management Private Enterprise Codes</a>.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum SnmpPrinterVendorEnum {
@@ -37,58 +37,97 @@ public enum SnmpPrinterVendorEnum {
     /**
      * .
      */
-    CANON("1602"),
+    CANON(1602, "Canon"),
 
     /**
      * .
      */
-    EPSON("1248"),
+    EPSON(1248, "Epson"),
 
     /**
     *
     */
-    HP("11"),
+    HP(11, "HP"),
 
     /**
-   *
-   */
-    KONICA("18334"),
-
-    /**
-     * .
-     */
-    KYOCERA("1347"),
+    *
+    */
+    KONICA(18334, "Konica"),
 
     /**
      * .
      */
-    LEXMARK("641"),
+    KYOCERA(1347, "Kyocera"),
 
     /**
      * .
      */
-    OKI("2001"),
+    LEXMARK(641, "Lexmark"),
 
     /**
      * .
      */
-    RICOH("367");
+    OKI(2001, "OKI"),
+
+    /**
+     * .
+     */
+    RICOH(367, "Ricoh"),
+
+    /**
+     * .
+     */
+    XEROX(253, "Xerox");
+
+    /** */
+    private final int enterprise;
+
+    /** */
+    private final String uiText;
 
     /**
      *
+     * @param number
+     *            The enterprise number.
+     * @param text
+     *            Text in UI.
      */
-    final String enterprise;
+    SnmpPrinterVendorEnum(final int number, final String text) {
+        this.enterprise = number;
+        this.uiText = text;
+    }
+
+    /**
+     *
+     * @return The enterprise number as string.
+     */
+    public String enterpriseAsString() {
+        return String.valueOf(enterprise);
+    }
+
+    /**
+     * @return The UI text.
+     */
+    public String getUiText() {
+        return uiText;
+    }
 
     /**
      *
      * @param enterprise
+     *            The enterprise number.
+     * @return The enum, or {@code null} when not found.
      */
-    private SnmpPrinterVendorEnum(final String enterprise) {
-        this.enterprise = enterprise;
-    }
+    public static SnmpPrinterVendorEnum
+            fromEnterprise(final Integer enterprise) {
 
-    public String getEnterprise() {
-        return enterprise;
+        for (final SnmpPrinterVendorEnum enumVal : SnmpPrinterVendorEnum
+                .values()) {
+            if (enterprise.intValue() == enumVal.enterprise) {
+                return enumVal;
+            }
+        }
+        return null;
     }
 
 }

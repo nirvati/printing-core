@@ -358,6 +358,10 @@ public final class SpJobScheduler {
             jobClass = org.savapage.core.job.PrinterGroupClean.class;
             break;
 
+        case PRINTER_SNMP:
+            jobClass = org.savapage.core.job.PrinterSnmpJob.class;
+            break;
+
         case SMARTSCHOOL_PRINT_MONITOR_JOB:
             jobClass =
                     org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class;

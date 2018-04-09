@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
@@ -53,15 +54,18 @@ import org.snmp4j.util.TableUtils;
 public final class SnmpClientSession {
 
     /**
-     * .
+     * Core object.
      */
     private Snmp snmp = null;
 
     /**
-     * information about where the data should be fetched and how.
+     * Information about where the data should be fetched and how.
      */
     private final CommunityTarget target = new CommunityTarget();
 
+    /**
+     * Number of retries.
+     */
     private static final int TARGET_RETRIES = 2;
 
     /**
@@ -105,10 +109,10 @@ public final class SnmpClientSession {
      * @param community
      *            The community like {@code "recorded/printer.10.10.3.38"}
      * @param version
-     *            The {@link SnmpVersion} ({@code null} when undetermined).
+     *            The {@link SnmpVersionEnum} ({@code null} when undetermined).
      */
     public SnmpClientSession(final String address, final String community,
-            final SnmpVersion version) {
+            final SnmpVersionEnum version) {
 
         final Address targetAddress = GenericAddress.parse(address);
 
@@ -123,7 +127,7 @@ public final class SnmpClientSession {
     }
 
     /**
-     * Starts the Snmp session.
+     * Starts the SNMP session.
      *
      * @throws IOException
      *             When listening on {@link TransportMapping} fails.
@@ -134,7 +138,8 @@ public final class SnmpClientSession {
             exit();
         }
 
-        final TransportMapping transport = new DefaultUdpTransportMapping();
+        final DefaultUdpTransportMapping transport =
+                new DefaultUdpTransportMapping();
         this.snmp = new Snmp(transport);
 
         /*
@@ -180,6 +185,7 @@ public final class SnmpClientSession {
      * @param oid
      * @return {@code null} when OID is not found.
      * @throws SnmpConnectException
+     *             When SNMP connection fails.
      */
     public Integer getAsInt(final OID oid) throws SnmpConnectException {
         final VariableBinding binding = this.getResponse(oid);
@@ -196,6 +202,7 @@ public final class SnmpClientSession {
      * @param oid
      * @return {@code null} when OID is not found.
      * @throws SnmpConnectException
+     *             When SNMP connection fails.
      */
     public OctetString getAsOctetString(final OID oid)
             throws SnmpConnectException {
@@ -213,6 +220,7 @@ public final class SnmpClientSession {
      * @param oid
      * @return {@code null} when OID is not found.
      * @throws SnmpConnectException
+     *             When SNMP connection fails.
      */
     public Long getAsLong(final OID oid) throws SnmpConnectException {
         final VariableBinding binding = this.getResponse(oid);
@@ -224,34 +232,38 @@ public final class SnmpClientSession {
 
     /**
      *
-     * @return
+     * @return The IANA enterprise number.
      * @throws SnmpConnectException
+     *             When SNMP connection fails.
      */
-    public SnmpPrinterVendorEnum getVendor() throws SnmpConnectException {
+    public Integer getEnterprise() throws SnmpConnectException {
 
         final String systemOID = this.getAsString(SnmpMibDict.OID_SYSTEM_OID);
 
-        if (systemOID == null) {
+        if (systemOID == null
+                || !systemOID.startsWith(SnmpMibDict.PFX_ENTERPRISES)) {
             return null;
         }
 
-        for (final SnmpPrinterVendorEnum enumVal : SnmpPrinterVendorEnum
-                .values()) {
-            if (systemOID.startsWith(String.format("%s%s",
-                    SnmpMibDict.PFX_ENTERPRISES, enumVal.getEnterprise()))) {
-                return enumVal;
-            }
+        final String[] tokens = StringUtils.split(
+                StringUtils.removeStart(systemOID, SnmpMibDict.PFX_ENTERPRISES),
+                '.');
+
+        if (tokens.length == 0) {
+            return null;
         }
-        return null;
+
+        return Integer.valueOf(tokens[0]);
     }
 
     /**
-     * This method is capable of handling multiple OIDs
+     * This method is capable of handling multiple OIDs.
      *
      * @param oid
      *            The {@link OID}.
      * @return The {@link PDU} response or {@code null} when OID is not found.
      * @throws SnmpConnectException
+     *             When SNMP connection fails.
      */
     private VariableBinding getResponse(final OID oid)
             throws SnmpConnectException {
@@ -268,11 +280,12 @@ public final class SnmpClientSession {
     }
 
     /**
-     * This method is capable of handling multiple OIDs
+     * This method is capable of handling multiple OIDs.
      *
      * @param oids
      * @return The {@link PDU} response.
      * @throws SnmpConnectException
+     *             When SNMP connection fails.
      */
     private PDU getResponse(final OID oids[]) throws SnmpConnectException {
 

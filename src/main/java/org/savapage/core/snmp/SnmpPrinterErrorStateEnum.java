@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ import org.snmp4j.smi.OID;
  * >this</a> Q&A.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum SnmpPrinterErrorStateEnum {
@@ -143,8 +143,8 @@ public enum SnmpPrinterErrorStateEnum {
      *            character).
      * @return The set.
      */
-    public static Set<SnmpPrinterErrorStateEnum> fromOctetString(
-            final String octetString) {
+    public static Set<SnmpPrinterErrorStateEnum>
+            fromOctetString(final String octetString) {
 
         final StringTokenizer lineTokenizer =
                 new StringTokenizer(octetString, ":");

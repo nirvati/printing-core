@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -32,10 +32,11 @@ import org.savapage.core.snmp.SnmpConnectException;
 import org.savapage.core.snmp.SnmpMibDict;
 import org.savapage.core.snmp.SnmpPrinterErrorStateEnum;
 import org.savapage.core.snmp.SnmpPrinterStatusEnum;
+import org.savapage.core.snmp.SnmpPrinterVendorEnum;
 import org.savapage.core.snmp.SnmpPrtMarkerColorantEntry;
 import org.savapage.core.snmp.SnmpPrtMarkerCounterUnitEnum;
 import org.savapage.core.snmp.SnmpPrtMarkerSuppliesEntry;
-import org.savapage.core.snmp.SnmpVersion;
+import org.savapage.core.snmp.SnmpVersionEnum;
 import org.savapage.core.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,7 @@ import org.snmp4j.smi.OID;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class PrinterSnmpReader {
@@ -51,8 +52,8 @@ public final class PrinterSnmpReader {
     /**
      * .
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(PrinterSnmpReader.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PrinterSnmpReader.class);
 
     /**
      * .
@@ -64,42 +65,41 @@ public final class PrinterSnmpReader {
     /**
      * Retrieves SNMP printer info using default port and community.
      *
-     * @param ipAddress
-     *            The IP address of the printer
+     * @param host
+     *            The printer host name or IP address.
      * @return The {@link PrinterSnmpDto}.
      * @throws SnmpConnectException
      *             When connection errors occur.
      */
-    public static PrinterSnmpDto read(final String ipAddress)
+    public static PrinterSnmpDto read(final String host)
             throws SnmpConnectException {
-        return read(ipAddress, SnmpClientSession.DEFAULT_PORT_READ,
+        return read(host, SnmpClientSession.DEFAULT_PORT_READ,
                 SnmpClientSession.DEFAULT_COMMUNITY, null);
     }
 
     /**
      * Retrieves SNMP printer info.
      *
-     * @param ipAddress
-     *            The IP address of the printer
+     * @param host
+     *            The printer host name or IP address.
      * @param port
      *            The SNMP port.
      * @param community
      *            The SNMP community.
      * @param version
-     *            The {@link SnmpVersion} ({@code null} when undetermined).
+     *            The {@link SnmpVersionEnum} ({@code null} when undetermined).
      * @return The {@link PrinterSnmpDto}.
      * @throws SnmpConnectException
      *             When connection errors occur.
      */
-    public static PrinterSnmpDto read(final String ipAddress, final int port,
-            final String community, final SnmpVersion version)
+    public static PrinterSnmpDto read(final String host, final int port,
+            final String community, final SnmpVersionEnum version)
             throws SnmpConnectException {
 
         final PrinterSnmpDto info = new PrinterSnmpDto();
 
-        final SnmpClientSession client =
-                new SnmpClientSession(String.format("udp:%s/%d", ipAddress,
-                        port), community, version);
+        final SnmpClientSession client = new SnmpClientSession(
+                String.format("udp:%s/%d", host, port), community, version);
 
         try {
             client.init();
@@ -114,8 +114,10 @@ public final class PrinterSnmpReader {
             Integer intValue;
             String strValue;
 
-            // -----
-            info.setVendor(client.getVendor());
+            // ----- Enterprise and vendor
+            final Integer enterprise = client.getEnterprise();
+            info.setEnterprise(enterprise);
+            info.setVendor(SnmpPrinterVendorEnum.fromEnterprise(enterprise));
 
             // ----- Printer Status
             oidWlk = SnmpMibDict.OID_PRINTER_STATUS;
@@ -141,15 +143,16 @@ public final class PrinterSnmpReader {
             intValue = client.getAsInt(oidWlk);
 
             if (intValue != null) {
-                info.setMarkerCounterUnit(SnmpPrtMarkerCounterUnitEnum
-                        .asEnum(intValue));
+                info.setMarkerCounterUnit(
+                        SnmpPrtMarkerCounterUnitEnum.asEnum(intValue));
             }
 
             oidWlk = SnmpMibDict.OID_PRT_MARKER_LIFE_COUNT;
             info.setMarkerLifeCount(client.getAsInt(oidWlk));
 
             // -----
-            info.setMarkerColorants(SnmpPrtMarkerColorantEntry.retrieve(client));
+            info.setMarkerColorants(
+                    SnmpPrtMarkerColorantEntry.retrieve(client));
 
             //
             info.setSuppliesEntries(SnmpPrtMarkerSuppliesEntry.retrieve(client,
@@ -175,8 +178,8 @@ public final class PrinterSnmpReader {
             strValue = client.getAsString(oidWlk);
 
             if (strValue != null) {
-                info.setErrorStates(SnmpPrinterErrorStateEnum
-                        .fromOctetString(strValue));
+                info.setErrorStates(
+                        SnmpPrinterErrorStateEnum.fromOctetString(strValue));
             }
 
         } catch (SnmpConnectException e) {
@@ -184,9 +187,8 @@ public final class PrinterSnmpReader {
             throw e;
 
         } catch (Exception e) {
-            LOGGER.error(
-                    String.format("OID [%s] : %s ", oidWlk.toString(),
-                            e.getMessage()), e);
+            LOGGER.error(String.format("OID [%s] : %s ", oidWlk.toString(),
+                    e.getMessage()), e);
         } finally {
             try {
                 client.exit();
