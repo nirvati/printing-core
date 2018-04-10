@@ -992,11 +992,20 @@ public interface ProxyPrintService {
     int clearInbox(User lockedUser, ProxyPrintInboxReq request);
 
     /**
-     * Gets list of SNMP printers queries.
+     * Gets list of SNMP printer queries.
      *
-     * @return The list of queries.
+     * @return The list of queries (can be empty).
      */
-    public List<SnmpPrinterQueryDto> getSnmpQueries();
+    List<SnmpPrinterQueryDto> getSnmpQueries();
+
+    /**
+     * Gets SNMP query for a particular printer.
+     *
+     * @param printerID
+     *            The primary database key of a {@link Printer}.
+     * @return The query, or {@code null} when not found or applicable.
+     */
+    SnmpPrinterQueryDto getSnmpQuery(Long printerID);
 
     /**
      * Reads SNMP printer info.

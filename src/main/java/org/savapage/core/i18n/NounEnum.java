@@ -62,6 +62,8 @@ public enum NounEnum {
     /** */
     STATISTICS,
     /** */
+    STATUS,
+    /** */
     TIME,
     /** */
     TITLE,

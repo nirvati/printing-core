@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * See <a href="http://oid-info.com/get/1.3.6.1.2.1.25.3.5.1.1">OID</a>.
  *
  * @author Rijk Ravestein
  *
@@ -63,19 +64,19 @@ public enum SnmpPrinterStatusEnum {
     private final String uiText;
 
     /**
-   *
-   */
+    *
+    */
     private static class Lookup {
 
         /**
-       *
-       */
+        *
+        */
         private final Map<Integer, SnmpPrinterStatusEnum> enumLookup =
                 new HashMap<Integer, SnmpPrinterStatusEnum>();
 
         /**
-       *
-       */
+        *
+        */
         public Lookup() {
             for (SnmpPrinterStatusEnum value : SnmpPrinterStatusEnum.values()) {
                 enumLookup.put(value.value, value);

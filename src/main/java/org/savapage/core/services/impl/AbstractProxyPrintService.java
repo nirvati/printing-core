@@ -3685,10 +3685,43 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
     @Override
     public final List<SnmpPrinterQueryDto> getSnmpQueries() {
+        return getSnmpQueries(null);
+    }
+
+    @Override
+    public final SnmpPrinterQueryDto getSnmpQuery(final Long printerID) {
+        final List<SnmpPrinterQueryDto> list = getSnmpQueries(printerID);
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list.get(0);
+    }
+
+    /**
+     * Gets list of SNMP printer queries.
+     *
+     * @param printerID
+     *            The primary database key of a {@link Printer}, or {@code null}
+     *            for all printers.
+     *
+     * @return The list of queries (can be empty).
+     */
+    private List<SnmpPrinterQueryDto> getSnmpQueries(final Long printerID) {
 
         final List<SnmpPrinterQueryDto> list = new ArrayList<>();
 
         for (final JsonProxyPrinter printer : this.cupsPrinterCache.values()) {
+
+            final Printer dbPrinter = printer.getDbPrinter();
+
+            if (printerID != null && !dbPrinter.getId().equals(printerID)) {
+                continue;
+            }
+
+            // TODO: make this work.
+            // if (dbPrinter.getDeleted() || dbPrinter.getDisabled()) {
+            // continue;
+            // }
 
             final String host =
                     CupsPrinterUriHelper.resolveHost(printer.getDeviceUri());
@@ -3698,10 +3731,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 final SnmpPrinterQueryDto dto = new SnmpPrinterQueryDto();
 
                 dto.setUriHost(host);
-                dto.setPrinter(printer.getDbPrinter());
+                dto.setPrinter(dbPrinter);
 
                 list.add(dto);
             }
+
+            if (printerID != null) {
+                break;
+            }
+
         }
         return list;
     }

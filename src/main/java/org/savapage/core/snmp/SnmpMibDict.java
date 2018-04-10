@@ -71,7 +71,7 @@ public final class SnmpMibDict {
      * .
      */
     public static final OID OID_PRINTER_DETECTED_ERROR_STATE =
-            new OID(PFX_HOST + ".3.5.1.2");
+            new OID(PFX_HOST + ".3.5.1.2.1");
 
     /**
      * RFC1213 : <a href="http://oid-info.com/get/1.3.6.1.2.1.1.1">
@@ -317,7 +317,7 @@ public final class SnmpMibDict {
      * The maximum capacity of this supply container/receptacle expressed in
      * SupplyUnit. If this supply container/receptacle can reliably sense this
      * value, the value is sensed by the printer and is read-only; otherwise,
-     * the value may be written (by a Remote Contol Panel or a Management
+     * the value may be written (by a Remote Control Panel or a Management
      * Application). The value (-1) means other and specifically indicates that
      * the sub-unit places no restrictions on this parameter. The value (-2)
      * means unknown.
@@ -329,12 +329,12 @@ public final class SnmpMibDict {
      * (-1) means other and specifically indicates that the sub-unit places no
      * restrictions on this parameter.
      */
-    public static int PRT_MARKER_SUPPLIES_MAX_CAPACITY_UNRESTRICTED = -1;
+    public static final int PRT_MARKER_SUPPLIES_MAX_CAPACITY_UNRESTRICTED = -1;
 
     /**
      * A value of (-2) means unknown.
      */
-    public static int PRT_MARKER_SUPPLIES_MAX_CAPACITY_UNKNOWN = -2;
+    public static final int PRT_MARKER_SUPPLIES_MAX_CAPACITY_UNKNOWN = -2;
 
     /**
      * prtMarkerSuppliesLevel
@@ -355,18 +355,18 @@ public final class SnmpMibDict {
      * (-1) means other and specifically indicates that the sub-unit places no
      * restrictions on this parameter.
      */
-    public static int PRT_MARKER_SUPPLIES_LEVEL_UNRESTRICTED = -1;
+    public static final int PRT_MARKER_SUPPLIES_LEVEL_UNRESTRICTED = -1;
 
     /**
      * A value of (-2) means unknown.
      */
-    public static int PRT_MARKER_SUPPLIES_LEVEL_UNKNOWN = -2;
+    public static final int PRT_MARKER_SUPPLIES_LEVEL_UNKNOWN = -2;
 
     /**
      * A value of (-3) means that the printer knows that the maximum capacity
      * has not been reached but the precise level is unknown.
      */
-    public static int PRT_MARKER_SUPPLIES_LEVEL_REMAINING = -3;
+    public static final int PRT_MARKER_SUPPLIES_LEVEL_REMAINING = -3;
 
     /**
      * prtMarkerColorantEntry

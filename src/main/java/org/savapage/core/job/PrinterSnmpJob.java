@@ -21,10 +21,12 @@
  */
 package org.savapage.core.job;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
@@ -59,6 +61,9 @@ public final class PrinterSnmpJob extends AbstractJob {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(PrinterSnmpJob.class);
 
+    /** */
+    public static final String ATTR_PRINTER_ID = "printerID";
+
     @Override
     protected void onInterrupt() throws UnableToInterruptJobException {
         // noop
@@ -66,19 +71,17 @@ public final class PrinterSnmpJob extends AbstractJob {
 
     @Override
     protected void onInit(final JobExecutionContext ctx) {
-        ReadWriteLockEnum.DATABASE_READONLY.setWriteLock(true);
+        ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
     }
 
     @Override
     protected void onExit(final JobExecutionContext ctx) {
-        ReadWriteLockEnum.DATABASE_READONLY.setWriteLock(false);
+        ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
     }
 
     @Override
     protected void onExecute(final JobExecutionContext ctx)
             throws JobExecutionException {
-
-        // final ConfigManager cm = ConfigManager.instance();
 
         final DaoContext daoContext = ServiceContext.getDaoContext();
         final AdminPublisher publisher = AdminPublisher.instance();
@@ -94,16 +97,41 @@ public final class PrinterSnmpJob extends AbstractJob {
 
         int count = 0;
 
-        final List<SnmpPrinterQueryDto> queries = srvPrint.getSnmpQueries();
+        final List<SnmpPrinterQueryDto> queries;
+
+        final JobDataMap map = ctx.getJobDetail().getJobDataMap();
+
+        if (map.containsKey(ATTR_PRINTER_ID)) {
+            queries = new ArrayList<>();
+            final SnmpPrinterQueryDto query =
+                    srvPrint.getSnmpQuery(map.getLong(ATTR_PRINTER_ID));
+            if (query != null) {
+                queries.add(query);
+            }
+        } else {
+            queries = srvPrint.getSnmpQueries();
+        }
+
+        if (queries.isEmpty()) {
+            publisher.publish(PubTopicEnum.SNMP, level,
+                    localizeSysMsg("PrinterSnmp.none"));
+            return;
+        }
+
+        final String msgStart;
+
+        if (queries.size() == 1) {
+            msgStart = localizeSysMsg("PrinterSnmp.start.single");
+        } else {
+            msgStart = localizeSysMsg("PrinterSnmp.start.plural",
+                    String.valueOf(queries.size()));
+        }
+        publisher.publish(PubTopicEnum.SNMP, level, msgStart);
 
         try {
 
-            publisher.publish(PubTopicEnum.SNMP, level,
-                    String.format("Retrieving SNMP info for %d printer(s)...",
-                            queries.size()));
-
             // There might be multiple queues for a single host, so we cache
-            // result.
+            // results.
             final Map<String, PrinterSnmpDto> hostCache = new HashMap<>();
 
             for (final SnmpPrinterQueryDto query : queries) {
@@ -121,7 +149,16 @@ public final class PrinterSnmpJob extends AbstractJob {
                         hostCache.put(host, dto);
 
                     } catch (SnmpConnectException e) {
+
                         dto = null;
+
+                        msg = AppLogHelper.logError(getClass(),
+                                "PrinterSnmp.retrieve.error",
+                                query.getPrinter().getPrinterName(),
+                                query.getUriHost(), e.getMessage());
+
+                        publisher.publish(PubTopicEnum.SNMP, PubLevelEnum.ERROR,
+                                msg);
                     }
                 }
 
@@ -136,18 +173,28 @@ public final class PrinterSnmpJob extends AbstractJob {
                 daoContext.commit();
 
                 publisher.publish(PubTopicEnum.SNMP, level,
-                        String.format("Retrieved SNMP info for %s [%s]",
+                        localizeSysMsg("PrinterSnmp.retrieved",
                                 query.getPrinter().getPrinterName(),
                                 query.getUriHost()));
 
                 count++;
             }
 
-            // msg = AppLogHelper.logInfo(getClass(), "DbBackupJob.success",
-            // "");
-            msg = String.format("Retrieved SNMP info for %d printer(s).",
-                    count);
-            AppLogHelper.log(AppLogLevelEnum.INFO, msg);
+            if (count == 0) {
+                msg = AppLogHelper.logWarning(getClass(), "PrinterSnmp.none");
+            } else if (count == 1) {
+                msg = AppLogHelper.logInfo(getClass(),
+                        "PrinterSnmp.success.single");
+            } else {
+                msg = AppLogHelper.logInfo(getClass(),
+                        "PrinterSnmp.success.plural", String.valueOf(count));
+            }
+
+            if (count == queries.size()) {
+                level = PubLevelEnum.CLEAR;
+            } else {
+                level = PubLevelEnum.WARN;
+            }
 
         } catch (Exception e) {
 
@@ -157,9 +204,9 @@ public final class PrinterSnmpJob extends AbstractJob {
 
             level = PubLevelEnum.ERROR;
 
-            // msg = AppLogHelper.logError(getClass(), "DbBackupJob.error",
-            // e.getMessage());
-            msg = e.getMessage();
+            msg = AppLogHelper.logError(getClass(), "PrinterSnmp.error",
+                    e.getMessage());
+
             AppLogHelper.log(AppLogLevelEnum.ERROR, msg);
         }
 

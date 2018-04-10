@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -47,6 +47,7 @@ import org.quartz.simpl.PropertySettingJobFactory;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
+import org.savapage.core.jpa.Printer;
 import org.savapage.core.print.gcp.GcpPrinter;
 import org.savapage.core.print.imap.ImapPrinter;
 import org.savapage.core.util.DateUtil;
@@ -472,12 +473,37 @@ public final class SpJobScheduler {
 
     /**
      *
+     * @param printerID
+     *            The primary database key of a {@link Printer}, or {@code null}
+     *            for all printers.
+     * @param secondsFromNow
+     */
+    public void scheduleOneShotPrinterSnmp(final Long printerID,
+            final long secondsFromNow) {
+
+        final JobDataMap data = new JobDataMap();
+
+        if (printerID != null) {
+            data.put(PrinterSnmpJob.ATTR_PRINTER_ID, printerID);
+        }
+
+        final JobDetail job = newJob(org.savapage.core.job.PrinterSnmpJob.class)
+                .withIdentity(SpJobType.PRINTER_SNMP.toString(),
+                        JOB_GROUP_ONESHOT)
+                .usingJobData(data).build();
+
+        rescheduleOneShotJob(job,
+                secondsFromNow * DateUtil.DURATION_MSEC_SECOND);
+    }
+
+    /**
+     *
      * @param requestingUser
      * @param subscriptionId
      * @param secondsFromNow
      */
-    public void scheduleOneShotIppNotifications(String requestingUser,
-            String subscriptionId, long secondsFromNow) {
+    public void scheduleOneShotIppNotifications(final String requestingUser,
+            final String subscriptionId, final long secondsFromNow) {
 
         final JobDataMap data = new JobDataMap();
         data.put(IppGetNotifications.ATTR_REQUESTING_USER, requestingUser);
@@ -498,7 +524,8 @@ public final class SpJobScheduler {
      *
      * @param milliSecondsFromNow
      */
-    public void scheduleOneShotEmailOutboxMonitor(long milliSecondsFromNow) {
+    public void
+            scheduleOneShotEmailOutboxMonitor(final long milliSecondsFromNow) {
 
         final JobDataMap data = new JobDataMap();
 
@@ -515,7 +542,8 @@ public final class SpJobScheduler {
      *
      * @param milliSecondsFromNow
      */
-    public void scheduleOneShotPaperCutPrintMonitor(long milliSecondsFromNow) {
+    public void scheduleOneShotPaperCutPrintMonitor(
+            final long milliSecondsFromNow) {
 
         final JobDataMap data = new JobDataMap();
 
@@ -552,7 +580,7 @@ public final class SpJobScheduler {
      * @param milliSecondsFromNow
      */
     public void scheduleOneShotSmartSchoolPrintMonitor(final boolean simulate,
-            long milliSecondsFromNow) {
+            final long milliSecondsFromNow) {
 
         final JobDataMap data = new JobDataMap();
 
@@ -574,7 +602,7 @@ public final class SpJobScheduler {
      *
      * @param milliSecondsFromNow
      */
-    public void scheduleOneShotGcpListener(long milliSecondsFromNow) {
+    public void scheduleOneShotGcpListener(final long milliSecondsFromNow) {
 
         final JobDataMap data = new JobDataMap();
 
@@ -591,7 +619,7 @@ public final class SpJobScheduler {
      * @param milliSecondsFromNow
      */
     public void scheduleOneShotGcpPollForAuthCode(final String pollingUrl,
-            final Integer tokenDuration, long milliSecondsFromNow) {
+            final Integer tokenDuration, final long milliSecondsFromNow) {
 
         final JobDataMap data = new JobDataMap();
 
