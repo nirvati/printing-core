@@ -21,6 +21,8 @@
  */
 package org.savapage.core.dao;
 
+import java.util.Date;
+
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
@@ -69,6 +71,25 @@ public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
      * @return {@code true} is printer is internal printer.
      */
     boolean isInternalPrinter(PrinterAttrLookup lookup);
+
+    /**
+     * Gets the date of SNMP retrieval.
+     *
+     * @param lookup
+     *            The {@link PrinterAttrLookup}.
+     * @return The date of the SNMP information, or {@code null} when not found.
+     */
+    Date getSnmpDate(PrinterAttrLookup lookup);
+
+    /**
+     * Gets the JSON serialized SNMP data.
+     *
+     * @param lookup
+     *            The {@link PrinterAttrLookup}.
+     * @return The JSON string with SNMP information, or {@code null} when not
+     *         found.
+     */
+    String getSnmpJson(PrinterAttrLookup lookup);
 
     /**
      * Returns attribute value as boolean.

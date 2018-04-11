@@ -113,7 +113,7 @@ public final class PrinterSnmpJob extends AbstractJob {
         }
 
         if (queries.isEmpty()) {
-            publisher.publish(PubTopicEnum.SNMP, level,
+            publisher.publish(PubTopicEnum.SNMP, PubLevelEnum.WARN,
                     localizeSysMsg("PrinterSnmp.none"));
             return;
         }
@@ -152,12 +152,12 @@ public final class PrinterSnmpJob extends AbstractJob {
 
                         dto = null;
 
-                        msg = AppLogHelper.logError(getClass(),
-                                "PrinterSnmp.retrieve.error",
+                        msg = AppLogHelper.logWarning(getClass(),
+                                "PrinterSnmp.retrieve.failure",
                                 query.getPrinter().getPrinterName(),
                                 query.getUriHost(), e.getMessage());
 
-                        publisher.publish(PubTopicEnum.SNMP, PubLevelEnum.ERROR,
+                        publisher.publish(PubTopicEnum.SNMP, PubLevelEnum.WARN,
                                 msg);
                     }
                 }
@@ -166,9 +166,11 @@ public final class PrinterSnmpJob extends AbstractJob {
                     continue;
                 }
 
+                ServiceContext.resetTransactionDate();
+
                 daoContext.beginTransaction();
 
-                srvPrinter.setSmtpInfo(query.getPrinter(), dto);
+                srvPrinter.setSnmpInfo(query.getPrinter(), dto);
 
                 daoContext.commit();
 

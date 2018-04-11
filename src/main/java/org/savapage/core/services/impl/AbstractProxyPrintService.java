@@ -1782,8 +1782,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
 
             /*
-             * Assign the replicated database printer + lazy create printer in
-             * database.
+             * Assign the (lazy created) printer in database to proxy printer
+             * CUPS definition.
              */
             this.assignDbPrinter(cupsPrinter,
                     printerDAO().findByNameInsert(cupsPrinter.getName()));
@@ -3718,10 +3718,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 continue;
             }
 
-            // TODO: make this work.
-            // if (dbPrinter.getDeleted() || dbPrinter.getDisabled()) {
-            // continue;
-            // }
+            if (dbPrinter.getDeleted() || dbPrinter.getDisabled()) {
+                continue;
+            }
 
             final String host =
                     CupsPrinterUriHelper.resolveHost(printer.getDeviceUri());

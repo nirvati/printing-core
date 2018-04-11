@@ -30,6 +30,7 @@ import org.savapage.core.dao.enums.AccessControlScopeEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.JsonUserGroupAccess;
+import org.savapage.core.dao.helpers.ProxyPrinterSnmpInfoDto;
 import org.savapage.core.dto.PrinterSnmpDto;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.jpa.Device;
@@ -404,6 +405,26 @@ public interface PrinterService {
      * @throws IOException
      *             When JSON serialization errors.
      */
-    void setSmtpInfo(Printer printer, PrinterSnmpDto info)
-            throws IOException;
+    void setSnmpInfo(Printer printer, PrinterSnmpDto info) throws IOException;
+
+    /**
+     * De-serializes JSON string to object.
+     *
+     * @param json
+     *            JSON string.
+     * @return The object.
+     */
+    ProxyPrinterSnmpInfoDto getSnmpInfo(String json);
+
+    /**
+     * Removes all SNMP attributes from printer.
+     * <p>
+     * NOTE: Caller must execute database commit.
+     * </p>
+     *
+     * @param printer
+     *            The printer.
+     */
+    void removeSnmpAttr(Printer printer);
+
 }

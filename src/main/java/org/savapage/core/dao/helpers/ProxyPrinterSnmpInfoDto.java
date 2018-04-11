@@ -23,6 +23,7 @@ package org.savapage.core.dao.helpers;
 
 import java.util.Map;
 
+import org.savapage.core.dao.enums.ProxyPrinterSuppliesEnum;
 import org.savapage.core.dto.AbstractDto;
 import org.savapage.core.snmp.SnmpPrtMarkerColorantValueEnum;
 
@@ -34,14 +35,6 @@ import org.savapage.core.snmp.SnmpPrtMarkerColorantValueEnum;
 public class ProxyPrinterSnmpInfoDto extends AbstractDto {
 
     /** */
-    public enum Supplies {
-        /** */
-        TONER,
-        /** */
-        INK
-    }
-
-    /** */
     private Integer vendor;
     /** */
     private String model;
@@ -49,16 +42,16 @@ public class ProxyPrinterSnmpInfoDto extends AbstractDto {
     private String serial;
 
     /** */
-    private Supplies supplies;
+    private ProxyPrinterSuppliesEnum supplies;
     /** */
     private Map<SnmpPrtMarkerColorantValueEnum, Integer> markers;
 
-    public Supplies getSupplies() {
+    public ProxyPrinterSuppliesEnum getSupplies() {
         return supplies;
     }
 
-    public void setSupplies(Supplies supplyType) {
-        this.supplies = supplyType;
+    public void setSupplies(ProxyPrinterSuppliesEnum supplies) {
+        this.supplies = supplies;
     }
 
     public Map<SnmpPrtMarkerColorantValueEnum, Integer> getMarkers() {

@@ -24,6 +24,7 @@ package org.savapage.core.services.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -40,6 +41,7 @@ import org.savapage.core.dao.enums.AccessControlScopeEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.enums.ProxyPrintAuthModeEnum;
+import org.savapage.core.dao.enums.ProxyPrinterSuppliesEnum;
 import org.savapage.core.dao.helpers.JsonUserGroupAccess;
 import org.savapage.core.dao.helpers.ProxyPrinterSnmpInfoDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
@@ -71,6 +73,9 @@ import org.savapage.core.snmp.SnmpPrtMarkerSuppliesClassEnum;
 import org.savapage.core.snmp.SnmpPrtMarkerSuppliesEntry;
 import org.savapage.core.snmp.SnmpPrtMarkerSuppliesTypeEnum;
 import org.savapage.core.util.JsonHelper;
+import org.savapage.core.util.NumberUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -80,14 +85,14 @@ import org.savapage.core.util.JsonHelper;
 public final class PrinterServiceImpl extends AbstractService
         implements PrinterService {
 
-    /**
-     *
-     */
+    /** */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PrinterServiceImpl.class);
+
+    /** */
     private static final boolean ACCESS_ALLOWED = true;
 
-    /**
-     *
-     */
+    /** */
     private static final boolean ACCESS_DENIED = !ACCESS_ALLOWED;
 
     @Override
@@ -918,20 +923,46 @@ public final class PrinterServiceImpl extends AbstractService
     }
 
     @Override
-    public void setSmtpInfo(final Printer printer, final PrinterSnmpDto info)
+    public void setSnmpInfo(final Printer printer, final PrinterSnmpDto info)
             throws IOException {
 
-        setPrinterAttrValue(
-                printerAttrDAO().findByName(printer.getId(),
-                        PrinterAttrEnum.SNMP_DATE),
-                printer, PrinterAttrEnum.SNMP_DATE,
+        final Map<PrinterAttrEnum, String> valueMap = new HashMap<>();
+
+        valueMap.put(PrinterAttrEnum.SNMP_DATE,
                 String.valueOf(ServiceContext.getTransactionDate().getTime()));
 
-        setPrinterAttrValue(
-                printerAttrDAO().findByName(printer.getId(),
-                        PrinterAttrEnum.SNMP_INFO),
-                printer, PrinterAttrEnum.SNMP_INFO,
+        valueMap.put(PrinterAttrEnum.SNMP_INFO,
                 createSmtpInfo(info).stringify());
+
+        for (final Entry<PrinterAttrEnum, String> entry : valueMap.entrySet()) {
+
+            final PrinterAttr attr = printerAttrDAO()
+                    .findByName(printer.getId(), entry.getKey());
+
+            this.setPrinterAttrValue(attr, printer, entry.getKey(),
+                    entry.getValue());
+        }
+    }
+
+    @Override
+    public ProxyPrinterSnmpInfoDto getSnmpInfo(final String json) {
+        return JsonHelper.createOrNull(ProxyPrinterSnmpInfoDto.class, json);
+    }
+
+    @Override
+    public void removeSnmpAttr(final Printer printer) {
+
+        for (final PrinterAttrEnum attrEnum : EnumSet
+                .of(PrinterAttrEnum.SNMP_DATE, PrinterAttrEnum.SNMP_INFO)) {
+
+            final PrinterAttr attrWlk =
+                    printerAttrDAO().findByName(printer.getId(), attrEnum);
+
+            if (attrWlk != null) {
+                removeAttribute(printer, attrEnum);
+                printerAttrDAO().delete(attrWlk);
+            }
+        }
     }
 
     /**
@@ -942,6 +973,7 @@ public final class PrinterServiceImpl extends AbstractService
      * @return The {@link ProxyPrinterSnmpInfoDto}.
      */
     private static ProxyPrinterSnmpInfoDto
+
             createSmtpInfo(final PrinterSnmpDto info) {
 
         if (info.getSuppliesEntries() == null) {
@@ -959,10 +991,10 @@ public final class PrinterServiceImpl extends AbstractService
 
             switch (entry.getKey()) {
             case TONER:
-                obj.setSupplies(ProxyPrinterSnmpInfoDto.Supplies.TONER);
+                obj.setSupplies(ProxyPrinterSuppliesEnum.TONER);
                 break;
             case INK:
-                obj.setSupplies(ProxyPrinterSnmpInfoDto.Supplies.INK);
+                obj.setSupplies(ProxyPrinterSuppliesEnum.INK);
                 break;
             default:
                 continue;
@@ -990,7 +1022,7 @@ public final class PrinterServiceImpl extends AbstractService
                         || supplies.getMaxCapacity() == 0) {
                     perc = 0;
                 } else {
-                    perc = (100 * supplies.getLevel())
+                    perc = (NumberUtil.INT_HUNDRED * supplies.getLevel())
                             / supplies.getMaxCapacity();
                 }
 

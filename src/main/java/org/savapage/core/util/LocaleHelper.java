@@ -98,7 +98,7 @@ public final class LocaleHelper {
     }
 
     /**
-     * Gets as localized (short) date string of a Date.
+     * Gets as localized (long) date string of a Date.
      *
      * @param date
      *            The date.

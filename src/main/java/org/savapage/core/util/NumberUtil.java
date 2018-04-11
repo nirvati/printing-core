@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,10 +30,15 @@ import java.util.Random;
  */
 public final class NumberUtil {
 
+    /**  */
+    public static final int INT_HUNDRED = 100;
+
     /** */
     public static final int INT_THOUSAND = 1000;
+
     /** */
     private static final int UNIT_SI_1000 = 1000;
+
     /** */
     private static final int UNIT_BINARY_1024 = 1024;
 
