@@ -39,12 +39,12 @@ public enum SnmpPrtMarkerColorantValueEnum {
     /**
      * .
      */
-    OTHER("other"),
+    OTHER("silver"),
 
     /**
      * .
      */
-    UNKNOWN("unknown"),
+    UNKNOWN("silver"),
 
     /**
      * .
@@ -84,7 +84,7 @@ public enum SnmpPrtMarkerColorantValueEnum {
     /**
      * .
      */
-    BLACK("#000000");
+    BLACK("#0A0A0A");
 
     /**
      * .

@@ -985,6 +985,7 @@ public final class PrinterServiceImpl extends AbstractService
         obj.setVendor(info.getEnterprise());
         obj.setModel(info.getSystemDescription());
         obj.setSerial(info.getSerialNumber());
+        obj.setErrorStates(info.getErrorStates());
 
         for (final Entry<SnmpPrtMarkerSuppliesTypeEnum, List<SnmpPrtMarkerSuppliesEntry>> entry : info
                 .getSuppliesEntries().entrySet()) {

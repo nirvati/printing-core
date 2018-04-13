@@ -22,11 +22,13 @@
 package org.savapage.core.snmp;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.savapage.core.util.LocaleHelper;
 import org.snmp4j.smi.OID;
 
 /**
@@ -187,4 +189,14 @@ public enum SnmpPrinterErrorStateEnum {
     public static OID getOID() {
         return SnmpMibDict.OID_PRINTER_DETECTED_ERROR_STATE;
     }
+
+    /**
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public String uiText(final Locale locale) {
+        return LocaleHelper.uiText(this, locale);
+    }
+
 }

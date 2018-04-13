@@ -22,9 +22,11 @@
 package org.savapage.core.dao.helpers;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.savapage.core.dao.enums.ProxyPrinterSuppliesEnum;
 import org.savapage.core.dto.AbstractDto;
+import org.savapage.core.snmp.SnmpPrinterErrorStateEnum;
 import org.savapage.core.snmp.SnmpPrtMarkerColorantValueEnum;
 
 /**
@@ -36,16 +38,26 @@ public class ProxyPrinterSnmpInfoDto extends AbstractDto {
 
     /** */
     private Integer vendor;
+
     /** */
     private String model;
+
     /** */
     private String serial;
 
     /** */
     private ProxyPrinterSuppliesEnum supplies;
+
     /** */
     private Map<SnmpPrtMarkerColorantValueEnum, Integer> markers;
 
+    /** */
+    private Set<SnmpPrinterErrorStateEnum> errorStates;
+
+    /**
+     *
+     * @return
+     */
     public ProxyPrinterSuppliesEnum getSupplies() {
         return supplies;
     }
@@ -85,6 +97,14 @@ public class ProxyPrinterSnmpInfoDto extends AbstractDto {
 
     public void setSerial(String serial) {
         this.serial = serial;
+    }
+
+    public Set<SnmpPrinterErrorStateEnum> getErrorStates() {
+        return errorStates;
+    }
+
+    public void setErrorStates(Set<SnmpPrinterErrorStateEnum> errorStates) {
+        this.errorStates = errorStates;
     }
 
 }
