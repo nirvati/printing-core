@@ -34,6 +34,8 @@ import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.enums.AppLogLevelEnum;
 import org.savapage.core.dto.PrinterSnmpDto;
@@ -92,6 +94,8 @@ public final class PrinterSnmpJob extends AbstractJob {
         final PrinterService srvPrinter =
                 ServiceContext.getServiceFactory().getPrinterService();
 
+        final ConfigManager cm = ConfigManager.instance();
+
         String msg = null;
         PubLevelEnum level = PubLevelEnum.INFO;
 
@@ -128,6 +132,10 @@ public final class PrinterSnmpJob extends AbstractJob {
         }
         publisher.publish(PubTopicEnum.SNMP, level, msgStart);
 
+        final PrinterSnmpReader snmpReader = new PrinterSnmpReader(
+                cm.getConfigInt(Key.PRINTER_SNMP_READ_RETRIES),
+                cm.getConfigInt(Key.PRINTER_SNMP_READ_TIMEOUT_MSECS));
+
         try {
 
             // There might be multiple queues for a single host, so we cache
@@ -142,9 +150,9 @@ public final class PrinterSnmpJob extends AbstractJob {
 
                 if (dto == null) {
                     try {
-                        dto = PrinterSnmpReader.read(host,
+                        dto = snmpReader.read(host,
                                 SnmpClientSession.DEFAULT_PORT_READ,
-                                SnmpClientSession.DEFAULT_COMMUNITY, null);
+                                SnmpClientSession.DEFAULT_COMMUNITY);
 
                         hostCache.put(host, dto);
 
@@ -162,10 +170,6 @@ public final class PrinterSnmpJob extends AbstractJob {
                     }
                 }
 
-                if (dto == null) {
-                    continue;
-                }
-
                 ServiceContext.resetTransactionDate();
 
                 daoContext.beginTransaction();
@@ -174,11 +178,14 @@ public final class PrinterSnmpJob extends AbstractJob {
 
                 daoContext.commit();
 
+                if (dto == null) {
+                    continue;
+                }
+
                 publisher.publish(PubTopicEnum.SNMP, level,
                         localizeSysMsg("PrinterSnmp.retrieved",
                                 query.getPrinter().getPrinterName(),
                                 query.getUriHost()));
-
                 count++;
             }
 

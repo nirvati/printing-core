@@ -313,11 +313,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
     private final IppNotificationRecipient notificationRecipient;
 
     /**
-     * True or False option.
-     */
-    // protected static final Integer UI_BOOLEAN = 0;
-
-    /**
      * Dictionary on printer name. NOTE: the key is in UPPER CASE.
      */
     private final ConcurrentMap<String, JsonProxyPrinter> cupsPrinterCache =
@@ -3796,8 +3791,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         //
-        final PrinterSnmpDto dto = PrinterSnmpReader.read(host, port, community,
-                params.getVersion());
+        final ConfigManager cm = ConfigManager.instance();
+
+        final PrinterSnmpReader snmpReader = new PrinterSnmpReader(
+                cm.getConfigInt(Key.PRINTER_SNMP_READ_RETRIES),
+                cm.getConfigInt(Key.PRINTER_SNMP_READ_TIMEOUT_MSECS));
+
+        final PrinterSnmpDto dto =
+                snmpReader.read(host, port, community, params.getVersion());
 
         final ResultPrinterSnmp data = new ResultPrinterSnmp();
 

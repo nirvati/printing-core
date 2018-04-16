@@ -21,6 +21,7 @@
  */
 package org.savapage.core.dao.helpers;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +36,9 @@ import org.savapage.core.snmp.SnmpPrtMarkerColorantValueEnum;
  *
  */
 public class ProxyPrinterSnmpInfoDto extends AbstractDto {
+
+    /** */
+    private Date date;
 
     /** */
     private Integer vendor;
@@ -58,6 +62,14 @@ public class ProxyPrinterSnmpInfoDto extends AbstractDto {
      *
      * @return
      */
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
     public ProxyPrinterSuppliesEnum getSupplies() {
         return supplies;
     }

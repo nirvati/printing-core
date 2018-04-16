@@ -97,7 +97,7 @@ public final class SnmpClientSession {
      *            {@code "udp:10.10.3.38/161"}
      */
     public SnmpClientSession(final String address) {
-        this(address, DEFAULT_COMMUNITY, null);
+        this(address, DEFAULT_COMMUNITY, null, TARGET_RETRIES, TARGET_TIMEOUT);
     }
 
     /**
@@ -110,16 +110,21 @@ public final class SnmpClientSession {
      *            The community like {@code "recorded/printer.10.10.3.38"}
      * @param version
      *            The {@link SnmpVersionEnum} ({@code null} when undetermined).
+     * @param retries
+     *            Number of retries.
+     * @param timeout
+     *            Time-out in milliseconds.
      */
     public SnmpClientSession(final String address, final String community,
-            final SnmpVersionEnum version) {
+            final SnmpVersionEnum version, final int retries,
+            final int timeout) {
 
         final Address targetAddress = GenericAddress.parse(address);
 
         this.target.setCommunity(new OctetString(community));
         this.target.setAddress(targetAddress);
-        this.target.setRetries(TARGET_RETRIES);
-        this.target.setTimeout(TARGET_TIMEOUT);
+        this.target.setRetries(retries);
+        this.target.setTimeout(timeout);
 
         if (version != null) {
             this.target.setVersion(version.getVersion());

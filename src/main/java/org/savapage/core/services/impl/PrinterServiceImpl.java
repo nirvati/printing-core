@@ -928,11 +928,14 @@ public final class PrinterServiceImpl extends AbstractService
 
         final Map<PrinterAttrEnum, String> valueMap = new HashMap<>();
 
-        valueMap.put(PrinterAttrEnum.SNMP_DATE,
-                String.valueOf(ServiceContext.getTransactionDate().getTime()));
+        final Date date = ServiceContext.getTransactionDate();
 
-        valueMap.put(PrinterAttrEnum.SNMP_INFO,
-                createSmtpInfo(info).stringify());
+        valueMap.put(PrinterAttrEnum.SNMP_DATE, String.valueOf(date.getTime()));
+
+        if (info != null) {
+            valueMap.put(PrinterAttrEnum.SNMP_INFO,
+                    createSmtpInfo(date, info).stringify());
+        }
 
         for (final Entry<PrinterAttrEnum, String> entry : valueMap.entrySet()) {
 
@@ -946,7 +949,15 @@ public final class PrinterServiceImpl extends AbstractService
 
     @Override
     public ProxyPrinterSnmpInfoDto getSnmpInfo(final String json) {
-        return JsonHelper.createOrNull(ProxyPrinterSnmpInfoDto.class, json);
+
+        final ProxyPrinterSnmpInfoDto dto =
+                JsonHelper.createOrNull(ProxyPrinterSnmpInfoDto.class, json);
+
+        if (dto != null && dto.getDate() == null) {
+            return null;
+        }
+
+        return dto;
     }
 
     @Override
@@ -972,9 +983,8 @@ public final class PrinterServiceImpl extends AbstractService
      *            The "raw" {@link PrinterSnmpDto}.
      * @return The {@link ProxyPrinterSnmpInfoDto}.
      */
-    private static ProxyPrinterSnmpInfoDto
-
-            createSmtpInfo(final PrinterSnmpDto info) {
+    private static ProxyPrinterSnmpInfoDto createSmtpInfo(final Date date,
+            final PrinterSnmpDto info) {
 
         if (info.getSuppliesEntries() == null) {
             return null;
@@ -982,6 +992,7 @@ public final class PrinterServiceImpl extends AbstractService
 
         final ProxyPrinterSnmpInfoDto obj = new ProxyPrinterSnmpInfoDto();
 
+        obj.setDate(date);
         obj.setVendor(info.getEnterprise());
         obj.setModel(info.getSystemDescription());
         obj.setSerial(info.getSerialNumber());

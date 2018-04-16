@@ -56,10 +56,24 @@ public final class PrinterSnmpReader {
             LoggerFactory.getLogger(PrinterSnmpReader.class);
 
     /**
-     * .
+     * Number of retries.
      */
-    private PrinterSnmpReader() {
+    private final int retries;
 
+    /**
+     * Time-out in milliseconds.
+     */
+    private final int timeout;
+
+    /**
+     * @param retries
+     *            Number of retries.
+     * @param timeout
+     *            Time-out in milliseconds.
+     */
+    public PrinterSnmpReader(final int retries, final int timeout) {
+        this.retries = retries;
+        this.timeout = timeout;
     }
 
     /**
@@ -71,10 +85,27 @@ public final class PrinterSnmpReader {
      * @throws SnmpConnectException
      *             When connection errors occur.
      */
-    public static PrinterSnmpDto read(final String host)
-            throws SnmpConnectException {
+    public PrinterSnmpDto read(final String host) throws SnmpConnectException {
         return read(host, SnmpClientSession.DEFAULT_PORT_READ,
                 SnmpClientSession.DEFAULT_COMMUNITY, null);
+    }
+
+    /**
+     * Retrieves SNMP printer info.
+     *
+     * @param host
+     *            The printer host name or IP address.
+     * @param port
+     *            The SNMP port.
+     * @param community
+     *            The SNMP community.
+     * @return The {@link PrinterSnmpDto}.
+     * @throws SnmpConnectException
+     *             When connection errors occur.
+     */
+    public PrinterSnmpDto read(final String host, final int port,
+            final String community) throws SnmpConnectException {
+        return read(host, port, community, null);
     }
 
     /**
@@ -92,14 +123,15 @@ public final class PrinterSnmpReader {
      * @throws SnmpConnectException
      *             When connection errors occur.
      */
-    public static PrinterSnmpDto read(final String host, final int port,
+    public PrinterSnmpDto read(final String host, final int port,
             final String community, final SnmpVersionEnum version)
             throws SnmpConnectException {
 
         final PrinterSnmpDto info = new PrinterSnmpDto();
 
-        final SnmpClientSession client = new SnmpClientSession(
-                String.format("udp:%s/%d", host, port), community, version);
+        final SnmpClientSession client =
+                new SnmpClientSession(String.format("udp:%s/%d", host, port),
+                        community, version, this.retries, this.timeout);
 
         try {
             client.init();

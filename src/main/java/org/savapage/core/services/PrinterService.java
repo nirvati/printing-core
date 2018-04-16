@@ -401,7 +401,8 @@ public interface PrinterService {
      * @param printer
      *            The printer.
      * @param info
-     *            The "raw" SNMP info.
+     *            The "raw" SNMP info. If {@code null}, no SNMP information is
+     *            available.
      * @throws IOException
      *             When JSON serialization errors.
      */
@@ -412,7 +413,7 @@ public interface PrinterService {
      *
      * @param json
      *            JSON string.
-     * @return The object.
+     * @return The object, or {@code null} when IO, parse or mapping error.
      */
     ProxyPrinterSnmpInfoDto getSnmpInfo(String json);
 
