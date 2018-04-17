@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -37,6 +37,8 @@ import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.Entity;
 import org.savapage.core.jpa.UserGroup;
+import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
+import org.savapage.core.json.rpc.ResultDataBasic;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserGroupService;
 import org.savapage.core.users.conf.InternalGroupList;
@@ -55,14 +57,14 @@ public final class SyncUserGroupsJob extends AbstractJob {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SyncUserGroupsJob.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SyncUserGroupsJob.class);
 
     /**
      *
      */
-    private static final UserGroupService USER_GROUP_SERVICE = ServiceContext
-            .getServiceFactory().getUserGroupService();
+    private static final UserGroupService USER_GROUP_SERVICE =
+            ServiceContext.getServiceFactory().getUserGroupService();
 
     /**
      *
@@ -116,9 +118,8 @@ public final class SyncUserGroupsJob extends AbstractJob {
          */
         ServiceContext.setActor(Entity.ACTOR_SYSTEM);
 
-        final DaoBatchCommitter batchCommitter =
-                ServiceContext.getDaoContext().createBatchCommitter(
-                        ConfigManager.getDaoBatchChunkSize());
+        final DaoBatchCommitter batchCommitter = ServiceContext.getDaoContext()
+                .createBatchCommitter(ConfigManager.getDaoBatchChunkSize());
 
         batchCommitter.setTest(this.isTest);
         batchCommitter.open();
@@ -131,8 +132,7 @@ public final class SyncUserGroupsJob extends AbstractJob {
             pubMsg(Messages.getMessage(getClass(), "SyncUserGroupsJob.start",
                     null));
 
-            final Set<String> internalGroups =
-                    InternalGroupList.getGroups();
+            final Set<String> internalGroups = InternalGroupList.getGroups();
             final Set<String> internalGroupsCollected = new HashSet<>();
 
             // Groups from external source
@@ -152,40 +152,40 @@ public final class SyncUserGroupsJob extends AbstractJob {
                     continue;
                 }
 
-                USER_GROUP_SERVICE.syncUserGroup(batchCommitter, groupName);
+                final AbstractJsonRpcMethodResponse rsp = USER_GROUP_SERVICE
+                        .syncUserGroup(batchCommitter, groupName);
 
                 batchCommitter.commit();
 
-                pubMsg(Messages.getMessage(this.getClass(),
-                        "SyncUserGroup.success", new String[] { groupName }));
+                pubMsg(rsp);
+                // pubMsg(Messages.getMessage(this.getClass(),
+                // "SyncUserGroup.success", new String[] { groupName }));
             }
 
             // Collected Internal Groups
             for (final String groupName : internalGroupsCollected) {
 
-                USER_GROUP_SERVICE.syncInternalUserGroup(batchCommitter,
-                        groupName);
+                final AbstractJsonRpcMethodResponse rsp = USER_GROUP_SERVICE
+                        .syncInternalUserGroup(batchCommitter, groupName);
 
                 batchCommitter.commit();
 
-                pubMsg(Messages.getMessage(this.getClass(),
-                        "SyncUserGroup.success", new String[] { groupName }));
+                pubMsg(rsp);
+                // pubMsg(Messages.getMessage(this.getClass(),
+                // "SyncUserGroup.success", new String[] { groupName }));
             }
 
             //
-            msg =
-                    AppLogHelper.logInfo(getClass(),
-                            "SyncUserGroupsJob.success", msgTestPfx);
+            msg = AppLogHelper.logInfo(getClass(), "SyncUserGroupsJob.success",
+                    msgTestPfx);
 
         } catch (Exception e) {
 
             batchCommitter.rollback();
 
             level = PubLevelEnum.ERROR;
-            msg =
-                    AppLogHelper.logError(getClass(),
-                            "SyncUserGroupsJob.error", msgTestPfx,
-                            e.getMessage());
+            msg = AppLogHelper.logError(getClass(), "SyncUserGroupsJob.error",
+                    msgTestPfx, e.getMessage());
 
             LOGGER.error(e.getMessage(), e);
         }
@@ -202,19 +202,44 @@ public final class SyncUserGroupsJob extends AbstractJob {
     }
 
     /**
+     *
+     * @param rsp
+     *            The JSON RPC response.
+     */
+    private void pubMsg(final AbstractJsonRpcMethodResponse rsp) {
+        if (rsp.isError()) {
+            pubMsg(PubLevelEnum.ERROR, rsp.asError().getError().getMessage());
+        } else {
+            pubMsg(rsp.asResult().getResult().data(ResultDataBasic.class)
+                    .getMessage());
+        }
+    }
+
+    /**
+     * Publish message on CometD admin channel.
+     *
+     * @param level
+     *            The pub level.
+     * @param msg
+     *            The message.
+     */
+    private void pubMsg(final PubLevelEnum level, final String msg) {
+        if (this.isTest) {
+            AdminPublisher.instance().publish(PubTopicEnum.USER_SYNC, level,
+                    String.format("%s %s", msgTestPfx, msg));
+        } else {
+            AdminPublisher.instance().publish(PubTopicEnum.USER_SYNC, level,
+                    msg);
+        }
+    }
+
+    /**
      * Publish message on CometD admin channel.
      *
      * @param msg
      *            The message.
      */
     private void pubMsg(final String msg) {
-        if (this.isTest) {
-            AdminPublisher.instance().publish(PubTopicEnum.USER_SYNC,
-                    PubLevelEnum.INFO, msgTestPfx + " " + msg);
-        } else {
-            AdminPublisher.instance().publish(PubTopicEnum.USER_SYNC,
-                    PubLevelEnum.INFO, msg);
-        }
+        pubMsg(PubLevelEnum.INFO, msg);
     }
-
 }

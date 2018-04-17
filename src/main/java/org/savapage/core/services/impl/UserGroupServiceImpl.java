@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -512,11 +512,14 @@ public final class UserGroupServiceImpl extends AbstractService
      *            The {@link UserGroup}.
      * @param source
      *            The sorted users from the source.
+     * @param externalGroup
+     *            If {@code true}, this is an external group sync, when
+     *            {@code false} an internal sync.
      * @return The JSON-RPC Return message (either a result or an error);
      */
     private AbstractJsonRpcMethodResponse syncUserGroupMembers(
             final DaoBatchCommitter batchCommitter, final UserGroup userGroup,
-            final SortedSet<CommonUser> source) {
+            final SortedSet<CommonUser> source, final boolean externalGroup) {
 
         final List<UserGroupMember> destination =
                 userGroupMemberDAO().getGroupMembers(userGroup.getId());
@@ -639,7 +642,13 @@ public final class UserGroupServiceImpl extends AbstractService
         } // end-while
 
         final StringBuilder msg = new StringBuilder();
-        msg.append("Group [").append(userGroup.getGroupName())
+
+        if (externalGroup) {
+            msg.append("External");
+        } else {
+            msg.append("Internal");
+        }
+        msg.append(" Group [").append(userGroup.getGroupName())
                 .append("] with [").append(source.size())
                 .append("] members synced: added [").append(nCreated)
                 .append("] removed [").append(nDeleted).append("].");
@@ -675,7 +684,7 @@ public final class UserGroupServiceImpl extends AbstractService
         final UserGroup userGroup = checkSyncGroupInvariants(groupName);
         final SortedSet<CommonUser> source =
                 InternalGroupList.getUsersInGroup(groupName);
-        return syncUserGroupMembers(batchCommitter, userGroup, source);
+        return syncUserGroupMembers(batchCommitter, userGroup, source, false);
     }
 
     @Override
@@ -697,7 +706,7 @@ public final class UserGroupServiceImpl extends AbstractService
         final SortedSet<CommonUser> source =
                 userSource.getUsersInGroup(groupName, true);
 
-        return syncUserGroupMembers(batchCommitter, userGroup, source);
+        return syncUserGroupMembers(batchCommitter, userGroup, source, true);
     }
 
     /**
