@@ -50,10 +50,14 @@ public final class InetUtils {
      */
     private static final String IP_LOOP_BACK_ADDR_PREFIX = "127.0.";
 
-    /**
-     *
-     */
+    /** */
     private static final String IP_LOOP_BACK_ADDR = "127.0.0.1";
+
+    /** */
+    private static final String LOCAL_HOST = "localhost";
+
+    /** */
+    private static final String LOCAL_SUFFIX = ".local";
 
     /**
      * No public instantiation.
@@ -224,6 +228,27 @@ public final class InetUtils {
         return !(address.isSiteLocalAddress() || address.isAnyLocalAddress()
                 || address.isLinkLocalAddress() || address.isLoopbackAddress()
                 || address.isMulticastAddress());
+    }
+
+    /**
+     * Checks if browser host points to intranet host address of this SavaPage
+     * server instance.
+     *
+     * @param browserHost
+     *            The HTML browser host address.
+     * @return {@code true} when browser host points to intranet host address of
+     *         this server instance.
+     */
+    public static boolean isIntranetBrowserHost(final String browserHost) {
+
+        try {
+            return browserHost.equals(LOCAL_HOST)
+                    || browserHost.equals(IP_LOOP_BACK_ADDR)
+                    || browserHost.endsWith(LOCAL_SUFFIX)
+                    || getServerHostAddress().equals(browserHost);
+        } catch (UnknownHostException e) {
+            return false;
+        }
     }
 
 }
