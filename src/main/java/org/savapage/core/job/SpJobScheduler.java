@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.quartz.CronTrigger;
@@ -51,6 +52,7 @@ import org.savapage.core.jpa.Printer;
 import org.savapage.core.print.gcp.GcpPrinter;
 import org.savapage.core.print.imap.ImapPrinter;
 import org.savapage.core.util.DateUtil;
+import org.savapage.core.util.JsonHelper;
 import org.savapage.ext.smartschool.SmartschoolPrinter;
 import org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob;
 import org.slf4j.Logger;
@@ -385,19 +387,20 @@ public final class SpJobScheduler {
      *
      */
     private void initJobDetails() {
-        //
+
         myHourlyJobs
                 .add(createJob(SpJobType.CUPS_SUBS_RENEW, JOB_GROUP_SCHEDULED));
 
-        //
         myWeeklyJobs.add(createJob(SpJobType.DB_BACKUP, JOB_GROUP_SCHEDULED));
 
-        //
-        myDailyJobs.add(createJob(SpJobType.SYNC_USERS, JOB_GROUP_SCHEDULED));
-        myDailyJobs.add(createJob(SpJobType.CHECK_MEMBERSHIP_CARD,
-                JOB_GROUP_SCHEDULED));
-        myDailyJobs.add(
-                createJob(SpJobType.PRINTER_GROUP_CLEAN, JOB_GROUP_SCHEDULED));
+        for (final SpJobType jobType : EnumSet.of(SpJobType.SYNC_USERS,
+                SpJobType.CHECK_MEMBERSHIP_CARD,
+                SpJobType.PRINTER_GROUP_CLEAN)) {
+            myDailyJobs.add(createJob(jobType, JOB_GROUP_SCHEDULED));
+        }
+
+        myDailyMaintJobs
+                .add(createJob(SpJobType.PRINTER_SNMP, JOB_GROUP_SCHEDULED));
     }
 
     /**
@@ -472,19 +475,56 @@ public final class SpJobScheduler {
     }
 
     /**
+     * Schedule SNMP retrieval for a hosts.
+     *
+     * @param hosts
+     *            The set of host addresses.
+     * @param secondsFromNow
+     */
+    public void scheduleOneShotPrinterSnmp(final Set<String> hosts,
+            final long secondsFromNow) {
+
+        this.scheduleOneShotPrinterSnmp(PrinterSnmpJob.ATTR_HOST_SET,
+                JsonHelper.stringifyStringSet(hosts), secondsFromNow);
+    }
+
+    /**
+     * Schedule SNMP retrieval for a single printer.
      *
      * @param printerID
-     *            The primary database key of a {@link Printer}, or {@code null}
-     *            for all printers.
+     *            The primary database key of a {@link Printer}.
      * @param secondsFromNow
      */
     public void scheduleOneShotPrinterSnmp(final Long printerID,
             final long secondsFromNow) {
+        this.scheduleOneShotPrinterSnmp(PrinterSnmpJob.ATTR_PRINTER_ID,
+                printerID, secondsFromNow);
+    }
+
+    /**
+     * Schedule SNMP retrieval for a all printers.
+     *
+     * @param secondsFromNow
+     */
+    public void scheduleOneShotPrinterSnmp(final long secondsFromNow) {
+        this.scheduleOneShotPrinterSnmp(null, null, secondsFromNow);
+    }
+
+    /**
+     *
+     * @param key
+     *            The key for the job context.
+     * @param value
+     *            The value.
+     * @param secondsFromNow
+     */
+    private void scheduleOneShotPrinterSnmp(final String key,
+            final Object value, final long secondsFromNow) {
 
         final JobDataMap data = new JobDataMap();
 
-        if (printerID != null) {
-            data.put(PrinterSnmpJob.ATTR_PRINTER_ID, printerID);
+        if (key != null) {
+            data.put(key, value);
         }
 
         final JobDetail job = newJob(org.savapage.core.job.PrinterSnmpJob.class)
@@ -837,6 +877,33 @@ public final class SpJobScheduler {
 
                 if (jobType != null && jobTypes.contains(jobType)) {
                     return true;
+                }
+            }
+        } catch (SchedulerException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Checks if job is executing to do an SNMP retrieve for all printers.
+     *
+     * @return {@code true} when SNMP retrieve for all printers is executing,
+     *         {@code false} if not.
+     */
+    public static boolean isAllPrinterSnmpJobExecuting() {
+
+        final Scheduler scheduler = instance().myScheduler;
+
+        try {
+            for (final JobExecutionContext ctx : scheduler
+                    .getCurrentlyExecutingJobs()) {
+
+                final SpJobType jobType = EnumUtils.getEnum(SpJobType.class,
+                        ctx.getTrigger().getJobKey().getName());
+
+                if (jobType != null && jobType.equals(SpJobType.PRINTER_SNMP)) {
+                    return PrinterSnmpJob.isAllPrinters(ctx);
                 }
             }
         } catch (SchedulerException e) {

@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
@@ -447,9 +448,11 @@ public interface PrinterDao extends GenericDao<Printer> {
      *
      * @param printerName
      *            The unique name of the printer.
+     * @param lazyCreated
+     *            Telling if instance was lazy created or not.
      * @return The printer row instance.
      */
-    Printer findByNameInsert(String printerName);
+    Printer findByNameInsert(String printerName, MutableBoolean lazyCreated);
 
     /**
      * Counts the number of printers according to filter.

@@ -75,14 +75,15 @@ public final class CupsPrinterUriHelper {
     }
 
     /**
+     * Gets the host part of the CUPS printer device URI.
      *
-     * @param uri
-     *            The device URI.
-     * @return The host part of the URI.
+     * @param deviceUri
+     *            The CUPS printer device URI.
+     * @return The host part of the URI, or {@code null} when inapplicable.
      */
-    public static String resolveHost(final URI uri) {
+    public static String resolveHost(final URI deviceUri) {
 
-        final String scheme = uri.getScheme();
+        final String scheme = deviceUri.getScheme();
 
         if (scheme == null) {
             return null;
@@ -93,7 +94,7 @@ public final class CupsPrinterUriHelper {
         if (schemeLower.equals(SCHEME_HP)) {
 
             try {
-                return splitQuery(uri).get(HP_QUERY_PARM_IP);
+                return splitQuery(deviceUri).get(HP_QUERY_PARM_IP);
             } catch (UnsupportedEncodingException e) {
                 return null;
             }
@@ -102,13 +103,14 @@ public final class CupsPrinterUriHelper {
                 || schemeLower.equals(SCHEME_IPP)
                 || schemeLower.equals(SCHEME_IPPS)) {
 
-            return uri.getHost();
+            return deviceUri.getHost();
         }
 
-        if (uri.getRawSchemeSpecificPart() != null) {
+        if (deviceUri.getRawSchemeSpecificPart() != null) {
             try {
                 // Recurse.
-                return resolveHost(new URI(uri.getRawSchemeSpecificPart()));
+                return resolveHost(
+                        new URI(deviceUri.getRawSchemeSpecificPart()));
             } catch (URISyntaxException e) {
                 return null;
             }

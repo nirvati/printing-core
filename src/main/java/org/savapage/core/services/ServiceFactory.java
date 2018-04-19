@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -196,6 +196,13 @@ public interface ServiceFactory {
      * @return The singleton.
      */
     SmartschoolProxyService getSmartSchoolProxyService();
+
+    /**
+     * Gets the {@link SnmpRetrieveService} singleton.
+     *
+     * @return The singleton.
+     */
+    SnmpRetrieveService getSnmpRetrieveService();
 
     /**
      * Gets the {@link SOfficeService} singleton.

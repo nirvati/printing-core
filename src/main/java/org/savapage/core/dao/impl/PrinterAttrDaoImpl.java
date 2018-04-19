@@ -95,7 +95,25 @@ public final class PrinterAttrDaoImpl extends GenericDaoImpl<PrinterAttr>
 
     @Override
     public Date getSnmpDate(final PrinterAttrLookup lookup) {
-        final String date = lookup.get(PrinterAttrEnum.SNMP_DATE);
+        return dateOrNull(lookup.get(PrinterAttrEnum.SNMP_DATE));
+    }
+
+    @Override
+    public Date getSnmpDate(final Long printerId) {
+        final PrinterAttr attr =
+                this.findByName(printerId, PrinterAttrEnum.SNMP_DATE);
+        if (attr == null) {
+            return null;
+        }
+        return dateOrNull(attr.getValue());
+    }
+
+    /**
+     *
+     * @param date
+     * @return
+     */
+    private static Date dateOrNull(final String date) {
         if (date == null) {
             return null;
         }

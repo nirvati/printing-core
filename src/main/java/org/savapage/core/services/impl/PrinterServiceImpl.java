@@ -74,8 +74,6 @@ import org.savapage.core.snmp.SnmpPrtMarkerSuppliesEntry;
 import org.savapage.core.snmp.SnmpPrtMarkerSuppliesTypeEnum;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.NumberUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -84,10 +82,6 @@ import org.slf4j.LoggerFactory;
  */
 public final class PrinterServiceImpl extends AbstractService
         implements PrinterService {
-
-    /** */
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(PrinterServiceImpl.class);
 
     /** */
     private static final boolean ACCESS_ALLOWED = true;
@@ -506,6 +500,8 @@ public final class PrinterServiceImpl extends AbstractService
                 jobSheets);
         addTimeSeriesDataPoint(printer,
                 PrinterAttrEnum.PRINT_OUT_ROLLING_DAY_ESU, jobTime, jobSheets);
+
+        snmpRetrieveService().probeSnmpRetrieveTrigger(printer);
     }
 
     @Override

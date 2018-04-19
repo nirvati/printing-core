@@ -326,7 +326,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             new AtomicBoolean(true);
 
     /**
-     *
+     * Common option groups to be added to ALL printers.
      */
     private ArrayList<JsonProxyPrinterOptGroup> commonPrinterOptGroups = null;
 
@@ -357,9 +357,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     /**
-     * URL of the CUPS host, like http://localhost:631
+     * URL of the CUPS host, like {@code http://localhost:631} .
      *
-     * @return
+     * @return The URL.
      */
     private String getDefaultCupsUrl() {
         return "http://" + ConfigManager.getDefaultCupsHost() + ":"
@@ -373,10 +373,18 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 .isCircuitClosed();
     }
 
+    /**
+     * Checks if common option groups are present to be added to ALL printers.
+     *
+     * @return {@code true} when present.
+     */
     protected boolean hasCommonPrinterOptGroups() {
         return commonPrinterOptGroups != null;
     }
 
+    /**
+     * @return Common option groups to be added to ALL printers.
+     */
     protected ArrayList<JsonProxyPrinterOptGroup> getCommonPrinterOptGroups() {
         return commonPrinterOptGroups;
     }
@@ -1058,6 +1066,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
+    public final String getCachedPrinterHost(final String printerName) {
+        final JsonProxyPrinter proxyPrinter =
+                this.getCachedPrinter(printerName);
+        if (proxyPrinter == null) {
+            return null;
+        }
+        return CupsPrinterUriHelper.resolveHost(proxyPrinter.getDeviceUri());
+    }
+
+    @Override
     public final void updateCachedPrinter(final Printer dbPrinter) {
 
         final JsonProxyPrinter proxyPrinter =
@@ -1632,8 +1650,23 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         try {
-            updatePrinterCache(isLazyInit);
+            final Set<String> newCupsPrinterNameKeys =
+                    updatePrinterCache(isLazyInit);
+
             ctx.commit();
+
+            if (!newCupsPrinterNameKeys.isEmpty()) {
+
+                SpInfo.instance()
+                        .log(String.format("%d new CUPS printer(s) detected.",
+                                newCupsPrinterNameKeys.size()));
+
+                if (ConfigManager.instance()
+                        .isConfigValue(Key.PRINTER_SNMP_ENABLE)) {
+                    evaluateSnmpRetrieve(newCupsPrinterNameKeys);
+                }
+            }
+
         } catch (MalformedURLException | URISyntaxException e) {
             throw new IppConnectException(e);
         } finally {
@@ -1642,6 +1675,31 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
             if (currentTrxActive) {
                 ctx.beginTransaction();
+            }
+        }
+    }
+
+    /**
+     *
+     * @param newCupsPrinterNameKeys
+     */
+    private void
+            evaluateSnmpRetrieve(final Set<String> newCupsPrinterNameKeys) {
+
+        if (newCupsPrinterNameKeys.size() == this.cupsPrinterCache.size()) {
+
+            snmpRetrieveService().retrieveAll();
+
+        } else {
+
+            final Set<URI> uris = new HashSet<>();
+
+            for (final String key : newCupsPrinterNameKeys) {
+                uris.add(this.getCachedCupsPrinter(key).getDeviceUri());
+            }
+
+            if (!uris.isEmpty()) {
+                snmpRetrieveService().probeSnmpRetrieve(uris);
             }
         }
     }
@@ -1671,6 +1729,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *
      * @param isLazyInit
      *            {@code true} if this is a lazy init update.
+     * @return The newly identified CUPS printer name keys in
+     *         {@link #cupsPrinterCache}.
      * @throws URISyntaxException
      *             When URI syntax error.
      * @throws MalformedURLException
@@ -1680,16 +1740,18 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * @throws IppSyntaxException
      *             When a syntax error.
      */
-    private synchronized void updatePrinterCache(final boolean isLazyInit)
-            throws MalformedURLException, IppConnectException,
-            URISyntaxException, IppSyntaxException {
+    private synchronized Set<String> updatePrinterCache(
+            final boolean isLazyInit) throws MalformedURLException,
+            IppConnectException, URISyntaxException, IppSyntaxException {
+
+        final Set<String> newCupsPrinterNameKeys = new HashSet<>();
 
         final boolean firstTimeCupsContact =
                 this.isFirstTimeCupsContact.getAndSet(false);
 
         // Concurrent lazy init try.
         if (isLazyInit && !firstTimeCupsContact) {
-            return;
+            return newCupsPrinterNameKeys;
         }
 
         final boolean connectedToCupsPrv =
@@ -1728,6 +1790,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          * Traverse the CUPS printers.
          */
         final Date now = new Date();
+        final MutableBoolean lazyCreatedDbPrinter = new MutableBoolean();
 
         final boolean remoteCupsEnabled = ConfigManager.instance()
                 .isConfigValue(Key.CUPS_IPP_REMOTE_ENABLED);
@@ -1756,17 +1819,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     this.cupsPrinterCache.get(cupsPrinterKey);
 
             /*
-             * Is this a new printer?
+             * Is printer already part of the cache?
              */
             if (cachedCupsPrinter == null) {
 
-                /*
-                 * New cached object.
-                 */
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("CUPS printer [" + cupsPrinter.getName()
-                            + "] detected");
-                }
+                LOGGER.info("CUPS printer [{}] detected", cupsPrinterKey);
                 /*
                  * Add the extra groups.
                  */
@@ -1780,8 +1837,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
              * Assign the (lazy created) printer in database to proxy printer
              * CUPS definition.
              */
-            this.assignDbPrinter(cupsPrinter,
-                    printerDAO().findByNameInsert(cupsPrinter.getName()));
+            this.assignDbPrinter(cupsPrinter, printerDAO()
+                    .findByNameInsert(cupsPrinterKey, lazyCreatedDbPrinter));
+
+            if (lazyCreatedDbPrinter.isTrue()) {
+                newCupsPrinterNameKeys.add(cupsPrinterKey);
+            }
 
             /*
              * Undo the logical delete (if present).
@@ -1801,7 +1862,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             /*
              * Update the cache.
              */
-            this.cupsPrinterCache.put(cupsPrinter.getName(), cupsPrinter);
+            this.cupsPrinterCache.put(cupsPrinterKey, cupsPrinter);
             cachedCupsPrinter = cupsPrinter;
         }
 
@@ -1815,10 +1876,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 final JsonProxyPrinter removed =
                         this.cupsPrinterCache.remove(entry.getKey());
 
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("removed CUPS printer [" + removed.getName()
-                            + "] detected");
-                }
+                LOGGER.info("removed CUPS printer [{}] detected",
+                        removed.getName());
             }
         }
 
@@ -1826,6 +1885,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
             SpInfo.instance().log(String.format("| %s CUPS printers retrieved.",
                     cupsPrinters.size()));
         }
+
+        return newCupsPrinterNameKeys;
     }
 
     @Override

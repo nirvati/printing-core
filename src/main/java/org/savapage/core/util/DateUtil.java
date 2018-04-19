@@ -182,4 +182,46 @@ public final class DateUtil {
                 .format(date);
     }
 
+    /**
+     * Gets number of seconds between two dates.
+     *
+     * @param d1
+     *            First date.
+     * @param d2
+     *            Second date (later in time).
+     * @return Seconds.
+     */
+    public static long secondsBetween(final Date d1, final Date d2) {
+        return unitsBetween(d1, d2, DURATION_MSEC_SECOND);
+    }
+
+    /**
+     * Gets number of minutes between two dates.
+     *
+     * @param d1
+     *            First date.
+     * @param d2
+     *            Second date (later in time).
+     * @return Seconds.
+     */
+    public static long minutesBetween(final Date d1, final Date d2) {
+        return unitsBetween(d1, d2, DURATION_MSEC_MINUTE);
+    }
+
+    /**
+     * Gets number of units between two dates.
+     *
+     * @param d1
+     *            First date.
+     * @param d2
+     *            Second date (later in time).
+     * @param unitMsec
+     *            Unit in msecs.
+     * @return Seconds.
+     */
+    private static long unitsBetween(final Date d1, final Date d2,
+            final long unitMsec) {
+        return (d2.getTime() - d1.getTime()) / unitMsec;
+    }
+
 }

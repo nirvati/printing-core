@@ -21,10 +21,12 @@
  */
 package org.savapage.core.job;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -42,11 +44,13 @@ import org.savapage.core.dto.PrinterSnmpDto;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.SnmpRetrieveService;
 import org.savapage.core.services.helpers.PrinterSnmpReader;
 import org.savapage.core.services.helpers.SnmpPrinterQueryDto;
 import org.savapage.core.snmp.SnmpClientSession;
 import org.savapage.core.snmp.SnmpConnectException;
 import org.savapage.core.util.AppLogHelper;
+import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +68,76 @@ public final class PrinterSnmpJob extends AbstractJob {
             LoggerFactory.getLogger(PrinterSnmpJob.class);
 
     /** */
+    private static final ProxyPrintService PROXY_PRINT_SERVICE =
+            ServiceContext.getServiceFactory().getProxyPrintService();
+
+    /** */
+    private static final PrinterService PRINTER_SERVICE =
+            ServiceContext.getServiceFactory().getPrinterService();
+
+    /** */
+    private static final SnmpRetrieveService SNMP_RETRIEVE_SERVICE =
+            ServiceContext.getServiceFactory().getSnmpRetrieveService();
+
+    /**
+     * Type: Long.
+     */
     public static final String ATTR_PRINTER_ID = "printerID";
+
+    /**
+     * Type: JSON string of Set.
+     */
+    public static final String ATTR_HOST_SET = "hostSet";
+
+    /**
+     * Checks if execution context is for SNMP retrieve of all printers.
+     *
+     * @param ctx
+     *            The {@link JobExecutionContext}.
+     * @return {@code true} when this is a full retrieve. {@code false}, if just
+     *         for one (1) printer.
+     */
+    public static boolean isAllPrinters(final JobExecutionContext ctx) {
+        return getPrinterID(ctx) == null && getHosts(ctx) == null;
+    }
+
+    /**
+     * Gets the printer ID from the execution context.
+     *
+     * @param ctx
+     *            The {@link JobExecutionContext}.
+     * @return {@code null} when not present.
+     */
+    private static Long getPrinterID(final JobExecutionContext ctx) {
+
+        final JobDataMap map = ctx.getJobDetail().getJobDataMap();
+
+        if (map.containsKey(ATTR_PRINTER_ID)) {
+            return map.getLong(ATTR_PRINTER_ID);
+        }
+        return null;
+    }
+
+    /**
+     * Gets the set of printer host addresses from the execution context.
+     *
+     * @param ctx
+     *            The {@link JobExecutionContext}.
+     * @return {@code null} when not present.
+     */
+    private static Set<String> getHosts(final JobExecutionContext ctx) {
+
+        final JobDataMap map = ctx.getJobDetail().getJobDataMap();
+
+        if (map.containsKey(ATTR_HOST_SET)) {
+            try {
+                return JsonHelper.createStringSet(map.getString(ATTR_HOST_SET));
+            } catch (IOException e) {
+                throw new IllegalStateException(e.getMessage());
+            }
+        }
+        return null;
+    }
 
     @Override
     protected void onInterrupt() throws UnableToInterruptJobException {
@@ -85,35 +158,73 @@ public final class PrinterSnmpJob extends AbstractJob {
     protected void onExecute(final JobExecutionContext ctx)
             throws JobExecutionException {
 
+        final ConfigManager cm = ConfigManager.instance();
+
+        /*
+         * Return if this is a scheduled (not a one-shot) job and printer SNMP
+         * is DISABLED.
+         */
+        if (ctx.getJobDetail().getKey().getGroup()
+                .equals(SpJobScheduler.JOB_GROUP_SCHEDULED)
+                && !cm.isConfigValue(Key.PRINTER_SNMP_ENABLE)) {
+            return;
+        }
+
         final DaoContext daoContext = ServiceContext.getDaoContext();
         final AdminPublisher publisher = AdminPublisher.instance();
-
-        final ProxyPrintService srvPrint =
-                ServiceContext.getServiceFactory().getProxyPrintService();
-
-        final PrinterService srvPrinter =
-                ServiceContext.getServiceFactory().getPrinterService();
-
-        final ConfigManager cm = ConfigManager.instance();
 
         String msg = null;
         PubLevelEnum level = PubLevelEnum.INFO;
 
         int count = 0;
 
+        final List<SnmpPrinterQueryDto> queriesAll =
+                PROXY_PRINT_SERVICE.getSnmpQueries();
         final List<SnmpPrinterQueryDto> queries;
 
-        final JobDataMap map = ctx.getJobDetail().getJobDataMap();
+        final Long printerID = getPrinterID(ctx);
+        final Set<String> printerHosts = getHosts(ctx);
 
-        if (map.containsKey(ATTR_PRINTER_ID)) {
-            queries = new ArrayList<>();
-            final SnmpPrinterQueryDto query =
-                    srvPrint.getSnmpQuery(map.getLong(ATTR_PRINTER_ID));
-            if (query != null) {
-                queries.add(query);
+        if (printerID != null) {
+
+            /*
+             * Find uriHost.
+             */
+            String uriHost = null;
+
+            for (final SnmpPrinterQueryDto queryWlk : queriesAll) {
+                if (queryWlk.getPrinter().getId().equals(printerID)) {
+                    uriHost = queryWlk.getUriHost();
+                    break;
+                }
             }
+
+            /*
+             * Collect uriHost instances (in case of multiple queues for one
+             * uriHost).
+             */
+            queries = new ArrayList<>();
+
+            if (uriHost != null) {
+                for (final SnmpPrinterQueryDto queryWlk : queriesAll) {
+                    if (queryWlk.getUriHost().equals(uriHost)) {
+                        queries.add(queryWlk);
+                    }
+                }
+            }
+
+        } else if (printerHosts != null) {
+
+            queries = new ArrayList<>();
+
+            for (final SnmpPrinterQueryDto queryWlk : queriesAll) {
+                if (printerHosts.contains(queryWlk.getUriHost())) {
+                    queries.add(queryWlk);
+                }
+            }
+
         } else {
-            queries = srvPrint.getSnmpQueries();
+            queries = queriesAll;
         }
 
         if (queries.isEmpty()) {
@@ -136,37 +247,52 @@ public final class PrinterSnmpJob extends AbstractJob {
                 cm.getConfigInt(Key.PRINTER_SNMP_READ_RETRIES),
                 cm.getConfigInt(Key.PRINTER_SNMP_READ_TIMEOUT_MSECS));
 
-        try {
+        /*
+         * Since there might be multiple queues for a single host, we cache
+         * results for easy retrieval.
+         */
+        final Map<String, PrinterSnmpDto> hostCache = new HashMap<>();
 
-            // There might be multiple queues for a single host, so we cache
-            // results.
-            final Map<String, PrinterSnmpDto> hostCache = new HashMap<>();
+        try {
 
             for (final SnmpPrinterQueryDto query : queries) {
 
                 final String host = query.getUriHost();
 
-                PrinterSnmpDto dto = hostCache.get(host);
+                PrinterSnmpDto dto = null;
 
-                if (dto == null) {
-                    try {
-                        dto = snmpReader.read(host,
-                                SnmpClientSession.DEFAULT_PORT_READ,
-                                SnmpClientSession.DEFAULT_COMMUNITY);
+                if (hostCache.containsKey(host)) {
+
+                    dto = hostCache.get(host);
+
+                } else {
+
+                    if (printerID == null) {
+                        SNMP_RETRIEVE_SERVICE.claimSnmpRetrieve(host);
+                    }
+
+                    if (SNMP_RETRIEVE_SERVICE.lockSnmpRetrieve(host)) {
+
+                        try {
+                            dto = snmpReader.read(host,
+                                    SnmpClientSession.DEFAULT_PORT_READ,
+                                    SnmpClientSession.DEFAULT_COMMUNITY);
+
+                        } catch (SnmpConnectException e) {
+
+                            dto = null;
+
+                            msg = AppLogHelper.logWarning(getClass(),
+                                    "PrinterSnmp.retrieve.failure",
+                                    query.getPrinter().getPrinterName(),
+                                    query.getUriHost(), e.getMessage());
+
+                            publisher.publish(PubTopicEnum.SNMP,
+                                    PubLevelEnum.WARN, msg);
+
+                        }
 
                         hostCache.put(host, dto);
-
-                    } catch (SnmpConnectException e) {
-
-                        dto = null;
-
-                        msg = AppLogHelper.logWarning(getClass(),
-                                "PrinterSnmp.retrieve.failure",
-                                query.getPrinter().getPrinterName(),
-                                query.getUriHost(), e.getMessage());
-
-                        publisher.publish(PubTopicEnum.SNMP, PubLevelEnum.WARN,
-                                msg);
                     }
                 }
 
@@ -174,7 +300,7 @@ public final class PrinterSnmpJob extends AbstractJob {
 
                 daoContext.beginTransaction();
 
-                srvPrinter.setSnmpInfo(query.getPrinter(), dto);
+                PRINTER_SERVICE.setSnmpInfo(query.getPrinter(), dto);
 
                 daoContext.commit();
 
@@ -217,6 +343,11 @@ public final class PrinterSnmpJob extends AbstractJob {
                     e.getMessage());
 
             AppLogHelper.log(AppLogLevelEnum.ERROR, msg);
+
+        } finally {
+            for (final String host : hostCache.keySet()) {
+                SNMP_RETRIEVE_SERVICE.releaseSnmpRetrieve(host);
+            }
         }
 
         publisher.publish(PubTopicEnum.SNMP, level, msg);

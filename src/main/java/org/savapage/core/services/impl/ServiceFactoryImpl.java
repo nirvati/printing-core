@@ -1,6 +1,6 @@
 /*
  * This file is part+of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -42,6 +42,7 @@ import org.savapage.core.services.QueueService;
 import org.savapage.core.services.RfIdReaderService;
 import org.savapage.core.services.SOfficeService;
 import org.savapage.core.services.ServiceFactory;
+import org.savapage.core.services.SnmpRetrieveService;
 import org.savapage.core.services.StatefulService;
 import org.savapage.core.services.UserGroupService;
 import org.savapage.core.services.UserService;
@@ -185,10 +186,19 @@ public final class ServiceFactoryImpl implements ServiceFactory {
                 new SmartschoolProxyServiceImpl();
     }
 
+    private static class SnmpRetrieveServiceHolder {
+        public static final SnmpRetrieveService SERVICE =
+                new SnmpRetrieveServiceImpl();
+    }
+
     private final static StatefulService statefullServices[] =
-            new StatefulService[] { EcoPrintPdfTaskServiceHolder.SERVICE,
-                    JobTicketServiceHolder.SERVICE,
-                    SOfficeServiceHolder.SERVICE, EmailServiceHolder.SERVICE };
+            new StatefulService[] { //
+                    EcoPrintPdfTaskServiceHolder.SERVICE, //
+                    JobTicketServiceHolder.SERVICE, //
+                    SOfficeServiceHolder.SERVICE, //
+                    EmailServiceHolder.SERVICE, //
+                    SnmpRetrieveServiceHolder.SERVICE //
+            };
 
     @Override
     public AccessControlService getAccessControlService() {
@@ -308,6 +318,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public SmartschoolProxyService getSmartSchoolProxyService() {
         return SmartSchoolProxyServiceHolder.SERVICE;
+    }
+
+    @Override
+    public SnmpRetrieveService getSnmpRetrieveService() {
+        return SnmpRetrieveServiceHolder.SERVICE;
     }
 
     @Override

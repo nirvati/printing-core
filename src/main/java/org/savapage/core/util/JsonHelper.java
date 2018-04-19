@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -152,7 +153,7 @@ public final class JsonHelper {
      *            The enum class.
      * @param json
      *            The serialized JSON string.
-     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     * @return The {@link Map}.
      * @throws IOException
      *             When JSON syntax is invalid.
      */
@@ -172,7 +173,7 @@ public final class JsonHelper {
      *
      * @param json
      *            The serialized JSON string.
-     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     * @return The {@link Map}.
      * @throws IOException
      *             When JSON syntax is invalid.
      */
@@ -192,7 +193,7 @@ public final class JsonHelper {
      *
      * @param json
      *            The serialized JSON string.
-     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     * @return The {@link Map}.
      * @throws IOException
      *             When JSON syntax is invalid.
      */
@@ -228,7 +229,7 @@ public final class JsonHelper {
      *
      * @param json
      *            The serialized JSON string.
-     * @return The {@link Map} or {@code null} when JSON input is invalid.
+     * @return The {@link Map}.
      * @throws IOException
      *             When JSON syntax is invalid.
      */
@@ -238,6 +239,25 @@ public final class JsonHelper {
             return mapper.readValue(json,
                     new TypeReference<Map<String, String>>() {
                     });
+        } catch (IllegalArgumentException e) {
+            throw new IOException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * De-serializes a {@link Set} of string keys.
+     *
+     * @param json
+     *            The serialized JSON string.
+     * @return The {@link Set}.
+     * @throws IOException
+     *             When JSON syntax is invalid.
+     */
+    public static Set<String> createStringSet(final String json)
+            throws IOException {
+        try {
+            return mapper.readValue(json, new TypeReference<Set<String>>() {
+            });
         } catch (IllegalArgumentException e) {
             throw new IOException(e.getMessage(), e);
         }
@@ -389,6 +409,22 @@ public final class JsonHelper {
     public static String stringifyStringMap(final Map<String, String> map) {
         try {
             return StringUtils.deleteWhitespace(mapper.writeValueAsString(map));
+        } catch (JsonProcessingException e) {
+            throw new SpException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Creates a JSON string from a string {@link Set}. Note: the strings in the
+     * set MUST NOT contain any whitespace.
+     *
+     * @param set
+     *            The {@link Set}.
+     * @return The JSON String.
+     */
+    public static String stringifyStringSet(final Set<String> set) {
+        try {
+            return StringUtils.deleteWhitespace(mapper.writeValueAsString(set));
         } catch (JsonProcessingException e) {
             throw new SpException(e.getMessage(), e);
         }

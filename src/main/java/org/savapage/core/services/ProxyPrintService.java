@@ -243,6 +243,15 @@ public interface ProxyPrintService {
     JsonProxyPrinter getCachedPrinter(String printerName);
 
     /**
+     * Gets the host part of the CUPS printer device URI.
+     *
+     * @param printerName
+     *            The printer name.
+     * @return The host part of the URI, or {@code null} when inapplicable.
+     */
+    String getCachedPrinterHost(String printerName);
+
+    /**
      * Gets a copy of the JsonPrinter from the printer cache.
      * <p>
      * <b>Note</b>: a copy is returned so the caller can manipulate the

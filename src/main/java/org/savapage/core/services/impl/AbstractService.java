@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -70,6 +70,7 @@ import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.SnmpRetrieveService;
 import org.savapage.core.services.UserGroupService;
 import org.savapage.core.services.UserService;
 import org.savapage.core.util.Messages;
@@ -132,6 +133,10 @@ public abstract class AbstractService {
 
     protected static PrinterService printerService() {
         return ServiceContext.getServiceFactory().getPrinterService();
+    }
+
+    protected static SnmpRetrieveService snmpRetrieveService() {
+        return ServiceContext.getServiceFactory().getSnmpRetrieveService();
     }
 
     protected static QueueService queueService() {
@@ -199,6 +204,7 @@ public abstract class AbstractService {
     protected static PdfOutDao pdfOutDAO() {
         return ServiceContext.getDaoContext().getPdfOutDao();
     }
+
     protected static PosPurchaseDao purchaseDAO() {
         return ServiceContext.getDaoContext().getPosPurchaseDao();
     }

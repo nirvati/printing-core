@@ -75,6 +75,15 @@ public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
     /**
      * Gets the date of SNMP retrieval.
      *
+     * @param printerId
+     *            The primary key of the {@link Printer}.
+     * @return The date of the SNMP information, or {@code null} when not found.
+     */
+    Date getSnmpDate(Long printerId);
+
+    /**
+     * Gets the date of SNMP retrieval.
+     *
      * @param lookup
      *            The {@link PrinterAttrLookup}.
      * @return The date of the SNMP information, or {@code null} when not found.

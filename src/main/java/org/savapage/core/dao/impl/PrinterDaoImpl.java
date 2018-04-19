@@ -27,6 +27,7 @@ import java.util.List;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.SpException;
 import org.savapage.core.dao.PrinterAttrDao;
 import org.savapage.core.dao.PrinterDao;
@@ -381,11 +382,14 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
     }
 
     @Override
-    public Printer findByNameInsert(final String printerName) {
+    public Printer findByNameInsert(final String printerName,
+            final MutableBoolean lazyCreated) {
 
         Printer printer = findByName(printerName);
 
-        if (printer == null) {
+        lazyCreated.setValue(printer == null);
+
+        if (lazyCreated.isTrue()) {
 
             printer = new Printer();
 
