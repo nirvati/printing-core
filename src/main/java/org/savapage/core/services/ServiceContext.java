@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -135,17 +135,20 @@ public final class ServiceContext {
 
     /**
      * Reopens the service context by calling {@link #close()} and
-     * {@link #open()}.
+     * {@link #open()}. It also clears the persistence context, <i>"causing all
+     * managed entities to become detached."</i>. See
+     * {@link DaoContext#clear()}.
      * <p>
      * NOTE: Use this method in each cycle of a monitoring process, before
-     * executing JPA queries. By reopening the {@link ServiceContext}, the
-     * {@link DaoContext} is also refreshed: <i>this makes database updates from
-     * other threads visible.</i>
+     * executing JPA queries. By reopening the {@link ServiceContext}, and
+     * clearing the persistence context, <i>database updates from other threads
+     * become visible.</i>
      * </p>
      */
     public static void reopen() {
         close();
         open();
+        getDaoContext().clear();
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,8 @@
  * address: info@datraverse.com
  */
 package org.savapage.core.dao;
+
+import javax.persistence.EntityManager;
 
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.tools.DbVersionInfo;
@@ -57,6 +59,11 @@ public interface DaoContext {
      * Rolls the transaction back, when active.
      */
     void rollback();
+
+    /**
+     * Wrapper for {@link EntityManager#clear()}.
+     */
+    void clear();
 
     /**
      *

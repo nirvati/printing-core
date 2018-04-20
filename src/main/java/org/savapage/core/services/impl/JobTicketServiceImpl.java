@@ -1343,7 +1343,7 @@ public final class JobTicketServiceImpl extends AbstractService
         /*
          * Update any changes.
          */
-        if (extSupplierCurrent != extSupplierRetry
+        if (documentTitleRetry != null || extSupplierCurrent != extSupplierRetry
                 || extSupplierStatusCurrent != extSupplierStatusRetry) {
 
             docLogDAO().updateExtSupplier(docLog.getId(), extSupplierRetry,
