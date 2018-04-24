@@ -26,6 +26,7 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.print.attribute.standard.MediaSizeName;
 
@@ -47,6 +48,7 @@ import org.savapage.core.config.validator.NotEmptyValidator;
 import org.savapage.core.config.validator.NumberValidator;
 import org.savapage.core.config.validator.UriValidator;
 import org.savapage.core.config.validator.UrlValidator;
+import org.savapage.core.config.validator.UuidValidator;
 import org.savapage.core.config.validator.ValidationResult;
 import org.savapage.core.config.validator.ValidationStatusEnum;
 import org.savapage.core.crypto.OneTimeAuthToken;
@@ -918,6 +920,31 @@ public interface IConfigProp {
          * (when void, all client addresses are allowed).
          */
         API_JSONRPC_IP_ADDRESSES_ALLOWED("api.jsonrpc.ext.ip-addresses-allowed", CIDR_RANGES_VALIDATOR_OPT, API_UPDATABLE_OFF),
+
+        /**
+         * Admin Atom Feed: enable.
+         */
+        FEED_ATOM_ADMIN_ENABLE("feed.atom.admin.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
+         * Tuesday-Saturday at 3:00
+         */
+        FEED_ATOM_ADMIN_SCHEDULE("feed.atom.admin.schedule", CRON_EXPR_VALIDATOR, "0 0 3 ? * 3-7", API_UPDATABLE_OFF),
+
+        /**
+         * Admin Atom Feed: UUID as feed id.
+         */
+        FEED_ATOM_ADMIN_UUID("feed.atom.admin.uuid", UUID_VALIDATOR, UUID.randomUUID().toString(), API_UPDATABLE_ON),
+
+        /**
+         * Admin Atom Feed: Basic Authentication Username.
+         */
+        FEED_ATOM_ADMIN_USERNAME("feed.atom.admin.username", "", API_UPDATABLE_ON),
+
+        /**
+         * Admin Atom Feed: Basic Authentication Password.
+         */
+        FEED_ATOM_ADMIN_PASSWORD("feed.atom.admin.password", "", API_UPDATABLE_ON),
 
         /**
          *
@@ -2590,6 +2617,9 @@ public interface IConfigProp {
      * URI is not required (may be empty).
      */
     UriValidator URI_VALIDATOR_OPT = new UriValidator(true);
+
+    /** */
+    UuidValidator UUID_VALIDATOR = new UuidValidator(false);
 
     /** */
     NumberValidator ACCOUNTING_DECIMAL_VALIDATOR = new NumberValidator(0L,

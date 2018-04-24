@@ -209,6 +209,13 @@ public final class ConfigManager {
             "data/print-jobtickets";
 
     /**
+     * The relative path of the Atom Feeds folder (relative to the
+     * {@code server} directory).
+     */
+    private static final String SERVER_REL_PATH_FEEDS =
+            "data/feed";
+
+    /**
      * .
      */
     private static final String SERVER_REL_PATH_USERNAME_ALIASES_TXT =
@@ -905,6 +912,14 @@ public final class ConfigManager {
      */
     public static Path getJobTicketsHome() {
         return Paths.get(getServerHome(), SERVER_REL_PATH_PRINT_JOBTICKETS);
+    }
+
+    /**
+     *
+     * @return The directory path with the Admin Atom Feeds.
+     */
+    public static Path getAtomFeedsHome() {
+        return Paths.get(getServerHome(), SERVER_REL_PATH_FEEDS);
     }
 
     /**
@@ -2010,6 +2025,7 @@ public final class ConfigManager {
         return key == Key.AUTH_LDAP_ADMIN_PASSWORD
                 || key == Key.API_JSONRPC_SECRET_KEY
                 || key == Key.CLIAPP_AUTH_ADMIN_PASSKEY
+                || key == Key.FEED_ATOM_ADMIN_PASSWORD
                 || key == Key.MAIL_SMTP_PASSWORD
                 || key == Key.PAPERCUT_DB_PASSWORD
                 || key == Key.PAPERCUT_SERVER_AUTH_TOKEN

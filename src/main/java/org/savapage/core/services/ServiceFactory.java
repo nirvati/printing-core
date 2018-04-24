@@ -72,6 +72,13 @@ public interface ServiceFactory {
     AccountVoucherService getAccountVoucherService();
 
     /**
+     * Gets the {@link AtomFeedService} singleton.
+     *
+     * @return The singleton.
+     */
+    AtomFeedService getAtomFeedService();
+
+    /**
      * Gets the {@link ConfigPropertyService} singleton.
      *
      * @return The singleton.

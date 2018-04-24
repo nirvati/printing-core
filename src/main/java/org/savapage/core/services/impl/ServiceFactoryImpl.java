@@ -25,6 +25,7 @@ import org.savapage.core.services.AccessControlService;
 import org.savapage.core.services.AccountVoucherService;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.AppLogService;
+import org.savapage.core.services.AtomFeedService;
 import org.savapage.core.services.ConfigPropertyService;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
@@ -88,6 +89,10 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private static class AppLogServiceHolder {
         public static final AppLogService SERVICE = new AppLogServiceImpl();
+    }
+
+    private static class AtomFeedServiceHolder {
+        public static final AtomFeedService SERVICE = new AtomFeedServiceImpl();
     }
 
     private static class ConfigPropertyServiceHolder {
@@ -193,6 +198,7 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private final static StatefulService statefullServices[] =
             new StatefulService[] { //
+                    AtomFeedServiceHolder.SERVICE, //
                     EcoPrintPdfTaskServiceHolder.SERVICE, //
                     JobTicketServiceHolder.SERVICE, //
                     SOfficeServiceHolder.SERVICE, //
@@ -223,6 +229,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public AppLogService getAppLogService() {
         return AppLogServiceHolder.SERVICE;
+    }
+
+    @Override
+    public AtomFeedService getAtomFeedService() {
+        return AtomFeedServiceHolder.SERVICE;
     }
 
     @Override

@@ -74,6 +74,8 @@ public final class SpJobScheduler {
     private final List<JobDetail> myMonthlyJobs = new ArrayList<>();
     private final List<JobDetail> myDailyMaintJobs = new ArrayList<>();
 
+    private JobDetail myAtomFeedJob;
+
     /**
      * The SingletonHolder is loaded on the first execution of
      * {@link SpJobScheduler#instance()} or the first access to
@@ -201,6 +203,11 @@ public final class SpJobScheduler {
     public void scheduleJobs(final IConfigProp.Key configKey) {
 
         switch (configKey) {
+        case FEED_ATOM_ADMIN_SCHEDULE:
+            final List<JobDetail> jobs = new ArrayList<>();
+            jobs.add(myAtomFeedJob);
+            scheduleJobs(jobs, configKey);
+            break;
         case SCHEDULE_HOURLY:
             scheduleJobs(myHourlyJobs, configKey);
             break;
@@ -249,7 +256,7 @@ public final class SpJobScheduler {
                 interruptGcpListener();
 
                 /*
-                 * Wait for PaperCut Prit Monitor to finish...
+                 * Wait for PaperCut Print Monitor to finish...
                  */
                 interruptPaperCutPrintMonitor();
 
@@ -290,6 +297,10 @@ public final class SpJobScheduler {
         JobDataMap data = null;
 
         switch (jobType) {
+
+        case ATOM_FEED:
+            jobClass = org.savapage.core.job.AtomFeedJob.class;
+            break;
 
         case CUPS_SUBS_RENEW:
             jobClass = org.savapage.core.job.CupsSubsRenew.class;
@@ -399,8 +410,11 @@ public final class SpJobScheduler {
             myDailyJobs.add(createJob(jobType, JOB_GROUP_SCHEDULED));
         }
 
-        myDailyMaintJobs
-                .add(createJob(SpJobType.PRINTER_SNMP, JOB_GROUP_SCHEDULED));
+        for (final SpJobType jobType : EnumSet.of(SpJobType.PRINTER_SNMP)) {
+            myDailyMaintJobs.add(createJob(jobType, JOB_GROUP_SCHEDULED));
+        }
+
+        myAtomFeedJob = createJob(SpJobType.ATOM_FEED, JOB_GROUP_SCHEDULED);
     }
 
     /**
@@ -415,6 +429,8 @@ public final class SpJobScheduler {
         scheduleJobs(IConfigProp.Key.SCHEDULE_WEEKLY);
         scheduleJobs(IConfigProp.Key.SCHEDULE_MONTHLY);
         scheduleJobs(IConfigProp.Key.SCHEDULE_DAILY_MAINT);
+
+        scheduleJobs(IConfigProp.Key.FEED_ATOM_ADMIN_SCHEDULE);
     }
 
     /**

@@ -46,6 +46,11 @@ public enum PubTopicEnum {
     DB("db"),
 
     /**
+     * Atom Feed.
+     */
+    FEED("feed"),
+
+    /**
      * Google Cloud Print, waiting for print jobs.
      */
     GCP_PRINT("gcp-print"),

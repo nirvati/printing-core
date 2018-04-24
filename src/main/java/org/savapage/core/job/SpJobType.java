@@ -31,6 +31,11 @@ import org.savapage.core.jpa.PrinterGroup;
 public enum SpJobType {
 
     /**
+     * .
+     */
+    ATOM_FEED,
+
+    /**
      * CUPS event subscription renewal.
      */
     CUPS_SUBS_RENEW,
@@ -96,8 +101,7 @@ public enum SpJobType {
     PRINTER_SNMP,
 
     /**
-     * @deprecated
-     * SmartSchool.
+     * @deprecated SmartSchool.
      */
     SMARTSCHOOL_PRINT_MONITOR_JOB,
 
