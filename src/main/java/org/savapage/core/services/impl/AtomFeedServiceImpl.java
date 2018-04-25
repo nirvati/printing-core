@@ -26,6 +26,7 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -103,7 +104,9 @@ public final class AtomFeedServiceImpl extends AbstractService
 
         dto.setUuid(UUID.randomUUID());
         dto.setTitle("Metrics");
-        dto.setSummary("");
+        dto.setAuthor(ServiceContext.getActor());
+        dto.setCategory("statistics");
+        dto.setSummary("Daily Data");
         dto.setUpdated(ServiceContext.getTransactionDate());
 
         try {
@@ -131,8 +134,8 @@ public final class AtomFeedServiceImpl extends AbstractService
     }
 
     @Override
-    public AtomFeedWriter getAdminFeedWriter(final OutputStream ostr)
-            throws FeedException {
+    public AtomFeedWriter getAdminFeedWriter(final URI requestURI,
+            final OutputStream ostr) throws FeedException {
 
         final List<Path> feedEntryFiles = new ArrayList<>();
 
@@ -165,6 +168,6 @@ public final class AtomFeedServiceImpl extends AbstractService
             LOGGER.warn("Directory [{}] does not exist.", feedPath);
         }
 
-        return new AdminAtomFeedWriter(ostr, feedEntryFiles);
+        return new AdminAtomFeedWriter(requestURI, ostr, feedEntryFiles);
     }
 }

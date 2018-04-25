@@ -22,6 +22,7 @@
 package org.savapage.core.services;
 
 import java.io.OutputStream;
+import java.net.URI;
 
 import org.savapage.lib.feed.AtomFeedWriter;
 import org.savapage.lib.feed.FeedException;
@@ -43,12 +44,15 @@ public interface AtomFeedService extends StatefulService {
     /**
      * Gets the Atom Feed writer for admin news.
      *
+     * @param requestURI
+     *            The requester URI.
      * @param ostr
      *            The output stream to write atom to.
      * @return The {@link AtomFeedWriter}.
      * @throws FeedException
      *             When errors.
      */
-    AtomFeedWriter getAdminFeedWriter(OutputStream ostr) throws FeedException;
+    AtomFeedWriter getAdminFeedWriter(URI requestURI, OutputStream ostr)
+            throws FeedException;
 
 }

@@ -107,6 +107,14 @@ public abstract class AtomFeedWriter {
         ////
         writeElement("title", this.getFeedTitle());
 
+        //////
+        push();
+        indent();
+        writer.write("<link rel=\"self\" href=\"");
+        writer.write(this.getFeedLinkSelf().toString());
+        writer.write("\"/>");
+        pop();
+
         ////
         writeStartElement("author");
         //////
@@ -129,6 +137,19 @@ public abstract class AtomFeedWriter {
 
             writeElement("id", formatID(dto.getUuid()));
             writeElement("title", dto.getTitle());
+
+            writeStartElement("author");
+            writeElement("name", dto.getAuthor());
+            writeEndElement("author");
+
+            //////
+            push();
+            indent();
+            writer.write("<category term=\"");
+            writer.write(dto.getCategory());
+            writer.write("\"/>");
+            pop();
+
             writeElement("summary", dto.getSummary());
             writeElement("updated", formatDate(dto.getUpdated()));
 
@@ -291,6 +312,13 @@ public abstract class AtomFeedWriter {
      * @return Can be {@code null}.
      */
     protected abstract URI getFeedAuthorUri();
+
+    /**
+     * Feed author URI.
+     *
+     * @return The external link to this feed.
+     */
+    protected abstract URI getFeedLinkSelf();
 
     /**
      * @return Can be {@code null}.

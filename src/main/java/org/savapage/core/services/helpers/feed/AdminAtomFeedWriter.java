@@ -59,6 +59,8 @@ public final class AdminAtomFeedWriter extends AtomFeedWriter {
 
     private int iEntry = 0;
 
+    private final URI linkSelf;
+
     private final List<Path> feedEntryFiles;
 
     private final List<Path> filesToDelete = new ArrayList<>();
@@ -68,6 +70,8 @@ public final class AdminAtomFeedWriter extends AtomFeedWriter {
 
     /**
      *
+     * @param requestURI
+     *            The requester URI.
      * @param ostr
      *            OutputStream to write to.
      * @param feedEntryFiles
@@ -75,10 +79,11 @@ public final class AdminAtomFeedWriter extends AtomFeedWriter {
      * @throws FeedException
      *             When error.
      */
-    public AdminAtomFeedWriter(final OutputStream ostr,
+    public AdminAtomFeedWriter(final URI requestURI, final OutputStream ostr,
             final List<Path> feedEntryFiles) throws FeedException {
         super(ostr);
         this.feedEntryFiles = feedEntryFiles;
+        this.linkSelf = requestURI;
     }
 
     @Override
@@ -110,6 +115,11 @@ public final class AdminAtomFeedWriter extends AtomFeedWriter {
     @Override
     protected URI getFeedAuthorUri() {
         return null;
+    }
+
+    @Override
+    protected URI getFeedLinkSelf() {
+        return this.linkSelf;
     }
 
     @Override
