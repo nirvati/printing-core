@@ -745,6 +745,28 @@ public interface ProxyPrintService {
             throws IOException, IppConnectException;
 
     /**
+     * Re-sends PDF job file (and Job Sheet PDF) to CUPS printer, and that is
+     * it. No database action is executed.
+     *
+     * @param request
+     *            The {@link AbstractProxyPrintReq}.
+     * @param job
+     *            The {@link OutboxJobDto}.
+     * @param jsonPrinter
+     *            The printer object.
+     * @param user
+     *            The requesting user.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the file to print.
+     * @return The print job data.
+     * @throws IppConnectException
+     *             When IPP connection error.
+     */
+    JsonProxyPrintJob proxyPrintJobTicketResend(AbstractProxyPrintReq request,
+            OutboxJobDto job, JsonProxyPrinter jsonPrinter, String user,
+            PdfCreateInfo createInfo) throws IppConnectException;
+
+    /**
      * Settles a Job Ticket without printing it.
      *
      * @param operator

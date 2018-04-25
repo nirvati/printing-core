@@ -1353,8 +1353,9 @@ public final class JobTicketServiceImpl extends AbstractService
         /*
          * CUPS Print.
          */
-        final JsonProxyPrintJob printJob = proxyPrintService().sendPdfToPrinter(
-                request, jsonPrinter, user.getUserId(), createInfo);
+        final JsonProxyPrintJob printJob =
+                proxyPrintService().proxyPrintJobTicketResend(request, dto,
+                        jsonPrinter, user.getUserId(), createInfo);
 
         /*
          * Update PrintOut with new Printer and CUPS job data.

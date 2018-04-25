@@ -2257,15 +2257,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 jobSheetDto = jobTicketService()
                         .getTicketJobSheet(printReq.createIppOptionMap());
 
-                if (jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.NONE) {
-                    pdfTicketJobSheet = null;
-                } else {
-                    jobSheetDto
-                            .setMediaSourceOption(job.getMediaSourceJobSheet());
-
-                    pdfTicketJobSheet = jobTicketService().createTicketJobSheet(
-                            lockedUser.getUserId(), job, jobSheetDto);
-                }
+                pdfTicketJobSheet = this.getTicketJobSheetPdf(job, jobSheetDto,
+                        lockedUser.getUserId());
             } else {
                 jobSheetDto = null;
                 pdfTicketJobSheet = null;
@@ -2648,6 +2641,69 @@ public abstract class AbstractProxyPrintService extends AbstractService
         return this.execOutboxJob(operator, lockedUser, job,
                 PrintModeEnum.TICKET, pdfFileToPrint,
                 extPrinterManager == ThirdPartyEnum.PAPERCUT);
+    }
+
+    /**
+     * Creates a (temporary) Job Sheet PDF file.
+     * <p>
+     * Note: The media source of {@link TicketJobSheetDto} is set from the
+     * requested job sheet media source.
+     * </p>
+     *
+     * @param job
+     *            The job ticket.
+     * @param jobSheetDto
+     *            The job sheet info
+     * @param user
+     *            The user.
+     * @return {@code null} when no job sheet is applicable.
+     */
+    private File getTicketJobSheetPdf(final OutboxJobDto job,
+            final TicketJobSheetDto jobSheetDto, final String user) {
+
+        final File file;
+
+        if (jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.NONE) {
+            file = null;
+        } else {
+            jobSheetDto.setMediaSourceOption(job.getMediaSourceJobSheet());
+            file = jobTicketService().createTicketJobSheet(user, job,
+                    jobSheetDto);
+        }
+        return file;
+    }
+
+    @Override
+    public final JsonProxyPrintJob proxyPrintJobTicketResend(
+            final AbstractProxyPrintReq request, final OutboxJobDto job,
+            final JsonProxyPrinter jsonPrinter, final String user,
+            final PdfCreateInfo createInfo) throws IppConnectException {
+
+        /*
+         * Job Sheet?
+         */
+        final TicketJobSheetDto jobSheetDto = jobTicketService()
+                .getTicketJobSheet(request.createIppOptionMap());
+
+        final File pdfTicketJobSheet =
+                this.getTicketJobSheetPdf(job, jobSheetDto, user);
+
+        if (pdfTicketJobSheet != null
+                && jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.START) {
+            proxyPrintJobSheet(request, job, user, jobSheetDto,
+                    pdfTicketJobSheet);
+        }
+
+        final JsonProxyPrintJob printJob = proxyPrintService()
+                .sendPdfToPrinter(request, jsonPrinter, user, createInfo);
+
+        if (pdfTicketJobSheet != null
+                && jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.END) {
+            proxyPrintJobSheet(request, job, user, jobSheetDto,
+                    pdfTicketJobSheet);
+        }
+
+        return printJob;
     }
 
     @Override
@@ -3090,7 +3146,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     /**
-     * Print a Job Sheet and deletes the PDF job sheet afterwards.
+     * Prints a Job Sheet and deletes the PDF job sheet afterwards.
      *
      * @param reqMain
      *            The print request of the main job.
