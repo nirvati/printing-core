@@ -211,6 +211,41 @@ public abstract class AbstractProxyPrintService extends AbstractService
             addBookletConstraints();
         }
 
+        /**
+         * Creates a booklet constraint rule.
+         *
+         * @param name
+         *            The rule name.
+         * @param pairBooklet
+         *            The booklet key/value pair.
+         * @param setBookletNegate
+         *            The booklet negate set.
+         * @param ippKeyword
+         *            The constraint IPP keyword.
+         * @param ippValue
+         *            The constraint IPP value.
+         * @return The rule.
+         */
+        private static IppRuleConstraint createBookletConstraintRule(
+                final String name,
+                final ImmutablePair<String, String> pairBooklet,
+                final Set<String> setBookletNegate, final String ippKeyword,
+                final String ippValue) {
+
+            final IppRuleConstraint rule =
+                    new IppRuleConstraint(String.format("%s-%s-%s", ALIAS_PFX,
+                            ALIAS_BOOKLET_PFX, ippValue));
+
+            final List<Pair<String, String>> pairs = new ArrayList<>();
+
+            pairs.add(pairBooklet);
+            pairs.add(new ImmutablePair<String, String>(ippKeyword, ippValue));
+
+            rule.setIppContraints(pairs);
+            rule.setIppNegateSet(setBookletNegate);
+            return rule;
+        }
+
         /** */
         private void addBookletConstraints() {
 
@@ -220,6 +255,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                             IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE);
 
             final Set<String> setBookletNegate = new HashSet<>();
+
             setBookletNegate.add(
                     IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET);
 
@@ -227,37 +263,27 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     IppKeyword.NUMBER_UP_4, IppKeyword.NUMBER_UP_6,
                     IppKeyword.NUMBER_UP_9 }) {
 
-                final IppRuleConstraint rule =
-                        new IppRuleConstraint(String.format("%s-%s-%s-%s",
-                                ALIAS_PFX, ALIAS_BOOKLET_PFX,
-                                IppDictJobTemplateAttr.ATTR_NUMBER_UP, nUp));
-                final List<Pair<String, String>> pairs = new ArrayList<>();
-
-                pairs.add(pairBooklet);
-                pairs.add(new ImmutablePair<String, String>(
+                this.rulesBooklet.add(createBookletConstraintRule(
+                        String.format("%s-%s-%s-%s", ALIAS_PFX,
+                                ALIAS_BOOKLET_PFX,
+                                IppDictJobTemplateAttr.ATTR_NUMBER_UP, nUp),
+                        pairBooklet, setBookletNegate,
                         IppDictJobTemplateAttr.ATTR_NUMBER_UP, nUp));
-
-                rule.setIppContraints(pairs);
-                rule.setIppNegateSet(setBookletNegate);
-
-                this.rulesBooklet.add(rule);
             }
 
-            //
-            final IppRuleConstraint rule =
-                    new IppRuleConstraint(String.format("%s-%s-%s", ALIAS_PFX,
-                            ALIAS_BOOKLET_PFX, IppKeyword.SIDES_ONE_SIDED));
-
-            final List<Pair<String, String>> pairs = new ArrayList<>();
-
-            pairs.add(pairBooklet);
-            pairs.add(new ImmutablePair<String, String>(
+            this.rulesBooklet.add(createBookletConstraintRule(
+                    String.format("%s-%s-%s", ALIAS_PFX, ALIAS_BOOKLET_PFX,
+                            IppKeyword.SIDES_ONE_SIDED),
+                    pairBooklet, setBookletNegate,
                     IppDictJobTemplateAttr.ATTR_SIDES,
                     IppKeyword.SIDES_ONE_SIDED));
 
-            rule.setIppContraints(pairs);
-            rule.setIppNegateSet(setBookletNegate);
-            this.rulesBooklet.add(rule);
+            this.rulesBooklet.add(createBookletConstraintRule(
+                    String.format("%s-%s-%s", ALIAS_PFX, ALIAS_BOOKLET_PFX,
+                            "rotate-180-on"),
+                    pairBooklet, setBookletNegate,
+                    IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180,
+                    IppKeyword.ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180_ON));
         }
 
         /**
@@ -267,7 +293,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
         public List<IppRuleConstraint> getRulesBooklet() {
             return rulesBooklet;
         }
-
     }
 
     /**

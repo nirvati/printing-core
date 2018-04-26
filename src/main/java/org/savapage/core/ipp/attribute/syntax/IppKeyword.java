@@ -344,6 +344,9 @@ public class IppKeyword extends AbstractIppAttrSyntax {
     public static final String ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180_OFF =
             IppBoolean.FALSE;
 
+    public static final String ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180_ON =
+            IppBoolean.TRUE;
+
     // ------------------------------------------------------------------------
     // finishings
     // ------------------------------------------------------------------------
