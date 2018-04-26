@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 
 import javax.print.attribute.standard.MediaSizeName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.IppMediaSizeEnum;
@@ -136,6 +137,9 @@ public final class IppReqPrintJob extends IppReqCommon {
 
     /**
      * Corrects a Print Job request for n-up.
+     * <p>
+     * Note: a booklet is not corrected. See Mantis #949.
+     * </p>
      *
      * @param jsonPrinter
      *            The printer.
@@ -152,7 +156,22 @@ public final class IppReqPrintJob extends IppReqCommon {
     private static void correctForNup(final JsonProxyPrinter jsonPrinter,
             final Map<String, String> optionValues, final IppAttrGroup group,
             final PdfOrientationInfo pdfOrientation, final String numberUp) {
+        /*
+         * Do NOT correct for booklet jobs: printer booklet finishers are
+         * supposed to apply the right orientation and layout.
+         */
+        if (!StringUtils
+                .defaultString(
+                        optionValues
+                                .get(IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET),
+                        IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE)
+                .equals(IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE)) {
 
+            LOGGER.debug("No n-up correction for booklet needed.");
+            return;
+        }
+
+        //
         final IppRuleNumberUp templateRule = new IppRuleNumberUp("template");
 
         templateRule.setLandscape(pdfOrientation.getLandscape());
@@ -184,7 +203,7 @@ public final class IppReqPrintJob extends IppReqCommon {
         }
 
         if (numberUpRule == null) {
-            LOGGER.debug("No correction for n-up.");
+            LOGGER.debug("No correction for n-up found.");
             return;
         }
 
