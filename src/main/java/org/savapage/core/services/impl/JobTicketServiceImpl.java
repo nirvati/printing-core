@@ -906,17 +906,25 @@ public final class JobTicketServiceImpl extends AbstractService
             return null;
         }
 
-        final UUID uuid = uuidFromFileName(fileName);
+        final IppJobStateEnum jobState = printOutDAO().getIppJobState(printOut);
+        final boolean jobCompleted =
+                jobState == IppJobStateEnum.IPP_JOB_COMPLETED;
 
-        final OutboxJobDto dto = this.removeTicket(uuid, true);
+        if (!jobCompleted) {
+            docLogService().updateExternalStatus(
+                    printOut.getDocOut().getDocLog(),
+                    ExternalSupplierStatusEnum.CANCELLED);
+        }
+
+        final UUID uuid = uuidFromFileName(fileName);
+        final OutboxJobDto dto = this.removeTicket(uuid, jobCompleted);
 
         if (dto == null) {
             return null;
         }
 
-        dto.setIppJobState(
-                IppJobStateEnum.asEnum(printOut.getCupsJobState().intValue()));
-
+        //
+        dto.setIppJobState(jobState);
         return dto;
     }
 

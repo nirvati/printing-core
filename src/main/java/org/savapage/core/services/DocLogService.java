@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <https://savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -258,4 +258,17 @@ public interface DocLogService {
     void resetPagometers(String resetBy, boolean resetDashboard,
             boolean resetQueues, boolean resetPrinters, boolean resetUsers);
 
+    /**
+     * Updates DocLog external status.
+     * <p>
+     * Note: when no transaction is active, the update is committed.
+     * </p>
+     *
+     * @param docLog
+     *            The D{@link DocLog}.
+     * @param extStatus
+     *            The {@link ExternalSupplierStatusEnum}.
+     */
+    void updateExternalStatus(DocLog docLog,
+            ExternalSupplierStatusEnum extStatus);
 }

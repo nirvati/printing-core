@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -971,12 +971,11 @@ public final class DocLogServiceImpl extends AbstractService
                 msgKey = "pub-user-print-in-success-multiple";
             }
 
-            AdminPublisher.instance()
-                    .publish(PubTopicEnum.USER, PubLevelEnum.INFO,
-                            localize(msgKey, userId,
-                                    String.valueOf(
-                                            pageProps.getNumberOfPages()),
-                                    "/" + queue.getUrlPath(), originator));
+            AdminPublisher.instance().publish(PubTopicEnum.USER,
+                    PubLevelEnum.INFO,
+                    localize(msgKey, userId,
+                            String.valueOf(pageProps.getNumberOfPages()),
+                            "/" + queue.getUrlPath(), originator));
 
         } else {
 
@@ -1235,4 +1234,47 @@ public final class DocLogServiceImpl extends AbstractService
         }
         return docLogDAO().findById(docLogId);
     }
+
+    /**
+     * Updates DocLog external status.
+     * <p>
+     * Note: when no transaction is active, the update is committed.
+     * </p>
+     *
+     * @param docLog
+     *            The D{@link DocLog}.
+     * @param extStatus
+     *            The {@link ExternalSupplierStatusEnum}.
+     */
+    @Override
+    public void updateExternalStatus(final DocLog docLog,
+            final ExternalSupplierStatusEnum extStatus) {
+
+        final DaoContext daoCtx = ServiceContext.getDaoContext();
+        final boolean adhocTransaction = !daoCtx.isTransactionActive();
+
+        if (adhocTransaction) {
+            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
+            daoCtx.beginTransaction();
+        }
+
+        try {
+
+            docLog.setExternalStatus(extStatus.toString());
+
+            docLogDAO().update(docLog);
+
+            if (adhocTransaction) {
+                daoCtx.commit();
+            }
+
+        } finally {
+            if (adhocTransaction) {
+                daoCtx.rollback();
+                ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+            }
+        }
+
+    }
+
 }

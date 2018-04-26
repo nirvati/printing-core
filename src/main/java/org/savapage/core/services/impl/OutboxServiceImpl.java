@@ -46,11 +46,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.savapage.core.SpException;
-import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
-import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.doc.DocContent;
@@ -1000,33 +998,14 @@ public final class OutboxServiceImpl extends AbstractService
             statusNew = ExternalSupplierStatusEnum.PENDING_COMPLETE;
         }
 
+        docLogService().updateExternalStatus(docLog, statusNew);
+
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace(String.format(
                     "DocLog from External Supplier [%s] Account [%s] "
                             + "ID [%s]: changed external status [%s] to [%s]",
                     supplier.toString(), accountToFind, supplierId,
                     statusCurrent.toString(), statusNew.toString()));
-        }
-
-        final DaoContext daoCtx = ServiceContext.getDaoContext();
-        final boolean adhocTransaction = !daoCtx.isTransactionActive();
-
-        if (adhocTransaction) {
-            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
-            daoCtx.beginTransaction();
-        }
-        try {
-            docLog.setExternalStatus(statusNew.toString());
-            docLogDAO().update(docLog);
-            if (adhocTransaction) {
-                daoCtx.commit();
-            }
-
-        } finally {
-            if (adhocTransaction) {
-                daoCtx.rollback();
-                ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
-            }
         }
     }
 
