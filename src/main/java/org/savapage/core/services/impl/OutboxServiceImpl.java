@@ -41,7 +41,6 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -225,16 +224,11 @@ public final class OutboxServiceImpl extends AbstractService
 
         final File jsonFile = getOutboxInfoFilePath(userId);
 
-        Writer writer = null;
-        try {
-            writer = new FileWriter(jsonFile);
+        try (Writer writer = new FileWriter(jsonFile);) {
             JsonHelper.write(outboxInfo, writer);
-            writer.close();
         } catch (IOException e) {
             throw new SpException(String.format("Error writing file [%s]",
                     jsonFile.getAbsolutePath()), e);
-        } finally {
-            IOUtils.closeQuietly(writer);
         }
     }
 

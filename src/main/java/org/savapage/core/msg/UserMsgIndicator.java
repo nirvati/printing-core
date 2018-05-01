@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -37,7 +37,6 @@ import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
-import org.apache.commons.io.IOUtils;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.PrintOutDao;
@@ -49,6 +48,7 @@ import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.DateUtil;
+import org.savapage.core.util.IOHelper;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -504,7 +504,7 @@ public final class UserMsgIndicator {
 
         } finally {
 
-            IOUtils.closeQuietly(fos);
+            IOHelper.closeQuietly(fos);
 
             // Mantis #864: extra safety, clean up the temp file.
             if (fileTemp != null) {

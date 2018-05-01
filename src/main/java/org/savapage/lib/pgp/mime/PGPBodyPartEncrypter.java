@@ -33,7 +33,6 @@ import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 
-import org.apache.commons.io.IOUtils;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
@@ -87,20 +86,17 @@ public final class PGPBodyPartEncrypter extends PGPBodyPartProcessor {
         final Date embeddedFileDate = new Date();
 
         //
-        InputStream contentStream = null;
-        ByteArrayOutputStream contentStreamEncrypted = null;
-
         this.controlPart = new MimeBodyPart();
         this.controlPart.setContent("Version: 1\n",
                 "application/pgp-encrypted");
 
-        try {
-            contentStream =
-                    new ByteArrayInputStream(bodyPartAsString(getContentPart())
-                            .getBytes(StandardCharsets.UTF_8));
+        try (ByteArrayOutputStream contentStreamEncrypted =
+                new ByteArrayOutputStream();
 
-            contentStreamEncrypted = new ByteArrayOutputStream();
-
+                InputStream contentStream = new ByteArrayInputStream(
+                        bodyPartAsString(getContentPart())
+                                .getBytes(StandardCharsets.UTF_8)); //
+        ) {
             PGPHelper.instance().encryptOnePassSignature(contentStream,
                     contentStreamEncrypted, this.getSecretKeyInfo(),
                     this.publicKeys, embeddedFileName, embeddedFileDate, true);
@@ -117,9 +113,6 @@ public final class PGPBodyPartEncrypter extends PGPBodyPartProcessor {
 
         } catch (IOException | PGPBaseException e) {
             throw new PGPMimeException(e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(contentStreamEncrypted);
-            IOUtils.closeQuietly(contentStream);
         }
     }
 

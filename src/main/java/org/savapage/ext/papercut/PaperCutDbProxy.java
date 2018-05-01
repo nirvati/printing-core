@@ -36,7 +36,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
@@ -47,6 +46,7 @@ import org.savapage.core.circuitbreaker.CircuitTrippingException;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.util.IOHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -690,8 +690,8 @@ public final class PaperCutDbProxy {
 
         } finally {
 
-            IOUtils.closeQuietly(csvWriter);
-            IOUtils.closeQuietly(writer);
+            IOHelper.closeQuietly(csvWriter);
+            IOHelper.closeQuietly(writer);
 
             silentClose(resultset, statement);
 

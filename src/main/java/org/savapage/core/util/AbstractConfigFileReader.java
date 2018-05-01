@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -107,10 +106,8 @@ public abstract class AbstractConfigFileReader {
 
         this.onInit();
 
-        BufferedReader br = null;
+        try (BufferedReader br = new BufferedReader(new FileReader(file));) {
 
-        try {
-            br = new BufferedReader(new FileReader(file));
             String strLine;
             int lineNr = 0;
 
@@ -168,11 +165,6 @@ public abstract class AbstractConfigFileReader {
                 if (statusWlk == null) {
                     break;
                 }
-
-            }
-        } finally {
-            if (br != null) {
-                IOUtils.closeQuietly(br);
             }
         }
         this.onEof();

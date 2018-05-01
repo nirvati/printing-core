@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -35,7 +35,6 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.commons.io.IOUtils;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
@@ -57,7 +56,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class EmailOutboxMonitor extends AbstractJob {
@@ -65,8 +64,8 @@ public final class EmailOutboxMonitor extends AbstractJob {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(EmailOutboxMonitor.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(EmailOutboxMonitor.class);
 
     /**
      * Number of seconds after restarting this job after an exception occurs.
@@ -101,9 +100,8 @@ public final class EmailOutboxMonitor extends AbstractJob {
     @Override
     protected void onInit(final JobExecutionContext ctx) {
 
-        this.breaker =
-                ConfigManager
-                        .getCircuitBreaker(CircuitBreakerEnum.SMTP_CONNECTION);
+        this.breaker = ConfigManager
+                .getCircuitBreaker(CircuitBreakerEnum.SMTP_CONNECTION);
 
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(localizeLogMsg("EmailOutboxMonitor.started"));
@@ -128,9 +126,8 @@ public final class EmailOutboxMonitor extends AbstractJob {
 
         } catch (Exception t) {
 
-            this.millisUntilNextInvocation =
-                    RESTART_SECS_AFTER_EXCEPTION
-                            * DateUtil.DURATION_MSEC_SECOND;
+            this.millisUntilNextInvocation = RESTART_SECS_AFTER_EXCEPTION
+                    * DateUtil.DURATION_MSEC_SECOND;
 
             AdminPublisher.instance().publish(PubTopicEnum.SMTP,
                     PubLevelEnum.ERROR,
@@ -180,12 +177,9 @@ public final class EmailOutboxMonitor extends AbstractJob {
                             (double) this.millisUntilNextInvocation
                                     / DateUtil.DURATION_MSEC_SECOND;
 
-                    pubMsg =
-                            localizeSysMsg(
-                                    "EmailOutboxMonitor.restart",
-                                    BigDecimalUtil.localize(
-                                            BigDecimal.valueOf(seconds),
-                                            Locale.getDefault(), false));
+                    pubMsg = localizeSysMsg("EmailOutboxMonitor.restart",
+                            BigDecimalUtil.localize(BigDecimal.valueOf(seconds),
+                                    Locale.getDefault(), false));
                 } catch (ParseException e) {
                     throw new SpException(e.getMessage());
                 }
@@ -219,8 +213,8 @@ public final class EmailOutboxMonitor extends AbstractJob {
      *             When SMTP circuit is broken.
      */
     private void sendMimeFiles(final EmailService emailService,
-            final DirectoryStream<Path> dirStream) throws IOException,
-            CircuitBreakerException {
+            final DirectoryStream<Path> dirStream)
+            throws IOException, CircuitBreakerException {
         /*
          * Iterate over the paths in the directory and print filenames.
          */
@@ -247,13 +241,12 @@ public final class EmailOutboxMonitor extends AbstractJob {
                 final String sendTo =
                         mimeMsg.getRecipients(Message.RecipientType.TO)[0]
                                 .toString();
-                final String mailSize =
-                        NumberUtil.humanReadableByteCount(mimeMsg.getSize(),
-                                true);
+                final String mailSize = NumberUtil
+                        .humanReadableByteCount(mimeMsg.getSize(), true);
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(localizeLogMsg(msgKey, subject, sendTo,
-                            mailSize));
+                    LOGGER.debug(
+                            localizeLogMsg(msgKey, subject, sendTo, mailSize));
                 }
 
                 AdminPublisher.instance().publish(PubTopicEnum.SMTP,
@@ -314,23 +307,17 @@ public final class EmailOutboxMonitor extends AbstractJob {
                 LOGGER.trace(String.format("Email Watch [%d]", i));
             }
 
-            final DirectoryStream<Path> dirStream =
-                    Files.newDirectoryStream(
-                            emailService.getOutboxMimeFilesPath(),
-                            emailService.getOutboxMimeFileGlob());
-
-            try {
+            try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(
+                    emailService.getOutboxMimeFilesPath(),
+                    emailService.getOutboxMimeFileGlob());) {
                 this.sendMimeFiles(emailService, dirStream);
-            } finally {
-                IOUtils.closeQuietly(dirStream);
             }
 
             /*
              * STOP if the max monitor time has elapsed.
              */
-            final long timeElapsed =
-                    System.currentTimeMillis() + MSECS_WAIT_BETWEEN_POLLS
-                            - msecStart;
+            final long timeElapsed = System.currentTimeMillis()
+                    + MSECS_WAIT_BETWEEN_POLLS - msecStart;
 
             if (timeElapsed >= MAX_MONITOR_MSEC) {
 

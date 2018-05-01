@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -45,7 +45,6 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -60,6 +59,7 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.RunMode;
 import org.savapage.core.jpa.tools.DatabaseTypeEnum;
+import org.savapage.core.util.IOHelper;
 
 /**
  *
@@ -160,8 +160,8 @@ public final class AppSSLKeystore extends AbstractApp {
             }
 
         } finally {
-            IOUtils.closeQuietly(writer);
-            IOUtils.closeQuietly(istr);
+            IOHelper.closeQuietly(writer);
+            IOHelper.closeQuietly(istr);
         }
 
         this.keystorePassword = pw;
@@ -277,8 +277,7 @@ public final class AppSSLKeystore extends AbstractApp {
         /*
          * Fill keystore
          */
-        final String alias =
-                CommunityDictEnum.SAVAPAGE.getWord();
+        final String alias = CommunityDictEnum.SAVAPAGE.getWord();
 
         ks.setKeyEntry(alias, keyPair.getPrivate(),
                 this.keyEntryPassword.toCharArray(),
@@ -287,10 +286,9 @@ public final class AppSSLKeystore extends AbstractApp {
         /*
          * Write keystore
          */
-        final FileOutputStream ostr = new FileOutputStream(keystoreFile);
-        ks.store(ostr, this.keystorePassword.toCharArray());
-
-        IOUtils.closeQuietly(ostr);
+        try (FileOutputStream ostr = new FileOutputStream(keystoreFile);) {
+            ks.store(ostr, this.keystorePassword.toCharArray());
+        }
     }
 
     /**

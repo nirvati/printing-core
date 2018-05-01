@@ -48,12 +48,12 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.SpInfo;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.util.IOHelper;
 
 import net.iharder.Base64;
 
@@ -245,8 +245,8 @@ public final class CryptoUser {
             }
 
         } finally {
-            IOUtils.closeQuietly(writer);
-            IOUtils.closeQuietly(istr);
+            IOHelper.closeQuietly(writer);
+            IOHelper.closeQuietly(istr);
         }
     }
 

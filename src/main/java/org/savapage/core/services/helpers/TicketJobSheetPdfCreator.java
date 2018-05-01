@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,6 @@ import java.util.Locale;
 
 import javax.print.attribute.standard.MediaSizeName;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
@@ -51,6 +50,7 @@ import org.savapage.core.print.proxy.TicketJobSheetDto;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
+import org.savapage.core.util.IOHelper;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,7 +174,7 @@ public final class TicketJobSheetPdfCreator {
             throw new SpException(e.getMessage(), e);
         } finally {
             document.close();
-            IOUtils.closeQuietly(ostr);
+            IOHelper.closeQuietly(ostr);
         }
 
         return filePdf;

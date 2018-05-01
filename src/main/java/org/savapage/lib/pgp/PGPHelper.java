@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,6 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -40,7 +39,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.bcpg.BCPGOutputStream;
 import org.bouncycastle.bcpg.CompressionAlgorithmTags;
@@ -82,6 +80,7 @@ import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
+import org.savapage.core.util.IOHelper;
 
 /**
  *
@@ -174,10 +173,7 @@ public final class PGPHelper {
 
         final List<PGPSecretKeyInfo> list = new ArrayList<>();
 
-        InputStream istrBinary = null;
-
-        try {
-            istrBinary = PGPUtil.getDecoderStream(istr);
+        try (InputStream istrBinary = PGPUtil.getDecoderStream(istr)) {
 
             final PGPSecretKeyRingCollection pgpPriv =
                     new PGPSecretKeyRingCollection(istrBinary,
@@ -205,8 +201,6 @@ public final class PGPHelper {
 
         } catch (IOException | PGPException e) {
             throw new PGPBaseException(e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(istrBinary);
         }
 
         if (list.isEmpty()) {
@@ -253,12 +247,10 @@ public final class PGPHelper {
     public PGPPublicKeyInfo readPublicKey(final InputStream istr)
             throws PGPBaseException {
 
-        InputStream istrBinary = null;
         PGPPublicKey encryptionKey = null;
         PGPPublicKey masterKey = null;
 
-        try {
-            istrBinary = PGPUtil.getDecoderStream(istr);
+        try (InputStream istrBinary = PGPUtil.getDecoderStream(istr);) {
 
             final PGPPublicKeyRingCollection pgpPub =
                     new PGPPublicKeyRingCollection(istrBinary,
@@ -304,8 +296,6 @@ public final class PGPHelper {
 
         } catch (IOException | PGPException e) {
             throw new PGPBaseException(e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(istrBinary);
         }
 
         return new PGPPublicKeyInfo(masterKey, encryptionKey);
@@ -325,10 +315,7 @@ public final class PGPHelper {
 
         final List<PGPPublicKey> list = new ArrayList<>();
 
-        InputStream istrBinary = null;
-
-        try {
-            istrBinary = PGPUtil.getDecoderStream(istr);
+        try (InputStream istrBinary = PGPUtil.getDecoderStream(istr);) {
 
             final PGPPublicKeyRingCollection pgpPub =
                     new PGPPublicKeyRingCollection(istrBinary,
@@ -350,8 +337,6 @@ public final class PGPHelper {
 
         } catch (IOException | PGPException e) {
             throw new PGPBaseException(e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(istrBinary);
         }
 
         if (list.isEmpty()) {
@@ -376,12 +361,9 @@ public final class PGPHelper {
     public static void downloadPublicKey(final URL lookupUrl,
             final OutputStream ostr) throws UnknownHostException, IOException {
 
-        InputStream istr = null;
-        BufferedReader reader = null;
-
-        try {
-            istr = lookupUrl.openStream();
-            reader = new BufferedReader(new InputStreamReader(istr));
+        try (InputStream istr = lookupUrl.openStream();
+                BufferedReader reader =
+                        new BufferedReader(new InputStreamReader(istr));) {
 
             String line;
 
@@ -399,9 +381,6 @@ public final class PGPHelper {
                     }
                 }
             }
-        } finally {
-            IOUtils.closeQuietly(reader);
-            IOUtils.closeQuietly(istr);
         }
     }
 
@@ -420,18 +399,16 @@ public final class PGPHelper {
 
         for (final File file : publicKeyFiles) {
 
-            InputStream signPublicKeyInputStream = null;
-
-            try {
-                signPublicKeyInputStream = new FileInputStream(file);
+            try (InputStream signPublicKeyInputStream =
+                    new FileInputStream(file);) {
 
                 final PGPPublicKeyInfo encKey =
                         readPublicKey(signPublicKeyInputStream);
+
                 pgpPublicKeyList.add(encKey);
-            } catch (FileNotFoundException e) {
+
+            } catch (IOException e) {
                 throw new PGPBaseException(e.getMessage(), e);
-            } finally {
-                IOUtils.closeQuietly(signPublicKeyInputStream);
             }
 
         }
@@ -575,18 +552,18 @@ public final class PGPHelper {
         } finally {
 
             // (3) In case we missed closes because of exception.
-            IOUtils.closeQuietly(literalOut);
+            IOHelper.closeQuietly(literalOut);
             closePGPDataGenerator(literalDataGenerator);
 
             // (4) Close the rest.
-            IOUtils.closeQuietly(compressedOut);
+            IOHelper.closeQuietly(compressedOut);
             closePGPDataGenerator(compressedDataGenerator);
 
-            IOUtils.closeQuietly(encryptedOut);
+            IOHelper.closeQuietly(encryptedOut);
             closePGPDataGenerator(encryptedDataGenerator);
 
             if (asciiArmor) {
-                IOUtils.closeQuietly(targetOut);
+                IOHelper.closeQuietly(targetOut);
             }
         }
     }
@@ -614,12 +591,10 @@ public final class PGPHelper {
             throws PGPBaseException {
 
         // Objects to be closed when finished.
-        InputStream istr = null;
         OutputStream ostr = null;
         BCPGOutputStream pgostr = null;
 
-        try {
-            istr = new BufferedInputStream(contentStream);
+        try (InputStream istr = new BufferedInputStream(contentStream);) {
 
             if (asciiArmor) {
                 ostr = new ArmoredOutputStream(
@@ -650,11 +625,10 @@ public final class PGPHelper {
         } catch (PGPException | IOException e) {
             throw new PGPBaseException(e.getMessage(), e);
         } finally {
-            IOUtils.closeQuietly(istr);
-            IOUtils.closeQuietly(pgostr);
+            IOHelper.closeQuietly(pgostr);
 
             if (asciiArmor) {
-                IOUtils.closeQuietly(ostr);
+                IOHelper.closeQuietly(ostr);
             }
         }
     }
@@ -860,7 +834,7 @@ public final class PGPHelper {
         } catch (IOException | PGPException e) {
             throw new PGPBaseException(e.getMessage(), e);
         } finally {
-            IOUtils.closeQuietly(clearDataInputStream);
+            IOHelper.closeQuietly(clearDataInputStream);
         }
     }
 }

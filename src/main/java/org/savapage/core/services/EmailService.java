@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,7 +22,6 @@
 package org.savapage.core.services;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -93,8 +92,8 @@ public interface EmailService extends StatefulService {
      *
      * @return The {@link MimeMessage} sent.
      *
-     * @throws FileNotFoundException
-     *             When file is not found.
+     * @throws IOException
+     *             When IO error.
      * @throws MessagingException
      *             When MIME content is invalid.
      * @throws InterruptedException
@@ -103,7 +102,7 @@ public interface EmailService extends StatefulService {
      *             When {@link CircuitBreakerEnum#SMTP_CONNECTION} is not
      *             closed.
      */
-    MimeMessage sendEmail(File mimeFile) throws FileNotFoundException,
-            MessagingException, InterruptedException, CircuitBreakerException;
+    MimeMessage sendEmail(File mimeFile) throws IOException, MessagingException,
+            InterruptedException, CircuitBreakerException;
 
 }

@@ -29,7 +29,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.savapage.core.SpException;
@@ -72,15 +71,12 @@ public final class InetUtils {
      *            The IP port.
      * @return {@code true} when in us.
      */
-    public static boolean isPortInUse(int port) {
-        boolean inUse = true;
-        Socket socket = null;
-        try {
-            socket = new Socket(IP_LOOP_BACK_ADDR, port);
+    public static boolean isPortInUse(final int port) {
+        boolean inUse;
+        try (Socket socket = new Socket(IP_LOOP_BACK_ADDR, port);) {
+            inUse = true;
         } catch (Exception e) {
             inUse = false;
-        } finally {
-            IOUtils.closeQuietly(socket);
         }
         return inUse;
     }

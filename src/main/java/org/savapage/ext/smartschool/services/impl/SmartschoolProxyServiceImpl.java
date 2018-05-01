@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -61,7 +61,6 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.codec.binary.Base64InputStream;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.config.ConfigManager;
@@ -284,14 +283,10 @@ public final class SmartschoolProxyServiceImpl
                 continue;
             }
 
-            final Reader reader = new FileReader(file);
-
-            try {
+            try (Reader reader = new FileReader(file);) {
                 docList.add(Document.create(Document.class, reader));
             } catch (JAXBException e) {
                 throw new IOException(e.getMessage(), e);
-            } finally {
-                IOUtils.closeQuietly(reader);
             }
         }
 
@@ -513,14 +508,10 @@ public final class SmartschoolProxyServiceImpl
         final File cachedXml = createDocumentFile(accountName, nodeId,
                 document.getId(), FILE_EXT_XML).toFile();
 
-        final Writer xmlWriter = new FileWriter(cachedXml);
-
-        try {
+        try (Writer xmlWriter = new FileWriter(cachedXml);) {
             document.writeXml(xmlWriter);
         } catch (JAXBException e) {
             throw new IOException(e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(xmlWriter);
         }
 
         final Path cachedPdf = createDocumentFile(accountName, nodeId,

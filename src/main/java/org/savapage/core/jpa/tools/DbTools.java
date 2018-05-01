@@ -61,7 +61,6 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Session;
@@ -1027,10 +1026,8 @@ public final class DbTools implements ServiceEntryPoint {
         final Path backupPath = FileSystems.getDefault()
                 .getPath(ConfigManager.getDbBackupHome());
 
-        final DirectoryStream<Path> ds =
-                Files.newDirectoryStream(backupPath, "savapage*.zip");
-
-        try {
+        try (DirectoryStream<Path> ds =
+                Files.newDirectoryStream(backupPath, "savapage*.zip");) {
             /*
              * Iterate over the paths in the directory and print filenames
              */
@@ -1053,8 +1050,6 @@ public final class DbTools implements ServiceEntryPoint {
                     nFilesDeleted++;
                 }
             }
-        } finally {
-            IOUtils.closeQuietly(ds);
         }
 
         return nFilesDeleted;

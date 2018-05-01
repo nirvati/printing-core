@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -40,7 +40,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -71,13 +70,14 @@ import org.savapage.core.ipp.encoding.IppEncoder;
 import org.savapage.core.ipp.operation.IppMessageMixin;
 import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.ipp.operation.IppStatusCode;
+import org.savapage.core.util.IOHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * The IPP client responsible for communication with the IPP server (CUPS).
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class IppClient {
@@ -85,8 +85,8 @@ public final class IppClient {
     /**
      * .
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(IppClient.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(IppClient.class);
 
     /**
      * .
@@ -215,10 +215,8 @@ public final class IppClient {
          *
          * TODO: make a better solution (persistent requestId).
          */
-        this.requestIdWlk =
-                Integer.valueOf(
-                        new SimpleDateFormat("HHmmss'000'").format(new Date()),
-                        10);
+        this.requestIdWlk = Integer.valueOf(
+                new SimpleDateFormat("HHmmss'000'").format(new Date()), 10);
 
         final PoolingHttpClientConnectionManager connManager =
                 new PoolingHttpClientConnectionManager();
@@ -256,8 +254,8 @@ public final class IppClient {
      *
      * @return The {@link RequestConfig}.
      */
-    private static RequestConfig buildRequestConfig(
-            final boolean isLocalIppServer) {
+    private static RequestConfig
+            buildRequestConfig(final boolean isLocalIppServer) {
 
         final ConfigManager cm = ConfigManager.instance();
 
@@ -283,7 +281,7 @@ public final class IppClient {
      *
      */
     public void shutdown() {
-        IOUtils.closeQuietly(httpclientApache);
+        IOHelper.closeQuietly(httpclientApache);
     }
 
     /**
@@ -319,8 +317,8 @@ public final class IppClient {
     private IppStatusCode send(final URL urlServer,
             final boolean isLocalUrlServer, final IppOperationId operationId,
             final List<IppAttrGroup> request, final File file,
-            final List<IppAttrGroup> response) throws InterruptedException,
-            CircuitBreakerException {
+            final List<IppAttrGroup> response)
+            throws InterruptedException, CircuitBreakerException {
 
         ByteArrayOutputStream ostr = null;
         InputStreamList istr = null;
@@ -400,13 +398,11 @@ public final class IppClient {
         final CircuitBreaker circuitBreaker;
 
         if (isLocalUrlServer) {
-            circuitBreaker =
-                    ConfigManager
-                            .getCircuitBreaker(CircuitBreakerEnum.CUPS_LOCAL_IPP_CONNECTION);
+            circuitBreaker = ConfigManager.getCircuitBreaker(
+                    CircuitBreakerEnum.CUPS_LOCAL_IPP_CONNECTION);
         } else {
-            circuitBreaker =
-                    ConfigManager
-                            .getCircuitBreaker(CircuitBreakerEnum.CUPS_REMOTE_IPP_CONNECTIONS);
+            circuitBreaker = ConfigManager.getCircuitBreaker(
+                    CircuitBreakerEnum.CUPS_REMOTE_IPP_CONNECTIONS);
         }
 
         //
@@ -443,8 +439,8 @@ public final class IppClient {
      */
     private IppStatusCode execute(final CircuitBreaker circuitBreaker,
             final HttpPost httppost, final List<IppAttrGroup> response,
-            final ResponseHandler<byte[]> handler) throws InterruptedException,
-            CircuitBreakerException {
+            final ResponseHandler<byte[]> handler)
+            throws InterruptedException, CircuitBreakerException {
 
         Exception deferredException = null;
         IppStatusCode statusCode = null;
@@ -493,19 +489,19 @@ public final class IppClient {
             httppost.reset();
         }
 
-        circuitBreaker.execute(new DeferredCupsCircuitOperation(
-                deferredException));
+        circuitBreaker
+                .execute(new DeferredCupsCircuitOperation(deferredException));
 
         return statusCode;
     }
 
     /**
      *
-     * @author Datraverse B.V.
+     * @author Rijk Ravestein
      *
      */
-    private static class DeferredCupsCircuitOperation implements
-            CircuitBreakerOperation {
+    private static class DeferredCupsCircuitOperation
+            implements CircuitBreakerOperation {
 
         final Exception sendException;
 
@@ -659,9 +655,8 @@ public final class IppClient {
         IppStatusCode statusCode;
 
         try {
-            statusCode =
-                    send(urlServer, isLocalUrlServer, operationId, request,
-                            file, response);
+            statusCode = send(urlServer, isLocalUrlServer, operationId, request,
+                    file, response);
 
             if (statusCode != IppStatusCode.OK
                     && statusCode != IppStatusCode.CLI_NOTFND) {
@@ -709,8 +704,8 @@ public final class IppClient {
             final List<IppAttrGroup> response) throws IppConnectException {
 
         try {
-            return send(urlServer, isLocalUrlServer, operationId, request,
-                    null, response);
+            return send(urlServer, isLocalUrlServer, operationId, request, null,
+                    response);
         } catch (InterruptedException | CircuitBreakerException e) {
             throw new IppConnectException(e);
         }

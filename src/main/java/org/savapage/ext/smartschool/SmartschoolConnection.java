@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -32,17 +32,17 @@ import javax.xml.soap.SOAPConnection;
 import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.SOAPException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.savapage.core.SpException;
+import org.savapage.core.util.IOHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class SmartschoolConnection {
@@ -50,8 +50,8 @@ public final class SmartschoolConnection {
     /**
      * .
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SmartschoolConnection.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SmartschoolConnection.class);
 
     /**
      *
@@ -129,9 +129,8 @@ public final class SmartschoolConnection {
             this.endpointUri = new URI(this.account.getEndpoint());
             this.endpointUrl = new URL(this.account.getEndpoint());
 
-            this.endpointIpAddress =
-                    InetAddress.getByName(this.endpointUrl.getHost())
-                            .getHostAddress();
+            this.endpointIpAddress = InetAddress
+                    .getByName(this.endpointUrl.getHost()).getHostAddress();
 
             this.accountName = extractAccountName(this.endpointUrl);
 
@@ -168,8 +167,8 @@ public final class SmartschoolConnection {
 
         } catch (URISyntaxException | MalformedURLException
                 | UnknownHostException e) {
-            throw new SOAPException(String.format("%s: %s", e.getClass()
-                    .getSimpleName(), e.getMessage()), e);
+            throw new SOAPException(String.format("%s: %s",
+                    e.getClass().getSimpleName(), e.getMessage()), e);
         }
 
         this.connection =
@@ -286,7 +285,7 @@ public final class SmartschoolConnection {
             LOGGER.warn("Error closing SOAP connection: " + e.getMessage());
         }
 
-        IOUtils.closeQuietly(this.httpClient);
+        IOHelper.closeQuietly(this.httpClient);
     }
 
     /**

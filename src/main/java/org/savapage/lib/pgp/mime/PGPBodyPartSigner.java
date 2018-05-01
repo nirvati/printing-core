@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,6 @@ import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 
-import org.apache.commons.io.IOUtils;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHashAlgorithmEnum;
 import org.savapage.lib.pgp.PGPHelper;
@@ -78,15 +77,11 @@ public final class PGPBodyPartSigner extends PGPBodyPartProcessor {
             throw new PGPMimeException("content part is missing.");
         }
 
-        InputStream contentStream = null;
-        ByteArrayOutputStream contentStreamSigned = null;
-
-        try {
-            contentStream =
-                    new ByteArrayInputStream(bodyPartAsString(getContentPart())
-                            .getBytes(StandardCharsets.UTF_8));
-
-            contentStreamSigned = new ByteArrayOutputStream();
+        try (ByteArrayOutputStream contentStreamSigned =
+                new ByteArrayOutputStream();
+                InputStream contentStream = new ByteArrayInputStream(
+                        bodyPartAsString(getContentPart())
+                                .getBytes(StandardCharsets.UTF_8));) {
 
             PGPHelper.instance().createSignature(contentStream,
                     contentStreamSigned, this.getSecretKeyInfo(),
@@ -103,9 +98,6 @@ public final class PGPBodyPartSigner extends PGPBodyPartProcessor {
 
         } catch (IOException | MessagingException | PGPBaseException e) {
             throw new PGPMimeException(e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(contentStreamSigned);
-            IOUtils.closeQuietly(contentStream);
         }
     }
 

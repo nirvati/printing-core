@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,10 +27,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.services.PGPPublicKeyService;
+import org.savapage.core.util.IOHelper;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
@@ -55,10 +55,9 @@ public final class PGPPublicKeyServiceImpl extends AbstractService
     public PGPPublicKeyInfo lookup(final String hexKeyID)
             throws PGPBaseException {
 
-        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ByteArrayInputStream bis = null;
 
-        try {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();) {
 
             final URL url = ConfigManager.instance()
                     .getPGPPublicKeyDownloadUrl(hexKeyID);
@@ -77,8 +76,7 @@ public final class PGPPublicKeyServiceImpl extends AbstractService
         } catch (IOException e) {
             LOGGER.warn(e.getMessage());
         } finally {
-            IOUtils.closeQuietly(bos);
-            IOUtils.closeQuietly(bis);
+            IOHelper.closeQuietly(bis);
         }
         return null;
     }

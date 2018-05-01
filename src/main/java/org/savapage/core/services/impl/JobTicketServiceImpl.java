@@ -54,7 +54,6 @@ import javax.mail.MessagingException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
@@ -359,13 +358,8 @@ public final class JobTicketServiceImpl extends AbstractService
             dto.setFile(jsonFileTicket.getName());
         }
 
-        Writer writer = null;
-        try {
-            writer = new FileWriter(jsonFileTicket);
+        try (Writer writer = new FileWriter(jsonFileTicket);) {
             JsonHelper.write(dto, writer);
-            writer.close();
-        } finally {
-            IOUtils.closeQuietly(writer);
         }
 
         /*
@@ -946,17 +940,12 @@ public final class JobTicketServiceImpl extends AbstractService
             return false;
         }
 
-        final OutboxJobDto dtoPrev = this.jobTicketCache.put(uuid, dto);
+        this.jobTicketCache.put(uuid, dto);
 
         final File jsonFileTicket = getJobTicketFile(uuid, FILENAME_EXT_JSON);
 
-        Writer writer = null;
-        try {
-            writer = new FileWriter(jsonFileTicket);
+        try (Writer writer = new FileWriter(jsonFileTicket);) {
             JsonHelper.write(dto, writer);
-            writer.close();
-        } finally {
-            IOUtils.closeQuietly(writer);
         }
         return true;
     }

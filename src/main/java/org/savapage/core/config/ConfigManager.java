@@ -71,7 +71,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -212,8 +211,7 @@ public final class ConfigManager {
      * The relative path of the Atom Feeds folder (relative to the
      * {@code server} directory).
      */
-    private static final String SERVER_REL_PATH_FEEDS =
-            "data/feed";
+    private static final String SERVER_REL_PATH_FEEDS = "data/feed";
 
     /**
      * .
@@ -855,22 +853,15 @@ public final class ConfigManager {
 
         Properties serverProps = null;
 
-        FileInputStream fis = null;
+        final String path = ConfigManager.getServerHome() + "/"
+                + FILENAME_SERVER_PROPERTIES;
 
-        try {
-
-            final String path = ConfigManager.getServerHome() + "/"
-                    + FILENAME_SERVER_PROPERTIES;
-
-            fis = new FileInputStream(path);
+        try (FileInputStream fis = new FileInputStream(path);) {
 
             serverProps = new Properties();
             serverProps.load(fis);
 
             return serverProps;
-
-        } finally {
-            IOUtils.closeQuietly(fis);
         }
     }
 

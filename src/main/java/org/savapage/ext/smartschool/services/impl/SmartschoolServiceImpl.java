@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -52,7 +52,6 @@ import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.codec.binary.Base64OutputStream;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -78,6 +77,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.impl.AbstractService;
+import org.savapage.core.util.IOHelper;
 import org.savapage.ext.papercut.services.PaperCutService;
 import org.savapage.ext.smartschool.SmartschoolAccount;
 import org.savapage.ext.smartschool.SmartschoolConnection;
@@ -820,7 +820,7 @@ public final class SmartschoolServiceImpl extends AbstractService
 
                 if (pdfEmbedded) {
 
-                    IOUtils.closeQuietly(ostrDoc);
+                    IOHelper.closeQuietly(ostrDoc);
 
                 } else {
 

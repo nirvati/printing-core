@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,6 @@ package org.savapage.core.services.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -48,7 +47,6 @@ import javax.mail.internet.MimeMultipart;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpInfo;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
@@ -73,7 +71,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @since 0.9.9
  * @author Rijk Ravestein
  *
  */
@@ -422,18 +419,14 @@ public final class EmailServiceImpl extends AbstractService
         final Path filePathTemp =
                 Paths.get(ConfigManager.getAppTmpDir(), fileBaseName);
 
-        final FileOutputStream fos =
-                new FileOutputStream(filePathTemp.toFile());
+        try (FileOutputStream fos =
+                new FileOutputStream(filePathTemp.toFile());) {
 
-        try {
             final MimeMessage msg = this.createMimeMessage(parms, false);
             msg.writeTo(fos);
 
             fos.flush();
             fos.getFD().sync();
-
-        } finally {
-            IOUtils.closeQuietly(fos);
         }
 
         final Path filePath = Paths.get(ConfigManager.getServerHome(),
@@ -451,20 +444,16 @@ public final class EmailServiceImpl extends AbstractService
     }
 
     @Override
-    public MimeMessage sendEmail(final File mimeFile)
-            throws FileNotFoundException, MessagingException,
-            InterruptedException, CircuitBreakerException {
+    public MimeMessage sendEmail(final File mimeFile) throws MessagingException,
+            InterruptedException, CircuitBreakerException, IOException {
 
-        final FileInputStream fis = new FileInputStream(mimeFile);
-        final MimeMessage msg = new MimeMessage(createSendMailSession(), fis);
-
-        try {
+        try (FileInputStream fis = new FileInputStream(mimeFile);) {
+            final MimeMessage msg =
+                    new MimeMessage(createSendMailSession(), fis);
             sendMimeMessage(msg);
-        } finally {
-            IOUtils.closeQuietly(fis);
+            return msg;
         }
 
-        return msg;
     }
 
     @Override
