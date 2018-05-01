@@ -46,13 +46,21 @@ public enum NounEnum {
     /** */
     DOCUMENT(true),
     /** */
+    DOWNLOAD(true),
+    /** */
     GROUP(true),
+    /** */
+    INPUT,
     /** */
     INVOICING,
     /** */
     MODE(true),
     /** */
     QUEUE(true),
+    /** */
+    OUTPUT,
+    /** */
+    PRINTER(true),
     /** */
     REFUND(true),
     /** */
@@ -67,6 +75,8 @@ public enum NounEnum {
     TIME,
     /** */
     TITLE,
+    /** */
+    TOTAL(true),
     /** */
     TRANSACTION(true),
     /** */
