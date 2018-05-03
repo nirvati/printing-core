@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,7 @@ import org.savapage.core.template.dto.TemplateAppDto;
 import org.savapage.core.template.dto.TemplateDto;
 import org.savapage.core.util.Messages;
 import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.StringRenderer;
 
 /**
  * Base class for all templates.
@@ -130,7 +131,6 @@ public abstract class TemplateMixin {
     }
 
     /**
-     *
      * Renders a template.
      *
      * @param rcBundle
@@ -148,6 +148,13 @@ public abstract class TemplateMixin {
 
         final ST tpl = new ST(template, ST_DELIMITER_CHAR_START,
                 ST_DELIMITER_CHAR_STOP);
+
+        /*
+         * The StringRenderer knows to perform a few format operations on String
+         * objects: upper, lower, cap, url-encode and xml-encode.
+         */
+        tpl.groupThatCreatedThisInstance.registerRenderer(String.class,
+                new StringRenderer());
 
         final Map<String, TemplateDto> mapBean = this.onRender(locale);
 

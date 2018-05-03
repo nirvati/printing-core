@@ -219,7 +219,8 @@ public final class EmailMsgParms {
      * @param content
      * @param locale
      * @param asHtml
-     *            If {@code true} rendered as HTML, otherwise as plain text
+     *            If {@code true}, content is rendered as HTML, otherwise as
+     *            plain text.
      */
     public void setBodyInStationary(final String headerText,
             final String content, final Locale locale, final boolean asHtml) {
