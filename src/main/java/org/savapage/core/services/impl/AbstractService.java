@@ -60,6 +60,7 @@ import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.services.AccessControlService;
 import org.savapage.core.services.AccountVoucherService;
 import org.savapage.core.services.AccountingService;
+import org.savapage.core.services.AppLogService;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.EmailService;
@@ -93,6 +94,10 @@ public abstract class AbstractService {
 
     protected static AccountVoucherService accountVoucherService() {
         return ServiceContext.getServiceFactory().getAccountVoucherService();
+    }
+
+    protected static AppLogService appLogService() {
+        return ServiceContext.getServiceFactory().getAppLogService();
     }
 
     protected static DeviceService deviceService() {

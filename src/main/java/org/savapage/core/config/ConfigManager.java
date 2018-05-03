@@ -97,6 +97,7 @@ import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.impl.DaoContextImpl;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.i18n.SystemModeEnum;
 import org.savapage.core.ipp.client.IppClient;
 import org.savapage.core.jmx.CoreConfig;
 import org.savapage.core.job.SpJobScheduler;
@@ -2447,6 +2448,23 @@ public final class ConfigManager {
      */
     public static boolean isSysMaintenance() {
         return instance().isConfigValue(IConfigProp.Key.SYS_MAINTENANCE);
+    }
+
+    /**
+     * @return The {@link SystemModeEnum}.
+     */
+    public static SystemModeEnum getSystemMode() {
+        if (ConfigManager.isSysMaintenance()) {
+            return SystemModeEnum.MAINTENANCE;
+        }
+        return SystemModeEnum.PRODUCTION;
+    }
+
+    /**
+     * @return Uptime of the Java virtual machine in milliseconds.
+     */
+    public static long getUptime() {
+        return ManagementFactory.getRuntimeMXBean().getUptime();
     }
 
     /**

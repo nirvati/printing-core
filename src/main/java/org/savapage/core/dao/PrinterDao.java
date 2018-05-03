@@ -61,6 +61,7 @@ public interface PrinterDao extends GenericDao<Printer> {
         private Boolean deleted;
         private Boolean internal;
         private Boolean jobTicket;
+        private Boolean snmp;
 
         public String getContainingText() {
             return containingText;
@@ -100,6 +101,14 @@ public interface PrinterDao extends GenericDao<Printer> {
 
         public void setJobTicket(Boolean jobTicket) {
             this.jobTicket = jobTicket;
+        }
+
+        public Boolean getSnmp() {
+            return snmp;
+        }
+
+        public void setSnmp(Boolean snmp) {
+            this.snmp = snmp;
         }
 
     }

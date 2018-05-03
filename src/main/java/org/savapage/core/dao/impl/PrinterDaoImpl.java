@@ -287,7 +287,20 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
     }
 
     /**
-     * Applies PrinterAttr constraint to the JPQL string.
+     * Applies PrinterAttr presence constraint to the JPQL string.
+     *
+     * @param where
+     *            The {@link StringBuilder} to append to.
+     * @param attrName
+     *            The attribute name.
+     */
+    private void applyPrinterAttrConstraint(final StringBuilder where,
+            final PrinterAttrEnum attrName) {
+        where.append("(A.name = \'").append(attrName.getDbName()).append("\')");
+    }
+
+    /**
+     * Applies PrinterAttr boolean constraint to the JPQL string.
      *
      * @param where
      *            The {@link StringBuilder} to append to.
@@ -358,20 +371,36 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
             where.append(
                     " P NOT IN (SELECT A.printer FROM PrinterAttr A WHERE ");
 
+            int nConstraint = 0;
+
             if (filter.getInternal() != null) {
                 applyPrinterAttrConstraint(where,
                         PrinterAttrEnum.ACCESS_INTERNAL,
                         !filter.getInternal().booleanValue());
+                nConstraint++;
             }
+
             if (filter.getJobTicket() != null) {
-                if (filter.getInternal() != null) {
+                if (nConstraint > 0) {
                     where.append(" OR ");
                 }
                 applyPrinterAttrConstraint(where,
                         PrinterAttrEnum.JOBTICKET_ENABLE,
                         !filter.getJobTicket().booleanValue());
+                nConstraint++;
             }
+            where.append(")");
+        }
 
+        if (filter.getSnmp() != null) {
+
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+
+            where.append(" P IN (SELECT A.printer FROM PrinterAttr A WHERE ");
+            applyPrinterAttrConstraint(where, PrinterAttrEnum.SNMP_DATE);
             where.append(")");
         }
 

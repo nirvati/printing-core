@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,7 @@
  */
 package org.savapage.core.template;
 
+import org.savapage.core.template.dto.TemplateAdminFeedDto;
 import org.savapage.core.template.dto.TemplateAppDto;
 import org.savapage.core.template.dto.TemplateDto;
 import org.savapage.core.template.dto.TemplateJobTicketDto;
@@ -44,6 +45,11 @@ public enum TemplateAttrEnum {
      * Email Content-ID.
      */
     CID(null),
+
+    /**
+     * Admin Feed.
+     */
+    FEED_ADMIN(TemplateAdminFeedDto.class),
 
     /**
      * Email stationary.
