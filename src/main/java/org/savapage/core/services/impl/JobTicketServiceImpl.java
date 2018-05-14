@@ -35,6 +35,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -47,6 +48,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -55,6 +57,7 @@ import javax.mail.MessagingException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.CronExpression;
 import org.savapage.core.SpException;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.config.ConfigManager;
@@ -1868,6 +1871,20 @@ public final class JobTicketServiceImpl extends AbstractService
             return JobTicketTagCache.getTicketTag(words[0]);
         }
         return null;
+    }
+
+    @Override
+    public SortedSet<Integer> getDeliveryDaysOfWeek() {
+
+        final CronExpression exp;
+        try {
+            exp = new CronExpression(String.format("0 0 0 ? * %s",
+                    ConfigManager.instance().getConfigValue(
+                            Key.JOBTICKET_DELIVERY_DAYS_OF_WEEK)));
+        } catch (ParseException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+        return DateUtil.getWeekDayOrdinals(exp);
     }
 
 }

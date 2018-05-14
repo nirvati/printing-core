@@ -21,26 +21,16 @@
  */
 package org.savapage.core.config.validator;
 
-import org.quartz.CronExpression;
-
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public class CronExpressionValidator implements ConfigPropValidator {
+public final class CronExpressionDaysOfWeekValidator
+        extends CronExpressionValidator {
 
     @Override
     public ValidationResult validate(final String value) {
-
-        final ValidationResult res = new ValidationResult(value);
-
-        try {
-            CronExpression.validateExpression(value);
-        } catch (Exception e) {
-            res.setStatus(ValidationStatusEnum.ERROR_SYNTAX);
-            res.setMessage(e.getMessage());
-        }
-        return res;
+        return super.validate(String.format("0 0 0 ? * %s", value));
     }
 }

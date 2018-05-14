@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.SortedSet;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dto.JobTicketTagDto;
@@ -466,5 +467,12 @@ public interface JobTicketService extends StatefulService {
      * @return {@code null| when not present.
      */
     JobTicketTagDto getTicketNumberTag(String ticketNumber);
+
+    /**
+     *
+     * @return Valid delivery weekdays as set of ordinals, sorted ascending
+     *         (Sunday is zero).
+     */
+    SortedSet<Integer> getDeliveryDaysOfWeek();
 
 }

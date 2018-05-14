@@ -35,6 +35,7 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.validator.BooleanValidator;
 import org.savapage.core.config.validator.CidrRangesValidator;
 import org.savapage.core.config.validator.ConfigPropValidator;
+import org.savapage.core.config.validator.CronExpressionDaysOfWeekValidator;
 import org.savapage.core.config.validator.CronExpressionValidator;
 import org.savapage.core.config.validator.CurrencyCodeValidator;
 import org.savapage.core.config.validator.DecimalValidator;
@@ -1486,9 +1487,35 @@ public interface IConfigProp {
         JOBTICKET_COPIER_ENABLE("jobticket.copier.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
-         * Enable "delivery time" option for Job Ticket (boolean).
+         * Enable "delivery data/time" option for Job Ticket (boolean).
          */
         JOBTICKET_DELIVERY_DATETIME_ENABLE("jobticket.delivery-datetime.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /**
+         * Enable "delivery time" option for Job Ticket (boolean).
+         */
+        JOBTICKET_DELIVERY_TIME_ENABLE("jobticket.delivery-time.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /**
+         * Default delivery time (days-of-week count after ticket creation).
+         */
+        JOBTICKET_DELIVERY_DAYS("jobticket.delivery-days", NUMBER_VALIDATOR, "1", API_UPDATABLE_ON),
+
+        /**
+         * Minimal delivery time (days-of-week count).
+         */
+        JOBTICKET_DELIVERY_DAYS_MIN("jobticket.delivery-days-min", NUMBER_VALIDATOR, "1", API_UPDATABLE_ON),
+
+        /**
+         * Delivery days of week.
+         */
+        JOBTICKET_DELIVERY_DAYS_OF_WEEK("jobticket.delivery-days-of-week", CRON_EXPR_DAY_OF_WEEK_VALIDATOR, "MON-FRI", API_UPDATABLE_ON),
+
+        /**
+         * Time of delivery on delivery day as minutes after midnight. For
+         * instance: 8h30m = 8*60+30 = 510
+         */
+        JOBTICKET_DELIVERY_DAY_MINUTES("jobticket.delivery-day-minutes", NUMBER_VALIDATOR, "510", API_UPDATABLE_ON),
 
         /**
          * Enable notification by email to owner of job ticket when ticket is
@@ -2631,6 +2658,9 @@ public interface IConfigProp {
 
     /** */
     CronExpressionValidator CRON_EXPR_VALIDATOR = new CronExpressionValidator();
+    /** */
+    CronExpressionDaysOfWeekValidator CRON_EXPR_DAY_OF_WEEK_VALIDATOR =
+            new CronExpressionDaysOfWeekValidator();
 
     /**
      * .

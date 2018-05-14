@@ -23,9 +23,17 @@ package org.savapage.core.util;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.format.TextStyle;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.quartz.CronExpression;
 
 /**
  *
@@ -73,6 +81,11 @@ public final class DateUtil {
      * The number of minutes in a hour.
      */
     public static final int MINUTES_IN_HOUR = 60;
+
+    /**
+     *
+     */
+    public static final int DAYS_IN_WEEK = 7;
 
     /**
      *
@@ -222,6 +235,61 @@ public final class DateUtil {
     private static long unitsBetween(final Date d1, final Date d2,
             final long unitMsec) {
         return (d2.getTime() - d1.getTime()) / unitMsec;
+    }
+
+    /**
+     * Get the weekday ordinals of a CRON expression.
+     *
+     * @param exp
+     *            The CRON expression.
+     * @return The weekday ordinals, sorted ascending (Sunday is zero).
+     */
+    public static SortedSet<Integer>
+            getWeekDayOrdinals(final CronExpression exp) {
+
+        final SortedSet<Integer> weekDays = new TreeSet<>();
+        final Calendar c = Calendar.getInstance();
+        Date nextDate = new Date();
+        for (int i = 0; i < DAYS_IN_WEEK; i++) {
+            nextDate = exp.getNextValidTimeAfter(nextDate);
+            c.setTime(nextDate);
+            weekDays.add(c.get(Calendar.DAY_OF_WEEK) - 1);
+        }
+        return weekDays;
+    }
+
+    /**
+     * Gets the localized weekday string of a set of weekday ordinalss in short
+     * text style.
+     *
+     * @param weekDays
+     *            The weekday ordinals (Sunday is zero).
+     * @param locale
+     *            The locale.
+     * @return The localized weekday string in short text style.
+     */
+    public static String getWeekDayOrdinalsText(final Set<Integer> weekDays,
+            final Locale locale) {
+
+        final StringBuilder txt = new StringBuilder();
+
+        for (final Integer weekDay : weekDays) {
+
+            final DayOfWeek dayOfWeek;
+
+            if (weekDay == 0) {
+                dayOfWeek = DayOfWeek.SUNDAY;
+            } else {
+                dayOfWeek = DayOfWeek.of(weekDay);
+            }
+
+            if (txt.length() > 0) {
+                txt.append(" ");
+            }
+
+            txt.append(dayOfWeek.getDisplayName(TextStyle.SHORT, locale));
+        }
+        return txt.toString();
     }
 
 }
