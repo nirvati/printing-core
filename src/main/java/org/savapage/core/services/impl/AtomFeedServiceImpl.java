@@ -34,6 +34,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -51,6 +54,7 @@ import org.savapage.core.community.MemberCard;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.config.SslCertInfo;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.helpers.ProxyPrinterSnmpInfoDto;
 import org.savapage.core.jpa.Printer;
@@ -64,6 +68,7 @@ import org.savapage.core.snmp.SnmpPrinterErrorStateEnum;
 import org.savapage.core.snmp.SnmpPrtMarkerColorantValueEnum;
 import org.savapage.core.template.dto.TemplateAdminFeedDto;
 import org.savapage.core.template.dto.TemplatePrinterSnmpDto;
+import org.savapage.core.template.dto.TemplateSslCertDto;
 import org.savapage.core.template.feed.AdminFeedTemplate;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
@@ -101,6 +106,9 @@ public final class AtomFeedServiceImpl extends AbstractService
     /** */
     public static final String FEED_FILE_XHTML =
             FEED_FILE_BASENAME + "." + FEED_FILE_EXT_XHTML;
+
+    /** */
+    private static final long BACKUP_WARN_THRESHOLD_DAYS = 6;
 
     @Override
     public void start() {
@@ -324,7 +332,8 @@ public final class AtomFeedServiceImpl extends AbstractService
         dto.setSystemMode(ConfigManager.getSystemMode().uiText(locale));
         dto.setUptime(DateUtil.formatDuration(ConfigManager.getUptime()));
 
-        final Date oneDayAgo = DateUtils.addDays(new Date(), -1);
+        final Date now = new Date();
+        final Date oneDayAgo = DateUtils.addDays(now, -1);
         final long errors = appLogService().countErrors(oneDayAgo);
         final long warnings = appLogService().countWarnings(oneDayAgo);
 
@@ -351,6 +360,27 @@ public final class AtomFeedServiceImpl extends AbstractService
             dto.setPrintersSnmp(getPrintersSnmp(locale));
         }
 
+        //
+        final long timeBackup = ConfigManager.instance()
+                .getConfigLong(IConfigProp.Key.SYS_BACKUP_LAST_RUN_TIME);
+        if (timeBackup > 0) {
+            final long backupDays = ChronoUnit.DAYS.between(
+                    new Date(timeBackup).toInstant()
+                            .atZone(ZoneId.systemDefault()).toLocalDate(),
+                    LocalDate.now());
+
+            dto.setDaysSinceLastBackup(Long.valueOf(backupDays));
+            dto.setBackupWarning(backupDays > BACKUP_WARN_THRESHOLD_DAYS);
+        }
+
+        //
+        final SslCertInfo sslCert = ConfigManager.getSslCertInfo();
+        if (sslCert != null) {
+            dto.setSslCert(TemplateSslCertDto.create(sslCert));
+            dto.getSslCert()
+                    .setNotAfterWarning(sslCert.isNotAfterWithinMonth(now));
+        }
+        //
         xhtml.append(new AdminFeedTemplate(dto).render(locale));
     }
 

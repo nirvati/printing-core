@@ -254,6 +254,11 @@ public final class ConfigManager {
     private static String theDefaultServerSslPort;
 
     /**
+     * .
+     */
+    private static SslCertInfo sslCertInfo;
+
+    /**
      *
      */
     @SuppressWarnings("unchecked")
@@ -445,6 +450,24 @@ public final class ConfigManager {
      */
     public static void setDefaultServerSslPort(final String port) {
         theDefaultServerSslPort = port;
+    }
+
+    /**
+     *
+     * @param info
+     *            The SSL certificate info.
+     */
+    public static void setSslCertInfo(final SslCertInfo info) {
+        sslCertInfo = info;
+    }
+
+    /**
+     *
+     * @return The {@link SslCertInfo}, or {@code null}. when alias is not
+     *         found.
+     */
+    public static SslCertInfo getSslCertInfo() {
+        return sslCertInfo;
     }
 
     /**

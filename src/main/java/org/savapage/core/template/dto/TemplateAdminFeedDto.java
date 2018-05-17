@@ -47,7 +47,12 @@ public final class TemplateAdminFeedDto implements TemplateDto {
     private Long pagesPrinted;
     private Long pagesDownloaded;
 
+    private Long daysSinceLastBackup;
+    private boolean backupWarning;
+
     private List<TemplatePrinterSnmpDto> printersSnmp;
+
+    private TemplateSslCertDto sslCert;
 
     public String getMember() {
         return member;
@@ -175,6 +180,30 @@ public final class TemplateAdminFeedDto implements TemplateDto {
 
     public void setPagesDownloaded(Long pagesDownloaded) {
         this.pagesDownloaded = pagesDownloaded;
+    }
+
+    public TemplateSslCertDto getSslCert() {
+        return sslCert;
+    }
+
+    public void setSslCert(TemplateSslCertDto sslCert) {
+        this.sslCert = sslCert;
+    }
+
+    public Long getDaysSinceLastBackup() {
+        return daysSinceLastBackup;
+    }
+
+    public void setDaysSinceLastBackup(Long daysSinceLastBackup) {
+        this.daysSinceLastBackup = daysSinceLastBackup;
+    }
+
+    public boolean isBackupWarning() {
+        return backupWarning;
+    }
+
+    public void setBackupWarning(boolean backupWarning) {
+        this.backupWarning = backupWarning;
     }
 
 }
