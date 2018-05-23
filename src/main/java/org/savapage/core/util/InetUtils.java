@@ -176,7 +176,7 @@ public final class InetUtils {
             final String ipAddr) {
 
         boolean inrange =
-                StringUtils.isBlank(cidrRanges) || ipAddr.equals("127.0.0.1");
+                StringUtils.isBlank(cidrRanges) || ipAddr.equals(IP_LOOP_BACK_ADDR);
 
         if (!inrange) {
 

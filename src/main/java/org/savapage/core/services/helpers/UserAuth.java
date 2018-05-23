@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@ package org.savapage.core.services.helpers;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.config.WebAppTypeEnum;
 import org.savapage.core.dao.DeviceDao;
 import org.savapage.core.dao.enums.DeviceAttrEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
@@ -252,11 +253,16 @@ public class UserAuth {
      * @param authModeRequest
      *            The requested authentication mode (used to determine the
      *            default {@link Mode}). Can be {@code null}.
-     * @param isAdminWebAppContext
-     *            {@code true} if this is an Admin WebApp context.
+     * @param webAppType
+     *            The type of Web App.
+     * @param internetAccess
+     *            If {@code true}, the Web App is requested from the Internet.
      */
     public UserAuth(final Device terminal, final String authModeRequest,
-            final boolean isAdminWebAppContext) {
+            final WebAppTypeEnum webAppType, final boolean internetAccess) {
+
+        final boolean isAdminWebAppContext =
+                webAppType.equals(WebAppTypeEnum.ADMIN);
 
         final DeviceDao deviceDao =
                 ServiceContext.getDaoContext().getDeviceDao();
@@ -374,62 +380,131 @@ public class UserAuth {
 
         } else {
             /*
-             * Global values.
+             * Use dedicated Web App values when accessed from the Internet.
              */
-            this.allowAuthName = cm.isConfigValue(Key.AUTH_MODE_NAME);
-            this.allowAuthId = cm.isConfigValue(Key.AUTH_MODE_ID);
-            this.allowAuthCardLocal =
-                    cm.isConfigValue(Key.AUTH_MODE_CARD_LOCAL);
-            this.allowAuthYubikey = cm.isConfigValue(Key.AUTH_MODE_YUBIKEY);
-            this.allowAuthCardIp = false;
+            Key keyInternetAuthEnable = null;
+            Key keyInternetAuthName = null;
+            Key keyInternetAuthYubikey = null;
 
-            showAuthName = cm.isConfigValue(Key.AUTH_MODE_NAME_SHOW);
-            showAuthId = cm.isConfigValue(Key.AUTH_MODE_ID_SHOW);
-            showAuthCardLocal = cm.isConfigValue(Key.AUTH_MODE_CARD_LOCAL_SHOW);
-            showAuthYubiKey = cm.isConfigValue(Key.AUTH_MODE_YUBIKEY_SHOW);
-            showAuthCardIp = false;
-
-            this.authModeDefault =
-                    UserAuth.mode(cm.getConfigValue(Key.AUTH_MODE_DEFAULT));
-
-            /*
-             * This can only occur when we refactored the URL API (URL parameter
-             * names). Just in case we fall-back to basic Username login.
-             */
-            if (this.authModeDefault == null) {
-                LOGGER.warn("System AuthModeDefault ["
-                        + cm.getConfigValue(Key.AUTH_MODE_DEFAULT)
-                        + "] not found: using Username "
-                        + "as default login method");
-                this.authModeDefault = Mode.NAME;
+            if (internetAccess) {
+                switch (webAppType) {
+                case ADMIN:
+                    keyInternetAuthEnable =
+                            Key.WEBAPP_INTERNET_ADMIN_AUTH_MODE_ENABLE;
+                    keyInternetAuthName =
+                            Key.WEBAPP_INTERNET_ADMIN_AUTH_MODE_NAME;
+                    keyInternetAuthYubikey =
+                            Key.WEBAPP_INTERNET_ADMIN_AUTH_MODE_YUBIKEY;
+                    break;
+                case JOBTICKETS:
+                    keyInternetAuthEnable =
+                            Key.WEBAPP_INTERNET_JOBTICKETS_AUTH_MODE_ENABLE;
+                    keyInternetAuthName =
+                            Key.WEBAPP_INTERNET_JOBTICKETS_AUTH_MODE_NAME;
+                    keyInternetAuthYubikey =
+                            Key.WEBAPP_INTERNET_JOBTICKETS_AUTH_MODE_YUBIKEY;
+                    break;
+                case POS:
+                    keyInternetAuthEnable =
+                            Key.WEBAPP_INTERNET_POS_AUTH_MODE_ENABLE;
+                    keyInternetAuthName =
+                            Key.WEBAPP_INTERNET_POS_AUTH_MODE_NAME;
+                    keyInternetAuthYubikey =
+                            Key.WEBAPP_INTERNET_POS_AUTH_MODE_YUBIKEY;
+                    break;
+                case USER:
+                    keyInternetAuthEnable =
+                            Key.WEBAPP_INTERNET_USER_AUTH_MODE_ENABLE;
+                    keyInternetAuthName =
+                            Key.WEBAPP_INTERNET_USER_AUTH_MODE_NAME;
+                    keyInternetAuthYubikey =
+                            Key.WEBAPP_INTERNET_USER_AUTH_MODE_YUBIKEY;
+                    break;
+                default:
+                    break;
+                }
             }
 
-            boolean isValidDefault = false;
+            final boolean useInternetValues = keyInternetAuthEnable != null
+                    && cm.isConfigValue(keyInternetAuthEnable);
 
-            switch (this.authModeDefault) {
-            case CARD_LOCAL:
-                isValidDefault = this.allowAuthCardLocal && showAuthCardLocal;
-                break;
-            case ID:
-                isValidDefault = this.allowAuthId && showAuthId;
-                break;
-            case NAME:
-                isValidDefault = this.allowAuthName && showAuthName;
-                break;
-            case YUBIKEY:
-                isValidDefault = this.allowAuthYubikey && showAuthYubiKey;
-                break;
-            default:
-                break;
-            }
+            if (useInternetValues) {
 
-            if (!isValidDefault) {
-                this.authModeDefault = Mode.NAME;
-            }
+                this.allowAuthName = cm.isConfigValue(keyInternetAuthName);
+                this.allowAuthYubikey =
+                        cm.isConfigValue(keyInternetAuthYubikey);
 
-            if (!isAdminWebAppContext) {
-                this.maxIdleSeconds =
-                        cm.getConfigInt(Key.WEBAPP_USER_MAX_IDLE_SECS);
+                if (this.allowAuthYubikey) {
+                    this.authModeDefault = UserAuth.Mode.YUBIKEY;
+                    showAuthYubiKey = true;
+                } else {
+                    this.allowAuthName = true;
+                    this.authModeDefault = UserAuth.Mode.NAME;
+                    showAuthName = true;
+                }
+
+            } else {
+                /*
+                 * Global values.
+                 */
+                this.allowAuthName = cm.isConfigValue(Key.AUTH_MODE_NAME);
+                this.allowAuthId = cm.isConfigValue(Key.AUTH_MODE_ID);
+                this.allowAuthCardLocal =
+                        cm.isConfigValue(Key.AUTH_MODE_CARD_LOCAL);
+                this.allowAuthYubikey = cm.isConfigValue(Key.AUTH_MODE_YUBIKEY);
+                this.allowAuthCardIp = false;
+
+                showAuthName = cm.isConfigValue(Key.AUTH_MODE_NAME_SHOW);
+                showAuthId = cm.isConfigValue(Key.AUTH_MODE_ID_SHOW);
+                showAuthCardLocal =
+                        cm.isConfigValue(Key.AUTH_MODE_CARD_LOCAL_SHOW);
+                showAuthYubiKey = cm.isConfigValue(Key.AUTH_MODE_YUBIKEY_SHOW);
+                showAuthCardIp = false;
+
+                this.authModeDefault =
+                        UserAuth.mode(cm.getConfigValue(Key.AUTH_MODE_DEFAULT));
+
+                /*
+                 * This can only occur when we refactored the URL API (URL
+                 * parameter names). Just in case we fall-back to basic Username
+                 * login.
+                 */
+                if (this.authModeDefault == null) {
+                    LOGGER.warn("System AuthModeDefault ["
+                            + cm.getConfigValue(Key.AUTH_MODE_DEFAULT)
+                            + "] not found: using Username "
+                            + "as default login method");
+                    this.authModeDefault = Mode.NAME;
+                }
+
+                boolean isValidDefault = false;
+
+                switch (this.authModeDefault) {
+                case CARD_LOCAL:
+                    isValidDefault =
+                            this.allowAuthCardLocal && showAuthCardLocal;
+                    break;
+                case ID:
+                    isValidDefault = this.allowAuthId && showAuthId;
+                    break;
+                case NAME:
+                    isValidDefault = this.allowAuthName && showAuthName;
+                    break;
+                case YUBIKEY:
+                    isValidDefault = this.allowAuthYubikey && showAuthYubiKey;
+                    break;
+                default:
+                    break;
+                }
+
+                if (!isValidDefault) {
+                    this.authModeDefault = Mode.NAME;
+                }
+
+                if (!isAdminWebAppContext) {
+                    this.maxIdleSeconds =
+                            cm.getConfigInt(Key.WEBAPP_USER_MAX_IDLE_SECS);
+                }
             }
         }
 
@@ -454,9 +529,9 @@ public class UserAuth {
 
             /*
              * INVARIANT: Admin WebApp SHOULD always be able to login with
-             * user/password.
+             * user/password in intranet context.
              */
-            if (isAdminWebAppContext) {
+            if (isAdminWebAppContext && !internetAccess) {
                 this.visibleAuthName = true;
             }
 

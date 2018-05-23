@@ -2278,6 +2278,62 @@ public interface IConfigProp {
         WEBAPP_HTML_USER_LOGIN(Key.WEBAPP_HTML_PFX + "user.login", API_UPDATABLE_ON),
 
         /**
+        *
+        */
+        WEBAPP_INTERNET_ADMIN_ENABLE(Key.WEBAPP_INTERNET_PFX + "admin.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_ADMIN_AUTH_MODE_ENABLE(Key.WEBAPP_INTERNET_PFX + "admin.auth-mode.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_ADMIN_AUTH_MODE_NAME(Key.WEBAPP_INTERNET_PFX + "admin.auth-mode.name", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_ADMIN_AUTH_MODE_YUBIKEY(Key.WEBAPP_INTERNET_PFX + "admin.auth-mode.yubikey", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /**
+         * .
+         */
+        WEBAPP_INTERNET_JOBTICKETS_ENABLE(Key.WEBAPP_INTERNET_PFX + "jobtickets.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_JOBTICKETS_AUTH_MODE_ENABLE(Key.WEBAPP_INTERNET_PFX + "jobtickets.auth-mode.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_JOBTICKETS_AUTH_MODE_NAME(Key.WEBAPP_INTERNET_PFX + "jobtickets.auth-mode.name", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_JOBTICKETS_AUTH_MODE_YUBIKEY(Key.WEBAPP_INTERNET_PFX + "jobtickets.auth-mode.yubikey", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /**
+         * .
+         */
+        WEBAPP_INTERNET_POS_ENABLE(Key.WEBAPP_INTERNET_PFX + "pos.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_POS_AUTH_MODE_ENABLE(Key.WEBAPP_INTERNET_PFX + "pos.auth-mode.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_POS_AUTH_MODE_NAME(Key.WEBAPP_INTERNET_PFX + "pos.auth-mode.name", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_POS_AUTH_MODE_YUBIKEY(Key.WEBAPP_INTERNET_PFX + "pos.auth-mode.yubikey", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /**
+         * .
+         */
+        WEBAPP_INTERNET_USER_ENABLE(Key.WEBAPP_INTERNET_PFX + "user.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_USER_AUTH_MODE_ENABLE(Key.WEBAPP_INTERNET_PFX + "user.auth-mode.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_USER_AUTH_MODE_NAME(Key.WEBAPP_INTERNET_PFX + "user.auth-mode.name", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_USER_AUTH_MODE_YUBIKEY(Key.WEBAPP_INTERNET_PFX + "user.auth-mode.yubikey", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /**
          * A comma/space separated list with {@link Locale#getLanguage()} codes
          * that are available for users to choose for their Web App locale. When
          * blank, all languages choices are offered to the user.
@@ -2361,6 +2417,11 @@ public interface IConfigProp {
          * Prefix for Web App HTML keys.
          */
         public final static String WEBAPP_HTML_PFX = "webapp.html.";
+
+        /**
+         * Prefix for Web App keys when accessed from Internet.
+         */
+        public final static String WEBAPP_INTERNET_PFX = "webapp.internet.";
 
         /**
          *
