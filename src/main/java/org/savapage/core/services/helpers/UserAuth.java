@@ -305,11 +305,14 @@ public class UserAuth {
 
             if (useInternetValues) {
 
+                this.allowAuthName = false;
+
                 final List<UserAuthModeEnum> internetAuthModes =
                         UserAuthModeEnum.parseList(
                                 cm.getConfigValue(keyInternetAuthModes));
 
                 int iMode = 0;
+
                 for (final UserAuthModeEnum mode : internetAuthModes) {
 
                     if (mode == UserAuthModeEnum.OAUTH) {
@@ -348,6 +351,10 @@ public class UserAuth {
                     default:
                         break;
                     }
+                }
+
+                if (!this.allowAuthName) {
+                    this.authCardSelfAssoc = false;
                 }
 
             } else {
