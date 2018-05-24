@@ -49,6 +49,7 @@ import org.savapage.core.config.validator.NotEmptyValidator;
 import org.savapage.core.config.validator.NumberValidator;
 import org.savapage.core.config.validator.UriValidator;
 import org.savapage.core.config.validator.UrlValidator;
+import org.savapage.core.config.validator.UserAuthModeSetValidator;
 import org.savapage.core.config.validator.UuidValidator;
 import org.savapage.core.config.validator.ValidationResult;
 import org.savapage.core.config.validator.ValidationStatusEnum;
@@ -62,7 +63,7 @@ import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.json.rpc.JsonRpcMethodName;
 import org.savapage.core.services.helpers.DocLogScopeEnum;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
-import org.savapage.core.services.helpers.UserAuth;
+import org.savapage.core.services.helpers.UserAuthModeEnum;
 import org.savapage.core.util.Messages;
 
 /**
@@ -155,11 +156,11 @@ public interface IConfigProp {
     String AUTH_METHOD_V_UNIX = "unix";
     String AUTH_METHOD_V_NONE = "none";
 
-    String AUTH_MODE_V_NAME = UserAuth.MODE_NAME;
-    String AUTH_MODE_V_ID = UserAuth.MODE_ID;
-    String AUTH_MODE_V_CARD_LOCAL = UserAuth.MODE_CARD_LOCAL;
-    String AUTH_MODE_V_CARD_IP = UserAuth.MODE_CARD_IP;
-    String AUTH_MODE_V_YUBIKEY = UserAuth.MODE_YUBIKEY;
+    String AUTH_MODE_V_NAME = UserAuthModeEnum.NAME.toDbValue();
+    String AUTH_MODE_V_ID = UserAuthModeEnum.ID.toDbValue();
+    String AUTH_MODE_V_CARD_LOCAL = UserAuthModeEnum.CARD_LOCAL.toDbValue();
+    String AUTH_MODE_V_CARD_IP = UserAuthModeEnum.CARD_IP.toDbValue();
+    String AUTH_MODE_V_YUBIKEY = UserAuthModeEnum.YUBIKEY.toDbValue();
 
     String LDAP_TYPE_V_APPLE = "APPLE_OPENDIR";
     String LDAP_TYPE_V_OPEN_LDAP = "OPEN_LDAP";
@@ -2281,57 +2282,37 @@ public interface IConfigProp {
         *
         */
         WEBAPP_INTERNET_ADMIN_ENABLE(Key.WEBAPP_INTERNET_PFX + "admin.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
-
         /** */
         WEBAPP_INTERNET_ADMIN_AUTH_MODE_ENABLE(Key.WEBAPP_INTERNET_PFX + "admin.auth-mode.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
-
         /** */
-        WEBAPP_INTERNET_ADMIN_AUTH_MODE_NAME(Key.WEBAPP_INTERNET_PFX + "admin.auth-mode.name", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
-
-        /** */
-        WEBAPP_INTERNET_ADMIN_AUTH_MODE_YUBIKEY(Key.WEBAPP_INTERNET_PFX + "admin.auth-mode.yubikey", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+        WEBAPP_INTERNET_ADMIN_AUTH_MODES(Key.WEBAPP_INTERNET_PFX + "admin.auth-modes", AUTHMODE_SET_VALIDATOR, AUTH_MODE_V_NAME, API_UPDATABLE_OFF),
 
         /**
          * .
          */
         WEBAPP_INTERNET_JOBTICKETS_ENABLE(Key.WEBAPP_INTERNET_PFX + "jobtickets.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
-
         /** */
         WEBAPP_INTERNET_JOBTICKETS_AUTH_MODE_ENABLE(Key.WEBAPP_INTERNET_PFX + "jobtickets.auth-mode.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
-
         /** */
-        WEBAPP_INTERNET_JOBTICKETS_AUTH_MODE_NAME(Key.WEBAPP_INTERNET_PFX + "jobtickets.auth-mode.name", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
-
-        /** */
-        WEBAPP_INTERNET_JOBTICKETS_AUTH_MODE_YUBIKEY(Key.WEBAPP_INTERNET_PFX + "jobtickets.auth-mode.yubikey", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+        WEBAPP_INTERNET_JOBTICKETS_AUTH_MODES(Key.WEBAPP_INTERNET_PFX + "jobtickets.auth-modes", AUTHMODE_SET_VALIDATOR, AUTH_MODE_V_NAME, API_UPDATABLE_OFF),
 
         /**
          * .
          */
         WEBAPP_INTERNET_POS_ENABLE(Key.WEBAPP_INTERNET_PFX + "pos.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
-
         /** */
         WEBAPP_INTERNET_POS_AUTH_MODE_ENABLE(Key.WEBAPP_INTERNET_PFX + "pos.auth-mode.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
-
         /** */
-        WEBAPP_INTERNET_POS_AUTH_MODE_NAME(Key.WEBAPP_INTERNET_PFX + "pos.auth-mode.name", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
-
-        /** */
-        WEBAPP_INTERNET_POS_AUTH_MODE_YUBIKEY(Key.WEBAPP_INTERNET_PFX + "pos.auth-mode.yubikey", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+        WEBAPP_INTERNET_POS_AUTH_MODES(Key.WEBAPP_INTERNET_PFX + "pos.auth-modes", AUTHMODE_SET_VALIDATOR, AUTH_MODE_V_NAME, API_UPDATABLE_OFF),
 
         /**
          * .
          */
         WEBAPP_INTERNET_USER_ENABLE(Key.WEBAPP_INTERNET_PFX + "user.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
-
         /** */
         WEBAPP_INTERNET_USER_AUTH_MODE_ENABLE(Key.WEBAPP_INTERNET_PFX + "user.auth-mode.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
-
         /** */
-        WEBAPP_INTERNET_USER_AUTH_MODE_NAME(Key.WEBAPP_INTERNET_PFX + "user.auth-mode.name", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
-
-        /** */
-        WEBAPP_INTERNET_USER_AUTH_MODE_YUBIKEY(Key.WEBAPP_INTERNET_PFX + "user.auth-mode.yubikey", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+        WEBAPP_INTERNET_USER_AUTH_MODES(Key.WEBAPP_INTERNET_PFX + "user.auth-modes", AUTHMODE_SET_VALIDATOR, AUTH_MODE_V_NAME, API_UPDATABLE_OFF),
 
         /**
          * A comma/space separated list with {@link Locale#getLanguage()} codes
@@ -2659,6 +2640,10 @@ public interface IConfigProp {
         }
 
     };
+
+    /** */
+    UserAuthModeSetValidator AUTHMODE_SET_VALIDATOR =
+            new UserAuthModeSetValidator(false);
 
     /** */
     BooleanValidator BOOLEAN_VALIDATOR = new BooleanValidator(false);
