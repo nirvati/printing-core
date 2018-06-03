@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -30,16 +30,32 @@ import org.savapage.core.SpException;
 /**
  * Converts a PDF file to grayscale PDF.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class PdfToGrayscale extends AbstractFileConverter {
+
+    /**
+     * The directory location of the created file (can be {@code null}).
+     */
+    private final File createHome;
 
     /**
      *
      */
     public PdfToGrayscale() {
         super(ExecMode.MULTI_THREADED);
+        this.createHome = null;
+    }
+
+    /**
+     *
+     * @param createDir
+     *            The directory location of the created file.
+     */
+    public PdfToGrayscale(final File createDir) {
+        super(ExecMode.MULTI_THREADED);
+        this.createHome = createDir;
     }
 
     @Override
@@ -47,7 +63,13 @@ public class PdfToGrayscale extends AbstractFileConverter {
 
         final StringBuilder builder = new StringBuilder(128);
 
-        builder.append(fileIn.getParent()).append(File.separator)
+        if (this.createHome == null) {
+            builder.append(fileIn.getParent());
+        } else {
+            builder.append(this.createHome.getAbsolutePath());
+        }
+
+        builder.append(File.separator)
                 .append(FilenameUtils.getBaseName(fileIn.getAbsolutePath()))
                 .append("-grayscale.")
                 .append(DocContent.getFileExtension(DocContentTypeEnum.PDF));
@@ -65,8 +87,7 @@ public class PdfToGrayscale extends AbstractFileConverter {
             /*
              * See #598
              */
-            cmd.append("gs -sOutputFile=\"")
-                    .append(fileOut.getCanonicalPath())
+            cmd.append("gs -sOutputFile=\"").append(fileOut.getCanonicalPath())
                     .append("\" -sDEVICE=pdfwrite -dNOPAUSE -dBATCH")
                     .append(" -sColorConversionStrategy=Gray")
                     .append(" -sProcessColorModel=DeviceGray")

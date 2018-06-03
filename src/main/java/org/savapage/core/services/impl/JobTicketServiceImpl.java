@@ -59,6 +59,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
 import org.savapage.core.SpException;
+import org.savapage.core.UnavailableException;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
@@ -68,6 +69,9 @@ import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.doc.DocContentToPdfException;
+import org.savapage.core.doc.DocContentTypeEnum;
+import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.dto.JobTicketTagDto;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
@@ -1022,6 +1026,41 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     /**
+     *
+     * @param dto
+     *            The job.
+     * @param printer
+     *            The redirect printer.
+     * @return {@code true} if client-side grayscale conversion has to be
+     *         applied on PDF before sending it to printer.
+     */
+    private static boolean isClientSideGrayscaleConversion(
+            final OutboxJobDto dto, final Printer printer) {
+        return dto.isMonochromeJob()
+                && proxyPrintService().isColorPrinter(printer.getPrinterName())
+                && printerService().isClientSideMonochrome(printer);
+    }
+
+    /**
+     * Creates a new grayscale PDF file from input PDF file.
+     *
+     * @param fileIn
+     *            The PDF input file.
+     * @return The created grayscale file.
+     * @throws IOException
+     *             When errors.
+     */
+    private static File createGrayscalePdf(final File fileIn)
+            throws IOException {
+        try {
+            return new PdfToGrayscale(new File(ConfigManager.getAppTmpDir()))
+                    .convert(DocContentTypeEnum.PDF, fileIn);
+        } catch (DocContentToPdfException | UnavailableException e) {
+            throw new IOException(e.getMessage());
+        }
+    }
+
+    /**
      * Executes a Job Ticket request.
      * <p>
      * </p>
@@ -1102,13 +1141,32 @@ public final class JobTicketServiceImpl extends AbstractService
 
             setRedirectPrinterOptions(dto, parms);
 
-            final PrintOut printOut = proxyPrintService()
-                    .proxyPrintJobTicket(parms.getOperator(), lockedUser, dto,
-                            getJobTicketFile(uuid, FILENAME_EXT_PDF),
-                            extPrinterManager)
-                    .getDocOut().getPrintOut();
+            final boolean clientSideGrayscale =
+                    isClientSideGrayscaleConversion(dto, printer);
+            final File orgJobTicketPdf =
+                    getJobTicketFile(uuid, FILENAME_EXT_PDF);
+            final File pdfFileToPrint;
 
-            dto.setPrintOutId(printOut.getId());
+            if (clientSideGrayscale) {
+                pdfFileToPrint = createGrayscalePdf(orgJobTicketPdf);
+            } else {
+                pdfFileToPrint = orgJobTicketPdf;
+            }
+
+            try {
+                final PrintOut printOut = proxyPrintService()
+                        .proxyPrintJobTicket(parms.getOperator(), lockedUser,
+                                dto, pdfFileToPrint, extPrinterManager)
+                        .getDocOut().getPrintOut();
+
+                dto.setPrintOutId(printOut.getId());
+
+            } finally {
+                if (clientSideGrayscale) {
+                    pdfFileToPrint.delete();
+                }
+            }
+
             this.updateTicket(dto);
             dtoReturn = dto;
         }
@@ -1243,145 +1301,168 @@ public final class JobTicketServiceImpl extends AbstractService
                 .createProxyPrintDocReq(user, dto, PrintModeEnum.TICKET);
 
         final UUID ticketUuid = uuidFromFileName(parms.getFileName());
-        final PdfCreateInfo createInfo = new PdfCreateInfo(
-                getJobTicketFile(ticketUuid, FILENAME_EXT_PDF));
 
-        createInfo.setBlankFillerPages(dto.getFillerPages());
-
-        // Re-use job name.
+        //
         final PrintOut printOut = printOutDAO().findById(dto.getPrintOutId());
-        final String printJobTitle =
-                printOut.getDocOut().getDocLog().getTitle();
 
-        request.setJobName(printJobTitle);
+        final boolean clientSideGrayscale =
+                isClientSideGrayscaleConversion(dto, printOut.getPrinter());
 
-        /*
-         * Update DocLog External Supplier status?
-         */
-        final DocLog docLog = printOut.getDocOut().getDocLog();
+        final File orgJobTicketPdf =
+                getJobTicketFile(ticketUuid, FILENAME_EXT_PDF);
 
-        // current
-        final ExternalSupplierEnum extSupplierCurrent =
-                DaoEnumHelper.getExtSupplier(docLog);
+        final File pdfFileToPrint;
 
-        final ExternalSupplierStatusEnum extSupplierStatusCurrent =
-                DaoEnumHelper.getExtSupplierStatus(docLog);
+        if (clientSideGrayscale) {
+            pdfFileToPrint = createGrayscalePdf(orgJobTicketPdf);
+        } else {
+            pdfFileToPrint = orgJobTicketPdf;
+        }
 
-        // retry
-        final ThirdPartyEnum extPrintManagerRetry = proxyPrintService()
-                .getExtPrinterManager(parms.getPrinter().getPrinterName());
+        try {
 
-        final ExternalSupplierEnum extSupplierRetry;
-        final ExternalSupplierStatusEnum extSupplierStatusRetry;
+            final PdfCreateInfo createInfo = new PdfCreateInfo(pdfFileToPrint);
+            createInfo.setBlankFillerPages(dto.getFillerPages());
 
-        final String documentTitleRetry;
+            // Re-use job name.
+            final String printJobTitle =
+                    printOut.getDocOut().getDocLog().getTitle();
 
-        if (extPrintManagerRetry == null) {
+            request.setJobName(printJobTitle);
 
-            documentTitleRetry = null;
+            /*
+             * Update DocLog External Supplier status?
+             */
+            final DocLog docLog = printOut.getDocOut().getDocLog();
 
-            if (extSupplierCurrent == ExternalSupplierEnum.SAVAPAGE) {
-                extSupplierRetry = null;
-                extSupplierStatusRetry = null;
+            // current
+            final ExternalSupplierEnum extSupplierCurrent =
+                    DaoEnumHelper.getExtSupplier(docLog);
 
-                retryTicketPrintCharge(docLog, request.getNumberOfCopies());
+            final ExternalSupplierStatusEnum extSupplierStatusCurrent =
+                    DaoEnumHelper.getExtSupplierStatus(docLog);
 
-            } else {
-                extSupplierRetry = extSupplierCurrent;
-                extSupplierStatusRetry = ExternalSupplierStatusEnum.PENDING;
-            }
+            // retry
+            final ThirdPartyEnum extPrintManagerRetry = proxyPrintService()
+                    .getExtPrinterManager(parms.getPrinter().getPrinterName());
 
-        } else if (extPrintManagerRetry == ThirdPartyEnum.PAPERCUT) {
+            final ExternalSupplierEnum extSupplierRetry;
+            final ExternalSupplierStatusEnum extSupplierStatusRetry;
 
-            final ExternalSupplierInfo supplierInfo;
+            final String documentTitleRetry;
 
-            if (extSupplierCurrent == null
-                    || extSupplierCurrent == ExternalSupplierEnum.SAVAPAGE) {
+            if (extPrintManagerRetry == null) {
 
-                supplierInfo = null;
-                extSupplierRetry = ExternalSupplierEnum.SAVAPAGE;
+                documentTitleRetry = null;
 
-            } else if (extSupplierCurrent == ExternalSupplierEnum.SMARTSCHOOL) {
+                if (extSupplierCurrent == ExternalSupplierEnum.SAVAPAGE) {
+                    extSupplierRetry = null;
+                    extSupplierStatusRetry = null;
 
-                supplierInfo = new ExternalSupplierInfo();
-                supplierInfo.setSupplier(extSupplierCurrent);
-                supplierInfo.setId(docLog.getExternalId());
-                supplierInfo.setStatus(docLog.getExternalStatus());
+                    retryTicketPrintCharge(docLog, request.getNumberOfCopies());
 
-                final SmartschoolPrintInData extData = SmartschoolPrintInData
-                        .createFromData(docLog.getExternalData());
+                } else {
+                    extSupplierRetry = extSupplierCurrent;
+                    extSupplierStatusRetry = ExternalSupplierStatusEnum.PENDING;
+                }
 
-                supplierInfo.setData(extData);
-                supplierInfo.setAccount(extData.getAccount());
+            } else if (extPrintManagerRetry == ThirdPartyEnum.PAPERCUT) {
 
-                extSupplierRetry = extSupplierCurrent;
+                final ExternalSupplierInfo supplierInfo;
+
+                if (extSupplierCurrent == null
+                        || extSupplierCurrent == ExternalSupplierEnum.SAVAPAGE) {
+
+                    supplierInfo = null;
+                    extSupplierRetry = ExternalSupplierEnum.SAVAPAGE;
+
+                } else if (extSupplierCurrent == ExternalSupplierEnum.SMARTSCHOOL) {
+
+                    supplierInfo = new ExternalSupplierInfo();
+                    supplierInfo.setSupplier(extSupplierCurrent);
+                    supplierInfo.setId(docLog.getExternalId());
+                    supplierInfo.setStatus(docLog.getExternalStatus());
+
+                    final SmartschoolPrintInData extData =
+                            SmartschoolPrintInData
+                                    .createFromData(docLog.getExternalData());
+
+                    supplierInfo.setData(extData);
+                    supplierInfo.setAccount(extData.getAccount());
+
+                    extSupplierRetry = extSupplierCurrent;
+
+                } else {
+                    throw new IllegalStateException(
+                            String.format("%s [%s] is not handled.",
+                                    extSupplierCurrent.getClass()
+                                            .getSimpleName(),
+                                    extSupplierCurrent.toString()));
+                }
+
+                /*
+                 * Prepare for PaperCut in retry mode.
+                 */
+                paperCutService().prepareForExtPaperCutRetry(request,
+                        supplierInfo, null);
+
+                documentTitleRetry = request.getJobName();
+                extSupplierStatusRetry =
+                        PaperCutHelper.getInitialPendingJobStatus();
 
             } else {
                 throw new IllegalStateException(
                         String.format("%s [%s] is not handled.",
-                                extSupplierCurrent.getClass().getSimpleName(),
-                                extSupplierCurrent.toString()));
+                                extPrintManagerRetry.getClass().getSimpleName(),
+                                extPrintManagerRetry.toString()));
             }
 
             /*
-             * Prepare for PaperCut in retry mode.
+             * Update any changes.
              */
-            paperCutService().prepareForExtPaperCutRetry(request, supplierInfo,
-                    null);
+            if (documentTitleRetry != null
+                    || extSupplierCurrent != extSupplierRetry
+                    || extSupplierStatusCurrent != extSupplierStatusRetry) {
 
-            documentTitleRetry = request.getJobName();
-            extSupplierStatusRetry =
-                    PaperCutHelper.getInitialPendingJobStatus();
+                docLogDAO().updateExtSupplier(docLog.getId(), extSupplierRetry,
+                        extSupplierStatusRetry, documentTitleRetry);
+            }
 
-        } else {
-            throw new IllegalStateException(
-                    String.format("%s [%s] is not handled.",
-                            extPrintManagerRetry.getClass().getSimpleName(),
-                            extPrintManagerRetry.toString()));
+            /*
+             * CUPS Print.
+             */
+            final JsonProxyPrintJob printJob =
+                    proxyPrintService().proxyPrintJobTicketResend(request, dto,
+                            jsonPrinter, user.getUserId(), createInfo);
+            /*
+             * Update PrintOut with new Printer and CUPS job data.
+             */
+            printOutDAO().updateCupsJobPrinter(dto.getPrintOutId(),
+                    parms.getPrinter(), printJob, request.getOptionValues());
+
+            ServiceContext.getDaoContext().commit();
+
+            // Notify the CUPS job status monitor of this new PrintOut.
+            ProxyPrintJobStatusMonitor.notifyPrintOut(
+                    parms.getPrinter().getPrinterName(), printJob);
+
+            // Update the ticket.
+            this.updateTicket(dto);
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(String.format(
+                        "retryTicketPrint: COMMIT PrintOut ID [%d] "
+                                + "printer [%s] " + "job [%d] status [%s]",
+                        dto.getPrintOutId().longValue(),
+                        parms.getPrinter().getPrinterName(),
+                        printJob.getJobId().intValue(),
+                        IppJobStateEnum.asEnum(printJob.getJobState())));
+            }
+        } finally {
+            if (clientSideGrayscale) {
+                pdfFileToPrint.delete();
+            }
         }
-
-        /*
-         * Update any changes.
-         */
-        if (documentTitleRetry != null || extSupplierCurrent != extSupplierRetry
-                || extSupplierStatusCurrent != extSupplierStatusRetry) {
-
-            docLogDAO().updateExtSupplier(docLog.getId(), extSupplierRetry,
-                    extSupplierStatusRetry, documentTitleRetry);
-        }
-
-        /*
-         * CUPS Print.
-         */
-        final JsonProxyPrintJob printJob =
-                proxyPrintService().proxyPrintJobTicketResend(request, dto,
-                        jsonPrinter, user.getUserId(), createInfo);
-
-        /*
-         * Update PrintOut with new Printer and CUPS job data.
-         */
-        printOutDAO().updateCupsJobPrinter(dto.getPrintOutId(),
-                parms.getPrinter(), printJob, request.getOptionValues());
-
-        ServiceContext.getDaoContext().commit();
-
-        // Notify the CUPS job status monitor of this new PrintOut.
-        ProxyPrintJobStatusMonitor
-                .notifyPrintOut(parms.getPrinter().getPrinterName(), printJob);
-
-        // Update the ticket.
-        this.updateTicket(dto);
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(String.format(
-                    "retryTicketPrint: COMMIT PrintOut ID [%d] printer [%s] "
-                            + "job [%d] status [%s]",
-                    dto.getPrintOutId().longValue(),
-                    parms.getPrinter().getPrinterName(),
-                    printJob.getJobId().intValue(),
-                    IppJobStateEnum.asEnum(printJob.getJobState())));
-        }
-
         return dto;
     }
 

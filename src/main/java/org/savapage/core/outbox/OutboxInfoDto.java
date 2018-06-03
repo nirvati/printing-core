@@ -33,6 +33,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dto.AbstractDto;
 import org.savapage.core.inbox.PdfOrientationInfo;
 import org.savapage.core.ipp.IppJobStateEnum;
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
+import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.services.helpers.AccountTrxInfo;
@@ -387,6 +389,18 @@ public final class OutboxInfoDto extends AbstractDto {
          */
         public OutboxJobDto() {
             this.costResult = new ProxyPrintCostDto();
+        }
+
+        /**
+         *
+         * @return {@code true} if this is a Monochrome job.
+         */
+        @JsonIgnore
+        public boolean isMonochromeJob() {
+            return this.optionValues == null || this.optionValues
+                    .getOrDefault(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
+                            IppKeyword.PRINT_COLOR_MODE_MONOCHROME)
+                    .equals(IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
         }
 
         //

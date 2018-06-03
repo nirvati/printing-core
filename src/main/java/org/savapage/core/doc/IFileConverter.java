@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,8 +34,8 @@ import org.savapage.core.UnavailableException;
 public interface IFileConverter extends IDocConverter {
 
     /**
-     * Converts a file to PDF. The PDF file is created in the directory of the
-     * input file, and has the same basename.
+     * Converts a file to PDF. Unless implemented otherwise, the PDF file is
+     * created in the directory of the input file, and has the same basename.
      * <p>
      * NOTE: When a exception is thrown the created PDF (if present) is deleted.
      * </p>
