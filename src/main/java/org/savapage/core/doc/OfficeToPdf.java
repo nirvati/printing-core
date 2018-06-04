@@ -32,7 +32,7 @@ import org.savapage.core.SpException;
  * @author Rijk Ravestein
  *
  */
-public class OfficeToPdf extends AbstractFileConverter {
+public class OfficeToPdf extends AbstractDocFileConverter {
 
     /**
      * Constructor.

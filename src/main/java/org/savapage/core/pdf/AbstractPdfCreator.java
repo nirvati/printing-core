@@ -112,6 +112,12 @@ public abstract class AbstractPdfCreator {
     private boolean isGrayscalePdf = false;
 
     /**
+     * {@code true} if PDF with page porder for 2-up duplex booklet is to be
+     * created.
+     */
+    private boolean isBookletPageOrder = false;
+
+    /**
      *
      */
     protected String myPdfFileLetterhead = null;
@@ -149,6 +155,14 @@ public abstract class AbstractPdfCreator {
      */
     protected final boolean isGrayscalePdf() {
         return this.isGrayscalePdf;
+    }
+
+    /**
+     * @return {@code true} if PDF with page porder for 2-up duplex booklet is
+     *         to be created.
+     */
+    protected final boolean isBookletPageOrder() {
+        return this.isBookletPageOrder;
     }
 
     /**
@@ -363,6 +377,7 @@ public abstract class AbstractPdfCreator {
         this.printNup = createReq.getPrintNup();
 
         this.isGrayscalePdf = createReq.isGrayscale();
+        this.isBookletPageOrder = createReq.isBookletPageOrder();
 
         this.removeGraphics = createReq.isRemoveGraphics();
 

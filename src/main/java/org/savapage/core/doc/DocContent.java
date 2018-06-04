@@ -435,7 +435,7 @@ public final class DocContent {
 
     /**
      * Checks if the DocContentType is supported. For every supported
-     * DocContentType an {@link IStreamConverter} or {@link IFileConverter}
+     * DocContentType an {@link IStreamConverter} or {@link IDocFileConverter}
      * implementation MUST exist and MUST be assigned.
      * <p>
      * See {@link DocContent#createPdfStreamConverter(DocContentTypeEnum)} or
@@ -555,7 +555,7 @@ public final class DocContent {
      *            The content type.
      * @return {@code null} when NO file converter is available.
      */
-    public static IFileConverter
+    public static IDocFileConverter
             createPdfFileConverter(DocContentTypeEnum contentType) {
 
         switch (contentType) {

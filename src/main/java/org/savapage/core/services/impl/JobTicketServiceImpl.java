@@ -59,7 +59,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
 import org.savapage.core.SpException;
-import org.savapage.core.UnavailableException;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
@@ -69,8 +68,7 @@ import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
-import org.savapage.core.doc.DocContentToPdfException;
-import org.savapage.core.doc.DocContentTypeEnum;
+import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.dto.JobTicketTagDto;
 import org.savapage.core.dto.RedirectPrinterDto;
@@ -1042,22 +1040,18 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     /**
-     * Creates a new grayscale PDF file from input PDF file.
      *
-     * @param fileIn
-     *            The PDF input file.
-     * @return The created grayscale file.
-     * @throws IOException
-     *             When errors.
+     * @param dto
+     *            The job.
+     * @param printer
+     *            The redirect printer.
+     * @return {@code true} if client-side booklet page ordering has to be
+     *         applied on PDF before sending it to printer.
      */
-    private static File createGrayscalePdf(final File fileIn)
-            throws IOException {
-        try {
-            return new PdfToGrayscale(new File(ConfigManager.getAppTmpDir()))
-                    .convert(DocContentTypeEnum.PDF, fileIn);
-        } catch (DocContentToPdfException | UnavailableException e) {
-            throw new IOException(e.getMessage());
-        }
+    private static boolean isClientSideBooklet(final OutboxJobDto dto,
+            final Printer printer) {
+        return dto.isBookletJob()
+                && printerService().isClientSideBooklet(printer);
     }
 
     /**
@@ -1141,17 +1135,9 @@ public final class JobTicketServiceImpl extends AbstractService
 
             setRedirectPrinterOptions(dto, parms);
 
-            final boolean clientSideGrayscale =
-                    isClientSideGrayscaleConversion(dto, printer);
-            final File orgJobTicketPdf =
-                    getJobTicketFile(uuid, FILENAME_EXT_PDF);
-            final File pdfFileToPrint;
-
-            if (clientSideGrayscale) {
-                pdfFileToPrint = createGrayscalePdf(orgJobTicketPdf);
-            } else {
-                pdfFileToPrint = orgJobTicketPdf;
-            }
+            final List<File> files2Delete = new ArrayList<>();
+            final File pdfFileToPrint = getPdfFileToPrint(dto, printer,
+                    getJobTicketFile(uuid, FILENAME_EXT_PDF), files2Delete);
 
             try {
                 final PrintOut printOut = proxyPrintService()
@@ -1162,8 +1148,8 @@ public final class JobTicketServiceImpl extends AbstractService
                 dto.setPrintOutId(printOut.getId());
 
             } finally {
-                if (clientSideGrayscale) {
-                    pdfFileToPrint.delete();
+                for (final File file : files2Delete) {
+                    file.delete();
                 }
             }
 
@@ -1172,6 +1158,59 @@ public final class JobTicketServiceImpl extends AbstractService
         }
 
         return dtoReturn;
+    }
+
+    /**
+     * Gets the Job Ticket PDF file to be printed. Note: optional PDF
+     * pre-processing is performed.
+     *
+     * @param dto
+     *            The job.
+     * @param printer
+     *            The printer.
+     * @param orgJobTicketPdf
+     *            The original PDF.
+     * @param files2Delete
+     *            List where files to be deleted are added to.
+     * @return The PDF file to print.
+     * @throws IOException
+     *             When IO errors. Note: temporary files are deleted.
+     */
+    private static File getPdfFileToPrint(final OutboxJobDto dto,
+            final Printer printer, final File orgJobTicketPdf,
+            final List<File> files2Delete) throws IOException {
+
+        File pdfFileToPrint = orgJobTicketPdf;
+        boolean exception = true;
+
+        try {
+            if (isClientSideGrayscaleConversion(dto, printer)) {
+                pdfFileToPrint = new PdfToGrayscale(
+                        new File(ConfigManager.getAppTmpDir()))
+                                .convert(pdfFileToPrint);
+                files2Delete.add(pdfFileToPrint);
+            }
+
+            if (isClientSideBooklet(dto, printer)) {
+                pdfFileToPrint =
+                        new PdfToBooklet(new File(ConfigManager.getAppTmpDir()))
+                                .convert(pdfFileToPrint);
+                files2Delete.add(pdfFileToPrint);
+            }
+
+            exception = false;
+
+        } finally {
+
+            if (exception) {
+                for (final File file : files2Delete) {
+                    file.delete();
+                }
+                files2Delete.clear();
+            }
+        }
+
+        return pdfFileToPrint;
     }
 
     /**
@@ -1305,19 +1344,10 @@ public final class JobTicketServiceImpl extends AbstractService
         //
         final PrintOut printOut = printOutDAO().findById(dto.getPrintOutId());
 
-        final boolean clientSideGrayscale =
-                isClientSideGrayscaleConversion(dto, printOut.getPrinter());
-
-        final File orgJobTicketPdf =
-                getJobTicketFile(ticketUuid, FILENAME_EXT_PDF);
-
-        final File pdfFileToPrint;
-
-        if (clientSideGrayscale) {
-            pdfFileToPrint = createGrayscalePdf(orgJobTicketPdf);
-        } else {
-            pdfFileToPrint = orgJobTicketPdf;
-        }
+        final List<File> files2Delete = new ArrayList<>();
+        final File pdfFileToPrint = getPdfFileToPrint(dto,
+                printOut.getPrinter(),
+                getJobTicketFile(ticketUuid, FILENAME_EXT_PDF), files2Delete);
 
         try {
 
@@ -1459,8 +1489,8 @@ public final class JobTicketServiceImpl extends AbstractService
                         IppJobStateEnum.asEnum(printJob.getJobState())));
             }
         } finally {
-            if (clientSideGrayscale) {
-                pdfFileToPrint.delete();
+            for (final File file : files2Delete) {
+                file.delete();
             }
         }
         return dto;

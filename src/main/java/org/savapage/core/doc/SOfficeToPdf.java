@@ -39,7 +39,7 @@ import org.savapage.core.services.ServiceContext;
  * @author Rijk Ravestein
  *
  */
-public final class SOfficeToPdf extends AbstractFileConverter {
+public final class SOfficeToPdf extends AbstractDocFileConverter {
 
     /**
      * Constructor.

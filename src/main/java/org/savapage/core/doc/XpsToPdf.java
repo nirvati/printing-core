@@ -33,7 +33,7 @@ import org.savapage.core.system.ICommandExecutor;
  * @author Datraverse B.V.
  *
  */
-public class XpsToPdf extends AbstractFileConverter {
+public class XpsToPdf extends AbstractDocFileConverter {
 
     /**
      *

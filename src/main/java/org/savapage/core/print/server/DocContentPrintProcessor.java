@@ -49,7 +49,7 @@ import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.doc.DocInputStream;
-import org.savapage.core.doc.IFileConverter;
+import org.savapage.core.doc.IDocFileConverter;
 import org.savapage.core.doc.IStreamConverter;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.jpa.DocLog;
@@ -822,7 +822,7 @@ public final class DocContentPrintProcessor {
              * Document content converters are needed for non-PDF content.
              */
             IStreamConverter streamConverter = null;
-            IFileConverter fileConverter = null;
+            IDocFileConverter fileConverter = null;
 
             /*
              * Directly write (rest of) offered content to PostScript or PDF, or

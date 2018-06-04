@@ -48,8 +48,7 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
-import org.savapage.core.doc.DocContentTypeEnum;
-import org.savapage.core.doc.IFileConverter;
+import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.json.PdfProperties;
@@ -137,6 +136,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      * {@code true} if the created pdf is to be converted to grayscale onExit.
      */
     private boolean onExitConvertToGrayscale = false;
+
+    /**
+     * {@code true} if PDF with page porder for 2-up duplex booklet is to be
+     * created.
+     */
+    private boolean onExitBookletPageOrder = false;
 
     /**
      * .
@@ -491,6 +496,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     protected void onInit() {
 
         this.onExitConvertToGrayscale = this.isGrayscalePdf();
+        this.onExitBookletPageOrder = this.isBookletPageOrder();
 
         this.targetPdfCopyFilePath = String.format("%s.tmp", this.pdfFile);
         this.nPagesAdded2Target = 0;
@@ -519,23 +525,37 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onPdfGenerated(final File pdfFile) throws Exception {
 
-        if (onExitConvertToGrayscale) {
-
-            final IFileConverter converter = new PdfToGrayscale();
-
-            final File grayscalePdfFile =
-                    converter.convert(DocContentTypeEnum.PDF, pdfFile);
-
-            // move
-            final Path source = FileSystems.getDefault()
-                    .getPath(grayscalePdfFile.getAbsolutePath());
-
-            final Path target =
-                    FileSystems.getDefault().getPath(pdfFile.getAbsolutePath());
-
-            Files.move(source, target,
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        if (this.onExitConvertToGrayscale) {
+            replaceWithConvertedPdf(pdfFile,
+                    new PdfToGrayscale().convert(pdfFile));
         }
+        if (this.onExitBookletPageOrder) {
+            replaceWithConvertedPdf(pdfFile,
+                    new PdfToBooklet().convert(pdfFile));
+        }
+    }
+
+    /**
+     * Replaces original PDF file with converted version.
+     *
+     * @param pdfOrginal
+     *            The original PDF file.
+     * @param pdfConverted
+     *            The converted PDF file.
+     * @throws IOException
+     *             When IO error.
+     */
+    private static void replaceWithConvertedPdf(final File pdfOrginal,
+            final File pdfConverted) throws IOException {
+
+        final Path source = FileSystems.getDefault()
+                .getPath(pdfConverted.getAbsolutePath());
+
+        final Path target =
+                FileSystems.getDefault().getPath(pdfOrginal.getAbsolutePath());
+
+        Files.move(source, target,
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
 
     @Override

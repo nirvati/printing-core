@@ -22,37 +22,26 @@
 package org.savapage.core.doc;
 
 import java.io.File;
-
-import org.savapage.core.UnavailableException;
+import java.io.IOException;
 
 /**
- * Converts a file to PDF.
+ * Converts a PDF file.
  *
  * @author Rijk Ravestein
  *
  */
-public interface IFileConverter extends IDocConverter {
+public interface IPdfConverter extends IDocConverter {
 
     /**
-     * Converts a file to PDF. Unless implemented otherwise, the PDF file is
-     * created in the directory of the input file, and has the same basename.
-     * <p>
-     * NOTE: When a exception is thrown the created PDF (if present) is deleted.
-     * </p>
+     * Converts a PDF file to PDF.
      *
-     * @param contentType
-     *            The content type of the input stream.
-     * @param file
-     *            The input file.
+     * @param pdfFile
+     *            The PDF input file.
      *
      * @return The PDF output file.
-     *
-     * @throws DocContentToPdfException
-     *             When anything goes wrong.
-     * @throws UnavailableException
-     *             When convert service is (temporary) unavailable.
+     * @throws IOException
+     *             When IO errors.
      */
-    File convert(DocContentTypeEnum contentType, File file)
-            throws DocContentToPdfException, UnavailableException;
+    File convert(File pdfFile) throws IOException;
 
 }

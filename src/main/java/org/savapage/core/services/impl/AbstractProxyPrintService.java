@@ -3554,6 +3554,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             pdfRequest.setRemoveGraphics(request.isRemoveGraphics());
             pdfRequest.setEcoPdfShadow(request.isEcoPrintShadow());
             pdfRequest.setGrayscale(request.isConvertToGrayscale());
+            pdfRequest.setBookletPageOrder(request.isLocalBooklet());
 
             pdfRequest.setApplyPdfProps(false);
             pdfRequest.setApplyLetterhead(true);
@@ -3562,8 +3563,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
             pdfRequest.setPrintDuplex(request.isDuplex());
             pdfRequest.setPrintNup(request.getNup());
 
-            pdfRequest.setForPrintingFillerPages(
-                    request.isDuplex() || request.getNup() > 0);
+            pdfRequest.setForPrintingFillerPages(!request.isBooklet()
+                    && (request.isDuplex() || request.getNup() > 0));
 
             final PdfCreateInfo createInfo = outputProducer()
                     .generatePdf(pdfRequest, uuidPageCount, docLog);

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -292,6 +292,7 @@ public abstract class ProxyPrintInboxPattern {
 
             pdfRequest.setEcoPdfShadow(request.isEcoPrintShadow());
             pdfRequest.setGrayscale(request.isConvertToGrayscale());
+            pdfRequest.setBookletPageOrder(request.isLocalBooklet());
 
             pdfRequest.setApplyPdfProps(!APPLY_PDF_PROPS);
             pdfRequest.setApplyLetterhead(APPLY_LETTERHEAD);
@@ -300,8 +301,8 @@ public abstract class ProxyPrintInboxPattern {
             pdfRequest.setPrintDuplex(request.isDuplex());
             pdfRequest.setPrintNup(request.getNup());
 
-            pdfRequest.setForPrintingFillerPages(
-                    request.isDuplex() || request.getNup() > 0);
+            pdfRequest.setForPrintingFillerPages(!request.isBooklet()
+                    && (request.isDuplex() || request.getNup() > 0));
 
             final PdfCreateInfo createInfo = OutputProducer.instance()
                     .generatePdf(pdfRequest, uuidPageCount, null);

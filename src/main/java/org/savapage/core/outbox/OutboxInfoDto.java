@@ -392,7 +392,6 @@ public final class OutboxInfoDto extends AbstractDto {
         }
 
         /**
-         *
          * @return {@code true} if this is a Monochrome job.
          */
         @JsonIgnore
@@ -401,6 +400,23 @@ public final class OutboxInfoDto extends AbstractDto {
                     .getOrDefault(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
                             IppKeyword.PRINT_COLOR_MODE_MONOCHROME)
                     .equals(IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
+        }
+
+        /**
+         * @return {@code true} if this is a Booklet job.
+         */
+        @JsonIgnore
+        public boolean isBookletJob() {
+            boolean booklet = false;
+            if (this.optionValues != null) {
+                final String value = this.optionValues.get(
+                        IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET);
+                if (value != null) {
+                    booklet = !value.equals(
+                            IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE);
+                }
+            }
+            return booklet;
         }
 
         //

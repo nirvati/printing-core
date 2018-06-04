@@ -355,13 +355,35 @@ public final class PrinterServiceImpl extends AbstractService
 
     @Override
     public boolean isClientSideMonochrome(final Printer printer) {
+        return isPrinterAttr(printer, PrinterAttrEnum.CLIENT_SIDE_MONOCHROME,
+                false);
+    }
+
+    @Override
+    public boolean isClientSideBooklet(final Printer printer) {
+        return proxyPrintService().getCachedPrinter(printer.getPrinterName())
+                .isBookletClientSide();
+    }
+
+    /**
+     * Checks boolean value of printer attribute.
+     *
+     * @param printer
+     *            The printer.
+     * @param attr
+     *            The attribute.
+     * @param defaultValue
+     *            The default value when printer attribute is not present.
+     * @return Printer attribute value.
+     */
+    private static boolean isPrinterAttr(final Printer printer,
+            final PrinterAttrEnum attr, final boolean defaultValue) {
 
         final List<PrinterAttr> attributes = printer.getAttributes();
 
         if (attributes != null) {
 
-            final String targetName =
-                    PrinterAttrEnum.CLIENT_SIDE_MONOCHROME.getDbName();
+            final String targetName = attr.getDbName();
 
             for (final PrinterAttr printerAttr : attributes) {
 
@@ -371,7 +393,7 @@ public final class PrinterServiceImpl extends AbstractService
                 }
             }
         }
-        return false;
+        return defaultValue;
     }
 
     @Override

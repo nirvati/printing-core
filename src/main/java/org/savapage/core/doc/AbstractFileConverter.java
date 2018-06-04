@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,6 @@ import java.io.IOException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
-import org.savapage.core.UnavailableException;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * @author Rijk Ravestein
  *
  */
-public abstract class AbstractFileConverter implements IFileConverter {
+public abstract class AbstractFileConverter {
 
     /**
      * The logger.
@@ -66,15 +65,23 @@ public abstract class AbstractFileConverter implements IFileConverter {
     /**
      * .
      */
-    protected final ExecMode execMode;
+    private final ExecMode execMode;
 
     /**
      *
-     * @param execMode
+     * @param mode
      *            The {@link ExecMode}.
      */
-    protected AbstractFileConverter(final ExecMode execMode) {
-        this.execMode = execMode;
+    protected AbstractFileConverter(final ExecMode mode) {
+        this.execMode = mode;
+    }
+
+    /**
+     *
+     * @return
+     */
+    protected final ExecMode getExecMode() {
+        return this.execMode;
     }
 
     /**
@@ -124,89 +131,6 @@ public abstract class AbstractFileConverter implements IFileConverter {
      */
     protected abstract File getOutputFile(File fileIn);
 
-    @Override
-    public final File convert(final DocContentTypeEnum contentType,
-            final File fileIn)
-            throws DocContentToPdfException, UnavailableException {
-
-        final File filePdf = getOutputFile(fileIn);
-        final String command = getOsCommand(contentType, fileIn, filePdf);
-
-        if (command == null) {
-            return convertWithService(contentType, fileIn, filePdf);
-        }
-
-        return convertWithOsCommand(contentType, fileIn, filePdf, command);
-    }
-
-    /**
-     * Performs a custom conversion.
-     *
-     * @param contentType
-     *            The type of input file.
-     * @param fileIn
-     *            The file to convert.
-     * @param fileOut
-     *            The output file.
-     */
-    protected void convertCustom(final DocContentTypeEnum contentType,
-            final File fileIn, final File fileOut)
-            throws DocContentToPdfException, UnavailableException {
-        throw new SpException("Method not implemented");
-    }
-
-    /**
-     * Performs a conversion using a service.
-     *
-     * @param contentType
-     *            The type of input file.
-     * @param fileIn
-     *            The file to convert.
-     * @param filePdf
-     *            The output file.
-     * @return The output file.
-     * @throws DocContentToPdfException
-     *             if error.
-     */
-    private File convertWithService(final DocContentTypeEnum contentType,
-            final File fileIn, final File filePdf)
-            throws DocContentToPdfException, UnavailableException {
-
-        final String pdfName = filePdf.getAbsolutePath();
-
-        boolean pdfCreated = false;
-
-        try {
-            if (this.execMode == ExecMode.SINGLE_THREADED) {
-                synchronized (this) {
-                    convertCustom(contentType, fileIn, filePdf);
-                }
-            } else {
-                convertCustom(contentType, fileIn, filePdf);
-            }
-
-            pdfCreated = true;
-
-            if (filePdf.exists()) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("[" + pdfName + "] created.");
-                }
-            } else {
-                LOGGER.error("[" + pdfName + "] NOT created.");
-                throw new DocContentToPdfException("PDF is not created");
-            }
-
-        } finally {
-            if (!pdfCreated) {
-                File file2Delete = new File(pdfName);
-                if (file2Delete.exists()) {
-                    file2Delete.delete();
-                }
-            }
-        }
-        return filePdf;
-    }
-
     /**
      * Performs a conversion using an OS Command.
      *
@@ -222,8 +146,9 @@ public abstract class AbstractFileConverter implements IFileConverter {
      * @throws DocContentToPdfException
      *             if error.
      */
-    public final File convertWithOsCommand(final DocContentTypeEnum contentType,
-            final File fileIn, final File filePdf, final String command)
+    protected final File convertWithOsCommand(
+            final DocContentTypeEnum contentType, final File fileIn,
+            final File filePdf, final String command)
             throws DocContentToPdfException {
 
         final String pdfName = filePdf.getAbsolutePath();

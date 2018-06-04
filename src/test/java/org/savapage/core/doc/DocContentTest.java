@@ -27,7 +27,7 @@ import static org.junit.Assert.assertNotSame;
 import java.io.File;
 
 import org.junit.Test;
-import org.savapage.core.doc.AbstractFileConverter;
+import org.savapage.core.doc.AbstractDocFileConverter;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentTypeEnum;
 
@@ -97,7 +97,7 @@ public class DocContentTest {
         final File fileIn = new File(pathIn);
 
         final File fileOut =
-                AbstractFileConverter.getFileSibling(fileIn,
+                AbstractDocFileConverter.getFileSibling(fileIn,
                         DocContentTypeEnum.PDF);
 
         assertEquals("x.doc to x.pdf", fileOut.getAbsolutePath(), pathOut);

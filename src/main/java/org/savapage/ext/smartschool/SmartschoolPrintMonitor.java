@@ -43,7 +43,6 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.ShutdownException;
 import org.savapage.core.SpException;
-import org.savapage.core.UnavailableException;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
@@ -62,8 +61,7 @@ import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentToPdfException;
-import org.savapage.core.doc.DocContentTypeEnum;
-import org.savapage.core.doc.IFileConverter;
+import org.savapage.core.doc.IPdfConverter;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
@@ -2744,18 +2742,16 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 && printReq.isGrayscale()
                 && PRINTER_SERVICE.isClientSideMonochrome(printer)) {
 
-            final IFileConverter converter = new PdfToGrayscale();
+            final IPdfConverter converter = new PdfToGrayscale();
 
             try {
-                downloadedFileConverted = converter
-                        .convert(DocContentTypeEnum.PDF, downloadedFile);
-            } catch (UnavailableException e) {
+                downloadedFileConverted = converter.convert(downloadedFile);
+            } catch (IOException e) {
                 /*
                  * INVARIANT: Service MUST be available.
                  */
                 throw new DocContentToPdfException(
-                        "Monochrome conversion failed "
-                                + "because service is unavailable.");
+                        "Monochrome conversion failed.");
             }
 
             if (LOGGER.isDebugEnabled()) {
@@ -2809,8 +2805,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                     JOBTICKET_SERVICE.proxyPrintPdf(lockedUser, printReq,
                             createInfo, printInInfo,
                             DateUtils.addHours(
-                                    ServiceContext.getTransactionDate(),
-                                    hours), null);
+                                    ServiceContext.getTransactionDate(), hours),
+                            null);
                 } else {
                     OUTBOX_SERVICE.proxyPrintPdf(lockedUser, printReq,
                             createInfo, printInInfo);

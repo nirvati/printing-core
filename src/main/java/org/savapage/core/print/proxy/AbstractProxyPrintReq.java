@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -111,6 +111,11 @@ public abstract class AbstractProxyPrintReq
      * printing.
      */
     private boolean convertToGrayscale = false;
+
+    /**
+     * {@code true} if booklet page ordering is performed client-side (locally).
+     */
+    private boolean localBooklet = false;
 
     //
     private Locale locale = Locale.getDefault();
@@ -364,6 +369,14 @@ public abstract class AbstractProxyPrintReq
     }
 
     /**
+     *
+     * @return {@code true} if Booklet option is present.
+     */
+    public boolean isBooklet() {
+        return isBooklet(getOptionValues());
+    }
+
+    /**
      * @return {@code true} if <u>printer</u> is capable of duplex printing.
      */
     public boolean hasDuplex() {
@@ -512,6 +525,17 @@ public abstract class AbstractProxyPrintReq
             grayscale = value.equals(IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
         }
         return grayscale;
+    }
+
+    public static boolean isBooklet(Map<String, String> optionValues) {
+        boolean booklet = false;
+        final String value = optionValues.get(
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET);
+        if (value != null) {
+            booklet = !value.equals(
+                    IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_BOOKLET_NONE);
+        }
+        return booklet;
     }
 
     public void setGrayscale() {
@@ -688,6 +712,24 @@ public abstract class AbstractProxyPrintReq
      */
     public final void setConvertToGrayscale(boolean convertToGrayscale) {
         this.convertToGrayscale = convertToGrayscale;
+    }
+
+    /**
+     * @return {@code true} if booklet page ordering is performed client-side
+     *         (locally).
+     */
+    public boolean isLocalBooklet() {
+        return localBooklet;
+    }
+
+    /**
+     *
+     * @param localBooklet
+     *            {@code true} if booklet page ordering is performed client-side
+     *            (locally).
+     */
+    public void setLocalBooklet(boolean localBooklet) {
+        this.localBooklet = localBooklet;
     }
 
 }

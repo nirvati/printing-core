@@ -234,6 +234,16 @@ public interface PrinterService {
     boolean isClientSideMonochrome(Printer printer);
 
     /**
+     * Checks if 2-up duplex booklet page ordering is performed client-side
+     * (locally).
+     *
+     * @param printer
+     *            The {@link Printer}.
+     * @return {@code true} if booklet page ordering is performed client-side.
+     */
+    boolean isClientSideBooklet(Printer printer);
+
+    /**
      * Sets printer instance as logically deleted (database is NOT updated).
      *
      * @param printer

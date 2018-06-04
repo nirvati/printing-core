@@ -29,7 +29,7 @@ import java.io.File;
  * @author Datraverse B.V.
  *
  */
-public class ConvertToPdf extends AbstractFileConverter {
+public class ConvertToPdf extends AbstractDocFileConverter {
 
     public ConvertToPdf() {
         super(ExecMode.MULTI_THREADED);

@@ -102,6 +102,13 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             PPD_OPTION_PFX_CHAR + "LandscapeOrientation:";
 
     /**
+     * PPD attribute: {@code } if booklet page ordering is performed client-side
+     * (locally).
+     */
+    private static final String PPD_ATTR_SP_LOCAL_BOOKLET =
+            PPD_OPTION_PFX_CHAR + "SPLocalBooklet:";
+
+    /**
      * PPD attribute value.
      */
     private static final String PPD_ATTR_LANDSCAPE_ORIENTATION_PLUS90 =
@@ -315,6 +322,11 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     private Boolean ppdLandscapeMinus90;
 
     /**
+    *
+    */
+    private Boolean localBooklet;
+
+    /**
      *
      * @param cupsOptionsLookup
      *            IPP printer options as retrieved from CUPS.
@@ -410,6 +422,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         this.rulesSubst = new ArrayList<>();
 
         this.ppdLandscapeMinus90 = null;
+        this.localBooklet = Boolean.FALSE;
     }
 
     /**
@@ -1173,14 +1186,33 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             final String value) {
 
         if (value.equalsIgnoreCase(PPD_ATTR_LANDSCAPE_ORIENTATION_MINUS90)) {
-            ppdLandscapeMinus90 = Boolean.TRUE;
+            this.ppdLandscapeMinus90 = Boolean.TRUE;
         } else if (value
                 .equalsIgnoreCase(PPD_ATTR_LANDSCAPE_ORIENTATION_PLUS90)) {
-            ppdLandscapeMinus90 = Boolean.FALSE;
+            this.ppdLandscapeMinus90 = Boolean.FALSE;
         } else {
             logSyntaxError(lineNr, value);
         }
+    }
 
+    /**
+     * Notifies {@link #PPD_ATTR_SP_LOCAL_BOOKLET} attribute.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param value
+     *            Attribute value.
+     */
+    private void onAttrSPLocalBooklet(final int lineNr,
+            final String value) {
+
+        if (value.equalsIgnoreCase(Boolean.TRUE.toString())) {
+            this.localBooklet = Boolean.TRUE;
+        } else if (value.equalsIgnoreCase(Boolean.FALSE.toString())) {
+            this.localBooklet = Boolean.FALSE;
+        } else {
+            logSyntaxError(lineNr, value);
+        }
     }
 
     /**
@@ -1267,6 +1299,15 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         if (firstWord.equalsIgnoreCase(PPD_ATTR_LANDSCAPE_ORIENTATION)) {
             if (words.length == 2) {
                 this.onAttrLandscapeOrientation(lineNr, words[1]);
+            } else {
+                logSyntaxError(lineNr, firstWord);
+            }
+            return;
+        }
+
+        if (firstWord.equalsIgnoreCase(PPD_ATTR_SP_LOCAL_BOOKLET)) {
+            if (words.length == 2) {
+                this.onAttrSPLocalBooklet(lineNr, words[1]);
             } else {
                 logSyntaxError(lineNr, firstWord);
             }
@@ -1452,7 +1493,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             proxyPrinter.setPpdLandscapeMinus90(
                     reader.ppdLandscapeMinus90.booleanValue());
         }
-
+        proxyPrinter
+                .setBookletClientSide(reader.localBooklet.booleanValue());
         //
         proxyPrinter.setInjectPpdExt(true);
         proxyPrinter.setPrintScalingExt(printScalingExt);

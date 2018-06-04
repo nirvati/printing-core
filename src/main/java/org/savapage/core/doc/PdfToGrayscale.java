@@ -33,7 +33,8 @@ import org.savapage.core.SpException;
  * @author Rijk Ravestein
  *
  */
-public class PdfToGrayscale extends AbstractFileConverter {
+public final class PdfToGrayscale extends AbstractFileConverter
+        implements IPdfConverter {
 
     /**
      * The directory location of the created file (can be {@code null}).
@@ -59,7 +60,7 @@ public class PdfToGrayscale extends AbstractFileConverter {
     }
 
     @Override
-    protected final File getOutputFile(final File fileIn) {
+    protected File getOutputFile(final File fileIn) {
 
         final StringBuilder builder = new StringBuilder(128);
 
@@ -78,7 +79,7 @@ public class PdfToGrayscale extends AbstractFileConverter {
     }
 
     @Override
-    protected final String getOsCommand(final DocContentTypeEnum contentType,
+    protected String getOsCommand(final DocContentTypeEnum contentType,
             final File fileIn, final File fileOut) {
 
         final StringBuilder cmd = new StringBuilder(128);
@@ -102,5 +103,16 @@ public class PdfToGrayscale extends AbstractFileConverter {
         }
 
         return cmd.toString();
+    }
+
+    @Override
+    public File convert(final File fileIn) throws IOException {
+        final File filePdf = getOutputFile(fileIn);
+        try {
+            return convertWithOsCommand(DocContentTypeEnum.PDF, fileIn, filePdf,
+                    getOsCommand(DocContentTypeEnum.PDF, fileIn, filePdf));
+        } catch (DocContentToPdfException e) {
+            throw new IOException(e.getMessage());
+        }
     }
 }

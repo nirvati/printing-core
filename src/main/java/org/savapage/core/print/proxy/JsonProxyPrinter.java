@@ -131,6 +131,9 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     private boolean ppdLandscapeMinus90;
 
+    @JsonIgnore
+    private boolean bookletClientSide;
+
     /**
      *
      */
@@ -440,6 +443,16 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     public void setPpdLandscapeMinus90(final boolean minus90) {
         this.ppdLandscapeMinus90 = minus90;
+    }
+
+    @JsonIgnore
+    public boolean isBookletClientSide() {
+        return bookletClientSide;
+    }
+
+    @JsonIgnore
+    public void setBookletClientSide(boolean bookletClientSide) {
+        this.bookletClientSide = bookletClientSide;
     }
 
     public String getState() {

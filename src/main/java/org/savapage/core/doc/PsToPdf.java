@@ -32,7 +32,7 @@ import org.savapage.core.print.server.PostScriptFilter;
  * @author Datraverse B.V.
  *
  */
-public class PsToPdf extends AbstractFileConverter {
+public class PsToPdf extends AbstractDocFileConverter {
 
     /**
      *
