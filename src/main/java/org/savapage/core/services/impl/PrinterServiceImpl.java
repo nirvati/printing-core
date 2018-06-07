@@ -941,6 +941,27 @@ public final class PrinterServiceImpl extends AbstractService
     }
 
     @Override
+    public Map<String, String> getMediaSourceMediaMap(
+            final PrinterAttrLookup printerAttrLookup,
+            final JsonProxyPrinterOpt mediaSource) {
+
+        final Map<String, String> map = new HashMap<>();
+
+        for (final JsonProxyPrinterOptChoice optChoice : mediaSource
+                .getChoices()) {
+
+            final IppMediaSourceCostDto assignedMediaSource = printerAttrLookup
+                    .get(new PrinterDao.MediaSourceAttr(optChoice.getChoice()));
+
+            if (assignedMediaSource != null) {
+                map.put(optChoice.getChoice(),
+                        assignedMediaSource.getMedia().getMedia());
+            }
+        }
+        return map;
+    }
+
+    @Override
     public void setSnmpInfo(final Printer printer, final PrinterSnmpDto info)
             throws IOException {
 

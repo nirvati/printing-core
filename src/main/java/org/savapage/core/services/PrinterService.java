@@ -385,7 +385,7 @@ public interface PrinterService {
      *            The {@link Printer}.
      * @return {@code true} if printer supports hold/release printing.
      */
-    boolean isHoldReleasePrinter(final Printer printer);
+    boolean isHoldReleasePrinter(Printer printer);
 
     /**
      * Finds the first "media-source" of a printer that matches a "media".
@@ -404,6 +404,21 @@ public interface PrinterService {
     JsonProxyPrinterOptChoice findMediaSourceForMedia(
             PrinterAttrLookup printerAttrLookup,
             JsonProxyPrinterOpt mediaSource, String requestedMedia);
+
+    /**
+     * Gets the map with key (media-source choice) and value (media).
+     *
+     * @param printerAttrLookup
+     *            The {@link PrinterAttrLookup} containing the "media-source" to
+     *            "media" mapping.
+     * @param mediaSource
+     *            The "media-source" to search. See
+     *            {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE}
+     * @return The map (can be empty).
+     */
+    Map<String, String> getMediaSourceMediaMap(
+            PrinterAttrLookup printerAttrLookup,
+            JsonProxyPrinterOpt mediaSource);
 
     /**
      * Sets SNMP printer info.

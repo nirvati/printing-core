@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,8 @@
  * address: info@datraverse.com
  */
 package org.savapage.core.dto;
+
+import java.util.Map;
 
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
@@ -56,6 +58,11 @@ public final class RedirectPrinterDto extends AbstractDto {
      * The localized media-type choice. {@code null} when no media-type chosen.
      */
     private JsonProxyPrinterOptChoice mediaTypeOptChoice;
+
+    /**
+     * Map with key (media-source choice) and value (media).
+     */
+    private Map<String, String> mediaSourceMediaMap;
 
     /**
      * The {@link IppDictJobTemplateAttr#ATTR_MEDIA_SOURCE} option of the
@@ -152,6 +159,22 @@ public final class RedirectPrinterDto extends AbstractDto {
     public void
             setMediaTypeOptChoice(final JsonProxyPrinterOptChoice optChoice) {
         this.mediaTypeOptChoice = optChoice;
+    }
+
+    /**
+     * @return Map with key (media-source choice) and value (media).
+     */
+    public Map<String, String> getMediaSourceMediaMap() {
+        return mediaSourceMediaMap;
+    }
+
+    /**
+     * @param map
+     *            Map with key (media-source choice) and value (media).
+     */
+    public void setMediaSourceMediaMap(
+            final Map<String, String> map) {
+        this.mediaSourceMediaMap = map;
     }
 
     /**

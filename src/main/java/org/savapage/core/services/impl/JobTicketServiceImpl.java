@@ -1719,13 +1719,13 @@ public final class JobTicketServiceImpl extends AbstractService
 
             if (mediaTypeOptChoice != null) {
                 redirectPrinter.setMediaTypeOptChoice(mediaTypeOptChoice);
-                // proxyPrintService().localizePrinterOptValue(locale,
-                // IppDictJobTemplateAttr.ATTR_MEDIA_TYPE,
-                // requestedMediaTypeForJob));
             }
 
             final PrinterAttrLookup printerAttrLookup =
                     new PrinterAttrLookup(printer);
+
+            redirectPrinter.setMediaSourceMediaMap(printerService()
+                    .getMediaSourceMediaMap(printerAttrLookup, mediaSource));
 
             // Main job.
             redirectPrinter.setMediaSourceOptChoice(
