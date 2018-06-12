@@ -1388,7 +1388,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      */
     private static void injectPageSetupOptions(
             final JsonProxyPrinter proxyPrinter,
-            final List<JsonProxyPrinterOpt> optToInject) {
+            final ArrayList<JsonProxyPrinterOpt> optToInject) {
 
         if (optToInject.isEmpty()) {
             return;
@@ -1399,7 +1399,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
         final String[] optOrder = IppDictJobTemplateAttr.ATTR_SET_UI_PAGE_SETUP;
 
-        final List<JsonProxyPrinterOpt> optCurrent = optGroup.getOptions();
+        final ArrayList<JsonProxyPrinterOpt> optCurrent = optGroup.getOptions();
 
         // Enforce the right merge order with TreeMap.
         final TreeMap<Integer, JsonProxyPrinterOpt> mergeMap = new TreeMap<>();
@@ -1408,36 +1408,35 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         final int maxOptions =
                 optOrder.length + optCurrent.size() + optToInject.size();
 
-        // Options to inject that are not found in the preferred order, are
+        final int[] aNotFound = new int[2];
+        final ArrayList<JsonProxyPrinterOpt>[] aOptionLists = new ArrayList[2];
+
+        // Current options that are not found in the preferred order, are
         // prepended.
-        int iNotFound = -maxOptions;
-        for (final JsonProxyPrinterOpt optC : optCurrent) {
-            boolean found = false;
-            for (int i = 0; i < optOrder.length; i++) {
-                if (optC.getKeyword().equals(optOrder[i])) {
-                    mergeMap.put(i, optC);
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                mergeMap.put(iNotFound++, optC);
-            }
-        }
+        aNotFound[0] = -maxOptions;
+        aOptionLists[0] = optCurrent;
+
         // Options to inject that are not found in the preferred order, are
         // appended.
-        iNotFound = maxOptions;
-        for (final JsonProxyPrinterOpt optC : optToInject) {
-            boolean found = false;
-            for (int i = 0; i < optOrder.length; i++) {
-                if (optC.getKeyword().equals(optOrder[i])) {
-                    mergeMap.put(i, optC);
-                    found = true;
-                    break;
+        aNotFound[1] = maxOptions;
+        aOptionLists[1] = optToInject;
+
+        for (int j = 0; j < aOptionLists.length; j++) {
+
+            int iNotFound = aNotFound[j];
+
+            for (final JsonProxyPrinterOpt optC : aOptionLists[j]) {
+                boolean found = false;
+                for (int i = 0; i < optOrder.length; i++) {
+                    if (optC.getKeyword().equals(optOrder[i])) {
+                        mergeMap.put(i, optC);
+                        found = true;
+                        break;
+                    }
                 }
-            }
-            if (!found) {
-                mergeMap.put(iNotFound++, optC);
+                if (!found) {
+                    mergeMap.put(iNotFound++, optC);
+                }
             }
         }
 
@@ -1473,7 +1472,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         boolean printScalingExt = false;
 
         // The mapped PPD options
-        final List<JsonProxyPrinterOpt> optToInjectPageSetup =
+        final ArrayList<JsonProxyPrinterOpt> optToInjectPageSetup =
                 new ArrayList<>();
 
         for (final JsonProxyPrinterOpt opt : reader.ppdOptionMap.values()) {
