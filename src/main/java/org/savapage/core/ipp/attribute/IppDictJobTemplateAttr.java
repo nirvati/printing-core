@@ -447,15 +447,13 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     /**
      * A set of IPP attribute keywords used in UI (Web App) for Page Options.
      * <p>
-     * Note that the option order in the array is the top-down order as they
-     * appear in the Web App.
+     * Note: the option order of this array is the top-down order as they will
+     * appear in a Printer Settings Dialog.
      * </p>
      */
     public static final String[] ATTR_SET_UI_PAGE_SETUP = new String[] {
             /* */
             ATTR_MEDIA_SOURCE,
-            /* */
-            ATTR_OUTPUT_BIN,
             /* */
             ATTR_MEDIA,
             /* */
@@ -469,7 +467,12 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             /* */
             ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180,
             /* */
-            ATTR_NUMBER_UP };
+            ATTR_NUMBER_UP,
+            /* */
+            ATTR_OUTPUT_BIN,
+            /* */
+            ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET //
+    };
 
     /**
      * A set of IPP attribute keywords used in UI (Web App) for Job Options.
@@ -510,9 +513,7 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             /* */
             ATTR_SHEET_COLLATE,
             /* */
-            ATTR_PRINT_SCALING,
-            /* */
-            ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET
+            ATTR_PRINT_SCALING
             //
     };
 

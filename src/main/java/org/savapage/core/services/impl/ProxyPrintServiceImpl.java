@@ -133,7 +133,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
     private static final String CUSTOM_IPP_I18N_RESOURCE_NAME = "ipp-i18n";
 
-    /** Key prefix of IPP option (choice) text.*/
+    /** Key prefix of IPP option (choice) text. */
     private static final String LOCALIZE_IPP_ATTR_PREFIX = "ipp-attr-";
 
     /** Key prefix of IPP option choice(s) icon CSS class. */
@@ -1089,6 +1089,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final IppAttrGroup group,
             final ArrayList<JsonProxyPrinterOpt> printerOptions,
             final String attrKeyword) {
+
+        /*
+         * Skip exclusive PPDE options.
+         */
+        if (attrKeyword.equals(
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET)) {
+            return;
+        }
 
         /*
          * Handle internal attributes first.

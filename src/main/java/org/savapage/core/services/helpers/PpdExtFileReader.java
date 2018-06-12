@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1203,8 +1204,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      * @param value
      *            Attribute value.
      */
-    private void onAttrSPLocalBooklet(final int lineNr,
-            final String value) {
+    private void onAttrSPLocalBooklet(final int lineNr, final String value) {
 
         if (value.equalsIgnoreCase(Boolean.TRUE.toString())) {
             this.localBooklet = Boolean.TRUE;
@@ -1378,6 +1378,76 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     }
 
     /**
+     * Injects IPP options into the {@link ProxyPrinterOptGroupEnum#PAGE_SETUP}
+     * group of a proxy printer.
+     *
+     * @param proxyPrinter
+     *            The printer in which to inject the IPP options.
+     * @param optToInject
+     *            The IPP options.
+     */
+    private static void injectPageSetupOptions(
+            final JsonProxyPrinter proxyPrinter,
+            final List<JsonProxyPrinterOpt> optToInject) {
+
+        if (optToInject.isEmpty()) {
+            return;
+        }
+
+        final JsonProxyPrinterOptGroup optGroup = lazyCreateOptGroup(
+                ProxyPrinterOptGroupEnum.PAGE_SETUP, proxyPrinter.getGroups());
+
+        final String[] optOrder = IppDictJobTemplateAttr.ATTR_SET_UI_PAGE_SETUP;
+
+        final List<JsonProxyPrinterOpt> optCurrent = optGroup.getOptions();
+
+        // Enforce the right merge order with TreeMap.
+        final TreeMap<Integer, JsonProxyPrinterOpt> mergeMap = new TreeMap<>();
+
+        // A safe enough offset for options that are not found.
+        final int maxOptions =
+                optOrder.length + optCurrent.size() + optToInject.size();
+
+        // Options to inject that are not found in the preferred order, are
+        // prepended.
+        int iNotFound = -maxOptions;
+        for (final JsonProxyPrinterOpt optC : optCurrent) {
+            boolean found = false;
+            for (int i = 0; i < optOrder.length; i++) {
+                if (optC.getKeyword().equals(optOrder[i])) {
+                    mergeMap.put(i, optC);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                mergeMap.put(iNotFound++, optC);
+            }
+        }
+        // Options to inject that are not found in the preferred order, are
+        // appended.
+        iNotFound = maxOptions;
+        for (final JsonProxyPrinterOpt optC : optToInject) {
+            boolean found = false;
+            for (int i = 0; i < optOrder.length; i++) {
+                if (optC.getKeyword().equals(optOrder[i])) {
+                    mergeMap.put(i, optC);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                mergeMap.put(iNotFound++, optC);
+            }
+        }
+
+        final ArrayList<JsonProxyPrinterOpt> optMerged = new ArrayList<>();
+        optMerged.addAll(mergeMap.values());
+
+        optGroup.setOptions(optMerged);
+    }
+
+    /**
      * Injects the SavaPage PPD extensions defined in {@link File} into the IPP
      * options of a proxy printer.
      *
@@ -1403,6 +1473,9 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         boolean printScalingExt = false;
 
         // The mapped PPD options
+        final List<JsonProxyPrinterOpt> optToInjectPageSetup =
+                new ArrayList<>();
+
         for (final JsonProxyPrinterOpt opt : reader.ppdOptionMap.values()) {
 
             final String keywordIpp = opt.getKeyword();
@@ -1447,11 +1520,18 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 continue;
             }
 
-            final JsonProxyPrinterOptGroup optGroupInject =
-                    lazyCreateOptGroup(optGroupEnum, proxyPrinter.getGroups());
-
-            optGroupInject.getOptions().add(opt);
+            if (ProxyPrinterOptGroupEnum.PAGE_SETUP == optGroupEnum) {
+                optToInjectPageSetup.add(opt);
+            } else {
+                final JsonProxyPrinterOptGroup optGroupInject =
+                        lazyCreateOptGroup(optGroupEnum,
+                                proxyPrinter.getGroups());
+                optGroupInject.getOptions().add(opt);
+            }
         }
+
+        // Inject page setup options in the right order.
+        injectPageSetupOptions(proxyPrinter, optToInjectPageSetup);
 
         // SpJobTicket Set/Copy/Sheet/Media options.
         final JsonProxyPrinterOptGroup optGroupJobTicket = lazyCreateOptGroup(
@@ -1493,8 +1573,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             proxyPrinter.setPpdLandscapeMinus90(
                     reader.ppdLandscapeMinus90.booleanValue());
         }
-        proxyPrinter
-                .setBookletClientSide(reader.localBooklet.booleanValue());
+        proxyPrinter.setBookletClientSide(reader.localBooklet.booleanValue());
         //
         proxyPrinter.setInjectPpdExt(true);
         proxyPrinter.setPrintScalingExt(printScalingExt);
