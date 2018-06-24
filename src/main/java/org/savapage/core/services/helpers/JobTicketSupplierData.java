@@ -21,13 +21,10 @@
  */
 package org.savapage.core.services.helpers;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 
-import org.savapage.core.SpException;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.jpa.User;
-import org.savapage.core.json.JsonAbstractBase;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -39,8 +36,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  *
  */
 @JsonInclude(Include.NON_NULL)
-public final class JobTicketSupplierData extends JsonAbstractBase
-        implements ExternalSupplierData {
+public final class JobTicketSupplierData extends CommonSupplierData {
 
     /**
      * Media cost total of all printed media.
@@ -132,15 +128,6 @@ public final class JobTicketSupplierData extends JsonAbstractBase
         this.costSet = cost;
     }
 
-    @Override
-    public String dataAsString() {
-        try {
-            return this.stringify();
-        } catch (IOException e) {
-            throw new SpException(e.getMessage());
-        }
-    }
-
     /**
      * @return The {@link User#getUserId()} of the
      *         {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
@@ -159,7 +146,7 @@ public final class JobTicketSupplierData extends JsonAbstractBase
     }
 
     /**
-     * Creates an object from data string.s
+     * Creates an object from data string.
      *
      * @param data
      *            The serialized data.

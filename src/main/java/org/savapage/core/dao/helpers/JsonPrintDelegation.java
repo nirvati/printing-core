@@ -199,19 +199,19 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
             switch (sourceAccount.getAccountType()) {
             case GROUP:
                 target.getGroupsAccountGroup().put(id,
-                        sourceAccount.getUserCopies());
+                        sourceAccount.getTotalCopies());
                 break;
 
             case USER:
                 target.getGroupsAccountUser().put(id,
-                        sourceAccount.getUserCopies());
+                        sourceAccount.getTotalCopies());
                 break;
 
             case SHARED:
                 target.getGroupsAccountShared().put(id,
                         new SimpleEntry<Long, Integer>(
                                 sourceAccount.getAccountId(),
-                                sourceAccount.getUserCopies()));
+                                sourceAccount.getTotalCopies()));
                 break;
 
             default:
@@ -234,7 +234,7 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
 
             switch (sourceAccount.getAccountType()) {
             case USER:
-                target.getUsers().put(id, entry.getValue().getUserCopies());
+                target.getUsers().put(id, entry.getValue().getTotalCopies());
                 break;
 
             case SHARED:
@@ -263,7 +263,7 @@ public final class JsonPrintDelegation extends JsonAbstractBase {
             switch (sourceAccount.getAccountType()) {
             case SHARED:
                 target.getCopiesAccountShared().put(entry.getKey(),
-                        sourceAccount.getUserCount());
+                        sourceAccount.getTotalCopies());
                 break;
 
             case USER:

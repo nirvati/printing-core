@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,21 +38,42 @@ public final class AccountTrxInfoSet {
     private final int weightTotal;
 
     /**
+     * The number of units (e.g. printed copies).
+     */
+    private final int unitTotal;
+
+    /**
      * .
      */
     private List<AccountTrxInfo> accountTrxInfoList = new ArrayList<>();
 
     /**
      *
-     * @param weightTotal
+     * @param weightTot
      *            The weight total. IMPORTANT: This total need NOT be the same
      *            as the accumulated weight of the individual Account
      *            transactions. For example: parts of the printing costs may be
      *            charged to (personal and shared) multiple accounts.
      *
      */
-    public AccountTrxInfoSet(final int weightTotal) {
-        this.weightTotal = weightTotal;
+    public AccountTrxInfoSet(final int weightTot) {
+        this.weightTotal = weightTot;
+        this.unitTotal = weightTot;
+    }
+
+    /**
+     *
+     * @param weightTot
+     *            The weight total. IMPORTANT: This total need NOT be the same
+     *            as the accumulated weight of the individual Account
+     *            transactions. For example: parts of the printing costs may be
+     *            charged to (personal and shared) multiple accounts.
+     * @param unitTot
+     *            The number of units (e.g. printed copies).
+     */
+    public AccountTrxInfoSet(final int weightTot, final int unitTot) {
+        this.weightTotal = weightTot;
+        this.unitTotal = unitTot;
     }
 
     /**
@@ -85,6 +106,13 @@ public final class AccountTrxInfoSet {
      */
     public int getWeightTotal() {
         return weightTotal;
+    }
+
+    /**
+     * @return The number of units (e.g. printed copies).
+     */
+    public int getUnitTotal() {
+        return unitTotal;
     }
 
 }

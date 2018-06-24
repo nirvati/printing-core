@@ -1587,6 +1587,12 @@ public interface IConfigProp {
         PROXY_PRINT_DELEGATE_MULTIPLE_MEMBER_COPIES_ENABLE("proxy-print.delegate.multiple-member-copies.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
+         * Enable direct input of group copies, bypassing calculation based on
+         * number of members (boolean).
+         */
+        PROXY_PRINT_DELEGATE_GROUP_COPIES_ENABLE("proxy-print.delegate.group-copies.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
          * Enable Delegated Print integration with PaperCut (boolean).
          */
         PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE("proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),

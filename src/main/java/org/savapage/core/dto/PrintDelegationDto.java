@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -63,6 +63,11 @@ public final class PrintDelegationDto extends AbstractDto {
          */
         private Integer userCopies;
 
+        /**
+         * The total number of copies: can differ from userCount * userCopies.
+         */
+        private Integer totalCopies;
+
         public DelegatorAccountEnum getAccountType() {
             return accountType;
         }
@@ -107,6 +112,23 @@ public final class PrintDelegationDto extends AbstractDto {
          */
         public void setUserCopies(Integer userCopies) {
             this.userCopies = userCopies;
+        }
+
+        /**
+         * @return The total number of copies: can differ from userCount *
+         *         userCopies.
+         */
+        public Integer getTotalCopies() {
+            return totalCopies;
+        }
+
+        /**
+         * @param totalCopies
+         *            The total number of copies: can differ from userCount *
+         *            userCopies.
+         */
+        public void setTotalCopies(Integer totalCopies) {
+            this.totalCopies = totalCopies;
         }
 
     }

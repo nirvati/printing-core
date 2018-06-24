@@ -1252,11 +1252,10 @@ public final class JobTicketServiceImpl extends AbstractService
 
         for (final AccountTrx trx : trxDocLog.getTransactions()) {
 
-            final int weight = trx.getTransactionWeight().intValue();
-
             final BigDecimal weightedCost =
                     accountingService().calcWeightedAmount(weightTotalCost,
-                            weightTotal, weight, scale);
+                            weightTotal, trx.getTransactionWeight().intValue(),
+                            trx.getTransactionWeightUnit().intValue(), scale);
 
             accountingService().chargeAccountTrxAmount(trx, weightedCost, null);
         }

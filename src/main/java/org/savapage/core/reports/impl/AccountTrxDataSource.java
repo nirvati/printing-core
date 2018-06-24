@@ -22,6 +22,7 @@
 package org.savapage.core.reports.impl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -56,12 +57,14 @@ import org.savapage.core.jpa.PosPurchase;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.User;
 import org.savapage.core.reports.AbstractJrDataSource;
+import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.BitcoinUtil;
 import org.savapage.core.util.CurrencyUtil;
 import org.savapage.core.util.JsonHelper;
+import org.savapage.core.util.LocaleHelper;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
@@ -79,12 +82,15 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
 
     private static final int CHUNK_SIZE = 100;
 
-    /**
-     * .
-     */
+    /** */
     private static final ProxyPrintService PROXYPRINT_SERVICE =
             ServiceContext.getServiceFactory().getProxyPrintService();
 
+    /** */
+    private static final AccountingService ACCOUNTING_SERVICE =
+            ServiceContext.getServiceFactory().getAccountingService();
+
+    /** */
     private List<AccountTrx> entryList = null;
     private Iterator<AccountTrx> iterator;
 
@@ -106,6 +112,8 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
 
     final boolean showDocLogTitle;
 
+    final LocaleHelper localeHelper;
+
     /**
      *
      * @param req
@@ -115,6 +123,8 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
             final Locale locale) {
 
         super(locale);
+
+        this.localeHelper = new LocaleHelper(locale);
 
         this.dfMediumDatetime =
                 new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z", locale);
@@ -475,9 +485,19 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
         final Locale locale = getLocale();
 
         //
-        final int nCopies = trx.getTransactionWeight().intValue();
+        final BigDecimal costPerCopy =
+                ACCOUNTING_SERVICE.calcCostPerPrintedCopy(
+                        docLog.getCostOriginal(), printOut.getNumberOfCopies());
 
-        desc.append(BULL_SEP).append(nCopies).append(" ")
+        final BigDecimal printedCopies = ACCOUNTING_SERVICE
+                .calcPrintedCopies(trx.getAmount(), costPerCopy, 2).abs();
+
+        final int nCopies =
+                printedCopies.setScale(0, RoundingMode.HALF_UP).intValue();
+
+        desc.append(BULL_SEP)
+                .append(this.localeHelper.asExactIntegerOrScaled(printedCopies))
+                .append(" ")
                 .append(PrintOutNounEnum.COPY.uiText(locale, nCopies > 1));
 
         //

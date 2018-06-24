@@ -1163,6 +1163,8 @@ public final class SmartschoolServiceImpl extends AbstractService
         final AccountTrxInfo accountTrxInfo = new AccountTrxInfo();
 
         accountTrxInfo.setWeight(copies);
+        accountTrxInfo.setWeightUnit(Integer.valueOf(1));
+
         accountTrxInfo.setAccount(account);
         accountTrxInfo.setExtDetails(extDetails);
 

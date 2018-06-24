@@ -21,6 +21,8 @@
  */
 package org.savapage.core.util;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Random;
 
 /**
@@ -46,6 +48,21 @@ public final class NumberUtil {
      *
      */
     private NumberUtil() {
+    }
+
+    /**
+     * Converts a BigDecimal to a BigInteger.
+     *
+     * @param bd
+     *            The {@link BigDecimal}.
+     * @return {@code null} if this BigDecimal has a nonzero fractional part.
+     */
+    public static BigInteger toBigIntegerExact(final BigDecimal bd) {
+        try {
+            return bd.toBigIntegerExact();
+        } catch (ArithmeticException ex) {
+            return null;
+        }
     }
 
     /**

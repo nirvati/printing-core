@@ -35,6 +35,7 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
+import org.savapage.core.services.helpers.CommonSupplierData;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
@@ -119,8 +120,20 @@ public final class PaperCutServiceImpl extends AbstractService
         final ExternalSupplierInfo supplierInfoWrk;
 
         if (supplierInfo == null) {
+
             supplierInfoWrk = new ExternalSupplierInfo();
             supplierInfoWrk.setSupplier(ExternalSupplierEnum.SAVAPAGE);
+
+            if (printReq.getAccountTrxInfoSet() != null) {
+
+                final CommonSupplierData supplierData =
+                        new CommonSupplierData();
+
+                supplierData.setWeightTotal(Integer.valueOf(
+                        printReq.getAccountTrxInfoSet().getWeightTotal()));
+
+                supplierInfoWrk.setData(supplierData);
+            }
         } else {
             supplierInfoWrk = supplierInfo;
         }

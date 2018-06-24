@@ -70,6 +70,9 @@ public final class PaperCutAccountAdjustPrintRefund
         final int weightTotal =
                 docLog.getDocOut().getPrintOut().getNumberOfCopies();
 
+        final BigDecimal costPerCopy = ACCOUNTING_SERVICE
+                .calcCostPerPrintedCopy(weightTotalCost, weightTotal);
+
         /*
          * Create transaction comment processor.
          */
@@ -84,7 +87,8 @@ public final class PaperCutAccountAdjustPrintRefund
          */
         for (final AccountTrx trx : chg.getTransactions()) {
             final BigDecimal papercutAdjustment = trx.getAmount();
-            onAdjustSharedAccount(trx, trxCommentProcessor, papercutAdjustment);
+            onAdjustSharedAccount(trx, trxCommentProcessor, papercutAdjustment,
+                    costPerCopy);
         }
 
         this.onExit(trxCommentProcessor, weightTotalCost);

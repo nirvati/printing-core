@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -131,9 +132,6 @@ public class DbUpgManager {
                     + "]");
         }
 
-        /*
-         *
-         */
         final ConfigManager cm = ConfigManager.instance();
         final String minorApp = DbTools.getAppSchemaVersionMinor();
 
@@ -148,12 +146,11 @@ public class DbUpgManager {
              * Make a snapshot of the database before the upgrade?
              */
             if (cm.isDbBackupBeforeUpg()) {
-                Date dateExport = new Date();
-                final File backupFile = DbTools
-                        .exportDbBeforeUpg(DaoContextImpl.peekEntityManager(),
-                                cm.getConfigInt(
-                                        Key.DB_EXPORT_QUERY_MAX_RESULTS),
-                                schemaVersionDb, dateExport);
+                final Date dateExport = new Date();
+                final File backupFile = DbTools.exportDbBeforeUpg(
+                        DaoContextImpl.peekEntityManager(),
+                        cm.getConfigInt(Key.DB_EXPORT_QUERY_MAX_RESULTS),
+                        schemaVersionDb, dateExport);
                 SpInfo.instance().log("Backup file created before update: "
                         + backupFile.getAbsolutePath());
             } else {
@@ -173,14 +170,12 @@ public class DbUpgManager {
 
             if (minorDb.equals(minorApp)) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("database schema is up-to-date");
+                    LOGGER.debug("Database schema is up-to-date");
                 }
             } else {
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("Database minor version mismatch: "
-                            + "application [" + minorApp + "] - database ["
-                            + minorDb + "]");
-                }
+                throw new IllegalStateException(
+                        "Database minor version mismatch: " + "application ["
+                                + minorApp + "] - database [" + minorDb + "]");
             }
         }
     }
@@ -232,8 +227,6 @@ public class DbUpgManager {
      *
      * @param targetVersion
      *            The schema version to upgrade to.
-     * @param upgradeScript
-     *            Basename of the upgrade script file.
      */
     private void doSchemaUpgrade(final long targetVersion) {
 
@@ -255,7 +248,6 @@ public class DbUpgManager {
                     "Error occurred trying to upgrade to schema version: "
                             + targetVersion,
                     e);
-        } finally {
         }
     }
 
@@ -265,8 +257,10 @@ public class DbUpgManager {
      * @return
      */
     private File getDbUpgradeScript(final String schemaVersion) {
-        return new File(ConfigManager.getDbScriptDir(),
-                "upgrades/" + "upg-" + schemaVersion + ".sql");
+        return Paths
+                .get(ConfigManager.getDbScriptDir().getAbsolutePath(),
+                        "upgrades", String.format("upg-%s.sql", schemaVersion))
+                .toFile();
     }
 
     /**

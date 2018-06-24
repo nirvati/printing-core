@@ -140,6 +140,7 @@ import org.savapage.core.print.proxy.TicketJobSheetDto;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
+import org.savapage.core.services.helpers.CommonSupplierData;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.JobTicketSupplierData;
@@ -2240,6 +2241,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     job.getExternalSupplierInfo().getSupplier().toString());
         }
 
+        final CommonSupplierData commonSupplierData;
+
         if (isJobTicket) {
 
             docLog.setExternalId(job.getTicketNumber());
@@ -2252,7 +2255,18 @@ public abstract class AbstractProxyPrintService extends AbstractService
             supplierData.setCostSet(job.getCostResult().getCostSet());
             supplierData.setOperator(operator);
 
-            docLog.setExternalData(supplierData.dataAsString());
+            commonSupplierData = supplierData;
+
+        } else if (isProxyPrint && monitorPaperCutPrintStatus) {
+            commonSupplierData = new CommonSupplierData();
+        } else {
+            commonSupplierData = null;
+        }
+
+        if (commonSupplierData != null) {
+            commonSupplierData.setWeightTotal(Integer
+                    .valueOf(job.getAccountTransactions().getWeightTotal()));
+            docLog.setExternalData(commonSupplierData.dataAsString());
         }
 
         /*
@@ -2309,8 +2323,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         if (isSettlement && monitorPaperCutPrintStatus) {
             try {
-                settleProxyPrintPaperCut(docLog, job.getCopies(),
-                        job.getCostResult());
+                settleProxyPrintPaperCut(docLog,
+                        job.getAccountTransactions().getWeightTotal(),
+                        job.getCopies(), job.getCostResult());
             } catch (PaperCutException e) {
                 throw new IOException(e.getMessage(), e);
             }
@@ -2340,6 +2355,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *
      * @param docLog
      *            The {@link DocLog} container.
+     * @param weightTotal
+     *            The transaction weight total.
      * @param copies
      *            The number of printed copies.
      * @param cost
@@ -2347,7 +2364,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * @throws PaperCutException
      *             When logical PaperCut error.
      */
-    private void settleProxyPrintPaperCut(final DocLog docLog, final int copies,
+    private void settleProxyPrintPaperCut(final DocLog docLog,
+            final int weightTotal, final int copies,
             final ProxyPrintCostDto cost) throws PaperCutException {
 
         final PaperCutServerProxy serverProxy =
@@ -2358,7 +2376,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                         PAPERCUT_ACCOUNT_RESOLVER, LOGGER);
 
         adjustPattern.process(docLog, docLog, false, cost.getCostTotal(),
-                copies);
+                weightTotal, copies);
     }
 
     @Override

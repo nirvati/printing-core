@@ -23,6 +23,8 @@ package org.savapage.core.util;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -35,6 +37,7 @@ import java.util.ResourceBundle;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 
@@ -169,6 +172,25 @@ public final class LocaleHelper {
     public String getDecimal(final BigDecimal decimal, int fractionDigits)
             throws ParseException {
         return getCurrencyDecimal(decimal, fractionDigits, "");
+    }
+
+    /**
+     * Formats a BigDecimal as exact integer, or scaled with 2 decimals.
+     *
+     * @param bd
+     *            The {@link BigDecimal}.
+     * @return The formatted string.
+     */
+    public String asExactIntegerOrScaled(final BigDecimal bd) {
+        final BigInteger bi = NumberUtil.toBigIntegerExact(bd);
+        if (bi == null) {
+            try {
+                return getDecimal(bd.setScale(2, RoundingMode.HALF_UP), 2);
+            } catch (ParseException e) {
+                throw new SpException(e.getMessage());
+            }
+        }
+        return bi.toString();
     }
 
     /**

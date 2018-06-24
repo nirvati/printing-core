@@ -849,6 +849,7 @@ public final class OutboxServiceImpl extends AbstractService
             targetTrxInfo.setAccount(account);
             targetTrxInfo.setExtDetails(sourceTrxInfo.getExtDetails());
             targetTrxInfo.setWeight(Integer.valueOf(sourceTrxInfo.getWeight()));
+            targetTrxInfo.setWeightUnit(sourceTrxInfo.getWeightUnit());
         }
 
         //
@@ -894,6 +895,7 @@ public final class OutboxServiceImpl extends AbstractService
             outboxTrxInfo.setAccountId(trxInfo.getAccount().getId());
             outboxTrxInfo.setExtDetails(trxInfo.getExtDetails());
             outboxTrxInfo.setWeight(trxInfo.getWeight().intValue());
+            outboxTrxInfo.setWeightUnit(trxInfo.getWeightUnit());
         }
     }
 

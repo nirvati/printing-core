@@ -363,4 +363,9 @@ public final class PaperCutPrintCommentProcessor {
         }
         return StringUtils.substring(papersize, index).toUpperCase();
     }
+
+    public int getTotalNumberOfCopies() {
+        return totalNumberOfCopies;
+    }
+
 }

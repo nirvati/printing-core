@@ -898,12 +898,11 @@ public final class ConfigManager {
     }
 
     /**
-     * TODO: now it is fixed Derby, should be dependent on db type.
-     *
      * @return
      */
-    public static String getDbScriptDir() {
-        return ConfigManager.getServerHome() + "/lib/sql/Derby";
+    public static File getDbScriptDir() {
+        return Paths.get(ConfigManager.getServerHome(), "lib", "sql",
+                instance().myDatabaseType.getScriptSubdir()).toFile();
     }
 
     /**

@@ -49,6 +49,7 @@ import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.json.JsonAbstractBase;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.CommonSupplierData;
 import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.DateUtil;
@@ -552,18 +553,14 @@ public abstract class PaperCutPrintMonitorPattern
             return;
         }
 
-        /*
-         * Get total number of copies from the external data and use as weight
-         * total. IMPORTANT: the accumulated weight of the individual Account
-         * transactions need NOT be the same as the number of copies (since
-         * parts of the printing costs may be charged to multiple accounts).
-         */
-        final int weightTotal =
-                this.getAccountTrxWeightTotal(docLogOut, docLogIn);
+        final int printedCopies =
+                docLogOut.getDocOut().getPrintOut().getNumberOfCopies();
+        final int weightTotal;
 
         /*
          * Which printing cost to use?
          */
+        final CommonSupplierData commonSupplierData;
         final BigDecimal weightTotalCost;
 
         if (printMode == PrintModeEnum.TICKET
@@ -574,8 +571,28 @@ public abstract class PaperCutPrintMonitorPattern
 
             weightTotalCost = supplierData.getCostTotal();
 
+            if (supplierData.getWeightTotal() == null) {
+                commonSupplierData = null;
+            } else {
+                commonSupplierData = supplierData;
+            }
+
         } else {
+
             weightTotalCost = BigDecimal.valueOf(papercutLog.getUsageCost());
+
+            if (docLogOut.getExternalData() == null) {
+                commonSupplierData = null;
+            } else {
+                commonSupplierData = JsonAbstractBase.create(
+                        CommonSupplierData.class, docLogOut.getExternalData());
+            }
+        }
+
+        if (commonSupplierData == null) {
+            weightTotal = printedCopies;
+        } else {
+            weightTotal = commonSupplierData.getWeightTotal().intValue();
         }
 
         /*
@@ -586,7 +603,8 @@ public abstract class PaperCutPrintMonitorPattern
                         this.getLogger());
 
         accountAdjustPattern.process(docLogTrx, docLogOut,
-                this.isDocInAccountTrx(), weightTotalCost, weightTotal);
+                this.isDocInAccountTrx(), weightTotalCost, weightTotal,
+                printedCopies);
 
         /*
          * DocLog updates.

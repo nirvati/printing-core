@@ -128,6 +128,11 @@ public final class OutboxInfoDto extends AbstractDto {
         private int weight;
 
         /**
+         * The divider used on {@link #weight}, for calculating cost and copies.
+         */
+        private Integer weightUnit;
+
+        /**
          * Free format details from external source.
          */
         private String extDetails;
@@ -150,6 +155,23 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setWeight(int weight) {
             this.weight = weight;
+        }
+
+        /**
+         * @return The divider used on {@link #weight}, for calculating cost and
+         *         copies.
+         */
+        public Integer getWeightUnit() {
+            return weightUnit;
+        }
+
+        /**
+         * @param weightUnit
+         *            The divider used on {@link #weight}, for calculating cost
+         *            and copies.
+         */
+        public void setWeightUnit(Integer weightUnit) {
+            this.weightUnit = weightUnit;
         }
 
         public String getExtDetails() {
@@ -176,10 +198,13 @@ public final class OutboxInfoDto extends AbstractDto {
     public static final class OutboxAccountTrxInfoSet {
 
         /**
-         * The weight total. IMPORTANT: This total need NOT be the same as the
-         * accumulated weight of the individual Account transactions. For
-         * example: parts of the printing costs may be charged to (personal and
-         * shared) multiple accounts.
+         * The weight total.
+         * <p>
+         * <b>Note</b>: This total need NOT be the same as the accumulated
+         * weight of the individual Account transactions. For example: parts of
+         * the printing costs may be charged to (personal and shared) multiple
+         * accounts.
+         * </p>
          */
         private int weightTotal;
 

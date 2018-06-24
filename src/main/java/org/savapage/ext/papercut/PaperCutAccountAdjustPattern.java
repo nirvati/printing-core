@@ -22,6 +22,7 @@
 package org.savapage.ext.papercut;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.savapage.core.dao.UserAccountDao;
 import org.savapage.core.jpa.Account;
@@ -29,6 +30,7 @@ import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
+import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.ext.papercut.services.PaperCutService;
 import org.slf4j.Logger;
@@ -40,19 +42,23 @@ import org.slf4j.Logger;
  */
 public abstract class PaperCutAccountAdjustPattern {
 
-    /**
-     * .
-     */
+    /** */
     private static final UserAccountDao USER_ACCOUNT_DAO =
             ServiceContext.getDaoContext().getUserAccountDao();
-    /**
-     * .
-     */
+
+    /** */
+    protected static final AccountingService ACCOUNTING_SERVICE =
+            ServiceContext.getServiceFactory().getAccountingService();
+
+    /** */
     private static final PaperCutService PAPERCUT_SERVICE =
             ServiceContext.getServiceFactory().getPaperCutService();
 
+    /** */
     private final PaperCutServerProxy papercutServerProxy;
+    /** */
     private final PaperCutAccountResolver papercutAccountResolver;
+    /** */
     private final Logger logger;
 
     /**
@@ -78,16 +84,24 @@ public abstract class PaperCutAccountAdjustPattern {
      * Notifies a shared account adjustment to be done in PaperCut.
      *
      * @param trx
+     *            The transaction.
      * @param trxCommentProcessor
+     *            The comment processor.
      * @param papercutAdjustment
+     *            PaperCut adjustment (just this transaction).
+     * @param costPerCopy
+     *            Cost per copy of print job (all copies).
      * @throws PaperCutException
+     *             When error.
      */
     protected final void onAdjustSharedAccount(final AccountTrx trx,
             final PaperCutPrintCommentProcessor trxCommentProcessor,
-            final BigDecimal papercutAdjustment) throws PaperCutException {
+            final BigDecimal papercutAdjustment, final BigDecimal costPerCopy)
+            throws PaperCutException {
 
-        final int weight = trx.getTransactionWeight().intValue();
         final Account account = trx.getAccount();
+
+        final int copies;
 
         /*
          * PaperCut account adjustment.
@@ -124,8 +138,12 @@ public abstract class PaperCutAccountAdjustPattern {
             final String klasName = papercutAccountResolver
                     .getKlasFromAccountName(subAccountName);
 
+            copies = ACCOUNTING_SERVICE
+                    .calcPrintedCopies(papercutAdjustment, costPerCopy, 0)
+                    .intValue();
+
             final String klasTrxComment =
-                    trxCommentProcessor.processKlasTrx(klasName, weight);
+                    trxCommentProcessor.processKlasTrx(klasName, copies);
 
             if (logger.isDebugEnabled()) {
 
@@ -143,8 +161,13 @@ public abstract class PaperCutAccountAdjustPattern {
 
         } else {
 
+            final BigDecimal copiesDecimal = ACCOUNTING_SERVICE
+                    .calcPrintedCopies(papercutAdjustment, costPerCopy, 2);
+
+            copies = copiesDecimal.setScale(0, RoundingMode.CEILING).intValue();
+
             final String userCopiesComment = trxCommentProcessor
-                    .processUserTrx(trx.getExtDetails(), weight);
+                    .processUserTrx(trx.getExtDetails(), copies);
 
             /*
              * Get the user of the transaction.

@@ -651,7 +651,7 @@ public final class AccountingServiceImpl extends AbstractService
 
         final Integer weight = Integer.valueOf(1);
         trx.setTransactionWeight(weight);
-        trx.setTransactionWeightUnit(weight);
+        trx.setTransactionWeightUnit(Integer.valueOf(1));
 
         trx.setTransactedBy(ServiceContext.getActor());
         trx.setTransactionDate(ServiceContext.getTransactionDate());
@@ -667,7 +667,7 @@ public final class AccountingServiceImpl extends AbstractService
         final int weight = printOut.getNumberOfCopies().intValue();
 
         createAccountTrx(account, docLog, AccountTrxTypeEnum.PRINT_OUT, weight,
-                weight, null);
+                weight, 1, null);
     }
 
     @Override
@@ -708,17 +708,18 @@ public final class AccountingServiceImpl extends AbstractService
                 .getAccountTrxInfoList()) {
 
             createAccountTrx(trxInfo.getAccount(), docLog, trxType,
-                    nTotalWeight, trxInfo.getWeight(), trxInfo.getExtDetails());
+                    nTotalWeight, trxInfo.getWeight(),
+                    trxInfo.getWeightUnit().intValue(),
+                    trxInfo.getExtDetails());
         }
     }
 
     @Override
     public List<AccountTrx> createAccountTrxsUI(final OutboxJobDto outboxJob) {
 
-        final List<AccountTrx> list = new ArrayList<>();
+        final List<AccountTrx> trxList = new ArrayList<>();
 
         final AccountDao dao = ServiceContext.getDaoContext().getAccountDao();
-
         final int scale = ConfigManager.getFinancialDecimalsInDatabase();
 
         if (outboxJob.getAccountTransactions() == null) {
@@ -738,63 +739,73 @@ public final class AccountingServiceImpl extends AbstractService
                 account.setName(user.getUserId());
             }
 
-            final Integer weight = Integer.valueOf(outboxJob.getCopies());
-            trx.setTransactionWeight(weight);
-            trx.setTransactionWeightUnit(weight);
+            trx.setTransactionWeight(Integer.valueOf(outboxJob.getCopies()));
+            trx.setTransactionWeightUnit(Integer.valueOf(1));
 
             trx.setCurrencyCode(ConfigManager.getAppCurrencyCode());
             trx.setAmount(outboxJob.getCostTotal().negate());
 
-            list.add(trx);
+            trxList.add(trx);
 
-            return list;
+        } else {
+
+            final int weightTotal =
+                    outboxJob.getAccountTransactions().getWeightTotal();
+
+            final BigDecimal costTotal = outboxJob.getCostTotal();
+
+            for (final OutboxAccountTrxInfo trxInfo : outboxJob
+                    .getAccountTransactions().getTransactions()) {
+
+                final AccountTrx trx = new AccountTrx();
+
+                trx.setAccount(dao.findById(trxInfo.getAccountId()));
+                trx.setExtDetails(trxInfo.getExtDetails());
+
+                final Integer weight = Integer.valueOf(trxInfo.getWeight());
+                final Integer weightUnit;
+
+                if (trxInfo.getWeightUnit() == null) {
+                    weightUnit = Integer.valueOf(1);
+                } else {
+                    weightUnit = trxInfo.getWeightUnit();
+                }
+
+                trx.setTransactionWeight(weight);
+                trx.setTransactionWeightUnit(weightUnit);
+
+                trx.setCurrencyCode(ConfigManager.getAppCurrencyCode());
+
+                trx.setAmount(this.calcWeightedAmount(costTotal, weightTotal,
+                        trxInfo.getWeight(), weightUnit.intValue(), scale)
+                        .negate());
+
+                trxList.add(trx);
+            }
         }
-
-        final int weightTotal =
-                outboxJob.getAccountTransactions().getWeightTotal();
-
-        final BigDecimal costTotal = outboxJob.getCostTotal();
-
-        for (final OutboxAccountTrxInfo trxInfo : outboxJob
-                .getAccountTransactions().getTransactions()) {
-
-            final AccountTrx trx = new AccountTrx();
-
-            trx.setAccount(dao.findById(trxInfo.getAccountId()));
-            trx.setExtDetails(trxInfo.getExtDetails());
-
-            final Integer weight = Integer.valueOf(trxInfo.getWeight());
-            trx.setTransactionWeight(weight);
-            trx.setTransactionWeightUnit(weight);
-
-            trx.setCurrencyCode(ConfigManager.getAppCurrencyCode());
-            trx.setAmount(this.calcWeightedAmount(costTotal, weightTotal,
-                    trxInfo.getWeight(), scale).negate());
-
-            list.add(trx);
-        }
-        return list;
+        return trxList;
     }
 
-    /**
-     * Calculates the weighted amount.
-     *
-     * @param amount
-     *            The amount to weigh.
-     * @param weightTotal
-     *            The total of all weights.
-     * @param weight
-     *            The mathematical weight of the transaction in the context of a
-     *            transaction set.
-     * @param scale
-     *            The scale (precision).
-     * @return The weighted amount.
-     */
     @Override
     public BigDecimal calcWeightedAmount(final BigDecimal amount,
-            final int weightTotal, final int weight, final int scale) {
-        return amount.multiply(BigDecimal.valueOf(weight)).divide(
-                BigDecimal.valueOf(weightTotal), scale, RoundingMode.HALF_EVEN);
+            final int weightTotal, final int weight, final int weightUnit,
+            final int scale) {
+        return amount.multiply(BigDecimal.valueOf(weight))
+                .divide(BigDecimal.valueOf(weightTotal), RoundingMode.HALF_EVEN)
+                .divide(BigDecimal.valueOf(weightUnit), scale,
+                        RoundingMode.HALF_EVEN);
+    }
+
+    @Override
+    public BigDecimal calcCostPerPrintedCopy(final BigDecimal totalCost,
+            final int copies) {
+        return totalCost.divide(new BigDecimal(copies), RoundingMode.HALF_EVEN);
+    }
+
+    @Override
+    public BigDecimal calcPrintedCopies(final BigDecimal cost,
+            final BigDecimal costPerCopy, final int scale) {
+        return cost.divide(costPerCopy, scale, RoundingMode.HALF_UP);
     }
 
     /**
@@ -819,12 +830,14 @@ public final class AccountingServiceImpl extends AbstractService
      * @param weight
      *            The mathematical weight of the to be created transaction in
      *            the context of a transaction set.
+     * @param weightUnit
+     *            The weight unit.
      * @param extDetails
      *            Free format details from external source.
      */
     private void createAccountTrx(final Account account, final DocLog docLog,
             final AccountTrxTypeEnum trxType, final int weightTotal,
-            final int weight, final String extDetails) {
+            final int weight, final int weightUnit, final String extDetails) {
 
         final String actor = ServiceContext.getActor();
         final Date trxDate = ServiceContext.getTransactionDate();
@@ -841,18 +854,10 @@ public final class AccountingServiceImpl extends AbstractService
          */
         final boolean isZeroAmount = trxAmount.equals(BigDecimal.ZERO);
 
-        /*
-         * The weighted amount for this account.
-         */
-        if (!isZeroAmount && weight != weightTotal) {
-            trxAmount = calcWeightedAmount(trxAmount, weightTotal, weight,
-                    ConfigManager.getFinancialDecimalsInDatabase());
-        }
-
-        /*
-         * Update account balance.
-         */
         if (!isZeroAmount) {
+
+            trxAmount = calcWeightedAmount(trxAmount, weightTotal, weight,
+                    weightUnit, ConfigManager.getFinancialDecimalsInDatabase());
 
             account.setBalance(account.getBalance().add(trxAmount));
 
@@ -879,7 +884,7 @@ public final class AccountingServiceImpl extends AbstractService
         trx.setTrxType(trxType.toString());
 
         trx.setTransactionWeight(weight);
-        trx.setTransactionWeightUnit(weight);
+        trx.setTransactionWeightUnit(weightUnit);
 
         trx.setTransactedBy(ServiceContext.getActor());
         trx.setTransactionDate(ServiceContext.getTransactionDate());

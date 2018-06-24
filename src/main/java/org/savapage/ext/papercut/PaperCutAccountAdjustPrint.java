@@ -28,8 +28,6 @@ import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
-import org.savapage.core.services.AccountingService;
-import org.savapage.core.services.ServiceContext;
 import org.slf4j.Logger;
 
 /**
@@ -39,12 +37,6 @@ import org.slf4j.Logger;
  */
 public final class PaperCutAccountAdjustPrint
         extends PaperCutAccountAdjustPattern {
-
-    /**
-     * .
-     */
-    protected static final AccountingService ACCOUNTING_SERVICE =
-            ServiceContext.getServiceFactory().getAccountingService();
 
     /**
      *
@@ -78,14 +70,21 @@ public final class PaperCutAccountAdjustPrint
      * @param weightTotalCost
      *            The printing cost total.
      * @param weightTotal
-     *            Total number of copies printed.
+     *            Total transaction weight total.
+     * @param printedCopies
+     *            Total number of printed copies.
      *
      * @throws PaperCutException
      *             When a PaperCut error occurs.
      */
     public void process(final DocLog docLogTrx, final DocLog docLogOut,
             final boolean isDocInAccountTrx, final BigDecimal weightTotalCost,
-            final int weightTotal) throws PaperCutException {
+            final int weightTotal, final int printedCopies)
+            throws PaperCutException {
+
+        final BigDecimal costPerCopy =
+                ACCOUNTING_SERVICE.calcCostPerPrintedCopy(
+                        weightTotalCost.negate(), printedCopies);
 
         /*
          * Number of decimals for decimal scaling.
@@ -97,7 +96,7 @@ public final class PaperCutAccountAdjustPrint
          */
         final PaperCutPrintCommentProcessor trxCommentProcessor =
                 new PaperCutPrintCommentProcessor(docLogTrx, docLogOut,
-                        weightTotal, false);
+                        printedCopies, false);
 
         trxCommentProcessor.initProcess();
 
@@ -107,11 +106,10 @@ public final class PaperCutAccountAdjustPrint
          */
         for (final AccountTrx trx : docLogTrx.getTransactions()) {
 
-            final int weight = trx.getTransactionWeight().intValue();
-
             final BigDecimal weightedCost =
                     ACCOUNTING_SERVICE.calcWeightedAmount(weightTotalCost,
-                            weightTotal, weight, scale);
+                            weightTotal, trx.getTransactionWeight().intValue(),
+                            trx.getTransactionWeightUnit().intValue(), scale);
 
             /*
              * PaperCut account adjustment.
@@ -119,7 +117,7 @@ public final class PaperCutAccountAdjustPrint
             final BigDecimal papercutAdjustment = weightedCost.negate();
 
             this.onAdjustSharedAccount(trx, trxCommentProcessor,
-                    papercutAdjustment);
+                    papercutAdjustment, costPerCopy);
 
             /*
              * Notify SavaPage.

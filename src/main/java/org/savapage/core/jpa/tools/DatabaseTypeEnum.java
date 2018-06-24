@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,7 +23,7 @@ package org.savapage.core.jpa.tools;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum DatabaseTypeEnum {
@@ -31,12 +31,12 @@ public enum DatabaseTypeEnum {
     /**
      * The internal Derby database.
      */
-    Internal(DatabaseTypeEnum.INTERNAL),
+    Internal(DatabaseTypeEnum.INTERNAL, "Derby"),
 
     /**
      * The internal Derby database.
      */
-    PostgreSQL(DatabaseTypeEnum.POSTGRES);
+    PostgreSQL(DatabaseTypeEnum.POSTGRES, DatabaseTypeEnum.POSTGRES);
 
     private static final String POSTGRES = "PostgreSQL";
     private static final String INTERNAL = "Internal";
@@ -46,8 +46,14 @@ public enum DatabaseTypeEnum {
      */
     private final String propertiesId;
 
-    private DatabaseTypeEnum(final String propertiesId) {
+    /**
+     * The subdirectory name in DB script directory.
+     */
+    final private String scriptSubdir;
+
+    private DatabaseTypeEnum(final String propertiesId, final String subdir) {
         this.propertiesId = propertiesId;
+        this.scriptSubdir = subdir;
     }
 
     /**
@@ -55,6 +61,13 @@ public enum DatabaseTypeEnum {
      */
     public String getPropertiesId() {
         return propertiesId;
+    }
+
+    /**
+     * @return The subdirectory name in DB script directory.
+     */
+    public String getScriptSubdir() {
+        return scriptSubdir;
     }
 
 }
