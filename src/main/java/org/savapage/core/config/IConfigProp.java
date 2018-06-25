@@ -1375,14 +1375,14 @@ public interface IConfigProp {
          * The port to connect to on the SMTP server. Common ports include 25 or
          * 587 for STARTTLS, and 465 for SMTPS.
          */
-        MAIL_SMTP_PORT("mail.smtp.port", IP_PORT_VALIDATOR, "25"),
+        MAIL_SMTP_PORT("mail.smtp.port", IP_PORT_VALIDATOR, "465"),
 
         /**
          * STARTTLS is for connecting to an SMTP server port using a plain
          * (non-encrypted) connection, then elevating to an encrypted connection
          * on the same port.
          */
-        MAIL_SMTP_SECURITY("mail.smtp.security", SMTP_SECURITY_V_NONE, API_UPDATABLE_OFF),
+        MAIL_SMTP_SECURITY("mail.smtp.security", SMTP_SECURITY_V_SSL, API_UPDATABLE_OFF),
 
         /**
          * Username for SMTP authentication. Commonly an email address.
