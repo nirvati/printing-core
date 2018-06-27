@@ -1498,6 +1498,28 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 continue;
             }
 
+            // Correct for missing default choice
+            if (opt.getDefchoiceIpp() == null && opt.getChoices() != null
+                    && !opt.getChoices().isEmpty()) {
+
+                final JsonProxyPrinterOptChoice firstChoice =
+                        opt.getChoices().get(0);
+
+                opt.setDefchoice(firstChoice.getChoice());
+                opt.setDefchoiceIpp(firstChoice.getChoice());
+            }
+            //
+            if (keywordIpp
+                    .equals(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE)) {
+                proxyPrinter.setColorDevice(Boolean.valueOf(opt
+                        .getChoice(IppKeyword.PRINT_COLOR_MODE_COLOR) != null));
+            }
+            if (keywordIpp.equals(IppDictJobTemplateAttr.ATTR_SIDES)) {
+                proxyPrinter.setDuplexDevice(Boolean.valueOf(opt.getChoices()
+                        .size() > 1
+                        || opt.getChoice(IppKeyword.SIDES_ONE_SIDED) == null));
+            }
+
             if (keywordIpp.equals(IppDictJobTemplateAttr.ATTR_PRINT_SCALING)) {
                 printScalingExt = true;
             }
