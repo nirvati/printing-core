@@ -2263,9 +2263,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
             commonSupplierData = null;
         }
 
+        final int weightTotal;
+
+        if (job.getAccountTransactions() == null) {
+            weightTotal = job.getCopies();
+        } else {
+            weightTotal = job.getAccountTransactions().getWeightTotal();
+        }
+
         if (commonSupplierData != null) {
-            commonSupplierData.setWeightTotal(Integer
-                    .valueOf(job.getAccountTransactions().getWeightTotal()));
+            commonSupplierData.setWeightTotal(Integer.valueOf(weightTotal));
             docLog.setExternalData(commonSupplierData.dataAsString());
         }
 
@@ -2323,9 +2330,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         if (isSettlement && monitorPaperCutPrintStatus) {
             try {
-                settleProxyPrintPaperCut(docLog,
-                        job.getAccountTransactions().getWeightTotal(),
-                        job.getCopies(), job.getCostResult());
+                settleProxyPrintPaperCut(docLog, weightTotal, job.getCopies(),
+                        job.getCostResult());
             } catch (PaperCutException e) {
                 throw new IOException(e.getMessage(), e);
             }
