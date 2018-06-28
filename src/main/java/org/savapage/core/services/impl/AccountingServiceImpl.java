@@ -790,16 +790,17 @@ public final class AccountingServiceImpl extends AbstractService
     public BigDecimal calcWeightedAmount(final BigDecimal amount,
             final int weightTotal, final int weight, final int weightUnit,
             final int scale) {
-        return amount.multiply(BigDecimal.valueOf(weight))
-                .divide(BigDecimal.valueOf(weightTotal), RoundingMode.HALF_EVEN)
-                .divide(BigDecimal.valueOf(weightUnit), scale,
-                        RoundingMode.HALF_EVEN);
+        return amount.multiply(BigDecimal.valueOf(weight)).divide(
+                BigDecimal.valueOf(weightTotal * weightUnit), scale,
+                RoundingMode.HALF_EVEN);
     }
 
     @Override
     public BigDecimal calcCostPerPrintedCopy(final BigDecimal totalCost,
             final int copies) {
-        return totalCost.divide(new BigDecimal(copies), RoundingMode.HALF_EVEN);
+        return totalCost.divide(new BigDecimal(copies),
+                ConfigManager.getFinancialDecimalsInDatabase(),
+                RoundingMode.HALF_EVEN);
     }
 
     @Override
