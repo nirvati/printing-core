@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -55,7 +55,8 @@ public interface PaperCutService {
      *
      * @param printerName
      *            The CUPS printer name.
-     * @return {@code true} is applicable.
+     * @return {@code false}, if PaperCut integration is disabled or printer is
+     *         not managed by PaperCut.
      */
     boolean isExtPaperCutPrint(String printerName);
 
