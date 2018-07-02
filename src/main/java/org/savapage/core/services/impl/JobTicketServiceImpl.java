@@ -1100,7 +1100,9 @@ public final class JobTicketServiceImpl extends AbstractService
 
         final ThirdPartyEnum extPrinterManager;
 
-        if (paperCutService().isExtPaperCutPrint(dto.getPrinterRedirect())) {
+        if (paperCutService().isExtPaperCutPrint(dto.getPrinterRedirect())
+                && ConfigManager.instance().isConfigValue(
+                        Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE)) {
             extPrinterManager = ThirdPartyEnum.PAPERCUT;
         } else {
             extPrinterManager = null;
