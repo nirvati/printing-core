@@ -1593,6 +1593,11 @@ public interface IConfigProp {
         PROXY_PRINT_DELEGATE_GROUP_COPIES_ENABLE("proxy-print.delegate.group-copies.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
+         * Enable Personal Print integration with PaperCut (boolean).
+         */
+        PROXY_PRINT_PERSONAL_PAPERCUT_ENABLE("proxy-print.personal.papercut.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
          * Enable Delegated Print integration with PaperCut (boolean).
          */
         PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE("proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),

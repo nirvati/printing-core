@@ -589,22 +589,26 @@ public abstract class PaperCutPrintMonitorPattern
             }
         }
 
-        if (commonSupplierData == null) {
-            weightTotal = printedCopies;
-        } else {
-            weightTotal = commonSupplierData.getWeightTotal().intValue();
-        }
-
         /*
          * Create PaperCut transactions.
          */
+        final boolean createPaperCutTrx;
+
+        if (commonSupplierData == null) {
+            weightTotal = printedCopies;
+            createPaperCutTrx = printMode == PrintModeEnum.TICKET;
+        } else {
+            createPaperCutTrx = true;
+            weightTotal = commonSupplierData.getWeightTotal().intValue();
+        }
+
         final PaperCutAccountAdjustPrint accountAdjustPattern =
                 new PaperCutAccountAdjustPrint(papercutServerProxy, this,
                         this.getLogger());
 
         accountAdjustPattern.process(docLogTrx, docLogOut,
                 this.isDocInAccountTrx(), weightTotalCost, weightTotal,
-                printedCopies);
+                printedCopies, createPaperCutTrx);
 
         /*
          * DocLog updates.

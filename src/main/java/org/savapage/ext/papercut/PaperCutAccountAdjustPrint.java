@@ -73,19 +73,19 @@ public final class PaperCutAccountAdjustPrint
      *            Total transaction weight total.
      * @param printedCopies
      *            Total number of printed copies.
-     *
+     * @param createPaperCutTrx
+     *            If {@code true}, PaperCut transactions are created.
      * @throws PaperCutException
      *             When a PaperCut error occurs.
      */
     public void process(final DocLog docLogTrx, final DocLog docLogOut,
             final boolean isDocInAccountTrx, final BigDecimal weightTotalCost,
-            final int weightTotal, final int printedCopies)
-            throws PaperCutException {
+            final int weightTotal, final int printedCopies,
+            final boolean createPaperCutTrx) throws PaperCutException {
 
         final BigDecimal costPerCopy =
                 ACCOUNTING_SERVICE.calcCostPerPrintedCopy(
                         weightTotalCost.negate(), printedCopies);
-
         /*
          * Number of decimals for decimal scaling.
          */
@@ -94,11 +94,15 @@ public final class PaperCutAccountAdjustPrint
         /*
          * Create transaction comment processor.
          */
-        final PaperCutPrintCommentProcessor trxCommentProcessor =
-                new PaperCutPrintCommentProcessor(docLogTrx, docLogOut,
-                        printedCopies, false);
+        final PaperCutPrintCommentProcessor trxCommentProcessor;
 
-        trxCommentProcessor.initProcess();
+        if (createPaperCutTrx) {
+            trxCommentProcessor = new PaperCutPrintCommentProcessor(docLogTrx,
+                    docLogOut, printedCopies, false);
+            trxCommentProcessor.initProcess();
+        } else {
+            trxCommentProcessor = null;
+        }
 
         /*
          * Adjust the Personal and Shared Accounts in PaperCut and update the
@@ -110,22 +114,23 @@ public final class PaperCutAccountAdjustPrint
                     ACCOUNTING_SERVICE.calcWeightedAmount(weightTotalCost,
                             weightTotal, trx.getTransactionWeight().intValue(),
                             trx.getTransactionWeightUnit().intValue(), scale);
-
             /*
              * PaperCut account adjustment.
              */
-            final BigDecimal papercutAdjustment = weightedCost.negate();
-
-            this.onAdjustSharedAccount(trx, trxCommentProcessor,
-                    papercutAdjustment, costPerCopy);
-
+            if (trxCommentProcessor != null) {
+                final BigDecimal papercutAdjustment = weightedCost.negate();
+                this.onAdjustSharedAccount(trx, trxCommentProcessor,
+                        papercutAdjustment, costPerCopy);
+            }
             /*
              * Notify SavaPage.
              */
             this.onAccountTrx(trx, weightedCost, isDocInAccountTrx, docLogOut);
         }
 
-        this.onExit(trxCommentProcessor, weightTotalCost.negate());
+        if (trxCommentProcessor != null) {
+            this.onExit(trxCommentProcessor, weightTotalCost.negate());
+        }
     }
 
     /**

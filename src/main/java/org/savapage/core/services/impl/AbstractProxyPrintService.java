@@ -2382,7 +2382,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                         PAPERCUT_ACCOUNT_RESOLVER, LOGGER);
 
         adjustPattern.process(docLog, docLog, false, cost.getCostTotal(),
-                weightTotal, copies);
+                weightTotal, copies, true);
     }
 
     @Override
