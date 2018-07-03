@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,6 +39,7 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
      * Field identifiers used for select and sort.
      */
     enum GroupField {
+        /** */
         GROUP_NAME
     }
 
@@ -46,6 +47,7 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
      * Field identifiers used for select and sort.
      */
     enum UserField {
+        /** */
         USER_NAME
     }
 
@@ -185,4 +187,16 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
      * @return The number of deleted group members.
      */
     int deleteGroup(Long groupId);
+
+    /**
+     * Checks if user is member of group.
+     *
+     * @param groupName
+     *            Name of group.
+     * @param userId
+     *            Userid.
+     * @return {@code true} When user is member of group.
+     */
+    boolean isUserInGroup(String groupName, String userId);
+
 }

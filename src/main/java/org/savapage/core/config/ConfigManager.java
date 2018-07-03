@@ -2040,6 +2040,7 @@ public final class ConfigManager {
                 || key == Key.API_JSONRPC_SECRET_KEY
                 || key == Key.CLIAPP_AUTH_ADMIN_PASSKEY
                 || key == Key.FEED_ATOM_ADMIN_PASSWORD
+                || key == Key.EXT_PAPERCUT_USER_SYNC_PASSWORD
                 || key == Key.MAIL_SMTP_PASSWORD
                 || key == Key.PAPERCUT_DB_PASSWORD
                 || key == Key.PAPERCUT_SERVER_AUTH_TOKEN

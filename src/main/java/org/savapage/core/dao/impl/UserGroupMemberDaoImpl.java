@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -306,8 +306,7 @@ public final class UserGroupMemberDaoImpl
 
         if (filter.getAclRoleNotFalse() != null) {
 
-            query.setParameter("roleName",
-                    UserAttrEnum.ACL_ROLES.getName());
+            query.setParameter("roleName", UserAttrEnum.ACL_ROLES.getName());
 
             /*
              * INVARIANT: JSON string does NOT contain whitespace.
@@ -319,7 +318,6 @@ public final class UserGroupMemberDaoImpl
             query.setParameter("jsonRoleValue", String.format("%%%s:%s%%",
                     jsonRole, Boolean.TRUE.toString()));
         }
-
 
         return query;
     }
@@ -338,6 +336,20 @@ public final class UserGroupMemberDaoImpl
         query.setParameter("deleted", Boolean.FALSE);
 
         return query.getResultList();
+    }
+
+    @Override
+    public boolean isUserInGroup(final String groupName, final String userId) {
+
+        final String jpql = "SELECT count(U.id) FROM UserGroupMember U "
+                + "WHERE U.group.groupName = :groupName"
+                + " AND U.user.userId= :userId";
+
+        final Query query = getEntityManager().createQuery(jpql.toString());
+        query.setParameter("groupName", groupName);
+        query.setParameter("userId", userId);
+
+        return ((Number) query.getSingleResult()).longValue() == 1;
     }
 
 }
