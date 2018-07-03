@@ -30,6 +30,8 @@ import java.util.Set;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.AccountTrxDao.ListFilter;
 import org.savapage.core.dao.DaoContext;
@@ -595,8 +597,9 @@ public abstract class PaperCutPrintMonitorPattern
         final boolean createPaperCutTrx;
 
         if (commonSupplierData == null) {
+            createPaperCutTrx = ConfigManager.instance().isConfigValue(
+                    IConfigProp.Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE);
             weightTotal = printedCopies;
-            createPaperCutTrx = printMode == PrintModeEnum.TICKET;
         } else {
             createPaperCutTrx = true;
             weightTotal = commonSupplierData.getWeightTotal().intValue();
