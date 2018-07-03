@@ -625,6 +625,27 @@ public interface IConfigProp {
         ENV_WATT_HOURS_PER_SHEET("environment.watt-hours-per-sheet", "12.5", API_UPDATABLE_OFF),
 
         /**
+         * Enable PaperCut Custom User Sync Integration (boolean).
+         */
+        EXT_PAPERCUT_USER_SYNC_ENABLE("ext.papercut.user.sync.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
+         * PaperCut Custom User Sync Integration: Basic Authentication Username.
+         */
+        EXT_PAPERCUT_USER_SYNC_USERNAME("ext.papercut.user.sync.username", "", API_UPDATABLE_ON),
+
+        /**
+         * PaperCut Custom User Sync Integration: Basic Authentication Password.
+         */
+        EXT_PAPERCUT_USER_SYNC_PASSWORD("ext.papercut.user.sync.password", "", API_UPDATABLE_ON),
+
+        /**
+         * Client IP addresses (CIDR) that are allowed to use PaperCut Custom
+         * User Sync Integration (when void, not a single client is allowed).
+         */
+        EXT_PAPERCUT_USER_SYNC_IP_ADDRESSES_ALLOWED("ext.papercut.user.sync.ip-addresses-allowed", CIDR_RANGES_VALIDATOR_OPT, API_UPDATABLE_OFF),
+
+        /**
          * The base URL, i.e. "protocol://authority" <i>without</i> the path, of
          * the Web API callback interface (no trailing slash) (optional).
          */
