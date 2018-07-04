@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -68,13 +68,13 @@ public final class DbConfig {
      * The JDBC connection user name. See
      * {@link AvailableSettings#JPA_JDBC_USER}.
      */
-    public static final String JPA_JDBC_USER = AvailableSettings.JPA_JDBC_USER;
+    private static final String JPA_JDBC_USER = AvailableSettings.JPA_JDBC_USER;
 
     /**
      * The JDBC connection password. See
      * {@link AvailableSettings#JPA_JDBC_PASSWORD}.
      */
-    public static final String JPA_JDBC_PASSWORD =
+    private static final String JPA_JDBC_PASSWORD =
             AvailableSettings.JPA_JDBC_PASSWORD;
 
     /**
@@ -175,14 +175,14 @@ public final class DbConfig {
         final String jdbcDriverDefault = "org.postgresql.Driver";
 
         if (jdbcUser != null) {
-            config.put(DbConfig.JPA_JDBC_USER, jdbcUser);
-            config.put(DbConfig.JPA_JDBC_PASSWORD, jdbcPassword);
-            config.put(DbConfig.JPA_JDBC_URL, jdbcUrl);
+            config.put(JPA_JDBC_USER, jdbcUser);
+            config.put(JPA_JDBC_PASSWORD, jdbcPassword);
+            config.put(JPA_JDBC_URL, jdbcUrl);
         }
         if (jdbcDriver == null) {
-            config.put(DbConfig.JPA_JDBC_DRIVER, jdbcDriverDefault);
+            config.put(JPA_JDBC_DRIVER, jdbcDriverDefault);
         } else {
-            config.put(DbConfig.JPA_JDBC_DRIVER, jdbcDriver);
+            config.put(JPA_JDBC_DRIVER, jdbcDriver);
         }
     }
 
@@ -194,9 +194,7 @@ public final class DbConfig {
      * @return The {@link EntityManagerFactory}.
      */
     public static EntityManagerFactory
-
             createEntityManagerFactory(final Map<String, Object> config) {
-
         /*
          * Since Mantis #348
          */

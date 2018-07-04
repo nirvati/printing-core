@@ -2824,6 +2824,16 @@ public final class ConfigManager {
     }
 
     /**
+     * @return The JDBC user password of the PostgreSQL database.
+     */
+    public static String getPostgreSQLPassword() {
+        if (theServerProps == null) {
+            return null;
+        }
+        return theServerProps.getProperty(SERVER_PROP_DB_PASS);
+    }
+
+    /**
      * Bootstraps Hibernate.
      * <p>
      * We use the JPA 2 APIs to bootstrap Hibernate as much as we can.
