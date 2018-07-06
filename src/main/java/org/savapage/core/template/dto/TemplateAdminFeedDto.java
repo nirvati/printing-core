@@ -32,6 +32,7 @@ public final class TemplateAdminFeedDto implements TemplateDto {
 
     private String member;
     private String membership;
+    private boolean membershipWarning;
     private String participants;
     private Long daysTillExpiry;
     private String userCount;
@@ -68,6 +69,14 @@ public final class TemplateAdminFeedDto implements TemplateDto {
 
     public void setMembership(String membership) {
         this.membership = membership;
+    }
+
+    public boolean isMembershipWarning() {
+        return membershipWarning;
+    }
+
+    public void setMembershipWarning(boolean membershipWarning) {
+        this.membershipWarning = membershipWarning;
     }
 
     public String getParticipants() {

@@ -311,7 +311,9 @@ public final class AtomFeedServiceImpl extends AbstractService
 
     /**
      * @param locale
+     *            The locale.
      * @param xhtml
+     *            {@link StringBuilder} to append XHTML on.
      */
     private void createAdminFeedXhtml(final Locale locale,
             final StringBuilder xhtml) {
@@ -325,6 +327,7 @@ public final class AtomFeedServiceImpl extends AbstractService
         dto.setMembership(card.getStatusUserText(locale));
         dto.setParticipants(String.valueOf(card.getMemberParticipants()));
         dto.setDaysTillExpiry(card.getDaysTillExpiry());
+        dto.setMembershipWarning(card.isMembershipDesirable());
 
         dto.setUserCount(String.valueOf(userDAO().count()));
         dto.setActiveUserCount(String.valueOf(userDAO().countActiveUsers()));
