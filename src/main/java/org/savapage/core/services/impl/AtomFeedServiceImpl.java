@@ -325,9 +325,10 @@ public final class AtomFeedServiceImpl extends AbstractService
 
         dto.setMember(card.getMemberOrganisation());
         dto.setMembership(card.getStatusUserText(locale));
+        dto.setMembershipWarning(card.isMembershipDesirable());
         dto.setParticipants(String.valueOf(card.getMemberParticipants()));
         dto.setDaysTillExpiry(card.getDaysTillExpiry());
-        dto.setMembershipWarning(card.isMembershipDesirable());
+        dto.setDaysTillExpiryWarning(card.isDaysTillExpiryWarning());
 
         dto.setUserCount(String.valueOf(userDAO().count()));
         dto.setActiveUserCount(String.valueOf(userDAO().countActiveUsers()));

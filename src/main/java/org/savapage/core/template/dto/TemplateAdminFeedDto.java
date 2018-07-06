@@ -31,10 +31,15 @@ import java.util.List;
 public final class TemplateAdminFeedDto implements TemplateDto {
 
     private String member;
+
     private String membership;
     private boolean membershipWarning;
+
     private String participants;
+
     private Long daysTillExpiry;
+    private boolean daysTillExpiryWarning;
+
     private String userCount;
     private String activeUserCount;
     private String systemMode;
@@ -93,6 +98,14 @@ public final class TemplateAdminFeedDto implements TemplateDto {
 
     public void setDaysTillExpiry(Long daysTillExpiry) {
         this.daysTillExpiry = daysTillExpiry;
+    }
+
+    public boolean isDaysTillExpiryWarning() {
+        return daysTillExpiryWarning;
+    }
+
+    public void setDaysTillExpiryWarning(boolean daysTillExpiryWarning) {
+        this.daysTillExpiryWarning = daysTillExpiryWarning;
     }
 
     public String getUserCount() {

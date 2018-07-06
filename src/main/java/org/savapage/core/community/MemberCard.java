@@ -277,8 +277,9 @@ public final class MemberCard {
      * @return Member Card file.
      */
     public static File getMemberCardFile() {
-        return Paths.get(ConfigManager.getServerHome(),
-                MEMBERCARD_FILE_BASENAME).toFile();
+        return Paths
+                .get(ConfigManager.getServerHome(), MEMBERCARD_FILE_BASENAME)
+                .toFile();
     }
 
     /**
@@ -787,13 +788,19 @@ public final class MemberCard {
     }
 
     /**
-     *
-     *
      * @return {@code true} when no member card is present.
      */
     public boolean isVisitorCard() {
         return getMembershipPropBoolean(MemberCardManager.CARD_PROP_VISITOR,
                 Boolean.TRUE);
+    }
+
+    /**
+     * @return {@code true} when member card is about to expire soon.
+     */
+    public boolean isDaysTillExpiryWarning() {
+        return this.getDaysTillExpiry() != null && this.getDaysTillExpiry()
+                .longValue() <= MemberCard.DAYS_WARN_BEFORE_EXPIRE;
     }
 
     /**
