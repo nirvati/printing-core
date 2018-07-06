@@ -367,7 +367,7 @@ public interface AccountingService {
             Account.AccountTypeEnum accountType);
 
     /**
-     * Gets the {@link Account} account of an {@link UserGroup} by group name.
+     * Gets the {@link Account} account of a {@link UserGroup} by group name.
      *
      * @param groupName
      *            The user group name.
