@@ -119,6 +119,12 @@ public final class PGPHelper {
         static final PGPHelper SINGLETON = new PGPHelper();
     }
 
+    /**
+     *
+     */
+    public static final PGPHashAlgorithmEnum CONTENT_SIGN_ALGORITHM =
+            PGPHashAlgorithmEnum.SHA256;
+
     /** */
     private final BouncyCastleProvider bcProvider;
 
@@ -498,7 +504,7 @@ public final class PGPHelper {
             // Start signature
             final PGPContentSignerBuilder csb = new BcPGPContentSignerBuilder(
                     secretKeyInfo.getPublicKey().getAlgorithm(),
-                    PGPHashAlgorithmEnum.SHA256.getBcTag());
+                    CONTENT_SIGN_ALGORITHM.getBcTag());
 
             final PGPSignatureGenerator signatureGenerator =
                     new PGPSignatureGenerator(csb);
