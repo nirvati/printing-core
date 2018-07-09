@@ -51,7 +51,8 @@ public enum ACLOidEnum {
     A_ACCOUNTS(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
 
     /** */
-    A_CONFIG_EDITOR(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+    A_CONFIG_EDITOR(EnumSet.of(ACLPermissionEnum.READER, //
+            ACLPermissionEnum.EDITOR)),
 
     /** */
     A_DASHBOARD(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
@@ -81,7 +82,8 @@ public enum ACLOidEnum {
     A_USERS(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
 
     /** */
-    A_USER_GROUPS(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+    A_USER_GROUPS(EnumSet.of(ACLPermissionEnum.READER, //
+            ACLPermissionEnum.EDITOR)),
 
     /** */
     A_VOUCHERS(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
@@ -94,7 +96,8 @@ public enum ACLOidEnum {
     /**
      * The user inbox (SafePages).
      */
-    U_INBOX(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR), EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND)),
+    U_INBOX(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR), //
+            EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND)),
 
     /**
      * Financial.
@@ -104,13 +107,19 @@ public enum ACLOidEnum {
     /**
      * Letterhead.
      */
-    U_LETTERHEAD(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR));
+    U_LETTERHEAD(EnumSet.of(ACLPermissionEnum.READER, //
+            ACLPermissionEnum.EDITOR)),
+
+    /**
+     * Details of authenticated user.
+     */
+    U_PERSONAL_PRINT(EnumSet.of(ACLPermissionEnum.SELECTOR));
 
     /**
      * OIDs for user role. The enum order is the top to bottom order in the UI.
      */
-    private static final ACLOidEnum[] USER_ENUMS_ARRAY =
-            new ACLOidEnum[] { U_INBOX, U_USER, U_FINANCIAL, U_LETTERHEAD };
+    private static final ACLOidEnum[] USER_ENUMS_ARRAY = new ACLOidEnum[] {
+            U_INBOX, U_USER, U_PERSONAL_PRINT, U_FINANCIAL, U_LETTERHEAD };
 
     /**
      * OIDs for user role. The enum order is lost.

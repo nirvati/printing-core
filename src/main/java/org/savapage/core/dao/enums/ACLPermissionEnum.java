@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http:savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https:www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http:www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https:www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -38,6 +38,16 @@ public enum ACLPermissionEnum {
      * Allowed to read the domain object.
      */
     READER(ACLPermissionEnum.BIT_READER),
+
+    /**
+     * Allowed to read and select domain object.
+     */
+    SELECTOR(ACLPermissionEnum.BIT_READER, ACLPermissionEnum.BIT_READER_SELECT),
+
+    /**
+     * Allowed to send domain object.
+     */
+    SELECT(ACLPermissionEnum.BIT_READER_SELECT),
 
     /**
      * Allowed to send domain object.
@@ -98,8 +108,8 @@ public enum ACLPermissionEnum {
     //
     private static final int BIT_READER_DOWNLOAD = 0x2;
     private static final int BIT_READER_SEND = 0x4;
+    private static final int BIT_READER_SELECT = 0x8;
     //
-    private static final int BIT_RESERVED_4 = 0x8;
     private static final int BIT_RESERVED_5 = 0x10;
     private static final int BIT_RESERVED_6 = 0x20;
     private static final int BIT_RESERVED_7 = 0x40;
@@ -161,9 +171,16 @@ public enum ACLPermissionEnum {
                     ACLPermissionEnum.MASTER, ACLPermissionEnum.OPERATOR,
                     ACLPermissionEnum.EDITOR, ACLPermissionEnum.READER };
 
+    /**
+     * Permissions a {@link #READER} can have.
+     */
     private static final EnumSet<ACLPermissionEnum> PERMS_READER =
-            EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND);
+            EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND,
+                    ACLPermissionEnum.SELECT);
 
+    /**
+     * Permissions an {@link #EDITOR} can have.
+     */
     private static final EnumSet<ACLPermissionEnum> PERMS_EDITOR =
             EnumSet.of(ACLPermissionEnum.CREATE, ACLPermissionEnum.DELETE,
                     ACLPermissionEnum.UNDELETE);
