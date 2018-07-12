@@ -188,6 +188,12 @@ public final class ConfigManager {
     public static final String SERVER_REL_PATH_CUSTOM_HTML = "custom/html";
 
     /**
+     * The relative path of the data folder (relative to the {@code server}
+     * directory).
+     */
+    private static final String SERVER_REL_PATH_DATA = "data";
+
+    /**
      * The relative path of the email outbox folder (relative to the
      * {@code server} directory).
      */
@@ -1343,20 +1349,22 @@ public final class ConfigManager {
             return;
         }
 
-        final String secretFile =
+        final String secretFileName =
                 theServerProps.getProperty(SERVER_PROP_PGP_SECRETKEY_FILE);
 
-        if (secretFile == null) {
+        if (secretFileName == null) {
             return;
         }
+
+        final File secretFile =
+                Paths.get(getServerHome(), SERVER_REL_PATH_DATA, secretFileName)
+                        .toFile();
 
         final PGPHelper helper = PGPHelper.instance();
 
         try {
             this.pgpSecretKeyInfo = helper.readSecretKey(
-                    new FileInputStream(
-                            Paths.get(getServerHome(), secretFile).toFile()),
-                    theServerProps
+                    new FileInputStream(secretFile), theServerProps
                             .getProperty(SERVER_PROP_PGP_SECRETKEY_PASSPHRASE));
 
             SpInfo.instance().log(String.format("PGP Key ID [%s]",
@@ -1370,13 +1378,21 @@ public final class ConfigManager {
             SpInfo.instance().log(String.format("PGP Fingerprint [%s]",
                     this.pgpSecretKeyInfo.formattedFingerPrint()));
 
+        } catch (FileNotFoundException e) {
+            LOGGER.error("{}: {} not found.", SERVER_PROP_PGP_SECRETKEY_FILE,
+                    secretFile.getAbsolutePath());
+        } catch (PGPBaseException e) {
+            LOGGER.error("{} is invalid.",
+                    SERVER_PROP_PGP_SECRETKEY_PASSPHRASE);
+        }
+
+        try {
             // Elicit an exception when one of the URLs is wrong.
             this.getPGPPublicKeySearchUrl();
             this.getPGPPublicKeyDownloadUrl("TEST");
             this.getPGPPublicKeyPreviewUrl("TEST");
 
-        } catch (FileNotFoundException | PGPBaseException
-                | MalformedURLException e) {
+        } catch (MalformedURLException e) {
             LOGGER.error(e.getMessage());
         }
     }
