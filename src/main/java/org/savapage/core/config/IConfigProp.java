@@ -2068,6 +2068,11 @@ public interface IConfigProp {
         WEBAPP_ADMIN_BITCOIN_WALLET_CACHE_EXPIRY_SECS("webapp.admin.bitcoin.wallet.cache-expiry-secs", NUMBER_VALIDATOR, "3600"),
 
         /**
+         * Enable PDF/2FV page in Admin WebApp.
+         */
+        WEBAPP_ADMIN_PDF2FV_ENABLE("webapp.admin.pdf2fv.enable", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
          *
          */
         WEBAPP_JOBTICKETS_PRINT_ALL_ENABLE("webapp.jobtickets.print-all.enable", BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),

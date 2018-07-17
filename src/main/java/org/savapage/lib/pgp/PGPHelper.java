@@ -67,6 +67,7 @@ import org.bouncycastle.openpgp.PGPSignatureGenerator;
 import org.bouncycastle.openpgp.PGPSignatureList;
 import org.bouncycastle.openpgp.PGPSignatureSubpacketGenerator;
 import org.bouncycastle.openpgp.PGPUtil;
+import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory;
 import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator;
 import org.bouncycastle.openpgp.operator.PGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.PGPContentVerifierBuilderProvider;
@@ -77,6 +78,7 @@ import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.bc.BcPublicKeyDataDecryptorFactory;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder;
+import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
@@ -640,6 +642,81 @@ public final class PGPHelper {
     }
 
     /**
+     * Gets signature object from signature input stream.
+     *
+     * @param signature
+     *            The signature stream.
+     * @return The {@link PGPSignature} object.
+     * @throws PGPBaseException
+     *             When error.
+     */
+    public PGPSignature getSignature(final InputStream signature)
+            throws PGPBaseException {
+
+        try (InputStream istr = PGPUtil.getDecoderStream(signature)) {
+
+            JcaPGPObjectFactory pgpFact = new JcaPGPObjectFactory(istr);
+
+            final PGPSignatureList p3;
+            final Object o = pgpFact.nextObject();
+
+            if (o instanceof PGPCompressedData) {
+                PGPCompressedData c1 = (PGPCompressedData) o;
+
+                pgpFact = new JcaPGPObjectFactory(c1.getDataStream());
+
+                p3 = (PGPSignatureList) pgpFact.nextObject();
+            } else {
+                p3 = (PGPSignatureList) o;
+            }
+
+            return p3.get(0);
+
+        } catch (IOException | PGPException e) {
+            throw new PGPBaseException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Verifies PGP signature against content.
+     *
+     * @see {@link org.bouncycastle.openpgp.examples.DetachedSignatureProcessor}.
+     *
+     * @param content
+     *            The content.
+     * @param signature
+     *            The signature.
+     * @param key
+     *            The public key.
+     * @return {@code true} when signature is valid.
+     * @throws PGPBaseException
+     *             When error.
+     */
+    public boolean verifySignature(final InputStream content,
+            final InputStream signature, final PGPPublicKey key)
+            throws PGPBaseException {
+
+        try {
+            final PGPSignature sig = this.getSignature(signature);
+
+            sig.init(new JcaPGPContentVerifierBuilderProvider()
+                    .setProvider("BC"), key);
+
+            int ch;
+            while ((ch = content.read()) >= 0) {
+                sig.update((byte) ch);
+            }
+
+            content.close();
+
+            return sig.verify();
+
+        } catch (PGPBaseException | IOException | PGPException e) {
+            throw new PGPBaseException(e.getMessage(), e);
+        }
+    }
+
+    /**
      * Quietly closes a PGP*DataGenerator.
      * <p>
      * Note: this ugly solution is implemented because common interface type
@@ -687,10 +764,11 @@ public final class PGPHelper {
      *            the content was encrypted with.
      * @param ostrClearContent
      *            The clear content OutputStream.
+     * @return The signature.
      * @throws PGPBaseException
      *             When errors.
      */
-    public void decryptOnePassSignature(final InputStream istrEncrypted,
+    public PGPSignature decryptOnePassSignature(final InputStream istrEncrypted,
             final List<PGPPublicKey> signPublicKeyList,
             final List<PGPSecretKeyInfo> secretKeyInfoList,
             final OutputStream ostrClearContent) throws PGPBaseException {
@@ -744,7 +822,7 @@ public final class PGPHelper {
             }
 
             if (privateKey == null) {
-                throw new PGPBaseException("secret key for message not found");
+                throw new PGPBaseException("Secret key of message not found.");
             }
 
             // Get a handle to the decrypted data as an input stream
@@ -769,6 +847,7 @@ public final class PGPHelper {
             }
 
             PGPOnePassSignature calculatedSignature = null;
+
             if (message instanceof PGPOnePassSignatureList) {
 
                 calculatedSignature =
@@ -822,20 +901,29 @@ public final class PGPHelper {
             }
             ostrClearContent.close();
 
+            //
+            PGPSignature messageSignature = null;
+
             if (calculatedSignature != null) {
                 final PGPSignatureList signatureList =
                         (PGPSignatureList) objectFactory.nextObject();
-                final PGPSignature messageSignature = signatureList.get(0);
-                if (!calculatedSignature.verify(messageSignature)) {
-                    throw new PGPBaseException(
-                            "Signature verification failed.");
-                }
+                messageSignature = signatureList.get(0);
+            }
+
+            if (messageSignature == null) {
+                throw new PGPBaseException("Signature not found.");
+            }
+
+            if (!calculatedSignature.verify(messageSignature)) {
+                throw new PGPBaseException("Signature verification failed.");
             }
 
             if (encryptedData.isIntegrityProtected()
                     && !encryptedData.verify()) {
                 throw new PGPBaseException("Message failed integrity check.");
             }
+
+            return messageSignature;
 
         } catch (IOException | PGPException e) {
             throw new PGPBaseException(e.getMessage(), e);

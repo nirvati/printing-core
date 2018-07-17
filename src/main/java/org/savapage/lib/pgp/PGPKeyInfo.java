@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -66,7 +66,7 @@ public abstract class PGPKeyInfo {
      *            The Key ID.
      * @return Human readable Key ID (upper-case, with "0x" prefix).
      */
-    protected final String formattedKeyID(final long id) {
+    public static final String formattedKeyID(final long id) {
         return String.format("0x%s", Long.toHexString(id).toUpperCase());
     }
 
