@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -47,16 +47,21 @@ public enum PrintOutNounEnum {
     /** */
     BOOKLET,
 
-    /**  */
-    COLOR(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE, IppKeyword.PRINT_COLOR_MODE_COLOR),
+    /** */
+    JOB_SHEET(true),
 
     /**  */
-    GRAYSCALE(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE, IppKeyword.PRINT_COLOR_MODE_MONOCHROME),
+    COLOR(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE, //
+            IppKeyword.PRINT_COLOR_MODE_COLOR),
+
+    /**  */
+    GRAYSCALE(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE, //
+            IppKeyword.PRINT_COLOR_MODE_MONOCHROME),
 
     /** */
     DUPLEX,
 
-    /**  */
+    /** */
     SIMPLEX,
 
     /** */
@@ -88,7 +93,10 @@ public enum PrintOutNounEnum {
      */
     private final boolean hasPlural;
 
+    /** */
     private final String ippAttr;
+
+    /** */
     private final String ippChoice;
 
     /**

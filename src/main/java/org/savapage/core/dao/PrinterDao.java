@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
@@ -122,13 +123,6 @@ public interface PrinterDao extends GenericDao<Printer> {
      */
     class MediaSourceAttr {
 
-        private static final String DELIM = ".";
-
-        private static final String TOKEN_MEDIA_SOURCE = "media-source";
-
-        public static final String MEDIA_SOURCE_PFX =
-                TOKEN_MEDIA_SOURCE + DELIM;
-
         final private String ippMediaSourceName;
 
         public MediaSourceAttr(String ippMediaSourceName) {
@@ -147,10 +141,12 @@ public interface PrinterDao extends GenericDao<Printer> {
 
             MediaSourceAttr mediaAttr = null;
 
-            if (dbKey.startsWith(MEDIA_SOURCE_PFX)) {
+            final String dbKeyPrefix = getKeyPrefix();
+
+            if (dbKey.startsWith(dbKeyPrefix)) {
 
                 final String mediaSource =
-                        dbKey.substring(MEDIA_SOURCE_PFX.length());
+                        dbKey.substring(dbKeyPrefix.length());
 
                 if (StringUtils.isNotBlank(mediaSource)) {
                     mediaAttr = new MediaSourceAttr(mediaSource);
@@ -172,7 +168,7 @@ public interface PrinterDao extends GenericDao<Printer> {
          * @return
          */
         public String getKey() {
-            return String.format("%s%s", MEDIA_SOURCE_PFX,
+            return String.format("%s%s", getKeyPrefix(),
                     this.ippMediaSourceName);
         }
 
@@ -181,7 +177,7 @@ public interface PrinterDao extends GenericDao<Printer> {
          * @return The prefix of all media-source keys.
          */
         public static String getKeyPrefix() {
-            return MEDIA_SOURCE_PFX;
+            return PrinterAttrEnum.PFX_MEDIA_SOURCE.getDbName();
         }
 
     }
@@ -195,10 +191,10 @@ public interface PrinterDao extends GenericDao<Printer> {
      */
     class IppKeywordAttr {
 
-        public static final String IPP_KEYWORD_PFX = "ipp.";
-
+        /** */
         final private String ippKeyword;
 
+        /** */
         public IppKeywordAttr(final String keyword) {
             this.ippKeyword = keyword;
         }
@@ -215,10 +211,9 @@ public interface PrinterDao extends GenericDao<Printer> {
 
             IppKeywordAttr ippAttr = null;
 
-            if (dbKey.startsWith(IPP_KEYWORD_PFX)) {
+            if (dbKey.startsWith(getKeyPrefix())) {
 
-                final String keyword =
-                        dbKey.substring(IPP_KEYWORD_PFX.length());
+                final String keyword = dbKey.substring(getKeyPrefix().length());
 
                 if (StringUtils.isNotBlank(keyword)) {
                     ippAttr = new IppKeywordAttr(keyword);
@@ -241,7 +236,7 @@ public interface PrinterDao extends GenericDao<Printer> {
          * @return The key is used for database storage.
          */
         public String getKey() {
-            return String.format("%s%s", IPP_KEYWORD_PFX, this.ippKeyword);
+            return getKey(this.ippKeyword);
         }
 
         /**
@@ -252,7 +247,7 @@ public interface PrinterDao extends GenericDao<Printer> {
          * @return The key is used for database storage.
          */
         public static String getKey(final String ippKeyword) {
-            return String.format("%s%s", IPP_KEYWORD_PFX, ippKeyword);
+            return String.format("%s%s", getKeyPrefix(), ippKeyword);
         }
 
         /**
@@ -260,7 +255,7 @@ public interface PrinterDao extends GenericDao<Printer> {
          * @return The prefix of all media-source keys.
          */
         public static String getKeyPrefix() {
-            return IPP_KEYWORD_PFX;
+            return PrinterAttrEnum.PFX_IPP_KEYWORD.getDbName();
         }
 
     }
@@ -274,18 +269,12 @@ public interface PrinterDao extends GenericDao<Printer> {
      */
     class CostMediaAttr {
 
-        private static final String DELIM = ".";
-
-        private static final String TOKEN_1_COST = "cost";
-        private static final String TOKEN_2_MEDIA = "media";
-
-        public static final String COST_MEDIA_PFX =
-                TOKEN_1_COST + DELIM + TOKEN_2_MEDIA + DELIM;
-
+        /** */
         public static final String COST_3_MEDIA_DEFAULT =
                 IppMediaCostDto.DEFAULT_MEDIA;
 
-        final private String ippMediaName;
+        /** */
+        private final String ippMediaName;
 
         /**
          * Creates default attribute.
@@ -316,10 +305,18 @@ public interface PrinterDao extends GenericDao<Printer> {
          * IMPORTANT: this key is used for database storage.
          * </p>
          *
-         * @return
+         * @return The database key.
          */
         public String getKey() {
-            return COST_MEDIA_PFX + this.ippMediaName;
+            return String.format("%s%s", getKeyPrefix(), this.ippMediaName);
+        }
+
+        /**
+         *
+         * @return The prefix of all media-source keys.
+         */
+        public static String getKeyPrefix() {
+            return PrinterAttrEnum.PFX_COST_MEDIA.getDbName();
         }
 
         /**
@@ -329,11 +326,11 @@ public interface PrinterDao extends GenericDao<Printer> {
          *            The key.
          * @return {@code true} when this is a valid key.
          */
-        public static boolean isValidKey(String key) {
+        public static boolean isValidKey(final String key) {
 
-            if (key.length() > COST_MEDIA_PFX.length()) {
+            if (key.length() > getKeyPrefix().length()) {
 
-                final String media = key.substring(COST_MEDIA_PFX.length());
+                final String media = key.substring(getKeyPrefix().length());
 
                 if (StringUtils.isNotBlank(media)) {
                     return media.equals(COST_3_MEDIA_DEFAULT)
@@ -355,9 +352,9 @@ public interface PrinterDao extends GenericDao<Printer> {
 
             CostMediaAttr mediaAttr = null;
 
-            if (dbKey.startsWith(COST_MEDIA_PFX)) {
+            if (dbKey.startsWith(getKeyPrefix())) {
 
-                final String media = dbKey.substring(COST_MEDIA_PFX.length());
+                final String media = dbKey.substring(getKeyPrefix().length());
 
                 if (StringUtils.isNotBlank(media)) {
                     if (media.equals(COST_3_MEDIA_DEFAULT)
@@ -440,6 +437,15 @@ public interface PrinterDao extends GenericDao<Printer> {
      * @return The count.
      */
     long countPrintOuts(Long id);
+
+    /**
+     * Checks if {@link Printer} can be used as Job Ticket redirect printer.
+     *
+     * @param id
+     *            The primary key of the {@link Printer}.
+     * @return {@code true} when printer is a job ticket redirect printer.
+     */
+    boolean isJobTicketRedirectPrinter(Long id);
 
     /**
      * Finds the {@link Printer} by name, when not found {@code null} is

@@ -24,6 +24,7 @@ package org.savapage.core.services;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.dao.enums.AccessControlScopeEnum;
@@ -234,6 +235,17 @@ public interface PrinterService {
     boolean isClientSideMonochrome(Printer printer);
 
     /**
+     * Gets printer attribute value (using the attribute list of the printer).
+     *
+     * @param printer
+     *            The {@link Printer}.
+     * @param attr
+     *            The attribute type.
+     * @return {@code null} if not present.
+     */
+    String getPrinterAttrValue(Printer printer, PrinterAttrEnum attr);
+
+    /**
      * Checks if 2-up duplex booklet page ordering is performed client-side
      * (locally).
      *
@@ -399,11 +411,14 @@ public interface PrinterService {
      * @param requestedMedia
      *            The requested "media", as value of
      *            {@link IppDictJobTemplateAttr#ATTR_MEDIA}.
+     * @param preferredMediaSources
+     *            A set of preferred media sources (can be {@code null}).
      * @return The media source, or {@code null} when not found.
      */
     JsonProxyPrinterOptChoice findMediaSourceForMedia(
             PrinterAttrLookup printerAttrLookup,
-            JsonProxyPrinterOpt mediaSource, String requestedMedia);
+            JsonProxyPrinterOpt mediaSource, String requestedMedia,
+            Set<String> preferredMediaSources);
 
     /**
      * Gets the map with key (media-source choice) and value (media).
@@ -419,6 +434,17 @@ public interface PrinterService {
     Map<String, String> getMediaSourceMediaMap(
             PrinterAttrLookup printerAttrLookup,
             JsonProxyPrinterOpt mediaSource);
+
+    /**
+     * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
+     * get the set of media-sources from
+     * {@link PrinterAttrEnum#JOB_SHEETS_MEDIA_SOURCES}.
+     *
+     * @param printer
+     *            The printer.
+     * @return {@code null} when printer attribute is not present.
+     */
+    Set<String> getJobSheetsMediaSources(Printer printer);
 
     /**
      * Sets SNMP printer info.

@@ -38,6 +38,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import javax.print.attribute.standard.MediaSizeName;
 
@@ -61,6 +62,7 @@ import org.savapage.core.dto.MediaPageCostDto;
 import org.savapage.core.dto.ProxyPrinterCostDto;
 import org.savapage.core.dto.ProxyPrinterDto;
 import org.savapage.core.dto.ProxyPrinterMediaSourcesDto;
+import org.savapage.core.i18n.PrintOutNounEnum;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.IppPrinterType;
 import org.savapage.core.ipp.IppSyntaxException;
@@ -112,6 +114,7 @@ import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.InetUtils;
+import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.Messages;
 import org.savapage.core.util.NumberUtil;
 import org.savapage.ext.papercut.PaperCutHelper;
@@ -125,9 +128,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
-    /**
-     * .
-     */
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ProxyPrintServiceImpl.class);
 
@@ -2739,7 +2740,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
                 final String key = attr.getName();
 
-                if (!key.startsWith(PrinterDao.CostMediaAttr.COST_MEDIA_PFX)) {
+                if (!key.startsWith(
+                        PrinterAttrEnum.PFX_COST_MEDIA.getDbName())) {
                     continue;
                 }
 
@@ -2814,7 +2816,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 final String key = attr.getName();
 
                 if (!key.startsWith(
-                        PrinterDao.MediaSourceAttr.MEDIA_SOURCE_PFX)) {
+                        PrinterAttrEnum.PFX_MEDIA_SOURCE.getDbName())) {
                     continue;
                 }
 
@@ -3265,7 +3267,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             final String mediaSourceKey = dto.getSource();
 
             /*
-             * Validate active entries only.
+             * VALIDATE active entries only.
              */
             if (dto.getActive()) {
 
@@ -3324,8 +3326,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
-        *
-        */
+         *
+         */
         final Boolean isForceDefaultMonochrome =
                 dtoMediaSources.getDefaultMonochrome();
 
@@ -3341,9 +3343,62 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         Boolean clientSideMonochrome =
                 dtoMediaSources.getClientSideMonochrome();
 
+        //
+        final Set<String> jobSheetsMediaSources =
+                dtoMediaSources.getJobSheetsMediaSources();
+
+        String jsonJobSheetsMediaSources = null;
+
+        if (jobSheetsMediaSources != null && !jobSheetsMediaSources.isEmpty()) {
+            /*
+             * INVARIANT: job-sheet media-sources must match active
+             * media-source.
+             */
+            for (final String mediaSource : jobSheetsMediaSources) {
+                final IppMediaSourceCostDto dtoWlk =
+                        mapMediaSources.get(mediaSource);
+                if (dtoWlk != null && BooleanUtils.isTrue(dtoWlk.getActive())) {
+                    continue;
+                }
+                return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
+                        "",
+                        localize(ServiceContext.getLocale(),
+                                "msg-printer-job-sheet-media-source-disabled",
+                                PrintOutNounEnum.JOB_SHEET.uiText(
+                                        ServiceContext.getLocale(), true),
+                                mediaSource));
+            }
+            jsonJobSheetsMediaSources =
+                    JsonHelper.stringifyStringSet(jobSheetsMediaSources);
+        } else {
+            jsonJobSheetsMediaSources = null;
+        }
+
+        //
         while (iterAttr.hasNext()) {
 
             final PrinterAttr printerAttr = iterAttr.next();
+
+            /*
+             * JobSheetsMediaSource?
+             */
+            if (printerAttr.getName().equalsIgnoreCase(
+                    PrinterAttrEnum.JOB_SHEETS_MEDIA_SOURCES.getDbName())) {
+
+                if (StringUtils.isNotBlank(jsonJobSheetsMediaSources)) {
+
+                    printerAttr.setValue(jsonJobSheetsMediaSources);
+                    jsonJobSheetsMediaSources = null;
+
+                } else {
+                    /*
+                     * Remove non-active entry.
+                     */
+                    printerAttrDAO().delete(printerAttr);
+                    iterAttr.remove();
+                }
+                continue;
+            }
 
             /*
              * Client-side grayscale conversion?
@@ -3361,9 +3416,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     /*
                      * Remove non-active entry.
                      */
-                    // (1)
                     printerAttrDAO().delete(printerAttr);
-                    // (2)
                     iterAttr.remove();
                 }
                 continue;
@@ -3385,9 +3438,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     /*
                      * Remove non-active entry.
                      */
-                    // (1)
                     printerAttrDAO().delete(printerAttr);
-                    // (2)
                     iterAttr.remove();
                 }
 
@@ -3435,9 +3486,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 /*
                  * Remove non-active entry.
                  */
-                // (1)
                 printerAttrDAO().delete(printerAttr);
-                // (2)
                 iterAttr.remove();
             }
 
@@ -3457,28 +3506,16 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 /*
                  * Add active entry.
                  */
-                final PrinterAttr printerAttr = new PrinterAttr();
-
-                printerAttr.setPrinter(printer);
-
-                printerAttr.setName(new PrinterDao.MediaSourceAttr(
-                        mediaSourceDto.getSource()).getKey());
-
-                String json;
+                mediaSourceDto.toDatabaseObject(locale);
 
                 try {
-                    mediaSourceDto.toDatabaseObject(locale);
-                    json = mediaSourceDto.stringify();
+                    createAddPrinterAttr(printer,
+                            new PrinterDao.MediaSourceAttr(
+                                    mediaSourceDto.getSource()).getKey(),
+                            mediaSourceDto.stringify());
                 } catch (IOException e) {
                     throw new SpException(e);
                 }
-
-                printerAttr.setValue(json);
-
-                // (1)
-                printerAttrDAO().create(printerAttr);
-                // (2)
-                printer.getAttributes().add(printerAttr);
 
             } else {
                 /*
@@ -3495,18 +3532,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 && isForceDefaultMonochrome != null
                 && isForceDefaultMonochrome) {
 
-            final PrinterAttr printerAttr = new PrinterAttr();
+            final String nameKey = new PrinterDao.IppKeywordAttr(
+                    IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE_DFLT).getKey();
 
-            printerAttr.setPrinter(printer);
-            printerAttr.setName(new PrinterDao.IppKeywordAttr(
-                    IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE_DFLT)
-                            .getKey());
-            printerAttr.setValue(IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
-
-            // (1)
-            printerAttrDAO().create(printerAttr);
-            // (2)
-            printer.getAttributes().add(printerAttr);
+            createAddPrinterAttr(printer, nameKey,
+                    IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
         }
 
         /*
@@ -3514,17 +3544,18 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          */
         if (clientSideMonochrome != null
                 && clientSideMonochrome.booleanValue()) {
-            final PrinterAttr printerAttr = new PrinterAttr();
+            createAddPrinterAttr(printer,
+                    PrinterAttrEnum.CLIENT_SIDE_MONOCHROME,
+                    clientSideMonochrome.toString());
+        }
 
-            printerAttr.setPrinter(printer);
-            printerAttr.setName(
-                    PrinterAttrEnum.CLIENT_SIDE_MONOCHROME.getDbName());
-            printerAttr.setValue(clientSideMonochrome.toString());
-
-            // (1)
-            printerAttrDAO().create(printerAttr);
-            // (2)
-            printer.getAttributes().add(printerAttr);
+        /*
+         * Client-side grayscale conversion (add).
+         */
+        if (StringUtils.isNotBlank(jsonJobSheetsMediaSources)) {
+            createAddPrinterAttr(printer,
+                    PrinterAttrEnum.JOB_SHEETS_MEDIA_SOURCES,
+                    jsonJobSheetsMediaSources);
         }
 
         /*
@@ -3541,6 +3572,48 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          * We are OK.
          */
         return JsonRpcMethodResult.createOkResult();
+    }
+
+    /**
+     * Creates a {@link PrinterAttr} in database and adds it to printer
+     * attribute list.
+     *
+     * @param printer
+     *            The printer.
+     * @param attrEnum
+     *            The attribute enum.
+     * @param value
+     *            The attribute value.
+     */
+    private static void createAddPrinterAttr(final Printer printer,
+            final PrinterAttrEnum attrEnum, final String value) {
+        createAddPrinterAttr(printer, attrEnum.getDbName(), value);
+    }
+
+    /**
+     * Creates a {@link PrinterAttr} in database and adds it to printer
+     * attribute list.
+     *
+     * @param printer
+     *            The printer.
+     * @param name
+     *            The attribute name (key).
+     * @param value
+     *            The attribute value.
+     */
+    private static void createAddPrinterAttr(final Printer printer,
+            final String name, final String value) {
+
+        final PrinterAttr printerAttr = new PrinterAttr();
+
+        printerAttr.setPrinter(printer);
+        printerAttr.setName(name);
+        printerAttr.setValue(value);
+
+        // (1)
+        printerAttrDAO().create(printerAttr);
+        // (2)
+        printer.getAttributes().add(printerAttr);
     }
 
     /**

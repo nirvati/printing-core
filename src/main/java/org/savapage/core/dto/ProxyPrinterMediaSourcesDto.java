@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,6 +23,7 @@ package org.savapage.core.dto;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -77,14 +78,19 @@ public final class ProxyPrinterMediaSourcesDto extends AbstractDto {
     private IppMediaSourceCostDto sourceManual;
 
     /**
-    *
-    */
+     * .
+     */
     private Boolean defaultMonochrome;
 
     /**
      * {@code true} if client-side monochrome conversion.
      */
     private Boolean clientSideMonochrome;
+
+    /**
+     * .
+     */
+    private Set<String> jobSheetsMediaSources;
 
     /**
      *
@@ -147,6 +153,14 @@ public final class ProxyPrinterMediaSourcesDto extends AbstractDto {
      */
     public void setClientSideMonochrome(Boolean clientSideMonochrome) {
         this.clientSideMonochrome = clientSideMonochrome;
+    }
+
+    public Set<String> getJobSheetsMediaSources() {
+        return jobSheetsMediaSources;
+    }
+
+    public void setJobSheetsMediaSources(Set<String> jobSheetsMediaSources) {
+        this.jobSheetsMediaSources = jobSheetsMediaSources;
     }
 
     public String getLanguage() {

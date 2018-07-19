@@ -1731,7 +1731,7 @@ public final class JobTicketServiceImpl extends AbstractService
             // Main job.
             redirectPrinter.setMediaSourceOptChoice(
                     printerService().findMediaSourceForMedia(printerAttrLookup,
-                            mediaSource, requestedMediaForJob));
+                            mediaSource, requestedMediaForJob, null));
 
             // Job Sheet.
             final TicketJobSheetDto jobSheetDto =
@@ -1740,7 +1740,8 @@ public final class JobTicketServiceImpl extends AbstractService
             if (jobSheetDto.isEnabled()) {
                 redirectPrinter.setMediaSourceJobSheetOptChoice(printerService()
                         .findMediaSourceForMedia(printerAttrLookup, mediaSource,
-                                jobSheetDto.getMediaOption()));
+                                jobSheetDto.getMediaOption(), printerService()
+                                        .getJobSheetsMediaSources(printer)));
             }
 
             // Find the output-bin

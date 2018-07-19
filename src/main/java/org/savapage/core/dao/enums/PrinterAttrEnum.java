@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.PrinterAttrDao;
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.jpa.PrinterAttr;
 
 /**
@@ -73,12 +74,35 @@ public enum PrinterAttrEnum {
     JOBTICKET_PRINTER_GROUP("jobticket.printer-group"),
 
     /**
-     * Statistic time series. Example:
+     * Preferred media-sources (JSON) for
+     * {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_JOB_SHEETS}.
+     */
+    JOB_SHEETS_MEDIA_SOURCES("job-sheets.media-sources"),
+
+    /**
+     * <i>This is a prefix for media-source parameters and is not used as such:
+     * note the <u>dot character</u> at the end.</i>
      * <p>
-     * {@code 1342562400000,2,1,0,...,0,8,1}
+     * Usage example: {@code media-source.tray1}
      * </p>
      */
-    PRINT_OUT_ROLLING_DAY_PAGES(PrinterAttrDao.STATS_ROLLING_PREFIX + "-day.pages"),
+    PFX_MEDIA_SOURCE("media-source."),
+
+    /**
+     * <i>This is a prefix for cost parameters per media and is not used as
+     * such: note the <u>dot character</u> at the end.</i>
+     * <p>
+     * Usage example: {@code cost.media.default} and
+     * {@code cost.media.iso_a4_210x297mm}
+     * </p>
+     */
+    PFX_COST_MEDIA("cost.media."),
+
+    /**
+     * <i>This is a prefix for IPP keywords and is not used as such: note the
+     * <u>dot character</u> at the end.</i>
+     */
+    PFX_IPP_KEYWORD("ipp."),
 
     /**
      * Statistic time series. Example:
@@ -86,7 +110,8 @@ public enum PrinterAttrEnum {
      * {@code 1342562400000,2,1,0,...,0,8,1}
      * </p>
      */
-    PRINT_OUT_ROLLING_DAY_SHEETS(PrinterAttrDao.STATS_ROLLING_PREFIX + "-day.sheets"),
+    PRINT_OUT_ROLLING_DAY_PAGES(PrinterAttrDao.STATS_ROLLING_PREFIX //
+            + "-day.pages"),
 
     /**
      * Statistic time series. Example:
@@ -94,7 +119,17 @@ public enum PrinterAttrEnum {
      * {@code 1342562400000,2,1,0,...,0,8,1}
      * </p>
      */
-    PRINT_OUT_ROLLING_DAY_ESU(PrinterAttrDao.STATS_ROLLING_PREFIX + "-day.esu"),
+    PRINT_OUT_ROLLING_DAY_SHEETS(PrinterAttrDao.STATS_ROLLING_PREFIX //
+            + "-day.sheets"),
+
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,2,1,0,...,0,8,1}
+     * </p>
+     */
+    PRINT_OUT_ROLLING_DAY_ESU(PrinterAttrDao.STATS_ROLLING_PREFIX //
+            + "-day.esu"),
 
     /**
      * Date of {@link #SNMP_INFO}.
@@ -165,12 +200,12 @@ public enum PrinterAttrEnum {
      * @param dbName
      *            The database name.
      */
-    private PrinterAttrEnum(final String dbName) {
+    PrinterAttrEnum(final String dbName) {
         this.dbName = dbName;
     }
 
     /**
-     * Gets the name used in the database.
+     * Gets the (prefix) name used in the database.
      *
      * @return The database name.
      */

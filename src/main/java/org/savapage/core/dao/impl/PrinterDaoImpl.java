@@ -177,6 +177,32 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
     }
 
     @Override
+    public boolean isJobTicketRedirectPrinter(final Long id) {
+
+        final String jpql = String.format(
+                "SELECT COUNT(PM.id) FROM PrinterGroupMember PM "
+                        + "WHERE PM.printer.id = :id AND PM.group.id IN "
+                        + "(SELECT PG.id FROM PrinterGroup PG "
+                        + " WHERE PG.displayName IN"
+                        + " (SELECT A1.value FROM PrinterAttr A1"
+                        + "  WHERE A1.name = '%s' "
+                        + "  AND A1.printer.id IN " //
+                        + "  (SELECT A2.printer.id FROM PrinterAttr A2"
+                        + "   WHERE A2.name = '%s' AND A2.value = '%s'"
+                        + "  ) GROUP BY A1.value" //
+                        + " )" //
+                        + ")", //
+                PrinterAttrEnum.JOBTICKET_PRINTER_GROUP.getDbName(),
+                PrinterAttrEnum.JOBTICKET_ENABLE.getDbName(),
+                PrinterAttrDao.V_YES);
+
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("id", id);
+        final Number countResult = (Number) query.getSingleResult();
+        return countResult.longValue() > 0;
+    }
+
+    @Override
     public Printer findByName(final String printerName) {
 
         final String key = ProxyPrinterName.getDaoName(printerName);
@@ -431,7 +457,6 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
         }
 
         return printer;
-
     }
 
 }

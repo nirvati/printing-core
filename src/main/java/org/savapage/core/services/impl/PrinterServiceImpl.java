@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -74,6 +75,8 @@ import org.savapage.core.snmp.SnmpPrtMarkerSuppliesEntry;
 import org.savapage.core.snmp.SnmpPrtMarkerSuppliesTypeEnum;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.NumberUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -82,6 +85,12 @@ import org.savapage.core.util.NumberUtil;
  */
 public final class PrinterServiceImpl extends AbstractService
         implements PrinterService {
+
+    /**
+     * The logger.
+     */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PrinterServiceImpl.class);
 
     /** */
     private static final boolean ACCESS_ALLOWED = true;
@@ -334,6 +343,26 @@ public final class PrinterServiceImpl extends AbstractService
     }
 
     @Override
+    public Set<String> getJobSheetsMediaSources(final Printer printer) {
+
+        final PrinterAttrEnum name = PrinterAttrEnum.JOB_SHEETS_MEDIA_SOURCES;
+
+        try {
+            final String jsonJobSheetSources =
+                    this.getAttributeValue(printer, name);
+
+            if (StringUtils.isNotBlank(jsonJobSheetSources)) {
+                return JsonHelper.createStringSet(jsonJobSheetSources);
+            }
+
+        } catch (IOException e) {
+            LOGGER.warn("Printer [{}] attribute [{}] : {}",
+                    printer.getPrinterName(), name.getDbName(), e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
     public String getPrintColorModeDefault(final Printer printer) {
 
         final List<PrinterAttr> attributes = printer.getAttributes();
@@ -360,9 +389,20 @@ public final class PrinterServiceImpl extends AbstractService
     }
 
     @Override
-    public boolean isClientSideBooklet(final Printer printer) {
-        return proxyPrintService().getCachedPrinter(printer.getPrinterName())
-                .isBookletClientSide();
+    public String getPrinterAttrValue(final Printer printer,
+            final PrinterAttrEnum attr) {
+
+        final List<PrinterAttr> attributes = printer.getAttributes();
+
+        if (attributes != null) {
+            final String targetName = attr.getDbName();
+            for (final PrinterAttr printerAttr : attributes) {
+                if (printerAttr.getName().equals(targetName)) {
+                    return printerAttr.getValue();
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -376,24 +416,19 @@ public final class PrinterServiceImpl extends AbstractService
      *            The default value when printer attribute is not present.
      * @return Printer attribute value.
      */
-    private static boolean isPrinterAttr(final Printer printer,
+    private boolean isPrinterAttr(final Printer printer,
             final PrinterAttrEnum attr, final boolean defaultValue) {
-
-        final List<PrinterAttr> attributes = printer.getAttributes();
-
-        if (attributes != null) {
-
-            final String targetName = attr.getDbName();
-
-            for (final PrinterAttr printerAttr : attributes) {
-
-                if (printerAttr.getName().equals(targetName)) {
-                    return printerAttr.getValue()
-                            .equals(Boolean.TRUE.toString());
-                }
-            }
+        final String value = this.getPrinterAttrValue(printer, attr);
+        if (value != null) {
+            return value.equals(Boolean.TRUE.toString());
         }
         return defaultValue;
+    }
+
+    @Override
+    public boolean isClientSideBooklet(final Printer printer) {
+        return proxyPrintService().getCachedPrinter(printer.getPrinterName())
+                .isBookletClientSide();
     }
 
     @Override
@@ -922,8 +957,10 @@ public final class PrinterServiceImpl extends AbstractService
     @Override
     public JsonProxyPrinterOptChoice findMediaSourceForMedia(
             final PrinterAttrLookup printerAttrLookup,
-            final JsonProxyPrinterOpt mediaSource,
-            final String requestedMedia) {
+            final JsonProxyPrinterOpt mediaSource, final String requestedMedia,
+            final Set<String> preferredMediaSources) {
+
+        JsonProxyPrinterOptChoice firstFound = null;
 
         for (final JsonProxyPrinterOptChoice optChoice : mediaSource
                 .getChoices()) {
@@ -934,10 +971,18 @@ public final class PrinterServiceImpl extends AbstractService
             if (assignedMediaSource != null && requestedMedia != null
                     && requestedMedia.equals(
                             assignedMediaSource.getMedia().getMedia())) {
-                return optChoice;
+
+                if (preferredMediaSources == null || preferredMediaSources
+                        .contains(optChoice.getChoice())) {
+                    return optChoice;
+                }
+
+                if (firstFound == null) {
+                    firstFound = optChoice;
+                }
             }
         }
-        return null;
+        return firstFound;
     }
 
     @Override

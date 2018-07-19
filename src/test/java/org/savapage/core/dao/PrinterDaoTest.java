@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.savapage.core.dao.PrinterDao.CostMediaAttr;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 
 /**
@@ -37,43 +38,45 @@ public class PrinterDaoTest {
     @Test
     public void testCostMediaAttr1() {
 
+        final String dbKeyPfx = PrinterAttrEnum.PFX_COST_MEDIA.getDbName();
+
         //
         assertEquals(CostMediaAttr.isValidKey(""), false);
-        assertEquals(CostMediaAttr.isValidKey(CostMediaAttr.COST_MEDIA_PFX),
+        assertEquals(CostMediaAttr.isValidKey(dbKeyPfx),
                 false);
 
         //
         String key =
-                CostMediaAttr.COST_MEDIA_PFX
+                dbKeyPfx
                         + CostMediaAttr.COST_3_MEDIA_DEFAULT;
         assertEquals(CostMediaAttr.isValidKey(key), true);
 
         //
         key =
-                CostMediaAttr.COST_MEDIA_PFX
+                dbKeyPfx
                         + IppMediaSizeEnum.ISO_A3.getIppKeyword();
         assertEquals(CostMediaAttr.isValidKey(key), true);
 
         //
         key =
-                CostMediaAttr.COST_MEDIA_PFX
+                dbKeyPfx
                         + IppMediaSizeEnum.ISO_A4.getIppKeyword();
         assertEquals(CostMediaAttr.isValidKey(key), true);
 
         //
         key =
-                CostMediaAttr.COST_MEDIA_PFX
+                dbKeyPfx
                         + IppMediaSizeEnum.NA_LETTER.getIppKeyword();
         assertEquals(CostMediaAttr.isValidKey(key), true);
 
         //
         key =
-                CostMediaAttr.COST_MEDIA_PFX
+                dbKeyPfx
                         + IppMediaSizeEnum.NA_LEGAL.getIppKeyword();
         assertEquals(CostMediaAttr.isValidKey(key), true);
 
         //
-        key = CostMediaAttr.COST_MEDIA_PFX + "-";
+        key = dbKeyPfx + "-";
         assertEquals(CostMediaAttr.isValidKey(key), false);
 
     }
