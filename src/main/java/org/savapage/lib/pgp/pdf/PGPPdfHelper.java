@@ -207,6 +207,7 @@ public final class PGPPdfHelper {
             push.setTextColor(BaseColor.DARK_GRAY);
             push.setFontSize(NORMAL_FONT_COURIER.getSize());
             push.setFont(NORMAL_FONT_COURIER.getBaseFont());
+            push.setVisibility(PushbuttonField.VISIBLE_BUT_DOES_NOT_PRINT);
 
             final byte[] payload = bostrSignedEncrypted.toByteArray();
 
