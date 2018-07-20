@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -24,6 +24,7 @@ package org.savapage.core.job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
+import org.savapage.core.SpInfo;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
@@ -38,12 +39,14 @@ import org.slf4j.LoggerFactory;
 /**
  * Removes PrinterGroup that are not in use anymore.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class PrinterGroupClean extends AbstractJob {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(PrinterGroupClean.class);
+    /** */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PrinterGroupClean.class);
 
     @Override
     protected void onInterrupt() throws UnableToInterruptJobException {
@@ -73,7 +76,7 @@ public final class PrinterGroupClean extends AbstractJob {
         try {
             daoContext.beginTransaction();
 
-            PrinterGroupService service =
+            final PrinterGroupService service =
                     ServiceContext.getServiceFactory().getPrinterGroupService();
 
             nRemoved = service.prunePrinterGroups();
@@ -91,39 +94,34 @@ public final class PrinterGroupClean extends AbstractJob {
             level = PubLevelEnum.ERROR;
             msgParm = e.getMessage();
 
-            LoggerFactory.getLogger(this.getClass()).error(e.getMessage(), e);
-
+            LOGGER.error(e.getMessage(), e);
         }
 
-        /*
-         *
-         */
+        if (msgParm == null) {
+            return;
+        }
+
         try {
+            final String msg;
 
-            if (msgParm != null) {
-
-                String msg = null;
-
-                if (level == PubLevelEnum.INFO) {
-                    if (nRemoved == 1) {
-                        msg =
-                                AppLogHelper.logInfo(getClass(),
-                                        "PrinterGroupClean.success.single");
-                    } else {
-                        msg =
-                                AppLogHelper.logInfo(getClass(),
-                                        "PrinterGroupClean.success.plural",
-                                        msgParm);
-                    }
-
+            if (level == PubLevelEnum.INFO) {
+                if (nRemoved == 1) {
+                    msg = AppLogHelper.logInfo(getClass(),
+                            "PrinterGroupClean.success.single");
                 } else {
-                    msg =
-                            AppLogHelper.logError(getClass(),
-                                    "PrinterGroupClean.error", msgParm);
+                    msg = AppLogHelper.logInfo(getClass(),
+                            "PrinterGroupClean.success.plural", msgParm);
                 }
 
-                AdminPublisher.instance().publish(PubTopicEnum.DB, level, msg);
+                SpInfo.instance().log(String.format(
+                        "| Cleaning Printer Groups: %d removed", nRemoved));
+
+            } else {
+                msg = AppLogHelper.logError(getClass(),
+                        "PrinterGroupClean.error", msgParm);
             }
+
+            AdminPublisher.instance().publish(PubTopicEnum.DB, level, msg);
 
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);

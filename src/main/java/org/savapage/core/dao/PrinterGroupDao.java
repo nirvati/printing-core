@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -30,7 +30,7 @@ import org.savapage.core.jpa.PrinterGroupMember;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface PrinterGroupDao extends GenericDao<PrinterGroup> {
@@ -58,7 +58,7 @@ public interface PrinterGroupDao extends GenericDao<PrinterGroup> {
      * </p>
      *
      * @param groupName
-     *            Group name of the printer group.
+     *            Unique case-insensitive name of the printer group.
      * @param displayName
      *            Display name of the printer group.
      * @param requestingUser
@@ -74,7 +74,7 @@ public interface PrinterGroupDao extends GenericDao<PrinterGroup> {
      * Finds a {@link PrinterGroup} by name.
      *
      * @param groupName
-     *            The unique name of the printer group.
+     *            The unique case-insensitive name of the printer group.
      * @return The printer group object or {@code null} when not found.
      */
     PrinterGroup findByName(String groupName);

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -48,25 +48,31 @@ public final class PrinterGroupDaoImpl extends GenericDaoImpl<PrinterGroup>
     @Override
     public int prunePrinterGroups() {
 
-        String group = null;
+        final String groupName;
 
-        if (ConfigManager.instance().isConfigValue(Key.PROXY_PRINT_NON_SECURE)) {
-            group =
-                    ConfigManager.instance().getConfigValue(
-                            Key.PROXY_PRINT_NON_SECURE_PRINTER_GROUP);
+        if (ConfigManager.instance()
+                .isConfigValue(Key.PROXY_PRINT_NON_SECURE)) {
+            groupName = ConfigManager.instance()
+                    .getConfigValue(Key.PROXY_PRINT_NON_SECURE_PRINTER_GROUP);
+        } else {
+            groupName = null;
         }
 
         final String jpqlMain = "DELETE FROM PrinterGroup P WHERE";
-        final String jpqlWhere =
-                " (SELECT COUNT(M) FROM P.members M) = 0"
-                        + " AND (SELECT COUNT(D) FROM P.devices D) = 0";
+
+        final String jpqlWhere = " (SELECT COUNT(M) FROM P.members M) = 0"
+                + " AND (SELECT COUNT(D) FROM P.devices D) = 0";
 
         final Query query;
 
-        if (StringUtils.isNotBlank(group)) {
-            String qry = jpqlMain + " P.groupName != :group AND " + jpqlWhere;
+        if (StringUtils.isNotBlank(groupName)) {
+
+            final String qry =
+                    jpqlMain + " P.groupName != :groupName AND " + jpqlWhere;
+
             query = this.getEntityManager().createQuery(qry);
-            query.setParameter("group", group);
+            query.setParameter("groupName", groupName.toLowerCase());
+
         } else {
             query = this.getEntityManager().createQuery(jpqlMain + jpqlWhere);
         }
@@ -89,7 +95,7 @@ public final class PrinterGroupDaoImpl extends GenericDaoImpl<PrinterGroup>
 
             printerGroup.setCreatedBy(requestingUser);
             printerGroup.setCreatedDate(requestDate);
-            printerGroup.setGroupName(groupName);
+            printerGroup.setGroupName(groupName.toLowerCase());
             printerGroup.setDisplayName(displayName);
 
             this.create(printerGroup);
@@ -115,15 +121,12 @@ public final class PrinterGroupDaoImpl extends GenericDaoImpl<PrinterGroup>
     @Override
     public PrinterGroup findByName(final String groupName) {
 
-        final String jpql =
-                "SELECT P FROM PrinterGroup P "
-                        + "WHERE P.groupName = :groupName";
-
-        final String key = groupName.toLowerCase();
+        final String jpql = "SELECT P FROM PrinterGroup P "
+                + "WHERE P.groupName = :groupName";
 
         final Query query = getEntityManager().createQuery(jpql);
 
-        query.setParameter("groupName", key);
+        query.setParameter("groupName", groupName.toLowerCase());
 
         PrinterGroup group;
 

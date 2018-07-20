@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -36,18 +36,17 @@ import javax.persistence.TableGenerator;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
 @Table(name = PrinterGroup.TABLE_NAME)
 public class PrinterGroup extends org.savapage.core.jpa.Entity {
 
-    /**
-     *
-     */
+    /** */
     public static final String TABLE_NAME = "tbl_printer_group";
 
+    /** */
     @Id
     @Column(name = "printer_group_id")
     @TableGenerator(name = "printerGroupPropGen", table = Sequence.TABLE_NAME,
@@ -60,9 +59,15 @@ public class PrinterGroup extends org.savapage.core.jpa.Entity {
             generator = "printerGroupPropGen")
     private Long id;
 
+    /**
+     * The unique lower-case group name.
+     */
     @Column(name = "group_name", length = 255, nullable = false)
     private String groupName;
 
+    /**
+     * The unique case-sensitive group name used for display.
+     */
     @Column(name = "display_name", length = 255, nullable = false)
     private String displayName;
 
@@ -107,20 +112,36 @@ public class PrinterGroup extends org.savapage.core.jpa.Entity {
         this.id = id;
     }
 
+    /**
+     * @return The lower-case group name.
+     */
     public String getGroupName() {
         return groupName;
     }
 
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
+    /**
+     * Sets the group name (converted to lower-case value).
+     *
+     * @param name
+     *            The unique <i>case-insensitive</i> group name.
+     */
+    public void setGroupName(final String name) {
+        this.groupName = name.toLowerCase();
     }
 
+    /**
+     * @return The unique case-sensitive group name used for display.
+     */
     public String getDisplayName() {
         return displayName;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    /**
+     * @param name
+     *            The unique case-sensitive group name used for display.
+     */
+    public void setDisplayName(final String name) {
+        this.displayName = name;
     }
 
     public List<Device> getDevices() {
