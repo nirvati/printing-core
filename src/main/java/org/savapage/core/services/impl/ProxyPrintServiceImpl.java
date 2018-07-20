@@ -2635,6 +2635,25 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         }
 
         /*
+         * (1.1) "job sheet media sources configuration is offered for
+         * non-job-ticket printers, that belong to at least one job ticket
+         * printer group."
+         *
+         * NOTE: printer groups are not checked for being tied to a job ticket
+         * printer, so clean-up might not be performed, even if it logically
+         * should.
+         */
+        if (BooleanUtils.isTrue(dto.getJobTicket())
+                || printerGroupLookup.isEmpty()) {
+
+            final PrinterAttr removedAttr = printerService().removeAttribute(
+                    jpaPrinter, PrinterAttrEnum.JOB_SHEETS_MEDIA_SOURCES);
+            if (removedAttr != null) {
+                printerAttrDAO().delete(removedAttr);
+            }
+        }
+
+        /*
          * (2) Remove PrinterGroupMembers which are not selected now, and remove
          * entries from the Map if member already exists.
          */
