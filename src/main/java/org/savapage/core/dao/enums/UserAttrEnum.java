@@ -101,7 +101,8 @@ public enum UserAttrEnum {
      * {@code 1342562400000,7,16,2,9,16}
      * </p>
      */
-    PRINT_IN_ROLLING_WEEK_PAGES("print.in." + UserAttrDao.STATS_ROLLING + "-week.pages"),
+    PRINT_IN_ROLLING_WEEK_PAGES("print.in." + UserAttrDao.STATS_ROLLING //
+            + "-week.pages"),
 
     /**
      * Statistic time series. Example:
@@ -109,7 +110,8 @@ public enum UserAttrEnum {
      * {@code 1342562400000,70033,163344,22335511,9999332,16345}
      * </p>
      */
-    PRINT_IN_ROLLING_WEEK_BYTES("print.in." + UserAttrDao.STATS_ROLLING + "-week.bytes"),
+    PRINT_IN_ROLLING_WEEK_BYTES("print.in." + UserAttrDao.STATS_ROLLING //
+            + "-week.bytes"),
 
     /**
      * Statistic time series. Example:
@@ -117,66 +119,8 @@ public enum UserAttrEnum {
      * {@code 1342562400000,7,16,2,9,16}
      * </p>
      */
-    PRINT_IN_ROLLING_MONTH_PAGES("print.in." + UserAttrDao.STATS_ROLLING + "-month.pages"),
-
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,70033,163344,22335511,9999332,16345}
-     * </p>
-     */
-    PRINT_IN_ROLLING_MONTH_BYTES("print.in." + UserAttrDao.STATS_ROLLING + "-month.bytes"),
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_WEEK_PAGES("print.out." + UserAttrDao.STATS_ROLLING + "-week.pages"),
-
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_WEEK_SHEETS("print.out." + UserAttrDao.STATS_ROLLING + "-week.sheets"),
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_WEEK_ESU("print.out." + UserAttrDao.STATS_ROLLING + "-week.esu"),
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,70033,163344,22335511,9999332,16345}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_WEEK_BYTES("print.out." + UserAttrDao.STATS_ROLLING + "-week.bytes"),
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_MONTH_PAGES("print.out." + UserAttrDao.STATS_ROLLING + "-month.pages"),
-
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_MONTH_SHEETS("print.out." + UserAttrDao.STATS_ROLLING + "-month.sheets"),
-    /**
-     * Statistic time series. Example:
-     * <p>
-     * {@code 1342562400000,7,16,2,9,16}
-     * </p>
-     */
-    PRINT_OUT_ROLLING_MONTH_ESU("print.out." + UserAttrDao.STATS_ROLLING + "-month.esu"),
+    PRINT_IN_ROLLING_MONTH_PAGES("print.in." + UserAttrDao.STATS_ROLLING //
+            + "-month.pages"),
 
     /**
      * Statistic time series. Example:
@@ -184,7 +128,16 @@ public enum UserAttrEnum {
      * {@code 1342562400000,70033,163344,22335511,9999332,16345}
      * </p>
      */
-    PRINT_OUT_ROLLING_MONTH_BYTES("print.out." + UserAttrDao.STATS_ROLLING + "-month.bytes"),
+    PRINT_IN_ROLLING_MONTH_BYTES("print.in." + UserAttrDao.STATS_ROLLING //
+            + "-month.bytes"),
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PRINT_OUT_ROLLING_WEEK_PAGES("print.out." + UserAttrDao.STATS_ROLLING //
+            + "-week.pages"),
 
     /**
      * Statistic time series. Example:
@@ -192,15 +145,32 @@ public enum UserAttrEnum {
      * {@code 1342562400000,7,16,2,9,16}
      * </p>
      */
-    PDF_OUT_ROLLING_WEEK_PAGES("pdf.out." + UserAttrDao.STATS_ROLLING + "-week.pages"),
-
+    PRINT_OUT_ROLLING_WEEK_SHEETS("print.out." + UserAttrDao.STATS_ROLLING //
+            + "-week.sheets"),
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PRINT_OUT_ROLLING_WEEK_ESU("print.out." + UserAttrDao.STATS_ROLLING //
+            + "-week.esu"),
     /**
      * Statistic time series. Example:
      * <p>
      * {@code 1342562400000,70033,163344,22335511,9999332,16345}
      * </p>
      */
-    PDF_OUT_ROLLING_WEEK_BYTES("pdf.out." + UserAttrDao.STATS_ROLLING + "-week.bytes"),
+    PRINT_OUT_ROLLING_WEEK_BYTES("print.out." + UserAttrDao.STATS_ROLLING //
+            + "-week.bytes"),
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PRINT_OUT_ROLLING_MONTH_PAGES("print.out." + UserAttrDao.STATS_ROLLING //
+            + "-month.pages"),
 
     /**
      * Statistic time series. Example:
@@ -208,7 +178,16 @@ public enum UserAttrEnum {
      * {@code 1342562400000,7,16,2,9,16}
      * </p>
      */
-    PDF_OUT_ROLLING_MONTH_PAGES("pdf.out." + UserAttrDao.STATS_ROLLING + "-month.pages"),
+    PRINT_OUT_ROLLING_MONTH_SHEETS("print.out." + UserAttrDao.STATS_ROLLING //
+            + "-month.sheets"),
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PRINT_OUT_ROLLING_MONTH_ESU("print.out." + UserAttrDao.STATS_ROLLING //
+            + "-month.esu"),
 
     /**
      * Statistic time series. Example:
@@ -216,7 +195,68 @@ public enum UserAttrEnum {
      * {@code 1342562400000,70033,163344,22335511,9999332,16345}
      * </p>
      */
-    PDF_OUT_ROLLING_MONTH_BYTES("pdf.out." + UserAttrDao.STATS_ROLLING + "-month.bytes");
+    PRINT_OUT_ROLLING_MONTH_BYTES("print.out." + UserAttrDao.STATS_ROLLING //
+            + "-month.bytes"),
+
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PDF_OUT_ROLLING_WEEK_PAGES("pdf.out." + UserAttrDao.STATS_ROLLING //
+            + "-week.pages"),
+
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,70033,163344,22335511,9999332,16345}
+     * </p>
+     */
+    PDF_OUT_ROLLING_WEEK_BYTES("pdf.out." + UserAttrDao.STATS_ROLLING //
+            + "-week.bytes"),
+
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,7,16,2,9,16}
+     * </p>
+     */
+    PDF_OUT_ROLLING_MONTH_PAGES("pdf.out." + UserAttrDao.STATS_ROLLING //
+            + "-month.pages"),
+
+    /**
+     * Statistic time series. Example:
+     * <p>
+     * {@code 1342562400000,70033,163344,22335511,9999332,16345}
+     * </p>
+     */
+    PDF_OUT_ROLLING_MONTH_BYTES("pdf.out." + UserAttrDao.STATS_ROLLING //
+            + "-month.bytes"),
+
+    /**
+     * Boolean: "true" when user selected preferred search scope.
+     */
+    PROXY_PRINT_DELEGATE_GROUPS_PREFERRED_SELECT(//
+            "proxy-print.delegate.groups.preferred.select"),
+
+    /**
+     * JSON set of preferred UserGroup IDs for delegated proxy print.
+     */
+    PROXY_PRINT_DELEGATE_GROUPS_PREFERRED(//
+            "proxy-print.delegate.groups.preferred"),
+
+    /**
+     * Boolean: "true" when user selected preferred search scope.
+     */
+    PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_PREFERRED_SELECT(//
+            "proxy-print.delegate.account.shared.preferred.select"),
+
+    /**
+     * JSON set of preferred Shared Account IDs for delegated proxy print.
+     */
+    PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_PREFERRED(//
+            "proxy-print.delegate.account.shared.preferred");
 
     /**
      * Lookup {@link UserAttrEnum} by database name.

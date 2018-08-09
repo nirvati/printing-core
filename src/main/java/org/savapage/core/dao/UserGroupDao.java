@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -22,6 +22,7 @@
 package org.savapage.core.dao;
 
 import java.util.List;
+import java.util.Set;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
@@ -58,6 +59,7 @@ public interface UserGroupDao extends GenericDao<UserGroup> {
 
         private String containingText;
         private ACLRoleEnum aclRole;
+        private Set<Long> groupIds;
 
         public String getContainingText() {
             return containingText;
@@ -73,6 +75,14 @@ public interface UserGroupDao extends GenericDao<UserGroup> {
 
         public void setAclRole(ACLRoleEnum aclRole) {
             this.aclRole = aclRole;
+        }
+
+        public Set<Long> getGroupIds() {
+            return groupIds;
+        }
+
+        public void setGroupIds(Set<Long> groupIds) {
+            this.groupIds = groupIds;
         }
 
     }

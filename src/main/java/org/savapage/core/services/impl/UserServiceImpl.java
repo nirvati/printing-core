@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,6 +38,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -3200,4 +3201,112 @@ public final class UserServiceImpl extends AbstractService
         }
         return user.getUserId();
     }
+
+    @Override
+    public Set<Long> getPreferredDelegateGroups(final User user) {
+
+        final UserAttrEnum attrName =
+                UserAttrEnum.PROXY_PRINT_DELEGATE_GROUPS_PREFERRED;
+
+        return this.getLongSet(user, attrName,
+                this.getUserAttrValue(user, attrName));
+    }
+
+    /**
+     *
+     * @param user
+     *            The user (for logging).
+     * @param attrName
+     *            The user attribute (for logging).
+     * @param jsonSet
+     *            The JSON "set" string with Long values.
+     * @return {@code null} when user attribute is not present.
+     */
+    private Set<Long> getLongSet(final User user, final UserAttrEnum attrName,
+            final String jsonSet) {
+
+        try {
+            if (StringUtils.isNotBlank(jsonSet)) {
+                return JsonHelper.createLongSet(jsonSet);
+            }
+
+        } catch (IOException e) {
+            LOGGER.warn("User [{}] attribute [{}] : {}", user.getUserId(),
+                    attrName.getName(), e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public boolean addPreferredDelegateGroups(final User user,
+            final Set<Long> groupIds) {
+
+        final UserAttrEnum attrName =
+                UserAttrEnum.PROXY_PRINT_DELEGATE_GROUPS_PREFERRED;
+
+        final UserAttr userAttr = getUserAttr(user, attrName);
+
+        final Set<Long> groupIdsDb;
+
+        if (userAttr == null) {
+            groupIdsDb = new HashSet<>();
+        } else {
+            groupIdsDb = this.getLongSet(user, attrName, userAttr.getValue());
+        }
+
+        if (groupIdsDb.addAll(groupIds)) {
+
+            final String json = JsonHelper.stringifyLongSet(groupIdsDb);
+
+            if (userAttr == null) {
+                this.addUserAttr(user, attrName, json);
+            } else {
+                userAttr.setValue(json);
+                this.setUserAttrValue(user, attrName, json);
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean removePreferredDelegateGroups(final User user,
+            final Set<Long> groupIds) {
+
+        final UserAttrEnum attrName =
+                UserAttrEnum.PROXY_PRINT_DELEGATE_GROUPS_PREFERRED;
+
+        final UserAttr userAttr = getUserAttr(user, attrName);
+
+        if (userAttr == null) {
+            return false;
+        }
+
+        final Set<Long> groupIdsDb =
+                this.getLongSet(user, attrName, userAttr.getValue());
+
+        final boolean change;
+
+        if (groupIdsDb == null) {
+
+            this.removeUserAttr(user, attrName);
+            change = true;
+
+        } else if (groupIdsDb.removeAll(groupIds)) {
+
+            if (groupIdsDb.isEmpty()) {
+                this.removeUserAttr(user, attrName);
+            } else {
+                this.setUserAttrValue(user, attrName,
+                        JsonHelper.stringifyLongSet(groupIdsDb));
+            }
+            change = true;
+        } else {
+            change = false;
+        }
+
+        return change;
+    }
+
 }

@@ -31,6 +31,7 @@ import org.savapage.core.dao.enums.ACLRoleEnum;
 public final class QuickSearchFilterUserGroupDto extends QuickSearchFilterDto {
 
     private ACLRoleEnum aclRole;
+    private boolean preferred;
 
     public ACLRoleEnum getAclRole() {
         return aclRole;
@@ -38,6 +39,14 @@ public final class QuickSearchFilterUserGroupDto extends QuickSearchFilterDto {
 
     public void setAclRole(ACLRoleEnum aclRole) {
         this.aclRole = aclRole;
+    }
+
+    public boolean isPreferred() {
+        return preferred;
+    }
+
+    public void setPreferred(boolean preferred) {
+        this.preferred = preferred;
     }
 
 }

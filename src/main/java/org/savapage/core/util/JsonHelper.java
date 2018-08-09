@@ -264,6 +264,25 @@ public final class JsonHelper {
     }
 
     /**
+     * De-serializes a {@link Set} of Long keys.
+     *
+     * @param json
+     *            The serialized JSON string.
+     * @return The {@link Set}.
+     * @throws IOException
+     *             When JSON syntax is invalid.
+     */
+    public static Set<Long> createLongSet(final String json)
+            throws IOException {
+        try {
+            return mapper.readValue(json, new TypeReference<Set<Long>>() {
+            });
+        } catch (IllegalArgumentException e) {
+            throw new IOException(e.getMessage(), e);
+        }
+    }
+
+    /**
      * De-serializes a {@link Map} with string key and string value.
      *
      * @param json
@@ -423,6 +442,21 @@ public final class JsonHelper {
      * @return The JSON String.
      */
     public static String stringifyStringSet(final Set<String> set) {
+        try {
+            return StringUtils.deleteWhitespace(mapper.writeValueAsString(set));
+        } catch (JsonProcessingException e) {
+            throw new SpException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Creates a JSON string from a Long{@link Set}.
+     *
+     * @param set
+     *            The {@link Set}.
+     * @return The JSON String.
+     */
+    public static String stringifyLongSet(final Set<Long> set) {
         try {
             return StringUtils.deleteWhitespace(mapper.writeValueAsString(set));
         } catch (JsonProcessingException e) {

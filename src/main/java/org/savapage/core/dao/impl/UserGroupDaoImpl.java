@@ -159,6 +159,14 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup>
             where.append(" lower(C.groupName) like :containingText");
         }
 
+        if (filter.getGroupIds() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" C.id IN :groupIds");
+        }
+
         if (nWhere > 0) {
             jpql.append(" WHERE ").append(where.toString());
         }
@@ -198,6 +206,10 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup>
         if (filter.getContainingText() != null) {
             query.setParameter("containingText", String.format("%%%s%%",
                     filter.getContainingText().toLowerCase()));
+        }
+
+        if (filter.getGroupIds() != null) {
+            query.setParameter("groupIds", filter.getGroupIds());
         }
 
         return query;

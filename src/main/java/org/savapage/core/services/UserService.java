@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 import org.savapage.core.config.IConfigProp;
@@ -711,5 +712,39 @@ public interface UserService {
      * @return The UI string.
      */
     String getUserIdUi(User user, Locale locale);
+
+    /**
+     * Traverses the internal {@link UserAttr} list of a {@link User} to get the
+     * set of {@link UserAttrEnum#PROXY_PRINT_DELEGATE_GROUPS_PREFERRED}.
+     *
+     * @param user
+     *            The {@link User}.
+     * @return {@code null} when user attribute is not present.
+     */
+    Set<Long> getPreferredDelegateGroups(User user);
+
+    /**
+     * Adds preferred delegate user groups.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param groupIds
+     *            The preferred User Group IDs to add.
+     * @return {@code true} if the resulting set changed as a result of the
+     *         call.
+     */
+    boolean addPreferredDelegateGroups(User user, Set<Long> groupIds);
+
+    /**
+     * Removes preferred delegate user groups.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param groupIds
+     *            The preferred User Group IDs to remove.
+     * @return {@code true} if the resulting set changed as a result of the
+     *         call.
+     */
+    boolean removePreferredDelegateGroups(User user, Set<Long> groupIds);
 
 }
