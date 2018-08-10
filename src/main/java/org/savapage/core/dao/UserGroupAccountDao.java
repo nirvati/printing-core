@@ -22,6 +22,7 @@
 package org.savapage.core.dao;
 
 import java.util.List;
+import java.util.Set;
 
 import org.savapage.core.dto.SharedAccountDto;
 import org.savapage.core.jpa.UserGroupAccount;
@@ -41,6 +42,7 @@ public interface UserGroupAccountDao extends GenericDao<UserGroupAccount> {
         private Long userId;
         private String containingNameText;
         private Boolean disabled;
+        private Set<Long> accountIds;
 
         public Long getUserId() {
             return userId;
@@ -64,6 +66,14 @@ public interface UserGroupAccountDao extends GenericDao<UserGroupAccount> {
 
         public void setDisabled(Boolean disabled) {
             this.disabled = disabled;
+        }
+
+        public Set<Long> getAccountIds() {
+            return accountIds;
+        }
+
+        public void setAccountIds(Set<Long> accountIds) {
+            this.accountIds = accountIds;
         }
 
     }

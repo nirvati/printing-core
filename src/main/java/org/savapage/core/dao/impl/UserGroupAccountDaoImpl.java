@@ -104,6 +104,14 @@ public final class UserGroupAccountDaoImpl extends
             where.append(" A.disabled = :selDisabled");
         }
 
+        if (filter.getAccountIds() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" A.id IN :accountIds");
+        }
+
         //
         if (nWhere > 0) {
             jpql.append(" WHERE ").append(where.toString());
@@ -137,6 +145,10 @@ public final class UserGroupAccountDaoImpl extends
 
         if (filter.getDisabled() != null) {
             query.setParameter("selDisabled", filter.getDisabled());
+        }
+
+        if (filter.getAccountIds() != null) {
+            query.setParameter("accountIds", filter.getAccountIds());
         }
 
         return query;

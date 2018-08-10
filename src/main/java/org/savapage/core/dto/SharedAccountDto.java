@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -43,6 +43,7 @@ public final class SharedAccountDto extends AbstractDto {
     private String name;
     private Long parentId;
     private String parentName;
+    private boolean preferred;
 
     public Long getId() {
         return id;
@@ -74,6 +75,14 @@ public final class SharedAccountDto extends AbstractDto {
 
     public void setParentName(String parentName) {
         this.parentName = parentName;
+    }
+
+    public boolean isPreferred() {
+        return preferred;
+    }
+
+    public void setPreferred(boolean preferred) {
+        this.preferred = preferred;
     }
 
     /**

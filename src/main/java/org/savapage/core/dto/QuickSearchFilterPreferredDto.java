@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,24 +21,21 @@
  */
 package org.savapage.core.dto;
 
-import org.savapage.core.dao.enums.ACLRoleEnum;
-
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class QuickSearchFilterUserGroupDto
-        extends QuickSearchFilterPreferredDto {
+public class QuickSearchFilterPreferredDto extends QuickSearchFilterDto {
 
-    private ACLRoleEnum aclRole;
+    private boolean preferred;
 
-    public ACLRoleEnum getAclRole() {
-        return aclRole;
+    public boolean isPreferred() {
+        return preferred;
     }
 
-    public void setAclRole(ACLRoleEnum aclRole) {
-        this.aclRole = aclRole;
+    public void setPreferred(boolean preferred) {
+        this.preferred = preferred;
     }
 
 }

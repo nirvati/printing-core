@@ -235,10 +235,16 @@ public enum UserAttrEnum {
             + "-month.bytes"),
 
     /**
+     * JSON set of preferred Shared Account IDs for delegated proxy print.
+     */
+    PROXY_PRINT_DELEGATE_ACCOUNTS_PREFERRED(//
+            "proxy-print.delegate.accounts.preferred"),
+
+    /**
      * Boolean: "true" when user selected preferred search scope.
      */
-    PROXY_PRINT_DELEGATE_GROUPS_PREFERRED_SELECT(//
-            "proxy-print.delegate.groups.preferred.select"),
+    PROXY_PRINT_DELEGATE_ACCOUNTS_PREFERRED_SELECT(//
+            "proxy-print.delegate.accounts.preferred.select"),
 
     /**
      * JSON set of preferred UserGroup IDs for delegated proxy print.
@@ -249,14 +255,8 @@ public enum UserAttrEnum {
     /**
      * Boolean: "true" when user selected preferred search scope.
      */
-    PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_PREFERRED_SELECT(//
-            "proxy-print.delegate.account.shared.preferred.select"),
-
-    /**
-     * JSON set of preferred Shared Account IDs for delegated proxy print.
-     */
-    PROXY_PRINT_DELEGATE_ACCOUNT_SHARED_PREFERRED(//
-            "proxy-print.delegate.account.shared.preferred");
+    PROXY_PRINT_DELEGATE_GROUPS_PREFERRED_SELECT(//
+            "proxy-print.delegate.groups.preferred.select");
 
     /**
      * Lookup {@link UserAttrEnum} by database name.

@@ -28,6 +28,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import org.savapage.core.OutOfBoundsException;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.UserDto;
@@ -724,27 +725,93 @@ public interface UserService {
     Set<Long> getPreferredDelegateGroups(User user);
 
     /**
+     * Traverses the internal {@link UserAttr} list of a {@link User} to get and
+     * <b>prune</b> the set of
+     * {@link UserAttrEnum#PROXY_PRINT_DELEGATE_GROUPS_PREFERRED}: user groups
+     * that are not found (because they were removed), are removed as
+     * preference.
+     *
+     * @param user
+     *            The {@link User}.
+     * @return {@code null} when user attribute is not present.
+     */
+    Set<Long> prunePreferredDelegateGroups(User user);
+
+    /**
      * Adds preferred delegate user groups.
      *
      * @param user
      *            The {@link User}.
-     * @param groupIds
-     *            The preferred User Group IDs to add.
+     * @param dbIds
+     *            The database IDs of the preferred User Groups to add.
      * @return {@code true} if the resulting set changed as a result of the
      *         call.
+     * @throws OutOfBoundsException
+     *             When max number of preferences is reached.
      */
-    boolean addPreferredDelegateGroups(User user, Set<Long> groupIds);
+    boolean addPreferredDelegateGroups(User user, Set<Long> dbIds)
+            throws OutOfBoundsException;
 
     /**
      * Removes preferred delegate user groups.
      *
      * @param user
      *            The {@link User}.
-     * @param groupIds
-     *            The preferred User Group IDs to remove.
+     * @param dbIds
+     *            The database IDs of the preferred User Groups to remove.
      * @return {@code true} if the resulting set changed as a result of the
      *         call.
      */
-    boolean removePreferredDelegateGroups(User user, Set<Long> groupIds);
+    boolean removePreferredDelegateGroups(User user, Set<Long> dbIds);
+
+    /**
+     * Traverses the internal {@link UserAttr} list of a {@link User} to get the
+     * set of {@link UserAttrEnum#PROXY_PRINT_DELEGATE_ACCOUNTS_PREFERRED}.
+     *
+     * @param user
+     *            The {@link User}.
+     * @return {@code null} when user attribute is not present.
+     */
+    Set<Long> getPreferredDelegateAccounts(User user);
+
+    /**
+     * Traverses the internal {@link UserAttr} list of a {@link User} to get and
+     * <b>prune</b> the set of
+     * {@link UserAttrEnum#PROXY_PRINT_DELEGATE_ACCOUNTS_PREFERRED}: user groups
+     * that are not found (because they were removed), are removed as
+     * preference.
+     *
+     * @param user
+     *            The {@link User}.
+     * @return {@code null} when user attribute is not present.
+     */
+    Set<Long> prunePreferredDelegateAccounts(User user);
+
+    /**
+     * Adds preferred delegate user groups.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param dbIds
+     *            The database IDs of the preferred Shared Accounts to add.
+     * @return {@code true} if the resulting set changed as a result of the
+     *         call.
+     * @throws OutOfBoundsException
+     *             When max number of preferences is reached.
+     */
+    boolean addPreferredDelegateAccounts(User user, Set<Long> dbIds)
+            throws OutOfBoundsException;
+
+    /**
+     * Removes preferred delegate user groups.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param dbIds
+     *            The database IDs of the preferred Shared Accounts to remove.
+     * @return {@code true} if the resulting set changed as a result of the
+     *         call.
+     */
+    boolean removePreferredDelegateAccounts(User user, Set<Long> dbIds);
 
 }

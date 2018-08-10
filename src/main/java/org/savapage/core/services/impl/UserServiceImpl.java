@@ -51,6 +51,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.savapage.core.OutOfBoundsException;
 import org.savapage.core.PerformanceLogger;
 import org.savapage.core.SpException;
 import org.savapage.core.auth.YubiKeyOTP;
@@ -59,6 +60,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.DaoContext;
+import org.savapage.core.dao.GenericDao;
 import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserEmailDao;
@@ -3202,16 +3204,6 @@ public final class UserServiceImpl extends AbstractService
         return user.getUserId();
     }
 
-    @Override
-    public Set<Long> getPreferredDelegateGroups(final User user) {
-
-        final UserAttrEnum attrName =
-                UserAttrEnum.PROXY_PRINT_DELEGATE_GROUPS_PREFERRED;
-
-        return this.getLongSet(user, attrName,
-                this.getUserAttrValue(user, attrName));
-    }
-
     /**
      *
      * @param user
@@ -3220,7 +3212,8 @@ public final class UserServiceImpl extends AbstractService
      *            The user attribute (for logging).
      * @param jsonSet
      *            The JSON "set" string with Long values.
-     * @return {@code null} when user attribute is not present.
+     * @return {@code null} when user attribute is not present, or when JSON is
+     *         invalid.
      */
     private Set<Long> getLongSet(final User user, final UserAttrEnum attrName,
             final String jsonSet) {
@@ -3229,7 +3222,6 @@ public final class UserServiceImpl extends AbstractService
             if (StringUtils.isNotBlank(jsonSet)) {
                 return JsonHelper.createLongSet(jsonSet);
             }
-
         } catch (IOException e) {
             LOGGER.warn("User [{}] attribute [{}] : {}", user.getUserId(),
                     attrName.getName(), e.getMessage());
@@ -3237,26 +3229,52 @@ public final class UserServiceImpl extends AbstractService
         return null;
     }
 
-    @Override
-    public boolean addPreferredDelegateGroups(final User user,
-            final Set<Long> groupIds) {
+    /**
+     *
+     * @param user
+     * @param attrName
+     * @return
+     */
+    private Set<Long> getPreferredDelegateDbKeys(final User user,
+            final UserAttrEnum attrName) {
+        return this.getLongSet(user, attrName,
+                this.getUserAttrValue(user, attrName));
+    }
 
-        final UserAttrEnum attrName =
-                UserAttrEnum.PROXY_PRINT_DELEGATE_GROUPS_PREFERRED;
+    /**
+     *
+     * @param user
+     * @param attrName
+     * @param dbIds
+     * @return
+     * @throws OutOfBoundsException
+     */
+    private boolean addPreferredDelegateDbKeys(final User user,
+            final UserAttrEnum attrName, final Set<Long> dbIds)
+            throws OutOfBoundsException {
 
         final UserAttr userAttr = getUserAttr(user, attrName);
 
-        final Set<Long> groupIdsDb;
+        Set<Long> groupIdsDb;
 
         if (userAttr == null) {
-            groupIdsDb = new HashSet<>();
+            groupIdsDb = null;
         } else {
             groupIdsDb = this.getLongSet(user, attrName, userAttr.getValue());
         }
 
-        if (groupIdsDb.addAll(groupIds)) {
+        if (groupIdsDb == null) {
+            groupIdsDb = new HashSet<>();
+        }
+
+        if (groupIdsDb.addAll(dbIds)) {
 
             final String json = JsonHelper.stringifyLongSet(groupIdsDb);
+
+            if (json.length() > UserAttr.COL_ATTRIB_VALUE_LENGTH) {
+                throw new OutOfBoundsException(
+                        "Max reached: preference not stored.");
+            }
 
             if (userAttr == null) {
                 this.addUserAttr(user, attrName, json);
@@ -3270,12 +3288,15 @@ public final class UserServiceImpl extends AbstractService
         return false;
     }
 
-    @Override
-    public boolean removePreferredDelegateGroups(final User user,
-            final Set<Long> groupIds) {
-
-        final UserAttrEnum attrName =
-                UserAttrEnum.PROXY_PRINT_DELEGATE_GROUPS_PREFERRED;
+    /**
+     *
+     * @param user
+     * @param attrName
+     * @param dbIds
+     * @return
+     */
+    private boolean removePreferredDelegateDbKeys(final User user,
+            final UserAttrEnum attrName, final Set<Long> dbIds) {
 
         final UserAttr userAttr = getUserAttr(user, attrName);
 
@@ -3293,13 +3314,13 @@ public final class UserServiceImpl extends AbstractService
             this.removeUserAttr(user, attrName);
             change = true;
 
-        } else if (groupIdsDb.removeAll(groupIds)) {
+        } else if (groupIdsDb.removeAll(dbIds)) {
 
             if (groupIdsDb.isEmpty()) {
                 this.removeUserAttr(user, attrName);
             } else {
-                this.setUserAttrValue(user, attrName,
-                        JsonHelper.stringifyLongSet(groupIdsDb));
+                final String json = JsonHelper.stringifyLongSet(groupIdsDb);
+                this.setUserAttrValue(user, attrName, json);
             }
             change = true;
         } else {
@@ -3307,6 +3328,105 @@ public final class UserServiceImpl extends AbstractService
         }
 
         return change;
+    }
+
+    @Override
+    public Set<Long> getPreferredDelegateGroups(final User user) {
+        return this.getPreferredDelegateDbKeys(user,
+                UserAttrEnum.PROXY_PRINT_DELEGATE_GROUPS_PREFERRED);
+    }
+
+    @Override
+    public boolean addPreferredDelegateGroups(final User user,
+            final Set<Long> dbIds) throws OutOfBoundsException {
+        return addPreferredDelegateDbKeys(user,
+                UserAttrEnum.PROXY_PRINT_DELEGATE_GROUPS_PREFERRED, dbIds);
+    }
+
+    @Override
+    public boolean removePreferredDelegateGroups(final User user,
+            final Set<Long> dbIds) {
+        return removePreferredDelegateDbKeys(user,
+                UserAttrEnum.PROXY_PRINT_DELEGATE_GROUPS_PREFERRED, dbIds);
+    }
+
+    @Override
+    public Set<Long> getPreferredDelegateAccounts(final User user) {
+        return this.getPreferredDelegateDbKeys(user,
+                UserAttrEnum.PROXY_PRINT_DELEGATE_ACCOUNTS_PREFERRED);
+    }
+
+    @Override
+    public boolean addPreferredDelegateAccounts(final User user,
+            final Set<Long> dbIds) throws OutOfBoundsException {
+        return addPreferredDelegateDbKeys(user,
+                UserAttrEnum.PROXY_PRINT_DELEGATE_ACCOUNTS_PREFERRED, dbIds);
+    }
+
+    @Override
+    public boolean removePreferredDelegateAccounts(final User user,
+            final Set<Long> dbIds) {
+        return removePreferredDelegateDbKeys(user,
+                UserAttrEnum.PROXY_PRINT_DELEGATE_ACCOUNTS_PREFERRED, dbIds);
+    }
+
+    /**
+     *
+     * @param user
+     * @param attrName
+     * @param dao
+     * @return
+     */
+    public Set<Long> prunePreferredDelegateDbKeys(final User user,
+            final UserAttrEnum attrName, final GenericDao<?> dao) {
+
+        final UserAttr userAttr = getUserAttr(user, attrName);
+
+        if (userAttr != null) {
+            try {
+                final Set<Long> dbIds =
+                        JsonHelper.createLongSet(userAttr.getValue());
+
+                final int sizePrv = dbIds.size();
+                final Iterator<Long> iter = dbIds.iterator();
+
+                while (iter.hasNext()) {
+                    final Long id = iter.next();
+
+                    if (id == null || dao.findById(id) == null) {
+                        iter.remove();
+                    }
+                }
+
+                if (dbIds.isEmpty()) {
+                    this.removeUserAttr(user, attrName);
+                } else if (sizePrv != dbIds.size()) {
+                    final String json = JsonHelper.stringifyLongSet(dbIds);
+                    userAttr.setValue(json);
+                    this.setUserAttrValue(user, attrName, json);
+                }
+
+                return dbIds;
+
+            } catch (IOException e) {
+                this.removeUserAttr(user, attrName);
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Set<Long> prunePreferredDelegateGroups(final User user) {
+        return prunePreferredDelegateDbKeys(user,
+                UserAttrEnum.PROXY_PRINT_DELEGATE_GROUPS_PREFERRED,
+                userGroupDAO());
+    }
+
+    @Override
+    public Set<Long> prunePreferredDelegateAccounts(final User user) {
+        return prunePreferredDelegateDbKeys(user,
+                UserAttrEnum.PROXY_PRINT_DELEGATE_ACCOUNTS_PREFERRED,
+                accountDAO());
     }
 
 }

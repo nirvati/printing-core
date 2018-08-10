@@ -1,7 +1,7 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
- * Authors: Rijk Ravestein.
+ * Copyright (c) 2011-2018 Datraverse B.V.
+ * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -19,26 +19,37 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.dto;
-
-import org.savapage.core.dao.enums.ACLRoleEnum;
+package org.savapage.core;
 
 /**
+ * An checked exception thrown when an out of bounds situation occurs.
  *
  * @author Rijk Ravestein
  *
  */
-public final class QuickSearchFilterUserGroupDto
-        extends QuickSearchFilterPreferredDto {
+public class OutOfBoundsException extends Exception {
 
-    private ACLRoleEnum aclRole;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-    public ACLRoleEnum getAclRole() {
-        return aclRole;
+    /**
+     * Constructs a new {@link OutOfBoundsException} without a message.
+     *
+     */
+    public OutOfBoundsException() {
+        super("");
     }
 
-    public void setAclRole(ACLRoleEnum aclRole) {
-        this.aclRole = aclRole;
+    /**
+     * Constructs a new {@link OutOfBoundsException}.
+     *
+     * @param message
+     *            The detail message.
+     */
+    public OutOfBoundsException(final String message) {
+        super(message);
     }
 
 }

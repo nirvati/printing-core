@@ -60,6 +60,8 @@ public enum NounEnum {
     /** */
     OUTPUT,
     /** */
+    PREFERRED_LIST,
+    /** */
     PRINTER(true),
     /** */
     REFUND(true),

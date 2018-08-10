@@ -26,10 +26,9 @@ package org.savapage.core.dto;
  * @author Rijk Ravestein
  *
  */
-public class QuickSearchUserGroupItemDto extends QuickSearchItemDto {
+public class QuickSearchUserGroupItemDto extends QuickSearchItemPreferredDto {
 
     private long userCount;
-    private boolean preferred;
 
     public long getUserCount() {
         return userCount;
@@ -37,14 +36,6 @@ public class QuickSearchUserGroupItemDto extends QuickSearchItemDto {
 
     public void setUserCount(long userCount) {
         this.userCount = userCount;
-    }
-
-    public boolean isPreferred() {
-        return preferred;
-    }
-
-    public void setPreferred(boolean preferred) {
-        this.preferred = preferred;
     }
 
 }

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -33,24 +33,25 @@ import javax.persistence.TableGenerator;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
 @Table(name = UserAttr.TABLE_NAME)
 public class UserAttr extends org.savapage.core.jpa.Entity {
 
-    /**
-     *
-     */
+    /** */
     public static final String TABLE_NAME = "tbl_user_attr";
+
+    /** */
+    public static final int COL_ATTRIB_VALUE_LENGTH = 2000;
 
     @Id
     @Column(name = "user_attr_id")
     @TableGenerator(name = "userAttrPropGen", table = Sequence.TABLE_NAME,
             pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
-            pkColumnValue = TABLE_NAME, allocationSize = 1)
+            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
+            allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "userAttrPropGen")
     private Long id;
@@ -63,8 +64,8 @@ public class UserAttr extends org.savapage.core.jpa.Entity {
             insertable = true, updatable = false)
     private String name;
 
-    @Column(name = "attrib_value", length = 2000, nullable = true,
-            insertable = true, updatable = true)
+    @Column(name = "attrib_value", length = COL_ATTRIB_VALUE_LENGTH,
+            nullable = true, insertable = true, updatable = true)
     private String value;
 
     public Long getId() {

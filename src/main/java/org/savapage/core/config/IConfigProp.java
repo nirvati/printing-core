@@ -1894,6 +1894,13 @@ public interface IConfigProp {
                 BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
+         * Enable preferred Shared Account IDs for delegated proxy print.
+         */
+        PROXY_PRINT_DELEGATE_ACCOUNTS_PREFERRED_ENABLE(//
+                "proxy-print.delegate.accounts.preferred.enable",
+                BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
+        /**
          * Enable delegated print account type {@link AccountTypeEnum#SHARED}
          * (boolean).
          */
