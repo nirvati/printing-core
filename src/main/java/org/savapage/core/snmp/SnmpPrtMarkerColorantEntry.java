@@ -143,6 +143,7 @@ public final class SnmpPrtMarkerColorantEntry {
                 SnmpMibDict.OID_PRT_MARKER_COLORANT_ROLE,
                 SnmpMibDict.OID_PRT_MARKER_COLORANT_TONALITY,
                 SnmpMibDict.OID_PRT_MARKER_COLORANT_VALUE };
+
         int i = 0;
 
         for (final List<String> list : client.getTableAsStrings(oids)) {
@@ -164,31 +165,36 @@ public final class SnmpPrtMarkerColorantEntry {
 
             if (!isValid) {
                 break;
-
             }
 
-            //
-            final String colorantValueUpper = list.get(3).toUpperCase();
+            /*
+             * Is last entry present?
+             */
             final SnmpPrtMarkerColorantValueEnum colorantValue;
 
-            if (EnumUtils.isValidEnum(SnmpPrtMarkerColorantValueEnum.class,
-                    colorantValueUpper)) {
-                colorantValue = SnmpPrtMarkerColorantValueEnum
-                        .valueOf(colorantValueUpper);
+            if (list.size() == oids.length) {
+
+                final String colorantValueUpper =
+                        list.get(oids.length - 1).toUpperCase();
+
+                if (EnumUtils.isValidEnum(SnmpPrtMarkerColorantValueEnum.class,
+                        colorantValueUpper)) {
+                    colorantValue = SnmpPrtMarkerColorantValueEnum
+                            .valueOf(colorantValueUpper);
+                } else {
+                    colorantValue = SnmpPrtMarkerColorantValueEnum.UNKNOWN;
+                }
+
             } else {
                 colorantValue = SnmpPrtMarkerColorantValueEnum.UNKNOWN;
             }
 
             final SnmpPrtMarkerColorantEntry entry =
-                    new SnmpPrtMarkerColorantEntry(index.intValue(),
-                            //
-                            Integer.valueOf(list.get(0)),
-                            //
+                    new SnmpPrtMarkerColorantEntry(index.intValue(), //
+                            Integer.valueOf(list.get(0)), //
                             SnmpPrtMarkerColorantRoleEnum
-                                    .asEnum(Integer.valueOf(list.get(1))),
-                            //
-                            Integer.valueOf(list.get(2)).intValue(),
-                            //
+                                    .asEnum(Integer.valueOf(list.get(1))), //
+                            Integer.valueOf(list.get(2)).intValue(), //
                             colorantValue);
 
             colorantMap.put(index, entry);
