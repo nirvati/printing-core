@@ -183,10 +183,12 @@ public final class PrinterSnmpReader {
             info.setMarkerLifeCount(client.getAsInt(oidWlk));
 
             // -----
+            oidWlk = null;
             info.setMarkerColorants(
                     SnmpPrtMarkerColorantEntry.retrieve(client));
 
             //
+            oidWlk = null;
             info.setSuppliesEntries(SnmpPrtMarkerSuppliesEntry.retrieve(client,
                     info.getMarkerColorants()));
 
@@ -219,8 +221,14 @@ public final class PrinterSnmpReader {
             throw e;
 
         } catch (Exception e) {
-            LOGGER.error(String.format("OID [%s] : %s ", oidWlk.toString(),
-                    e.getMessage()), e);
+
+            if (oidWlk == null) {
+                LOGGER.error("Printer [{}] : {}", host, e.getMessage(), e);
+            } else {
+                LOGGER.error(String.format("Printer [%s] OID [%s] : %s", host,
+                        oidWlk.toString(), e.getMessage()), e);
+            }
+
         } finally {
             try {
                 client.exit();
