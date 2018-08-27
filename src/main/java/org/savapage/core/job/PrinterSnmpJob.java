@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -253,11 +254,14 @@ public final class PrinterSnmpJob extends AbstractJob {
          */
         final Map<String, PrinterSnmpDto> hostCache = new HashMap<>();
 
+        String hostWlk = null;
+
         try {
 
             for (final SnmpPrinterQueryDto query : queries) {
 
                 final String host = query.getUriHost();
+                hostWlk = host;
 
                 PrinterSnmpDto dto = null;
 
@@ -340,7 +344,9 @@ public final class PrinterSnmpJob extends AbstractJob {
             level = PubLevelEnum.ERROR;
 
             msg = AppLogHelper.logError(getClass(), "PrinterSnmp.error",
-                    e.getMessage());
+                    String.format("Printer [%s] %s - %s",
+                            StringUtils.defaultString(hostWlk, "?"),
+                            e.getClass().getSimpleName(), e.getMessage()));
 
             AppLogHelper.log(AppLogLevelEnum.ERROR, msg);
 
