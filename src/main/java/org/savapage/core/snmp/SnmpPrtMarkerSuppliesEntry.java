@@ -91,14 +91,14 @@ public final class SnmpPrtMarkerSuppliesEntry extends AbstractDto {
         final Map<SnmpPrtMarkerSuppliesTypeEnum, List<SnmpPrtMarkerSuppliesEntry>> map =
                 new HashMap<>();
 
-        for (final List<String> list : client.getTableAsStrings(new OID[] {
-                SnmpMibDict.OID_PRT_MARKER_SUPPLIES_DESCRIPTION,
-                SnmpMibDict.OID_PRT_MARKER_SUPPLIES_CLASS,
-                SnmpMibDict.OID_PRT_MARKER_SUPPLIES_TYPE,
-                SnmpMibDict.OID_PRT_MARKER_SUPPLIES_SUPPLY_UNIT,
-                SnmpMibDict.OID_PRT_MARKER_SUPPLIES_COLORANT_INDEX,
-                SnmpMibDict.OID_PRT_MARKER_SUPPLIES_MAX_CAPACITY,
-                SnmpMibDict.OID_PRT_MARKER_SUPPLIES_LEVEL })) {
+        for (final List<String> list : client.getTableAsStrings(
+                new OID[] { SnmpMibDict.OID_PRT_MARKER_SUPPLIES_DESCRIPTION,
+                        SnmpMibDict.OID_PRT_MARKER_SUPPLIES_CLASS,
+                        SnmpMibDict.OID_PRT_MARKER_SUPPLIES_TYPE,
+                        SnmpMibDict.OID_PRT_MARKER_SUPPLIES_SUPPLY_UNIT,
+                        SnmpMibDict.OID_PRT_MARKER_SUPPLIES_COLORANT_INDEX,
+                        SnmpMibDict.OID_PRT_MARKER_SUPPLIES_MAX_CAPACITY,
+                        SnmpMibDict.OID_PRT_MARKER_SUPPLIES_LEVEL })) {
 
             final SnmpPrtMarkerSuppliesEntry entry =
                     new SnmpPrtMarkerSuppliesEntry();
@@ -107,19 +107,16 @@ public final class SnmpPrtMarkerSuppliesEntry extends AbstractDto {
             entry.description = list.get(iWlk);
 
             iWlk++;
-            entry.suppliesClass =
-                    SnmpPrtMarkerSuppliesClassEnum.asEnum(Integer.valueOf(list
-                            .get(iWlk)));
+            entry.suppliesClass = SnmpPrtMarkerSuppliesClassEnum
+                    .asEnum(Integer.valueOf(list.get(iWlk)));
 
             iWlk++;
-            entry.suppliesType =
-                    SnmpPrtMarkerSuppliesTypeEnum.asEnum(Integer.valueOf(list
-                            .get(iWlk)));
+            entry.suppliesType = SnmpPrtMarkerSuppliesTypeEnum
+                    .asEnum(Integer.valueOf(list.get(iWlk)));
 
             iWlk++;
-            entry.supplyUnit =
-                    SnmpPrtMarkerSuppliesSupplyUnitEnum.asEnum(Integer
-                            .valueOf(list.get(iWlk)));
+            entry.supplyUnit = SnmpPrtMarkerSuppliesSupplyUnitEnum
+                    .asEnum(Integer.valueOf(list.get(iWlk)));
 
             iWlk++;
             entry.colorantEntry =

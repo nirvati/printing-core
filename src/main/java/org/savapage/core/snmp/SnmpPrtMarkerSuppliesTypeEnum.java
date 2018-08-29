@@ -37,6 +37,10 @@ import java.util.Map;
 public enum SnmpPrtMarkerSuppliesTypeEnum {
 
     /**
+     * Zero value NOT specified in RFC1759.
+     */
+    UNDEFINED(0, "undefined"),
+    /**
      * .
      */
     OTHER(1, "other"),

@@ -26,12 +26,17 @@ import java.util.Map;
 
 /**
  *
- * <a href="http://tools.ietf.org/html/rfc1759.html">RFC1759</a>
+ * <a href="http://tools.ietf.org/html/rfc1759.html">RFC1759</a>.
  *
  * @author Rijk Ravestein
  *
  */
 public enum SnmpPrtMarkerSuppliesClassEnum {
+
+    /**
+     * Zero value NOT specified in RFC1759.
+     */
+    UNDEFINED(0, "undefined"),
 
     /**
      * .

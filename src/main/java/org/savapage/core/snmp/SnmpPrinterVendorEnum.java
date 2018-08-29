@@ -65,6 +65,11 @@ public enum SnmpPrinterVendorEnum {
     LEXMARK(641, "Lexmark"),
 
     /**
+     * Wes Hardaker: hardaker&users.sourceforge.net.
+     */
+    NET_SNMP(8072, "net-snmp"),
+
+    /**
      * .
      */
     OKI(2001, "OKI"),
@@ -121,10 +126,12 @@ public enum SnmpPrinterVendorEnum {
     public static SnmpPrinterVendorEnum
             fromEnterprise(final Integer enterprise) {
 
-        for (final SnmpPrinterVendorEnum enumVal : SnmpPrinterVendorEnum
-                .values()) {
-            if (enterprise.intValue() == enumVal.enterprise) {
-                return enumVal;
+        if (enterprise != null) {
+            for (final SnmpPrinterVendorEnum enumVal : SnmpPrinterVendorEnum
+                    .values()) {
+                if (enterprise.intValue() == enumVal.enterprise) {
+                    return enumVal;
+                }
             }
         }
         return null;

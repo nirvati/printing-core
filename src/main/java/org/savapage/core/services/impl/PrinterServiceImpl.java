@@ -1092,6 +1092,9 @@ public final class PrinterServiceImpl extends AbstractService
             case INK:
                 obj.setSupplies(ProxyPrinterSuppliesEnum.INK);
                 break;
+            case UNDEFINED: // Make an assumption.
+                obj.setSupplies(ProxyPrinterSuppliesEnum.TONER);
+                break;
             default:
                 continue;
             }
@@ -1101,17 +1104,17 @@ public final class PrinterServiceImpl extends AbstractService
 
             for (final SnmpPrtMarkerSuppliesEntry supplies : entry.getValue()) {
 
-                if (supplies
-                        .getSuppliesClass() != SnmpPrtMarkerSuppliesClassEnum.CONSUMED) {
+                final SnmpPrtMarkerSuppliesClassEnum suppliesClass =
+                        supplies.getSuppliesClass();
+
+                // Handle UNDEFINED as CONSUMED.
+                if (suppliesClass != SnmpPrtMarkerSuppliesClassEnum.CONSUMED
+                        && suppliesClass != SnmpPrtMarkerSuppliesClassEnum.UNDEFINED) {
                     continue;
                 }
 
                 final SnmpPrtMarkerColorantEntry colorantEntry =
                         supplies.getColorantEntry();
-
-                if (colorantEntry == null) {
-                    continue;
-                }
 
                 final int perc;
                 if (supplies.getLevel() == 0
@@ -1124,22 +1127,28 @@ public final class PrinterServiceImpl extends AbstractService
 
                 final SnmpPrtMarkerColorantValueEnum color;
 
-                switch (colorantEntry.getValue()) {
-                case UNKNOWN:
-                case OTHER:
-                    if (StringUtils.containsIgnoreCase(
-                            supplies.getDescription(), "black")) {
-                        color = SnmpPrtMarkerColorantValueEnum.BLACK;
-                        break;
-                    } else if (StringUtils.containsIgnoreCase(
-                            supplies.getDescription(), "tri-color")) {
-                        color = SnmpPrtMarkerColorantValueEnum.OTHER;
+                if (colorantEntry == null) {
+                    // Make an assumption.
+                    color = SnmpPrtMarkerColorantValueEnum.BLACK;
+                } else {
+
+                    switch (colorantEntry.getValue()) {
+                    case UNKNOWN:
+                    case OTHER:
+                        if (StringUtils.containsIgnoreCase(
+                                supplies.getDescription(), "black")) {
+                            color = SnmpPrtMarkerColorantValueEnum.BLACK;
+                            break;
+                        } else if (StringUtils.containsIgnoreCase(
+                                supplies.getDescription(), "tri-color")) {
+                            color = SnmpPrtMarkerColorantValueEnum.OTHER;
+                            break;
+                        }
+
+                    default:
+                        color = colorantEntry.getValue();
                         break;
                     }
-
-                default:
-                    color = colorantEntry.getValue();
-                    break;
                 }
 
                 colorants.put(color, Integer.valueOf(perc));
