@@ -26,8 +26,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.savapage.core.util.LocaleHelper;
 import org.snmp4j.smi.OID;
 
@@ -116,6 +114,11 @@ public enum SnmpPrinterErrorStateEnum {
     OVERDUE_PREVENT_MAINT(1, 0x02); // 14
 
     /**
+     *
+     */
+    private static final int MAX_HEX_BYTES = 2;
+
+    /**
      * {@code 0} is leftmost byte, {@code 1} is rightmost byte.
      */
     private final int iByte;
@@ -144,41 +147,54 @@ public enum SnmpPrinterErrorStateEnum {
      *            The octet string (octets are separated with a colon ':'
      *            character).
      * @return The set.
+     * @throws SnmpSyntaxException
+     *             When octetString has invalid syntax.
      */
-    public static Set<SnmpPrinterErrorStateEnum>
-            fromOctetString(final String octetString) {
+    public static Set<SnmpPrinterErrorStateEnum> fromOctetString(
+            final String octetString) throws SnmpSyntaxException {
 
         final StringTokenizer lineTokenizer =
                 new StringTokenizer(octetString, ":");
 
-        final int[] detectedErrorState = new int[lineTokenizer.countTokens()];
+        final int[] detectedErrorState = new int[MAX_HEX_BYTES];
+        for (int i = 0; i < detectedErrorState.length; i++) {
+            detectedErrorState[i] = 0;
+        }
 
-        int i = 0;
+        final int nHex = lineTokenizer.countTokens();
 
-        while (lineTokenizer.hasMoreTokens()) {
-            final String token = lineTokenizer.nextToken();
-            if (StringUtils.isNotBlank(token)) {
-                if (NumberUtils.isDigits(token)) {
-                    detectedErrorState[i++] = Integer.parseInt(token, 16);
+        if (nHex <= MAX_HEX_BYTES) {
+
+            int iHex = 0;
+
+            for (int i = 0; i < MAX_HEX_BYTES - nHex; i++) {
+                iHex++;
+            }
+
+            while (lineTokenizer.hasMoreTokens()) {
+                try {
+                    detectedErrorState[iHex++] =
+                            Integer.parseInt(lineTokenizer.nextToken(), 16);
+                } catch (Exception e) {
+                    throw new SnmpSyntaxException(String
+                            .format("Invalid Hex-STRING: %s", octetString));
                 }
             }
         }
 
         final Set<SnmpPrinterErrorStateEnum> set = new HashSet<>();
 
-        for (int j = 0; j < detectedErrorState.length; j++) {
+        for (int k = 0; k < detectedErrorState.length; k++) {
 
             for (SnmpPrinterErrorStateEnum enumValue : SnmpPrinterErrorStateEnum
                     .values()) {
 
-                if (enumValue.iByte == j
-                        && (detectedErrorState[j] & enumValue.value) > 0) {
+                if (enumValue.iByte == k
+                        && (detectedErrorState[k] & enumValue.value) > 0) {
                     set.add(enumValue);
                 }
             }
-
         }
-
         return set;
     }
 
