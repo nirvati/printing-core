@@ -371,20 +371,19 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      *
      * @param map
      *            The map to lazy add on.
-     * @param ippMediaAttr
+     * @param ippAttr
      *            The IPP attribute name.
      * @return The {@link JsonProxyPrinterOpt}.
      */
     private static JsonProxyPrinterOpt lazyCreateMapping(
-            final Map<String, JsonProxyPrinterOpt> map,
-            final String ippMediaAttr) {
+            final Map<String, JsonProxyPrinterOpt> map, final String ippAttr) {
 
-        JsonProxyPrinterOpt opt = map.get(ippMediaAttr);
+        JsonProxyPrinterOpt opt = map.get(ippAttr);
 
         if (opt == null) {
             opt = new JsonProxyPrinterOpt();
-            opt.setKeyword(ippMediaAttr);
-            map.put(ippMediaAttr, opt);
+            opt.setKeyword(ippAttr);
+            map.put(ippAttr, opt);
         }
         return opt;
     }
@@ -1258,16 +1257,25 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     private void onOptionChoiceMapping(final String ppdOption,
             final String ppdChoice, final String ippChoice) {
 
+        final boolean extendedChoice =
+                ippChoice.startsWith(SP_JOBTICKET_OPTION_CHOICE_EXTENDED);
+
+        final String ippChoiceVanilla = StringUtils.stripStart(ippChoice,
+                SP_JOBTICKET_OPTION_CHOICE_EXTENDED);
+
         final JsonProxyPrinterOpt opt =
                 this.lazyCreatePpdOptionMapping(ppdOption);
 
         final JsonProxyPrinterOptChoice choice =
-                opt.addChoice(ippChoice, ippChoice);
+                opt.addChoice(ippChoiceVanilla, ippChoiceVanilla);
 
         if (ppdChoice.startsWith(PPD_CHOICE_DEFAULT_PFX)) {
-            opt.setDefchoice(ippChoice);
-            opt.setDefchoiceIpp(ippChoice);
+            opt.setDefchoice(ippChoiceVanilla);
+            opt.setDefchoiceIpp(ippChoiceVanilla);
+        } else {
+            choice.setExtended(extendedChoice);
         }
+
         choice.setChoicePpd(
                 StringUtils.stripStart(ppdChoice, PPD_CHOICE_DEFAULT_PFX));
     }
@@ -1502,11 +1510,13 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             if (opt.getDefchoiceIpp() == null && opt.getChoices() != null
                     && !opt.getChoices().isEmpty()) {
 
-                final JsonProxyPrinterOptChoice firstChoice =
-                        opt.getChoices().get(0);
-
-                opt.setDefchoice(firstChoice.getChoice());
-                opt.setDefchoiceIpp(firstChoice.getChoice());
+                for (final JsonProxyPrinterOptChoice wlk : opt.getChoices()) {
+                    if (!wlk.isExtended()) {
+                        opt.setDefchoice(wlk.getChoice());
+                        opt.setDefchoiceIpp(wlk.getChoice());
+                        break;
+                    }
+                }
             }
             //
             if (keywordIpp
