@@ -81,6 +81,7 @@ import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
+import org.savapage.core.services.helpers.PrinterAccessInfo;
 import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
@@ -461,8 +462,7 @@ public interface ProxyPrintService {
             throws IppConnectException, IppSyntaxException;
 
     /**
-     * Checks if only Job Ticket printers are available for a user on a
-     * terminal.
+     * Gets printer access info for a user at a terminal.
      *
      * @param terminal
      *            The {@link Device.DeviceTypeEnum#TERMINAL} definition of the
@@ -470,15 +470,15 @@ public interface ProxyPrintService {
      *            available.
      * @param userName
      *            The unique name of the requesting user.
-     * @return {@code true} when only Job Ticket printers are available on
-     *         terminal for a user.
+     * @return The {@link PrinterAccessInfo}.
      * @throws IppConnectException
      *             When a connection error occurs.
      * @throws IppSyntaxException
      *             When a syntax error.
      */
-    boolean areJobTicketPrintersOnly(Device terminal, String userName)
-            throws IppConnectException, IppSyntaxException;
+    PrinterAccessInfo
+            getUserPrinterAccessInfo(Device terminal, String userName)
+                    throws IppConnectException, IppSyntaxException;
 
     /**
      * Initializes the service.

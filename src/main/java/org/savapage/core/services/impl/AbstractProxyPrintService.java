@@ -146,6 +146,7 @@ import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PpdExtFileReader;
+import org.savapage.core.services.helpers.PrinterAccessInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.PrinterSnmpReader;
 import org.savapage.core.services.helpers.ProxyPrintCostDto;
@@ -805,22 +806,26 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public final boolean areJobTicketPrintersOnly(final Device terminal,
-            final String userName)
+    public final PrinterAccessInfo getUserPrinterAccessInfo(
+            final Device terminal, final String userName)
             throws IppConnectException, IppSyntaxException {
 
-        boolean isTicketPrinterFound = false;
+        final PrinterAccessInfo info = new PrinterAccessInfo();
+
+        info.setJobTicketsOnly(true);
+        info.setJobTicketsPresent(false);
 
         for (final JsonPrinter printer : this
                 .getUserPrinterList(terminal, userName).getList()) {
 
-            if (BooleanUtils.isFalse(printer.getJobTicket())) {
-                return false;
+            if (BooleanUtils.isTrue(printer.getJobTicket())) {
+                info.setJobTicketsPresent(true);
+            } else {
+                info.setJobTicketsOnly(false);
             }
 
-            isTicketPrinterFound = true;
         }
-        return isTicketPrinterFound;
+        return info;
     }
 
     @Override
