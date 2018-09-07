@@ -2476,6 +2476,13 @@ public interface IConfigProp {
                 V_NO, API_UPDATABLE_ON),
 
         /**
+         * Admin WebApp: show environmental effect on dashboard?
+         */
+        WEBAPP_ADMIN_DASHBOARD_SHOW_ENV_INFO(//
+                "webapp.admin.dashboard.show-env-info", BOOLEAN_VALIDATOR,
+                V_YES, API_UPDATABLE_ON),
+
+        /**
          * Number of seconds after which cached Bitcoin wallet information
          * expires.
          */
@@ -2653,7 +2660,7 @@ public interface IConfigProp {
                 "webapp.user.help.url", URL_VALIDATOR_OPT, API_UPDATABLE_ON),
 
         /**
-         * User WebApp: show help URL in web app
+         * User WebApp: show help URL in web app.
          */
         WEBAPP_USER_HELP_URL_ENABLE(//
                 "webapp.user.help.url.enable", BOOLEAN_VALIDATOR, V_YES,
@@ -2665,6 +2672,13 @@ public interface IConfigProp {
         WEBAPP_USER_MAIN_NAV_BUTTON_TEXT(//
                 "webapp.user.main.nav-button-text",
                 new EnumValidator<>(OnOffEnum.class), OnOffEnum.AUTO.toString(),
+                API_UPDATABLE_ON),
+
+        /**
+         * User WebApp: show environmental effect?
+         */
+        WEBAPP_USER_SHOW_ENV_INFO(//
+                "webapp.user.show-env-info", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
 
         /**
