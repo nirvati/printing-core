@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -84,6 +84,9 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
     /**
      * Role.
      */
+    private static final String CLI_OPT_ROLE_PRINT_SITE_OPERATOR =
+            "role-print-site-operator";
+
     private static final String CLI_OPT_ROLE_JOB_TICKET_CREATOR =
             "role-job-ticket-creator";
 
@@ -105,6 +108,8 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
      * Mapping CLI role option to {@link ACLRoleEnum}.
      */
     private static final String[][] OPT_ROLE_MAP = new String[][] {
+            { CLI_OPT_ROLE_PRINT_SITE_OPERATOR,
+                    ACLRoleEnum.PRINT_SITE_OPERATOR.toString() },
             { CLI_OPT_ROLE_JOB_TICKET_CREATOR,
                     ACLRoleEnum.JOB_TICKET_CREATOR.toString() },
             { CLI_OPT_ROLE_JOB_TICKET_OPERATOR,

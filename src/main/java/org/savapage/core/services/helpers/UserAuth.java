@@ -279,6 +279,12 @@ public class UserAuth {
                             Key.WEBAPP_INTERNET_ADMIN_AUTH_MODE_ENABLE;
                     keyInternetAuthModes = Key.WEBAPP_INTERNET_ADMIN_AUTH_MODES;
                     break;
+                case PRINTSITE:
+                    keyInternetAuthEnable =
+                            Key.WEBAPP_INTERNET_PRINTSITE_AUTH_MODE_ENABLE;
+                    keyInternetAuthModes =
+                            Key.WEBAPP_INTERNET_PRINTSITE_AUTH_MODES;
+                    break;
                 case JOBTICKETS:
                     keyInternetAuthEnable =
                             Key.WEBAPP_INTERNET_JOBTICKETS_AUTH_MODE_ENABLE;

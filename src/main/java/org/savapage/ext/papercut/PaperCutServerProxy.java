@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,8 @@
  */
 package org.savapage.ext.papercut;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -81,59 +83,41 @@ public final class PaperCutServerProxy {
     /**
      * .
      */
-    private static enum UserProperty {
+    private enum UserProperty {
 
-        /**
-         * .
-         */
+        /** */
         BALANCE("balance"),
-
-        /**
-         * .
-         */
+        /** */
         DISABLED_PRINT("disabled-print"),
-
-        /**
-         * .
-         */
+        /** */
         EMAIL("email"),
-
-        /**
-         * .
-         */
+        /** */
         FULL_NAME("full-name"),
-
-        /**
-         * .
-         */
+        /** */
         NOTES("notes"),
-
-        /**
-         * .
-         */
+        /** */
         OFFICE("office"),
-
-        /**
-         * .
-         */
+        /** */
         PRINT_JOB_COUNT("print-stats.job-count"),
-
-        /**
-         * .
-         */
+        /** */
         PRINT_PAGE_COUNT("print-stats.page-count"),
-
-        /**
-         * .
-         */
+        /** */
         RESTRICTED("restricted");
 
+        /** */
         private final String propName;
 
-        private UserProperty(final String propName) {
-            this.propName = propName;
+        /**
+         * @param name
+         *            The property name.
+         */
+        UserProperty(final String name) {
+            this.propName = name;
         }
 
+        /**
+         * @return The property name.
+         */
         public String getPropName() {
             return this.propName;
         }
@@ -143,14 +127,15 @@ public final class PaperCutServerProxy {
      * A {@link CircuitBreakerOperation} wrapper for the
      * {@link PaperCutProxy#execute(String, Vector))} method.
      *
-     * @author Datraverse B.V.
-     *
      */
     private static class PaperCutCircuitBreakerOperation
             implements CircuitBreakerOperation {
 
+        /** */
         private final PaperCutServerProxy paperCutProxy;
+        /** */
         private final String method;
+        /** */
         private final Vector<Object> parameters;
 
         /**
@@ -716,6 +701,32 @@ public final class PaperCutServerProxy {
         params.add(StringUtils.trimToEmpty(comment));
         params.add(StringUtils.trimToEmpty(accountName));
         call("api.adjustUserAccountBalance", params);
+    }
+
+    /**
+     * Gets a user's account balance.
+     *
+     * @param username
+     *            The username associated with the user who's account balance is
+     *            to be retrieved.
+     * @param scale
+     *            The scale of the return value.
+     * @return The {@link BigDecimal} balance.
+     * @throws PaperCutException
+     *             When the user (account) does not exist.
+     */
+    public BigDecimal getUserAccountBalance(final String username,
+            final int scale) throws PaperCutException {
+
+        final Vector<Object> params = createParams();
+        params.add(username);
+
+        final Double balance =
+                (Double) call("api.getUserAccountBalance", params);
+
+        // Use PaperCut rounding mode.
+        return BigDecimal.valueOf(balance.doubleValue()).setScale(scale,
+                RoundingMode.UP);
     }
 
     /**

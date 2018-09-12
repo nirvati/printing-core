@@ -44,6 +44,11 @@ public enum WebAppTypeEnum {
     POS("POS"),
 
     /**
+     * The Print Site WebApp.
+     */
+    PRINTSITE("Print Site"),
+
+    /**
      * The User WebApp.
      */
     USER("User"),
@@ -56,10 +61,18 @@ public enum WebAppTypeEnum {
     /** */
     private final String uiText;
 
-    WebAppTypeEnum(final String uiText) {
-        this.uiText = uiText;
+    /**
+     *
+     * @param text
+     *            The UI text.
+     */
+    WebAppTypeEnum(final String text) {
+        this.uiText = text;
     }
 
+    /**
+     * @return The UI text.
+     */
     public String getUiText() {
         return uiText;
     }

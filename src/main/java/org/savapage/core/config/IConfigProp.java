@@ -2719,6 +2719,13 @@ public interface IConfigProp {
                 Key.WEBAPP_THEME_PFX + "admin", API_UPDATABLE_ON),
 
         /**
+         * The custom jQuery Mobile Theme CSS file for the Copy Shop Web App as
+         * present in the {@code server/custom/web/themes/} folder.
+         */
+        WEBAPP_THEME_PRINTSITE(//
+                Key.WEBAPP_THEME_PFX + "printsite", API_UPDATABLE_ON),
+
+        /**
          * The custom jQuery Mobile Theme CSS file for the Job Tickets Web App
          * as present in the {@code server/custom/web/themes/} folder.
          */
@@ -2744,6 +2751,13 @@ public interface IConfigProp {
         WEBAPP_CUSTOM_ADMIN(Key.WEBAPP_CUSTOM_PFX + "admin", API_UPDATABLE_ON),
 
         /**
+         * The custom CSS file for the Cop Shop Web App as present in the
+         * {@code server/custom/web/} folder.
+         */
+        WEBAPP_CUSTOM_PRINTSITE(//
+                Key.WEBAPP_CUSTOM_PFX + "printsite", API_UPDATABLE_ON),
+
+        /**
          * The custom CSS file for the Job Tickets Web App as present in the
          * {@code server/custom/web/} folder.
          */
@@ -2767,21 +2781,16 @@ public interface IConfigProp {
          */
         WEBAPP_HTML_ADMIN_ABOUT(//
                 Key.WEBAPP_HTML_PFX + "admin.about", API_UPDATABLE_ON),
-
-        /**
-         *
-         */
+        /** */
+        WEBAPP_HTML_PRINTSITE_ABOUT(//
+                Key.WEBAPP_HTML_PFX + "printsite.about", API_UPDATABLE_ON),
+        /** */
         WEBAPP_HTML_JOBTICKETS_ABOUT(//
                 Key.WEBAPP_HTML_PFX + "jobtickets.about", API_UPDATABLE_ON),
-
-        /**
-         *
-         */
+        /** */
         WEBAPP_HTML_POS_ABOUT(//
                 Key.WEBAPP_HTML_PFX + "pos.about", API_UPDATABLE_ON),
-        /**
-         *
-         */
+        /** */
         WEBAPP_HTML_USER_ABOUT(//
                 Key.WEBAPP_HTML_PFX + "user.about", API_UPDATABLE_ON),
 
@@ -2790,28 +2799,22 @@ public interface IConfigProp {
          */
         WEBAPP_HTML_ADMIN_LOGIN(//
                 Key.WEBAPP_HTML_PFX + "admin.login", API_UPDATABLE_ON),
-
-        /**
-         *
-         */
+        /** */
+        WEBAPP_HTML_PRINTSITE_LOGIN(//
+                Key.WEBAPP_HTML_PFX + "printsite.login", API_UPDATABLE_ON),
+        /** */
         WEBAPP_HTML_JOBTICKETS_LOGIN(//
                 Key.WEBAPP_HTML_PFX + "jobtickets.login", API_UPDATABLE_ON),
-
-        /**
-         *
-         */
+        /** */
         WEBAPP_HTML_POS_LOGIN(//
                 Key.WEBAPP_HTML_PFX + "pos.login", API_UPDATABLE_ON),
-
-        /**
-         *
-         */
+        /** */
         WEBAPP_HTML_USER_LOGIN(//
                 Key.WEBAPP_HTML_PFX + "user.login", API_UPDATABLE_ON),
 
         /**
-        *
-        */
+         * .
+         */
         WEBAPP_INTERNET_ADMIN_ENABLE(//
                 Key.WEBAPP_INTERNET_PFX + "admin.enable", BOOLEAN_VALIDATOR,
                 V_YES, API_UPDATABLE_ON),
@@ -2837,6 +2840,21 @@ public interface IConfigProp {
         /** */
         WEBAPP_INTERNET_JOBTICKETS_AUTH_MODES(//
                 Key.WEBAPP_INTERNET_PFX + "jobtickets.auth-modes",
+                AUTHMODE_SET_VALIDATOR, AUTH_MODE_V_NAME, API_UPDATABLE_OFF),
+
+        /**
+         * .
+         */
+        WEBAPP_INTERNET_PRINTSITE_ENABLE(//
+                Key.WEBAPP_INTERNET_PFX + "printsite.enable", BOOLEAN_VALIDATOR,
+                V_NO, API_UPDATABLE_ON),
+        /** */
+        WEBAPP_INTERNET_PRINTSITE_AUTH_MODE_ENABLE(//
+                Key.WEBAPP_INTERNET_PFX + "printsite.auth-mode.enable",
+                BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+        /** */
+        WEBAPP_INTERNET_PRINTSITE_AUTH_MODES(//
+                Key.WEBAPP_INTERNET_PFX + "printsite.auth-modes",
                 AUTHMODE_SET_VALIDATOR, AUTH_MODE_V_NAME, API_UPDATABLE_OFF),
 
         /**

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -62,7 +62,12 @@ public enum ACLRoleEnum {
     /**
      * Print on behalf of a {@link #PRINT_DELEGATOR}.
      */
-    PRINT_DELEGATE;
+    PRINT_DELEGATE,
+
+    /**
+     * Print Site Operator.
+     */
+    PRINT_SITE_OPERATOR;
 
     /**
      * @param locale
