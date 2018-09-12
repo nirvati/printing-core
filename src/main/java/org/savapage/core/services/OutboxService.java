@@ -67,10 +67,6 @@ public interface OutboxService {
     /**
      * Checks if the print status of the {@link OutboxJobDto} must be monitored
      * in PaperCut.
-     * <p>
-     * Monitor PaperCut Print Status when request is a Delegated Print and
-     * Printer is managed by PaperCut.
-     * </p>
      *
      * @param job
      *            The {@link OutboxJobDto} to print.

@@ -1007,9 +1007,12 @@ public final class OutboxServiceImpl extends AbstractService
 
     @Override
     public boolean isMonitorPaperCutPrintStatus(final OutboxJobDto job) {
-        return job.getAccountTransactions() != null
-                && job.getAccountTransactions().getTransactions() != null
-                && paperCutService().isExtPaperCutPrint(job.getPrinter());
+
+        final boolean isNonPersonalPrint = job.getAccountTransactions() != null
+                && job.getAccountTransactions().getTransactions() != null;
+
+        return paperCutService().isMonitorPaperCutPrintStatus(
+                job.getPrinter(), isNonPersonalPrint);
     }
 
 }

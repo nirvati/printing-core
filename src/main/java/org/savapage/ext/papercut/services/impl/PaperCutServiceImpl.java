@@ -31,6 +31,7 @@ import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
@@ -85,6 +86,30 @@ public final class PaperCutServiceImpl extends AbstractService
         }
 
         return true;
+    }
+
+    @Override
+    public boolean isMonitorPaperCutPrintStatus(final String printerName,
+            final boolean isNonPersonalPrint) {
+
+        if (!this.isExtPaperCutPrint(printerName)) {
+            return false;
+        }
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        final boolean printDelegatePaperCutEnabled = cm.isConfigValue(
+                IConfigProp.Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE);
+
+        final boolean monitorPaperCut;
+
+        if (isNonPersonalPrint) {
+            monitorPaperCut = printDelegatePaperCutEnabled;
+        } else {
+            monitorPaperCut = printDelegatePaperCutEnabled || cm.isConfigValue(
+                    IConfigProp.Key.PROXY_PRINT_PERSONAL_PAPERCUT_ENABLE);
+        }
+        return monitorPaperCut;
     }
 
     /**

@@ -61,6 +61,20 @@ public interface PaperCutService {
     boolean isExtPaperCutPrint(String printerName);
 
     /**
+     * Checks if the status of a print job must be monitored in PaperCut.
+     *
+     * @param printerName
+     *            The CUPS printer name.
+     * @param isNonPersonalPrint
+     *            If {@code true}, cost of print job is not charged on personal
+     *            account, but on delegator account(s), and/or shared
+     *            account(s).
+     * @return {@code true} when print status must be monitored in PaperCut.
+     */
+    boolean isMonitorPaperCutPrintStatus(String printerName,
+            boolean isNonPersonalPrint);
+
+    /**
      * Prepares the {@link AbstractProxyPrintReq} for External PaperCut Print
      * Status monitoring and notification to an external supplier.
      * <p>
