@@ -27,9 +27,11 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
+import org.savapage.core.services.StatefulService;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.ext.papercut.DelegatedPrintPeriodDto;
 import org.savapage.ext.papercut.PaperCutDbProxy;
@@ -48,7 +50,7 @@ import org.savapage.ext.papercut.PaperCutUser;
  * @author Rijk Ravestein
  *
  */
-public interface PaperCutService {
+public interface PaperCutService extends StatefulService {
 
     /**
      * Checks if PaperCut integration for Printer is applicable.
@@ -185,21 +187,19 @@ public interface PaperCutService {
     /**
      * Gets the {@link PaperCutPrinterUsageLog} for unique document names.
      *
-     * @param papercut
+     * @param papercutDb
      *            The {@link PaperCutDbProxy}.
      * @param uniqueDocNames
      *            A set with document names.
      * @return A list with an {@link PaperCutPrinterUsageLog} object for each
      *         title in the input set.
      */
-    List<PaperCutPrinterUsageLog> getPrinterUsageLog(PaperCutDbProxy papercut,
+    List<PaperCutPrinterUsageLog> getPrinterUsageLog(PaperCutDbProxy papercutDb,
             Set<String> uniqueDocNames);
 
     /**
      * Creates a CSV file with Delegator Print costs.
      *
-     * @param papercut
-     *            The {@link PaperCutDbProxy}.
      * @param file
      *            The CSV file to create.
      * @param dto
@@ -207,6 +207,12 @@ public interface PaperCutService {
      * @throws IOException
      *             When IO errors occur while writing the file.
      */
-    void createDelegatorPrintCostCsv(final PaperCutDbProxy papercut, File file,
-            DelegatedPrintPeriodDto dto) throws IOException;
+    void createDelegatorPrintCostCsv(File file, DelegatedPrintPeriodDto dto)
+            throws IOException;
+
+    /**
+     * Recreates or closes PaperCut database connection pool depending on actual
+     * {@link IConfigProp.Key} parameters.
+     */
+    void resetDbConnectionPool();
 }

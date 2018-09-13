@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -266,14 +266,14 @@ public final class PaperCutHelper {
 
         final String suffix = sfx.toString();
 
-        if (suffix.length() > PaperCutDbProxy.COL_LEN_DOCUMENT_NAME) {
+        if (suffix.length() > PaperCutDb.COL_LEN_DOCUMENT_NAME) {
             throw new IllegalArgumentException(
                     "PaperCut database column length exceeded");
         }
 
         return unicodeToAscii(String.format("%s%s", StringUtils.abbreviate(
                 StringUtils.defaultString(documentName),
-                PaperCutDbProxy.COL_LEN_DOCUMENT_NAME - suffix.length()),
+                PaperCutDb.COL_LEN_DOCUMENT_NAME - suffix.length()),
                 suffix));
     }
 

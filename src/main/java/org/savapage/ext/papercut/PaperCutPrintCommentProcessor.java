@@ -310,7 +310,7 @@ public final class PaperCutPrintCommentProcessor {
 
         //
         return StringUtils.abbreviate(jobTrxComment.toString(),
-                PaperCutDbProxy.COL_LEN_TXN_COMMENT);
+                PaperCutDb.COL_LEN_TXN_COMMENT);
     }
 
     /**

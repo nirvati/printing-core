@@ -203,6 +203,7 @@ public final class ServiceFactoryImpl implements ServiceFactory {
                     JobTicketServiceHolder.SERVICE, //
                     SOfficeServiceHolder.SERVICE, //
                     EmailServiceHolder.SERVICE, //
+                    PaperCutServiceHolder.SERVICE, //
                     SnmpRetrieveServiceHolder.SERVICE //
             };
 

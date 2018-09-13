@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,9 +24,11 @@ package org.savapage.ext.papercut.services.impl;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.util.List;
 import java.util.Set;
 
+import org.savapage.core.SpInfo;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
@@ -43,6 +45,7 @@ import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.services.impl.AbstractService;
 import org.savapage.ext.papercut.DelegatedPrintPeriodDto;
 import org.savapage.ext.papercut.PaperCutDbProxy;
+import org.savapage.ext.papercut.PaperCutDbProxyPool;
 import org.savapage.ext.papercut.PaperCutException;
 import org.savapage.ext.papercut.PaperCutHelper;
 import org.savapage.ext.papercut.PaperCutPrinterUsageLog;
@@ -65,6 +68,9 @@ public final class PaperCutServiceImpl extends AbstractService
      */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(PaperCutServiceImpl.class);
+
+    /** */
+    private PaperCutDbProxyPool dbProxyPool = null;
 
     @Override
     public boolean isExtPaperCutPrint(final String printerName) {
@@ -277,14 +283,52 @@ public final class PaperCutServiceImpl extends AbstractService
     @Override
     public List<PaperCutPrinterUsageLog> getPrinterUsageLog(
             final PaperCutDbProxy papercut, final Set<String> uniqueDocNames) {
-        return papercut.getPrinterUsageLog(uniqueDocNames);
+        return papercut.getPrinterUsageLog(papercut.getConnection(),
+                uniqueDocNames);
     }
 
     @Override
-    public void createDelegatorPrintCostCsv(final PaperCutDbProxy papercut,
-            final File file, final DelegatedPrintPeriodDto dto)
-            throws IOException {
-        papercut.createDelegatorPrintCostCsv(file, dto);
+    public void createDelegatorPrintCostCsv(final File file,
+            final DelegatedPrintPeriodDto dto) throws IOException {
+
+        Connection connection = null;
+
+        try {
+            connection = this.dbProxyPool.openConnection();
+            this.dbProxyPool.createDelegatorPrintCostCsv(connection, file, dto);
+        } finally {
+            this.dbProxyPool.closeConnection(connection);
+        }
+    }
+
+    @Override
+    public void resetDbConnectionPool() {
+        this.shutdown();
+        this.start();
+    }
+
+    @Override
+    public void start() {
+
+        if (this.dbProxyPool != null) {
+            throw new IllegalStateException(
+                    "Database connection pool is already started.");
+        }
+
+        if (ConfigManager.isPaperCutPrintEnabled()) {
+            this.dbProxyPool =
+                    PaperCutDbProxyPool.create(ConfigManager.instance(), true);
+            SpInfo.instance().log("PaperCut database connection pool created.");
+        }
+    }
+
+    @Override
+    public void shutdown() {
+        if (this.dbProxyPool != null) {
+            this.dbProxyPool.close();
+            this.dbProxyPool = null;
+            SpInfo.instance().log("PaperCut database connection pool closed.");
+        }
     }
 
 }
