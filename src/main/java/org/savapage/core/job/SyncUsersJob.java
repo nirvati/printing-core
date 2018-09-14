@@ -264,7 +264,9 @@ public final class SyncUsersJob extends AbstractJob {
         ServiceContext.setActor(Entity.ACTOR_SYSTEM);
 
         try {
+
             syncUsers();
+
             msg = AppLogHelper.logInfo(getClass(), "SyncUsersJob.success",
                     msgTestPfx);
 
@@ -276,14 +278,14 @@ public final class SyncUsersJob extends AbstractJob {
 
         } catch (Exception e) {
 
+            LOGGER.error(e.getMessage(), e);
+
             ServiceContext.getDaoContext().rollback();
 
             level = PubLevelEnum.ERROR;
 
             msg = AppLogHelper.logError(getClass(), "SyncUsersJob.error",
                     msgTestPfx, e.getMessage());
-
-            LoggerFactory.getLogger(this.getClass()).error(e.getMessage(), e);
 
         } finally {
 
@@ -316,7 +318,6 @@ public final class SyncUsersJob extends AbstractJob {
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);
             }
-
         }
     }
 
