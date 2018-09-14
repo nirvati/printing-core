@@ -34,6 +34,8 @@ import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.services.StatefulService;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.ext.papercut.DelegatedPrintPeriodDto;
+import org.savapage.ext.papercut.PaperCutAccountTrx;
+import org.savapage.ext.papercut.PaperCutDb;
 import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutException;
 import org.savapage.ext.papercut.PaperCutPrinterUsageLog;
@@ -209,6 +211,36 @@ public interface PaperCutService extends StatefulService {
      */
     void createDelegatorPrintCostCsv(File file, DelegatedPrintPeriodDto dto)
             throws IOException;
+
+    /**
+     * Gets the total number of user transactions.
+     *
+     * @param filter
+     *            The transaction filter.
+     * @return Number of transactions.
+     */
+    long getAccountTrxCount(PaperCutDb.TrxFilter filter);
+
+    /**
+     * Gets PaperCut personal account transactions.
+     *
+     * @param filter
+     *            The transaction filter.
+     * @param startPosition
+     *            Zero-based start position of the chunk in total set. If
+     *            {@code null}, start zero (0) is assumed.
+     * @param maxResults
+     *            Max chuck size. If {@code null}, size is unlimited.
+     * @param orderBy
+     *            The order-by field.
+     * @param sortAscending
+     *            If {@code true}, the list is sorted ascending on order-by
+     *            field.
+     * @return The list.
+     */
+    List<PaperCutAccountTrx> getAccountTrxListChunk(PaperCutDb.TrxFilter filter,
+            Integer startPosition, Integer maxResults, PaperCutDb.Field orderBy,
+            boolean sortAscending);
 
     /**
      * Recreates or closes PaperCut database connection pool depending on actual

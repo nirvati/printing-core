@@ -27,11 +27,15 @@ import java.sql.SQLException;
 
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.IConfigProp.Key;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
+ * PaperCut database accessor using a connection pool.
+ * <p>
+ * See <a href="https://www.mchange.com/projects/c3p0">c3p0 - JDBC3 Connection
+ * and Statement Pooling</a>
+ * </p>
  *
  * @author Rijk Ravestein
  *
@@ -63,17 +67,35 @@ public final class PaperCutDbProxyPool extends PaperCutDb {
             final boolean useBreaker) {
 
         super(driver, url, user, password, useBreaker);
+        this.cpds = this.createDataSource();
+    }
 
-        this.cpds = new ComboPooledDataSource();
+    /**
+     * Creates the data source.
+     *
+     * @return The data source.
+     */
+    private ComboPooledDataSource createDataSource() {
+
+        final ComboPooledDataSource ds = new ComboPooledDataSource();
 
         try {
-            cpds.setDriverClass(driver);
+            ds.setDriverClass(this.getDbDriver());
         } catch (PropertyVetoException e) {
             throw new PaperCutConnectException(e.getMessage(), e);
         }
-        cpds.setJdbcUrl(url);
-        cpds.setUser(user);
-        cpds.setPassword(password);
+        ds.setJdbcUrl(this.getDbUrl());
+        ds.setUser(this.getDbUser());
+        ds.setPassword(this.getDbPassword());
+
+        /*
+         * Overwrite c3p0 defaults.
+         */
+        // ds.setMinPoolSize(5);
+        // ds.setAcquireIncrement(5);
+        // ds.setMaxPoolSize(20);
+
+        return ds;
     }
 
     /**
@@ -82,19 +104,15 @@ public final class PaperCutDbProxyPool extends PaperCutDb {
      *
      * @param cm
      *            The {@link ConfigManager}.
-     * @param useCircuitBreaker
+     * @param useBreaker
      *            If {@code true} a {@link PaperCutCircuitBreakerOperation} is
      *            used.
-     * @return The {@link PaperCutDbProxy} instance.
      */
-    public static PaperCutDbProxyPool create(final ConfigManager cm,
-            final boolean useCircuitBreaker) {
+    public PaperCutDbProxyPool(final ConfigManager cm,
+            final boolean useBreaker) {
 
-        return new PaperCutDbProxyPool(
-                cm.getConfigValue(Key.PAPERCUT_DB_JDBC_DRIVER),
-                cm.getConfigValue(Key.PAPERCUT_DB_JDBC_URL),
-                cm.getConfigValue(Key.PAPERCUT_DB_USER),
-                cm.getConfigValue(Key.PAPERCUT_DB_PASSWORD), useCircuitBreaker);
+        super(cm, useBreaker);
+        this.cpds = this.createDataSource();
     }
 
     @Override

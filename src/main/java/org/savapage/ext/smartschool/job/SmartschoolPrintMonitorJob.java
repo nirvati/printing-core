@@ -173,7 +173,7 @@ public final class SmartschoolPrintMonitorJob extends AbstractJob {
                 if (isPaperCutPrintNonSecure || isPrintByJobTicket) {
 
                     papercutServerProxy = PaperCutServerProxy.create(cm, true);
-                    papercutDbProxy = PaperCutDbProxy.create(cm, true);
+                    papercutDbProxy = new PaperCutDbProxy(cm, true);
 
                     papercutServerProxy.connect();
                     papercutDbConnection = papercutDbProxy.openConnection();

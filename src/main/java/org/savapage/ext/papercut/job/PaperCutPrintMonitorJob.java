@@ -137,7 +137,7 @@ public final class PaperCutPrintMonitorJob extends AbstractJob
             final ConfigManager cm = ConfigManager.instance();
 
             papercutServerProxy = PaperCutServerProxy.create(cm, true);
-            papercutDbProxy = PaperCutDbProxy.create(cm, true);
+            papercutDbProxy = new PaperCutDbProxy(cm, true);
 
             /*
              * Connect to PaperCut. Check every 3 seconds, for 2 minutes.

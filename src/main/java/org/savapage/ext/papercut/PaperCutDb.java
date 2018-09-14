@@ -37,6 +37,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.savapage.core.SpException;
 import org.savapage.core.circuitbreaker.CircuitBreaker;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.circuitbreaker.CircuitBreakerOperation;
@@ -44,6 +45,7 @@ import org.savapage.core.circuitbreaker.CircuitNonTrippingException;
 import org.savapage.core.circuitbreaker.CircuitTrippingException;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.util.IOHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,11 +53,43 @@ import org.slf4j.LoggerFactory;
 import au.com.bytecode.opencsv.CSVWriter;
 
 /**
+ * PaperCut database accessor.
  *
  * @author Rijk Ravestein
  *
  */
 public abstract class PaperCutDb {
+
+    /**
+     * Field identifiers used for select and sort.
+     */
+    public enum Field {
+        /**
+         * Transaction date.
+         */
+        TRX_DATE,
+
+        /**
+         * Transaction type.
+         */
+        TRX_TYPE
+    }
+
+    /**
+     * Account transaction filter.
+     */
+    public static class TrxFilter {
+
+        private String username;
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+    }
 
     /**
      * The varchar length of the {@code "document_name"} column in the
@@ -77,33 +111,63 @@ public abstract class PaperCutDb {
     protected static final CircuitBreaker CIRCUIT_BREAKER = ConfigManager
             .getCircuitBreaker(CircuitBreakerEnum.PAPERCUT_CONNECTION);
 
+    /** */
+    private static final int SQL_STRINGBUILDER_CAPACITY = 256;
+
     /**
      * .
      */
     protected abstract static class PaperCutDbExecutor {
 
-        /** */
-        protected final PaperCutDb papercutDb;
+        /**
+         * The database accessor.
+         */
+        private PaperCutDb papercutDb;
 
-        /** */
+        /**
+         * The Database connection.
+         */
         private Connection connection;
 
         /**
-         *
          * @param proxy
          *            The database proxy.
+         * @param conn
+         *            The Database connection.
          */
         PaperCutDbExecutor(final PaperCutDb proxy, final Connection conn) {
             this.papercutDb = proxy;
             this.connection = conn;
         }
 
+        /**
+         * @return The database accessor.
+         */
+        public PaperCutDb getPapercutDb() {
+            return papercutDb;
+        }
+
+        /**
+         * @param db
+         *            The database accessor.
+         */
+        public void setPapercutDb(final PaperCutDb db) {
+            this.papercutDb = db;
+        }
+
+        /**
+         * @return The Database connection.
+         */
         public Connection getConnection() {
             return connection;
         }
 
-        public void setConnection(final Connection connection) {
-            this.connection = connection;
+        /**
+         * @param conn
+         *            The Database connection.
+         */
+        public void setConnection(final Connection conn) {
+            this.connection = conn;
         }
 
         /**
@@ -188,6 +252,22 @@ public abstract class PaperCutDb {
         this.dbUser = user;
         this.dbPassword = password;
         this.useCircuitBreaker = useBreaker;
+    }
+
+    /**
+     * Creates a {@link PaperCutDbProxy} instance from the application
+     * configuration.
+     *
+     * @param cm
+     *            The {@link ConfigManager}.
+     * @param useBreaker
+     *            If {@code true} a {@link CircuitBreakerOperation} is used.
+     */
+    protected PaperCutDb(final ConfigManager cm, final boolean useBreaker) {
+        this(cm.getConfigValue(Key.PAPERCUT_DB_JDBC_DRIVER),
+                cm.getConfigValue(Key.PAPERCUT_DB_JDBC_URL),
+                cm.getConfigValue(Key.PAPERCUT_DB_USER),
+                cm.getConfigValue(Key.PAPERCUT_DB_PASSWORD), useBreaker);
     }
 
     public final boolean isUseCircuitBreaker() {
@@ -288,6 +368,242 @@ public abstract class PaperCutDb {
     }
 
     /**
+     *
+     * @param filter
+     * @return
+     */
+    public long getAccountTrxCount(final Connection connection,
+            final PaperCutDb.TrxFilter filter) {
+
+        final PaperCutDbExecutor exec =
+                new PaperCutDbExecutor(this, connection) {
+
+                    @Override
+                    public Object execute() throws PaperCutException {
+                        try {
+                            return PaperCutDb.getAccountTrxCountSQL(connection,
+                                    filter);
+                        } catch (SQLException e) {
+                            throw new PaperCutConnectException(e.getMessage(),
+                                    e);
+                        }
+                    }
+                };
+
+        final Object result;
+
+        try {
+            if (this.useCircuitBreaker) {
+                result = CIRCUIT_BREAKER
+                        .execute(new PaperCutCircuitBreakerOperation(exec));
+            } else {
+                result = exec.execute();
+            }
+        } catch (PaperCutException e) {
+            throw new PaperCutConnectException(e.getMessage(), e);
+        } catch (InterruptedException | CircuitBreakerException e) {
+            throw new PaperCutConnectException(e.getMessage(), e);
+        }
+
+        return ((Long) result).longValue();
+    }
+
+    /**
+     *
+     * @param connection
+     * @param filter
+     * @return
+     * @throws SQLException
+     */
+    private static Long getAccountTrxCountSQL(final Connection connection,
+            final PaperCutDb.TrxFilter filter) throws SQLException {
+
+        Statement stm = null;
+
+        try {
+            final String sql = String.format(
+                    "SELECT COUNT(X.account_id)"
+                            + "\nFROM tbl_account_transaction X"
+                            + "\nLEFT JOIN tbl_account A"
+                            + " ON A.account_id = X.account_id"
+                            + "\nWHERE A.account_name = '%s' "
+                            + "AND A.account_type <> 'SHARED'",
+                    escapeForSql(filter.getUsername()));
+
+            stm = connection.createStatement();
+            final ResultSet result = stm.executeQuery(sql);
+            result.next();
+            return Long.valueOf(result.getLong(1));
+
+        } finally {
+            if (stm != null) {
+                /*
+                 * When a Statement object is closed, its current ResultSet
+                 * object, if one exists, is also closed.
+                 */
+                stm.close();
+            }
+        }
+    }
+
+    /**
+     *
+     * @param connection
+     * @param filter
+     * @param startPosition
+     * @param maxResults
+     * @param orderBy
+     * @param sortAscending
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public List<PaperCutAccountTrx> getAccountTrxChunk(
+            final Connection connection, PaperCutDb.TrxFilter filter,
+            Integer startPosition, Integer maxResults, PaperCutDb.Field orderBy,
+            boolean sortAscending) {
+
+        final PaperCutDbExecutor exec =
+                new PaperCutDbExecutor(this, connection) {
+
+                    @Override
+                    public Object execute() throws PaperCutException {
+                        try {
+                            return PaperCutDb.getAccountTrxChunkSQL(connection,
+                                    filter, startPosition, maxResults, orderBy,
+                                    sortAscending);
+
+                        } catch (SQLException e) {
+                            throw new PaperCutConnectException(e.getMessage(),
+                                    e);
+                        }
+                    }
+                };
+
+        final Object result;
+
+        try {
+            if (this.useCircuitBreaker) {
+                result = CIRCUIT_BREAKER
+                        .execute(new PaperCutCircuitBreakerOperation(exec));
+            } else {
+                result = exec.execute();
+            }
+        } catch (PaperCutException e) {
+            throw new PaperCutConnectException(e.getMessage(), e);
+        } catch (InterruptedException | CircuitBreakerException e) {
+            throw new PaperCutConnectException(e.getMessage(), e);
+        }
+
+        return (List<PaperCutAccountTrx>) result;
+    }
+
+    /**
+     *
+     * @param connection
+     * @param filter
+     * @param startPosition
+     * @param maxResults
+     * @param orderBy
+     * @param sortAscending
+     * @return
+     * @throws SQLException
+     */
+    private static List<PaperCutAccountTrx> getAccountTrxChunkSQL(
+            final Connection connection, PaperCutDb.TrxFilter filter,
+            Integer startPosition, Integer maxResults, PaperCutDb.Field orderBy,
+            boolean sortAscending) throws SQLException {
+
+        final StringBuilder sql = new StringBuilder(SQL_STRINGBUILDER_CAPACITY);
+
+        sql.append("SELECT X.transaction_date, X.transaction_type, X.amount, "
+                + "X.balance, X.txn_comment,"
+                + "\nL.document_name, L.total_pages, L.total_sheets, "
+                + "L.total_color_pages,"
+                + "\nL.copies, L.paper_size, L.denied_reason, L.duplex, "
+                + "L.gray_scale," + "\nL.printed, L.cancelled, L.refunded"
+                + "\nFROM tbl_account_transaction X "
+                + "\nLEFT JOIN tbl_account A"
+                + " ON A.account_id = X.account_id"
+                + "\nLEFT JOIN tbl_printer_usage_log L"
+                + " ON L.printer_usage_log_id = X.usage_log_id");
+
+        sql.append("\nWHERE A.account_name = '");
+        sql.append(escapeForSql(filter.getUsername()));
+        sql.append("' AND A.account_type <> 'SHARED'");
+
+        sql.append(" ORDER BY ");
+
+        if (orderBy == Field.TRX_DATE) {
+            sql.append("X.transaction_date");
+        } else if (orderBy == Field.TRX_TYPE) {
+            sql.append("X.transaction_type");
+        } else {
+            throw new SpException("Unhandled ORDER BY field.");
+        }
+
+        if (!sortAscending) {
+            sql.append(" DESC");
+        }
+
+        if (startPosition != null) {
+            sql.append(" OFFSET ").append(startPosition);
+        }
+        if (maxResults != null) {
+            sql.append(" LIMIT ").append(maxResults);
+        }
+
+        final List<PaperCutAccountTrx> usageLogList = new ArrayList<>();
+
+        Statement statement = null;
+        ResultSet resultset = null;
+
+        boolean finished = false;
+
+        try {
+
+            statement = connection.createStatement();
+            resultset = statement.executeQuery(sql.toString());
+
+            while (resultset.next()) {
+
+                final PaperCutAccountTrx usageLog = new PaperCutAccountTrx();
+
+                usageLog.setDocumentName(resultset.getString("document_name"));
+
+                usageLog.setPrinted(StringUtils
+                        .defaultString(resultset.getString("printed"))
+                        .equalsIgnoreCase("Y"));
+
+                usageLog.setCancelled(StringUtils
+                        .defaultString(resultset.getString("cancelled"))
+                        .equalsIgnoreCase("Y"));
+
+                usageLog.setDeniedReason(resultset.getString("denied_reason"));
+
+                usageLog.setUsageCost(resultset.getDouble("amount"));
+
+                // TODO
+
+                //
+                usageLogList.add(usageLog);
+            }
+
+            finished = true;
+
+        } finally {
+
+            silentClose(resultset, statement);
+
+            if (!finished) {
+                LOGGER.error(sql.toString());
+            }
+        }
+
+        return usageLogList;
+
+    }
+
+    /**
      * Gets the {@link PaperCutPrinterUsageLog} for unique document names.
      *
      * @param connection
@@ -307,7 +623,7 @@ public abstract class PaperCutDb {
                     @Override
                     public Object execute() throws PaperCutException {
                         try {
-                            return PaperCutDb.getPrinterUsageLogSql(
+                            return PaperCutDb.getPrinterUsageLogSQL(
                                     this.getConnection(), uniqueDocNames);
                         } catch (SQLException e) {
                             throw new PaperCutConnectException(e.getMessage(),
@@ -347,7 +663,7 @@ public abstract class PaperCutDb {
      * @throws SQLException
      *             When an SQL error occurs.
      */
-    private static List<PaperCutPrinterUsageLog> getPrinterUsageLogSql(
+    private static List<PaperCutPrinterUsageLog> getPrinterUsageLogSQL(
             final Connection connection, final Set<String> uniqueDocNames)
             throws SQLException {
 
@@ -442,7 +758,7 @@ public abstract class PaperCutDb {
      * @throws IOException
      *             When IO errors occur while writing the file.
      */
-    public final void createDelegatorPrintCostCsv(final Connection connection,
+    public final void getDelegatorPrintCostCsv(final Connection connection,
             final File file, final DelegatedPrintPeriodDto dto)
             throws IOException {
 
@@ -452,7 +768,7 @@ public abstract class PaperCutDb {
                     @Override
                     public Object execute() throws PaperCutException {
                         try {
-                            PaperCutDb.createDelegatorPrintStudentCostCsvSql(
+                            PaperCutDb.getDelegatorPrintCostCsvSQL(
                                     this.getConnection(), file, dto);
                         } catch (SQLException e) {
                             throw new PaperCutConnectException(e.getMessage(),
@@ -478,7 +794,6 @@ public abstract class PaperCutDb {
         } catch (InterruptedException | CircuitBreakerException e) {
             throw new PaperCutConnectException(e.getMessage(), e);
         }
-
     }
 
     /**
@@ -495,9 +810,8 @@ public abstract class PaperCutDb {
      * @throws SQLException
      *             When an SQL error occurs.
      */
-    private static void createDelegatorPrintStudentCostCsvSql(
-            final Connection connection, final File file,
-            final DelegatedPrintPeriodDto dto)
+    private static void getDelegatorPrintCostCsvSQL(final Connection connection,
+            final File file, final DelegatedPrintPeriodDto dto)
             throws IOException, SQLException {
 
         final StringBuilder sql = new StringBuilder(256);
@@ -637,6 +951,5 @@ public abstract class PaperCutDb {
                 LOGGER.error(sql.toString());
             }
         }
-
     }
 }

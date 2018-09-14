@@ -28,11 +28,9 @@ import java.sql.SQLException;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.circuitbreaker.CircuitBreakerOperation;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.IConfigProp.Key;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
+ * PaperCut database accessor managing a single connection.
  *
  * @author Rijk Ravestein
  *
@@ -40,15 +38,9 @@ import org.slf4j.LoggerFactory;
 public final class PaperCutDbProxy extends PaperCutDb {
 
     /** */
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(PaperCutDbProxy.class);
-
-    /** */
     private Connection connection;
 
     /**
-     * Constructor.
-     *
      * @param driver
      *            The JDBC driver like "org.postgresql.Driver".
      * @param url
@@ -60,33 +52,10 @@ public final class PaperCutDbProxy extends PaperCutDb {
      * @param useBreaker
      *            If {@code true} a {@link CircuitBreakerOperation} is used.
      */
-    protected PaperCutDbProxy(final String driver, final String url,
+    public PaperCutDbProxy(final String driver, final String url,
             final String user, final String password,
             final boolean useBreaker) {
         super(driver, url, user, password, useBreaker);
-    }
-
-    /**
-     * Creates a {@link PaperCutDbProxy} instance.
-     *
-     * @param dbDriver
-     *            The JDBC driver like "org.postgresql.Driver".
-     * @param dbUrl
-     *            The JDBC url.
-     * @param user
-     *            The database user.
-     * @param password
-     *            The user password.
-     * @param useCircuitBreaker
-     *            If {@code true} a {@link CircuitBreakerOperation} is used.
-     * @return The {@link PaperCutDbProxy} instance.
-     */
-    public static PaperCutDbProxy create(final String dbDriver,
-            final String dbUrl, final String user, final String password,
-            final boolean useCircuitBreaker) {
-
-        return new PaperCutDbProxy(dbDriver, dbUrl, user, password,
-                useCircuitBreaker);
     }
 
     /**
@@ -95,17 +64,11 @@ public final class PaperCutDbProxy extends PaperCutDb {
      *
      * @param cm
      *            The {@link ConfigManager}.
-     * @param useCircuitBreaker
+     * @param useBreaker
      *            If {@code true} a {@link CircuitBreakerOperation} is used.
-     * @return The {@link PaperCutDbProxy} instance.
      */
-    public static PaperCutDbProxy create(final ConfigManager cm,
-            final boolean useCircuitBreaker) {
-
-        return create(cm.getConfigValue(Key.PAPERCUT_DB_JDBC_DRIVER),
-                cm.getConfigValue(Key.PAPERCUT_DB_JDBC_URL),
-                cm.getConfigValue(Key.PAPERCUT_DB_USER),
-                cm.getConfigValue(Key.PAPERCUT_DB_PASSWORD), useCircuitBreaker);
+    public PaperCutDbProxy(final ConfigManager cm, final boolean useBreaker) {
+        super(cm, useBreaker);
     }
 
     /**
@@ -114,6 +77,15 @@ public final class PaperCutDbProxy extends PaperCutDb {
      */
     public Connection getConnection() {
         return this.connection;
+    }
+
+    /**
+     * @param conn
+     *            The opened connection, or {@code null} when connection is
+     *            closed.
+     */
+    private void setConnection(final Connection conn) {
+        this.connection = conn;
     }
 
     @Override
@@ -127,7 +99,7 @@ public final class PaperCutDbProxy extends PaperCutDb {
             public Object execute() throws PaperCutException {
 
                 final PaperCutDbProxy parent =
-                        (PaperCutDbProxy) this.papercutDb;
+                        (PaperCutDbProxy) this.getPapercutDb();
 
                 try {
                     /*
@@ -135,12 +107,12 @@ public final class PaperCutDbProxy extends PaperCutDb {
                      * to load the JDBC driver. We use the Class.forName()
                      * construct.
                      */
-                    Class.forName(this.papercutDb.getDbDriver());
+                    Class.forName(parent.getDbDriver());
 
-                    parent.connection = DriverManager.getConnection(
-                            this.papercutDb.getDbUrl(),
-                            this.papercutDb.getDbUser(),
-                            this.papercutDb.getDbPassword());
+                    parent.setConnection(DriverManager.getConnection(
+                            parent.getDbUrl(), parent.getDbUser(),
+                            parent.getDbPassword()));
+
                 } catch (SQLException | ClassNotFoundException e) {
                     throw new PaperCutConnectException(e.getMessage(), e);
                 }

@@ -44,6 +44,8 @@ import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.services.impl.AbstractService;
 import org.savapage.ext.papercut.DelegatedPrintPeriodDto;
+import org.savapage.ext.papercut.PaperCutAccountTrx;
+import org.savapage.ext.papercut.PaperCutDb;
 import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutDbProxyPool;
 import org.savapage.ext.papercut.PaperCutException;
@@ -267,7 +269,6 @@ public final class PaperCutServiceImpl extends AbstractService
                     String.format("PaperCut account '%s' created.",
                             composedSharedAccountName));
         }
-
     }
 
     @Override
@@ -295,7 +296,7 @@ public final class PaperCutServiceImpl extends AbstractService
 
         try {
             connection = this.dbProxyPool.openConnection();
-            this.dbProxyPool.createDelegatorPrintCostCsv(connection, file, dto);
+            this.dbProxyPool.getDelegatorPrintCostCsv(connection, file, dto);
         } finally {
             this.dbProxyPool.closeConnection(connection);
         }
@@ -317,7 +318,7 @@ public final class PaperCutServiceImpl extends AbstractService
 
         if (ConfigManager.isPaperCutPrintEnabled()) {
             this.dbProxyPool =
-                    PaperCutDbProxyPool.create(ConfigManager.instance(), true);
+                    new PaperCutDbProxyPool(ConfigManager.instance(), true);
             SpInfo.instance().log("PaperCut database connection pool created.");
         }
     }
@@ -328,6 +329,36 @@ public final class PaperCutServiceImpl extends AbstractService
             this.dbProxyPool.close();
             this.dbProxyPool = null;
             SpInfo.instance().log("PaperCut database connection pool closed.");
+        }
+    }
+
+    @Override
+    public long getAccountTrxCount(final PaperCutDb.TrxFilter filter) {
+
+        Connection connection = null;
+
+        try {
+            connection = this.dbProxyPool.openConnection();
+            return this.dbProxyPool.getAccountTrxCount(connection, filter);
+        } finally {
+            this.dbProxyPool.closeConnection(connection);
+        }
+    }
+
+    @Override
+    public List<PaperCutAccountTrx> getAccountTrxListChunk(
+            final PaperCutDb.TrxFilter filter, final Integer startPosition,
+            final Integer maxResults, final PaperCutDb.Field orderBy,
+            final boolean sortAscending) {
+
+        Connection connection = null;
+
+        try {
+            connection = this.dbProxyPool.openConnection();
+            return this.dbProxyPool.getAccountTrxChunk(connection, filter,
+                    startPosition, maxResults, orderBy, sortAscending);
+        } finally {
+            this.dbProxyPool.closeConnection(connection);
         }
     }
 
