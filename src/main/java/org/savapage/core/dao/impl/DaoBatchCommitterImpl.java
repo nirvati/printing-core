@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -61,6 +61,11 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     /**
      *
      */
+    private boolean pause = false;
+
+    /**
+     *
+     */
     private boolean commitAtNextIncrement = false;
 
     /**
@@ -80,6 +85,7 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
         this.commitThreshold = chunkSize;
         this.daoCtx = ctx;
         this.testMode = false;
+        this.pause = false;
 
         this.chunkItemCounter = CHUNK_ITEM_COUNTER_INIT;
     }
@@ -139,7 +145,10 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
             throw new IllegalStateException("DaoBatchCommitter is not opened.");
         }
 
-        if (commitAtNextIncrement || ++chunkItemCounter >= commitThreshold) {
+        chunkItemCounter++;
+
+        if (!this.pause && (commitAtNextIncrement
+                || chunkItemCounter >= commitThreshold)) {
             this.commit();
         }
         return chunkItemCounter;
@@ -201,6 +210,16 @@ public final class DaoBatchCommitterImpl implements DaoBatchCommitter {
     @Override
     public void commitAtNextIncrement() {
         commitAtNextIncrement = true;
+    }
+
+    @Override
+    public void pause() {
+        this.pause = true;
+    }
+
+    @Override
+    public void resume() {
+        this.pause = false;
     }
 
 }

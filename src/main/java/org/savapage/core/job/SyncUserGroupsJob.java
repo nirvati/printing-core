@@ -124,6 +124,15 @@ public final class SyncUserGroupsJob extends AbstractJob {
         batchCommitter.setTest(this.isTest);
         batchCommitter.open();
 
+        if (isTest) {
+            /*
+             * Prevent database rollback within a group sync, since this might
+             * produce Hibernate "detached instance" exceptions, when removing
+             * an entity.
+             */
+            batchCommitter.pause();
+        }
+
         final UserGroupDao userGroupDao =
                 ServiceContext.getDaoContext().getUserGroupDao();
 
@@ -156,10 +165,7 @@ public final class SyncUserGroupsJob extends AbstractJob {
                         .syncUserGroup(batchCommitter, groupName);
 
                 batchCommitter.commit();
-
                 pubMsg(rsp);
-                // pubMsg(Messages.getMessage(this.getClass(),
-                // "SyncUserGroup.success", new String[] { groupName }));
             }
 
             // Collected Internal Groups
@@ -169,13 +175,9 @@ public final class SyncUserGroupsJob extends AbstractJob {
                         .syncInternalUserGroup(batchCommitter, groupName);
 
                 batchCommitter.commit();
-
                 pubMsg(rsp);
-                // pubMsg(Messages.getMessage(this.getClass(),
-                // "SyncUserGroup.success", new String[] { groupName }));
             }
 
-            //
             msg = AppLogHelper.logInfo(getClass(), "SyncUserGroupsJob.success",
                     msgTestPfx);
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -99,5 +99,18 @@ public interface DaoBatchCommitter {
      * @return The commit threshold.
      */
     int getCommitThreshold();
+
+    /**
+     * Pauses the chunked commit. An {@link #increment()} will still increment
+     * the batch item counter, but a commit will not be triggered when
+     * counter reaches the commit threshold.
+     */
+    void pause();
+
+    /**
+     * Resumes the chunked commit. This method will not trigger a commit,
+     * even if the counter has reached the commit threshold.
+     */
+    void resume();
 
 }
