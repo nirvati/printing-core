@@ -474,9 +474,10 @@ public final class SyncUsersJob extends AbstractJob {
             } catch (NumberFormatException e) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(msgTestPfx + " Card [" + cardNumberSrc
-                            + "] Format Error handled as NO card present for User ["
-                            + user.getUserId() + "]");
+                    LOGGER.trace(
+                            "{} Card [{}] Format Error handled "
+                                    + "as NO card present for User [{}]",
+                            msgTestPfx, cardNumberSrc, user.getUserId());
                 }
 
                 primaryCardNumber = null;
@@ -509,9 +510,8 @@ public final class SyncUsersJob extends AbstractJob {
              * attached before.
              */
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(
-                        msgTestPfx + " No Primary Card to Attach for User ["
-                                + user.getUserId() + "]");
+                LOGGER.trace("{} No Primary Card to Attach for User [{}]",
+                        msgTestPfx, user.getUserId());
             }
 
             if (user.getCards() != null) {
@@ -525,9 +525,11 @@ public final class SyncUsersJob extends AbstractJob {
                     if (userCardDao.isPrimaryCard(card)) {
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(msgTestPfx + " Detached Primary Card ["
-                                    + card.getNumber() + "] from User ["
-                                    + user.getUserId() + "]");
+                            LOGGER.trace(
+                                    "{} Detached Primary Card [{}] "
+                                            + "from User [{}]",
+                                    msgTestPfx, card.getNumber(),
+                                    user.getUserId());
                         }
 
                         userCardDao.delete(card);
@@ -556,8 +558,8 @@ public final class SyncUsersJob extends AbstractJob {
                 attachPrimaryCard = true;
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(msgTestPfx + " New Card [" + primaryCardNumber
-                            + "]");
+                    LOGGER.trace("{} New Card [{}]", msgTestPfx,
+                            primaryCardNumber);
                 }
 
             } else if (userCard.getUser().getInternal()) {
@@ -566,11 +568,11 @@ public final class SyncUsersJob extends AbstractJob {
                  * Card already present at INTERNAL user.
                  */
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(msgTestPfx + " Card [" + primaryCardNumber
-                            + "] Attached to Previous User ["
-                            + userCard.getUser().getUserId()
-                            + "]. Ignored Attach to Current User ["
-                            + user.getUserId() + "]");
+                    LOGGER.trace(
+                            "{} Card [{}] Attached to Previous User [{}]."
+                                    + " Ignored Attach to Current User [{}]",
+                            msgTestPfx, primaryCardNumber,
+                            userCard.getUser().getUserId(), user.getUserId());
                 }
 
                 attachPrimaryCard = false;
@@ -587,10 +589,11 @@ public final class SyncUsersJob extends AbstractJob {
                      * needed.
                      */
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " Primary Card ["
-                                + primaryCardNumber
-                                + "] already Attached to User ["
-                                + user.getUserId() + "]");
+                        LOGGER.trace(
+                                "{} Primary Card [{}] already Attached to "
+                                        + "User [{}]",
+                                msgTestPfx, primaryCardNumber,
+                                user.getUserId());
                     }
 
                     attachPrimaryCard = false;
@@ -601,9 +604,11 @@ public final class SyncUsersJob extends AbstractJob {
                      * need to re-attach it.
                      */
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " Card [" + primaryCardNumber
-                                + "] already Attached to User ["
-                                + user.getUserId() + "]. Re-Attach as Primary");
+                        LOGGER.trace(
+                                "{} Card [{}] already Attached to User "
+                                        + "[{}]. Re-Attach as Primary.",
+                                msgTestPfx, primaryCardNumber,
+                                user.getUserId());
                     }
 
                     /*
@@ -630,10 +635,11 @@ public final class SyncUsersJob extends AbstractJob {
                      * attach to current.
                      */
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " Card [" + primaryCardNumber
-                                + "] Detach from Next User [" + otherUserId
-                                + "]. Attach to Current User [" + currentUserId
-                                + "]");
+                        LOGGER.trace(
+                                "{} Card [{}] Detach from Next User [{}]."
+                                        + " Attach to Current User [{}]",
+                                msgTestPfx, primaryCardNumber, otherUserId,
+                                currentUserId);
                     }
 
                     /*
@@ -654,9 +660,9 @@ public final class SyncUsersJob extends AbstractJob {
                         this.batchCommitter.commit(); // Mantis #720
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(msgTestPfx + " Detached Card ["
-                                    + primaryCardNumber + "] from Next User ["
-                                    + otherUserId + "]");
+                            LOGGER.trace(
+                                    "{} Detached Card [{}] from Next User [{}]",
+                                    msgTestPfx, primaryCardNumber, otherUserId);
                         }
                     }
 
@@ -675,18 +681,20 @@ public final class SyncUsersJob extends AbstractJob {
 
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace(
-                                    msgTestPfx + " Card [" + primaryCardNumber
-                                            + "] Attached to Previous User ["
-                                            + otherUserId
-                                            + "]. Detached from Current User ["
-                                            + currentUserId + "]");
+                                    "{} Card [{}] Attached to Previous "
+                                            + "User [{}]. Detached from "
+                                            + "Current User [{}]",
+                                    msgTestPfx, primaryCardNumber, otherUserId,
+                                    currentUserId);
                         }
 
                     } else if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " Card [" + primaryCardNumber
-                                + "] Attached to Previous User [" + otherUserId
-                                + "]. Ignored Attach to Current User ["
-                                + currentUserId + "]");
+                        LOGGER.trace(
+                                "{} Card [{}] Attached to Previous User [{}]."
+                                        + " Ignored Attach to Current "
+                                        + "User [{}]",
+                                msgTestPfx, primaryCardNumber, otherUserId,
+                                currentUserId);
                     }
 
                     attachPrimaryCard = false;
@@ -725,8 +733,8 @@ public final class SyncUsersJob extends AbstractJob {
             isUpdated = true;
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(msgTestPfx + " Attached Card [" + primaryCardNumber
-                        + "] to User [" + user.getUserId() + "] ");
+                LOGGER.trace("{} Attached Card [{}] to User [{}]", msgTestPfx,
+                        primaryCardNumber, user.getUserId());
             }
         }
 
@@ -803,10 +811,10 @@ public final class SyncUsersJob extends AbstractJob {
             if (primaryIdNumber.length() < this.minLengthIdNumber) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(msgTestPfx + " ID [" + idNumberSrc
-                            + "] Length Error handled as "
-                            + "NO ID present for User [" + user.getUserId()
-                            + "]");
+                    LOGGER.trace(
+                            "{} ID [{}]" + " Length Error handled as "
+                                    + "NO ID present for User [{}]",
+                            msgTestPfx, idNumberSrc, user.getUserId());
                 }
 
                 primaryIdNumber = null;
@@ -838,8 +846,8 @@ public final class SyncUsersJob extends AbstractJob {
              * No ID Number offered: REMOVE IDs that were attached before.
              */
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(msgTestPfx + " No Primary ID to Attach for User ["
-                        + user.getUserId() + "]");
+                LOGGER.trace("{} No Primary ID to Attach for User [{}]",
+                        msgTestPfx, user.getUserId());
             }
 
             if (user.getIdNumbers() != null) {
@@ -854,9 +862,11 @@ public final class SyncUsersJob extends AbstractJob {
                     if (userNumberDao.isPrimaryNumber(number)) {
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(msgTestPfx + " Detached Primary ID ["
-                                    + number.getNumber() + "] from User ["
-                                    + user.getUserId() + "]");
+                            LOGGER.trace(
+                                    "{} Detached Primary ID [{}]"
+                                            + " from User [{}]",
+                                    msgTestPfx, number.getNumber(),
+                                    user.getUserId());
                         }
                         userNumberDao.delete(number);
                         iter.remove();
@@ -884,8 +894,7 @@ public final class SyncUsersJob extends AbstractJob {
                 attachPrimaryId = true;
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(
-                            msgTestPfx + " New ID [" + primaryIdNumber + "]");
+                    LOGGER.trace("{} New ID [{}]", msgTestPfx, primaryIdNumber);
                 }
 
             } else if (userNumber.getUser().getInternal()) {
@@ -894,11 +903,11 @@ public final class SyncUsersJob extends AbstractJob {
                  * ID already present at INTERNAL user.
                  */
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(msgTestPfx + " ID [" + primaryIdNumber
-                            + "] Attached to Previous User ["
-                            + userNumber.getUser().getUserId()
-                            + "]. Ignored Attach to Current User ["
-                            + user.getUserId() + "]");
+                    LOGGER.trace(
+                            "{} ID [{}] Attached to Previous User [{}]."
+                                    + ". Ignored Attach to Current User [{}]",
+                            msgTestPfx, primaryIdNumber,
+                            userNumber.getUser().getUserId(), user.getUserId());
                 }
 
                 attachPrimaryId = false;
@@ -916,9 +925,9 @@ public final class SyncUsersJob extends AbstractJob {
                      */
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace(
-                                msgTestPfx + " Primary ID [" + primaryIdNumber
-                                        + "] already Attached to User ["
-                                        + user.getUserId() + "]");
+                                "{} Primary ID [{}] already "
+                                        + "Attached to User [{}]",
+                                msgTestPfx, primaryIdNumber, user.getUserId());
                     }
 
                     attachPrimaryId = false;
@@ -929,9 +938,10 @@ public final class SyncUsersJob extends AbstractJob {
                      * need to re-attach it.
                      */
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " ID [" + primaryIdNumber
-                                + "] already Attached to User ["
-                                + user.getUserId() + "]. Re-Attach as Primary");
+                        LOGGER.trace(
+                                "{} ID [{}] already Attached to User [{}]."
+                                        + " Re-Attach as Primary.",
+                                msgTestPfx, primaryIdNumber, user.getUserId());
                     }
 
                     /*
@@ -959,10 +969,11 @@ public final class SyncUsersJob extends AbstractJob {
                      */
 
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " ID [" + primaryIdNumber
-                                + "] Detach from Next User [" + otherUserId
-                                + "]. Attach to Current User [" + currentUserId
-                                + "]");
+                        LOGGER.trace(
+                                " {} ID [{}] Detach from Next User [{}]."
+                                        + " Attach to Current User [{}]",
+                                msgTestPfx, primaryIdNumber, otherUserId,
+                                currentUserId);
                     }
 
                     /*
@@ -984,9 +995,10 @@ public final class SyncUsersJob extends AbstractJob {
                         this.batchCommitter.commit(); // Mantis #720
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(msgTestPfx + " Detached Primary ID ["
-                                    + primaryIdNumber + "] from Next User ["
-                                    + otherUserId + "]");
+                            LOGGER.trace(
+                                    "{} Detached Primary ID [{}]"
+                                            + " from Next User [{}]",
+                                    msgTestPfx, primaryIdNumber, otherUserId);
                         }
                     }
 
@@ -1004,17 +1016,20 @@ public final class SyncUsersJob extends AbstractJob {
                         commitAtNextIncrement = true;
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(msgTestPfx + " ID [" + primaryIdNumber
-                                    + "] Attached to Previous User ["
-                                    + otherUserId
-                                    + "]. Detached from Current User ["
-                                    + currentUserId + "]");
+                            LOGGER.trace(
+                                    "{} ID [{}] Attached to Previous "
+                                            + "User [{}]. Detached from "
+                                            + "Current User [{}]",
+                                    msgTestPfx, primaryIdNumber, otherUserId,
+                                    currentUserId);
                         }
                     } else if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " ID [" + primaryIdNumber
-                                + "] Attached to Previous User [" + otherUserId
-                                + "]. Ignored Attach to Current User ["
-                                + currentUserId + "]");
+                        LOGGER.trace(
+                                "{} ID [{}] Attached to Previous User [{}]."
+                                        + " Ignored Attach to "
+                                        + "Current User [{}]",
+                                msgTestPfx, primaryIdNumber, otherUserId,
+                                currentUserId);
                     }
 
                     attachPrimaryId = false;
@@ -1049,8 +1064,8 @@ public final class SyncUsersJob extends AbstractJob {
             isUpdated = true;
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(msgTestPfx + " Attached ID [" + primaryIdNumber
-                        + "] to User [" + user.getUserId() + "] ");
+                LOGGER.trace("{} Attached ID [{}] to User [{}]", msgTestPfx,
+                        primaryIdNumber, user.getUserId());
             }
         }
 
@@ -1131,10 +1146,10 @@ public final class SyncUsersJob extends AbstractJob {
             if (!this.emailValidator.validate(primaryEmailAddress)) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(msgTestPfx + " Email [" + emailAddressSrc
-                            + "] Format Error handled as NO Primary "
-                            + "Email present for User [" + user.getUserId()
-                            + "]");
+                    LOGGER.trace(
+                            "{} Email [{}] Format Error handled as NO Primary "
+                                    + "Email present for User [{}]",
+                            msgTestPfx, emailAddressSrc, user.getUserId());
                 }
 
                 primaryEmailAddress = null;
@@ -1167,9 +1182,8 @@ public final class SyncUsersJob extends AbstractJob {
              * attached before.
              */
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(
-                        msgTestPfx + " No Primary Email to Attach for User ["
-                                + user.getUserId() + "]");
+                LOGGER.trace("{} No Primary Email to Attach for User [{}]",
+                        msgTestPfx, user.getUserId());
             }
 
             if (user.getEmails() != null) {
@@ -1183,10 +1197,11 @@ public final class SyncUsersJob extends AbstractJob {
                     if (userEmailDao.isPrimaryEmail(email)) {
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(msgTestPfx
-                                    + " Detached Primary Email ["
-                                    + email.getAddress() + "] from User ["
-                                    + user.getUserId() + "]");
+                            LOGGER.trace(
+                                    "{} Detached Primary Email [{}]"
+                                            + " from User [{}]",
+                                    msgTestPfx, email.getAddress(),
+                                    user.getUserId());
                         }
 
                         userEmailDao.delete(email);
@@ -1214,8 +1229,8 @@ public final class SyncUsersJob extends AbstractJob {
                 attachPrimaryEmail = true;
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(msgTestPfx + " New Email ["
-                            + primaryEmailAddress + "]");
+                    LOGGER.trace("{} New Email [{}]", msgTestPfx,
+                            primaryEmailAddress);
                 }
 
             } else if (userEmail.getUser().getInternal()) {
@@ -1224,11 +1239,11 @@ public final class SyncUsersJob extends AbstractJob {
                  * Email already present at INTERNAL user.
                  */
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(msgTestPfx + " Email [" + primaryEmailAddress
-                            + "] Attached to Previous User ["
-                            + userEmail.getUser().getUserId()
-                            + "]. Ignored Attach to Current User ["
-                            + user.getUserId() + "]");
+                    LOGGER.trace(
+                            "{} Email [{}" + "] Attached to Previous User [{}]."
+                                    + " Ignored Attach to Current User [{}]",
+                            msgTestPfx, primaryEmailAddress,
+                            userEmail.getUser().getUserId(), user.getUserId());
                 }
 
                 attachPrimaryEmail = false;
@@ -1245,10 +1260,11 @@ public final class SyncUsersJob extends AbstractJob {
                      * needed.
                      */
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " Primary Email ["
-                                + primaryEmailAddress
-                                + "] already Attached to User ["
-                                + user.getUserId() + "]");
+                        LOGGER.trace(
+                                "{} Primary Email [{}] already Attached "
+                                        + "to User [{}]",
+                                msgTestPfx, primaryEmailAddress,
+                                user.getUserId());
                     }
 
                     attachPrimaryEmail = false;
@@ -1259,10 +1275,11 @@ public final class SyncUsersJob extends AbstractJob {
                      * we need to re-attach it.
                      */
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " Email ["
-                                + primaryEmailAddress
-                                + "] already Attached to User ["
-                                + user.getUserId() + "]. Re-Attach as Primary");
+                        LOGGER.trace(
+                                "{} Email [{}] already Attached to User [{}]."
+                                        + " Re-Attach as Primary.",
+                                msgTestPfx, primaryEmailAddress,
+                                user.getUserId());
                     }
                     /*
                      * Re-attach will be handled as well...
@@ -1287,13 +1304,12 @@ public final class SyncUsersJob extends AbstractJob {
                      * OTHER User IS a NEXT User: detach from next user and
                      * attach to current.
                      */
-
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " Email ["
-                                + primaryEmailAddress
-                                + "] Detach from Next User [" + otherUserId
-                                + "]. Attach to Current User [" + currentUserId
-                                + "]");
+                        LOGGER.trace(
+                                "{} Email [{}] Detach from Next User [{}]."
+                                        + " Attach to Current User [{}]",
+                                msgTestPfx, primaryEmailAddress, otherUserId,
+                                currentUserId);
                     }
 
                     /*
@@ -1314,10 +1330,11 @@ public final class SyncUsersJob extends AbstractJob {
                         this.batchCommitter.commit(); // Mantis #720
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(msgTestPfx
-                                    + " Detached Primary Email ["
-                                    + primaryEmailAddress + "] from Next User ["
-                                    + otherUserId + "]");
+                            LOGGER.trace(
+                                    "{} Detached Primary Email [{}]"
+                                            + " from Next User [{}]",
+                                    msgTestPfx, primaryEmailAddress,
+                                    otherUserId);
                         }
                     }
 
@@ -1336,19 +1353,20 @@ public final class SyncUsersJob extends AbstractJob {
                         commitAtNextIncrement = true;
 
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(msgTestPfx + " Email ["
-                                    + primaryEmailAddress
-                                    + "] Attached to Previous User ["
-                                    + otherUserId
-                                    + "]. Detached from Current User ["
-                                    + currentUserId + "]");
+                            LOGGER.trace(
+                                    "{} Email [{}] Attached to "
+                                            + "Previous User [{}]. Detached "
+                                            + "from Current User [{}]",
+                                    msgTestPfx, primaryEmailAddress,
+                                    otherUserId, currentUserId);
                         }
                     } else if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace(msgTestPfx + " Email ["
-                                + primaryEmailAddress
-                                + "] Attached to Previous User [" + otherUserId
-                                + "]. Ignored Attach to Current User ["
-                                + currentUserId + "]");
+                        LOGGER.trace(
+                                "{} Email [{}] Attached to Previous User [{}]."
+                                        + " Ignored Attach"
+                                        + " to Current User [{}]",
+                                msgTestPfx, primaryEmailAddress, otherUserId,
+                                currentUserId);
                     }
 
                     attachPrimaryEmail = false;
@@ -1386,9 +1404,8 @@ public final class SyncUsersJob extends AbstractJob {
             isUpdated = true;
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(msgTestPfx + " Attached Primary Email ["
-                        + primaryEmailAddress + "] to User [" + user.getUserId()
-                        + "] ");
+                LOGGER.trace("{} Attached Primary Email [{}] to User [{}]",
+                        msgTestPfx, primaryEmailAddress, user.getUserId());
             }
         }
 
@@ -1526,8 +1543,8 @@ public final class SyncUsersJob extends AbstractJob {
         if (ConfigManager.isInternalAdmin(username)) {
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(msgTestPfx + " User [" + user.getUserName()
-                        + "] NOT added to DB: reserved user");
+                LOGGER.trace("{} User [{}] NOT added to DB: reserved user",
+                        msgTestPfx, user.getUserName());
             }
 
         } else {
@@ -1554,8 +1571,8 @@ public final class SyncUsersJob extends AbstractJob {
             this.batchCommitter.increment();
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(msgTestPfx + " added [" + user.getUserName()
-                        + "] to DB");
+                LOGGER.trace("{} added [{}] to DB", msgTestPfx,
+                        user.getUserName());
             }
         }
     }
@@ -1612,8 +1629,8 @@ public final class SyncUsersJob extends AbstractJob {
             this.batchCommitter.increment();
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(msgTestPfx + " updated [" + user.getUserName()
-                        + "] in DB");
+                LOGGER.trace("{} updated [{}] in DB", msgTestPfx,
+                        user.getUserName());
             }
         }
         return updated;
@@ -1644,7 +1661,7 @@ public final class SyncUsersJob extends AbstractJob {
         this.batchCommitter.increment();
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(msgTestPfx + " deleted [" + userDb.getUserId() + "]");
+            LOGGER.trace("{} deleted [{}]", msgTestPfx, userDb.getUserId());
         }
     }
 
@@ -1702,8 +1719,8 @@ public final class SyncUsersJob extends AbstractJob {
 
         final SortedSet<CommonUser> users = getSourceUsers();
 
-        pubMsg("Synchronizing [" + users.size() + "] users with ["
-                + usersDb.size() + "] in database");
+        pubMsg(String.format("Synchronizing [%d] users with [%d] in database",
+                users.size(), usersDb.size()));
 
         /*
          * Balanced line between users in the source and users in the database.
