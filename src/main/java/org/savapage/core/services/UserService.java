@@ -318,12 +318,12 @@ public interface UserService {
     /**
      * Add/Replace the Primary Card to/of the {@link User}.
      *
-     * <p>
-     * Note: Also removes any non-primary card having the same number.
-     * </p>
-     * <p>
-     * If the cardNumber is null or blank, the current card is removed.
-     * </p>
+     * <ul>
+     * <li>Also removes any non-primary card having the same number.</li>
+     * <li>If the cardNumber is null or blank, the current card is removed.</li>
+     * <li>An in-between <i>commit</i> is performed when a non-primary
+     * cardNumber is promoted to primary cardNumber.</li>
+     * </ul>
      *
      * @param user
      *            The {@link User}.
@@ -334,14 +334,14 @@ public interface UserService {
 
     /**
      * Add/Replace the Primary Email address to/of the {@link User}.
-     *
-     * <p>
-     * Note: Also removes any non-primary email having the same email address.
-     * </p>
-     * <p>
-     * If the emailAddress is null or blank, the current primary address is
-     * removed.
-     * </p>
+     * <ul>
+     * <li>Also removes any non-primary email having the same email
+     * address.</li>
+     * <li>If the emailAddress is null or blank, the current primary address is
+     * removed.</li>
+     * <li>An in-between <i>commit</i> is performed when a non-primary email
+     * address is promoted to primary email address.</li>
+     * </ul>
      *
      * @param user
      *            The {@link User}.
@@ -352,9 +352,12 @@ public interface UserService {
 
     /**
      * Add/Replace the Primary ID Number to the {@link User}.
-     * <p>
-     * If the ID Number is null or blank, the current ID NUmber is removed.
-     * </p>
+     * <ul>
+     * <li>If the ID Number is null or blank, the current ID NUmber is removed.
+     * </li>
+     * <li>An in-between <i>commit</i> is performed when a non-primary ID NUmber
+     * is promoted to primary ID NUmber.</li>
+     * </ul>
      *
      * @param user
      *            The {@link User}.

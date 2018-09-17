@@ -491,6 +491,14 @@ public final class DaoContextImpl implements DaoContext {
     }
 
     @Override
+    public void commitInBetween() {
+        if (this.isTransactionActive()) {
+            this.commit();
+            this.beginTransaction();
+        }
+    }
+
+    @Override
     public void rollback() {
         if (isTransactionActive()) {
             em.getTransaction().rollback();

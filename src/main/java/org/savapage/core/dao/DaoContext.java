@@ -56,6 +56,16 @@ public interface DaoContext {
     void commit();
 
     /**
+     * Commits and immediately begins a transaction again (when active).
+     * <p>
+     * This method is typically used to guard <i>unique database
+     * constraints</i>, as the enforcing index (indices) gets updated
+     * <i>after</i> a commit.
+     * </p>
+     */
+    void commitInBetween();
+
+    /**
      * Rolls the transaction back, when active.
      */
     void rollback();

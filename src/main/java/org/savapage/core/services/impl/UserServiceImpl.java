@@ -1972,6 +1972,9 @@ public final class UserServiceImpl extends AbstractService
                         .equalsIgnoreCase(primaryCardNumber)) {
                     userCardDAO().delete(card);
                     iter.remove();
+                    // Prevent JPA/Hibernate "duplicate key value" exception,
+                    // when adding same card number as primary.
+                    ServiceContext.getDaoContext().commitInBetween();
                 }
             }
 
@@ -1989,7 +1992,6 @@ public final class UserServiceImpl extends AbstractService
 
             primaryCard.setNumber(primaryCardNumber.toLowerCase());
         }
-
     }
 
     @Override
@@ -2047,6 +2049,9 @@ public final class UserServiceImpl extends AbstractService
                         .equalsIgnoreCase(primaryEmailAddress)) {
                     userEmailDAO().delete(email);
                     iter.remove();
+                    // Prevent JPA/Hibernate "duplicate key value" exception,
+                    // when adding same email address as primary.
+                    ServiceContext.getDaoContext().commitInBetween();
                 }
             }
 
@@ -2064,7 +2069,6 @@ public final class UserServiceImpl extends AbstractService
 
             primaryEmail.setAddress(primaryEmailAddress.toLowerCase());
         }
-
     }
 
     /**
@@ -2196,6 +2200,9 @@ public final class UserServiceImpl extends AbstractService
                         .equalsIgnoreCase(primaryIdNumber)) {
                     userNumberDAO().delete(number);
                     iter.remove();
+                    // Prevent JPA/Hibernate "duplicate key value" exception,
+                    // when adding same ID number as primary.
+                    ServiceContext.getDaoContext().commitInBetween();
                 }
             }
 
