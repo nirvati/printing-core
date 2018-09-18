@@ -36,6 +36,8 @@ public enum PhraseEnum {
     /** */
     ACTIVATE_CARD_READER,
     /** */
+    REALTIME_ACTIVITY,
+    /** */
     SWIPE_CARD,
     /** */
     SYS_MAINTENANCE;
