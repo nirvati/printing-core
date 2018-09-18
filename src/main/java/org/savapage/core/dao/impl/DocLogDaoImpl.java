@@ -33,7 +33,6 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.savapage.core.SpInfo;
 import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
@@ -53,16 +52,14 @@ import org.slf4j.LoggerFactory;
 public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         implements DocLogDao {
 
+    /** */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(DocLogDaoImpl.class);
+
     @Override
     protected String getCountQuery() {
         return "SELECT COUNT(T.id) FROM DocLog T";
     }
-
-    /**
-     * .
-     */
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(DocLogDaoImpl.class);
 
     @Override
     public DocLog findByUuid(final Long userId, final String uuid) {
@@ -198,14 +195,12 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
 
                 i++;
 
-                SpInfo.instance().log(String
-                        .format("|               step %d: %d ...", i, count));
+                LOGGER.trace("|               step {}: {} ...", i, count);
 
                 batchCommitter.increment();
                 batchCommitter.commit();
 
-                SpInfo.instance().log(String.format(
-                        "|                    %d: %d committed.", i, count));
+                LOGGER.trace("|                    {}: {} committed.", i, count);
             }
         }
         return nDeleted;
@@ -288,14 +283,12 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
 
                 i++;
 
-                SpInfo.instance().log(String
-                        .format("|               step %d: %d ...", i, count));
+                LOGGER.trace("|               step {}: {} ...", i, count);
 
                 batchCommitter.increment();
                 batchCommitter.commit();
 
-                SpInfo.instance().log(String.format(
-                        "|                    %d: %d committed.", i, count));
+                LOGGER.trace("|                    {}: {} committed.", i, count);
             }
         }
 
@@ -329,14 +322,12 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
                 nDeleted = count;
             }
 
-            SpInfo.instance().log(
-                    String.format("|          step %d: %d ...", i + 1, count));
+            LOGGER.trace("|          step {}: {} ...", i + 1, count);
 
             batchCommitter.increment();
             batchCommitter.commit();
 
-            SpInfo.instance().log(String
-                    .format("|               %d: %d committed.", i + 1, count));
+            LOGGER.trace("|               {}: {} committed.", i + 1, count);
         }
         return nDeleted;
     }

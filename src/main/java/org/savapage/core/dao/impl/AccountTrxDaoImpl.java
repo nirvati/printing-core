@@ -35,7 +35,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
-import org.savapage.core.SpInfo;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.jpa.Account;
@@ -43,6 +42,8 @@ import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.tools.DbSimpleEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -51,6 +52,10 @@ import org.savapage.core.jpa.tools.DbSimpleEntity;
  */
 public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         implements AccountTrxDao {
+
+    /** */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(AccountTrxDaoImpl.class);
 
     @Override
     protected String getCountQuery() {
@@ -303,14 +308,12 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
                 nDeleted = count;
             }
 
-            SpInfo.instance().log(
-                    String.format("|          step %d: %d ...", i + 1, count));
+            LOGGER.trace("|          step {}: {} ...", i + 1, count);
 
             batchCommitter.increment();
             batchCommitter.commit();
 
-            SpInfo.instance().log(String
-                    .format("|               %d: %d committed.", i + 1, count));
+            LOGGER.trace("|               {}: {} committed.", i + 1, count);
         }
 
         if (nDeleted > 0) {
@@ -353,14 +356,13 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
             final int count =
                     getEntityManager().createQuery(jpql).executeUpdate();
 
-            SpInfo.instance().log(String
-                    .format("|               step %d: %d ...", i + 1, count));
+            LOGGER.trace("|               step {}: {} ...", i + 1, count);
 
             batchCommitter.increment();
             batchCommitter.commit();
 
-            SpInfo.instance().log(String.format(
-                    "|                    %d: %d committed.", i + 1, count));
+            LOGGER.trace("|                    {}: {} committed.", i + 1,
+                    count);
         }
     }
 
