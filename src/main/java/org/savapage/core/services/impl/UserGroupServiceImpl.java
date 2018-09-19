@@ -44,6 +44,7 @@ import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.dao.enums.UserGroupAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
+import org.savapage.core.dto.CreditLimitDtoEnum;
 import org.savapage.core.dto.QuickSearchItemDto;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserGroupPropertiesDto;
@@ -730,14 +731,13 @@ public final class UserGroupServiceImpl extends AbstractService
             dtoLocale = ServiceContext.getLocale();
         }
 
-        final UserAccountingDto.CreditLimitEnum creditLimit =
-                accounting.getCreditLimit();
+        final CreditLimitDtoEnum creditLimit = accounting.getCreditLimit();
 
         if (creditLimit != null) {
 
             //
             final boolean isRestricted =
-                    creditLimit != UserAccountingDto.CreditLimitEnum.NONE;
+                    creditLimit != CreditLimitDtoEnum.NONE;
 
             if (jpaGroup.getInitiallyRestricted() != isRestricted) {
                 jpaGroup.setInitiallyRestricted(isRestricted);
@@ -746,7 +746,7 @@ public final class UserGroupServiceImpl extends AbstractService
 
             //
             final boolean useGlobalOverdraft =
-                    creditLimit == UserAccountingDto.CreditLimitEnum.DEFAULT;
+                    creditLimit == CreditLimitDtoEnum.DEFAULT;
 
             if (jpaGroup.getInitialUseGlobalOverdraft() != useGlobalOverdraft) {
                 jpaGroup.setInitialUseGlobalOverdraft(useGlobalOverdraft);
@@ -754,7 +754,7 @@ public final class UserGroupServiceImpl extends AbstractService
             }
 
             //
-            if (creditLimit == UserAccountingDto.CreditLimitEnum.INDIVIDUAL) {
+            if (creditLimit == CreditLimitDtoEnum.INDIVIDUAL) {
 
                 final String amount = accounting.getCreditLimitAmount();
 

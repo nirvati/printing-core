@@ -31,18 +31,12 @@ import org.savapage.core.util.LocaleHelper;
  * @author Rijk Ravestein
  *
  */
-public enum PhraseEnum {
+public enum LabelEnum {
 
     /** */
-    ACTIVATE_CARD_READER,
+    PRIMARY_EMAIL,
     /** */
-    REALTIME_ACTIVITY,
-    /** */
-    SWIPE_CARD,
-    /** */
-    SYS_MAINTENANCE,
-    /** */
-    USER_DELETE_WARNING;
+    OTHER_EMAILS;
 
     /**
      * @param locale

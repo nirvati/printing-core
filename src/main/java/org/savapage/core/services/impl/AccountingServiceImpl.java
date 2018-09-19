@@ -55,6 +55,7 @@ import org.savapage.core.dao.helpers.AggregateResult;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.AccountDisplayInfoDto;
 import org.savapage.core.dto.AccountVoucherRedeemDto;
+import org.savapage.core.dto.CreditLimitDtoEnum;
 import org.savapage.core.dto.FinancialDisplayInfoDto;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
@@ -297,16 +298,16 @@ public final class AccountingServiceImpl extends AbstractService
             dto.setBalance(BigDecimalUtil.localizeMinimalPrecision(balance,
                     minimalDecimals, ServiceContext.getLocale(), true));
 
-            UserAccountingDto.CreditLimitEnum creditLimit;
+            CreditLimitDtoEnum creditLimit;
 
             if (restricted) {
                 if (useGlobalOverdraft) {
-                    creditLimit = UserAccountingDto.CreditLimitEnum.DEFAULT;
+                    creditLimit = CreditLimitDtoEnum.DEFAULT;
                 } else {
-                    creditLimit = UserAccountingDto.CreditLimitEnum.INDIVIDUAL;
+                    creditLimit = CreditLimitDtoEnum.INDIVIDUAL;
                 }
             } else {
-                creditLimit = UserAccountingDto.CreditLimitEnum.NONE;
+                creditLimit = CreditLimitDtoEnum.NONE;
             }
 
             dto.setCreditLimit(creditLimit);
@@ -359,18 +360,17 @@ public final class AccountingServiceImpl extends AbstractService
                     BigDecimalUtil.parse(amount, dtoLocale, false, false));
         }
 
-        final UserAccountingDto.CreditLimitEnum creditLimit =
-                dto.getCreditLimit();
+        final CreditLimitDtoEnum creditLimit = dto.getCreditLimit();
 
         if (creditLimit != null) {
 
             group.setInitiallyRestricted(
-                    creditLimit != UserAccountingDto.CreditLimitEnum.NONE);
+                    creditLimit != CreditLimitDtoEnum.NONE);
 
             group.setInitialUseGlobalOverdraft(
-                    creditLimit == UserAccountingDto.CreditLimitEnum.DEFAULT);
+                    creditLimit == CreditLimitDtoEnum.DEFAULT);
 
-            if (creditLimit == UserAccountingDto.CreditLimitEnum.INDIVIDUAL) {
+            if (creditLimit == CreditLimitDtoEnum.INDIVIDUAL) {
                 final String amount = dto.getCreditLimitAmount();
                 group.setInitialOverdraft(
                         BigDecimalUtil.parse(amount, dtoLocale, false, false));
@@ -458,17 +458,15 @@ public final class AccountingServiceImpl extends AbstractService
             }
         }
 
-        final UserAccountingDto.CreditLimitEnum creditLimit =
-                dto.getCreditLimit();
+        final CreditLimitDtoEnum creditLimit = dto.getCreditLimit();
 
         if (creditLimit != null) {
 
-            account.setRestricted(
-                    creditLimit != UserAccountingDto.CreditLimitEnum.NONE);
+            account.setRestricted(creditLimit != CreditLimitDtoEnum.NONE);
             account.setUseGlobalOverdraft(
-                    creditLimit == UserAccountingDto.CreditLimitEnum.DEFAULT);
+                    creditLimit == CreditLimitDtoEnum.DEFAULT);
 
-            if (creditLimit == UserAccountingDto.CreditLimitEnum.INDIVIDUAL) {
+            if (creditLimit == CreditLimitDtoEnum.INDIVIDUAL) {
                 final String amount = dto.getCreditLimitAmount();
                 try {
                     account.setOverdraft(BigDecimalUtil.parse(amount, dtoLocale,

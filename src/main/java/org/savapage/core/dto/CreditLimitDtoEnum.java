@@ -1,7 +1,7 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2018 Datraverse B.V.
- * Author: Rijk Ravestein.
+ * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -19,30 +19,32 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.i18n;
+package org.savapage.core.dto;
 
 import java.util.Locale;
 
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.util.LocaleHelper;
 
 /**
- * Common phrases.
  *
  * @author Rijk Ravestein
  *
  */
-public enum PhraseEnum {
-
-    /** */
-    ACTIVATE_CARD_READER,
-    /** */
-    REALTIME_ACTIVITY,
-    /** */
-    SWIPE_CARD,
-    /** */
-    SYS_MAINTENANCE,
-    /** */
-    USER_DELETE_WARNING;
+public enum CreditLimitDtoEnum {
+    /**
+     * No credit limit (unrestricted).
+     */
+    NONE,
+    /**
+     * Default credit limit. See
+     * {@link IConfigProp.Key#FinancialGlobalCreditLimit}
+     */
+    DEFAULT,
+    /**
+     * Individual credit limit.
+     */
+    INDIVIDUAL;
 
     /**
      * @param locale

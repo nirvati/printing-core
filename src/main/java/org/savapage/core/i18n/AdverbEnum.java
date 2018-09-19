@@ -34,7 +34,19 @@ import org.savapage.core.util.LocaleHelper;
 public enum AdverbEnum {
 
     /** */
-    ANONYMOUS, AUTOMATICALLY, MANUALLY, OFF, ON;
+    ANONYMOUS,
+    /** */
+    AUTOMATICALLY,
+    /** */
+    DISABLED,
+    /** */
+    ENABLED,
+    /** */
+    MANUALLY,
+    /** */
+    OFF,
+    /** */
+    ON;
 
     /**
      * @param locale

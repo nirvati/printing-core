@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,7 +23,6 @@ package org.savapage.core.dto;
 
 import java.util.Locale;
 
-import org.savapage.core.config.IConfigProp;
 import org.savapage.core.jpa.Account;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -34,30 +33,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * {@link Account} information for a {@link User}, formatted according to a
  * {@link Locale}.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @JsonInclude(Include.NON_NULL)
 public class UserAccountingDto extends AbstractDto {
-
-    /**
-     *
-     */
-    public static enum CreditLimitEnum {
-        /**
-         * No credit limit (unrestricted).
-         */
-        NONE,
-        /**
-         * Default credit limit. See
-         * {@link IConfigProp.Key#FinancialGlobalCreditLimit}
-         */
-        DEFAULT,
-        /**
-         * Individual credit limit.
-         */
-        INDIVIDUAL
-    }
 
     /**
      * The locale (languageTag) of the amount strings (e.g. {@code en-US}) See
@@ -76,14 +56,14 @@ public class UserAccountingDto extends AbstractDto {
     private Boolean keepBalance = false;
 
     /**
-     * {@code true} when account has a credit limit (is restricted).
+     * The type of credit limit.
      */
     @JsonProperty("creditLimit")
-    private CreditLimitEnum creditLimit;
+    private CreditLimitDtoEnum creditLimit;
 
     /**
-     * Relevant when {@link #creditLimit} EQ {@code true}: when {@code null} the
-     * system credit limit is used.
+     * Relevant when {@link #creditLimit} EQ
+     * {@link CreditLimitDtoEnum#INDIVIDUAL}.
      */
     @JsonProperty("creditLimitAmount")
     private String creditLimitAmount;
@@ -120,11 +100,11 @@ public class UserAccountingDto extends AbstractDto {
         this.keepBalance = keepBalance;
     }
 
-    public CreditLimitEnum getCreditLimit() {
+    public CreditLimitDtoEnum getCreditLimit() {
         return creditLimit;
     }
 
-    public void setCreditLimit(CreditLimitEnum creditLimit) {
+    public void setCreditLimit(CreditLimitDtoEnum creditLimit) {
         this.creditLimit = creditLimit;
     }
 

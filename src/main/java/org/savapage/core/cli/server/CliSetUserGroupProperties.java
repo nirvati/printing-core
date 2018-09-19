@@ -26,8 +26,8 @@ import java.util.Map;
 
 import org.apache.commons.cli.CommandLine;
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dto.CreditLimitDtoEnum;
 import org.savapage.core.dto.UserAccountingDto;
-import org.savapage.core.dto.UserAccountingDto.CreditLimitEnum;
 import org.savapage.core.dto.UserGroupPropertiesDto;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodParms;
 import org.savapage.core.json.rpc.ErrorDataBasic;
@@ -267,17 +267,17 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
         value = cmd.getOptionValue(CLI_OPT_CREDIT_LIMIT_AMOUNT);
         if (value != null) {
             dtoAccounting.setCreditLimitAmount(value);
-            dtoAccounting.setCreditLimit(CreditLimitEnum.INDIVIDUAL);
+            dtoAccounting.setCreditLimit(CreditLimitDtoEnum.INDIVIDUAL);
             dto.setAccounting(dtoAccounting);
         }
 
         if (this.getSwitchValue(cmd, CLI_SWITCH_CREDIT_LIMIT)) {
-            dtoAccounting.setCreditLimit(CreditLimitEnum.DEFAULT);
+            dtoAccounting.setCreditLimit(CreditLimitDtoEnum.DEFAULT);
             dto.setAccounting(dtoAccounting);
         }
 
         if (this.getSwitchValue(cmd, CLI_SWITCH_CREDIT_LIMIT_NONE)) {
-            dtoAccounting.setCreditLimit(CreditLimitEnum.NONE);
+            dtoAccounting.setCreditLimit(CreditLimitDtoEnum.NONE);
             dto.setAccounting(dtoAccounting);
         }
 
