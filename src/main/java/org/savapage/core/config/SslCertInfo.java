@@ -41,6 +41,8 @@ public final class SslCertInfo {
     /** */
     private final String issuerCN;
     /** */
+    private final String subjectCN;
+    /** */
     private final Date creationDate;
     /** */
     private final Date notAfter;
@@ -50,14 +52,17 @@ public final class SslCertInfo {
     @SuppressWarnings("unused")
     private SslCertInfo() {
         this.issuerCN = null;
+        this.subjectCN = null;
         this.creationDate = null;
         this.notAfter = null;
         this.selfSigned = false;
     }
 
-    public SslCertInfo(final String issuerCN, final Date creationDate,
-            final Date notAfter, final boolean selfSigned) {
+    public SslCertInfo(final String issuerCN, final String subjectCN,
+            final Date creationDate, final Date notAfter,
+            final boolean selfSigned) {
         this.issuerCN = issuerCN;
+        this.subjectCN = subjectCN;
         this.creationDate = creationDate;
         this.notAfter = notAfter;
         this.selfSigned = selfSigned;
@@ -65,6 +70,10 @@ public final class SslCertInfo {
 
     public String getIssuerCN() {
         return issuerCN;
+    }
+
+    public String getSubjectCN() {
+        return subjectCN;
     }
 
     public Date getCreationDate() {
