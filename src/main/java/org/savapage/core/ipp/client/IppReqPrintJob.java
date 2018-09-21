@@ -463,7 +463,6 @@ public final class IppReqPrintJob extends IppReqCommon {
                 }
             }
         }
-
     }
 
     /**
@@ -539,9 +538,9 @@ public final class IppReqPrintJob extends IppReqCommon {
             printerOptionsLookup = null;
         }
 
-        /*
-         * Mantis #738.
-         */
+        addJobCopies(group, printerOptionsLookup, copies);
+
+        // Mantis #738: Apply correct n-up layout in landscape proxy print.
         final StringBuilder numberUpRequested =
                 new StringBuilder(IppKeyword.NUMBER_UP_1);
 
@@ -553,17 +552,7 @@ public final class IppReqPrintJob extends IppReqCommon {
             addFitToPage(group, printerOptionsLookup, fitToPage.booleanValue());
         }
 
-        /*
-         * Mantis #259: add number of copies when GT 1.
-         */
-        if (copies > 1) {
-            group.add(IppDictJobTemplateAttr.ATTR_COPIES, IppInteger.instance(),
-                    String.valueOf(copies));
-        }
-
-        /*
-         * Mantis #738: Apply correct n-up layout in landscape proxy print.
-         */
+        // Mantis #738: Apply correct n-up layout in landscape proxy print.
         final PdfOrientationInfo pdfOrientation;
 
         if (this.pdfCreateInfo.getPdfOrientationInfo() != null) {
@@ -591,25 +580,48 @@ public final class IppReqPrintJob extends IppReqCommon {
 
         if (LOGGER.isDebugEnabled()) {
             for (final Entry<String, String> entry : optionValues.entrySet()) {
-                LOGGER.debug(String.format("IPP: %s/%s", entry.getKey(),
-                        entry.getValue()));
+                LOGGER.debug("IPP: {}/{}", entry.getKey(), entry.getValue());
             }
             for (final IppAttrValue val : group.getAttributes()) {
-                LOGGER.debug(String.format("PPD %s/%s",
-                        val.getAttribute().getKeyword(), val.getSingleValue()));
+                LOGGER.debug("PPD {}/{}", val.getAttribute().getKeyword(),
+                        val.getSingleValue());
             }
             for (final IppAttrCollection col : group.getCollections()) {
-                LOGGER.debug(
-                        String.format("PPD Collection: %s", col.getKeyword()));
+                LOGGER.debug("PPD Collection: {}", col.getKeyword());
                 for (final IppAttrValue val : col.getAttributes()) {
-                    LOGGER.debug(String.format("\t%s/%s",
-                            val.getAttribute().getKeyword(),
-                            val.getSingleValue()));
+                    LOGGER.debug("\t{}/{}", val.getAttribute().getKeyword(),
+                            val.getSingleValue());
                 }
             }
         }
 
         return attrGroups;
+    }
+
+    /**
+     *
+     * @param group
+     *            The group to add job attributes to.
+     * @param printerOptionsLookup
+     *            The printer options look-up.
+     * @param copies
+     *            The number of copies.
+     */
+    private static void addJobCopies(final IppAttrGroup group,
+            final Map<String, JsonProxyPrinterOpt> printerOptionsLookup,
+            final int copies) {
+        /*
+         * Mantis #259: add number of copies when GT 1.
+         */
+        if (copies > 1) {
+            String attrKeyword = IppDictJobTemplateAttr.ATTR_COPIES;
+            if (printerOptionsLookup.containsKey(attrKeyword)) {
+                attrKeyword =
+                        printerOptionsLookup.get(attrKeyword).getKeywordPpd();
+            }
+            group.add(attrKeyword, IppInteger.instance(),
+                    String.valueOf(copies));
+        }
     }
 
     /**
@@ -701,9 +713,8 @@ public final class IppReqPrintJob extends IppReqCommon {
                             mapIppRuleSubst.get(optionKeywordIpp).getPpdValue();
 
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(String.format("%s/%s -> %s/%s",
-                                optionKeywordIpp, optionValueIpp, optionKeyword,
-                                optionValue));
+                        LOGGER.debug("{}/{} -> {}/{}", optionKeywordIpp,
+                                optionValueIpp, optionKeyword, optionValue);
                     }
                 } else {
                     optionValue = optionValuePpd;
