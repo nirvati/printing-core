@@ -1887,6 +1887,14 @@ public interface IConfigProp {
                 V_YES, API_UPDATABLE_ON),
 
         /**
+         * Enable delegated print account type {@link AccountTypeEnum#USER}
+         * (boolean).
+         */
+        PROXY_PRINT_DELEGATE_ACCOUNT_USER_ENABLE(//
+                "proxy-print.delegate.account.user.enable", BOOLEAN_VALIDATOR,
+                V_YES, API_UPDATABLE_ON),
+
+        /**
          * Enable preferred UserGroup IDs for delegated proxy print.
          */
         PROXY_PRINT_DELEGATE_GROUPS_PREFERRED_ENABLE(//
