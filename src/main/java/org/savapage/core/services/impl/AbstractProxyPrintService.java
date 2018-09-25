@@ -1965,8 +1965,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                     final String keyword = option.getKeyword();
 
-                    if (keyword
-                            .equals(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE)
+                    if (keyword.equals(
+                            IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE)
                             || keyword.equals(
                                     IppDictJobTemplateAttr.ATTR_SIDES)) {
                         printerOptionValues.put(keyword, option.getDefchoice());
@@ -3482,10 +3482,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
                             chunk.getAssignedMedia().getIppKeyword());
 
                     /*
-                     * Take the media-source from the print request, unless it
-                     * is assigned in the chunk.
+                     * Take the media-source from the original print request
+                     * when "auto", or when the media-source of the assigned
+                     * media-source (for cost calculation) is null.
                      */
-                    if (chunk.getAssignedMediaSource() == null) {
+                    if (chunk.getAssignedMediaSource() == null
+                            || orgMediaSourceOption
+                                    .equals(IppKeyword.MEDIA_SOURCE_AUTO)) {
                         request.setMediaSourceOption(orgMediaSourceOption);
                     } else {
                         request.setMediaSourceOption(
