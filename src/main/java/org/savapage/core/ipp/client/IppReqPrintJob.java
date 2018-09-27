@@ -501,8 +501,6 @@ public final class IppReqPrintJob extends IppReqCommon {
         group.add(dict.getAttr(IppDictOperationAttr.ATTR_DOCUMENT_FORMAT),
                 IppMimeMediaType.PDF);
 
-        // "document-natural-language" (naturalLanguage):
-
         return group;
     }
 
