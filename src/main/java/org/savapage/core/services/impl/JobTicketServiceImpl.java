@@ -78,6 +78,7 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.helpers.IppOptionMap;
+import org.savapage.core.ipp.rules.IppRuleValidationException;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
@@ -1069,13 +1070,16 @@ public final class JobTicketServiceImpl extends AbstractService
      *             When IO error.
      * @throws IppConnectException
      *             When connection to CUPS fails.
+     * @throws IppRuleValidationException
+     *             When IPP constraint violations.
      * @throws IllegalStateException
      *             For a print job (no settlement) with ippMediaSource is
      *             {@code null}: when "media" option is not specified in Job
      *             Ticket, or printer has no "auto" choice for "media-source".
      */
     private OutboxJobDto execTicket(final JobTicketExecParms parms,
-            final boolean settleOnly) throws IOException, IppConnectException {
+            final boolean settleOnly) throws IOException, IppConnectException,
+            IppRuleValidationException {
 
         final UUID uuid = uuidFromFileName(parms.getFileName());
         final OutboxJobDto dto = this.jobTicketCache.get(uuid);
@@ -1270,13 +1274,15 @@ public final class JobTicketServiceImpl extends AbstractService
      *            The {@link OutboxJobDto}.
      * @param parms
      *            The parameters.
-     * @param ippJogOffset
-     *            IPP value of
-     *            {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET}
-     *            .
+     *
+     * @return JsonProxyPrinter The proxy printer.
+     *
+     * @throws IppRuleValidationException
+     *             When IPP constraint violations.
      */
-    private static void setRedirectPrinterOptions(final OutboxJobDto dto,
-            final JobTicketExecParms parms) {
+    private static JsonProxyPrinter setRedirectPrinterOptions(
+            final OutboxJobDto dto, final JobTicketExecParms parms)
+            throws IppRuleValidationException {
 
         // Set printer name.
         dto.setPrinterRedirect(parms.getPrinter().getPrinterName());
@@ -1313,11 +1319,35 @@ public final class JobTicketServiceImpl extends AbstractService
         } else {
             dto.getOptionValues().put(ippKeywordWlk, parms.getIppJogOffset());
         }
+
+        final JsonProxyPrinter jsonPrinter = proxyPrintService()
+                .getCachedPrinter(parms.getPrinter().getPrinterName());
+
+        /*
+         * Validate IPP constraint rules.
+         */
+        final Locale localeWrk;
+
+        if (parms.getLocale() == null) {
+            localeWrk = Locale.getDefault();
+        } else {
+            localeWrk = parms.getLocale();
+        }
+
+        final String msg = proxyPrintService().validateContraintsMsg(
+                jsonPrinter, dto.getOptionValues(), localeWrk);
+
+        if (msg != null) {
+            throw new IppRuleValidationException(msg);
+        }
+
+        return jsonPrinter;
     }
 
     @Override
     public OutboxJobDto retryTicketPrint(final JobTicketExecParms parms)
-            throws IOException, IppConnectException {
+            throws IOException, IppConnectException,
+            IppRuleValidationException {
 
         final OutboxJobDto dto = this.getTicket(parms.getFileName());
 
@@ -1331,10 +1361,8 @@ public final class JobTicketServiceImpl extends AbstractService
         /*
          * Set dto before creating the print request.
          */
-        setRedirectPrinterOptions(dto, parms);
-
-        final JsonProxyPrinter jsonPrinter = proxyPrintService()
-                .getCachedPrinter(parms.getPrinter().getPrinterName());
+        final JsonProxyPrinter jsonPrinter =
+                setRedirectPrinterOptions(dto, parms);
 
         // Create print request
         final AbstractProxyPrintReq request = proxyPrintService()
@@ -1499,7 +1527,8 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public OutboxJobDto printTicket(final JobTicketExecParms parms)
-            throws IOException, IppConnectException {
+            throws IOException, IppConnectException,
+            IppRuleValidationException {
 
         return execTicket(parms, false);
     }
@@ -1516,8 +1545,9 @@ public final class JobTicketServiceImpl extends AbstractService
 
         try {
             return execTicket(parms, true);
-        } catch (IppConnectException e) {
-            // This is not supposed to happen, because no proxy print is done.
+        } catch (IppConnectException | IppRuleValidationException e) {
+            // This is not supposed to happen, because no proxy print is done,
+            // and rule validation is irrelevant.
             throw new IllegalStateException(e.getMessage());
         }
     }
@@ -1755,10 +1785,10 @@ public final class JobTicketServiceImpl extends AbstractService
                 redirectPrinter.setOutputBinOptChoice(
                         this.getPrinterOptChoiceDefault(outputBin));
 
-                final JsonProxyPrinterOpt jogOffset =
-                        this.localizePrinterOpt(printerOptionlookup,
-                                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET,
-                                locale);
+                final JsonProxyPrinterOpt jogOffset = this.localizePrinterOpt(
+                        printerOptionlookup,
+                        IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET,
+                        locale);
 
                 if (jogOffset != null) {
                     redirectPrinter.setJogOffsetOpt(jogOffset);

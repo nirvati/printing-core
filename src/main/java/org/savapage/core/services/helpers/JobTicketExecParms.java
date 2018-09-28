@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,8 @@
  * address: info@datraverse.com
  */
 package org.savapage.core.services.helpers;
+
+import java.util.Locale;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
@@ -73,6 +75,12 @@ public final class JobTicketExecParms {
      * The unique PDF file name of the job to print.
      */
     private String fileName;
+
+    /**
+     * The {@link Locale} for user messages.
+     *
+     */
+    private Locale locale;
 
     /**
      * Constructor.
@@ -134,6 +142,14 @@ public final class JobTicketExecParms {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public Locale getLocale() {
+        return locale;
+    }
+
+    public void setLocale(Locale locale) {
+        this.locale = locale;
     }
 
 }

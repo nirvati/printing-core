@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -37,6 +37,7 @@ import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.helpers.IppOptionMap;
+import org.savapage.core.ipp.rules.IppRuleValidationException;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
@@ -347,9 +348,11 @@ public interface JobTicketService extends StatefulService {
      *             When IO error.
      * @throws IppConnectException
      *             When connection to CUPS fails.
+     * @throws IppRuleValidationException
+     *             When IPP constraint violations.
      */
     OutboxJobDto printTicket(JobTicketExecParms parms)
-            throws IOException, IppConnectException;
+            throws IOException, IppConnectException, IppRuleValidationException;
 
     /**
      * Retries a Job Ticket Print (typically after a job is cancelled, due to
@@ -364,9 +367,11 @@ public interface JobTicketService extends StatefulService {
      *             When IO error.
      * @throws IppConnectException
      *             When connection to CUPS fails.
+     * @throws IppRuleValidationException
+     *             When IPP constraint violations.
      */
     OutboxJobDto retryTicketPrint(JobTicketExecParms parms)
-            throws IOException, IppConnectException;
+            throws IOException, IppConnectException, IppRuleValidationException;
 
     /**
      * Settles a Job Ticket without printing it.
