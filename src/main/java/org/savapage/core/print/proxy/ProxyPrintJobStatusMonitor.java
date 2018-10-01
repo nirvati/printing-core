@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -609,6 +609,12 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                             }
                             log.append("]");
 
+                            log.append(" PrintOut [")
+                                    .append(IppJobStateEnum.asEnum(printOut
+                                            .getCupsJobState().intValue())
+                                            .toString())
+                                    .append("]");
+
                             LOGGER.debug(log.toString());
                         }
 
@@ -734,8 +740,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
      * The PrintOut is expected to be present, so when not found, we might have
      * a synchronization problem. I.e. the CUPS notification arrives, before the
      * database commit of the PrintOut is visible from this thread. Therefore,
-     * we {@link ServiceContext#reopen()} after two (2) seconds and retry (2
-     * times).
+     * we {@link ServiceContext#reopen()} before doing max. 3 trials (with 2
+     * seconds in between).
      * </p>
      *
      * @param printJobStatus
@@ -749,6 +755,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
         int iTrial = 0;
 
         while (iTrial < nMaxTrials) {
+
+            ServiceContext.reopen();
 
             final PrintOutDao printOutDao =
                     ServiceContext.getDaoContext().getPrintOutDao();
@@ -786,8 +794,6 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
             try {
 
                 Thread.sleep(2 * DateUtil.DURATION_MSEC_SECOND);
-
-                ServiceContext.reopen();
 
             } catch (InterruptedException e) {
                 if (LOGGER.isInfoEnabled()) {
