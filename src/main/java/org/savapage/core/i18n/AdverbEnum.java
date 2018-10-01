@@ -46,7 +46,9 @@ public enum AdverbEnum {
     /** */
     OFF,
     /** */
-    ON;
+    ON,
+    /** */
+    SINCE;
 
     /**
      * @param locale
