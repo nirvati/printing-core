@@ -318,6 +318,15 @@ public interface IConfigProp {
                 DEFAULT_FINANCIAL_PRINTER_COST_DECIMALS, API_UPDATABLE_ON),
 
         /**
+         * When "Y", PaperCut Personal Account is the leading account for
+         * personal financial transactions and credit checks. Is active when
+         * {@link #PAPERCUT_ENABLE} is "Y".
+         */
+        FINANCIAL_USER_ACCOUNT_PAPERCUT_ENABLE(//
+                "financial.user.account.papercut.enable", BOOLEAN_VALIDATOR,
+                V_NO, API_UPDATABLE_ON),
+
+        /**
          *
          */
         FINANCIAL_USER_BALANCE_DECIMALS(//

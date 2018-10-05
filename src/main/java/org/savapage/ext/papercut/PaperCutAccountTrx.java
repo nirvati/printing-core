@@ -21,25 +21,55 @@
  */
 package org.savapage.ext.papercut;
 
+import java.util.Date;
+
 /**
  *
  * @author Rijk Ravestein
- *
+ * @since 1.1.0
  */
 public final class PaperCutAccountTrx {
 
+    private String transactionType;
+    private Date transactionDate;
+    private String transactedBy;
     private String documentName;
     private boolean printed;
     private boolean cancelled;
     private String deniedReason;
-    private double usageCost;
+    private double amount;
+    private double balance;
+    private String comment;
 
     /**
-     *
      * @return
      */
+    public String getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(String transactionType) {
+        this.transactionType = transactionType;
+    }
+
     public String getDocumentName() {
         return documentName;
+    }
+
+    public Date getTransactionDate() {
+        return transactionDate;
+    }
+
+    public String getTransactedBy() {
+        return transactedBy;
+    }
+
+    public void setTransactedBy(String transactedBy) {
+        this.transactedBy = transactedBy;
+    }
+
+    public void setTransactionDate(Date transactionDate) {
+        this.transactionDate = transactionDate;
     }
 
     public void setDocumentName(String documentName) {
@@ -70,13 +100,28 @@ public final class PaperCutAccountTrx {
         this.deniedReason = deniedReason;
     }
 
-    public double getUsageCost() {
-        return usageCost;
+    public double getAmount() {
+        return amount;
     }
 
-    public void setUsageCost(double usageCost) {
-        this.usageCost = usageCost;
+    public void setAmount(double amount) {
+        this.amount = amount;
     }
 
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 
 }

@@ -24,7 +24,10 @@ package org.savapage.ext.papercut;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -81,6 +84,10 @@ public abstract class PaperCutDb {
     public static class TrxFilter {
 
         private String username;
+        private PaperCutAccountTrxTypeEnum trxType;
+        private Date dateFrom;
+        private Date dateTo;
+        private String containingCommentText;
 
         public String getUsername() {
             return username;
@@ -89,6 +96,39 @@ public abstract class PaperCutDb {
         public void setUsername(String username) {
             this.username = username;
         }
+
+        public PaperCutAccountTrxTypeEnum getTrxType() {
+            return trxType;
+        }
+
+        public void setTrxType(PaperCutAccountTrxTypeEnum trxType) {
+            this.trxType = trxType;
+        }
+
+        public Date getDateFrom() {
+            return dateFrom;
+        }
+
+        public void setDateFrom(Date dateFrom) {
+            this.dateFrom = dateFrom;
+        }
+
+        public Date getDateTo() {
+            return dateTo;
+        }
+
+        public void setDateTo(Date dateTo) {
+            this.dateTo = dateTo;
+        }
+
+        public String getContainingCommentText() {
+            return containingCommentText;
+        }
+
+        public void setContainingCommentText(String containingCommentText) {
+            this.containingCommentText = containingCommentText;
+        }
+
     }
 
     /**
@@ -409,29 +449,100 @@ public abstract class PaperCutDb {
     }
 
     /**
+     * Appends WHERE clause.
+     *
+     * @param sql
+     *            SQL to append to.
+     * @param filter
+     *            The filter.
+     */
+    private static void appendAccountTrxCountWhere(final StringBuilder sql,
+            final PaperCutDb.TrxFilter filter) {
+
+        sql.append("\nWHERE A.account_name = ?");
+
+        if (StringUtils.isNotBlank(filter.getContainingCommentText())) {
+            sql.append(" AND X.txn_comment LIKE ?");
+        }
+
+        if (filter.getTrxType() != null) {
+            sql.append(" AND X.transaction_type = ?");
+        }
+
+        if (filter.getDateFrom() != null) {
+            sql.append(" AND X.transaction_date >= ?");
+        }
+
+        if (filter.getDateTo() != null) {
+            sql.append(" AND X.transaction_date <= ?");
+        }
+    }
+
+    /**
+     * Prepares WHERE clause.
+     *
+     * @param stm
+     *            The statement.
+     * @param filter
+     *            The filter.
+     * @throws SQLException
+     *             If SQL error.
+     */
+    private static void prepareAccountTrxCountWhere(final PreparedStatement stm,
+            final PaperCutDb.TrxFilter filter) throws SQLException {
+
+        int parameterIndex = 0;
+
+        stm.setString(++parameterIndex, filter.getUsername());
+
+        if (StringUtils.isNotBlank(filter.getContainingCommentText())) {
+            stm.setString(++parameterIndex,
+                    String.format("%%%s%%", filter.getContainingCommentText()));
+        }
+
+        if (filter.getTrxType() != null) {
+            stm.setString(++parameterIndex, filter.getTrxType().toString());
+        }
+
+        if (filter.getDateFrom() != null) {
+            stm.setTimestamp(++parameterIndex,
+                    new java.sql.Timestamp(filter.getDateFrom().getTime()));
+        }
+
+        if (filter.getDateTo() != null) {
+            stm.setTimestamp(++parameterIndex,
+                    new java.sql.Timestamp(filter.getDateTo().getTime()));
+        }
+    }
+
+    /**
      *
      * @param connection
+     *            The connection.
      * @param filter
+     *            The filter.
      * @return
      * @throws SQLException
      */
     private static Long getAccountTrxCountSQL(final Connection connection,
             final PaperCutDb.TrxFilter filter) throws SQLException {
 
-        Statement stm = null;
+        PreparedStatement stm = null;
 
         try {
-            final String sql = String.format(
-                    "SELECT COUNT(X.account_id)"
-                            + "\nFROM tbl_account_transaction X"
-                            + "\nLEFT JOIN tbl_account A"
-                            + " ON A.account_id = X.account_id"
-                            + "\nWHERE A.account_name = '%s' "
-                            + "AND A.account_type <> 'SHARED'",
-                    escapeForSql(filter.getUsername()));
+            final StringBuilder sql =
+                    new StringBuilder(SQL_STRINGBUILDER_CAPACITY);
 
-            stm = connection.createStatement();
-            final ResultSet result = stm.executeQuery(sql);
+            sql.append("SELECT COUNT(X.account_id)"
+                    + "\nFROM tbl_account_transaction X"
+                    + "\nLEFT JOIN tbl_account A"
+                    + " ON A.account_id = X.account_id");
+
+            appendAccountTrxCountWhere(sql, filter);
+            stm = connection.prepareStatement(sql.toString());
+            prepareAccountTrxCountWhere(stm, filter);
+
+            final ResultSet result = stm.executeQuery();
             result.next();
             return Long.valueOf(result.getLong(1));
 
@@ -498,6 +609,22 @@ public abstract class PaperCutDb {
     }
 
     /**
+     * Uses PaperCut rounding mode to create a BigDecimal from a amount double.
+     *
+     * @param amount
+     *            The amount. The scale of the return value.
+     * @param scale
+     *            The scale of the return value.
+     * @return The {@link BigDecimal} amount.
+     */
+    public static BigDecimal getAmountBigBecimal(final Double amount,
+            final int scale) {
+
+        return BigDecimal.valueOf(amount.doubleValue()).setScale(scale,
+                RoundingMode.UP);
+    }
+
+    /**
      *
      * @param connection
      * @param filter
@@ -515,8 +642,8 @@ public abstract class PaperCutDb {
 
         final StringBuilder sql = new StringBuilder(SQL_STRINGBUILDER_CAPACITY);
 
-        sql.append("SELECT X.transaction_date, X.transaction_type, X.amount, "
-                + "X.balance, X.txn_comment,"
+        sql.append("SELECT X.transaction_date, X.transacted_by, "
+                + "X.transaction_type, X.amount, X.balance, X.txn_comment,"
                 + "\nL.document_name, L.total_pages, L.total_sheets, "
                 + "L.total_color_pages,"
                 + "\nL.copies, L.paper_size, L.denied_reason, L.duplex, "
@@ -527,9 +654,7 @@ public abstract class PaperCutDb {
                 + "\nLEFT JOIN tbl_printer_usage_log L"
                 + " ON L.printer_usage_log_id = X.usage_log_id");
 
-        sql.append("\nWHERE A.account_name = '");
-        sql.append(escapeForSql(filter.getUsername()));
-        sql.append("' AND A.account_type <> 'SHARED'");
+        appendAccountTrxCountWhere(sql, filter);
 
         sql.append(" ORDER BY ");
 
@@ -554,45 +679,52 @@ public abstract class PaperCutDb {
 
         final List<PaperCutAccountTrx> usageLogList = new ArrayList<>();
 
-        Statement statement = null;
-        ResultSet resultset = null;
+        PreparedStatement stm = null;
+        ResultSet rs = null;
 
         boolean finished = false;
 
         try {
 
-            statement = connection.createStatement();
-            resultset = statement.executeQuery(sql.toString());
+            stm = connection.prepareStatement(sql.toString());
+            prepareAccountTrxCountWhere(stm, filter);
 
-            while (resultset.next()) {
+            rs = stm.executeQuery();
 
-                final PaperCutAccountTrx usageLog = new PaperCutAccountTrx();
+            while (rs.next()) {
 
-                usageLog.setDocumentName(resultset.getString("document_name"));
+                final PaperCutAccountTrx trx = new PaperCutAccountTrx();
 
-                usageLog.setPrinted(StringUtils
-                        .defaultString(resultset.getString("printed"))
-                        .equalsIgnoreCase("Y"));
+                trx.setTransactionDate(new Date(
+                        rs.getTimestamp("transaction_date").getTime()));
 
-                usageLog.setCancelled(StringUtils
-                        .defaultString(resultset.getString("cancelled"))
-                        .equalsIgnoreCase("Y"));
+                trx.setTransactedBy(rs.getString("transacted_by"));
+                trx.setDocumentName(rs.getString("document_name"));
 
-                usageLog.setDeniedReason(resultset.getString("denied_reason"));
+                trx.setPrinted(
+                        StringUtils.defaultString(rs.getString("printed"))
+                                .equalsIgnoreCase("Y"));
 
-                usageLog.setUsageCost(resultset.getDouble("amount"));
+                trx.setCancelled(
+                        StringUtils.defaultString(rs.getString("cancelled"))
+                                .equalsIgnoreCase("Y"));
 
-                // TODO
+                trx.setDeniedReason(rs.getString("denied_reason"));
+
+                trx.setAmount(rs.getDouble("amount"));
+                trx.setBalance(rs.getDouble("balance"));
+                trx.setComment(rs.getString("txn_comment"));
+                trx.setTransactionType(rs.getString("transaction_type"));
 
                 //
-                usageLogList.add(usageLog);
+                usageLogList.add(trx);
             }
 
             finished = true;
 
         } finally {
 
-            silentClose(resultset, statement);
+            silentClose(rs, stm);
 
             if (!finished) {
                 LOGGER.error(sql.toString());

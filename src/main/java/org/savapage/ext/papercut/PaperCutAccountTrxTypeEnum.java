@@ -19,32 +19,29 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.i18n;
+package org.savapage.ext.papercut;
 
 import java.util.Locale;
 
 import org.savapage.core.util.LocaleHelper;
 
 /**
- * Common phrases.
  *
  * @author Rijk Ravestein
  *
  */
-public enum PhraseEnum {
+public enum PaperCutAccountTrxTypeEnum {
 
     /** */
-    ACTIVATE_CARD_READER,
+    ADJUST,
     /** */
-    REALTIME_ACTIVITY,
+    INITIAL,
     /** */
-    SELECT_AND_SORT,
+    PRINT,
     /** */
-    SWIPE_CARD,
+    PRINT_REFUND,
     /** */
-    SYS_MAINTENANCE,
-    /** */
-    USER_DELETE_WARNING;
+    WEB_CASHIER;
 
     /**
      * @param locale

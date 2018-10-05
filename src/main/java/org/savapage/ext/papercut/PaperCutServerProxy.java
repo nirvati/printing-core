@@ -22,7 +22,6 @@
 package org.savapage.ext.papercut;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -724,9 +723,7 @@ public final class PaperCutServerProxy {
         final Double balance =
                 (Double) call("api.getUserAccountBalance", params);
 
-        // Use PaperCut rounding mode.
-        return BigDecimal.valueOf(balance.doubleValue()).setScale(scale,
-                RoundingMode.UP);
+        return PaperCutDb.getAmountBigBecimal(balance.doubleValue(), scale);
     }
 
     /**

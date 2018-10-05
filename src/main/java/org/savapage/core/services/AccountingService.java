@@ -195,6 +195,20 @@ public interface AccountingService {
             String currencySymbol);
 
     /**
+     * Formats a user balance (using the right number of decimals).
+     *
+     * @param balance
+     *            The user balance.
+     * @param locale
+     *            The {@link Locale}.
+     * @param currencySymbol
+     *            The currency symbol.
+     * @return The formatted balance.
+     */
+    String formatUserBalance(BigDecimal balance, Locale locale,
+            String currencySymbol);
+
+    /**
      * Gets the {@link Account} information of a {@link User} meant for display.
      * A {@link UserAccount} is lazy created when needed.
      *

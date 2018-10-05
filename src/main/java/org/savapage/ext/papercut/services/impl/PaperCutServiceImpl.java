@@ -341,7 +341,9 @@ public final class PaperCutServiceImpl extends AbstractService
             connection = this.dbProxyPool.openConnection();
             return this.dbProxyPool.getAccountTrxCount(connection, filter);
         } finally {
-            this.dbProxyPool.closeConnection(connection);
+            if (connection != null) {
+                this.dbProxyPool.closeConnection(connection);
+            }
         }
     }
 
@@ -358,7 +360,9 @@ public final class PaperCutServiceImpl extends AbstractService
             return this.dbProxyPool.getAccountTrxChunk(connection, filter,
                     startPosition, maxResults, orderBy, sortAscending);
         } finally {
-            this.dbProxyPool.closeConnection(connection);
+            if (connection != null) {
+                this.dbProxyPool.closeConnection(connection);
+            }
         }
     }
 

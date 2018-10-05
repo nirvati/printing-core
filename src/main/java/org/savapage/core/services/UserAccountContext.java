@@ -19,40 +19,30 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.i18n;
+package org.savapage.core.services;
 
 import java.util.Locale;
 
-import org.savapage.core.util.LocaleHelper;
+import org.savapage.core.jpa.User;
 
 /**
- * Common phrases.
  *
  * @author Rijk Ravestein
  *
  */
-public enum PhraseEnum {
-
-    /** */
-    ACTIVATE_CARD_READER,
-    /** */
-    REALTIME_ACTIVITY,
-    /** */
-    SELECT_AND_SORT,
-    /** */
-    SWIPE_CARD,
-    /** */
-    SYS_MAINTENANCE,
-    /** */
-    USER_DELETE_WARNING;
+public interface UserAccountContext {
 
     /**
+     * Gets the formatted balance of a {@link User}.
+     *
+     * @param user
+     *            The non-null {@link User}.
      * @param locale
-     *            The {@link Locale}.
-     * @return The localized text.
+     *            The {@link Locale} for formatting.
+     * @param currencySymbol
+     *            The currency symbol (can be {@code null}).
+     * @return Zero balance when User Account is NOT present.
      */
-    public String uiText(final Locale locale) {
-        return LocaleHelper.uiText(this, locale);
-    }
-
+    String getFormattedUserBalance(User user, Locale locale,
+            String currencySymbol);
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,10 @@
  */
 package org.savapage.core.dao.enums;
 
+import java.util.Locale;
+
 import org.savapage.core.jpa.AccountTrx;
+import org.savapage.core.util.LocaleHelper;
 
 /**
  * The trigger (reason why) for a credit assignment or change.
@@ -85,5 +88,15 @@ public enum AccountTrxTypeEnum {
     /**
      * "Voucher use".
      */
-    VOUCHER
+    VOUCHER;
+
+    /**
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public String uiText(final Locale locale) {
+        return LocaleHelper.uiText(this, locale);
+    }
+
 }

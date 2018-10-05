@@ -40,6 +40,9 @@ public enum AdjectiveEnum {
     APPROVED, REJECTED,
 
     /** */
+    ASCENDING, DESCENDING,
+
+    /** */
     VALID, INVALID,
 
     /** */

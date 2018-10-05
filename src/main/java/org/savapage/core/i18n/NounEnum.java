@@ -46,6 +46,8 @@ public enum NounEnum {
     /** */
     DATABASE,
     /** */
+    DATE(true),
+    /** */
     DELEGATE(true),
     /** */
     DELEGATOR(true),
@@ -74,6 +76,8 @@ public enum NounEnum {
     /** */
     PASSWORD(true),
     /** */
+    PERIOD(true),
+    /** */
     PREFERRED_LIST,
     /** */
     PRINTER(true),
@@ -83,6 +87,8 @@ public enum NounEnum {
     REMARK(true),
     /** */
     REPORT,
+    /** */
+    SORTING,
     /** */
     STATISTICS,
     /** */
@@ -95,6 +101,8 @@ public enum NounEnum {
     TOTAL(true),
     /** */
     TRANSACTION(true),
+    /** */
+    TYPE(true),
     /** */
     USER(true);
 

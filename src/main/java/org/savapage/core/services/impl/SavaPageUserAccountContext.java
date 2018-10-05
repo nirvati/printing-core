@@ -19,40 +19,47 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.i18n;
+package org.savapage.core.services.impl;
 
 import java.util.Locale;
 
-import org.savapage.core.util.LocaleHelper;
+import org.savapage.core.jpa.User;
+import org.savapage.core.services.AccountingService;
+import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.UserAccountContext;
 
 /**
- * Common phrases.
  *
  * @author Rijk Ravestein
  *
  */
-public enum PhraseEnum {
+public final class SavaPageUserAccountContext implements UserAccountContext {
 
     /** */
-    ACTIVATE_CARD_READER,
+    private static final AccountingService ACCOUNTING_SERVICE =
+            ServiceContext.getServiceFactory().getAccountingService();
+
     /** */
-    REALTIME_ACTIVITY,
-    /** */
-    SELECT_AND_SORT,
-    /** */
-    SWIPE_CARD,
-    /** */
-    SYS_MAINTENANCE,
-    /** */
-    USER_DELETE_WARNING;
+    private static class SingletonHolder {
+        /** */
+        public static final UserAccountContext INSTANCE =
+                new SavaPageUserAccountContext();
+    }
 
     /**
-     * @param locale
-     *            The {@link Locale}.
-     * @return The localized text.
+     * Gets the singleton instance.
+     *
+     * @return The singleton.
      */
-    public String uiText(final Locale locale) {
-        return LocaleHelper.uiText(this, locale);
+    public static UserAccountContext instance() {
+        return SingletonHolder.INSTANCE;
+    }
+
+    @Override
+    public String getFormattedUserBalance(final User user, final Locale locale,
+            final String currencySymbol) {
+        return ACCOUNTING_SERVICE.getFormattedUserBalance(user, locale,
+                currencySymbol);
     }
 
 }

@@ -1361,13 +1361,20 @@ public final class AccountingServiceImpl extends AbstractService
     private String formatUserBalance(final UserAccount userAccount,
             final Locale locale, final String currencySymbol) {
 
-        final BigDecimal userBalance;
+        final BigDecimal balance;
 
         if (userAccount != null) {
-            userBalance = userAccount.getAccount().getBalance();
+            balance = userAccount.getAccount().getBalance();
         } else {
-            userBalance = BigDecimal.ZERO;
+            balance = BigDecimal.ZERO;
         }
+
+        return formatUserBalance(balance, locale, currencySymbol);
+    }
+
+    @Override
+    public String formatUserBalance(final BigDecimal balance,
+            final Locale locale, final String currencySymbol) {
 
         final String currencySymbolWrk;
 
@@ -1378,11 +1385,9 @@ public final class AccountingServiceImpl extends AbstractService
         }
 
         try {
-
-            return BigDecimalUtil.localize(userBalance,
+            return BigDecimalUtil.localize(balance,
                     ConfigManager.getUserBalanceDecimals(), locale,
                     currencySymbolWrk, true);
-
         } catch (ParseException e) {
             throw new SpException(e);
         }
