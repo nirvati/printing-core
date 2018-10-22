@@ -244,11 +244,11 @@ public final class EcoPrintPdfTask
                 imageOut = new File(String.format("%s/%s.png", pathTmpDir,
                         UUID.randomUUID().toString()));
 
-                final Pdf2ImgCommand cmd = new Pdf2PngPopplerCmd();
+                final Pdf2ImgCommand cmd =
+                        new Pdf2ImgCairoCmd(Pdf2ImgCairoCmd.ImgType.JPEG);
 
                 final String command = cmd.createCommand(taskInfo.getPdfIn(),
                         pageLandscape, pageRotation, imageOut, i,
-                        // seenAsLandscape, 0, imageOut, i,
                         taskInfo.getResolution().intValue(), 0);
 
                 final ICommandExecutor exec =
@@ -259,8 +259,7 @@ public final class EcoPrintPdfTask
                     final StringBuilder msg = new StringBuilder();
                     msg.append("image [").append(imageOut.getAbsolutePath())
                             .append("] could not be created. Command [")
-                            .append(command)
-                            .append("] Error [").append(exec
+                            .append(command).append("] Error [").append(exec
                                     .getStandardErrorFromCommand().toString())
                             .append("]");
 

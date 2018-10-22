@@ -26,9 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Paths;
 
-import org.apache.commons.io.FilenameUtils;
 import org.savapage.core.pdf.ITextPdfCreator;
 
 import com.itextpdf.text.Document;
@@ -42,7 +40,13 @@ import com.itextpdf.text.pdf.PdfReader;
  * @author Rijk Ravestein
  *
  */
-public final class PdfToBooklet implements IPdfConverter {
+public final class PdfToBooklet extends AbstractPdfConverter
+        implements IPdfConverter {
+
+    /**
+     * A unique suffix to type the kind of PDF convert.
+     */
+    private static final String OUTPUT_FILE_SFX = "booklet";
 
     /**
      * Number of virtual pages on 2-up duplex sheet.
@@ -50,15 +54,10 @@ public final class PdfToBooklet implements IPdfConverter {
     private static final int PAGES_ON_SHEET = 4;
 
     /**
-     * The directory location of the created file (can be {@code null}).
-     */
-    private final File createHome;
-
-    /**
      *
      */
     public PdfToBooklet() {
-        this.createHome = null;
+        super();
     }
 
     /**
@@ -67,32 +66,7 @@ public final class PdfToBooklet implements IPdfConverter {
      *            The directory location of the created file.
      */
     public PdfToBooklet(final File createDir) {
-        this.createHome = createDir;
-    }
-
-    /**
-     * Gets PDF output file.
-     *
-     * @param fileIn
-     *            The PDF input file.
-     * @return The file.
-     */
-    private File getOutputFile(final File fileIn) {
-
-        final String homeDir;
-
-        if (this.createHome == null) {
-            homeDir = fileIn.getParent();
-        } else {
-            homeDir = this.createHome.getAbsolutePath();
-        }
-
-        final StringBuilder fileName = new StringBuilder(128);
-        fileName.append(FilenameUtils.getBaseName(fileIn.getAbsolutePath()))
-                .append("-booklet.")
-                .append(DocContent.getFileExtension(DocContentTypeEnum.PDF));
-
-        return Paths.get(homeDir, fileName.toString()).toFile();
+        super(createDir);
     }
 
     /**
@@ -124,7 +98,7 @@ public final class PdfToBooklet implements IPdfConverter {
      *
      * @param nPages
      *            Number of pages in input PDF document.
-     * @return Number of balnk pages.
+     * @return Number of blank pages.
      */
     private static int calcBlankPages(final int nPages) {
         int nPagesBlank = 0;
@@ -197,6 +171,11 @@ public final class PdfToBooklet implements IPdfConverter {
             }
         }
         return pdfOut;
+    }
+
+    @Override
+    protected String getOutputFileSfx() {
+        return OUTPUT_FILE_SFX;
     }
 
 }
