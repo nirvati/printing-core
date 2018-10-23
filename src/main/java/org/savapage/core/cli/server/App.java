@@ -21,6 +21,7 @@
  */
 package org.savapage.core.cli.server;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +33,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.savapage.core.cli.AbstractApp;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.util.InetUtils;
 
 /**
  * <p>
@@ -173,12 +175,26 @@ public final class App extends AbstractApp {
         return null;
     }
 
+    /**
+     * @return The server host address description.
+     */
+    private String getApiDescriptServerAddress() {
+        final StringBuilder str = new StringBuilder("Server host address: ");
+        try {
+            str.append(InetUtils.getServerHostAddress());
+        } catch (UnknownHostException e) {
+            str.append("unknown");
+        }
+        return str.append(System.lineSeparator()).toString();
+    }
+
     @Override
     public int run(final String[] args) throws Exception {
 
         final String cmdLineSyntax = "[METHOD] [OPTION]...";
 
         final String descript = AbstractAppApi.getApiDescriptHeader()
+                + getApiDescriptServerAddress() + System.lineSeparator()
                 + "Note: use METHOD --help for method details.";
 
         // ......................................................
