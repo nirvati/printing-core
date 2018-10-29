@@ -42,11 +42,12 @@ import javax.persistence.TableGenerator;
  *
  */
 @Entity
-@Table(name = UserV01.TABLE_NAME,
-        indexes = { //
-                // Note that we can NOT use a unique index since Users are
-                // LOGICALLY deleted.
-                @Index(name = "ix_user_1", columnList = "user_name") })
+@Table(name = UserV01.TABLE_NAME, indexes = { //
+        // Note that we can NOT use a unique index since Users are
+        // LOGICALLY deleted.
+        @Index(name = "ix_user_1", columnList = "user_name"), //
+        @Index(name = "ix_user_2", columnList = "full_name")//
+})
 public class UserV01 implements SchemaEntityVersion {
 
     /**

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,6 +32,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
@@ -43,10 +44,13 @@ import javax.persistence.UniqueConstraint;
  *
  */
 @Entity
-@Table(name = UserGroupV01.TABLE_NAME, uniqueConstraints = { @UniqueConstraint(
-        columnNames = { "group_name" }, name = "uc_user_group_1") })
-public class UserGroupV01 extends org.savapage.core.jpa.Entity implements
-        SchemaEntityVersion {
+@Table(name = UserGroupV01.TABLE_NAME, //
+        indexes = {
+                @Index(name = "ix_user_group_1", columnList = "full_name") },
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "group_name" },
+                name = "uc_user_group_1") })
+public class UserGroupV01 extends org.savapage.core.jpa.Entity
+        implements SchemaEntityVersion {
 
     /**
      *
@@ -57,14 +61,17 @@ public class UserGroupV01 extends org.savapage.core.jpa.Entity implements
     @Column(name = "user_group_id")
     @TableGenerator(name = "userGroupPropGen", table = SequenceV01.TABLE_NAME,
             pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
-            pkColumnValue = TABLE_NAME, allocationSize = 1)
+            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
+            allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "userGroupPropGen")
     private Long id;
 
     @Column(name = "group_name", length = 255, nullable = false)
     private String groupName;
+
+    @Column(name = "full_name", length = 255, nullable = true)
+    private String fullName;
 
     /**
      *
@@ -174,6 +181,14 @@ public class UserGroupV01 extends org.savapage.core.jpa.Entity implements
         this.groupName = groupName;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
     public Boolean getInitialSettingsEnabled() {
         return initialSettingsEnabled;
     }
@@ -210,7 +225,8 @@ public class UserGroupV01 extends org.savapage.core.jpa.Entity implements
         return initialUseGlobalOverdraft;
     }
 
-    public void setInitialUseGlobalOverdraft(Boolean initialUseGlobalOverdraft) {
+    public void
+            setInitialUseGlobalOverdraft(Boolean initialUseGlobalOverdraft) {
         this.initialUseGlobalOverdraft = initialUseGlobalOverdraft;
     }
 

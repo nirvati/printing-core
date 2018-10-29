@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -102,6 +102,8 @@ public final class ConfigPropImpl implements IConfigProp {
                 //
                 new LdapProp(LdapType.OPEN_LDAP,
                         Key.LDAP_SCHEMA_GROUP_NAME_FIELD, "cn"),
+                new LdapProp(LdapType.OPEN_LDAP,
+                        Key.LDAP_SCHEMA_GROUP_FULL_NAME_FIELD, "displayName"),
 
                 //
                 new LdapProp(LdapType.OPEN_LDAP, Key.LDAP_SCHEMA_GROUP_SEARCH,
@@ -134,6 +136,8 @@ public final class ConfigPropImpl implements IConfigProp {
 
                 new LdapProp(LdapType.OPEN_DIR,
                         Key.LDAP_SCHEMA_GROUP_NAME_FIELD, "cn"),
+                new LdapProp(LdapType.OPEN_DIR,
+                        Key.LDAP_SCHEMA_GROUP_FULL_NAME_FIELD, "displayName"),
 
                 new LdapProp(LdapType.OPEN_DIR, Key.LDAP_SCHEMA_GROUP_SEARCH,
                         "(memberUid={0})"),
@@ -163,8 +167,12 @@ public final class ConfigPropImpl implements IConfigProp {
                         "member"),
                 new LdapProp(LdapType.EDIR, Key.LDAP_SCHEMA_GROUP_NAME_FIELD,
                         "cn"),
+                new LdapProp(LdapType.EDIR,
+                        Key.LDAP_SCHEMA_GROUP_FULL_NAME_FIELD, "fullName"),
+
                 new LdapProp(LdapType.EDIR, Key.LDAP_SCHEMA_GROUP_SEARCH,
                         "(&(member={0})(objectClass=groupOfNames))"),
+
                 new LdapProp(LdapType.EDIR, Key.LDAP_SCHEMA_POSIX_GROUPS, V_NO),
                 new LdapProp(LdapType.EDIR,
                         Key.LDAP_SCHEMA_USER_DEPARTMENT_FIELD, "OU"),
@@ -186,6 +194,8 @@ public final class ConfigPropImpl implements IConfigProp {
                         "member"),
                 new LdapProp(LdapType.ACTD, Key.LDAP_SCHEMA_GROUP_NAME_FIELD,
                         "sAMAccountName"),
+                new LdapProp(LdapType.ACTD,
+                        Key.LDAP_SCHEMA_GROUP_FULL_NAME_FIELD, "displayName"),
 
                 new LdapProp(LdapType.ACTD, Key.LDAP_SCHEMA_GROUP_SEARCH,
                         "(&(sAMAccountName={0})(objectCategory=group))"),

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -31,20 +31,23 @@ import org.savapage.core.rfid.RfidNumberFormat;
 /**
  * An empty user source.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public final class NoUserSource extends AbstractUserSource implements
-        IUserSource {
+public final class NoUserSource extends AbstractUserSource
+        implements IUserSource {
 
     @Override
-    public SortedSet<String> getGroups() {
-        SortedSet<String> sset = new TreeSet<>(new IgnoreCaseComparator());
+    public SortedSet<CommonUserGroup> getGroups() {
+        final SortedSet<CommonUserGroup> sset =
+                new TreeSet<>(new CommonUserGroupComparator());
         return sset;
     }
 
     @Override
     public SortedSet<CommonUser> getUsers() {
-        SortedSet<CommonUser> sset = new TreeSet<>(new CommonUserComparator());
+        final SortedSet<CommonUser> sset =
+                new TreeSet<>(new CommonUserComparator());
         return sset;
     }
 
@@ -101,6 +104,11 @@ public final class NoUserSource extends AbstractUserSource implements
             final boolean indent) {
         final List<String> list = new ArrayList<>();
         return list;
+    }
+
+    @Override
+    public CommonUserGroup getGroup(final String groupName) {
+        return null;
     }
 
 }

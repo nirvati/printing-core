@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -33,7 +33,7 @@ import org.savapage.core.jpa.schema.UserGroupV01;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -46,6 +46,9 @@ public class XUserGroupV01 extends XEntityVersion {
 
     @Column(name = "group_name", length = 255, nullable = false)
     private String groupName;
+
+    @Column(name = "full_name", length = 255, nullable = true)
+    private String fullName;
 
     @Column(name = "initial_settings_enabled", nullable = false)
     private Boolean initialSettingsEnabled = true;
@@ -124,6 +127,14 @@ public class XUserGroupV01 extends XEntityVersion {
         this.groupName = groupName;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
     public Boolean getInitialSettingsEnabled() {
         return initialSettingsEnabled;
     }
@@ -160,7 +171,8 @@ public class XUserGroupV01 extends XEntityVersion {
         return initialUseGlobalOverdraft;
     }
 
-    public void setInitialUseGlobalOverdraft(Boolean initialUseGlobalOverdraft) {
+    public void
+            setInitialUseGlobalOverdraft(Boolean initialUseGlobalOverdraft) {
         this.initialUseGlobalOverdraft = initialUseGlobalOverdraft;
     }
 

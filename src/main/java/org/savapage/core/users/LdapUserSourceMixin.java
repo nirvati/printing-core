@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -63,7 +63,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Abstract LDAP User Source.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class LdapUserSourceMixin extends AbstractUserSource
@@ -730,10 +730,10 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
     }
 
     @Override
-    public final SortedSet<String> getGroups() {
+    public final SortedSet<CommonUserGroup> getGroups() {
 
-        final SortedSet<String> sset =
-                new TreeSet<>(new IgnoreCaseComparator());
+        final SortedSet<CommonUserGroup> sset =
+                new TreeSet<>(new CommonUserGroupComparator());
 
         final String ldapFilterExpression =
                 getGroupSearchExpression(LDAP_SEARCH_WILDCARD_ALL);
@@ -744,8 +744,11 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
 
         try {
 
-            final String groupField =
+            final String groupNameField =
                     getLdapConfigValue(Key.LDAP_SCHEMA_GROUP_NAME_FIELD);
+
+            final String groupFullNameField =
+                    getLdapConfigValue(Key.LDAP_SCHEMA_GROUP_FULL_NAME_FIELD);
 
             final SearchControls searchControls = new SearchControls();
 
@@ -771,19 +774,10 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                         ldapPager.nextPage();
 
                 try {
-
                     while (results.hasMoreElements()) {
-
-                        final SearchResult searchResult = results.next();
-                        final Attributes attributes =
-                                searchResult.getAttributes();
-
-                        final String groupName =
-                                attributes.get(groupField).get().toString();
-
-                        sset.add(groupName);
+                        sset.add(getCommonUserGroup(groupNameField,
+                                groupFullNameField, results.next()));
                     }
-
                 } finally {
                     closeResources(results, null);
                 }
@@ -803,10 +797,47 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
         return sset;
     }
 
+    /**
+     *
+     * @param groupNameField
+     *            The LDAP field that contains the group's name.
+     * @param groupFullNameField
+     *            The LDAP field that contains the group's full name.
+     * @param searchResult
+     *            The LDAP search result.
+     * @return The {@link CommonUserGroup}
+     * @throws NamingException
+     *             When LDAP error.
+     */
+    private static CommonUserGroup getCommonUserGroup(
+            final String groupNameField, final String groupFullNameField,
+            final SearchResult searchResult) throws NamingException {
+
+        final Attributes attributes = searchResult.getAttributes();
+
+        final String groupName =
+                attributes.get(groupNameField).get().toString();
+
+        final String groupFullName;
+
+        if (attributes.get(groupFullNameField) == null) {
+            groupFullName = null;
+        } else {
+            groupFullName = attributes.get(groupFullNameField).get().toString();
+        }
+
+        return new CommonUserGroup(groupName, groupFullName);
+    }
+
     @Override
     public final boolean isGroupPresent(final String groupName) {
+        return this.getGroup(groupName) != null;
+    }
 
-        boolean found = false;
+    @Override
+    public final CommonUserGroup getGroup(final String groupName) {
+
+        CommonUserGroup commonUserGroup = null;
 
         final String providerUrl = getProviderUrlBaseDn();
 
@@ -832,7 +863,11 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
             results = ctx.search("", ldapFilterExpression, controls);
 
             if (results.hasMoreElements()) {
-                found = true;
+                commonUserGroup = getCommonUserGroup(
+                        getLdapConfigValue(Key.LDAP_SCHEMA_GROUP_NAME_FIELD),
+                        getLdapConfigValue(
+                                Key.LDAP_SCHEMA_GROUP_FULL_NAME_FIELD),
+                        results.next());
             }
 
         } catch (NamingException e) {
@@ -840,13 +875,13 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
             LOGGER.error(String.format("isGroupPresent(\"%s\"): %s", groupName,
                     e.getMessage()));
 
-            found = false;
+            commonUserGroup = null;
 
         } finally {
             closeResources(results, ctx);
         }
 
-        return found;
+        return commonUserGroup;
     }
 
     /**

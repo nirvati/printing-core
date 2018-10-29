@@ -146,10 +146,10 @@ public final class UnixUserSource extends AbstractUserSource
     }
 
     @Override
-    public SortedSet<String> getGroups() {
+    public SortedSet<CommonUserGroup> getGroups() {
 
-        final SortedSet<String> sset =
-                new TreeSet<>(new IgnoreCaseComparator());
+        final SortedSet<CommonUserGroup> sset =
+                new TreeSet<>(new CommonUserGroupComparator());
 
         final ICommandExecutor exec =
                 CommandExecutor.create(getModuleNssPath() + " --user-groups");
@@ -168,7 +168,7 @@ public final class UnixUserSource extends AbstractUserSource
                     exec.getStandardOutputFromCommand().toString());
 
             while (tokenizer.hasMoreTokens()) {
-                sset.add(tokenizer.nextToken());
+                sset.add(new CommonUserGroup(tokenizer.nextToken()));
             }
 
         } catch (Exception e) {
@@ -264,7 +264,8 @@ public final class UnixUserSource extends AbstractUserSource
     /**
      *
      * @param line
-     * @return
+     *            The stdout line.
+     * @return The common user.
      */
     private CommonUser parseUserDetails(final String line) {
 
@@ -413,6 +414,14 @@ public final class UnixUserSource extends AbstractUserSource
             final boolean indent) {
         final List<String> list = new ArrayList<>();
         return list;
+    }
+
+    @Override
+    public CommonUserGroup getGroup(final String groupName) {
+        if (this.isGroupPresent(groupName)) {
+            return new CommonUserGroup(groupName);
+        }
+        return null;
     }
 
 }

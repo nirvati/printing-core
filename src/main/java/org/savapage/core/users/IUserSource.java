@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,17 +28,27 @@ import org.savapage.core.rfid.RfidNumberFormat;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface IUserSource {
 
     /**
-     * Get sorted set (ascending, case insensitive) of group names.
+     * Get user groups, sorted ascending (case insensitive) by group name.
      *
      * @return The groups or an empty set when no groups are found.
      */
-    SortedSet<String> getGroups();
+    SortedSet<CommonUserGroup> getGroups();
+
+    /**
+     * Gets details of a user from the user source.
+     *
+     * @param groupName
+     *            The unique group name.
+     * @return The user group details or {@code null} when the user groujp was
+     *         not found in the user source.
+     */
+    CommonUserGroup getGroup(String groupName);
 
     /**
      * Gets hierarchy of group names.
@@ -66,7 +76,7 @@ public interface IUserSource {
      *            The name of the group.
      * @return {@code true} if group is present.
      */
-    boolean isGroupPresent(final String groupName);
+    boolean isGroupPresent(String groupName);
 
     /**
      * Is the user member of group?

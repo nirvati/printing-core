@@ -862,6 +862,12 @@ public interface IConfigProp {
                 "ldap.schema.group-name-field", API_UPDATABLE_ON),
 
         /**
+         * The LDAP field that contains the group's full name.
+         */
+        LDAP_SCHEMA_GROUP_FULL_NAME_FIELD(//
+                "ldap.schema.group-full-name-field", API_UPDATABLE_ON),
+
+        /**
          * The LDAP search to retrieve the group. The <code>{0}</code> in the
          * search is replaced with {@code *} for all group searches. If no
          * search is defined, the default is
