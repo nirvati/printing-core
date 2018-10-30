@@ -28,7 +28,17 @@ package org.savapage.core.dto;
  */
 public class QuickSearchUserGroupItemDto extends QuickSearchItemPreferredDto {
 
+    private String fullName;
+
     private long userCount;
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
 
     public long getUserCount() {
         return userCount;

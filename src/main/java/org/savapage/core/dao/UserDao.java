@@ -91,6 +91,7 @@ public interface UserDao extends GenericDao<User> {
         private Long userGroupId;
         private String containingIdText;
         private String containingNameText;
+        private String containingNameOrIdText;
         private String containingEmailText;
         private Boolean internal;
         private Boolean admin;
@@ -126,6 +127,14 @@ public interface UserDao extends GenericDao<User> {
 
         public void setContainingNameText(String containingNameText) {
             this.containingNameText = containingNameText;
+        }
+
+        public String getContainingNameOrIdText() {
+            return containingNameOrIdText;
+        }
+
+        public void setContainingNameOrIdText(String containingNameOrIdText) {
+            this.containingNameOrIdText = containingNameOrIdText;
         }
 
         public String getContainingEmailText() {

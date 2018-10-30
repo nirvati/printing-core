@@ -2650,13 +2650,6 @@ public interface IConfigProp {
                 V_NO, API_UPDATABLE_ON),
 
         /**
-         * User WebApp: Add user ID to delegator name?
-         */
-        WEBAPP_USER_PROXY_PRINT_DELEGATOR_NAME_ID(//
-                "webapp.user.proxy-print.delegator.name-id", BOOLEAN_VALIDATOR,
-                V_YES, API_UPDATABLE_ON),
-
-        /**
          * User WebApp: Can application of selected copies for delegates be
          * switched off in Print Dialog?
          */

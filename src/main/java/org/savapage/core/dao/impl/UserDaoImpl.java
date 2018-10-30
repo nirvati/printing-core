@@ -228,20 +228,31 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             where.append(" G.id = :userGroupId");
         }
 
-        if (filter.getContainingIdText() != null) {
-            if (nWhere > 0) {
-                where.append(" AND");
-            }
-            nWhere++;
-            where.append(" lower(U.userId) like :containingIdText");
-        }
+        if (filter.getContainingNameOrIdText() == null) {
 
-        if (filter.getContainingNameText() != null) {
+            if (filter.getContainingIdText() != null) {
+                if (nWhere > 0) {
+                    where.append(" AND");
+                }
+                nWhere++;
+                where.append(" lower(U.userId) like :containingIdText");
+            }
+
+            if (filter.getContainingNameText() != null) {
+                if (nWhere > 0) {
+                    where.append(" AND");
+                }
+                nWhere++;
+                where.append(" lower(U.fullName) like :containingNameText");
+            }
+        } else {
+
             if (nWhere > 0) {
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" lower(U.fullName) like :containingNameText");
+            where.append(" (lower(U.fullName) like :containingNameOrIdText");
+            where.append(" OR lower(U.userId) like :containingNameOrIdText)");
         }
 
         if (filter.getContainingEmailText() != null) {
@@ -375,14 +386,21 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             query.setParameter("userGroupId", filter.getUserGroupId());
         }
 
-        if (filter.getContainingIdText() != null) {
-            query.setParameter("containingIdText", String.format("%%%s%%",
-                    filter.getContainingIdText().toLowerCase()));
+        if (filter.getContainingNameOrIdText() == null) {
+
+            if (filter.getContainingIdText() != null) {
+                query.setParameter("containingIdText", String.format("%%%s%%",
+                        filter.getContainingIdText().toLowerCase()));
+            }
+            if (filter.getContainingNameText() != null) {
+                query.setParameter("containingNameText", String.format("%%%s%%",
+                        filter.getContainingNameText().toLowerCase()));
+            }
+        } else {
+            query.setParameter("containingNameOrIdText", String.format("%%%s%%",
+                    filter.getContainingNameOrIdText().toLowerCase()));
         }
-        if (filter.getContainingNameText() != null) {
-            query.setParameter("containingNameText", String.format("%%%s%%",
-                    filter.getContainingNameText().toLowerCase()));
-        }
+
         if (filter.getContainingEmailText() != null) {
             query.setParameter("containingEmailText", String.format("%%%s%%",
                     filter.getContainingEmailText().toLowerCase()));

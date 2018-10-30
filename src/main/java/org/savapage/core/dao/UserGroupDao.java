@@ -30,7 +30,7 @@ import org.savapage.core.jpa.UserGroup;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface UserGroupDao extends GenericDao<UserGroup> {
@@ -57,16 +57,35 @@ public interface UserGroupDao extends GenericDao<UserGroup> {
      */
     class ListFilter {
 
-        private String containingText;
+        private String containingIdText;
+        private String containingNameText;
+        private String containingNameOrIdText;
+
         private ACLRoleEnum aclRole;
         private Set<Long> groupIds;
 
-        public String getContainingText() {
-            return containingText;
+        public String getContainingIdText() {
+            return containingIdText;
         }
 
-        public void setContainingText(String containingText) {
-            this.containingText = containingText;
+        public void setContainingIdText(String containingIdText) {
+            this.containingIdText = containingIdText;
+        }
+
+        public String getContainingNameText() {
+            return containingNameText;
+        }
+
+        public void setContainingNameText(String containingNameText) {
+            this.containingNameText = containingNameText;
+        }
+
+        public String getContainingNameOrIdText() {
+            return containingNameOrIdText;
+        }
+
+        public void setContainingNameOrIdText(String containingNameOrIdText) {
+            this.containingNameOrIdText = containingNameOrIdText;
         }
 
         public ACLRoleEnum getAclRole() {

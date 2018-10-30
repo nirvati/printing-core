@@ -151,12 +151,29 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup>
             where.append(" A.name = :roleName AND A.value like :jsonRoleValue");
         }
 
-        if (filter.getContainingText() != null) {
+        if (filter.getContainingNameOrIdText() == null) {
+
+            if (filter.getContainingIdText() != null) {
+                if (nWhere > 0) {
+                    where.append(" AND");
+                }
+                nWhere++;
+                where.append(" lower(C.groupName) like :containingIdText");
+            }
+            if (filter.getContainingNameText() != null) {
+                if (nWhere > 0) {
+                    where.append(" AND");
+                }
+                nWhere++;
+                where.append(" lower(C.fullName) like :containingNameText");
+            }
+        } else {
             if (nWhere > 0) {
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" lower(C.groupName) like :containingText");
+            where.append(" (lower(C.groupName) like :containingNameOrIdText");
+            where.append(" OR lower(C.fullName) like :containingNameOrIdText)");
         }
 
         if (filter.getGroupIds() != null) {
@@ -203,9 +220,18 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup>
             query.setParameter("jsonRoleValue", like.toString());
         }
 
-        if (filter.getContainingText() != null) {
-            query.setParameter("containingText", String.format("%%%s%%",
-                    filter.getContainingText().toLowerCase()));
+        if (filter.getContainingNameOrIdText() == null) {
+            if (filter.getContainingIdText() != null) {
+                query.setParameter("containingIdText", String.format("%%%s%%",
+                        filter.getContainingIdText().toLowerCase()));
+            }
+            if (filter.getContainingNameText() != null) {
+                query.setParameter("containingNameText", String.format("%%%s%%",
+                        filter.getContainingNameText().toLowerCase()));
+            }
+        } else {
+            query.setParameter("containingNameOrIdText", String.format("%%%s%%",
+                    filter.getContainingNameOrIdText().toLowerCase()));
         }
 
         if (filter.getGroupIds() != null) {
