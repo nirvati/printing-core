@@ -88,7 +88,8 @@ public final class UnixUserSource extends AbstractUserSource
      * @return
      */
     private static String getModulePamPath() {
-        return ConfigManager.getServerBinHome() + "/savapage-pam";
+        return String.format("%s%s", ConfigManager.getServerBinHome(),
+                "/savapage-pam");
     }
 
     /**
@@ -96,7 +97,8 @@ public final class UnixUserSource extends AbstractUserSource
      * @return
      */
     private static String getModuleNssPath() {
-        return ConfigManager.getServerBinHome() + "/savapage-nss";
+        return String.format("%s%s", ConfigManager.getServerBinHome(),
+                "/savapage-nss");
     }
 
     @Override
@@ -117,7 +119,7 @@ public final class UnixUserSource extends AbstractUserSource
          * Note: the input on stdin is passed as second argument.
          */
         final ICommandExecutor exec = CommandExecutor.create(getModulePamPath(),
-                uid + "\n" + password);
+                String.format("%s\n%s", uid, password));
 
         try {
             if (exec.executeCommand() != 0) {
@@ -151,8 +153,8 @@ public final class UnixUserSource extends AbstractUserSource
         final SortedSet<CommonUserGroup> sset =
                 new TreeSet<>(new CommonUserGroupComparator());
 
-        final ICommandExecutor exec =
-                CommandExecutor.create(getModuleNssPath() + " --user-groups");
+        final ICommandExecutor exec = CommandExecutor
+                .create(String.format("%s --user-groups", getModuleNssPath()));
 
         try {
             if (exec.executeCommand() != 0) {
@@ -210,13 +212,13 @@ public final class UnixUserSource extends AbstractUserSource
         final String args;
 
         if (group == null) {
-            args = " --users";
+            args = "--users";
         } else {
-            args = " --user-group-members " + group;
+            args = String.format("--user-group-members %s", group);
         }
 
-        final ICommandExecutor exec =
-                CommandExecutor.create(getModuleNssPath() + args);
+        final ICommandExecutor exec = CommandExecutor
+                .create(String.format("%s %s", getModuleNssPath(), args));
 
         try {
             if (exec.executeCommand() == 0) {
@@ -302,10 +304,10 @@ public final class UnixUserSource extends AbstractUserSource
     @Override
     public boolean isGroupPresent(final String groupName) {
 
-        final String args = " --is-user-group " + groupName;
+        final String args = String.format("--is-user-group \"%s\"", groupName);
 
-        final ICommandExecutor exec =
-                CommandExecutor.create(getModuleNssPath() + args);
+        final ICommandExecutor exec = CommandExecutor
+                .create(String.format("%s %s", getModuleNssPath(), args));
 
         try {
             if (exec.executeCommand() != 0) {
@@ -328,13 +330,13 @@ public final class UnixUserSource extends AbstractUserSource
     @Override
     public boolean isUserInGroup(final String uid, final String group) {
 
-        final String args = " --is-user-group-member " + group + " " + uid;
+        final String args =
+                String.format("--is-user-group-member %s %s", group, uid);
 
-        final ICommandExecutor exec =
-                CommandExecutor.create(getModuleNssPath() + args);
+        final ICommandExecutor exec = CommandExecutor
+                .create(String.format("%s %s", getModuleNssPath(), args));
 
         try {
-
             if (exec.executeCommand() != 0) {
 
                 LOGGER.error(exec.getStandardErrorFromCommand().toString());
@@ -360,10 +362,10 @@ public final class UnixUserSource extends AbstractUserSource
     @Override
     public CommonUser getUser(final String uid) {
 
-        final String args = " --user-details " + uid;
+        final String args = String.format("--user-details %s", uid);
 
-        final ICommandExecutor exec =
-                CommandExecutor.create(getModuleNssPath() + args);
+        final ICommandExecutor exec = CommandExecutor
+                .create(String.format("%s %s", getModuleNssPath(), args));
 
         try {
 
