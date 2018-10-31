@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -49,6 +49,12 @@ public final class IppMediaSourceCostDto extends AbstractDto {
     private Boolean active;
 
     /**
+     * Specifies whether the media source is preferred.
+     */
+    @JsonProperty("preferred")
+    private Boolean preferred;
+
+    /**
      * The IPP media-source (tray).
      *
      */
@@ -93,6 +99,14 @@ public final class IppMediaSourceCostDto extends AbstractDto {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public Boolean getPreferred() {
+        return preferred;
+    }
+
+    public void setPreferred(Boolean preferred) {
+        this.preferred = preferred;
     }
 
     public IppMediaCostDto getMedia() {
@@ -147,12 +161,12 @@ public final class IppMediaSourceCostDto extends AbstractDto {
     }
 
     /**
-    *
-    * @return {@code true} If media source is
-    *         {@link IppKeyword#MEDIA_SOURCE_AUTO}.
-    */
-   @JsonIgnore
-   public boolean isAutoSource() {
-       return this.source.equals(IppKeyword.MEDIA_SOURCE_AUTO);
-   }
+     *
+     * @return {@code true} If media source is
+     *         {@link IppKeyword#MEDIA_SOURCE_AUTO}.
+     */
+    @JsonIgnore
+    public boolean isAutoSource() {
+        return this.source.equals(IppKeyword.MEDIA_SOURCE_AUTO);
+    }
 }

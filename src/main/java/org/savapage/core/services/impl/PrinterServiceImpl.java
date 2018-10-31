@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.SpException;
@@ -972,9 +973,15 @@ public final class PrinterServiceImpl extends AbstractService
                     && requestedMedia.equals(
                             assignedMediaSource.getMedia().getMedia())) {
 
-                if (preferredMediaSources == null || preferredMediaSources
-                        .contains(optChoice.getChoice())) {
-                    return optChoice;
+                if (preferredMediaSources == null) {
+                    if (BooleanUtils
+                            .isTrue(assignedMediaSource.getPreferred())) {
+                        return optChoice;
+                    }
+                } else {
+                    if (preferredMediaSources.contains(optChoice.getChoice())) {
+                        return optChoice;
+                    }
                 }
 
                 if (firstFound == null) {
