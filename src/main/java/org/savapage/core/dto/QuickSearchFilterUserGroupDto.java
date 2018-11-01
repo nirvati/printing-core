@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,17 @@ import org.savapage.core.dao.enums.ACLRoleEnum;
 public final class QuickSearchFilterUserGroupDto
         extends QuickSearchFilterPreferredDto {
 
+    private Boolean hideId;
+
     private ACLRoleEnum aclRole;
+
+    public Boolean getHideId() {
+        return hideId;
+    }
+
+    public void setHideId(Boolean hideId) {
+        this.hideId = hideId;
+    }
 
     public ACLRoleEnum getAclRole() {
         return aclRole;

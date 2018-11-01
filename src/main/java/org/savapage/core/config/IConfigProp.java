@@ -2658,6 +2658,20 @@ public interface IConfigProp {
                 BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
+         * User WebApp: Is userid hidden of Delegator User?
+         */
+        WEBAPP_USER_PROXY_PRINT_DELEGATOR_USER_HIDE_ID(//
+                "webapp.user.proxy-print.delegator-user.hide-id",
+                BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
+         * User WebApp: Is group name (id) hidden of Delegator Group?
+         */
+        WEBAPP_USER_PROXY_PRINT_DELEGATOR_GROUP_HIDE_ID(//
+                "webapp.user.proxy-print.delegator-group.hide-id",
+                BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
          * User WebApp: enable the "Print documents separately" option for proxy
          * printing (Boolean). If {@code true} the option is enabled (shown).
          */

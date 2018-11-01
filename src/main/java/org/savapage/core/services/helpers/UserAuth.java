@@ -534,7 +534,7 @@ public class UserAuth {
     /**
      * Check if an authentication mode is allowed.
      * <p>
-     * NOTE: when Card Self Association is enabled, {@link Mode#NAME} is ALWAYS
+     * NOTE: when Card Self Association is enabled, {@link Mode#ID} is ALWAYS
      * allowed.
      * </p>
      *

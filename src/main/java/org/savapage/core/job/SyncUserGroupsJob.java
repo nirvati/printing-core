@@ -147,7 +147,7 @@ public final class SyncUserGroupsJob extends AbstractJob {
             // Groups from external source
             for (final UserGroup group : userGroupDao.getListChunk(
                     new UserGroupDao.ListFilter(), null, null,
-                    UserGroupDao.Field.NAME, true)) {
+                    UserGroupDao.Field.ID, true)) {
 
                 final String groupName = group.getGroupName();
 

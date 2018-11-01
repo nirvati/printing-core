@@ -31,6 +31,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
+import org.savapage.core.SpException;
 import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.dao.enums.UserGroupAttrEnum;
@@ -105,10 +106,12 @@ public final class UserGroupDaoImpl extends GenericDaoImpl<UserGroup>
         //
         jpql.append(" ORDER BY ");
 
-        if (orderBy == Field.NAME) {
+        if (orderBy == Field.ID) {
             jpql.append("C.groupName");
+        } else if (orderBy == Field.NAME) {
+            jpql.append("C.fullName");
         } else {
-            jpql.append("C.groupName");
+            throw new SpException(orderBy.toString() + " not supported.");
         }
 
         if (!sortAscending) {

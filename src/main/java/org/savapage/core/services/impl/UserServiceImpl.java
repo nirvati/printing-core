@@ -3100,7 +3100,7 @@ public final class UserServiceImpl extends AbstractService
          */
         for (final UserGroup userGroup : userGroupDAO().getListChunk(
                 new UserGroupDao.ListFilter(), null, null,
-                UserGroupDao.Field.NAME, true)) {
+                UserGroupDao.Field.ID, true)) {
 
             final String groupName = userGroup.getGroupName();
 

@@ -47,7 +47,11 @@ public interface UserGroupDao extends GenericDao<UserGroup> {
      */
     enum Field {
         /**
-         * Property name.
+         * Group name.
+         */
+        ID,
+        /**
+         * Group full name.
          */
         NAME
     }

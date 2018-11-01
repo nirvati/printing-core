@@ -108,9 +108,9 @@ public final class UserGroupPagerReq extends AbstractPagerReq {
 
         public UserGroupDao.Field getSortField() {
             if (isNameSort()) {
-                return UserGroupDao.Field.NAME;
+                return UserGroupDao.Field.ID;
             }
-            return UserGroupDao.Field.NAME;
+            return UserGroupDao.Field.ID;
         }
 
         public Boolean getAscending() {

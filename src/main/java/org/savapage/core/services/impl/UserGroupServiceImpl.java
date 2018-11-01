@@ -156,7 +156,7 @@ public final class UserGroupServiceImpl extends AbstractService
         final UserGroupDao.ListFilter filter = new UserGroupDao.ListFilter();
 
         final List<UserGroup> list = userGroupDAO().getListChunk(filter,
-                startIndex, itemsPerPage, UserGroupDao.Field.NAME, true);
+                startIndex, itemsPerPage, UserGroupDao.Field.ID, true);
 
         final List<QuickSearchItemDto> items = new ArrayList<>();
 
@@ -345,7 +345,7 @@ public final class UserGroupServiceImpl extends AbstractService
         final SortedSet<CommonUser> members =
                 InternalGroupList.getUsersInGroup(groupName);
 
-        return this.addUserGroupMembers(batchCommitter, groupName, null,
+        return this.addUserGroupMembers(batchCommitter, groupName, groupName,
                 members);
     }
 
@@ -384,7 +384,7 @@ public final class UserGroupServiceImpl extends AbstractService
         final int nMembersTot = members.size();
 
         final int nMembersAdd = this.addUserGroupMembers(batchCommitter,
-                groupName, commonUserGroup.getFullName(), members);
+                groupName, determineFullNameDb(commonUserGroup), members);
 
         return JsonRpcMethodResult.createOkResult(
                 "Group [" + groupName + "] added: [" + nMembersAdd + "] of ["
@@ -685,14 +685,67 @@ public final class UserGroupServiceImpl extends AbstractService
         return userGroupDAO().findByName(groupName);
     }
 
+    /**
+     * Determines user group's full name to be used in the database.
+     *
+     * @param groupSrc
+     *            Raw user group data from source.
+     * @return The full name to be used in the database.
+     */
+    private static String determineFullNameDb(final CommonUserGroup groupSrc) {
+
+        final String name;
+
+        if (StringUtils.isBlank(groupSrc.getFullName())) {
+            name = groupSrc.getGroupName();
+        } else {
+            name = groupSrc.getFullName();
+        }
+        return name;
+    }
+
+    /**
+     * Updates the user group's full name.
+     *
+     * @param userGroupSrc
+     *            The user group from the source.
+     * @param userGroupDb
+     *            The user group from the database.
+     */
+    private static void updateFullName(final CommonUserGroup userGroupSrc,
+            final UserGroup userGroupDb) {
+        /*
+         * Note: commonUserGroup can be null, when user groups are present from
+         * previous user source type.
+         */
+        if (userGroupSrc == null) {
+            return;
+        }
+
+        final String fullNameDb = determineFullNameDb(userGroupSrc);
+
+        if (!StringUtils.defaultString(userGroupDb.getFullName())
+                .equals(fullNameDb)) {
+
+            userGroupDb.setFullName(fullNameDb);
+            userGroupDb.setModifiedBy(ServiceContext.getActor());
+            userGroupDb.setModifiedDate(ServiceContext.getTransactionDate());
+            userGroupDAO().update(userGroupDb);
+        }
+    }
+
     @Override
     public AbstractJsonRpcMethodResponse syncInternalUserGroup(
             final DaoBatchCommitter batchCommitter, final String groupName)
             throws IOException {
 
         final UserGroup userGroup = checkSyncGroupInvariants(groupName);
+
+        updateFullName(new CommonUserGroup(groupName), userGroup);
+
         final SortedSet<CommonUser> source =
                 InternalGroupList.getUsersInGroup(groupName);
+
         return syncUserGroupMembers(batchCommitter, userGroup, source, false);
     }
 
@@ -719,14 +772,7 @@ public final class UserGroupServiceImpl extends AbstractService
          */
         final CommonUserGroup commonUserGroup = userSource.getGroup(groupName);
 
-        if (commonUserGroup != null && !StringUtils
-                .defaultString(userGroup.getFullName()).equals(StringUtils
-                        .defaultString(commonUserGroup.getFullName()))) {
-            userGroup.setFullName(commonUserGroup.getFullName());
-            userGroup.setModifiedBy(ServiceContext.getActor());
-            userGroup.setModifiedDate(ServiceContext.getTransactionDate());
-            userGroupDAO().update(userGroup);
-        }
+        updateFullName(commonUserGroup, userGroup);
 
         final SortedSet<CommonUser> source =
                 userSource.getUsersInGroup(groupName, true);
