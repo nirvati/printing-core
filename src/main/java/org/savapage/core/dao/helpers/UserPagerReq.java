@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Bean for mapping JSON page request.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class UserPagerReq extends AbstractPagerReq {
@@ -75,8 +75,8 @@ public class UserPagerReq extends AbstractPagerReq {
         @JsonProperty("usergroup_id")
         private Long userGroupId;
 
-        @JsonProperty("id_text")
-        private String idContainingText = null;
+        @JsonProperty("name_id_text")
+        private String nameIdContainingText = null;
 
         @JsonProperty("email_text")
         private String emailContainingText = null;
@@ -94,12 +94,12 @@ public class UserPagerReq extends AbstractPagerReq {
             this.userGroupId = userGroupId;
         }
 
-        public String getIdContainingText() {
-            return idContainingText;
+        public String getNameIdContainingText() {
+            return nameIdContainingText;
         }
 
-        public void setIdContainingText(String idContainingText) {
-            this.idContainingText = idContainingText;
+        public void setNameIdContainingText(String nameIdContainingText) {
+            this.nameIdContainingText = nameIdContainingText;
         }
 
         public String getEmailContainingText() {

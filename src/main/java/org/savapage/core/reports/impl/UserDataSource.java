@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -24,10 +24,6 @@ package org.savapage.core.reports.impl;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-
-import net.sf.jasperreports.engine.JRDataSource;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRField;
 
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.UserDao;
@@ -41,13 +37,17 @@ import org.savapage.core.reports.AbstractJrDataSource;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
 
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRField;
+
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class UserDataSource extends AbstractJrDataSource implements
-        JRDataSource {
+public final class UserDataSource extends AbstractJrDataSource
+        implements JRDataSource {
 
     private static final int CHUNK_SIZE = 100;
 
@@ -99,7 +99,8 @@ public final class UserDataSource extends AbstractJrDataSource implements
             }
         }
 
-        filter.setContainingIdText(req.getSelect().getIdContainingText());
+        filter.setContainingNameOrIdText(
+                req.getSelect().getNameIdContainingText());
         filter.setContainingEmailText(req.getSelect().getEmailContainingText());
         filter.setAdmin(req.getSelect().getAdmin());
         filter.setPerson(req.getSelect().getPerson());
@@ -129,13 +130,13 @@ public final class UserDataSource extends AbstractJrDataSource implements
 
         int nSelect = 0;
 
-        if (filter.getContainingIdText() != null) {
+        if (filter.getContainingNameOrIdText() != null) {
             if (nSelect > 0) {
                 where.append(", ");
             }
             nSelect++;
             where.append(localized("userlist-sel-username",
-                    filter.getContainingIdText()));
+                    filter.getContainingNameOrIdText()));
         }
 
         if (filter.getContainingEmailText() != null) {
@@ -158,9 +159,8 @@ public final class UserDataSource extends AbstractJrDataSource implements
                 where.append(localized("userlist-sel-external-users"));
             }
         } else if (filter.getUserGroupId() != null) {
-            final UserGroup group =
-                    ServiceContext.getDaoContext().getUserGroupDao()
-                            .findById(filter.getUserGroupId());
+            final UserGroup group = ServiceContext.getDaoContext()
+                    .getUserGroupDao().findById(filter.getUserGroupId());
             if (group != null) {
                 if (nSelect > 0) {
                     where.append(", ");
@@ -229,12 +229,9 @@ public final class UserDataSource extends AbstractJrDataSource implements
      */
     private void getNextChunk(Integer startPosition, Integer maxResults) {
 
-        this.entryList =
-                ServiceContext
-                        .getDaoContext()
-                        .getUserDao()
-                        .getListChunk(this.filter, startPosition, maxResults,
-                                this.sortField, this.sortAscending);
+        this.entryList = ServiceContext.getDaoContext().getUserDao()
+                .getListChunk(this.filter, startPosition, maxResults,
+                        this.sortField, this.sortAscending);
 
         this.chunkCounter = 0;
         this.iterator = this.entryList.iterator();
@@ -287,9 +284,8 @@ public final class UserDataSource extends AbstractJrDataSource implements
         this.counter++;
         this.chunkCounter++;
 
-        this.accountInfoWlk =
-                accountingService.getAccountDisplayInfo(userWlk, getLocale(),
-                        null);
+        this.accountInfoWlk = accountingService.getAccountDisplayInfo(userWlk,
+                getLocale(), null);
 
         return true;
     }

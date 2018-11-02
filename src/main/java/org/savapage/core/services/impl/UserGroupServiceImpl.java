@@ -384,7 +384,7 @@ public final class UserGroupServiceImpl extends AbstractService
         final int nMembersTot = members.size();
 
         final int nMembersAdd = this.addUserGroupMembers(batchCommitter,
-                groupName, determineFullNameDb(commonUserGroup), members);
+                groupName, determineFullNameDb(commonUserGroup, null), members);
 
         return JsonRpcMethodResult.createOkResult(
                 "Group [" + groupName + "] added: [" + nMembersAdd + "] of ["
@@ -690,15 +690,26 @@ public final class UserGroupServiceImpl extends AbstractService
      *
      * @param groupSrc
      *            Raw user group data from source.
+     * @param groupDb
+     *            The current user group from database. If {@code null}, the
+     *            group is not yet present in database.
      * @return The full name to be used in the database.
      */
-    private static String determineFullNameDb(final CommonUserGroup groupSrc) {
+    private static String determineFullNameDb(final CommonUserGroup groupSrc,
+            final UserGroup groupDb) {
 
         final String name;
 
         if (StringUtils.isBlank(groupSrc.getFullName())) {
-            name = groupSrc.getGroupName();
+            if (groupDb == null || StringUtils.isBlank(groupDb.getFullName())) {
+                // Initialize from user source.
+                name = groupSrc.getGroupName();
+            } else {
+                // Database is leading.
+                name = groupDb.getFullName();
+            }
         } else {
+            // User source is leading.
             name = groupSrc.getFullName();
         }
         return name;
@@ -722,7 +733,8 @@ public final class UserGroupServiceImpl extends AbstractService
             return;
         }
 
-        final String fullNameDb = determineFullNameDb(userGroupSrc);
+        final String fullNameDb =
+                determineFullNameDb(userGroupSrc, userGroupDb);
 
         if (!StringUtils.defaultString(userGroupDb.getFullName())
                 .equals(fullNameDb)) {
