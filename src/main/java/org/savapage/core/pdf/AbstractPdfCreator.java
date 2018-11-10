@@ -22,6 +22,10 @@
 package org.savapage.core.pdf;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -33,6 +37,7 @@ import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.doc.PdfToPgpSignedPdf;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.inbox.InboxInfoDto;
@@ -53,6 +58,9 @@ import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.impl.InboxServiceImpl;
+import org.savapage.lib.pgp.PGPPublicKeyInfo;
+import org.savapage.lib.pgp.PGPSecretKeyInfo;
+import org.savapage.lib.pgp.pdf.PdfPgpVerifyUrl;
 
 /**
  * Strategy for creating PDF document from inbox.
@@ -132,6 +140,9 @@ public abstract class AbstractPdfCreator {
      * find the {@link IppRuleNumberUp}.
      */
     protected PdfOrientationInfo firstPageOrientationInfo;
+
+    /** */
+    private PdfPgpVerifyUrl verifyUrl;
 
     /**
      *
@@ -396,6 +407,8 @@ public abstract class AbstractPdfCreator {
                                     + "PDF export is not permitted");
                 }
             }
+
+            this.verifyUrl = createReq.getVerifyUrl();
         }
 
         /*
@@ -752,6 +765,10 @@ public abstract class AbstractPdfCreator {
 
         try {
             onPdfGenerated(generatedPdf);
+
+            if (!this.isForPrinting() && this.verifyUrl != null) {
+                onPgpSign(generatedPdf, this.verifyUrl);
+            }
         } catch (Exception e) {
             throw new SpException(e.getMessage(), e);
         }
@@ -764,4 +781,50 @@ public abstract class AbstractPdfCreator {
 
         return createInfo;
     }
+
+    /**
+     *
+     * @param generatedPdf
+     *            The PDF.
+     * @param verifyUrl
+     *            The verification URL.
+     * @throws IOException
+     *             When IO error.
+     */
+    private static void onPgpSign(final File generatedPdf,
+            final PdfPgpVerifyUrl verifyUrl) throws IOException {
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        final PGPSecretKeyInfo secKeyInfo = cm.getPGPSecretKeyInfo();
+        final PGPPublicKeyInfo pubKeyInfoSigner = cm.getPGPPublicKeyInfo();
+
+        replaceWithConvertedPdf(generatedPdf,
+                new PdfToPgpSignedPdf(secKeyInfo, pubKeyInfoSigner, verifyUrl)
+                        .convert(generatedPdf));
+    }
+
+    /**
+     * Replaces original PDF file with converted version.
+     *
+     * @param pdfOrginal
+     *            The original PDF file.
+     * @param pdfConverted
+     *            The converted PDF file.
+     * @throws IOException
+     *             When IO error.
+     */
+    protected static void replaceWithConvertedPdf(final File pdfOrginal,
+            final File pdfConverted) throws IOException {
+
+        final Path source = FileSystems.getDefault()
+                .getPath(pdfConverted.getAbsolutePath());
+
+        final Path target =
+                FileSystems.getDefault().getPath(pdfOrginal.getAbsolutePath());
+
+        Files.move(source, target,
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+    }
+
 }

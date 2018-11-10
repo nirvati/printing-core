@@ -41,6 +41,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPSignature;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
@@ -64,11 +65,11 @@ import com.itextpdf.text.pdf.PushbuttonField;
  * @author Rijk Ravestein
  *
  */
-public final class PGPPdfHelper {
+public final class PdfPgpHelper {
 
     /** */
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(PGPPdfHelper.class);
+            LoggerFactory.getLogger(PdfPgpHelper.class);
 
     /** */
     private static final int INT_PDF_COMMENT = '%';
@@ -104,20 +105,20 @@ public final class PGPPdfHelper {
     /** */
     private static final class SingletonHolder {
         /** */
-        static final PGPPdfHelper SINGLETON = new PGPPdfHelper();
+        static final PdfPgpHelper SINGLETON = new PdfPgpHelper();
     }
 
     /**
      * Singleton instantiation.
      */
-    private PGPPdfHelper() {
+    private PdfPgpHelper() {
         Security.addProvider(new BouncyCastleProvider());
     }
 
     /**
      * @return The singleton instance.
      */
-    public static PGPPdfHelper instance() {
+    public static PdfPgpHelper instance() {
         return SingletonHolder.SINGLETON;
     }
 
@@ -138,8 +139,9 @@ public final class PGPPdfHelper {
     }
 
     /**
-     * Appends PGP signature to a PDF, and adds Verify button with one-pass
-     * signed/encrypted Verification Payload URL.
+     * Appends PGP signature to a PDF as % comment, and adds Verify button with
+     * one-pass signed/encrypted Verification Payload URL. Note: the payload is
+     * the PDF owner password.
      *
      * @param fileIn
      *            The PDF to sign.
@@ -157,7 +159,7 @@ public final class PGPPdfHelper {
     public void sign(final File fileIn, final File fileOut,
             final PGPSecretKeyInfo secKeyInfo,
             final List<PGPPublicKeyInfo> pubKeyInfoList,
-            final PGPPdfVerifyUrl urlBuilder) throws PGPBaseException {
+            final PdfPgpVerifyUrl urlBuilder) throws PGPBaseException {
 
         PdfReader reader = null;
         PdfStamper stamper = null;
@@ -224,13 +226,13 @@ public final class PGPPdfHelper {
             reader = null;
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Sign  : {} [{}] bytes",
+                LOGGER.debug("Sign  : Base PDF md5 [{}] [{}] bytes",
                         DigestUtils.md5Hex(new FileInputStream(fileOut)),
                         FileUtils.sizeOf(fileOut));
             }
 
             /*
-             * Append PGP signature as PDF comment.
+             * Append PGP signature of PDF as PDF comment.
              */
             final ByteArrayOutputStream ostrPdfSig =
                     new ByteArrayOutputStream();
@@ -268,11 +270,11 @@ public final class PGPPdfHelper {
      * @param secretKeyInfoList
      *            The {@link PGPSecretKeyInfo} list of (one of) the public keys
      *            the PGP signature content was encrypted with.
-     * @return {@code true} if valid.
+     * @return The {@link PGPSignature}} if valid, or {@code null} when not.
      * @throws PGPBaseException
      *             When errors.
      */
-    public boolean verify(final File pdfSignedFile,
+    public PGPSignature verify(final File pdfSignedFile,
             final List<PGPPublicKey> signPublicKeyList,
             final List<PGPSecretKeyInfo> secretKeyInfoList)
             throws PGPBaseException {
@@ -339,8 +341,8 @@ public final class PGPPdfHelper {
 
             if (LOGGER.isDebugEnabled()) {
                 final byte[] tmp = ostrPdf.toByteArray();
-                LOGGER.debug("Verify: {} [{}] bytes", DigestUtils.md5Hex(tmp),
-                        tmp.length);
+                LOGGER.debug("Verify: Base PDF md5 [{}] [{}] bytes",
+                        DigestUtils.md5Hex(tmp), tmp.length);
             }
 
             /*
@@ -373,10 +375,15 @@ public final class PGPPdfHelper {
 
             final byte[] pgpBytes = bosSignature.toByteArray();
 
-            return PGPHelper.instance().verifySignature(
+            if (PGPHelper.instance().verifySignature(
                     new ByteArrayInputStream(ostrPdf.toByteArray()),
                     new ByteArrayInputStream(pgpBytes),
-                    signPublicKeyList.get(0));
+                    signPublicKeyList.get(0))) {
+
+                return PGPHelper.instance()
+                        .getSignature(new ByteArrayInputStream(pgpBytes));
+            }
+            return null;
 
         } catch (IOException e) {
             throw new PGPBaseException(e.getMessage(), e);

@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 
-import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
@@ -411,69 +410,34 @@ public final class OutputProducer {
      *
      * @see {@link #generatePdf(String, String)}
      *
-     * @param propPdf
-     *            PDF properties to apply.
-     * @param user
-     *            The requesting user.
-     * @param pdfFile
-     *            The name of the PDF file to generate.
-     * @param documentPageRangeFilter
-     *            The page range filter. For example: '1,2,5-6'. The page
-     *            numbers in page range filter refer to one-based page numbers
-     *            of the integrated {@link InboxInfoDto} document. When
-     *            {@code null}, then the full page range is applied.
-     * @param removeGraphics
-     *            If <code>true</code> graphics are removed (minified to
-     *            one-pixel).
-     * @param ecoPdf
-     *            <code>true</code> if Eco PDF is to be generated.
-     * @param grayscale
-     *            <code>true</code> if Grayscale PDF is to be generated.
+     * @param pdfRequest
+     *            The request.
      * @param docLog
      *            The document log to update.
      * @return File object with generated PDF.
+     * @throws IOException
+     *             When IO error.
      * @throws PostScriptDrmException
+     *             When DRM exception.
      * @throws LetterheadNotFoundException
+     *             When letterhead not found.
      * @throws EcoPrintPdfTaskPendingException
      *             When {@link EcoPrintPdfTask} objects needed for this PDF are
      *             pending.
      */
-    public File generatePdfForExport(final User user, final String pdfFile,
-            final String documentPageRangeFilter, final boolean removeGraphics,
-            final boolean ecoPdf, final boolean grayscale, final DocLog docLog)
+    public File generatePdfForExport(final PdfCreateRequest pdfRequest,
+            final DocLog docLog)
             throws IOException, LetterheadNotFoundException,
             PostScriptDrmException, EcoPrintPdfTaskPendingException {
 
         final LinkedHashMap<String, Integer> uuidPageCount =
                 new LinkedHashMap<>();
 
-        /*
-         * Get the (filtered) jobs.
-         */
-        InboxInfoDto inboxInfo = INBOX_SERVICE.getInboxInfo(user.getUserId());
-
-        if (StringUtils.isNotBlank(documentPageRangeFilter)) {
-            inboxInfo = INBOX_SERVICE.filterInboxInfoPages(inboxInfo,
-                    documentPageRangeFilter);
-        }
-
-        final PdfCreateRequest pdfRequest = new PdfCreateRequest();
-
-        pdfRequest.setUserObj(user);
-        pdfRequest.setPdfFile(pdfFile);
-        pdfRequest.setInboxInfo(inboxInfo);
-        pdfRequest.setRemoveGraphics(removeGraphics);
-        pdfRequest.setApplyPdfProps(true);
-        pdfRequest.setApplyLetterhead(true);
-        pdfRequest.setForPrinting(false);
-        pdfRequest.setEcoPdfShadow(ecoPdf);
-        pdfRequest.setGrayscale(grayscale);
-
         final PdfCreateInfo createInfo =
                 generatePdf(pdfRequest, uuidPageCount, docLog);
 
-        DOCLOG_SERVICE.collectData4DocOut(user, docLog, createInfo,
-                uuidPageCount);
+        DOCLOG_SERVICE.collectData4DocOut(pdfRequest.getUserObj(), docLog,
+                createInfo, uuidPageCount);
 
         return createInfo.getPdfFile();
     }

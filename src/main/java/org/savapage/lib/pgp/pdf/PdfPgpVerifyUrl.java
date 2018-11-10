@@ -34,7 +34,7 @@ import org.savapage.lib.pgp.PGPSecretKeyInfo;
  * @author Rijk Ravestein
  *
  */
-public final class PGPPdfVerifyUrl {
+public final class PdfPgpVerifyUrl {
 
     /**
      * Used in this class to set mountPage().
@@ -76,7 +76,7 @@ public final class PGPPdfVerifyUrl {
      * @param port
      *            the port number on the host.
      */
-    public PGPPdfVerifyUrl(final String host, final int port) {
+    public PdfPgpVerifyUrl(final String host, final int port) {
         try {
             this.urlBase =
                     new URL(HTTPS_PROTOCOL, host, port, MOUNT_PATH_WEBAPP);

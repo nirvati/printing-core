@@ -2521,10 +2521,23 @@ public interface IConfigProp {
                 NUMBER_VALIDATOR, "3600"),
 
         /**
-         * Enable PDF/2FV page in Admin WebApp.
+         * Enable PDF/PGP page in Admin WebApp.
          */
-        WEBAPP_ADMIN_PDF2FV_ENABLE(//
-                "webapp.admin.pdf2fv.enable", BOOLEAN_VALIDATOR, V_NO),
+        WEBAPP_PDFPGP_ENABLE(//
+                "webapp.pdfpgp.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /** */
+        PDFPGP_VERIFICATION_ENABLE(//
+                "pdfpgp.verification.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        PDFPGP_VERIFICATION_HOST(//
+                "pdfpgp.verification.host", API_UPDATABLE_ON),
+        /** */
+        PDFPGP_VERIFICATION_PORT(//
+                "pdfpgp.verification.port", NUMBER_VALIDATOR_OPT,
+                API_UPDATABLE_ON),
 
         /**
          *

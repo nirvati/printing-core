@@ -128,6 +128,7 @@ import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.InetUtils;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
+import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -349,6 +350,9 @@ public final class ConfigManager {
     private static final String SERVER_PROP_IPP_PRINTER_UUID =
             "ipp.printer-uuid";
 
+    private static final String SERVER_PROP_PGP_PUBLICKEY_FILE =
+            "pgp.publickey.file";
+
     private static final String SERVER_PROP_PGP_SECRETKEY_FILE =
             "pgp.secretkey.file";
 
@@ -434,6 +438,9 @@ public final class ConfigManager {
     private PGPSecretKeyInfo pgpSecretKeyInfo;
 
     /** */
+    private PGPPublicKeyInfo pgpPublicKeyInfo;
+
+    /** */
     private ConfigManager() {
         runMode = null;
     }
@@ -517,6 +524,13 @@ public final class ConfigManager {
      */
     public PGPSecretKeyInfo getPGPSecretKeyInfo() {
         return this.pgpSecretKeyInfo;
+    }
+
+    /**
+     * @return {@code null} when not (properly) configured.
+     */
+    public PGPPublicKeyInfo getPGPPublicKeyInfo() {
+        return this.pgpPublicKeyInfo;
     }
 
     /**
@@ -834,9 +848,8 @@ public final class ConfigManager {
      * @return
      */
     public static boolean isCleanUpDocLogAtStart() {
-        return theServerProps != null && BooleanUtils
-                .toBooleanObject(theServerProps.getProperty(
-                        SERVER_PROP_START_CLEANUP_DOCLOG,
+        return theServerProps != null && BooleanUtils.toBooleanObject(
+                theServerProps.getProperty(SERVER_PROP_START_CLEANUP_DOCLOG,
                         Boolean.TRUE.toString()))
                 .booleanValue();
     }
@@ -1020,9 +1033,9 @@ public final class ConfigManager {
      */
     public static File getServerCustomI18nHome(final Class<?> clazz) {
 
-        return Paths.get(getServerHome(),
-                SERVER_REL_PATH_CUSTOM_I18N, StringUtils.replace(
-                        clazz.getPackage().getName(), ".", File.separator))
+        return Paths.get(getServerHome(), SERVER_REL_PATH_CUSTOM_I18N,
+                StringUtils.replace(clazz.getPackage().getName(), ".",
+                        File.separator))
                 .toFile();
     }
 
@@ -1356,13 +1369,29 @@ public final class ConfigManager {
             return;
         }
 
+        final String publicFileName =
+                theServerProps.getProperty(SERVER_PROP_PGP_PUBLICKEY_FILE);
+
+        if (publicFileName == null) {
+            LOGGER.warn("PGP public key file not configured.");
+            return;
+        }
+
         final File secretFile =
                 Paths.get(getServerHome(), SERVER_REL_PATH_DATA, secretFileName)
+                        .toFile();
+
+        final File publicFile =
+                Paths.get(getServerHome(), SERVER_REL_PATH_DATA, publicFileName)
                         .toFile();
 
         final PGPHelper helper = PGPHelper.instance();
 
         try {
+
+            this.pgpPublicKeyInfo =
+                    helper.readPublicKey(new FileInputStream(publicFile));
+
             this.pgpSecretKeyInfo = helper.readSecretKey(
                     new FileInputStream(secretFile), theServerProps
                             .getProperty(SERVER_PROP_PGP_SECRETKEY_PASSPHRASE));

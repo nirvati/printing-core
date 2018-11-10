@@ -31,9 +31,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -533,29 +530,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             replaceWithConvertedPdf(pdfFile,
                     new PdfToBooklet().convert(pdfFile));
         }
-    }
-
-    /**
-     * Replaces original PDF file with converted version.
-     *
-     * @param pdfOrginal
-     *            The original PDF file.
-     * @param pdfConverted
-     *            The converted PDF file.
-     * @throws IOException
-     *             When IO error.
-     */
-    private static void replaceWithConvertedPdf(final File pdfOrginal,
-            final File pdfConverted) throws IOException {
-
-        final Path source = FileSystems.getDefault()
-                .getPath(pdfConverted.getAbsolutePath());
-
-        final Path target =
-                FileSystems.getDefault().getPath(pdfOrginal.getAbsolutePath());
-
-        Files.move(source, target,
-                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
 
     @Override
