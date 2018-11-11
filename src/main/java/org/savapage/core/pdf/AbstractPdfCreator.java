@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
@@ -484,7 +485,10 @@ public abstract class AbstractPdfCreator {
             logicalJobPages = null;
         }
 
+        final PdfProperties propPdf;
+
         try {
+            propPdf = USER_SERVICE.getPdfProperties(createReq.getUserObj());
 
             for (InboxJobRange page : pages) {
 
@@ -610,9 +614,6 @@ public abstract class AbstractPdfCreator {
             // Document Information
             // --------------------------------------------------------
             final Calendar now = new GregorianCalendar();
-
-            final PdfProperties propPdf =
-                    USER_SERVICE.getPdfProperties(createReq.getUserObj());
 
             if (docLog != null) {
                 docLog.setTitle(propPdf.getDesc().getTitle());
@@ -766,7 +767,9 @@ public abstract class AbstractPdfCreator {
         try {
             onPdfGenerated(generatedPdf);
 
-            if (!this.isForPrinting() && this.verifyUrl != null) {
+            if (!this.isForPrinting()
+                    && BooleanUtils.isTrue(propPdf.isPgpSignature())
+                    && this.verifyUrl != null) {
                 onPgpSign(generatedPdf, this.verifyUrl);
             }
         } catch (Exception e) {

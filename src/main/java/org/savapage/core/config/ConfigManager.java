@@ -2462,11 +2462,17 @@ public final class ConfigManager {
     }
 
     /**
-     *
-     * @return {@code true} is Eco Print is enabled
+     * @return {@code true} is Eco Print is enabled.
      */
     public static boolean isEcoPrintEnabled() {
         return instance().isConfigValue(Key.ECO_PRINT_ENABLE);
+    }
+
+    /**
+     * @return {@code true} is PDF/PDF verification is enabled.
+     */
+    public static boolean isPdfPgpEnabled() {
+        return instance().isConfigValue(Key.PDFPGP_VERIFICATION_ENABLE);
     }
 
     /**

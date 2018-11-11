@@ -51,8 +51,12 @@ import org.slf4j.LoggerFactory;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.Font.FontFamily;
+import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfAction;
 import com.itextpdf.text.pdf.PdfFormField;
 import com.itextpdf.text.pdf.PdfReader;
@@ -194,8 +198,13 @@ public final class PdfPgpHelper {
                     bostrSignedEncrypted, secKeyInfo, pubKeyInfoList,
                     PGP_PAYLOAD_FILE_NAME, new Date(), ASCII_ARMOR);
 
-            // Button opens browser
-            final Rectangle rectPage = reader.getPageSize(1);
+            //
+            final int iFirstPage = 1;
+            final Rectangle rectPage = reader.getPageSize(iFirstPage);
+
+            /*
+             * Add button to open browser.
+             */
             final Rectangle rect = new Rectangle(10,
                     rectPage.getTop() - 30 - 10, 100, rectPage.getTop() - 10);
 
@@ -219,9 +228,26 @@ public final class PdfPgpHelper {
             final PdfFormField pushButton = push.getField();
             pushButton.setAction(new PdfAction(urlVerify));
 
-            stamper.addAnnotation(pushButton, 1);
-            stamper.close();
+            stamper.addAnnotation(pushButton, iFirstPage);
 
+            /*
+             *
+             */
+            final float fontSize = 8f;
+            final Font font = new Font(FontFamily.COURIER, fontSize);
+
+            final Phrase header =
+                    new Phrase(secKeyInfo.formattedFingerPrint(), font);
+
+            final float x = rect.getRight() + 20;
+            final float y = rect.getBottom()
+                    + (rect.getTop() - rect.getBottom()) / 2 - fontSize / 2;
+
+            ColumnText.showTextAligned(stamper.getOverContent(iFirstPage),
+                    Element.ALIGN_LEFT, header, x, y, 0);
+
+            //
+            stamper.close();
             reader.close();
             reader = null;
 
