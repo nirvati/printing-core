@@ -97,7 +97,8 @@ public enum ACLOidEnum {
      * The user inbox (SafePages).
      */
     U_INBOX(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR), //
-            EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND)),
+            EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND,
+                    ACLPermissionEnum.SIGN)),
 
     /**
      * Financial.

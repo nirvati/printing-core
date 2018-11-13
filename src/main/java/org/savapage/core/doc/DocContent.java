@@ -107,15 +107,32 @@ public final class DocContent {
      */
     public static final String HEADER_UNIRAST = "UNIR";
 
+    /** */
     public static final String FILENAME_EXT_PDF = "pdf";
+    /** */
     public static final String FILENAME_EXT_PS = "ps";
+    /** */
     public static final String FILENAME_EXT_PNG = "png";
+    /** */
     public static final String FILENAME_EXT_JPG = "jpg";
+    /** */
     public static final String FILENAME_EXT_PNM = "pnm";
+    /** */
     public static final String FILENAME_EXT_XML = "xml";
 
-    public final static String MIMETYPE_PDF = "application/pdf";
-    public final static String MIMETYPE_POSTSCRIPT = "application/postscript";
+    /**
+     *
+     */
+    public static final String MIMETYPE_PDF = "application/pdf";
+
+    /**
+     * <b>Not</b> registered by IANA (yet): internal use for now.
+     */
+    public static final String MIMETYPE_PDF_PGP =
+            "application/x-pdf+pgp-signature";
+
+    /** */
+    public static final String MIMETYPE_POSTSCRIPT = "application/postscript";
 
     /**
      * The SingletonHolder is loaded on the first execution of
@@ -142,7 +159,7 @@ public final class DocContent {
     /**
      * Gets the singleton instance.
      *
-     * @return
+     * @return The singleton.
      */
     public static DocContent getInstance() {
         return SingletonHolder.INSTANCE;
@@ -166,9 +183,9 @@ public final class DocContent {
                 new String[] { "jpg", "jpeg", "jpe" });
 
         init(DocContentTypeEnum.PDF,
-                new String[] { MIMETYPE_PDF, "application/x-pdf",
-                        "application/acrobat", "applications/vnd.pdf",
-                        "text/pdf", "text/x-pdf" },
+                new String[] { MIMETYPE_PDF, MIMETYPE_PDF_PGP,
+                        "application/x-pdf", "application/acrobat",
+                        "applications/vnd.pdf", "text/pdf", "text/x-pdf" },
                 new String[] { FILENAME_EXT_PDF });
 
         init(DocContentTypeEnum.PNG, "image/png", FILENAME_EXT_PNG);

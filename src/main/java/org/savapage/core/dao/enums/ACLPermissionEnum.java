@@ -45,7 +45,7 @@ public enum ACLPermissionEnum {
     SELECTOR(ACLPermissionEnum.BIT_READER, ACLPermissionEnum.BIT_READER_SELECT),
 
     /**
-     * Allowed to send domain object.
+     * Allowed to select domain object.
      */
     SELECT(ACLPermissionEnum.BIT_READER_SELECT),
 
@@ -53,6 +53,11 @@ public enum ACLPermissionEnum {
      * Allowed to send domain object.
      */
     SEND(ACLPermissionEnum.BIT_READER_SEND),
+
+    /**
+     * Allowed to sign domain object.
+     */
+    SIGN(ACLPermissionEnum.BIT_READER_SIGN),
 
     /**
      * Allowed to download domain object.
@@ -82,7 +87,8 @@ public enum ACLPermissionEnum {
     /**
      * Allowed to perform all of the above actions.
      */
-    OPERATOR(ACLPermissionEnum.BIT_OPERATOR, ACLPermissionEnum.BITMASK_OPERATOR),
+    OPERATOR(ACLPermissionEnum.BIT_OPERATOR,
+            ACLPermissionEnum.BITMASK_OPERATOR),
 
     /**
      * Allowed to perform all of the above actions, and in addition allowed to
@@ -109,8 +115,8 @@ public enum ACLPermissionEnum {
     private static final int BIT_READER_DOWNLOAD = 0x2;
     private static final int BIT_READER_SEND = 0x4;
     private static final int BIT_READER_SELECT = 0x8;
+    private static final int BIT_READER_SIGN = 0x10;
     //
-    private static final int BIT_RESERVED_5 = 0x10;
     private static final int BIT_RESERVED_6 = 0x20;
     private static final int BIT_RESERVED_7 = 0x40;
     private static final int BIT_RESERVED_8 = 0x80;
@@ -176,7 +182,7 @@ public enum ACLPermissionEnum {
      */
     private static final EnumSet<ACLPermissionEnum> PERMS_READER =
             EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND,
-                    ACLPermissionEnum.SELECT);
+                    ACLPermissionEnum.SELECT, ACLPermissionEnum.SIGN);
 
     /**
      * Permissions an {@link #EDITOR} can have.

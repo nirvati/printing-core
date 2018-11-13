@@ -60,6 +60,11 @@ public final class PdfCreateInfo {
     private PdfOrientationInfo pdfOrientationInfo;
 
     /**
+     * {@code true}, if PDF/PGP signed.
+     */
+    private boolean pgpSigned;
+
+    /**
      *
      * @param file
      *            The created PDF file.
@@ -142,6 +147,21 @@ public final class PdfCreateInfo {
     public void
             setPdfOrientationInfo(final PdfOrientationInfo orientationInfo) {
         this.pdfOrientationInfo = orientationInfo;
+    }
+
+    /**
+     * @return {@code true}, if PDF/PGP signed.
+     */
+    public boolean isPgpSigned() {
+        return pgpSigned;
+    }
+
+    /**
+     * @param pgpSigned
+     *            {@code true}, if PDF/PGP signed.
+     */
+    public void setPgpSigned(boolean pgpSigned) {
+        this.pgpSigned = pgpSigned;
     }
 
 }

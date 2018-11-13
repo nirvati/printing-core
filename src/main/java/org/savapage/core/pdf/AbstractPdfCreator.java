@@ -764,12 +764,13 @@ public abstract class AbstractPdfCreator {
 
         final File generatedPdf = new File(pdfFile);
 
+        final boolean isPgpSigned = !this.isForPrinting()
+                && BooleanUtils.isTrue(propPdf.isPgpSignature())
+                && this.verifyUrl != null;
+
         try {
             onPdfGenerated(generatedPdf);
-
-            if (!this.isForPrinting()
-                    && BooleanUtils.isTrue(propPdf.isPgpSignature())
-                    && this.verifyUrl != null) {
+            if (isPgpSigned) {
                 onPgpSign(generatedPdf, this.verifyUrl);
             }
         } catch (Exception e) {
@@ -781,6 +782,7 @@ public abstract class AbstractPdfCreator {
         createInfo.setBlankFillerPages(totFillerPages);
         createInfo.setLogicalJobPages(logicalJobPages);
         createInfo.setPdfOrientationInfo(this.firstPageOrientationInfo);
+        createInfo.setPgpSigned(isPgpSigned);
 
         return createInfo;
     }

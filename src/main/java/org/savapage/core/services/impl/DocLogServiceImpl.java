@@ -1146,7 +1146,12 @@ public final class DocLogServiceImpl extends AbstractService
 
         docLogCollect.setUser(user);
         docLogCollect.setUuid(java.util.UUID.randomUUID().toString());
-        docLogCollect.setMimetype(DocContent.MIMETYPE_PDF);
+
+        if (createInfo.isPgpSigned()) {
+            docLogCollect.setMimetype(DocContent.MIMETYPE_PDF_PGP);
+        } else {
+            docLogCollect.setMimetype(DocContent.MIMETYPE_PDF);
+        }
         docLogCollect.setNumberOfBytes(
                 Files.size(Paths.get(pdfFile.getAbsolutePath())));
 
