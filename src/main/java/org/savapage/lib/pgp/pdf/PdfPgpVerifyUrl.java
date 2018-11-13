@@ -94,10 +94,17 @@ public final class PdfPgpVerifyUrl {
      * @return The verification URL.
      */
     public URL build(final PGPSecretKeyInfo secKeyInfo, final byte[] pgpMsg) {
+
         try {
+
+            if (pgpMsg == null) {
+                return new URL(this.urlBase.toExternalForm());
+            }
+
             return new URL(String.format("%s/%s/%s",
                     this.urlBase.toExternalForm(), secKeyInfo.formattedKeyID(),
                     URLEncoder.encode(stripPgpMsg(pgpMsg), "ASCII")));
+
         } catch (MalformedURLException | UnsupportedEncodingException e) {
             throw new IllegalArgumentException(e.getMessage());
         }

@@ -211,10 +211,11 @@ public interface IConfigProp {
     Long IMAP_MAX_FILE_MB_V_DEFAULT = 5L;
     Integer IMAP_MAX_FILES_V_DEFAULT = 1;
 
-    /**
-     *
-     */
+    /** */
     Long WEBPRINT_MAX_FILE_MB_V_DEFAULT = 10L;
+
+    /** */
+    Long WEBAPP_PDFPGP_MAX_UPLOAD_FILE_MB_V_DEFAULT = 10L;
 
     /**
      *
@@ -2526,6 +2527,13 @@ public interface IConfigProp {
         WEBAPP_PDFPGP_ENABLE(//
                 "webapp.pdfpgp.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
+
+        /**
+        *
+        */
+        WEBAPP_PDFPGP_MAX_UPLOAD_FILE_MB(//
+                "webapp.pdfpgp.max-upload-file-mb", NUMBER_VALIDATOR,
+                WEBAPP_PDFPGP_MAX_UPLOAD_FILE_MB_V_DEFAULT.toString()),
 
         /** */
         PDFPGP_VERIFICATION_ENABLE(//

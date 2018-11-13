@@ -165,11 +165,19 @@ public final class PdfPgpHelper {
             final List<PGPPublicKeyInfo> pubKeyInfoList,
             final PdfPgpVerifyUrl urlBuilder) throws PGPBaseException {
 
+        boolean verificationParms = false; // TODO
+
         PdfReader reader = null;
         PdfStamper stamper = null;
 
-        final String ownerPw =
-                RandomStringUtils.random(PDF_OWNER_PASSWORD_SIZE, true, true);
+        final String ownerPw;
+
+        if (verificationParms) {
+            ownerPw = RandomStringUtils.random(PDF_OWNER_PASSWORD_SIZE, true,
+                    true);
+        } else {
+            ownerPw = null;
+        }
 
         try {
 
@@ -179,24 +187,34 @@ public final class PdfPgpHelper {
             reader = new PdfReader(pdfIn);
             stamper = new PdfStamper(reader, pdfSigned);
 
-            stamper.setEncryption(null, ownerPw.getBytes(),
-                    PdfWriter.ALLOW_PRINTING, PdfWriter.ENCRYPTION_AES_256
-                            | PdfWriter.DO_NOT_ENCRYPT_METADATA);
+            if (verificationParms) {
+                stamper.setEncryption(null, ownerPw.getBytes(),
+                        PdfWriter.ALLOW_PRINTING, PdfWriter.ENCRYPTION_AES_256
+                                | PdfWriter.DO_NOT_ENCRYPT_METADATA);
+            }
 
             final PdfWriter writer = stamper.getWriter();
 
             /*
              * Create the encrypted onepass signature.
              */
-            final InputStream istrPayload =
-                    new ByteArrayInputStream(ownerPw.getBytes());
+            final byte[] payload;
 
-            final ByteArrayOutputStream bostrSignedEncrypted =
-                    new ByteArrayOutputStream();
+            if (verificationParms) {
 
-            PGPHelper.instance().encryptOnePassSignature(istrPayload,
-                    bostrSignedEncrypted, secKeyInfo, pubKeyInfoList,
-                    PGP_PAYLOAD_FILE_NAME, new Date(), ASCII_ARMOR);
+                final InputStream istrPayload =
+                        new ByteArrayInputStream(ownerPw.getBytes());
+                final ByteArrayOutputStream bostrSignedEncrypted =
+                        new ByteArrayOutputStream();
+
+                PGPHelper.instance().encryptOnePassSignature(istrPayload,
+                        bostrSignedEncrypted, secKeyInfo, pubKeyInfoList,
+                        PGP_PAYLOAD_FILE_NAME, new Date(), ASCII_ARMOR);
+                payload = bostrSignedEncrypted.toByteArray();
+
+            } else {
+                payload = null;
+            }
 
             //
             final int iFirstPage = 1;
@@ -219,8 +237,6 @@ public final class PdfPgpHelper {
             push.setFontSize(NORMAL_FONT_COURIER.getSize());
             push.setFont(NORMAL_FONT_COURIER.getBaseFont());
             push.setVisibility(PushbuttonField.VISIBLE_BUT_DOES_NOT_PRINT);
-
-            final byte[] payload = bostrSignedEncrypted.toByteArray();
 
             final String urlVerify =
                     urlBuilder.build(secKeyInfo, payload).toExternalForm();
@@ -288,27 +304,44 @@ public final class PdfPgpHelper {
     /**
      * Verifies a PGP signed PDF file.
      *
-     * @param pdfSignedFile
+     * @param pdfFileSigned
      *            Signed PDF as input.
-     * @param signPublicKeyList
-     *            The {@link PGPPublicKey} list of the private key the PGP
-     *            signature content was signed with.
-     * @param secretKeyInfoList
-     *            The {@link PGPSecretKeyInfo} list of (one of) the public keys
-     *            the PGP signature content was encrypted with.
+     * @param signPublicKey
+     *            The {@link PGPPublicKey} of the private key the PGP signature
+     *            content was signed with.
+     * @return The {@link PGPSignature}} if valid, or {@code null} when not.
+     * @throws PGPBaseException
+     *             When errors.
+     * @throws IOException
+     *             When File IO errors.
+     */
+    public PGPSignature verify(final File pdfFileSigned,
+            final PGPPublicKey signPublicKey)
+            throws PGPBaseException, IOException {
+
+        try (InputStream istrPdf = new FileInputStream(pdfFileSigned);) {
+            return this.verify(istrPdf, signPublicKey);
+        }
+    }
+
+    /**
+     * Verifies a PGP signed PDF file.
+     *
+     * @param istrPdfSigned
+     *            Signed PDF document as input stream.
+     * @param signPublicKey
+     *            The {@link PGPPublicKey} of the private key the PGP signature
+     *            content was signed with.
      * @return The {@link PGPSignature}} if valid, or {@code null} when not.
      * @throws PGPBaseException
      *             When errors.
      */
-    public PGPSignature verify(final File pdfSignedFile,
-            final List<PGPPublicKey> signPublicKeyList,
-            final List<PGPSecretKeyInfo> secretKeyInfoList)
-            throws PGPBaseException {
+    public PGPSignature verify(final InputStream istrPdfSigned,
+            final PGPPublicKey signPublicKey) throws PGPBaseException {
 
-        try (InputStream istrPdf = new FileInputStream(pdfSignedFile);
-                ByteArrayOutputStream ostrPdf = new ByteArrayOutputStream()) {
+        try (ByteArrayOutputStream ostrPdf = new ByteArrayOutputStream()) {
 
-            int n = istrPdf.read();
+            int n = istrPdfSigned.read();
 
             final StringBuffer appendedPgp = new StringBuffer();
 
@@ -334,7 +367,7 @@ public final class PdfPgpHelper {
                             break;
                         }
                         // Read next
-                        n = istrPdf.read();
+                        n = istrPdfSigned.read();
                         isNewLine = n == INT_NEWLINE;
                     }
 
@@ -361,7 +394,7 @@ public final class PdfPgpHelper {
 
                 // Read next when not EOF.
                 if (n >= 0) {
-                    n = istrPdf.read();
+                    n = istrPdfSigned.read();
                 }
             }
 
@@ -383,13 +416,13 @@ public final class PdfPgpHelper {
                 bosSignature
                         .write(appendedPgp.toString().substring(1).getBytes());
 
-                n = istrPdf.read();
+                n = istrPdfSigned.read();
 
                 while (n >= 0) {
                     if (n != INT_PDF_COMMENT) {
                         bosSignature.write(n);
                     }
-                    n = istrPdf.read();
+                    n = istrPdfSigned.read();
                 }
             } else {
                 bosSignature.close();
@@ -403,8 +436,7 @@ public final class PdfPgpHelper {
 
             if (PGPHelper.instance().verifySignature(
                     new ByteArrayInputStream(ostrPdf.toByteArray()),
-                    new ByteArrayInputStream(pgpBytes),
-                    signPublicKeyList.get(0))) {
+                    new ByteArrayInputStream(pgpBytes), signPublicKey)) {
 
                 return PGPHelper.instance()
                         .getSignature(new ByteArrayInputStream(pgpBytes));
