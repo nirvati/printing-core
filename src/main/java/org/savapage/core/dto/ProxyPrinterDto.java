@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -68,6 +68,9 @@ public class ProxyPrinterDto extends AbstractDto {
 
     @JsonProperty("disabled")
     Boolean disabled;
+
+    @JsonProperty("archiveDisabled")
+    Boolean archiveDisabled;
 
     /**
      * Is (logically) deleted?
@@ -155,6 +158,14 @@ public class ProxyPrinterDto extends AbstractDto {
 
     public void setDisabled(Boolean disabled) {
         this.disabled = disabled;
+    }
+
+    public Boolean getArchiveDisabled() {
+        return archiveDisabled;
+    }
+
+    public void setArchiveDisabled(Boolean archiveDisabled) {
+        this.archiveDisabled = archiveDisabled;
     }
 
     public Boolean getDeleted() {

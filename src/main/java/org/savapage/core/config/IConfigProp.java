@@ -1895,6 +1895,26 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Enable Print Archive (boolean).
+         */
+        PROXY_PRINT_ARCHIVE_ENABLE(//
+                "proxy-print.archive.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
+         * Max days of archived print job history.
+         */
+        PROXY_PRINT_ARCHIVE_MAX_DAYS(//
+                "proxy-print.archive.max-days", NUMBER_VALIDATOR, "30",
+                API_UPDATABLE_ON),
+
+        /**
+         * Stop archiving when free disk space falls below limit.
+         */
+        PROXY_PRINT_ARCHIVE_FREE_SPACE_LIMIT_MB(//
+                "proxy-print.archive.free-space-limit-mb", NUMBER_VALIDATOR,
+                "5000", API_UPDATABLE_ON),
+        /**
          * Enable Delegated Print (boolean).
          */
         PROXY_PRINT_DELEGATE_ENABLE(//

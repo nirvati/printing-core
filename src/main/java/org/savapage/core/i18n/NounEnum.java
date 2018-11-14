@@ -33,6 +33,8 @@ import org.savapage.core.util.LocaleHelper;
  */
 public enum NounEnum {
 
+    /** */
+    ARCHIVE,
     /** Financial position. */
     BALANCE,
     /** NFC card number. */
@@ -65,6 +67,8 @@ public enum NounEnum {
     INPUT,
     /** */
     INVOICING,
+    /** */
+    LOCATION,
     /** */
     MODE(true),
     /** */

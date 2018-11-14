@@ -51,6 +51,11 @@ public enum PrinterAttrEnum {
     ACCESS_INTERNAL("access.internal"),
 
     /**
+     * Boolean: Y | N. When not present N is assumed.
+     */
+    ARCHIVE_DISABLE("archive.disable"),
+
+    /**
      * Is monochrome conversion performed client-side (locally)? Boolean:
      * {@code true|false}.
      */

@@ -112,15 +112,22 @@ public enum ACLOidEnum {
             ACLPermissionEnum.EDITOR)),
 
     /**
-     * Details of authenticated user.
+     * Can personal account be used for printing.
      */
-    U_PERSONAL_PRINT(EnumSet.of(ACLPermissionEnum.SELECTOR));
+    U_PERSONAL_PRINT(EnumSet.of(ACLPermissionEnum.SELECTOR)),
+
+    /**
+     * Print Archiving.
+     */
+    U_PRINT_ARCHIVING(EnumSet.of(ACLPermissionEnum.EDITOR),
+            EnumSet.of(ACLPermissionEnum.SELECT));
 
     /**
      * OIDs for user role. The enum order is the top to bottom order in the UI.
      */
-    private static final ACLOidEnum[] USER_ENUMS_ARRAY = new ACLOidEnum[] {
-            U_INBOX, U_USER, U_PERSONAL_PRINT, U_FINANCIAL, U_LETTERHEAD };
+    private static final ACLOidEnum[] USER_ENUMS_ARRAY =
+            new ACLOidEnum[] { U_INBOX, U_USER, U_PERSONAL_PRINT,
+                    U_PRINT_ARCHIVING, U_FINANCIAL, U_LETTERHEAD };
 
     /**
      * OIDs for user role. The enum order is lost.

@@ -898,8 +898,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @param attrKeyword
      *            The IPP option keyword.
      * @param isMedia
-     *            {@code true] when this the "media" attribute.
-     * @param optChoice
+     *            {@code true] when this the "media" attribute. @param optChoice
      *            The {@link JsonProxyPrinterOptChoice} object.
      */
     private void localizePrinterOptChoice(final Locale locale,
@@ -919,10 +918,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @param attrKeyword
      *            The IPP option keyword.
      * @param isMedia
-     *            {@code true] when this the "media" attribute.
-     * @param choice
-     *            The {@link JsonProxyPrinterOptChoice} object.
-     * @return The localized choice text.
+     *            {@code true] when this the "media" attribute. @param choice
+     *            The {@link JsonProxyPrinterOptChoice} object. @return The
+     *            localized choice text.
      */
     private String localizePrinterOptChoice(final Locale locale,
             final String attrKeyword, final boolean isMedia,
@@ -1511,11 +1509,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         final List<IppAttrGroup> response = new ArrayList<>();
 
-        final IppStatusCode statusCode =
-                ippClient.send(urlCupsServer,
-                        IppOperationId.CANCEL_JOB, reqCancelJobAttr(printerUri,
-                                printOut.getCupsJobId(), requestingUserName),
-                        response);
+        final IppStatusCode statusCode = ippClient.send(urlCupsServer,
+                IppOperationId.CANCEL_JOB, reqCancelJobAttr(printerUri,
+                        printOut.getCupsJobId(), requestingUserName),
+                response);
 
         return statusCode == IppStatusCode.OK;
     }
@@ -2441,6 +2438,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         dto.setInternal(
                 Boolean.valueOf(printerService().isInternalPrinter(printer)));
 
+        dto.setArchiveDisabled(
+                Boolean.valueOf(printerService().isArchiveDisabled(printer)));
+
         dto.setPpdExtFile(printerService().getAttributeValue(printer,
                 PrinterAttrEnum.CUSTOM_PPD_EXT_FILE));
 
@@ -2611,6 +2611,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         //
         setPrinterAttr(jpaPrinter, PrinterAttrEnum.ACCESS_INTERNAL,
                 dto.getInternal());
+
+        setPrinterAttr(jpaPrinter, PrinterAttrEnum.ARCHIVE_DISABLE,
+                dto.getArchiveDisabled());
+
         setPrinterAttr(jpaPrinter, PrinterAttrEnum.CUSTOM_PPD_EXT_FILE,
                 dto.getPpdExtFile());
 

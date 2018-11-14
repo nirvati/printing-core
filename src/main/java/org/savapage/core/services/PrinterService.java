@@ -70,6 +70,15 @@ public interface PrinterService {
     boolean isInternalPrinter(Printer printer);
 
     /**
+     * Reads the database to check if print archive is disabled.
+     *
+     * @param printer
+     *            The {@link Printer}.
+     * @return {@code true} when print archive is disabled.
+     */
+    boolean isArchiveDisabled(Printer printer);
+
+    /**
      * Reads the database to check if printer is a Job Ticket printer.
      *
      * @param printer

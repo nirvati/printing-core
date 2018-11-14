@@ -108,6 +108,14 @@ public final class PrinterServiceImpl extends AbstractService
     }
 
     @Override
+    public boolean isArchiveDisabled(final Printer printer) {
+
+        final PrinterAttr attr = printerAttrDAO().findByName(printer.getId(),
+                PrinterAttrEnum.ARCHIVE_DISABLE);
+        return printerAttrDAO().getBooleanValue(attr);
+    }
+
+    @Override
     public boolean isJobTicketPrinter(final Printer printer) {
         final PrinterAttr attr = printerAttrDAO().findByName(printer.getId(),
                 PrinterAttrEnum.JOBTICKET_ENABLE);
