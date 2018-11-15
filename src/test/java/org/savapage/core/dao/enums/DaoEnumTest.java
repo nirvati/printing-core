@@ -63,16 +63,7 @@ public class DaoEnumTest {
         }
 
         assertTrue(
-                ACLPermissionEnum.SELECTOR.isGranted(ACLPermissionEnum.READER));
-
-        assertTrue(
-                ACLPermissionEnum.READER.isGranted(ACLPermissionEnum.SELECTOR));
-
-        assertTrue(
                 ACLPermissionEnum.EDITOR.isGranted(ACLPermissionEnum.READER));
-
-        assertTrue(
-                ACLPermissionEnum.EDITOR.isGranted(ACLPermissionEnum.SELECTOR));
 
         //
         assertFalse(

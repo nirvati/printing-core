@@ -1914,6 +1914,7 @@ public interface IConfigProp {
         PROXY_PRINT_ARCHIVE_FREE_SPACE_LIMIT_MB(//
                 "proxy-print.archive.free-space-limit-mb", NUMBER_VALIDATOR,
                 "5000", API_UPDATABLE_ON),
+
         /**
          * Enable Delegated Print (boolean).
          */
@@ -2651,6 +2652,13 @@ public interface IConfigProp {
         WEBAPP_USER_PROXY_PRINT_MAX_COPIES(//
                 "webapp.user.proxy-print.max-copies", NUMBER_VALIDATOR, "30",
                 API_UPDATABLE_ON),
+
+        /**
+         * User WebApp: show archive scope (Boolean).
+         */
+        WEBAPP_USER_PROXY_PRINT_ARCHIVE_PROMPT(//
+                "webapp.user.proxy-print.archive.prompt", BOOLEAN_VALIDATOR,
+                V_YES, API_UPDATABLE_ON),
 
         /**
          * User WebApp: enable a fixed inbox clearing scope after a proxy print

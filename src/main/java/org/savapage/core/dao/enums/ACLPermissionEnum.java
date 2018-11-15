@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <https:www.savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https:www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -29,20 +29,31 @@ import java.util.Locale;
 import org.savapage.core.util.LocaleHelper;
 
 /**
+ * Permissions for Actions and Roles.
  *
  * @author Rijk Ravestein
  *
  */
 public enum ACLPermissionEnum {
-    /**
-     * Allowed to read the domain object.
-     */
-    READER(ACLPermissionEnum.BIT_READER),
+
+    // ----------------------------------------------------------------------
+    // Actions: more can be added as BIT_RESERVED_* allows.
+    // ----------------------------------------------------------------------
 
     /**
-     * Allowed to read and select domain object.
+     * Allowed to create the domain object.
      */
-    SELECTOR(ACLPermissionEnum.BIT_READER, ACLPermissionEnum.BIT_READER_SELECT),
+    CREATE(ACLPermissionEnum.BIT_EDITOR_CREATE),
+
+    /**
+     * Allowed to delete the domain object.
+     */
+    DELETE(ACLPermissionEnum.BIT_EDITOR_DELETE),
+
+    /**
+     * Allowed to download domain object.
+     */
+    DOWNLOAD(ACLPermissionEnum.BIT_READER_DOWNLOAD),
 
     /**
      * Allowed to select domain object.
@@ -60,29 +71,24 @@ public enum ACLPermissionEnum {
     SIGN(ACLPermissionEnum.BIT_READER_SIGN),
 
     /**
-     * Allowed to download domain object.
-     */
-    DOWNLOAD(ACLPermissionEnum.BIT_READER_DOWNLOAD),
-
-    /**
-     * Allowed read and to make changes to the domain object.
-     */
-    EDITOR(ACLPermissionEnum.BIT_EDITOR, ACLPermissionEnum.BIT_READER),
-
-    /**
-     * Allowed to create the domain object.
-     */
-    CREATE(ACLPermissionEnum.BIT_EDITOR_CREATE),
-
-    /**
-     * Allowed to delete the domain object.
-     */
-    DELETE(ACLPermissionEnum.BIT_EDITOR_DELETE),
-
-    /**
      * Allowed to restore a previously deleted domain object.
      */
     UNDELETE(ACLPermissionEnum.BIT_EDITOR_UNDELETE),
+
+    // ----------------------------------------------------------------------
+    // Roles: FIXED, do NOT add, since JavaScript handling depends on it.
+    // ----------------------------------------------------------------------
+
+    /**
+     * Allowed to read the domain object.
+     */
+    READER(ACLPermissionEnum.BIT_READER),
+
+    /**
+     * Allowed to read and optionally create, (un)delete or edit a domain
+     * object.
+     */
+    EDITOR(ACLPermissionEnum.BIT_EDITOR, ACLPermissionEnum.BIT_READER),
 
     /**
      * Allowed to perform all of the above actions.
@@ -197,30 +203,30 @@ public enum ACLPermissionEnum {
     private int flag;
 
     /**
-     * A set of permission flags as bitmask.
+     * The set of permission flags as bitmask.
      */
     private int privileges;
 
     /**
      *
-     * @param flag
-     *            The identifying bitmask flag.
+     * @param bitmask
+     *            The identifying action bitmask.
      */
-    ACLPermissionEnum(final int flag) {
-        this.flag = flag;
-        this.privileges = flag;
+    ACLPermissionEnum(final int bitmask) {
+        this.flag = bitmask;
+        this.privileges = bitmask;
     }
 
     /**
      *
-     * @param flag
-     *            The identifying bitmask flag.
+     * @param role
+     *            The identifying role bitmask flag.
      * @param bitmask
-     *            A set of permission flags as bitmask.
+     *            A set of additional permission flags as bitmask.
      */
-    ACLPermissionEnum(final int flag, final int bitmask) {
-        this.flag = flag;
-        this.privileges = flag | bitmask;
+    ACLPermissionEnum(final int role, final int bitmask) {
+        this.flag = role;
+        this.privileges = role | bitmask;
     }
 
     /**
