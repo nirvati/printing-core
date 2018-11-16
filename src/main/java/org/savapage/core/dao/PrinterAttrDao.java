@@ -23,6 +23,7 @@ package org.savapage.core.dao;
 
 import java.util.Date;
 
+import org.savapage.core.dao.PrinterDao.IppKeywordAttr;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
@@ -56,6 +57,17 @@ public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
      * @return The {@link PrinterAttr} or {@code null} when not found.
      */
     PrinterAttr findByName(Long printerId, PrinterAttrEnum name);
+
+    /**
+     *
+     * @param printerId
+     *            The primary key of the {@link Printer}.
+     * @param ippKeyword
+     *            The {@link IppKeywordAttr}.
+     * @return The {@link PrinterAttr} or {@code null} when not found.
+     */
+    PrinterAttr findByName(Long printerId,
+            PrinterDao.IppKeywordAttr ippKeyword);
 
     /**
      * Deletes all rolling statistics of ALL {@link Printer} instances.

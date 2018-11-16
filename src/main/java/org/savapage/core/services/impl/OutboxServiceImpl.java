@@ -339,6 +339,12 @@ public final class OutboxServiceImpl extends AbstractService
         job.setExpiryTime(expiryDate.getTime());
         job.setFitToPage(request.getFitToPage());
 
+        if (request.isArchive()) {
+            job.setArchive(request.isArchive());
+        } else {
+            job.setArchive(null);
+        }
+
         if (createInfo != null && createInfo.getPdfOrientationInfo() != null) {
             job.setPdfOrientation(createInfo.getPdfOrientationInfo());
             job.setLandscape(PdfPageRotateHelper
@@ -1011,8 +1017,8 @@ public final class OutboxServiceImpl extends AbstractService
         final boolean isNonPersonalPrint = job.getAccountTransactions() != null
                 && job.getAccountTransactions().getTransactions() != null;
 
-        return paperCutService().isMonitorPaperCutPrintStatus(
-                job.getPrinter(), isNonPersonalPrint);
+        return paperCutService().isMonitorPaperCutPrintStatus(job.getPrinter(),
+                isNonPersonalPrint);
     }
 
 }

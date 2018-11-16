@@ -377,6 +377,7 @@ public final class OutboxInfoDto extends AbstractDto {
         private long submitTime;
         private long expiryTime;
         private Boolean fitToPage;
+        private Boolean archive;
 
         /**
          * The RFC2911 IPP {@code media-source} keyword of the Job Sheet.
@@ -582,6 +583,14 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setFitToPage(Boolean fitToPage) {
             this.fitToPage = fitToPage;
+        }
+
+        public Boolean getArchive() {
+            return archive;
+        }
+
+        public void setArchive(Boolean archive) {
+            this.archive = archive;
         }
 
         /**

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -43,6 +43,9 @@ public final class JsonPrinterDetail extends JsonPrinter {
      * extension.
      */
     private boolean printScalingExt = false;
+
+    /** */
+    private boolean archiveDisabled = false;
 
     /**
      *
@@ -121,6 +124,15 @@ public final class JsonPrinterDetail extends JsonPrinter {
         this.printScalingExt = printScalingExt;
     }
 
+
+    public boolean isArchiveDisabled() {
+        return archiveDisabled;
+    }
+
+    public void setArchiveDisabled(boolean archiveDisabled) {
+        this.archiveDisabled = archiveDisabled;
+    }
+
     /**
      * Creates a deep copy instance.
      *
@@ -133,6 +145,7 @@ public final class JsonPrinterDetail extends JsonPrinter {
         super.copy(copy);
 
         copy.printScalingExt = this.printScalingExt;
+        copy.archiveDisabled = this.archiveDisabled;
 
         copy.groups = new ArrayList<>();
         for (final JsonProxyPrinterOptGroup group : groups) {

@@ -100,24 +100,28 @@ public final class PrinterServiceImpl extends AbstractService
     private static final boolean ACCESS_DENIED = !ACCESS_ALLOWED;
 
     @Override
-    public boolean isInternalPrinter(final Printer printer) {
+    public boolean isInternalPrinter(final Long id) {
 
-        final PrinterAttr attr = printerAttrDAO().findByName(printer.getId(),
+        final PrinterAttr attr = printerAttrDAO().findByName(id,
                 PrinterAttrEnum.ACCESS_INTERNAL);
         return printerAttrDAO().getBooleanValue(attr);
     }
 
     @Override
-    public boolean isArchiveDisabled(final Printer printer) {
-
-        final PrinterAttr attr = printerAttrDAO().findByName(printer.getId(),
+    public boolean isArchiveDisabled(final Long id) {
+        final PrinterAttr attr = printerAttrDAO().findByName(id,
                 PrinterAttrEnum.ARCHIVE_DISABLE);
         return printerAttrDAO().getBooleanValue(attr);
     }
 
     @Override
-    public boolean isJobTicketPrinter(final Printer printer) {
-        final PrinterAttr attr = printerAttrDAO().findByName(printer.getId(),
+    public boolean isArchiveDisabled(final Printer printer) {
+        return isPrinterAttr(printer, PrinterAttrEnum.ARCHIVE_DISABLE, false);
+    }
+
+    @Override
+    public boolean isJobTicketPrinter(final Long id) {
+        final PrinterAttr attr = printerAttrDAO().findByName(id,
                 PrinterAttrEnum.JOBTICKET_ENABLE);
         return printerAttrDAO().getBooleanValue(attr);
     }
@@ -369,6 +373,21 @@ public final class PrinterServiceImpl extends AbstractService
                     printer.getPrinterName(), name.getDbName(), e.getMessage());
         }
         return null;
+    }
+
+    @Override
+    public String getPrintColorModeDefault(final Long id) {
+
+        final PrinterDao.IppKeywordAttr ippKeyword =
+                new PrinterDao.IppKeywordAttr(
+                        IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE_DFLT);
+
+        final PrinterAttr attr = printerAttrDAO().findByName(id, ippKeyword);
+
+        if (attr == null) {
+            return null;
+        }
+        return attr.getValue();
     }
 
     @Override

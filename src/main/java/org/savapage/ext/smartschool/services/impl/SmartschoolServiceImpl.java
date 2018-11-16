@@ -324,8 +324,8 @@ public final class SmartschoolServiceImpl extends AbstractService
                             printerService().isHoldReleasePrinter(printer));
                 }
 
-                if (!config.isJobTicketProxyPrinter()
-                        && printerService().isJobTicketPrinter(printer)) {
+                if (!config.isJobTicketProxyPrinter() && printerService()
+                        .isJobTicketPrinter(printer.getId())) {
                     config.setJobTicketProxyPrinter(true);
                 }
 

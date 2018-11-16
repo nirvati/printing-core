@@ -63,14 +63,27 @@ public interface PrinterService {
     /**
      * Reads the database to check if printer is internal use only.
      *
-     * @param printer
-     *            The {@link Printer}.
+     * @param id
+     *            The database primary key.
      * @return {@code true} when internal printer.
      */
-    boolean isInternalPrinter(Printer printer);
+    boolean isInternalPrinter(Long id);
 
     /**
      * Reads the database to check if print archive is disabled.
+     *
+     * @param id
+     *            The database primary key.
+     * @return {@code true} when print archive is disabled.
+     */
+    boolean isArchiveDisabled(Long id);
+
+    /**
+     * Checks if print archive is disabled.
+     * <p>
+     * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
+     * find the value of {@link PrinterAttrEnum#ARCHIVE_DISABLE}.
+     * </p>
      *
      * @param printer
      *            The {@link Printer}.
@@ -81,11 +94,11 @@ public interface PrinterService {
     /**
      * Reads the database to check if printer is a Job Ticket printer.
      *
-     * @param printer
-     *            The {@link Printer}.
+     * @param id
+     *            The database primary key.
      * @return {@code true} when Job Ticket printer.
      */
-    boolean isJobTicketPrinter(Printer printer);
+    boolean isJobTicketPrinter(Long id);
 
     /**
      * Checks if the {@link Printer} can be used for proxy printing, i.e. it is
@@ -219,16 +232,27 @@ public interface PrinterService {
 
     /**
      * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
-     * get the value of
-     * {@link IppDictJobTemplateAttr#ATTR_PRINT_COLOR_MODE_DFLT}. This value,
-     * stored as printer attributes, overrides the default as retrieved from
-     * CUPS/IPP.
+     * get value of {@link IppDictJobTemplateAttr#ATTR_PRINT_COLOR_MODE_DFLT}.
+     * This value, stored as printer attributes, overrides the default as
+     * retrieved from CUPS/IPP.
      *
      * @param printer
      *            The {@link Printer}.
      * @return {@code null} when no default override is found.
      */
-    String getPrintColorModeDefault(final Printer printer);
+    String getPrintColorModeDefault(Printer printer);
+
+    /**
+     * Reads the database to get value of
+     * {@link IppDictJobTemplateAttr#ATTR_PRINT_COLOR_MODE_DFLT}.
+     *
+     * @see {@link #getPrintColorModeDefault(Printer).
+     *
+     * @param id
+     *            The database primary key.
+     * @return {@code null} when no default override is found.
+     */
+    String getPrintColorModeDefault(Long id);
 
     /**
      * Checks if monochrome conversion is performed client-side (locally).
@@ -278,7 +302,7 @@ public interface PrinterService {
      * @param printer
      *            The {@link Printer}.
      */
-    void undoLogicalDeleted(final Printer printer);
+    void undoLogicalDeleted(Printer printer);
 
     /**
      * Adds totals of a job to a {@link Printer} (database is NOT updated).

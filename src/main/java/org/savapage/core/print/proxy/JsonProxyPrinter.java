@@ -134,6 +134,9 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     private boolean bookletClientSide;
 
+    @JsonIgnore
+    boolean archiveDisabled;
+
     /**
      *
      */
@@ -453,6 +456,16 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     public void setBookletClientSide(boolean bookletClientSide) {
         this.bookletClientSide = bookletClientSide;
+    }
+
+    @JsonIgnore
+    public boolean isArchiveDisabled() {
+        return archiveDisabled;
+    }
+
+    @JsonIgnore
+    public void setArchiveDisabled(boolean archiveDisabled) {
+        this.archiveDisabled = archiveDisabled;
     }
 
     public String getState() {

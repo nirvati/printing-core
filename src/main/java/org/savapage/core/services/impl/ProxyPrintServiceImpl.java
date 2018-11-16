@@ -2435,17 +2435,16 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         dto.setPresent(this.getCachedPrinter(printer.getPrinterName()) != null);
 
-        dto.setInternal(
-                Boolean.valueOf(printerService().isInternalPrinter(printer)));
+        dto.setInternal(printerService().isInternalPrinter(printer.getId()));
 
         dto.setArchiveDisabled(
-                Boolean.valueOf(printerService().isArchiveDisabled(printer)));
+                printerService().isArchiveDisabled(printer.getId()));
 
         dto.setPpdExtFile(printerService().getAttributeValue(printer,
                 PrinterAttrEnum.CUSTOM_PPD_EXT_FILE));
 
-        dto.setJobTicket(
-                Boolean.valueOf(printerService().isJobTicketPrinter(printer)));
+        dto.setJobTicket(printerService().isJobTicketPrinter(printer.getId()));
+
         dto.setJobTicketGroup(printerService().getAttributeValue(printer,
                 PrinterAttrEnum.JOBTICKET_PRINTER_GROUP));
 

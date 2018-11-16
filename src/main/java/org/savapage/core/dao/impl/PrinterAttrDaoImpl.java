@@ -28,7 +28,9 @@ import javax.persistence.Query;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dao.PrinterAttrDao;
+import org.savapage.core.dao.PrinterDao.IppKeywordAttr;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
+import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 
@@ -58,7 +60,26 @@ public final class PrinterAttrDaoImpl extends GenericDaoImpl<PrinterAttr>
 
     @Override
     public PrinterAttr findByName(final Long printerId,
+            final IppKeywordAttr ippKeyword) {
+        return findByName(printerId, ippKeyword.getKey());
+    }
+
+    @Override
+    public PrinterAttr findByName(final Long printerId,
             final PrinterAttrEnum name) {
+        return findByName(printerId, name.getDbName());
+    }
+
+    /**
+     * Finds a {@link PrinterAttr} for a {@link Printer}.
+     *
+     * @param printerId
+     *            The primary key of the {@link Printer}.
+     * @param name
+     *            The attribute name .
+     * @return The {@link PrinterAttr} or {@code null} when not found.
+     */
+    private PrinterAttr findByName(final Long printerId, final String dbName) {
 
         final String jpql = "SELECT A FROM PrinterAttr A JOIN A.printer P "
                 + "WHERE P.id = :printerId AND A.name = :name";
@@ -66,7 +87,7 @@ public final class PrinterAttrDaoImpl extends GenericDaoImpl<PrinterAttr>
         final Query query = getEntityManager().createQuery(jpql);
 
         query.setParameter("printerId", printerId);
-        query.setParameter("name", name.getDbName());
+        query.setParameter("name", dbName);
 
         PrinterAttr attr;
 

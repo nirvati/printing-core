@@ -107,6 +107,11 @@ public abstract class AbstractProxyPrintReq
     private boolean collate;
 
     /**
+     * Archive print job.
+     */
+    private boolean archive;
+
+    /**
      * {@code true} if PDF must to be converted to grayscale before proxy
      * printing.
      */
@@ -237,6 +242,14 @@ public abstract class AbstractProxyPrintReq
 
     public void setCollate(boolean collate) {
         this.collate = collate;
+    }
+
+    public boolean isArchive() {
+        return archive;
+    }
+
+    public void setArchive(boolean archive) {
+        this.archive = archive;
     }
 
     @Override

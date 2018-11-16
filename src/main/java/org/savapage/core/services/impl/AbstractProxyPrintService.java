@@ -556,6 +556,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printer.setPrinterUri(cupsPrinter.getPrinterUri());
             printer.setJobTicket(cupsPrinter.getJobTicket());
             printer.setPrintScalingExt(cupsPrinter.isPrintScalingExt());
+            printer.setArchiveDisabled(cupsPrinter.isArchiveDisabled());
 
             /*
              * Create copy, localize and prune.
@@ -1131,8 +1132,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         proxyPrinter.setDbPrinter(dbPrinter);
 
-        proxyPrinter
-                .setJobTicket(printerService().isJobTicketPrinter(dbPrinter));
+        proxyPrinter.setJobTicket(
+                printerService().isJobTicketPrinter(dbPrinter.getId()));
 
         final String ppdfExtFile = printerService().getAttributeValue(dbPrinter,
                 PrinterAttrEnum.CUSTOM_PPD_EXT_FILE);
@@ -1157,8 +1158,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
         }
 
+        proxyPrinter.setArchiveDisabled(
+                printerService().isArchiveDisabled(dbPrinter.getId()));
+
         final String colorModeDefault =
-                printerService().getPrintColorModeDefault(dbPrinter);
+                printerService().getPrintColorModeDefault(dbPrinter.getId());
 
         if (colorModeDefault != null) {
 
