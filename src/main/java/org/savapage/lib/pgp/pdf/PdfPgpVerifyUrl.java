@@ -39,7 +39,7 @@ public final class PdfPgpVerifyUrl {
     /**
      * Used in this class to set mountPage().
      */
-    public static final String MOUNT_PATH_WEBAPP = "/pdf/verify";
+    public static final String MOUNT_PATH_WEBAPP = "/verify/pdf";
 
     /** */
     public static final int URL_POSITION_PGP_KEY_ID = 0;
