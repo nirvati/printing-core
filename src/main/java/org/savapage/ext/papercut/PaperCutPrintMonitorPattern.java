@@ -32,6 +32,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.AccountTrxDao.ListFilter;
 import org.savapage.core.dao.DaoContext;
@@ -97,12 +98,6 @@ public abstract class PaperCutPrintMonitorPattern
      */
     protected static final ProxyPrintService PROXY_PRINT_SERVICE =
             ServiceContext.getServiceFactory().getProxyPrintService();
-
-    /**
-     * Days after which a SavaPage print to PaperCut is set to error when the
-     * PaperCut print log is not found.
-     */
-    private static final int MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG = 5;
 
     /**
      * .
@@ -314,7 +309,8 @@ public abstract class PaperCutPrintMonitorPattern
     /**
      * Processes pending SavaPage print jobs that cannot be found in PaperCut:
      * status is set to {@link ExternalSupplierStatusEnum#ERROR} when SavaPage
-     * print job is more then {@link #MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG} old.
+     * print job is more then
+     * {@link PaperCutService#getPrintLogMaxWaitMinutes()} old.
      *
      * @param papercutDocNamesToFind
      *            The PaperCut documents to find.
@@ -324,6 +320,10 @@ public abstract class PaperCutPrintMonitorPattern
     private void processPrintJobsNotFound(
             final Map<String, DocLog> papercutDocNamesToFind,
             final Set<String> papercutDocNamesFound) {
+
+        final long maxWaitMsec = ConfigManager.instance()
+                .getConfigInt(Key.PROXY_PRINT_PAPERCUT_PRINTLOG_MAX_MINS)
+                * DateUtil.DURATION_MSEC_MINUTE;
 
         for (final String docName : papercutDocNamesToFind.keySet()) {
 
@@ -336,8 +336,7 @@ public abstract class PaperCutPrintMonitorPattern
             final long docAge = ServiceContext.getTransactionDate().getTime()
                     - docLog.getCreatedDate().getTime();
 
-            if (docAge < MAX_DAYS_WAIT_FOR_PAPERCUT_PRINT_LOG
-                    * DateUtil.DURATION_MSEC_DAY) {
+            if (docAge < maxWaitMsec) {
                 continue;
             }
 
@@ -635,4 +634,5 @@ public abstract class PaperCutPrintMonitorPattern
 
         DOC_LOG_DAO.update(docLogOut);
     }
+
 }

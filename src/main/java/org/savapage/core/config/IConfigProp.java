@@ -1984,6 +1984,14 @@ public interface IConfigProp {
                 V_NO, API_UPDATABLE_ON),
 
         /**
+         * Number of minutes after which a PaperCut print is set to error when
+         * the PaperCut print log is still not found.
+         */
+        PROXY_PRINT_PAPERCUT_PRINTLOG_MAX_MINS(// )
+                "proxy-print.papercut.print-log.max-mins", NUMBER_VALIDATOR,
+                "7200", API_UPDATABLE_ON),
+
+        /**
          * Enable Personal Print integration with PaperCut (boolean).
          */
         PROXY_PRINT_PERSONAL_PAPERCUT_ENABLE(//
