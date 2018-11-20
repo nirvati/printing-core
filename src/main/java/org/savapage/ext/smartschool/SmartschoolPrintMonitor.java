@@ -77,6 +77,7 @@ import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
+import org.savapage.core.print.archive.PrintArchiveException;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
@@ -2820,8 +2821,12 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
             } else {
 
-                PROXY_PRINT_SERVICE.proxyPrintPdf(lockedUser, printReq,
-                        new PdfCreateInfo(fileToPrint));
+                try {
+                    PROXY_PRINT_SERVICE.proxyPrintPdf(lockedUser, printReq,
+                            new PdfCreateInfo(fileToPrint));
+                } catch (PrintArchiveException e) {
+                    throw new IOException(e.getMessage(), e);
+                }
             }
 
             daoContext.commit();

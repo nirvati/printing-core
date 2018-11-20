@@ -125,6 +125,7 @@ import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.pdf.PdfPrintCollector;
+import org.savapage.core.print.archive.PrintArchiveException;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
@@ -2167,6 +2168,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
         printReq.setPdfOrientation(job.getPdfOrientation());
         printReq.setCostResult(job.getCostResult());
 
+        printReq.setArchive(BooleanUtils.isTrue(job.getArchive()));
+
         printReq.setAccountTrxInfoSet(
                 outboxService().createAccountTrxInfoSet(job));
 
@@ -2325,7 +2328,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
                         jobSheetDto, pdfTicketJobSheet);
             }
 
-            proxyPrint(lockedUser, printReq, docLog, createInfo);
+            try {
+                proxyPrint(lockedUser, printReq, docLog, createInfo);
+            } catch (PrintArchiveException e) {
+                throw new IOException(e.getMessage(), e);
+            }
 
             if (jobSheetDto != null
                     && jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.END) {
@@ -3302,10 +3309,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            printer.
      * @throws IppConnectException
      *             When CUPS connection is broken.
+     * @throws PrintArchiveException
+     *             When print archiving errors.
      */
     private void proxyPrint(final User lockedUser,
             final AbstractProxyPrintReq request, final DocLog docLog,
-            final PdfCreateInfo createInfo) throws IppConnectException {
+            final PdfCreateInfo createInfo)
+            throws IppConnectException, PrintArchiveException {
 
         final String userid = lockedUser.getUserId();
 
@@ -3345,7 +3355,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
     @Override
     public final void proxyPrintPdf(final User lockedUser,
             final ProxyPrintDocReq request, final PdfCreateInfo createInfo)
-            throws IppConnectException, ProxyPrintException {
+            throws IppConnectException, ProxyPrintException,
+            PrintArchiveException {
 
         /*
          * Get access to the printer.
@@ -3614,7 +3625,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             proxyPrint(lockedUser, request, docLog, createInfo);
 
         } catch (LetterheadNotFoundException | PostScriptDrmException
-                | IOException e) {
+                | IOException | PrintArchiveException e) {
 
             throw new SpException(e.getMessage());
 
@@ -3658,10 +3669,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *         logically deleted or disabled).
      * @throws IppConnectException
      *             When IPP connect error.
+     * @throws PrintArchiveException
      */
     private boolean print(final AbstractProxyPrintReq request,
             final String user, final PdfCreateInfo createInfo,
-            final DocLog docLog) throws IppConnectException {
+            final DocLog docLog)
+            throws IppConnectException, PrintArchiveException {
 
         final JsonProxyPrinter printer =
                 this.getJsonProxyPrinterCopy(request.getPrinterName());
@@ -3695,11 +3708,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The documentation object to log the event.
      * @throws IppConnectException
      *             When IPP connection error.
+     * @throws PrintArchiveException
+     *             When print archiving errors.
      */
-    protected abstract void printPdf(final AbstractProxyPrintReq request,
-            final JsonProxyPrinter printer, final String user,
-            final PdfCreateInfo createInfo, final DocLog docLog)
-            throws IppConnectException;
+    protected abstract void printPdf(AbstractProxyPrintReq request,
+            JsonProxyPrinter printer, String user, PdfCreateInfo createInfo,
+            DocLog docLog) throws IppConnectException, PrintArchiveException;
 
     /**
      * Return a localized string.

@@ -70,6 +70,7 @@ import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
+import org.savapage.core.print.archive.PrintArchiveException;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
@@ -81,8 +82,8 @@ import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
-import org.savapage.core.services.helpers.PrinterAccessInfo;
 import org.savapage.core.services.helpers.PageScalingEnum;
+import org.savapage.core.services.helpers.PrinterAccessInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
 import org.savapage.core.services.helpers.SnmpPrinterQueryDto;
@@ -476,9 +477,8 @@ public interface ProxyPrintService {
      * @throws IppSyntaxException
      *             When a syntax error.
      */
-    PrinterAccessInfo
-            getUserPrinterAccessInfo(Device terminal, String userName)
-                    throws IppConnectException, IppSyntaxException;
+    PrinterAccessInfo getUserPrinterAccessInfo(Device terminal, String userName)
+            throws IppConnectException, IppSyntaxException;
 
     /**
      * Initializes the service.
@@ -636,10 +636,12 @@ public interface ProxyPrintService {
      *             When CUPS connection is broken.
      * @throws ProxyPrintException
      *             When a invariant is violated.
+     * @throws PrintArchiveException
+     *             When print archiving errors.
      */
     void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request,
-            PdfCreateInfo createInfo)
-            throws IppConnectException, ProxyPrintException;
+            PdfCreateInfo createInfo) throws IppConnectException,
+            ProxyPrintException, PrintArchiveException;
 
     /**
      * Sends a PDF file to a CUPS printer, and that is it. No database action is
