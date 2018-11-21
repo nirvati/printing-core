@@ -2576,9 +2576,12 @@ public interface IConfigProp {
                 "pdfpgp.verification.port", NUMBER_VALIDATOR_OPT,
                 API_UPDATABLE_ON),
 
-        /**
-         *
-         */
+        /** */
+        WEBAPP_JOBTICKETS_CANCEL_ALL_ENABLE(//
+                "webapp.jobtickets.cancel-all.enable", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /** */
         WEBAPP_JOBTICKETS_PRINT_ALL_ENABLE(//
                 "webapp.jobtickets.print-all.enable", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
