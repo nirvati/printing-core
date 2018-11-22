@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -41,7 +41,6 @@ import org.savapage.core.print.proxy.ProxyPrintJobChunkInfo;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
-import org.savapage.core.util.MediaUtils;
 import org.savapage.core.util.NumberUtil;
 
 /**
@@ -57,41 +56,27 @@ public final class ProxyPrintInboxReqChunker {
      */
     private static final boolean IS_UNIQUE_MEDIASOURCE_REQUIRED = false;
 
-    /**
-    *
-    */
+    /** */
     private static final InboxService INBOX_SERVICE =
             ServiceContext.getServiceFactory().getInboxService();
 
-    /**
-    *
-    */
+    /** */
     private static final ProxyPrintService PROXY_PRINT_SERVICE =
             ServiceContext.getServiceFactory().getProxyPrintService();
 
-    /**
-     *
-     */
-    private final User lockedUser;
+    /** */
+    private User lockedUser;
+
+    /** */
+    private ProxyPrintInboxReq request;
+
+    /** */
+    private PrintScalingEnum requestPrintScaling;
 
     /**
-     *
+     * Constructor.
      */
-    private final ProxyPrintInboxReq request;
-
-    /**
-     *
-     */
-    private final PageScalingEnum requestedPageScaling;
-
-    /**
-     * Prevent default instantiation.
-     */
-    @SuppressWarnings("unused")
     private ProxyPrintInboxReqChunker() {
-        this.lockedUser = null;
-        this.request = null;
-        this.requestedPageScaling = null;
     }
 
     /**
@@ -100,16 +85,21 @@ public final class ProxyPrintInboxReqChunker {
      *            The requesting {@link User}, which should be locked.
      * @param request
      *            The {@link ProxyPrintInboxReq} to be chunked.
-     * @param pageScaling
-     *            The {@link PageScalingEnum}.
+     * @param printScaling
+     *            The {@link PrintScalingEnum}.
+     * @return Created object.
      */
-    public ProxyPrintInboxReqChunker(final User lockedUser,
+    public static ProxyPrintInboxReqChunker create(final User lockedUser,
             final ProxyPrintInboxReq request,
-            final PageScalingEnum pageScaling) {
+            final PrintScalingEnum printScaling) {
 
-        this.lockedUser = lockedUser;
-        this.request = request;
-        this.requestedPageScaling = pageScaling;
+        final ProxyPrintInboxReqChunker obj = new ProxyPrintInboxReqChunker();
+
+        obj.lockedUser = lockedUser;
+        obj.request = request;
+        obj.requestPrintScaling = printScaling;
+
+        return obj;
     }
 
     /**
@@ -501,16 +491,19 @@ public final class ProxyPrintInboxReqChunker {
                 setPrintJobChunk(printJobChunk, determinedMediaSourceCost,
                         determinedMedia, ippMediaSource);
             }
-
         }
     }
 
     /**
      *
      * @param printJobChunk
+     *            Chunk.
      * @param mediaSourceCost
+     *            Assigned media source (cost).
      * @param mediaSize
+     *            Assigned media
      * @param ippMediaSource
+     *            IPP media option.
      */
     private void setPrintJobChunk(final ProxyPrintJobChunk printJobChunk,
             final IppMediaSourceCostDto mediaSourceCost,
@@ -519,31 +512,7 @@ public final class ProxyPrintInboxReqChunker {
         printJobChunk.setAssignedMediaSource(mediaSourceCost);
         printJobChunk.setAssignedMedia(mediaSize);
         printJobChunk.setIppMediaSource(ippMediaSource);
-
-        final boolean fitToPage;
-
-        if (this.requestedPageScaling == PageScalingEnum.NONE) {
-
-            fitToPage = false;
-
-        } else if (this.requestedPageScaling == PageScalingEnum.FIT) {
-
-            fitToPage = true;
-
-        } else if (printJobChunk.getMediaSizeName() == null) {
-
-            fitToPage = true;
-
-        } else {
-
-            final int compare = MediaUtils.compareMediaSize(
-                    printJobChunk.getMediaSizeName(),
-                    printJobChunk.getAssignedMedia().getMediaSizeName());
-
-            fitToPage = compare != 0;
-        }
-
-        printJobChunk.setFitToPage(fitToPage);
+        printJobChunk.setPrintScaling(this.requestPrintScaling);
     }
 
 }

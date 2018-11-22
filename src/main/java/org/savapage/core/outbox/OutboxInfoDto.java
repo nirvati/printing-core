@@ -376,7 +376,18 @@ public final class OutboxInfoDto extends AbstractDto {
         private ProxyPrintCostDto costResult;
         private long submitTime;
         private long expiryTime;
+
+        /**
+         * Note for developers: This attribute must be removed after reasonable
+         * time, when old persisted JSON files are not present anymore.
+         *
+         * @deprecated Use {@link IppDictJobTemplateAttr#ATTR_PRINT_SCALING}
+         *             instead.
+         */
+        @Deprecated
         private Boolean fitToPage;
+
+        /** */
         private Boolean archive;
 
         /**
@@ -577,10 +588,29 @@ public final class OutboxInfoDto extends AbstractDto {
             this.expiryTime = expiryTime;
         }
 
+        /**
+         * Note for developers: This method must be removed after reasonable
+         * time, when old persisted JSON files are not present anymore.
+         *
+         * @deprecated Use {@link IppDictJobTemplateAttr#ATTR_PRINT_SCALING}
+         *             instead.
+         * @return {@code true} if print must be fit-to-page.
+         */
+        @Deprecated
         public Boolean getFitToPage() {
             return fitToPage;
         }
 
+        /**
+         * Note for developers: This method must be removed after reasonable
+         * time, when old persisted JSON files are not present anymore.
+         *
+         * @deprecated Use {@link IppDictJobTemplateAttr#ATTR_PRINT_SCALING}
+         *             instead.
+         * @param fitToPage
+         *            {@code true} if print must be fit-to-page.
+         */
+        @Deprecated
         public void setFitToPage(Boolean fitToPage) {
             this.fitToPage = fitToPage;
         }

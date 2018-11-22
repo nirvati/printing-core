@@ -43,6 +43,9 @@ public enum AdjectiveEnum {
     ASCENDING, DESCENDING,
 
     /** */
+    SCALED,
+
+    /** */
     VALID, INVALID,
 
     /** */

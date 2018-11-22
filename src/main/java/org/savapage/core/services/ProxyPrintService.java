@@ -82,7 +82,6 @@ import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
-import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PrinterAccessInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
@@ -993,8 +992,6 @@ public interface ProxyPrintService {
      *            The requesting {@link User}, which should be locked.
      * @param request
      *            The {@link ProxyPrintInboxReq} to be chunked.
-     * @param pageScaling
-     *            The preferred {@link PageScalingEnum}.
      * @param chunkVanillaJobs
      *            When {@code true} a chunk is created for each job (of a
      *            vanilla inbox)
@@ -1008,8 +1005,8 @@ public interface ProxyPrintService {
      *             inbox is not vanilla.
      */
     void chunkProxyPrintRequest(User lockedUser, ProxyPrintInboxReq request,
-            PageScalingEnum pageScaling, boolean chunkVanillaJobs,
-            Integer iVanillaJob) throws ProxyPrintException;
+            boolean chunkVanillaJobs, Integer iVanillaJob)
+            throws ProxyPrintException;
 
     /**
      * Clears the user's inbox depending on the print request and the

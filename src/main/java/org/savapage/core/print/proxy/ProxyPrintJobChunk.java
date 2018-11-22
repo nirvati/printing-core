@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,6 +29,7 @@ import javax.print.attribute.standard.MediaSizeName;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.ipp.IppMediaSizeEnum;
+import org.savapage.core.services.helpers.PrintScalingEnum;
 import org.savapage.core.services.helpers.ProxyPrintCostDto;
 
 /**
@@ -52,7 +53,8 @@ public final class ProxyPrintJobChunk {
      */
     private IppMediaSourceCostDto assignedMediaSource;
     private IppMediaSizeEnum assignedMedia;
-    private Boolean fitToPage;
+
+    private PrintScalingEnum printScaling;
     private boolean drm;
 
     /**
@@ -161,12 +163,12 @@ public final class ProxyPrintJobChunk {
         this.assignedMedia = assignedMedia;
     }
 
-    public Boolean getFitToPage() {
-        return fitToPage;
+    public PrintScalingEnum getPrintScaling() {
+        return printScaling;
     }
 
-    public void setFitToPage(Boolean fitToPage) {
-        this.fitToPage = fitToPage;
+    public void setPrintScaling(PrintScalingEnum printScaling) {
+        this.printScaling = printScaling;
     }
 
     public boolean isDrm() {

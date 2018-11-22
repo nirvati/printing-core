@@ -195,12 +195,6 @@ public final class ConfigManager {
     private static final String SERVER_REL_PATH_DATA = "data";
 
     /**
-     * The relative path of the archive folder (relative to the {@code server}
-     * directory).
-     */
-    private static final String SERVER_REL_PATH_ARCHIVE = "data/archive";
-
-    /**
      * The relative path of the email outbox folder (relative to the
      * {@code server} directory).
      */
@@ -220,6 +214,13 @@ public final class ConfigManager {
      */
     private static final String SERVER_REL_PATH_PRINT_JOBTICKETS =
             "data/print-jobtickets";
+
+    /**
+     * The relative path of the print archive folder (relative to the
+     * {@code server} directory).
+     */
+    private static final String SERVER_REL_PATH_PRINT_ARCHIVE =
+            "data/print-archive";
 
     /**
      * The relative path of the Atom Feeds folder (relative to the
@@ -954,12 +955,12 @@ public final class ConfigManager {
     }
 
     /**
-    *
-    * @return The directory path of the archive home.
-    */
-   public static Path getArchiveHome() {
-       return Paths.get(getServerHome(), SERVER_REL_PATH_ARCHIVE);
-   }
+     *
+     * @return The directory path of the archive home.
+     */
+    public static Path getArchiveHome() {
+        return Paths.get(getServerHome(), SERVER_REL_PATH_PRINT_ARCHIVE);
+    }
 
     /**
      *

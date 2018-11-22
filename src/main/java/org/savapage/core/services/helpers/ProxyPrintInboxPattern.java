@@ -151,7 +151,8 @@ public abstract class ProxyPrintInboxPattern {
          */
         final String orgJobName = request.getJobName();
         final int orgNumberOfPages = request.getNumberOfPages();
-        final Boolean orgFitToPage = request.getFitToPage();
+        final PrintScalingEnum orgPrintScaling =
+                request.getPrintScalingOption();
         final String orgMediaOption = request.getMediaOption();
         final String orgMediaSourceOption = request.getMediaSourceOption();
         final ProxyPrintCostDto orgCostResult = request.getCostResult();
@@ -193,7 +194,7 @@ public abstract class ProxyPrintInboxPattern {
                      * Replace the request parameters with the chunk parameters.
                      */
                     request.setNumberOfPages(chunk.getNumberOfPages());
-                    request.setFitToPage(chunk.getFitToPage());
+                    request.setPrintScalingOption(chunk.getPrintScaling());
                     request.setMediaOption(
                             chunk.getAssignedMedia().getIppKeyword());
 
@@ -241,7 +242,7 @@ public abstract class ProxyPrintInboxPattern {
              */
             request.setJobName(orgJobName);
             request.setNumberOfPages(orgNumberOfPages);
-            request.setFitToPage(orgFitToPage);
+            request.setPrintScalingOption(orgPrintScaling);
             request.setMediaOption(orgMediaOption);
             request.setMediaSourceOption(orgMediaSourceOption);
             request.setCostResult(orgCostResult);

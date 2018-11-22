@@ -29,6 +29,7 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.print.proxy.JsonProxyPrinterOpt;
 import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
+import org.savapage.core.services.helpers.PrintScalingEnum;
 
 /**
  *
@@ -148,6 +149,15 @@ public final class IppOptionMap {
         return isOptionPresentUnequal(
                 IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE,
                 IppKeyword.ORG_SAVAPAGE_ATTR_FINISHINGS_STAPLE_NONE);
+    }
+
+    /**
+     *
+     * @return {@code true} if requests has print scaling.
+     */
+    public boolean hasPrintScaling() {
+        return isOptionPresentUnequal(PrintScalingEnum.IPP_NAME,
+                PrintScalingEnum.NONE.getIppValue());
     }
 
     /**

@@ -145,8 +145,8 @@ import org.savapage.core.services.helpers.CommonSupplierData;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.JobTicketSupplierData;
-import org.savapage.core.services.helpers.PageScalingEnum;
 import org.savapage.core.services.helpers.PpdExtFileReader;
+import org.savapage.core.services.helpers.PrintScalingEnum;
 import org.savapage.core.services.helpers.PrinterAccessInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.PrinterSnmpReader;
@@ -2163,7 +2163,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         printReq.setLocale(ServiceContext.getLocale());
         printReq.setIdUser(user.getId());
         printReq.putOptionValues(job.getOptionValues());
-        printReq.setFitToPage(job.getFitToPage());
+
         printReq.setLandscape(job.getLandscape());
         printReq.setPdfOrientation(job.getPdfOrientation());
         printReq.setCostResult(job.getCostResult());
@@ -2172,6 +2172,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         printReq.setAccountTrxInfoSet(
                 outboxService().createAccountTrxInfoSet(job));
+
+        // Last, after option values are set.
+        if (printReq.getPrintScalingOption() == null) {
+            // Dealing with deprecated stored jobs.
+            if (BooleanUtils.isTrue(job.getFitToPage())) {
+                printReq.setPrintScalingOption(PrintScalingEnum.FIT);
+            } else {
+                printReq.setPrintScalingOption(PrintScalingEnum.NONE);
+            }
+        }
 
         return printReq;
     }
@@ -2996,6 +3006,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printReq.setIdUser(user.getId());
                 printReq.putOptionValues(printerOptionValues);
                 printReq.setMediaSourceOption(IppKeyword.MEDIA_SOURCE_AUTO);
+                printReq.setPrintScalingOption(PrintScalingEnum.FIT);
 
                 /*
                  * Variable values.
@@ -3040,6 +3051,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printReq.setIdUser(user.getId());
             printReq.putOptionValues(printerOptionValues);
             printReq.setMediaSourceOption(IppKeyword.MEDIA_SOURCE_AUTO);
+            printReq.setPrintScalingOption(PrintScalingEnum.FIT);
 
             /*
              * Variable values.
@@ -3062,8 +3074,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             /*
              * Chunk!
              */
-            this.chunkProxyPrintRequest(user, printReq, PageScalingEnum.FIT,
-                    false, null);
+            this.chunkProxyPrintRequest(user, printReq, false, null);
 
             final ProxyPrintCostParms costParms = new ProxyPrintCostParms(null);
 
@@ -3252,7 +3263,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     new ProxyPrintDocReq(PrintModeEnum.TICKET);
 
             reqBanner.setNumberOfCopies(1);
-            reqBanner.setFitToPage(Boolean.TRUE);
 
             reqBanner.setJobName(
                     String.format("Ticket-Banner-%s", job.getTicketNumber()));
@@ -3277,6 +3287,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             //
             reqBanner.setOptionValues(options);
+
+            // After option values are set.
+            reqBanner.setPrintScalingOption(PrintScalingEnum.FIT);
 
             // final JsonProxyPrintJob printJob =
             this.sendPdfToPrinter(reqBanner, printer, user, createInfo);
@@ -3430,10 +3443,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
     @Override
     public final void chunkProxyPrintRequest(final User lockedUser,
-            final ProxyPrintInboxReq request, final PageScalingEnum pageScaling,
-            final boolean chunkVanillaJobs, final Integer iVanillaJob)
-            throws ProxyPrintException {
-        new ProxyPrintInboxReqChunker(lockedUser, request, pageScaling)
+            final ProxyPrintInboxReq request, final boolean chunkVanillaJobs,
+            final Integer iVanillaJob) throws ProxyPrintException {
+        ProxyPrintInboxReqChunker
+                .create(lockedUser, request, request.getPrintScalingOption())
                 .chunk(chunkVanillaJobs, iVanillaJob, request.getPageRanges());
     }
 
@@ -3449,7 +3462,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         final String orgJobName = request.getJobName();
         final InboxSelectScopeEnum orgClearScope = request.getClearScope();
-        final Boolean orgFitToPage = request.getFitToPage();
+        final PrintScalingEnum orgPrintScaling =
+                request.getPrintScalingOption();
         final String orgMediaOption = request.getMediaOption();
         final String orgMediaSourceOption = request.getMediaSourceOption();
         final ProxyPrintCostDto orgCostResult = request.getCostResult();
@@ -3491,7 +3505,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                         request.setClearScope(InboxSelectScopeEnum.NONE);
                     }
 
-                    request.setFitToPage(chunk.getFitToPage());
+                    request.setPrintScalingOption(chunk.getPrintScaling());
 
                     request.setMediaOption(
                             chunk.getAssignedMedia().getIppKeyword());
@@ -3549,7 +3563,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
              */
             request.setJobName(orgJobName);
             request.setClearScope(orgClearScope);
-            request.setFitToPage(orgFitToPage);
+            request.setPrintScalingOption(orgPrintScaling);
             request.setMediaOption(orgMediaOption);
             request.setMediaSourceOption(orgMediaSourceOption);
             request.setCostResult(orgCostResult);

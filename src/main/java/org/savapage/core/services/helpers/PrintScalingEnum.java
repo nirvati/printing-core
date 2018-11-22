@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,13 +21,15 @@
  */
 package org.savapage.core.services.helpers;
 
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
+
 /**
- * Page Scaling options according to PWG5100.16.
+ * IPP print-scaling attribute values according to PWG5100.16.
  *
  * @author Rijk Ravestein
  *
  */
-public enum PageScalingEnum {
+public enum PrintScalingEnum {
 
     /**
      * If the “ipp-attribute-fidelity” attribute is true or the document is
@@ -38,28 +40,31 @@ public enum PageScalingEnum {
      * 'none' method.
      *
      */
-    AUTO,
+    // Reserved for future use.
+    // AUTO("auto"),
 
     /**
      * If the “ipp-attribute-fidelity” attribute is true or the document is
      * larger than the requested media, scale the document using the ‘fit’
      * method. Otherwise, scale using the ‘none’ method.
      */
-    AUTO_FIT,
+    // Reserved for future use.
+    // AUTO_FIT("auto-fit"),
 
     /**
      * Scale the document to fill the requested media size, preserving the
      * aspect ratio of the document data but potentially cropping portions of
      * the document.
      */
-    FILL,
+    // Reserved for future use.
+    // FILL("fill"),
 
     /**
      * Scale the document to fit the printable area of the requested media size,
      * preserving the aspect ratio of the document data without cropping the
      * document.
      */
-    FIT,
+    FIT("fit"),
 
     /**
      * Do not scale the document to fit the requested media size. If the
@@ -67,5 +72,50 @@ public enum PageScalingEnum {
      * resulting output. If the document is smaller than the requested media,
      * center the resulting output.
      */
-    NONE
+    NONE("none");
+
+    /**
+     * The IPP attribute value.
+     */
+    private final String ippValue;
+
+    /**
+     * The IPP name.
+     */
+    public static final String IPP_NAME =
+            IppDictJobTemplateAttr.ATTR_PRINT_SCALING;
+
+    /**
+     *
+     * @param value
+     *            The IPP value.
+     */
+    PrintScalingEnum(final String value) {
+        this.ippValue = value;
+    }
+
+    /**
+     * @return The IPP attribute value.
+     */
+    public String getIppValue() {
+        return ippValue;
+    }
+
+    /**
+     * Get enum from IPP value.
+     *
+     * @param ippValue
+     *            The IPP value (can be {@code null}).
+     * @return {@code null} if not found or when parameter is {@code null} .
+     */
+    public static PrintScalingEnum fromIppValue(final String ippValue) {
+        if (ippValue != null) {
+            for (final PrintScalingEnum wlk : PrintScalingEnum.values()) {
+                if (ippValue.equals(wlk.getIppValue())) {
+                    return wlk;
+                }
+            }
+        }
+        return null;
+    }
 }

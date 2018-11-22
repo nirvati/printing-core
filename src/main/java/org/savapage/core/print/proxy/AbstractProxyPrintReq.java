@@ -34,6 +34,7 @@ import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
+import org.savapage.core.services.helpers.PrintScalingEnum;
 import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 
@@ -136,8 +137,6 @@ public abstract class AbstractProxyPrintReq
     private Map<String, String> optionValues;
 
     private InboxSelectScopeEnum clearScope;
-
-    private Boolean fitToPage;
 
     /**
      * {@code true} when one of the job pages has landscape orientation.
@@ -452,6 +451,27 @@ public abstract class AbstractProxyPrintReq
                 mediaSource);
     }
 
+    /**
+     * Sets the value of the "print-scaling" option.
+     *
+     * @param printScaling
+     *            The {@link PrintScalingEnum}.
+     */
+    public void setPrintScalingOption(final PrintScalingEnum printScaling) {
+        this.optionValues.put(PrintScalingEnum.IPP_NAME,
+                printScaling.getIppValue());
+    }
+
+    /**
+     * Gets the value of the "print-scaling" option.
+     *
+     * @return The {@link PrintScalingEnum}.
+     */
+    public PrintScalingEnum getPrintScalingOption() {
+        return PrintScalingEnum
+                .fromIppValue(this.optionValues.get(PrintScalingEnum.IPP_NAME));
+    }
+
     @Override
     public boolean isOddOrEvenSheets() {
         return isOddOrEvenSheets(getOptionValues());
@@ -559,14 +579,6 @@ public abstract class AbstractProxyPrintReq
     public void setColor() {
         getOptionValues().put(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE,
                 IppKeyword.PRINT_COLOR_MODE_COLOR);
-    }
-
-    public Boolean getFitToPage() {
-        return fitToPage;
-    }
-
-    public void setFitToPage(Boolean fitToPage) {
-        this.fitToPage = fitToPage;
     }
 
     /**
