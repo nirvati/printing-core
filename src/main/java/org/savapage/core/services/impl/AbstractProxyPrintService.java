@@ -556,7 +556,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printer.setGroups(cupsPrinter.getGroups());
             printer.setPrinterUri(cupsPrinter.getPrinterUri());
             printer.setJobTicket(cupsPrinter.getJobTicket());
-            printer.setPrintScalingExt(cupsPrinter.isPrintScalingExt());
             printer.setArchiveDisabled(cupsPrinter.isArchiveDisabled());
 
             /*

@@ -38,12 +38,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public final class JsonPrinterDetail extends JsonPrinter {
 
-    /**
-     * {@code true} when print-scaling was injected from a SavaPage PPD
-     * extension.
-     */
-    private boolean printScalingExt = false;
-
     /** */
     private boolean archiveDisabled = false;
 
@@ -107,24 +101,6 @@ public final class JsonPrinterDetail extends JsonPrinter {
         this.mediaSources = mediaSources;
     }
 
-    /**
-     * @return {@code true} when print-scaling was injected from a SavaPage PPD
-     *         extension.
-     */
-    public boolean isPrintScalingExt() {
-        return printScalingExt;
-    }
-
-    /**
-     * @param printScalingExt
-     *            {@code true} when print-scaling was injected from a SavaPage
-     *            PPD extension.
-     */
-    public void setPrintScalingExt(boolean printScalingExt) {
-        this.printScalingExt = printScalingExt;
-    }
-
-
     public boolean isArchiveDisabled() {
         return archiveDisabled;
     }
@@ -144,7 +120,6 @@ public final class JsonPrinterDetail extends JsonPrinter {
 
         super.copy(copy);
 
-        copy.printScalingExt = this.printScalingExt;
         copy.archiveDisabled = this.archiveDisabled;
 
         copy.groups = new ArrayList<>();

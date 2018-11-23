@@ -1477,8 +1477,6 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         final IppDictJobTemplateAttr ippDict =
                 IppDictJobTemplateAttr.instance();
 
-        boolean printScalingExt = false;
-
         // The mapped PPD options
         final ArrayList<JsonProxyPrinterOpt> optToInjectPageSetup =
                 new ArrayList<>();
@@ -1528,10 +1526,6 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 proxyPrinter.setDuplexDevice(Boolean.valueOf(opt.getChoices()
                         .size() > 1
                         || opt.getChoice(IppKeyword.SIDES_ONE_SIDED) == null));
-            }
-
-            if (keywordIpp.equals(IppDictJobTemplateAttr.ATTR_PRINT_SCALING)) {
-                printScalingExt = true;
             }
 
             if (keywordIpp.equals(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE)) {
@@ -1607,7 +1601,6 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         proxyPrinter.setBookletClientSide(reader.localBooklet.booleanValue());
         //
         proxyPrinter.setInjectPpdExt(true);
-        proxyPrinter.setPrintScalingExt(printScalingExt);
     }
 
     /**
