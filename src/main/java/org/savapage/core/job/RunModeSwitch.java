@@ -1,7 +1,7 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2018 Datraverse B.V.
- * Author: Rijk Ravestein.
+ * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -19,44 +19,43 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.print.archive;
+package org.savapage.core.job;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public class PrintArchiveException extends Exception {
+public final class RunModeSwitch {
+
+    /** */
+    private final boolean modeReal;
+
+    /** */
+    public static final RunModeSwitch DRY = new RunModeSwitch(false);
+    /** */
+    public static final RunModeSwitch REAL = new RunModeSwitch(true);
 
     /**
      *
+     * @param isModeReal
+     *            {@code true} if Real Run.
      */
-    private static final long serialVersionUID = 1L;
-
-    /**
-     *
-     * @param ex
-     *            The exception.
-     */
-    public PrintArchiveException(final Exception ex) {
-        super(ex);
+    private RunModeSwitch(final boolean isModeReal) {
+        this.modeReal = isModeReal;
     }
 
     /**
-     *
-     * @param message
+     * @return {@code true} if Dry Run.
      */
-    public PrintArchiveException(final String message) {
-        super(message);
+    public boolean isDry() {
+        return !this.modeReal;
     }
 
     /**
-     *
-     * @param message
-     * @param cause
+     * @return {@code true} if Real Run.
      */
-    public PrintArchiveException(final String message, final Throwable cause) {
-        super(message, cause);
+    public boolean isReal() {
+        return this.modeReal;
     }
-
 }

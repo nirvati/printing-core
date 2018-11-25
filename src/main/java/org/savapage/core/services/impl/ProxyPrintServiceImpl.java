@@ -55,6 +55,7 @@ import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.MediaCostDto;
@@ -100,8 +101,6 @@ import org.savapage.core.json.rpc.JsonRpcMethodError;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfPrintCollector;
-import org.savapage.core.print.archive.PrintArchiveException;
-import org.savapage.core.print.archive.PrintArchiver;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
@@ -1450,7 +1449,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     protected void printPdf(final AbstractProxyPrintReq request,
             final JsonProxyPrinter jsonPrinter, final String user,
             final PdfCreateInfo createInfo, final DocLog docLog)
-            throws IppConnectException, PrintArchiveException {
+            throws IppConnectException, DocStoreException {
 
         final JsonProxyPrintJob printJob =
                 this.sendPdfToPrinter(request, jsonPrinter, user, createInfo);
@@ -1458,7 +1457,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         collectPrintOutData(request, docLog, jsonPrinter, printJob, createInfo);
 
         if (request.isArchive()) {
-            PrintArchiver.instance().archive(request, docLog, createInfo);
+            docStoreService().archive(request, docLog, createInfo);
         }
     }
 

@@ -63,6 +63,7 @@ import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.AppLogService;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
+import org.savapage.core.services.DocStoreService;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.JobTicketService;
@@ -106,6 +107,10 @@ public abstract class AbstractService {
 
     protected static DocLogService docLogService() {
         return ServiceContext.getServiceFactory().getDocLogService();
+    }
+
+    protected static DocStoreService docStoreService() {
+        return ServiceContext.getServiceFactory().getDocStoreService();
     }
 
     protected static EmailService emailService() {

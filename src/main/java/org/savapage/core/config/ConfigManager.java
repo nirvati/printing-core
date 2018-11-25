@@ -216,11 +216,18 @@ public final class ConfigManager {
             "data/print-jobtickets";
 
     /**
-     * The relative path of the print archive folder (relative to the
+     * The relative path of the doc archive folder (relative to the
      * {@code server} directory).
      */
-    private static final String SERVER_REL_PATH_PRINT_ARCHIVE =
-            "data/print-archive";
+    private static final String SERVER_REL_PATH_DOC_ARCHIVE =
+            "data/doc-archive";
+
+    /**
+     * The relative path of the doc journal folder (relative to the
+     * {@code server} directory).
+     */
+    private static final String SERVER_REL_PATH_DOC_JOURNAL =
+            "data/doc-journal";
 
     /**
      * The relative path of the Atom Feeds folder (relative to the
@@ -862,6 +869,14 @@ public final class ConfigManager {
     }
 
     /**
+    *
+    * @return
+    */
+   public static boolean isCleanUpDocStoreAtStart() {
+       return isCleanUpDocLogAtStart();
+   }
+
+    /**
      *
      * @return
      */
@@ -956,10 +971,18 @@ public final class ConfigManager {
 
     /**
      *
-     * @return The directory path of the archive home.
+     * @return The directory path of the document archive home.
      */
-    public static Path getArchiveHome() {
-        return Paths.get(getServerHome(), SERVER_REL_PATH_PRINT_ARCHIVE);
+    public static Path getDocArchiveHome() {
+        return Paths.get(getServerHome(), SERVER_REL_PATH_DOC_ARCHIVE);
+    }
+
+    /**
+     *
+     * @return The directory path of the document archive home.
+     */
+    public static Path getDocJournalHome() {
+        return Paths.get(getServerHome(), SERVER_REL_PATH_DOC_JOURNAL);
     }
 
     /**

@@ -63,6 +63,7 @@ import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentToPdfException;
 import org.savapage.core.doc.IPdfConverter;
 import org.savapage.core.doc.PdfToGrayscale;
+import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
@@ -77,7 +78,6 @@ import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
-import org.savapage.core.print.archive.PrintArchiveException;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
@@ -2824,7 +2824,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                 try {
                     PROXY_PRINT_SERVICE.proxyPrintPdf(lockedUser, printReq,
                             new PdfCreateInfo(fileToPrint));
-                } catch (PrintArchiveException e) {
+                } catch (DocStoreException e) {
                     throw new IOException(e.getMessage(), e);
                 }
             }

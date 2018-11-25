@@ -80,6 +80,7 @@ import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
+import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.IppMediaSourceMappingDto;
 import org.savapage.core.dto.PrinterSnmpDto;
@@ -125,7 +126,6 @@ import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.pdf.PdfPrintCollector;
-import org.savapage.core.print.archive.PrintArchiveException;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
@@ -2339,7 +2339,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             try {
                 proxyPrint(lockedUser, printReq, docLog, createInfo);
-            } catch (PrintArchiveException e) {
+            } catch (DocStoreException e) {
                 throw new IOException(e.getMessage(), e);
             }
 
@@ -3321,13 +3321,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            printer.
      * @throws IppConnectException
      *             When CUPS connection is broken.
-     * @throws PrintArchiveException
+     * @throws DocStoreException
      *             When print archiving errors.
      */
     private void proxyPrint(final User lockedUser,
             final AbstractProxyPrintReq request, final DocLog docLog,
             final PdfCreateInfo createInfo)
-            throws IppConnectException, PrintArchiveException {
+            throws IppConnectException, DocStoreException {
 
         final String userid = lockedUser.getUserId();
 
@@ -3368,7 +3368,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     public final void proxyPrintPdf(final User lockedUser,
             final ProxyPrintDocReq request, final PdfCreateInfo createInfo)
             throws IppConnectException, ProxyPrintException,
-            PrintArchiveException {
+            DocStoreException {
 
         /*
          * Get access to the printer.
@@ -3638,7 +3638,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             proxyPrint(lockedUser, request, docLog, createInfo);
 
         } catch (LetterheadNotFoundException | PostScriptDrmException
-                | IOException | PrintArchiveException e) {
+                | IOException | DocStoreException e) {
 
             throw new SpException(e.getMessage());
 
@@ -3682,12 +3682,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *         logically deleted or disabled).
      * @throws IppConnectException
      *             When IPP connect error.
-     * @throws PrintArchiveException
+     * @throws DocStoreException
      */
     private boolean print(final AbstractProxyPrintReq request,
             final String user, final PdfCreateInfo createInfo,
             final DocLog docLog)
-            throws IppConnectException, PrintArchiveException {
+            throws IppConnectException, DocStoreException {
 
         final JsonProxyPrinter printer =
                 this.getJsonProxyPrinterCopy(request.getPrinterName());
@@ -3721,12 +3721,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The documentation object to log the event.
      * @throws IppConnectException
      *             When IPP connection error.
-     * @throws PrintArchiveException
+     * @throws DocStoreException
      *             When print archiving errors.
      */
     protected abstract void printPdf(AbstractProxyPrintReq request,
             JsonProxyPrinter printer, String user, PdfCreateInfo createInfo,
-            DocLog docLog) throws IppConnectException, PrintArchiveException;
+            DocLog docLog) throws IppConnectException, DocStoreException;
 
     /**
      * Return a localized string.

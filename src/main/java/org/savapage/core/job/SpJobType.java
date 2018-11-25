@@ -91,6 +91,11 @@ public enum SpJobType {
     DOC_LOG_CLEAN,
 
     /**
+     * Clean the Document Store(s).
+     */
+    DOC_STORE_CLEAN,
+
+    /**
      * Remove {@link PrinterGroup} instances that have no members.
      */
     PRINTER_GROUP_CLEAN,

@@ -29,6 +29,7 @@ import org.savapage.core.services.AtomFeedService;
 import org.savapage.core.services.ConfigPropertyService;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
+import org.savapage.core.services.DocStoreService;
 import org.savapage.core.services.EcoPrintPdfTaskService;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.InboxService;
@@ -106,6 +107,10 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private static class DocLogServiceHolder {
         public static final DocLogService SERVICE = new DocLogServiceImpl();
+    }
+
+    private static class DocStoreServiceHolder {
+        public static final DocStoreService SERVICE = new DocStoreServiceImpl();
     }
 
     private static class EcoPrintPdfTaskServiceHolder {
@@ -245,6 +250,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public DocLogService getDocLogService() {
         return DocLogServiceHolder.SERVICE;
+    }
+
+    @Override
+    public DocStoreService getDocStoreService() {
+        return DocStoreServiceHolder.SERVICE;
     }
 
     @Override

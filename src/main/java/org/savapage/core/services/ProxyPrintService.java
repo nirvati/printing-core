@@ -38,6 +38,7 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
+import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.ProxyPrinterCostDto;
@@ -70,7 +71,6 @@ import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
-import org.savapage.core.print.archive.PrintArchiveException;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.JsonProxyPrinter;
@@ -635,12 +635,12 @@ public interface ProxyPrintService {
      *             When CUPS connection is broken.
      * @throws ProxyPrintException
      *             When a invariant is violated.
-     * @throws PrintArchiveException
+     * @throws DocStoreException
      *             When print archiving errors.
      */
     void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request,
             PdfCreateInfo createInfo) throws IppConnectException,
-            ProxyPrintException, PrintArchiveException;
+            ProxyPrintException, DocStoreException;
 
     /**
      * Sends a PDF file to a CUPS printer, and that is it. No database action is

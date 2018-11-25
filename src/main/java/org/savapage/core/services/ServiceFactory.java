@@ -100,6 +100,13 @@ public interface ServiceFactory {
     DocLogService getDocLogService();
 
     /**
+     * Gets the {@link AppLogService} singleton.
+     *
+     * @return The singleton.
+     */
+    DocStoreService getDocStoreService();
+
+    /**
      * Gets the {@link EcoPrintPdfTaskService} singleton.
      *
      * @return The singleton.

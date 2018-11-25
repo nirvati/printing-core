@@ -46,6 +46,11 @@ public enum PubTopicEnum {
     DB("db"),
 
     /**
+     * Document Store.
+     */
+    DOC_STORE("doc-store"),
+
+    /**
      * Atom Feed.
      */
     FEED("feed"),

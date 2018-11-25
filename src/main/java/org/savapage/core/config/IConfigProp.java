@@ -1905,8 +1905,8 @@ public interface IConfigProp {
         /**
          * Max days of archived print job history.
          */
-        PROXY_PRINT_ARCHIVE_MAX_DAYS(//
-                "proxy-print.archive.max-days", NUMBER_VALIDATOR, "30",
+        PROXY_PRINT_ARCHIVE_DAYS_TO_KEEP(//
+                "proxy-print.archive.days-to-keep", NUMBER_VALIDATOR, "30",
                 API_UPDATABLE_ON),
 
         /**
