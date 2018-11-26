@@ -1896,25 +1896,81 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
-         * Enable Print Archive (boolean).
+         * Enable Doc Store (boolean).
          */
-        PROXY_PRINT_ARCHIVE_ENABLE(//
-                "proxy-print.archive.enable", BOOLEAN_VALIDATOR, V_NO,
+        DOC_STORE_ENABLE(//
+                "doc.store.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /** */
+        DOC_STORE_FREE_SPACE_LIMIT_MB(//
+                "doc.store.free-space-limit-mb", NUMBER_VALIDATOR, "5000",
                 API_UPDATABLE_ON),
 
-        /**
-         * Max days of archived print job history.
-         */
-        PROXY_PRINT_ARCHIVE_DAYS_TO_KEEP(//
-                "proxy-print.archive.days-to-keep", NUMBER_VALIDATOR, "30",
+        /** .--------------------------. */
+        DOC_STORE_ARCHIVE_ENABLE(//
+                "doc.store.archive.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_ARCHIVE_OUT_ENABLE(//
+                "doc.store.archive.out.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_ARCHIVE_OUT_PRINT_ENABLE(//
+                "doc.store.archive.out.print.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_ARCHIVE_OUT_PDF_ENABLE(//
+                "doc.store.archive.out.pdf.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_ARCHIVE_IN_ENABLE(//
+                "doc.store.archive.in.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_ARCHIVE_OUT_PRINT_DAYS_TO_KEEP(//
+                "doc.store.archive.out.print.days-to-keep", NUMBER_VALIDATOR,
+                "30", API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_ARCHIVE_OUT_PDF_DAYS_TO_KEEP(//
+                "doc.store.archive.out.pdf.days-to-keep", NUMBER_VALIDATOR,
+                "30", API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_ARCHIVE_IN_PRINT_DAYS_TO_KEEP(//
+                "doc.store.archive.in.print.days-to-keep", NUMBER_VALIDATOR,
+                "30", API_UPDATABLE_ON),
 
-        /**
-         * Stop archiving when free disk space falls below limit.
-         */
-        PROXY_PRINT_ARCHIVE_FREE_SPACE_LIMIT_MB(//
-                "proxy-print.archive.free-space-limit-mb", NUMBER_VALIDATOR,
-                "5000", API_UPDATABLE_ON),
+        /** .--------------------------. */
+        DOC_STORE_JOURNAL_ENABLE(//
+                "doc.store.journal.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_JOURNAL_OUT_ENABLE(//
+                "doc.store.journal.out.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_JOURNAL_OUT_PRINT_ENABLE(//
+                "doc.store.journal.out.print.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_JOURNAL_OUT_PDF_ENABLE(//
+                "doc.store.journal.out.pdf.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_JOURNAL_IN_ENABLE(//
+                "doc.store.journal.in.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_JOURNAL_OUT_PRINT_DAYS_TO_KEEP(//
+                "doc.store.journal.out.print.days-to-keep", NUMBER_VALIDATOR,
+                "2", API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_JOURNAL_OUT_PDF_DAYS_TO_KEEP(//
+                "doc.store.journal.out.pdf.days-to-keep", NUMBER_VALIDATOR, "2",
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_JOURNAL_IN_PRINT_DAYS_TO_KEEP(//
+                "doc.store.journal.in.print.days-to-keep", NUMBER_VALIDATOR,
+                "2", API_UPDATABLE_ON),
 
         /**
          * Enable Delegated Print (boolean).
@@ -2690,9 +2746,9 @@ public interface IConfigProp {
         /**
          * User WebApp: show archive scope (Boolean).
          */
-        WEBAPP_USER_PROXY_PRINT_ARCHIVE_PROMPT(//
-                "webapp.user.proxy-print.archive.prompt", BOOLEAN_VALIDATOR,
-                V_YES, API_UPDATABLE_ON),
+        WEBAPP_USER_DOC_STORE_ARCHIVE_OUT_PRINT_PROMPT(//
+                "webapp.user.doc.store.archive.out.print.prompt",
+                BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * User WebApp: enable a fixed inbox clearing scope after a proxy print

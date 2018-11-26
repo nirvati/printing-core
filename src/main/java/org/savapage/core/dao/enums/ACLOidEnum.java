@@ -120,14 +120,19 @@ public enum ACLOidEnum {
      * Print Archive.
      */
     U_PRINT_ARCHIVE(EnumSet.of(ACLPermissionEnum.EDITOR),
-            EnumSet.of(ACLPermissionEnum.SELECT));
+            EnumSet.of(ACLPermissionEnum.SELECT)),
+
+    /**
+     * Print Journal.
+     */
+    U_PRINT_JOURNAL(EnumSet.of(ACLPermissionEnum.READER));
 
     /**
      * OIDs for user role. The enum order is the top to bottom order in the UI.
      */
-    private static final ACLOidEnum[] USER_ENUMS_ARRAY =
-            new ACLOidEnum[] { U_INBOX, U_USER, U_PERSONAL_PRINT,
-                    U_PRINT_ARCHIVE, U_FINANCIAL, U_LETTERHEAD };
+    private static final ACLOidEnum[] USER_ENUMS_ARRAY = new ACLOidEnum[] {
+            U_INBOX, U_USER, U_PERSONAL_PRINT, U_PRINT_JOURNAL, U_PRINT_ARCHIVE,
+            U_FINANCIAL, U_LETTERHEAD };
 
     /**
      * OIDs for user role. The enum order is lost.

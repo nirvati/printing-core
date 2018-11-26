@@ -56,6 +56,11 @@ public enum PrinterAttrEnum {
     ARCHIVE_DISABLE("archive.disable"),
 
     /**
+     * Boolean: Y | N. When not present N is assumed.
+     */
+    JOURNAL_DISABLE("journal.disable"),
+
+    /**
      * Is monochrome conversion performed client-side (locally)? Boolean:
      * {@code true|false}.
      */

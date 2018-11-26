@@ -134,8 +134,15 @@ public final class DocStoreCleaner extends SimpleFileVisitor<Path> {
                     this.refYear, this.refMonth, this.refDay, this.refHour));
         }
 
-        Files.walkFileTree(this.store, this);
-        return this.totCleanedDoc.longValue();
+        final long nCleaned;
+
+        if (this.store.toFile().exists()) {
+            Files.walkFileTree(this.store, this);
+            nCleaned = this.totCleanedDoc.longValue();
+        } else {
+            nCleaned = 0;
+        }
+        return nCleaned;
     }
 
     /**
