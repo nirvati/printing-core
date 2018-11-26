@@ -33,6 +33,8 @@ import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.doc.store.DocStoreBranchEnum;
+import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.services.DocStoreService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.AppLogHelper;
@@ -102,8 +104,10 @@ public final class DocStoreClean extends AbstractJob {
 
             final long timeOpen = System.currentTimeMillis();
 
-            nRemoved = service.cleanArchive(ServiceContext.getTransactionDate(),
-                    keepDays, RunModeSwitch.REAL);
+            nRemoved = service.clean(DocStoreTypeEnum.ARCHIVE,
+                    DocStoreBranchEnum.OUT_PRINT,
+                    ServiceContext.getTransactionDate(), keepDays,
+                    RunModeSwitch.REAL);
 
             final Duration duration =
                     Duration.ofMillis(System.currentTimeMillis() - timeOpen);

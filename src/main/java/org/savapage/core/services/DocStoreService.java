@@ -24,7 +24,9 @@ package org.savapage.core.services;
 import java.io.IOException;
 import java.util.Date;
 
+import org.savapage.core.doc.store.DocStoreBranchEnum;
 import org.savapage.core.doc.store.DocStoreException;
+import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.job.RunModeSwitch;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.pdf.PdfCreateInfo;
@@ -38,26 +40,24 @@ import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 public interface DocStoreService {
 
     /**
-     * Checks if archive is present for a document log.
+     * Checks if document is stored.
      *
+     * @param store
+     *            Type of store.
+     * @param branch
+     *            Branch in store.
      * @param docLog
      *            The document log.
      * @return {@code true} if archive is present for this document.
      */
-    boolean isArchivePresent(DocLog docLog);
+    boolean isDocPresent(DocStoreTypeEnum store, DocStoreBranchEnum branch,
+            DocLog docLog);
 
     /**
-     * Checks if journal is present for a document log.
+     * Stores a proxy printed document.
      *
-     * @param docLog
-     *            The document log.
-     * @return {@code true} if journal is present for this document.
-     */
-    boolean isJournalPresent(DocLog docLog);
-
-    /**
-     * Archives a document.
-     *
+     * @param store
+     *            Type of store.
      * @param request
      *            The {@link AbstractProxyPrintReq}.
      * @param docLog
@@ -68,12 +68,16 @@ public interface DocStoreService {
      * @throws DocStoreException
      *             When IO errors.
      */
-    void archive(AbstractProxyPrintReq request, DocLog docLog,
-            PdfCreateInfo createInfo) throws DocStoreException;
+    void store(DocStoreTypeEnum store, AbstractProxyPrintReq request,
+            DocLog docLog, PdfCreateInfo createInfo) throws DocStoreException;
 
     /**
-     * Cleans the archive store by removing old documents.
+     * Cleans a store by removing old documents.
      *
+     * @param store
+     *            Type of store.
+     * @param branch
+     *            Branch in store.
      * @param cleaningDate
      *            Date cleaning takes place. Normally, this is the current date.
      * @param keepDays
@@ -82,8 +86,9 @@ public interface DocStoreService {
      *            The run mode.
      * @return Number of removed documents.
      * @throws IOException
-     *             When IO errors.
+     *             If IO errors.
      */
-    long cleanArchive(Date cleaningDate, int keepDays, RunModeSwitch runMode)
+    long clean(DocStoreTypeEnum store, DocStoreBranchEnum branch,
+            Date cleaningDate, int keepDays, RunModeSwitch runMode)
             throws IOException;
 }

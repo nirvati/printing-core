@@ -56,6 +56,7 @@ import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.store.DocStoreException;
+import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.MediaCostDto;
@@ -1457,7 +1458,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         collectPrintOutData(request, docLog, jsonPrinter, printJob, createInfo);
 
         if (request.isArchive()) {
-            docStoreService().archive(request, docLog, createInfo);
+            docStoreService().store(DocStoreTypeEnum.ARCHIVE, request, docLog,
+                    createInfo);
         }
     }
 

@@ -43,8 +43,10 @@ import java.util.TimeZone;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.doc.store.DocStoreBranchEnum;
 import org.savapage.core.doc.store.DocStoreCleaner;
 import org.savapage.core.doc.store.DocStoreException;
+import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.job.RunModeSwitch;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.pdf.PdfCreateInfo;
@@ -66,10 +68,12 @@ public final class DocStoreServiceImpl extends AbstractService
             LoggerFactory.getLogger(DocStoreServiceImpl.class);
 
     /** */
-    private static final Path ARCHIVE_HOME = ConfigManager.getDocArchiveHome();
+    private static final Path ARCHIVE_HOME =
+            ConfigManager.getDocStoreHome(DocStoreTypeEnum.ARCHIVE);
 
     /** */
-    private static final Path JOURNAL_HOME = ConfigManager.getDocJournalHome();
+    private static final Path JOURNAL_HOME =
+            ConfigManager.getDocStoreHome(DocStoreTypeEnum.JOURNAL);
 
     /** */
     private static final Set<PosixFilePermission> FILE_PERMISSIONS =
@@ -95,17 +99,20 @@ public final class DocStoreServiceImpl extends AbstractService
     /**
      * Gets the unique storage path for a document.
      *
+     * @param store
+     *            The store.
+     * @param branch
+     *            Branch in store.
      * @param docLog
      *            The document log.
-     * @param store
-     *            Home of the store.
      * @return The store path for this document.
      */
-    private static Path getStorePath(final DocLog docLog, final Path store) {
+    private static Path getStorePath(final DocStoreTypeEnum store,
+            final DocStoreBranchEnum branch, final DocLog docLog) {
 
         final Calendar cal = createCalendarTime(docLog.getCreatedDate());
 
-        return Paths.get(store.toString(),
+        return Paths.get(getStoreBranch(store, branch).toString(),
                 String.format("%04d%c%02d%c%02d%c%02d%c%s",
                         cal.get(Calendar.YEAR), File.separatorChar,
                         cal.get(Calendar.MONTH) + 1, File.separatorChar,
@@ -115,43 +122,46 @@ public final class DocStoreServiceImpl extends AbstractService
     }
 
     /**
-     * Gets the unique archive path for a document.
+     * Gets the store path of a branch.
      *
-     * @param docLog
-     *            The document log.
-     * @return The archive path for this document.
+     * @param store
+     *            The store.
+     * @param branch
+     *            Branch in store.
+     * @return The branch path.
      */
-    private Path getArchivePath(final DocLog docLog) {
-        return getStorePath(docLog, ARCHIVE_HOME);
-    }
+    private static Path getStoreBranch(final DocStoreTypeEnum store,
+            final DocStoreBranchEnum branch) {
 
-    /**
-     * Gets the unique journal path for a document.
-     *
-     * @param docLog
-     *            The document log.
-     * @return The journal path for this document.
-     */
-    private Path getJournalPath(final DocLog docLog) {
-        return getStorePath(docLog, JOURNAL_HOME);
-    }
+        final Path path;
 
-    @Override
-    public boolean isArchivePresent(final DocLog docLog) {
-        return this.getArchivePath(docLog).toFile().exists();
-    }
-
-    @Override
-    public boolean isJournalPresent(final DocLog docLog) {
-        return this.getJournalPath(docLog).toFile().exists();
+        switch (store) {
+        case ARCHIVE:
+            path = ARCHIVE_HOME;
+            break;
+        case JOURNAL:
+            path = JOURNAL_HOME;
+            break;
+        default:
+            throw new UnknownError(store.toString());
+        }
+        return Paths.get(path.toString(), branch.getBranch().toString());
     }
 
     @Override
-    public void archive(final AbstractProxyPrintReq request,
-            final DocLog docLog, final PdfCreateInfo createInfo)
-            throws DocStoreException {
+    public boolean isDocPresent(final DocStoreTypeEnum store,
+            final DocStoreBranchEnum branch, final DocLog docLog) {
+        return getStorePath(store, branch, docLog).toFile().exists();
+    }
 
-        final Path dir = getArchivePath(docLog);
+    @Override
+    public void store(final DocStoreTypeEnum store,
+            final AbstractProxyPrintReq request, final DocLog docLog,
+            final PdfCreateInfo createInfo) throws DocStoreException {
+
+        final DocStoreBranchEnum branch = DocStoreBranchEnum.OUT_PRINT;
+
+        final Path dir = getStorePath(store, branch, docLog);
 
         try {
             Files.createDirectories(dir, FILE_ATTRS);
@@ -172,34 +182,15 @@ public final class DocStoreServiceImpl extends AbstractService
     }
 
     @Override
-    public long cleanArchive(final Date cleaningDate, final int keepDays,
-            final RunModeSwitch runMode) throws IOException {
-        return cleanStore(ARCHIVE_HOME, cleaningDate, keepDays, runMode);
-    }
-
-    /**
-     * Cleans a store by removing old documents.
-     *
-     * @param store
-     *            Store to clean.
-     * @param cleaningDate
-     *            Date cleaning takes place. Normally, this is the current date.
-     * @param keepDays
-     *            Number of days to keep documents in store.
-     * @param runMode
-     *            The run mode.
-     * @return Number of removed documents.
-     * @throws IOException
-     *             When IO errors.
-     */
-    public static long cleanStore(final Path store, final Date cleaningDate,
+    public long clean(final DocStoreTypeEnum store,
+            final DocStoreBranchEnum branch, final Date cleaningDate,
             final int keepDays, final RunModeSwitch runMode)
             throws IOException {
 
         final Date referenceDate = DateUtils.addDays(cleaningDate, -keepDays);
 
-        return new DocStoreCleaner(store, createCalendarTime(referenceDate),
-                runMode).clean();
+        return new DocStoreCleaner(getStoreBranch(store, branch),
+                createCalendarTime(referenceDate), runMode).clean();
     }
 
 }

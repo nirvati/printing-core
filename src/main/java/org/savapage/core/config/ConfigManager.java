@@ -96,6 +96,7 @@ import org.savapage.core.crypto.CryptoApp;
 import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.impl.DaoContextImpl;
+import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.SystemModeEnum;
 import org.savapage.core.ipp.client.IppClient;
@@ -869,12 +870,12 @@ public final class ConfigManager {
     }
 
     /**
-    *
-    * @return
-    */
-   public static boolean isCleanUpDocStoreAtStart() {
-       return isCleanUpDocLogAtStart();
-   }
+     *
+     * @return
+     */
+    public static boolean isCleanUpDocStoreAtStart() {
+        return isCleanUpDocLogAtStart();
+    }
 
     /**
      *
@@ -970,19 +971,19 @@ public final class ConfigManager {
     }
 
     /**
-     *
-     * @return The directory path of the document archive home.
+     * @param store
+     *            The store.
+     * @return The directory path of the document store.
      */
-    public static Path getDocArchiveHome() {
-        return Paths.get(getServerHome(), SERVER_REL_PATH_DOC_ARCHIVE);
-    }
-
-    /**
-     *
-     * @return The directory path of the document archive home.
-     */
-    public static Path getDocJournalHome() {
-        return Paths.get(getServerHome(), SERVER_REL_PATH_DOC_JOURNAL);
+    public static Path getDocStoreHome(final DocStoreTypeEnum store) {
+        switch (store) {
+        case ARCHIVE:
+            return Paths.get(getServerHome(), SERVER_REL_PATH_DOC_ARCHIVE);
+        case JOURNAL:
+            return Paths.get(getServerHome(), SERVER_REL_PATH_DOC_JOURNAL);
+        default:
+            throw new UnknownError(store.toString());
+        }
     }
 
     /**

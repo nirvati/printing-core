@@ -122,7 +122,7 @@ public final class DocStoreCleaner extends SimpleFileVisitor<Path> {
     /**
      * Cleans the store.
      *
-     * @return Number of cleaned documents.
+     * @return Number of documents cleaned.
      * @throws IOException
      *             If IO error.
      */
