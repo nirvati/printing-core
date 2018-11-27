@@ -273,7 +273,7 @@ public final class IppReqPrintJob extends IppReqCommon {
      * @param jsonPrinter
      *            The printer.
      * @param printerOptionsLookup
-     *            The printer options look-up.
+     *            The printer options look-up (can be {@code null}).
      * @param optionValuesOrg
      *            The original IPP job option values.
      * @param group
@@ -292,6 +292,10 @@ public final class IppReqPrintJob extends IppReqCommon {
         // Is sheet-collate already substituted?
         if (optionValuesOrg
                 .containsKey(IppDictJobTemplateAttr.ATTR_SHEET_COLLATE)) {
+            return;
+        }
+
+        if (printerOptionsLookup == null) {
             return;
         }
 
@@ -603,7 +607,7 @@ public final class IppReqPrintJob extends IppReqCommon {
      * @param group
      *            The group to add job attributes to.
      * @param printerOptionsLookup
-     *            The printer options look-up.
+     *            The printer options look-up (can be {@code null}).
      * @param copies
      *            The number of copies.
      */
@@ -614,11 +618,15 @@ public final class IppReqPrintJob extends IppReqCommon {
          * Mantis #259: add number of copies when GT 1.
          */
         if (copies > 1) {
+
             String attrKeyword = IppDictJobTemplateAttr.ATTR_COPIES;
-            if (printerOptionsLookup.containsKey(attrKeyword)) {
+
+            if (printerOptionsLookup != null
+                    && printerOptionsLookup.containsKey(attrKeyword)) {
                 attrKeyword =
                         printerOptionsLookup.get(attrKeyword).getKeywordPpd();
             }
+
             group.add(attrKeyword, IppInteger.instance(),
                     String.valueOf(copies));
         }
@@ -630,7 +638,7 @@ public final class IppReqPrintJob extends IppReqCommon {
      * @param group
      *            The group to add job attributes to.
      * @param printerOptionsLookup
-     *            The printer options look-up.
+     *            The printer options look-up (can be {@code null}).
      * @param numberUpRequested
      *            The requested number-up to be filled by this method.
      */
@@ -667,7 +675,8 @@ public final class IppReqPrintJob extends IppReqCommon {
             // IPP option from proxy printer definition.
             final JsonProxyPrinterOpt proxyPrinterOpt;
 
-            if (this.jsonPrinter.isInjectPpdExt()) {
+            if (this.jsonPrinter.isInjectPpdExt()
+                    && printerOptionsLookup != null) {
 
                 proxyPrinterOpt = printerOptionsLookup.get(optionKeywordIpp);
 
@@ -826,7 +835,7 @@ public final class IppReqPrintJob extends IppReqCommon {
      * @param group
      *            The group to add job attributes to.
      * @param printerOptionsLookup
-     *            The printer options look-up.
+     *            The printer options look-up (can be {@code null}).
      * @param scaling
      *            Print scaling.
      */
