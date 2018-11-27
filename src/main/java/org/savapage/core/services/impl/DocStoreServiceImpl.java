@@ -42,9 +42,11 @@ import java.util.TimeZone;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.store.DocStoreBranchEnum;
 import org.savapage.core.doc.store.DocStoreCleaner;
+import org.savapage.core.doc.store.DocStoreConfig;
 import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.job.RunModeSwitch;
@@ -146,6 +148,95 @@ public final class DocStoreServiceImpl extends AbstractService
             throw new UnknownError(store.toString());
         }
         return Paths.get(path.toString(), branch.getBranch().toString());
+    }
+
+    @Override
+    public boolean isEnabled(final DocStoreTypeEnum store,
+            final DocStoreBranchEnum branch) {
+        return getConfig(store, branch).isEnabled();
+    }
+
+    @Override
+    public DocStoreConfig getConfig(final DocStoreTypeEnum store,
+            final DocStoreBranchEnum branch) {
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        Key key = null;
+        final boolean enabled = cm.isConfigValue(Key.DOC_STORE_ENABLE);
+        final boolean enabledStore;
+        final boolean enabledBranch;
+
+        switch (store) {
+        case ARCHIVE:
+            enabledStore =
+                    enabled && cm.isConfigValue(Key.DOC_STORE_ARCHIVE_ENABLE);
+            switch (branch) {
+            case IN_PRINT:
+                enabledBranch = enabledStore
+                        && cm.isConfigValue(Key.DOC_STORE_ARCHIVE_IN_ENABLE);
+                key = Key.DOC_STORE_ARCHIVE_IN_PRINT_DAYS_TO_KEEP;
+                break;
+            case OUT_PDF:
+                enabledBranch = enabledStore
+                        && cm.isConfigValue(Key.DOC_STORE_ARCHIVE_OUT_ENABLE)
+                        && cm.isConfigValue(
+                                Key.DOC_STORE_ARCHIVE_OUT_PDF_ENABLE);
+                key = Key.DOC_STORE_ARCHIVE_OUT_PDF_DAYS_TO_KEEP;
+                break;
+            case OUT_PRINT:
+                enabledBranch = enabledStore
+                        && cm.isConfigValue(Key.DOC_STORE_ARCHIVE_OUT_ENABLE)
+                        && cm.isConfigValue(
+                                Key.DOC_STORE_ARCHIVE_OUT_PRINT_ENABLE);
+                key = Key.DOC_STORE_ARCHIVE_OUT_PRINT_DAYS_TO_KEEP;
+                break;
+            default:
+                enabledBranch = false;
+                break;
+            }
+            break;
+
+        case JOURNAL:
+            enabledStore =
+                    enabled && cm.isConfigValue(Key.DOC_STORE_JOURNAL_ENABLE);
+            switch (branch) {
+            case IN_PRINT:
+                enabledBranch = enabledStore
+                        && cm.isConfigValue(Key.DOC_STORE_JOURNAL_IN_ENABLE);
+                key = Key.DOC_STORE_JOURNAL_IN_PRINT_DAYS_TO_KEEP;
+                break;
+            case OUT_PDF:
+                enabledBranch = enabledStore
+                        && cm.isConfigValue(Key.DOC_STORE_JOURNAL_OUT_ENABLE)
+                        && cm.isConfigValue(
+                                Key.DOC_STORE_JOURNAL_OUT_PDF_ENABLE);
+                key = Key.DOC_STORE_JOURNAL_OUT_PDF_DAYS_TO_KEEP;
+                break;
+            case OUT_PRINT:
+                enabledBranch = enabledStore
+                        && cm.isConfigValue(Key.DOC_STORE_JOURNAL_OUT_ENABLE)
+                        && cm.isConfigValue(
+                                Key.DOC_STORE_JOURNAL_OUT_PRINT_ENABLE);
+                key = Key.DOC_STORE_JOURNAL_OUT_PRINT_DAYS_TO_KEEP;
+                break;
+            default:
+                enabledBranch = false;
+                break;
+            }
+            break;
+
+        default:
+            enabledBranch = false;
+            break;
+        }
+
+        if (key == null) {
+            throw new UnknownError("Unhandled store/branch");
+        }
+
+        return new DocStoreConfig(store, branch, enabledBranch,
+                ConfigManager.instance().getConfigInt(key));
     }
 
     @Override

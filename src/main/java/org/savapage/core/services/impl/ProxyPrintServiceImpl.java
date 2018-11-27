@@ -52,9 +52,11 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrinterDao;
+import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.doc.store.DocStoreBranchEnum;
 import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.dto.IppMediaCostDto;
@@ -1457,9 +1459,25 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         collectPrintOutData(request, docLog, jsonPrinter, printJob, createInfo);
 
+        final DocStoreTypeEnum docStoreType;
+
         if (request.isArchive()) {
-            docStoreService().store(DocStoreTypeEnum.ARCHIVE, request, docLog,
-                    createInfo);
+
+            docStoreType = DocStoreTypeEnum.ARCHIVE;
+
+        } else if (!jsonPrinter.isJournalDisabled()
+                && docStoreService().isEnabled(DocStoreTypeEnum.JOURNAL,
+                        DocStoreBranchEnum.OUT_PRINT)
+                && accessControlService().hasAccess(docLog.getUser(),
+                        ACLOidEnum.U_PRINT_JOURNAL)) {
+            docStoreType = DocStoreTypeEnum.JOURNAL;
+
+        } else {
+            docStoreType = null;
+        }
+
+        if (docStoreType != null) {
+            docStoreService().store(docStoreType, request, docLog, createInfo);
         }
     }
 
@@ -2444,8 +2462,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         dto.setInternal(printerService().isInternalPrinter(printer.getId()));
 
-        dto.setArchiveDisabled(
-                printerService().isArchiveDisabled(printer.getId()));
+        dto.setArchiveDisabled(printerService()
+                .isDocStoreDisabled(DocStoreTypeEnum.ARCHIVE, printer.getId()));
+
+        dto.setJournalDisabled(printerService()
+                .isDocStoreDisabled(DocStoreTypeEnum.JOURNAL, printer.getId()));
 
         dto.setPpdExtFile(printerService().getAttributeValue(printer,
                 PrinterAttrEnum.CUSTOM_PPD_EXT_FILE));
@@ -2620,6 +2641,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         setPrinterAttr(jpaPrinter, PrinterAttrEnum.ARCHIVE_DISABLE,
                 dto.getArchiveDisabled());
+
+        setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOURNAL_DISABLE,
+                dto.getJournalDisabled());
 
         setPrinterAttr(jpaPrinter, PrinterAttrEnum.CUSTOM_PPD_EXT_FILE,
                 dto.getPpdExtFile());

@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.savapage.core.doc.store.DocStoreBranchEnum;
+import org.savapage.core.doc.store.DocStoreConfig;
 import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.job.RunModeSwitch;
@@ -40,7 +41,29 @@ import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 public interface DocStoreService {
 
     /**
-     * Checks if document is stored.
+     * Checks if store branch is enabled.
+     *
+     * @param store
+     *            Type of store.
+     * @param branch
+     *            Branch in store.
+     * @return {@code true} if enabled.
+     */
+    boolean isEnabled(DocStoreTypeEnum store, DocStoreBranchEnum branch);
+
+    /**
+     * Get the store branch configuration.
+     *
+     * @param store
+     *            Type of store.
+     * @param branch
+     *            Branch in store.
+     * @return The configuration.
+     */
+    DocStoreConfig getConfig(DocStoreTypeEnum store, DocStoreBranchEnum branch);
+
+    /**
+     * Checks if document is present in store branch.
      *
      * @param store
      *            Type of store.
@@ -48,7 +71,7 @@ public interface DocStoreService {
      *            Branch in store.
      * @param docLog
      *            The document log.
-     * @return {@code true} if archive is present for this document.
+     * @return {@code true} if document is present.
      */
     boolean isDocPresent(DocStoreTypeEnum store, DocStoreBranchEnum branch,
             DocLog docLog);

@@ -68,6 +68,8 @@ public enum NounEnum {
     /** */
     INVOICING,
     /** */
+    JOURNAL,
+    /** */
     LOCATION,
     /** */
     MODE(true),

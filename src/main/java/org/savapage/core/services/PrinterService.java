@@ -32,6 +32,7 @@ import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.JsonUserGroupAccess;
 import org.savapage.core.dao.helpers.ProxyPrinterSnmpInfoDto;
+import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.dto.PrinterSnmpDto;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.jpa.Device;
@@ -70,26 +71,30 @@ public interface PrinterService {
     boolean isInternalPrinter(Long id);
 
     /**
-     * Reads the database to check if print archive is disabled.
+     * Reads the database to check if if document store is disabled.
      *
+     * @param store
+     *            The document store.
      * @param id
      *            The database primary key.
-     * @return {@code true} when print archive is disabled.
+     * @return {@code true} when document store is disabled.
      */
-    boolean isArchiveDisabled(Long id);
+    boolean isDocStoreDisabled(DocStoreTypeEnum store, Long id);
 
     /**
-     * Checks if print archive is disabled.
+     * Checks if document store is disabled.
      * <p>
      * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
-     * find the value of {@link PrinterAttrEnum#ARCHIVE_DISABLE}.
+     * find the {@link PrinterAttrEnum} value.
      * </p>
      *
+     * @param store
+     *            The document store.
      * @param printer
      *            The {@link Printer}.
-     * @return {@code true} when print archive is disabled.
+     * @return {@code true} when document store is disabled.
      */
-    boolean isArchiveDisabled(Printer printer);
+    boolean isDocStoreDisabled(DocStoreTypeEnum store, Printer printer);
 
     /**
      * Reads the database to check if printer is a Job Ticket printer.

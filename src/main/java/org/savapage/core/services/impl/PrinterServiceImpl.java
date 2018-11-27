@@ -38,6 +38,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.SpException;
+import org.savapage.core.dao.PrinterAttrDao;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.AccessControlScopeEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
@@ -46,6 +47,7 @@ import org.savapage.core.dao.enums.ProxyPrintAuthModeEnum;
 import org.savapage.core.dao.enums.ProxyPrinterSuppliesEnum;
 import org.savapage.core.dao.helpers.JsonUserGroupAccess;
 import org.savapage.core.dao.helpers.ProxyPrinterSnmpInfoDto;
+import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.PrinterSnmpDto;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
@@ -107,16 +109,37 @@ public final class PrinterServiceImpl extends AbstractService
         return printerAttrDAO().getBooleanValue(attr);
     }
 
+    /**
+     *
+     * @param store
+     *            The document store.
+     * @return The {@link PrinterAttrEnum} to disable document store for a
+     *         printer.
+     */
+    private static PrinterAttrEnum
+            getDisabledAttr(final DocStoreTypeEnum store) {
+        switch (store) {
+        case ARCHIVE:
+            return PrinterAttrEnum.ARCHIVE_DISABLE;
+        case JOURNAL:
+            return PrinterAttrEnum.JOURNAL_DISABLE;
+        default:
+            throw new UnknownError(store.toString());
+        }
+    }
+
     @Override
-    public boolean isArchiveDisabled(final Long id) {
-        final PrinterAttr attr = printerAttrDAO().findByName(id,
-                PrinterAttrEnum.ARCHIVE_DISABLE);
+    public boolean isDocStoreDisabled(final DocStoreTypeEnum store,
+            final Long id) {
+        final PrinterAttr attr =
+                printerAttrDAO().findByName(id, getDisabledAttr(store));
         return printerAttrDAO().getBooleanValue(attr);
     }
 
     @Override
-    public boolean isArchiveDisabled(final Printer printer) {
-        return isPrinterAttr(printer, PrinterAttrEnum.ARCHIVE_DISABLE, false);
+    public boolean isDocStoreDisabled(final DocStoreTypeEnum store,
+            final Printer printer) {
+        return isPrinterAttr(printer, getDisabledAttr(store), false);
     }
 
     @Override
@@ -448,7 +471,7 @@ public final class PrinterServiceImpl extends AbstractService
             final PrinterAttrEnum attr, final boolean defaultValue) {
         final String value = this.getPrinterAttrValue(printer, attr);
         if (value != null) {
-            return value.equals(Boolean.TRUE.toString());
+            return value.equals(PrinterAttrDao.V_YES);
         }
         return defaultValue;
     }
@@ -472,7 +495,6 @@ public final class PrinterServiceImpl extends AbstractService
         printer.setTotalBytes(printer.getTotalBytes().longValue() + jobBytes);
 
         printer.setLastUsageDate(jobDate);
-
     }
 
     @Override

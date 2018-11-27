@@ -81,6 +81,7 @@ import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.doc.store.DocStoreException;
+import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.IppMediaSourceMappingDto;
 import org.savapage.core.dto.PrinterSnmpDto;
@@ -1158,8 +1159,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
             }
         }
 
-        proxyPrinter.setArchiveDisabled(
-                printerService().isArchiveDisabled(dbPrinter.getId()));
+        proxyPrinter.setArchiveDisabled(printerService().isDocStoreDisabled(
+                DocStoreTypeEnum.ARCHIVE, dbPrinter.getId()));
+
+        proxyPrinter.setJournalDisabled(printerService().isDocStoreDisabled(
+                DocStoreTypeEnum.JOURNAL, dbPrinter.getId()));
 
         final String colorModeDefault =
                 printerService().getPrintColorModeDefault(dbPrinter.getId());
@@ -3367,8 +3371,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     @Override
     public final void proxyPrintPdf(final User lockedUser,
             final ProxyPrintDocReq request, final PdfCreateInfo createInfo)
-            throws IppConnectException, ProxyPrintException,
-            DocStoreException {
+            throws IppConnectException, ProxyPrintException, DocStoreException {
 
         /*
          * Get access to the printer.
@@ -3686,8 +3689,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private boolean print(final AbstractProxyPrintReq request,
             final String user, final PdfCreateInfo createInfo,
-            final DocLog docLog)
-            throws IppConnectException, DocStoreException {
+            final DocLog docLog) throws IppConnectException, DocStoreException {
 
         final JsonProxyPrinter printer =
                 this.getJsonProxyPrinterCopy(request.getPrinterName());

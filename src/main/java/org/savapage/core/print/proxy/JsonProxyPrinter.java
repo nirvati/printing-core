@@ -137,6 +137,9 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     boolean archiveDisabled;
 
+    @JsonIgnore
+    boolean journalDisabled;
+
     /**
      *
      */
@@ -459,6 +462,16 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     public void setArchiveDisabled(boolean archiveDisabled) {
         this.archiveDisabled = archiveDisabled;
+    }
+
+    @JsonIgnore
+    public boolean isJournalDisabled() {
+        return journalDisabled;
+    }
+
+    @JsonIgnore
+    public void setJournalDisabled(boolean journalDisabled) {
+        this.journalDisabled = journalDisabled;
     }
 
     public String getState() {

@@ -24,11 +24,8 @@ package org.savapage.core.job;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
@@ -40,6 +37,7 @@ import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.doc.store.DocStoreBranchEnum;
+import org.savapage.core.doc.store.DocStoreConfig;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.services.DocStoreService;
 import org.savapage.core.services.ServiceContext;
@@ -81,6 +79,9 @@ public final class DocStoreClean extends AbstractJob {
 
         final ConfigManager cm = ConfigManager.instance();
 
+        final DocStoreService docStoreService =
+                ServiceContext.getServiceFactory().getDocStoreService();
+
         /*
          * INVARIANT.
          */
@@ -89,50 +90,21 @@ public final class DocStoreClean extends AbstractJob {
             return;
         }
 
-        final List<Pair<DocStoreTypeEnum, DocStoreBranchEnum>> storeBranches =
-                new ArrayList<>();
+        final List<DocStoreConfig> storeList = new ArrayList<>();
 
-        final boolean isJournalEnabled = cm
-                .isConfigValue(Key.DOC_STORE_JOURNAL_ENABLE)
-                && cm.isConfigValue(Key.DOC_STORE_JOURNAL_OUT_ENABLE)
-                && cm.isConfigValue(Key.DOC_STORE_JOURNAL_OUT_PRINT_ENABLE);
-
-        if (isJournalEnabled) {
-            storeBranches.add(
-                    new ImmutablePair<DocStoreTypeEnum, DocStoreBranchEnum>(
-                            DocStoreTypeEnum.JOURNAL,
-                            DocStoreBranchEnum.OUT_PRINT));
+        for (final DocStoreTypeEnum store : DocStoreTypeEnum.values()) {
+            for (final DocStoreBranchEnum branch : DocStoreBranchEnum
+                    .values()) {
+                storeList.add(docStoreService.getConfig(store, branch));
+            }
         }
-
-        final boolean isArchiveEnabled = cm
-                .isConfigValue(Key.DOC_STORE_ARCHIVE_ENABLE)
-                && cm.isConfigValue(Key.DOC_STORE_ARCHIVE_OUT_ENABLE)
-                && cm.isConfigValue(Key.DOC_STORE_ARCHIVE_OUT_PRINT_ENABLE);
-
-        if (isArchiveEnabled) {
-            storeBranches.add(
-                    new ImmutablePair<DocStoreTypeEnum, DocStoreBranchEnum>(
-                            DocStoreTypeEnum.ARCHIVE,
-                            DocStoreBranchEnum.OUT_PRINT));
-        }
-
-        if (storeBranches.isEmpty()) {
-            LOGGER.info("Journal and Archive document store disabled.");
-            return;
-        }
-
-        final Iterator<Pair<DocStoreTypeEnum, DocStoreBranchEnum>> iter =
-                storeBranches.iterator();
 
         final AdminPublisher publisher = AdminPublisher.instance();
 
-        while (iter.hasNext()) {
+        for (final DocStoreConfig storeConfig : storeList) {
 
-            final Pair<DocStoreTypeEnum, DocStoreBranchEnum> storeBranch =
-                    iter.next();
-
-            final DocStoreTypeEnum store = storeBranch.getKey();
-            final DocStoreBranchEnum branch = storeBranch.getValue();
+            final DocStoreTypeEnum store = storeConfig.getStore();
+            final DocStoreBranchEnum branch = storeConfig.getBranch();
 
             final StringBuilder cleanObj = new StringBuilder();
             cleanObj.append(store.toString().toLowerCase())
@@ -152,7 +124,7 @@ public final class DocStoreClean extends AbstractJob {
                 final DocStoreService service =
                         ServiceContext.getServiceFactory().getDocStoreService();
 
-                final int keepDays = getDaysToKeep(store, branch);
+                final int keepDays = storeConfig.getDaysToKeep();
 
                 final long timeOpen = System.currentTimeMillis();
 
@@ -178,61 +150,6 @@ public final class DocStoreClean extends AbstractJob {
                         msg);
             }
         }
-    }
-
-    /**
-     *
-     * @param store
-     *            Store.
-     * @param branch
-     *            Branch.
-     * @return Days to keep.
-     */
-    private static int getDaysToKeep(final DocStoreTypeEnum store,
-            final DocStoreBranchEnum branch) {
-
-        Key key = null;
-        switch (store) {
-        case ARCHIVE:
-            switch (branch) {
-            case IN_PRINT:
-                key = Key.DOC_STORE_ARCHIVE_IN_PRINT_DAYS_TO_KEEP;
-                break;
-            case OUT_PDF:
-                key = Key.DOC_STORE_ARCHIVE_OUT_PDF_DAYS_TO_KEEP;
-                break;
-            case OUT_PRINT:
-                key = Key.DOC_STORE_ARCHIVE_OUT_PRINT_DAYS_TO_KEEP;
-                break;
-            default:
-                break;
-            }
-            break;
-
-        case JOURNAL:
-            switch (branch) {
-            case IN_PRINT:
-                key = Key.DOC_STORE_JOURNAL_IN_PRINT_DAYS_TO_KEEP;
-                break;
-            case OUT_PDF:
-                key = Key.DOC_STORE_JOURNAL_OUT_PDF_DAYS_TO_KEEP;
-                break;
-            case OUT_PRINT:
-                key = Key.DOC_STORE_JOURNAL_OUT_PRINT_DAYS_TO_KEEP;
-                break;
-            default:
-                break;
-            }
-            break;
-
-        default:
-            break;
-        }
-
-        if (key == null) {
-            throw new UnknownError("Unhandled store/branch");
-        }
-        return ConfigManager.instance().getConfigInt(key);
     }
 
     /**

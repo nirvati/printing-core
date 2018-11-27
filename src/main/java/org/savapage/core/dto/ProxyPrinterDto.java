@@ -72,6 +72,9 @@ public class ProxyPrinterDto extends AbstractDto {
     @JsonProperty("archiveDisabled")
     Boolean archiveDisabled;
 
+    @JsonProperty("journalDisabled")
+    Boolean journalDisabled;
+
     /**
      * Is (logically) deleted?
      */
@@ -166,6 +169,14 @@ public class ProxyPrinterDto extends AbstractDto {
 
     public void setArchiveDisabled(Boolean archiveDisabled) {
         this.archiveDisabled = archiveDisabled;
+    }
+
+    public Boolean getJournalDisabled() {
+        return journalDisabled;
+    }
+
+    public void setJournalDisabled(Boolean journalDisabled) {
+        this.journalDisabled = journalDisabled;
     }
 
     public Boolean getDeleted() {
