@@ -224,9 +224,9 @@ public final class InboxServiceImpl implements InboxService {
             fileSource = fileTarget;
         }
 
-        try {
+        try (FileWriter writer = new FileWriter(fileSource)) {
 
-            JsonHelper.write(jobinfo, new FileWriter(fileSource));
+            JsonHelper.write(jobinfo, writer);
 
         } catch (IOException e) {
             throw new SpException("Error writing file ["
@@ -719,7 +719,8 @@ public final class InboxServiceImpl implements InboxService {
                 final int nPageFrom =
                         atom.pageBegin == null ? 1 : atom.pageBegin;
                 final int nPageTo = atom.pageEnd == null
-                        ? jobs.get(page.getJob()).getPages() : atom.pageEnd;
+                        ? jobs.get(page.getJob()).getPages()
+                        : atom.pageEnd;
                 nPages += nPageTo - nPageFrom + 1;
             }
         }

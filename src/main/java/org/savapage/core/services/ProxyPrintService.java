@@ -617,8 +617,9 @@ public interface ProxyPrintService {
             throws ProxyPrintException;
 
     /**
-     * Sends a PDF file to the CUPS Printer, and updates {@link User},
-     * {@link Printer} and global {@link IConfigProp} statistics.
+     * Sends a PDF file to the CUPS Printer, updates {@link User},
+     * {@link Printer} and global {@link IConfigProp} statistics, and optionally
+     * archives/journals the PDF file and print request.
      * <p>
      * Note: This is a straight proxy print: {@link InboxInfoDto} is not
      * consulted or updated. Invariants ARE checked.
@@ -639,12 +640,12 @@ public interface ProxyPrintService {
      *             When print archiving errors.
      */
     void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request,
-            PdfCreateInfo createInfo) throws IppConnectException,
-            ProxyPrintException, DocStoreException;
+            PdfCreateInfo createInfo)
+            throws IppConnectException, ProxyPrintException, DocStoreException;
 
     /**
-     * Sends a PDF file to a CUPS printer, and that is it. No database action is
-     * executed.
+     * Sends a PDF file to a CUPS printer, and that is it. No database or
+     * document store action is executed.
      *
      * @param request
      *            The {@link AbstractProxyPrintReq}.

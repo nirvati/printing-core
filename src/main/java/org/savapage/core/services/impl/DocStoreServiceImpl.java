@@ -21,25 +21,17 @@
  */
 package org.savapage.core.services.impl;
 
-import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
-
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.EnumSet;
-import java.util.Set;
 import java.util.TimeZone;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
@@ -51,9 +43,12 @@ import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.job.RunModeSwitch;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.json.JsonAbstractBase;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.services.DocStoreService;
+import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,11 +73,7 @@ public final class DocStoreServiceImpl extends AbstractService
             ConfigManager.getDocStoreHome(DocStoreTypeEnum.JOURNAL);
 
     /** */
-    private static final Set<PosixFilePermission> FILE_PERMISSIONS =
-            EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE);
-    /** */
-    private static final FileAttribute<Set<PosixFilePermission>> FILE_ATTRS =
-            PosixFilePermissions.asFileAttribute(FILE_PERMISSIONS);;
+    private static final String FILENAME_EXT_JSON = "json";
 
     /**
      * Creates UTC calendar instance from date.
@@ -245,22 +236,136 @@ public final class DocStoreServiceImpl extends AbstractService
         return getStorePath(store, branch, docLog).toFile().exists();
     }
 
+    private DocStoreBranchEnum getStoreBranch(final DocLog docLog)
+            throws DocStoreException {
+        final DocStoreBranchEnum branch;
+
+        if (docLog.getDocIn() != null) {
+            if (docLog.getDocIn().getPrintIn() != null) {
+                branch = DocStoreBranchEnum.IN_PRINT;
+            } else {
+                branch = null;
+            }
+        } else if (docLog.getDocOut() != null) {
+            if (docLog.getDocOut().getPdfOut() != null) {
+                branch = DocStoreBranchEnum.OUT_PDF;
+            } else if (docLog.getDocOut().getPrintOut() != null) {
+                branch = DocStoreBranchEnum.OUT_PRINT;
+            } else {
+                branch = null;
+            }
+        } else {
+            branch = null;
+        }
+        if (branch == null) {
+            throw new DocStoreException("No Store Branch found.");
+        }
+        return branch;
+    }
+
+    /**
+     * Gets the path of stored PDF.
+     *
+     * @param dir
+     *            Directory containing the PDF
+     * @param uuid
+     *            The UUID
+     * @return The PDF file path.
+     */
+    private static Path getStoredPdf(final Path dir, final String uuid) {
+        return Paths.get(dir.toString(),
+                String.format("%s.%s", uuid, DocContent.FILENAME_EXT_PDF));
+    }
+
+    /**
+     * Gets the path of stored JSON.
+     *
+     * @param dir
+     *            Directory containing the JSON
+     * @param uuid
+     *            The UUID
+     * @return The JSON file path.
+     */
+    private static Path getStoredJson(final Path dir, final String uuid) {
+        return Paths.get(dir.toString(),
+                String.format("%s.%s", uuid, FILENAME_EXT_JSON));
+    }
+
+    @Override
+    public File retrievePdf(final DocStoreTypeEnum store, final DocLog docLog)
+            throws DocStoreException {
+
+        final Path dir = getStorePath(store, getStoreBranch(docLog), docLog);
+        if (!dir.toFile().exists()) {
+            throw new DocStoreException("No storage found.");
+        }
+
+        final Path file = getStoredPdf(dir, docLog.getUuid());
+        if (!file.toFile().exists()) {
+            throw new DocStoreException("No PDF found.");
+        }
+
+        return file.toFile();
+    }
+
     @Override
     public void store(final DocStoreTypeEnum store,
             final AbstractProxyPrintReq request, final DocLog docLog,
             final PdfCreateInfo createInfo) throws DocStoreException {
 
-        final DocStoreBranchEnum branch = DocStoreBranchEnum.OUT_PRINT;
+        final OutboxJobDto pojo = outboxService().createOutboxJob(request,
+                docLog.getCreatedDate(), docLog.getCreatedDate(), createInfo,
+                null);
+
+        this.store(store, DocStoreBranchEnum.OUT_PRINT, pojo, docLog,
+                createInfo);
+    }
+
+    @Override
+    public void store(final DocStoreTypeEnum store, final OutboxJobDto job,
+            final DocLog docLog, final File pdfFile) throws DocStoreException {
+
+        this.store(store, DocStoreBranchEnum.OUT_PRINT, job, docLog,
+                new PdfCreateInfo(pdfFile));
+    }
+
+    /**
+     * Stores a document.
+     *
+     * @param store
+     *            The store.
+     * @param branch
+     *            Branch in store.
+     * @param pojo
+     *            POJO to store.
+     * @param docLog
+     *            The {@link DocLog} persisted in the database.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the PDF file.
+     * @throws DocStoreException
+     *             When IO errors.
+     */
+    private void store(final DocStoreTypeEnum store,
+            final DocStoreBranchEnum branch, final JsonAbstractBase pojo,
+            final DocLog docLog, final PdfCreateInfo createInfo)
+            throws DocStoreException {
 
         final Path dir = getStorePath(store, branch, docLog);
 
         try {
-            Files.createDirectories(dir, FILE_ATTRS);
+            FileUtils.forceMkdir(dir.toFile());
 
-            java.nio.file.Files.copy(
-                    Paths.get(createInfo.getPdfFile().getPath()),
-                    Paths.get(dir.toString(), String.format("%s.%s",
-                            docLog.getUuid(), DocContent.FILENAME_EXT_PDF)));
+            FileUtils.copyFile(createInfo.getPdfFile(),
+                    getStoredPdf(dir, docLog.getUuid()).toFile());
+
+        } catch (IOException e) {
+            throw new DocStoreException(e.getMessage());
+        }
+
+        try (FileWriter writer = new FileWriter(
+                getStoredJson(dir, docLog.getUuid()).toFile());) {
+
+            JsonHelper.write(pojo, writer);
 
         } catch (IOException e) {
             throw new DocStoreException(e.getMessage());

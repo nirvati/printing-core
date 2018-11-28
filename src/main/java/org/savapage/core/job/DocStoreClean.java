@@ -65,12 +65,13 @@ public final class DocStoreClean extends AbstractJob {
 
     @Override
     protected void onInit(final JobExecutionContext ctx) {
-        ReadWriteLockEnum.PRINT_OUT_HISTORY.setWriteLock(true);
+        // Conservative strategy.
+        ReadWriteLockEnum.DATABASE_READONLY.setWriteLock(true);
     }
 
     @Override
     protected void onExit(final JobExecutionContext ctx) {
-        ReadWriteLockEnum.PRINT_OUT_HISTORY.setWriteLock(false);
+        ReadWriteLockEnum.DATABASE_READONLY.setWriteLock(false);
     }
 
     @Override

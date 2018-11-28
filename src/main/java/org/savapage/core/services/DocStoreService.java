@@ -21,6 +21,7 @@
  */
 package org.savapage.core.services;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
@@ -30,6 +31,7 @@ import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.job.RunModeSwitch;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 
@@ -93,6 +95,37 @@ public interface DocStoreService {
      */
     void store(DocStoreTypeEnum store, AbstractProxyPrintReq request,
             DocLog docLog, PdfCreateInfo createInfo) throws DocStoreException;
+
+    /**
+     * Stores a proxy printed document.
+     *
+     * @param store
+     *            Type of store.
+     * @param job
+     *            The {@link AbstractProxyPrintReq}.
+     * @param docLog
+     *            The {@link DocLog} persisted in the database.
+     * @param pdfFile
+     *            The PDF file sent to the printer.
+     * @throws DocStoreException
+     *             When IO errors.
+     */
+    void store(DocStoreTypeEnum store, OutboxJobDto job, DocLog docLog,
+            File pdfFile) throws DocStoreException;
+
+    /**
+     * Retrieves PDF of a logged document.
+     *
+     * @param store
+     *            Type of store.
+     * @param docLog
+     *            The {@link DocLog} persisted in the database.
+     * @return The PDF file.
+     * @throws DocStoreException
+     *             When PDF can not be retrieved.
+     */
+    File retrievePdf(DocStoreTypeEnum store, DocLog docLog)
+            throws DocStoreException;
 
     /**
      * Cleans a store by removing old documents.

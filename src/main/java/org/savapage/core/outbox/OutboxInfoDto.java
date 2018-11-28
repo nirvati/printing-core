@@ -235,7 +235,7 @@ public final class OutboxInfoDto extends AbstractDto {
     *
     */
     @JsonInclude(Include.NON_NULL)
-    public static class OutboxJobBaseDto {
+    public static class OutboxJobBaseDto extends AbstractDto {
 
         private String ticketNumber;
         private String jobName;

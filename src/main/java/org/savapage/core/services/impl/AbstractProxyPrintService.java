@@ -80,6 +80,7 @@ import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
+import org.savapage.core.doc.store.DocStoreBranchEnum;
 import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.dto.IppMediaSourceCostDto;
@@ -2802,12 +2803,31 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printMode = PrintModeEnum.TICKET_E;
             }
 
-            this.execOutboxJob(operator, lockedUser, job, printMode,
-                    pdfFileToPrint,
+            final DocLog docLog = this.execOutboxJob(operator, lockedUser, job,
+                    printMode, pdfFileToPrint,
                     extPrinterManager == ThirdPartyEnum.PAPERCUT);
 
+            if (!job.isCopyJobTicket()) {
+
+                final DocStoreTypeEnum store;
+
+                if (BooleanUtils.isTrue(job.getArchive())) {
+                    store = DocStoreTypeEnum.ARCHIVE;
+                } else if (docStoreService().isEnabled(DocStoreTypeEnum.JOURNAL,
+                        DocStoreBranchEnum.OUT_PRINT)) {
+                    store = DocStoreTypeEnum.JOURNAL;
+                } else {
+                    store = null;
+                }
+
+                if (store != null) {
+                    docStoreService().store(store, job, docLog, pdfFileToPrint);
+                }
+            }
         } catch (IppConnectException e) {
             throw new SpException(e.getMessage());
+        } catch (DocStoreException e) {
+            throw new IOException(e.getMessage());
         }
         return job.getPages() * job.getCopies();
     }
@@ -3686,6 +3706,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * @throws IppConnectException
      *             When IPP connect error.
      * @throws DocStoreException
+     *             The document store error.
      */
     private boolean print(final AbstractProxyPrintReq request,
             final String user, final PdfCreateInfo createInfo,
@@ -3709,7 +3730,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     /**
-     * Prints a file and logs the event.
+     * Prints a file, logs the event and optionally archives/journals the PDF
+     * file and print request.
      *
      * @param request
      *            The {@link AbstractProxyPrintReq}.

@@ -54,6 +54,8 @@ public enum NounEnum {
     /** */
     DELEGATOR(true),
     /** */
+    DISK_SPACE,
+    /** */
     DOCUMENT(true),
     /** */
     DOWNLOAD(true),

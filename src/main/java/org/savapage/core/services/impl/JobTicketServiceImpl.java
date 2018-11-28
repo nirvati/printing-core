@@ -1119,7 +1119,7 @@ public final class JobTicketServiceImpl extends AbstractService
         if (settleOnly) {
 
             proxyPrintService().settleJobTicket(parms.getOperator(), lockedUser,
-                    dto, getJobTicketFile(uuid, FILENAME_EXT_JSON),
+                    dto, getJobTicketFile(uuid, FILENAME_EXT_PDF),
                     extPrinterManager);
 
             dtoReturn = this.removeTicket(uuid, true);
