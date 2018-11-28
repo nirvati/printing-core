@@ -139,12 +139,13 @@ public final class AtomFeedServiceImpl extends AbstractService
         dto.setSummary("Daily Data");
         dto.setUpdated(ServiceContext.getTransactionDate());
 
-        try {
+        try (FileWriter jsonWriter = new FileWriter(pathJson.toFile());) {
+
             // 1.
             FileUtils.writeStringToFile(pathXhtml.toFile(), xhtml.toString(),
                     Charset.forName("UTF-8"));
             // 2.
-            JsonHelper.write(dto, new FileWriter(pathJson.toFile()));
+            JsonHelper.write(dto, jsonWriter);
 
         } catch (IOException e) {
             throw new FeedException(e.getMessage());
