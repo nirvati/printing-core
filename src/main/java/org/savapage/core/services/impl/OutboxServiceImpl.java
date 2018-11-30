@@ -173,11 +173,15 @@ public final class OutboxServiceImpl extends AbstractService
         protected void onPdfGenerated(final User lockedUser,
                 final ProxyPrintInboxReq request,
                 final LinkedHashMap<String, Integer> uuidPageCount,
-                final PdfCreateInfo createInfo) {
+                final PdfCreateInfo createInfo, final int chunkIndex,
+                final int chunkSize) {
 
             final OutboxJobDto job =
                     this.serviceImpl.createOutboxJob(request, this.submitDate,
                             this.expiryDate, createInfo, uuidPageCount);
+
+            job.setChunkIndex(Integer.valueOf(chunkIndex));
+            job.setChunkSize(Integer.valueOf(chunkSize));
 
             this.outboxInfo.addJob(job.getFile(), job);
         }
@@ -404,6 +408,9 @@ public final class OutboxServiceImpl extends AbstractService
 
             final OutboxJobDto job = createOutboxJob(request, submitDate,
                     expiryDate, createInfo, uuidPageCount);
+
+            job.setChunkIndex(Integer.valueOf(1));
+            job.setChunkSize(Integer.valueOf(1));
 
             outboxInfo.addJob(job.getFile(), job);
 

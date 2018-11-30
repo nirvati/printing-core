@@ -378,6 +378,16 @@ public final class OutboxInfoDto extends AbstractDto {
         private long expiryTime;
 
         /**
+         * 1-based index of chunkSize. All chunks have same {@link #submitTime}.
+         */
+        private Integer chunkIndex;
+
+        /**
+         * Total number of chunks. All chunks have same {@link #submitTime}.
+         */
+        private Integer chunkSize;
+
+        /**
          * Note for developers: This attribute must be removed after reasonable
          * time, when old persisted JSON files are not present anymore.
          *
@@ -586,6 +596,40 @@ public final class OutboxInfoDto extends AbstractDto {
          */
         public void setExpiryTime(long expiryTime) {
             this.expiryTime = expiryTime;
+        }
+
+        /**
+         * @return 1-based index of {@link #getChunkSize()}. All chunks have
+         *         same {@link #submitTime}.
+         */
+        public Integer getChunkIndex() {
+            return chunkIndex;
+        }
+
+        /**
+         * @param chunkIndex
+         *            1-based index of chunkSize. All chunks have same
+         *            {@link #submitTime}.
+         */
+        public void setChunkIndex(Integer chunkIndex) {
+            this.chunkIndex = chunkIndex;
+        }
+
+        /**
+         * @return Total number of chunks. All chunks have same
+         *         {@link #submitTime}.
+         */
+        public Integer getChunkSize() {
+            return chunkSize;
+        }
+
+        /**
+         * @param chunkSize
+         *            Total number of chunks. All chunks have same
+         *            {@link #submitTime}.
+         */
+        public void setChunkSize(Integer chunkSize) {
+            this.chunkSize = chunkSize;
         }
 
         /**

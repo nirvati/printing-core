@@ -173,6 +173,10 @@ public final class JobTicketServiceImpl extends AbstractService
     /**
      * Implementation of execution pattern for proxy printing from the user
      * inbox to job ticket.
+     * <p>
+     * <i>Important: all tickets created by this executor have same submit
+     * date.</i>
+     * </p>
      */
     private static final class ProxyPrintInbox extends ProxyPrintInboxPattern {
 
@@ -200,7 +204,6 @@ public final class JobTicketServiceImpl extends AbstractService
         private final List<OutboxJobDto> ticketsCreated;
 
         /**
-         *
          * @param service
          *            The parent service.
          * @param reqDeliveryDate
@@ -242,7 +245,8 @@ public final class JobTicketServiceImpl extends AbstractService
         protected void onPdfGenerated(final User lockedUser,
                 final ProxyPrintInboxReq request,
                 final LinkedHashMap<String, Integer> uuidPageCount,
-                final PdfCreateInfo createInfo) {
+                final PdfCreateInfo createInfo, final int chunkIndex,
+                final int chunkSize) {
 
             final UUID uuid = UUID.fromString(FilenameUtils
                     .getBaseName(createInfo.getPdfFile().getName()));
@@ -250,8 +254,11 @@ public final class JobTicketServiceImpl extends AbstractService
             try {
                 final OutboxJobDto dto = this.serviceImpl.addJobticketToCache(
                         lockedUser, createInfo, uuid, request, uuidPageCount,
-                        this.submitDate, this.deliveryDate, this.tag);
+                        this.submitDate, this.deliveryDate, this.tag,
+                        chunkIndex, chunkSize);
+
                 ticketsCreated.add(dto);
+
             } catch (IOException e) {
                 throw new SpException(e.getMessage(), e);
             }
@@ -291,7 +298,7 @@ public final class JobTicketServiceImpl extends AbstractService
 
         final OutboxJobDto dto = this.addJobticketToCache(lockedUser,
                 createInfo, uuid, request, uuidPageCount,
-                ServiceContext.getTransactionDate(), deliveryDate, tag);
+                ServiceContext.getTransactionDate(), deliveryDate, tag, 1, 1);
 
         final String msgKey = "msg-user-print-jobticket-print";
 
@@ -323,6 +330,11 @@ public final class JobTicketServiceImpl extends AbstractService
      * @param tag
      *            The tag (to be pre-pended to the generated ticket number). Can
      *            be {@code null} or empty.
+     * @param chunkIndex
+     *            1-based index of chunkSize;
+     * @param chunkSize
+     *            Total number of chunks;
+     *
      * @return The Job Ticket added to the cache.
      * @throws IOException
      *             When file IO error occurs.
@@ -331,13 +343,15 @@ public final class JobTicketServiceImpl extends AbstractService
             final PdfCreateInfo createInfo, final UUID uuid,
             final AbstractProxyPrintReq request,
             final LinkedHashMap<String, Integer> uuidPageCount,
-            final Date submitDate, final Date deliveryDate, final String tag)
-            throws IOException {
+            final Date submitDate, final Date deliveryDate, final String tag,
+            final int chunkIndex, final int chunkSize) throws IOException {
 
         final OutboxJobDto dto = outboxService().createOutboxJob(request,
                 submitDate, deliveryDate, createInfo, uuidPageCount);
 
         dto.setUserId(user.getId());
+        dto.setChunkIndex(Integer.valueOf(chunkIndex));
+        dto.setChunkSize(Integer.valueOf(chunkSize));
 
         //
         final StringBuilder ticketNumber = new StringBuilder();
@@ -582,7 +596,8 @@ public final class JobTicketServiceImpl extends AbstractService
         try {
             dto = this.addJobticketToCache(user, null, uuid, request, null,
                     submitDate,
-                    this.getTicketDeliveryDate(submitDate, deliveryDate), tag);
+                    this.getTicketDeliveryDate(submitDate, deliveryDate), tag,
+                    1, 1);
 
             final String msgKey = "msg-user-print-jobticket-copy";
 

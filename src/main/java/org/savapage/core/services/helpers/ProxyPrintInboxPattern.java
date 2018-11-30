@@ -83,8 +83,7 @@ public abstract class ProxyPrintInboxPattern {
      * @param request
      *            The {@link ProxyPrintInboxReq}.
      */
-    protected abstract void onInit(final User lockedUser,
-            final ProxyPrintInboxReq request);
+    protected abstract void onInit(User lockedUser, ProxyPrintInboxReq request);
 
     /**
      * Notifies termination of the proxy print.
@@ -94,8 +93,7 @@ public abstract class ProxyPrintInboxPattern {
      * @param request
      *            The {@link ProxyPrintInboxReq}.
      */
-    protected abstract void onExit(final User lockedUser,
-            final ProxyPrintInboxReq request);
+    protected abstract void onExit(User lockedUser, ProxyPrintInboxReq request);
 
     /**
      * Reserves a unique file path for a PDF print file, obviously containing an
@@ -106,7 +104,7 @@ public abstract class ProxyPrintInboxPattern {
      *            The locked {@link User} who requested the print.
      * @return The reserved PDF file to generate.
      */
-    protected abstract File onReservePdfToGenerate(final User lockedUser);
+    protected abstract File onReservePdfToGenerate(User lockedUser);
 
     /**
      * Notifies that PDF print file is generated for an inbox chunk.
@@ -120,11 +118,15 @@ public abstract class ProxyPrintInboxPattern {
      *            UUID.
      * @param createInfo
      *            The {@link PdfCreateInfo}.
+     * @param chunkIndex
+     *            1-based index of chunkSize;
+     * @param chunkSize
+     *            Total number of chunks;
      */
-    protected abstract void onPdfGenerated(final User lockedUser,
-            final ProxyPrintInboxReq request,
-            final LinkedHashMap<String, Integer> uuidPageCount,
-            final PdfCreateInfo createInfo);
+    protected abstract void onPdfGenerated(User lockedUser,
+            ProxyPrintInboxReq request,
+            LinkedHashMap<String, Integer> uuidPageCount,
+            PdfCreateInfo createInfo, int chunkIndex, int chunkSize);
 
     /**
      *
@@ -178,7 +180,7 @@ public abstract class ProxyPrintInboxPattern {
                         filteredInboxInfo.getFirstPdfOrientation());
 
                 this.proxyPrintInboxChunk(lockedUser, request,
-                        filteredInboxInfo);
+                        filteredInboxInfo, 1, 1);
 
             } else {
 
@@ -187,8 +189,15 @@ public abstract class ProxyPrintInboxPattern {
 
                 request.setLandscape(Boolean.valueOf(inboxInfo.hasLandscape()));
 
+                final int chunkTotal =
+                        request.getJobChunkInfo().getChunks().size();
+
+                int chunkindex = 0;
+
                 for (final ProxyPrintJobChunk chunk : request.getJobChunkInfo()
                         .getChunks()) {
+
+                    chunkindex++;
 
                     /*
                      * Replace the request parameters with the chunk parameters.
@@ -225,7 +234,8 @@ public abstract class ProxyPrintInboxPattern {
                     /*
                      * Proxy print the chunk.
                      */
-                    this.proxyPrintInboxChunk(lockedUser, request, inboxInfo);
+                    this.proxyPrintInboxChunk(lockedUser, request, inboxInfo,
+                            chunkindex, chunkTotal);
 
                     /*
                      * Restore the original pages.
@@ -261,12 +271,17 @@ public abstract class ProxyPrintInboxPattern {
      *            The {@link ProxyPrintInboxReq}.
      * @param inboxInfo
      *            The (filtered) {@link InboxInfoDto}.
+     * @param chunkIndex
+     *            1-based index of chunkSize;
+     * @param chunkSize
+     *            Total number of chunks;
      * @throws EcoPrintPdfTaskPendingException
      *             When {@link EcoPrintPdfTask} objects needed for this PDF are
      *             pending.
      */
     private void proxyPrintInboxChunk(final User lockedUser,
-            final ProxyPrintInboxReq request, final InboxInfoDto inboxInfo)
+            final ProxyPrintInboxReq request, final InboxInfoDto inboxInfo,
+            final int chunkIndex, final int chunkSize)
             throws EcoPrintPdfTaskPendingException {
 
         /*
@@ -310,7 +325,8 @@ public abstract class ProxyPrintInboxPattern {
 
             pdfFileGenerated = createInfo.getPdfFile();
 
-            this.onPdfGenerated(lockedUser, request, uuidPageCount, createInfo);
+            this.onPdfGenerated(lockedUser, request, uuidPageCount, createInfo,
+                    chunkIndex, chunkSize);
 
             fileCreated = true;
 
