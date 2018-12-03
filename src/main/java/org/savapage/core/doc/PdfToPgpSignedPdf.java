@@ -29,8 +29,8 @@ import java.util.List;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
-import org.savapage.lib.pgp.pdf.PdfPgpVerifyUrl;
 import org.savapage.lib.pgp.pdf.PdfPgpHelper;
+import org.savapage.lib.pgp.pdf.PdfPgpVerifyUrl;
 
 /**
  *
@@ -81,7 +81,7 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
 
         try {
             PdfPgpHelper.instance().sign(pdfFile, pdfOut, this.secKeyInfo,
-                    this.pubKeyInfoList, this.verifyUrl);
+                    this.pubKeyInfoList, this.verifyUrl, false);
         } catch (PGPBaseException e) {
             throw new IOException(e);
         }
