@@ -287,13 +287,19 @@ public final class PdfPgpHelper {
 
             } else {
 
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Sign  : File PDF md5 [{}] [{}] bytes",
+                            DigestUtils.md5Hex(new FileInputStream(fileOut)),
+                            FileUtils.sizeOf(fileOut));
+                }
+
                 final Writer output =
                         new BufferedWriter(new FileWriter(fileOut, true));
 
-                output.append(PdfPgpEmbedReader.PDF_COMMENT_PFX)
+                output.append(PdfPgpReader.PDF_COMMENT_PFX)
                         .append(new String(ostrPdfSig.toByteArray()).replace(
                                 "\n",
-                                "\n" + PdfPgpEmbedReader.PDF_COMMENT_PFX));
+                                "\n" + PdfPgpReader.PDF_COMMENT_PFX));
                 output.close();
             }
 
@@ -312,16 +318,19 @@ public final class PdfPgpHelper {
      * @author Rijk Ravestein
      *
      */
-    private class PdfPgpReaderSign extends PdfPgpEmbedReader {
+    private class PdfPgpReaderSign extends PdfPgpReader {
 
+        /** */
         private final OutputStream ostrPdf;
+        /** */
         private final byte[] pgpSignature;
-        private MessageDigest md5Digest;
-        private long md5ContenSize;
 
         /**
          *
          * @param ostr
+         *            The PGP signed PDF.
+         * @param sig
+         *            The ASCII armored PGP signature.
          */
         PdfPgpReaderSign(final OutputStream ostr, final byte[] sig) {
             this.ostrPdf = ostr;
@@ -330,12 +339,6 @@ public final class PdfPgpHelper {
 
         @Override
         protected void onStart() throws IOException {
-            this.md5ContenSize = 0;
-            if (LOGGER.isDebugEnabled()) {
-                this.md5Digest = DigestUtils.getMd5Digest();
-            } else {
-                this.md5Digest = null;
-            }
         }
 
         @Override
@@ -346,27 +349,20 @@ public final class PdfPgpHelper {
         @Override
         protected void onPdfContent(final byte[] content) throws IOException {
             ostrPdf.write(content);
-            this.md5ContenSize += content.length;
-            if (this.md5Digest != null) {
-                this.md5Digest.update(content);
-            }
         }
 
         @Override
         protected void onPdfContent(final byte content) throws IOException {
             ostrPdf.write(content);
-            this.md5ContenSize++;
-            if (this.md5Digest != null) {
-                this.md5Digest.update(content);
-            }
         }
 
         @Override
-        protected void onEnd() {
-            if (this.md5Digest != null && LOGGER.isDebugEnabled()) {
+        protected void onEnd(final MessageDigest contentMessageDigest,
+                final long contentBytes) {
+            if (contentMessageDigest != null && LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Sign   : Plain PDF md5 [{}] [{}] bytes",
-                        Hex.encodeHexString(this.md5Digest.digest()),
-                        this.md5ContenSize);
+                        Hex.encodeHexString(contentMessageDigest.digest()),
+                        contentBytes);
             }
         }
 
@@ -380,6 +376,14 @@ public final class PdfPgpHelper {
                             PDF_COMMENT_PFX));
 
             ostrPdf.write(sig.getBytes());
+        }
+
+        @Override
+        protected MessageDigest createMessageDigest() {
+            if (LOGGER.isDebugEnabled()) {
+                return DigestUtils.getMd5Digest();
+            }
+            return null;
         }
 
     }
@@ -439,16 +443,17 @@ public final class PdfPgpHelper {
      * @author Rijk Ravestein
      *
      */
-    private class PdfPgpReaderVerify extends PdfPgpEmbedReader {
+    private class PdfPgpReaderVerify extends PdfPgpReader {
 
+        /** */
         private final ByteArrayOutputStream ostrPdf;
+        /** */
         private byte[] pgpSignature;
-        private MessageDigest md5Digest;
-        private long md5ContenSize;
 
         /**
          *
          * @param ostr
+         *            PDF content, without signature.
          */
         PdfPgpReaderVerify(final ByteArrayOutputStream ostr) {
             this.ostrPdf = ostr;
@@ -456,12 +461,7 @@ public final class PdfPgpHelper {
 
         @Override
         protected void onStart() throws IOException {
-            if (LOGGER.isDebugEnabled()) {
-                this.md5Digest = DigestUtils.getMd5Digest();
-            } else {
-                this.md5Digest = null;
-            }
-            md5ContenSize = 0;
+            // no code intended
         }
 
         @Override
@@ -472,30 +472,27 @@ public final class PdfPgpHelper {
         @Override
         protected void onPdfContent(final byte[] content) throws IOException {
             ostrPdf.write(content);
-            this.md5ContenSize += content.length;
-            if (this.md5Digest != null) {
-                this.md5Digest.update(content);
-            }
         }
 
         @Override
         protected void onPdfContent(final byte content) throws IOException {
             ostrPdf.write(content);
-            this.md5ContenSize++;
-            if (this.md5Digest != null) {
-                this.md5Digest.update(content);
-            }
         }
 
         @Override
-        protected void onEnd() {
-            if (this.md5Digest != null && LOGGER.isDebugEnabled()) {
+        protected void onEnd(final MessageDigest contentMessageDigest,
+                final long contentBytes) {
+
+            if (contentMessageDigest != null && LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Verify : Calc Local- PDF md5 [{}] [{}] bytes",
-                        Hex.encodeHexString(this.md5Digest.digest()),
-                        this.md5ContenSize);
+                        Hex.encodeHexString(contentMessageDigest.digest()),
+                        contentBytes);
             }
         }
 
+        /**
+         * @return The parsed PGP signature.
+         */
         public byte[] getPgpSignature() {
             return this.pgpSignature;
         }
@@ -503,6 +500,14 @@ public final class PdfPgpHelper {
         @Override
         protected void onPdfEof() throws IOException {
             // no code intended
+        }
+
+        @Override
+        protected MessageDigest createMessageDigest() {
+            if (LOGGER.isDebugEnabled()) {
+                return DigestUtils.getMd5Digest();
+            }
+            return null;
         }
 
     }
@@ -564,103 +569,24 @@ public final class PdfPgpHelper {
      * @throws PGPBaseException
      *             When errors.
      */
-    private PGPSignature verifyAppended(final InputStream istrPdfSigned,
+    public PGPSignature verifyAppended(final InputStream istrPdfSigned,
             final PGPPublicKey signPublicKey) throws PGPBaseException {
 
         try (ByteArrayOutputStream ostrPdf = new ByteArrayOutputStream()) {
 
-            int n = istrPdfSigned.read();
+            final PdfPgpReaderVerify reader = new PdfPgpReaderVerify(ostrPdf);
 
-            final StringBuffer appendedPgp = new StringBuffer();
+            reader.read(istrPdfSigned);
 
-            boolean isNewLine = true;
+            final byte[] pgpBytes = reader.getPgpSignature();
 
-            while (n >= 0) {
-
-                if (isNewLine && n == PdfPgpEmbedReader.INT_PDF_COMMENT) {
-
-                    isNewLine = false;
-
-                    /*
-                     * Collect raw bytes! Do not collect on String, because
-                     * bytes will be interpreted as Unicode.
-                     */
-                    final ByteArrayOutputStream bosAhead =
-                            new ByteArrayOutputStream();
-
-                    // Read till EOL or EOF.
-                    while (n >= 0) {
-                        bosAhead.write(n);
-                        if (isNewLine) {
-                            break;
-                        }
-                        // Read next
-                        n = istrPdfSigned.read();
-                        isNewLine = n == PdfPgpEmbedReader.INT_NEWLINE;
-                    }
-
-                    final byte[] bytesAhead = bosAhead.toByteArray();
-
-                    /*
-                     * At this point we do convert to String, so we can compare.
-                     */
-                    final String stringAhead = new String(bytesAhead);
-
-                    if (stringAhead.startsWith(
-                            PdfPgpEmbedReader.PDF_COMMENT_BEGIN_PGP_SIGNATURE)) {
-                        appendedPgp.append(stringAhead);
-                        break;
-                    }
-
-                    ostrPdf.write(bytesAhead);
-                    bosAhead.close();
-
-                } else {
-                    isNewLine = n == PdfPgpEmbedReader.INT_NEWLINE;
-                    ostrPdf.write((byte) n);
-                }
-
-                // Read next when not EOF.
-                if (n >= 0) {
-                    n = istrPdfSigned.read();
-                }
-            }
-
-            if (LOGGER.isDebugEnabled()) {
-                final byte[] tmp = ostrPdf.toByteArray();
-                LOGGER.debug("Verify: Base PDF md5 [{}] [{}] bytes",
-                        DigestUtils.md5Hex(tmp), tmp.length);
-            }
-
-            /*
-             * Collect PGP signature.
-             */
-            final ByteArrayOutputStream bosSignature =
-                    new ByteArrayOutputStream();
-
-            if (appendedPgp.length() > 0) {
-
-                // Skip first % character.
-                bosSignature
-                        .write(appendedPgp.toString().substring(1).getBytes());
-
-                n = istrPdfSigned.read();
-
-                while (n >= 0) {
-                    if (n != PdfPgpEmbedReader.INT_PDF_COMMENT) {
-                        bosSignature.write(n);
-                    }
-                    n = istrPdfSigned.read();
-                }
-            } else {
-                bosSignature.close();
+            if (pgpBytes == null) {
                 throw new IllegalArgumentException("PGP signature not found.");
             }
 
-            bosSignature.flush();
-            bosSignature.close();
-
-            final byte[] pgpBytes = bosSignature.toByteArray();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("\n{}", new String(pgpBytes));
+            }
 
             if (PGPHelper.instance().verifySignature(
                     new ByteArrayInputStream(ostrPdf.toByteArray()),

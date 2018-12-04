@@ -3,6 +3,7 @@ package org.savapage.lib.pgp.pdf;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.MessageDigest;
 
 import org.savapage.lib.pgp.PGPBaseException;
 
@@ -12,7 +13,7 @@ import org.savapage.lib.pgp.PGPBaseException;
  * @author Rijk Ravestein
  *
  */
-public abstract class PdfPgpEmbedReader {
+public abstract class PdfPgpReader {
 
     /** */
     public static final int INT_PDF_COMMENT = '%';
@@ -33,6 +34,11 @@ public abstract class PdfPgpEmbedReader {
 
     /** */
     protected static final int INT_NEWLINE = '\n';
+
+    /**
+     * @return A message digest, or {@code null} when not applicable.
+     */
+    protected abstract MessageDigest createMessageDigest();
 
     /**
      *
@@ -73,10 +79,16 @@ public abstract class PdfPgpEmbedReader {
     protected abstract void onStart() throws IOException;
 
     /**
+     *
+     * @param messageDigest
+     *            Message digest of PDF content.
+     * @param byteCount
+     *            Number of PDF content bytes digested.
      * @throws IOException
      *             If IO error.
      */
-    protected abstract void onEnd() throws IOException;
+    protected abstract void onEnd(MessageDigest messageDigest, long byteCount)
+            throws IOException;
 
     /**
      * State of reader.
@@ -93,7 +105,46 @@ public abstract class PdfPgpEmbedReader {
         /**
          * Collecting EOF.
          */
-        COLLECT_PDF_EOF
+        COLLECT_PDF_EOF,
+        /**
+         * Stop collecting.
+         */
+        COLLECT_END
+    }
+
+    /**
+     * Message digest of PDF content.
+     */
+
+    private MessageDigest contentMessageDigest;
+
+    /**
+     * Number of PDF content bytes digested.
+     */
+    private long contentBytes;
+
+    /**
+     *
+     * @param content
+     *            bytes.
+     */
+    private void digestPdfContent(final byte[] content) {
+        this.contentBytes += content.length;
+        if (this.contentMessageDigest != null) {
+            this.contentMessageDigest.update(content);
+        }
+    }
+
+    /**
+     *
+     * @param content
+     *            byte.
+     */
+    private void digestPdfContent(final byte content) {
+        this.contentBytes++;
+        if (this.contentMessageDigest != null) {
+            this.contentMessageDigest.update(content);
+        }
     }
 
     /**
@@ -105,6 +156,9 @@ public abstract class PdfPgpEmbedReader {
      */
     public void read(final InputStream istrPdf) throws PGPBaseException {
 
+        this.contentBytes = 0;
+        this.contentMessageDigest = createMessageDigest();
+
         try (ByteArrayOutputStream bosSignature =
                 new ByteArrayOutputStream();) {
 
@@ -115,6 +169,9 @@ public abstract class PdfPgpEmbedReader {
             boolean isNewLine = true;
 
             ReadState readState = ReadState.COLLECT_PDF_CONTENT;
+
+            boolean collectedPdfEof = false;
+            boolean collectedPgpSig = false;
 
             while (n > -1) {
 
@@ -160,6 +217,10 @@ public abstract class PdfPgpEmbedReader {
                         // Skip first % character.
                         bosSignature.write(stringAhead.substring(1).getBytes());
                         readState = ReadState.COLLECT_PDF_EOF;
+                        collectedPgpSig = true;
+                        if (collectedPdfEof) {
+                            readState = ReadState.COLLECT_END;
+                        }
                         continue;
                     }
 
@@ -171,14 +232,23 @@ public abstract class PdfPgpEmbedReader {
 
                     if (stringAhead.startsWith(PDF_EOF)) {
                         onPdfEof();
+                        collectedPdfEof = true;
                     }
 
-                    onPdfContent(bytesAhead);
+                    if (readState != ReadState.COLLECT_END) {
+                        onPdfContent(bytesAhead);
+                        digestPdfContent(bytesAhead);
+                    }
+
+                    if (collectedPdfEof && collectedPgpSig) {
+                        readState = ReadState.COLLECT_END;
+                    }
 
                 } else {
                     isNewLine = n == INT_NEWLINE;
                     if (readState == ReadState.COLLECT_PDF_CONTENT) {
                         onPdfContent((byte) n);
+                        digestPdfContent((byte) n);
                     }
                 }
 
@@ -200,7 +270,7 @@ public abstract class PdfPgpEmbedReader {
                 onPgpSignature(pgpBytes);
             }
 
-            onEnd();
+            onEnd(this.contentMessageDigest, this.contentBytes);
 
         } catch (IOException e) {
             throw new PGPBaseException(e.getMessage(), e);
