@@ -678,29 +678,27 @@ public final class PGPHelper {
     }
 
     /**
-     * Verifies PGP signature against content.
+     * Verifies PGP signature against content and its public key.
      *
      * @see {@link org.bouncycastle.openpgp.examples.DetachedSignatureProcessor}.
      *
      * @param content
      *            The content.
-     * @param signature
+     * @param sig
      *            The signature.
-     * @param key
-     *            The public key.
+     * @param publicKey
+     *            The public key of signature.
      * @return {@code true} when signature is valid.
      * @throws PGPBaseException
-     *             When error.
+     *             When signature error.
      */
     public boolean verifySignature(final InputStream content,
-            final InputStream signature, final PGPPublicKey key)
+            final PGPSignature sig, final PGPPublicKey publicKey)
             throws PGPBaseException {
 
         try {
-            final PGPSignature sig = this.getSignature(signature);
-
             sig.init(new JcaPGPContentVerifierBuilderProvider()
-                    .setProvider("BC"), key);
+                    .setProvider("BC"), publicKey);
 
             int ch;
             while ((ch = content.read()) >= 0) {
@@ -711,7 +709,7 @@ public final class PGPHelper {
 
             return sig.verify();
 
-        } catch (PGPBaseException | IOException | PGPException e) {
+        } catch (IOException | PGPException e) {
             throw new PGPBaseException(e.getMessage(), e);
         }
     }

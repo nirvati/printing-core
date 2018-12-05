@@ -47,6 +47,7 @@ import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
+import org.savapage.lib.pgp.PGPSignatureInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -317,13 +318,13 @@ public final class PdfPgpHelper {
      * @param signPublicKey
      *            The {@link PGPPublicKey} of the private key the PGP signature
      *            content was signed with.
-     * @return The {@link PGPSignature}} if valid, or {@code null} when not.
+     * @return The {@link PGPSignatureInfo}}.
      * @throws PGPBaseException
      *             When errors.
      * @throws IOException
      *             When File IO errors.
      */
-    public PGPSignature verify(final File pdfFileSigned,
+    public PGPSignatureInfo verify(final File pdfFileSigned,
             final PGPPublicKey signPublicKey)
             throws PGPBaseException, IOException {
 
@@ -337,15 +338,14 @@ public final class PdfPgpHelper {
      *
      * @param istrPdfSigned
      *            Signed PDF document as input stream.
-     * @param signPublicKey
-     *            The {@link PGPPublicKey} of the private key the PGP signature
-     *            content was signed with.
-     * @return The {@link PGPSignature}} if valid, or {@code null} when not.
+     * @param trustedPublicKey
+     *            The trusted {@link PGPPublicKey}.
+     * @return The {@link PGPSignatureInfo}}.
      * @throws PGPBaseException
      *             When errors.
      */
-    public PGPSignature verify(final InputStream istrPdfSigned,
-            final PGPPublicKey signPublicKey) throws PGPBaseException {
+    public PGPSignatureInfo verify(final InputStream istrPdfSigned,
+            final PGPPublicKey trustedPublicKey) throws PGPBaseException {
 
         try (ByteArrayOutputStream ostrPdf = new ByteArrayOutputStream()) {
 
@@ -356,21 +356,23 @@ public final class PdfPgpHelper {
             final byte[] pgpBytes = reader.getPgpSignature();
 
             if (pgpBytes == null) {
-                throw new IllegalArgumentException("PGP signature not found.");
+                throw new IllegalArgumentException("No signature found");
             }
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("\n{}", new String(pgpBytes));
             }
 
-            if (PGPHelper.instance().verifySignature(
-                    new ByteArrayInputStream(ostrPdf.toByteArray()),
-                    new ByteArrayInputStream(pgpBytes), signPublicKey)) {
+            final PGPHelper helper = PGPHelper.instance();
 
-                return PGPHelper.instance()
-                        .getSignature(new ByteArrayInputStream(pgpBytes));
-            }
-            return null;
+            final PGPSignature sig =
+                    helper.getSignature(new ByteArrayInputStream(pgpBytes));
+
+            final boolean isValid = PGPHelper.instance().verifySignature(
+                    new ByteArrayInputStream(ostrPdf.toByteArray()), sig,
+                    trustedPublicKey);
+
+            return new PGPSignatureInfo(sig, isValid);
 
         } catch (IOException e) {
             throw new PGPBaseException(e.getMessage(), e);
