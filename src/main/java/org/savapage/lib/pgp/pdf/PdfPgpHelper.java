@@ -32,17 +32,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.security.MessageDigest;
 import java.security.Security;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPSignature;
@@ -276,11 +273,11 @@ public final class PdfPgpHelper {
                 final File fileOutSigned = new File(String.format("%s.%s",
                         fileOut.getPath(), UUID.randomUUID().toString()));
 
-                final PdfPgpReaderSign readerForSigning = new PdfPgpReaderSign(
+                final PdfPgpReader readerForSig = new PdfPgpReaderEmbedSig(
                         new FileOutputStream(fileOutSigned),
                         ostrPdfSig.toByteArray());
 
-                readerForSigning.read(new FileInputStream(fileOut));
+                readerForSig.read(new FileInputStream(fileOut));
 
                 fileOut.delete();
                 FileUtils.moveFile(fileOutSigned, fileOut);
@@ -296,9 +293,8 @@ public final class PdfPgpHelper {
                 final Writer output =
                         new BufferedWriter(new FileWriter(fileOut, true));
 
-                output.append(PdfPgpReader.PDF_COMMENT_PFX)
-                        .append(new String(ostrPdfSig.toByteArray()).replace(
-                                "\n",
+                output.append(PdfPgpReader.PDF_COMMENT_PFX).append(
+                        new String(ostrPdfSig.toByteArray()).replace("\n",
                                 "\n" + PdfPgpReader.PDF_COMMENT_PFX));
                 output.close();
             }
@@ -314,91 +310,13 @@ public final class PdfPgpHelper {
     }
 
     /**
-     *
-     * @author Rijk Ravestein
-     *
-     */
-    private class PdfPgpReaderSign extends PdfPgpReader {
-
-        /** */
-        private final OutputStream ostrPdf;
-        /** */
-        private final byte[] pgpSignature;
-
-        /**
-         *
-         * @param ostr
-         *            The PGP signed PDF.
-         * @param sig
-         *            The ASCII armored PGP signature.
-         */
-        PdfPgpReaderSign(final OutputStream ostr, final byte[] sig) {
-            this.ostrPdf = ostr;
-            this.pgpSignature = sig;
-        }
-
-        @Override
-        protected void onStart() throws IOException {
-        }
-
-        @Override
-        protected void onPgpSignature(final byte[] pgpBytes) {
-            // no code intended.
-        }
-
-        @Override
-        protected void onPdfContent(final byte[] content) throws IOException {
-            ostrPdf.write(content);
-        }
-
-        @Override
-        protected void onPdfContent(final byte content) throws IOException {
-            ostrPdf.write(content);
-        }
-
-        @Override
-        protected void onEnd(final MessageDigest contentMessageDigest,
-                final long contentBytes) {
-            if (contentMessageDigest != null && LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Sign   : Plain PDF md5 [{}] [{}] bytes",
-                        Hex.encodeHexString(contentMessageDigest.digest()),
-                        contentBytes);
-            }
-        }
-
-        @Override
-        protected void onPdfEof() throws IOException {
-
-            final String sig = String.format("%s%s", PDF_COMMENT_PFX,
-                    StringUtils.removeEnd(
-                            StringUtils.replace(new String(this.pgpSignature),
-                                    "\n", "\n" + PDF_COMMENT_PFX),
-                            PDF_COMMENT_PFX));
-
-            ostrPdf.write(sig.getBytes());
-        }
-
-        @Override
-        protected MessageDigest createMessageDigest() {
-            if (LOGGER.isDebugEnabled()) {
-                return DigestUtils.getMd5Digest();
-            }
-            return null;
-        }
-
-    }
-
-    /**
-     * Verifies a PGP signed PDF file.
+     * Verifies a PGP signed (appended or embedded) PDF file.
      *
      * @param pdfFileSigned
      *            Signed PDF as input.
      * @param signPublicKey
      *            The {@link PGPPublicKey} of the private key the PGP signature
      *            content was signed with.
-     * @param embeddedSignature
-     *            If {@code true}, signature if embedded just before %%EOF. If
-     *            {@code false} signature if appended just after %%EOF.
      * @return The {@link PGPSignature}} if valid, or {@code null} when not.
      * @throws PGPBaseException
      *             When errors.
@@ -406,170 +324,27 @@ public final class PdfPgpHelper {
      *             When File IO errors.
      */
     public PGPSignature verify(final File pdfFileSigned,
-            final PGPPublicKey signPublicKey, final boolean embeddedSignature)
+            final PGPPublicKey signPublicKey)
             throws PGPBaseException, IOException {
 
         try (InputStream istrPdf = new FileInputStream(pdfFileSigned);) {
-            return this.verify(istrPdf, signPublicKey, embeddedSignature);
+            return this.verify(istrPdf, signPublicKey);
         }
     }
 
     /**
-     * Verifies a PGP signed PDF file.
+     * Verifies a PGP signed (appended or embedded) PDF file.
      *
      * @param istrPdfSigned
      *            Signed PDF document as input stream.
      * @param signPublicKey
      *            The {@link PGPPublicKey} of the private key the PGP signature
      *            content was signed with.
-     * @param embeddedSignature
-     *            If {@code true}, signature if embedded just before %%EOF. If
-     *            {@code false} signature if appended just after %%EOF.
      * @return The {@link PGPSignature}} if valid, or {@code null} when not.
      * @throws PGPBaseException
      *             When errors.
      */
     public PGPSignature verify(final InputStream istrPdfSigned,
-            final PGPPublicKey signPublicKey, final boolean embeddedSignature)
-            throws PGPBaseException {
-        if (embeddedSignature) {
-            return this.verifyEmbedded(istrPdfSigned, signPublicKey);
-        }
-        return this.verifyAppended(istrPdfSigned, signPublicKey);
-    }
-
-    /**
-     *
-     * @author Rijk Ravestein
-     *
-     */
-    private class PdfPgpReaderVerify extends PdfPgpReader {
-
-        /** */
-        private final ByteArrayOutputStream ostrPdf;
-        /** */
-        private byte[] pgpSignature;
-
-        /**
-         *
-         * @param ostr
-         *            PDF content, without signature.
-         */
-        PdfPgpReaderVerify(final ByteArrayOutputStream ostr) {
-            this.ostrPdf = ostr;
-        }
-
-        @Override
-        protected void onStart() throws IOException {
-            // no code intended
-        }
-
-        @Override
-        protected void onPgpSignature(final byte[] pgpBytes) {
-            this.pgpSignature = pgpBytes;
-        }
-
-        @Override
-        protected void onPdfContent(final byte[] content) throws IOException {
-            ostrPdf.write(content);
-        }
-
-        @Override
-        protected void onPdfContent(final byte content) throws IOException {
-            ostrPdf.write(content);
-        }
-
-        @Override
-        protected void onEnd(final MessageDigest contentMessageDigest,
-                final long contentBytes) {
-
-            if (contentMessageDigest != null && LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Verify : Calc Local- PDF md5 [{}] [{}] bytes",
-                        Hex.encodeHexString(contentMessageDigest.digest()),
-                        contentBytes);
-            }
-        }
-
-        /**
-         * @return The parsed PGP signature.
-         */
-        public byte[] getPgpSignature() {
-            return this.pgpSignature;
-        }
-
-        @Override
-        protected void onPdfEof() throws IOException {
-            // no code intended
-        }
-
-        @Override
-        protected MessageDigest createMessageDigest() {
-            if (LOGGER.isDebugEnabled()) {
-                return DigestUtils.getMd5Digest();
-            }
-            return null;
-        }
-
-    }
-
-    /**
-     * Verifies a PGP signed PDF file.
-     *
-     * @param istrPdfSigned
-     *            Signed PDF document as input stream.
-     * @param signPublicKey
-     *            The {@link PGPPublicKey} of the private key the PGP signature
-     *            content was signed with.
-     * @return The {@link PGPSignature}} if valid, or {@code null} when not.
-     * @throws PGPBaseException
-     *             When errors.
-     */
-    private PGPSignature verifyEmbedded(final InputStream istrPdfSigned,
-            final PGPPublicKey signPublicKey) throws PGPBaseException {
-
-        try (ByteArrayOutputStream ostrPdf = new ByteArrayOutputStream()) {
-
-            final PdfPgpReaderVerify reader = new PdfPgpReaderVerify(ostrPdf);
-
-            reader.read(istrPdfSigned);
-
-            final byte[] pgpBytes = reader.getPgpSignature();
-
-            if (pgpBytes == null) {
-                throw new IllegalArgumentException("PGP signature not found.");
-            }
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("\n{}", new String(pgpBytes));
-            }
-
-            if (PGPHelper.instance().verifySignature(
-                    new ByteArrayInputStream(ostrPdf.toByteArray()),
-                    new ByteArrayInputStream(pgpBytes), signPublicKey)) {
-
-                return PGPHelper.instance()
-                        .getSignature(new ByteArrayInputStream(pgpBytes));
-            }
-            return null;
-
-        } catch (IOException e) {
-            throw new PGPBaseException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Verifies a PGP signed PDF file.
-     *
-     * @param istrPdfSigned
-     *            Signed PDF document as input stream.
-     * @param signPublicKey
-     *            The {@link PGPPublicKey} of the private key the PGP signature
-     *            content was signed with.
-     * @return The {@link PGPSignature}} if valid, or {@code null} when not.
-     * @throws PGPBaseException
-     *             When errors.
-     */
-    public PGPSignature verifyAppended(final InputStream istrPdfSigned,
             final PGPPublicKey signPublicKey) throws PGPBaseException {
 
         try (ByteArrayOutputStream ostrPdf = new ByteArrayOutputStream()) {
