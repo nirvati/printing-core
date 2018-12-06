@@ -24,6 +24,7 @@ package org.savapage.lib.pgp;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -83,6 +84,8 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator;
 import org.savapage.core.util.IOHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -90,6 +93,12 @@ import org.savapage.core.util.IOHelper;
  *
  */
 public final class PGPHelper {
+
+    /**
+     * The logger.
+     */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(PGPHelper.class);
 
     /**
      * Buffer for encryption streaming.
@@ -389,6 +398,9 @@ public final class PGPHelper {
                     }
                 }
             }
+            if (!processLine) {
+                LOGGER.warn("{} : no public key.", lookupUrl);
+            }
         }
     }
 
@@ -421,6 +433,30 @@ public final class PGPHelper {
 
         }
         return pgpPublicKeyList;
+    }
+
+    /**
+     * Encode public key as ASCII armored byte array.
+     *
+     * @param pubKey
+     *            Public key
+     * @return ASCII armored byte array.
+     * @throws IOException
+     *             If IO error.
+     */
+    public static byte[] encodeArmored(final PGPPublicKey pubKey)
+            throws IOException {
+
+        try (ByteArrayOutputStream ostrPubKey = new ByteArrayOutputStream();
+                ArmoredOutputStream ostrArmored =
+                        new ArmoredOutputStream(ostrPubKey)) {
+            pubKey.encode(ostrArmored);
+            /*
+             * Do not flush(), but close() !!
+             */
+            ostrArmored.close();
+            return ostrPubKey.toByteArray();
+        }
     }
 
     /**

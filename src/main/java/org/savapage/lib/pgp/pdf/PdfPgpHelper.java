@@ -60,6 +60,8 @@ import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfAction;
+import com.itextpdf.text.pdf.PdfAnnotation;
+import com.itextpdf.text.pdf.PdfFileSpecification;
 import com.itextpdf.text.pdf.PdfFormField;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
@@ -94,6 +96,22 @@ public final class PdfPgpHelper {
 
     /** */
     private static final boolean ASCII_ARMOR = true;
+
+    /**
+     * Rectangle with zero space.
+     */
+    private static final Rectangle RECT_ZERO = new Rectangle(0, 0);
+
+    /**
+     * Name of PDF attachment of ASCII armored public key of signature.
+     */
+    private static final String PGP_PUBKEY_FILENAME = "pubkey.asc";
+
+    /**
+     * The PGP mime-type for Armored Encrypted File.
+     */
+    private static final String PGP_MIMETYPE_ASCII_ARMOR =
+            "application/pgp-encrypted";
 
     /** */
     private static final class SingletonHolder {
@@ -253,6 +271,22 @@ public final class PdfPgpHelper {
 
             ColumnText.showTextAligned(stamper.getOverContent(iFirstPage),
                     Element.ALIGN_LEFT, header, x, y, 0);
+
+            /*
+             * Attach Public Key of signer.
+             */
+            final int compressionLevel = 0;
+
+            final PdfFileSpecification fsPubKey = PdfFileSpecification
+                    .fileEmbedded(writer, null, PGP_PUBKEY_FILENAME,
+                            PGPHelper.encodeArmored(secKeyInfo.getPublicKey()),
+                            PGP_MIMETYPE_ASCII_ARMOR, null, compressionLevel);
+            fsPubKey.addDescription("PGP Public key of signer.", false);
+
+            final PdfAnnotation annotPdfSig;
+            writer.addFileAttachment(fsPubKey);
+            annotPdfSig = new PdfAnnotation(writer, RECT_ZERO);
+            stamper.addAnnotation(annotPdfSig, 1);
 
             //
             stamper.close();
