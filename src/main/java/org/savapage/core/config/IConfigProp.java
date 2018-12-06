@@ -1768,6 +1768,11 @@ public interface IConfigProp {
                 "mail.pgp.mime.encrypt", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * OpenPGP Public Key Server URL (optional).
+         */
+        PGP_PKS_URL("pgp.pks.url", URL_VALIDATOR_OPT),
+
+        /**
          * The path of the custom template files, relative to
          * {@link ConfigManager#SERVER_REL_PATH_CUSTOM_TEMPLATE}.
          */

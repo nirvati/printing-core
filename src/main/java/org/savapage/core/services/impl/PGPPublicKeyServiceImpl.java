@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.text.MessageFormat;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.savapage.core.config.ConfigManager;
@@ -51,6 +52,84 @@ public final class PGPPublicKeyServiceImpl extends AbstractService
     private static final Logger LOGGER =
             LoggerFactory.getLogger(PGPPublicKeyServiceImpl.class);
 
+    /**
+     * The URL path of an PKS to preview the content of PGP Public Key as
+     * template: {0} is to be replaced with hexKeyID, without "0x" prefix.
+     */
+    private static final String PATH_PKS_LOOKUP_VINDEX_SEARCH =
+            "/pks/lookup?op=vindex&search=0x{0}";
+
+    /**
+     * An URL template to get (download) the PGP Public Key: {0} is the URL opf
+     * the PKS, {1} is to be replaced with hexKeyID, without "0x" prefix.
+     */
+    private static final String URL_PKS_LOOKUP_GET_SEARCH =
+            "{0}/pks/lookup?op=get&search=0x{1}";
+
+    /**
+     *
+     * @return URL of PKS (can be {@code null}).
+     */
+    private static URL getPksUrl() {
+        try {
+            return ConfigManager.instance().getPGPPublicKeyServerUrl();
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    /**
+     * Gets the URL to download the PGP Public Key.
+     *
+     * @param hexKeyID
+     *            Hexadecimal KeyID, without "0x" prefix.
+     * @return The URL to download the public ASCII armored key, or {@code null}
+     *         when unknown.
+     * @throws MalformedURLException
+     *             If URL template is ill-formed.
+     */
+    public URL getPublicKeyDownloadUrl(final String hexKeyID)
+            throws MalformedURLException {
+
+        final URL url = getPksUrl();
+
+        if (url == null) {
+            return null;
+        }
+        return new URL(
+                MessageFormat.format(URL_PKS_LOOKUP_GET_SEARCH, url, hexKeyID));
+    }
+
+    @Override
+    public String getPublicKeyPreviewUrlTpl() {
+
+        final URL url = getPksUrl();
+
+        if (url == null) {
+            return null;
+        }
+        return String.format("%s%s", url, PATH_PKS_LOOKUP_VINDEX_SEARCH);
+    }
+
+    /**
+     * Gets the URL of Web Page to preview the content of the PGP Public Key.
+     *
+     * @param hexKeyID
+     *            Hexadecimal KeyID, without "0x" prefix.
+     * @return The URL to preview the public key, or {@code null} when unknown.
+     * @throws MalformedURLException
+     *             If URL template is ill-formed.
+     */
+    public URL getPublicKeyPreviewUrl(final String hexKeyID)
+            throws MalformedURLException {
+
+        final String value = this.getPublicKeyPreviewUrlTpl();
+        if (value == null) {
+            return null;
+        }
+        return new URL(MessageFormat.format(value, hexKeyID));
+    }
+
     @Override
     public PGPPublicKeyInfo lookup(final String hexKeyID)
             throws PGPBaseException {
@@ -59,8 +138,7 @@ public final class PGPPublicKeyServiceImpl extends AbstractService
 
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();) {
 
-            final URL url = ConfigManager.instance()
-                    .getPGPPublicKeyDownloadUrl(hexKeyID);
+            final URL url = this.getPublicKeyDownloadUrl(hexKeyID);
 
             if (url != null) {
                 PGPHelper.downloadPublicKey(url, bos);

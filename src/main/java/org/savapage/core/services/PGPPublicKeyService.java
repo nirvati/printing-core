@@ -32,6 +32,18 @@ import org.savapage.lib.pgp.PGPPublicKeyInfo;
 public interface PGPPublicKeyService {
 
     /**
+     * Gets the URL template of Web Page to preview the content of the PGP
+     * Public Key.
+     * <p>
+     * Placeholder <tt>{0}</tt> is to be replaced by the Hexadecimal KeyID,
+     * without "0x" prefix.
+     * </p>
+     *
+     * @return The template string, or {@code null} when unknown.
+     */
+    String getPublicKeyPreviewUrlTpl();
+
+    /**
      * Looks up key from PGP Public Key Server.
      *
      * @param hexKeyID

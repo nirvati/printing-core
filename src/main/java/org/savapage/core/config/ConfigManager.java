@@ -48,7 +48,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.text.MessageFormat;
 import java.util.Currency;
 import java.util.Date;
 import java.util.EnumSet;
@@ -373,25 +372,6 @@ public final class ConfigManager {
 
     private static final String SERVER_PROP_PGP_SECRETKEY_PASSPHRASE =
             "pgp.secretkey.passphrase";
-
-    /**
-     * URL of the PGP Public Key Server: to search for a key.
-     */
-    private static final String SERVER_PROP_PGP_PUBLICKEY_SERVER_URL =
-            "pgp.publickey.server.url";
-    /**
-     * An URL to preview the content of PGP Public Key as template: {0} is to be
-     * replaced without hexKeyID, with "0x" prefix.
-     */
-    private static final String SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_VINDEX =
-            "pgp.publickey.server.url.vindex";
-
-    /**
-     * An URL template to get (download) the PGP Public Key: {0} is to be
-     * replaced without hexKeyID, with "0x" prefix.
-     */
-    private static final String SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_GET =
-            "pgp.publickey.server.url.get";
 
     /**
      *
@@ -1455,91 +1435,27 @@ public final class ConfigManager {
         }
 
         try {
-            // Elicit an exception when one of the URLs is wrong.
-            this.getPGPPublicKeySearchUrl();
-            this.getPGPPublicKeyDownloadUrl("TEST");
-            this.getPGPPublicKeyPreviewUrl("TEST");
-
+            // Elicit an exception when URLs is wrong.
+            this.getPGPPublicKeyServerUrl();
         } catch (MalformedURLException e) {
             LOGGER.error(e.getMessage());
         }
     }
 
     /**
-     * Gets the URL of Web Page where PGP Public Key can be searched.
+     * Gets the URL of PGP Public Key Server.
      *
-     * @return The URL to search for a key, or {@code null} when unknown.
+     * @return The URL, or {@code null} when unknown.
      * @throws MalformedURLException
      *             If URL template is ill-formed.
      */
-    public URL getPGPPublicKeySearchUrl() throws MalformedURLException {
+    public URL getPGPPublicKeyServerUrl() throws MalformedURLException {
 
-        final String value = theServerProps
-                .getProperty(SERVER_PROP_PGP_PUBLICKEY_SERVER_URL);
+        final String value = this.getConfigValue(Key.PGP_PKS_URL);
         if (StringUtils.isBlank(value)) {
             return null;
         }
         return new URL(value);
-    }
-
-    /**
-     * Gets the URL to download the PGP Public Key.
-     *
-     * @param hexKeyID
-     *            Hexadecimal KeyID, without "0x" prefix.
-     * @return The URL to download the public ASCII armored key, or {@code null}
-     *         when unknown.
-     * @throws MalformedURLException
-     *             If URL template is ill-formed.
-     */
-    public URL getPGPPublicKeyDownloadUrl(final String hexKeyID)
-            throws MalformedURLException {
-
-        final String value = theServerProps
-                .getProperty(SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_GET);
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
-        return new URL(MessageFormat.format(value, hexKeyID));
-    }
-
-    /**
-     * Gets the URL of Web Page to preview the content of the PGP Public Key.
-     *
-     * @param hexKeyID
-     *            Hexadecimal KeyID, without "0x" prefix.
-     * @return The URL to preview the public key, or {@code null} when unknown.
-     * @throws MalformedURLException
-     *             If URL template is ill-formed.
-     */
-    public URL getPGPPublicKeyPreviewUrl(final String hexKeyID)
-            throws MalformedURLException {
-
-        final String value = this.getPGPPublicKeyPreviewUrlTemplate();
-        if (value == null) {
-            return null;
-        }
-        return new URL(MessageFormat.format(value, hexKeyID));
-    }
-
-    /**
-     * Gets the URL template of Web Page to preview the content of the PGP
-     * Public Key.
-     * <p>
-     * Placeholder <tt>{0}</tt> is to be replaced by the Hexadecimal KeyID,
-     * without "0x" prefix.
-     * </p>
-     *
-     * @return The template string, or {@code null} when unknown.
-     */
-    public String getPGPPublicKeyPreviewUrlTemplate() {
-
-        final String value = theServerProps
-                .getProperty(SERVER_PROP_PGP_PUBLICKEY_SERVER_URL_VINDEX);
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
-        return value;
     }
 
     /**
