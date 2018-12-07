@@ -68,6 +68,7 @@ import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.UserAttrEnum;
+import org.savapage.core.dao.helpers.PGPPubRingKeyDto;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserDto;
 import org.savapage.core.dto.UserEmailDto;
@@ -100,6 +101,9 @@ import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.EmailValidator;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.NumberUtil;
+import org.savapage.lib.pgp.PGPBaseException;
+import org.savapage.lib.pgp.PGPKeyID;
+import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -553,7 +557,12 @@ public final class UserServiceImpl extends AbstractService
 
         dto.setId(this.getPrimaryIdNumber(user));
         dto.setYubiKeyPubId(this.getYubiKeyPubID(user));
-        dto.setPgpPubKeyId(this.getPGPPubKeyID(user));
+
+        final PGPKeyID pgpKeyID = this.getPGPPubKeyID(user);
+        if (pgpKeyID != null) {
+            dto.setPgpPubKeyId(pgpKeyID.toHex());
+        }
+
         dto.setEmail(this.getPrimaryEmailAddress(user));
         dto.setCard(this.getPrimaryCardNumber(user));
 
@@ -705,18 +714,15 @@ public final class UserServiceImpl extends AbstractService
         /*
          * PGP Public Key ID.
          */
-        String pgpPubKeyId = userDto.getPgpPubKeyId();
-        if (pgpPubKeyId != null) {
-            pgpPubKeyId = pgpPubKeyId.toUpperCase();
-        }
-        final boolean hasPgpPubKeyId = StringUtils.isNotBlank(pgpPubKeyId);
+        final PGPKeyID pgpPubKeyId;
 
-        if (hasPgpPubKeyId) {
-            JsonRpcMethodError error = validatePGPPubKeyID(pgpPubKeyId);
-            if (error != null) {
-                return error;
-            }
+        if (StringUtils.isBlank(userDto.getPgpPubKeyId())) {
+            pgpPubKeyId = null;
+        } else {
+            pgpPubKeyId = new PGPKeyID(userDto.getPgpPubKeyId().toUpperCase());
         }
+
+        final boolean hasPgpPubKeyId = pgpPubKeyId != null;
 
         /*
          * PIN
@@ -972,14 +978,31 @@ public final class UserServiceImpl extends AbstractService
                     this.encryptStoreUserAttr(jpaUser, UserAttrEnum.UUID, uuid);
                 }
                 if (hasPgpPubKeyId) {
+
                     this.setUserAttrValue(jpaUser, UserAttrEnum.PGP_PUBKEY_ID,
-                            pgpPubKeyId);
+                            pgpPubKeyId.toHex());
+                    try {
+                        setUserAttrValue(jpaUser, pgpPubKeyId);
+                    } catch (PGPBaseException e) {
+                        throw new IOException(e.getMessage());
+                    }
                 }
 
                 userDAO().update(jpaUser);
             }
 
         } else {
+
+            final String hexIdPriv =
+                    this.getUserAttrValue(jpaUser, UserAttrEnum.PGP_PUBKEY_ID);
+
+            final PGPKeyID keyIdPrev;
+
+            if (hexIdPriv == null) {
+                keyIdPrev = null;
+            } else {
+                keyIdPrev = new PGPKeyID(hexIdPriv);
+            }
 
             if (!hasPIN) {
                 this.removeUserAttr(jpaUser, UserAttrEnum.PIN);
@@ -991,6 +1014,11 @@ public final class UserServiceImpl extends AbstractService
 
             if (!hasPgpPubKeyId) {
                 this.removeUserAttr(jpaUser, UserAttrEnum.PGP_PUBKEY_ID);
+                if (keyIdPrev != null) {
+                    removeUserAttr(jpaUser,
+                            UserAttrEnum.getPgpPubRingDbKey(keyIdPrev));
+                    pgpPublicKeyService().deleteRingEntry(jpaUser, keyIdPrev);
+                }
             }
 
             userDAO().update(jpaUser);
@@ -1008,8 +1036,18 @@ public final class UserServiceImpl extends AbstractService
             }
 
             if (hasPgpPubKeyId) {
+
                 this.setUserAttrValue(jpaUser, UserAttrEnum.PGP_PUBKEY_ID,
-                        pgpPubKeyId);
+                        pgpPubKeyId.toHex());
+
+                if (keyIdPrev == null
+                        || keyIdPrev.getId() != pgpPubKeyId.getId()) {
+                    try {
+                        setUserAttrValue(jpaUser, pgpPubKeyId);
+                    } catch (PGPBaseException e) {
+                        return createErrorMsg(e.getMessage());
+                    }
+                }
             }
         }
 
@@ -1054,6 +1092,29 @@ public final class UserServiceImpl extends AbstractService
         }
 
         return JsonRpcMethodResult.createOkResult();
+    }
+
+    /**
+     * Creates or updates the {@link UserAttrEnum#PFX_PGP_PUBRING_KEY_ID}
+     * attribute value to the database.
+     *
+     * @param user
+     *            User.
+     * @param pubKeyId
+     *            Public Key ID.
+     * @throws PGPBaseException
+     *             If PGP error.
+     * @throws IOException
+     *             If IO error.
+     */
+    private void setUserAttrValue(final User user, PGPKeyID pubKeyId)
+            throws PGPBaseException, IOException {
+
+        final PGPPublicKeyInfo pubKeyInfo =
+                pgpPublicKeyService().lazyAddRingEntry(user, pubKeyId);
+
+        this.setUserAttrValue(user, UserAttrEnum.getPgpPubRingDbKey(pubKeyId),
+                PGPPubRingKeyDto.toDbJson(pubKeyInfo));
     }
 
     /**
@@ -1305,18 +1366,6 @@ public final class UserServiceImpl extends AbstractService
         } catch (Exception e) {
             return createError("msg-user-uuid-invalid");
         }
-        return null;
-    }
-
-    /**
-     * TODO: Checks if PGP Public Key ID is valid.
-     *
-     * @param pubKeyId
-     *            The PGP Public Key ID.
-     * @return {@code null} if valid.
-     */
-    private JsonRpcMethodError validatePGPPubKeyID(final String pubKeyId) {
-        // TODO
         return null;
     }
 
@@ -2295,24 +2344,24 @@ public final class UserServiceImpl extends AbstractService
     }
 
     @Override
-    public String getPGPPubKeyID(final User user) {
+    public PGPKeyID getPGPPubKeyID(final User user) {
 
-        final String publicID;
+        final String hexKeyID;
 
         final UserAttr attr =
                 userAttrDAO().findByName(user, UserAttrEnum.PGP_PUBKEY_ID);
 
         if (attr == null) {
-            publicID = null;
+            hexKeyID = null;
         } else {
-            publicID = attr.getValue();
+            hexKeyID = attr.getValue();
         }
 
-        if (StringUtils.isBlank(publicID)) {
-            return "";
+        if (StringUtils.isBlank(hexKeyID)) {
+            return null;
         }
 
-        return publicID;
+        return new PGPKeyID(hexKeyID);
     }
 
     @Override
@@ -2645,18 +2694,30 @@ public final class UserServiceImpl extends AbstractService
 
     @Override
     public UserAttr removeUserAttr(final User user, final UserAttrEnum name) {
+        return removeUserAttr(user, name.getName());
+    }
+
+    /**
+     * Removes an attribute from the User's list of attributes AND from the
+     * database.
+     *
+     * @param user
+     *            The user.
+     * @param name
+     *            The name of the {@link UserAttr}.
+     * @return The removed {@link UserAttr} or {@code null} when not found.
+     */
+    private static UserAttr removeUserAttr(final User user, final String name) {
 
         UserAttr removedAttr = null;
 
         if (user.getAttributes() != null) {
 
-            final String strName = name.getName();
-
             final Iterator<UserAttr> iter = user.getAttributes().iterator();
 
             while (iter.hasNext()) {
                 final UserAttr attr = iter.next();
-                if (attr.getName().equals(strName)) {
+                if (attr.getName().equals(name)) {
                     removedAttr = attr;
                     iter.remove();
                     break;
@@ -2726,6 +2787,23 @@ public final class UserServiceImpl extends AbstractService
     }
 
     /**
+     * Creates or updates the attribute value to the database.
+     *
+     * @param user
+     *            The user.
+     * @param attrName
+     *            The name of the {@link UserAttr}.
+     * @param attrValue
+     *            The value.
+     */
+    private void setUserAttrValue(final User user, final String attrName,
+            final String attrValue) {
+
+        this.setUserAttrValue(user, userAttrDAO().findByName(user, attrName),
+                attrName, attrValue);
+    }
+
+    /**
      * Creates or updates a {@link UserAttr} value to the database.
      *
      * @param user
@@ -2742,6 +2820,26 @@ public final class UserServiceImpl extends AbstractService
      */
     private void setUserAttrValue(final User user, final UserAttr userAttr,
             final UserAttrEnum attrEnum, final String attrValue) {
+        this.setUserAttrValue(user, userAttr, attrEnum.getName(), attrValue);
+    }
+
+    /**
+     * Creates or updates a {@link UserAttr} value to the database.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param userAttr
+     *            The {@link UserAttr}. When {@code null} the attribute is
+     *            created.
+     * @param attrName
+     *            The {@link UserAttr#getName()} (used when {@link UserAttr} is
+     *            {@code null}).
+     * @param attrValue
+     *            The attribute value (used when {@link UserAttr} is
+     *            {@code null}).
+     */
+    private void setUserAttrValue(final User user, final UserAttr userAttr,
+            final String attrName, final String attrValue) {
 
         if (userAttr == null) {
 
@@ -2749,7 +2847,7 @@ public final class UserServiceImpl extends AbstractService
 
             attrNew.setUser(user);
 
-            attrNew.setName(attrEnum.getName());
+            attrNew.setName(attrName);
             attrNew.setValue(attrValue);
 
             userAttrDAO().create(attrNew);

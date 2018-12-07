@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -27,7 +27,7 @@ import org.savapage.core.jpa.UserAttr;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface UserAttrDao extends GenericDao<UserAttr> {
@@ -47,6 +47,17 @@ public interface UserAttrDao extends GenericDao<UserAttr> {
      * @return The {@link UserAttr} or {@code null} when not found.
      */
     UserAttr findByName(User user, UserAttrEnum name);
+
+    /**
+     * Finds a {@link UserAttr} of a {@link User} by attribute name.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param name
+     *            The {@link UserAttr#getName()}.
+     * @return The {@link UserAttr} or {@code null} when not found.
+     */
+    UserAttr findByName(User user, String name);
 
     /**
      * Finds the unique {@link UserAttr} combination of a {@link UserAttrEnum}

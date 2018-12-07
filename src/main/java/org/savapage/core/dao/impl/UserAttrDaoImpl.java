@@ -34,8 +34,8 @@ import org.savapage.core.jpa.UserAttr;
  * @author Rijk Ravestein
  *
  */
-public final class UserAttrDaoImpl extends GenericDaoImpl<UserAttr> implements
-        UserAttrDao {
+public final class UserAttrDaoImpl extends GenericDaoImpl<UserAttr>
+        implements UserAttrDao {
 
     @Override
     protected String getCountQuery() {
@@ -49,20 +49,24 @@ public final class UserAttrDaoImpl extends GenericDaoImpl<UserAttr> implements
      * {@code " + UserAttrDao.STATS_ROLLING + "} in their name.
      * </p>
      */
-    private static final String SQL_LIKE_STATS_ROLLING = "%" + STATS_ROLLING
-            + "%";
+    private static final String SQL_LIKE_STATS_ROLLING =
+            "%" + STATS_ROLLING + "%";
 
     @Override
     public UserAttr findByName(final User user, final UserAttrEnum name) {
+        return this.findByName(user, name.getName());
+    }
 
-        final String jpql =
-                "SELECT A FROM UserAttr A JOIN A.user U "
-                        + "WHERE U.id = :userId AND A.name = :name";
+    @Override
+    public UserAttr findByName(final User user, final String name) {
+
+        final String jpql = "SELECT A FROM UserAttr A JOIN A.user U "
+                + "WHERE U.id = :userId AND A.name = :name";
 
         final Query query = getEntityManager().createQuery(jpql);
 
         query.setParameter("userId", user.getId());
-        query.setParameter("name", name.getName());
+        query.setParameter("name", name);
 
         UserAttr result = null;
 
@@ -76,12 +80,11 @@ public final class UserAttrDaoImpl extends GenericDaoImpl<UserAttr> implements
     }
 
     @Override
-    public UserAttr
-            findByNameValue(final UserAttrEnum name, final String value) {
+    public UserAttr findByNameValue(final UserAttrEnum name,
+            final String value) {
 
-        final String jpql =
-                "SELECT A FROM UserAttr A "
-                        + "WHERE A.name = :name AND A.value = :value";
+        final String jpql = "SELECT A FROM UserAttr A "
+                + "WHERE A.name = :name AND A.value = :value";
 
         final Query query = getEntityManager().createQuery(jpql);
 

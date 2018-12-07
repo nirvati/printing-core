@@ -27,6 +27,7 @@ import java.util.Map;
 import org.savapage.core.SpException;
 import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.jpa.UserAttr;
+import org.savapage.lib.pgp.PGPKeyID;
 
 /**
  * {@link UserAttr} names. See {@link UserAttr#setName(String)}.
@@ -80,9 +81,20 @@ public enum UserAttrEnum {
     PIN("pin"),
 
     /**
-     * User PGP Public Key ID in upper-case hex notation (without "0x" prefix).
+     * User PGP Public Key ID in upper-case hex notation <i>without</i> "0x"
+     * prefix.
      */
     PGP_PUBKEY_ID("pgp.pubkey.id"),
+
+    /**
+     * Prefix for PGP public key ID in Key Ring, in upper-case hex notation
+     * <i>without</i> "0x" prefix. This key is not used as such: note the <u>dot
+     * character</u> at the end.
+     * <p>
+     * Usage example: {@code pgp.pubring.key.id.AD234BCC27362AF1}
+     * </p>
+     */
+    PFX_PGP_PUBRING_KEY_ID("pgp.pubring.key.id."),
 
     /**
      *
@@ -272,7 +284,7 @@ public enum UserAttrEnum {
         /**
          *
          */
-        public Lookup() {
+        Lookup() {
             for (UserAttrEnum value : UserAttrEnum.values()) {
                 enumLookup.put(value.name, value);
             }
@@ -298,6 +310,7 @@ public enum UserAttrEnum {
      * Ensure one-time initialization on class loading.
      */
     private static class LookupHolder {
+        /** */
         public static final Lookup INSTANCE = new Lookup();
     }
 
@@ -316,7 +329,7 @@ public enum UserAttrEnum {
      * @param name
      *            The database name.
      */
-    private UserAttrEnum(final String name) {
+    UserAttrEnum(final String name) {
         this.name = name;
     }
 
@@ -344,4 +357,16 @@ public enum UserAttrEnum {
         throw new SpException(
                 String.format("No role found for %s.", oid.toString()));
     }
+
+    /**
+     * Gets database key for PGP public key ring entry.
+     *
+     * @param keyId
+     *            The PGP Key ID.
+     * @return The database key.
+     */
+    public static String getPgpPubRingDbKey(final PGPKeyID keyId) {
+        return PFX_PGP_PUBRING_KEY_ID.getName().concat(keyId.toHex());
+    }
+
 }

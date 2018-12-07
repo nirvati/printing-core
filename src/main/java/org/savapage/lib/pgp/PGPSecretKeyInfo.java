@@ -86,7 +86,7 @@ public final class PGPSecretKeyInfo extends PGPKeyInfo {
 
     @Override
     public String formattedKeyID() {
-        return formattedKeyID(this.getSecretKey().getKeyID());
+        return PGPKeyID.formattedKeyID(this.getSecretKey().getKeyID());
     }
 
     @Override

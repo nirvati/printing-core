@@ -40,6 +40,7 @@ import org.savapage.core.jpa.UserAttr;
 import org.savapage.core.json.PdfProperties;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.users.IUserSource;
+import org.savapage.lib.pgp.PGPKeyID;
 
 /**
  *
@@ -138,9 +139,9 @@ public interface UserService {
      *
      * @param user
      *            The {@link User}.
-     * @return {@code blank} when not found.
+     * @return {@code null} when not found.
      */
-    String getPGPPubKeyID(User user);
+    PGPKeyID getPGPPubKeyID(User user);
 
     /**
      * Gets the Primary email address of a User.

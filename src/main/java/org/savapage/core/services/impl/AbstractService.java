@@ -68,6 +68,7 @@ import org.savapage.core.services.EmailService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.OutboxService;
+import org.savapage.core.services.PGPPublicKeyService;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.QueueService;
@@ -135,6 +136,10 @@ public abstract class AbstractService {
 
     protected static PaperCutService paperCutService() {
         return ServiceContext.getServiceFactory().getPaperCutService();
+    }
+
+    protected static PGPPublicKeyService pgpPublicKeyService() {
+        return ServiceContext.getServiceFactory().getPGPPublicKeyService();
     }
 
     protected static ProxyPrintService proxyPrintService() {
@@ -342,6 +347,16 @@ public abstract class AbstractService {
         return JsonRpcMethodError.createBasicError(
                 JsonRpcError.Code.INVALID_PARAMS, null,
                 localize(msgKey, msgArgs));
+    }
+
+    /**
+     *
+     * @param msg
+     * @return
+     */
+    protected final JsonRpcMethodError createErrorMsg(final String msg) {
+        return JsonRpcMethodError
+                .createBasicError(JsonRpcError.Code.INVALID_PARAMS, null, msg);
     }
 
     /**

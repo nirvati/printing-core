@@ -130,6 +130,9 @@ public final class PGPHelper {
         static final PGPHelper SINGLETON = new PGPHelper();
     }
 
+    /** */
+    public static final String FILENAME_EXT_ASC = "asc";
+
     /**
      *
      */

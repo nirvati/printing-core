@@ -46,7 +46,7 @@ public abstract class PGPKeyInfo {
             LoggerFactory.getLogger(PGPKeyInfo.class);
 
     /**
-     * @return Human readable Key ID (upper-case, with "0x" prefix).
+     * @return Human readable Key ID (upper-case, <i>with</i> "0x" prefix).
      */
     public abstract String formattedKeyID();
 
@@ -60,15 +60,6 @@ public abstract class PGPKeyInfo {
      * @return List of UIDs as {@link InternetAddress}.
      */
     public abstract List<InternetAddress> getUids();
-
-    /**
-     * @param id
-     *            The Key ID.
-     * @return Human readable Key ID (upper-case, with "0x" prefix).
-     */
-    public static final String formattedKeyID(final long id) {
-        return String.format("0x%s", Long.toHexString(id).toUpperCase());
-    }
 
     /**
      * @param fingerprint
@@ -100,7 +91,7 @@ public abstract class PGPKeyInfo {
      * @return List of UIDs as {@link InternetAddress}.
      */
     protected final List<InternetAddress>
-    getUids(final PGPPublicKey publicKey) {
+            getUids(final PGPPublicKey publicKey) {
 
         final List<InternetAddress> uids = new ArrayList<>();
 
