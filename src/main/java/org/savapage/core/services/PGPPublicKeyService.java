@@ -60,6 +60,28 @@ public interface PGPPublicKeyService {
             throws PGPBaseException;
 
     /**
+     * Read user's own public key from user's key ring.
+     *
+     * @param user
+     *            The user.
+     * @return Public Key info, or {@code null} when not available.
+     * @throws PGPBaseException
+     *             When errors.
+     */
+    PGPPublicKeyInfo readRingEntry(User user) throws PGPBaseException;
+
+    /**
+     * Read user's own public key from user's key ring.
+     *
+     * @param userid
+     *            The User ID.
+     * @return Public Key info, or {@code null} when not available.
+     * @throws PGPBaseException
+     *             When errors.
+     */
+    PGPPublicKeyInfo readRingEntry(String userid) throws PGPBaseException;
+
+    /**
      * Read public key from user's key ring.
      *
      * @param user

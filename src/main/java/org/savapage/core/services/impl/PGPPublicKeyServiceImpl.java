@@ -36,8 +36,11 @@ import java.text.MessageFormat;
 
 import org.apache.commons.io.FileUtils;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.jpa.User;
+import org.savapage.core.jpa.UserAttr;
 import org.savapage.core.services.PGPPublicKeyService;
+import org.savapage.core.services.ServiceContext;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPKeyID;
@@ -220,6 +223,32 @@ public final class PGPPublicKeyServiceImpl extends AbstractService
             return null;
         }
         return readRingEntry(file);
+    }
+
+    @Override
+    public PGPPublicKeyInfo readRingEntry(final User user)
+            throws PGPBaseException {
+
+        final UserAttr pgpPubAttr =
+                userAttrDAO().findByName(user, UserAttrEnum.PGP_PUBKEY_ID);
+
+        if (pgpPubAttr != null) {
+            return readRingEntry(user, new PGPKeyID(pgpPubAttr.getValue()));
+        }
+        return null;
+    }
+
+    @Override
+    public PGPPublicKeyInfo readRingEntry(final String userid)
+            throws PGPBaseException {
+
+        final User user = ServiceContext.getDaoContext().getUserDao()
+                .findActiveUserByUserId(userid);
+
+        if (user == null) {
+            throw new IllegalArgumentException(userid.concat(" : not found."));
+        }
+        return this.readRingEntry(user);
     }
 
     @Override

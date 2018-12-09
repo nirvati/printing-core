@@ -47,7 +47,6 @@ import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
-import org.savapage.lib.pgp.PGPSignatureInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,10 +58,14 @@ import com.itextpdf.text.Font.FontFamily;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.ColumnText;
+import com.itextpdf.text.pdf.PRStream;
 import com.itextpdf.text.pdf.PdfAction;
 import com.itextpdf.text.pdf.PdfAnnotation;
+import com.itextpdf.text.pdf.PdfArray;
+import com.itextpdf.text.pdf.PdfDictionary;
 import com.itextpdf.text.pdf.PdfFileSpecification;
 import com.itextpdf.text.pdf.PdfFormField;
+import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -103,9 +106,15 @@ public final class PdfPgpHelper {
     private static final Rectangle RECT_ZERO = new Rectangle(0, 0);
 
     /**
-     * Name of PDF attachment of ASCII armored public key of signature.
+     * Name of PDF attachment of ASCII armored public key of PDF Creator
+     * (Signer).
      */
-    private static final String PGP_PUBKEY_FILENAME = "pubkey.asc";
+    private static final String PGP_PUBKEY_FILENAME_CREATOR = "creator.asc";
+
+    /**
+     * Name of PDF attachment of ASCII armored public key of PDF Author.
+     */
+    private static final String PGP_PUBKEY_FILENAME_AUTHOR = "author.asc";
 
     /**
      * The PGP mime-type for Armored Encrypted File.
@@ -150,6 +159,94 @@ public final class PdfPgpHelper {
     }
 
     /**
+     *
+     * @param stamper
+     *            The PDF stamper.
+     * @param pubKey
+     *            PGP Public key.
+     * @param fileDisplay
+     *            The file information that is presented to the user.
+     * @param fileDescript
+     *            File description.
+     * @throws IOException
+     *             If IO error.
+     */
+    private static void attachFile(final PdfStamper stamper,
+            final PGPPublicKey pubKey, final String fileDisplay,
+            final String fileDescript) throws IOException {
+        /*
+         * Attach Public Key of PDF Creator.
+         */
+        final int compressionLevel = 0;
+        final PdfWriter writer = stamper.getWriter();
+
+        final PdfFileSpecification fsPubKey = PdfFileSpecification.fileEmbedded(
+                writer, null, fileDisplay, PGPHelper.encodeArmored(pubKey),
+                PGP_MIMETYPE_ASCII_ARMOR, null, compressionLevel);
+        fsPubKey.addDescription(fileDescript, false);
+
+        final PdfAnnotation annotPdfSig;
+        writer.addFileAttachment(fsPubKey);
+        annotPdfSig = new PdfAnnotation(writer, RECT_ZERO);
+        stamper.addAnnotation(annotPdfSig, 1);
+    }
+
+    /**
+     * Gets Public Key attachment of Author from PDF file.
+     *
+     * @param pdfFile
+     *            The signed PDF file.
+     * @return {@code null} when not found.
+     * @throws IOException
+     *             If IO error.
+     * @throws PGPBaseException
+     *             If PGP error.
+     */
+    private static PGPPublicKeyInfo getPubKeyAuthor(final File pdfFile)
+            throws IOException, PGPBaseException {
+
+        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
+
+        try {
+            final PdfDictionary root = reader.getCatalog();
+            final PdfDictionary documentnames = root.getAsDict(PdfName.NAMES);
+            final PdfDictionary embeddedfiles =
+                    documentnames.getAsDict(PdfName.EMBEDDEDFILES);
+
+            final PdfArray filespecs = embeddedfiles.getAsArray(PdfName.NAMES);
+
+            for (int i = 0; i < filespecs.size();) {
+
+                filespecs.getAsString(i++);
+
+                final PdfDictionary filespec = filespecs.getAsDict(i++);
+                final PdfDictionary refs = filespec.getAsDict(PdfName.EF);
+
+                for (final PdfName key : refs.getKeys()) {
+
+                    final String attachmentName =
+                            filespec.getAsString(key).toString();
+
+                    if (!attachmentName.equals(PGP_PUBKEY_FILENAME_AUTHOR)) {
+                        continue;
+                    }
+
+                    final PRStream stream = (PRStream) PdfReader
+                            .getPdfObject(refs.getAsIndirectObject(key));
+
+                    return PGPHelper.instance()
+                            .readPublicKey(new ByteArrayInputStream(
+                                    PdfReader.getStreamBytes(stream)));
+                }
+            }
+        } finally {
+            reader.close();
+        }
+
+        return null;
+    }
+
+    /**
      * Appends PGP signature to a PDF as % comment, and adds Verify button with
      * one-pass signed/encrypted Verification Payload URL. Note: the payload is
      * the PDF owner password.
@@ -160,6 +257,8 @@ public final class PdfPgpHelper {
      *            The signed PDF.
      * @param secKeyInfo
      *            The secret key to sign with.
+     * @param pubKeyAuthor
+     *            Public key of the author ({@code null} when not available.
      * @param pubKeyInfoList
      *            The public keys to encrypt with.
      * @param urlBuilder
@@ -173,6 +272,7 @@ public final class PdfPgpHelper {
      */
     public void sign(final File fileIn, final File fileOut,
             final PGPSecretKeyInfo secKeyInfo,
+            final PGPPublicKeyInfo pubKeyAuthor,
             final List<PGPPublicKeyInfo> pubKeyInfoList,
             final PdfPgpVerifyUrl urlBuilder, final boolean embeddedSignature)
             throws PGPBaseException {
@@ -273,28 +373,23 @@ public final class PdfPgpHelper {
                     Element.ALIGN_LEFT, header, x, y, 0);
 
             /*
-             * Attach Public Key of signer.
+             * Attach Public Key of PDF Creator and (optionally) Author.
              */
-            final int compressionLevel = 0;
+            attachFile(stamper, secKeyInfo.getPublicKey(),
+                    PGP_PUBKEY_FILENAME_CREATOR, "PGP Public key of Creator.");
 
-            final PdfFileSpecification fsPubKey = PdfFileSpecification
-                    .fileEmbedded(writer, null, PGP_PUBKEY_FILENAME,
-                            PGPHelper.encodeArmored(secKeyInfo.getPublicKey()),
-                            PGP_MIMETYPE_ASCII_ARMOR, null, compressionLevel);
-            fsPubKey.addDescription("PGP Public key of signer.", false);
-
-            final PdfAnnotation annotPdfSig;
-            writer.addFileAttachment(fsPubKey);
-            annotPdfSig = new PdfAnnotation(writer, RECT_ZERO);
-            stamper.addAnnotation(annotPdfSig, 1);
-
+            if (pubKeyAuthor != null) {
+                attachFile(stamper, pubKeyAuthor.getMasterKey(),
+                        PGP_PUBKEY_FILENAME_AUTHOR,
+                        "PGP Public key of Author.");
+            }
             //
             stamper.close();
             reader.close();
             reader = null;
 
             /*
-             * Append PGP signature of PDF as PDF comment.
+             * Embed or append PGP signature of PDF as PDF comment.
              */
             final ByteArrayOutputStream ostrPdfSig =
                     new ByteArrayOutputStream();
@@ -352,19 +447,27 @@ public final class PdfPgpHelper {
      * @param signPublicKey
      *            The {@link PGPPublicKey} of the private key the PGP signature
      *            content was signed with.
-     * @return The {@link PGPSignatureInfo}}.
+     * @return The {@link PdfPgpSignatureInfo}}.
      * @throws PGPBaseException
      *             When errors.
      * @throws IOException
      *             When File IO errors.
      */
-    public PGPSignatureInfo verify(final File pdfFileSigned,
+    public PdfPgpSignatureInfo verify(final File pdfFileSigned,
             final PGPPublicKey signPublicKey)
             throws PGPBaseException, IOException {
 
+        final PdfPgpSignatureInfo sigInfo;
+
         try (InputStream istrPdf = new FileInputStream(pdfFileSigned);) {
-            return this.verify(istrPdf, signPublicKey);
+            sigInfo = this.verify(istrPdf, signPublicKey);
         }
+
+        if (sigInfo.isValid()) {
+            sigInfo.setPubKeyAuthor(getPubKeyAuthor(pdfFileSigned));
+        }
+
+        return sigInfo;
     }
 
     /**
@@ -374,11 +477,11 @@ public final class PdfPgpHelper {
      *            Signed PDF document as input stream.
      * @param trustedPublicKey
      *            The trusted {@link PGPPublicKey}.
-     * @return The {@link PGPSignatureInfo}}.
+     * @return The {@link PdfPgpSignatureInfo}}.
      * @throws PGPBaseException
      *             When errors.
      */
-    public PGPSignatureInfo verify(final InputStream istrPdfSigned,
+    private PdfPgpSignatureInfo verify(final InputStream istrPdfSigned,
             final PGPPublicKey trustedPublicKey) throws PGPBaseException {
 
         try (ByteArrayOutputStream ostrPdf = new ByteArrayOutputStream()) {
@@ -406,7 +509,7 @@ public final class PdfPgpHelper {
                     new ByteArrayInputStream(ostrPdf.toByteArray()), sig,
                     trustedPublicKey);
 
-            return new PGPSignatureInfo(sig, isValid);
+            return new PdfPgpSignatureInfo(sig, isValid);
 
         } catch (IOException e) {
             throw new PGPBaseException(e.getMessage(), e);

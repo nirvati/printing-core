@@ -305,8 +305,8 @@ public final class PGPHelper {
             }
 
             if (encryptionKey == null) {
-                throw new PGPBaseException(
-                        "No Encryption Key found in PublicKeyRing.");
+//                throw new PGPBaseException(
+//                        "No Encryption Key found in PublicKeyRing.");
             }
 
             if (masterKey == null) {

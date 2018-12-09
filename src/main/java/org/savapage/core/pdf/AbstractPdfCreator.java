@@ -56,9 +56,11 @@ import org.savapage.core.json.PdfProperties;
 import org.savapage.core.print.proxy.BasePrintSheetCalcParms;
 import org.savapage.core.print.proxy.ProxyPrintSheetsCalcParms;
 import org.savapage.core.services.InboxService;
+import org.savapage.core.services.PGPPublicKeyService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.impl.InboxServiceImpl;
+import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
 import org.savapage.lib.pgp.pdf.PdfPgpVerifyUrl;
@@ -71,14 +73,13 @@ import org.savapage.lib.pgp.pdf.PdfPgpVerifyUrl;
  */
 public abstract class AbstractPdfCreator {
 
-    /**
-     * .
-     */
+    /** */
     private static final InboxService INBOX_SERVICE =
             ServiceContext.getServiceFactory().getInboxService();
-    /**
-     * .
-     */
+    /** */
+    private static final PGPPublicKeyService PGP_PUBLICKEY_SERVICE =
+            ServiceContext.getServiceFactory().getPGPPublicKeyService();
+    /** */
     private static final UserService USER_SERVICE =
             ServiceContext.getServiceFactory().getUserService();
 
@@ -771,7 +772,7 @@ public abstract class AbstractPdfCreator {
         try {
             onPdfGenerated(generatedPdf);
             if (isPgpSigned) {
-                onPgpSign(generatedPdf, this.verifyUrl);
+                onPgpSign(generatedPdf, this.verifyUrl, this.user);
             }
         } catch (Exception e) {
             throw new SpException(e.getMessage(), e);
@@ -793,20 +794,28 @@ public abstract class AbstractPdfCreator {
      *            The PDF.
      * @param verifyUrl
      *            The verification URL.
+     * @param userid
+     *            The User ID of the PDF author.
      * @throws IOException
      *             When IO error.
      */
     private static void onPgpSign(final File generatedPdf,
-            final PdfPgpVerifyUrl verifyUrl) throws IOException {
+            final PdfPgpVerifyUrl verifyUrl, final String userid)
+            throws IOException {
 
         final ConfigManager cm = ConfigManager.instance();
 
         final PGPSecretKeyInfo secKeyInfo = cm.getPGPSecretKeyInfo();
         final PGPPublicKeyInfo pubKeyInfoSigner = cm.getPGPPublicKeyInfo();
 
-        replaceWithConvertedPdf(generatedPdf,
-                new PdfToPgpSignedPdf(secKeyInfo, pubKeyInfoSigner, verifyUrl)
-                        .convert(generatedPdf));
+        try {
+            replaceWithConvertedPdf(generatedPdf,
+                    new PdfToPgpSignedPdf(secKeyInfo, pubKeyInfoSigner,
+                            PGP_PUBLICKEY_SERVICE.readRingEntry(userid),
+                            verifyUrl).convert(generatedPdf));
+        } catch (PGPBaseException e) {
+            throw new IOException(e.getMessage());
+        }
     }
 
     /**

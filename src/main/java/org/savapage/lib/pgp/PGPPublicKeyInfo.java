@@ -41,7 +41,7 @@ public final class PGPPublicKeyInfo extends PGPKeyInfo {
     private final PGPPublicKey masterKey;
 
     /**
-     * Public key for encryption.
+     * Public key for encryption. Can be {@code null}.
      */
     private final PGPPublicKey encryptionKey;
 
@@ -66,7 +66,7 @@ public final class PGPPublicKeyInfo extends PGPKeyInfo {
     }
 
     /**
-     * @return Public key for encryption.
+     * @return Public key for encryption. Can be {@code null}.
      */
     public PGPPublicKey getEncryptionKey() {
         return encryptionKey;

@@ -43,21 +43,23 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class PGPPubRingKeyDto extends AbstractDto {
 
     /** */
-    private Map<String, String> emailMap;
+    private Map<String, String> uids;
 
     /**
-     * @return The map with email address (key) and personal name (value).
+     * @return The UserId map with email address (key) and personal name
+     *         (value).
      */
-    public Map<String, String> getEmailMap() {
-        return emailMap;
+    public Map<String, String> getUids() {
+        return uids;
     }
 
     /**
-     * @param emailMap
-     *            The map with email address (key) and personal name (value).
+     * @param uids
+     *            The UserId map with email address (key) and personal name
+     *            (value).
      */
-    public void setEmailMap(Map<String, String> emailMap) {
-        this.emailMap = emailMap;
+    public void setUids(final Map<String, String> uids) {
+        this.uids = uids;
     }
 
     /**
@@ -71,12 +73,12 @@ public class PGPPubRingKeyDto extends AbstractDto {
     public static PGPPubRingKeyDto create(final PGPPublicKeyInfo info) {
         final PGPPubRingKeyDto dto = new PGPPubRingKeyDto();
 
-        final Map<String, String> emailMap = new HashMap<>();
+        final Map<String, String> uids = new HashMap<>();
 
         for (final InternetAddress adr : info.getUids()) {
-            emailMap.put(adr.getAddress(), adr.getPersonal());
+            uids.put(adr.getAddress(), adr.getPersonal());
         }
-        dto.setEmailMap(emailMap);
+        dto.setUids(uids);
         return dto;
     }
 

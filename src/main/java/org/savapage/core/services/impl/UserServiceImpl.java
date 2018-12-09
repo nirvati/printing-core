@@ -719,7 +719,7 @@ public final class UserServiceImpl extends AbstractService
         if (StringUtils.isBlank(userDto.getPgpPubKeyId())) {
             pgpPubKeyId = null;
         } else {
-            pgpPubKeyId = new PGPKeyID(userDto.getPgpPubKeyId().toUpperCase());
+            pgpPubKeyId = new PGPKeyID(userDto.getPgpPubKeyId());
         }
 
         final boolean hasPgpPubKeyId = pgpPubKeyId != null;

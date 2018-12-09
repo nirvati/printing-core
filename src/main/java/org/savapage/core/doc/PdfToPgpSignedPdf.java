@@ -46,9 +46,11 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
     private static final String OUTPUT_FILE_SFX = "pdfpgp";
 
     /** */
-    private final PGPSecretKeyInfo secKeyInfo;;
+    private final PGPSecretKeyInfo secKeyInfo;
     /** */
     private final List<PGPPublicKeyInfo> pubKeyInfoList;
+    /** */
+    private final PGPPublicKeyInfo pubKeyInfoAuthor;
     /** */
     private final PdfPgpVerifyUrl verifyUrl;
 
@@ -56,14 +58,16 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
      *
      * @param secKey
      *            Secure key of the signer.
-     * @param pubKeyInfoSigner
-     *            Public key of the signer.
+     * @param pubKeySigner
+     *            Public key of the creator/signer.
+     * @param pubKeyAuthor
+     *            Public key of the author ({@code null} when not available.
      * @param url
      *            The verification URL.
      */
     public PdfToPgpSignedPdf(final PGPSecretKeyInfo secKey,
-            final PGPPublicKeyInfo pubKeyInfoSigner,
-            final PdfPgpVerifyUrl url) {
+            final PGPPublicKeyInfo pubKeySigner,
+            final PGPPublicKeyInfo pubKeyAuthor, final PdfPgpVerifyUrl url) {
 
         super();
 
@@ -71,7 +75,9 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
         this.verifyUrl = url;
 
         this.pubKeyInfoList = new ArrayList<>();
-        pubKeyInfoList.add(pubKeyInfoSigner);
+        pubKeyInfoList.add(pubKeySigner);
+
+        this.pubKeyInfoAuthor = pubKeyAuthor;
     }
 
     @Override
@@ -81,7 +87,8 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
 
         try {
             PdfPgpHelper.instance().sign(pdfFile, pdfOut, this.secKeyInfo,
-                    this.pubKeyInfoList, this.verifyUrl, false);
+                    this.pubKeyInfoAuthor, this.pubKeyInfoList, this.verifyUrl,
+                    false);
         } catch (PGPBaseException e) {
             throw new IOException(e);
         }

@@ -19,21 +19,25 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.lib.pgp;
+package org.savapage.lib.pgp.pdf;
 
 import org.bouncycastle.openpgp.PGPSignature;
+import org.savapage.lib.pgp.PGPPublicKeyInfo;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public class PGPSignatureInfo {
+public class PdfPgpSignatureInfo {
 
     /** */
     private final PGPSignature signature;
     /** */
     private final boolean valid;
+
+    /** */
+    private PGPPublicKeyInfo pubKeyAuthor;
 
     /**
      *
@@ -42,7 +46,7 @@ public class PGPSignatureInfo {
      * @param isValid
      *            If {@code true}, signature is valid.
      */
-    public PGPSignatureInfo(final PGPSignature sig, final boolean isValid) {
+    public PdfPgpSignatureInfo(final PGPSignature sig, final boolean isValid) {
         this.signature = sig;
         this.valid = isValid;
     }
@@ -59,6 +63,14 @@ public class PGPSignatureInfo {
      */
     public boolean isValid() {
         return valid;
+    }
+
+    public PGPPublicKeyInfo getPubKeyAuthor() {
+        return pubKeyAuthor;
+    }
+
+    public void setPubKeyAuthor(PGPPublicKeyInfo pubKeyAuthor) {
+        this.pubKeyAuthor = pubKeyAuthor;
     }
 
 }
