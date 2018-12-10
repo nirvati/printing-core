@@ -796,6 +796,11 @@ public final class AccountingServiceImpl extends AbstractService
     @Override
     public BigDecimal calcCostPerPrintedCopy(final BigDecimal totalCost,
             final int copies) {
+
+        if (totalCost.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+
         return totalCost.divide(new BigDecimal(copies),
                 ConfigManager.getFinancialDecimalsInDatabase(),
                 RoundingMode.HALF_EVEN);

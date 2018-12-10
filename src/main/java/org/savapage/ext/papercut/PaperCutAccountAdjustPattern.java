@@ -138,9 +138,13 @@ public abstract class PaperCutAccountAdjustPattern {
             final String klasName = papercutAccountResolver
                     .getKlasFromAccountName(subAccountName);
 
-            copies = ACCOUNTING_SERVICE
-                    .calcPrintedCopies(papercutAdjustment, costPerCopy, 0)
-                    .intValue();
+            if (costPerCopy.compareTo(BigDecimal.ZERO) == 0) {
+                copies = 0;
+            } else {
+                copies = ACCOUNTING_SERVICE
+                        .calcPrintedCopies(papercutAdjustment, costPerCopy, 0)
+                        .intValue();
+            }
 
             final String klasTrxComment =
                     trxCommentProcessor.processKlasTrx(klasName, copies);
@@ -161,10 +165,14 @@ public abstract class PaperCutAccountAdjustPattern {
 
         } else {
 
-            final BigDecimal copiesDecimal = ACCOUNTING_SERVICE
-                    .calcPrintedCopies(papercutAdjustment, costPerCopy, 2);
-
-            copies = copiesDecimal.setScale(0, RoundingMode.CEILING).intValue();
+            if (costPerCopy.compareTo(BigDecimal.ZERO) == 0) {
+                copies = 0;
+            } else {
+                final BigDecimal copiesDecimal = ACCOUNTING_SERVICE
+                        .calcPrintedCopies(papercutAdjustment, costPerCopy, 2);
+                copies = copiesDecimal.setScale(0, RoundingMode.CEILING)
+                        .intValue();
+            }
 
             final String userCopiesComment = trxCommentProcessor
                     .processUserTrx(trx.getExtDetails(), copies);

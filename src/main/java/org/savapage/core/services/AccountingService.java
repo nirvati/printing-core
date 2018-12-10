@@ -637,7 +637,7 @@ public interface AccountingService {
      * @param totalCost
      *            The cost total of all copies.
      * @param copies
-     *            The number of printed copies.
+     *            The number of printed copies (can't be zero).
      * @return Cost per copy.
      */
     BigDecimal calcCostPerPrintedCopy(BigDecimal totalCost, int copies);
@@ -651,7 +651,7 @@ public interface AccountingService {
      * @param cost
      *            The cost.
      * @param costPerCopy
-     *            The cost per copy.
+     *            The cost per copy (can't be zero).
      * @param scale
      *            The scale of the returned value.
      * @return Number of printed copies.
