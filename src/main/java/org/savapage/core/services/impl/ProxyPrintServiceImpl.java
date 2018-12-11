@@ -83,6 +83,7 @@ import org.savapage.core.ipp.attribute.syntax.IppBoolean;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.client.IppClient;
 import org.savapage.core.ipp.client.IppConnectException;
+import org.savapage.core.ipp.client.IppReqCupsGetPpd;
 import org.savapage.core.ipp.client.IppReqPrintJob;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
 import org.savapage.core.ipp.helpers.IppOptionMap;
@@ -136,6 +137,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ProxyPrintServiceImpl.class);
 
+    /** */
     private static final String CUSTOM_IPP_I18N_RESOURCE_NAME = "ipp-i18n";
 
     /** Key prefix of IPP option (choice) text. */
@@ -145,15 +147,21 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     private static final String LOCALIZE_IPP_ICON_PREFIX = "ipp-icon-";
 
     /** */
-    private final static String NOTIFY_PULL_METHOD = "ippget";
+    private static final String NOTIFY_PULL_METHOD = "ippget";
 
     /**
      * A unique ID to distinguish our subscription from other system
      * subscriptions.
      */
-    private final static String NOTIFY_USER_DATA =
+    private static final String NOTIFY_USER_DATA =
             "savapage:" + ConfigManager.getServerPort();
 
+    /** */
+    private static final String URL_PROTOCOL_HTTP = "http";
+    /** */
+    private static final String URL_PROTOCOL_HTTPS = "https";
+
+    /** */
     private final IppClient ippClient = IppClient.instance();
 
     /**
@@ -310,8 +318,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 continue;
             }
 
+            final boolean isPpdPresent;
+
             if (IppPrinterType.hasProperty(printerType,
                     IppPrinterType.BitEnum.PRINTER_CLASS)) {
+
+                isPpdPresent = false;
 
                 final String printerName = group
                         .getAttrSingleValue(
@@ -330,6 +342,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 }
 
                 printerClasses.add(printerClass);
+            } else {
+                isPpdPresent = isCupsPpdPresent(uriPrinter);
             }
 
             /*
@@ -352,6 +366,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                                 proxyPrinterFromGroup.getPrinterUri());
 
                 if (proxyPrinterDetails != null) {
+
+                    proxyPrinterDetails.setPpdPresent(isPpdPresent);
+
                     printers.add(proxyPrinterDetails);
                     printerMap.put(proxyPrinterDetails.getName(),
                             proxyPrinterDetails);
@@ -1279,6 +1296,51 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      */
     private static String jobIdFromJobUri(final String jobUri) {
         return jobUri.substring(jobUri.lastIndexOf('/') + 1);
+    }
+
+    @Override
+    public boolean isCupsPpdPresent(final URI printerURI)
+            throws IppConnectException {
+
+        final URL urlCupsServer;
+
+        try {
+            urlCupsServer = getCupsServerUrl(printerURI);
+        } catch (MalformedURLException e) {
+            throw new SpException(e.getMessage());
+        }
+
+        final List<IppAttrGroup> ippRequest =
+                new IppReqCupsGetPpd(printerURI).build();
+
+        final List<IppAttrGroup> response = new ArrayList<>();
+
+        final IppStatusCode statusCode = ippClient.send(urlCupsServer,
+                IppOperationId.CUPS_GET_PPD, ippRequest, response);
+
+        if (statusCode == IppStatusCode.OK) {
+            /*
+             * The PPD file follows the end of the IPP response.
+             */
+            return true;
+        } else if (statusCode == IppStatusCode.CLI_NOTFND) {
+            // PPD file does not exist: e.g. Raw Printer
+            return false;
+        }
+
+        return false;
+    }
+
+    @Override
+    public URL getCupsPpdUrl(final String printerName) {
+
+        try {
+            return new URL(
+                    this.getCupsPrinterUrl(URL_PROTOCOL_HTTP, printerName)
+                            .toString().concat(".ppd"));
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 
     @Override
@@ -3677,11 +3739,24 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @return The URL.
      */
     private URL getCupsUrl(final String path) {
+        return this.getCupsUrl(URL_PROTOCOL_HTTPS, path);
+    }
+
+    /**
+     * Gets the CUPS URL for a printer.
+     *
+     * @param protocol
+     *            The URL protocol.
+     * @param path
+     *            The path.
+     * @return The URL.
+     */
+    private URL getCupsUrl(final String protocol, final String path) {
 
         final URL url;
 
         try {
-            url = new URL("https", InetUtils.getServerHostAddress(),
+            url = new URL(protocol, InetUtils.getServerHostAddress(),
                     Integer.parseInt(ConfigManager.getCupsPort()), path);
 
         } catch (MalformedURLException | UnknownHostException e) {
@@ -3693,7 +3768,20 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
     @Override
     public URL getCupsPrinterUrl(final String printerName) {
-        return getCupsUrl("/printers/" + printerName);
+        return this.getCupsPrinterUrl(URL_PROTOCOL_HTTPS, printerName);
+    }
+
+    /**
+     *
+     * @param protocol
+     *            The URL protocol.
+     * @param printerName
+     *            CUPS Printer name.
+     * @return The URL.
+     */
+    private URL getCupsPrinterUrl(final String protocol,
+            final String printerName) {
+        return getCupsUrl(protocol, "/printers/".concat(printerName));
     }
 
     @Override

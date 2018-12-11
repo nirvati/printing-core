@@ -217,6 +217,26 @@ public interface ProxyPrintService {
             List<IppAttrGroup> response) throws IppConnectException;
 
     /**
+     * Checks if PPD is present in CUPS for printer.
+     *
+     * @param printerURI
+     *            Printer URI.
+     * @return {@code true} when PPD is present.
+     * @throws IppConnectException
+     *             When an connection error occurs.
+     */
+    boolean isCupsPpdPresent(URI printerURI) throws IppConnectException;
+
+    /**
+     * Gets the CUPS printer PPD URL for download.
+     *
+     * @param printerName
+     *            CUPS printer name.
+     * @return The URL.
+     */
+    URL getCupsPpdUrl(String printerName);
+
+    /**
      *
      * @param printerName
      *            The printer name.

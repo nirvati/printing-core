@@ -140,6 +140,9 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     boolean journalDisabled;
 
+    @JsonIgnore
+    boolean ppdPresent;
+
     /**
      *
      */
@@ -474,6 +477,21 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         this.journalDisabled = journalDisabled;
     }
 
+    /**
+     * @return {@code true} if PPD file is present in CUPS.
+     */
+    public boolean isPpdPresent() {
+        return ppdPresent;
+    }
+
+    /**
+     * @param ppdPresent
+     *            {@code true} if PPD file is present in CUPS.
+     */
+    public void setPpdPresent(boolean ppdPresent) {
+        this.ppdPresent = ppdPresent;
+    }
+
     public String getState() {
         return state;
     }
@@ -763,6 +781,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.modelName = this.modelName;
         copy.name = this.name;
         copy.ppd = this.ppd;
+        copy.ppdPresent = this.ppdPresent;
         copy.injectPpdExt = this.injectPpdExt;
         copy.jobTicket = this.jobTicket;
         copy.ppdVersion = this.ppdVersion;
@@ -774,6 +793,9 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.customCostRulesCopy = this.customCostRulesCopy;
         copy.customCostRulesMedia = this.customCostRulesMedia;
         copy.customCostRulesSheet = this.customCostRulesSheet;
+
+        copy.archiveDisabled = this.archiveDisabled;
+        copy.journalDisabled = this.journalDisabled;
 
         copy.customRulesConstraint = this.customRulesConstraint;
         copy.customRulesExtra = this.customRulesExtra;
