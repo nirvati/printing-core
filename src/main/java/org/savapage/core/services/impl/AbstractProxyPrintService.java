@@ -163,6 +163,7 @@ import org.savapage.core.snmp.SnmpClientSession;
 import org.savapage.core.snmp.SnmpConnectException;
 import org.savapage.core.util.CupsPrinterUriHelper;
 import org.savapage.core.util.DateUtil;
+import org.savapage.core.util.InetUtils;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.MediaUtils;
 import org.savapage.core.util.Messages;
@@ -392,8 +393,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * @return The URL.
      */
     private String getDefaultCupsUrl() {
-        return "http://" + ConfigManager.getDefaultCupsHost() + ":"
-                + ConfigManager.getCupsPort();
+        return InetUtils.URL_PROTOCOL_HTTP.concat("://")
+                .concat(ConfigManager.getDefaultCupsHost()).concat(":")
+                .concat(ConfigManager.getCupsPort());
     }
 
     @Override

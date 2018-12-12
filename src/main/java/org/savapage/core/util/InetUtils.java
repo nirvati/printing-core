@@ -53,10 +53,15 @@ public final class InetUtils {
     private static final String IP_LOOP_BACK_ADDR = "127.0.0.1";
 
     /** */
-    private static final String LOCAL_HOST = "localhost";
+    public static final String LOCAL_HOST = "localhost";
 
     /** */
     private static final String LOCAL_SUFFIX = ".local";
+
+    /** */
+    public static final String URL_PROTOCOL_HTTP = "http";
+    /** */
+    public static final String URL_PROTOCOL_HTTPS = "https";
 
     /**
      * No public instantiation.
@@ -175,8 +180,8 @@ public final class InetUtils {
     public static boolean isIp4AddrInCidrRanges(final String cidrRanges,
             final String ipAddr) {
 
-        boolean inrange =
-                StringUtils.isBlank(cidrRanges) || ipAddr.equals(IP_LOOP_BACK_ADDR);
+        boolean inrange = StringUtils.isBlank(cidrRanges)
+                || ipAddr.equals(IP_LOOP_BACK_ADDR);
 
         if (!inrange) {
 

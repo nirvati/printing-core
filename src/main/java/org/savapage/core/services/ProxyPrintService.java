@@ -163,7 +163,7 @@ public interface ProxyPrintService {
     String getCupsApiVersion();
 
     /**
-     * Gets the CUPS URL for a printer.
+     * Gets the CUPS Web Interface URL for a printer.
      *
      * @param printerName
      *            The CUPS printer name.
@@ -172,7 +172,7 @@ public interface ProxyPrintService {
     URL getCupsPrinterUrl(String printerName);
 
     /**
-     * Gets the CUPS Administration URL.
+     * Gets the CUPS Web Interface Administration URL.
      *
      * @return The URL.
      */

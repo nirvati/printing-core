@@ -157,9 +157,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             "savapage:" + ConfigManager.getServerPort();
 
     /** */
-    private static final String URL_PROTOCOL_HTTP = "http";
+    private static final String URL_PATH_CUPS_PRINTERS = "/printers";
+
     /** */
-    private static final String URL_PROTOCOL_HTTPS = "https";
+    private static final String URL_PATH_CUPS_ADMIN = "/admin";
 
     /** */
     private final IppClient ippClient = IppClient.instance();
@@ -496,7 +497,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      */
     private URL getCupsServerUrl(final URI uriPrinter)
             throws MalformedURLException {
-        return new URL("http", uriPrinter.getHost(), uriPrinter.getPort(), "");
+        return new URL(InetUtils.URL_PROTOCOL_HTTP, uriPrinter.getHost(),
+                uriPrinter.getPort(), "");
     }
 
     @Override
@@ -1335,9 +1337,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     public URL getCupsPpdUrl(final String printerName) {
 
         try {
-            return new URL(
-                    this.getCupsPrinterUrl(URL_PROTOCOL_HTTP, printerName)
-                            .toString().concat(".ppd"));
+            return new URL(this.getUrlDefaultServer().toString()
+                    .concat(URL_PATH_CUPS_PRINTERS).concat("/")
+                    .concat(printerName).concat(".ppd"));
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -3737,9 +3739,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @param path
      *            The path.
      * @return The URL.
+     * @throws UnknownHostException
+     *             If host unknown.
      */
-    private URL getCupsUrl(final String path) {
-        return this.getCupsUrl(URL_PROTOCOL_HTTPS, path);
+    private URL getCupsUrl(final String path) throws UnknownHostException {
+        return this.getCupsUrl(InetUtils.URL_PROTOCOL_HTTPS,
+                InetUtils.getServerHostAddress(), path);
     }
 
     /**
@@ -3747,19 +3752,22 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      *
      * @param protocol
      *            The URL protocol.
+     * @param host
+     *            Host name or IP address.
      * @param path
      *            The path.
      * @return The URL.
      */
-    private URL getCupsUrl(final String protocol, final String path) {
+    private URL getCupsUrl(final String protocol, final String host,
+            final String path) {
 
         final URL url;
 
         try {
-            url = new URL(protocol, InetUtils.getServerHostAddress(),
+            url = new URL(protocol, host,
                     Integer.parseInt(ConfigManager.getCupsPort()), path);
 
-        } catch (MalformedURLException | UnknownHostException e) {
+        } catch (MalformedURLException e) {
             throw new SpException(e.getMessage(), e);
         }
 
@@ -3768,25 +3776,39 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
     @Override
     public URL getCupsPrinterUrl(final String printerName) {
-        return this.getCupsPrinterUrl(URL_PROTOCOL_HTTPS, printerName);
+        try {
+            return this.getCupsPrinterUrl(InetUtils.URL_PROTOCOL_HTTPS,
+                    InetUtils.getServerHostAddress(), printerName);
+        } catch (UnknownHostException e) {
+            throw new SpException(e.getMessage(), e);
+        }
     }
 
     /**
      *
      * @param protocol
      *            The URL protocol.
+     * @param host
+     *            Host name or IP address.
      * @param printerName
      *            CUPS Printer name.
      * @return The URL.
+     * @throws UnknownHostException
+     *             If host unknown.
      */
-    private URL getCupsPrinterUrl(final String protocol,
-            final String printerName) {
-        return getCupsUrl(protocol, "/printers/".concat(printerName));
+    private URL getCupsPrinterUrl(final String protocol, final String host,
+            final String printerName) throws UnknownHostException {
+        return getCupsUrl(protocol, host,
+                URL_PATH_CUPS_PRINTERS.concat("/").concat(printerName));
     }
 
     @Override
     public URL getCupsAdminUrl() {
-        return getCupsUrl("/admin");
+        try {
+            return getCupsUrl(URL_PATH_CUPS_ADMIN);
+        } catch (UnknownHostException e) {
+            throw new SpException(e.getMessage());
+        }
     }
 
     @Override

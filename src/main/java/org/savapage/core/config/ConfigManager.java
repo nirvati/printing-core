@@ -354,7 +354,7 @@ public final class ConfigManager {
     private static final String SERVER_PROP_CUPS_SERVER_PORT =
             "cups.server.port";
 
-    private static final String DEFAULT_CUPS_HOST = "localhost";
+    private static final String DEFAULT_CUPS_HOST = InetUtils.LOCAL_HOST;
     private static final String DEFAULT_CUPS_PORT = "631";
 
     public static final String SERVER_PROP_PRINTER_RAW_PORT =
