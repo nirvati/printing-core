@@ -2996,6 +2996,11 @@ public interface IConfigProp {
         /**
          * .
          */
+        WEBAPP_INTERNET_ENABLE(//
+                Key.WEBAPP_INTERNET_PFX + "enable", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /** */
         WEBAPP_INTERNET_ADMIN_ENABLE(//
                 Key.WEBAPP_INTERNET_PFX + "admin.enable", BOOLEAN_VALIDATOR,
                 V_YES, API_UPDATABLE_ON),
