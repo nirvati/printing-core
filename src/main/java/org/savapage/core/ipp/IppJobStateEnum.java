@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,12 +26,18 @@ import java.util.Locale;
 import org.savapage.core.util.LocaleHelper;
 
 /**
- * Enumeration of job states.
+ * Enumeration of IPP job states.
+ * <p>
+ * See <a href="https://tools.ietf.org/html/rfc8011#section-5.3.7">RFC 8011</a>
+ * </p>
  *
  * @author Rijk Ravestein
  *
  */
 public enum IppJobStateEnum {
+
+    /** Out-of-band 'unknown'. */
+    IPP_JOB_UNKNOWN(0x00, "UNKNOWN"),
 
     /** Job is waiting to be printed. */
     IPP_JOB_PENDING(0x03, "PENDING"),
@@ -142,11 +148,15 @@ public enum IppJobStateEnum {
     /**
      *
      * @param value
-     *            The raw value.
+     *            The CUPS job state.
      * @return The enum value.
+     * @throws IllegalStateException
+     *             If job state is unidentified.
      */
     public static IppJobStateEnum asEnum(final int value) {
-        if (value == IppJobStateEnum.IPP_JOB_ABORTED.asInt()) {
+        if (value == IppJobStateEnum.IPP_JOB_UNKNOWN.asInt()) {
+            return IPP_JOB_UNKNOWN;
+        } else if (value == IppJobStateEnum.IPP_JOB_ABORTED.asInt()) {
             return IPP_JOB_ABORTED;
         } else if (value == IppJobStateEnum.IPP_JOB_CANCELED.asInt()) {
             return IPP_JOB_CANCELED;
@@ -163,7 +173,7 @@ public enum IppJobStateEnum {
         }
 
         throw new IllegalStateException(
-                "value [" + value + "] can not be converted to enum.");
+                String.format("unidentified CUPS job state [%d]", value));
     }
 
 }
