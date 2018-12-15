@@ -49,6 +49,9 @@ public enum AdjectiveEnum {
     VALID, INVALID,
 
     /** */
+    INTERNAL, EXTERNAL,
+
+    /** */
     PENDING;
 
     /**
