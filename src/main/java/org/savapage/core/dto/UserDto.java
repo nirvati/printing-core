@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -41,10 +41,10 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *
  */
 @JsonPropertyOrder({ "userName", "password", "fullName", "email", "emailOther",
-    "card", "cardFormat", "cardFirstByte", "id;", "pin", "yubiKeyPubId",
-    "pgpPubKeyId", "uuid", "admin", "person", "disabled", "keepEmailOther",
-    "keepCard", "keepPassword", "keepPin", "keepUuid", "accounting",
-    "aclRoles", "aclOidsUser", "aclOidsAdmin" })
+        "card", "cardFormat", "cardFirstByte", "id;", "pin", "yubiKeyPubId",
+        "pgpPubKeyId", "uuid", "admin", "person", "disabled", "keepEmailOther",
+        "keepCard", "keepId", "keepPassword", "keepPin", "keepUuid",
+        "accounting", "aclRoles", "aclOidsUser", "aclOidsAdmin" })
 @JsonInclude(Include.NON_NULL)
 public class UserDto extends AbstractDto {
 
@@ -111,6 +111,9 @@ public class UserDto extends AbstractDto {
     @JsonProperty("keepCard")
     private Boolean keepCard = false;
 
+    @JsonProperty("keepId")
+    private Boolean keepId = false;
+
     @JsonProperty("keepPassword")
     private Boolean keepPassword = false;
 
@@ -174,6 +177,7 @@ public class UserDto extends AbstractDto {
         disabled = dto.disabled;
         //
         keepCard = dto.keepCard;
+        keepId = dto.keepId;
         keepEmailOther = dto.keepEmailOther;
         keepPassword = dto.keepPassword;
         keepPin = dto.keepPin;
@@ -361,6 +365,14 @@ public class UserDto extends AbstractDto {
 
     public void setKeepCard(Boolean keepCard) {
         this.keepCard = keepCard;
+    }
+
+    public Boolean getKeepId() {
+        return keepId;
+    }
+
+    public void setKeepId(Boolean keepId) {
+        this.keepId = keepId;
     }
 
     public Boolean getKeepPassword() {

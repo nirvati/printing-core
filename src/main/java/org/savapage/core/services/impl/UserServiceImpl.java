@@ -333,31 +333,43 @@ public final class UserServiceImpl extends AbstractService
 
         } else {
 
-            final int lengthMin = ConfigManager.instance()
-                    .getConfigInt(Key.USER_ID_NUMBER_LENGTH_MIN);
+            boolean doUpdate;
 
-            if (idNumber.length() < lengthMin) {
-                /*
-                 * INVARIANT: ID Number format MUST be valid.
-                 */
-                return createError("msg-id-number-length-error",
-                        String.valueOf(lengthMin));
+            if (dto.getKeepId()) {
+                doUpdate = !hasAssocPrimaryNumber(jpaUser);
+            } else {
+                doUpdate = true;
             }
 
-            final User jpaUserDuplicate = this.findUserByNumber(dto.getId());
+            if (doUpdate) {
 
-            if (jpaUserDuplicate != null
-                    && !jpaUserDuplicate.getUserId().equals(userid)) {
+                final int lengthMin = ConfigManager.instance()
+                        .getConfigInt(Key.USER_ID_NUMBER_LENGTH_MIN);
 
-                /*
-                 * INVARIANT: ID Number MUST be unique.
-                 */
-                return createError("msg-user-duplicate-user-id-number",
-                        dto.getId(), jpaUserDuplicate.getUserId());
+                if (idNumber.length() < lengthMin) {
+                    /*
+                     * INVARIANT: ID Number format MUST be valid.
+                     */
+                    return createError("msg-id-number-length-error",
+                            String.valueOf(lengthMin));
+                }
+
+                final User jpaUserDuplicate =
+                        this.findUserByNumber(dto.getId());
+
+                if (jpaUserDuplicate != null
+                        && !jpaUserDuplicate.getUserId().equals(userid)) {
+
+                    /*
+                     * INVARIANT: ID Number MUST be unique.
+                     */
+                    return createError("msg-user-duplicate-user-id-number",
+                            dto.getId(), jpaUserDuplicate.getUserId());
+                }
+
+                this.assocPrimaryIdNumber(jpaUser, idNumber);
+                isUpdated = true;
             }
-
-            this.assocPrimaryIdNumber(jpaUser, idNumber);
-            isUpdated = true;
         }
 
         /*

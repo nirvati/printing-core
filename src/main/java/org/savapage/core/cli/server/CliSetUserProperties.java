@@ -34,7 +34,7 @@ import org.savapage.core.json.rpc.impl.ParamsSetUserProperties;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class CliSetUserProperties extends AbstractAppApi {
@@ -142,6 +142,12 @@ public class CliSetUserProperties extends AbstractAppApi {
      */
     private static final String CLI_SWITCH_KEEP_CARD =
             CLI_SWITCH_PFX_KEEP + CLI_OPT_CARD;
+
+    /**
+    *
+    */
+    private static final String CLI_SWITCH_KEEP_ID =
+            CLI_SWITCH_PFX_KEEP + CLI_OPT_ID;
 
     /**
      *
@@ -268,6 +274,9 @@ public class CliSetUserProperties extends AbstractAppApi {
             { null, CLI_SWITCH_KEEP_CARD,
                     "Keep existing Card Number, or use --" + CLI_OPT_CARD
                             + " value when not present." },
+            { null, CLI_SWITCH_KEEP_ID,
+                    "Keep existing ID Number, or use --" + CLI_OPT_ID
+                            + " value when not present." },
             { null, CLI_SWITCH_KEEP_EMAIL_OTHER,
                     "Keep existing other (secondary) Email addresses, or use --"
                             + CLI_OPT_EMAIL_OTHER
@@ -275,8 +284,9 @@ public class CliSetUserProperties extends AbstractAppApi {
             { null, CLI_SWITCH_KEEP_PASSWORD,
                     "Keep existing Password, or use --" + CLI_OPT_PASSWORD
                             + " value when not present (Internal User only)." },
-            { null, CLI_SWITCH_KEEP_PIN, "Keep existing PIN, or use --"
-                    + CLI_OPT_PIN + " value when not present." },
+            { null, CLI_SWITCH_KEEP_PIN,
+                    "Keep existing PIN, or use --" + CLI_OPT_PIN
+                            + " value when not present." },
 
             { null, CLI_SWITCH_KEEP_UUID,
                     "Keep existing UUID, or use --" + CLI_OPT_UUID
@@ -362,6 +372,8 @@ public class CliSetUserProperties extends AbstractAppApi {
          */
         if ((cmd.hasOption(CLI_SWITCH_KEEP_CARD)
                 && !cmd.hasOption(CLI_OPT_CARD))
+                || (cmd.hasOption(CLI_SWITCH_KEEP_ID)
+                        && !cmd.hasOption(CLI_OPT_ID))
                 || (cmd.hasOption(CLI_SWITCH_KEEP_EMAIL_OTHER)
                         && !cmd.hasOption(CLI_OPT_EMAIL_OTHER))
                 || (cmd.hasOption(CLI_SWITCH_KEEP_PASSWORD)
@@ -455,6 +467,7 @@ public class CliSetUserProperties extends AbstractAppApi {
         dto.setUserName(cmd.getOptionValue(CLI_OPT_USERNAME));
         //
         dto.setKeepCard(this.getSwitchValue(cmd, CLI_SWITCH_KEEP_CARD));
+        dto.setKeepId(this.getSwitchValue(cmd, CLI_SWITCH_KEEP_ID));
         dto.setKeepEmailOther(
                 this.getSwitchValue(cmd, CLI_SWITCH_KEEP_EMAIL_OTHER));
         dto.setKeepPassword(this.getSwitchValue(cmd, CLI_SWITCH_KEEP_PASSWORD));
@@ -526,6 +539,7 @@ public class CliSetUserProperties extends AbstractAppApi {
         case CLI_SWITCH_HELP:
         case CLI_SWITCH_HELP_LONG:
         case CLI_SWITCH_KEEP_CARD:
+        case CLI_SWITCH_KEEP_ID:
         case CLI_SWITCH_KEEP_EMAIL_OTHER:
         case CLI_SWITCH_KEEP_PASSWORD:
         case CLI_SWITCH_KEEP_PIN:
