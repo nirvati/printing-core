@@ -177,7 +177,7 @@ public final class DateUtil {
             }
             return String.format("%dh %dm", hours, minutes);
         }
-        return String.format("%dd %dh %dm", days, hours, minutes);
+        return String.format("%dd %dh", days, hours, minutes);
     }
 
     /**

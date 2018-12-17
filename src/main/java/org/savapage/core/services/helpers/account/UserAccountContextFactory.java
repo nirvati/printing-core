@@ -19,13 +19,13 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.services;
+package org.savapage.core.services.helpers.account;
 
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
-import org.savapage.core.services.impl.SavaPageUserAccountContext;
+import org.savapage.core.services.impl.UserAccountContextSavaPage;
 import org.savapage.ext.papercut.PaperCutServerProxy;
-import org.savapage.ext.papercut.services.impl.PaperCutUserAccountContext;
+import org.savapage.ext.papercut.services.impl.UserAccountContextPaperCut;
 
 /**
  *
@@ -43,6 +43,18 @@ public final class UserAccountContextFactory {
     /**
      * Gets the leading context.
      *
+     * @return {@link UserAccountContextEnum}.
+     */
+    public static UserAccountContextEnum getContextEnum() {
+        if (hasContextPaperCut()) {
+            return UserAccountContextEnum.PAPERCUT;
+        }
+        return UserAccountContextEnum.SAVAPAGE;
+    }
+
+    /**
+     * Gets the leading context.
+     *
      * @return {@link UserAccountContext}.
      */
     public static UserAccountContext getContext() {
@@ -53,6 +65,26 @@ public final class UserAccountContextFactory {
             return getContextSavaPage();
         }
         return ctx;
+    }
+
+    /**
+     * Gets context.
+     *
+     * @param ctx
+     *            Context type.
+     * @return {@link UserAccountContext}.
+     */
+    public static UserAccountContext
+            getContext(final UserAccountContextEnum ctx) {
+        switch (ctx) {
+        case PAPERCUT:
+            return new UserAccountContextPaperCut(
+                    PaperCutServerProxy.create(ConfigManager.instance(), true));
+        case SAVAPAGE:
+            return UserAccountContextSavaPage.instance();
+        default:
+            throw new UnknownError(ctx.toString());
+        }
     }
 
     /**
@@ -74,8 +106,7 @@ public final class UserAccountContextFactory {
     public static UserAccountContext getContextPaperCut() {
 
         if (hasContextPaperCut()) {
-            return new PaperCutUserAccountContext(
-                    PaperCutServerProxy.create(ConfigManager.instance(), true));
+            return getContext(UserAccountContextEnum.PAPERCUT);
         }
         return null;
     }
@@ -86,7 +117,7 @@ public final class UserAccountContextFactory {
      * @return {@link UserAccountContext}.
      */
     public static UserAccountContext getContextSavaPage() {
-        return SavaPageUserAccountContext.instance();
+        return getContext(UserAccountContextEnum.SAVAPAGE);
     }
 
 }

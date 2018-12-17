@@ -26,14 +26,15 @@ import java.util.Locale;
 import org.savapage.core.jpa.User;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
-import org.savapage.core.services.UserAccountContext;
+import org.savapage.core.services.helpers.account.UserAccountContext;
+import org.savapage.core.services.helpers.account.UserAccountContextEnum;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class SavaPageUserAccountContext implements UserAccountContext {
+public final class UserAccountContextSavaPage implements UserAccountContext {
 
     /** */
     private static final AccountingService ACCOUNTING_SERVICE =
@@ -43,7 +44,7 @@ public final class SavaPageUserAccountContext implements UserAccountContext {
     private static class SingletonHolder {
         /** */
         public static final UserAccountContext INSTANCE =
-                new SavaPageUserAccountContext();
+                new UserAccountContextSavaPage();
     }
 
     /**
@@ -53,6 +54,11 @@ public final class SavaPageUserAccountContext implements UserAccountContext {
      */
     public static UserAccountContext instance() {
         return SingletonHolder.INSTANCE;
+    }
+
+    @Override
+    public UserAccountContextEnum asEnum() {
+        return UserAccountContextEnum.SAVAPAGE;
     }
 
     @Override

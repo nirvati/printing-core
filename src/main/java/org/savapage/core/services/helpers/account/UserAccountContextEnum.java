@@ -19,30 +19,16 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.services;
-
-import java.util.Locale;
-
-import org.savapage.core.jpa.User;
+package org.savapage.core.services.helpers.account;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public interface UserAccountContext {
-
-    /**
-     * Gets the formatted balance of a {@link User}.
-     *
-     * @param user
-     *            The non-null {@link User}.
-     * @param locale
-     *            The {@link Locale} for formatting.
-     * @param currencySymbol
-     *            The currency symbol (can be {@code null}).
-     * @return Zero balance when User Account is NOT present.
-     */
-    String getFormattedUserBalance(User user, Locale locale,
-            String currencySymbol);
+public enum UserAccountContextEnum {
+    /** */
+    PAPERCUT,
+    /** */
+    SAVAPAGE
 }

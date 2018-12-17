@@ -43,7 +43,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
@@ -76,6 +75,7 @@ import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.util.BigDecimalUtil;
+import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -717,10 +717,9 @@ public final class OutboxServiceImpl extends AbstractService
 
         if (remainMillis < 0) {
             remainTime = String.format("-%s",
-                    DurationFormatUtils.formatDuration(-remainMillis, "H:mm"));
+                    DateUtil.formatDuration(-remainMillis));
         } else {
-            remainTime =
-                    DurationFormatUtils.formatDuration(remainMillis, "H:mm");
+            remainTime = DateUtil.formatDuration(remainMillis);
         }
         localeInfo.setRemainTime(remainTime);
     }

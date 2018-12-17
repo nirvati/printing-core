@@ -739,6 +739,20 @@ public interface ProxyPrintService {
             throws ProxyPrintException;
 
     /**
+     * Prints a outbox job of a {@link User}.
+     *
+     * @param userDbId
+     *            The primary database key of the {@link User}.
+     * @param job
+     *            The job.
+     * @return The number {@link ProxyPrintOutboxResult}.
+     * @throws ProxyPrintException
+     *             When a invariant is violated.
+     */
+    ProxyPrintOutboxResult proxyPrintOutbox(Long userDbId, OutboxJobDto job)
+            throws ProxyPrintException;
+
+    /**
      * Prints a Job Ticket.
      *
      * @param operator

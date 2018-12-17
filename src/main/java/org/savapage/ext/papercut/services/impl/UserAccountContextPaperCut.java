@@ -28,7 +28,8 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.jpa.User;
 import org.savapage.core.services.AccountingService;
 import org.savapage.core.services.ServiceContext;
-import org.savapage.core.services.UserAccountContext;
+import org.savapage.core.services.helpers.account.UserAccountContext;
+import org.savapage.core.services.helpers.account.UserAccountContextEnum;
 import org.savapage.ext.papercut.PaperCutException;
 import org.savapage.ext.papercut.PaperCutServerProxy;
 
@@ -37,7 +38,7 @@ import org.savapage.ext.papercut.PaperCutServerProxy;
  * @author Rijk Ravestein
  *
  */
-public final class PaperCutUserAccountContext implements UserAccountContext {
+public final class UserAccountContextPaperCut implements UserAccountContext {
 
     /** */
     private final PaperCutServerProxy server;
@@ -51,8 +52,13 @@ public final class PaperCutUserAccountContext implements UserAccountContext {
      * @param serverProxy
      *            The {@link PaperCutServerProxy}.
      */
-    public PaperCutUserAccountContext(final PaperCutServerProxy serverProxy) {
+    public UserAccountContextPaperCut(final PaperCutServerProxy serverProxy) {
         this.server = serverProxy;
+    }
+
+    @Override
+    public UserAccountContextEnum asEnum() {
+        return UserAccountContextEnum.PAPERCUT;
     }
 
     @Override

@@ -2870,18 +2870,44 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 outboxService().getOutboxJobs(lockedUser.getUserId(),
                         printerNames, ServiceContext.getTransactionDate());
 
+        final ProxyPrintOutboxResult res =
+                this.proxyPrintOutbox(lockedUser, jobs);
+
+        PerformanceLogger.log(this.getClass(), "proxyPrintOutbox",
+                perfStartTime, cardUser.getUserId());
+
+        return res;
+    }
+
+    @Override
+    public final ProxyPrintOutboxResult proxyPrintOutbox(final Long userDbId,
+            final OutboxJobDto job) throws ProxyPrintException {
+
+        final User lockedUser = userDAO().lock(userDbId);
+        final List<OutboxJobDto> jobs = new ArrayList<>();
+        jobs.add(job);
+
+        return this.proxyPrintOutbox(lockedUser, jobs);
+    }
+
+    /**
+     * Prints the outbox jobs of the {@link User}.
+     *
+     * @param lockedUser
+     *            The user.
+     * @param jobs
+     *            The jobs to print.
+     * @return The number {@link ProxyPrintOutboxResult}.
+     * @throws ProxyPrintException
+     *             When a invariant is violated.
+     */
+    private ProxyPrintOutboxResult proxyPrintOutbox(final User lockedUser,
+            final List<OutboxJobDto> jobs) throws ProxyPrintException {
+
         /*
-         * Check printer access and total costs first (all-or-none).
+         * Check total costs first (all-or-none).
          */
-        BigDecimal totCost = BigDecimal.ZERO;
-
-        for (final OutboxJobDto job : jobs) {
-
-            this.getValidateProxyPrinterAccess(cardUser, job.getPrinter(),
-                    ServiceContext.getTransactionDate());
-
-            totCost = totCost.add(job.getCostTotal());
-        }
+        final BigDecimal totCost = BigDecimal.ZERO;
 
         accountingService().validateProxyPrintUserCost(lockedUser, totCost,
                 ServiceContext.getLocale(),
@@ -2896,7 +2922,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     outboxService().isMonitorPaperCutPrintStatus(job);
 
             final File pdfFileToPrint = outboxService()
-                    .getOutboxFile(cardUser.getUserId(), job.getFile());
+                    .getOutboxFile(lockedUser.getUserId(), job.getFile());
 
             try {
                 this.execOutboxJob(null, lockedUser, job, PrintModeEnum.HOLD,
@@ -2911,9 +2937,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
             totSheets += job.getSheets() * job.getCopies();
             totPages += job.getPages() * job.getCopies();
         }
-
-        PerformanceLogger.log(this.getClass(), "proxyPrintOutbox",
-                perfStartTime, cardUser.getUserId());
 
         return new ProxyPrintOutboxResult(jobs.size(), totSheets, totPages);
     }
