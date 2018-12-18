@@ -47,6 +47,7 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
+import org.savapage.core.doc.PdfToPrePress;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.json.PdfProperties;
 import org.savapage.core.util.MediaUtils;
@@ -133,6 +134,11 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      * {@code true} if the created pdf is to be converted to grayscale onExit.
      */
     private boolean onExitConvertToGrayscale = false;
+
+    /**
+     * {@code true} if PDF has to be repaired onExit.
+     */
+    private boolean onExitRepairPdf = false;
 
     /**
      * {@code true} if PDF with page porder for 2-up duplex booklet is to be
@@ -494,6 +500,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         this.onExitConvertToGrayscale = this.isGrayscalePdf();
         this.onExitBookletPageOrder = this.isBookletPageOrder();
+        this.onExitRepairPdf = this.isRepairPdf();
 
         this.targetPdfCopyFilePath = String.format("%s.tmp", this.pdfFile);
         this.nPagesAdded2Target = 0;
@@ -525,6 +532,10 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         if (this.onExitConvertToGrayscale) {
             replaceWithConvertedPdf(pdfFile,
                     new PdfToGrayscale().convert(pdfFile));
+        }
+        if (this.onExitRepairPdf) {
+            replaceWithConvertedPdf(pdfFile,
+                    new PdfToPrePress().convert(pdfFile));
         }
         if (this.onExitBookletPageOrder) {
             replaceWithConvertedPdf(pdfFile,

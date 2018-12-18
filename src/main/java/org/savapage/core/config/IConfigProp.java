@@ -2150,6 +2150,13 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Enable "repair" option for Proxy Print (boolean).
+         */
+        PROXY_PRINT_REPAIR_ENABLE(//
+                "proxy-print.repair.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
          * CRON expression: 10 minutes past midnight.
          */
         SCHEDULE_DAILY(//

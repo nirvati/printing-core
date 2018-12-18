@@ -38,6 +38,7 @@ import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.doc.PdfToPgpSignedPdf;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
@@ -117,7 +118,7 @@ public abstract class AbstractPdfCreator {
     private boolean useEcoPdfShadow = false;
 
     /**
-     * {@code true} when Grayscale PDF is to be created.
+     * {@code true} if Grayscale PDF is to be created.
      */
     private boolean isGrayscalePdf = false;
 
@@ -126,6 +127,11 @@ public abstract class AbstractPdfCreator {
      * created.
      */
     private boolean isBookletPageOrder = false;
+
+    /**
+     * {@code true} if PDF for print has to be repaired.
+     */
+    private boolean isRepairPdf = false;
 
     /**
      *
@@ -176,6 +182,13 @@ public abstract class AbstractPdfCreator {
      */
     protected final boolean isBookletPageOrder() {
         return this.isBookletPageOrder;
+    }
+
+    /**
+     * @return {@code true} if PDF (for print) has to be repaired.
+     */
+    protected final boolean isRepairPdf() {
+        return this.isRepairPdf;
     }
 
     /**
@@ -391,6 +404,9 @@ public abstract class AbstractPdfCreator {
 
         this.isGrayscalePdf = createReq.isGrayscale();
         this.isBookletPageOrder = createReq.isBookletPageOrder();
+
+        this.isRepairPdf = createReq.isForPrinting() && ConfigManager.instance()
+                .isConfigValue(IConfigProp.Key.PROXY_PRINT_REPAIR_ENABLE);
 
         this.removeGraphics = createReq.isRemoveGraphics();
 
