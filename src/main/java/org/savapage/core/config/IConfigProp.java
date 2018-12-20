@@ -2655,6 +2655,11 @@ public interface IConfigProp {
                 "webapp.jobtickets.print-all.enable", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
 
+        /** */
+        WEBAPP_JOBTICKETS_CLOSE_ALL_ENABLE(//
+                "webapp.jobtickets.close-all.enable", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
         /**
          * Number of job tickets to show in the list. A value of zero means all
          * available tickets are shown.
