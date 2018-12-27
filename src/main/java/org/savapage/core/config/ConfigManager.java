@@ -2513,9 +2513,12 @@ public final class ConfigManager {
 
     /**
      * Shuts down the initialized components. See {@link #init(RunMode)}.
+     * <p>
+     * Method is idempotent: calling it a second time has no effect.
+     * </p>
      *
      * @throws Exception
-     *             When things wnet wrong.
+     *             When things went wrong.
      */
     public synchronized void exit() throws Exception {
 
@@ -2533,16 +2536,20 @@ public final class ConfigManager {
              */
             ReadWriteLockEnum.DATABASE_READONLY.setWriteLock(true);
 
-            /*
-             * IppClient need to know about the shutdown, since CUPS might
-             * already be shut down. See Mantis #374.
-             */
-            IppClient.instance().setShutdownRequested(true);
+            try {
+                /*
+                 * IppClient need to know about the shutdown, since CUPS might
+                 * already be shut down. See Mantis #374.
+                 */
+                IppClient.instance().setShutdownRequested(true);
 
-            myPrintProxy.exit();
+                myPrintProxy.exit();
 
-            ProxyPrintJobStatusMonitor.exit();
+                ProxyPrintJobStatusMonitor.exit();
 
+            } finally {
+                ReadWriteLockEnum.DATABASE_READONLY.setWriteLock(false);
+            }
         }
 
         exitScheduler();
@@ -2566,10 +2573,6 @@ public final class ConfigManager {
         }
 
         runMode = null;
-
-        if (isServerRunMode) {
-            ReadWriteLockEnum.DATABASE_READONLY.setWriteLock(false);
-        }
     }
 
     /**
