@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1435,10 +1435,12 @@ public final class InboxServiceImpl implements InboxService {
 
     @Override
     public int deleteAllPages(final String user) {
-        /*
-         * TODO: there must be a more efficient way.
-         */
-        return deletePages(user, "1-"); // dirty trick
+        return deletePages(user, "1-"); // hack
+    }
+
+    @Override
+    public int deleteAllJobs(final String user) {
+        return this.deleteJobs(user, Long.MAX_VALUE, 0L);
     }
 
     @Override

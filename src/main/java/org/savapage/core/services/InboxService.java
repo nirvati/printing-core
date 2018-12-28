@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2018 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -316,6 +316,15 @@ public interface InboxService {
      * @return The number of deleted pages.
      */
     int deleteAllPages(String userId);
+
+    /**
+     * Deletes ALL SafePages.
+     *
+     * @param userId
+     *            The unique user id.
+     * @return The number of deleted jobs.
+     */
+    int deleteAllJobs(String userId);
 
     /**
      * Deletes pages from the virtual document.
