@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -56,33 +56,95 @@ public interface UserDao extends GenericDao<User> {
     /** */
     class ACLFilter {
 
+        /**
+         * User role: can be {@code null}.
+         */
         private ACLRoleEnum aclRole;
+
+        /**
+         * Database keys of users who are assigned {@code ACLRoleEnum} ad-hoc.
+         * List can be {@code null} or empty. This attribute is relevant when
+         * aclRole is not null.
+         */
+        private List<Long> aclRoleUsersExt;
+
+        /**
+         * If {@code true}, Internal Users must be included.
+         */
         private boolean aclUserInternal;
+
+        /**
+         * If {@code true}, External Users must be included.
+         */
         private boolean aclUserExternal;
 
+        /**
+         * @return User role: can be {@code null}.
+         */
         public ACLRoleEnum getAclRole() {
             return aclRole;
         }
 
+        /**
+         *
+         * @param aclRole
+         *            User role: can be {@code null}.
+         */
         public void setAclRole(ACLRoleEnum aclRole) {
             this.aclRole = aclRole;
         }
 
+        /**
+         * @return Database keys of users who are assigned {@code ACLRoleEnum}
+         *         ad-hoc. List can be {@code null} or empty. This attribute is
+         *         relevant when aclRole is not null.
+         */
+        public List<Long> getAclRoleUsersExt() {
+            return aclRoleUsersExt;
+        }
+
+        /**
+         * @param aclRoleUsersExt
+         *            Database keys of users who are assigned
+         *            {@code ACLRoleEnum} ad-hoc. List can be {@code null} or
+         *            empty. This attribute is relevant when aclRole is not
+         *            null.
+         */
+        public void setAclRoleUsersExt(List<Long> aclRoleUsersExt) {
+            this.aclRoleUsersExt = aclRoleUsersExt;
+        }
+
+        /**
+         * @return {@code true} if Internal Users must be included.
+         */
         public boolean isAclUserInternal() {
             return aclUserInternal;
         }
 
+        /**
+         * @param aclUserInternal
+         *            If {@code true}, Internal Users must be included.
+         */
         public void setAclUserInternal(boolean aclUserInternal) {
             this.aclUserInternal = aclUserInternal;
         }
 
+        /**
+         *
+         * @return {@code true} if External Users must be included.
+         */
         public boolean isAclUserExternal() {
             return aclUserExternal;
         }
 
+        /**
+         * @param aclUserExternal
+         *            If {@code true}, External Users must be included.
+         */
         public void setAclUserExternal(boolean aclUserExternal) {
             this.aclUserExternal = aclUserExternal;
         }
+
     }
 
     /** */

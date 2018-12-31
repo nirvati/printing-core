@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -341,6 +341,13 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             where.append(" OR (UA.name != null AND UA.value NOT LIKE :jsonRole"
                     + " AND UGA.value LIKE :jsonRoleValue)");
 
+            //
+            if (filter.getAclFilter().getAclRoleUsersExt() != null
+                    && !filter.getAclFilter().getAclRoleUsersExt().isEmpty()) {
+                where.append(" OR U.id IN :aclRoleUsersExt");
+            }
+
+            //
             where.append(")");
         }
 
@@ -379,6 +386,12 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             query.setParameter("jsonRole", String.format("%%%s%%", jsonRole));
             query.setParameter("jsonRoleValue", String.format("%%%s:%s%%",
                     jsonRole, Boolean.TRUE.toString()));
+
+            if (filter.getAclFilter().getAclRoleUsersExt() != null
+                    && !filter.getAclFilter().getAclRoleUsersExt().isEmpty()) {
+                query.setParameter("aclRoleUsersExt",
+                        filter.getAclFilter().getAclRoleUsersExt());
+            }
 
         }
 
