@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,13 +28,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.savapage.core.dao.UserGroupMemberDao;
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.helpers.JsonPrintDelegation;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.UserGroup;
-import org.savapage.core.jpa.UserGroupMember;
 import org.savapage.core.services.PrintDelegationService;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
@@ -176,6 +177,12 @@ public final class PrintDelegationServiceImpl extends AbstractService
         /*
          * Groups: settle with USER accounts.
          */
+        final UserGroupMemberDao.GroupFilter groupMemberFilterWlk =
+                new UserGroupMemberDao.GroupFilter();
+
+        groupMemberFilterWlk.setAclRoleNotFalse(ACLRoleEnum.PRINT_DELEGATOR);
+        groupMemberFilterWlk.setDisabledPrintOut(Boolean.FALSE);
+
         for (final Entry<Long, Integer> idGroup : source.getGroupsAccountUser()
                 .entrySet()) {
 
@@ -184,8 +191,11 @@ public final class PrintDelegationServiceImpl extends AbstractService
             weightTotal += copiesGroupWlk;
             copiesTotal += copiesGroupWlk;
 
-            final List<UserGroupMember> groupMembers =
-                    userGroupMemberDAO().getGroupMembers(idGroup.getKey());
+            groupMemberFilterWlk.setGroupId(idGroup.getKey());
+
+            final List<User> groupMembers = userGroupMemberDAO().getUserChunk(
+                    groupMemberFilterWlk, null, null,
+                    UserGroupMemberDao.UserField.USER_NAME, true);
 
             int weightMemberTotal = 0;
 
@@ -200,9 +210,10 @@ public final class PrintDelegationServiceImpl extends AbstractService
                 weightMemberUnit = groupMembers.size();
             }
 
-            for (final UserGroupMember member : groupMembers) {
+            final UserGroup userGroup =
+                    userGroupDAO().findById(idGroup.getKey());
 
-                final User user = member.getUser();
+            for (final User user : groupMembers) {
 
                 if (user.getDeleted()) {
                     continue;
@@ -213,15 +224,13 @@ public final class PrintDelegationServiceImpl extends AbstractService
                 }
 
                 addUserAccountToTrxList(targetList, user, weightMember,
-                        weightMemberUnit, member.getGroup().getGroupName());
+                        weightMemberUnit, userGroup.getGroupName());
 
                 weightMemberTotal += weightMember;
             }
 
             // Extra trx for group.
             if (weightMemberTotal > 0) {
-                final UserGroup userGroup =
-                        userGroupDAO().findById(idGroup.getKey());
                 final Account groupAccount =
                         accountingService().lazyGetUserGroupAccount(userGroup);
                 targetList.add(createAccountTrxInfo(groupAccount,
