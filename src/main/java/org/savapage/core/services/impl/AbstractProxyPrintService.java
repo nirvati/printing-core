@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1208,8 +1208,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * @param readerDevices
      *            The Reader Devices responsible for printer being secured. The
      *            map is cleared before collecting the members.
-     * @return {@code true} is Printer is secured (either via Reader or
-     *         Terminal).
+     * @return {@code true} if user is granted access to Printer on terminal).
      */
     private boolean isPrinterGrantedOnTerminal(final Device terminal,
             final String userName, final Printer printer,
@@ -1246,38 +1245,42 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * (2) Check dedicated printer(s) for device.
          */
-        boolean isGlobalNonSecure = false;
+        final boolean isPrintTerminal = terminal != null
+                && BooleanUtils.isNotTrue(terminal.getDisabled())
+                && deviceDAO().hasPrinterRestriction(terminal);
 
-        if (terminal != null && BooleanUtils.isNotTrue(terminal.getDisabled())
-                && deviceDAO().hasPrinterRestriction(terminal)) {
+        final boolean isPrinterGranted;
 
-            terminalSecured.setValue(printerService().checkDeviceSecurity(
-                    printer, DeviceTypeEnum.TERMINAL, terminal));
+        if (isPrintTerminal) {
+
+            isPrinterGranted = printerService().checkDeviceSecurity(printer,
+                    DeviceTypeEnum.TERMINAL, terminal);
+
+            terminalSecured.setValue(isPrinterGranted);
 
         } else {
 
-            if (!printerService().checkPrinterSecurity(printer, terminalSecured,
+            if (printerService().checkPrinterSecurity(printer, terminalSecured,
                     readerSecured, terminalDevices, readerDevices)) {
 
-                isGlobalNonSecure = ConfigManager.instance()
+                isPrinterGranted = !terminalSecured.booleanValue();
+
+            } else {
+                isPrinterGranted = ConfigManager.instance()
                         .isNonSecureProxyPrinter(printer);
             }
         }
 
-        boolean isAvailable = isGlobalNonSecure || terminalSecured.getValue()
-                || readerSecured.getValue();
+        if (!isPrinterGranted) {
+            return false;
+        }
 
         /*
-         * (3) user group access control?
+         * (3) User group access control?
          */
-        if (isAvailable) {
-
-            final User user = userDAO().findActiveUserByUserId(userName);
-
-            isAvailable = user != null
-                    && printerService().isPrinterAccessGranted(printer, user);
-        }
-        return isAvailable;
+        final User user = userDAO().findActiveUserByUserId(userName);
+        return user != null
+                && printerService().isPrinterAccessGranted(printer, user);
     }
 
     /**
