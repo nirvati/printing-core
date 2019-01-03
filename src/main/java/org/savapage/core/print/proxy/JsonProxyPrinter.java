@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -372,6 +372,22 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     @JsonIgnore
     public void setCustomRulesSubst(final List<IppRuleSubst> rules) {
         this.customRulesSubst = rules;
+    }
+
+    /**
+     * Removes PPDE injection artifacts.
+     */
+    @JsonIgnore
+    public void removeInjectPpdExt() {
+        this.setInjectPpdExt(false);
+        this.setCustomCostRulesCopy(null);
+        this.setCustomCostRulesMedia(null);
+        this.setCustomCostRulesSet(null);
+        this.setCustomCostRulesSheet(null);
+        this.setCustomNumberUpRules(null);
+        this.setCustomRulesConstraint(null);
+        this.setCustomRulesExtra(null);
+        this.setCustomRulesSubst(null);
     }
 
     /**
@@ -1071,6 +1087,14 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      */
     public boolean hasCustomCostRulesSheet() {
         final List<IppRuleCost> rules = this.getCustomCostRulesSheet();
+        return rules != null && !rules.isEmpty();
+    }
+
+    /**
+     * @return {@code true} when custom Set cost rules are present.
+     */
+    public boolean hasCustomCostRulesSet() {
+        final List<IppRuleCost> rules = this.getCustomCostRulesSet();
         return rules != null && !rules.isEmpty();
     }
 

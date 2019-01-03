@@ -1160,6 +1160,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                         dbPrinter.getPrinterName(),
                         filePpdExt.getAbsolutePath()));
             }
+        } else {
+            proxyPrinter.removeInjectPpdExt();
         }
 
         proxyPrinter.setArchiveDisabled(printerService().isDocStoreDisabled(
