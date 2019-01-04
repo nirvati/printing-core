@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1110,6 +1110,9 @@ public final class JobTicketServiceImpl extends AbstractService
                     String.format("Ticket %s already has PrintOut history.",
                             dto.getTicketNumber()));
         }
+
+        final ConfigManager cm = ConfigManager.instance();
+
         /*
          * Set redirect printer.
          */
@@ -1119,10 +1122,24 @@ public final class JobTicketServiceImpl extends AbstractService
 
         final ThirdPartyEnum extPrinterManager;
 
-        if (paperCutService().isExtPaperCutPrint(dto.getPrinterRedirect())
-                && ConfigManager.instance().isConfigValue(
+        if (paperCutService().isExtPaperCutPrint(dto.getPrinterRedirect())) {
+
+            if (cm.isConfigValue(Key.PROXY_PRINT_DELEGATE_ENABLE)) {
+                if (cm.isConfigValue(
                         Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE)) {
-            extPrinterManager = ThirdPartyEnum.PAPERCUT;
+                    extPrinterManager = ThirdPartyEnum.PAPERCUT;
+                } else {
+                    extPrinterManager = null;
+                }
+            } else {
+                if (cm.isConfigValue(
+                        Key.PROXY_PRINT_PERSONAL_PAPERCUT_ENABLE)) {
+                    extPrinterManager = ThirdPartyEnum.PAPERCUT;
+                } else {
+                    extPrinterManager = null;
+                }
+            }
+
         } else {
             extPrinterManager = null;
         }
@@ -1139,8 +1156,7 @@ public final class JobTicketServiceImpl extends AbstractService
 
             dtoReturn = this.removeTicket(uuid, true);
 
-            if (ConfigManager.instance().isConfigValue(
-                    Key.JOBTICKET_NOTIFY_EMAIL_COMPLETED_ENABLE)) {
+            if (cm.isConfigValue(Key.JOBTICKET_NOTIFY_EMAIL_COMPLETED_ENABLE)) {
                 notifyTicketCompletedByEmail(dto, parms.getOperator(),
                         lockedUser, ConfigManager.getDefaultLocale());
             }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1517,6 +1517,12 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 }
             }
             //
+            if (keywordIpp
+                    .equals(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE)) {
+                proxyPrinter.setManualMediaSource(Boolean.valueOf(opt
+                        .getChoice(IppKeyword.MEDIA_SOURCE_MANUAL) != null));
+            }
+
             if (keywordIpp
                     .equals(IppDictJobTemplateAttr.ATTR_PRINT_COLOR_MODE)) {
                 proxyPrinter.setColorDevice(Boolean.valueOf(opt
