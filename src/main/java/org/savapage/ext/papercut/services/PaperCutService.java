@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
@@ -53,6 +54,17 @@ import org.savapage.ext.papercut.PaperCutUser;
  *
  */
 public interface PaperCutService extends StatefulService {
+
+    /**
+     * Checks Proxy Print integration by setting mutable parameters.
+     *
+     * @param isDelegatePrint
+     *            Delegated Print.
+     * @param isPersonalPrint
+     *            Personal Print.
+     */
+    void checkPrintIntegration(MutableBoolean isDelegatePrint,
+            MutableBoolean isPersonalPrint);
 
     /**
      * Checks if PaperCut integration for Printer is applicable.

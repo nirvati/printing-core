@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,6 +28,7 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.SpInfo;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
@@ -97,8 +98,29 @@ public final class PaperCutServiceImpl extends AbstractService
     }
 
     @Override
+    public void checkPrintIntegration(final MutableBoolean isDelegatedPrint,
+            final MutableBoolean isPersonalPrint) {
+
+        isPersonalPrint.setFalse();
+        isDelegatedPrint.setFalse();
+
+        if (ConfigManager.isPaperCutPrintEnabled()) {
+
+            final ConfigManager cm = ConfigManager.instance();
+
+            if (cm.isConfigValue(IConfigProp.Key.PROXY_PRINT_DELEGATE_ENABLE)) {
+                isDelegatedPrint.setValue(cm.isConfigValue(
+                        IConfigProp.Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE));
+            } else {
+                isPersonalPrint.setValue(cm.isConfigValue(
+                        IConfigProp.Key.PROXY_PRINT_PERSONAL_PAPERCUT_ENABLE));
+            }
+        }
+    }
+
+    @Override
     public boolean isMonitorPaperCutPrintStatus(final String printerName,
-            final boolean isNonPersonalPrint) {
+            final boolean isNonPersonalPrintJob) {
 
         if (!this.isExtPaperCutPrint(printerName)) {
             return false;
@@ -106,15 +128,15 @@ public final class PaperCutServiceImpl extends AbstractService
 
         final ConfigManager cm = ConfigManager.instance();
 
-        final boolean printDelegatePaperCutEnabled = cm.isConfigValue(
+        final boolean delegatePaperCutEnabled = cm.isConfigValue(
                 IConfigProp.Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE);
 
         final boolean monitorPaperCut;
 
-        if (isNonPersonalPrint) {
-            monitorPaperCut = printDelegatePaperCutEnabled;
+        if (isNonPersonalPrintJob) {
+            monitorPaperCut = delegatePaperCutEnabled;
         } else {
-            monitorPaperCut = printDelegatePaperCutEnabled || cm.isConfigValue(
+            monitorPaperCut = delegatePaperCutEnabled || cm.isConfigValue(
                     IConfigProp.Key.PROXY_PRINT_PERSONAL_PAPERCUT_ENABLE);
         }
         return monitorPaperCut;

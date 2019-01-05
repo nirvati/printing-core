@@ -57,6 +57,7 @@ import javax.mail.MessagingException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.quartz.CronExpression;
 import org.savapage.core.SpException;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
@@ -1124,20 +1125,16 @@ public final class JobTicketServiceImpl extends AbstractService
 
         if (paperCutService().isExtPaperCutPrint(dto.getPrinterRedirect())) {
 
-            if (cm.isConfigValue(Key.PROXY_PRINT_DELEGATE_ENABLE)) {
-                if (cm.isConfigValue(
-                        Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE)) {
-                    extPrinterManager = ThirdPartyEnum.PAPERCUT;
-                } else {
-                    extPrinterManager = null;
-                }
+            final MutableBoolean isDelegatePrint = new MutableBoolean();
+            final MutableBoolean isPersonalPrint = new MutableBoolean();
+
+            paperCutService().checkPrintIntegration(isDelegatePrint,
+                    isPersonalPrint);
+
+            if (isDelegatePrint.isTrue() || isPersonalPrint.isTrue()) {
+                extPrinterManager = ThirdPartyEnum.PAPERCUT;
             } else {
-                if (cm.isConfigValue(
-                        Key.PROXY_PRINT_PERSONAL_PAPERCUT_ENABLE)) {
-                    extPrinterManager = ThirdPartyEnum.PAPERCUT;
-                } else {
-                    extPrinterManager = null;
-                }
+                extPrinterManager = null;
             }
 
         } else {
