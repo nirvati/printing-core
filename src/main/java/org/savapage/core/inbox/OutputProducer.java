@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@ import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.UserHomePathEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
@@ -63,11 +64,6 @@ public final class OutputProducer {
      */
     private static final InboxService INBOX_SERVICE =
             ServiceContext.getServiceFactory().getInboxService();
-
-    /**
-     *
-     */
-    private static final String USER_LETTERHEADS_DIR_NAME = "letterheads";
 
     /**
      * The logger.
@@ -158,9 +154,7 @@ public final class OutputProducer {
             if (isLetterheadPublic) {
                 jobHomeDir = ConfigManager.getLetterheadDir();
             } else {
-                jobHomeDir = String.format("%s%c%s",
-                        ConfigManager.getUserHomeDir(user), File.separatorChar,
-                        USER_LETTERHEADS_DIR_NAME);
+                jobHomeDir = UserHomePathEnum.LETTERHEADS.getFullPath(user);
             }
 
             pageImageInfo = new InboxPageImageInfo();

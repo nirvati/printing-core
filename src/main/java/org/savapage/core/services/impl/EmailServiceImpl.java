@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -58,6 +58,7 @@ import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.config.ServerPathEnum;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.FileSystemHelper;
@@ -430,7 +431,7 @@ public final class EmailServiceImpl extends AbstractService
         }
 
         final Path filePath = Paths.get(ConfigManager.getServerHome(),
-                ConfigManager.getServerRelativeEmailOutboxPath(), fileBaseName);
+                ServerPathEnum.EMAIL_OUTBOX.getPath(), fileBaseName);
 
         FileSystemHelper.doAtomicFileMove(filePathTemp, filePath);
     }
@@ -459,7 +460,7 @@ public final class EmailServiceImpl extends AbstractService
     @Override
     public Path getOutboxMimeFilesPath() {
         return Paths.get(ConfigManager.getServerHome(),
-                ConfigManager.getServerRelativeEmailOutboxPath());
+                ServerPathEnum.EMAIL_OUTBOX.getPath());
     }
 
     @Override

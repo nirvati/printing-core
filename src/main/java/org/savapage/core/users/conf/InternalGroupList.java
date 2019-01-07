@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -32,6 +32,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.ServerPathEnum;
 import org.savapage.core.users.AbstractUserSource.CommonUserComparator;
 import org.savapage.core.users.CommonUser;
 
@@ -41,6 +42,9 @@ import org.savapage.core.users.CommonUser;
  *
  */
 public final class InternalGroupList {
+
+    /** */
+    private static final String INTERNAL_GROUPS_TXT = "internal-groups.txt";
 
     /**
      * .
@@ -117,7 +121,7 @@ public final class InternalGroupList {
     private static File getFile() {
         return Paths
                 .get(ConfigManager.getServerHome(),
-                        ConfigManager.SERVER_REL_PATH_INTERNAL_GROUPS_TXT)
+                        ServerPathEnum.DATA_CONF.getPath(), INTERNAL_GROUPS_TXT)
                 .toFile();
     }
 

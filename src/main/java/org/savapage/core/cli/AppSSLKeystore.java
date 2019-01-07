@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -57,7 +57,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.RunMode;
+import org.savapage.core.config.RunModeEnum;
 import org.savapage.core.jpa.tools.DatabaseTypeEnum;
 import org.savapage.core.util.IOHelper;
 
@@ -453,7 +453,8 @@ public final class AppSSLKeystore extends AbstractApp {
          * Initialize as basic library. See {@link
          * ConfigManager#initAsBasicLibrary(Properties)}.
          */
-        ConfigManager.instance().init(RunMode.LIB, DatabaseTypeEnum.Internal);
+        ConfigManager.instance().init(RunModeEnum.LIB,
+                DatabaseTypeEnum.Internal);
     }
 
     /**

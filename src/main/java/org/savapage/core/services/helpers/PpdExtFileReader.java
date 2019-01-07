@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.ServerPathEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.rules.IppRuleConstraint;
@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Reader of file with SavaPage PPD extensions from
- * {@link ConfigManager#SERVER_REL_PATH_CUSTOM_CUPS}.
+ * {@link ServerPathEnum#CUSTOM_CUPS}.
  *
  * @author Rijk Ravestein
  *
@@ -1517,10 +1517,9 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 }
             }
             //
-            if (keywordIpp
-                    .equals(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE)) {
-                proxyPrinter.setManualMediaSource(Boolean.valueOf(opt
-                        .getChoice(IppKeyword.MEDIA_SOURCE_MANUAL) != null));
+            if (keywordIpp.equals(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE)) {
+                proxyPrinter.setManualMediaSource(Boolean.valueOf(
+                        opt.getChoice(IppKeyword.MEDIA_SOURCE_MANUAL) != null));
             }
 
             if (keywordIpp

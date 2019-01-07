@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.RunMode;
+import org.savapage.core.config.RunModeEnum;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.impl.DaoContextImpl;
 import org.savapage.core.job.DocLogClean;
@@ -243,12 +243,12 @@ public final class AppDb extends AbstractApp {
 
                 listener.onLogEvent("Starting ...");
 
-                ConfigManager.instance().init(RunMode.CORE,
+                ConfigManager.instance().init(RunModeEnum.CORE,
                         DatabaseTypeEnum.Internal);
 
             } else {
 
-                ConfigManager.instance().init(RunMode.LIB,
+                ConfigManager.instance().init(RunModeEnum.LIB,
                         DatabaseTypeEnum.Internal);
 
                 DbVersionInfo info =

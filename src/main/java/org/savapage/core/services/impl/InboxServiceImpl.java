@@ -58,6 +58,7 @@ import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.config.UserHomePathEnum;
 import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.doc.DocContent;
@@ -133,11 +134,6 @@ public final class InboxServiceImpl implements InboxService {
      *
      */
     private static final String INBOX_DESCRIPT_FILE_NAME = "savapage.json";
-
-    /**
-     *
-     */
-    private static final String LETTERHEADS_DIR_NAME = "letterheads";
 
     /**
      *
@@ -859,7 +855,7 @@ public final class InboxServiceImpl implements InboxService {
         if (user == null) {
             return ConfigManager.getLetterheadDir();
         }
-        return ConfigManager.getUserHomeDir(user) + "/" + LETTERHEADS_DIR_NAME;
+        return UserHomePathEnum.LETTERHEADS.getFullPath(user);
     }
 
     @Override

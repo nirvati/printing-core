@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -47,6 +47,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.config.UserHomePathEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.doc.DocContent;
@@ -101,11 +102,6 @@ public final class OutboxServiceImpl extends AbstractService
     *
     */
     private static final String OUTBOX_DESCRIPT_FILE_NAME = "outbox.json";
-
-    /**
-     * .
-     */
-    private static final String USER_RELATIVE_OUTBOX_PATH = "outbox";
 
     /**
      * Implementation of execution pattern for proxy printing from the user
@@ -192,7 +188,7 @@ public final class OutboxServiceImpl extends AbstractService
     public File getUserOutboxDir(final String userId) {
         return FileSystems.getDefault()
                 .getPath(ConfigManager.getUserHomeDir(userId),
-                        USER_RELATIVE_OUTBOX_PATH)
+                        UserHomePathEnum.OUTBOX.getPath())
                 .toFile();
     }
 
@@ -211,7 +207,8 @@ public final class OutboxServiceImpl extends AbstractService
     private static File getOutboxInfoFilePath(final String userId) {
         return FileSystems.getDefault()
                 .getPath(ConfigManager.getUserHomeDir(userId),
-                        USER_RELATIVE_OUTBOX_PATH, OUTBOX_DESCRIPT_FILE_NAME)
+                        UserHomePathEnum.OUTBOX.getPath(),
+                        OUTBOX_DESCRIPT_FILE_NAME)
                 .toFile();
     }
 

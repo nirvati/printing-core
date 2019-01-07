@@ -36,6 +36,7 @@ import java.text.MessageFormat;
 
 import org.apache.commons.io.FileUtils;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.UserHomePathEnum;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAttr;
@@ -61,11 +62,6 @@ public final class PGPPublicKeyServiceImpl extends AbstractService
      */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(PGPPublicKeyServiceImpl.class);
-
-    /**
-     * .
-     */
-    private static final String USER_HOME_PGP_PUBRING_PATH = "pgp.pubring";
 
     /**
      * The URL path of an PKS to preview the content of PGP Public Key as
@@ -166,7 +162,7 @@ public final class PGPPublicKeyServiceImpl extends AbstractService
     private File getRingEntry(final User user, final PGPKeyID keyID) {
         final Path path = Paths.get(
                 ConfigManager.getUserHomeDir(user.getUserId()),
-                USER_HOME_PGP_PUBRING_PATH,
+                UserHomePathEnum.PGP_PUBRING.getPath(),
                 keyID.toHex().concat(".").concat(PGPHelper.FILENAME_EXT_ASC));
         return path.toFile();
     }

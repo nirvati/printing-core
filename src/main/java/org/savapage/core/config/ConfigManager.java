@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -154,105 +154,11 @@ public final class ConfigManager {
     /**
      *
      */
-    private RunMode runMode = null;
+    private RunModeEnum runMode = null;
 
-    /**
-     * The relative path of the custom template files (relative to the
-     * {@code server} directory).
-     */
-    public static final String SERVER_REL_PATH_CUSTOM_TEMPLATE =
-            "custom/template";
-
-    /**
-     * The relative path of the CUPS custom properties files (relative to the
-     * {@code server} directory).
-     */
-    public static final String SERVER_REL_PATH_CUSTOM_CUPS = "custom/cups";
-
-    /**
-     * The relative path of the custom i18n properties files (relative to the
-     * {@code server} directory).
-     */
-    public static final String SERVER_REL_PATH_CUSTOM_I18N = "custom/i18n";
-
-    /**
-     * The relative path of the CUPS custom i18n XML files (relative to the
-     * {@code server} directory).
-     */
-    public static final String SERVER_REL_PATH_CUSTOM_CUPS_I18N =
-            SERVER_REL_PATH_CUSTOM_CUPS + "/i18n";
-
-    /**
-     * The relative path of the HTML injectable files (relative to the
-     * {@code server} directory).
-     */
-    public static final String SERVER_REL_PATH_CUSTOM_HTML = "custom/html";
-
-    /**
-     * The relative path of the data folder (relative to the {@code server}
-     * directory).
-     */
-    private static final String SERVER_REL_PATH_DATA = "data";
-
-    /**
-     * The relative path of the email outbox folder (relative to the
-     * {@code server} directory).
-     */
-    private static final String SERVER_REL_PATH_EMAIL_OUTBOX =
-            "data/email-outbox";
-
-    /**
-     * The relative path of the default SafePages folder (relative to the
-     * {@code server} directory).
-     */
-    private static final String SERVER_REL_PATH_SAFEPAGES_DEFAULT =
-            "data/internal/safepages";
-
-    /**
-     * The relative path of the print-jobtickets folder (relative to the
-     * {@code server} directory).
-     */
-    private static final String SERVER_REL_PATH_PRINT_JOBTICKETS =
-            "data/print-jobtickets";
-
-    /**
-     * The relative path of the doc archive folder (relative to the
-     * {@code server} directory).
-     */
-    private static final String SERVER_REL_PATH_DOC_ARCHIVE =
-            "data/doc-archive";
-
-    /**
-     * The relative path of the doc journal folder (relative to the
-     * {@code server} directory).
-     */
-    private static final String SERVER_REL_PATH_DOC_JOURNAL =
-            "data/doc-journal";
-
-    /**
-     * The relative path of the Atom Feeds folder (relative to the
-     * {@code server} directory).
-     */
-    private static final String SERVER_REL_PATH_FEEDS = "data/feed";
-
-    /**
-     * .
-     */
-    private static final String SERVER_REL_PATH_USERNAME_ALIASES_TXT =
-            "data/conf/username-aliases.txt";
-
-    /**
-     * .
-     */
-    public static final String SERVER_REL_PATH_INTERNAL_GROUPS_TXT =
-            "data/conf/internal-groups.txt";
-
-    /**
-     * The relative path of the encryption.properties file (relative to the
-     * {@code server} directory).
-     */
-    public static final String SERVER_REL_PATH_ENCRYPTION_PROPERTIES =
-            "data/encryption.properties";
+    /** */
+    private static final String SERVER_DATA_CONF_USERNAME_ALIASES_TXT =
+            "username-aliases.txt";
 
     /**
      * Path of SAVAPAGE.ppd (case sensitive!) relative to
@@ -770,15 +676,6 @@ public final class ConfigManager {
     }
 
     /**
-     *
-     * @return The relative path of the email outbox folder (relative to the
-     *         {@code server} directory).
-     */
-    public static String getServerRelativeEmailOutboxPath() {
-        return SERVER_REL_PATH_EMAIL_OUTBOX;
-    }
-
-    /**
      * @return The SafePages home path.
      */
     public static String getSafePagesHomeDir() {
@@ -787,8 +684,9 @@ public final class ConfigManager {
                 theServerProps.getProperty(SERVER_PROP_APP_DIR_SAFEPAGES);
 
         if (homeSafePages == null) {
-            homeSafePages = String.format("%s%c%s", getServerHome(),
-                    File.separatorChar, SERVER_REL_PATH_SAFEPAGES_DEFAULT);
+            homeSafePages =
+                    String.format("%s%c%s", getServerHome(), File.separatorChar,
+                            ServerPathEnum.SAFEPAGES_DEFAULT.getPath());
         }
 
         return homeSafePages;
@@ -947,7 +845,8 @@ public final class ConfigManager {
      * @return The directory path with the print jobtickets.
      */
     public static Path getJobTicketsHome() {
-        return Paths.get(getServerHome(), SERVER_REL_PATH_PRINT_JOBTICKETS);
+        return Paths.get(getServerHome(),
+                ServerPathEnum.PRINT_JOBTICKETS.getPath());
     }
 
     /**
@@ -958,9 +857,11 @@ public final class ConfigManager {
     public static Path getDocStoreHome(final DocStoreTypeEnum store) {
         switch (store) {
         case ARCHIVE:
-            return Paths.get(getServerHome(), SERVER_REL_PATH_DOC_ARCHIVE);
+            return Paths.get(getServerHome(),
+                    ServerPathEnum.DOC_ARCHIVE.getPath());
         case JOURNAL:
-            return Paths.get(getServerHome(), SERVER_REL_PATH_DOC_JOURNAL);
+            return Paths.get(getServerHome(),
+                    ServerPathEnum.DOC_JOURNAL.getPath());
         default:
             throw new UnknownError(store.toString());
         }
@@ -971,7 +872,7 @@ public final class ConfigManager {
      * @return The directory path with the Admin Atom Feeds.
      */
     public static Path getAtomFeedsHome() {
-        return Paths.get(getServerHome(), SERVER_REL_PATH_FEEDS);
+        return Paths.get(getServerHome(), ServerPathEnum.FEEDS.getPath());
     }
 
     /**
@@ -1002,7 +903,7 @@ public final class ConfigManager {
      */
     public static File getServerCustomTemplateHome() {
         return new File(String.format("%s%c%s", getServerHome(),
-                File.separatorChar, SERVER_REL_PATH_CUSTOM_TEMPLATE));
+                File.separatorChar, ServerPathEnum.CUSTOM_TEMPLATE.getPath()));
     }
 
     /**
@@ -1031,16 +932,16 @@ public final class ConfigManager {
      * @return The directory with the custom CUPS files.
      */
     public static File getServerCustomCupsHome() {
-        return new File(String.format("%s/%s", getServerHome(),
-                SERVER_REL_PATH_CUSTOM_CUPS));
+        return new File(String.format("%s%c%s", getServerHome(),
+                File.separatorChar, ServerPathEnum.CUSTOM_CUPS.getPath()));
     }
 
     /**
      * @return The directory with the custom CUPS i18n files.
      */
     public static File getServerCustomCupsI18nHome() {
-        return new File(String.format("%s/%s", getServerHome(),
-                SERVER_REL_PATH_CUSTOM_CUPS_I18N));
+        return new File(String.format("%s%c%s", getServerHome(),
+                File.separatorChar, ServerPathEnum.CUSTOM_CUPS_I18N.getPath()));
     }
 
     /**
@@ -1052,7 +953,7 @@ public final class ConfigManager {
      */
     public static File getServerCustomI18nHome(final Class<?> clazz) {
 
-        return Paths.get(getServerHome(), SERVER_REL_PATH_CUSTOM_I18N,
+        return Paths.get(getServerHome(), ServerPathEnum.CUSTOM_I18N.getPath(),
                 StringUtils.replace(clazz.getPackage().getName(), ".",
                         File.separator))
                 .toFile();
@@ -1063,7 +964,7 @@ public final class ConfigManager {
      */
     public static File getServerCustomHtmlHome() {
         return new File(String.format("%s%c%s", getServerHome(),
-                File.separatorChar, SERVER_REL_PATH_CUSTOM_HTML));
+                File.separatorChar, ServerPathEnum.CUSTOM_HTML.getPath()));
     }
 
     /**
@@ -1328,7 +1229,7 @@ public final class ConfigManager {
     }
 
     /**
-     * Initializes the core application depending on the {@link RunMode}.
+     * Initializes the core application depending on the {@link RunModeEnum}.
      * <p>
      * Additional initialization methods like {@link #initScheduler()} can be
      * called. The generic {@link #exit()} method takes care of closing down the
@@ -1344,7 +1245,7 @@ public final class ConfigManager {
      *            The default database type.
      * @throws Exception
      */
-    public synchronized void init(final RunMode mode,
+    public synchronized void init(final RunModeEnum mode,
             final DatabaseTypeEnum databaseTypeDefault) throws Exception {
 
         if (runMode != null) {
@@ -1396,13 +1297,11 @@ public final class ConfigManager {
             return;
         }
 
-        final File secretFile =
-                Paths.get(getServerHome(), SERVER_REL_PATH_DATA, secretFileName)
-                        .toFile();
+        final File secretFile = Paths.get(getServerHome(),
+                ServerPathEnum.DATA.getPath(), secretFileName).toFile();
 
-        final File publicFile =
-                Paths.get(getServerHome(), SERVER_REL_PATH_DATA, publicFileName)
-                        .toFile();
+        final File publicFile = Paths.get(getServerHome(),
+                ServerPathEnum.DATA.getPath(), publicFileName).toFile();
 
         final PGPHelper helper = PGPHelper.instance();
 
@@ -1847,8 +1746,11 @@ public final class ConfigManager {
      *             When IO errors reading the list.
      */
     private int initUserAliasList() throws IOException {
-        return UserAliasList.instance().load(new File(
-                getServerHome() + "/" + SERVER_REL_PATH_USERNAME_ALIASES_TXT));
+        return UserAliasList.instance()
+                .load(new File(String.format("%s%c%s%c%s", getServerHome(),
+                        File.separatorChar, ServerPathEnum.DATA_CONF.getPath(),
+                        File.separatorChar,
+                        SERVER_DATA_CONF_USERNAME_ALIASES_TXT)));
     }
 
     /**
@@ -2512,7 +2414,7 @@ public final class ConfigManager {
     }
 
     /**
-     * Shuts down the initialized components. See {@link #init(RunMode)}.
+     * Shuts down the initialized components. See {@link #init(RunModeEnum)}.
      * <p>
      * Method is idempotent: calling it a second time has no effect.
      * </p>
@@ -2525,7 +2427,7 @@ public final class ConfigManager {
         setShutdownInProgress();
 
         final boolean isServerRunMode =
-                runMode != null && runMode == RunMode.SERVER;
+                runMode != null && runMode == RunModeEnum.SERVER;
 
         if (isServerRunMode) {
 
