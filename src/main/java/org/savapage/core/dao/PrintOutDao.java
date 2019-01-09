@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,8 @@ package org.savapage.core.dao;
 import java.util.List;
 import java.util.Map;
 
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
@@ -35,6 +37,36 @@ import org.savapage.core.print.proxy.JsonProxyPrintJob;
  *
  */
 public interface PrintOutDao extends GenericDao<PrintOut> {
+
+    /**
+     * @return Number of distinct active CUPS jobs.
+     */
+    long countActiveCupsJobs();
+
+    /**
+     * @return Number of distinct users with active CUPS jobs.
+     */
+    long countActiveCupsJobUsers();
+
+    /**
+     * @param suppl
+     *            External supplier.
+     * @param stat
+     *            External status.
+     * @return Number of jobs.
+     */
+    long countExtSupplierJobs(ExternalSupplierEnum suppl,
+            ExternalSupplierStatusEnum stat);
+
+    /**
+     * @param suppl
+     *            External supplier.
+     * @param stat
+     *            External status.
+     * @return Number of distinct users with jobs.
+     */
+    long countExtSupplierJobUsers(ExternalSupplierEnum suppl,
+            ExternalSupplierStatusEnum stat);
 
     /**
      * Finds the CUPS print job with the identifying attributes equal to the

@@ -56,7 +56,15 @@ import org.savapage.ext.papercut.PaperCutUser;
 public interface PaperCutService extends StatefulService {
 
     /**
-     * Checks Proxy Print integration by setting mutable parameters.
+     * Checks if PaperCut Delegated or Personal Print is enabled.
+     *
+     * @return {@code true} if enabled.
+     */
+    boolean checkPrintIntegration();
+
+    /**
+     * Checks if PaperCut Delegated or Personal Print is enable. Mutable
+     * parameters are set.
      *
      * @param isDelegatePrint
      *            Delegated Print.

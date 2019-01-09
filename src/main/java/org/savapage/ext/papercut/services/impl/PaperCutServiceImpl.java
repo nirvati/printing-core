@@ -98,6 +98,14 @@ public final class PaperCutServiceImpl extends AbstractService
     }
 
     @Override
+    public boolean checkPrintIntegration() {
+        final MutableBoolean isDelegatePrint = new MutableBoolean();
+        final MutableBoolean isPersonalPrint = new MutableBoolean();
+        this.checkPrintIntegration(isDelegatePrint, isPersonalPrint);
+        return isDelegatePrint.booleanValue() || isPersonalPrint.booleanValue();
+    }
+
+    @Override
     public void checkPrintIntegration(final MutableBoolean isDelegatedPrint,
             final MutableBoolean isPersonalPrint) {
 
