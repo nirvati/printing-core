@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -51,6 +51,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.dao.PrinterAttrDao;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
@@ -3526,7 +3527,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 if (clientSideMonochrome != null
                         && clientSideMonochrome.booleanValue()) {
 
-                    printerAttr.setValue(clientSideMonochrome.toString());
+                    printerAttr.setValue(PrinterAttrDao.V_YES);
                     clientSideMonochrome = null;
 
                 } else {
@@ -3663,7 +3664,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 && clientSideMonochrome.booleanValue()) {
             createAddPrinterAttr(printer,
                     PrinterAttrEnum.CLIENT_SIDE_MONOCHROME,
-                    clientSideMonochrome.toString());
+                    PrinterAttrDao.V_YES);
         }
 
         /*
