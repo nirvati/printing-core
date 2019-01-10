@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -77,6 +77,12 @@ public enum PrinterAttrEnum {
      * Enable as Job Ticket Printer. Boolean: Y | N
      */
     JOBTICKET_ENABLE("jobticket.enable"),
+
+    /**
+     * Enable as Job Ticket Tags for Printer. Boolean: Y | N. When not present N
+     * is assumed.
+     */
+    JOBTICKET_TAGS_ENABLE("jobticket.tags.enable"),
 
     /**
      * Printer Group with compatible redirect printers for JobTicket Printer.

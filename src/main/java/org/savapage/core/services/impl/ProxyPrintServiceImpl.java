@@ -2541,6 +2541,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         dto.setJobTicketGroup(printerService().getAttributeValue(printer,
                 PrinterAttrEnum.JOBTICKET_PRINTER_GROUP));
 
+        dto.setJobTicketTagsEnabled(
+                printerService().isJobTicketTagsEnabled(printer));
+
         /*
          * Printer Groups.
          */
@@ -2718,6 +2721,9 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 dto.getJobTicket());
         setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOBTICKET_PRINTER_GROUP,
                 dto.getJobTicketGroup());
+        setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOBTICKET_TAGS_ENABLE,
+                Boolean.valueOf(BooleanUtils.isNotTrue(dto.getJobTicket())
+                        && BooleanUtils.isTrue(dto.getJobTicketTagsEnabled())));
 
         /*
          * Printer Groups.

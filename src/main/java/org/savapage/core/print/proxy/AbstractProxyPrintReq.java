@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -122,6 +122,9 @@ public abstract class AbstractProxyPrintReq
      * {@code true} if booklet page ordering is performed client-side (locally).
      */
     private boolean localBooklet = false;
+
+    /** */
+    private String jobTicketTag;
 
     //
     private Locale locale = Locale.getDefault();
@@ -755,6 +758,21 @@ public abstract class AbstractProxyPrintReq
      */
     public void setLocalBooklet(boolean localBooklet) {
         this.localBooklet = localBooklet;
+    }
+
+    /**
+     * @return Job Ticket Tag or {@code null}.
+     */
+    public String getJobTicketTag() {
+        return jobTicketTag;
+    }
+
+    /**
+     * @param jobTicketTag
+     *            Job Ticket Tag or {@code null}.
+     */
+    public void setJobTicketTag(String jobTicketTag) {
+        this.jobTicketTag = jobTicketTag;
     }
 
 }

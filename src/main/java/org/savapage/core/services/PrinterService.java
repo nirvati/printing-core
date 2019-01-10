@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -95,6 +95,29 @@ public interface PrinterService {
      * @return {@code true} when document store is disabled.
      */
     boolean isDocStoreDisabled(DocStoreTypeEnum store, Printer printer);
+
+
+    /**
+     * Reads the database to check if Job Tickets Tags is enabled.
+     *
+     * @param id
+     *            The database primary key.
+     * @return {@code true} when Job Tickets Tags is enabled.
+     */
+    boolean isJobTicketTagsEnabled(Long id);
+
+    /**
+     * Checks if Job Tickets Tags is enabled.
+     * <p>
+     * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
+     * find the {@link PrinterAttrEnum} value.
+     * </p>
+     *
+     * @param printer
+     *            The {@link Printer}.
+     * @return {@code true} when Job Tickets Tags is enabled.
+     */
+    boolean isJobTicketTagsEnabled(Printer printer);
 
     /**
      * Reads the database to check if printer is a Job Ticket printer.

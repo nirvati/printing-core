@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -69,6 +69,11 @@ public class JsonPrinter extends JsonAbstractBase {
      * Indicates whether this printer is used to produce a job ticket.
      */
     private Boolean jobTicket = Boolean.FALSE;
+
+    /**
+     * Indicates whether Job Ticket Tags are enabled.
+     */
+    private Boolean jobTicketTagsEnabled = Boolean.FALSE;
 
     /**
      * The unique name of the Card Reader (when reader secured).
@@ -140,6 +145,14 @@ public class JsonPrinter extends JsonAbstractBase {
         this.jobTicket = jobTicket;
     }
 
+    public Boolean getJobTicketTagsEnabled() {
+        return jobTicketTagsEnabled;
+    }
+
+    public void setJobTicketTagsEnabled(Boolean jobTicketTagsEnabled) {
+        this.jobTicketTagsEnabled = jobTicketTagsEnabled;
+    }
+
     public String getReaderName() {
         return readerName;
     }
@@ -177,6 +190,7 @@ public class JsonPrinter extends JsonAbstractBase {
         copy.authMode = this.authMode;
         copy.printerUri = this.printerUri;
         copy.jobTicket = this.jobTicket;
+        copy.jobTicketTagsEnabled = this.jobTicketTagsEnabled;
     }
 
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -87,11 +87,13 @@ public class ProxyPrinterDto extends AbstractDto {
     @JsonProperty("jobTicket")
     Boolean jobTicket;
 
-    /**
-     *
-     */
+    /** */
     @JsonProperty("jobTicketGroup")
     String jobTicketGroup;
+
+    /** */
+    @JsonProperty("jobTicketTagsEnabled")
+    Boolean jobTicketTagsEnabled;
 
     /**
      * Is present in CUPS?
@@ -209,6 +211,14 @@ public class ProxyPrinterDto extends AbstractDto {
 
     public void setJobTicketGroup(String jobTicketGroup) {
         this.jobTicketGroup = jobTicketGroup;
+    }
+
+    public Boolean getJobTicketTagsEnabled() {
+        return jobTicketTagsEnabled;
+    }
+
+    public void setJobTicketTagsEnabled(Boolean jobTicketTagsEnabled) {
+        this.jobTicketTagsEnabled = jobTicketTagsEnabled;
     }
 
 }

@@ -560,6 +560,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printer.setGroups(cupsPrinter.getGroups());
             printer.setPrinterUri(cupsPrinter.getPrinterUri());
             printer.setJobTicket(cupsPrinter.getJobTicket());
+            printer.setJobTicketTagsEnabled(
+                    cupsPrinter.getJobTicketTagsEnabled());
+
             printer.setArchiveDisabled(cupsPrinter.isArchiveDisabled());
 
             /*
@@ -950,6 +953,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                     basicPrinter
                             .setJobTicket(Boolean.valueOf(isJobTicketPrinter));
+
+                    basicPrinter.setJobTicketTagsEnabled(
+                            printer.getJobTicketTagsEnabled());
                 }
 
             }
@@ -1136,8 +1142,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         proxyPrinter.setDbPrinter(dbPrinter);
 
-        proxyPrinter.setJobTicket(
-                printerService().isJobTicketPrinter(dbPrinter.getId()));
+        final boolean isJobTicketPrinter =
+                printerService().isJobTicketPrinter(dbPrinter.getId());
+
+        proxyPrinter.setJobTicket(isJobTicketPrinter);
+        proxyPrinter.setJobTicketTagsEnabled(isJobTicketPrinter
+                || printerService().isJobTicketTagsEnabled(dbPrinter.getId()));
 
         final String ppdfExtFile = printerService().getAttributeValue(dbPrinter,
                 PrinterAttrEnum.CUSTOM_PPD_EXT_FILE);
@@ -2167,6 +2177,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
         } else {
             printReq.setPrinterName(job.getPrinter());
         }
+
+        printReq.setJobTicketTag(job.getJobTicketTag());
 
         printReq.setRemoveGraphics(job.isRemoveGraphics());
         printReq.setEcoPrintShadow(job.isEcoPrint());
@@ -3219,8 +3231,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         final ExternalSupplierInfo supplierInfo = request.getSupplierInfo();
 
-        if (supplierInfo != null) {
-
+        if (supplierInfo == null) {
+            docLog.setExternalId(request.getJobTicketTag());
+        } else {
             docLog.setExternalId(supplierInfo.getId());
             docLog.setExternalStatus(supplierInfo.getStatus());
             docLog.setExternalSupplier(supplierInfo.getSupplier().toString());

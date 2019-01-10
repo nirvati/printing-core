@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -147,6 +147,18 @@ public final class PrinterServiceImpl extends AbstractService
         final PrinterAttr attr = printerAttrDAO().findByName(id,
                 PrinterAttrEnum.JOBTICKET_ENABLE);
         return printerAttrDAO().getBooleanValue(attr);
+    }
+
+    @Override
+    public boolean isJobTicketTagsEnabled(final Long id) {
+        final PrinterAttr attr = printerAttrDAO().findByName(id,
+                PrinterAttrEnum.JOBTICKET_TAGS_ENABLE);
+        return printerAttrDAO().getBooleanValue(attr);
+    }
+    @Override
+    public boolean isJobTicketTagsEnabled(final Printer printer) {
+        return isPrinterAttr(printer, PrinterAttrEnum.JOBTICKET_TAGS_ENABLE,
+                false);
     }
 
     @Override

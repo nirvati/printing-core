@@ -218,6 +218,12 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     private Boolean jobTicket = Boolean.FALSE;
 
     /**
+     * {@code true} when Job Ticket Tags are enabled.
+     */
+    @JsonIgnore
+    private Boolean jobTicketTagsEnabled = Boolean.FALSE;
+
+    /**
      * Gets the corresponding Database Printer Object.
      *
      * @return The db printer object.
@@ -774,6 +780,21 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
+     * @return {@code true} when Job Ticket Tags are enabled.
+     */
+    public Boolean getJobTicketTagsEnabled() {
+        return jobTicketTagsEnabled;
+    }
+
+    /**
+     * @param jobTicketTagsEnabled
+     *            {@code true} when Job Ticket Tags are enabled.
+     */
+    public void setJobTicketTagsEnabled(Boolean jobTicketTagsEnabled) {
+        this.jobTicketTagsEnabled = jobTicketTagsEnabled;
+    }
+
+    /**
      * Creates a deep copy instance.
      *
      * @return The new copy.
@@ -800,6 +821,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.ppdPresent = this.ppdPresent;
         copy.injectPpdExt = this.injectPpdExt;
         copy.jobTicket = this.jobTicket;
+        copy.jobTicketTagsEnabled = this.jobTicketTagsEnabled;
         copy.ppdVersion = this.ppdVersion;
         copy.ppdLandscapeMinus90 = this.ppdLandscapeMinus90;
         copy.printerUri = this.printerUri;

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -341,6 +341,9 @@ public final class OutboxInfoDto extends AbstractDto {
          */
         private Long printOutId;
 
+        /** */
+        private String jobTicketTag;
+
         /**
          *
          */
@@ -481,6 +484,21 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setPrintOutId(Long printOutId) {
             this.printOutId = printOutId;
+        }
+
+        /**
+         * @return Job Ticket Tag or {@code null}.
+         */
+        public String getJobTicketTag() {
+            return jobTicketTag;
+        }
+
+        /**
+         * @param jobTicketTag
+         *            Job Ticket Tag or {@code null}.
+         */
+        public void setJobTicketTag(String jobTicketTag) {
+            this.jobTicketTag = jobTicketTag;
         }
 
         @JsonIgnore
