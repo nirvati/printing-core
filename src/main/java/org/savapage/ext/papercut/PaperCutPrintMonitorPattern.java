@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,6 @@ import java.util.Set;
 import org.apache.commons.lang3.EnumUtils;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
-import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.AccountTrxDao.ListFilter;
@@ -556,52 +555,74 @@ public abstract class PaperCutPrintMonitorPattern
 
         final int printedCopies =
                 docLogOut.getDocOut().getPrintOut().getNumberOfCopies();
-        final int weightTotal;
 
         /*
-         * Which printing cost to use?
+         * Which printing cost to use? And create PaperCut transactions?
          */
-        final CommonSupplierData commonSupplierData;
+        final int weightTotal;
         final BigDecimal weightTotalCost;
+        final boolean createPaperCutTrx;
 
-        if (printMode == PrintModeEnum.TICKET
-                && docLogOut.getExternalData() != null) {
+        if (printMode == PrintModeEnum.TICKET) {
 
-            final JobTicketSupplierData supplierData = JsonAbstractBase.create(
-                    JobTicketSupplierData.class, docLogOut.getExternalData());
+            if (docLogOut.getExternalData() == null) {
+                /*
+                 * TODO: use case?
+                 */
+                createPaperCutTrx = true;
 
-            weightTotalCost = supplierData.getCostTotal();
+                weightTotal = printedCopies;
+                weightTotalCost =
+                        BigDecimal.valueOf(papercutLog.getUsageCost());
 
-            if (supplierData.getWeightTotal() == null) {
-                commonSupplierData = null;
+                LOGGER.warn("{} Print: no external data. Using PaperCut cost.",
+                        printMode);
             } else {
-                commonSupplierData = supplierData;
-            }
+                /*
+                 * Ticket Print.
+                 */
+                createPaperCutTrx = true;
 
+                final JobTicketSupplierData supplierData =
+                        JsonAbstractBase.create(JobTicketSupplierData.class,
+                                docLogOut.getExternalData());
+
+                weightTotalCost = supplierData.getCostTotal();
+
+                if (supplierData.getWeightTotal() == null) {
+                    /*
+                     * TODO: use case?
+                     */
+                    weightTotal = printedCopies;
+                    LOGGER.warn(
+                            "{} Print: no weight total in external data. "
+                                    + "Using printed copies as weight total.",
+                            printMode);
+
+                } else {
+                    weightTotal = supplierData.getWeightTotal().intValue();
+                }
+            }
         } else {
 
+            final PaperCutIntegrationEnum papercutInt =
+                    PAPERCUT_SERVICE.getPrintIntegration();
+
+            createPaperCutTrx =
+                    papercutInt == PaperCutIntegrationEnum.DELEGATED_PRINT;
+            /*
+             * Non-ticket print gets its cost from PaperCut.
+             */
             weightTotalCost = BigDecimal.valueOf(papercutLog.getUsageCost());
 
             if (docLogOut.getExternalData() == null) {
-                commonSupplierData = null;
+                weightTotal = printedCopies;
             } else {
-                commonSupplierData = JsonAbstractBase.create(
-                        CommonSupplierData.class, docLogOut.getExternalData());
+                final CommonSupplierData commonSupplierData =
+                        JsonAbstractBase.create(CommonSupplierData.class,
+                                docLogOut.getExternalData());
+                weightTotal = commonSupplierData.getWeightTotal().intValue();
             }
-        }
-
-        /*
-         * Create PaperCut transactions.
-         */
-        final boolean createPaperCutTrx;
-
-        if (commonSupplierData == null) {
-            createPaperCutTrx = ConfigManager.instance().isConfigValue(
-                    IConfigProp.Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE);
-            weightTotal = printedCopies;
-        } else {
-            createPaperCutTrx = true;
-            weightTotal = commonSupplierData.getWeightTotal().intValue();
         }
 
         final PaperCutAccountAdjustPrint accountAdjustPattern =
