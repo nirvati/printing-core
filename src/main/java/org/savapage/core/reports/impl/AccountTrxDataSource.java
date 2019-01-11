@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -45,6 +45,7 @@ import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.helpers.AccountTrxPagerReq;
+import org.savapage.core.i18n.JobTicketNounEnum;
 import org.savapage.core.i18n.PrintOutNounEnum;
 import org.savapage.core.i18n.PrintOutVerbEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
@@ -494,8 +495,8 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
         if (costPerCopy.compareTo(BigDecimal.ZERO) == 0) {
             printedCopies = BigDecimal.ZERO;
         } else {
-            printedCopies = ACCOUNTING_SERVICE.calcPrintedCopies(
-                    trx.getAmount(), costPerCopy, 2).abs();
+            printedCopies = ACCOUNTING_SERVICE
+                    .calcPrintedCopies(trx.getAmount(), costPerCopy, 2).abs();
         }
 
         final int nCopies =
@@ -582,14 +583,21 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
         }
 
         //
-        final PrintModeEnum printOutMode;
-        printOutMode =
-                EnumUtils.getEnum(PrintModeEnum.class, printOut.getPrintMode());
+        if (StringUtils.isNotBlank(docLog.getExternalId())) {
 
-        if (printOutMode == PrintModeEnum.TICKET
-                || printOutMode == PrintModeEnum.TICKET_C
-                || printOutMode == PrintModeEnum.TICKET_E) {
-            desc.append(BULL_SEP)
+            desc.append(BULL_SEP);
+
+            final PrintModeEnum printOutMode = EnumUtils
+                    .getEnum(PrintModeEnum.class, printOut.getPrintMode());
+
+            if (printOutMode == PrintModeEnum.TICKET
+                    || printOutMode == PrintModeEnum.TICKET_C
+                    || printOutMode == PrintModeEnum.TICKET_E) {
+                desc.append(printOutMode.uiText(locale));
+            } else {
+                desc.append(JobTicketNounEnum.TAG.uiText(locale));
+            }
+            desc.append(" ")
                     .append(StringUtils.defaultString(docLog.getExternalId()));
         }
 

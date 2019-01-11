@@ -108,10 +108,17 @@ public final class PaperCutPrintCommentProcessor {
         this.indicatorPaperSize =
                 convertToPaperSizeIndicator(printOutLog.getPaperSize());
 
-        this.indicatorExternalId =
-                StringUtils.defaultString(docLogOut.getExternalId(),
-                        printOutLog.getCupsJobId().toString());
+        //
+        final StringBuilder extId = new StringBuilder();
+        extId.append(
+                StringUtils.defaultString(docLogOut.getExternalId()).trim());
+        if (extId.length() > 0) {
+            extId.append(" ");
+        }
+        extId.append(printOutLog.getCupsJobId().toString());
+        this.indicatorExternalId = extId.toString();
 
+        //
         if (printOutLog.getGrayscale().booleanValue()) {
             indicatorColor = PaperCutPrintCommentSyntax.INDICATOR_COLOR_OFF;
         } else {
