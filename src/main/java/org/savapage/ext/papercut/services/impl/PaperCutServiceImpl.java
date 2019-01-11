@@ -28,7 +28,6 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.SpInfo;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
@@ -51,6 +50,7 @@ import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutDbProxyPool;
 import org.savapage.ext.papercut.PaperCutException;
 import org.savapage.ext.papercut.PaperCutHelper;
+import org.savapage.ext.papercut.PaperCutIntegrationEnum;
 import org.savapage.ext.papercut.PaperCutPrinterUsageLog;
 import org.savapage.ext.papercut.PaperCutServerProxy;
 import org.savapage.ext.papercut.PaperCutUser;
@@ -98,32 +98,26 @@ public final class PaperCutServiceImpl extends AbstractService
     }
 
     @Override
-    public boolean checkPrintIntegration() {
-        final MutableBoolean isDelegatePrint = new MutableBoolean();
-        final MutableBoolean isPersonalPrint = new MutableBoolean();
-        this.checkPrintIntegration(isDelegatePrint, isPersonalPrint);
-        return isDelegatePrint.booleanValue() || isPersonalPrint.booleanValue();
-    }
-
-    @Override
-    public void checkPrintIntegration(final MutableBoolean isDelegatedPrint,
-            final MutableBoolean isPersonalPrint) {
-
-        isPersonalPrint.setFalse();
-        isDelegatedPrint.setFalse();
+    public PaperCutIntegrationEnum getPrintIntegration() {
 
         if (ConfigManager.isPaperCutPrintEnabled()) {
 
             final ConfigManager cm = ConfigManager.instance();
 
             if (cm.isConfigValue(IConfigProp.Key.PROXY_PRINT_DELEGATE_ENABLE)) {
-                isDelegatedPrint.setValue(cm.isConfigValue(
-                        IConfigProp.Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE));
+                if (cm.isConfigValue(
+                        IConfigProp.Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE)) {
+                    return PaperCutIntegrationEnum.DELEGATED_PRINT;
+                }
             } else {
-                isPersonalPrint.setValue(cm.isConfigValue(
-                        IConfigProp.Key.PROXY_PRINT_PERSONAL_PAPERCUT_ENABLE));
+                if (cm.isConfigValue(
+                        IConfigProp.Key.PROXY_PRINT_PERSONAL_PAPERCUT_ENABLE)) {
+                    return PaperCutIntegrationEnum.PERSONAL_PRINT;
+                }
             }
         }
+
+        return PaperCutIntegrationEnum.NONE;
     }
 
     @Override
@@ -185,6 +179,7 @@ public final class PaperCutServiceImpl extends AbstractService
         if (supplierInfo == null) {
 
             supplierInfoWrk = new ExternalSupplierInfo();
+            supplierInfoWrk.setId(printReq.getJobTicketTag());
             supplierInfoWrk.setSupplier(ExternalSupplierEnum.SAVAPAGE);
 
             if (printReq.getAccountTrxInfoSet() != null) {

@@ -27,7 +27,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
@@ -39,6 +38,7 @@ import org.savapage.ext.papercut.PaperCutAccountTrx;
 import org.savapage.ext.papercut.PaperCutDb;
 import org.savapage.ext.papercut.PaperCutDbProxy;
 import org.savapage.ext.papercut.PaperCutException;
+import org.savapage.ext.papercut.PaperCutIntegrationEnum;
 import org.savapage.ext.papercut.PaperCutPrinterUsageLog;
 import org.savapage.ext.papercut.PaperCutServerProxy;
 import org.savapage.ext.papercut.PaperCutUser;
@@ -56,23 +56,11 @@ import org.savapage.ext.papercut.PaperCutUser;
 public interface PaperCutService extends StatefulService {
 
     /**
-     * Checks if PaperCut Delegated or Personal Print is enabled.
+     * Checks if PaperCut Delegated or Personal Print is enabled (or none).
      *
-     * @return {@code true} if enabled.
+     * @return {@link PaperCutIntegrationEnum}.
      */
-    boolean checkPrintIntegration();
-
-    /**
-     * Checks if PaperCut Delegated or Personal Print is enable. Mutable
-     * parameters are set.
-     *
-     * @param isDelegatePrint
-     *            Delegated Print.
-     * @param isPersonalPrint
-     *            Personal Print.
-     */
-    void checkPrintIntegration(MutableBoolean isDelegatePrint,
-            MutableBoolean isPersonalPrint);
+    PaperCutIntegrationEnum getPrintIntegration();
 
     /**
      * Checks if PaperCut integration for Printer is applicable.

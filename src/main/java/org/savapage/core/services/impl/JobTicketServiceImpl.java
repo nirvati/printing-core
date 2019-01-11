@@ -57,7 +57,6 @@ import javax.mail.MessagingException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.quartz.CronExpression;
 import org.savapage.core.SpException;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
@@ -124,6 +123,7 @@ import org.savapage.core.template.email.JobTicketEmailTemplate;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.ext.papercut.PaperCutHelper;
+import org.savapage.ext.papercut.PaperCutIntegrationEnum;
 import org.savapage.ext.smartschool.SmartschoolPrintInData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1125,16 +1125,11 @@ public final class JobTicketServiceImpl extends AbstractService
 
         if (paperCutService().isExtPaperCutPrint(dto.getPrinterRedirect())) {
 
-            final MutableBoolean isDelegatePrint = new MutableBoolean();
-            final MutableBoolean isPersonalPrint = new MutableBoolean();
-
-            paperCutService().checkPrintIntegration(isDelegatePrint,
-                    isPersonalPrint);
-
-            if (isDelegatePrint.isTrue() || isPersonalPrint.isTrue()) {
-                extPrinterManager = ThirdPartyEnum.PAPERCUT;
-            } else {
+            if (paperCutService()
+                    .getPrintIntegration() == PaperCutIntegrationEnum.NONE) {
                 extPrinterManager = null;
+            } else {
+                extPrinterManager = ThirdPartyEnum.PAPERCUT;
             }
 
         } else {

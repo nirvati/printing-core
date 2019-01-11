@@ -2302,10 +2302,14 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             commonSupplierData = supplierData;
 
-        } else if (isProxyPrint && monitorPaperCutPrintStatus) {
-            commonSupplierData = new CommonSupplierData();
         } else {
-            commonSupplierData = null;
+            docLog.setExternalId(job.getJobTicketTag());
+
+            if (isProxyPrint && monitorPaperCutPrintStatus) {
+                commonSupplierData = new CommonSupplierData();
+            } else {
+                commonSupplierData = null;
+            }
         }
 
         final int weightTotal;
