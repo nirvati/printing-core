@@ -128,20 +128,14 @@ public final class PaperCutServiceImpl extends AbstractService
             return false;
         }
 
-        final ConfigManager cm = ConfigManager.instance();
-
-        final boolean delegatePaperCutEnabled = cm.isConfigValue(
-                IConfigProp.Key.PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE);
-
-        final boolean monitorPaperCut;
+        final PaperCutIntegrationEnum integration = this.getPrintIntegration();
 
         if (isNonPersonalPrintJob) {
-            monitorPaperCut = delegatePaperCutEnabled;
+            return integration == PaperCutIntegrationEnum.DELEGATED_PRINT;
         } else {
-            monitorPaperCut = delegatePaperCutEnabled || cm.isConfigValue(
-                    IConfigProp.Key.PROXY_PRINT_PERSONAL_PAPERCUT_ENABLE);
+            return integration == PaperCutIntegrationEnum.DELEGATED_PRINT
+                    || integration == PaperCutIntegrationEnum.PERSONAL_PRINT;
         }
-        return monitorPaperCut;
     }
 
     /**
@@ -155,7 +149,7 @@ public final class PaperCutServiceImpl extends AbstractService
      *            The {@link ExternalSupplierInfo}: when {@code null},
      *            {@link ExternalSupplierEnum#SAVAPAGE} is assumed.
      * @param printMode
-     *            when {@code null}, {@link PrintModeEnum#PUSH} is assumed.
+     *            {@link PrintModeEnum}.
      * @return The {@link ExternalSupplierInfo} input, or when input
      *         {@code null}, the newly created instance.
      */
@@ -164,15 +158,7 @@ public final class PaperCutServiceImpl extends AbstractService
             final ExternalSupplierInfo supplierInfo,
             final PrintModeEnum printMode) {
 
-        final PrintModeEnum printModeWrk;
-
-        if (printMode == null) {
-            printModeWrk = PrintModeEnum.PUSH;
-        } else {
-            printModeWrk = printMode;
-        }
-
-        printReq.setPrintMode(printModeWrk);
+        printReq.setPrintMode(printMode);
 
         final ExternalSupplierInfo supplierInfoWrk;
 

@@ -2261,7 +2261,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             if (printMode == PrintModeEnum.TICKET) {
                 printModeWrk = printMode;
             } else {
-                printModeWrk = null;
+                printModeWrk = PrintModeEnum.PUSH;
             }
             paperCutService().prepareForExtPaperCut(printReq, supplierInfo,
                     printModeWrk);

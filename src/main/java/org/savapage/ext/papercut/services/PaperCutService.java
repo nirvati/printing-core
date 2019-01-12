@@ -100,7 +100,7 @@ public interface PaperCutService extends StatefulService {
      *            The {@link ExternalSupplierInfo}: when {@code null},
      *            {@link ExternalSupplierEnum#SAVAPAGE} is assumed.
      * @param printMode
-     *            when {@code null}, {@link PrintModeEnum#PUSH} is assumed.
+     *            {@link PrintModeEnum}.
      */
     void prepareForExtPaperCut(AbstractProxyPrintReq printReq,
             ExternalSupplierInfo supplierInfo, PrintModeEnum printMode);
@@ -119,7 +119,7 @@ public interface PaperCutService extends StatefulService {
      *            The {@link ExternalSupplierInfo}: when {@code null},
      *            {@link ExternalSupplierEnum#SAVAPAGE} is assumed.
      * @param printMode
-     *            when {@code null}, {@link PrintModeEnum#PUSH} is assumed.
+     *            {@link PrintModeEnum}.
      * @return The {@link ExternalSupplierInfo} input, or when input
      *         {@code null}, the newly created instance.
      */

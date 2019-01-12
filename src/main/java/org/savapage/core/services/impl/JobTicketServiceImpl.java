@@ -1486,7 +1486,7 @@ public final class JobTicketServiceImpl extends AbstractService
                  * Prepare for PaperCut in retry mode.
                  */
                 paperCutService().prepareForExtPaperCutRetry(request,
-                        supplierInfo, null);
+                        supplierInfo, PrintModeEnum.PUSH);
 
                 documentTitleRetry = request.getJobName();
                 extSupplierStatusRetry =
