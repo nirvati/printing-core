@@ -107,9 +107,9 @@ import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.JobTicketExecParms;
 import org.savapage.core.services.helpers.JobTicketQueueInfo;
 import org.savapage.core.services.helpers.JobTicketStats;
-import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.services.helpers.JobTicketTagCache;
 import org.savapage.core.services.helpers.JobTicketWrapperDto;
+import org.savapage.core.services.helpers.PrintSupplierData;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
@@ -1258,10 +1258,10 @@ public final class JobTicketServiceImpl extends AbstractService
     private void retryTicketPrintCharge(final DocLog trxDocLog,
             final int printedCopies) {
 
-        final JobTicketSupplierData supplierData = JobTicketSupplierData.create(
-                JobTicketSupplierData.class, trxDocLog.getExternalData());
+        final PrintSupplierData printSupplierData =
+                PrintSupplierData.createFromData(trxDocLog.getExternalData());
 
-        final BigDecimal costTotal = supplierData.getCostTotal();
+        final BigDecimal costTotal = printSupplierData.getCostTotal();
 
         /*
          * Update DoLog with costs.
@@ -1455,7 +1455,8 @@ public final class JobTicketServiceImpl extends AbstractService
                 if (extSupplierCurrent == null
                         || extSupplierCurrent == ExternalSupplierEnum.SAVAPAGE) {
 
-                    supplierInfo = null;
+                    supplierInfo = paperCutService()
+                            .createExternalSupplierInfo(request);
                     extSupplierRetry = ExternalSupplierEnum.SAVAPAGE;
 
                 } else if (extSupplierCurrent == ExternalSupplierEnum.SMARTSCHOOL) {

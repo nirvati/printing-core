@@ -143,12 +143,11 @@ import org.savapage.core.print.proxy.TicketJobSheetDto;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
-import org.savapage.core.services.helpers.CommonSupplierData;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
-import org.savapage.core.services.helpers.JobTicketSupplierData;
 import org.savapage.core.services.helpers.PpdExtFileReader;
 import org.savapage.core.services.helpers.PrintScalingEnum;
+import org.savapage.core.services.helpers.PrintSupplierData;
 import org.savapage.core.services.helpers.PrinterAccessInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.PrinterSnmpReader;
@@ -2252,8 +2251,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final ProxyPrintDocReq printReq =
                 this.createProxyPrintDocReq(lockedUser, job, printMode);
 
-        final ExternalSupplierInfo supplierInfo = job.getExternalSupplierInfo();
-
         if (isProxyPrint && monitorPaperCutPrintStatus) {
 
             final PrintModeEnum printModeWrk;
@@ -2263,6 +2260,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
             } else {
                 printModeWrk = PrintModeEnum.PUSH;
             }
+
+            final ExternalSupplierInfo supplierInfo;
+
+            if (job.getExternalSupplierInfo() == null) {
+                supplierInfo =
+                        paperCutService().createExternalSupplierInfo(printReq);
+            } else {
+                supplierInfo = job.getExternalSupplierInfo();
+            }
+
             paperCutService().prepareForExtPaperCut(printReq, supplierInfo,
                     printModeWrk);
         }
@@ -2286,29 +2293,26 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     job.getExternalSupplierInfo().getSupplier().toString());
         }
 
-        final CommonSupplierData commonSupplierData;
+        final PrintSupplierData printSupplierData;
 
         if (isJobTicket) {
 
             docLog.setExternalId(job.getTicketNumber());
 
-            final JobTicketSupplierData supplierData =
-                    new JobTicketSupplierData();
+            printSupplierData = new PrintSupplierData();
 
-            supplierData.setCostMedia(job.getCostResult().getCostMedia());
-            supplierData.setCostCopy(job.getCostResult().getCostCopy());
-            supplierData.setCostSet(job.getCostResult().getCostSet());
-            supplierData.setOperator(operator);
-
-            commonSupplierData = supplierData;
+            printSupplierData.setCostMedia(job.getCostResult().getCostMedia());
+            printSupplierData.setCostCopy(job.getCostResult().getCostCopy());
+            printSupplierData.setCostSet(job.getCostResult().getCostSet());
+            printSupplierData.setOperator(operator);
 
         } else {
             docLog.setExternalId(job.getJobTicketTag());
 
             if (isProxyPrint && monitorPaperCutPrintStatus) {
-                commonSupplierData = new CommonSupplierData();
+                printSupplierData = new PrintSupplierData();
             } else {
-                commonSupplierData = null;
+                printSupplierData = null;
             }
         }
 
@@ -2320,9 +2324,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
             weightTotal = job.getAccountTransactions().getWeightTotal();
         }
 
-        if (commonSupplierData != null) {
-            commonSupplierData.setWeightTotal(Integer.valueOf(weightTotal));
-            docLog.setExternalData(commonSupplierData.dataAsString());
+        if (printSupplierData != null) {
+            printSupplierData.setWeightTotal(Integer.valueOf(weightTotal));
+            docLog.setExternalData(printSupplierData.dataAsString());
         }
 
         /*

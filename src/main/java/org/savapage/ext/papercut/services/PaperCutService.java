@@ -87,18 +87,29 @@ public interface PaperCutService extends StatefulService {
             boolean isNonPersonalPrint);
 
     /**
-     * Prepares the {@link AbstractProxyPrintReq} for External PaperCut Print
-     * Status monitoring and notification to an external supplier.
+     * Creates {@link ExternalSupplierEnum#SAVAPAGE} info for PaperCut Print
+     * Status monitoring.
+     *
+     * @param printReq
+     *            The {@link AbstractProxyPrintReq}.
+     * @return {@link ExternalSupplierInfo}.
+     */
+    ExternalSupplierInfo
+            createExternalSupplierInfo(AbstractProxyPrintReq printReq);
+
+    /**
+     * Prepares the {@link AbstractProxyPrintReq} and
+     * {@link ExternalSupplierInfo} for External PaperCut Print Status
+     * monitoring and notification to an external supplier.
      * <p>
      * Note: all cost is set to zero, since cost is applied after PaperCut
      * reports that jobs are printed successfully.
      * </p>
      *
      * @param printReq
-     *            The {@link AbstractProxyPrintReq}.
+     *            {@link AbstractProxyPrintReq}.
      * @param supplierInfo
-     *            The {@link ExternalSupplierInfo}: when {@code null},
-     *            {@link ExternalSupplierEnum#SAVAPAGE} is assumed.
+     *            {@link ExternalSupplierInfo}.
      * @param printMode
      *            {@link PrintModeEnum}.
      */
@@ -106,26 +117,22 @@ public interface PaperCutService extends StatefulService {
             ExternalSupplierInfo supplierInfo, PrintModeEnum printMode);
 
     /**
-     * Prepares a {@link AbstractProxyPrintReq} for <i>retrying</i> with
-     * External PaperCut Print Status monitoring and notification to an external
-     * supplier.
+     * Prepares a {@link AbstractProxyPrintReq} and {@link ExternalSupplierInfo}
+     * for <i>retrying</i> with External PaperCut Print Status monitoring and
+     * notification to an external supplier.
      * <p>
      * Note: any cost is preserved.
      * </p>
      *
      * @param printReq
-     *            The {@link AbstractProxyPrintReq}.
+     *            {@link AbstractProxyPrintReq}.
      * @param supplierInfo
-     *            The {@link ExternalSupplierInfo}: when {@code null},
-     *            {@link ExternalSupplierEnum#SAVAPAGE} is assumed.
+     *            {@link ExternalSupplierInfo}.
      * @param printMode
      *            {@link PrintModeEnum}.
-     * @return The {@link ExternalSupplierInfo} input, or when input
-     *         {@code null}, the newly created instance.
      */
-    ExternalSupplierInfo prepareForExtPaperCutRetry(
-            AbstractProxyPrintReq printReq, ExternalSupplierInfo supplierInfo,
-            PrintModeEnum printMode);
+    void prepareForExtPaperCutRetry(AbstractProxyPrintReq printReq,
+            ExternalSupplierInfo supplierInfo, PrintModeEnum printMode);
 
     /**
      * Finds a PaperCut user.

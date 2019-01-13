@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,10 +21,13 @@
  */
 package org.savapage.core.services.helpers;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 
+import org.savapage.core.SpException;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.jpa.User;
+import org.savapage.core.json.JsonAbstractBase;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -36,7 +39,13 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  *
  */
 @JsonInclude(Include.NON_NULL)
-public final class JobTicketSupplierData extends CommonSupplierData {
+public final class PrintSupplierData extends JsonAbstractBase
+        implements ExternalSupplierData {
+
+    /**
+     * The transaction weight total.
+     */
+    private Integer weightTotal;
 
     /**
      * Media cost total of all printed media.
@@ -54,10 +63,25 @@ public final class JobTicketSupplierData extends CommonSupplierData {
     private BigDecimal costSet;
 
     /**
-     * The {@link User#getUserId()} of the
+     * Optional {@link User#getUserId()} of
      * {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
      */
     private String operator;
+
+    /**
+     * @return The transaction weight total.
+     */
+    public Integer getWeightTotal() {
+        return weightTotal;
+    }
+
+    /**
+     * @param weightTotal
+     *            The transaction weight total.
+     */
+    public void setWeightTotal(final Integer weightTotal) {
+        this.weightTotal = weightTotal;
+    }
 
     /**
      *
@@ -85,26 +109,6 @@ public final class JobTicketSupplierData extends CommonSupplierData {
     }
 
     /**
-     * @return Gets the sums of all costs.
-     */
-    @JsonIgnore
-    public BigDecimal getCostTotal() {
-
-        BigDecimal total = BigDecimal.ZERO;
-
-        if (costSet != null) {
-            total = total.add(costSet);
-        }
-        if (costCopy != null) {
-            total = total.add(costCopy);
-        }
-        if (costMedia != null) {
-            total = total.add(costMedia);
-        }
-        return total;
-    }
-
-    /**
      *
      * @param cost
      *            Copy cost total of all printed copies.
@@ -129,7 +133,7 @@ public final class JobTicketSupplierData extends CommonSupplierData {
     }
 
     /**
-     * @return The {@link User#getUserId()} of the
+     * @return Optional {@link User#getUserId()} of
      *         {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
      */
     public String getOperator() {
@@ -138,7 +142,7 @@ public final class JobTicketSupplierData extends CommonSupplierData {
 
     /**
      * @param operator
-     *            The {@link User#getUserId()} of the
+     *            {@link User#getUserId()} of
      *            {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
      */
     public void setOperator(String operator) {
@@ -146,13 +150,50 @@ public final class JobTicketSupplierData extends CommonSupplierData {
     }
 
     /**
+     * @return {@code true} when cost is specified.
+     */
+    @JsonIgnore
+    public boolean hasCost() {
+        return costCopy != null || costMedia != null || costSet != null;
+    }
+
+    /**
+     * @return Gets the sums of all costs.
+     */
+    @JsonIgnore
+    public BigDecimal getCostTotal() {
+
+        BigDecimal total = BigDecimal.ZERO;
+
+        if (costSet != null) {
+            total = total.add(costSet);
+        }
+        if (costCopy != null) {
+            total = total.add(costCopy);
+        }
+        if (costMedia != null) {
+            total = total.add(costMedia);
+        }
+        return total;
+    }
+
+    @Override
+    public final String dataAsString() {
+        try {
+            return this.stringify();
+        } catch (IOException e) {
+            throw new SpException(e.getMessage());
+        }
+    }
+
+    /**
      * Creates an object from data string.
      *
      * @param data
      *            The serialized data.
-     * @return The {@link JobTicketSupplierData} object.
+     * @return The {@link PrintSupplierData} object.
      */
-    public static JobTicketSupplierData createFromData(final String data) {
-        return JobTicketSupplierData.create(JobTicketSupplierData.class, data);
+    public static PrintSupplierData createFromData(final String data) {
+        return PrintSupplierData.create(PrintSupplierData.class, data);
     }
 }

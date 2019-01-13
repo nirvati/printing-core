@@ -48,11 +48,9 @@ import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PrintOut;
-import org.savapage.core.json.JsonAbstractBase;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
-import org.savapage.core.services.helpers.CommonSupplierData;
-import org.savapage.core.services.helpers.JobTicketSupplierData;
+import org.savapage.core.services.helpers.PrintSupplierData;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.DateUtil;
 import org.savapage.ext.ExtSupplierConnectException;
@@ -557,7 +555,8 @@ public abstract class PaperCutPrintMonitorPattern
                 docLogOut.getDocOut().getPrintOut().getNumberOfCopies();
 
         /*
-         * Which printing cost to use? And create PaperCut transactions?
+         * Determine printing cost to use, and whether to create PaperCut
+         * transactions.
          */
         final int weightTotal;
         final BigDecimal weightTotalCost;
@@ -583,13 +582,12 @@ public abstract class PaperCutPrintMonitorPattern
                  */
                 createPaperCutTrx = true;
 
-                final JobTicketSupplierData supplierData =
-                        JsonAbstractBase.create(JobTicketSupplierData.class,
-                                docLogOut.getExternalData());
+                final PrintSupplierData printSupplierData = PrintSupplierData
+                        .createFromData(docLogOut.getExternalData());
 
-                weightTotalCost = supplierData.getCostTotal();
+                weightTotalCost = printSupplierData.getCostTotal();
 
-                if (supplierData.getWeightTotal() == null) {
+                if (printSupplierData.getWeightTotal() == null) {
                     /*
                      * TODO: use case?
                      */
@@ -598,9 +596,8 @@ public abstract class PaperCutPrintMonitorPattern
                             "{} Print: no weight total in external data. "
                                     + "Using printed copies as weight total.",
                             printMode);
-
                 } else {
-                    weightTotal = supplierData.getWeightTotal().intValue();
+                    weightTotal = printSupplierData.getWeightTotal().intValue();
                 }
             }
         } else {
@@ -610,18 +607,38 @@ public abstract class PaperCutPrintMonitorPattern
 
             createPaperCutTrx =
                     papercutInt == PaperCutIntegrationEnum.DELEGATED_PRINT;
-            /*
-             * Non-ticket print gets its cost from PaperCut.
-             */
-            weightTotalCost = BigDecimal.valueOf(papercutLog.getUsageCost());
+
+            final BigDecimal costPaperCut =
+                    BigDecimal.valueOf(papercutLog.getUsageCost());
 
             if (docLogOut.getExternalData() == null) {
+
                 weightTotal = printedCopies;
+                weightTotalCost = costPaperCut;
+
             } else {
-                final CommonSupplierData commonSupplierData =
-                        JsonAbstractBase.create(CommonSupplierData.class,
-                                docLogOut.getExternalData());
-                weightTotal = commonSupplierData.getWeightTotal().intValue();
+
+                final PrintSupplierData printSupplierData = PrintSupplierData
+                        .createFromData(docLogOut.getExternalData());
+
+                if (printSupplierData.getWeightTotal() == null) {
+                    /*
+                     * Just in case...
+                     */
+                    weightTotal = printedCopies;
+                    LOGGER.warn(
+                            "{} Print: no weight total in external data. "
+                                    + "Using printed copies as weight total.",
+                            printMode);
+                } else {
+                    weightTotal = printSupplierData.getWeightTotal().intValue();
+                }
+
+                if (printSupplierData.hasCost()) {
+                    weightTotalCost = printSupplierData.getCostTotal();
+                } else {
+                    weightTotalCost = costPaperCut;
+                }
             }
         }
 
