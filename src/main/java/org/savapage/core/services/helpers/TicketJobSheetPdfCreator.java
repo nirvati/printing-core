@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -360,13 +360,10 @@ public final class TicketJobSheetPdfCreator {
             return;
         }
 
-        final int copies = trxInfoSet.getWeightTotal();
         int copiesDelegatorsImplicit = 0;
 
         for (final OutboxAccountTrxInfo trxInfo : trxInfoSet
                 .getTransactions()) {
-
-            final int weight = trxInfo.getWeight();
 
             final Account account =
                     ACCOUNT_DAO.findById(trxInfo.getAccountId());
@@ -379,7 +376,17 @@ public final class TicketJobSheetPdfCreator {
                 continue;
             }
 
-            copiesDelegatorsImplicit += weight;
+            final int weightUnit;
+
+            if (trxInfo.getWeightUnit() == null) {
+                weightUnit = 1;
+            } else {
+                weightUnit = trxInfo.getWeightUnit().intValue();
+            }
+
+            final int copiesAccount = trxInfo.getWeight() / weightUnit;
+
+            copiesDelegatorsImplicit += copiesAccount;
 
             final Account accountParent = account.getParent();
 
@@ -391,11 +398,11 @@ public final class TicketJobSheetPdfCreator {
                 sb.append(CHAR_REVERSE_SOLIDUS);
                 sb.append(' ');
             }
-            sb.append(account.getName()).append(" : ").append(weight);
+            sb.append(account.getName()).append(" : ").append(copiesAccount);
         }
 
         final int copiesDelegatorsIndividual =
-                copies - copiesDelegatorsImplicit;
+                job.getCopies() - copiesDelegatorsImplicit;
 
         if (copiesDelegatorsIndividual > 0) {
             sb.append("\n").append(NounEnum.USER.uiText(locale, true))
