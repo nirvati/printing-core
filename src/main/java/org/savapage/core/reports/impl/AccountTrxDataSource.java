@@ -33,7 +33,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.SpException;
@@ -43,6 +42,7 @@ import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
+import org.savapage.core.dao.enums.DaoEnumHelper;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.helpers.AccountTrxPagerReq;
 import org.savapage.core.i18n.JobTicketNounEnum;
@@ -587,8 +587,8 @@ public final class AccountTrxDataSource extends AbstractJrDataSource
 
             desc.append(BULL_SEP);
 
-            final PrintModeEnum printOutMode = EnumUtils
-                    .getEnum(PrintModeEnum.class, printOut.getPrintMode());
+            final PrintModeEnum printOutMode =
+                    DaoEnumHelper.getPrintMode(printOut);
 
             if (printOutMode == PrintModeEnum.TICKET
                     || printOutMode == PrintModeEnum.TICKET_C

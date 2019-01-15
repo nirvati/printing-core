@@ -30,6 +30,9 @@ import java.util.Set;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
+import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.DocOut;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.services.StatefulService;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
@@ -71,6 +74,16 @@ public interface PaperCutService extends StatefulService {
      *         not managed by PaperCut.
      */
     boolean isExtPaperCutPrint(String printerName);
+
+    /**
+     * Checks if a {@link PrintOut} refund must be propagated to PaperCut.
+     *
+     * @param docLog
+     *            The {@link DocLog} with the original {@link DocOut} and
+     *            {@link PrintOut}.
+     * @return {@code true} when refund must be propagated to PaperCut.
+     */
+    boolean isExtPaperCutPrintRefund(DocLog docLog);
 
     /**
      * Checks if the status of a print job must be monitored in PaperCut.

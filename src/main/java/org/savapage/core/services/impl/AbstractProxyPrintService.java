@@ -2223,9 +2223,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *            The {@link PrintModeEnum}.
      * @param pdfFileToPrint
      *            The file (not) to print.
-     * @param monitorPaperCutPrintStatus
-     *            {@code true} when print status of the {@link OutboxJobDto}
-     *            must be monitored in PaperCut.
+     * @param isPrinterPaperCutManaged
+     *            {@code true} when printer of the {@link OutboxJobDto} is
+     *            PaperCut managed.
      * @return The committed {@link DocLog} instance related to the
      *         {@link PrintOut}.
      * @throws IOException
@@ -2235,7 +2235,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      */
     private DocLog execOutboxJob(final String operator, final User lockedUser,
             final OutboxJobDto job, final PrintModeEnum printMode,
-            final File pdfFileToPrint, final boolean monitorPaperCutPrintStatus)
+            final File pdfFileToPrint, final boolean isPrinterPaperCutManaged)
             throws IOException, IppConnectException {
 
         //
@@ -2251,7 +2251,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final ProxyPrintDocReq printReq =
                 this.createProxyPrintDocReq(lockedUser, job, printMode);
 
-        if (isProxyPrint && monitorPaperCutPrintStatus) {
+        if (isProxyPrint && isPrinterPaperCutManaged) {
 
             final PrintModeEnum printModeWrk;
 
@@ -2309,7 +2309,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         } else {
             docLog.setExternalId(job.getJobTicketTag());
 
-            if (isProxyPrint && monitorPaperCutPrintStatus) {
+            if (isPrinterPaperCutManaged) {
                 printSupplierData = new PrintSupplierData();
             } else {
                 printSupplierData = null;
@@ -2325,6 +2325,18 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         if (printSupplierData != null) {
+            if (isPrinterPaperCutManaged) {
+                printSupplierData.setClient(ThirdPartyEnum.PAPERCUT);
+                if (isSettlement) {
+                    /*
+                     * Normally client values are set in PaperCut Print Monitor
+                     * when print completed OK. However, for settlement we know
+                     * the client values right now.
+                     */
+                    printSupplierData.setClientCost(Boolean.FALSE);
+                    printSupplierData.setClientCostTrx(Boolean.TRUE);
+                }
+            }
             printSupplierData.setWeightTotal(Integer.valueOf(weightTotal));
             docLog.setExternalData(printSupplierData.dataAsString());
         }
@@ -2385,7 +2397,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             settleProxyPrint(lockedUser, printReq, docLog, createInfo);
         }
 
-        if (isSettlement && monitorPaperCutPrintStatus) {
+        if (isSettlement && isPrinterPaperCutManaged) {
             try {
                 settleProxyPrintPaperCut(docLog, weightTotal, job.getCopies(),
                         job.getCostResult());
@@ -2406,7 +2418,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          *
          * IMPORTANT: The Job Ticket client handles its own notification.
          */
-        if (!isJobTicket && !monitorPaperCutPrintStatus) {
+        if (!isJobTicket && !isPrinterPaperCutManaged) {
             outboxService().onOutboxJobCompleted(job);
         }
 

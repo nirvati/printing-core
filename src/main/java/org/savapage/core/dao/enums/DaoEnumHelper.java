@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,6 +23,7 @@ package org.savapage.core.dao.enums;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.PrintOut;
 
 /**
  *
@@ -31,6 +32,9 @@ import org.savapage.core.jpa.DocLog;
  */
 public final class DaoEnumHelper {
 
+    /**
+     * Static methods only.
+     */
     private DaoEnumHelper() {
     }
 
@@ -51,15 +55,15 @@ public final class DaoEnumHelper {
     }
 
     /**
-     * Gets the External Supplier status from the {@link DocLog}.
+     * Gets the {@link ExternalSupplierStatusEnum} from the {@link DocLog}.
      *
      * @param docLog
      *            The {@link DocLog}.
-     * @return {@code null} when docLog {@code null} or no External Supplier or
+     * @return {@code null} when docLog {@code null} or no External Supplier
      *         Status is present.
      */
-    public static ExternalSupplierStatusEnum getExtSupplierStatus(
-            final DocLog docLog) {
+    public static ExternalSupplierStatusEnum
+            getExtSupplierStatus(final DocLog docLog) {
         if (docLog == null) {
             return null;
         }
@@ -67,4 +71,18 @@ public final class DaoEnumHelper {
                 docLog.getExternalStatus());
     }
 
+    /**
+     * Gets the {@link PrintModeEnum} from the {@link PrintOut}.
+     *
+     * @param printOut
+     *            The {@link PrintOut}.
+     * @return {@code null} when printOut {@code null} or no Print Mode is
+     *         present.
+     */
+    public static PrintModeEnum getPrintMode(final PrintOut printOut) {
+        if (printOut == null) {
+            return null;
+        }
+        return EnumUtils.getEnum(PrintModeEnum.class, printOut.getPrintMode());
+    }
 }

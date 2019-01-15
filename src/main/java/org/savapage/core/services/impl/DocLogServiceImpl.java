@@ -49,6 +49,7 @@ import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
+import org.savapage.core.dao.enums.DaoEnumHelper;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
@@ -333,8 +334,7 @@ public final class DocLogServiceImpl extends AbstractService
                     if (accountTrxInfoSet == null) {
 
                         final ExternalSupplierEnum externalSupplier =
-                                EnumUtils.getEnum(ExternalSupplierEnum.class,
-                                        docLog.getExternalSupplier());
+                                DaoEnumHelper.getExtSupplier(docLog);
 
                         if (externalSupplier == null
                                 || externalSupplier == ExternalSupplierEnum.SAVAPAGE) {

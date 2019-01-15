@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -34,8 +35,11 @@ import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
+import org.savapage.core.dao.enums.DaoEnumHelper;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
+import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
@@ -139,7 +143,93 @@ public final class PaperCutServiceImpl extends AbstractService
     }
 
     @Override
+    public boolean isExtPaperCutPrintRefund(final DocLog docLog) {
+
+        if (!ConfigManager.isPaperCutPrintEnabled()) {
+            return false;
+        }
+
+        final Boolean extDataClientCostTrx; // Mantis #1023
+        final ThirdPartyEnum extDataClient;
+
+        if (docLog.getExternalData() == null) {
+
+            extDataClient = null;
+            extDataClientCostTrx = null;
+
+        } else {
+
+            final PrintSupplierData extData =
+                    PrintSupplierData.createFromData(docLog.getExternalData());
+
+            extDataClient = extData.getClient();
+
+            if (extDataClient == ThirdPartyEnum.PAPERCUT) {
+                extDataClientCostTrx = extData.getClientCostTrx();
+            } else {
+                extDataClientCostTrx = null;
+            }
+        }
+
+        /*
+         * DocLog must be related to PaperCut client. But, relax for legacy
+         * objects.
+         */
+        if (extDataClient != null && extDataClient != ThirdPartyEnum.PAPERCUT) {
+            return false;
+        }
+
+        /*
+         * extDataClientCostTrx is null for legacy objects.
+         */
+        if (extDataClientCostTrx != null) {
+            return extDataClientCostTrx.booleanValue();
+        }
+
+        /*
+         * Handle legacy objects.
+         */
+        final PrintOut printOut = docLog.getDocOut().getPrintOut();
+        final PrintModeEnum printMode = DaoEnumHelper.getPrintMode(printOut);
+
+        final boolean isJobTicket =
+                EnumSet.of(PrintModeEnum.TICKET, PrintModeEnum.TICKET_C,
+                        PrintModeEnum.TICKET_E).contains(printMode);
+
+        final boolean isExtPaperCutPrinter =
+                this.isExtPaperCutPrint(printOut.getPrinter().getPrinterName());
+
+        final boolean isRefundable;
+
+        if (isJobTicket) {
+            /*
+             * Since Job Ticket cost are leading, and PaperCut transactions were
+             * created by SavaPage for a PaperCut managed printer.
+             *
+             * Now, we assume PaperCut management of printer did not change
+             * since the original print.
+             */
+            isRefundable = isExtPaperCutPrinter;
+
+        } else {
+            /*
+             * Whether PaperCut transactions were created by SavaPage was
+             * dependent on printer being PaperCut managed, and PaperCut
+             * Integration mode being DELEGATED_PRINT.
+             *
+             * Now, we assume PaperCut management of printer, and PaperCut
+             * Integration mode, did not change since the original print.
+             */
+            isRefundable = isExtPaperCutPrinter && this.getPrintIntegration() //
+            == PaperCutIntegrationEnum.DELEGATED_PRINT;
+        }
+
+        return isRefundable;
+    }
+
+    @Override
     public ExternalSupplierInfo
+
             createExternalSupplierInfo(final AbstractProxyPrintReq printReq) {
 
         final ExternalSupplierInfo supplierInfo;
@@ -163,6 +253,8 @@ public final class PaperCutServiceImpl extends AbstractService
         }
 
         final PrintSupplierData printSupplierData = new PrintSupplierData();
+
+        printSupplierData.setClient(ThirdPartyEnum.PAPERCUT);
         printSupplierData.setWeightTotal(Integer.valueOf(weightTotal));
 
         supplierInfo.setData(printSupplierData);

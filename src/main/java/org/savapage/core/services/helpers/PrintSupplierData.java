@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 
 import org.savapage.core.SpException;
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.json.JsonAbstractBase;
 
@@ -34,6 +35,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
+ * Print data from {@link ExternalSupplierEnum} in communication with
+ * {@link ThirdPartyEnum} client.
  *
  * @author Rijk Ravestein
  *
@@ -41,6 +44,22 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public final class PrintSupplierData extends JsonAbstractBase
         implements ExternalSupplierData {
+
+    /**
+     * {@link ThirdPartyEnum} this data is supplied to.
+     */
+    private ThirdPartyEnum client;
+
+    /**
+     * If {@link Boolean#TRUE}, printing cost of client is leading.
+     */
+    private Boolean clientCost;
+
+    /**
+     * If {@link Boolean#TRUE}, accounting transactions for printing cost are
+     * send to client.
+     */
+    private Boolean clientCostTrx;
 
     /**
      * The transaction weight total.
@@ -67,6 +86,53 @@ public final class PrintSupplierData extends JsonAbstractBase
      * {@link ACLRoleEnum#JOB_TICKET_OPERATOR}.
      */
     private String operator;
+
+    /**
+     * @return {@link ThirdPartyEnum} this data is supplied to.
+     */
+    public ThirdPartyEnum getClient() {
+        return client;
+    }
+
+    /**
+     * @param client
+     *            {@link ThirdPartyEnum} this data is supplied to.
+     */
+    public void setClient(ThirdPartyEnum client) {
+        this.client = client;
+    }
+
+    /**
+     * @return {@link Boolean#TRUE}, if printing cost of client is leading.
+     */
+    public Boolean getClientCost() {
+        return clientCost;
+    }
+
+    /**
+     * @param clientCost
+     *            If {@link Boolean#TRUE}, printing cost of client is leading.
+     */
+    public void setClientCost(Boolean clientCost) {
+        this.clientCost = clientCost;
+    }
+
+    /**
+     * @return {@link Boolean#TRUE}, if accounting transactions for printing
+     *         cost are send to client.
+     */
+    public Boolean getClientCostTrx() {
+        return clientCostTrx;
+    }
+
+    /**
+     * @param clientCostTrx
+     *            If {@link Boolean#TRUE}, accounting transactions for printing
+     *            cost are send to client.
+     */
+    public void setClientCostTrx(Boolean clientCostTrx) {
+        this.clientCostTrx = clientCostTrx;
+    }
 
     /**
      * @return The transaction weight total.

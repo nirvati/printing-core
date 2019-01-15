@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.EnumUtils;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
@@ -38,6 +37,7 @@ import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.DocInOutDao;
 import org.savapage.core.dao.DocLogDao;
 import org.savapage.core.dao.PrintOutDao;
+import org.savapage.core.dao.enums.DaoEnumHelper;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
@@ -479,9 +479,7 @@ public abstract class PaperCutPrintMonitorPattern
 
         //
         final PrintOut printOutLog = docLogOut.getDocOut().getPrintOut();
-
-        final PrintModeEnum printMode = EnumUtils.getEnum(PrintModeEnum.class,
-                printOutLog.getPrintMode());
+        final PrintModeEnum printMode = DaoEnumHelper.getPrintMode(printOutLog);
 
         /*
          * Set External Status to COMPLETED.
@@ -554,6 +552,15 @@ public abstract class PaperCutPrintMonitorPattern
         final int printedCopies =
                 docLogOut.getDocOut().getPrintOut().getNumberOfCopies();
 
+        final PrintSupplierData printSupplierData;
+
+        if (docLogOut.getExternalData() == null) {
+            printSupplierData = null;
+        } else {
+            printSupplierData = PrintSupplierData
+                    .createFromData(docLogOut.getExternalData());
+        }
+
         /*
          * Determine printing cost to use, and whether to create PaperCut
          * transactions.
@@ -561,14 +568,16 @@ public abstract class PaperCutPrintMonitorPattern
         final int weightTotal;
         final BigDecimal weightTotalCost;
         final boolean createPaperCutTrx;
+        final boolean costPaperCutLeading;
 
         if (printMode == PrintModeEnum.TICKET) {
 
-            if (docLogOut.getExternalData() == null) {
+            if (printSupplierData == null) {
                 /*
                  * TODO: use case?
                  */
                 createPaperCutTrx = true;
+                costPaperCutLeading = true;
 
                 weightTotal = printedCopies;
                 weightTotalCost =
@@ -581,9 +590,7 @@ public abstract class PaperCutPrintMonitorPattern
                  * Ticket Print.
                  */
                 createPaperCutTrx = true;
-
-                final PrintSupplierData printSupplierData = PrintSupplierData
-                        .createFromData(docLogOut.getExternalData());
+                costPaperCutLeading = false;
 
                 weightTotalCost = printSupplierData.getCostTotal();
 
@@ -611,15 +618,13 @@ public abstract class PaperCutPrintMonitorPattern
             final BigDecimal costPaperCut =
                     BigDecimal.valueOf(papercutLog.getUsageCost());
 
-            if (docLogOut.getExternalData() == null) {
+            if (printSupplierData == null) {
 
+                costPaperCutLeading = true;
                 weightTotal = printedCopies;
                 weightTotalCost = costPaperCut;
 
             } else {
-
-                final PrintSupplierData printSupplierData = PrintSupplierData
-                        .createFromData(docLogOut.getExternalData());
 
                 if (printSupplierData.getWeightTotal() == null) {
                     /*
@@ -635,8 +640,10 @@ public abstract class PaperCutPrintMonitorPattern
                 }
 
                 if (printSupplierData.hasCost()) {
+                    costPaperCutLeading = false;
                     weightTotalCost = printSupplierData.getCostTotal();
                 } else {
+                    costPaperCutLeading = true;
                     weightTotalCost = costPaperCut;
                 }
             }
@@ -669,6 +676,24 @@ public abstract class PaperCutPrintMonitorPattern
          */
         docLogOut.setCost(weightTotalCost);
         docLogOut.setCostOriginal(weightTotalCost);
+
+        /*
+         * Update external data.
+         */
+        final PrintSupplierData printSupplierDataUpd;
+
+        if (printSupplierData == null) {
+            printSupplierDataUpd = new PrintSupplierData();
+        } else {
+            printSupplierDataUpd = printSupplierData;
+        }
+
+        printSupplierDataUpd
+                .setClientCost(Boolean.valueOf(costPaperCutLeading));
+        printSupplierDataUpd
+                .setClientCostTrx(Boolean.valueOf(createPaperCutTrx));
+
+        docLogOut.setExternalData(printSupplierDataUpd.dataAsString());
 
         DOC_LOG_DAO.update(docLogOut);
     }

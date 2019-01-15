@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 package org.savapage.core.dao.enums;
 
 /**
+ * Supplier of print data.
  *
  * @author Rijk Ravestein
  *
@@ -60,7 +61,8 @@ public enum ExternalSupplierEnum {
      * @param imageFileName
      *            Image file name.
      */
-    private ExternalSupplierEnum(final String uiText, final String imageFileName) {
+    private ExternalSupplierEnum(final String uiText,
+            final String imageFileName) {
         this.uiText = uiText;
         this.imageFileName = imageFileName;
     }
