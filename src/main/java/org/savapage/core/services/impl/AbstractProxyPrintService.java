@@ -3193,9 +3193,22 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         /*
-         * Direct Proxy Print.
+         * When PaperCut status is monitored, do NOT check existence of PaperCut
+         * user. Reason: a fast print does not have a UI to communicate error
+         * details. An error will be set in the Document Log by the monitor,
+         * when PaperCut reports that the print did not succeed.
          */
+        final boolean isPrinterPaperCutManaged = paperCutService()
+                .isMonitorPaperCutPrintStatus(printer.getPrinterName(), false);
+
         for (final ProxyPrintInboxReq printReq : printReqList) {
+
+            if (isPrinterPaperCutManaged) {
+                final ExternalSupplierInfo extSupplierInfo =
+                        paperCutService().createExternalSupplierInfo(printReq);
+                paperCutService().prepareForExtPaperCut(printReq,
+                        extSupplierInfo, printReq.getPrintMode());
+            }
 
             try {
 
