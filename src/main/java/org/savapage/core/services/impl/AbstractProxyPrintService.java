@@ -2257,6 +2257,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             if (printMode == PrintModeEnum.TICKET) {
                 printModeWrk = printMode;
+            } else if (printMode == PrintModeEnum.HOLD) {
+                printModeWrk = printMode;
             } else {
                 printModeWrk = PrintModeEnum.PUSH;
             }
@@ -3193,21 +3195,35 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         /*
-         * When PaperCut status is monitored, do NOT check existence of PaperCut
-         * user. Reason: a fast print does not have a UI to communicate error
-         * details. An error will be set in the Document Log by the monitor,
-         * when PaperCut reports that the print did not succeed.
+         * PaperCut print status monitoring?
          */
         final boolean isPrinterPaperCutManaged = paperCutService()
                 .isMonitorPaperCutPrintStatus(printer.getPrinterName(), false);
 
+        if (isPrinterPaperCutManaged) {
+            final PaperCutServerProxy serverProxy =
+                    PaperCutServerProxy.create(ConfigManager.instance(), false);
+            /*
+             * Check existence of PaperCut user for logging only. Reason:
+             * PaperCut might use "On Demand User Creation", so user is ad-hoc
+             * created at print request. When user is not ad-hoc created, the
+             * Document Log wil show status "Pending (external)", and after x
+             * days print will be assumed lost.
+             */
+            if (paperCutService().findUser(serverProxy,
+                    user.getUserId()) == null) {
+                LOGGER.warn(
+                        "Fast Print on [{}]: User [{}] not found in PaperCut.",
+                        printer.getPrinterName(), user.getUserId());
+            }
+        }
+
         for (final ProxyPrintInboxReq printReq : printReqList) {
 
             if (isPrinterPaperCutManaged) {
-                final ExternalSupplierInfo extSupplierInfo =
-                        paperCutService().createExternalSupplierInfo(printReq);
                 paperCutService().prepareForExtPaperCut(printReq,
-                        extSupplierInfo, printReq.getPrintMode());
+                        paperCutService().createExternalSupplierInfo(printReq),
+                        printReq.getPrintMode());
             }
 
             try {
