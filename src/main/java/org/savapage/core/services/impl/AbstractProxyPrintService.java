@@ -1518,13 +1518,19 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 final PrintOut printOutWlk = iter.next();
 
                 if (cupsJobsFound.contains(printOutWlk.getCupsJobId())) {
+                    /*
+                     * When does this happen?
+                     */
                     continue;
                 }
-                // Set completed time to null, so we know we interpreted the
-                // status as completed.
-                printOutWlk.setCupsCompletedTime(null);
+                /*
+                 * Set job status to UNKNOWN, and set Time Completed to current
+                 * time to mark as end-state, so this job won't be selected at
+                 * the next sync.
+                 */
+                printOutWlk.setCupsCompletedTime(this.getCupsSystemTime());
                 printOutWlk.setCupsJobState(
-                        IppJobStateEnum.IPP_JOB_COMPLETED.asInteger());
+                        IppJobStateEnum.IPP_JOB_UNKNOWN.asInteger());
 
                 printOutDAO().update(printOutWlk);
                 batchCommitter.increment();

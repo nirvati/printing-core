@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -124,7 +124,8 @@ public enum IppJobStateEnum {
      * @return {@code true} when state is PENDING, HELD, PROCESSING or STOPPED.
      */
     public boolean isPresentOnQueue() {
-        return bitPattern < getFirstAbsentOnQueueOrdinal().asInt();
+        return this.bitPattern != IPP_JOB_UNKNOWN.bitPattern
+                && this.bitPattern < getFirstAbsentOnQueueOrdinal().asInt();
     }
 
     /**
@@ -139,7 +140,7 @@ public enum IppJobStateEnum {
     /**
      *
      * @return The {@link IppJobStateEnum} that is the first ordinal indicating
-     *         a status that job is absent on queue.
+     *         a status that job is end-of-state.
      */
     public static IppJobStateEnum getFirstAbsentOnQueueOrdinal() {
         return IppJobStateEnum.IPP_JOB_CANCELED;

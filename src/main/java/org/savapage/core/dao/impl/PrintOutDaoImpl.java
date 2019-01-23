@@ -62,15 +62,21 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
     public PrintOut findCupsJob(final String jobPrinterName,
             final Integer jobId) {
 
-        final String jpql = "SELECT O FROM PrintOut O JOIN O.printer P "
-                + "WHERE O.cupsJobId = :jobId "
-                + "AND P.printerName = :printerName";
+        final String jpql = "SELECT O FROM PrintOut O WHERE O.id = "
+                + "(SELECT MAX(M.id) FROM PrintOut M JOIN M.printer P "
+                + "WHERE M.cupsJobId = :jobId "
+                + "AND P.printerName = :printerName "
+                + "AND (M.cupsCompletedTime IS NULL"
+                + " OR M.cupsCompletedTime = 0)"
+                + "AND M.cupsJobState < :stateFinished)";
 
         final Query query = getEntityManager().createQuery(jpql);
 
         query.setParameter("jobId", jobId);
         query.setParameter("printerName",
                 ProxyPrinterName.getDaoName(jobPrinterName));
+        query.setParameter("stateFinished",
+                IppJobStateEnum.getFirstAbsentOnQueueOrdinal().asInteger());
 
         PrintOut printOut;
 
@@ -89,6 +95,8 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
         final String jpql = "SELECT O FROM PrintOut O JOIN O.printer P "
                 + "WHERE O.cupsJobId > 0 "
                 + "AND O.cupsJobState < :cupsJobState "
+                + "AND (O.cupsCompletedTime IS NULL"
+                + " OR O.cupsCompletedTime = 0)"
                 + "ORDER BY P.printerName, O.cupsJobId";
 
         final Query query = getEntityManager().createQuery(jpql);

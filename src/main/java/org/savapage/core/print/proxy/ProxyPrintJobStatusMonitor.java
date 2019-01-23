@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -436,17 +436,17 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
             if (jobCurrent.getJobStateCups() != null) {
 
-                msg.append(jobCurrent.getJobStateCups()).append("] [")
+                msg.append(jobCurrent.getJobStateCups()).append("][")
                         .append(ProxyPrintJobStatusMixin.StatusSource.CUPS);
 
             } else if (jobCurrent.getJobStatePrintOut() != null) {
 
-                msg.append(jobCurrent.getJobStatePrintOut()).append("] [")
+                msg.append(jobCurrent.getJobStatePrintOut()).append("][")
                         .append(ProxyPrintJobStatusMixin.StatusSource.PRINT_OUT);
             }
 
             msg.append("] update [").append(jobUpdate.getJobState().toString())
-                    .append("] [").append(jobUpdate.getStatusSource())
+                    .append("][").append(jobUpdate.getStatusSource())
                     .append("]");
 
             if (jobCurrent.isFinished()) {
@@ -474,6 +474,250 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
         }
     }
 
+    /**
+     * Processes a print job status entry.
+     *
+     * @param printOut
+     *            {@link PrintOut} object.
+     * @param jobStatus
+     *            The {@link PrintJobStatus}.
+     * @return {@code true} when job status reached steady end-state.
+     */
+    private boolean processJobStatusEntry(final PrintOut printOut,
+            final PrintJobStatus jobStatus) {
+
+        if (LOGGER.isDebugEnabled()) {
+
+            final StringBuilder log = new StringBuilder();
+
+            log.append("PrintOut on printer [")
+                    .append(jobStatus.getPrinterName()).append("] job [")
+                    .append(jobStatus.getJobId()).append("] status [");
+
+            if (jobStatus.getJobStatePrintOut() != null) {
+                log.append(jobStatus.getJobStatePrintOut().toString());
+            }
+            log.append("], CupsState [");
+            if (jobStatus.getJobStateCups() != null) {
+                log.append(jobStatus.getJobStateCups().toString());
+            }
+            log.append("], CupsUpdate [");
+            if (jobStatus.getJobStateCupsUpdate() != null) {
+                log.append(jobStatus.getJobStateCupsUpdate().toString());
+            }
+            log.append("]");
+
+            log.append(" PrintOut [").append(IppJobStateEnum
+                    .asEnum(printOut.getCupsJobState().intValue()).toString())
+                    .append("]");
+
+            LOGGER.debug(log.toString());
+        }
+
+        final IppJobStateEnum jobStateCups;
+
+        if (jobStatus.getJobStateCupsUpdate() == null
+                && jobStatus.getJobStateCups() == null) {
+
+            jobStateCups = jobStatus.getJobStatePrintOut();
+            jobStatus.setJobStateCupsUpdate(jobStateCups);
+
+        } else if (jobStatus.getJobStateCupsUpdate() == null) {
+
+            jobStateCups = jobStatus.getJobStateCups();
+            jobStatus.setJobStateCupsUpdate(jobStateCups);
+
+        } else if (jobStatus.getJobStateCups() == null) {
+
+            jobStateCups = jobStatus.getJobStateCupsUpdate();
+
+        } else if (jobStatus
+                .getJobStateCupsUpdate() == IppJobStateEnum.IPP_JOB_UNKNOWN) {
+
+            jobStateCups = jobStatus.getJobStateCupsUpdate();
+
+        } else {
+            /*
+             * Change of status?
+             */
+            if (jobStatus.getJobStateCupsUpdate() == jobStatus
+                    .getJobStateCups()) {
+                return false;
+            }
+
+            jobStateCups = jobStatus.getJobStateCupsUpdate();
+        }
+        //
+        final PubLevelEnum pubLevel;
+        switch (jobStateCups) {
+        case IPP_JOB_HELD:
+            pubLevel = PubLevelEnum.WARN;
+            break;
+        case IPP_JOB_ABORTED:
+        case IPP_JOB_CANCELED:
+            pubLevel = PubLevelEnum.WARN;
+            break;
+        case IPP_JOB_UNKNOWN:
+        case IPP_JOB_STOPPED:
+            pubLevel = PubLevelEnum.ERROR;
+            break;
+        default:
+            pubLevel = PubLevelEnum.INFO;
+            break;
+        }
+
+        final StringBuilder msg = new StringBuilder();
+
+        msg.append("CUPS job #").append(jobStatus.getJobId()).append(" \"")
+                .append(StringUtils.defaultString(jobStatus.getJobName()))
+                .append("\" on printer ").append(jobStatus.getPrinterName())
+                .append(" is ").append(jobStateCups.asLogText()).append(".");
+
+        AdminPublisher.instance().publish(PubTopicEnum.CUPS, pubLevel,
+                msg.toString());
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(msg.toString());
+        }
+
+        jobStatus.setJobStateCups(jobStateCups);
+
+        final String userid =
+                printOut.getDocOut().getDocLog().getUser().getUserId();
+
+        this.updatePrintOutStatus(printOut.getId(), jobStateCups,
+                jobStatus.getCupsCompletedTime());
+
+        try {
+
+            this.writePrintOutUserMsg(userid, jobStatus.getCupsCompletedTime());
+
+        } catch (IOException e) {
+
+            AdminPublisher.instance().publish(PubTopicEnum.CUPS,
+                    PubLevelEnum.ERROR, e.getMessage());
+        }
+
+        return !jobStatus.getJobStateCups().isPresentOnQueue();
+    }
+
+    /**
+     * Processes print job status instances from {@link #jobStatusMap}.
+     */
+    private void processJobStatusMap() {
+
+        final long timeNow = System.currentTimeMillis();
+
+        final Iterator<Integer> iter = this.jobStatusMap.keySet().iterator();
+
+        while (iter.hasNext() && this.keepProcessing) {
+
+            final PrintJobStatus jobIter = this.jobStatusMap.get(iter.next());
+
+            final boolean removeJobIter;
+
+            if (jobIter.getCupsCreationTime() == null) {
+                /*
+                 * The CUPS creation time was set when the job was added by
+                 * either CUPS or PRINT_OUT (whoever is first).
+                 */
+                LOGGER.warn(String.format(
+                        "Removed CUPS Job [%d] because is has"
+                                + " no creation time.",
+                        jobIter.jobId.intValue()));
+
+                removeJobIter = true;
+
+            } else if (jobIter.jobStatePrintOut == null) {
+
+                /*
+                 * No corresponding PRINT_OUT received (yet). How long are we
+                 * waiting?
+                 */
+                final long msecAge = timeNow - jobIter.getCupsCreationTime()
+                        * DateUtil.DURATION_MSEC_SECOND;
+
+                final boolean orphanedPrint = msecAge > JOB_STATUS_MAX_AGE_MSEC;
+
+                if (!orphanedPrint) {
+                    // Let it stay.
+                    continue;
+                }
+
+                /*
+                 * Wait for PRINT_OUT message has expired: this is probably an
+                 * external print action (from outside SavaPage).
+                 */
+                final StringBuilder msg = new StringBuilder();
+
+                msg.append("External CUPS job #").append(jobIter.getJobId())
+                        .append(" \"")
+                        .append(StringUtils.defaultString(jobIter.getJobName()))
+                        .append("\" on printer ")
+                        .append(jobIter.getPrinterName()).append(" is ");
+
+                final IppJobStateEnum state;
+
+                if (jobIter.getJobStateCupsUpdate() != null) {
+                    state = jobIter.getJobStateCupsUpdate();
+                } else {
+                    state = jobIter.getJobStateCups();
+                }
+
+                msg.append(state.asLogText()).append(".");
+
+                AdminPublisher.instance().publish(PubTopicEnum.CUPS,
+                        PubLevelEnum.WARN, msg.toString());
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(msg.toString());
+                }
+
+                removeJobIter = true;
+
+            } else {
+                /*
+                 * Find PrintOut CUPS job in the database.
+                 */
+                final PrintOut printOut = this.getPrintOutCupsJob(jobIter);
+
+                if (printOut == null) {
+
+                    final StringBuilder msg = new StringBuilder();
+
+                    msg.append("Print log of CUPS job #")
+                            .append(jobIter.getJobId()).append(" \"")
+                            .append(StringUtils
+                                    .defaultString(jobIter.getJobName()))
+                            .append("\" on printer ")
+                            .append(jobIter.getPrinterName())
+                            .append(" not found.");
+
+                    AdminPublisher.instance().publish(PubTopicEnum.CUPS,
+                            PubLevelEnum.ERROR, msg.toString());
+
+                    if (LOGGER.isErrorEnabled()) {
+                        LOGGER.error(msg.toString());
+                    }
+
+                    removeJobIter = true;
+
+                } else {
+                    removeJobIter =
+                            this.processJobStatusEntry(printOut, jobIter);
+                }
+            }
+
+            /*
+             * Remove job from the map?
+             */
+            if (removeJobIter) {
+                iter.remove();
+            }
+
+        } // end-while iter.
+    }
+
     @Override
     public void run() {
 
@@ -481,238 +725,11 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
         while (this.keepProcessing) {
 
-            final long timeNow = System.currentTimeMillis();
-
-            final Iterator<Integer> iter =
-                    this.jobStatusMap.keySet().iterator();
-
-            while (iter.hasNext() && this.keepProcessing) {
-
-                final PrintJobStatus jobIter =
-                        this.jobStatusMap.get(iter.next());
-
-                final boolean removeJobIter;
-
-                if (jobIter.getCupsCreationTime() == null) {
-                    /*
-                     * The CUPS creation time was set when the job was added by
-                     * either CUPS or PRINT_OUT (whoever is first).
-                     */
-                    LOGGER.warn(String.format(
-                            "Removed CUPS Job [%d] because is has"
-                                    + " no creation time.",
-                            jobIter.jobId.intValue()));
-
-                    removeJobIter = true;
-
-                } else if (jobIter.jobStatePrintOut == null) {
-
-                    /*
-                     * No corresponding PRINT_OUT received (yet). How long are
-                     * we waiting?
-                     */
-                    final long msecAge = timeNow - jobIter.getCupsCreationTime()
-                            * DateUtil.DURATION_MSEC_SECOND;
-
-                    final boolean orphanedPrint =
-                            msecAge > JOB_STATUS_MAX_AGE_MSEC;
-
-                    if (!orphanedPrint) {
-                        // Let it stay.
-                        continue;
-                    }
-
-                    /*
-                     * Wait for PRINT_OUT message has expired: this is probably
-                     * an external print action (from outside SavaPage).
-                     */
-                    final StringBuilder msg = new StringBuilder();
-
-                    msg.append("External CUPS job #").append(jobIter.getJobId())
-                            .append(" \"")
-                            .append(StringUtils
-                                    .defaultString(jobIter.getJobName()))
-                            .append("\" on printer ")
-                            .append(jobIter.getPrinterName()).append(" is ");
-
-                    final IppJobStateEnum state;
-
-                    if (jobIter.getJobStateCupsUpdate() != null) {
-                        state = jobIter.getJobStateCupsUpdate();
-                    } else {
-                        state = jobIter.getJobStateCups();
-                    }
-
-                    msg.append(state.asLogText()).append(".");
-
-                    AdminPublisher.instance().publish(PubTopicEnum.CUPS,
-                            PubLevelEnum.WARN, msg.toString());
-
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(msg.toString());
-                    }
-
-                    removeJobIter = true;
-
-                } else {
-                    /*
-                     * Find PrintOut CUPS job in the database.
-                     */
-                    final PrintOut printOut = getPrintOutCupsJob(jobIter);
-
-                    if (printOut == null) {
-
-                        final StringBuilder msg = new StringBuilder();
-
-                        msg.append("Print log of CUPS job #")
-                                .append(jobIter.getJobId()).append(" \"")
-                                .append(StringUtils
-                                        .defaultString(jobIter.getJobName()))
-                                .append("\" on printer ")
-                                .append(jobIter.getPrinterName())
-                                .append(" not found.");
-
-                        AdminPublisher.instance().publish(PubTopicEnum.CUPS,
-                                PubLevelEnum.ERROR, msg.toString());
-
-                        if (LOGGER.isErrorEnabled()) {
-                            LOGGER.error(msg.toString());
-                        }
-
-                        removeJobIter = true;
-
-                    } else {
-
-                        if (LOGGER.isDebugEnabled()) {
-
-                            final StringBuilder log = new StringBuilder();
-
-                            log.append("PrintOut on printer [")
-                                    .append(jobIter.getPrinterName())
-                                    .append("] job [")
-                                    .append(jobIter.getJobId())
-                                    .append("] status [");
-
-                            if (jobIter.getJobStatePrintOut() != null) {
-                                log.append(jobIter.getJobStatePrintOut()
-                                        .toString());
-                            }
-                            log.append("], CupsState [");
-                            if (jobIter.getJobStateCups() != null) {
-                                log.append(
-                                        jobIter.getJobStateCups().toString());
-                            }
-                            log.append("], CupsUpdate [");
-                            if (jobIter.getJobStateCupsUpdate() != null) {
-                                log.append(jobIter.getJobStateCupsUpdate()
-                                        .toString());
-                            }
-                            log.append("]");
-
-                            log.append(" PrintOut [")
-                                    .append(IppJobStateEnum.asEnum(printOut
-                                            .getCupsJobState().intValue())
-                                            .toString())
-                                    .append("]");
-
-                            LOGGER.debug(log.toString());
-                        }
-
-                        final IppJobStateEnum jobStateCups;
-
-                        if (jobIter.getJobStateCupsUpdate() == null
-                                && jobIter.getJobStateCups() == null) {
-
-                            jobStateCups = jobIter.getJobStatePrintOut();
-                            jobIter.setJobStateCupsUpdate(jobStateCups);
-
-                        } else if (jobIter.getJobStateCupsUpdate() == null) {
-
-                            jobStateCups = jobIter.getJobStateCups();
-                            jobIter.setJobStateCupsUpdate(jobStateCups);
-
-                        } else if (jobIter.getJobStateCups() == null) {
-
-                            jobStateCups = jobIter.getJobStateCupsUpdate();
-
-                        } else {
-                            /*
-                             * Change of status?
-                             */
-                            if (jobIter.getJobStateCupsUpdate() == jobIter
-                                    .getJobStateCups()) {
-                                continue;
-                            }
-
-                            jobStateCups = jobIter.getJobStateCupsUpdate();
-                        }
-                        //
-                        final PubLevelEnum pubLevel;
-                        switch (jobStateCups) {
-                        case IPP_JOB_HELD:
-                            pubLevel = PubLevelEnum.WARN;
-                            break;
-                        case IPP_JOB_ABORTED:
-                        case IPP_JOB_CANCELED:
-                            pubLevel = PubLevelEnum.WARN;
-                            break;
-                        case IPP_JOB_STOPPED:
-                            pubLevel = PubLevelEnum.ERROR;
-                            break;
-                        default:
-                            pubLevel = PubLevelEnum.INFO;
-                            break;
-                        }
-
-                        final StringBuilder msg = new StringBuilder();
-
-                        msg.append("CUPS job #").append(jobIter.getJobId())
-                                .append(" \"")
-                                .append(StringUtils
-                                        .defaultString(jobIter.getJobName()))
-                                .append("\" on printer ")
-                                .append(jobIter.getPrinterName()).append(" is ")
-                                .append(jobStateCups.asLogText()).append(".");
-
-                        AdminPublisher.instance().publish(PubTopicEnum.CUPS,
-                                pubLevel, msg.toString());
-
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug(msg.toString());
-                        }
-
-                        jobIter.setJobStateCups(jobStateCups);
-
-                        final String userid = printOut.getDocOut().getDocLog()
-                                .getUser().getUserId();
-
-                        updatePrintOutStatus(printOut.getId(), jobStateCups,
-                                jobIter.getCupsCompletedTime());
-
-                        try {
-
-                            writePrintOutUserMsg(userid,
-                                    jobIter.getCupsCompletedTime());
-
-                        } catch (IOException e) {
-
-                            AdminPublisher.instance().publish(PubTopicEnum.CUPS,
-                                    PubLevelEnum.ERROR, e.getMessage());
-                        }
-
-                        removeJobIter =
-                                !jobIter.getJobStateCups().isPresentOnQueue();
-                    }
-                }
-
-                /*
-                 * Remove job from the map?
-                 */
-                if (removeJobIter) {
-                    iter.remove();
-                }
-
-            } // end-while iter.
+            try {
+                processJobStatusMap();
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage());
+            }
 
             try {
                 if (this.keepProcessing) {

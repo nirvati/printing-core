@@ -46,8 +46,8 @@ public final class IppNotificationRecipient {
     /**
      *
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(IppNotificationRecipient.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(IppNotificationRecipient.class);
 
     /**
      * .
@@ -112,9 +112,8 @@ public final class IppNotificationRecipient {
         final String perfMessage;
 
         if (PerformanceLogger.isEnabled()) {
-            perfMessage =
-                    String.format("Printer %s job [%s]", printer_name,
-                            jobId.toString());
+            perfMessage = String.format("Printer %s job [%s]", printer_name,
+                    jobId.toString());
         } else {
             perfMessage = null;
         }
@@ -124,8 +123,8 @@ public final class IppNotificationRecipient {
             LOGGER.debug("[" + event + "] job [" + jobId + "] name [" + jobName
                     + "] state [" + jobState + "] creation_time ["
                     + creation_time + "] completed_time [" + completed_time
-                    + "] printer [" + printer_name + "] state ["
-                    + printer_state + "]");
+                    + "] printer [" + printer_name + "] state [" + printer_state
+                    + "]");
         }
         /*
          * NOTE: when jobState is invalid an exception is thrown.
@@ -153,8 +152,7 @@ public final class IppNotificationRecipient {
         /*
          * Find PrintOut CUPS job in the database.
          */
-        PrintOut printOut =
-                printOutDao.findCupsJob(printer_name, jobId);
+        PrintOut printOut = printOutDao.findCupsJob(printer_name, jobId);
 
         if (printOut != null) {
 
@@ -179,13 +177,11 @@ public final class IppNotificationRecipient {
 
             if (LOGGER.isDebugEnabled()) {
 
-                final String msg =
-                        "[" + event + "] job [" + jobId + "] name [" + jobName
-                                + "] state [" + jobState + "] creation_time ["
-                                + creation_time + "] printer [" + printer_name
-                                + "] not found (may be this is not a "
-                                + CommunityDictEnum.SAVAPAGE.getWord()
-                                + " job).";
+                final String msg = "[" + event + "] job [" + jobId + "] name ["
+                        + jobName + "] state [" + jobState + "] creation_time ["
+                        + creation_time + "] printer [" + printer_name
+                        + "] not found (may be this is not a "
+                        + CommunityDictEnum.SAVAPAGE.getWord() + " job).";
 
                 LOGGER.debug(msg);
             }
