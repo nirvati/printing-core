@@ -197,13 +197,16 @@ public final class CupsSyncPrintJobs extends AbstractJob {
 
             batchCommitter.commit(); // !!
 
-            AdminPublisher.instance().publish(PubTopicEnum.CUPS,
-                    PubLevelEnum.INFO,
-                    String.format(
-                            "CUPS Print Job Sync %d/%d: "
-                                    + "%d of %d jobs found.",
-                            nJobsActive, nActiveCupsJobs,
-                            result.getJobsUpdated(), result.getJobsActive()));
+            if (result.getJobsActive() > 0) {
+                AdminPublisher.instance().publish(PubTopicEnum.CUPS,
+                        PubLevelEnum.INFO,
+                        String.format(
+                                "CUPS Print Job Sync %d/%d: "
+                                        + "%d of %d jobs found.",
+                                nJobsActive, nActiveCupsJobs,
+                                result.getJobsUpdated(),
+                                result.getJobsActive()));
+            }
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -345,8 +348,14 @@ public final class CupsSyncPrintJobs extends AbstractJob {
             }
         }
 
-        final Integer cupsJobIdLastNew =
-                printOutList.get(printOutList.size() - 1).getCupsJobId();
+        final Integer cupsJobIdLastNew;
+
+        if (printOutList.isEmpty()) {
+            cupsJobIdLastNew = 0;
+        } else {
+            cupsJobIdLastNew =
+                    printOutList.get(printOutList.size() - 1).getCupsJobId();
+        }
 
         return new SyncPrintJobsResult(nJobsActive, nJobsUpdated, nJobsNotFound,
                 cupsJobIdLastNew.intValue());
