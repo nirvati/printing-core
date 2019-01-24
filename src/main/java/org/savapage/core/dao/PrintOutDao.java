@@ -81,11 +81,17 @@ public interface PrintOutDao extends GenericDao<PrintOut> {
     PrintOut findCupsJob(String jobPrinterName, Integer jobId);
 
     /**
-     * Finds the CUPS jobs which are NOT registered as completed.
+     * Finds the CUPS jobs which are NOT end-of-state.
      *
-     * @return The list of jobs ordered by CUPS printer name and job id.
+     * @param maxResults
+     *            The maximum number of rows in the chunk. If {@code null}, then
+     *            ALL (remaining rows) are returned.
+     *
+     * @return The {@link PrintOut} list, sorted by
+     *         {@link PrintOut#getCupsJobId()} ascending and
+     *         {@link PrintOut#getId()} descending.
      */
-    List<PrintOut> findActiveCupsJobs();
+    List<PrintOut> getActiveCupsJobsChunk(Integer maxResults);
 
     /**
      * Updates a {@link PrintOut} instance with new CUPS job state data.

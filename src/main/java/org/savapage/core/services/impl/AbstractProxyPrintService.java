@@ -78,7 +78,6 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
-import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
 import org.savapage.core.doc.store.DocStoreBranchEnum;
 import org.savapage.core.doc.store.DocStoreException;
@@ -156,7 +155,6 @@ import org.savapage.core.services.helpers.ProxyPrintCostParms;
 import org.savapage.core.services.helpers.ProxyPrintInboxReqChunker;
 import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
 import org.savapage.core.services.helpers.SnmpPrinterQueryDto;
-import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.snmp.SnmpClientSession;
 import org.savapage.core.snmp.SnmpConnectException;
@@ -1299,6 +1297,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *
      * @return A list of {@link JsonProxyPrinter} objects.
      * @throws IppConnectException
+     *             When IPP connection failed.
      * @throws URISyntaxException
      * @throws MalformedURLException
      */
@@ -1321,28 +1320,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
     abstract JsonProxyPrinter retrieveCupsPrinterDetails(String printerName,
             URI printerUri) throws IppConnectException;
 
-    /**
-     * Retrieves data for a list of print jobs ids for a printer.
-     *
-     * @param printerName
-     *            The identifying name of the printer.
-     * @param jobIds
-     *            The job ids.
-     * @return A list of print job objects.
-     * @throws IppConnectException
-     *             When a connection error occurs.
-     */
-    protected abstract List<JsonProxyPrintJob>
-            retrievePrintJobs(String printerName, List<Integer> jobIds)
-                    throws IppConnectException;
-
     @Override
     public final JsonProxyPrintJob retrievePrintJob(final String printerName,
             final Integer jobId) throws IppConnectException {
 
         JsonProxyPrintJob printJob = null;
 
-        final List<Integer> jobIds = new ArrayList<>();
+        final Set<Integer> jobIds = new HashSet<>();
         jobIds.add(jobId);
 
         final List<JsonProxyPrintJob> printJobList =
@@ -1352,206 +1336,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printJob = printJobList.get(0);
         }
         return printJob;
-    }
-
-    @Override
-    public final SyncPrintJobsResult syncPrintJobs(
-            final DaoBatchCommitter batchCommitter) throws IppConnectException {
-
-        SpInfo.instance().log(String.format("| Syncing CUPS jobs ..."));
-
-        /*
-         * Constants
-         */
-        final int nChunkMax = 50;
-
-        /*
-         * Init batch.
-         */
-        final long startTime = System.currentTimeMillis();
-
-        final List<PrintOut> printOutList = printOutDAO().findActiveCupsJobs();
-
-        SpInfo.instance()
-                .log(String.format("|   %s : %d Active PrintOut jobs.",
-                        DateUtil.formatDuration(
-                                System.currentTimeMillis() - startTime),
-                        printOutList.size()));
-        //
-        final Map<Integer, PrintOut> lookupPrintOut = new HashMap<>();
-
-        for (final PrintOut printOut : printOutList) {
-            lookupPrintOut.put(printOut.getCupsJobId(), printOut);
-        }
-
-        // The number of active PrintOut jobs.
-        final int jobsActive = printOutList.size();
-
-        // The number of PrintOut jobs that were updated with a new CUPS state.
-        int jobsUpdated = 0;
-
-        // The number of jobs that were not found in CUPS.
-        int jobsNotFound = 0;
-
-        //
-        final Set<Integer> cupsJobsFound = new HashSet<>();
-
-        //
-        int i = 0;
-        int iChunk = 0;
-        PrintOut printOut = null;
-        String printer = null;
-        String printerPrv = null;
-        List<Integer> jobIds = null;
-
-        /*
-         * Initial read.
-         */
-        if (i < printOutList.size()) {
-            printOut = printOutList.get(i);
-            printer = printOut.getPrinter().getPrinterName();
-        }
-
-        /*
-         * Processing loop.
-         */
-        while (printOut != null) {
-
-            printerPrv = printer;
-
-            if (iChunk == 0) {
-                jobIds = new ArrayList<>();
-            }
-
-            jobIds.add(printOut.getCupsJobId());
-
-            /*
-             * Read next.
-             */
-            printOut = null;
-            i++;
-            iChunk++;
-
-            if (i < printOutList.size()) {
-                printOut = printOutList.get(i);
-                printer = printOut.getPrinter().getPrinterName();
-            }
-
-            /*
-             * EOF, new printer or chunk filled to the max.
-             */
-            if (printOut == null || !printer.equals(printerPrv)
-                    || iChunk == nChunkMax) {
-
-                final List<JsonProxyPrintJob> cupsJobs =
-                        retrievePrintJobs(printerPrv, jobIds);
-
-                jobsNotFound += (iChunk - cupsJobs.size());
-
-                for (final JsonProxyPrintJob cupsJob : cupsJobs) {
-
-                    final Integer cupsJobId = cupsJob.getJobId();
-
-                    cupsJobsFound.add(cupsJobId);
-
-                    /*
-                     * Since the list of retrieved jobs does NOT contain jobs
-                     * that were NOT found, we use the lookup map.
-                     */
-                    final PrintOut printOutWlk = lookupPrintOut.get(cupsJobId);
-
-                    /*
-                     * It turns out that when using IPP (HTTP) there might be a
-                     * difference, so we do NOT check on time differences.
-                     */
-                    boolean checkCreationTime = false;
-
-                    if (checkCreationTime && !printOutWlk.getCupsCreationTime()
-                            .equals(cupsJob.getCreationTime())) {
-
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("MISMATCH printer [" + printerPrv
-                                    + "] job [" + cupsJobId + "] state ["
-                                    + cupsJob.getJobState()
-                                    + "] created in CUPS ["
-                                    + cupsJob.getCreationTime() + "] in log ["
-                                    + printOutWlk.getCupsCreationTime() + "]");
-                        }
-
-                    } else if (!printOutWlk.getCupsJobState()
-                            .equals(cupsJob.getJobState())) {
-                        /*
-                         * State change.
-                         */
-                        printOutWlk.setCupsJobState(
-                                cupsJob.getIppJobState().asInteger());
-                        printOutWlk.setCupsCompletedTime(
-                                cupsJob.getCompletedTime());
-
-                        printOutDAO().update(printOutWlk);
-                        jobsUpdated++;
-                        batchCommitter.increment();
-
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("printer [" + printerPrv + "] job ["
-                                    + cupsJobId + "] state ["
-                                    + cupsJob.getJobState() + "] completed ["
-                                    + cupsJob.getCompletedTime() + "]");
-                        }
-                    }
-
-                }
-
-                iChunk = 0;
-            }
-        }
-
-        /*
-         * Handle the jobs not found.
-         */
-        if (jobsNotFound > 0) {
-
-            final Iterator<PrintOut> iter = printOutList.iterator();
-
-            while (iter.hasNext()) {
-
-                final PrintOut printOutWlk = iter.next();
-
-                if (cupsJobsFound.contains(printOutWlk.getCupsJobId())) {
-                    /*
-                     * When does this happen?
-                     */
-                    continue;
-                }
-                /*
-                 * Set job status to UNKNOWN, and set Time Completed to current
-                 * time to mark as end-state, so this job won't be selected at
-                 * the next sync.
-                 */
-                printOutWlk.setCupsCompletedTime(this.getCupsSystemTime());
-                printOutWlk.setCupsJobState(
-                        IppJobStateEnum.IPP_JOB_UNKNOWN.asInteger());
-
-                printOutDAO().update(printOutWlk);
-                batchCommitter.increment();
-            }
-        }
-
-        //
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Syncing [" + jobsActive + "] active PrintOut jobs "
-                    + "with CUPS : updated [" + jobsUpdated + "], not found ["
-                    + jobsNotFound + "]");
-        }
-
-        if (jobsActive > 0) {
-            SpInfo.instance().log(String.format("|      : %d PrintOut updated.",
-                    jobsUpdated));
-            SpInfo.instance().log(String.format(
-                    "|      : %d PrintOut not found in CUPS.", jobsNotFound));
-        }
-
-        return new SyncPrintJobsResult(jobsActive, jobsUpdated, jobsNotFound);
     }
 
     /**

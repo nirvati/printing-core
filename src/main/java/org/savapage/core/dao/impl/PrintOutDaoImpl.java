@@ -90,18 +90,23 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
     }
 
     @Override
-    public List<PrintOut> findActiveCupsJobs() {
+    public List<PrintOut> getActiveCupsJobsChunk(final Integer maxResults) {
 
-        final String jpql = "SELECT O FROM PrintOut O JOIN O.printer P "
+        final String jpql = "SELECT O FROM PrintOut O " //
                 + "WHERE O.cupsJobId > 0 "
                 + "AND O.cupsJobState < :cupsJobState "
                 + "AND (O.cupsCompletedTime IS NULL"
-                + " OR O.cupsCompletedTime = 0)"
-                + "ORDER BY P.printerName, O.cupsJobId";
+                + " OR O.cupsCompletedTime = 0) "
+                + "ORDER BY O.cupsJobId, O.id DESC";
 
         final Query query = getEntityManager().createQuery(jpql);
+
         query.setParameter("cupsJobState",
                 IppJobStateEnum.getFirstAbsentOnQueueOrdinal().asInteger());
+
+        if (maxResults != null) {
+            query.setMaxResults(maxResults);
+        }
 
         @SuppressWarnings("unchecked")
         final List<PrintOut> jobs = query.getResultList();
@@ -127,7 +132,11 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
         final Predicate prd2 = cb.lessThan(root.get("cupsJobState"),
                 IppJobStateEnum.getFirstAbsentOnQueueOrdinal().asInteger());
 
-        cq.where(cb.and(prd1, prd2));
+        final Predicate prd3a = cb.isNull(root.get("cupsCompletedTime"));
+        final Predicate prd3b =
+                cb.equal(root.get("cupsCompletedTime"), Integer.valueOf(0));
+
+        cq.where(cb.and(prd1, prd2), cb.and(cb.or(prd3a, prd3b)));
 
         if (countUsers) {
             final Join<PrintOut, DocOut> joinDocOut = root.join("docOut");
@@ -148,7 +157,7 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
 
     @Override
     public long countActiveCupsJobUsers() {
-        return this.countActiveCupsJobs(false);
+        return this.countActiveCupsJobs(true);
     }
 
     /**

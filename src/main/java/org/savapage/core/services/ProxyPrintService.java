@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -37,7 +37,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
-import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.dto.IppMediaCostDto;
 import org.savapage.core.dto.IppMediaSourceCostDto;
@@ -86,7 +85,6 @@ import org.savapage.core.services.helpers.PrinterAccessInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
 import org.savapage.core.services.helpers.SnmpPrinterQueryDto;
-import org.savapage.core.services.helpers.SyncPrintJobsResult;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.snmp.SnmpConnectException;
 import org.savapage.ext.papercut.PaperCutException;
@@ -235,6 +233,20 @@ public interface ProxyPrintService {
      * @return The URL.
      */
     URL getCupsPpdUrl(String printerName);
+
+    /**
+     * Retrieves data for a list of print jobs ids for a printer.
+     *
+     * @param printerName
+     *            The identifying name of the printer.
+     * @param jobIds
+     *            Job id set.
+     * @return A list of print job objects.
+     * @throws IppConnectException
+     *             When a connection error occurs.
+     */
+    List<JsonProxyPrintJob> retrievePrintJobs(String printerName,
+            Set<Integer> jobIds) throws IppConnectException;
 
     /**
      *
@@ -585,21 +597,6 @@ public interface ProxyPrintService {
      * @return {@code true} when at least one (1) Job Ticket Printer is present.
      */
     boolean isJobTicketPrinterPresent();
-
-    /**
-     * Synchronizes (updates) the PrintOut jobs with the CUPS job state (if the
-     * state changed). A match is made between printer, job-id and
-     * creation-time. If there is no match, i.e. when creation times differs, no
-     * update is done.
-     *
-     * @param batchCommitter
-     *            The {@link DaoBatchCommitter}.
-     * @return The {@link SyncPrintJobsResult}.
-     * @throws IppConnectException
-     *             When a connection error occurs.
-     */
-    SyncPrintJobsResult syncPrintJobs(DaoBatchCommitter batchCommitter)
-            throws IppConnectException;
 
     /**
      * Gets the {@link Printer} object while validating {@link User} access.

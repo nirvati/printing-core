@@ -1245,9 +1245,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     @Override
-    protected List<JsonProxyPrintJob> retrievePrintJobs(
-            final String printerName, final List<Integer> jobIds)
-            throws IppConnectException {
+    public List<JsonProxyPrintJob> retrievePrintJobs(final String printerName,
+            final Set<Integer> jobIds) throws IppConnectException {
 
         final List<JsonProxyPrintJob> jobs = new ArrayList<>();
 
