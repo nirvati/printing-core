@@ -1619,8 +1619,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             LOGGER.trace("CUPS job synchronization started");
 
-            SpJobScheduler.instance()
-                    .scheduleOneShotJob(SpJobType.CUPS_SYNC_PRINT_JOBS, 1L);
+            if (ConfigManager.instance().isConfigValue(
+                    Key.SYS_STARTUP_CUPS_SYNC_PRINT_JOBS_ENABLE)) {
+                SpJobScheduler.instance()
+                        .scheduleOneShotJob(SpJobType.CUPS_SYNC_PRINT_JOBS, 1L);
+            }
         }
 
         /*

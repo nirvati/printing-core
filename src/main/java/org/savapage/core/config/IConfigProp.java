@@ -2434,6 +2434,13 @@ public interface IConfigProp {
         SYS_SETUP_COMPLETED("system.setup-completed", API_UPDATABLE_OFF),
 
         /**
+         * Enable CUPS job status synchronization at startup.
+         */
+        SYS_STARTUP_CUPS_SYNC_PRINT_JOBS_ENABLE(//
+                "system.startup.cups.sync-print-jobs.enable", BOOLEAN_VALIDATOR,
+                V_YES, API_UPDATABLE_ON),
+
+        /**
          * When system is in maintenance mode, only admins can login to Web Apps
          * (regular users cannot).
          */
