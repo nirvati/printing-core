@@ -22,7 +22,8 @@
 package org.savapage.core.config;
 
 /**
- * Paths relative to the {@code server} directory.
+ * Paths relative to the {@code server} directory without leading or trailing
+ * '/'.
  *
  * @author Rijk Ravestein
  *
@@ -53,6 +54,16 @@ public enum ServerPathEnum {
      * The relative path of the HTML injectable files.
      */
     CUSTOM_HTML("custom/html"),
+
+    /**
+     * The relative path of the custom web files.
+     */
+    CUSTOM_WEB("custom/web"),
+
+    /**
+     * The relative path of the custom web themes.
+     */
+    CUSTOM_WEB_THEMES("custom/web/themes"),
 
     /**
      * The relative path of the data folder.
