@@ -1792,6 +1792,14 @@ public interface IConfigProp {
                 "print-in.allow-encrypted-pdf", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * Enable PDF "repair" option for print-in PDF documents (Web Print)
+         * (boolean).
+         */
+        PRINT_IN_REPAIR_PDF_ENABLE(//
+                "print-in.repair.pdf.enable", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /**
          * Number of minutes after which a print-in job expires. When zero (0)
          * there is NO expiry.
          *

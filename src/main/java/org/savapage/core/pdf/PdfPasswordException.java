@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -24,12 +24,12 @@ package org.savapage.core.pdf;
 import org.savapage.core.i18n.PhraseEnum;
 
 /**
- * An exception to report an encrypted PDF document.
+ * An exception to a report password protected PDF document.
  *
  * @author Rijk Ravestein
  *
  */
-public final class PdfSecurityException extends PdfAbstractException {
+public final class PdfPasswordException extends PdfAbstractException {
 
     /**
      *
@@ -37,31 +37,14 @@ public final class PdfSecurityException extends PdfAbstractException {
     private static final long serialVersionUID = 1L;
 
     /**
-     * {@code true} if printing is allowed.
-     */
-    private final boolean printingAllowed;
-
-    /**
      *
      * @param message
      *            Message.
      * @param phrase
      *            Message for logging.
-     * @param printAllowed
-     *            {@code true} if printing is allowed.
      */
-    public PdfSecurityException(final String message, final PhraseEnum phrase,
-            final boolean printAllowed) {
+    public PdfPasswordException(final String message, final PhraseEnum phrase) {
         super(message, phrase);
-        this.printingAllowed = printAllowed;
-    }
-
-    /**
-     *
-     * @return {@code true} if printing is allowed.
-     */
-    public boolean isPrintingAllowed() {
-        return printingAllowed;
     }
 
 }

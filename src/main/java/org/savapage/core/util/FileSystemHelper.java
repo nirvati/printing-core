@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,7 +23,9 @@ package org.savapage.core.util;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,7 +37,8 @@ import org.apache.commons.lang3.mutable.MutableLong;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class FileSystemHelper {
 
@@ -61,8 +64,7 @@ public final class FileSystemHelper {
     public static void doAtomicFileMove(final Path source, final Path target)
             throws IOException {
 
-        java.nio.file.Files.move(source, target,
-                StandardCopyOption.ATOMIC_MOVE,
+        java.nio.file.Files.move(source, target, StandardCopyOption.ATOMIC_MOVE,
                 StandardCopyOption.REPLACE_EXISTING);
     }
 
@@ -124,6 +126,29 @@ public final class FileSystemHelper {
                 return CONTINUE;
             }
         });
+    }
+
+    /**
+     * Replaces original file with a new version.
+     *
+     * @param originalFile
+     *            The original file.
+     * @param newFile
+     *            The new file.
+     * @throws IOException
+     *             When IO error.
+     */
+    public static void replaceWithNewVersion(final File originalFile,
+            final File newFile) throws IOException {
+
+        final Path source =
+                FileSystems.getDefault().getPath(newFile.getAbsolutePath());
+
+        final Path target = FileSystems.getDefault()
+                .getPath(originalFile.getAbsolutePath());
+
+        Files.move(source, target,
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
 
 }

@@ -77,6 +77,7 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
 import org.savapage.core.pdf.PdfPageRotateHelper;
+import org.savapage.core.pdf.PdfPasswordException;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
@@ -260,7 +261,8 @@ public final class InboxServiceImpl implements InboxService {
         try {
             return SpPdfPageProps.create(filePathPdf);
 
-        } catch (PdfSecurityException | PdfValidityException e) {
+        } catch (PdfValidityException | PdfSecurityException
+                | PdfPasswordException e) {
             throw new SpException(e.getMessage());
         }
     }

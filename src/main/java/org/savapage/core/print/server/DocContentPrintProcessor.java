@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -51,10 +51,14 @@ import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.doc.DocInputStream;
 import org.savapage.core.doc.IDocFileConverter;
 import org.savapage.core.doc.IStreamConverter;
+import org.savapage.core.doc.PdfToDecrypted;
+import org.savapage.core.doc.PdfToPrePress;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.User;
+import org.savapage.core.pdf.PdfAbstractException;
+import org.savapage.core.pdf.PdfPasswordException;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
@@ -135,6 +139,11 @@ public final class DocContentPrintProcessor {
      *
      */
     private boolean drmRestricted = false;
+
+    /**
+     *
+     */
+    private boolean pdfRepaired = false;
 
     /**
      *
@@ -813,10 +822,11 @@ public final class DocContentPrintProcessor {
             }
 
             /*
-             * Be optimistic about PostScript content.
+             * Be optimistic about PostScript and PDF content.
              */
             setDrmViolationDetected(false);
             setDrmRestricted(false);
+            setPdfRepaired(false);
 
             /*
              * Document content converters are needed for non-PDF content.
@@ -904,7 +914,10 @@ public final class DocContentPrintProcessor {
             /*
              * Calculate number of pages, etc...
              */
-            this.setPageProps(SpPdfPageProps.create(tempPathPdf));
+            final SpPdfPageProps pdfPageProps =
+                    this.createPdfPageProps(tempPathPdf);
+
+            this.setPageProps(pdfPageProps);
 
             /*
              * Logging in Database: this should be done BEFORE the file MOVE.
@@ -978,7 +991,75 @@ public final class DocContentPrintProcessor {
                 }
             }
         }
+    }
 
+    /**
+     * Creates PDF page properties, and optionally repairs or decrypts PDF.
+     *
+     * @param tempPathPdf
+     *            The PDF file path.
+     * @return {@link SpPdfPageProps}.
+     * @throws PdfValidityException
+     *             When invalid PDF document.
+     * @throws PdfSecurityException
+     *             When encrypted PDF document.
+     * @throws PdfPasswordException
+     *             When password protected PDF document.
+     * @throws IOException
+     *             When file IO error.
+     */
+    private SpPdfPageProps createPdfPageProps(final String tempPathPdf)
+            throws PdfValidityException, PdfSecurityException, IOException,
+            PdfPasswordException {
+
+        SpPdfPageProps pdfPageProps;
+
+        try {
+
+            pdfPageProps = SpPdfPageProps.create(tempPathPdf);
+
+        } catch (PdfValidityException e) {
+
+            if (ConfigManager.instance().isConfigValue(
+                    IConfigProp.Key.PRINT_IN_REPAIR_PDF_ENABLE)) {
+
+                final File pdfFile = new File(tempPathPdf);
+
+                // Convert ...
+                FileSystemHelper.replaceWithNewVersion(pdfFile,
+                        new PdfToPrePress().convert(pdfFile));
+
+                // and try again.
+                pdfPageProps = SpPdfPageProps.create(tempPathPdf);
+
+                this.setPdfRepaired(true);
+            } else {
+                throw e;
+            }
+
+        } catch (PdfSecurityException e) {
+
+            if (e.isPrintingAllowed()
+                    && ConfigManager.instance().isConfigValue(
+                            IConfigProp.Key.PRINT_IN_ALLOW_ENCRYPTED_PDF)
+                    && PdfToDecrypted.isAvailable()) {
+
+                final File pdfFile = new File(tempPathPdf);
+
+                // Convert ...
+                FileSystemHelper.replaceWithNewVersion(pdfFile,
+                        new PdfToDecrypted().convert(pdfFile));
+
+                // and try again.
+                pdfPageProps = SpPdfPageProps.create(tempPathPdf);
+
+                this.setDrmRestricted(true);
+
+            } else {
+                throw e;
+            }
+        }
+        return pdfPageProps;
     }
 
     /**
@@ -1067,6 +1148,14 @@ public final class DocContentPrintProcessor {
 
     public void setDrmRestricted(boolean restricted) {
         drmRestricted = restricted;
+    }
+
+    public boolean isPdfRepaired() {
+        return pdfRepaired;
+    }
+
+    public void setPdfRepaired(boolean pdfRepaired) {
+        this.pdfRepaired = pdfRepaired;
     }
 
     /**
@@ -1179,9 +1268,9 @@ public final class DocContentPrintProcessor {
 
         } else {
 
-            pubMessage = exception.getMessage();
-
             if (exception instanceof PostScriptDrmException) {
+
+                pubMessage = exception.getMessage();
 
                 if (LOGGER.isWarnEnabled()) {
                     LOGGER.warn(String.format(
@@ -1190,16 +1279,19 @@ public final class DocContentPrintProcessor {
                 }
                 setDeferredException(null);
 
-            } else if ((exception instanceof PdfSecurityException)
-                    || (exception instanceof PdfValidityException)) {
+            } else if ((exception instanceof PdfAbstractException)) {
+
+                pubMessage = ((PdfAbstractException) exception).getLogMessage();
 
                 if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn(String.format("User [%s]: %s", userid,
-                            exception.getMessage()));
+                    LOGGER.warn(
+                            String.format("User [%s]: %s", userid, pubMessage));
                 }
                 setDeferredException(null);
 
             } else if (exception instanceof UnsupportedPrintJobContent) {
+
+                pubMessage = exception.getMessage();
 
                 if (LOGGER.isWarnEnabled()) {
                     if (LOGGER.isWarnEnabled()) {
@@ -1211,6 +1303,7 @@ public final class DocContentPrintProcessor {
                 setDeferredException(null);
 
             } else {
+                pubMessage = exception.getMessage();
                 pubLevel = PubLevelEnum.ERROR;
                 LOGGER.error(exception.getMessage(), exception);
             }

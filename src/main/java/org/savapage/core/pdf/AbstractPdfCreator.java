@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,9 +23,6 @@ package org.savapage.core.pdf;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -61,6 +58,7 @@ import org.savapage.core.services.PGPPublicKeyService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.impl.InboxServiceImpl;
+import org.savapage.core.util.FileSystemHelper;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
@@ -203,12 +201,31 @@ public abstract class AbstractPdfCreator {
         return create().getNumberOfPagesInPdfFile(filePathPdf);
     }
 
+    /**
+     *
+     * @param filePathPdf
+     *            PDF file path.
+     * @return {@link SpPdfPageProps}.
+     * @throws PdfValidityException
+     *             When invalid PDF document.
+     * @throws PdfSecurityException
+     *             When encrypted PDF document.
+     * @throws PdfPasswordException
+     *             When password protected PDF document.
+     */
     public static SpPdfPageProps pageProps(final String filePathPdf)
-            throws PdfSecurityException, PdfValidityException {
+            throws PdfValidityException, PdfSecurityException,
+            PdfPasswordException {
         return create().getPageProps(filePathPdf);
     }
 
-    protected abstract int getNumberOfPagesInPdfFile(final String filePathPdf);
+    /**
+     *
+     * @param filePathPdf
+     *            PDF file path.
+     * @return Number of pages in PDF.
+     */
+    protected abstract int getNumberOfPagesInPdfFile(String filePathPdf);
 
     /**
      * Creates the {@link SpPdfPageProps} of an PDF document.
@@ -216,26 +233,16 @@ public abstract class AbstractPdfCreator {
      * @param filePathPdf
      *            The PDF document file path.
      * @return The {@link SpPdfPageProps}.
-     * @throws PdfSecurityException
-     *             When encrypted or password protected PDF document.
      * @throws PdfValidityException
-     *             When the document isn't a valid PDF document.
-     */
-    protected abstract SpPdfPageProps getPageProps(final String filePathPdf)
-            throws PdfSecurityException, PdfValidityException;
-
-    /**
-     * Creates an ordinal list of {@link SpPdfPageProps} of an PDF document.
-     * Each entry on the list represents a chunk of pages with the same size.
-     *
-     * @param filePathPdf
-     *            The PDF document file path.
-     * @return The {@link SpPdfPageProps} list.
+     *             When invalid PDF document.
      * @throws PdfSecurityException
-     *             When encrypted or password protected PDF document.
+     *             When encrypted PDF document.
+     * @throws PdfPasswordException
+     *             When password protected PDF document.
      */
-    public abstract List<SpPdfPageProps> getPageSizeChunks(
-            final String filePathPdf) throws PdfSecurityException;
+    protected abstract SpPdfPageProps getPageProps(String filePathPdf)
+            throws PdfValidityException, PdfSecurityException,
+            PdfPasswordException;
 
     /**
      *
@@ -846,15 +853,7 @@ public abstract class AbstractPdfCreator {
      */
     protected static void replaceWithConvertedPdf(final File pdfOrginal,
             final File pdfConverted) throws IOException {
-
-        final Path source = FileSystems.getDefault()
-                .getPath(pdfConverted.getAbsolutePath());
-
-        final Path target =
-                FileSystems.getDefault().getPath(pdfOrginal.getAbsolutePath());
-
-        Files.move(source, target,
-                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        FileSystemHelper.replaceWithNewVersion(pdfOrginal, pdfConverted);
     }
 
 }

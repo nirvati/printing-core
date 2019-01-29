@@ -75,6 +75,7 @@ import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.pdf.PdfCreateInfo;
+import org.savapage.core.pdf.PdfPasswordException;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
@@ -208,6 +209,9 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
     private static final String MSG_COMMENT_PRINT_CANCELLED_PDF_ENCRYPTED =
             MSG_COMMENT_PRINT_CANCELLED_PFX + "PDF document is versleuteld.";
+
+    private static final String MSG_COMMENT_PRINT_CANCELLED_PDF_PASSWORD =
+            MSG_COMMENT_PRINT_CANCELLED_PFX + "PDF document heeft wachtwoord.";
 
     private static final String MSG_COMMENT_PRINT_ERROR_NO_COPIES =
             "Geen kopieen gespecificeerd.";
@@ -1438,15 +1442,18 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      *            The SavaPage assigned {@link UUID} for the downloaded
      *            document.
      * @return The {@link DocContentPrintInInfo}.
-     * @throws PdfSecurityException
-     *             When the PDF file has security restrictions.
      * @throws PdfValidityException
-     *             When the document isn't a valid PDF document.
+     *             When invalid PDF document.
+     * @throws PdfSecurityException
+     *             When encrypted PDF document.
+     * @throws PdfPasswordException
+     *             When password protected PDF document.
      */
     private static DocContentPrintInInfo createPrintInInfo(
             final SmartschoolConnection connection, final Document document,
             final File downloadedFile, final int nTotCopies, final UUID uuid)
-            throws PdfSecurityException, PdfValidityException {
+            throws PdfValidityException, PdfSecurityException,
+            PdfPasswordException {
 
         /*
          * Get the PDF properties to check security issues.
@@ -1455,7 +1462,8 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
         try {
             pdfProps = SpPdfPageProps.create(downloadedFile.getCanonicalPath());
-        } catch (PdfSecurityException | PdfValidityException e) {
+        } catch (PdfValidityException | PdfSecurityException
+                | PdfPasswordException e) {
             throw e;
         } catch (IOException e) {
             throw new SpException(e.getMessage());
@@ -1759,6 +1767,16 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
             reportDocumentStatus(monitor.processingConnection, document.getId(),
                     SmartschoolPrintStatusEnum.CANCELLED,
                     MSG_COMMENT_PRINT_CANCELLED_PDF_INVALID,
+                    monitor.simulationMode);
+
+        } catch (PdfPasswordException e) {
+
+            publishAdminMsg(PubLevelEnum.WARN, localizedMsg("print-cancelled",
+                    document.getName(), e.getMessage()));
+
+            reportDocumentStatus(monitor.processingConnection, document.getId(),
+                    SmartschoolPrintStatusEnum.CANCELLED,
+                    MSG_COMMENT_PRINT_CANCELLED_PDF_PASSWORD,
                     monitor.simulationMode);
 
         } catch (ProxyPrintException e) {

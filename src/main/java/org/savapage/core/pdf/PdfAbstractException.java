@@ -21,6 +21,8 @@
  */
 package org.savapage.core.pdf;
 
+import java.util.Locale;
+
 import org.savapage.core.i18n.PhraseEnum;
 
 /**
@@ -29,7 +31,7 @@ import org.savapage.core.i18n.PhraseEnum;
  * @author Rijk Ravestein
  *
  */
-public final class PdfSecurityException extends PdfAbstractException {
+public abstract class PdfAbstractException extends Exception {
 
     /**
      *
@@ -37,9 +39,9 @@ public final class PdfSecurityException extends PdfAbstractException {
     private static final long serialVersionUID = 1L;
 
     /**
-     * {@code true} if printing is allowed.
+     * Message for logging.
      */
-    private final boolean printingAllowed;
+    private final PhraseEnum logPhrase;
 
     /**
      *
@@ -47,21 +49,20 @@ public final class PdfSecurityException extends PdfAbstractException {
      *            Message.
      * @param phrase
      *            Message for logging.
-     * @param printAllowed
-     *            {@code true} if printing is allowed.
      */
-    public PdfSecurityException(final String message, final PhraseEnum phrase,
-            final boolean printAllowed) {
-        super(message, phrase);
-        this.printingAllowed = printAllowed;
+    public PdfAbstractException(final String message, final PhraseEnum phrase) {
+        super(message);
+        this.logPhrase = phrase;
     }
 
     /**
      *
-     * @return {@code true} if printing is allowed.
+     * @return English log message.
      */
-    public boolean isPrintingAllowed() {
-        return printingAllowed;
+    public String getLogMessage() {
+        if (this.logPhrase == null) {
+            return this.getMessage();
+        }
+        return this.logPhrase.uiText(Locale.ENGLISH);
     }
-
 }

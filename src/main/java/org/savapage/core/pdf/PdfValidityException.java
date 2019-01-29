@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,51 +14,60 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.pdf;
 
+import org.savapage.core.i18n.PhraseEnum;
+
 /**
- * An exception to report when the document isn't a valid PDF document.
- *
+ * An exception to report an invalid PDF document.
  *
  * @author Rijk Ravestein
- * @since 0.9.10
+ *
  */
-public class PdfValidityException extends Exception {
+public final class PdfValidityException extends PdfAbstractException {
 
-    /**
-     *
-     */
+    /** */
     private static final long serialVersionUID = 1L;
 
-    /**
-     *
-     * @param ex
-     *            The exception.
-     */
-    public PdfValidityException(final Exception ex) {
-        super(ex);
-    }
+    /** */
+    private final String localePhrase;
 
     /**
      *
      * @param message
+     *            Message.
+     * @param phraseLocale
+     *            Locale string.
+     * @param phrase
+     *            Message for logging.
      */
-    public PdfValidityException(final String message) {
-        super(message);
+    public PdfValidityException(final String message, final String phraseLocale,
+            final PhraseEnum phrase) {
+        super(message, phrase);
+        this.localePhrase = phraseLocale;
     }
 
     /**
      *
-     * @param message
-     * @param cause
+     * @return English log message.
      */
-    public PdfValidityException(final String message, final Throwable cause) {
-        super(message, cause);
+    @Override
+    public String getLogMessage() {
+        return String.format("%s %s", super.getLogMessage(),
+                super.getMessage());
+    }
+
+    @Override
+    public String getMessage() {
+        if (this.localePhrase == null) {
+            return this.getLogMessage();
+        }
+        return String.format("%s %s", this.localePhrase, super.getMessage());
     }
 
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,10 +31,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.MediaSize;
@@ -49,7 +47,9 @@ import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.doc.PdfToPrePress;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.json.PdfProperties;
+import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +69,7 @@ import com.itextpdf.text.pdf.PRIndirectReference;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfCopy;
 import com.itextpdf.text.pdf.PdfDictionary;
+import com.itextpdf.text.pdf.PdfEncryptor;
 import com.itextpdf.text.pdf.PdfException;
 import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfName;
@@ -290,35 +291,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     /**
-     * Checks if rectangles have same size (orientation portrait/landscape is
-     * ignored).
-     *
-     * @param rectA
-     *            The first {@link Rectangle}.
-     * @param rectB
-     *            The second {@link Rectangle}.
-     * @return {@code true} if same size.
-     */
-    private boolean isSameSize(final Rectangle rectA, final Rectangle rectB) {
-
-        final boolean isSame;
-
-        if (rectA.getWidth() == rectB.getWidth()
-                && rectA.getHeight() == rectB.getHeight()) {
-            // portrait == portrait, landscape = landscape
-            isSame = true;
-        } else if (rectA.getWidth() == rectB.getHeight()
-                && rectA.getHeight() == rectB.getWidth()) {
-            // portrait == landscape
-            isSame = true;
-        } else {
-            isSame = false;
-        }
-        return isSame;
-
-    }
-
-    /**
      * Gets the PDF page properties from the media box {@link Rectangle}.
      *
      * @param mediabox
@@ -359,96 +331,9 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     @Override
-    public List<SpPdfPageProps> getPageSizeChunks(final String filePathPdf)
-            throws PdfSecurityException {
-
-        final List<SpPdfPageProps> pagePropsList = new ArrayList<>();
-
-        PdfReader reader = null;
-
-        try {
-            /*
-             * Instantiating/opening can throw a BadPasswordException.
-             */
-            reader = new PdfReader(filePathPdf);
-
-            if (reader.isEncrypted()) {
-                throw new PdfSecurityException("Encrypted PDF not supported.");
-            }
-
-            final int nPagesTot = reader.getNumberOfPages();
-
-            /*
-             * First Page.
-             */
-            SpPdfPageProps pagePropsItem = null;
-            Rectangle rectangleItem = null;
-            Rectangle rectangleWlk = null;
-
-            int nPagesItem = 0;
-            int i = 0;
-
-            if (nPagesTot > 0) {
-                // Note: page index is 1-based.
-                rectangleWlk = reader.getPageSize(i + 1);
-
-                nPagesItem = 0;
-                rectangleItem = rectangleWlk;
-                pagePropsItem = this.createPageProps(rectangleWlk);
-                pagePropsList.add(pagePropsItem);
-            }
-            /*
-             * Process pages.
-             */
-            for (; i < nPagesTot; i++) {
-
-                /*
-                 * Next page.
-                 */
-                rectangleWlk = reader.getPageSize(i + 1);
-
-                /*
-                 * New page size.
-                 */
-                if (!this.isSameSize(rectangleItem, rectangleWlk)) {
-
-                    // flush pending item
-                    pagePropsItem.setNumberOfPages(nPagesItem);
-
-                    // create new
-                    nPagesItem = 0;
-                    rectangleItem = rectangleWlk;
-                    pagePropsItem = this.createPageProps(rectangleWlk);
-                    pagePropsList.add(pagePropsItem);
-                }
-
-                nPagesItem++;
-            }
-
-            if (pagePropsItem != null) {
-                // flush last pending item
-                pagePropsItem.setNumberOfPages(nPagesItem);
-            }
-
-        } catch (com.itextpdf.text.exceptions.BadPasswordException e) {
-            throw new PdfSecurityException(
-                    "Password protected PDF not supported.");
-        } catch (IOException e) {
-            throw new SpException(e);
-
-        } finally {
-
-            if (reader != null) {
-                reader.close();
-            }
-        }
-
-        return pagePropsList;
-    }
-
-    @Override
     public SpPdfPageProps getPageProps(final String filePathPdf)
-            throws PdfSecurityException, PdfValidityException {
+            throws PdfSecurityException, PdfValidityException,
+            PdfPasswordException {
 
         SpPdfPageProps pageProps = null;
         PdfReader reader = null;
@@ -464,10 +349,23 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             reader = new PdfReader(filePathPdf);
 
             if (reader.isEncrypted()) {
-                throw new PdfSecurityException("Encrypted PDF not supported.");
+                final boolean isPrintingAllowed = PdfEncryptor
+                        .isPrintingAllowed((int) reader.getPermissions());
+
+                final PhraseEnum phrase;
+                if (isPrintingAllowed) {
+                    phrase = PhraseEnum.PDF_ENCRYPTED_UNSUPPORTED;
+                } else {
+                    phrase = PhraseEnum.PDF_PRINTING_NOT_ALLOWED;
+                }
+
+                throw new PdfSecurityException(
+                        phrase.uiText(ServiceContext.getLocale()), phrase,
+                        isPrintingAllowed);
             }
 
             pageProps = this.createPageProps(reader.getPageSize(firstPage));
+
             pageProps.setNumberOfPages(reader.getNumberOfPages());
             pageProps.setRotationFirstPage(reader.getPageRotation(firstPage));
 
@@ -478,11 +376,16 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                     PdfPageRotateHelper.getPageContentRotation(ctm).intValue());
 
         } catch (com.itextpdf.text.exceptions.BadPasswordException e) {
-            throw new PdfSecurityException(
-                    "Password protected PDF not supported.");
+            throw new PdfPasswordException(
+                    PhraseEnum.PDF_PASSWORD_UNSUPPORTED
+                            .uiText(ServiceContext.getLocale()),
+                    PhraseEnum.PDF_PASSWORD_UNSUPPORTED);
+
         } catch (InvalidPdfException e) {
-            throw new PdfValidityException(
-                    String.format("Invalid PDF: %s", e.getMessage()));
+            throw new PdfValidityException(e.getMessage(),
+                    PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
+                    PhraseEnum.PDF_INVALID);
+
         } catch (IOException e) {
             throw new SpException(e);
 

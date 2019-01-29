@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -486,6 +486,11 @@ public final class QueueServiceImpl extends AbstractService
          */
         if (printException != null) {
             throw printException;
+        }
+
+        if (processor.isPdfRepaired()) {
+            LOGGER.warn("PDF [{}] is invalid and has been repaired.",
+                    printReq.getFileName());
         }
 
         return printRsp;

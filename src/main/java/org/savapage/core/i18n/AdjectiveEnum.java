@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -50,6 +50,9 @@ public enum AdjectiveEnum {
 
     /** */
     INTERNAL, EXTERNAL,
+
+    /** */
+    UNKNOWN, KNOWN,
 
     /** */
     PENDING;
