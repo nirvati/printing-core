@@ -198,29 +198,30 @@ public final class CupsSyncPrintJobs extends AbstractJob {
             batchCommitter.commit(); // !!
 
             if (result.getJobsActive() > 0) {
-                AdminPublisher.instance().publish(PubTopicEnum.CUPS,
-                        PubLevelEnum.INFO,
-                        String.format(
-                                "CUPS Print Job Sync %d/%d: "
-                                        + "%d of %d jobs found.",
-                                nJobsActive, nActiveCupsJobs,
-                                result.getJobsUpdated(),
-                                result.getJobsActive()));
+                AdminPublisher.instance()
+                        .publish(PubTopicEnum.CUPS, PubLevelEnum.INFO,
+                                String.format("Print Job Sync %d/%d: "
+                                        + "%d of %d jobs present in CUPS.",
+                                        nJobsActive, nActiveCupsJobs,
+                                        result.getJobsUpdated(),
+                                        result.getJobsActive()));
             }
         }
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(
-                    "Synced [{}] active PrintOut jobs with CUPS: "
-                            + "updated [{}], not found [{}]",
+                    "Synced [{}] active PrintOut jobs: "
+                            + "present [{}], missing [{}] in CUPS",
                     nJobsActive, nJobsUpdated, nJobsNotFound);
         }
 
         if (nJobsActive > 0) {
-            SpInfo.instance().log(String.format("|      : %d PrintOut updated.",
+            SpInfo.instance().log(String.format(
+                    "|      : %d PrintOut present in CUPS (status updated).",
                     nJobsUpdated));
             SpInfo.instance().log(String.format(
-                    "|      : %d PrintOut not found in CUPS.", nJobsNotFound));
+                    "|      : %d PrintOut missing in CUPS (status unknown).",
+                    nJobsNotFound));
         }
 
         return new SyncPrintJobsResult(nJobsActive, nJobsUpdated, nJobsNotFound,
