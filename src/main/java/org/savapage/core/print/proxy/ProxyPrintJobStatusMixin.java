@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,6 +38,11 @@ public abstract class ProxyPrintJobStatusMixin {
 
     private Integer cupsCreationTime;
     private Integer cupsCompletedTime;
+
+    /**
+     * Update time (milliseconds).
+     */
+    private long updateTime;
 
     /**
      *
@@ -128,6 +133,21 @@ public abstract class ProxyPrintJobStatusMixin {
      */
     public final boolean isFinished() {
         return this.jobState.isFinished();
+    }
+
+    /**
+     * @return Update time (milliseconds).
+     */
+    public long getUpdateTime() {
+        return updateTime;
+    }
+
+    /**
+     * @param updateTime
+     *            Update time (milliseconds).
+     */
+    public void setUpdateTime(long updateTime) {
+        this.updateTime = updateTime;
     }
 
     /**

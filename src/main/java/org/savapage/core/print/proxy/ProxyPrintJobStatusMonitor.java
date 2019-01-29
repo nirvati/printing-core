@@ -159,6 +159,11 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
         private Integer cupsCompletedTime;
 
         /**
+         * Update time (milliseconds).
+         */
+        private long updateTime;
+
+        /**
          *
          * @param mixin
          */
@@ -177,6 +182,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
             this.cupsCreationTime = mixin.getCupsCreationTime();
             this.cupsCompletedTime = mixin.getCupsCompletedTime();
+            this.updateTime = mixin.getUpdateTime();
 
         }
 
@@ -239,6 +245,21 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
          */
         public void setCupsCompletedTime(Integer cupsCompletedTime) {
             this.cupsCompletedTime = cupsCompletedTime;
+        }
+
+        /**
+         * @return Update time (milliseconds).
+         */
+        public long getUpdateTime() {
+            return updateTime;
+        }
+
+        /**
+         * @param updateTime
+         *            Update time (milliseconds).
+         */
+        public void setUpdateTime(long updateTime) {
+            this.updateTime = updateTime;
         }
 
         /**
@@ -333,6 +354,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
         jobStatus.setCupsCreationTime(printJob.getCreationTime());
         jobStatus.setCupsCompletedTime(printJob.getCompletedTime());
+        jobStatus.setUpdateTime(System.currentTimeMillis());
 
         SingletonHolder.INSTANCE.onNotify(jobStatus);
     }
@@ -378,6 +400,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
             return;
         }
+
+        jobCurrent.setUpdateTime(jobUpdate.getUpdateTime());
 
         /*
          * Mantis #734: Correct missing CUPS job completion time. Mantis #834:
