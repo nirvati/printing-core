@@ -131,7 +131,8 @@ public enum IppJobStateEnum {
     /**
      * Checks if status means a job is finished and left the CUPS queue.
      *
-     * @return {@code true} when state is COMPLETED, CANCELED or ABORTED.
+     * @return {@code true} when state is COMPLETED, CANCELED, ABORTED or
+     *         UNKNOWN.
      */
     public boolean isFinished() {
         return !this.isPresentOnQueue();

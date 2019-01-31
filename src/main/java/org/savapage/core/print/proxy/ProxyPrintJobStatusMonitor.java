@@ -24,6 +24,7 @@ package org.savapage.core.print.proxy;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -33,9 +34,12 @@ import org.savapage.core.SpInfo;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.PrintOutDao;
 import org.savapage.core.ipp.IppJobStateEnum;
+import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMixin.StatusSource;
@@ -119,9 +123,9 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
             1 * DateUtil.DURATION_MSEC_SECOND;
 
     /**
-     * Max 30 seconds wait for a CUPS/PRINT_OUT match.
+     * Max wait for a CUPS/PRINT_OUT match (30 seconds).
      */
-    private static final long JOB_STATUS_MAX_AGE_MSEC =
+    private static final long TIMEOUT_CUPS_PRINTOUT_MATCH_MSEC =
             30 * DateUtil.DURATION_MSEC_SECOND;
 
     /**
@@ -614,7 +618,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
         try {
 
-            this.writePrintOutUserMsg(userid, jobStatus.getCupsCompletedTime());
+            this.evaluatePrintOutUserMsg(userid,
+                    jobStatus.getCupsCompletedTime());
 
         } catch (IOException e) {
 
@@ -632,6 +637,9 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
         final long timeNow = System.currentTimeMillis();
 
+        final long pullHeatbeat = ConfigManager.instance().getConfigLong(
+                IConfigProp.Key.CUPS_NOTIFIER_JOB_STATUS_PULL_HEARTBEAT_MSEC);
+
         final Iterator<Integer> iter = this.jobStatusMap.keySet().iterator();
 
         while (iter.hasNext() && this.keepProcessing) {
@@ -642,32 +650,31 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
             if (jobIter.getCupsCreationTime() == null) {
                 /*
-                 * The CUPS creation time was set when the job was added by
-                 * either CUPS or PRINT_OUT (whoever is first).
+                 * INVARIANT: CUPS creation time MUST be present. It must be set
+                 * when the job was added by either CUPS or PRINT_OUT (whoever
+                 * is first).
                  */
-                LOGGER.warn(String.format(
-                        "Removed CUPS Job [%d] because is has"
-                                + " no creation time.",
+                LOGGER.error(String.format(
+                        "Removed CUPS Job [%d]. Reason: no creation time.",
                         jobIter.jobId.intValue()));
 
                 removeJobIter = true;
 
             } else if (jobIter.jobStatePrintOut == null) {
-
                 /*
-                 * No corresponding PRINT_OUT received (yet). How long are we
-                 * waiting?
+                 * INVARIANT: A PRINT_OUT event MUST be received within
+                 * reasonable time.
                  */
                 final long msecAge = timeNow - jobIter.getCupsCreationTime()
                         * DateUtil.DURATION_MSEC_SECOND;
 
-                final boolean orphanedPrint = msecAge > JOB_STATUS_MAX_AGE_MSEC;
+                final boolean orphanedPrint =
+                        msecAge > TIMEOUT_CUPS_PRINTOUT_MATCH_MSEC;
 
                 if (!orphanedPrint) {
                     // Let it stay.
                     continue;
                 }
-
                 /*
                  * Wait for PRINT_OUT message has expired: this is probably an
                  * external print action (from outside SavaPage).
@@ -701,7 +708,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
             } else {
                 /*
-                 * Find PrintOut CUPS job in the database.
+                 * INVARIANT: PrintOut CUPS job MUST be present in database.
                  */
                 final PrintOut printOut = this.getPrintOutCupsJob(jobIter);
 
@@ -719,10 +726,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
                     AdminPublisher.instance().publish(PubTopicEnum.CUPS,
                             PubLevelEnum.ERROR, msg.toString());
-
-                    if (LOGGER.isErrorEnabled()) {
-                        LOGGER.error(msg.toString());
-                    }
+                    LOGGER.error(msg.toString());
 
                     removeJobIter = true;
 
@@ -737,9 +741,64 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
              */
             if (removeJobIter) {
                 iter.remove();
+            } else {
+                evaluateJobStatusPull(jobIter, timeNow, pullHeatbeat);
             }
 
         } // end-while iter.
+    }
+
+    /**
+     * Checks if last status update is too long ago. If {@code true}, then pull
+     * job status from CUPS.
+     *
+     * @param jobStatus
+     *            {@link PrintJobStatus}.
+     * @param timeNow
+     *            Current time in milliseconds.
+     * @param pullHeatbeat
+     *            Max wait for a CUPS job id notification before <b>pulling</b>
+     *            its status from CUPS.
+     */
+    private void evaluateJobStatusPull(final PrintJobStatus jobStatus,
+            final long timeNow, final long pullHeatbeat) {
+
+        if (timeNow - jobStatus.getUpdateTime() < pullHeatbeat) {
+            return;
+        }
+
+        try {
+            final JsonProxyPrintJob cupsJob =
+                    PROXY_PRINT_SERVICE.retrievePrintJob(
+                            jobStatus.getPrinterName(), jobStatus.getJobId());
+
+            final IppJobStateEnum ippState;
+            if (cupsJob == null) {
+                ippState = IppJobStateEnum.IPP_JOB_UNKNOWN;
+                LOGGER.warn(
+                        "Pulling job #{} status from CUPS failed. "
+                                + "Using status [{}]",
+                        jobStatus.getJobId(),
+                        ippState.uiText(Locale.ENGLISH).toUpperCase());
+            } else {
+                ippState = cupsJob.getIppJobState();
+                LOGGER.warn("Pulled job #{} [{}] from CUPS.",
+                        jobStatus.getJobId(),
+                        ippState.uiText(Locale.ENGLISH).toUpperCase());
+            }
+
+            jobStatus.setJobStateCupsUpdate(ippState);
+            jobStatus.setUpdateTime(timeNow);
+
+            if (ippState.isFinished()) {
+                jobStatus.setCupsCompletedTime(
+                        PROXY_PRINT_SERVICE.getCupsSystemTime());
+            }
+
+        } catch (IppConnectException e) {
+            LOGGER.warn("CUPS job #{} : {}", jobStatus.getJobId(),
+                    e.getMessage());
+        }
     }
 
     @Override
@@ -790,6 +849,11 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
      * @return {@code null} when not found.
      */
     private PrintOut getPrintOutCupsJob(final PrintJobStatus printJobStatus) {
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Reading job #{} PrintOut from database",
+                    printJobStatus.getJobId());
+        }
 
         final int nMaxTrials = 3; // retry 2 times.
 
@@ -847,8 +911,9 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
     }
 
     /**
-     * Signals a user PrintOut message via {@link UserMsgIndicator} if CUPS
-     * completed time NEQ {@code null} and NEQ zero (0).
+     * Checks if CUPS completed time NEQ {@code null} and NEQ zero (0). If
+     * {@code true}, then user PrintOut message via {@link UserMsgIndicator} is
+     * written.
      *
      * @param userid
      *            The user id.
@@ -858,7 +923,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
      * @throws IOException
      *             When errors writing the message.
      */
-    private void writePrintOutUserMsg(final String userid,
+    private void evaluatePrintOutUserMsg(final String userid,
             final Integer cupsCompletedTime) throws IOException {
 
         if (userid != null && cupsCompletedTime != null

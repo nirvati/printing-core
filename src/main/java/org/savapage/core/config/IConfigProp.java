@@ -643,6 +643,16 @@ public interface IConfigProp {
                 "4000"),
 
         /**
+         * Heartbeat (milliseconds) for performing a CUPS pull of job id status
+         * while monitoring CUPS notifications. When CUPS notifies (push) job id
+         * status in between, the heartbeat offset for this job id is reset to
+         * zero.
+         */
+        CUPS_NOTIFIER_JOB_STATUS_PULL_HEARTBEAT_MSEC(//
+                "cups.notifier.job-status-pull.heartbeat-msec",
+                NUMBER_VALIDATOR, "20000"),
+
+        /**
          *
          */
         DELETE_ACCOUNT_TRX_LOG(//
