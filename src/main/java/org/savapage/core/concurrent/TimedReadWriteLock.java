@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -98,7 +98,7 @@ public final class TimedReadWriteLock {
 
         private final Thread locker;
         private final boolean readLock;
-
+        private final String contextId;
         private final StackTraceElement[] stackElements;
 
         /**
@@ -106,10 +106,12 @@ public final class TimedReadWriteLock {
          * @param locker
          * @param readLock
          */
-        WaitTimerTask(final Thread locker, final boolean readLock) {
+        WaitTimerTask(final Thread locker, final boolean readLock,
+                final String contextId) {
             this.locker = locker;
             this.readLock = readLock;
             this.stackElements = locker.getStackTrace();
+            this.contextId = contextId;
         }
 
         @Override
@@ -133,8 +135,14 @@ public final class TimedReadWriteLock {
             final StringBuilder msg = new StringBuilder();
 
             msg.append(this.locker).append(" holds [").append(lockType)
-                    .append("] lock '").append(name).append("' for more than ")
-                    .append(maxWait).append(" ms. Stack trace snippet:\n");
+                    .append("] lock [").append(name).append("]");
+
+            if (this.contextId != null) {
+                msg.append(" [").append(this.contextId).append("]");
+            }
+
+            msg.append(" for more than ").append(maxWait)
+                    .append(" ms. Stack trace snippet:\n");
 
             int nElement = 0;
 
@@ -201,10 +209,13 @@ public final class TimedReadWriteLock {
      * value {@code true}. If the lock is not available then this method will
      * return immediately with the value {@code false}.
      *
+     * @param contextId
+     *            ID used for logging.
+     *
      * @return {@code true} if the lock was acquired and {@code false}
      *         otherwise.
      */
-    public boolean tryReadLock() {
+    public boolean tryReadLock(final String contextId) {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Try Read lock [" + Thread.currentThread().getName()
@@ -213,16 +224,19 @@ public final class TimedReadWriteLock {
         if (!rwLock.readLock().tryLock()) {
             return false;
         }
-        this.pushTimerTask(true);
+        this.pushTimerTask(true, contextId);
         return true;
     }
 
     /**
      *
+     * @param readLock
+     * @param contextId
+     *            ID used for logging.
      */
-    private void pushTimerTask(final boolean readLock) {
+    private void pushTimerTask(final boolean readLock, final String contextId) {
         final WaitTimerTask job =
-                new WaitTimerTask(Thread.currentThread(), readLock);
+                new WaitTimerTask(Thread.currentThread(), readLock, contextId);
         lockTaskStack.get().push(job);
         waitTimer.schedule(job, maxWait);
     }
@@ -232,8 +246,10 @@ public final class TimedReadWriteLock {
      *
      * @param lock
      *            true - lock for read, false - unlock for read.
+     * @param contextId
+     *            ID used for logging.
      */
-    public void setReadLock(final boolean lock) {
+    public void setReadLock(final boolean lock, final String contextId) {
 
         if (lock) {
 
@@ -243,7 +259,7 @@ public final class TimedReadWriteLock {
             }
 
             rwLock.readLock().lock();
-            this.pushTimerTask(true);
+            this.pushTimerTask(true, contextId);
 
         } else {
 
@@ -266,8 +282,10 @@ public final class TimedReadWriteLock {
      * @param lock
      *            {@code true} - lock for write, {@code false} - unlock for
      *            write.
+     * @param contextId
+     *            ID used for logging.
      */
-    public void setWriteLock(final boolean lock) {
+    public void setWriteLock(final boolean lock, final String contextId) {
 
         if (lock) {
             /*
@@ -314,7 +332,7 @@ public final class TimedReadWriteLock {
             }
 
             rwLock.writeLock().lock();
-            this.pushTimerTask(false);
+            this.pushTimerTask(false, contextId);
 
         } else {
 

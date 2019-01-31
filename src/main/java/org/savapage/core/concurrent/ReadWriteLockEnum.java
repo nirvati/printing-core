@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -122,7 +122,23 @@ public enum ReadWriteLockEnum {
      *             When read lock could not be acquired.
      */
     public void tryReadLock() throws ReadLockObtainFailedException {
-        if (!this.rwLock.tryReadLock()) {
+        if (!this.rwLock.tryReadLock(null)) {
+            throw new ReadLockObtainFailedException(this);
+        }
+    }
+
+    /**
+     * Acquires the read lock only if it is free at the time of invocation.
+     *
+     * @param contextId
+     *            ID used for logging.
+     *
+     * @throws ReadLockObtainFailedException
+     *             When read lock could not be acquired.
+     */
+    public void tryReadLock(final String contextId)
+            throws ReadLockObtainFailedException {
+        if (!this.rwLock.tryReadLock(contextId)) {
             throw new ReadLockObtainFailedException(this);
         }
     }
@@ -134,7 +150,19 @@ public enum ReadWriteLockEnum {
      *            true - lock for read, false - unlock for read.
      */
     public void setReadLock(final boolean lock) {
-        this.rwLock.setReadLock(lock);
+        this.rwLock.setReadLock(lock, null);
+    }
+
+    /**
+     * Locks or unlocks a read lock.
+     *
+     * @param lock
+     *            true - lock for read, false - unlock for read.
+     * @param contextId
+     *            ID used for logging.
+     */
+    public void setReadLock(final boolean lock, final String contextId) {
+        this.rwLock.setReadLock(lock, contextId);
     }
 
     /**
@@ -144,7 +172,18 @@ public enum ReadWriteLockEnum {
      *            true - lock for write, false - unlock for write.
      */
     public void setWriteLock(final boolean lock) {
-        this.rwLock.setWriteLock(lock);
+        this.rwLock.setWriteLock(lock, null);
     }
 
+    /**
+     * Locks or unlocks a write lock.
+     *
+     * @param lock
+     *            true - lock for write, false - unlock for write.
+     * @param contextId
+     *            ID used for logging.
+     */
+    public void setWriteLock(final boolean lock, final String contextId) {
+        this.rwLock.setWriteLock(lock, contextId);
+    }
 }
