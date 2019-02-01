@@ -650,7 +650,7 @@ public interface IConfigProp {
          */
         CUPS_NOTIFIER_JOB_STATUS_PULL_HEARTBEAT_MSEC(//
                 "cups.notifier.job-status-pull.heartbeat-msec",
-                NUMBER_VALIDATOR, "20000"),
+                NUMBER_VALIDATOR, "30000"),
 
         /**
          *
