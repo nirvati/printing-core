@@ -39,7 +39,7 @@ public final class SyncPrintJobsResult {
      * The number of {@link PrintOut} jobs that were updated with a new CUPS
      * state.
      */
-    private final int jobsUpdated;
+    private final int jobsStateChange;
 
     /**
      * The number of jobs that were not found in CUPS: this could be due to an
@@ -56,7 +56,7 @@ public final class SyncPrintJobsResult {
      *
      * @param active
      *            The number of active {@link PrintOut} jobs.
-     * @param updated
+     * @param stateChange
      *            The number of {@link PrintOut} jobs that were updated with a
      *            new CUPS state.
      * @param notFound
@@ -64,10 +64,10 @@ public final class SyncPrintJobsResult {
      * @param lastJobId
      *            The last CUPS job id handled.
      */
-    public SyncPrintJobsResult(final int active, final int updated,
+    public SyncPrintJobsResult(final int active, final int stateChange,
             final int notFound, final int lastJobId) {
         this.jobsActive = active;
-        this.jobsUpdated = updated;
+        this.jobsStateChange = stateChange;
         this.jobsNotFound = notFound;
         this.jobIdLast = lastJobId;
     }
@@ -83,8 +83,12 @@ public final class SyncPrintJobsResult {
      * @return The number of {@link PrintOut} jobs that were updated with a new
      *         CUPS state.
      */
-    public int getJobsUpdated() {
-        return jobsUpdated;
+    public int getJobsStateChange() {
+        return jobsStateChange;
+    }
+
+    public int getJobsIdentical() {
+        return jobsActive - jobsStateChange - jobsNotFound;
     }
 
     /**

@@ -110,12 +110,14 @@ public final class CupsSyncPrintJobs extends AbstractJob {
                 msg = AppLogHelper.logInfo(getClass(),
                         "CupsSyncPrintJobs.success",
                         String.valueOf(syncResult.getJobsActive()),
-                        String.valueOf(syncResult.getJobsUpdated()),
+                        String.valueOf(syncResult.getJobsStateChange()),
+                        String.valueOf(syncResult.getJobsIdentical()),
                         String.valueOf(syncResult.getJobsNotFound()));
             } else {
                 msg = localizeSysMsg("CupsSyncPrintJobs.success",
                         String.valueOf(syncResult.getJobsActive()),
-                        String.valueOf(syncResult.getJobsUpdated()),
+                        String.valueOf(syncResult.getJobsStateChange()),
+                        String.valueOf(syncResult.getJobsIdentical()),
                         String.valueOf(syncResult.getJobsNotFound()));
             }
 
@@ -171,7 +173,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
                         nActiveCupsJobs));
 
         int nJobsActive = 0;
-        int nJobsUpdated = 0;
+        int nJobsStateChange = 0;
         int nJobsNotFound = 0;
 
         boolean hasNext = true;
@@ -187,7 +189,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
                     printOutDAO, cupsJobIdLast, list, batchCommitter);
 
             nJobsActive += result.getJobsActive();
-            nJobsUpdated += result.getJobsUpdated();
+            nJobsStateChange += result.getJobsStateChange();
             nJobsNotFound += result.getJobsNotFound();
 
             cupsJobIdLast = result.getJobIdLast();
@@ -198,34 +200,43 @@ public final class CupsSyncPrintJobs extends AbstractJob {
             batchCommitter.commit(); // !!
 
             if (result.getJobsActive() > 0) {
-                AdminPublisher.instance()
-                        .publish(PubTopicEnum.CUPS, PubLevelEnum.INFO,
-                                String.format("Print Job Sync %d/%d: "
-                                        + "%d of %d jobs present in CUPS.",
-                                        nJobsActive, nActiveCupsJobs,
-                                        result.getJobsUpdated(),
-                                        result.getJobsActive()));
+                AdminPublisher.instance().publish(PubTopicEnum.CUPS,
+                        PubLevelEnum.INFO,
+                        String.format("Print Job Sync %d/%d: "
+                                + "%d changed, %d identical, %d unknown.",
+                                nJobsActive, nActiveCupsJobs,
+                                result.getJobsStateChange(),
+                                result.getJobsIdentical(),
+                                result.getJobsNotFound()));
             }
         }
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(
                     "Synced [{}] active PrintOut jobs: "
-                            + "present [{}], missing [{}] in CUPS",
-                    nJobsActive, nJobsUpdated, nJobsNotFound);
+                            + "[{}] changed [{}] identical [{}] unknown.",
+                    nJobsActive, nJobsStateChange,
+                    nJobsActive - nJobsStateChange - nJobsNotFound,
+                    nJobsNotFound);
         }
 
         if (nJobsActive > 0) {
-            SpInfo.instance().log(String.format(
-                    "|      : %d PrintOut present in CUPS (status updated).",
-                    nJobsUpdated));
-            SpInfo.instance().log(String.format(
-                    "|      : %d PrintOut missing in CUPS (status unknown).",
-                    nJobsNotFound));
+            SpInfo.instance()
+                    .log(String.format(
+                            "|      : %d PrintOut present in CUPS (changed).",
+                            nJobsStateChange));
+            SpInfo.instance()
+                    .log(String.format(
+                            "|      : %d PrintOut present in CUPS (identical).",
+                            nJobsActive - nJobsStateChange - nJobsNotFound));
+            SpInfo.instance()
+                    .log(String.format(
+                            "|      : %d PrintOut missing in CUPS (unknown).",
+                            nJobsNotFound));
         }
 
-        return new SyncPrintJobsResult(nJobsActive, nJobsUpdated, nJobsNotFound,
-                cupsJobIdLast);
+        return new SyncPrintJobsResult(nJobsActive, nJobsStateChange,
+                nJobsNotFound, cupsJobIdLast);
     }
 
     /**
@@ -284,7 +295,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
 
         final int nJobsActive = printOutList.size();
 
-        int nJobsUpdated = 0;
+        int nJobsStateChange = 0;
         int nJobsNotFound = 0;
 
         final Map<Integer, List<PrintOut>> lookupPrintOut =
@@ -326,7 +337,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
                                     cupsJob.getCompletedTime());
 
                             printOutDAO.update(printOut);
-                            nJobsUpdated++;
+                            nJobsStateChange++;
                             batchCommitter.increment();
                         }
                         continue;
@@ -358,8 +369,8 @@ public final class CupsSyncPrintJobs extends AbstractJob {
                     printOutList.get(printOutList.size() - 1).getCupsJobId();
         }
 
-        return new SyncPrintJobsResult(nJobsActive, nJobsUpdated, nJobsNotFound,
-                cupsJobIdLastNew.intValue());
+        return new SyncPrintJobsResult(nJobsActive, nJobsStateChange,
+                nJobsNotFound, cupsJobIdLastNew.intValue());
     }
 
 }
