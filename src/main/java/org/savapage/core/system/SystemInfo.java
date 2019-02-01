@@ -21,7 +21,14 @@
  */
 package org.savapage.core.system;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
 import org.savapage.core.SpException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides information about the host system.
@@ -30,6 +37,10 @@ import org.savapage.core.SpException;
  *
  */
 public final class SystemInfo {
+
+    /** */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SystemInfo.class);
 
     /** */
     public static enum SysctlEnum {
@@ -248,6 +259,43 @@ public final class SystemInfo {
         } catch (Exception e) {
             throw new SpException(e);
         }
+    }
+
+    /**
+     * @return Uptime of the Java virtual machine in milliseconds.
+     */
+    public static long getUptime() {
+        return ManagementFactory.getRuntimeMXBean().getUptime();
+    }
+
+    /**
+     * @return Number of open file descriptors from
+     *         {@link OperatingSystemMXBean}. Same as {@code lsof}
+     */
+    public static long getOpenFileDescriptorCount() {
+
+        final long notFound = -1;
+
+        final OperatingSystemMXBean osBean =
+                ManagementFactory.getOperatingSystemMXBean();
+
+        for (final Method method : osBean.getClass().getDeclaredMethods()) {
+
+            method.setAccessible(true);
+
+            if (method.getName().startsWith("get")
+                    && Modifier.isPublic(method.getModifiers())) {
+
+                if (method.getName().equals("getOpenFileDescriptorCount")) {
+                    try {
+                        return Long.parseLong(method.invoke(osBean).toString());
+                    } catch (Exception e) {
+                        return notFound;
+                    }
+                }
+            }
+        }
+        return notFound;
     }
 
 }

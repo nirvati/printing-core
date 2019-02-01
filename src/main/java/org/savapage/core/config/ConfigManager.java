@@ -2392,13 +2392,6 @@ public final class ConfigManager {
     }
 
     /**
-     * @return Uptime of the Java virtual machine in milliseconds.
-     */
-    public static long getUptime() {
-        return ManagementFactory.getRuntimeMXBean().getUptime();
-    }
-
-    /**
      * .
      */
     private static void setShutdownInProgress() {

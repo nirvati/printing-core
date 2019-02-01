@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -66,6 +66,7 @@ import org.savapage.core.services.helpers.PrinterAttrLookup;
 import org.savapage.core.services.helpers.feed.AdminAtomFeedWriter;
 import org.savapage.core.snmp.SnmpPrinterErrorStateEnum;
 import org.savapage.core.snmp.SnmpPrtMarkerColorantValueEnum;
+import org.savapage.core.system.SystemInfo;
 import org.savapage.core.template.dto.TemplateAdminFeedDto;
 import org.savapage.core.template.dto.TemplatePrinterSnmpDto;
 import org.savapage.core.template.dto.TemplateSslCertDto;
@@ -335,7 +336,7 @@ public final class AtomFeedServiceImpl extends AbstractService
         dto.setActiveUserCount(String.valueOf(userDAO().countActiveUsers()));
 
         dto.setSystemMode(ConfigManager.getSystemMode().uiText(locale));
-        dto.setUptime(DateUtil.formatDuration(ConfigManager.getUptime()));
+        dto.setUptime(DateUtil.formatDuration(SystemInfo.getUptime()));
 
         final Date now = new Date();
         final Date oneDayAgo = DateUtils.addDays(now, -1);
