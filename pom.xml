@@ -7,7 +7,7 @@
     <version>1.1.0</version>
     <name>SavaPage Core Library</name>
     <properties>
-        <jetty.version>9.4.11.v20180605</jetty.version>
+        <jetty.version>9.4.14.v20181114</jetty.version>
         <LICENSE_NAME>GNU Affero General Public License (AGPL)</LICENSE_NAME>
         <LICENSE_URL>https://www.gnu.org/licenses/agpl-3.0.txt</LICENSE_URL>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -230,7 +230,7 @@
         <dependency>
             <groupId>org.cometd.java</groupId>
             <artifactId>cometd-java-client</artifactId>
-            <version>3.1.5</version>
+            <version>3.1.8</version>
         </dependency>
         <dependency>
             <!-- Align with jetty version from savapage-server -->
