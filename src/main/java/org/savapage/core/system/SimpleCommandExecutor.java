@@ -24,6 +24,7 @@ package org.savapage.core.system;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.List;
 
 import org.savapage.core.SpException;
@@ -97,7 +98,10 @@ public class SimpleCommandExecutor implements ICommandExecutor {
         final ProcessBuilder pb = new ProcessBuilder(commandInformation);
         final Process p = pb.start();
 
-        try (//
+        try (
+                // Declare so it is auto closed.
+                OutputStream ostr = p.getOutputStream();
+
                 BufferedReader stdInput = new BufferedReader(
                         new InputStreamReader(p.getInputStream()));
                 BufferedReader stdError = new BufferedReader(

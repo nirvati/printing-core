@@ -149,7 +149,10 @@ public class SystemCommandExecutor implements ICommandExecutor {
         final ProcessBuilder pb = new ProcessBuilder(commandInformation);
         final Process p = pb.start();
 
-        try (//
+        try (
+                // Declare so it is auto closed.
+                OutputStream ostr = p.getOutputStream();
+
                 BufferedReader bistr = new BufferedReader(
                         new InputStreamReader(p.getInputStream()));
                 BufferedReader bestr = new BufferedReader(
