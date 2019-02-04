@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -485,10 +485,11 @@ public interface InboxService {
     InboxInfoDto pruneJobs(String homedir, String userId, InboxInfoDto jobs);
 
     /**
-     * Prunes the print-in jobs which are orphaned, i.e. jobs that are absent in
-     * the database.
+     * Prunes the print-in jobs which are <i>orphaned</i>, i.e. jobs that are
+     * absent in the database, or jobs which are present in the {@code JSON}
+     * index file, but are <i>missing</i> as inbox document.
      * <p>
-     * Jobs can become orphaned when:
+     * Jobs can become <i>orphaned</i> when:
      * <ul>
      * <li>A database backup is restored.</li>
      * <li>An old backup of the SafePages directory is restored.</li>
@@ -496,6 +497,10 @@ public interface InboxService {
      * <li>A {@link User} logs on after a long time and his {@link DocIn
      * instances are cleaned up by the nightly {@link DocLogClean} job.</li>
      * </ul>
+     * </p>
+     * <p>
+     * Jobs become <i>missing</i> due to unexpected IO errors, or manual remove
+     * from the filesystem.
      * </p>
      *
      * @param homedir

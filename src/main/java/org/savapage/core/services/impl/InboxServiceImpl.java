@@ -31,6 +31,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -1632,8 +1633,8 @@ public final class InboxServiceImpl implements InboxService {
         int iJob = 0;
 
         /*
-         * Collect the zero-based index of the jobs that are NOT present in the
-         * database.
+         * Collect the zero-based indices of the jobs that are not present in
+         * the database, or are not present as inbox document.
          */
         for (final InboxJob job : dto.getJobs()) {
 
@@ -1641,14 +1642,21 @@ public final class InboxServiceImpl implements InboxService {
 
             final DocLog docLog = dao.findByUuid(user.getId(), uuid);
 
-            if (docLog == null) {
+            if (docLog == null
+                    || !Paths.get(homedir, job.getFile()).toFile().exists()) {
                 docLogAbsent.add(Integer.valueOf(iJob));
+
+                if (docLog != null) {
+                    LOGGER.warn(
+                            "Repaired user [{}] inbox for missing document.",
+                            user.getUserId());
+                }
             }
             iJob++;
         }
 
         /*
-         * An jobs absent?
+         * Are jobs absent?
          */
         if (!docLogAbsent.isEmpty()) {
 
