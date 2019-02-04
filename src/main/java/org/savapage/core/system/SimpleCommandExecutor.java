@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -40,8 +40,8 @@ import org.slf4j.LoggerFactory;
  */
 public class SimpleCommandExecutor implements ICommandExecutor {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SimpleCommandExecutor.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SimpleCommandExecutor.class);
 
     private final List<String> commandInformation;
 
@@ -58,7 +58,8 @@ public class SimpleCommandExecutor implements ICommandExecutor {
      * commands.add(&quot;-c&quot;);
      * commands.add(&quot;5&quot;);
      * commands.add(&quot;www.google.com&quot;);
-     * SystemCommandExecutor commandExecutor = new SystemCommandExecutor(commands);
+     * SystemCommandExecutor commandExecutor =
+     *         new SystemCommandExecutor(commands);
      * commandExecutor.executeCommand();
      * </pre>
      *
@@ -96,38 +97,38 @@ public class SimpleCommandExecutor implements ICommandExecutor {
         final ProcessBuilder pb = new ProcessBuilder(commandInformation);
         final Process p = pb.start();
 
-        final BufferedReader stdInput =
-                new BufferedReader(new InputStreamReader(p.getInputStream()));
+        try (//
+                BufferedReader stdInput = new BufferedReader(
+                        new InputStreamReader(p.getInputStream()));
+                BufferedReader stdError = new BufferedReader(
+                        new InputStreamReader(p.getErrorStream()));) {
 
-        final BufferedReader stdError =
-                new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            exitValue = p.waitFor();
 
-        // TODO a better way to do this?
-        exitValue = p.waitFor();
-
-        /*
-         * Read output from the command
-         */
-        String s = null;
-        i = 0;
-        while ((s = stdInput.readLine()) != null) {
-            if (i > 0) {
-                inputBuffer.append("\n");
+            /*
+             * Read output from the command
+             */
+            String s = null;
+            i = 0;
+            while ((s = stdInput.readLine()) != null) {
+                if (i > 0) {
+                    inputBuffer.append("\n");
+                }
+                inputBuffer.append(s);
+                i++;
             }
-            inputBuffer.append(s);
-            i++;
-        }
 
-        /*
-         * Read any errors from the attempted command
-         */
-        i = 0;
-        while ((s = stdError.readLine()) != null) {
-            if (i > 0) {
-                errorBuffer.append("\n");
+            /*
+             * Read any errors from the attempted command
+             */
+            i = 0;
+            while ((s = stdError.readLine()) != null) {
+                if (i > 0) {
+                    errorBuffer.append("\n");
+                }
+                errorBuffer.append(s);
+                i++;
             }
-            errorBuffer.append(s);
-            i++;
         }
 
         return exitValue;

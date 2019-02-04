@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class CommandExecutor {
@@ -40,19 +40,21 @@ public final class CommandExecutor {
     /**
      *
      * @param commandInformation
-     * @return
+     *            Command.
+     * @return {@link ICommandExecutor}.
      */
-    public static ICommandExecutor createSimple(
-            final List<String> commandInformation) {
+    private static ICommandExecutor
+            createSimple(final List<String> commandInformation) {
         return new SimpleCommandExecutor(commandInformation);
     }
 
     /**
      *
      * @param commandInformation
-     * @return
+     *            Command.
+     * @return {@link ICommandExecutor}.
      */
-    public static ICommandExecutor
+    private static ICommandExecutor
             create(final List<String> commandInformation) {
         return new SystemCommandExecutor(commandInformation);
     }
@@ -60,18 +62,21 @@ public final class CommandExecutor {
     /**
      *
      * @param commandInformation
+     *            Command.
      * @param stdIn
-     * @return
+     *            Input for {@code stdin}.
+     * @return {@link ICommandExecutor}.
      */
-    public static ICommandExecutor create(
-            final List<String> commandInformation, final String stdIn) {
+    private static ICommandExecutor
+            create(final List<String> commandInformation, final String stdIn) {
         return new SystemCommandExecutor(commandInformation, stdIn);
     }
 
     /**
      *
      * @param command
-     * @return
+     *            Command.
+     * @return List of commands.
      */
     private static List<String> createCommandInfo(final String command) {
         List<String> commandInfo = new ArrayList<String>();
@@ -84,7 +89,8 @@ public final class CommandExecutor {
     /**
      *
      * @param command
-     * @return
+     *            Command.
+     * @return {@link ICommandExecutor}.
      */
     public static ICommandExecutor createSimple(final String command) {
         return createSimple(createCommandInfo(command));
@@ -93,7 +99,8 @@ public final class CommandExecutor {
     /**
      *
      * @param command
-     * @return
+     *            Command.
+     * @return {@link ICommandExecutor}.
      */
     public static ICommandExecutor create(final String command) {
         return create(createCommandInfo(command));
@@ -103,8 +110,10 @@ public final class CommandExecutor {
      * Creates a command with stdin input.
      *
      * @param command
+     *            Command.
      * @param stdIn
-     * @return
+     *            Input for {@code stdin}.
+     * @return {@link ICommandExecutor}.
      */
     public static ICommandExecutor create(final String command,
             final String stdIn) {

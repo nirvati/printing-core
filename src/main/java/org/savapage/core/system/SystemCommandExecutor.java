@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -146,34 +146,33 @@ public class SystemCommandExecutor implements ICommandExecutor {
     public int executeSimple() throws IOException, InterruptedException {
         int exitValue = -99;
 
-        ProcessBuilder pb = new ProcessBuilder(commandInformation);
-        Process p = pb.start();
+        final ProcessBuilder pb = new ProcessBuilder(commandInformation);
+        final Process p = pb.start();
 
-        BufferedReader bistr =
-                new BufferedReader(new InputStreamReader(p.getInputStream()));
+        try (//
+                BufferedReader bistr = new BufferedReader(
+                        new InputStreamReader(p.getInputStream()));
+                BufferedReader bestr = new BufferedReader(
+                        new InputStreamReader(p.getErrorStream()));) {
 
-        BufferedReader bestr =
-                new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            exitValue = p.waitFor();
 
-        // TODO a better way to do this?
-        exitValue = p.waitFor();
+            /*
+             * Read output from the command
+             */
+            String myLastline = "";
+            String s = null;
+            while ((s = bistr.readLine()) != null) {
+                myLastline = s;
+            }
 
-        /*
-         * Read output from the command
-         */
-        String myLastline = "";
-        String s = null;
-        while ((s = bistr.readLine()) != null) {
-            myLastline = s;
+            /*
+             * Read any errors from the attempted command
+             */
+            while ((s = bestr.readLine()) != null) {
+                // myLogger.error(s);
+            }
         }
-
-        /*
-         * Read any errors from the attempted command
-         */
-        while ((s = bestr.readLine()) != null) {
-            // myLogger.error(s);
-        }
-
         return exitValue;
     }
 
@@ -187,29 +186,32 @@ public class SystemCommandExecutor implements ICommandExecutor {
     public int executeCommand() throws IOException, InterruptedException {
         int exitValue = -99;
 
-        try {
-            ProcessBuilder pb = new ProcessBuilder(commandInformation);
-            Process process = pb.start();
+        final ProcessBuilder pb = new ProcessBuilder(commandInformation);
+        final Process process = pb.start();
 
-            // you need this if you're going to write something to the command's
-            // input stream
-            // (such as when invoking the 'sudo' command, and it prompts you for
-            // a password).
-            OutputStream stdOutput = process.getOutputStream();
+        try (
+                /*
+                 * You need this if you're going to write something to the
+                 * command's input stream (such as when invoking the 'sudo'
+                 * command, and it prompts you for a password).
+                 */
+                OutputStream stdOutput = process.getOutputStream();
 
-            // i'm currently doing these on a separate line here in case i need
-            // to set them to null
-            // to get the threads to stop.
-            // see
-            // http://java.sun.com/j2se/1.5.0/docs/guide/misc/threadPrimitiveDeprecation.html
-            InputStream inputStream = process.getInputStream();
-            InputStream errorStream = process.getErrorStream();
+                /*
+                 * I'm currently doing these on a separate line here in case i
+                 * need to set them to null to get the threads to stop. see
+                 * http://java.sun.com/j2se/1.5.0/docs/guide/misc/
+                 * threadPrimitiveDeprecation.html
+                 */
+                InputStream inputStream = process.getInputStream();
+                InputStream errorStream = process.getErrorStream();) {
 
-            // these need to run as java threads to get the standard output and
-            // error from the command.
-            // the inputstream handler gets a reference to our stdOutput in case
-            // we need to write
-            // something to it, such as with the sudo command
+            /*
+             * These need to run as java threads to get the standard output and
+             * error from the command. The inputstream handler gets a reference
+             * to our stdOutput in case we need to write something to it, such
+             * as with the sudo command.
+             */
             inputStreamHandler =
                     new ThreadedStreamHandler(inputStream, stdOutput, myStdIn);
             errorStreamHandler = new ThreadedStreamHandler(errorStream);
@@ -227,14 +229,6 @@ public class SystemCommandExecutor implements ICommandExecutor {
             errorStreamHandler.interrupt();
             inputStreamHandler.join();
             errorStreamHandler.join();
-        } catch (IOException e) {
-            // TODO deal with this here, or just throw it?
-            throw e;
-        } catch (InterruptedException e) {
-            // generated by process.waitFor() call
-            // TODO deal with this here, or just throw it?
-            throw e;
-        } finally {
         }
         return exitValue;
     }
