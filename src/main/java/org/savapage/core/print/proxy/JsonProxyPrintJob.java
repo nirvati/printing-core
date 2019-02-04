@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,44 +14,47 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.print.proxy;
 
-import org.savapage.core.ipp.IppJobStateEnum;
+import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.savapage.core.ipp.IppJobStateEnum;
+import org.savapage.core.ipp.attribute.IppDictJobDescAttr;
 
 /**
  * Print Job details returned from CUPS.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class JsonProxyPrintJob {
+public final class JsonProxyPrintJob {
 
-    @JsonProperty("job-id")
-    Integer jobId;
-
-    @JsonProperty("job-state")
-    Integer jobState;
-
-    @JsonProperty("dest")
-    String dest;
-
-    @JsonProperty("user")
-    String user;
-
-    @JsonProperty("title")
-    String title;
-
-    @JsonProperty("creation-time")
-    Integer creationTime;
-
-    @JsonProperty("completed-time")
-    Integer completedTime;
+    /** */
+    private Integer jobId;
+    /** */
+    private Integer jobState;
+    /** */
+    private String jobStateMessage;
+    /**
+     * List op IPP keywords (can be {@code null}). See
+     * {@link IppDictJobDescAttr#ATTR_JOB_STATE_REASONS}.
+     */
+    private List<String> jobStateReasons;
+    /** */
+    private String dest;
+    /** */
+    private String user;
+    /** */
+    private String title;
+    /** */
+    private Integer creationTime;
+    /** */
+    private Integer completedTime;
 
     public Integer getJobId() {
         return jobId;
@@ -67,6 +70,32 @@ public class JsonProxyPrintJob {
 
     public void setJobState(Integer jobState) {
         this.jobState = jobState;
+    }
+
+    public String getJobStateMessage() {
+        return jobStateMessage;
+    }
+
+    public void setJobStateMessage(String jobStateMessage) {
+        this.jobStateMessage = jobStateMessage;
+    }
+
+    /**
+     * @return List op IPP keywords (can be {@code null}). See
+     *         {@link IppDictJobDescAttr#ATTR_JOB_STATE_REASONS}.
+     */
+    public List<String> getJobStateReasons() {
+        return jobStateReasons;
+    }
+
+    /**
+     *
+     * @param jobStateReasons
+     *            List op IPP keywords (can be {@code null}). See
+     *            {@link IppDictJobDescAttr#ATTR_JOB_STATE_REASONS}.
+     */
+    public void setJobStateReasons(List<String> jobStateReasons) {
+        this.jobStateReasons = jobStateReasons;
     }
 
     public String getDest() {

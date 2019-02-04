@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -46,10 +46,11 @@ public final class IppDictJobDescAttr extends AbstractIppDict {
 
     public static final String ATTR_JOB_NAME = "job-name";
     public static final String ATTR_JOB_STATE = "job-state";
+    public static final String ATTR_JOB_STATE_MESSAGE = "job-state-message";
+    public static final String ATTR_JOB_STATE_REASONS = "job-state-reasons";
     public static final String ATTR_JOB_URI = "job-uri";
     public static final String ATTR_JOB_ID = "job-id";
     public static final String ATTR_JOB_MORE_INFO = "job-more-info";
-    public static final String ATTR_JOB_STATE_REASONS = "job-state-reasons";
     public static final String ATTR_TIME_AT_CREATION = "time-at-creation";
     public static final String ATTR_TIME_AT_COMPLETED = "time-at-completed";
     public static final String ATTR_TIME_AT_PROCESSING = "time-at-processing";

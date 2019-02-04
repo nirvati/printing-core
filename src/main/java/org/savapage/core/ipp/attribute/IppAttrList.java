@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -152,12 +152,12 @@ public abstract class IppAttrList {
                     final StringBuilder msg = new StringBuilder();
 
                     msg.append("[")
-                            .append(attrLookup
-                                    .get(IppDictPrinterDescAttr.ATTR_PRINTER_NAME)
+                            .append(attrLookup.get(
+                                    IppDictPrinterDescAttr.ATTR_PRINTER_NAME)
                                     .getSingleValue())
-                            .append("] [")
-                            .append(attrKey).append("] [").append(attr
-                                    .getAttribute().getSyntax().getValueTag())
+                            .append("] [").append(attrKey).append("] [")
+                            .append(attr.getAttribute().getSyntax()
+                                    .getValueTag())
                             .append("]");
 
                     for (final String value : alreadyPresent.getValues()) {
@@ -228,6 +228,24 @@ public abstract class IppAttrList {
      */
     public final IppAttrValue getAttrValue(final String keyword) {
         return attrLookup.get(keyword);
+    }
+
+    /**
+     * Gets the attribute values of an attribute keyword.
+     *
+     * @param keyword
+     *            The keyword (name) of the attribute.
+     * @return {@code null} if NOT found.
+     */
+    public final List<String> getAttrValues(final String keyword) {
+
+        final IppAttrValue attrValue = attrLookup.get(keyword);
+
+        if (attrValue != null) {
+            return attrValue.getValues();
+        } else {
+            return null;
+        }
     }
 
     /**

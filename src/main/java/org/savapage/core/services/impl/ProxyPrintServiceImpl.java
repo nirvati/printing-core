@@ -1616,16 +1616,18 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @param uriJob
      *            If {@code null} uriPrinter and jobId is used.
      * @param jobId
+     *            CUPS job id.
      * @return {@code null} when print job is not found.
      * @throws IppConnectException
+     *             When connection error.
      */
     private JsonProxyPrintJob retrievePrintJobUri(final URL urlCupsServer,
-            final String uriPrinter, String uriJob, Integer jobId)
+            final String uriPrinter, final String uriJob, final Integer jobId)
             throws IppConnectException {
 
         final List<IppAttrGroup> response = new ArrayList<>();
 
-        IppStatusCode statusCode = null;
+        final IppStatusCode statusCode;
 
         if (uriJob == null) {
             statusCode =
@@ -1645,27 +1647,32 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
             job.setJobId(jobId);
 
-            IppAttrGroup group = response.get(1);
+            final IppAttrGroup group = response.get(1);
 
             job.setDest(group.getAttrSingleValue(
                     IppDictJobDescAttr.ATTR_JOB_PRINTER_URI));
             job.setTitle(
                     group.getAttrSingleValue(IppDictJobDescAttr.ATTR_JOB_NAME));
+
             job.setJobState(Integer.parseInt(
                     group.getAttrSingleValue(IppDictJobDescAttr.ATTR_JOB_STATE),
-                    10));
+                    NumberUtil.RADIX_10));
+            job.setJobStateMessage(group.getAttrSingleValue(
+                    IppDictJobDescAttr.ATTR_JOB_STATE_MESSAGE));
+            job.setJobStateReasons(group
+                    .getAttrValues(IppDictJobDescAttr.ATTR_JOB_STATE_REASONS));
 
-            job.setCreationTime(
-                    Integer.valueOf(
-                            group.getAttrSingleValue(
-                                    IppDictJobDescAttr.ATTR_TIME_AT_CREATION),
-                            10));
+            job.setCreationTime(Integer.valueOf(
+                    group.getAttrSingleValue(
+                            IppDictJobDescAttr.ATTR_TIME_AT_CREATION),
+                    NumberUtil.RADIX_10));
 
-            String value = group.getAttrSingleValue(
+            final String value = group.getAttrSingleValue(
                     IppDictJobDescAttr.ATTR_TIME_AT_COMPLETED, "");
 
             if (StringUtils.isNotBlank(value)) {
-                job.setCompletedTime(Integer.parseInt(value, 10));
+                job.setCompletedTime(
+                        Integer.parseInt(value, NumberUtil.RADIX_10));
             }
 
         } else {
