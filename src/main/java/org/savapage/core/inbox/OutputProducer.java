@@ -175,9 +175,9 @@ public final class OutputProducer {
                         Integer.parseInt(pageIn));
 
                 if (pageImageInfo == null) {
-                    throw new InboxPageNotFoundException(
-                            String.format("Page image [%s] for user [%s] inbox"
-                                    + " not available.", pageIn, user));
+                    throw new InboxPageNotFoundException(String.format(
+                            "Inbox page [%s] of user [%s] not present.", pageIn,
+                            user));
                 }
 
                 pageInJobFile = String.valueOf(pageImageInfo.getPageInFile());
@@ -189,8 +189,8 @@ public final class OutputProducer {
 
                 if (pageImageInfo == null) {
                     throw new InboxPageNotFoundException(String.format(
-                            "Page image [%s] for user [%s]"
-                                    + " document [%s] not available.",
+                            "Page image [%s] of user [%s] from document [%s]"
+                                    + " not present.",
                             pageIn, user, jobName));
                 }
 
@@ -240,6 +240,12 @@ public final class OutputProducer {
          * Create image.
          */
         final File srcFile = new File(srcFileBuilder.toString());
+
+        if (!srcFile.exists()) {
+            throw new InboxPageNotFoundException(String
+                    .format("Inbox document of user [%s] not present.", user));
+        }
+
         final File imgFile = new File(imgFileBuilder.toString());
 
         final int imgWidth;
