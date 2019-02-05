@@ -40,6 +40,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.SendFailedException;
+import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -106,7 +107,8 @@ public final class EmailServiceImpl extends AbstractService
     private String smtpSSLProtocols;
 
     /**
-     * Creates a session for <i>writing</i> the MIME message file.
+     * Creates an empty (dummy) session for creating a MIME message from/to
+     * file.
      *
      * @return The {@link javax.mail.Session}.
      */
@@ -114,12 +116,8 @@ public final class EmailServiceImpl extends AbstractService
         return javax.mail.Session.getInstance(new Properties());
     }
 
-    /**
-     * Creates a session for <i>sending</i> the mail.
-     *
-     * @return The {@link javax.mail.Session}.
-     */
-    private javax.mail.Session createSendMailSession() {
+    @Override
+    public javax.mail.Session createSendMailSession() {
 
         final ConfigManager conf = ConfigManager.instance();
 
@@ -142,6 +140,8 @@ public final class EmailServiceImpl extends AbstractService
          * Create properties and get the default Session
          */
         final java.util.Properties props = new java.util.Properties();
+
+        props.put("mail.transport.protocol", "smtp");
 
         /*
          * Timeout (in milliseconds) for establishing the SMTP connection.
@@ -201,6 +201,7 @@ public final class EmailServiceImpl extends AbstractService
     }
 
     /**
+     * Creates a MIME message.
      * <p>
      * See the <a href=
      * "https://javamail.java.net/nonav/docs/api/com/sun/mail/smtp/package-summary.html"
@@ -208,19 +209,25 @@ public final class EmailServiceImpl extends AbstractService
      * </p>
      *
      * @param msgParms
-     * @param isSync
-     * @return
+     *            The {@link EmailMsgParms}.
+     * @param isSendNow
+     *            If {@code true} the message is created for immediate sending.
+     *            If {@code false}, the message is created for
+     *            store-and-forward.
+     * @return The {@link MimeMessage}.
      * @throws MessagingException
+     *             Error in message.
      * @throws IOException
+     *             IO error.
      */
     private MimeMessage createMimeMessage(final EmailMsgParms msgParms,
-            final boolean isSync) throws MessagingException, IOException {
+            final boolean isSendNow) throws MessagingException, IOException {
 
         final ConfigManager conf = ConfigManager.instance();
 
         final javax.mail.Session session;
 
-        if (isSync) {
+        if (isSendNow) {
             session = this.createSendMailSession();
         } else {
             session = this.createMimeMsgSession();
@@ -369,6 +376,9 @@ public final class EmailServiceImpl extends AbstractService
      * Sends a {@link MimeMessage} using the
      * {@link CircuitBreakerEnum#SMTP_CONNECTION}.
      *
+     * @param transport
+     *            If {@code null}, the static
+     *            {@link javax.mail.Transport#send(Message)} method is used.
      * @param msg
      *            The a {@link MimeMessage}.
      * @throws CircuitBreakerException
@@ -377,7 +387,8 @@ public final class EmailServiceImpl extends AbstractService
      * @throws InterruptedException
      *             When the thread is interrupted.
      */
-    private static void sendMimeMessage(final MimeMessage msg)
+    private static void sendMimeMessage(final Transport transport,
+            final MimeMessage msg)
             throws InterruptedException, CircuitBreakerException {
 
         final CircuitBreakerOperation operation =
@@ -392,7 +403,12 @@ public final class EmailServiceImpl extends AbstractService
                         }
 
                         try {
-                            javax.mail.Transport.send(msg);
+                            if (transport == null) {
+                                javax.mail.Transport.send(msg);
+                            } else {
+                                transport.sendMessage(msg,
+                                        msg.getAllRecipients());
+                            }
                         } catch (SendFailedException e) {
                             throw new CircuitNonTrippingException(e);
                         } catch (MessagingException e) {
@@ -406,7 +422,6 @@ public final class EmailServiceImpl extends AbstractService
                 .getCircuitBreaker(CircuitBreakerEnum.SMTP_CONNECTION);
 
         breaker.execute(operation);
-
     }
 
     @Override
@@ -441,7 +456,7 @@ public final class EmailServiceImpl extends AbstractService
             throws InterruptedException, CircuitBreakerException,
             MessagingException, IOException {
 
-        sendMimeMessage(this.createMimeMessage(parms, true));
+        sendMimeMessage(null, this.createMimeMessage(parms, true));
     }
 
     @Override
@@ -451,10 +466,22 @@ public final class EmailServiceImpl extends AbstractService
         try (FileInputStream fis = new FileInputStream(mimeFile);) {
             final MimeMessage msg =
                     new MimeMessage(createSendMailSession(), fis);
-            sendMimeMessage(msg);
+            sendMimeMessage(null, msg);
             return msg;
         }
+    }
 
+    @Override
+    public MimeMessage sendEmail(final Transport transport, final File mimeFile)
+            throws MessagingException, InterruptedException,
+            CircuitBreakerException, IOException {
+
+        try (FileInputStream fis = new FileInputStream(mimeFile);) {
+            final MimeMessage msg =
+                    new MimeMessage(this.createMimeMsgSession(), fis);
+            sendMimeMessage(transport, msg);
+            return msg;
+        }
     }
 
     @Override

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import javax.mail.MessagingException;
+import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
 
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
@@ -66,6 +67,13 @@ public interface EmailService extends StatefulService {
     void writeEmail(EmailMsgParms parms) throws MessagingException, IOException;
 
     /**
+     * Creates a session for <i>sending</i> mail.
+     *
+     * @return The {@link javax.mail.Session}.
+     */
+    javax.mail.Session createSendMailSession();
+
+    /**
      * Sends an email.
      *
      * @param parms
@@ -104,5 +112,31 @@ public interface EmailService extends StatefulService {
      */
     MimeMessage sendEmail(File mimeFile) throws IOException, MessagingException,
             InterruptedException, CircuitBreakerException;
+
+    /**
+     * Reads a MIME message from file (RFC822 formatted) and sends it using the
+     * {@link Transport} object. This method is suited for sending mail batches.
+     *
+     * @param transport
+     *            {@link Transport} used to sent the mail.
+     * @param mimeFile
+     *            A {@link File} with a MIME message as RFC822 format stream
+     *            (Standard for ARPA Internet Text Messages).
+     *
+     * @return The {@link MimeMessage} sent.
+     *
+     * @throws IOException
+     *             When IO error.
+     * @throws MessagingException
+     *             When MIME content is invalid.
+     * @throws InterruptedException
+     *             When the thread is interrupted.
+     * @throws CircuitBreakerException
+     *             When {@link CircuitBreakerEnum#SMTP_CONNECTION} is not
+     *             closed.
+     */
+    MimeMessage sendEmail(Transport transport, File mimeFile)
+            throws MessagingException, InterruptedException,
+            CircuitBreakerException, IOException;
 
 }

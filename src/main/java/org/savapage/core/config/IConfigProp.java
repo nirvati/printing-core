@@ -1742,6 +1742,19 @@ public interface IConfigProp {
         MAIL_SMTP_TIMEOUT("mail.smtp.timeout", NUMBER_VALIDATOR, "5000"),
 
         /**
+         * Heartbeat (milliseconds) to poll the store-and-forward mail outbox
+         * for new messages.
+         */
+        MAIL_OUTBOX_POLL_HEARTBEAT_MSEC("mail.outbox.poll.heartbeat-msec",
+                NUMBER_VALIDATOR, "10000"),
+
+        /**
+         * Interval (milliseconds) between sending each message.
+         */
+        MAIL_OUTBOX_SEND_INTERVAL_MSEC("mail.outbox.send.interval-msec",
+                NUMBER_VALIDATOR, "1000"),
+
+        /**
          *
          */
         MAIL_FROM_ADDRESS(//

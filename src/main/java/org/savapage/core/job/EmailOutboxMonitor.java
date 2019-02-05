@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,6 +33,7 @@ import java.util.Locale;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Transport;
 import javax.mail.internet.MimeMessage;
 
 import org.quartz.JobExecutionContext;
@@ -46,6 +47,7 @@ import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
@@ -72,15 +74,8 @@ public final class EmailOutboxMonitor extends AbstractJob {
      */
     private static final int RESTART_SECS_AFTER_EXCEPTION = 60;
 
-    /**
-     * .
-     */
+    /** */
     private static final long MAX_MONITOR_MSEC = DateUtil.DURATION_MSEC_HOUR;
-
-    /**
-     * .
-     */
-    private static final long MSECS_WAIT_BETWEEN_POLLS = 3000;
 
     /**
      * Milliseconds to wait before starting this job again.
@@ -201,75 +196,113 @@ public final class EmailOutboxMonitor extends AbstractJob {
     }
 
     /**
-     * Sends all email MIME messages in the {@link DirectoryStream}.
+     * Sends all MIME messages in the {@link DirectoryStream} as email batch.
      *
      * @param emailService
      *            The {@link EmailService}.
      * @param dirStream
-     *            The {@link DirectoryStream}..
+     *            The {@link DirectoryStream}.
+     * @param msecSendInterval
+     *            Interval (milliseconds) between message sends.
      * @throws IOException
      *             When IO errors occur.
      * @throws CircuitBreakerException
      *             When SMTP circuit is broken.
      */
-    private void sendMimeFiles(final EmailService emailService,
+    private void sendMimeFileBatch(final EmailService emailService,
             final DirectoryStream<Path> dirStream)
             throws IOException, CircuitBreakerException {
-        /*
-         * Iterate over the paths in the directory and print filenames.
-         */
-        for (final Path p : dirStream) {
 
-            if (this.isInterrupted()) {
-                break;
-            }
+        // Single instance used for all MIME messages (batch).
+        Transport transport = null;
 
-            final BasicFileAttributes attrs =
-                    Files.readAttributes(p, BasicFileAttributes.class);
+        long msecSendInterval = DateUtil.DURATION_MSEC_SECOND;
 
-            if (!attrs.isRegularFile()) {
-                continue;
-            }
+        try {
+            /*
+             * Iterate over paths in the directory and read/send stored MIME
+             * files.
+             */
+            for (final Path p : dirStream) {
 
-            try {
-                // Send email.
-                final MimeMessage mimeMsg = emailService.sendEmail(p.toFile());
-
-                // Logging.
-                final String msgKey = "EmailOutboxMonitor.mailsent";
-                final String subject = mimeMsg.getSubject();
-                final String sendTo =
-                        mimeMsg.getRecipients(Message.RecipientType.TO)[0]
-                                .toString();
-                final String mailSize = NumberUtil
-                        .humanReadableByteCount(mimeMsg.getSize(), true);
-
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(
-                            localizeLogMsg(msgKey, subject, sendTo, mailSize));
+                if (this.isInterrupted()) {
+                    break;
                 }
 
-                AdminPublisher.instance().publish(PubTopicEnum.SMTP,
-                        PubLevelEnum.INFO,
-                        localizeSysMsg(msgKey, subject, sendTo, mailSize));
+                final BasicFileAttributes attrs =
+                        Files.readAttributes(p, BasicFileAttributes.class);
 
-            } catch (MessagingException e) {
+                if (!attrs.isRegularFile()) {
+                    continue;
+                }
 
-                LOGGER.error(e.getMessage(), e);
+                try {
+                    Thread.sleep(msecSendInterval);
 
-                AdminPublisher.instance().publish(PubTopicEnum.SMTP,
-                        PubLevelEnum.ERROR, e.getMessage());
+                    if (transport == null) {
 
-            } catch (InterruptedException e) {
-                break;
+                        // Lazy create session and connect.
+                        final javax.mail.Session session =
+                                emailService.createSendMailSession();
+                        transport = session.getTransport();
+                        transport.connect();
+
+                        // ... and get send interval for next cycle.
+                        final ConfigManager cm = ConfigManager.instance();
+                        msecSendInterval = cm.getConfigLong(
+                                Key.MAIL_OUTBOX_SEND_INTERVAL_MSEC);
+                    }
+
+                    // Send email.
+                    final MimeMessage mimeMsg =
+                            emailService.sendEmail(transport, p.toFile());
+
+                    // Logging.
+                    final String msgKey = "EmailOutboxMonitor.mailsent";
+                    final String subject = mimeMsg.getSubject();
+                    final String sendTo =
+                            mimeMsg.getRecipients(Message.RecipientType.TO)[0]
+                                    .toString();
+                    final String mailSize = NumberUtil
+                            .humanReadableByteCount(mimeMsg.getSize(), true);
+
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug(localizeLogMsg(msgKey, subject, sendTo,
+                                mailSize));
+                    }
+
+                    AdminPublisher.instance().publish(PubTopicEnum.SMTP,
+                            PubLevelEnum.INFO,
+                            localizeSysMsg(msgKey, subject, sendTo, mailSize));
+
+                } catch (MessagingException e) {
+
+                    LOGGER.error(e.getMessage(), e);
+
+                    AdminPublisher.instance().publish(PubTopicEnum.SMTP,
+                            PubLevelEnum.ERROR, e.getMessage());
+
+                } catch (InterruptedException e) {
+                    break;
+                }
+
+                Files.delete(p);
             }
 
-            Files.delete(p);
+        } finally {
+
+            if (transport != null) {
+                try {
+                    transport.close();
+                } catch (final MessagingException e) {
+                    // ignore
+                }
+            }
         }
     }
 
     /**
-     * Polls the email outbox for messages to send.
+     * Polls the email outbox for messages to send in batch.
      * <p>
      * Note: traditional polling is chosen above {@link WatchService} because
      * sending mails is less time critical and is simpler to implement.
@@ -282,6 +315,8 @@ public final class EmailOutboxMonitor extends AbstractJob {
      */
     private void pollEmailOutbox() throws IOException, CircuitBreakerException {
 
+        final ConfigManager cm = ConfigManager.instance();
+
         final EmailService emailService =
                 ServiceContext.getServiceFactory().getEmailService();
 
@@ -291,8 +326,11 @@ public final class EmailOutboxMonitor extends AbstractJob {
 
         while (!this.isInterrupted()) {
 
+            final long msecHeartbeat =
+                    cm.getConfigLong(Key.MAIL_OUTBOX_POLL_HEARTBEAT_MSEC);
+
             try {
-                Thread.sleep(MSECS_WAIT_BETWEEN_POLLS);
+                Thread.sleep(msecHeartbeat);
             } catch (InterruptedException e) {
                 break;
             }
@@ -310,26 +348,25 @@ public final class EmailOutboxMonitor extends AbstractJob {
             try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(
                     emailService.getOutboxMimeFilesPath(),
                     emailService.getOutboxMimeFileGlob());) {
-                this.sendMimeFiles(emailService, dirStream);
+
+                this.sendMimeFileBatch(emailService, dirStream);
             }
 
             /*
              * STOP if the max monitor time has elapsed.
              */
-            final long timeElapsed = System.currentTimeMillis()
-                    + MSECS_WAIT_BETWEEN_POLLS - msecStart;
+            final long timeElapsed =
+                    System.currentTimeMillis() + msecHeartbeat - msecStart;
 
             if (timeElapsed >= MAX_MONITOR_MSEC) {
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Email Watch: time elapsed.");
                 }
-
                 break;
             }
 
-        } // end-for
-
+        } // end-while
     }
 
 }
