@@ -26,230 +26,229 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.List;
 
 import org.savapage.core.SpException;
-
-/* LOCAL REVISION HISTORY
- *
- * Changes to the original code.
- *
- * 2011-12-29
- *
- * Changed the name "adminPassword" to "myStdIn"
- *
- * 2011-12-29
- *
- * The link is ORIGINAL TEXT is incorrect, and should be:
- * http://www.devdaily.com/java/java-exec-processbuilder-process-1
- *
- */
-
-/* ORIGINAL TEXT
- *
- *
- * This class can be used to execute a system command from a Java application.
- * See the documentation for the public methods of this class for more
- * information.
- *
- * Documentation for this class is available at this URL:
- *
- * http://devdaily.com/java/java-processbuilder-process-system-exec
- *
- *
- * Copyright 2010 alvin j. alexander, devdaily.com.
- *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU Lesser Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Lesser Public License for more details.
- *
- * You should have received a copy of the GNU Lesser Public License along with
- * this program. If not, see <http://www.gnu.org/licenses/>.
- *
- * Please see the following page for the LGPL license:
- * http://www.gnu.org/licenses/lgpl.txt
- *
- */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
+ * Adapted from <a href=
+ * "https://alvinalexander.com/java/java-exec-processbuilder-process-1">Java
+ * exec - execute system processes with Java ProcessBuilder and Process</a> by
+ * Alvin Alexander.
  *
- * @author alvin j. alexander, devdaily.com
- * @author Rijk Ravestein (added implements)
+ * @author Rijk Ravestein
+ *
  */
-public class SystemCommandExecutor implements ICommandExecutor {
+public final class SystemCommandExecutor implements ICommandExecutor {
 
-    private final List<String> commandInformation;
-    private final String myStdIn;
-    private ThreadedStreamHandler inputStreamHandler;
-    private ThreadedStreamHandler errorStreamHandler;
+    /** */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(SystemCommandExecutor.class);
 
     /**
-     * Pass in the system command you want to run as a List of Strings, as shown
-     * here:
+     * Thread that reads an input stream, and optionally writes to output stream
+     * first.
+     *
+     * @author Rijk Ravestein
+     */
+    private static final class ThreadedInputStreamReader extends Thread {
+
+        /**
+         * The {@link InputStream} to read.
+         */
+        private final InputStream inputStream;
+
+        /** */
+        private final String stdinValue;
+
+        /** */
+        private PrintWriter stdinWriter;
+
+        /**
+         * Where input is appended on.
+         */
+        private final StringBuilder outputBuilder = new StringBuilder();
+
+        /**
+         * Constructor when {@code stdin} is not needed.
+         *
+         * @param istr
+         *            The {@link InputStream} to read.
+         */
+        ThreadedInputStreamReader(final InputStream istr) {
+            this.inputStream = istr;
+            this.stdinValue = null;
+        }
+
+        /**
+         * Constructor when {@code stdin} is needed.
+         *
+         * @param istr
+         *            The {@link InputStream} to read.
+         * @param ostrStdIn
+         *            The {@link OutputStream} to write {@code stdin}.
+         * @param stdin
+         *            The {@code stdin} value.
+         */
+        ThreadedInputStreamReader(final InputStream istr,
+                final OutputStream ostrStdIn, final String stdin) {
+
+            this.inputStream = istr;
+            this.stdinWriter = new PrintWriter(ostrStdIn);
+            this.stdinValue = stdin;
+        }
+
+        @Override
+        public void run() {
+            /*
+             * Write to stdin first.
+             */
+            if (this.stdinValue != null) {
+                this.stdinWriter.println(this.stdinValue);
+                this.stdinWriter.flush();
+            }
+
+            try (BufferedReader bufferedReader = new BufferedReader(
+                    new InputStreamReader(this.inputStream));) {
+
+                String line = null;
+                int i = 0;
+                while ((line = bufferedReader.readLine()) != null) {
+                    if (i > 0) {
+                        this.outputBuilder.append("\n");
+                    }
+                    this.outputBuilder.append(line);
+                    i++;
+                }
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        }
+
+        /**
+         * @return The output read.
+         */
+        public String getOutput() {
+            return this.outputBuilder.toString();
+        }
+    }
+
+    /**
+     * List containing the program and its arguments.
+     */
+    private final List<String> command;
+
+    /** */
+    private final String stdinString;
+
+    /**
+     * Handler of data piped (input stream) from the {@code stdout} of the
+     * {@link Process} object.
+     */
+    private ThreadedInputStreamReader stdoutHandler;
+
+    /**
+     * Handler of data piped (input stream) from the {@code stderr} of the
+     * {@link Process} object.
+     */
+    private ThreadedInputStreamReader stderrHandler;
+
+    /**
+     * System command.
+     *
+     * <p>
+     * For example:
+     * </p>
      *
      * <pre>
      * List&lt;String&gt; commands = new ArrayList&lt;String&gt;();
      * commands.add(&quot;/sbin/ping&quot;);
      * commands.add(&quot;-c&quot;);
-     * commands.add(&quot;5&quot;);
-     * commands.add(&quot;www.google.com&quot;);
+     * commands.add(&quot;2&quot;);
+     * commands.add(&quot;www.savapage.org&quot;);
      * SystemCommandExecutor commandExecutor =
      *         new SystemCommandExecutor(commands);
      * commandExecutor.executeCommand();
      * </pre>
      *
-     * @param commandInformation
-     *            The command you want to run.
+     * @param commandInfo
+     *            List containing the program and its arguments.
      */
-    public SystemCommandExecutor(final List<String> commandInformation) {
-        if (commandInformation == null) {
-            throw new SpException("The commandInformation is required.");
+    public SystemCommandExecutor(final List<String> commandInfo) {
+        if (commandInfo == null) {
+            throw new SpException("Command missing.");
         }
-        this.commandInformation = commandInformation;
-        this.myStdIn = null;
+        this.command = commandInfo;
+        this.stdinString = null;
     }
 
     /**
-     * Pass in the system command you want to run as a List of Strings, and the
-     * stdin as string.
-     * <p>
-     * WARNING: when executing the 'sudo' command, with password string in stdIn
-     * parameter, the command will hang when the given password is wrong.
-     * </p>
+     * System command with {@code stdin} as string.
      *
-     * @param commandInformation
+     * @param commandInfo
+     *            List containing the program and its arguments.
      * @param stdIn
-     *            Single string to be used as stdin: you can use the '\n'
+     *            Single string to be used as {@code stdin}. Use {@code '\n'}
      *            character for line feed.
      *
      */
-    public SystemCommandExecutor(final List<String> commandInformation,
+    public SystemCommandExecutor(final List<String> commandInfo,
             final String stdIn) {
-        if (commandInformation == null) {
-            throw new SpException("The commandInformation is required.");
+        if (commandInfo == null) {
+            throw new SpException("Command missing.");
         }
-        this.commandInformation = commandInformation;
-        this.myStdIn = stdIn;
+        this.command = commandInfo;
+        this.stdinString = stdIn;
     }
 
-    /**
-     * @author Rijk Ravestein
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     */
-    public int executeSimple() throws IOException, InterruptedException {
-        int exitValue = -99;
-
-        final ProcessBuilder pb = new ProcessBuilder(commandInformation);
-        final Process p = pb.start();
-
-        try (
-                // Declare so it is auto closed.
-                OutputStream ostr = p.getOutputStream();
-
-                BufferedReader bistr = new BufferedReader(
-                        new InputStreamReader(p.getInputStream()));
-                BufferedReader bestr = new BufferedReader(
-                        new InputStreamReader(p.getErrorStream()));) {
-
-            exitValue = p.waitFor();
-
-            /*
-             * Read output from the command
-             */
-            String myLastline = "";
-            String s = null;
-            while ((s = bistr.readLine()) != null) {
-                myLastline = s;
-            }
-
-            /*
-             * Read any errors from the attempted command
-             */
-            while ((s = bestr.readLine()) != null) {
-                // myLogger.error(s);
-            }
-        }
-        return exitValue;
-    }
-
-    /**
-     *
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     */
     @Override
     public int executeCommand() throws IOException, InterruptedException {
-        int exitValue = -99;
 
-        final ProcessBuilder pb = new ProcessBuilder(commandInformation);
+        int exitValue = EXIT_VALUE_ERROR;
+
+        final ProcessBuilder pb = new ProcessBuilder(command);
         final Process process = pb.start();
 
-        try (
-                /*
-                 * You need this if you're going to write something to the
-                 * command's input stream (such as when invoking the 'sudo'
-                 * command, and it prompts you for a password).
-                 */
-                OutputStream stdOutput = process.getOutputStream();
+        try (OutputStream ostrStdIn = process.getOutputStream();
+                InputStream istrStdOut = process.getInputStream();
+                InputStream istrStdErr = process.getErrorStream();) {
 
-                /*
-                 * I'm currently doing these on a separate line here in case i
-                 * need to set them to null to get the threads to stop. see
-                 * http://java.sun.com/j2se/1.5.0/docs/guide/misc/
-                 * threadPrimitiveDeprecation.html
-                 */
-                InputStream inputStream = process.getInputStream();
-                InputStream errorStream = process.getErrorStream();) {
+            this.stdoutHandler = new ThreadedInputStreamReader(istrStdOut,
+                    ostrStdIn, this.stdinString);
+
+            this.stderrHandler = new ThreadedInputStreamReader(istrStdErr);
+
+            this.stdoutHandler.start();
+            this.stderrHandler.start();
 
             /*
-             * These need to run as java threads to get the standard output and
-             * error from the command. The inputstream handler gets a reference
-             * to our stdOutput in case we need to write something to it, such
-             * as with the sudo command.
+             * Block until process exits.
              */
-            inputStreamHandler =
-                    new ThreadedStreamHandler(inputStream, stdOutput, myStdIn);
-            errorStreamHandler = new ThreadedStreamHandler(errorStream);
-
-            // TODO the inputStreamHandler has a nasty side-effect of hanging if
-            // the given password is wrong; fix it
-            inputStreamHandler.start();
-            errorStreamHandler.start();
-
-            // TODO a better way to do this?
             exitValue = process.waitFor();
 
-            // TODO a better way to do this?
-            inputStreamHandler.interrupt();
-            errorStreamHandler.interrupt();
-            inputStreamHandler.join();
-            errorStreamHandler.join();
+            /*
+             * Because waitFor() finished we can stop the threads.
+             */
+            this.stdoutHandler.interrupt();
+            this.stderrHandler.interrupt();
+
+            this.stdoutHandler.join();
+            this.stderrHandler.join();
         }
         return exitValue;
     }
 
-    /**
-     * Get the standard output (stdout) from the command you just exec'd.
-     */
     @Override
-    public StringBuilder getStandardOutputFromCommand() {
-        return inputStreamHandler.getOutputBuffer();
+    public String getStandardOutput() {
+        return this.stdoutHandler.getOutput();
     }
 
-    /**
-     * Get the standard error (stderr) from the command you just exec'd.
-     */
     @Override
-    public StringBuilder getStandardErrorFromCommand() {
-        return errorStreamHandler.getOutputBuffer();
+    public String getStandardError() {
+        return this.stderrHandler.getOutput();
     }
 
 }

@@ -173,8 +173,7 @@ public abstract class AbstractFileConverter {
 
                 pdfCreated = true;
 
-                final String stdout =
-                        exec.getStandardOutputFromCommand().toString();
+                final String stdout = exec.getStandardOutput();
 
                 if (StringUtils.isNotBlank(stdout)) {
                     LOGGER.debug(stdout);
@@ -191,8 +190,7 @@ public abstract class AbstractFileConverter {
 
             } else {
 
-                final String stderr =
-                        exec.getStandardErrorFromCommand().toString();
+                final String stderr = exec.getStandardError();
 
                 String reason = "";
 

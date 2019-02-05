@@ -32,126 +32,126 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class implements a simple command executor, using non-threaded readers
- * for input and error streams. The idea is to get less overhead for simple
- * commmands that are executed frequently.
+ * A simple command executor, using non-threaded readers for input and error
+ * streams, with minimal overhead for simple commands that are executed
+ * frequently.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class SimpleCommandExecutor implements ICommandExecutor {
+public final class SimpleCommandExecutor implements ICommandExecutor {
 
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(SimpleCommandExecutor.class);
 
-    private final List<String> commandInformation;
-
-    StringBuilder inputBuffer = new StringBuilder();
-    StringBuilder errorBuffer = new StringBuilder();
+    /**
+     * List containing the program and its arguments.
+     */
+    private final List<String> command;
 
     /**
-     * Pass in the system command you want to run as a List of Strings, as shown
-     * here:
+     * {@code stdout} from command.
+     */
+    private final StringBuilder stdoutBuilder = new StringBuilder();
+
+    /**
+     * {@code stderr} from command.
+     */
+    private final StringBuilder stderrBuilder = new StringBuilder();
+
+    /**
+     * Pass system command. For example ... here:
      *
      * <pre>
      * List&lt;String&gt; commands = new ArrayList&lt;String&gt;();
      * commands.add(&quot;/sbin/ping&quot;);
      * commands.add(&quot;-c&quot;);
-     * commands.add(&quot;5&quot;);
-     * commands.add(&quot;www.google.com&quot;);
+     * commands.add(&quot;2&quot;);
+     * commands.add(&quot;www.savapage.org&quot;);
      * SystemCommandExecutor commandExecutor =
-     *         new SystemCommandExecutor(commands);
+     *         new SimpleCommandExecutor(commands);
      * commandExecutor.executeCommand();
      * </pre>
      *
-     * @param commandInformation
-     *            The command you want to run.
+     * @param commandInfo
+     *            List containing the program and its arguments.
      */
-    public SimpleCommandExecutor(final List<String> commandInformation) {
-        if (commandInformation == null) {
-            throw new SpException("The commandInformation is required.");
+    public SimpleCommandExecutor(final List<String> commandInfo) {
+        if (commandInfo == null) {
+            throw new SpException("Command missing.");
         }
-        this.commandInformation = commandInformation;
+        this.command = commandInfo;
     }
 
-    /**
-     *
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     */
     @Override
-    public int executeCommand() throws IOException, InterruptedException { // @RRA:
-        // added
-        // method
-        int exitValue = -99;
+    public int executeCommand() throws IOException, InterruptedException {
+
+        int exitValue = EXIT_VALUE_ERROR;
 
         int i = 0;
 
         if (LOGGER.isTraceEnabled()) {
-            for (String cmd : commandInformation) {
-                LOGGER.trace("arg [" + i + "] " + cmd);
+            for (String cmd : this.command) {
+                LOGGER.trace("arg [{}] {}", i, cmd);
                 i++;
             }
         }
 
-        final ProcessBuilder pb = new ProcessBuilder(commandInformation);
+        final ProcessBuilder pb = new ProcessBuilder(this.command);
         final Process p = pb.start();
 
         try (
                 // Declare so it is auto closed.
-                OutputStream ostr = p.getOutputStream();
+                OutputStream stdIn = p.getOutputStream();
 
-                BufferedReader stdInput = new BufferedReader(
+                BufferedReader stdOut = new BufferedReader(
                         new InputStreamReader(p.getInputStream()));
-                BufferedReader stdError = new BufferedReader(
+
+                BufferedReader stdErr = new BufferedReader(
                         new InputStreamReader(p.getErrorStream()));) {
 
+            /*
+             * Block until process exits.
+             */
             exitValue = p.waitFor();
 
             /*
-             * Read output from the command
+             * Read stdout.
              */
             String s = null;
             i = 0;
-            while ((s = stdInput.readLine()) != null) {
+            while ((s = stdOut.readLine()) != null) {
                 if (i > 0) {
-                    inputBuffer.append("\n");
+                    this.stdoutBuilder.append("\n");
                 }
-                inputBuffer.append(s);
+                this.stdoutBuilder.append(s);
                 i++;
             }
 
             /*
-             * Read any errors from the attempted command
+             * Read stderr.
              */
             i = 0;
-            while ((s = stdError.readLine()) != null) {
+            while ((s = stdErr.readLine()) != null) {
                 if (i > 0) {
-                    errorBuffer.append("\n");
+                    this.stderrBuilder.append("\n");
                 }
-                errorBuffer.append(s);
+                this.stderrBuilder.append(s);
                 i++;
             }
         }
-
         return exitValue;
     }
 
-    /**
-     * Get the standard output (stdout) from the command you just exec'd.
-     */
     @Override
-    public StringBuilder getStandardOutputFromCommand() {
-        return inputBuffer;
+    public String getStandardOutput() {
+        return this.stdoutBuilder.toString();
     }
 
-    /**
-     * Get the standard error (stderr) from the command you just exec'd.
-     */
     @Override
-    public StringBuilder getStandardErrorFromCommand() {
-        return errorBuffer;
+    public String getStandardError() {
+        return this.stderrBuilder.toString();
     }
 
 }

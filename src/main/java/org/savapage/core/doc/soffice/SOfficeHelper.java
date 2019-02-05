@@ -285,7 +285,7 @@ public final class SOfficeHelper {
             if (!cachedInstallIndication) {
                 return null;
             }
-            return exec.getStandardOutputFromCommand().toString();
+            return exec.getStandardOutput();
 
         } catch (Exception e) {
             throw new SpException(e);

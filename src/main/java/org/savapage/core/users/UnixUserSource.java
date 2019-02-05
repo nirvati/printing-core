@@ -123,17 +123,17 @@ public final class UnixUserSource extends AbstractUserSource
 
         try {
             if (exec.executeCommand() != 0) {
-                LOGGER.error(exec.getStandardErrorFromCommand().toString());
+                LOGGER.error(exec.getStandardError());
                 throw new SpException(
                         "user [" + uid + "] could not be validated.");
             }
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(exec.getStandardOutputFromCommand().toString());
+                LOGGER.debug(exec.getStandardOutput());
             }
 
-            final PamExecResponse jsonResponse = PamExecResponse
-                    .create(exec.getStandardOutputFromCommand().toString());
+            final PamExecResponse jsonResponse =
+                    PamExecResponse.create(exec.getStandardOutput());
 
             if (jsonResponse.isValid()) {
                 user = new User();
@@ -158,16 +158,16 @@ public final class UnixUserSource extends AbstractUserSource
 
         try {
             if (exec.executeCommand() != 0) {
-                LOGGER.error(exec.getStandardErrorFromCommand().toString());
+                LOGGER.error(exec.getStandardError());
                 throw new SpException("groups could not be retrieved");
             }
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(exec.getStandardOutputFromCommand().toString());
+                LOGGER.trace(exec.getStandardOutput());
             }
 
-            final StringTokenizer tokenizer = new StringTokenizer(
-                    exec.getStandardOutputFromCommand().toString());
+            final StringTokenizer tokenizer =
+                    new StringTokenizer(exec.getStandardOutput());
 
             while (tokenizer.hasMoreTokens()) {
                 sset.add(new CommonUserGroup(tokenizer.nextToken()));
@@ -224,12 +224,11 @@ public final class UnixUserSource extends AbstractUserSource
             if (exec.executeCommand() == 0) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(
-                            exec.getStandardOutputFromCommand().toString());
+                    LOGGER.trace(exec.getStandardOutput());
                 }
 
-                final StringTokenizer lineTokenizer = new StringTokenizer(
-                        exec.getStandardOutputFromCommand().toString(), "\n");
+                final StringTokenizer lineTokenizer =
+                        new StringTokenizer(exec.getStandardOutput(), "\n");
 
                 while (lineTokenizer.hasMoreTokens()) {
                     sset.add(parseUserDetails(lineTokenizer.nextToken()));
@@ -238,7 +237,7 @@ public final class UnixUserSource extends AbstractUserSource
             } else {
 
                 if (group == null) {
-                    LOGGER.error(exec.getStandardErrorFromCommand().toString());
+                    LOGGER.error(exec.getStandardError());
                     throw new SpException("Users could not be retrieved");
                 }
 
@@ -251,7 +250,7 @@ public final class UnixUserSource extends AbstractUserSource
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info("Users of UNIX group [" + group
                             + "] could not be retrieved : "
-                            + exec.getStandardErrorFromCommand().toString());
+                            + exec.getStandardError());
                 }
 
             }
@@ -311,16 +310,15 @@ public final class UnixUserSource extends AbstractUserSource
 
         try {
             if (exec.executeCommand() != 0) {
-                LOGGER.error(exec.getStandardErrorFromCommand().toString());
+                LOGGER.error(exec.getStandardError());
                 throw new SpException(args);
             }
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(exec.getStandardOutputFromCommand().toString());
+                LOGGER.trace(exec.getStandardOutput());
             }
 
-            return exec.getStandardOutputFromCommand().toString()
-                    .startsWith(STDOUT_TRUE);
+            return exec.getStandardOutput().startsWith(STDOUT_TRUE);
 
         } catch (Exception e) {
             throw new SpException(e);
@@ -339,7 +337,7 @@ public final class UnixUserSource extends AbstractUserSource
         try {
             if (exec.executeCommand() != 0) {
 
-                LOGGER.error(exec.getStandardErrorFromCommand().toString());
+                LOGGER.error(exec.getStandardError());
 
                 final String msg = "user [" + uid + "] of group [" + group
                         + "] could not be retrieved";
@@ -348,11 +346,10 @@ public final class UnixUserSource extends AbstractUserSource
             }
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(exec.getStandardOutputFromCommand().toString());
+                LOGGER.trace(exec.getStandardOutput());
             }
 
-            return exec.getStandardOutputFromCommand().toString()
-                    .startsWith(STDOUT_TRUE);
+            return exec.getStandardOutput().startsWith(STDOUT_TRUE);
 
         } catch (Exception e) {
             throw new SpException(e);
@@ -371,14 +368,14 @@ public final class UnixUserSource extends AbstractUserSource
 
             if (exec.executeCommand() != 0) {
 
-                LOGGER.error(exec.getStandardErrorFromCommand().toString());
+                LOGGER.error(exec.getStandardError());
 
                 final String msg =
                         "details of user [" + uid + "] could not be retrieved";
                 throw new SpException(msg);
             }
 
-            final String line = exec.getStandardOutputFromCommand().toString();
+            final String line = exec.getStandardOutput();
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace(line);

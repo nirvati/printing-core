@@ -269,7 +269,7 @@ public final class OutputProducer {
         try {
             if (exec.executeCommand() != 0) {
                 LOGGER.error(command);
-                LOGGER.error(exec.getStandardErrorFromCommand().toString());
+                LOGGER.error(exec.getStandardError());
                 throw new SpException(
                         "image [" + imgFileBuilder + "] could not be created.");
             }

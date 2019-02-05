@@ -259,9 +259,8 @@ public final class EcoPrintPdfTask
                     final StringBuilder msg = new StringBuilder();
                     msg.append("image [").append(imageOut.getAbsolutePath())
                             .append("] could not be created. Command [")
-                            .append(command).append("] Error [").append(exec
-                                    .getStandardErrorFromCommand().toString())
-                            .append("]");
+                            .append(command).append("] Error [")
+                            .append(exec.getStandardError()).append("]");
 
                     throw new SpException(msg.toString());
                 }

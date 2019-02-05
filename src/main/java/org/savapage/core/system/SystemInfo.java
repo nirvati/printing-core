@@ -121,7 +121,7 @@ public final class SystemInfo {
             /*
              * Note: version is echoed on stderr.
              */
-            return exec.getStandardErrorFromCommand().toString();
+            return exec.getStandardError();
 
         } catch (Exception e) {
             throw new SpException(e);
@@ -145,7 +145,7 @@ public final class SystemInfo {
             if (rc != 0) {
                 return null;
             }
-            return exec.getStandardOutputFromCommand().toString();
+            return exec.getStandardOutput();
         } catch (Exception e) {
             throw new SpException(e);
         }
@@ -168,7 +168,7 @@ public final class SystemInfo {
             if (rc != 0) {
                 return null;
             }
-            return exec.getStandardOutputFromCommand().toString();
+            return exec.getStandardOutput();
         } catch (Exception e) {
             throw new SpException(e);
         }
@@ -206,7 +206,7 @@ public final class SystemInfo {
 
         try {
             if (exec.executeCommand() == 0) {
-                version = exec.getStandardOutputFromCommand().toString();
+                version = exec.getStandardOutput();
             }
         } catch (Exception e) {
             throw new SpException(e);
@@ -231,7 +231,7 @@ public final class SystemInfo {
             if (rc != 0) {
                 return null;
             }
-            return exec.getStandardOutputFromCommand().toString();
+            return exec.getStandardOutput();
         } catch (Exception e) {
             throw new SpException(e);
         }
@@ -255,7 +255,7 @@ public final class SystemInfo {
             if (rc != 0) {
                 return null;
             }
-            return exec.getStandardOutputFromCommand().toString();
+            return exec.getStandardOutput();
         } catch (Exception e) {
             throw new SpException(e);
         }
