@@ -59,7 +59,7 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
     }
 
     @Override
-    public PrintOut findCupsJob(final String jobPrinterName,
+    public PrintOut findActiveCupsJob(final String jobPrinterName,
             final Integer jobId) {
 
         final String jpql = "SELECT O FROM PrintOut O WHERE O.id = "

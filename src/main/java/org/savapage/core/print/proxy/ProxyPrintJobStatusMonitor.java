@@ -46,6 +46,7 @@ import org.savapage.core.print.proxy.ProxyPrintJobStatusMixin.StatusSource;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.DateUtil;
+import org.savapage.ext.papercut.PaperCutPrintMonitorPattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -708,21 +709,28 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
             } else {
                 /*
-                 * INVARIANT: PrintOut CUPS job MUST be present in database.
+                 * INVARIANT: Active PrintOut CUPS job MUST be present in
+                 * database.
                  */
-                final PrintOut printOut = this.getPrintOutCupsJob(jobIter);
+                final PrintOut printOut =
+                        this.getActivePrintOutCupsJob(jobIter);
 
                 if (printOut == null) {
-
+                    /*
+                     * When CUPS push notification fails, and PaperCut Print
+                     * integration is enabled, the job might already have
+                     * received an end-state status from PaperCut, and therefore
+                     * will not be found as active.
+                     */
                     final StringBuilder msg = new StringBuilder();
 
-                    msg.append("Print log of CUPS job #")
-                            .append(jobIter.getJobId()).append(" \"")
+                    msg.append("Active CUPS job #").append(jobIter.getJobId())
+                            .append(" \"")
                             .append(StringUtils
                                     .defaultString(jobIter.getJobName()))
-                            .append("\" on printer ")
+                            .append("\" on printer \"")
                             .append(jobIter.getPrinterName())
-                            .append(" not found.");
+                            .append("\" not found in Log.");
 
                     AdminPublisher.instance().publish(PubTopicEnum.CUPS,
                             PubLevelEnum.ERROR, msg.toString());
@@ -835,7 +843,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
     }
 
     /**
-     * Finds the {@link PrintOut} belonging to a print job status notification.
+     * Finds the {@link PrintOut} that is NOT end-of-state, and belongs to a
+     * print job status notification,
      * <p>
      * The PrintOut is expected to be present, so when not found, we might have
      * a synchronization problem. I.e. the CUPS notification arrives, before the
@@ -843,15 +852,22 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
      * we {@link ServiceContext#reopen()} before doing max. 3 trials (with 2
      * seconds in between).
      * </p>
+     * <p>
+     * NOTE: When CUPS push notification fails, and a
+     * {@link PaperCutPrintMonitorPattern} is active, the {@link PrintOut} might
+     * already have received an end-state status from PaperCut, and therefore
+     * will not be found as active.
+     * </p>
      *
      * @param printJobStatus
      *            The CUPS {@link PrintJobStatus} notification.
      * @return {@code null} when not found.
      */
-    private PrintOut getPrintOutCupsJob(final PrintJobStatus printJobStatus) {
+    private PrintOut
+            getActivePrintOutCupsJob(final PrintJobStatus printJobStatus) {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Reading job #{} PrintOut from database",
+            LOGGER.debug("Reading Active Job #{} PrintOut from database",
                     printJobStatus.getJobId());
         }
 
@@ -866,45 +882,42 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
             final PrintOutDao printOutDao =
                     ServiceContext.getDaoContext().getPrintOutDao();
 
-            final PrintOut printOut = printOutDao.findCupsJob(
+            final PrintOut printOut = printOutDao.findActiveCupsJob(
                     printJobStatus.getPrinterName(), printJobStatus.getJobId());
 
-            iTrial++;
-
-            if (LOGGER.isWarnEnabled() && iTrial > 1) {
-
-                final StringBuilder msg = new StringBuilder();
-
-                msg.append("Trial #").append(iTrial).append(" [");
-
-                if (printJobStatus.getJobStateCups() == null) {
-                    msg.append("-");
-                } else {
-                    msg.append(printJobStatus.getJobStateCups().asLogText());
-                }
-                msg.append("] : Find Print log of CUPS job #")
-                        .append(printJobStatus.getJobId()).append(" \"")
-                        .append(StringUtils
-                                .defaultString(printJobStatus.getJobName()))
-                        .append("\" on printer ")
-                        .append(printJobStatus.getPrinterName());
-
-                LOGGER.warn(msg.toString());
-            }
-
-            if (printOut != null || iTrial == nMaxTrials) {
+            if (printOut != null) {
                 return printOut;
             }
 
-            try {
+            iTrial++;
 
-                Thread.sleep(2 * DateUtil.DURATION_MSEC_SECOND);
-
-            } catch (InterruptedException e) {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info(e.getMessage());
+            if (iTrial < nMaxTrials) {
+                try {
+                    Thread.sleep(2 * DateUtil.DURATION_MSEC_SECOND);
+                } catch (InterruptedException e) {
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info(e.getMessage());
+                    }
                 }
             }
+        }
+
+        if (LOGGER.isWarnEnabled()) {
+
+            final StringBuilder msg = new StringBuilder();
+
+            msg.append("Active CUPS job #").append(printJobStatus.getJobId());
+
+            msg.append(" [");
+            if (printJobStatus.getJobStateCups() == null) {
+                msg.append("-");
+            } else {
+                msg.append(printJobStatus.getJobStateCups().asLogText());
+            }
+            msg.append("] not found in Log after [").append(iTrial)
+                    .append("] trials.");
+
+            LOGGER.warn(msg.toString());
         }
 
         return null;

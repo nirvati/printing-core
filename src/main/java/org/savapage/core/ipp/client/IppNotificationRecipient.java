@@ -152,7 +152,7 @@ public final class IppNotificationRecipient {
         /*
          * Find PrintOut CUPS job in the database.
          */
-        PrintOut printOut = printOutDao.findCupsJob(printer_name, jobId);
+        PrintOut printOut = printOutDao.findActiveCupsJob(printer_name, jobId);
 
         if (printOut != null) {
 
@@ -171,7 +171,7 @@ public final class IppNotificationRecipient {
 
         String userid = null;
 
-        printOut = printOutDao.findCupsJob(printer_name, jobId);
+        printOut = printOutDao.findActiveCupsJob(printer_name, jobId);
 
         if (printOut == null) {
 

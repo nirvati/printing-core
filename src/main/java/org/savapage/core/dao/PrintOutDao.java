@@ -69,8 +69,8 @@ public interface PrintOutDao extends GenericDao<PrintOut> {
             ExternalSupplierStatusEnum stat);
 
     /**
-     * Finds the CUPS print job with the identifying attributes equal to the
-     * parameters passed.
+     * Finds the CUPS print job, that is NOT end-of-state, with the
+     * identifying attributes equal to the parameters passed.
      *
      * @param jobPrinterName
      *            The name of the printer.
@@ -78,10 +78,10 @@ public interface PrintOutDao extends GenericDao<PrintOut> {
      *            The job ID.
      * @return The PrintOut object or {@code null} when not found.
      */
-    PrintOut findCupsJob(String jobPrinterName, Integer jobId);
+    PrintOut findActiveCupsJob(String jobPrinterName, Integer jobId);
 
     /**
-     * Finds the CUPS jobs which are NOT end-of-state.
+     * Finds the CUPS jobs that are NOT end-of-state.
      *
      * @param maxResults
      *            The maximum number of rows in the chunk. If {@code null}, then
