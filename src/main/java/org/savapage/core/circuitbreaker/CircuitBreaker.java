@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * trace messages.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class CircuitBreaker {
@@ -61,8 +61,8 @@ public final class CircuitBreaker {
     /**
      * The logger.
      */
-    private static final Logger LOG = LoggerFactory
-            .getLogger(CircuitBreaker.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(CircuitBreaker.class);
 
     /**
      * The state of this circuit. Initially it is
@@ -188,8 +188,8 @@ public final class CircuitBreaker {
      *
      * @param logExceptionTracktrace
      */
-    public final void setLogExceptionTracktrace(
-            final boolean logExceptionTracktrace) {
+    public final void
+            setLogExceptionTracktrace(final boolean logExceptionTracktrace) {
         this.logExceptionTracktrace = logExceptionTracktrace;
     }
 
@@ -284,23 +284,23 @@ public final class CircuitBreaker {
             operClassName = "anonymous";
         }
 
-        final String logPrefix =
-                "Circuit [" + this.getCircuitId() + "] Operation ["
-                        + operClassName + "]: ";
+        final String logPrefix = String.format("Circuit [%s] Operation [%s]: ",
+                this.getCircuitId(), operClassName);
 
-        LOG.debug(logPrefix + "executing...");
+        LOG.debug("{}{}", logPrefix, "executing...");
 
         try {
 
             this.getSemaphore().acquire();
 
-            LOG.debug(logPrefix + "semaphore acquired.");
+            LOG.debug("{}{}", logPrefix, "semaphore acquired.");
             this.onCircuitAcquired();
 
             //
             if (this.isCircuitDamaged()) {
 
-                final String msg = logPrefix + "Circuit is damaged.";
+                final String msg =
+                        String.format("%s%s", logPrefix, "Circuit is damaged.");
                 LOG.trace(msg);
 
                 throw new CircuitBreakerException(msg);
@@ -309,9 +309,9 @@ public final class CircuitBreaker {
             //
             if (this.isCircuitHalfOpen()) {
 
-                final String msg =
-                        logPrefix
-                                + "Busy retrying operation in opened circuit.";
+                final String msg = String.format("%s%s", logPrefix,
+                        "Busy retrying operation in opened circuit.");
+
                 LOG.trace(msg);
 
                 throw new CircuitBreakerException(msg);
@@ -327,9 +327,9 @@ public final class CircuitBreaker {
                  */
                 if (!this.isWaitTimeExceeded()) {
 
-                    final String msg =
-                            logPrefix + "cannot be performed due to open"
-                                    + " circuit (too many failures).";
+                    final String msg = String.format("%s%s", logPrefix,
+                            "cannot be performed due to open"
+                                    + " circuit (too many failures).");
                     LOG.trace(msg);
 
                     throw new CircuitBreakerException(msg);
@@ -344,15 +344,16 @@ public final class CircuitBreaker {
                      */
                     this.openCircuitHalf();
 
-                    LOG.debug(logPrefix + "Retrying because waitTime "
-                            + "exceeded.");
+                    LOG.debug("{}{}", logPrefix,
+                            "Retrying because waitTime exceeded.");
 
                     /*
                      * Execute the operation.
                      */
                     returnValue = operation.execute(this);
 
-                    LOG.debug(logPrefix + "Retry succeeded, closing circuit.");
+                    LOG.debug("{}{}", logPrefix,
+                            "Retry succeeded, closing circuit.");
 
                     /*
                      * Operation succeeded: close circuit (and reset the failure
@@ -364,11 +365,10 @@ public final class CircuitBreaker {
 
                     if (this.isDamagingException(e)) {
 
-                        final String msg =
-                                logPrefix + "Retry threw damaging exception ["
-                                        + e.getClass().getSimpleName() + "] ("
-                                        + e.getMessage()
-                                        + ") : damaging circuit.";
+                        final String msg = String.format(
+                                "%s%s [%s] (%s) : damaging circuit.", logPrefix,
+                                "Retry threw damaging exception",
+                                e.getClass().getSimpleName(), e.getMessage());
 
                         logError(msg, e);
 
@@ -381,12 +381,10 @@ public final class CircuitBreaker {
 
                     if (this.isNonTrippingException(e)) {
 
-                        final String msg =
-                                logPrefix
-                                        + "Retry threw non-tripping exception ["
-                                        + e.getClass().getSimpleName() + "] ("
-                                        + e.getMessage()
-                                        + ") : closing circuit anyway.";
+                        final String msg = String.format(
+                                "%s%s [%s] (%s) : closing circuit anyway.",
+                                logPrefix, "Retry threw non-tripping exception",
+                                e.getClass().getSimpleName(), e.getMessage());
 
                         logError(msg, e);
 
@@ -401,11 +399,10 @@ public final class CircuitBreaker {
                         throw e;
                     }
 
-                    final String msg =
-                            logPrefix + "Retry failed. Reason ["
-                                    + e.getClass().getSimpleName() + "] ("
-                                    + e.getMessage()
-                                    + ") : keep circuit closed.";
+                    final String msg = String.format(
+                            "%s%s Reason [%s] (%s): keep circuit closed.",
+                            logPrefix, "Retry failed.",
+                            e.getClass().getSimpleName(), e.getMessage());
 
                     logError(msg, e);
 
@@ -417,13 +414,14 @@ public final class CircuitBreaker {
 
                     this.openCircuit();
 
-                    throw new CircuitBreakerException(logPrefix
-                            + "Too many failures: opening circuit.", e);
+                    throw new CircuitBreakerException(String.format("%s%s",
+                            logPrefix, "Too many failures: opening circuit."),
+                            e);
                 }
 
             } else if (this.isCircuitClosed()) {
 
-                LOG.debug(logPrefix + "is closed");
+                LOG.debug("{}{}", logPrefix, "is closed");
 
                 /*
                  * Circuit is closed, execute operation.
@@ -438,10 +436,9 @@ public final class CircuitBreaker {
 
                     String msg;
 
-                    msg =
-                            logPrefix + "Failure. Reason ["
-                                    + e.getClass().getSimpleName() + "] ("
-                                    + e.getMessage() + ")";
+                    msg = String.format("%s%s Reason [%s] (%s)", logPrefix,
+                            "Failure.", e.getClass().getSimpleName(),
+                            e.getMessage());
 
                     logError(msg, e);
 
@@ -458,10 +455,9 @@ public final class CircuitBreaker {
 
                     if (this.addFailure() >= this.getFailureThreshold()) {
 
-                        msg =
-                                logPrefix + "Tripped on failure. Reason ["
-                                        + e.getClass().getSimpleName() + "] ("
-                                        + e.getMessage() + ")";
+                        msg = String.format("%s%s Reason [%s] (%s)", logPrefix,
+                                "Tripped on failure.",
+                                e.getClass().getSimpleName(), e.getMessage());
 
                         LOG.warn(msg);
 
@@ -469,8 +465,10 @@ public final class CircuitBreaker {
 
                         this.openCircuit();
 
-                        throw new CircuitBreakerException(logPrefix
-                                + "Too many failures: opening circuit", e);
+                        throw new CircuitBreakerException(
+                                String.format("%s%s", logPrefix,
+                                        "Too many failures: opening circuit"),
+                                e);
                     } else {
 
                         this.onTrippingException(e);
@@ -486,8 +484,8 @@ public final class CircuitBreaker {
         } finally {
 
             this.getSemaphore().release();
-            LOG.debug(logPrefix + "semaphore released.");
-            LOG.debug(logPrefix + "execution finished.");
+            LOG.debug("{}{}", logPrefix, "semaphore released.");
+            LOG.debug("{}{}", logPrefix, "execution finished.");
         }
 
     }
