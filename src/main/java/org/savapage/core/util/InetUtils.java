@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -208,19 +208,19 @@ public final class InetUtils {
     }
 
     /**
-     * Checks if an IPv4 address is a public (global) IP address.
+     * Checks if an IP address is a public (global) IP address.
      *
      * @param ip
-     *            The IPv4 address.
+     *            The IPv4 or IPv6 address.
      * @return {@code true} if address is a public.
      */
     public static boolean isPublicAddress(final String ip) {
 
-        final Inet4Address address;
+        final InetAddress address;
 
         try {
 
-            address = (Inet4Address) InetAddress.getByName(ip);
+            address = InetAddress.getByName(ip);
 
         } catch (UnknownHostException exception) {
             return false;
