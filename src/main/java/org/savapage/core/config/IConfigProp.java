@@ -1963,6 +1963,10 @@ public interface IConfigProp {
                 "doc.store.archive.in.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
         /** */
+        DOC_STORE_ARCHIVE_IN_PRINT_ENABLE(//
+                "doc.store.archive.in.print.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
         DOC_STORE_ARCHIVE_OUT_PRINT_DAYS_TO_KEEP(//
                 "doc.store.archive.out.print.days-to-keep", NUMBER_VALIDATOR,
                 "30", API_UPDATABLE_ON),
@@ -1994,6 +1998,10 @@ public interface IConfigProp {
         /** */
         DOC_STORE_JOURNAL_IN_ENABLE(//
                 "doc.store.journal.in.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /** */
+        DOC_STORE_JOURNAL_IN_PRINT_ENABLE(//
+                "doc.store.journal.in.print.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
         /** */
         DOC_STORE_JOURNAL_OUT_PRINT_DAYS_TO_KEEP(//
