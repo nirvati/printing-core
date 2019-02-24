@@ -269,12 +269,12 @@ public final class SystemInfo {
     }
 
     /**
-     * @return Number of open file descriptors from
-     *         {@link OperatingSystemMXBean}. Same as {@code lsof}
+     *
+     * @return {@link OperatingSystemProps}.
      */
-    public static long getOpenFileDescriptorCount() {
+    public static OperatingSystemProps getOperatingSystemProps() {
 
-        final long notFound = -1;
+        final OperatingSystemProps props = new OperatingSystemProps();
 
         final OperatingSystemMXBean osBean =
                 ManagementFactory.getOperatingSystemMXBean();
@@ -286,16 +286,103 @@ public final class SystemInfo {
             if (method.getName().startsWith("get")
                     && Modifier.isPublic(method.getModifiers())) {
 
-                if (method.getName().equals("getOpenFileDescriptorCount")) {
-                    try {
-                        return Long.parseLong(method.invoke(osBean).toString());
-                    } catch (Exception e) {
-                        return notFound;
+                try {
+                    switch (method.getName()) {
+                    case "getCommittedVirtualMemorySize":
+                        props.setCommittedVirtualMemorySize(
+                                Long.valueOf(method.invoke(osBean).toString()));
+                        break;
+                    case "getTotalSwapSpaceSize":
+                        props.setTotalSwapSpaceSize(
+                                Long.valueOf(method.invoke(osBean).toString()));
+                        break;
+                    case "getFreeSwapSpaceSize":
+                        props.setFreeSwapSpaceSize(
+                                Long.valueOf(method.invoke(osBean).toString()));
+                        break;
+                    case "getProcessCpuTime":
+                        props.setProcessCpuTime(
+                                Long.valueOf(method.invoke(osBean).toString()));
+                        break;
+                    case "getFreePhysicalMemorySize":
+                        props.setFreePhysicalMemorySize(
+                                Long.valueOf(method.invoke(osBean).toString()));
+                        break;
+                    case "getTotalPhysicalMemorySize":
+                        props.setTotalPhysicalMemorySize(
+                                Long.valueOf(method.invoke(osBean).toString()));
+                        break;
+                    case "getSystemCpuLoad":
+                        props.setSystemCpuLoad(Double
+                                .valueOf(method.invoke(osBean).toString()));
+                        break;
+                    case "getProcessCpuLoad":
+                        props.setProcessCpuLoad(Double
+                                .valueOf(method.invoke(osBean).toString()));
+                        break;
+                    default:
+                        break;
                     }
+                } catch (Exception e) {
+                    // no code intended
                 }
             }
         }
-        return notFound;
+        props.setFileDescriptorCount(getFileDescriptorCount(osBean));
+        return props;
+    }
+
+    /**
+     * @return (@link SystemFileDescriptorCount} from
+     *         {@link OperatingSystemMXBean}.
+     */
+    private static SystemFileDescriptorCount
+            getFileDescriptorCount(final OperatingSystemMXBean osBean) {
+
+        final SystemFileDescriptorCount count = new SystemFileDescriptorCount();
+
+        int nProp = 0;
+
+        for (final Method method : osBean.getClass().getDeclaredMethods()) {
+
+            method.setAccessible(true);
+
+            if (method.getName().startsWith("get")
+                    && Modifier.isPublic(method.getModifiers())) {
+
+                try {
+                    switch (method.getName()) {
+                    case "getOpenFileDescriptorCount":
+                        count.setOpenFileCount(
+                                Long.valueOf(method.invoke(osBean).toString()));
+                        nProp++;
+                        break;
+                    case "getMaxFileDescriptorCount":
+                        count.setMaxFileCount(
+                                Long.valueOf(method.invoke(osBean).toString()));
+                        nProp++;
+                        break;
+                    default:
+                        break;
+                    }
+                } catch (Exception e) {
+                    // no code intended
+                }
+            }
+            if (nProp == 2) {
+                break;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * @return (@link SystemFileDescriptorCount} from
+     *         {@link OperatingSystemMXBean}.
+     */
+    public static SystemFileDescriptorCount getFileDescriptorCount() {
+        return getFileDescriptorCount(
+                ManagementFactory.getOperatingSystemMXBean());
     }
 
 }
