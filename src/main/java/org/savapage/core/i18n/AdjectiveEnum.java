@@ -55,6 +55,9 @@ public enum AdjectiveEnum {
     UNKNOWN, KNOWN,
 
     /** */
+    PREFERRED,
+
+    /** */
     PENDING;
 
     /**
