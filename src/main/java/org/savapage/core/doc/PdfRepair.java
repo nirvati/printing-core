@@ -28,17 +28,14 @@ import org.apache.commons.io.FilenameUtils;
 import org.savapage.core.SpException;
 
 /**
- * Converts a PDF file to PrePress PDF, automatically repairing corrupted PDF
- * along the way.
+ * Tries to repair a corrupted PDF file.
  *
- * @deprecated Use {@link PdfRepair} for repair actions.
  * @see <a href="https://issues.savapage.org/view.php?id=1011">Mantis #1011</a>
  *
  * @author Rijk Ravestein
  *
  */
-@Deprecated
-public final class PdfToPrePress extends AbstractFileConverter
+public final class PdfRepair extends AbstractFileConverter
         implements IPdfRepair, IPdfConverter {
 
     /**
@@ -49,7 +46,7 @@ public final class PdfToPrePress extends AbstractFileConverter
     /**
      *
      */
-    public PdfToPrePress() {
+    public PdfRepair() {
         super(ExecMode.MULTI_THREADED);
         this.createHome = null;
     }
@@ -59,7 +56,7 @@ public final class PdfToPrePress extends AbstractFileConverter
      * @param createDir
      *            The directory location of the created file.
      */
-    public PdfToPrePress(final File createDir) {
+    public PdfRepair(final File createDir) {
         super(ExecMode.MULTI_THREADED);
         this.createHome = createDir;
     }
@@ -77,7 +74,7 @@ public final class PdfToPrePress extends AbstractFileConverter
 
         builder.append(File.separator)
                 .append(FilenameUtils.getBaseName(fileIn.getAbsolutePath()))
-                .append("-prepress.")
+                .append("-repaired.")
                 .append(DocContent.getFileExtension(DocContentTypeEnum.PDF));
 
         return new File(builder.toString());
@@ -90,10 +87,8 @@ public final class PdfToPrePress extends AbstractFileConverter
         final StringBuilder cmd = new StringBuilder(128);
 
         try {
-            cmd.append("gs -sOutputFile=\"").append(fileOut.getCanonicalPath())
-                    .append("\" -sDEVICE=pdfwrite -q -dNOPAUSE -dBATCH") //
-                    .append(" -dPDFSETTINGS=/prepress") //
-                    .append(" \"").append(fileIn.getCanonicalPath()) //
+            cmd.append("pdftocairo -pdf \"").append(fileIn.getCanonicalPath())
+                    .append("\" \"").append(fileOut.getCanonicalPath())
                     .append("\" < /dev/null");
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);

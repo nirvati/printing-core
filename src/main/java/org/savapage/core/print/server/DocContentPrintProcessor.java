@@ -51,8 +51,8 @@ import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.doc.DocInputStream;
 import org.savapage.core.doc.IDocFileConverter;
 import org.savapage.core.doc.IStreamConverter;
+import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToDecrypted;
-import org.savapage.core.doc.PdfToPrePress;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.IppQueue;
@@ -1027,7 +1027,7 @@ public final class DocContentPrintProcessor {
 
                 // Convert ...
                 FileSystemHelper.replaceWithNewVersion(pdfFile,
-                        new PdfToPrePress().convert(pdfFile));
+                        new PdfRepair().convert(pdfFile));
 
                 // and try again.
                 pdfPageProps = SpPdfPageProps.create(tempPathPdf);

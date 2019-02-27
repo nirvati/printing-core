@@ -43,9 +43,9 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
-import org.savapage.core.doc.PdfToPrePress;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.json.PdfProperties;
@@ -438,7 +438,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         }
         if (this.onExitRepairPdf) {
             replaceWithConvertedPdf(pdfFile,
-                    new PdfToPrePress().convert(pdfFile));
+                    new PdfRepair().convert(pdfFile));
         }
         if (this.onExitBookletPageOrder) {
             replaceWithConvertedPdf(pdfFile,
