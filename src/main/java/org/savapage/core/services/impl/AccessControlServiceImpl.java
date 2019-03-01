@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.commons.lang3.BooleanUtils;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.dao.UserGroupAccountDao;
 import org.savapage.core.dao.UserGroupMemberDao;
 import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.ACLPermissionEnum;
@@ -235,6 +236,15 @@ public final class AccessControlServiceImpl extends AbstractService
         }
 
         return isAuthorized(user, role);
+    }
+
+    @Override
+    public boolean hasSharedAccountAccess(final User user) {
+        final UserGroupAccountDao.ListFilter filter =
+                new UserGroupAccountDao.ListFilter();
+        filter.setUserId(user.getId());
+        filter.setDisabled(Boolean.FALSE);
+        return userGroupAccountDAO().getListCount(filter) > 0;
     }
 
     /**

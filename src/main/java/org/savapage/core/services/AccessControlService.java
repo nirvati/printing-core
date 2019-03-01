@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,6 +28,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroup;
 import org.savapage.core.jpa.UserGroupMember;
@@ -172,4 +173,13 @@ public interface AccessControlService {
      */
     EnumSet<ACLRoleEnum> getTopIndeterminateGranted();
 
+    /**
+     * Checks if {@link User} has access to at least one (1) Shared
+     * {@link Account}.
+     *
+     * @param user
+     *            The {@link User}.
+     * @return {@code true} when user has access.
+     */
+    boolean hasSharedAccountAccess(User user);
 }
