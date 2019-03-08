@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -41,6 +41,9 @@ public final class CircuitBreakerRegistry {
      *
      */
     private static final int DEFAULT_MILLIS_UNTIL_RETRY = 60000;
+
+    /** */
+    private final Object mutexGetOrCreate = new Object();
 
     /**
      *
@@ -119,21 +122,21 @@ public final class CircuitBreakerRegistry {
      * @param listener
      * @return
      */
-    public final synchronized CircuitBreaker getOrCreateCircuitBreaker(
-            final String id, final int failureThreshHold,
-            final int millisUntilRetry,
+    public final CircuitBreaker getOrCreateCircuitBreaker(final String id,
+            final int failureThreshHold, final int millisUntilRetry,
             final Class<? extends Exception>[] nonTrippingExceptions,
             final Class<? extends Exception>[] damagingExceptions,
             final CircuitBreakerListener listener) {
 
-        if (!circuitBreakers.containsKey(id)) {
-            circuitBreakers.put(id,
-                    new CircuitBreaker(id, failureThreshHold, millisUntilRetry,
-                            nonTrippingExceptions, damagingExceptions,
-                            listener));
+        synchronized (this.mutexGetOrCreate) {
+            if (!circuitBreakers.containsKey(id)) {
+                circuitBreakers.put(id,
+                        new CircuitBreaker(id, failureThreshHold,
+                                millisUntilRetry, nonTrippingExceptions,
+                                damagingExceptions, listener));
+            }
+            return circuitBreakers.get(id);
         }
-
-        return circuitBreakers.get(id);
     }
 
     /**

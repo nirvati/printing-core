@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,8 @@
  * address: info@datraverse.com
  */
 package org.savapage.core.dao.impl;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.persistence.EntityManager;
 
@@ -83,27 +85,23 @@ public final class DaoContextImpl implements DaoContext {
     /**
      * The number of open DaoContexts.
      */
-    private static int openCount = 0;
+    private static final AtomicInteger OPEN_COUNT = new AtomicInteger();
 
     /**
      * @return The number of open {@link DaoContext} objects.
      */
     public static int getOpenCount() {
-        synchronized (DaoContextImpl.class) {
-            return openCount;
-        }
+        return OPEN_COUNT.get();
     }
 
+    /** */
     private static void incrementOpenCount() {
-        synchronized (DaoContextImpl.class) {
-            openCount++;
-        }
+        OPEN_COUNT.incrementAndGet();
     }
 
+    /** */
     private static void decrementOpenCount() {
-        synchronized (DaoContextImpl.class) {
-            openCount--;
-        }
+        OPEN_COUNT.decrementAndGet();
     }
 
     /**

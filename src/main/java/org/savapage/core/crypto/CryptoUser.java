@@ -119,7 +119,7 @@ public final class CryptoUser {
      *
      * @throws IOException
      */
-    synchronized static public void init() throws IOException {
+    public static synchronized void init() throws IOException {
         getInstance();
     }
 
@@ -127,8 +127,8 @@ public final class CryptoUser {
      *
      */
     private CryptoUser() {
-        try {
 
+        try {
             readProperties();
 
             /*

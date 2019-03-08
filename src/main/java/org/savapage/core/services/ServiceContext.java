@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@ package org.savapage.core.services;
 
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.DaoContext;
@@ -50,32 +51,27 @@ import org.slf4j.LoggerFactory;
  */
 public final class ServiceContext {
 
-    private static int openCount = 0;
+    /** */
+    private static final AtomicInteger OPEN_COUNTER = new AtomicInteger();
 
     /**
      * @return The number of open {@link ServiceContext} objects.
      */
     public static int getOpenCount() {
-        synchronized (ServiceContext.class) {
-            return openCount;
-        }
+        return OPEN_COUNTER.get();
     }
 
+    /** */
     private static void incrementOpenCount() {
-        synchronized (ServiceContext.class) {
-            openCount++;
-        }
+        OPEN_COUNTER.incrementAndGet();
     }
 
+    /** */
     private static void decrementOpenCount() {
-        synchronized (ServiceContext.class) {
-            openCount--;
-        }
+        OPEN_COUNTER.decrementAndGet();
     }
 
-    /**
-     *
-     */
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ServiceContext.class);
 

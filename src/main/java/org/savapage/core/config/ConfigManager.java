@@ -336,6 +336,12 @@ public final class ConfigManager {
     private DbVersionInfo myDbVersionInfo = null;
 
     /** */
+    private final Object myDbVersionInfoMutex = new Object();
+
+    /** */
+    private final Object createJobTicketsHomeMutex = new Object();
+
+    /** */
     private PGPSecretKeyInfo pgpSecretKeyInfo;
 
     /** */
@@ -879,15 +885,18 @@ public final class ConfigManager {
      *
      * @throws IOException
      */
-    private synchronized void lazyCreateJobTicketsHome() throws IOException {
+    private void lazyCreateJobTicketsHome() throws IOException {
 
-        final Set<PosixFilePermission> permissions =
-                EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE);
+        synchronized (this.createJobTicketsHomeMutex) {
 
-        final FileAttribute<Set<PosixFilePermission>> fileAttributes =
-                PosixFilePermissions.asFileAttribute(permissions);
+            final Set<PosixFilePermission> permissions =
+                    EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE);
 
-        Files.createDirectories(getJobTicketsHome(), fileAttributes);
+            final FileAttribute<Set<PosixFilePermission>> fileAttributes =
+                    PosixFilePermissions.asFileAttribute(permissions);
+
+            Files.createDirectories(getJobTicketsHome(), fileAttributes);
+        }
     }
 
     /**
@@ -2848,13 +2857,17 @@ public final class ConfigManager {
     /**
      * Returns a (lazy initialized) database version info object.
      *
-     * @return
+     * @return {@link DbVersionInfo}.
      */
-    synchronized public DbVersionInfo getDbVersionInfo() {
-        if (myDbVersionInfo == null) {
-            myDbVersionInfo = ServiceContext.getDaoContext().getDbVersionInfo();
+    public DbVersionInfo getDbVersionInfo() {
+
+        synchronized (this.myDbVersionInfoMutex) {
+            if (myDbVersionInfo == null) {
+                myDbVersionInfo =
+                        ServiceContext.getDaoContext().getDbVersionInfo();
+            }
+            return myDbVersionInfo;
         }
-        return myDbVersionInfo;
     }
 
 }

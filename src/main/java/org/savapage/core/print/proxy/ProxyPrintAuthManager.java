@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
  * to blocking wait for an authentication event.</li>
  * </ul>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ProxyPrintAuthManager {
@@ -60,8 +60,8 @@ public final class ProxyPrintAuthManager {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ProxyPrintAuthManager.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ProxyPrintAuthManager.class);
 
     /**
      * Lookup for actual {@link ProxyPrintInboxReq} for Proxy Printer: for each
@@ -116,8 +116,8 @@ public final class ProxyPrintAuthManager {
      * @return The number of seconds after which authentication window expires.
      */
     public static long getMaxRequestAgeSeconds() {
-        return ConfigManager.instance().getConfigLong(
-                Key.PROXY_PRINT_DIRECT_EXPIRY_SECS);
+        return ConfigManager.instance()
+                .getConfigLong(Key.PROXY_PRINT_DIRECT_EXPIRY_SECS);
     }
 
     /**
@@ -235,9 +235,8 @@ public final class ProxyPrintAuthManager {
         final boolean expired = ageSeconds > getMaxRequestAgeSeconds();
 
         if (LOGGER.isTraceEnabled()) {
-            String msg =
-                    "Request for [" + request.getPrinterName() + "] aged ["
-                            + ageSeconds + "] seconds";
+            String msg = "Request for [" + request.getPrinterName() + "] aged ["
+                    + ageSeconds + "] seconds";
             if (expired) {
                 msg += " : EXPIRED";
             }
@@ -257,12 +256,12 @@ public final class ProxyPrintAuthManager {
      *            Primary key of the requesting user.
      * @param printerName
      *            Unique name of the {@link Printer}.
-     * @param cardNumber
-     *            The offered Card Number.
+     * @param event
+     *            The {@link RfidEvent}.
      * @return The request of the user or {@code null} when no (matching)
      *         request is found.
      */
-    private synchronized ProxyPrintInboxReq onAuthEvent(Long idUser,
+    private synchronized ProxyPrintInboxReq onAuthEvent(final Long idUser,
             final String printerName, final RfidEvent event) {
 
         final ProxyPrintInboxReq request = requests.get(printerName);
@@ -285,7 +284,8 @@ public final class ProxyPrintAuthManager {
          * CHECK: when a timeout occurs or the event is not a card swipe the
          * pending request of the user is returned unchanged.
          */
-        if (event == null || event.getEvent() != RfidEvent.EventEnum.CARD_SWIPE) {
+        if (event == null
+                || event.getEvent() != RfidEvent.EventEnum.CARD_SWIPE) {
             return request;
         }
 
@@ -345,7 +345,7 @@ public final class ProxyPrintAuthManager {
      * @throws InterruptedException
      *
      */
-    private synchronized boolean onCancelRequest(Long idUser,
+    private synchronized boolean onCancelRequest(final Long idUser,
             final String printerName) throws InterruptedException {
 
         ProxyPrintInboxReq reqPending = requests.get(printerName);
@@ -357,8 +357,8 @@ public final class ProxyPrintAuthManager {
 
         final String cardReaderIp = cardReaders.get(printerName);
 
-        RfidReaderManager.reportEvent(cardReaderIp, new RfidEvent(
-                RfidEvent.EventEnum.VOID));
+        RfidReaderManager.reportEvent(cardReaderIp,
+                new RfidEvent(RfidEvent.EventEnum.VOID));
 
         return true;
     }
@@ -405,9 +405,8 @@ public final class ProxyPrintAuthManager {
             final RfidNumberFormat rfidNumberFormat, final long timeout,
             final TimeUnit timeUnit) throws InterruptedException {
 
-        final RfidEvent event =
-                RfidReaderManager.waitForEvent(cardReaderIp, rfidNumberFormat,
-                        timeout, timeUnit);
+        final RfidEvent event = RfidReaderManager.waitForEvent(cardReaderIp,
+                rfidNumberFormat, timeout, timeUnit);
 
         return instance().onAuthEvent(idUser, printerName, event);
     }
