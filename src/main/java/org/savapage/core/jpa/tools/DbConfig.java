@@ -135,6 +135,9 @@ public final class DbConfig {
         /*
          * Idle time in seconds before a connection is automatically validated.
          * Hibernate default: 0.
+         *
+         * IMPORTANT: this value must be LESS than C3P0_TIMEOUT. If not, the
+         * connections closed by the database will not be properly detected.
          */
         config.put(AvailableSettings.C3P0_IDLE_TEST_PERIOD, "120");
     }
