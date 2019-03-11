@@ -81,6 +81,18 @@ public interface PrintOutDao extends GenericDao<PrintOut> {
     PrintOut findActiveCupsJob(String jobPrinterName, Integer jobId);
 
     /**
+     * Finds the CUPS print job, that is end-of-state, with the
+     * identifying attributes equal to the parameters passed.
+     *
+     * @param jobPrinterName
+     *            The name of the printer.
+     * @param jobId
+     *            The job ID.
+     * @return The PrintOut object or {@code null} when not found.
+     */
+    PrintOut findEndOfStateCupsJob(String jobPrinterName, Integer jobId);
+
+    /**
      * Finds the CUPS jobs that are NOT end-of-state.
      *
      * @param maxResults

@@ -90,6 +90,33 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
     }
 
     @Override
+    public PrintOut findEndOfStateCupsJob(final String jobPrinterName,
+            final Integer jobId) {
+
+        final String jpql = "SELECT O FROM PrintOut O WHERE O.id = "
+                + "(SELECT MAX(M.id) FROM PrintOut M JOIN M.printer P "
+                + "WHERE M.cupsJobId = :jobId "
+                + "AND P.printerName = :printerName "
+                + "AND M.cupsCompletedTime > 0)";
+
+        final Query query = getEntityManager().createQuery(jpql);
+
+        query.setParameter("jobId", jobId);
+        query.setParameter("printerName",
+                ProxyPrinterName.getDaoName(jobPrinterName));
+
+        PrintOut printOut;
+
+        try {
+            printOut = (PrintOut) query.getSingleResult();
+        } catch (NoResultException e) {
+            printOut = null;
+        }
+
+        return printOut;
+    }
+
+    @Override
     public List<PrintOut> getActiveCupsJobsChunk(final Integer maxResults) {
 
         final String jpql = "SELECT O FROM PrintOut O " //
