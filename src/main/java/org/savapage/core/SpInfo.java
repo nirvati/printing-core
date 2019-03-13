@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -31,36 +31,40 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Generic logger.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class SpInfo {
+public final class SpInfo {
 
+    /** */
     private static final Logger LOGGER = LoggerFactory.getLogger(SpInfo.class);
 
+    /** */
     private static final String DELIM = "+----------------------------"
             + "--------------------------------------------+";
 
+    /** */
     private SpInfo() {
     }
 
     /**
+     * Logs application signature.
      *
+     * @param dbInfo
+     *            Database info.
      */
     public void logSignature(final DbVersionInfo dbInfo) {
-        LOGGER.info("\n"
-                + DELIM
-                //
-                + "\n| "
-                + ConfigManager.getAppNameVersionBuild()
+        LOGGER.info("\n" + DELIM
+        //
+                + "\n| " + ConfigManager.getAppNameVersionBuild()
                 //
                 + "\n| Copyright (c) 2011-"
-                + Calendar.getInstance().get(Calendar.YEAR)
-                + " by "
+                + Calendar.getInstance().get(Calendar.YEAR) + " by "
                 + CommunityDictEnum.DATRAVERSE_BV.getWord()
                 //
-                + "\n| "
-                + VersionInfo.LICENSE_NAME
+                + "\n| " + VersionInfo.LICENSE_NAME
                 //
                 + "\n| " + System.getProperty("java.vm.name") + " ("
                 + System.getProperty("java.version") + ")"
@@ -78,8 +82,8 @@ public class SpInfo {
      */
     public void logCommunityNotice() {
         try {
-            LOGGER.info(String.format("\n%s\n%s\n%s", DELIM, MemberCard
-                    .instance().getCommunityNotice("| "), DELIM));
+            LOGGER.info(String.format("\n%s\n%s\n%s", DELIM,
+                    MemberCard.instance().getCommunityNotice("| "), DELIM));
         } catch (Exception e) {
             LOGGER.error(e.getMessage());
         }
@@ -91,18 +95,22 @@ public class SpInfo {
      * {@link SingletonHolder#INSTANCE}, not before.
      */
     private static class SingletonHolder {
+        /** */
         public static final SpInfo INSTANCE = new SpInfo();
     }
 
     /**
-     * Gets the singleton instance.
-     *
-     * @return
+     * @return The singleton instance.
      */
     public static SpInfo instance() {
         return SingletonHolder.INSTANCE;
     }
 
+    /**
+     *
+     * @param msg
+     *            Message to log.
+     */
     public void log(final String msg) {
         LOGGER.info(msg);
     }
@@ -111,6 +119,7 @@ public class SpInfo {
      * Reserved for logging the end (closing down) of the application.
      *
      * @param msg
+     *            Message to log.
      */
     public void logDestroy(final String msg) {
         LOGGER.info(msg + "\n" + DELIM);
