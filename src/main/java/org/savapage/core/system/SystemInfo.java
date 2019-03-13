@@ -129,6 +129,37 @@ public final class SystemInfo {
     }
 
     /**
+     * Retrieves the Poppler {@code pdftocairo} version from the system.
+     * <p>
+     * <a href=
+     * "http://poppler.freedesktop.org">http://poppler.freedesktop.org</a>
+     * </p>
+     *
+     * @return The version string(s) or {@code null} when not installed.
+     */
+    public static String getPdfToCairoVersion() {
+
+        final String cmd = "pdftocairo -v";
+
+        final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
+
+        try {
+            int rc = exec.executeCommand();
+
+            if (rc != 0 && rc != 99) {
+                return null;
+            }
+
+            /*
+             * Note: version is echoed on stderr.
+             */
+            return exec.getStandardError();
+
+        } catch (Exception e) {
+            throw new SpException(e);
+        }
+    }
+    /**
      * Retrieves the ImageMagick version from the system.
      *
      * @return The version string(s) or {@code null} when ImageMagick is not
