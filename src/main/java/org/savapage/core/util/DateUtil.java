@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -171,6 +171,9 @@ public final class DateUtil {
             if (hours == 0) {
                 if (minutes == 0) {
                     long seconds = ((durationSeconds % 86400) % 3600) % 60;
+                    if (seconds == 0) {
+                        return String.format("%dms", duration);
+                    }
                     return String.format("%ds", seconds);
                 }
                 return String.format("%dm", minutes);
