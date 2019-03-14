@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -108,6 +109,7 @@ import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.tools.DatabaseTypeEnum;
 import org.savapage.core.jpa.tools.DbConfig;
+import org.savapage.core.jpa.tools.DbConnectionPoolEnum;
 import org.savapage.core.jpa.tools.DbUpgManager;
 import org.savapage.core.jpa.tools.DbVersionInfo;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
@@ -140,20 +142,14 @@ import org.slf4j.LoggerFactory;
  */
 public final class ConfigManager {
 
-    /**
-     * .
-     */
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ConfigManager.class);
 
-    /**
-     * .
-     */
+    /** */
     private static boolean shutdownInProgress = false;
 
-    /**
-     *
-     */
+    /** */
     private RunModeEnum runMode = null;
 
     /** */
@@ -180,9 +176,7 @@ public final class ConfigManager {
      */
     private static String theDefaultServerSslPort;
 
-    /**
-     * .
-     */
+    /** */
     private static SslCertInfo sslCertInfo;
 
     /**
@@ -279,9 +273,7 @@ public final class ConfigManager {
     private static final String SERVER_PROP_PGP_SECRETKEY_PASSPHRASE =
             "pgp.secretkey.passphrase";
 
-    /**
-     *
-     */
+    /** */
     private static final String SERVER_PROP_START_CLEANUP_DOCLOG =
             "start.cleanup-doclog";
 
@@ -291,24 +283,27 @@ public final class ConfigManager {
 
     // ========================================================================
 
-    /**
-     * .
-     */
+    /** */
     public static final String SYS_PROP_SERVER_HOME = "server.home";
 
-    /**
-     * .
-     */
+    /** */
     public static final String SYS_PROP_CLIENT_HOME = "client.home";
 
+    /** */
     private static final String APP_OWNER =
             CommunityDictEnum.DATRAVERSE_BV.getWord();
 
+    /** */
     private final CryptoApp myCipher = new CryptoApp();
 
+    /** */
     private ProxyPrintService myPrintProxy;
 
+    /** */
     private DatabaseTypeEnum myDatabaseType;
+
+    /** */
+    private Map<DbConnectionPoolEnum, String> dbConnectionPoolProps;
 
     /**
      * For convenience we use ConfigPropImp instead of ConfigProp (because of
@@ -316,19 +311,13 @@ public final class ConfigManager {
      */
     private final ConfigPropImpl myConfigProp = new ConfigPropImpl();
 
-    /**
-     *
-     */
+    /** */
     private Properties myPropsAdmin = null;
 
-    /**
-     *
-     */
+    /** */
     private EntityManagerFactory myEmf = null;
 
-    /**
-     *
-     */
+    /** */
     private final CircuitBreakerRegistry circuitBreakerRegistry =
             new CircuitBreakerRegistry();
 
@@ -1584,6 +1573,16 @@ public final class ConfigManager {
              */
         }
 
+        // Logging only.
+        if (this.dbConnectionPoolProps != null) {
+            for (final Entry<DbConnectionPoolEnum, String> entry : //
+            this.dbConnectionPoolProps.entrySet()) {
+                final DbConnectionPoolEnum key = entry.getKey();
+                SpInfo.instance()
+                        .log(String.format("%s > %s [%s]", key.getConfigKey(),
+                                key.getC3p0Key(), entry.getValue()));
+            }
+        }
         //
         ServiceContext.getServiceFactory().start();
 
@@ -2802,7 +2801,12 @@ public final class ConfigManager {
          * Mantis #513: PostgreSQL: WebApp very slow.
          */
         if (useHibernateC3p0Parms) {
-            DbConfig.configHibernateC3p0(configOverrides);
+            this.dbConnectionPoolProps =
+                    DbConnectionPoolEnum.createFromConfig(theServerProps);
+            DbConfig.configHibernateC3p0(this.dbConnectionPoolProps,
+                    configOverrides);
+        } else {
+            this.dbConnectionPoolProps = null;
         }
 
         //

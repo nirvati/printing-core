@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 package org.savapage.core.jpa.tools;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -107,39 +108,20 @@ public final class DbConfig {
     /**
      * Configures the Hibernate Connection Pool.
      *
+     * @param valueMap
+     *            The {@link DbConnectionPoolEnum} key value map of hibernate
+     *            C3p0 values.
      * @param config
-     *            The configuration map.
+     *            The configuration map to put values on.
      */
-    public static void configHibernateC3p0(final Map<String, Object> config) {
-        /*
-         * Minimum number of JDBC connections in the pool.
-         */
-        config.put(AvailableSettings.C3P0_MIN_SIZE, "5");
-        /*
-         * Maximum number of JDBC connections in the pool.
-         */
-        config.put(AvailableSettings.C3P0_MAX_SIZE, "400");
+    public static void configHibernateC3p0(
+            final Map<DbConnectionPoolEnum, String> valueMap,
+            final Map<String, Object> config) {
 
-        /*
-         * When an idle connection is removed from the pool (in second).
-         * Hibernate default: 0, never expire.
-         */
-        config.put(AvailableSettings.C3P0_TIMEOUT, "600");
-
-        /*
-         * Number of prepared statements will be cached. Increase performance.
-         * Hibernate default: 0 , caching is disable.
-         */
-        config.put(AvailableSettings.C3P0_MAX_STATEMENTS, "50");
-
-        /*
-         * Idle time in seconds before a connection is automatically validated.
-         * Hibernate default: 0.
-         *
-         * IMPORTANT: this value must be LESS than C3P0_TIMEOUT. If not, the
-         * connections closed by the database will not be properly detected.
-         */
-        config.put(AvailableSettings.C3P0_IDLE_TEST_PERIOD, "120");
+        for (final Entry<DbConnectionPoolEnum, String> entry : valueMap
+                .entrySet()) {
+            config.put(entry.getKey().getC3p0Key(), entry.getValue());
+        }
     }
 
     /**
