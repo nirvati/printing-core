@@ -183,10 +183,13 @@ public final class MemberCardManager {
     /**
      *
      * @param istr
+     *            Input stream.
      * @return MD5 string
      * @throws MemberCardException
+     *             When error.
      */
-    public String getMD5(java.io.InputStream istr) throws MemberCardException {
+    public String getMD5(final java.io.InputStream istr)
+            throws MemberCardException {
 
         final java.io.ByteArrayOutputStream bos =
                 new java.io.ByteArrayOutputStream();
@@ -289,7 +292,6 @@ public final class MemberCardManager {
     /**
      *
      * @param cstrKeyFile
-     * @param key
      */
     private java.security.Key readKeyFromFile(final String cstrKeyFile)
             throws MemberCardException {
@@ -335,8 +337,11 @@ public final class MemberCardManager {
 
     /**
      *
-     * @param cstrKeyFile
-     * @param key
+     * @param is
+     *            The stream
+     * @return The key.
+     * @throws MemberCardException
+     *             When error.
      */
     private java.security.Key readKeyFromStream(final java.io.InputStream is)
             throws MemberCardException {
