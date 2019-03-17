@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -72,14 +72,18 @@ public final class PdfPgpVerifyUrl {
     /**
      *
      * @param host
-     *            the name of the host.
+     *            Name of the host.
      * @param port
-     *            the port number on the host.
+     *            Port number on the host. Can be {@code null}.
      */
-    public PdfPgpVerifyUrl(final String host, final int port) {
+    public PdfPgpVerifyUrl(final String host, final Integer port) {
         try {
-            this.urlBase =
-                    new URL(HTTPS_PROTOCOL, host, port, MOUNT_PATH_WEBAPP);
+            if (port == null) {
+                this.urlBase = new URL(HTTPS_PROTOCOL, host, MOUNT_PATH_WEBAPP);
+            } else {
+                this.urlBase =
+                        new URL(HTTPS_PROTOCOL, host, port, MOUNT_PATH_WEBAPP);
+            }
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
