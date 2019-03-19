@@ -264,13 +264,13 @@ public final class ConfigManager {
     private static final String SERVER_PROP_IPP_PRINTER_UUID =
             "ipp.printer-uuid";
 
-    private static final String SERVER_PROP_PGP_PUBLICKEY_FILE =
+    private static final String SERVER_PROP_OPENPGP_PUBLICKEY_FILE =
             "pgp.publickey.file";
 
-    private static final String SERVER_PROP_PGP_SECRETKEY_FILE =
+    private static final String SERVER_PROP_OPENPGP_SECRETKEY_FILE =
             "pgp.secretkey.file";
 
-    private static final String SERVER_PROP_PGP_SECRETKEY_PASSPHRASE =
+    private static final String SERVER_PROP_OPENPGP_SECRETKEY_PASSPHRASE =
             "pgp.secretkey.passphrase";
 
     /** */
@@ -427,6 +427,13 @@ public final class ConfigManager {
      */
     public PGPPublicKeyInfo getPGPPublicKeyInfo() {
         return this.pgpPublicKeyInfo;
+    }
+
+    /**
+     * @return {@code true} when OpenPGP Key Pair is present.
+     */
+    public boolean hasOpenPGP() {
+        return this.pgpPublicKeyInfo != null && this.pgpSecretKeyInfo != null;
     }
 
     /**
@@ -1266,7 +1273,7 @@ public final class ConfigManager {
             throw new SpException("mode [" + mode + "] is not supported");
         }
 
-        initPGP();
+        initOpenPGP();
 
         runMode = mode;
     }
@@ -1274,24 +1281,24 @@ public final class ConfigManager {
     /**
      * Initializes the PGP secret key.
      */
-    private void initPGP() {
+    private void initOpenPGP() {
 
         if (theServerProps == null) {
             return;
         }
 
         final String secretFileName =
-                theServerProps.getProperty(SERVER_PROP_PGP_SECRETKEY_FILE);
+                theServerProps.getProperty(SERVER_PROP_OPENPGP_SECRETKEY_FILE);
 
         if (secretFileName == null) {
             return;
         }
 
         final String publicFileName =
-                theServerProps.getProperty(SERVER_PROP_PGP_PUBLICKEY_FILE);
+                theServerProps.getProperty(SERVER_PROP_OPENPGP_PUBLICKEY_FILE);
 
         if (publicFileName == null) {
-            LOGGER.warn("PGP public key file not configured.");
+            LOGGER.warn("OpenPGP public key file not configured.");
             return;
         }
 
@@ -1309,26 +1316,27 @@ public final class ConfigManager {
                     helper.readPublicKey(new FileInputStream(publicFile));
 
             this.pgpSecretKeyInfo = helper.readSecretKey(
-                    new FileInputStream(secretFile), theServerProps
-                            .getProperty(SERVER_PROP_PGP_SECRETKEY_PASSPHRASE));
+                    new FileInputStream(secretFile), theServerProps.getProperty(
+                            SERVER_PROP_OPENPGP_SECRETKEY_PASSPHRASE));
 
-            SpInfo.instance().log(String.format("PGP Key ID [%s]",
+            SpInfo.instance().log(String.format("OpenPGP Key ID [%s]",
                     this.pgpSecretKeyInfo.formattedKeyID()));
 
             for (final InternetAddress addr : this.pgpSecretKeyInfo.getUids()) {
-                SpInfo.instance()
-                        .log(String.format("PGP UID [%s]", addr.toString()));
+                SpInfo.instance().log(
+                        String.format("OpenPGP UID [%s]", addr.toString()));
             }
 
-            SpInfo.instance().log(String.format("PGP Fingerprint [%s]",
+            SpInfo.instance().log(String.format("OpenPGP Fingerprint [%s]",
                     this.pgpSecretKeyInfo.formattedFingerPrint()));
 
         } catch (FileNotFoundException e) {
-            LOGGER.error("{}: {} not found.", SERVER_PROP_PGP_SECRETKEY_FILE,
+            LOGGER.error("{}: {} not found.",
+                    SERVER_PROP_OPENPGP_SECRETKEY_FILE,
                     secretFile.getAbsolutePath());
         } catch (PGPBaseException e) {
             LOGGER.error("{} is invalid.",
-                    SERVER_PROP_PGP_SECRETKEY_PASSPHRASE);
+                    SERVER_PROP_OPENPGP_SECRETKEY_PASSPHRASE);
         }
 
         try {
@@ -2338,6 +2346,13 @@ public final class ConfigManager {
      */
     public static boolean isPdfPgpEnabled() {
         return instance().isConfigValue(Key.PDFPGP_VERIFICATION_ENABLE);
+    }
+
+    /**
+     * @return {@code true} is PDF/PDF verification is available.
+     */
+    public static boolean isPdfPgpAvailable() {
+        return instance().hasOpenPGP() && isPdfPgpEnabled();
     }
 
     /**
