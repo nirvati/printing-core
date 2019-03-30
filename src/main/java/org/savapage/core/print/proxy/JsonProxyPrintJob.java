@@ -23,6 +23,7 @@ package org.savapage.core.print.proxy;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.attribute.IppDictJobDescAttr;
 
@@ -158,6 +159,23 @@ public final class JsonProxyPrintJob {
 
     public IppJobStateEnum getIppJobState() {
         return IppJobStateEnum.asEnum(jobState);
+    }
+
+    /**
+     * @return State massage and state reasons for logging.
+     */
+    public String createStateMsgForLogging() {
+
+        final StringBuilder msg = new StringBuilder();
+
+        if (StringUtils.isNotBlank(this.getJobStateMessage())) {
+            msg.append("[").append(this.getJobStateMessage()).append("]");
+        }
+        for (final String reason : this.getJobStateReasons()) {
+            msg.append("[").append(reason).append("]");
+        }
+
+        return msg.toString();
     }
 
 }

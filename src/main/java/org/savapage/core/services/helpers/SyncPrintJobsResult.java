@@ -21,6 +21,7 @@
  */
 package org.savapage.core.services.helpers;
 
+import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.jpa.PrintOut;
 
 /**
@@ -42,6 +43,12 @@ public final class SyncPrintJobsResult {
     private final int jobsStateChange;
 
     /**
+     * The number of CUPS jobs that were forced to cancel because they were
+     * {@link IppJobStateEnum#IPP_JOB_STOPPED}.
+     */
+    private final int jobsForcedCancel;
+
+    /**
      * The number of jobs that were not found in CUPS: this could be due to an
      * off-line or disabled printer, or a printer that has been removed.
      */
@@ -59,15 +66,19 @@ public final class SyncPrintJobsResult {
      * @param stateChange
      *            The number of {@link PrintOut} jobs that were updated with a
      *            new CUPS state.
+     * @param forcedCancel
+     *            The number of CUPS jobs that were forced to cancel because
+     *            they were {@link IppJobStateEnum#IPP_JOB_STOPPED}.
      * @param notFound
      *            The number of jobs that were not found in CUPS.
      * @param lastJobId
      *            The last CUPS job id handled.
      */
     public SyncPrintJobsResult(final int active, final int stateChange,
-            final int notFound, final int lastJobId) {
+            final int forcedCancel, final int notFound, final int lastJobId) {
         this.jobsActive = active;
         this.jobsStateChange = stateChange;
+        this.jobsForcedCancel = forcedCancel;
         this.jobsNotFound = notFound;
         this.jobIdLast = lastJobId;
     }
@@ -87,6 +98,17 @@ public final class SyncPrintJobsResult {
         return jobsStateChange;
     }
 
+    /**
+     * @return The number of CUPS jobs that were forced to cancel because they
+     *         were {@link IppJobStateEnum#IPP_JOB_STOPPED}.
+     */
+    public int getJobsForcedCancel() {
+        return jobsForcedCancel;
+    }
+
+    /**
+     * @return
+     */
     public int getJobsIdentical() {
         return jobsActive - jobsStateChange - jobsNotFound;
     }

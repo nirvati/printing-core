@@ -24,6 +24,7 @@ package org.savapage.core.job;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -36,6 +37,7 @@ import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.PrintOutDao;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.ipp.IppJobStateEnum;
@@ -112,12 +114,14 @@ public final class CupsSyncPrintJobs extends AbstractJob {
                         String.valueOf(syncResult.getJobsActive()),
                         String.valueOf(syncResult.getJobsStateChange()),
                         String.valueOf(syncResult.getJobsIdentical()),
+                        String.valueOf(syncResult.getJobsForcedCancel()),
                         String.valueOf(syncResult.getJobsNotFound()));
             } else {
                 msg = localizeSysMsg("CupsSyncPrintJobs.success",
                         String.valueOf(syncResult.getJobsActive()),
                         String.valueOf(syncResult.getJobsStateChange()),
                         String.valueOf(syncResult.getJobsIdentical()),
+                        String.valueOf(syncResult.getJobsForcedCancel()),
                         String.valueOf(syncResult.getJobsNotFound()));
             }
 
@@ -174,6 +178,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
 
         int nJobsActive = 0;
         int nJobsStateChange = 0;
+        int nJobsForceCancel = 0;
         int nJobsNotFound = 0;
 
         boolean hasNext = true;
@@ -190,6 +195,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
 
             nJobsActive += result.getJobsActive();
             nJobsStateChange += result.getJobsStateChange();
+            nJobsForceCancel += result.getJobsForcedCancel();
             nJobsNotFound += result.getJobsNotFound();
 
             cupsJobIdLast = result.getJobIdLast();
@@ -203,10 +209,11 @@ public final class CupsSyncPrintJobs extends AbstractJob {
                 AdminPublisher.instance().publish(PubTopicEnum.CUPS,
                         PubLevelEnum.INFO,
                         String.format("Print Job Sync %d/%d: "
-                                + "%d changed, %d identical, %d unknown.",
+                                + "%d changed, %d identical, %s cancel, %d unknown.",
                                 nJobsActive, nActiveCupsJobs,
                                 result.getJobsStateChange(),
                                 result.getJobsIdentical(),
+                                result.getJobsForcedCancel(),
                                 result.getJobsNotFound()));
             }
         }
@@ -229,6 +236,9 @@ public final class CupsSyncPrintJobs extends AbstractJob {
                     .log(String.format(
                             "|      : %d PrintOut present in CUPS (identical).",
                             nJobsActive - nJobsStateChange - nJobsNotFound));
+            SpInfo.instance().log(String.format(
+                    "|      : %d PrintOut stopped in CUPS (forced to cancel).",
+                    nJobsForceCancel));
             SpInfo.instance()
                     .log(String.format(
                             "|      : %d PrintOut missing in CUPS (unknown).",
@@ -236,7 +246,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
         }
 
         return new SyncPrintJobsResult(nJobsActive, nJobsStateChange,
-                nJobsNotFound, cupsJobIdLast);
+                nJobsForceCancel, nJobsNotFound, cupsJobIdLast);
     }
 
     /**
@@ -293,9 +303,13 @@ public final class CupsSyncPrintJobs extends AbstractJob {
             final List<PrintOut> printOutList,
             final DaoBatchCommitter batchCommitter) throws IppConnectException {
 
+        final boolean cancelIfStopped = ConfigManager.instance()
+                .isConfigValue(Key.CUPS_JOBSTATE_CANCEL_IF_STOPPED_ENABLE);
+
         final int nJobsActive = printOutList.size();
 
         int nJobsStateChange = 0;
+        int nJobsForcedCancel = 0;
         int nJobsNotFound = 0;
 
         final Map<Integer, List<PrintOut>> lookupPrintOut =
@@ -327,6 +341,25 @@ public final class CupsSyncPrintJobs extends AbstractJob {
                     }
 
                     if (cupsJob != null) {
+
+                        if (cancelIfStopped && cupsJob.getIppJobState()
+                                .equals(IppJobStateEnum.IPP_JOB_STOPPED)) {
+
+                            proxyPrintService.cancelPrintJob(printOut);
+
+                            LOGGER.warn(
+                                    "User [{}] CUPS Job #{} [{}]{} > CANCEL",
+                                    printOut.getDocOut().getDocLog().getUser()
+                                            .getUserId(),
+                                    cupsJob.getJobId(),
+                                    cupsJob.getIppJobState()
+                                            .uiText(Locale.ENGLISH)
+                                            .toUpperCase(),
+                                    cupsJob.createStateMsgForLogging());
+
+                            nJobsForcedCancel++;
+                        }
+
                         // State change?
                         if (!printOut.getCupsJobState()
                                 .equals(cupsJob.getJobState())) {
@@ -370,7 +403,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
         }
 
         return new SyncPrintJobsResult(nJobsActive, nJobsStateChange,
-                nJobsNotFound, cupsJobIdLastNew.intValue());
+                nJobsForcedCancel, nJobsNotFound, cupsJobIdLastNew.intValue());
     }
 
 }

@@ -594,13 +594,14 @@ public interface IConfigProp {
          */
         CUPS_IPP_SUBSCR_NOTIFY_LEASE_DURATION(//
                 "cups.ipp.subscription.notify-lease-duration", NUMBER_VALIDATOR,
-                "4200"),
+                "4200", API_UPDATABLE_ON),
 
         /**
          * Max number of IPP connections per CUPS server.
          */
         CUPS_IPP_MAX_CONNECTIONS(//
-                "cups.ipp.max-connections", NUMBER_VALIDATOR, "10"),
+                "cups.ipp.max-connections", NUMBER_VALIDATOR, "10",
+                API_UPDATABLE_ON),
 
         /**
          * Timeout in milliseconds until a IPP connection with local CUPS server
@@ -608,7 +609,7 @@ public interface IConfigProp {
          */
         CUPS_IPP_LOCAL_CONNECT_TIMEOUT_MILLIS(//
                 "cups.ipp.local-connect-timeout-millis", NUMBER_VALIDATOR,
-                "2000"),
+                "2000", API_UPDATABLE_ON),
 
         /**
          * Timeout in milliseconds to receive IPP data from local CUPS server
@@ -617,13 +618,14 @@ public interface IConfigProp {
          */
         CUPS_IPP_LOCAL_SOCKET_TIMEOUT_MILLIS(//
                 "cups.ipp.local-socket-timeout-millis", NUMBER_VALIDATOR,
-                "4000"),
+                "4000", API_UPDATABLE_ON),
 
         /**
          * Is access of remote CUPS enabled?
          */
         CUPS_IPP_REMOTE_ENABLED(//
-                "cups.ipp.remote-enabled", BOOLEAN_VALIDATOR, V_NO),
+                "cups.ipp.remote-enabled", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
 
         /**
          * Timeout in milliseconds until a IPP connection with remote CUPS
@@ -631,7 +633,7 @@ public interface IConfigProp {
          */
         CUPS_IPP_REMOTE_CONNECT_TIMEOUT_MILLIS(//
                 "cups.ipp.remote-connect-timeout-millis", NUMBER_VALIDATOR,
-                "3000"),
+                "3000", API_UPDATABLE_ON),
 
         /**
          * Timeout in milliseconds to receive IPP data from remote CUPS server
@@ -640,7 +642,14 @@ public interface IConfigProp {
          */
         CUPS_IPP_REMOTE_SOCKET_TIMEOUT_MILLIS(//
                 "cups.ipp.remote-socket-timeout-millis", NUMBER_VALIDATOR,
-                "4000"),
+                "4000", API_UPDATABLE_ON),
+
+        /**
+         * Cancel CUPS job when stopped.
+         */
+        CUPS_JOBSTATE_CANCEL_IF_STOPPED_ENABLE(//
+                "cups.job-state.cancel-if-stopped.enable", BOOLEAN_VALIDATOR,
+                V_YES, API_UPDATABLE_ON),
 
         /**
          * Heartbeat (milliseconds) for performing a CUPS pull of job id status

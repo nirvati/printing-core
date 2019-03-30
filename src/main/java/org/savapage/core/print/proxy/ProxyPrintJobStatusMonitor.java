@@ -36,6 +36,7 @@ import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.PrintOutDao;
 import org.savapage.core.ipp.IppJobStateEnum;
@@ -633,6 +634,9 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
         final long pullHeatbeat = ConfigManager.instance().getConfigLong(
                 IConfigProp.Key.CUPS_NOTIFIER_JOB_STATUS_PULL_HEARTBEAT_MSEC);
 
+        final boolean cancelIfStopped = ConfigManager.instance()
+                .isConfigValue(Key.CUPS_JOBSTATE_CANCEL_IF_STOPPED_ENABLE);
+
         final Iterator<Integer> iter = this.jobStatusMap.keySet().iterator();
 
         while (iter.hasNext() && this.keepProcessing) {
@@ -640,6 +644,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
             final PrintJobStatus jobIter = this.jobStatusMap.get(iter.next());
 
             final boolean removeJobIter;
+            final PrintOut printOut;
 
             if (jobIter.getCupsCreationTime() == null) {
                 /*
@@ -652,6 +657,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                         jobIter.jobId.intValue()));
 
                 removeJobIter = true;
+                printOut = null;
 
             } else if (jobIter.jobStatePrintOut == null) {
                 /*
@@ -698,13 +704,14 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                 }
 
                 removeJobIter = true;
+                printOut = null;
 
             } else {
                 /*
                  * INVARIANT: Active PrintOut CUPS job MUST be present in
                  * database.
                  */
-                final PrintOut printOut = this.getCupsJobActive(jobIter);
+                printOut = this.getCupsJobActive(jobIter);
 
                 if (printOut == null) {
                     /*
@@ -755,6 +762,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                 } else {
                     // TEST for getEndOfStatePaperCutCupsJob()
                     // removeJobIter = false;
+
                     removeJobIter =
                             this.processJobStatusEntry(printOut, jobIter);
                 }
@@ -765,6 +773,30 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
              */
             if (removeJobIter) {
                 iter.remove();
+                continue;
+            }
+
+            if (printOut != null && cancelIfStopped && jobIter.getJobStateCups()
+                    .equals(IppJobStateEnum.IPP_JOB_STOPPED)) {
+
+                try {
+                    final JsonProxyPrintJob cupsJob = PROXY_PRINT_SERVICE
+                            .retrievePrintJob(jobIter.getPrinterName(),
+                                    jobIter.getJobId());
+
+                    PROXY_PRINT_SERVICE.cancelPrintJob(printOut);
+
+                    LOGGER.warn("User [{}] CUPS Job #{} [{}]{} > CANCEL",
+                            printOut.getDocOut().getDocLog().getUser()
+                                    .getUserId(),
+                            jobIter.getJobId(),
+                            jobIter.getJobStateCups().uiText(Locale.ENGLISH)
+                                    .toUpperCase(),
+                            cupsJob.createStateMsgForLogging());
+
+                } catch (IppConnectException e) {
+                    LOGGER.error(e.getMessage());
+                }
             } else {
                 evaluateJobStatusPull(jobIter, timeNow, pullHeatbeat);
             }
