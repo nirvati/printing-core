@@ -783,17 +783,28 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                     final JsonProxyPrintJob cupsJob = PROXY_PRINT_SERVICE
                             .retrievePrintJob(jobIter.getPrinterName(),
                                     jobIter.getJobId());
+                    /*
+                     * Check status, since CANCELED status as result of a
+                     * previous cancelPrintJob() may not have been pushed by
+                     * CUPS Notifier.
+                     */
+                    if (cupsJob.getIppJobState().isFinished()) {
+                        // Simulate the CUPS Notifier.
+                        jobIter.setJobStateCupsUpdate(cupsJob.getIppJobState());
+                        jobIter.setUpdateTime(timeNow);
+                        jobIter.setCupsCompletedTime(
+                                PROXY_PRINT_SERVICE.getCupsSystemTime());
+                    } else {
+                        PROXY_PRINT_SERVICE.cancelPrintJob(printOut);
 
-                    PROXY_PRINT_SERVICE.cancelPrintJob(printOut);
-
-                    LOGGER.warn("User [{}] CUPS Job #{} [{}]{} > CANCEL",
-                            printOut.getDocOut().getDocLog().getUser()
-                                    .getUserId(),
-                            jobIter.getJobId(),
-                            jobIter.getJobStateCups().uiText(Locale.ENGLISH)
-                                    .toUpperCase(),
-                            cupsJob.createStateMsgForLogging());
-
+                        LOGGER.warn("User [{}] CUPS Job #{} [{}]{} > CANCEL",
+                                printOut.getDocOut().getDocLog().getUser()
+                                        .getUserId(),
+                                jobIter.getJobId(),
+                                jobIter.getJobStateCups().uiText(Locale.ENGLISH)
+                                        .toUpperCase(),
+                                cupsJob.createStateMsgForLogging());
+                    }
                 } catch (IppConnectException e) {
                     LOGGER.error(e.getMessage());
                 }
@@ -843,6 +854,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                         ippState.uiText(Locale.ENGLISH).toUpperCase());
             }
 
+            // Simulate the CUPS Notifier.
             jobStatus.setJobStateCupsUpdate(ippState);
             jobStatus.setUpdateTime(timeNow);
 
