@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -57,6 +57,7 @@ import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
+import org.savapage.lib.pgp.PGPBaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -400,7 +401,7 @@ public final class GcpListener {
                         + subject + "]");
             }
 
-        } catch (MessagingException | IOException e) {
+        } catch (MessagingException | IOException | PGPBaseException e) {
             LOGGER.error("Sending email to [" + toAddress + "] failed: "
                     + e.getMessage());
         }
@@ -517,13 +518,19 @@ public final class GcpListener {
      * 2013-12-18 14:41:59,894 XMPP notification:
      *
      * <pre>
-     * <message to="e486ab5d96b0ba4ffa098834fc8785d2@cloudprint.googleusercontent.com/datradrive@gmail.com/6d213a48-4a5c-4941-87f8-853915fdac48" from="cloudprint.google.com"><push xmlns="google:push"><data>NjFhZjVkMzEtZTA4YS0xZjczLWQzOTItNWVmYmVhN2Q1NGFm</data></push></message>
+     * <message to=
+    "e486ab5d96b0ba4ffa098834fc8785d2@cloudprint.googleusercontent.com/datradrive@gmail.com/6d213a48-4a5c-4941-87f8-853915fdac48" from
+    ="cloudprint.google.com"><push xmlns=
+    "google:push"><data>NjFhZjVkMzEtZTA4YS0xZjczLWQzOTItNWVmYmVhN2Q1NGFm</data></push></message>
      * </pre>
      *
      * 2013-12-18 14:43:14,483 XMPP notification:
      *
      * <pre>
-     * <message to="e486ab5d96b0ba4ffa098834fc8785d2@cloudprint.googleusercontent.com/datradrive@gmail.com/6d213a48-4a5c-4941-87f8-853915fdac48" from="cloudprint.google.com"><push xmlns="google:push"><data>NjFhZjVkMzEtZTA4YS0xZjczLWQzOTItNWVmYmVhN2Q1NGFm</data></push></message>
+     * <message to=
+    "e486ab5d96b0ba4ffa098834fc8785d2@cloudprint.googleusercontent.com/datradrive@gmail.com/6d213a48-4a5c-4941-87f8-853915fdac48" from
+    ="cloudprint.google.com"><push xmlns=
+    "google:push"><data>NjFhZjVkMzEtZTA4YS0xZjczLWQzOTItNWVmYmVhN2Q1NGFm</data></push></message>
      * </pre>
      *
      * @param p

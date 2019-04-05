@@ -32,6 +32,7 @@ import javax.mail.internet.MimeMessage;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
+import org.savapage.lib.pgp.PGPBaseException;
 
 /**
  *
@@ -63,8 +64,11 @@ public interface EmailService extends StatefulService {
      *             When MIME content is invalid.
      * @throws IOException
      *             When IO error writing the MIME file.
+     * @throws PGPBaseException
+     *             When PGP read error.
      */
-    void writeEmail(EmailMsgParms parms) throws MessagingException, IOException;
+    void writeEmail(EmailMsgParms parms)
+            throws MessagingException, IOException, PGPBaseException;
 
     /**
      * Creates a session for <i>sending</i> mail.
@@ -87,9 +91,12 @@ public interface EmailService extends StatefulService {
      *             When MIME content is invalid.
      * @throws IOException
      *             When IO error writing the MIME file.
+     * @throws PGPBaseException
+     *             When PGP read error.
      */
-    void sendEmail(EmailMsgParms parms) throws InterruptedException,
-            CircuitBreakerException, MessagingException, IOException;
+    void sendEmail(EmailMsgParms parms)
+            throws InterruptedException, CircuitBreakerException,
+            MessagingException, IOException, PGPBaseException;
 
     /**
      * Reads a MIME message from file (RFC822 formatted) and sends it.
@@ -138,5 +145,4 @@ public interface EmailService extends StatefulService {
     MimeMessage sendEmail(Transport transport, File mimeFile)
             throws MessagingException, InterruptedException,
             CircuitBreakerException, IOException;
-
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -67,6 +67,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
+import org.savapage.lib.pgp.PGPBaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1050,7 +1051,7 @@ public final class ImapListener extends MessageCountAdapter {
                         + subject + "]");
             }
 
-        } catch (MessagingException | IOException e) {
+        } catch (MessagingException | IOException | PGPBaseException e) {
             LOGGER.error("Sending email to [" + toAddress + "] failed: "
                     + e.getMessage());
         }
@@ -1088,8 +1089,8 @@ public final class ImapListener extends MessageCountAdapter {
      * states: <i> Per GMail's IMAP client settings pages (in the Help Center),
      * the IMAP "delete" command is being used to remove the current label, or
      * "archive" in the case of inbox. To actually "delete" something from an
-     * IMAP session, you need to move the message to the "[GMail]\Trash"
-     * folder. </i>
+     * IMAP session, you need to move the message to the "[GMail]\Trash" folder.
+     * </i>
      * </p>
      * <p>
      * See <a href=

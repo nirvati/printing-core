@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -60,9 +61,13 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.config.ServerPathEnum;
+import org.savapage.core.dao.UserEmailDao;
+import org.savapage.core.jpa.UserEmail;
 import org.savapage.core.services.EmailService;
+import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.FileSystemHelper;
+import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
 import org.savapage.lib.pgp.mime.PGPBodyPartEncrypter;
@@ -426,7 +431,9 @@ public final class EmailServiceImpl extends AbstractService
 
     @Override
     public void writeEmail(final EmailMsgParms parms)
-            throws MessagingException, IOException {
+            throws MessagingException, IOException, PGPBaseException {
+
+        this.setPublicKeyList(parms);
 
         final String fileBaseName =
                 String.format("%d-%s.%s", System.currentTimeMillis(),
@@ -454,8 +461,9 @@ public final class EmailServiceImpl extends AbstractService
     @Override
     public void sendEmail(final EmailMsgParms parms)
             throws InterruptedException, CircuitBreakerException,
-            MessagingException, IOException {
+            MessagingException, IOException, PGPBaseException {
 
+        setPublicKeyList(parms);
         sendMimeMessage(null, this.createMimeMessage(parms, true));
     }
 
@@ -481,6 +489,44 @@ public final class EmailServiceImpl extends AbstractService
                     new MimeMessage(this.createMimeMsgSession(), fis);
             sendMimeMessage(transport, msg);
             return msg;
+        }
+    }
+
+    /**
+     * Finds PGP public keys to encrypt mail with. When found, set keys in
+     * {@link EmailMsgParms}.
+     * <p>
+     * Invariant: Mail address must be set in emailParms.
+     * </p>
+     *
+     * @param emailParms
+     *            The {@link EmailMsgParms} to set public keys in.
+     * @throws PGPBaseException
+     *             If PGP error.
+     */
+    private void setPublicKeyList(final EmailMsgParms emailParms)
+            throws PGPBaseException {
+
+        if (StringUtils.isBlank(emailParms.getToAddress())) {
+            throw new IllegalStateException("Email address not present.");
+        }
+
+        final UserEmailDao daoUserEmail =
+                ServiceContext.getDaoContext().getUserEmailDao();
+
+        final UserEmail userEmail = daoUserEmail
+                .findByEmail(emailParms.getToAddress().toLowerCase());
+
+        if (userEmail != null) {
+
+            final PGPPublicKeyInfo info =
+                    pgpPublicKeyService().readRingEntry(userEmail.getUser());
+
+            if (info != null) {
+                final List<PGPPublicKeyInfo> list = new ArrayList<>();
+                list.add(info);
+                emailParms.setPublicKeyList(list);
+            }
         }
     }
 

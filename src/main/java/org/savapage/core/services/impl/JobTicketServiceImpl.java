@@ -125,6 +125,7 @@ import org.savapage.core.util.JsonHelper;
 import org.savapage.ext.papercut.PaperCutHelper;
 import org.savapage.ext.papercut.PaperCutIntegrationEnum;
 import org.savapage.ext.smartschool.SmartschoolPrintInData;
+import org.savapage.lib.pgp.PGPBaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1033,7 +1034,7 @@ public final class JobTicketServiceImpl extends AbstractService
         try {
             emailService().sendEmail(emailParms);
         } catch (InterruptedException | CircuitBreakerException
-                | MessagingException | IOException e) {
+                | MessagingException | IOException | PGPBaseException e) {
             throw new SpException(e.getMessage());
         }
 
