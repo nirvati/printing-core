@@ -607,18 +607,18 @@ public interface IConfigProp {
          * Timeout in milliseconds until a IPP connection with local CUPS server
          * is established.
          */
-        CUPS_IPP_LOCAL_CONNECT_TIMEOUT_MILLIS(//
-                "cups.ipp.local-connect-timeout-millis", NUMBER_VALIDATOR,
-                "2000", API_UPDATABLE_ON),
+        CUPS_IPP_LOCAL_CONNECT_TIMEOUT_MSEC(//
+                "cups.ipp.local-connect-timeout-msec", NUMBER_VALIDATOR, "5000",
+                API_UPDATABLE_ON),
 
         /**
          * Timeout in milliseconds to receive IPP data from local CUPS server
          * after the connection is established, i.e. maximum time of inactivity
          * between two data packets.
          */
-        CUPS_IPP_LOCAL_SOCKET_TIMEOUT_MILLIS(//
-                "cups.ipp.local-socket-timeout-millis", NUMBER_VALIDATOR,
-                "4000", API_UPDATABLE_ON),
+        CUPS_IPP_LOCAL_SOCKET_TIMEOUT_MSEC(//
+                "cups.ipp.local-socket-timeout-msec", NUMBER_VALIDATOR, "9000",
+                API_UPDATABLE_ON),
 
         /**
          * Is access of remote CUPS enabled?
@@ -631,18 +631,18 @@ public interface IConfigProp {
          * Timeout in milliseconds until a IPP connection with remote CUPS
          * server is established.
          */
-        CUPS_IPP_REMOTE_CONNECT_TIMEOUT_MILLIS(//
-                "cups.ipp.remote-connect-timeout-millis", NUMBER_VALIDATOR,
-                "3000", API_UPDATABLE_ON),
+        CUPS_IPP_REMOTE_CONNECT_TIMEOUT_MSEC(//
+                "cups.ipp.remote-connect-timeout-msec", NUMBER_VALIDATOR,
+                "5000", API_UPDATABLE_ON),
 
         /**
          * Timeout in milliseconds to receive IPP data from remote CUPS server
          * after the connection is established, i.e. maximum time of inactivity
          * between two data packets.
          */
-        CUPS_IPP_REMOTE_SOCKET_TIMEOUT_MILLIS(//
-                "cups.ipp.remote-socket-timeout-millis", NUMBER_VALIDATOR,
-                "4000", API_UPDATABLE_ON),
+        CUPS_IPP_REMOTE_SOCKET_TIMEOUT_MSEC(//
+                "cups.ipp.remote-socket-timeout-msec", NUMBER_VALIDATOR,
+                "9000", API_UPDATABLE_ON),
 
         /**
          * Cancel CUPS job when stopped.
@@ -1276,7 +1276,7 @@ public interface IConfigProp {
          *
          */
         PRINTER_SNMP_READ_TIMEOUT_MSECS(//
-                "printer.snmp.read.timeout-millis", NUMBER_VALIDATOR, "1500",
+                "printer.snmp.read.timeout-msec", NUMBER_VALIDATOR, "1500",
                 API_UPDATABLE_ON),
 
         /**
@@ -1384,7 +1384,7 @@ public interface IConfigProp {
          * established.
          */
         SMARTSCHOOL_SOAP_CONNECT_TIMEOUT_MILLIS(//
-                "smartschool.soap.connect-timeout-millis", NUMBER_VALIDATOR,
+                "smartschool.soap.connect-timeout-msec", NUMBER_VALIDATOR,
                 "20000"),
 
         /**
@@ -1392,7 +1392,7 @@ public interface IConfigProp {
          * Service.
          */
         SMARTSCHOOL_SOAP_SOCKET_TIMEOUT_MILLIS(//
-                "smartschool.soap.socket-timeout-millis", NUMBER_VALIDATOR,
+                "smartschool.soap.socket-timeout-msec", NUMBER_VALIDATOR,
                 "20000"),
 
         /**

@@ -263,11 +263,11 @@ public final class IppClient {
         final Key socketTimeout;
 
         if (isLocalIppServer) {
-            connectTimeout = Key.CUPS_IPP_LOCAL_CONNECT_TIMEOUT_MILLIS;
-            socketTimeout = Key.CUPS_IPP_LOCAL_SOCKET_TIMEOUT_MILLIS;
+            connectTimeout = Key.CUPS_IPP_LOCAL_CONNECT_TIMEOUT_MSEC;
+            socketTimeout = Key.CUPS_IPP_LOCAL_SOCKET_TIMEOUT_MSEC;
         } else {
-            connectTimeout = Key.CUPS_IPP_REMOTE_CONNECT_TIMEOUT_MILLIS;
-            socketTimeout = Key.CUPS_IPP_REMOTE_SOCKET_TIMEOUT_MILLIS;
+            connectTimeout = Key.CUPS_IPP_REMOTE_CONNECT_TIMEOUT_MSEC;
+            socketTimeout = Key.CUPS_IPP_REMOTE_SOCKET_TIMEOUT_MSEC;
         }
 
         return RequestConfig.custom()
