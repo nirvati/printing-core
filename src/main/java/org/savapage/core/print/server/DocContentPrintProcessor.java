@@ -73,6 +73,8 @@ import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.itextpdf.text.ExceptionConverter;
+
 /**
  * Processes a document print request. The document can be PDF, PostScripts,
  * {@link CupsCommandFile#FIRST_LINE_SIGNATURE}, or any other supported format.
@@ -1304,8 +1306,14 @@ public final class DocContentPrintProcessor {
 
             } else {
                 pubMessage = exception.getMessage();
-                pubLevel = PubLevelEnum.ERROR;
-                LOGGER.error(exception.getMessage(), exception);
+                if (exception instanceof ExceptionConverter) {
+                    LOGGER.warn("[{}] PDF error: {}", this.getJobName(),
+                            pubMessage);
+                    pubLevel = PubLevelEnum.WARN;
+                } else {
+                    LOGGER.error(pubMessage, exception);
+                    pubLevel = PubLevelEnum.ERROR;
+                }
             }
         }
 
