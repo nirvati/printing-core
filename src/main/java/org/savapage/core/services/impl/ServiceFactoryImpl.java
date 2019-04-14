@@ -1,6 +1,6 @@
 /*
  * This file is part+of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@ import org.savapage.core.services.ConfigPropertyService;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.DocStoreService;
+import org.savapage.core.services.DownloadService;
 import org.savapage.core.services.EcoPrintPdfTaskService;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.InboxService;
@@ -111,6 +112,10 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private static class DocStoreServiceHolder {
         public static final DocStoreService SERVICE = new DocStoreServiceImpl();
+    }
+
+    private static class DownloadServiceHolder {
+        public static final DownloadService SERVICE = new DownloadServiceImpl();
     }
 
     private static class EcoPrintPdfTaskServiceHolder {
@@ -204,6 +209,7 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     private final static StatefulService statefullServices[] =
             new StatefulService[] { //
                     AtomFeedServiceHolder.SERVICE, //
+                    DownloadServiceHolder.SERVICE, //
                     EcoPrintPdfTaskServiceHolder.SERVICE, //
                     JobTicketServiceHolder.SERVICE, //
                     SOfficeServiceHolder.SERVICE, //
@@ -255,6 +261,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public DocStoreService getDocStoreService() {
         return DocStoreServiceHolder.SERVICE;
+    }
+
+    @Override
+    public DownloadService getDownloadService() {
+        return DownloadServiceHolder.SERVICE;
     }
 
     @Override

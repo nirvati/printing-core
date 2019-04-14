@@ -641,8 +641,8 @@ public interface IConfigProp {
          * between two data packets.
          */
         CUPS_IPP_REMOTE_SOCKET_TIMEOUT_MSEC(//
-                "cups.ipp.remote-socket-timeout-msec", NUMBER_VALIDATOR,
-                "9000", API_UPDATABLE_ON),
+                "cups.ipp.remote-socket-timeout-msec", NUMBER_VALIDATOR, "9000",
+                API_UPDATABLE_ON),
 
         /**
          * Cancel CUPS job when stopped.
@@ -711,6 +711,29 @@ public interface IConfigProp {
          */
         DOC_CONVERT_LIBRE_OFFICE_ENABLED(//
                 "doc.convert.libreoffice-enabled", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
+         * Max number of HTTP download connections.
+         */
+        DOWNLOAD_MAX_CONNECTIONS(//
+                "download.max-connections", NUMBER_VALIDATOR, "10",
+                API_UPDATABLE_ON),
+
+        /**
+         * Timeout in milliseconds until a download connection is established.
+         */
+        DOWNLOAD_CONNECT_TIMEOUT_MSEC(//
+                "download.connect-timeout-msec", NUMBER_VALIDATOR, "5000",
+                API_UPDATABLE_ON),
+
+        /**
+         * Timeout in milliseconds to receive data from remote host after the
+         * connection is established, i.e. maximum time of inactivity between
+         * two data packets.
+         */
+        DOWNLOAD_SOCKET_TIMEOUT_MSEC(//
+                "download.socket-timeout-msec", NUMBER_VALIDATOR, "9000",
                 API_UPDATABLE_ON),
 
         /**
