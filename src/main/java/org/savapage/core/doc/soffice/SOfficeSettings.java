@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@ package org.savapage.core.doc.soffice;
 
 import java.io.File;
 
+import org.savapage.core.config.ConfigManager;
 import org.savapage.core.util.DateUtil;
 
 /**
@@ -103,8 +104,8 @@ public abstract class SOfficeSettings {
      * menu item. Settings that may be worth customizing for automated
      * conversions include e.g.
      * <ul>
-     * <li>Load/Save > General: you may e.g. want to disable
-     * "Save URLs relative to internet" for security reasons</li>
+     * <li>Load/Save > General: you may e.g. want to disable "Save URLs relative
+     * to internet" for security reasons</li>
      * <li>Load/Save > Microsoft Office: these options affect conversions of
      * embedded documents, e.g. an Excel table contained in a Word document. If
      * not enabled, the embedded table will likely be lost when converting the
@@ -117,7 +118,8 @@ public abstract class SOfficeSettings {
     /**
      *
      */
-    private File workDir = new File(System.getProperty("java.io.tmpdir"));
+    private File workDir =
+            new File(System.getProperty(ConfigManager.SYS_PROP_JAVA_IO_TMPDIR));
 
     /**
      * Wait time (milliseconds) for a UNO connection to become available for

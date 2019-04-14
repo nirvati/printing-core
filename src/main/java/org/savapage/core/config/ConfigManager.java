@@ -284,6 +284,9 @@ public final class ConfigManager {
     // ========================================================================
 
     /** */
+    public static final String SYS_PROP_JAVA_IO_TMPDIR = "java.io.tmpdir";
+
+    /** */
     public static final String SYS_PROP_SERVER_HOME = "server.home";
 
     /** */
@@ -2583,7 +2586,8 @@ public final class ConfigManager {
      *
      * @return The value of the server properties
      *         {@link #SERVER_PROP_APP_DIR_TMP} (when present) or the System
-     *         property {@code java.io.tmpdir} appended with {@code /savapage}.
+     *         property {@link #SYS_PROP_JAVA_IO_TMPDIR} appended with
+     *         {@code /savapage}.
      */
     public static String getAppTmpDir() {
 
@@ -2599,8 +2603,9 @@ public final class ConfigManager {
             return homeTmp;
         }
 
-        return String.format("%s%c%s", System.getProperty("java.io.tmpdir"),
-                File.separatorChar, "savapage");
+        return String.format("%s%c%s",
+                System.getProperty(SYS_PROP_JAVA_IO_TMPDIR), File.separatorChar,
+                "savapage");
     }
 
     /**
