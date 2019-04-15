@@ -29,6 +29,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.UUID;
 
+import javax.naming.LimitExceededException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -122,8 +124,8 @@ public final class DownloadServiceImpl extends AbstractService
     }
 
     @Override
-    public String download(final URL source, final File target)
-            throws IOException {
+    public String download(final URL source, final File target, final int maxMB)
+            throws IOException, LimitExceededException {
 
         final HttpGet request = new HttpGet(source.toString());
         request.setConfig(buildRequestConfig());
@@ -146,13 +148,23 @@ public final class DownloadServiceImpl extends AbstractService
         final int bufferSize = 1024;
         final byte[] buffer = new byte[bufferSize];
 
+        final long maxBytes = 1024 * 1024 * maxMB;
+        long bytesDownloaded = 0;
+
         try (InputStream istr = entity.getContent();
                 FileOutputStream fos = new FileOutputStream(target);) {
 
-            int read = bufferSize;
-            while (read == bufferSize) {
-                read = istr.read(buffer);
+            int read = istr.read(buffer);
+
+            while (read > 0) {
+                bytesDownloaded += read;
+
+                if (bytesDownloaded > maxBytes) {
+                    throw new LimitExceededException(
+                            String.format("%d MB limit exceeded.", maxMB));
+                }
                 fos.write(buffer, 0, read);
+                read = istr.read(buffer);
             }
 
         } finally {
@@ -179,20 +191,24 @@ public final class DownloadServiceImpl extends AbstractService
 
     @Override
     public boolean download(final URL source, final String originatorIp,
-            final User user, final InternalFontFamilyEnum preferredFont)
-            throws IOException {
+            final User user, final InternalFontFamilyEnum preferredFont,
+            final int maxMB) throws IOException, LimitExceededException {
 
         final File target = createUniqueTempFile();
 
         try {
+            final StringBuilder name = new StringBuilder();
+            name.append(source.getProtocol()).append('-')
+                    .append(source.getHost());
+            name.append(StringUtils.replaceChars(source.getPath(), '/', '-'));
+            name.append(StringUtils.replaceChars(StringUtils.replaceChars(
+                    StringUtils.defaultString(source.getQuery()), '?', '-'),
+                    '&', '-'));
 
-            final String fileName = String.format("%s-%s-%s-%s",
-                    source.getProtocol(), source.getHost(),
-                    StringUtils.replaceChars(source.getPath(), '/', '-'),
-                    StringUtils.replaceChars(StringUtils.replaceChars(
-                            source.getQuery(), '?', '-'), '&', '-'));
+            final String fileName = name.toString();
 
-            final String contentTypeReturn = this.download(source, target);
+            final String contentTypeReturn =
+                    this.download(source, target, maxMB);
 
             DocContentTypeEnum contentType =
                     DocContent.getContentTypeFromMime(contentTypeReturn);
@@ -200,7 +216,7 @@ public final class DownloadServiceImpl extends AbstractService
             if (contentType == null) {
                 contentType = DocContent.getContentTypeFromFile(fileName);
                 if (contentType == null) {
-                    return false;
+                    contentType = DocContentTypeEnum.HTML;
                 }
                 LOGGER.info("No content type found for [{}]: using [{}]",
                         fileName, contentType);

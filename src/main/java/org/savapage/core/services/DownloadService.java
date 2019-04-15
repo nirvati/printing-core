@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import javax.naming.LimitExceededException;
+
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.jpa.User;
 
@@ -42,11 +44,16 @@ public interface DownloadService extends StatefulService {
      *            URL source.
      * @param target
      *            File target.
+     * @param maxMB
+     *            Max MB to download.
      * @return The HTTP content type. {@code null} when unknown.
      * @throws IOException
      *             If IO error.
+     * @throws LimitExceededException
+     *             If download exceeded max MB.
      */
-    String download(URL source, File target) throws IOException;
+    String download(URL source, File target, int maxMB)
+            throws IOException, LimitExceededException;
 
     /**
      * Download URL source to user SafePages.
@@ -59,11 +66,17 @@ public interface DownloadService extends StatefulService {
      *            The user.
      * @param preferredFont
      *            Preferred font.
+     * @param maxMB
+     *            Max MB to download.
      * @return {@code true} when download succeeded, {@code false} if unknown
      *         content type.
      * @throws IOException
-     *             If errors.
+     *             If IO error.
+     * @throws LimitExceededException
+     *             If download exceeded max MB.
      */
     boolean download(URL source, String originatorIp, User user,
-            InternalFontFamilyEnum preferredFont) throws IOException;
+            InternalFontFamilyEnum preferredFont, int maxMB)
+            throws IOException, LimitExceededException;
+
 }

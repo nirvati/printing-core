@@ -1306,7 +1306,9 @@ public final class DocContentPrintProcessor {
 
             } else {
                 pubMessage = exception.getMessage();
-                if (exception instanceof ExceptionConverter) {
+                if ((exception instanceof //
+                org.xhtmlrenderer.util.XRRuntimeException)
+                        || (exception instanceof ExceptionConverter)) {
                     LOGGER.warn("[{}] PDF error: {}", this.getJobName(),
                             pubMessage);
                     pubLevel = PubLevelEnum.WARN;
@@ -1317,9 +1319,7 @@ public final class DocContentPrintProcessor {
             }
         }
 
-        /*
-         *
-         */
+        //
         String deniedUserId = userid;
 
         if (StringUtils.isBlank(deniedUserId)) {
