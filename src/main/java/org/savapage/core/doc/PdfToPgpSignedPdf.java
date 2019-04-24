@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,7 +29,7 @@ import java.util.List;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
-import org.savapage.lib.pgp.pdf.PdfPgpHelper;
+import org.savapage.lib.pgp.pdf.PdfPgpSigner;
 import org.savapage.lib.pgp.pdf.PdfPgpVerifyUrl;
 
 /**
@@ -46,6 +46,8 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
     private static final String OUTPUT_FILE_SFX = "pdfpgp";
 
     /** */
+    private final PdfPgpSigner pdfPgpSigner;
+    /** */
     private final PGPSecretKeyInfo secKeyInfo;
     /** */
     private final List<PGPPublicKeyInfo> pubKeyInfoList;
@@ -55,7 +57,8 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
     private final PdfPgpVerifyUrl verifyUrl;
 
     /**
-     *
+     * @param signer
+     *            The {@link PdfPgpSigner}.
      * @param secKey
      *            Secure key of the signer.
      * @param pubKeySigner
@@ -65,11 +68,13 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
      * @param url
      *            The verification URL.
      */
-    public PdfToPgpSignedPdf(final PGPSecretKeyInfo secKey,
-            final PGPPublicKeyInfo pubKeySigner,
+    public PdfToPgpSignedPdf(final PdfPgpSigner signer,
+            final PGPSecretKeyInfo secKey, final PGPPublicKeyInfo pubKeySigner,
             final PGPPublicKeyInfo pubKeyAuthor, final PdfPgpVerifyUrl url) {
 
         super();
+
+        this.pdfPgpSigner = signer;
 
         this.secKeyInfo = secKey;
         this.verifyUrl = url;
@@ -86,7 +91,7 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
         final File pdfOut = this.getOutputFile(pdfFile);
 
         try {
-            PdfPgpHelper.instance().sign(pdfFile, pdfOut, this.secKeyInfo,
+            this.pdfPgpSigner.sign(pdfFile, pdfOut, this.secKeyInfo,
                     this.pubKeyInfoAuthor, this.pubKeyInfoList, this.verifyUrl,
                     false);
         } catch (PGPBaseException e) {

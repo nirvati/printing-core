@@ -62,6 +62,9 @@ import org.savapage.core.util.FileSystemHelper;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
+import org.savapage.lib.pgp.pdf.PdfPgpHelper;
+import org.savapage.lib.pgp.pdf.PdfPgpHelperAnyone;
+import org.savapage.lib.pgp.pdf.PdfPgpSigner;
 import org.savapage.lib.pgp.pdf.PdfPgpVerifyUrl;
 
 /**
@@ -832,10 +835,19 @@ public abstract class AbstractPdfCreator {
         final PGPPublicKeyInfo pubKeyInfoSigner = cm.getPGPPublicKeyInfo();
 
         try {
+            boolean isForAnyone = false; // TODO
+
+            final PdfPgpSigner signer;
+            if (isForAnyone) {
+                signer = PdfPgpHelperAnyone.instance();
+            } else {
+                signer = PdfPgpHelper.instance();
+            }
             replaceWithConvertedPdf(generatedPdf,
-                    new PdfToPgpSignedPdf(secKeyInfo, pubKeyInfoSigner,
+                    new PdfToPgpSignedPdf(signer, secKeyInfo, pubKeyInfoSigner,
                             PGP_PUBLICKEY_SERVICE.readRingEntry(userid),
                             verifyUrl).convert(generatedPdf));
+
         } catch (PGPBaseException e) {
             throw new IOException(e.getMessage());
         }

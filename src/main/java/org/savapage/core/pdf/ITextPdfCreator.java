@@ -90,6 +90,18 @@ import com.itextpdf.text.pdf.parser.PdfContentStreamProcessor;
  */
 public final class ITextPdfCreator extends AbstractPdfCreator {
 
+    /** */
+    public static final String PDF_INFO_KEY_TITLE = "Title";
+    /** */
+    public static final String PDF_INFO_KEY_SUBJECT = "Subject";
+    /** */
+    public static final String PDF_INFO_KEY_AUTHOR = "Author";
+    /** */
+    public static final String PDF_INFO_KEY_CREATOR = "Creator";
+    /** */
+    public static final String PDF_INFO_KEY_KEYWORDS = "Keywords";
+
+    /** */
     private static final int ITEXT_POINTS_PER_INCH = 72;
 
     /**
@@ -437,8 +449,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                     new PdfToGrayscale().convert(pdfFile));
         }
         if (this.onExitRepairPdf) {
-            replaceWithConvertedPdf(pdfFile,
-                    new PdfRepair().convert(pdfFile));
+            replaceWithConvertedPdf(pdfFile, new PdfRepair().convert(pdfFile));
         }
         if (this.onExitBookletPageOrder) {
             replaceWithConvertedPdf(pdfFile,
@@ -743,13 +754,13 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         java.util.HashMap info = this.readerWlk.getInfo();
 
-        info.put("Title", propPdf.getDesc().getTitle());
+        info.put(PDF_INFO_KEY_TITLE, propPdf.getDesc().getTitle());
 
         if (propPdf.getApply().getSubject()) {
-            info.put("Subject", propPdf.getDesc().getSubject());
+            info.put(PDF_INFO_KEY_SUBJECT, propPdf.getDesc().getSubject());
         }
 
-        info.put("Author", propPdf.getDesc().getAuthor());
+        info.put(PDF_INFO_KEY_AUTHOR, propPdf.getDesc().getAuthor());
 
         /*
          * info.setCreationDate(now);
@@ -757,10 +768,10 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
          * info.setModificationDate(now);
          */
 
-        info.put("Creator", this.getCreatorString());
+        info.put(PDF_INFO_KEY_CREATOR, this.getCreatorString());
 
         if (propPdf.getApply().getKeywords()) {
-            info.put("Keywords", propPdf.getDesc().getKeywords());
+            info.put(PDF_INFO_KEY_KEYWORDS, propPdf.getDesc().getKeywords());
         }
 
         this.targetStamper.setMoreInfo(info);
@@ -773,15 +784,15 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         java.util.HashMap<String, String> info = this.readerWlk.getInfo();
 
-        info.put("Title", propPdf.getDesc().getTitle());
-        info.put("Subject", "FOR PRINTING PURPOSES ONLY");
-        info.put("Author", CommunityDictEnum.SAVAPAGE.getWord());
+        info.put(PDF_INFO_KEY_TITLE, propPdf.getDesc().getTitle());
+        info.put(PDF_INFO_KEY_SUBJECT, "FOR PRINTING PURPOSES ONLY");
+        info.put(PDF_INFO_KEY_AUTHOR, CommunityDictEnum.SAVAPAGE.getWord());
 
-        info.put("Creator", this.getCreatorString());
+        info.put(PDF_INFO_KEY_CREATOR, this.getCreatorString());
 
         // info.setModificationDate(now);
         if (propPdf.getApply().getKeywords()) {
-            info.put("Keywords", propPdf.getDesc().getKeywords());
+            info.put(PDF_INFO_KEY_KEYWORDS, propPdf.getDesc().getKeywords());
         }
 
         this.targetStamper.setMoreInfo(info);

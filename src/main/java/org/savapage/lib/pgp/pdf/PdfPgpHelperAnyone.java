@@ -21,6 +21,7 @@
  */
 package org.savapage.lib.pgp.pdf;
 
+import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -40,6 +41,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.openpgp.PGPPublicKey;
+import org.savapage.core.doc.PdfToAnyone;
+import org.savapage.core.util.FileSystemHelper;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
@@ -47,42 +50,40 @@ import org.savapage.lib.pgp.PGPSecretKeyInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.Font.FontFamily;
-import com.itextpdf.text.Phrase;
-import com.itextpdf.text.Rectangle;
-import com.itextpdf.text.pdf.ColumnText;
-import com.itextpdf.text.pdf.PRStream;
-import com.itextpdf.text.pdf.PdfAction;
-import com.itextpdf.text.pdf.PdfAnnotation;
-import com.itextpdf.text.pdf.PdfArray;
-import com.itextpdf.text.pdf.PdfDictionary;
-import com.itextpdf.text.pdf.PdfFileSpecification;
-import com.itextpdf.text.pdf.PdfFormField;
-import com.itextpdf.text.pdf.PdfName;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfStamper;
-import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.pdf.PushbuttonField;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.ColumnText;
+import com.lowagie.text.pdf.PRStream;
+import com.lowagie.text.pdf.PdfAction;
+import com.lowagie.text.pdf.PdfAnnotation;
+import com.lowagie.text.pdf.PdfArray;
+import com.lowagie.text.pdf.PdfDictionary;
+import com.lowagie.text.pdf.PdfFileSpecification;
+import com.lowagie.text.pdf.PdfFormField;
+import com.lowagie.text.pdf.PdfName;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfStamper;
+import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.PushbuttonField;
 
 /**
- * PDF/PGP helper using {@link com.itextpdf}.
+ * PDF/PGP helper using {@link com.lowagie} to create PDF file.
  *
  * @author Rijk Ravestein
  *
  */
-public final class PdfPgpHelper extends AbstractPdfPgpHelper {
+public final class PdfPgpHelperAnyone extends AbstractPdfPgpHelper {
 
     /** */
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(PdfPgpHelper.class);
+            LoggerFactory.getLogger(PdfPgpHelperAnyone.class);
 
     /** */
-    private static final Font NORMAL_FONT_COURIER = new Font(
-            Font.FontFamily.COURIER, 12, Font.NORMAL, BaseColor.DARK_GRAY);
+    private static final Font NORMAL_FONT_COURIER =
+            new Font(Font.COURIER, 12, Font.NORMAL, Color.DARK_GRAY);
 
     /**
      * Rectangle with zero space.
@@ -92,20 +93,20 @@ public final class PdfPgpHelper extends AbstractPdfPgpHelper {
     /** */
     private static final class SingletonHolder {
         /** */
-        static final PdfPgpHelper SINGLETON = new PdfPgpHelper();
+        static final PdfPgpHelperAnyone SINGLETON = new PdfPgpHelperAnyone();
     }
 
     /**
      * Singleton instantiation.
      */
-    private PdfPgpHelper() {
+    private PdfPgpHelperAnyone() {
         super();
     }
 
     /**
      * @return The singleton instance.
      */
-    public static PdfPgpHelper instance() {
+    public static PdfPgpHelperAnyone instance() {
         return SingletonHolder.SINGLETON;
     }
 
@@ -158,6 +159,17 @@ public final class PdfPgpHelper extends AbstractPdfPgpHelper {
         stamper.addAnnotation(annotPdfSig, 1);
     }
 
+    /**
+     * Gets Public Key attachment of Author from PDF file.
+     *
+     * @param pdfFile
+     *            The signed PDF file.
+     * @return {@code null} when not found.
+     * @throws IOException
+     *             If IO error.
+     * @throws PGPBaseException
+     *             If PGP error.
+     */
     @Override
     protected PGPPublicKeyInfo getPubKeyAuthor(final File pdfFile)
             throws IOException, PGPBaseException {
@@ -179,7 +191,9 @@ public final class PdfPgpHelper extends AbstractPdfPgpHelper {
                 final PdfDictionary filespec = filespecs.getAsDict(i++);
                 final PdfDictionary refs = filespec.getAsDict(PdfName.EF);
 
-                for (final PdfName key : refs.getKeys()) {
+                for (final Object obj : refs.getKeys()) {
+
+                    final PdfName key = (PdfName) obj;
 
                     final String attachmentName =
                             filespec.getAsString(key).toString();
@@ -211,6 +225,13 @@ public final class PdfPgpHelper extends AbstractPdfPgpHelper {
             final PdfPgpVerifyUrl urlBuilder, final boolean embeddedSignature)
             throws PGPBaseException {
 
+        try {
+            FileSystemHelper.replaceWithNewVersion(fileIn,
+                    new PdfToAnyone().convert(fileIn));
+        } catch (IOException e) {
+            throw new PGPBaseException(e.getMessage());
+        }
+
         boolean verificationParms = false; // TODO
 
         PdfReader reader = null;
@@ -233,7 +254,7 @@ public final class PdfPgpHelper extends AbstractPdfPgpHelper {
 
             if (verificationParms) {
                 stamper.setEncryption(null, ownerPw.getBytes(),
-                        PdfWriter.ALLOW_PRINTING, PdfWriter.ENCRYPTION_AES_256
+                        PdfWriter.ALLOW_PRINTING, PdfWriter.ENCRYPTION_AES_128
                                 | PdfWriter.DO_NOT_ENCRYPT_METADATA);
             }
 
@@ -275,9 +296,9 @@ public final class PdfPgpHelper extends AbstractPdfPgpHelper {
 
             push.setText("Verify . . .");
 
-            push.setBackgroundColor(BaseColor.LIGHT_GRAY);
-            push.setBorderColor(BaseColor.GRAY);
-            push.setTextColor(BaseColor.DARK_GRAY);
+            push.setBackgroundColor(Color.LIGHT_GRAY);
+            push.setBorderColor(Color.GRAY);
+            push.setTextColor(Color.DARK_GRAY);
             push.setFontSize(NORMAL_FONT_COURIER.getSize());
             push.setFont(NORMAL_FONT_COURIER.getBaseFont());
             push.setVisibility(PushbuttonField.VISIBLE_BUT_DOES_NOT_PRINT);
@@ -294,7 +315,7 @@ public final class PdfPgpHelper extends AbstractPdfPgpHelper {
              *
              */
             final float fontSize = 8f;
-            final Font font = new Font(FontFamily.COURIER, fontSize);
+            final Font font = new Font(Font.COURIER, fontSize);
 
             final Phrase header =
                     new Phrase(secKeyInfo.formattedFingerPrint(), font);
