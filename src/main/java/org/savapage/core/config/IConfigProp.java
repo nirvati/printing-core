@@ -884,6 +884,11 @@ public interface IConfigProp {
         IPP_INTERNET_PRINTER_URI_BASE(//
                 "ipp.internet-printer.uri-base", URI_VALIDATOR_OPT, ""),
 
+        /** */
+        IPP_ROUTING_ENABLE(//
+                "ipp.routing.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
         /**
          * See this <a href=
          * "http://docs.oracle.com/javase/jndi/tutorial/ldap/search/batch.html"

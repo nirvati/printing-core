@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,7 +28,7 @@ import org.savapage.core.jpa.Device;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface DeviceDao extends GenericDao<Device> {
@@ -85,7 +85,7 @@ public interface DeviceDao extends GenericDao<Device> {
      *            The filter.
      * @return The count.
      */
-    long getListCount(final ListFilter filter);
+    long getListCount(ListFilter filter);
 
     /**
      * Gets a chunk of devices.
@@ -105,9 +105,8 @@ public interface DeviceDao extends GenericDao<Device> {
      *            {@code true} when sorted ascending.
      * @return The chunk.
      */
-    List<Device> getListChunk(final ListFilter filter,
-            final Integer startPosition, final Integer maxResults,
-            final Field orderBy, final boolean sortAscending);
+    List<Device> getListChunk(ListFilter filter, Integer startPosition,
+            Integer maxResults, Field orderBy, boolean sortAscending);
 
     /**
      * Finds the {@link Device} by name, when not found null is returned.
@@ -116,7 +115,7 @@ public interface DeviceDao extends GenericDao<Device> {
      *            The unique name of the Device.
      * @return The instance, or {@code null} when not found.
      */
-    Device findByName(final String deviceName);
+    Device findByName(String deviceName);
 
     /**
      * Reads the row from database, when not found null is returned.
@@ -136,8 +135,7 @@ public interface DeviceDao extends GenericDao<Device> {
      *            The {@link DeviceTypeEnum}.
      * @return The instance, or {@code null} when not found.
      */
-    Device findByHostDeviceType(final String hostname,
-            final DeviceTypeEnum deviceType);
+    Device findByHostDeviceType(String hostname, DeviceTypeEnum deviceType);
 
     /**
      * Creates or updates the attribute value of a Device.

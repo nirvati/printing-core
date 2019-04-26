@@ -36,8 +36,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.PostScriptDrmException;
+import org.savapage.core.SpException;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
@@ -46,6 +48,7 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
+import org.savapage.core.dao.enums.IppRoutingEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.doc.DocInputStream;
@@ -54,16 +57,20 @@ import org.savapage.core.doc.IStreamConverter;
 import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToDecrypted;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.IppQueue;
+import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.PdfAbstractException;
 import org.savapage.core.pdf.PdfPasswordException;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
+import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.InboxService;
+import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
@@ -90,20 +97,19 @@ public final class DocContentPrintProcessor {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(DocContentPrintProcessor.class);
 
-    /**
-     *
-     */
+    /** */
+    private static final DeviceService DEVICE_SERVICE =
+            ServiceContext.getServiceFactory().getDeviceService();
+    /** */
     private static final DocLogService DOC_LOG_SERVICE =
             ServiceContext.getServiceFactory().getDocLogService();
-
-    /**
-    *
-    */
+    /** */
     private static final InboxService INBOX_SERVICE =
             ServiceContext.getServiceFactory().getInboxService();
-    /**
-     *
-     */
+    /** */
+    private static final QueueService QUEUE_SERVICE =
+            ServiceContext.getServiceFactory().getQueueService();
+    /** */
     private static final UserService USER_SERVICE =
             ServiceContext.getServiceFactory().getUserService();
 
@@ -236,8 +242,9 @@ public final class DocContentPrintProcessor {
     }
 
     /**
+     * Gets the IP address of the requesting client.
      *
-     * @return
+     * @return {@code null} when unknown or irrelevant.
      */
     public String getOriginatorIp() {
         return originatorIp;
@@ -926,24 +933,29 @@ public final class DocContentPrintProcessor {
              */
             this.logPrintIn(protocol);
 
-            /*
-             * Move to user safepages home.
-             */
-            final Path pathTarget =
-                    FileSystems.getDefault().getPath(homeDir, jobFileBasePdf);
+            //
+            if (!this.handleIppRouting()) {
 
-            FileSystemHelper.doAtomicFileMove(//
-                    FileSystems.getDefault().getPath(tempPathPdf), pathTarget);
+                /*
+                 * Move to user safepages home.
+                 */
+                final Path pathTarget = FileSystems.getDefault()
+                        .getPath(homeDir, jobFileBasePdf);
 
-            /*
-             * Start task to create the shadow EcoPrint PDF file?
-             */
-            if (ConfigManager.isEcoPrintEnabled()
-                    && this.getPageProps().getNumberOfPages() <= ConfigManager
-                            .instance().getConfigInt(
-                                    Key.ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT)) {
-                INBOX_SERVICE.startEcoPrintPdfTask(homeDir, pathTarget.toFile(),
-                        this.uuidJob);
+                FileSystemHelper.doAtomicFileMove(//
+                        FileSystems.getDefault().getPath(tempPathPdf),
+                        pathTarget);
+
+                /*
+                 * Start task to create the shadow EcoPrint PDF file?
+                 */
+                if (ConfigManager.isEcoPrintEnabled() && this.getPageProps()
+                        .getNumberOfPages() <= ConfigManager.instance()
+                                .getConfigInt(
+                                        Key.ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT)) {
+                    INBOX_SERVICE.startEcoPrintPdfTask(homeDir,
+                            pathTarget.toFile(), this.uuidJob);
+                }
             }
 
         } catch (Exception e) {
@@ -1088,6 +1100,54 @@ public final class DocContentPrintProcessor {
 
         DOC_LOG_SERVICE.logPrintIn(this.getUserDb(), this.getQueue(), protocol,
                 printInInfo);
+    }
+
+    /**
+     * Handles IPP Routing, if applicable.
+     *
+     * @return {@code true} if IPP routing was applied, {@code false} if not.
+     */
+    private boolean handleIppRouting() {
+
+        if (!ConfigManager.instance().isConfigValue(Key.IPP_ROUTING_ENABLE)) {
+            return false;
+        }
+
+        if (StringUtils.isBlank(this.originatorIp)
+                || QUEUE_SERVICE.isReservedQueue(this.queue.getUrlPath())) {
+            return false;
+        }
+
+        final IppRoutingEnum routing = QUEUE_SERVICE.getIppRouting(this.queue);
+
+        if (routing == null || routing == IppRoutingEnum.NONE) {
+            return false;
+        }
+
+        if (routing != IppRoutingEnum.TERMINAL) {
+            throw new SpException(String.format(
+                    "IPP Routing [%s] is not supported", routing.toString()));
+        }
+
+        final Device terminal =
+                DEVICE_SERVICE.getHostTerminal(this.originatorIp);
+
+        if (terminal == null || BooleanUtils.isTrue(terminal.getDisabled())) {
+            return false;
+        }
+
+        final Printer printer = terminal.getPrinter();
+
+        if (printer == null) {
+            return false;
+        }
+
+        LOGGER.warn("IPP Routing from [{}] to [{}]: NOT implemented.",
+                queue.getUrlPath(), printer.getPrinterName());
+
+        // TODO
+
+        return true;
     }
 
     /**

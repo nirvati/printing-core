@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.savapage.core.dao.DeviceAttrDao;
 import org.savapage.core.dao.enums.DeviceAttrEnum;
+import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.ProxyPrintAuthModeEnum;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DeviceAttr;
@@ -37,11 +38,11 @@ import org.savapage.core.services.DeviceService;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public final class DeviceServiceImpl extends AbstractService implements
-        DeviceService {
+public final class DeviceServiceImpl extends AbstractService
+        implements DeviceService {
 
     @Override
     public RfidNumberFormat createRfidNumberFormat(final Device device,
@@ -63,17 +64,19 @@ public final class DeviceServiceImpl extends AbstractService implements
             final RfidNumberFormat.FirstByte firstByte;
             final RfidNumberFormat.Format format;
 
-            if (lookup.get(DeviceAttrEnum.CARD_NUMBER_FIRST_BYTE,
-                    DeviceAttrDao.VALUE_CARD_NUMBER_LSB).equals(
-                    DeviceAttrDao.VALUE_CARD_NUMBER_LSB)) {
+            if (lookup
+                    .get(DeviceAttrEnum.CARD_NUMBER_FIRST_BYTE,
+                            DeviceAttrDao.VALUE_CARD_NUMBER_LSB)
+                    .equals(DeviceAttrDao.VALUE_CARD_NUMBER_LSB)) {
                 firstByte = RfidNumberFormat.FirstByte.LSB;
             } else {
                 firstByte = RfidNumberFormat.FirstByte.MSB;
             }
 
-            if (lookup.get(DeviceAttrEnum.CARD_NUMBER_FORMAT,
-                    DeviceAttrDao.VALUE_CARD_NUMBER_HEX).equals(
-                    DeviceAttrDao.VALUE_CARD_NUMBER_HEX)) {
+            if (lookup
+                    .get(DeviceAttrEnum.CARD_NUMBER_FORMAT,
+                            DeviceAttrDao.VALUE_CARD_NUMBER_HEX)
+                    .equals(DeviceAttrDao.VALUE_CARD_NUMBER_HEX)) {
                 format = RfidNumberFormat.Format.HEX;
             } else {
                 format = RfidNumberFormat.Format.DEC;
@@ -93,9 +96,8 @@ public final class DeviceServiceImpl extends AbstractService implements
     @Override
     public ProxyPrintAuthModeEnum getProxyPrintAuthMode(final Long deviceId) {
 
-        final DeviceAttr attr =
-                deviceAttrDAO().findByName(deviceId,
-                        DeviceAttrEnum.PROXY_PRINT_AUTH_MODE);
+        final DeviceAttr attr = deviceAttrDAO().findByName(deviceId,
+                DeviceAttrEnum.PROXY_PRINT_AUTH_MODE);
 
         ProxyPrintAuthModeEnum authMode;
 
@@ -133,6 +135,12 @@ public final class DeviceServiceImpl extends AbstractService implements
         }
 
         return printerNames;
+    }
+
+    @Override
+    public Device getHostTerminal(final String remoteAddr) {
+        return deviceDAO().findByHostDeviceType(remoteAddr,
+                DeviceTypeEnum.TERMINAL);
     }
 
 }

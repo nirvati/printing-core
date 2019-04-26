@@ -19,49 +19,26 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.i18n;
+package org.savapage.core.dao.enums;
 
 import java.util.Locale;
 
-import org.savapage.core.util.LocaleHelper;
+import org.savapage.core.i18n.AdjectiveEnum;
+import org.savapage.core.i18n.NounEnum;
 
 /**
- * UI Adjectives.
+ * Type of IPP routing.
  *
  * @author Rijk Ravestein
  *
  */
-public enum AdjectiveEnum {
-
-    /** */
-    DOWLOADED, ERASED, PRINTED, RECEIVED,
-
-    /** */
-    APPROVED, REJECTED,
-
-    /** */
-    ASCENDING, DESCENDING,
-
-    /** */
-    SCALED,
-
-    /** */
-    VALID, INVALID,
-
-    /** */
-    INTERNAL, EXTERNAL,
+public enum IppRoutingEnum {
 
     /** */
     NONE,
 
     /** */
-    UNKNOWN, KNOWN,
-
-    /** */
-    PREFERRED,
-
-    /** */
-    PENDING;
+    TERMINAL;
 
     /**
      * @param locale
@@ -69,7 +46,10 @@ public enum AdjectiveEnum {
      * @return The localized text.
      */
     public String uiText(final Locale locale) {
-        return LocaleHelper.uiText(this, locale);
+        if (this == NONE) {
+            return AdjectiveEnum.NONE.uiText(locale);
+        }
+        return NounEnum.TERMINAL.uiText(locale);
     }
 
 }

@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.UnavailableException;
@@ -33,6 +34,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.IppQueueAttrEnum;
+import org.savapage.core.dao.enums.IppRoutingEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentTypeEnum;
@@ -99,15 +101,43 @@ public final class QueueServiceImpl extends AbstractService
     }
 
     @Override
-    public String getAttributeValue(final IppQueue queue, final String name) {
+    public String getAttrValue(final IppQueue queue,
+            final IppQueueAttrEnum attr) {
 
-        for (final IppQueueAttr attr : queue.getAttributes()) {
+        for (final IppQueueAttr attrWlk : queue.getAttributes()) {
 
-            if (attr.getName().equals(name)) {
-                return attr.getValue();
+            if (attrWlk.getName().equals(attr.getDbName())) {
+                return attrWlk.getValue();
             }
         }
         return null;
+    }
+
+    @Override
+    public IppRoutingEnum getIppRouting(final IppQueue queue) {
+        return EnumUtils.getEnum(IppRoutingEnum.class,
+                this.getAttrValue(queue, IppQueueAttrEnum.IPP_ROUTING));
+    }
+
+    @Override
+    public void setQueueAttrValue(final IppQueue queue,
+            final IppQueueAttrEnum attrEnum, final String attrValue) {
+
+        this.setAttrValue(ippQueueAttrDAO().findByName(queue.getId(), attrEnum),
+                queue, attrEnum, attrValue);
+    }
+
+    @Override
+    public boolean deleteQueueAttrValue(final IppQueue queue,
+            final IppQueueAttrEnum attrEnum) {
+
+        final IppQueueAttr attr =
+                ippQueueAttrDAO().findByName(queue.getId(), attrEnum);
+
+        if (attr == null) {
+            return false;
+        }
+        return ippQueueAttrDAO().delete(attr);
     }
 
     @Override

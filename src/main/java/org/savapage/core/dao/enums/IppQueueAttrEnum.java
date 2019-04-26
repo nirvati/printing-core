@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -30,9 +30,20 @@ import org.savapage.core.jpa.IppQueueAttr;
 /**
  * {@link IppQueueAttr} names. See {@link IppQueueAttr#setName(String)}.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public enum IppQueueAttrEnum {
+
+    /**
+     * See {@link IppRoutingEnum}.
+     */
+    IPP_ROUTING("ipp.routing"),
+
+    /**
+     * JSON representation of IPP attribute/value {@link Map}.
+     */
+    IPP_ROUTING_OPTIONS("ipp.routing.options"),
 
     /**
      * Statistic time series. Example:
@@ -40,24 +51,20 @@ public enum IppQueueAttrEnum {
      * {@code 1342562400000,2,1,4,0,0,2,0,..,0,8,1,0}
      * </p>
      */
-    PRINT_IN_ROLLING_DAY_PAGES(IppQueueAttrDao.STATS_ROLLING_PREFIX
-            + "-day.pages");
+    PRINT_IN_ROLLING_DAY_PAGES(
+            IppQueueAttrDao.STATS_ROLLING_PREFIX + "-day.pages");
 
     /**
      *
      */
     private static class Lookup {
 
-        /**
-         *
-         */
+        /** */
         private final Map<String, IppQueueAttrEnum> enumLookup =
                 new HashMap<String, IppQueueAttrEnum>();
 
-        /**
-         *
-         */
-        public Lookup() {
+        /** */
+        Lookup() {
             for (IppQueueAttrEnum value : IppQueueAttrEnum.values()) {
                 enumLookup.put(value.dbName, value);
             }
@@ -83,6 +90,7 @@ public enum IppQueueAttrEnum {
      * Ensure one-time initialization on class loading.
      */
     private static class LookupHolder {
+        /** */
         public static final Lookup INSTANCE = new Lookup();
     }
 
@@ -99,11 +107,11 @@ public enum IppQueueAttrEnum {
 
     /**
      *
-     * @param dbName
+     * @param name
      *            The database name.
      */
-    private IppQueueAttrEnum(final String dbName) {
-        this.dbName = dbName;
+    IppQueueAttrEnum(final String name) {
+        this.dbName = name;
     }
 
     /**

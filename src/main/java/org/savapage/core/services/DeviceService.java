@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -147,5 +147,16 @@ public interface DeviceService {
      * @return The set of printer names.
      */
     Set<String> collectPrinterNames(Device cardReader);
+
+    /**
+     * Gets the {@link Device.DeviceTypeEnum#TERMINAL} definition of a remote
+     * client.
+     *
+     * @param remoteAddr
+     *            the IP address of the client that sent the request
+     *
+     * @return {@code null} when no device definition is found.
+     */
+    Device getHostTerminal(String remoteAddr);
 
 }
