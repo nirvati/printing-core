@@ -53,6 +53,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.LetterheadNotFoundException;
@@ -64,12 +65,14 @@ import org.savapage.core.circuitbreaker.CircuitStateEnum;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
+import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.PrinterDao;
+import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
@@ -79,6 +82,8 @@ import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
+import org.savapage.core.doc.IPdfConverter;
+import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.doc.store.DocStoreBranchEnum;
 import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
@@ -108,6 +113,7 @@ import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.Entity;
+import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
@@ -123,6 +129,7 @@ import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.impl.ParamsPrinterSnmp;
 import org.savapage.core.json.rpc.impl.ResultAttribute;
 import org.savapage.core.json.rpc.impl.ResultPrinterSnmp;
+import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfCreateRequest;
@@ -142,6 +149,7 @@ import org.savapage.core.print.proxy.TicketJobSheetDto;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
+import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PpdExtFileReader;
@@ -168,6 +176,7 @@ import org.savapage.ext.papercut.PaperCutAccountAdjustPrint;
 import org.savapage.ext.papercut.PaperCutAccountAdjustPrintRefund;
 import org.savapage.ext.papercut.PaperCutAccountResolver;
 import org.savapage.ext.papercut.PaperCutException;
+import org.savapage.ext.papercut.PaperCutHelper;
 import org.savapage.ext.papercut.PaperCutServerProxy;
 import org.savapage.ext.papercut.job.PaperCutPrintMonitor;
 import org.slf4j.Logger;
@@ -3043,6 +3052,158 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 perfStartTime, user.getUserId());
 
         return nPagesTot;
+    }
+
+    @Override
+    public final void proxyPrintIppRouting(final User user,
+            final IppQueue queue, final Printer printer,
+            final DocContentPrintInInfo printInInfo, final File pdfFile)
+            throws ProxyPrintException {
+
+        final String printerName = printer.getPrinterName();
+        final boolean isColorPrinter = this.isColorPrinter(printerName);
+        final boolean isJobTicketPrinter =
+                printerService().isJobTicketPrinter(printer.getId());
+
+        final PrintModeEnum printMode;
+
+        if (isJobTicketPrinter
+                || printerService().isHoldReleasePrinter(printer)) {
+            printMode = PrintModeEnum.HOLD;
+        } else {
+            printMode = PrintModeEnum.AUTO;
+        }
+
+        final ProxyPrintDocReq printReq = new ProxyPrintDocReq(printMode);
+
+        printReq.setNumberOfCopies(1); // TODO
+        printReq.setDocumentUuid(printInInfo.getUuidJob().toString());
+        printReq.setAccountTrxInfoSet(printInInfo.getAccountTrxInfoSet());
+        printReq.setComment(printInInfo.getLogComment());
+        printReq.setNumberOfPages(
+                printInInfo.getPageProps().getNumberOfPages());
+        printReq.setPrinterName(printerName);
+        printReq.setLocale(ServiceContext.getLocale());
+        printReq.setIdUser(user.getId());
+        printReq.setCollate(true);
+        printReq.setRemoveGraphics(false);
+        printReq.setClearScope(InboxSelectScopeEnum.NONE);
+        printReq.setSupplierInfo(null);
+
+        final Map<String, String> ippOptions =
+                this.getDefaultPrinterCostOptions(printerName);
+        final Map<String, String> ippOptionsRouting =
+                queueService().getIppRoutingOptions(queue);
+        if (ippOptionsRouting != null) {
+            ippOptions.putAll(ippOptionsRouting);
+        }
+        printReq.setOptionValues(ippOptions);
+
+        // Pro-forma chunk.
+        final boolean isPrinterManagedByPaperCut =
+                printMode == PrintModeEnum.AUTO
+                        && paperCutService().isExtPaperCutPrint(printerName);
+
+        String mediaOption = printReq.getMediaOption();
+        if (mediaOption == null) {
+            mediaOption = IppMediaSizeEnum
+                    .find(MediaUtils.getDefaultMediaSize()).getIppKeyword();
+            printReq.setMediaOption(mediaOption);
+        }
+
+        printReq.addProxyPrintJobChunk(printer,
+                IppMediaSizeEnum.find(mediaOption),
+                this.hasMediaSourceAuto(printerName),
+                isPrinterManagedByPaperCut);
+
+        if (isPrinterManagedByPaperCut) {
+            printReq.setJobName(PaperCutHelper
+                    .encodeProxyPrintJobName(printInInfo.getJobName()));
+        } else {
+            printReq.setJobName(printInInfo.getJobName());
+        }
+
+        /*
+         * Client-side monochrome filtering?
+         */
+        final File fileToPrint;
+        File downloadedFileConverted = null;
+
+        if (printMode == PrintModeEnum.AUTO && isColorPrinter
+                && printReq.isGrayscale()
+                && printerService().isClientSideMonochrome(printer)) {
+
+            final IPdfConverter converter = new PdfToGrayscale();
+
+            try {
+                downloadedFileConverted = converter.convert(pdfFile);
+            } catch (IOException e) {
+                throw new ProxyPrintException("Monochrome conversion failed.");
+            }
+            fileToPrint = downloadedFileConverted;
+        } else {
+            fileToPrint = pdfFile;
+        }
+
+        /*
+         * Proxy Print Transaction.
+         */
+        ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
+
+        final DaoContext daoContext = ServiceContext.getDaoContext();
+
+        try {
+            final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
+
+            daoContext.beginTransaction();
+
+            final User lockedUser = userDao.lock(user.getId());
+
+            if (printReq.getPrintMode() == PrintModeEnum.HOLD) {
+
+                final ProxyPrintCostDto costResult = accountingService()
+                        .calcProxyPrintCost(ServiceContext.getLocale(),
+                                ServiceContext.getAppCurrencySymbol(),
+                                lockedUser, printer,
+                                printReq.createProxyPrintCostParms(null),
+                                printReq.getJobChunkInfo());
+
+                printReq.setCostResult(costResult);
+
+                final PdfCreateInfo createInfo = new PdfCreateInfo(fileToPrint);
+
+                if (isJobTicketPrinter) {
+                    final int hours = 4; // TODO
+                    jobTicketService().proxyPrintPdf(lockedUser, printReq,
+                            createInfo, printInInfo,
+                            DateUtils.addHours(
+                                    ServiceContext.getTransactionDate(), hours),
+                            null);
+                } else {
+                    outboxService().proxyPrintPdf(lockedUser, printReq,
+                            createInfo, printInInfo);
+                }
+                // Refresh User Web App with new status information.
+                UserMsgIndicator.write(lockedUser.getUserId(), new Date(),
+                        UserMsgIndicator.Msg.PRINT_OUT_HOLD, null);
+
+            } else {
+                this.proxyPrintPdf(lockedUser, printReq,
+                        new PdfCreateInfo(fileToPrint));
+            }
+
+            daoContext.commit();
+
+        } catch (DocStoreException | IppConnectException | IOException e) {
+            throw new ProxyPrintException(e.getMessage(), e);
+        } finally {
+            daoContext.rollback();
+            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+
+            if (downloadedFileConverted != null) {
+                downloadedFileConverted.delete();
+            }
+        }
     }
 
     /**

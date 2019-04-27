@@ -24,6 +24,7 @@ package org.savapage.core.services.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.Map;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +54,7 @@ import org.savapage.core.print.server.UnsupportedPrintJobContent;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.InetUtils;
+import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,6 +119,12 @@ public final class QueueServiceImpl extends AbstractService
     public IppRoutingEnum getIppRouting(final IppQueue queue) {
         return EnumUtils.getEnum(IppRoutingEnum.class,
                 this.getAttrValue(queue, IppQueueAttrEnum.IPP_ROUTING));
+    }
+
+    @Override
+    public Map<String, String> getIppRoutingOptions(final IppQueue queue) {
+        return JsonHelper.createStringMapOrNull(
+                this.getAttrValue(queue, IppQueueAttrEnum.IPP_ROUTING_OPTIONS));
     }
 
     @Override

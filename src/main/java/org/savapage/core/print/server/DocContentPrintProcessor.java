@@ -60,6 +60,7 @@ import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.IppQueue;
+import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.PdfAbstractException;
@@ -67,9 +68,11 @@ import org.savapage.core.pdf.PdfPasswordException;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
+import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.InboxService;
+import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
@@ -106,6 +109,9 @@ public final class DocContentPrintProcessor {
     /** */
     private static final InboxService INBOX_SERVICE =
             ServiceContext.getServiceFactory().getInboxService();
+    /** */
+    private static final ProxyPrintService PROXYPRINT_SERVICE =
+            ServiceContext.getServiceFactory().getProxyPrintService();
     /** */
     private static final QueueService QUEUE_SERVICE =
             ServiceContext.getServiceFactory().getQueueService();
@@ -929,12 +935,14 @@ public final class DocContentPrintProcessor {
             this.setPageProps(pdfPageProps);
 
             /*
-             * Logging in Database: this should be done BEFORE the file MOVE.
+             * STEP 1: Log in Database: BEFORE the file MOVE.
              */
-            this.logPrintIn(protocol);
+            final DocContentPrintInInfo printInInfo = this.logPrintIn(protocol);
 
-            //
-            if (!this.handleIppRouting()) {
+            /*
+             * STEP 2: Optional IPP Routing.
+             */
+            if (!this.handleIppRouting(printInInfo, new File(tempPathPdf))) {
 
                 /*
                  * Move to user safepages home.
@@ -1084,8 +1092,10 @@ public final class DocContentPrintProcessor {
      *
      * @param protocol
      *            The {@link DocLogProtocolEnum}.
+     * @return {@link DocContentPrintInInfo}.
      */
-    private void logPrintIn(final DocLogProtocolEnum protocol) {
+    private DocContentPrintInInfo
+            logPrintIn(final DocLogProtocolEnum protocol) {
 
         final DocContentPrintInInfo printInInfo = new DocContentPrintInInfo();
 
@@ -1100,14 +1110,21 @@ public final class DocContentPrintProcessor {
 
         DOC_LOG_SERVICE.logPrintIn(this.getUserDb(), this.getQueue(), protocol,
                 printInInfo);
+
+        return printInInfo;
     }
 
     /**
      * Handles IPP Routing, if applicable.
      *
+     * @param printInInfo
+     *            {@link PrintIn} information.
+     * @param pdfFile
+     *            The PDF document to route.
      * @return {@code true} if IPP routing was applied, {@code false} if not.
      */
-    private boolean handleIppRouting() {
+    private boolean handleIppRouting(final DocContentPrintInInfo printInInfo,
+            final File pdfFile) {
 
         if (!ConfigManager.instance().isConfigValue(Key.IPP_ROUTING_ENABLE)) {
             return false;
@@ -1132,20 +1149,37 @@ public final class DocContentPrintProcessor {
         final Device terminal =
                 DEVICE_SERVICE.getHostTerminal(this.originatorIp);
 
-        if (terminal == null || BooleanUtils.isTrue(terminal.getDisabled())) {
+        final String warnMsg;
+
+        if (terminal == null) {
+            warnMsg = ": terminal not found.";
+        } else if (BooleanUtils.isTrue(terminal.getDisabled())) {
+            warnMsg = ": terminal disabled.";
+        } else {
+            final Printer printer = terminal.getPrinter();
+            if (printer == null) {
+                warnMsg = ": no printer on terminal.";
+            } else {
+                warnMsg = null;
+            }
+        }
+
+        if (warnMsg != null) {
+            final String msg =
+                    String.format("IPP Routing of Queue /%s from %s %s",
+                            queue.getUrlPath(), this.originatorIp, warnMsg);
+            AdminPublisher.instance().publish(PubTopicEnum.PROXY_PRINT,
+                    PubLevelEnum.WARN, msg);
+            LOGGER.warn(msg);
             return false;
         }
 
-        final Printer printer = terminal.getPrinter();
-
-        if (printer == null) {
-            return false;
+        try {
+            PROXYPRINT_SERVICE.proxyPrintIppRouting(this.userDb, this.queue,
+                    terminal.getPrinter(), printInInfo, pdfFile);
+        } catch (ProxyPrintException e) {
+            throw new SpException(e.getMessage());
         }
-
-        LOGGER.warn("IPP Routing from [{}] to [{}]: NOT implemented.",
-                queue.getUrlPath(), printer.getPrinterName());
-
-        // TODO
 
         return true;
     }

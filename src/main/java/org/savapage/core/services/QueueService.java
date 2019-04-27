@@ -242,6 +242,16 @@ public interface QueueService {
     IppRoutingEnum getIppRouting(IppQueue queue);
 
     /**
+     * Traverses the attributes of a {@link IppQueue} to get the {@link Map} of
+     * {@link IppQueueAttrEnum#IPP_ROUTING_OPTIONS}.
+     *
+     * @param queue
+     *            The {@link IppQueue}.
+     * @return {@code null} when not found.
+     */
+    Map<String, String> getIppRoutingOptions(IppQueue queue);
+
+    /**
      * Creates or updates the attribute value to the database.
      *
      * @param queue

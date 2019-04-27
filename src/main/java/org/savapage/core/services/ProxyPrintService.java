@@ -56,6 +56,8 @@ import org.savapage.core.ipp.operation.IppStatusCode;
 import org.savapage.core.jpa.CostChange;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.IppQueue;
+import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
@@ -80,6 +82,7 @@ import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrinterOptGroupEnum;
+import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PrinterAccessInfo;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
@@ -712,6 +715,26 @@ public interface ProxyPrintService {
      *             When a invariant is violated.
      */
     int proxyPrintInboxFast(Device reader, String cardNumber)
+            throws ProxyPrintException;
+
+    /**
+     * Routes a {@link PrintIn} to a proxy printer.
+     *
+     * @param user
+     *            The requesting user.
+     * @param queue
+     *            The print-in queue.
+     * @param printer
+     *            The target {@link Printer}.
+     * @param printInInfo
+     *            {@link PrintIn} information.
+     * @param pdfFile
+     *            The PDF to print.
+     * @throws ProxyPrintException
+     *             If printing error.
+     */
+    void proxyPrintIppRouting(User user, IppQueue queue, Printer printer,
+            DocContentPrintInInfo printInInfo, File pdfFile)
             throws ProxyPrintException;
 
     /**
