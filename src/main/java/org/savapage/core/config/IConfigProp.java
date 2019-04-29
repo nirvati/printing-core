@@ -721,6 +721,13 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Max number of HTTP download connections per route (host).
+         */
+        DOWNLOAD_MAX_CONNECTIONS_PER_ROUTE(//
+                "download.max-connections-per-route", NUMBER_VALIDATOR, "2",
+                API_UPDATABLE_ON),
+
+        /**
          * Timeout in milliseconds until a download connection is established.
          */
         DOWNLOAD_CONNECT_TIMEOUT_MSEC(//
@@ -734,6 +741,43 @@ public interface IConfigProp {
          */
         DOWNLOAD_SOCKET_TIMEOUT_MSEC(//
                 "download.socket-timeout-msec", NUMBER_VALIDATOR, "9000",
+                API_UPDATABLE_ON),
+
+        /**
+         * Max number of RESTful client connections.
+         */
+        RESTFUL_CLIENT_MAX_CONNECTIONS(//
+                "restful.client.max-connections", NUMBER_VALIDATOR, "100",
+                API_UPDATABLE_ON),
+
+        /**
+         * Max number of RESTful client connections per route (host).
+         */
+        RESTFUL_CLIENT_MAX_CONNECTIONS_PER_ROUTE(//
+                "restful.client.max-connections-per-route", NUMBER_VALIDATOR,
+                "20", API_UPDATABLE_ON),
+
+        /**
+         * Timeout in milliseconds until a connection is established.
+         */
+        RESTFUL_CLIENT_CONNECT_TIMEOUT_MSEC(//
+                "restful.client.connect-timeout-msec", NUMBER_VALIDATOR, "4000",
+                API_UPDATABLE_ON),
+
+        /**
+         * Timeout in milliseconds to receive data from remote host after the
+         * connection is established, i.e. maximum time of inactivity between
+         * two data packets.
+         */
+        RESTFUL_CLIENT_READ_TIMEOUT_MSEC(//
+                "restful.client.read-timeout-msec", NUMBER_VALIDATOR, "2000",
+                API_UPDATABLE_ON),
+
+        /**
+         * Trust self-signed certificate of RESTful servers?
+         */
+        RESTFUL_CLIENT_SSL_TRUST_SELF_SIGNED(//
+                "restful.client.trust-self-signed", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
 
         /**
@@ -1181,7 +1225,7 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
-         * Tuesday-Saturday at 3:00
+         * Tuesday-Saturday at 3:00.
          */
         FEED_ATOM_ADMIN_SCHEDULE(//
                 "feed.atom.admin.schedule", CRON_EXPR_VALIDATOR,

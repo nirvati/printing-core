@@ -42,6 +42,7 @@ import org.savapage.core.services.PrinterGroupService;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.QueueService;
+import org.savapage.core.services.RestClientService;
 import org.savapage.core.services.RfIdReaderService;
 import org.savapage.core.services.SOfficeService;
 import org.savapage.core.services.ServiceFactory;
@@ -140,6 +141,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
         public static final OutboxService SERVICE = new OutboxServiceImpl();
     }
 
+    private static class RestClientServiceHolder {
+        public static final RestClientService SERVICE =
+                new RestClientServiceImpl();
+    }
+
     private static class PaperCutServiceHolder {
         public static final PaperCutService SERVICE = new PaperCutServiceImpl();
     }
@@ -215,6 +221,7 @@ public final class ServiceFactoryImpl implements ServiceFactory {
                     SOfficeServiceHolder.SERVICE, //
                     EmailServiceHolder.SERVICE, //
                     PaperCutServiceHolder.SERVICE, //
+                    RestClientServiceHolder.SERVICE, //
                     SnmpRetrieveServiceHolder.SERVICE //
             };
 
@@ -341,6 +348,11 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public QueueService getQueueService() {
         return QueueServiceHolder.SERVICE;
+    }
+
+    @Override
+    public RestClientService getRestClientService() {
+        return RestClientServiceHolder.SERVICE;
     }
 
     @Override

@@ -198,6 +198,13 @@ public interface ServiceFactory {
     QueueService getQueueService();
 
     /**
+     * Gets the {@link RestClientService} singleton.
+     *
+     * @return The singleton.
+     */
+    RestClientService getRestClientService();
+
+    /**
      * Gets the {@link RfIdReaderService} singleton.
      *
      * @return The singleton.
