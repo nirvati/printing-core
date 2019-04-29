@@ -1154,6 +1154,26 @@ public interface IConfigProp {
                 CIDR_RANGES_VALIDATOR_OPT, API_UPDATABLE_OFF),
 
         /**
+         * RESTful API: Basic Authentication Username.
+         */
+        API_RESTFUL_AUTH_USERNAME(//
+                "api.restful.auth.username", "", API_UPDATABLE_ON),
+
+        /**
+         * RESTful API: Basic Authentication Password.
+         */
+        API_RESTFUL_AUTH_PASSWORD(//
+                "api.restful.auth.password", "", API_UPDATABLE_ON),
+
+        /**
+         * Client IP addresses (CIDR) that are allowed to use RESTful API (when
+         * void, all client addresses are allowed).
+         */
+        API_RESTFUL_IP_ADDRESSES_ALLOWED(//
+                "api.restful.ip-addresses-allowed", CIDR_RANGES_VALIDATOR_OPT,
+                API_UPDATABLE_OFF),
+
+        /**
          * Admin Atom Feed: enable.
          */
         FEED_ATOM_ADMIN_ENABLE(//

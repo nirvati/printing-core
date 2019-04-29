@@ -1959,6 +1959,7 @@ public final class ConfigManager {
     public boolean isUserEncrypted(final IConfigProp.Key key) {
         return key == Key.AUTH_LDAP_ADMIN_PASSWORD
                 || key == Key.API_JSONRPC_SECRET_KEY
+                || key == Key.API_RESTFUL_AUTH_PASSWORD
                 || key == Key.CLIAPP_AUTH_ADMIN_PASSKEY
                 || key == Key.FEED_ATOM_ADMIN_PASSWORD
                 || key == Key.EXT_PAPERCUT_USER_SYNC_PASSWORD
