@@ -77,6 +77,8 @@ public final class DownloadServiceImpl extends AbstractService
      */
     private CloseableHttpClient httpclientApache = null;
 
+    private PoolingHttpClientConnectionManager connManager = null;
+
     @Override
     public void start() {
 
@@ -87,14 +89,16 @@ public final class DownloadServiceImpl extends AbstractService
         final int maxConnections =
                 cm.getConfigInt(IConfigProp.Key.DOWNLOAD_MAX_CONNECTIONS);
 
-        final PoolingHttpClientConnectionManager connManager =
-                new PoolingHttpClientConnectionManager();
+        final int maxConnectionsPerRoute = cm.getConfigInt(
+                IConfigProp.Key.DOWNLOAD_MAX_CONNECTIONS_PER_ROUTE);
 
-        connManager.setDefaultMaxPerRoute(maxConnections);
-        connManager.setMaxTotal(maxConnections);
+        this.connManager = new PoolingHttpClientConnectionManager();
 
-        final HttpClientBuilder builder =
-                HttpClientBuilder.create().setConnectionManager(connManager);
+        this.connManager.setMaxTotal(maxConnections);
+        this.connManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
+
+        final HttpClientBuilder builder = HttpClientBuilder.create()
+                .setConnectionManager(this.connManager);
 
         /*
          * While HttpClient instances are thread safe and can be shared between
@@ -250,6 +254,7 @@ public final class DownloadServiceImpl extends AbstractService
     public void shutdown() {
         LOGGER.debug("{} is shutting down...", ALIAS_NAME);
         IOHelper.closeQuietly(this.httpclientApache);
+        IOHelper.closeQuietly(this.connManager);
         LOGGER.debug("{} shut down.", ALIAS_NAME);
     }
 
