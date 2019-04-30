@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -88,9 +88,7 @@ public final class IppClient {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(IppClient.class);
 
-    /**
-     * .
-     */
+    /** */
     private volatile boolean shutdownRequested;
 
     /**
@@ -147,16 +145,22 @@ public final class IppClient {
         public boolean hasException() {
             return (exception != null);
         }
-
     }
 
-    static final int IPP_VERSION_MAJOR = 1;
-    static final int IPP_VERSION_MINOR = 1;
+    /** */
+    private static final int IPP_VERSION_MAJOR = 1;
+    /** */
+    private static final int IPP_VERSION_MINOR = 1;
 
+    /** */
     private int requestIdWlk = 0;
 
+    /** */
     private static final String TRACE_SEP = "+---------------------------"
             + "-------------------------------------------+";
+
+    /** */
+    private PoolingHttpClientConnectionManager connManager = null;
 
     /**
      * The Apache HttpClient is thread safe.
@@ -169,32 +173,35 @@ public final class IppClient {
     private IppClient() {
     }
 
+    /**
+     * @return {@code true} if shutdown is requested.
+     */
     public boolean isShutdownRequested() {
         return shutdownRequested;
     }
 
-    public void setShutdownRequested(boolean shutdownRequested) {
-        this.shutdownRequested = shutdownRequested;
+    /**
+     * @param shutdown
+     *            {@code true} to request shutdown.
+     */
+    public void setShutdownRequested(final boolean shutdown) {
+        this.shutdownRequested = shutdown;
     }
 
     /**
      * The SingletonHolder is loaded on the first execution of
      * {@link IppClient#instance()} or the first access to
      * {@link SingletonHolder#INSTANCE}, not before.
-     * <p>
-     * <a href=
-     * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>
-     * </p>
      */
     private static class SingletonHolder {
+        /** */
         public static final IppClient INSTANCE = new IppClient();
     }
 
     /**
      * Gets the singleton instance.
      *
-     * @return
+     * @return The singleton.
      */
     public static IppClient instance() {
         return SingletonHolder.INSTANCE;
@@ -218,8 +225,7 @@ public final class IppClient {
         this.requestIdWlk = Integer.valueOf(
                 new SimpleDateFormat("HHmmss'000'").format(new Date()), 10);
 
-        final PoolingHttpClientConnectionManager connManager =
-                new PoolingHttpClientConnectionManager();
+        this.connManager = new PoolingHttpClientConnectionManager();
 
         /*
          * Max per local and remote connection.
@@ -229,15 +235,15 @@ public final class IppClient {
         final int maxConnections =
                 cm.getConfigInt(Key.CUPS_IPP_MAX_CONNECTIONS);
 
-        connManager.setDefaultMaxPerRoute(maxConnections);
+        this.connManager.setDefaultMaxPerRoute(maxConnections);
 
         /*
          * Total max for a local and remote connection.
          */
-        connManager.setMaxTotal(2 * maxConnections);
+        this.connManager.setMaxTotal(2 * maxConnections);
 
-        final HttpClientBuilder builder =
-                HttpClientBuilder.create().setConnectionManager(connManager);
+        final HttpClientBuilder builder = HttpClientBuilder.create()
+                .setConnectionManager(this.connManager);
 
         /*
          * While HttpClient instances are thread safe and can be shared between
@@ -281,7 +287,8 @@ public final class IppClient {
      *
      */
     public void shutdown() {
-        IOHelper.closeQuietly(httpclientApache);
+        IOHelper.closeQuietly(this.httpclientApache);
+        IOHelper.closeQuietly(this.connManager);
     }
 
     /**
@@ -503,6 +510,7 @@ public final class IppClient {
     private static class DeferredCupsCircuitOperation
             implements CircuitBreakerOperation {
 
+        /** */
         final Exception sendException;
 
         public DeferredCupsCircuitOperation(final Exception sendException) {
@@ -716,6 +724,10 @@ public final class IppClient {
      *
      * @param ostr
      *            The {@link OutputStream}.
+     * @param operationId
+     *            Operation ID.
+     * @param attrGroups
+     *            IPP attribute groups.
      * @throws IOException
      *             When IO erors occur.
      */
