@@ -21,16 +21,10 @@
  */
 package org.savapage.core.services.impl;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -49,13 +43,13 @@ import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.savapage.core.SpException;
 import org.savapage.core.SpInfo;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.services.RestClientService;
 import org.savapage.core.util.IOHelper;
+import org.savapage.core.util.InetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,8 +81,6 @@ public final class RestClientServiceImpl extends AbstractService
 
         final ConfigManager cm = ConfigManager.instance();
 
-        this.sslContextAllTrusted = createSslContextAllTrusted();
-
         final int maxConnections =
                 cm.getConfigInt(IConfigProp.Key.RESTFUL_CLIENT_MAX_CONNECTIONS);
 
@@ -99,13 +91,16 @@ public final class RestClientServiceImpl extends AbstractService
                 cm.isConfigValue(Key.RESTFUL_CLIENT_SSL_TRUST_SELF_SIGNED);
 
         if (trustSelfSignedSSL) {
+
+            this.sslContextAllTrusted =
+                    InetUtils.createSslContextTrustSelfSigned();
             /*
              * Since we use a pooling manager, the ClientBuilder#sslContext and
              * ClientBuilder#hostnameVerifier setters are silently ignored.
              * Therefore we set trust at pooling manager level.
              */
             this.connectionManager = new PoolingHttpClientConnectionManager(
-                    createAllTrustedRegistry());
+                    createAllTrustedRegistry(this.sslContextAllTrusted));
         } else {
             this.connectionManager = new PoolingHttpClientConnectionManager();
         }
@@ -195,67 +190,25 @@ public final class RestClientServiceImpl extends AbstractService
      * silently ignored.
      * </p>
      *
+     * @param sslContextAllTrusted
+     *            All trusted SSLContext.
      * @return The registry.
      */
-    private Registry<ConnectionSocketFactory> createAllTrustedRegistry() {
-        /*
-         */
+    private static Registry<ConnectionSocketFactory>
+            createAllTrustedRegistry(final SSLContext sslContextAllTrusted) {
+
         final Registry<ConnectionSocketFactory> socketFactoryRegistry =
                 RegistryBuilder.<ConnectionSocketFactory> create()
                         .register("http",
                                 PlainConnectionSocketFactory.getSocketFactory())
                         .register("https",
                                 new SSLConnectionSocketFactory(
-                                        this.sslContextAllTrusted,
-                                        new HostnameVerifier() {
-                                            @Override
-                                            public boolean verify(
-                                                    final String hostname,
-                                                    final SSLSession session) {
-                                                return true;
-                                            }
-                                        }))
+                                        sslContextAllTrusted,
+                                        InetUtils
+                                                .getHostnameVerifierTrustAll()))
                         .build();
 
         return socketFactoryRegistry;
-    }
-
-    /**
-     *
-     * @return {@link SSLContext}.
-     */
-    private static SSLContext createSslContextAllTrusted() {
-
-        try {
-            final SSLContext sslCtx = SSLContext.getInstance("SSL");
-
-            final TrustManager[] trustAllCerts =
-                    new X509TrustManager[] { new X509TrustManager() {
-                        @Override
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return new X509Certificate[] {};
-                        }
-
-                        @Override
-                        public void checkClientTrusted(
-                                final X509Certificate[] certs,
-                                final String authType) {
-                        }
-
-                        @Override
-                        public void checkServerTrusted(
-                                final X509Certificate[] certs,
-                                final String authType) {
-                        }
-                    } };
-
-            sslCtx.init(null, trustAllCerts, null);
-
-            return sslCtx;
-
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new SpException(e.getMessage());
-        }
     }
 
     @Override
@@ -267,23 +220,33 @@ public final class RestClientServiceImpl extends AbstractService
                 cm.getConfigValue(IConfigProp.Key.API_RESTFUL_AUTH_USERNAME),
                 cm.getConfigValue(IConfigProp.Key.API_RESTFUL_AUTH_PASSWORD));
 
-        final WebTarget webTarget = client.target("https://localhost:"
-                + ConfigManager.getServerSslPort() + "/restful/v1")
-                .path("system/version");
+        final String restfulPath = "/restful/v1";
+        final String targetPath = "system/version";
 
-        final Invocation.Builder invocationBuilder =
-                webTarget.request(MediaType.TEXT_PLAIN);
+        final WebTarget[] webTargets = new WebTarget[] { //
+                client.target("http://localhost:"
+                        + ConfigManager.getServerPort() + restfulPath)
+                        .path(targetPath), //
+                client.target("https://localhost:"
+                        + ConfigManager.getServerSslPort() + restfulPath)
+                        .path(targetPath) };
+        try {
+            for (final WebTarget webTarget : webTargets) {
 
-        try (Response response = invocationBuilder.get();) {
-            final String version = response.readEntity(String.class);
-            SpInfo.instance()
-                    .log(String.format("%s test: GET %s -> %s [%s] [%s]",
-                            ALIAS_NAME, webTarget.getUri().toString(),
-                            response.getStatus(), response.getStatusInfo(),
-                            version));
+                final Invocation.Builder invocationBuilder =
+                        webTarget.request(MediaType.TEXT_PLAIN);
 
-        } catch (ProcessingException e) {
-            LOGGER.error(e.getMessage());
+                try (Response response = invocationBuilder.get();) {
+                    final String version = response.readEntity(String.class);
+                    SpInfo.instance().log(String.format(
+                            "%s test: GET %s -> %s [%s] [%s]", ALIAS_NAME,
+                            webTarget.getUri().toString(), response.getStatus(),
+                            response.getStatusInfo(), version));
+
+                } catch (ProcessingException e) {
+                    LOGGER.error(e.getMessage());
+                }
+            }
         } finally {
             client.close();
         }

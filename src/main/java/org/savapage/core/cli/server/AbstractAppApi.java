@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -44,14 +46,11 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContextBuilder;
 import org.savapage.core.SpException;
 import org.savapage.core.cli.AbstractApp;
 import org.savapage.core.community.CommunityDictEnum;
@@ -765,9 +764,8 @@ public abstract class AbstractAppApi extends AbstractApp {
          * Trust self-signed SSL certificates (this is the default SSL after
          * installation).
          */
-        SSLContextBuilder builder = new SSLContextBuilder();
-
-        builder.loadTrustMaterial(null, TrustSelfSignedStrategy.INSTANCE);
+        final SSLContext sslContextSelfSigned =
+                InetUtils.createSslContextTrustSelfSigned();
 
         /*
          * The NoopHostnameVerifier instance is used to turn hostname
@@ -776,7 +774,7 @@ public abstract class AbstractAppApi extends AbstractApp {
          * (CN=YYY).
          */
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-                builder.build(), NoopHostnameVerifier.INSTANCE);
+                sslContextSelfSigned, InetUtils.getHostnameVerifierTrustAll());
 
         CloseableHttpClient httpClient =
                 HttpClients.custom().setSSLSocketFactory(sslsf).build();

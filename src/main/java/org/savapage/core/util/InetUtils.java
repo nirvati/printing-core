@@ -27,10 +27,19 @@ import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.savapage.core.SpException;
 
 /**
@@ -250,6 +259,34 @@ public final class InetUtils {
         } catch (UnknownHostException e) {
             return false;
         }
+    }
+
+    /**
+     * Creates an {@link SSLContext} that trusts self-signed SSL certificates.
+     *
+     * @return The SSLContext.
+     */
+    public static SSLContext createSslContextTrustSelfSigned() {
+
+        final SSLContextBuilder builder = new SSLContextBuilder();
+
+        try {
+            return builder
+                    .loadTrustMaterial(null, TrustSelfSignedStrategy.INSTANCE)
+                    .build();
+        } catch (NoSuchAlgorithmException | KeyStoreException
+                | KeyManagementException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+    }
+
+    /**
+     * Gets HostnameVerifier that turns hostname verification off.
+     *
+     * @return The verifier.
+     */
+    public static HostnameVerifier getHostnameVerifierTrustAll() {
+        return NoopHostnameVerifier.INSTANCE;
     }
 
 }
