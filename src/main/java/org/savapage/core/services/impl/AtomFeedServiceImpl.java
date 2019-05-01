@@ -72,6 +72,7 @@ import org.savapage.core.template.dto.TemplatePrinterSnmpDto;
 import org.savapage.core.template.dto.TemplateSslCertDto;
 import org.savapage.core.template.feed.AdminFeedTemplate;
 import org.savapage.core.util.DateUtil;
+import org.savapage.core.util.DeadlockedThreadsDetector;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.lib.feed.AtomFeedWriter;
 import org.savapage.lib.feed.FeedEntryDto;
@@ -340,9 +341,14 @@ public final class AtomFeedServiceImpl extends AbstractService
 
         final Date now = new Date();
         final Date oneDayAgo = DateUtils.addDays(now, -1);
+        final long deadlocks =
+                DeadlockedThreadsDetector.getDeadlockedThreadsCount();
         final long errors = appLogService().countErrors(oneDayAgo);
         final long warnings = appLogService().countWarnings(oneDayAgo);
 
+        if (deadlocks != 0) {
+            dto.setDeadlockCount(deadlocks);
+        }
         if (errors != 0) {
             dto.setErrorCount(errors);
         }

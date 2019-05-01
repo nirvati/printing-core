@@ -162,9 +162,10 @@ public final class SpJobScheduler {
             scheduleOneShotJob(SpJobType.PRINTER_GROUP_CLEAN, 1L);
 
             /*
-             * Monitor email outbox unconditionally.
+             * Monitor unconditionally.
              */
             scheduleOneShotEmailOutboxMonitor(1L);
+            scheduleOneShotSystemMonitor(1L);
 
             /*
              * PaperCut Print Monitoring enabled?
@@ -243,6 +244,11 @@ public final class SpJobScheduler {
             LOGGER.debug("shutting down the scheduler...");
 
             try {
+
+                /*
+                 * Wait for SystemMonitor to finish...
+                 */
+                interruptSystemMonitor();
 
                 /*
                  * Wait for EmailOutputMonitor to finish...
@@ -606,6 +612,22 @@ public final class SpJobScheduler {
      *
      * @param milliSecondsFromNow
      */
+    public void scheduleOneShotSystemMonitor(final long milliSecondsFromNow) {
+
+        final JobDataMap data = new JobDataMap();
+
+        final JobDetail job = newJob(org.savapage.core.job.SystemMonitorJob.class)
+                .withIdentity(SpJobType.SYSTEM_MONITOR.toString(),
+                        JOB_GROUP_ONESHOT)
+                .usingJobData(data).build();
+
+        rescheduleOneShotJob(job, milliSecondsFromNow);
+    }
+
+    /**
+     *
+     * @param milliSecondsFromNow
+     */
     public void scheduleOneShotPaperCutPrintMonitor(
             final long milliSecondsFromNow) {
 
@@ -753,13 +775,20 @@ public final class SpJobScheduler {
     }
 
     /**
-     * .
-     *
      * @return {@code true} if at least one instance of the identified job was
      *         found and interrupted.
      */
-    public static boolean interruptEmailOutputMonitor() {
+    private static boolean interruptEmailOutputMonitor() {
         return instance().interruptJob(SpJobType.EMAIL_OUTBOX_MONITOR,
+                JOB_GROUP_ONESHOT);
+    }
+
+    /**
+     * @return {@code true} if at least one instance of the identified job was
+     *         found and interrupted.
+     */
+    private static boolean interruptSystemMonitor() {
+        return instance().interruptJob(SpJobType.SYSTEM_MONITOR,
                 JOB_GROUP_ONESHOT);
     }
 

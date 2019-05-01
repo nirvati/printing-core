@@ -2587,6 +2587,12 @@ public interface IConfigProp {
         SYS_MAINTENANCE("system.maintenance", BOOLEAN_VALIDATOR, V_NO),
 
         /**
+         * Heartbeat (seconds) to monitor system errors like deadlocked threads.
+         */
+        SYS_MONITOR_HEARTBEAT_SEC("system.monitor.heartbeat-sec",
+                NUMBER_VALIDATOR, "120"),
+
+        /**
          *
          */
         USER_CAN_CHANGE_PIN(//
