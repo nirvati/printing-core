@@ -30,6 +30,11 @@ package org.savapage.core.dao.enums;
 public enum ExternalSupplierEnum {
 
     /**
+     * Microsoft Azure Active Directory (Azure AD)
+     */
+    AZURE("Azure", "microsoft.png"),
+
+    /**
      * G.
      */
     GOOGLE("Google", "google.png"),
@@ -56,15 +61,14 @@ public enum ExternalSupplierEnum {
 
     /**
      *
-     * @param uiText
+     * @param txt
      *            Text to display in user interface.
-     * @param imageFileName
+     * @param img
      *            Image file name.
      */
-    private ExternalSupplierEnum(final String uiText,
-            final String imageFileName) {
-        this.uiText = uiText;
-        this.imageFileName = imageFileName;
+    ExternalSupplierEnum(final String txt, final String img) {
+        this.uiText = txt;
+        this.imageFileName = img;
     }
 
     /**
