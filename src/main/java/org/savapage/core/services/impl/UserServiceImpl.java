@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -191,8 +191,7 @@ public final class UserServiceImpl extends AbstractService
 
         } else {
 
-            EmailValidator validator = new EmailValidator();
-            if (!validator.validate(primaryEmail)) {
+            if (!EmailValidator.validate(primaryEmail)) {
                 /*
                  * INVARIANT: Email format MUST be valid.
                  */
@@ -871,8 +870,7 @@ public final class UserServiceImpl extends AbstractService
          * Primary Email.
          */
         if (StringUtils.isNotBlank(primaryEmail)) {
-            EmailValidator validator = new EmailValidator();
-            if (!validator.validate(primaryEmail)) {
+            if (!EmailValidator.validate(primaryEmail)) {
                 return createError("msg-email-invalid", primaryEmail);
             }
         }
@@ -1542,8 +1540,6 @@ public final class UserServiceImpl extends AbstractService
             String primaryEmail, User jpaUser,
             List<UserEmailDto> secondaryEmailList) {
 
-        final EmailValidator validator = new EmailValidator();
-
         /*
          * Sorted map of new secondary e-mails.
          */
@@ -1569,7 +1565,7 @@ public final class UserServiceImpl extends AbstractService
             /*
              * INVARIANT: email address MUST be valid.
              */
-            if (!validator.validate(address)) {
+            if (!EmailValidator.validate(address)) {
                 return createError("msg-email-invalid", address);
             }
 

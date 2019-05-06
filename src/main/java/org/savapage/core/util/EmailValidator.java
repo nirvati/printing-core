@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,56 +14,45 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.util;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class EmailValidator {
 
     /**
-     *
+     * Utility class.
      */
-    private final Pattern pattern;
-
-    /**
-     *
-     */
-    private Matcher matcher;
-
-    /**
-     *
-     */
-    private static final String EMAIL_PATTERN =
-            "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
-                    + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
-
-    /**
-     *
-     */
-    public EmailValidator() {
-        pattern = Pattern.compile(EMAIL_PATTERN);
+    private EmailValidator() {
     }
 
     /**
-     * Validate the email address.
+     * Checks if email address syntax is valid.
      *
-     * @param emailAddress
-     *            Email address for validation
-     * @return {@code true} when valid.
+     * @param address
+     *            Email address.
+     * @return {@code true} if valid.
      */
-    public boolean validate(final String emailAddress) {
-        matcher = pattern.matcher(emailAddress);
-        return matcher.matches();
+    public static boolean validate(final String address) {
+        try {
+            final InternetAddress inetAddress = new InternetAddress(address);
+            inetAddress.validate();
+            return true;
+        } catch (AddressException e) {
+            // no code intended
+        }
+        return false;
     }
 
 }

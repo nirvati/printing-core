@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -147,11 +147,6 @@ public final class SyncUsersJob extends AbstractJob {
      *
      */
     private RfidNumberFormat rfidNumberFormat = null;
-
-    /**
-     *
-     */
-    private final EmailValidator emailValidator = new EmailValidator();
 
     /**
      *
@@ -1143,7 +1138,7 @@ public final class SyncUsersJob extends AbstractJob {
 
             primaryEmailAddress = primaryEmailAddress.toLowerCase();
 
-            if (!this.emailValidator.validate(primaryEmailAddress)) {
+            if (!EmailValidator.validate(primaryEmailAddress)) {
 
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace(

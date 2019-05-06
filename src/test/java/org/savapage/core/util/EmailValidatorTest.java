@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -24,32 +24,26 @@ package org.savapage.core.util;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.savapage.core.util.EmailValidator;
 
 /**
  *
- * Adapted from <a href=
- * "http://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/"
- * >www.mkyong.com<a/>
- *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class EmailValidatorTest {
 
-    private final EmailValidator emailValidator = new EmailValidator();
-
     @Test
     public void testValid() {
-        String[] arrayValid =
-                new String[] { "mkyong@yahoo.com", "mkyong-100@yahoo.com",
-                        "mkyong.100@yahoo.com", "mkyong111@mkyong.com",
-                        "mkyong-100@mkyong.net", "mkyong.100@mkyong.com.au",
-                        "mkyong@1.com", "mkyong@gmail.com.com",
-                        "mkyong+100@gmail.com", "mkyong-100@yahoo-test.com" };
+        String[] arrayValid = new String[] { "john@example.com",
+                "john-100@example.com", "john.100@example.com",
+                "john111@john.com", "john-100@john.net", "john.100@john.com.au",
+                "john@1.com", "john@mymail.com.com", "john+100@mymail.com",
+                "john-100@example-test.com", "john@xxx.mymail.com",
+                "john123@mymail.a", "john..2002@mymail.com", ".john@john.com",
+                "john.@mymail.com" };
 
         for (String temp : arrayValid) {
-            boolean valid = emailValidator.validate(temp);
+            boolean valid = EmailValidator.validate(temp);
             // System.out.println("Email is valid : " + temp + " , " + valid);
             assertEquals(valid, true);
         }
@@ -57,16 +51,12 @@ public class EmailValidatorTest {
 
     @Test
     public void testInvalid() {
-        String[] emails =
-                new String[] { "mkyong", "mkyong@.com.my", "mkyong123@gmail.a",
-                        "mkyong123@.com", "mkyong123@.com.com",
-                        ".mkyong@mkyong.com", "mkyong()*@gmail.com",
-                        "mkyong@%*.com", "mkyong..2002@gmail.com",
-                        "mkyong.@gmail.com", "mkyong@mkyong@gmail.com",
-                        "mkyong@gmail.com.1a" };
+        String[] emails = new String[] { "john", "john@.com.my", "john123@.com",
+                "john123@.com.com", "john()*@mymail.com", "john@%*.com",
+                "john@john@mymail.com" };
 
         for (String temp : emails) {
-            boolean valid = emailValidator.validate(temp);
+            boolean valid = EmailValidator.validate(temp);
             // System.out.println("Email is valid : " + temp + " , " + valid);
             assertEquals(valid, false);
         }
