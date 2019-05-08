@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -27,6 +27,7 @@ import org.quartz.InterruptableJob;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
+import org.savapage.core.SpInfo;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.ServiceEntryPoint;
 import org.savapage.core.util.Messages;
@@ -34,8 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Quotes from <a
- * href="http://www.quartz-scheduler.org/documentation/best-practices">Quartz
+ * Quotes from
+ * <a href="http://www.quartz-scheduler.org/documentation/best-practices">Quartz
  * Best Practices<a>
  * <p>
  * <i> A Job's execute method should contain a try-catch block that handles all
@@ -48,25 +49,20 @@ import org.slf4j.LoggerFactory;
  * itself, or other jobs. to work around the issue.</i>
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public abstract class AbstractJob implements InterruptableJob,
-        ServiceEntryPoint {
+public abstract class AbstractJob
+        implements InterruptableJob, ServiceEntryPoint {
 
-    /**
-    *
-    */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(AbstractJob.class);
+    /** */
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(AbstractJob.class);
 
-    /**
-     *
-     */
+    /** */
     private boolean interrupted = false;
 
     /**
-     *
      * @return {@code true} when this job was interrupted.
      */
     protected final boolean isInterrupted() {
@@ -75,6 +71,9 @@ public abstract class AbstractJob implements InterruptableJob,
 
     @Override
     public final void interrupt() throws UnableToInterruptJobException {
+
+        SpInfo.instance().log(String.format("| %s interrupted",
+                this.getClass().getSimpleName()));
 
         this.interrupted = true;
 
@@ -89,21 +88,37 @@ public abstract class AbstractJob implements InterruptableJob,
     public final void execute(final JobExecutionContext ctx)
             throws JobExecutionException {
 
+        final SpInfo logger = SpInfo.instance();
+        final String logPfx =
+                String.format("| %s", this.getClass().getSimpleName());
+
+        logger.log(String.format("%s starting...", logPfx));
+
         try {
             ServiceContext.open();
+
+            logger.log(String.format("%s ...initializing", logPfx));
             onInit(ctx);
+            logger.log(String.format("%s ...initialized", logPfx));
+
+            logger.log(String.format("%s ...executing", logPfx));
             onExecute(ctx);
+            logger.log(String.format("%s ...executed", logPfx));
+
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         } finally {
             try {
+                logger.log(String.format("%s ...finalizing", logPfx));
                 onExit(ctx);
+                logger.log(String.format("%s ...finalized", logPfx));
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);
             } finally {
                 ServiceContext.close();
             }
         }
+        logger.log(String.format("%s finished", logPfx));
     }
 
     /**
@@ -118,7 +133,7 @@ public abstract class AbstractJob implements InterruptableJob,
      * @param ctx
      *            The {@link JobExecutionContext}.
      */
-    protected abstract void onInit(final JobExecutionContext ctx);
+    protected abstract void onInit(JobExecutionContext ctx);
 
     /**
      *
@@ -127,7 +142,7 @@ public abstract class AbstractJob implements InterruptableJob,
      * @throws JobExecutionException
      *             When an error occurred while executing.
      */
-    protected abstract void onExecute(final JobExecutionContext ctx)
+    protected abstract void onExecute(JobExecutionContext ctx)
             throws JobExecutionException;
 
     /**
@@ -135,7 +150,7 @@ public abstract class AbstractJob implements InterruptableJob,
      * @param ctx
      *            The {@link JobExecutionContext}.
      */
-    protected abstract void onExit(final JobExecutionContext ctx);
+    protected abstract void onExit(JobExecutionContext ctx);
 
     /**
      * Localizes a system message.
