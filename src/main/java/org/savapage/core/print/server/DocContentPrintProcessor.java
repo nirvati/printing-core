@@ -740,12 +740,14 @@ public final class DocContentPrintProcessor {
      * @param preferredOutputFont
      *            The preferred font for the PDF output. This parameter is
      *            {@code null} when (user) preference is unknown or irrelevant.
-     * @throws Exception
+     * @throws IOException
+     *             If IO errors.
      */
     public void process(final InputStream istrContent,
             final DocLogProtocolEnum protocol, final String originatorEmail,
             final DocContentTypeEnum contentTypeProvided,
-            final InternalFontFamilyEnum preferredOutputFont) throws Exception {
+            final InternalFontFamilyEnum preferredOutputFont)
+            throws IOException {
 
         if (!isTrustedUser()) {
             return;
@@ -1330,8 +1332,9 @@ public final class DocContentPrintProcessor {
      * </p>
      *
      * @param isAuthorized
+     *            {@code true} when requesting user is authorized.
      */
-    public void evaluateErrorState(boolean isAuthorized) {
+    public void evaluateErrorState(final boolean isAuthorized) {
 
         final Exception exception = getDeferredException();
 

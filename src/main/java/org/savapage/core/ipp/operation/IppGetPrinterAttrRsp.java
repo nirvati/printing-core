@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,80 +57,80 @@ import org.slf4j.LoggerFactory;
  */
 public class IppGetPrinterAttrRsp extends AbstractIppResponse {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(IppGetPrinterAttrRsp.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(IppGetPrinterAttrRsp.class);
 
     /**
      * Job Template attributes supported by SavaPage.
      */
-    private static final String[] SUPPORTED_ATTR_JOB_TPL = {
-            IppDictJobTemplateAttr.ATTR_COPIES,
-            IppDictJobTemplateAttr.ATTR_MEDIA };
+    private static final String[] SUPPORTED_ATTR_JOB_TPL =
+            { IppDictJobTemplateAttr.ATTR_COPIES,
+                    IppDictJobTemplateAttr.ATTR_MEDIA };
 
     /**
      *
      */
     private static final String[] SUPPORTED_ATTR_PRINTER_DESC = {
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_PRINTER_URI_SUPPORTED,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_URI_AUTH_SUPPORTED,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_URI_SECURITY_SUPPORTED,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_PRINTER_NAME,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_PRINTER_STATE,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_PRINTER_STATE_REASONS,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_IPP_VERSIONS_SUPP,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_OPERATIONS_SUPPORTED,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_CHARSET_CONFIGURED,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_CHARSET_SUPPORTED,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_NATURAL_LANG_CONFIGURED,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_GENERATED_NATURAL_LANG_SUPPORTED,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_DOC_FORMAT_DEFAULT,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_DOC_FORMAT_SUPPORTED,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_PRINTER_IS_ACCEPTING_JOBS,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_QUEUES_JOB_COUNT,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_PDL_OVERRIDE_SUPPORTED,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_PRINTER_UP_TIME,
-    /* REQUIRED */
-    IppDictPrinterDescAttr.ATTR_COMPRESSION_SUPPORTED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_PRINTER_URI_SUPPORTED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_URI_AUTH_SUPPORTED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_URI_SECURITY_SUPPORTED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_PRINTER_NAME,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_PRINTER_STATE,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_PRINTER_STATE_REASONS,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_IPP_VERSIONS_SUPP,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_OPERATIONS_SUPPORTED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_CHARSET_CONFIGURED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_CHARSET_SUPPORTED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_NATURAL_LANG_CONFIGURED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_GENERATED_NATURAL_LANG_SUPPORTED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_DOC_FORMAT_DEFAULT,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_DOC_FORMAT_SUPPORTED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_PRINTER_IS_ACCEPTING_JOBS,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_QUEUES_JOB_COUNT,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_PDL_OVERRIDE_SUPPORTED,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_PRINTER_UP_TIME,
+            /* REQUIRED */
+            IppDictPrinterDescAttr.ATTR_COMPRESSION_SUPPORTED,
 
-    /* OPTIONAL */
-    IppDictPrinterDescAttr.ATTR_PAGES_PER_MIN,
-    /* OPTIONAL */
-    IppDictPrinterDescAttr.ATTR_PAGES_PER_MIN_COLOR,
-    /* OPTIONAL */
-    IppDictPrinterDescAttr.ATTR_COLOR_SUPPORTED,
+            /* OPTIONAL */
+            IppDictPrinterDescAttr.ATTR_PAGES_PER_MIN,
+            /* OPTIONAL */
+            IppDictPrinterDescAttr.ATTR_PAGES_PER_MIN_COLOR,
+            /* OPTIONAL */
+            IppDictPrinterDescAttr.ATTR_COLOR_SUPPORTED,
 
-    /* OPTIONAL: but needed for IPP Everywhere */
-    IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO,
-    /* OPTIONAL: but needed for IPP Everywhere */
-    IppDictPrinterDescAttr.ATTR_PRINTER_UUID,
-    /* OPTIONAL: but needed for IPP Everywhere */
-    IppDictPrinterDescAttr.ATTR_DOC_PASSWORD_SUPPORTED,
-    /* OPTIONAL: but needed for IPP Everywhere */
-    IppDictPrinterDescAttr.ATTR_PRINTER_STATE_MESSAGE,
-    /* OPTIONAL: but needed for IPP Everywhere */
-    IppDictPrinterDescAttr.ATTR_PRINTER_STATE_CHANGE_TIME,
-    /* OPTIONAL: but needed for IPP Everywhere */
-    IppDictPrinterDescAttr.ATTR_PRINTER_MAKE_MODEL
-    //
-            };
+            /* OPTIONAL: but needed for IPP Everywhere */
+            IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO,
+            /* OPTIONAL: but needed for IPP Everywhere */
+            IppDictPrinterDescAttr.ATTR_PRINTER_UUID,
+            /* OPTIONAL: but needed for IPP Everywhere */
+            IppDictPrinterDescAttr.ATTR_DOC_PASSWORD_SUPPORTED,
+            /* OPTIONAL: but needed for IPP Everywhere */
+            IppDictPrinterDescAttr.ATTR_PRINTER_STATE_MESSAGE,
+            /* OPTIONAL: but needed for IPP Everywhere */
+            IppDictPrinterDescAttr.ATTR_PRINTER_STATE_CHANGE_TIME,
+            /* OPTIONAL: but needed for IPP Everywhere */
+            IppDictPrinterDescAttr.ATTR_PRINTER_MAKE_MODEL
+            //
+    };
 
     /**
      *
@@ -144,7 +145,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
      */
     public void process(final IppGetPrinterAttrOperation operation,
             IppGetPrinterAttrReq request, final OutputStream ostr)
-            throws Exception {
+            throws IOException {
 
         List<IppAttrGroup> attrGroups = new ArrayList<>();
 
@@ -182,9 +183,8 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         value.addValue("utf-8");
         group.addAttribute(value);
 
-        attr =
-                new IppAttr("attributes-natural-language",
-                        new IppNaturalLanguage());
+        attr = new IppAttr("attributes-natural-language",
+                new IppNaturalLanguage());
         value = new IppAttrValue(attr);
         value.addValue("en-us");
         group.addAttribute(value);
@@ -237,7 +237,11 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         if (printerUriAttr == null || printerUriAttr.getValues().isEmpty()) {
             printerUri = null;
         } else {
-            printerUri = new URI(printerUriAttr.getValues().get(0));
+            try {
+                printerUri = new URI(printerUriAttr.getValues().get(0));
+            } catch (URISyntaxException e) {
+                throw new IllegalStateException(e.getMessage());
+            }
         }
 
         if (operation.getRequestedAttributes() == null) {
@@ -338,8 +342,8 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         case IppGetPrinterAttrOperation.ATTR_GRP_PRINTER_DESC:
 
             for (String nameWlk : SUPPORTED_ATTR_PRINTER_DESC) {
-                grpSupp.addAttribute(getAttrValuePrinterDesc(nameWlk,
-                        printerUri));
+                grpSupp.addAttribute(
+                        getAttrValuePrinterDesc(nameWlk, printerUri));
             }
             break;
 
@@ -706,8 +710,9 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_UP_TIME:
-            value.addValue(String.valueOf((int) ManagementFactory
-                    .getRuntimeMXBean().getUptime() / 1000));
+            value.addValue(String.valueOf(
+                    (int) ManagementFactory.getRuntimeMXBean().getUptime()
+                            / 1000));
             break;
 
         case IppDictPrinterDescAttr.ATTR_COMPRESSION_SUPPORTED:
@@ -751,8 +756,8 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO:
-            value.addValue(StringUtils.defaultString(ConfigManager
-                    .getWebAppAdminSslUrl().toString()));
+            value.addValue(StringUtils.defaultString(
+                    ConfigManager.getWebAppAdminSslUrl().toString()));
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_UUID:
@@ -765,7 +770,8 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO_MANUFACTURER:
-            value.addValue(CommunityDictEnum.SAVAPAGE_WWW_DOT_ORG_URL.getWord());
+            value.addValue(
+                    CommunityDictEnum.SAVAPAGE_WWW_DOT_ORG_URL.getWord());
             break;
 
         case IppDictPrinterDescAttr.ATTR_PAGES_PER_MIN:
@@ -816,9 +822,8 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     private static String getPrinterUriSupported(final URI uri,
             final String uriScheme, final String port) {
 
-        final StringBuilder jobUri =
-                new StringBuilder().append(uriScheme).append("://")
-                        .append(uri.getHost()).append(":").append(port);
+        final StringBuilder jobUri = new StringBuilder().append(uriScheme)
+                .append("://").append(uri.getHost()).append(":").append(port);
 
         final String path = uri.getPath();
 

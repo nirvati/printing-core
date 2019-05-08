@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -43,12 +43,11 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractIppRequest extends IppMessageMixin {
 
-    /**
-    *
-    */
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(AbstractIppRequest.class);
 
+    /** */
     private static final Charset MY_CHARSET = Charset.forName("US-ASCII");
 
     /**
@@ -159,13 +158,14 @@ public abstract class AbstractIppRequest extends IppMessageMixin {
      */
 
     /**
+     * Processes IPP stream.
      *
      * @param istr
      *            The stream to process.
-     * @throws Exception
-     *             When things went wrong.
+     * @throws IOException
+     *             If IO error.
      */
-    abstract void process(final InputStream istr) throws Exception;
+    abstract void process(InputStream istr) throws IOException;
 
     /**
      * Generic read of attributes.

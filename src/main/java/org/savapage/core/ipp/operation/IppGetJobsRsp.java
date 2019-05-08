@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,13 +14,14 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.ipp.operation;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -53,19 +54,19 @@ import org.slf4j.LoggerFactory;
  */
 public class IppGetJobsRsp extends AbstractIppResponse {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(IppGetJobAttrRsp.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(IppGetJobAttrRsp.class);
 
     /**
      *
      * @param operation
      * @param request
      * @param ostr
-     * @throws Exception
+     * @throws IOException
      */
     public final void process(final IppGetJobsOperation operation,
             final IppGetJobsReq request, final OutputStream ostr)
-            throws Exception {
+            throws IOException {
 
         IppStatusCode statusCode = IppStatusCode.OK;
 
@@ -99,9 +100,8 @@ public class IppGetJobsRsp extends AbstractIppResponse {
         value.addValue("utf-8");
         group.addAttribute(value);
 
-        attr =
-                new IppAttr("attributes-natural-language",
-                        new IppNaturalLanguage());
+        attr = new IppAttr("attributes-natural-language",
+                new IppNaturalLanguage());
         value = new IppAttrValue(attr);
         value.addValue("en-us");
         group.addAttribute(value);
@@ -197,8 +197,6 @@ public class IppGetJobsRsp extends AbstractIppResponse {
                  * object).
                  */
             }
-        } else {
-
         }
 
         // IppGetJobAttrRsp.createGroupJobAttr(ostr, jobUri, jobId);
@@ -214,13 +212,13 @@ public class IppGetJobsRsp extends AbstractIppResponse {
      * @param operation
      * @param statusCode
      * @param attrGroups
-     * @throws Exception
+     * @param charset
+     * @throws IOException
      */
     protected final void write(final OutputStream ostr,
-            final IppGetJobsOperation operation,
-            final IppStatusCode statusCode,
+            final IppGetJobsOperation operation, final IppStatusCode statusCode,
             final List<IppAttrGroup> attrGroups, final Charset charset)
-            throws Exception {
+            throws IOException {
 
         ostr.write(operation.getVersionMajor());
         ostr.write(operation.getVersionMinor());

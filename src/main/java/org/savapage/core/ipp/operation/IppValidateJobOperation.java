@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
++ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,13 +14,14 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.ipp.operation;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -28,6 +29,7 @@ import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
+import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.util.Messages;
 import org.slf4j.Logger;
@@ -141,7 +143,7 @@ public class IppValidateJobOperation extends AbstractIppOperation {
 
     @Override
     protected final void process(final InputStream istr,
-            final OutputStream ostr) throws Exception {
+            final OutputStream ostr) throws IppProcessingException {
         /*
          * IMPORTANT: we want to give a response in ALL cases. When an exception
          * occurs, the response will act in such a way that the client will not
@@ -149,31 +151,59 @@ public class IppValidateJobOperation extends AbstractIppOperation {
          * re-tried, leading to an end-less chain of trials).
          */
 
-        ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
+        boolean isDbReadLock = false;
 
         /*
-         * Step 1.
+         * Step 0.
          */
         try {
-            request.processAttributes(this, istr);
+            ReadWriteLockEnum.DATABASE_READONLY.tryReadLock();
+            isDbReadLock = true;
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-            request.setDeferredException(e);
+            throw new IppProcessingException(
+                    IppProcessingException.StateEnum.UNAVAILABLE,
+                    e.getMessage());
         }
 
-        /*
-         * Step 2.
-         *
-         * Since the request.process(istr) is empty, we can skip this step.
-         */
-
-        /*
-         * Step 3.
-         */
         try {
-            response.process(this, request, ostr);
+            /*
+             * Step 1.
+             */
+            try {
+                request.processAttributes(this, istr);
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage(), e);
+                request.setDeferredException(new IppProcessingException(
+                        IppProcessingException.StateEnum.INTERNAL_ERROR,
+                        e.getMessage()));
+            }
+            /*
+             * Step 2.
+             *
+             * Since the request.process(istr) is empty, we can skip this step.
+             */
+
+            /*
+             * Step 3.
+             */
+            try {
+                response.process(this, request, ostr);
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage(), e);
+                request.setDeferredException(new IppProcessingException(
+                        IppProcessingException.StateEnum.INTERNAL_ERROR,
+                        e.getMessage()));
+            }
+
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage());
+            request.setDeferredException(new IppProcessingException(
+                    IppProcessingException.StateEnum.INTERNAL_ERROR,
+                    e.getMessage()));
         } finally {
-            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+            if (isDbReadLock) {
+                ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+            }
         }
 
         /*

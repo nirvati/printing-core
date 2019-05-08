@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -47,10 +47,11 @@ public class IppGetJobAttrRsp extends AbstractIppResponse {
      * @param ostr
      * @param request
      * @throws IOException
+     *             If IO error.
      */
     public final void process(final IppGetJobAttrOperation operation,
             final IppGetJobAttrReq request, final OutputStream ostr)
-            throws Exception {
+            throws IOException {
 
         List<IppAttrGroup> attrGroups = new ArrayList<>();
 
@@ -85,9 +86,8 @@ public class IppGetJobAttrRsp extends AbstractIppResponse {
         value.addValue("utf-8");
         group.addAttribute(value);
 
-        attr =
-                new IppAttr("attributes-natural-language",
-                        new IppNaturalLanguage());
+        attr = new IppAttr("attributes-natural-language",
+                new IppNaturalLanguage());
         value = new IppAttrValue(attr);
         value.addValue("en-us");
         group.addAttribute(value);
@@ -149,11 +149,9 @@ public class IppGetJobAttrRsp extends AbstractIppResponse {
      * @param jobUri
      * @param jobId
      * @return
-     * @throws Exception
      */
-    public static final IppAttrGroup createGroupJobAttr(
-            final OutputStream ostr, final String jobUri, final String jobId)
-            throws Exception {
+    public static final IppAttrGroup createGroupJobAttr(final OutputStream ostr,
+            final String jobUri, final String jobId) {
 
         IppAttrGroup group = new IppAttrGroup(IppDelimiterTag.JOB_ATTR);
         IppAttrValue value = null;
@@ -180,7 +178,6 @@ public class IppGetJobAttrRsp extends AbstractIppResponse {
         group.addAttribute(value);
 
         return group;
-
     }
 
 }

@@ -52,6 +52,8 @@ public enum PhraseEnum {
     /** */
     SYS_MAINTENANCE,
     /** */
+    SYS_TEMP_UNAVAILABLE,
+    /** */
     USER_DELETE_WARNING;
 
     /**

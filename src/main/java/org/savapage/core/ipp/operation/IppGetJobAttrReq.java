@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -36,8 +36,8 @@ public class IppGetJobAttrReq extends AbstractIppRequest {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(IppGetJobAttrReq.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(IppGetJobAttrReq.class);
 
     /**
      * Group 1: Operation Attributes
@@ -73,9 +73,7 @@ public class IppGetJobAttrReq extends AbstractIppRequest {
 
     @Override
     void process(final InputStream istr) throws IOException {
-
         readAttributes(istr);
-
     }
 
     /**
@@ -93,8 +91,8 @@ public class IppGetJobAttrReq extends AbstractIppRequest {
     public String getJobUri() {
 
         try {
-            return IppPrintJobReq.getJobUri(getAttrValue("printer-uri")
-                    .getValues().get(0), getJobId());
+            return IppPrintJobReq.getJobUri(
+                    getAttrValue("printer-uri").getValues().get(0), getJobId());
         } catch (URISyntaxException e) {
             LOGGER.error(e.getMessage());
             return null; // TODO

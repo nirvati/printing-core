@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,9 +21,11 @@
  */
 package org.savapage.core.ipp.operation;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.ipp.encoding.IppEncoder;
 import org.savapage.core.jpa.IppQueue;
 import org.slf4j.Logger;
@@ -69,12 +71,17 @@ public abstract class AbstractIppOperation {
 
     /**
      *
-     * @param reader
+     * @param istr
+     *            Input stream.
      * @param ostr
-     * @throws Exception
+     *            Output Stream
+     * @throws IOException
+     *             If IO error.
+     * @throws IppProcessingException
+     *             If exception during processing.
      */
-    abstract void process(final InputStream istr, final OutputStream ostr)
-            throws Exception;
+    abstract void process(InputStream istr, OutputStream ostr)
+            throws IOException, IppProcessingException;
 
     /**
      * Handles an IPP printing request.
@@ -101,15 +108,18 @@ public abstract class AbstractIppOperation {
      *            requesting user.
      * @return The {@link IppOperationId}, or {@code null} when requested
      *         operation is not supported.
-     * @throws Exception
-     *             When an error occurred.
+     * @throws IOException
+     *             If IO error.
+     * @throws IppProcessingException
+     *             If exception during processing.
      */
     public static IppOperationId handle(final String remoteAddr,
             final IppQueue queue, final String requestedQueueUrlPath,
             final InputStream istr, final OutputStream ostr,
             final boolean hasPrintAccessToQueue,
             final String trustedIppClientUserId,
-            final boolean trustedUserAsRequester) throws Exception {
+            final boolean trustedUserAsRequester)
+            throws IOException, IppProcessingException {
 
         // -----------------------------------------------
         // | version-number (2 bytes - required)

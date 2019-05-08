@@ -30,6 +30,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.UnavailableException;
+import org.savapage.core.concurrent.ReadLockObtainFailedException;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
@@ -40,6 +41,7 @@ import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.IppQueueAttr;
 import org.savapage.core.jpa.User;
@@ -413,10 +415,12 @@ public final class QueueServiceImpl extends AbstractService
         DocContentPrintProcessor processor = null;
 
         boolean isAuthorized = false;
-
-        ReadWriteLockEnum.DATABASE_READONLY.setReadLock(true);
+        boolean isDbReadLock = false;
 
         try {
+            ReadWriteLockEnum.DATABASE_READONLY.tryReadLock();
+            isDbReadLock = true;
+
             /*
              * Get the Queue object.
              */
@@ -480,6 +484,9 @@ public final class QueueServiceImpl extends AbstractService
                                 requestingUserId, reservedQueue.getUrlPath()));
             }
 
+        } catch (ReadLockObtainFailedException e) {
+            throw new DocContentPrintException(PhraseEnum.SYS_TEMP_UNAVAILABLE
+                    .uiText(ServiceContext.getLocale()));
         } catch (Exception e) {
             if (processor != null) {
                 processor.setDeferredException(e);
@@ -487,7 +494,9 @@ public final class QueueServiceImpl extends AbstractService
                 throw new SpException(e.getMessage(), e);
             }
         } finally {
-            ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+            if (isDbReadLock) {
+                ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
+            }
         }
 
         /*
