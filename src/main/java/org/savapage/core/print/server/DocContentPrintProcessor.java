@@ -57,6 +57,7 @@ import org.savapage.core.doc.IStreamConverter;
 import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToDecrypted;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.ipp.routing.IppRoutingListener;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.IppQueue;
@@ -209,6 +210,9 @@ public final class DocContentPrintProcessor {
      */
     private final String originatorIp;
 
+    /** */
+    private IppRoutingListener ippRoutinglistener;
+
     /**
      *
      */
@@ -245,6 +249,21 @@ public final class DocContentPrintProcessor {
         this.queue = queue;
         this.originatorIp = originatorIp;
         this.authWebAppUser = authWebAppUser;
+    }
+
+    /**
+     * @return Listener.
+     */
+    public IppRoutingListener getIppRoutinglistener() {
+        return ippRoutinglistener;
+    }
+
+    /**
+     * @param listener
+     *            Listener.
+     */
+    public void setIppRoutinglistener(final IppRoutingListener listener) {
+        this.ippRoutinglistener = listener;
     }
 
     /**
@@ -944,7 +963,7 @@ public final class DocContentPrintProcessor {
             /*
              * STEP 2: Optional IPP Routing.
              */
-            if (!this.handleIppRouting(printInInfo, new File(tempPathPdf))) {
+            if (!this.processIppRouting(printInInfo, new File(tempPathPdf))) {
 
                 /*
                  * Move to user safepages home.
@@ -1117,7 +1136,7 @@ public final class DocContentPrintProcessor {
     }
 
     /**
-     * Handles IPP Routing, if applicable.
+     * Processes IPP Routing, if applicable.
      *
      * @param printInInfo
      *            {@link PrintIn} information.
@@ -1125,7 +1144,7 @@ public final class DocContentPrintProcessor {
      *            The PDF document to route.
      * @return {@code true} if IPP routing was applied, {@code false} if not.
      */
-    private boolean handleIppRouting(final DocContentPrintInInfo printInInfo,
+    private boolean processIppRouting(final DocContentPrintInInfo printInInfo,
             final File pdfFile) {
 
         if (!ConfigManager.instance().isConfigValue(Key.IPP_ROUTING_ENABLE)) {
@@ -1178,7 +1197,8 @@ public final class DocContentPrintProcessor {
 
         try {
             PROXYPRINT_SERVICE.proxyPrintIppRouting(this.userDb, this.queue,
-                    terminal.getPrinter(), printInInfo, pdfFile);
+                    terminal.getPrinter(), printInInfo, pdfFile,
+                    this.ippRoutinglistener);
         } catch (ProxyPrintException e) {
             throw new SpException(e.getMessage());
         }

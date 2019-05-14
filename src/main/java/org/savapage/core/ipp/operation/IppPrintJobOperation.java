@@ -27,6 +27,7 @@ import java.io.OutputStream;
 
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.ipp.IppProcessingException;
+import org.savapage.core.ipp.routing.IppRoutingListener;
 import org.savapage.core.jpa.IppQueue;
 
 /**
@@ -67,10 +68,11 @@ public final class IppPrintJobOperation extends AbstractIppOperation {
      */
     private final boolean trustedUserAsRequester;
 
-    /**
-     *
-     */
+    /** */
     private final String originatorIp;
+
+    /** */
+    private final IppRoutingListener ippRoutingListener;
 
     /**
      *
@@ -88,17 +90,25 @@ public final class IppPrintJobOperation extends AbstractIppOperation {
      * @param trustedUserAsRequester
      *            If {@code true}, the trustedIppClientUserId overrules the
      *            requesting user.
+     * @param ctx
+     *            The operation context.
      */
-    public IppPrintJobOperation(final String originatorIp, final IppQueue queue,
+    public IppPrintJobOperation(final IppQueue queue,
             final boolean clientIpAccessToQueue,
             final String trustedIppClientUserId,
-            final boolean trustedUserAsRequester) {
+            final boolean trustedUserAsRequester,
+            final IppOperationContext ctx) {
 
-        this.originatorIp = originatorIp;
+        this.originatorIp = ctx.getRemoteAddr();
         this.queue = queue;
         this.clientIpAccessToQueue = clientIpAccessToQueue;
         this.trustedIppClientUserId = trustedIppClientUserId;
         this.trustedUserAsRequester = trustedUserAsRequester;
+        this.ippRoutingListener = ctx.getIppRoutingListener();
+    }
+
+    public IppRoutingListener getIppRoutingListener() {
+        return ippRoutingListener;
     }
 
     public IppQueue getQueue() {

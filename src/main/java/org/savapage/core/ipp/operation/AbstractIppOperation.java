@@ -86,13 +86,9 @@ public abstract class AbstractIppOperation {
     /**
      * Handles an IPP printing request.
      *
-     * @param remoteAddr
-     *            The client IP address.
      * @param queue
      *            The print queue. Can be {@code null} is no queue matches the
      *            URI.
-     * @param requestedQueueUrlPath
-     *            The requested URL path.
      * @param istr
      *            The IPP input stream.
      * @param ostr
@@ -106,6 +102,8 @@ public abstract class AbstractIppOperation {
      * @param trustedUserAsRequester
      *            If {@code true}, the trustedIppClientUserId overrules the
      *            requesting user.
+     * @param ctx
+     *            The operation context.
      * @return The {@link IppOperationId}, or {@code null} when requested
      *         operation is not supported.
      * @throws IOException
@@ -113,12 +111,11 @@ public abstract class AbstractIppOperation {
      * @throws IppProcessingException
      *             If exception during processing.
      */
-    public static IppOperationId handle(final String remoteAddr,
-            final IppQueue queue, final String requestedQueueUrlPath,
+    public static IppOperationId handle(final IppQueue queue,
             final InputStream istr, final OutputStream ostr,
             final boolean hasPrintAccessToQueue,
             final String trustedIppClientUserId,
-            final boolean trustedUserAsRequester)
+            final boolean trustedUserAsRequester, final IppOperationContext ctx)
             throws IOException, IppProcessingException {
 
         // -----------------------------------------------
@@ -151,13 +148,12 @@ public abstract class AbstractIppOperation {
         final AbstractIppOperation operation;
 
         if (operationId == IppOperationId.PRINT_JOB.asInt()) {
-            operation = new IppPrintJobOperation(remoteAddr, queue,
-                    hasPrintAccessToQueue, trustedIppClientUserId,
-                    trustedUserAsRequester);
+            operation = new IppPrintJobOperation(queue, hasPrintAccessToQueue,
+                    trustedIppClientUserId, trustedUserAsRequester, ctx);
 
         } else if (operationId == IppOperationId.VALIDATE_JOB.asInt()) {
-            operation = new IppValidateJobOperation(remoteAddr, queue,
-                    requestedQueueUrlPath, hasPrintAccessToQueue,
+            operation = new IppValidateJobOperation(ctx.getRemoteAddr(), queue,
+                    ctx.getRequestedQueueUrlPath(), hasPrintAccessToQueue,
                     trustedIppClientUserId, trustedUserAsRequester);
 
         } else if (operationId == IppOperationId.GET_PRINTER_ATTR.asInt()) {

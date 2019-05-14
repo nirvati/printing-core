@@ -132,9 +132,9 @@ public final class FileSystemHelper {
      * Replaces original file with a new version.
      *
      * @param originalFile
-     *            The original file.
+     *            The target file.
      * @param newFile
-     *            The new file.
+     *            The source file that is <i>moved</i> to the target file.
      * @throws IOException
      *             When IO error.
      */

@@ -192,6 +192,15 @@ public interface QueueService {
     boolean isGcpPrintQueue(IppQueue queue);
 
     /**
+     * Does {@link IppQueue} support IPP Routing.
+     *
+     * @param queue
+     *            The queue.
+     * @return {@code true} when queue supports IPP Routing.
+     */
+    boolean isIppRoutingQueue(IppQueue queue);
+
+    /**
      * Does {@link IppQueue} represent the Mail Print queue.
      *
      * @param queue

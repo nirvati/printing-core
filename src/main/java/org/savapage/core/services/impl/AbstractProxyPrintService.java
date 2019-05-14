@@ -103,6 +103,8 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.client.IppNotificationRecipient;
+import org.savapage.core.ipp.routing.IppRoutingContextImpl;
+import org.savapage.core.ipp.routing.IppRoutingListener;
 import org.savapage.core.ipp.rules.IppRuleConstraint;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.job.SpJobType;
@@ -3057,8 +3059,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
     @Override
     public final void proxyPrintIppRouting(final User user,
             final IppQueue queue, final Printer printer,
-            final DocContentPrintInInfo printInInfo, final File pdfFile)
-            throws ProxyPrintException {
+            final DocContentPrintInInfo printInInfo, final File pdfFile,
+            final IppRoutingListener listener) throws ProxyPrintException {
 
         final String printerName = printer.getPrinterName();
         final boolean isColorPrinter = this.isColorPrinter(printerName);
@@ -3145,6 +3147,13 @@ public abstract class AbstractProxyPrintService extends AbstractService
             fileToPrint = pdfFile;
         }
 
+        if (listener != null) {
+            final IppRoutingContextImpl ctx = new IppRoutingContextImpl();
+            ctx.setOriginatorIp(printInInfo.getOriginatorIp());
+            ctx.setUrlPath(queue.getUrlPath());
+            ctx.setPdfToPrint(fileToPrint);
+            listener.onIppRoutingEvent(ctx);
+        }
         /*
          * Proxy Print Transaction.
          */

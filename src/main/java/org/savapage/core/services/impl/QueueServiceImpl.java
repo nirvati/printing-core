@@ -130,6 +130,12 @@ public final class QueueServiceImpl extends AbstractService
     }
 
     @Override
+    public boolean isIppRoutingQueue(final IppQueue queue) {
+        final IppRoutingEnum val = this.getIppRouting(queue);
+        return val != null && val == IppRoutingEnum.TERMINAL;
+    }
+
+    @Override
     public void setQueueAttrValue(final IppQueue queue,
             final IppQueueAttrEnum attrEnum, final String attrValue) {
 

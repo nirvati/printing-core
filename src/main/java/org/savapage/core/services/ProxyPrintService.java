@@ -53,6 +53,7 @@ import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.client.IppNotificationRecipient;
 import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.ipp.operation.IppStatusCode;
+import org.savapage.core.ipp.routing.IppRoutingListener;
 import org.savapage.core.jpa.CostChange;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DocLog;
@@ -730,12 +731,14 @@ public interface ProxyPrintService {
      *            {@link PrintIn} information.
      * @param pdfFile
      *            The PDF to print.
+     * @param listener
+     *            The listener. {@code null} when not present.
      * @throws ProxyPrintException
      *             If printing error.
      */
     void proxyPrintIppRouting(User user, IppQueue queue, Printer printer,
-            DocContentPrintInInfo printInInfo, File pdfFile)
-            throws ProxyPrintException;
+            DocContentPrintInInfo printInInfo, File pdfFile,
+            IppRoutingListener listener) throws ProxyPrintException;
 
     /**
      * Prints the outbox jobs of the {@link User} identified by card number, for

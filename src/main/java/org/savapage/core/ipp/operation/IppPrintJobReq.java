@@ -80,6 +80,10 @@ public final class IppPrintJobReq extends AbstractIppRequest {
         this.printInProcessor =
                 new DocContentPrintProcessor(operation.getQueue(),
                         operation.getOriginatorIp(), null, authWebAppUser);
+
+        this.printInProcessor
+                .setIppRoutinglistener(operation.getIppRoutingListener());
+
         /*
          * Then, read the IPP attributes.
          */
@@ -208,7 +212,16 @@ public final class IppPrintJobReq extends AbstractIppRequest {
     }
 
     public IppProcessingException getDeferredException() {
-        return (IppProcessingException) printInProcessor.getDeferredException();
+        final Exception ex = printInProcessor.getDeferredException();
+        if (ex == null) {
+            return null;
+        }
+        if (ex instanceof IppProcessingException) {
+            return (IppProcessingException) ex;
+        }
+        return new IppProcessingException(
+                IppProcessingException.StateEnum.INTERNAL_ERROR,
+                ex.getMessage(), ex);
     }
 
     public void setDeferredException(IppProcessingException e) {
