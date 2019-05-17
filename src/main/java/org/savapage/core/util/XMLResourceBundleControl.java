@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -35,8 +35,8 @@ import java.util.ResourceBundle;
  * XML resource bundle control based on XML property file.
  *
  * <p>
- * Copied from <a
- * href="http://www.java2s.com/Code/Java/JDK-6/XMLresourcebundle.htm">this
+ * Copied from
+ * <a href="http://www.java2s.com/Code/Java/JDK-6/XMLresourcebundle.htm">this
  * example</a>.
  * </p>
  *
@@ -44,21 +44,22 @@ import java.util.ResourceBundle;
  *      "http://docs.oracle.com/javase/7/docs/api/java/util/ResourceBundle.Control.html"
  *      >ResourceBundle.Control<a> API doc.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class XMLResourceBundleControl extends ResourceBundle.Control {
+public final class XMLResourceBundleControl extends ResourceBundle.Control {
 
+    /** */
     private static final String XML = "xml";
 
     @Override
-    public List<String> getFormats(String baseName) {
+    public List<String> getFormats(final String baseName) {
         return Collections.singletonList(XML);
     }
 
     @Override
-    public ResourceBundle newBundle(String baseName, Locale locale,
-            String format, ClassLoader loader, boolean reload)
+    public ResourceBundle newBundle(final String baseName, final Locale locale,
+            final String format, final ClassLoader loader, final boolean reload)
             throws IllegalAccessException, InstantiationException, IOException {
 
         if (baseName == null || locale == null || format == null
@@ -72,7 +73,7 @@ public class XMLResourceBundleControl extends ResourceBundle.Control {
 
         final String bundleName = toBundleName(baseName, locale);
         final String resourceName = toResourceName(bundleName, format);
-        URL url = loader.getResource(resourceName);
+        final URL url = loader.getResource(resourceName);
         if (url == null) {
             return null;
         }

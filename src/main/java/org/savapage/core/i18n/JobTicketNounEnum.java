@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -77,9 +77,9 @@ public enum JobTicketNounEnum {
     public String uiText(final Locale locale) {
 
         if (this.hasPlural) {
-            return LocaleHelper.uiTextCustom(this, locale, SINGULAR_SUFFIX);
+            return LocaleHelper.uiText(this, locale, SINGULAR_SUFFIX);
         }
-        return LocaleHelper.uiTextCustom(this, locale);
+        return LocaleHelper.uiText(this, locale);
     }
 
     /**
@@ -92,7 +92,7 @@ public enum JobTicketNounEnum {
     public String uiText(final Locale locale, final boolean plural) {
 
         if (!this.hasPlural) {
-            return LocaleHelper.uiTextCustom(this, locale);
+            return LocaleHelper.uiText(this, locale);
         }
 
         final String sfx;
@@ -102,7 +102,7 @@ public enum JobTicketNounEnum {
         } else {
             sfx = SINGULAR_SUFFIX;
         }
-        return LocaleHelper.uiTextCustom(this, locale, sfx);
+        return LocaleHelper.uiText(this, locale, sfx);
     }
 
 }

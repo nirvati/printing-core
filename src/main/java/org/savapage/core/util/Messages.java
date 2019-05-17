@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,9 +27,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.MessageFormat;
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import org.savapage.core.SpException;
+import org.savapage.core.config.ConfigManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,21 +45,46 @@ import org.slf4j.LoggerFactory;
  */
 public final class Messages extends MessagesBundleMixin {
 
-    /**
-     * .
-     */
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(Messages.class);
 
-    /**
-     *
-     */
+    /** */
     private static final String DEFAULT_XML_RESOURCE = "messages";
 
+    /** */
+    private static class XMLResourceBundleControlHolder {
+        /** */
+        public static final XMLResourceBundleControl INSTANCE =
+                new XMLResourceBundleControl();
+    }
+
     /**
-     *
+     * {@code true} if custom i18n is enabled.
+     */
+    private static boolean useCustomI18n = false;
+
+    /**
+     * Utility class.
      */
     private Messages() {
+    }
+
+    /**
+     * Initializes the i18n messystem.
+     *
+     * @param enableCustomI18n
+     *            {@code true} if custom i18n is enabled.
+     */
+    public static void init(final boolean enableCustomI18n) {
+        useCustomI18n = enableCustomI18n;
+    }
+
+    /**
+     * @return {@code true} if custom i18n is enabled.
+     */
+    public static boolean isCustomI18nEnabled() {
+        return useCustomI18n;
     }
 
     /**
@@ -76,7 +103,28 @@ public final class Messages extends MessagesBundleMixin {
             final Class<? extends Object> reqClass, final String resourceName,
             final Locale locale) {
         return getResourceBundle(reqClass, resourceName, locale,
-                new XMLResourceBundleControl());
+                XMLResourceBundleControlHolder.INSTANCE);
+    }
+
+    /**
+     * Loads a {@link ResourceBundle} from the file system.
+     *
+     * @param clazz
+     *            The class.
+     * @param locale
+     *            The locale.
+     * @return {@code null} when resource is not found.
+     */
+    public static ResourceBundle loadXmlResourceCustom(
+            final Class<? extends Object> clazz, final Locale locale) {
+        try {
+            return loadXmlResource(ConfigManager.getServerCustomI18nHome(clazz),
+                    clazz.getSimpleName(), locale);
+
+        } catch (MissingResourceException e) {
+            // no code intended;
+        }
+        return null;
     }
 
     /**
@@ -103,7 +151,8 @@ public final class Messages extends MessagesBundleMixin {
         }
 
         return getResourceBundle(new URLClassLoader(urls), resourceName,
-                resourceName, candidate, new XMLResourceBundleControl());
+                resourceName, candidate,
+                XMLResourceBundleControlHolder.INSTANCE);
     }
 
     /**

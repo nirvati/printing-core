@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -205,7 +205,7 @@ public final class LocaleHelper {
      *            The {@link Locale}.
      * @return The localized text.
      */
-    public static <E extends Enum<E>> String uiTextCustom(final Enum<E> value,
+    private static <E extends Enum<E>> String uiTextCustom(final Enum<E> value,
             final Locale locale) {
         return uiTextCustom(value, locale, null);
     }
@@ -224,7 +224,7 @@ public final class LocaleHelper {
      *            The value suffix to be appended to the Enum string value.
      * @return The localized text.
      */
-    public static <E extends Enum<E>> String uiTextCustom(final Enum<E> value,
+    private static <E extends Enum<E>> String uiTextCustom(final Enum<E> value,
             final Locale locale, final String suffix) {
 
         final String key;
@@ -255,6 +255,9 @@ public final class LocaleHelper {
      */
     public static <E extends Enum<E>> String uiText(final Enum<E> value,
             final Locale locale) {
+        if (Messages.isCustomI18nEnabled()) {
+            return uiTextCustom(value, locale);
+        }
         return getResourceBundle(value, locale).getString(value.toString());
     }
 
@@ -272,8 +275,11 @@ public final class LocaleHelper {
      *            The arguments.
      * @return The localized text.
      */
-    public static <E extends Enum<E>> String uiText(final Enum<E> value,
+    public static <E extends Enum<E>> String uiTextArgs(final Enum<E> value,
             final Locale locale, final String... args) {
+        if (Messages.isCustomI18nEnabled()) {
+            Messages.formatMessage(uiTextCustom(value, locale), args);
+        }
         return Messages.formatMessage(uiText(value, locale), args);
     }
 
@@ -292,6 +298,9 @@ public final class LocaleHelper {
      */
     public static <E extends Enum<E>> String uiText(final Enum<E> value,
             final Locale locale, final String suffix) {
+        if (Messages.isCustomI18nEnabled()) {
+            return uiTextCustom(value, locale, suffix);
+        }
         return getResourceBundle(value, locale)
                 .getString(String.format("%s%s", value.toString(), suffix));
     }
@@ -330,18 +339,37 @@ public final class LocaleHelper {
     }
 
     /**
-     *
+     * @param <E>
+     *            The Enum class.
      * @param value
+     *            Enum value.
      * @param locale
+     *            The locale.
      * @return {@code null} when resource is not found.
      */
     private static <E extends Enum<E>> ResourceBundle
             getResourceBundleCustom(final Enum<E> value, final Locale locale) {
         try {
-            return Messages.loadXmlResource(
-                    ConfigManager.getServerCustomI18nHome(value.getClass()),
-                    value.getClass().getSimpleName(), locale);
+            return Messages.loadXmlResourceCustom(value.getClass(), locale);
+        } catch (MissingResourceException e) {
+            // no code intended;
+        }
+        return null;
+    }
 
+    /**
+     * @param <E>
+     *            The Object class.
+     * @param clazz
+     *            Class value.
+     * @param locale
+     *            The locale.
+     * @return {@code null} when resource is not found.
+     */
+    private static <E extends Object> ResourceBundle
+            getResourceBundleCustom(final Class<E> clazz, final Locale locale) {
+        try {
+            return Messages.loadXmlResourceCustom(clazz.getClass(), locale);
         } catch (MissingResourceException e) {
             // no code intended;
         }
@@ -356,8 +384,6 @@ public final class LocaleHelper {
      *            The Exception class.
      * @param clazz
      *            The class.
-     * @param clazz
-     *            The class.
      * @param locale
      *            The {@link Locale}.
      * @param key
@@ -368,6 +394,14 @@ public final class LocaleHelper {
      */
     public static <E extends Exception> String uiText(final Class<E> clazz,
             final Locale locale, final String key, final String... args) {
+
+        if (Messages.isCustomI18nEnabled()) {
+            final ResourceBundle bundle =
+                    getResourceBundleCustom(clazz, locale);
+            if (bundle != null && bundle.containsKey(key)) {
+                Messages.formatMessage(bundle.getString(key), args);
+            }
+        }
         return Messages.formatMessage(
                 getResourceBundle(clazz, locale).getString(key), args);
     }
