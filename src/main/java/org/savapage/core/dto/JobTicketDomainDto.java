@@ -26,6 +26,6 @@ package org.savapage.core.dto;
  * @author Rijk Ravestein
  *
  */
-public final class JobTicketTagDto extends JobTicketLabelDomainPartDto {
+public final class JobTicketDomainDto extends JobTicketLabelPartDto {
 
 }

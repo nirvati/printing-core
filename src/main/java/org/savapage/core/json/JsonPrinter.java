@@ -73,7 +73,7 @@ public class JsonPrinter extends JsonAbstractBase {
     /**
      * Indicates whether Job Ticket Tags are enabled.
      */
-    private Boolean jobTicketTagsEnabled = Boolean.FALSE;
+    private Boolean jobTicketLabelsEnabled = Boolean.FALSE;
 
     /**
      * The unique name of the Card Reader (when reader secured).
@@ -145,12 +145,12 @@ public class JsonPrinter extends JsonAbstractBase {
         this.jobTicket = jobTicket;
     }
 
-    public Boolean getJobTicketTagsEnabled() {
-        return jobTicketTagsEnabled;
+    public Boolean getJobTicketLabelsEnabled() {
+        return jobTicketLabelsEnabled;
     }
 
-    public void setJobTicketTagsEnabled(Boolean jobTicketTagsEnabled) {
-        this.jobTicketTagsEnabled = jobTicketTagsEnabled;
+    public void setJobTicketLabelsEnabled(Boolean enabled) {
+        this.jobTicketLabelsEnabled = enabled;
     }
 
     public String getReaderName() {
@@ -190,7 +190,7 @@ public class JsonPrinter extends JsonAbstractBase {
         copy.authMode = this.authMode;
         copy.printerUri = this.printerUri;
         copy.jobTicket = this.jobTicket;
-        copy.jobTicketTagsEnabled = this.jobTicketTagsEnabled;
+        copy.jobTicketLabelsEnabled = this.jobTicketLabelsEnabled;
     }
 
 }

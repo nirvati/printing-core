@@ -150,14 +150,15 @@ public final class PrinterServiceImpl extends AbstractService
     }
 
     @Override
-    public boolean isJobTicketTagsEnabled(final Long id) {
+    public boolean isJobTicketLabelsEnabled(final Long id) {
         final PrinterAttr attr = printerAttrDAO().findByName(id,
-                PrinterAttrEnum.JOBTICKET_TAGS_ENABLE);
+                PrinterAttrEnum.JOBTICKET_LABELS_ENABLE);
         return printerAttrDAO().getBooleanValue(attr);
     }
+
     @Override
-    public boolean isJobTicketTagsEnabled(final Printer printer) {
-        return isPrinterAttr(printer, PrinterAttrEnum.JOBTICKET_TAGS_ENABLE,
+    public boolean isJobTicketLabelsEnabled(final Printer printer) {
+        return isPrinterAttr(printer, PrinterAttrEnum.JOBTICKET_LABELS_ENABLE,
                 false);
     }
 

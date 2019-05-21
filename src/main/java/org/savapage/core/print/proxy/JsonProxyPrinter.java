@@ -221,7 +221,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      * {@code true} when Job Ticket Tags are enabled.
      */
     @JsonIgnore
-    private Boolean jobTicketTagsEnabled = Boolean.FALSE;
+    private Boolean jobTicketLabelsEnabled = Boolean.FALSE;
 
     /**
      * Gets the corresponding Database Printer Object.
@@ -760,7 +760,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
      *            {@code true} when info was injected from a SavaPage PPD
      *            extension.
      */
-    public void setInjectPpdExt(boolean injectPpdExt) {
+    public void setInjectPpdExt(final boolean injectPpdExt) {
         this.injectPpdExt = injectPpdExt;
     }
 
@@ -772,26 +772,26 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
     }
 
     /**
-     * @param jobTicket
+     * @param ticket
      *            {@code true} when this is a job ticket printer.
      */
-    public void setJobTicket(Boolean jobTicket) {
-        this.jobTicket = jobTicket;
+    public void setJobTicket(final Boolean ticket) {
+        this.jobTicket = ticket;
     }
 
     /**
-     * @return {@code true} when Job Ticket Tags are enabled.
+     * @return {@code true} when Job Ticket Labels are enabled.
      */
-    public Boolean getJobTicketTagsEnabled() {
-        return jobTicketTagsEnabled;
+    public Boolean getJobTicketLabelsEnabled() {
+        return jobTicketLabelsEnabled;
     }
 
     /**
-     * @param jobTicketTagsEnabled
-     *            {@code true} when Job Ticket Tags are enabled.
+     * @param enabled
+     *            {@code true} when Job Ticket Labels are enabled.
      */
-    public void setJobTicketTagsEnabled(Boolean jobTicketTagsEnabled) {
-        this.jobTicketTagsEnabled = jobTicketTagsEnabled;
+    public void setJobTicketLabelsEnabled(final Boolean enabled) {
+        this.jobTicketLabelsEnabled = enabled;
     }
 
     /**
@@ -821,7 +821,7 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         copy.ppdPresent = this.ppdPresent;
         copy.injectPpdExt = this.injectPpdExt;
         copy.jobTicket = this.jobTicket;
-        copy.jobTicketTagsEnabled = this.jobTicketTagsEnabled;
+        copy.jobTicketLabelsEnabled = this.jobTicketLabelsEnabled;
         copy.ppdVersion = this.ppdVersion;
         copy.ppdLandscapeMinus90 = this.ppdLandscapeMinus90;
         copy.printerUri = this.printerUri;

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,10 @@ import java.util.Locale;
 import java.util.SortedSet;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dto.JobTicketDomainDto;
+import org.savapage.core.dto.JobTicketLabelDto;
 import org.savapage.core.dto.JobTicketTagDto;
+import org.savapage.core.dto.JobTicketUseDto;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
@@ -102,13 +105,13 @@ public interface JobTicketService extends StatefulService {
      *            The {@link ProxyPrintInboxReq}.
      * @param deliveryDate
      *            The requested date of delivery.
-     * @param tag
-     *            The tag (to be pre-pended to the generated ticket number). Can
-     *            be {@code null} or empty.
+     * @param label
+     *            The label(to be pre-pended to the generated ticket number).
+     *            Can be {@code null} or empty.
      * @return The job ticket created.
      */
     OutboxJobDto createCopyJob(User user, ProxyPrintInboxReq request,
-            Date deliveryDate, String tag);
+            Date deliveryDate, JobTicketLabelDto label);
 
     /**
      * Sends Job Ticket(s) to the OutBox.
@@ -122,9 +125,9 @@ public interface JobTicketService extends StatefulService {
      *            The {@link ProxyPrintInboxReq}.
      * @param deliveryDate
      *            The requested date of delivery.
-     * @param tag
-     *            The tag (to be pre-pended to the generated ticket number). Can
-     *            be {@code null} or empty.
+     * @param label
+     *            The label (to be pre-pended to the generated ticket number).
+     *            Can be {@code null} or empty.
      * @return The job tickets created.
      *
      * @throws EcoPrintPdfTaskPendingException
@@ -132,8 +135,8 @@ public interface JobTicketService extends StatefulService {
      *             pending.
      */
     List<OutboxJobDto> proxyPrintInbox(User lockedUser,
-            ProxyPrintInboxReq request, Date deliveryDate, String tag)
-            throws EcoPrintPdfTaskPendingException;
+            ProxyPrintInboxReq request, Date deliveryDate,
+            JobTicketLabelDto label) throws EcoPrintPdfTaskPendingException;
 
     /**
      * Sends Print Job to the OutBox.
@@ -153,15 +156,15 @@ public interface JobTicketService extends StatefulService {
      *            The {@link DocContentPrintInInfo}.
      * @param deliveryDate
      *            The requested date of delivery.
-     * @param tag
-     *            The tag (to be pre-pended to the generated ticket number). Can
-     *            be {@code null} or empty.
+     * @param label
+     *            The label (to be pre-pended to the generated ticket number).
+     *            Can be {@code null} or empty.
      * @throws IOException
      *             When file IO error occurs.
      */
     void proxyPrintPdf(User lockedUser, ProxyPrintDocReq request,
             PdfCreateInfo createInfo, DocContentPrintInInfo printInfo,
-            Date deliveryDate, String tag) throws IOException;
+            Date deliveryDate, JobTicketLabelDto label) throws IOException;
 
     /**
      * Creates and formats a unique ticket number.
@@ -454,24 +457,46 @@ public interface JobTicketService extends StatefulService {
     TicketJobSheetDto getTicketJobSheet(IppOptionMap options);
 
     /**
+     * Get the ticket domains from cache, sorted by domain name.
+     *
+     * @return The sorted domains, or empty when no domains are defined or
+     *         domains are disabled.
+     */
+    Collection<JobTicketDomainDto> getTicketDomainsByName();
+
+    /**
+     * Get the ticket uses from cache, sorted by use name.
+     *
+     * @return The sorted uses, or empty when no uses are defined or uses are
+     *         disabled.
+     */
+    Collection<JobTicketUseDto> getTicketUsesByName();
+
+    /**
      * Get the ticket tags from cache, sorted by tag word.
      *
      * @return The sorted tags, or empty when no tags are defined or tags are
      *         disabled.
-     *
-     * @throws IllegalArgumentException
-     *             When error parsing formatted tags string.
      */
-    Collection<JobTicketTagDto> getTicketTagsByWord();
+    Collection<JobTicketTagDto> getTicketTagsByName();
 
     /**
-     * Gets the {@link JobTicketTagDto} from a ticket number.
+     * Gets the prefix label from a ticket number.
      *
      * @param ticketNumber
      *            The ticket number.
-     * @return {@code null| when not present.
+     * @return {@code null} when not present.
      */
-    JobTicketTagDto getTicketNumberTag(String ticketNumber);
+    String getTicketNumberLabel(String ticketNumber);
+
+    /**
+     * Creates a job ticket label from constituents.
+     *
+     * @param label
+     *            The label.
+     * @return The aggregated label (can be empty)
+     */
+    String createTicketLabel(JobTicketLabelDto label);
 
     /**
      *

@@ -21,11 +21,36 @@
  */
 package org.savapage.core.dto;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class JobTicketTagDto extends JobTicketLabelDomainPartDto {
+public abstract class JobTicketLabelDomainPartDto
+        extends JobTicketLabelPartDto {
 
+    /** */
+    private final Set<String> domainIDList = new HashSet<>();
+
+    /**
+     * @return Set of domain IDs this label part belongs to. If empty, there are
+     *         no restrictions and this label part can be used in any domain
+     *         context.
+     */
+    public Set<String> getDomainIDs() {
+        return domainIDList;
+    }
+
+    /**
+     * Adds domainID to the list.
+     *
+     * @param id
+     *            Domain ID.
+     */
+    public void addDomainID(final String id) {
+        this.domainIDList.add(id);
+    }
 }

@@ -338,6 +338,9 @@ public final class OutboxServiceImpl extends AbstractService
         job.setCostResult(request.getCostResult());
         job.setSubmitTime(submitDate.getTime());
         job.setExpiryTime(expiryDate.getTime());
+
+        job.setJobTicketDomain(request.getJobTicketDomain());
+        job.setJobTicketUse(request.getJobTicketUse());
         job.setJobTicketTag(request.getJobTicketTag());
 
         if (request.isArchive()) {

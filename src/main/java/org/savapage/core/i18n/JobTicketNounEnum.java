@@ -34,6 +34,10 @@ import org.savapage.core.util.LocaleHelper;
 public enum JobTicketNounEnum {
 
     /** */
+    DOMAIN(true),
+    /** */
+    USE(true),
+    /** */
     TAG(true),
     /** */
     TICKET(true);

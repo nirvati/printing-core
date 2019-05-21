@@ -79,10 +79,10 @@ public enum PrinterAttrEnum {
     JOBTICKET_ENABLE("jobticket.enable"),
 
     /**
-     * Enable as Job Ticket Tags for Printer. Boolean: Y | N. When not present N
-     * is assumed.
+     * Enable Job Ticket Labels (Domain, Use, Tags) for Printer. Boolean: Y | N.
+     * When not present N is assumed.
      */
-    JOBTICKET_TAGS_ENABLE("jobticket.tags.enable"),
+    JOBTICKET_LABELS_ENABLE("jobticket.labels.enable"),
 
     /**
      * Printer Group with compatible redirect printers for JobTicket Printer.

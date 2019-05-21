@@ -2006,7 +2006,61 @@ public interface IConfigProp {
                 V_NO, API_UPDATABLE_ON),
 
         /**
-         * A comma separated list of Job Ticket tags to be applied as job ticker
+         * A comma separated list of Job Ticket domains to be applied as job
+         * ticket number prefix. Each domain on the list is formatted as
+         * "DOM/domain/n", where "DOM" is a unique N-letter upper-case mnemonic,
+         * "/" is a fixed separator, "domain" is a case-sensitive single word
+         * used in UI context, and n is a unique ID number.
+         *
+         * E.g. "A/DomainA/1,B/DomainB/2,C/DomainC/3". When "B" domain is
+         * applied, a generated ticket number looks like "B/EE1-FA3E-6596".
+         */
+        JOBTICKET_DOMAINS("jobticket.domains", KeyType.MULTI_LINE),
+
+        /**
+         * Enable {@link IConfigProp.Key#JOBTICKET_DOMAINS} (boolean).
+         */
+        JOBTICKET_DOMAINS_ENABLE(//
+                "jobticket.domains.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
+         * Is domains required, when
+         * {@link IConfigProp.Key#JOBTICKET_DOMAINS_ENABLE} ? (boolean).
+         */
+        JOBTICKET_DOMAINS_REQUIRED(//
+                "jobticket.domains.required", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /**
+         * A comma separated list of Job Ticket uses (applications) within a
+         * domain to be applied as job ticket number prefix. Each use on the
+         * list is formatted as "USE/usage", where "USE" is a unique N-letter
+         * upper-case mnemonic, "/" is a fixed separator, and "usage" is a
+         * case-sensitive single word used in UI context.
+         *
+         * E.g. "TE/Test,TA/Task,EX/Exam". When "EX" usage is applied, a
+         * generated ticket number looks like "EX/EE1-FA3E-6596".
+         */
+        JOBTICKET_USES("jobticket.uses", KeyType.MULTI_LINE),
+
+        /**
+         * Enable {@link IConfigProp.Key#JOBTICKET_USES} (boolean).
+         */
+        JOBTICKET_USES_ENABLE(//
+                "jobticket.uses.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
+         * Is domains required, when
+         * {@link IConfigProp.Key#JOBTICKET_USES_ENABLE} ? (boolean).
+         */
+        JOBTICKET_USES_REQUIRED(//
+                "jobticket.uses.required", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /**
+         * A comma separated list of Job Ticket tags to be applied as job ticket
          * number prefix. Each tag on the list is formatted as "TAG/word", where
          * "TAG" is a unique N-letter upper-case mnemonic, "/" is a fixed
          * separator, and "word" is a case-sensitive single word used in UI

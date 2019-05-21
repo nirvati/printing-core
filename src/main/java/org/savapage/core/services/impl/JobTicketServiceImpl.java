@@ -70,7 +70,10 @@ import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
+import org.savapage.core.dto.JobTicketDomainDto;
+import org.savapage.core.dto.JobTicketLabelDto;
 import org.savapage.core.dto.JobTicketTagDto;
+import org.savapage.core.dto.JobTicketUseDto;
 import org.savapage.core.dto.RedirectPrinterDto;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.ipp.IppJobStateEnum;
@@ -105,9 +108,9 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.JobTicketExecParms;
+import org.savapage.core.services.helpers.JobTicketLabelCache;
 import org.savapage.core.services.helpers.JobTicketQueueInfo;
 import org.savapage.core.services.helpers.JobTicketStats;
-import org.savapage.core.services.helpers.JobTicketTagCache;
 import org.savapage.core.services.helpers.JobTicketWrapperDto;
 import org.savapage.core.services.helpers.PrintSupplierData;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
@@ -158,15 +161,15 @@ public final class JobTicketServiceImpl extends AbstractService
     /**
      *
      */
-    private static final int TICKER_NUMBER_CHUNK_WIDTH = 4;
+    private static final int TICKET_NUMBER_CHUNK_WIDTH = 4;
 
     /** */
-    private static final String TICKER_NUMBER_CHUNK_SEPARATOR = "-";
+    private static final String TICKET_NUMBER_CHUNK_SEPARATOR = "-";
 
     /** */
-    private static final String TICKER_NUMBER_PREFIX_TAG_SEPARATOR = "/";
+    private static final String TICKET_NUMBER_PREFIX_LABEL_SEPARATOR = "/";
 
-    /** By UUID */
+    /** By UUID. */
     private ConcurrentHashMap<UUID, OutboxJobDto> jobTicketCache;
 
     /** */
@@ -182,6 +185,7 @@ public final class JobTicketServiceImpl extends AbstractService
      */
     private static final class ProxyPrintInbox extends ProxyPrintInboxPattern {
 
+        /** */
         private final JobTicketServiceImpl serviceImpl;
 
         /**
@@ -195,10 +199,10 @@ public final class JobTicketServiceImpl extends AbstractService
         private final Date deliveryDate;
 
         /**
-         * The tag (to be pre-pended to the generated ticket number). Can be
+         * The label (to be pre-pended to the generated ticket number). Can be
          * {@code null} or empty.
          */
-        private final String tag;
+        private final String label;
 
         /**
          * The job tickets created.
@@ -210,19 +214,19 @@ public final class JobTicketServiceImpl extends AbstractService
          *            The parent service.
          * @param reqDeliveryDate
          *            The requested date of delivery (can be {@code null}).
-         * @param reqTag
-         *            The tag (to be pre-pended to the generated ticket number).
-         *            Can be {@code null} or empty.
+         * @param reqLabel
+         *            The label (to be pre-pended to the generated ticket
+         *            number). Can be {@code null} or empty.
          *
          */
         ProxyPrintInbox(final JobTicketServiceImpl service,
-                final Date reqDeliveryDate, final String reqTag) {
+                final Date reqDeliveryDate, final String reqLabel) {
 
             this.serviceImpl = service;
             this.submitDate = ServiceContext.getTransactionDate();
             this.deliveryDate = this.serviceImpl
                     .getTicketDeliveryDate(submitDate, reqDeliveryDate);
-            this.tag = reqTag;
+            this.label = reqLabel;
             this.ticketsCreated = new ArrayList<>();
         }
 
@@ -256,7 +260,7 @@ public final class JobTicketServiceImpl extends AbstractService
             try {
                 final OutboxJobDto dto = this.serviceImpl.addJobticketToCache(
                         lockedUser, createInfo, uuid, request, uuidPageCount,
-                        this.submitDate, this.deliveryDate, this.tag,
+                        this.submitDate, this.deliveryDate, this.label,
                         chunkIndex, chunkSize);
 
                 ticketsCreated.add(dto);
@@ -279,7 +283,7 @@ public final class JobTicketServiceImpl extends AbstractService
     public void proxyPrintPdf(final User lockedUser,
             final ProxyPrintDocReq request, final PdfCreateInfo createInfo,
             final DocContentPrintInInfo printInfo, final Date deliveryDate,
-            final String tag) throws IOException {
+            final JobTicketLabelDto label) throws IOException {
 
         final UUID uuid = UUID.fromString(request.getDocumentUuid());
 
@@ -300,7 +304,8 @@ public final class JobTicketServiceImpl extends AbstractService
 
         final OutboxJobDto dto = this.addJobticketToCache(lockedUser,
                 createInfo, uuid, request, uuidPageCount,
-                ServiceContext.getTransactionDate(), deliveryDate, tag, 1, 1);
+                ServiceContext.getTransactionDate(), deliveryDate,
+                this.createTicketLabel(label), 1, 1);
 
         final String msgKey = "msg-user-print-jobticket-print";
 
@@ -329,9 +334,9 @@ public final class JobTicketServiceImpl extends AbstractService
      *            The submit date.
      * @param deliveryDate
      *            The requested date of delivery.
-     * @param tag
-     *            The tag (to be pre-pended to the generated ticket number). Can
-     *            be {@code null} or empty.
+     * @param label
+     *            The label (to be pre-pended to the generated ticket number).
+     *            Can be {@code null} or empty.
      * @param chunkIndex
      *            1-based index of chunkSize;
      * @param chunkSize
@@ -345,7 +350,7 @@ public final class JobTicketServiceImpl extends AbstractService
             final PdfCreateInfo createInfo, final UUID uuid,
             final AbstractProxyPrintReq request,
             final LinkedHashMap<String, Integer> uuidPageCount,
-            final Date submitDate, final Date deliveryDate, final String tag,
+            final Date submitDate, final Date deliveryDate, final String label,
             final int chunkIndex, final int chunkSize) throws IOException {
 
         final OutboxJobDto dto = outboxService().createOutboxJob(request,
@@ -358,16 +363,9 @@ public final class JobTicketServiceImpl extends AbstractService
         //
         final StringBuilder ticketNumber = new StringBuilder();
 
-        if (tag != null && StringUtils.isNotBlank(tag.trim())) {
-
-            if (StringUtils.contains(tag, TICKER_NUMBER_PREFIX_TAG_SEPARATOR)) {
-                throw new IllegalArgumentException(String.format(
-                        "Job Ticket tag [%s] contains invalid character [%s].",
-                        tag, TICKER_NUMBER_PREFIX_TAG_SEPARATOR));
-            }
-
-            ticketNumber.append(tag.trim())
-                    .append(TICKER_NUMBER_PREFIX_TAG_SEPARATOR);
+        if (label != null && StringUtils.isNotBlank(label.trim())) {
+            ticketNumber.append(label.trim())
+                    .append(TICKET_NUMBER_PREFIX_LABEL_SEPARATOR);
         }
 
         ticketNumber.append(this.createTicketNumber());
@@ -558,8 +556,14 @@ public final class JobTicketServiceImpl extends AbstractService
             throw new SpException(e.getMessage(), e);
         }
 
-        JobTicketTagCache.setTicketTags(JobTicketTagCache.parseTicketTags(
-                ConfigManager.instance().getConfigValue(Key.JOBTICKET_TAGS)));
+        final ConfigManager cm = ConfigManager.instance();
+
+        JobTicketLabelCache
+                .initTicketDomains(cm.getConfigValue(Key.JOBTICKET_DOMAINS));
+        JobTicketLabelCache
+                .initTicketUses(cm.getConfigValue(Key.JOBTICKET_USES));
+        JobTicketLabelCache
+                .initTicketTags(cm.getConfigValue(Key.JOBTICKET_TAGS));
     }
 
     @Override
@@ -585,10 +589,49 @@ public final class JobTicketServiceImpl extends AbstractService
         }
     }
 
+    /**
+     * Creates a job ticket label from constituents.
+     *
+     * @param domain
+     *            The domain (to be pre-pended to the generated ticket number).
+     *            Can be {@code null} or empty.
+     * @param use
+     *            The use (to be pre-pended to the generated ticket number). Can
+     *            be {@code null} or empty.
+     * @param tag
+     *            The tag (to be pre-pended to the generated ticket number). Can
+     *            be {@code null} or empty.
+     * @return The aggregated label (can be empty)
+     */
+    @Override
+    public String createTicketLabel(final JobTicketLabelDto dto) {
+
+        final StringBuilder label = new StringBuilder();
+
+        if (dto != null) {
+            if (StringUtils.isNotBlank(dto.getDomain())) {
+                label.append(dto.getDomain());
+            }
+            if (StringUtils.isNotBlank(dto.getUse())) {
+                if (label.length() > 0) {
+                    label.append(TICKET_NUMBER_PREFIX_LABEL_SEPARATOR);
+                }
+                label.append(dto.getUse());
+            }
+            if (StringUtils.isNotBlank(dto.getTag())) {
+                if (label.length() > 0) {
+                    label.append(TICKET_NUMBER_PREFIX_LABEL_SEPARATOR);
+                }
+                label.append(dto.getTag());
+            }
+        }
+        return label.toString();
+    }
+
     @Override
     public OutboxJobDto createCopyJob(final User user,
             final ProxyPrintInboxReq request, final Date deliveryDate,
-            final String tag) {
+            final JobTicketLabelDto label) {
 
         final UUID uuid = UUID.randomUUID();
         final Date submitDate = ServiceContext.getTransactionDate();
@@ -598,8 +641,8 @@ public final class JobTicketServiceImpl extends AbstractService
         try {
             dto = this.addJobticketToCache(user, null, uuid, request, null,
                     submitDate,
-                    this.getTicketDeliveryDate(submitDate, deliveryDate), tag,
-                    1, 1);
+                    this.getTicketDeliveryDate(submitDate, deliveryDate),
+                    this.createTicketLabel(label), 1, 1);
 
             final String msgKey = "msg-user-print-jobticket-copy";
 
@@ -616,10 +659,11 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public List<OutboxJobDto> proxyPrintInbox(final User lockedUser,
             final ProxyPrintInboxReq request, final Date deliveryDate,
-            final String tag) throws EcoPrintPdfTaskPendingException {
+            final JobTicketLabelDto label)
+            throws EcoPrintPdfTaskPendingException {
 
-        final ProxyPrintInbox executor =
-                new ProxyPrintInbox(this, deliveryDate, tag);
+        final ProxyPrintInbox executor = new ProxyPrintInbox(this, deliveryDate,
+                this.createTicketLabel(label));
 
         executor.print(lockedUser, request);
 
@@ -1917,7 +1961,7 @@ public final class JobTicketServiceImpl extends AbstractService
     public String createTicketNumber() {
         return chunkFormatted(
                 shuffle(Long.toHexString(DateUtil.uniqueCurrentTime())),
-                TICKER_NUMBER_CHUNK_WIDTH, TICKER_NUMBER_CHUNK_SEPARATOR)
+                TICKET_NUMBER_CHUNK_WIDTH, TICKET_NUMBER_CHUNK_SEPARATOR)
                         .toUpperCase();
     }
 
@@ -2027,18 +2071,27 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public Collection<JobTicketTagDto> getTicketTagsByWord() {
-        return JobTicketTagCache.getTicketTagsByWord();
+    public Collection<JobTicketDomainDto> getTicketDomainsByName() {
+        return JobTicketLabelCache.getTicketDomainsByName();
     }
 
     @Override
-    public JobTicketTagDto getTicketNumberTag(final String ticketNumber) {
-        final String[] words = StringUtils.split(ticketNumber,
-                TICKER_NUMBER_PREFIX_TAG_SEPARATOR);
-        if (words.length == 2) {
-            return JobTicketTagCache.getTicketTag(words[0]);
+    public Collection<JobTicketUseDto> getTicketUsesByName() {
+        return JobTicketLabelCache.getTicketUsesByName();
+    }
+
+    @Override
+    public Collection<JobTicketTagDto> getTicketTagsByName() {
+        return JobTicketLabelCache.getTicketTagsByName();
+    }
+
+    @Override
+    public String getTicketNumberLabel(final String ticketNumber) {
+        if (ticketNumber.indexOf(TICKET_NUMBER_PREFIX_LABEL_SEPARATOR) < 0) {
+            return null;
         }
-        return null;
+        return StringUtils.substringBeforeLast(ticketNumber,
+                TICKET_NUMBER_PREFIX_LABEL_SEPARATOR);
     }
 
     @Override

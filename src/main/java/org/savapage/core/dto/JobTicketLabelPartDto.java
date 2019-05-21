@@ -26,6 +26,25 @@ package org.savapage.core.dto;
  * @author Rijk Ravestein
  *
  */
-public final class JobTicketTagDto extends JobTicketLabelDomainPartDto {
+public abstract class JobTicketLabelPartDto extends AbstractDto {
+
+    private String id;
+    private String name;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(final String word) {
+        this.name = word;
+    }
 
 }

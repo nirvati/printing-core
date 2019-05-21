@@ -342,8 +342,11 @@ public final class OutboxInfoDto extends AbstractDto {
         private Long printOutId;
 
         /** */
+        private String jobTicketDomain;
+        /** */
+        private String jobTicketUse;
+        /** */
         private String jobTicketTag;
-
         /**
          *
          */
@@ -484,6 +487,38 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setPrintOutId(Long printOutId) {
             this.printOutId = printOutId;
+        }
+
+        /**
+         * @return Job Ticket Domain or {@code null}.
+         */
+        public String getJobTicketDomain() {
+            return jobTicketDomain;
+        }
+
+        /**
+         *
+         * @param jobTicketDomain
+         *            Job Ticket Domain or {@code null}.
+         */
+        public void setJobTicketDomain(String jobTicketDomain) {
+            this.jobTicketDomain = jobTicketDomain;
+        }
+
+        /**
+         * @return Job Ticket Use or {@code null}.
+         */
+        public String getJobTicketUse() {
+            return jobTicketUse;
+        }
+
+        /**
+         *
+         * @param jobTicketUse
+         *            Job Ticket Use or {@code null}.
+         */
+        public void setJobTicketUse(String jobTicketUse) {
+            this.jobTicketUse = jobTicketUse;
         }
 
         /**

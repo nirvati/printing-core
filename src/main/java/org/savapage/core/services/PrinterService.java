@@ -96,18 +96,18 @@ public interface PrinterService {
      */
     boolean isDocStoreDisabled(DocStoreTypeEnum store, Printer printer);
 
-
     /**
-     * Reads the database to check if Job Tickets Tags is enabled.
+     * Reads the database to check if Job Tickets Labels (Domain, Use, Tags) is
+     * enabled.
      *
      * @param id
      *            The database primary key.
      * @return {@code true} when Job Tickets Tags is enabled.
      */
-    boolean isJobTicketTagsEnabled(Long id);
+    boolean isJobTicketLabelsEnabled(Long id);
 
     /**
-     * Checks if Job Tickets Tags is enabled.
+     * Checks if if Job Tickets Labels (Domain, Use, Tags) is enabled.
      * <p>
      * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
      * find the {@link PrinterAttrEnum} value.
@@ -117,7 +117,7 @@ public interface PrinterService {
      *            The {@link Printer}.
      * @return {@code true} when Job Tickets Tags is enabled.
      */
-    boolean isJobTicketTagsEnabled(Printer printer);
+    boolean isJobTicketLabelsEnabled(Printer printer);
 
     /**
      * Reads the database to check if printer is a Job Ticket printer.

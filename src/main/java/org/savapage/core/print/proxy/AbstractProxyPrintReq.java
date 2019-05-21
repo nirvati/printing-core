@@ -124,6 +124,10 @@ public abstract class AbstractProxyPrintReq
     private boolean localBooklet = false;
 
     /** */
+    private String jobTicketDomain;
+    /** */
+    private String jobTicketUse;
+    /** */
     private String jobTicketTag;
 
     //
@@ -758,6 +762,36 @@ public abstract class AbstractProxyPrintReq
      */
     public void setLocalBooklet(boolean localBooklet) {
         this.localBooklet = localBooklet;
+    }
+
+    /**
+     * @return Job Ticket Domain or {@code null}.
+     */
+    public String getJobTicketDomain() {
+        return jobTicketDomain;
+    }
+
+    /**
+     * @param jobTicketDomain
+     *            Job Ticket Domain or {@code null}.
+     */
+    public void setJobTicketDomain(String jobTicketDomain) {
+        this.jobTicketDomain = jobTicketDomain;
+    }
+
+    /**
+     * @return Job Ticket Use or {@code null}.
+     */
+    public String getJobTicketUse() {
+        return jobTicketUse;
+    }
+
+    /**
+     * @param jobTicketUse
+     *            Job Ticket Use or {@code null}.
+     */
+    public void setJobTicketUse(String jobTicketUse) {
+        this.jobTicketUse = jobTicketUse;
     }
 
     /**

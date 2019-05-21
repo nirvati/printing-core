@@ -92,8 +92,8 @@ public class ProxyPrinterDto extends AbstractDto {
     String jobTicketGroup;
 
     /** */
-    @JsonProperty("jobTicketTagsEnabled")
-    Boolean jobTicketTagsEnabled;
+    @JsonProperty("jobTicketLabelsEnabled")
+    Boolean jobTicketLabelsEnabled;
 
     /**
      * Is present in CUPS?
@@ -213,12 +213,12 @@ public class ProxyPrinterDto extends AbstractDto {
         this.jobTicketGroup = jobTicketGroup;
     }
 
-    public Boolean getJobTicketTagsEnabled() {
-        return jobTicketTagsEnabled;
+    public Boolean getJobTicketLabelsEnabled() {
+        return jobTicketLabelsEnabled;
     }
 
-    public void setJobTicketTagsEnabled(Boolean jobTicketTagsEnabled) {
-        this.jobTicketTagsEnabled = jobTicketTagsEnabled;
+    public void setJobTicketLabelsEnabled(Boolean jobTicketLabelsEnabled) {
+        this.jobTicketLabelsEnabled = jobTicketLabelsEnabled;
     }
 
 }

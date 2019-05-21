@@ -89,6 +89,7 @@ import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.dto.IppMediaSourceCostDto;
 import org.savapage.core.dto.IppMediaSourceMappingDto;
+import org.savapage.core.dto.JobTicketLabelDto;
 import org.savapage.core.dto.PrinterSnmpDto;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
@@ -568,8 +569,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printer.setGroups(cupsPrinter.getGroups());
             printer.setPrinterUri(cupsPrinter.getPrinterUri());
             printer.setJobTicket(cupsPrinter.getJobTicket());
-            printer.setJobTicketTagsEnabled(
-                    cupsPrinter.getJobTicketTagsEnabled());
+            printer.setJobTicketLabelsEnabled(
+                    cupsPrinter.getJobTicketLabelsEnabled());
 
             printer.setArchiveDisabled(cupsPrinter.isArchiveDisabled());
 
@@ -962,8 +963,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     basicPrinter
                             .setJobTicket(Boolean.valueOf(isJobTicketPrinter));
 
-                    basicPrinter.setJobTicketTagsEnabled(
-                            printer.getJobTicketTagsEnabled());
+                    basicPrinter.setJobTicketLabelsEnabled(
+                            printer.getJobTicketLabelsEnabled());
                 }
 
             }
@@ -1154,8 +1155,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printerService().isJobTicketPrinter(dbPrinter.getId());
 
         proxyPrinter.setJobTicket(isJobTicketPrinter);
-        proxyPrinter.setJobTicketTagsEnabled(isJobTicketPrinter
-                || printerService().isJobTicketTagsEnabled(dbPrinter.getId()));
+        proxyPrinter.setJobTicketLabelsEnabled(
+                isJobTicketPrinter || printerService()
+                        .isJobTicketLabelsEnabled(dbPrinter.getId()));
 
         final String ppdfExtFile = printerService().getAttributeValue(dbPrinter,
                 PrinterAttrEnum.CUSTOM_PPD_EXT_FILE);
@@ -1981,6 +1983,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printReq.setPrinterName(job.getPrinter());
         }
 
+        printReq.setJobTicketDomain(job.getJobTicketDomain());
+        printReq.setJobTicketUse(job.getJobTicketUse());
         printReq.setJobTicketTag(job.getJobTicketTag());
 
         printReq.setRemoveGraphics(job.isRemoveGraphics());
@@ -2113,7 +2117,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
             printSupplierData.setOperator(operator);
 
         } else {
-            docLog.setExternalId(job.getJobTicketTag());
+            docLog.setExternalId(jobTicketService().createTicketLabel(
+                    new JobTicketLabelDto(job.getJobTicketDomain(),
+                            job.getJobTicketUse(), job.getJobTicketTag())));
 
             if (isPrinterPaperCutManaged) {
                 printSupplierData = new PrintSupplierData();
@@ -3244,7 +3250,16 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final ExternalSupplierInfo supplierInfo = request.getSupplierInfo();
 
         if (supplierInfo == null) {
-            docLog.setExternalId(request.getJobTicketTag());
+
+            final String ticketLabel = jobTicketService().createTicketLabel(
+                    new JobTicketLabelDto(request.getJobTicketDomain(),
+                            request.getJobTicketUse(),
+                            request.getJobTicketTag()));
+
+            if (StringUtils.isNotBlank(ticketLabel)) {
+                docLog.setExternalId(ticketLabel);
+            }
+
         } else {
             docLog.setExternalId(supplierInfo.getId());
             docLog.setExternalStatus(supplierInfo.getStatus());
