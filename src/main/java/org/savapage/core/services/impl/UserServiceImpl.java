@@ -84,6 +84,7 @@ import org.savapage.core.jpa.UserEmail;
 import org.savapage.core.jpa.UserGroup;
 import org.savapage.core.jpa.UserGroupMember;
 import org.savapage.core.jpa.UserNumber;
+import org.savapage.core.json.JobTicketProperties;
 import org.savapage.core.json.JsonRollingTimeSeries;
 import org.savapage.core.json.PdfProperties;
 import org.savapage.core.json.TimeSeriesInterval;
@@ -2573,6 +2574,7 @@ public final class UserServiceImpl extends AbstractService
             case PIN:
             case PGP_PUBKEY_ID:
             case PDF_PROPS:
+            case JOBTICKET_PROPS_LATEST:
             case UUID:
                 userAttrDAO().delete(attr);
                 iter.remove();
@@ -3262,7 +3264,7 @@ public final class UserServiceImpl extends AbstractService
     }
 
     @Override
-    public PdfProperties getPdfProperties(final User user) throws Exception {
+    public PdfProperties getPdfProperties(final User user) {
 
         PdfProperties props = null;
         String json = this.findUserAttrValue(user, UserAttrEnum.PDF_PROPS);
@@ -3276,8 +3278,8 @@ public final class UserServiceImpl extends AbstractService
              * Be forgiving ...
              */
             json = null;
-            LOGGER.warn("PDF Properties of user [" + user.getUserId()
-                    + "] are reset, because: " + e.getMessage());
+            LOGGER.warn("PDF Properties of user [{}] are reset, because: {}",
+                    user.getUserId(), e.getMessage());
         }
 
         if (json == null) {
@@ -3298,6 +3300,39 @@ public final class UserServiceImpl extends AbstractService
         objProps.getPw().encrypt();
 
         this.setUserAttrValue(user, UserAttrEnum.PDF_PROPS,
+                objProps.stringify());
+    }
+
+    @Override
+    public JobTicketProperties getJobTicketPropsLatest(final User user) {
+
+        JobTicketProperties props = null;
+        String json = this.findUserAttrValue(user,
+                UserAttrEnum.JOBTICKET_PROPS_LATEST);
+        try {
+            if (json != null) {
+                props = JobTicketProperties.create(json);
+            }
+        } catch (Exception e) {
+            // Be forgiving ...
+            json = null;
+            LOGGER.warn(
+                    "JobTicket properties of user [{}] are reset, because: {}",
+                    user.getUserId(), e.getMessage());
+        }
+
+        if (json == null) {
+            props = new JobTicketProperties();
+        }
+
+        return props;
+    }
+
+    @Override
+    public void setJobTicketPropsLatest(final User user,
+            final JobTicketProperties objProps) throws IOException {
+
+        this.setUserAttrValue(user, UserAttrEnum.JOBTICKET_PROPS_LATEST,
                 objProps.stringify());
     }
 

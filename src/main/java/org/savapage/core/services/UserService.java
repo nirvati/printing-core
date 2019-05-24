@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -37,6 +37,7 @@ import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.UserAttr;
+import org.savapage.core.json.JobTicketProperties;
 import org.savapage.core.json.PdfProperties;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.users.IUserSource;
@@ -668,6 +669,30 @@ public interface UserService {
     void lazyUserHomeDir(String userId) throws IOException;
 
     /**
+     * Gets the latest saved Job Ticket properties for a {@link User} from the
+     * database or by supplying a default.
+     *
+     * @param user
+     *            The {@link User}.
+     * @return The {@link JobTicketProperties}.
+     */
+    JobTicketProperties getJobTicketPropsLatest(User user);
+
+    /**
+     * Stores the latest properties of Job Ticket, created by a user, to the
+     * database.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param objProps
+     *            The {@link PdfProperties}.
+     * @throws IOException
+     *             When JSON things go wrong.
+     */
+    void setJobTicketPropsLatest(User user, JobTicketProperties objProps)
+            throws IOException;
+
+    /**
      * Gets the saved PDF properties for a {@link User} from the database or by
      * supplying a default.
      * <p>
@@ -677,10 +702,8 @@ public interface UserService {
      * @param user
      *            The {@link User}.
      * @return The {@link PdfProperties}.
-     * @throws Exception
-     *             When errors.
      */
-    PdfProperties getPdfProperties(User user) throws Exception;
+    PdfProperties getPdfProperties(User user);
 
     /**
      * Stores the PDF properties for the SafePages of a user to the database.

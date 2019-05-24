@@ -27,6 +27,7 @@ import java.util.Map;
 import org.savapage.core.SpException;
 import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.jpa.UserAttr;
+import org.savapage.core.json.JobTicketProperties;
 import org.savapage.lib.pgp.PGPKeyID;
 
 /**
@@ -73,6 +74,11 @@ public enum UserAttrEnum {
      * Password of an Internal user.
      */
     INTERNAL_PASSWORD("internal-password"),
+
+    /**
+     * JSON string of {@link JobTicketProperties}.
+     */
+    JOBTICKET_PROPS_LATEST("jobticket.properties.latest"),
 
     /**
      * Encrypted PIN optionally to be used in combination with ID number and
