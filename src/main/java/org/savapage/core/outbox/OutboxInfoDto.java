@@ -823,12 +823,48 @@ public final class OutboxInfoDto extends AbstractDto {
         }
 
         /**
-         *
          * @return {@code true} when this is a Delegated Print Job Ticket.
          */
         @JsonIgnore
         public boolean isDelegatedPrint() {
             return this.accountTransactions != null;
+        }
+
+        /**
+         * @return {@code true} when this Job Ticket is charged to a single
+         *         account.
+         */
+        @JsonIgnore
+        public boolean isSingleAccountPrint() {
+            if (this.accountTransactions == null) {
+                return true;
+            }
+            if (this.accountTransactions.transactions.size() != 1) {
+                return false;
+            }
+            final OutboxAccountTrxInfo trx =
+                    this.accountTransactions.transactions.get(0);
+
+            return trx.getWeight() == this.getCopies()
+                    && trx.getWeightUnit() == 1 && this.accountTransactions
+                            .getWeightTotal() == this.getCopies();
+        }
+
+        /**
+         * Sets number of printed copies for a single account print.
+         *
+         * @param copies
+         *            Number of printed copies.
+         */
+        public void setSingleAccountPrintCopies(final int copies) {
+            if (!this.isSingleAccountPrint()) {
+                throw new IllegalStateException("not a single account.");
+            }
+            this.setCopies(copies);
+            if (this.isDelegatedPrint()) {
+                this.accountTransactions.setWeightTotal(copies);
+                this.accountTransactions.transactions.get(0).setWeight(copies);
+            }
         }
 
         /**
