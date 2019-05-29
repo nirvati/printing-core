@@ -58,6 +58,9 @@ public enum AdjectiveEnum {
     UNKNOWN, KNOWN,
 
     /** */
+    REOPENED,
+
+    /** */
     PREFERRED,
 
     /** */

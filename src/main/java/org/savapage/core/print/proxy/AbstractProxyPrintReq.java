@@ -113,6 +113,11 @@ public abstract class AbstractProxyPrintReq
     private boolean archive;
 
     /**
+     * Disable print job journal.
+     */
+    private boolean disableJournal;
+
+    /**
      * {@code true} if PDF must to be converted to grayscale before proxy
      * printing.
      */
@@ -256,6 +261,14 @@ public abstract class AbstractProxyPrintReq
 
     public void setArchive(boolean archive) {
         this.archive = archive;
+    }
+
+    public boolean isDisableJournal() {
+        return disableJournal;
+    }
+
+    public void setDisableJournal(boolean disableJournal) {
+        this.disableJournal = disableJournal;
     }
 
     @Override

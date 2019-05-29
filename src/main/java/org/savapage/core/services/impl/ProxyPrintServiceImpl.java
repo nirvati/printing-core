@@ -1529,7 +1529,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
             docStoreType = DocStoreTypeEnum.ARCHIVE;
 
-        } else if (!jsonPrinter.isJournalDisabled()
+        } else if (!request.isDisableJournal()
+                && !jsonPrinter.isJournalDisabled()
                 && docStoreService().isEnabled(DocStoreTypeEnum.JOURNAL,
                         DocStoreBranchEnum.OUT_PRINT)
                 && accessControlService().hasAccess(docLog.getUser(),
@@ -2735,7 +2736,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOBTICKET_LABELS_ENABLE,
                 Boolean.valueOf(BooleanUtils.isNotTrue(dto.getJobTicket())
-                        && BooleanUtils.isTrue(dto.getJobTicketLabelsEnabled())));
+                        && BooleanUtils
+                                .isTrue(dto.getJobTicketLabelsEnabled())));
 
         /*
          * Printer Groups.

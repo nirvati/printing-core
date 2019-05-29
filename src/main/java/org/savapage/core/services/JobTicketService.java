@@ -31,6 +31,7 @@ import java.util.Locale;
 import java.util.SortedSet;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.dto.JobTicketDomainDto;
 import org.savapage.core.dto.JobTicketLabelDto;
 import org.savapage.core.dto.JobTicketTagDto;
@@ -41,6 +42,7 @@ import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.ipp.rules.IppRuleValidationException;
+import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
@@ -112,6 +114,22 @@ public interface JobTicketService extends StatefulService {
      */
     OutboxJobDto createCopyJob(User user, ProxyPrintInboxReq request,
             Date deliveryDate, JobTicketLabelDto label);
+
+    /**
+     * Reopens a Job Ticket for extra copies.
+     *
+     * @param docLog
+     *            The original {@link DocLog}.
+     * @param deliveryDate
+     *            Delivery date.
+     * @return The job ticket created.
+     * @throws IOException
+     *             If IO error.
+     * @throws DocStoreException
+     *             If original ticket does not exist.
+     */
+    OutboxJobDto reopenTicketForExtraCopies(DocLog docLog, Date deliveryDate)
+            throws IOException, DocStoreException;
 
     /**
      * Sends Job Ticket(s) to the OutBox.
@@ -392,6 +410,33 @@ public interface JobTicketService extends StatefulService {
      */
     OutboxJobDto settleTicket(String operator, Printer printer, String fileName)
             throws IOException;
+
+    /**
+     * Checks if job represents a reopened Job Ticket.
+     *
+     * @param job
+     *            The Job Ticket.
+     * @return {@code true} when this is a Reopened Job Ticket.
+     */
+    boolean isReopenedTicket(OutboxJobDto job);
+
+    /**
+     * Checks if job ticket number represents a reopened Job Ticket.
+     *
+     * @param ticketNumber
+     *            The Job Ticket number (can be {@code null}).
+     * @return {@code true} when ticket number represents a reopened Job Ticket.
+     */
+    boolean isReopenedTicketNumber(String ticketNumber);
+
+    /**
+     * Checks if job ticket number is active as reopened Job Ticket.
+     *
+     * @param ticketNumber
+     *            The Job Ticket number.
+     * @return {@code true} when ticket number is active as reopened Job Ticket.
+     */
+    boolean isTicketReopened(String ticketNumber);
 
     /**
      * Gets the list of {@link RedirectPrinterDto} compatible printers for a Job

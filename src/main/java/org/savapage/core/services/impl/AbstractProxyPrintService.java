@@ -2177,6 +2177,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             if (isJobTicket) {
 
+                printReq.setDisableJournal(
+                        jobTicketService().isReopenedTicket(job));
+
                 jobSheetDto = jobTicketService()
                         .getTicketJobSheet(printReq.createIppOptionMap());
 
@@ -2658,7 +2661,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                     printMode, pdfFileToPrint,
                     extPrinterManager == ThirdPartyEnum.PAPERCUT);
 
-            if (!job.isCopyJobTicket()) {
+            if (!job.isCopyJobTicket()
+                    && !jobTicketService().isReopenedTicket(job)) {
 
                 final DocStoreTypeEnum store;
 

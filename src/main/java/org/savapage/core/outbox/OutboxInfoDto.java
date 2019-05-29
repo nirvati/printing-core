@@ -347,9 +347,11 @@ public final class OutboxInfoDto extends AbstractDto {
         private String jobTicketUse;
         /** */
         private String jobTicketTag;
-        /**
-         *
-         */
+
+        /** */
+        private Boolean ticketReopen;
+
+        /** */
         @JsonIgnore
         private IppJobStateEnum ippJobState;
 
@@ -718,6 +720,14 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setArchive(Boolean archive) {
             this.archive = archive;
+        }
+
+        public Boolean getTicketReopen() {
+            return ticketReopen;
+        }
+
+        public void setTicketReopen(Boolean ticketReopen) {
+            this.ticketReopen = ticketReopen;
         }
 
         /**

@@ -56,6 +56,7 @@ import javax.mail.MessagingException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
 import org.savapage.core.SpException;
@@ -70,6 +71,8 @@ import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
+import org.savapage.core.doc.store.DocStoreException;
+import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.dto.JobTicketDomainDto;
 import org.savapage.core.dto.JobTicketLabelDto;
 import org.savapage.core.dto.JobTicketTagDto;
@@ -89,6 +92,8 @@ import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.PrinterGroupMember;
 import org.savapage.core.jpa.User;
+import org.savapage.core.outbox.OutboxInfoDto;
+import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobBaseDto;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
@@ -114,6 +119,7 @@ import org.savapage.core.services.helpers.JobTicketStats;
 import org.savapage.core.services.helpers.JobTicketWrapperDto;
 import org.savapage.core.services.helpers.PrintSupplierData;
 import org.savapage.core.services.helpers.PrinterAttrLookup;
+import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintInboxPattern;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.services.helpers.TicketJobSheetPdfCreator;
@@ -169,8 +175,14 @@ public final class JobTicketServiceImpl extends AbstractService
     /** */
     private static final String TICKET_NUMBER_PREFIX_LABEL_SEPARATOR = "/";
 
+    /** */
+    private static final String TICKET_NUMBER_SUFFIX_REOPEN = "+";
+
     /** By UUID. */
     private ConcurrentHashMap<UUID, OutboxJobDto> jobTicketCache;
+
+    /** By Ticket Number. */
+    private ConcurrentHashMap<String, OutboxJobDto> reopenedTicketCache;
 
     /** */
     private JobTicketQueueInfo jobTicketQueueInfo;
@@ -302,10 +314,10 @@ public final class JobTicketServiceImpl extends AbstractService
                 new LinkedHashMap<>();
         uuidPageCount.put(uuid.toString(), request.getNumberOfPages());
 
-        final OutboxJobDto dto = this.addJobticketToCache(lockedUser,
-                createInfo, uuid, request, uuidPageCount,
-                ServiceContext.getTransactionDate(), deliveryDate,
-                this.createTicketLabel(label), 1, 1);
+        final OutboxJobDto dto =
+                this.addJobticketToCache(lockedUser, createInfo, uuid, request,
+                        uuidPageCount, ServiceContext.getTransactionDate(),
+                        deliveryDate, this.createTicketLabel(label), 1, 1);
 
         final String msgKey = "msg-user-print-jobticket-print";
 
@@ -372,6 +384,27 @@ public final class JobTicketServiceImpl extends AbstractService
         dto.setTicketNumber(ticketNumber.toString());
 
         //
+        this.addJobticketToCache(uuid, createInfo, dto);
+        return dto;
+    }
+
+    /**
+     * Adds job ticket to cache.
+     *
+     * @param uuid
+     *            The Job Ticket {@link UUID}.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the PDF file to be printed by
+     *            the Job Ticket. Is {@code null} when Copy Job Ticket.
+     * @param dto
+     *            Job Ticket.
+     * @throws IOException
+     *             If IO error.
+     */
+    private void addJobticketToCache(final UUID uuid,
+            final PdfCreateInfo createInfo, final OutboxJobDto dto)
+            throws IOException {
+
         final File jsonFileTicket = getJobTicketFile(uuid, FILENAME_EXT_JSON);
 
         if (createInfo == null) {
@@ -382,13 +415,13 @@ public final class JobTicketServiceImpl extends AbstractService
             JsonHelper.write(dto, writer);
         }
 
-        /*
-         * Add to cache.
-         */
         this.jobTicketCache.put(uuid, dto);
-        incrementStats(dto);
 
-        return dto;
+        if (this.isReopenedTicketNumber(dto.getTicketNumber())) {
+            this.reopenedTicketCache.put(dto.getTicketNumber(), dto);
+        }
+
+        this.incrementStats(dto);
     }
 
     /**
@@ -473,19 +506,23 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     /**
-     * Creates a job ticket cache.
+     * Initializes job ticket cache.
      *
+     * @param svc
+     *            This service.
+     * @param jobTicketMap
+     *            Cache on UUID.
+     * @param reopenedTicketCache
+     *            Reopened ticket cache on Ticket number.
      * @param queueInfo
      *            The queue info to update.
-     * @return The cache.
      * @throws IOException
      *             When IO error.
      */
-    private static ConcurrentHashMap<UUID, OutboxJobDto> createTicketCache(
+    private static void initTicketCache(final JobTicketService svc,
+            final ConcurrentHashMap<UUID, OutboxJobDto> jobTicketMap,
+            final ConcurrentHashMap<String, OutboxJobDto> reopenedTicketCache,
             final JobTicketQueueInfo queueInfo) throws IOException {
-
-        final ConcurrentHashMap<UUID, OutboxJobDto> jobTicketMap =
-                new ConcurrentHashMap<>();
 
         final Set<UUID> uuidToDelete = new HashSet<>();
 
@@ -510,10 +547,13 @@ public final class JobTicketServiceImpl extends AbstractService
 
                     jobTicketMap.put(uuid, dto);
 
+                    if (svc.isReopenedTicket(dto)) {
+                        reopenedTicketCache.put(dto.getTicketNumber(), dto);
+                    }
+
                     incrementStats(queueInfo, dto);
 
                 } catch (JsonMappingException e) {
-
                     /*
                      * There has been a change in layout of the JSON file...
                      */
@@ -541,17 +581,18 @@ public final class JobTicketServiceImpl extends AbstractService
                 }
             }
         }
-
-        return jobTicketMap;
     }
 
     @Override
     public void start() {
 
+        this.jobTicketCache = new ConcurrentHashMap<>();
+        this.reopenedTicketCache = new ConcurrentHashMap<>();
         this.jobTicketQueueInfo = new JobTicketQueueInfo();
 
         try {
-            this.jobTicketCache = createTicketCache(this.jobTicketQueueInfo);
+            initTicketCache(this, this.jobTicketCache, this.reopenedTicketCache,
+                    this.jobTicketQueueInfo);
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);
         }
@@ -653,6 +694,110 @@ public final class JobTicketServiceImpl extends AbstractService
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);
         }
+        return dto;
+    }
+
+    @Override
+    public OutboxJobDto reopenTicketForExtraCopies(final DocLog docLog,
+            final Date deliveryDate) throws IOException, DocStoreException {
+
+        final PrintOut printOut = docLog.getDocOut().getPrintOut();
+        final PrintModeEnum printMode =
+                PrintModeEnum.valueOf(printOut.getPrintMode());
+        final boolean isCopyTicket = printMode == PrintModeEnum.TICKET_C;
+
+        final String ticketNumberOrg = docLog.getExternalId();
+
+        OutboxJobDto dto;
+        DocStoreTypeEnum docStoreType = null;
+
+        if (isCopyTicket) {
+
+            dto = new OutboxJobDto();
+            dto.setOptionValues(
+                    JsonHelper.createStringMap(printOut.getIppOptions()));
+
+            dto.setCollate(printOut.getCollateCopies().booleanValue());
+            dto.setPages(docLog.getNumberOfPages().intValue());
+
+            // TODO: reconstruct ticket labels from ticket number.
+            // dto.setJobTicketDomain(jobTicketDomain);
+            // dto.setJobTicketUse(jobTicketUse);
+            // dto.setJobTicketTag(jobTicketTag);
+
+            final AccountTrx trxDb = docLog.getTransactions().get(0);
+
+            final OutboxAccountTrxInfo trxInfo = new OutboxAccountTrxInfo();
+            trxInfo.setAccountId(trxDb.getAccount().getId());
+
+            final List<OutboxAccountTrxInfo> trxLst = new ArrayList<>();
+            trxLst.add(trxInfo);
+
+            final OutboxInfoDto.OutboxAccountTrxInfoSet trxSet =
+                    new OutboxInfoDto.OutboxAccountTrxInfoSet();
+            trxSet.setTransactions(trxLst);
+
+            dto.setAccountTransactions(trxSet);
+
+            // TODO: find Ticket Printer.
+
+        } else {
+            docStoreType = DocStoreTypeEnum.ARCHIVE;
+            try {
+                dto = docStoreService().retrieveJob(docStoreType, docLog);
+            } catch (DocStoreException e) {
+                docStoreType = DocStoreTypeEnum.JOURNAL;
+                dto = docStoreService().retrieveJob(docStoreType, docLog);
+            }
+        }
+        /*
+         * INVARIANT: ticket printer must be present.
+         */
+        if (StringUtils.isBlank(dto.getPrinter())) {
+            throw new IllegalStateException("No Ticket Printer specified.");
+        } else if (proxyPrintService()
+                .getCachedPrinter(dto.getPrinter()) == null) {
+            throw new IllegalStateException(String.format(
+                    "Ticket Printer [%s] not present.", dto.getPrinter()));
+        }
+
+        //
+        dto.setTicketReopen(Boolean.TRUE);
+        dto.setSubmitTime(ServiceContext.getTransactionDate().getTime());
+        dto.setExpiryTime(deliveryDate.getTime());
+
+        dto.setTicketNumber(
+                ticketNumberOrg.concat(TICKET_NUMBER_SUFFIX_REOPEN));
+        dto.setPrinterRedirect(null);
+
+        dto.setArchive(Boolean.FALSE);
+        dto.setCopies(0);
+        dto.setSheets(0);
+        dto.setCostResult(new ProxyPrintCostDto());
+
+        if (dto.getAccountTransactions() != null) {
+            dto.getAccountTransactions().setWeightTotal(0);
+            final OutboxAccountTrxInfo trx =
+                    dto.getAccountTransactions().getTransactions().get(0);
+            trx.setWeight(0);
+            trx.setWeightUnit(1);
+        }
+
+        final UUID uuid = UUID.randomUUID();
+        final PdfCreateInfo createInfo;
+        if (docStoreType == null) {
+            createInfo = null;
+        } else {
+            final File pdfFileTicket = getJobTicketFile(uuid, FILENAME_EXT_PDF);
+            dto.setFile(pdfFileTicket.getName());
+            final File pdfFileOriginal =
+                    docStoreService().retrievePdf(docStoreType, docLog);
+            FileUtils.copyFile(pdfFileOriginal, pdfFileTicket);
+            createInfo = new PdfCreateInfo(pdfFileTicket);
+        }
+
+        this.addJobticketToCache(uuid, createInfo, dto);
+
         return dto;
     }
 
@@ -849,6 +994,11 @@ public final class JobTicketServiceImpl extends AbstractService
         getJobTicketFile(uuid, FILENAME_EXT_PDF).delete();
 
         final OutboxJobDto dto = this.jobTicketCache.remove(uuid);
+
+        if (this.isReopenedTicketNumber(dto.getTicketNumber())) {
+            this.reopenedTicketCache.remove(dto.getTicketNumber());
+        }
+
         this.decrementStats(dto);
 
         return dto;
@@ -1008,6 +1158,10 @@ public final class JobTicketServiceImpl extends AbstractService
         }
 
         this.jobTicketCache.put(uuid, dto);
+
+        if (this.isReopenedTicketNumber(dto.getTicketNumber())) {
+            this.reopenedTicketCache.put(dto.getTicketNumber(), dto);
+        }
 
         final File jsonFileTicket = getJobTicketFile(uuid, FILENAME_EXT_JSON);
 
@@ -2106,6 +2260,23 @@ public final class JobTicketServiceImpl extends AbstractService
             throw new IllegalStateException(e.getMessage());
         }
         return DateUtil.getWeekDayOrdinals(exp);
+    }
+
+    @Override
+    public boolean isReopenedTicket(final OutboxJobDto job) {
+        return BooleanUtils.isTrue(job.getTicketReopen());
+    }
+
+    @Override
+    public boolean isReopenedTicketNumber(final String ticketNumber) {
+        return ticketNumber != null
+                && ticketNumber.endsWith(TICKET_NUMBER_SUFFIX_REOPEN);
+    }
+
+    @Override
+    public boolean isTicketReopened(final String ticketNumber) {
+        return this.reopenedTicketCache
+                .containsKey(ticketNumber.concat(TICKET_NUMBER_SUFFIX_REOPEN));
     }
 
 }

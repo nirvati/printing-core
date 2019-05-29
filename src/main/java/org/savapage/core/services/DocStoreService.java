@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -102,7 +102,7 @@ public interface DocStoreService {
      * @param store
      *            Type of store.
      * @param job
-     *            The {@link AbstractProxyPrintReq}.
+     *            The {@link OutboxJobDto}.
      * @param docLog
      *            The {@link DocLog} persisted in the database.
      * @param pdfFile
@@ -126,6 +126,22 @@ public interface DocStoreService {
      */
     File retrievePdf(DocStoreTypeEnum store, DocLog docLog)
             throws DocStoreException;
+
+    /**
+     * Retrieves job file of a logged document.
+     *
+     * @param store
+     *            Type of store.
+     * @param docLog
+     *            The {@link DocLog} persisted in the database.
+     * @return The job file.
+     * @throws DocStoreException
+     *             When job file can not be retrieved.
+     * @throws IOException
+     *             When JSON read error.
+     */
+    OutboxJobDto retrieveJob(DocStoreTypeEnum store, DocLog docLog)
+            throws DocStoreException, IOException;
 
     /**
      * Cleans a store by removing old documents.

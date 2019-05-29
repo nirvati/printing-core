@@ -309,6 +309,23 @@ public final class DocStoreServiceImpl extends AbstractService
     }
 
     @Override
+    public OutboxJobDto retrieveJob(final DocStoreTypeEnum store,
+            final DocLog docLog) throws DocStoreException, IOException {
+
+        final Path dir = getStorePath(store, getStoreBranch(docLog), docLog);
+        if (!dir.toFile().exists()) {
+            throw new DocStoreException("No storage found.");
+        }
+
+        final Path file = getStoredJson(dir, docLog.getUuid());
+        if (!file.toFile().exists()) {
+            throw new DocStoreException("No JSON found.");
+        }
+
+        return JsonHelper.read(OutboxJobDto.class, file.toFile());
+    }
+
+    @Override
     public void store(final DocStoreTypeEnum store,
             final AbstractProxyPrintReq request, final DocLog docLog,
             final PdfCreateInfo createInfo) throws DocStoreException {

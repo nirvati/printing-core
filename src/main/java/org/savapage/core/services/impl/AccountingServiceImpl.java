@@ -774,10 +774,13 @@ public final class AccountingServiceImpl extends AbstractService
 
                 trx.setCurrencyCode(ConfigManager.getAppCurrencyCode());
 
-                trx.setAmount(this.calcWeightedAmount(costTotal, weightTotal,
-                        trxInfo.getWeight(), weightUnit.intValue(), scale)
-                        .negate());
-
+                if (weightTotal == 0) {
+                    trx.setAmount(BigDecimal.ZERO);
+                } else {
+                    trx.setAmount(this.calcWeightedAmount(costTotal,
+                            weightTotal, trxInfo.getWeight(),
+                            weightUnit.intValue(), scale).negate());
+                }
                 trxList.add(trx);
             }
         }
