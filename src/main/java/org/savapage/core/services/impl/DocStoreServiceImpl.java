@@ -331,8 +331,7 @@ public final class DocStoreServiceImpl extends AbstractService
             final PdfCreateInfo createInfo) throws DocStoreException {
 
         final OutboxJobDto pojo = outboxService().createOutboxJob(request,
-                docLog.getCreatedDate(), docLog.getCreatedDate(), createInfo,
-                createInfo.getUuidPageCount());
+                docLog.getCreatedDate(), docLog.getCreatedDate(), createInfo);
 
         /*
          * Userid is not set in some cases. Therefore, explicitly set userid.

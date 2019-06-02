@@ -113,9 +113,6 @@ public abstract class ProxyPrintInboxPattern {
      *            The locked {@link User} who requested the print.
      * @param request
      *            The {@link ProxyPrintInboxReq}.
-     * @param uuidPageCount
-     *            Object filled with the number of selected pages per input file
-     *            UUID.
      * @param createInfo
      *            The {@link PdfCreateInfo}.
      * @param chunkIndex
@@ -124,9 +121,8 @@ public abstract class ProxyPrintInboxPattern {
      *            Total number of chunks;
      */
     protected abstract void onPdfGenerated(User lockedUser,
-            ProxyPrintInboxReq request,
-            LinkedHashMap<String, Integer> uuidPageCount,
-            PdfCreateInfo createInfo, int chunkIndex, int chunkSize);
+            ProxyPrintInboxReq request, PdfCreateInfo createInfo,
+            int chunkIndex, int chunkSize);
 
     /**
      *
@@ -325,8 +321,8 @@ public abstract class ProxyPrintInboxPattern {
 
             pdfFileGenerated = createInfo.getPdfFile();
 
-            this.onPdfGenerated(lockedUser, request, uuidPageCount, createInfo,
-                    chunkIndex, chunkSize);
+            this.onPdfGenerated(lockedUser, request, createInfo, chunkIndex,
+                    chunkSize);
 
             fileCreated = true;
 

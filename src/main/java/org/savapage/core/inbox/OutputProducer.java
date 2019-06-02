@@ -366,7 +366,7 @@ public final class OutputProducer {
         pdfRequest.setApplyLetterhead(false);
         pdfRequest.setForPrinting(false);
 
-        return generatePdf(pdfRequest, null, null).getPdfFile();
+        return this.generatePdf(pdfRequest, null, null).getPdfFile();
     }
 
     /**
@@ -434,7 +434,7 @@ public final class OutputProducer {
                 new LinkedHashMap<>();
 
         final PdfCreateInfo createInfo =
-                generatePdf(pdfRequest, uuidPageCount, docLog);
+                this.generatePdf(pdfRequest, uuidPageCount, docLog);
 
         DOCLOG_SERVICE.collectData4DocOut(pdfRequest.getUserObj(), docLog,
                 createInfo, uuidPageCount);

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,6 @@ package org.savapage.core.services;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -87,14 +86,10 @@ public interface OutboxService {
      * @param createInfo
      *            The {@link PdfCreateInfo} with the PDF file in the outbox. Is
      *            {@code null} when Copy Job Ticket.
-     * @param uuidPageCount
-     *            Object with the number of selected pages per input file UUID.
-     *            Is {@code null} when Copy Job Ticket.
      * @return The {@link OutboxJobDto}.
      */
     OutboxJobDto createOutboxJob(AbstractProxyPrintReq request, Date submitDate,
-            Date expiryDate, PdfCreateInfo createInfo,
-            LinkedHashMap<String, Integer> uuidPageCount);
+            Date expiryDate, PdfCreateInfo createInfo);
 
     /**
      * Cancels all jobs in the user's outbox.

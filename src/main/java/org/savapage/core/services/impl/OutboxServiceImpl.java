@@ -168,13 +168,11 @@ public final class OutboxServiceImpl extends AbstractService
         @Override
         protected void onPdfGenerated(final User lockedUser,
                 final ProxyPrintInboxReq request,
-                final LinkedHashMap<String, Integer> uuidPageCount,
                 final PdfCreateInfo createInfo, final int chunkIndex,
                 final int chunkSize) {
 
-            final OutboxJobDto job =
-                    this.serviceImpl.createOutboxJob(request, this.submitDate,
-                            this.expiryDate, createInfo, uuidPageCount);
+            final OutboxJobDto job = this.serviceImpl.createOutboxJob(request,
+                    this.submitDate, this.expiryDate, createInfo);
 
             job.setChunkIndex(Integer.valueOf(chunkIndex));
             job.setChunkSize(Integer.valueOf(chunkSize));
@@ -310,8 +308,7 @@ public final class OutboxServiceImpl extends AbstractService
     @Override
     public OutboxJobDto createOutboxJob(final AbstractProxyPrintReq request,
             final Date submitDate, final Date expiryDate,
-            final PdfCreateInfo createInfo,
-            final LinkedHashMap<String, Integer> uuidPageCount) {
+            final PdfCreateInfo createInfo) {
 
         final OutboxJobDto job = new OutboxJobDto();
 
@@ -322,6 +319,7 @@ public final class OutboxServiceImpl extends AbstractService
             // Print job
             job.setFillerPages(createInfo.getBlankFillerPages());
             job.setFile(createInfo.getPdfFile().getName());
+            job.setUuidPageCount(createInfo.getUuidPageCount());
         }
 
         // Note: set userid for Job Ticket only. Hold Release jobs do NOT have
@@ -367,7 +365,6 @@ public final class OutboxServiceImpl extends AbstractService
 
         job.setDrm(request.isDrm());
         job.putOptionValues(request.getOptionValues());
-        job.setUuidPageCount(uuidPageCount);
 
         if (request.getSupplierInfo() != null) {
             job.setExternalSupplierInfo(request.getSupplierInfo());
@@ -414,8 +411,10 @@ public final class OutboxServiceImpl extends AbstractService
             uuidPageCount.put(printInfo.getUuidJob().toString(),
                     Integer.valueOf(request.getNumberOfPages()));
 
-            final OutboxJobDto job = createOutboxJob(request, submitDate,
-                    expiryDate, createInfo, uuidPageCount);
+            createInfo.setUuidPageCount(uuidPageCount);
+
+            final OutboxJobDto job = this.createOutboxJob(request, submitDate,
+                    expiryDate, createInfo);
 
             job.setChunkIndex(Integer.valueOf(1));
             job.setChunkSize(Integer.valueOf(1));

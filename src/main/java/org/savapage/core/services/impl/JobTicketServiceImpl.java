@@ -263,7 +263,6 @@ public final class JobTicketServiceImpl extends AbstractService
         @Override
         protected void onPdfGenerated(final User lockedUser,
                 final ProxyPrintInboxReq request,
-                final LinkedHashMap<String, Integer> uuidPageCount,
                 final PdfCreateInfo createInfo, final int chunkIndex,
                 final int chunkSize) {
 
@@ -272,9 +271,8 @@ public final class JobTicketServiceImpl extends AbstractService
 
             try {
                 final OutboxJobDto dto = this.serviceImpl.addJobticketToCache(
-                        lockedUser, createInfo, uuid, request, uuidPageCount,
-                        this.submitDate, this.deliveryDate, this.label,
-                        chunkIndex, chunkSize);
+                        lockedUser, createInfo, uuid, request, this.submitDate,
+                        this.deliveryDate, this.label, chunkIndex, chunkSize);
 
                 ticketsCreated.add(dto);
 
@@ -315,10 +313,11 @@ public final class JobTicketServiceImpl extends AbstractService
                 new LinkedHashMap<>();
         uuidPageCount.put(uuid.toString(), request.getNumberOfPages());
 
-        final OutboxJobDto dto =
-                this.addJobticketToCache(lockedUser, createInfo, uuid, request,
-                        uuidPageCount, ServiceContext.getTransactionDate(),
-                        deliveryDate, this.createTicketLabel(label), 1, 1);
+        createInfo.setUuidPageCount(uuidPageCount);
+
+        final OutboxJobDto dto = this.addJobticketToCache(lockedUser,
+                createInfo, uuid, request, ServiceContext.getTransactionDate(),
+                deliveryDate, this.createTicketLabel(label), 1, 1);
 
         final String msgKey = "msg-user-print-jobticket-print";
 
@@ -340,9 +339,6 @@ public final class JobTicketServiceImpl extends AbstractService
      *            The Job Ticket {@link UUID}.
      * @param request
      *            The {@link AbstractProxyPrintReq}.
-     * @param uuidPageCount
-     *            Object filled with the number of selected pages per input file
-     *            UUID. Is {@code null} when Copy Job Ticket.
      * @param submitDate
      *            The submit date.
      * @param deliveryDate
@@ -361,13 +357,12 @@ public final class JobTicketServiceImpl extends AbstractService
      */
     private OutboxJobDto addJobticketToCache(final User user,
             final PdfCreateInfo createInfo, final UUID uuid,
-            final AbstractProxyPrintReq request,
-            final LinkedHashMap<String, Integer> uuidPageCount,
-            final Date submitDate, final Date deliveryDate, final String label,
-            final int chunkIndex, final int chunkSize) throws IOException {
+            final AbstractProxyPrintReq request, final Date submitDate,
+            final Date deliveryDate, final String label, final int chunkIndex,
+            final int chunkSize) throws IOException {
 
         final OutboxJobDto dto = outboxService().createOutboxJob(request,
-                submitDate, deliveryDate, createInfo, uuidPageCount);
+                submitDate, deliveryDate, createInfo);
 
         dto.setUserId(user.getId());
         dto.setChunkIndex(Integer.valueOf(chunkIndex));
@@ -710,7 +705,7 @@ public final class JobTicketServiceImpl extends AbstractService
         final OutboxJobDto dto;
 
         try {
-            dto = this.addJobticketToCache(user, null, uuid, request, null,
+            dto = this.addJobticketToCache(user, null, uuid, request,
                     submitDate,
                     this.getTicketDeliveryDate(submitDate, deliveryDate),
                     this.createTicketLabel(label), 1, 1);
