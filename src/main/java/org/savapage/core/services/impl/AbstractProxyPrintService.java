@@ -1979,10 +1979,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         if (job.isJobTicket()) {
             printReq.setPrinterName(job.getPrinterRedirect());
+            printReq.setTicketPrinterName(job.getPrinter());
         } else {
             printReq.setPrinterName(job.getPrinter());
         }
 
+        printReq.setJobTicketNumber(job.getTicketNumber());
         printReq.setJobTicketDomain(job.getJobTicketDomain());
         printReq.setJobTicketUse(job.getJobTicketUse());
         printReq.setJobTicketTag(job.getJobTicketTag());
@@ -2158,6 +2160,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         final PdfCreateInfo createInfo = new PdfCreateInfo(pdfFileToPrint);
         createInfo.setBlankFillerPages(job.getFillerPages());
+        createInfo.setUuidPageCount(job.getUuidPageCount());
 
         if (printMode == PrintModeEnum.TICKET_C) {
             docLogService().collectData4DocOutCopyJob(lockedUser, docLog,
@@ -2179,6 +2182,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
                 printReq.setDisableJournal(
                         jobTicketService().isReopenedTicket(job));
+
+                printReq.setTicketPrinterName(job.getPrinter());
 
                 jobSheetDto = jobTicketService()
                         .getTicketJobSheet(printReq.createIppOptionMap());
@@ -2650,19 +2655,21 @@ public abstract class AbstractProxyPrintService extends AbstractService
         try {
 
             final PrintModeEnum printMode;
+            final File pdfToStore;
 
             if (job.isCopyJobTicket()) {
                 printMode = PrintModeEnum.TICKET_C;
+                pdfToStore = null;
             } else {
                 printMode = PrintModeEnum.TICKET_E;
+                pdfToStore = pdfFileToPrint;
             }
 
             final DocLog docLog = this.execOutboxJob(operator, lockedUser, job,
                     printMode, pdfFileToPrint,
                     extPrinterManager == ThirdPartyEnum.PAPERCUT);
 
-            if (!job.isCopyJobTicket()
-                    && !jobTicketService().isReopenedTicket(job)) {
+            if (!jobTicketService().isReopenedTicket(job)) {
 
                 final DocStoreTypeEnum store;
 
@@ -2676,7 +2683,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 }
 
                 if (store != null) {
-                    docStoreService().store(store, job, docLog, pdfFileToPrint);
+                    docStoreService().store(store, job, docLog, pdfToStore);
                 }
             }
         } catch (IppConnectException e) {
@@ -3523,6 +3530,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         uuidPageCount.put(request.getDocumentUuid(),
                 Integer.valueOf(request.getNumberOfPages()));
+
+        createInfo.setUuidPageCount(uuidPageCount);
 
         try {
             docLogService().collectData4DocOut(lockedUser, docLog, createInfo,

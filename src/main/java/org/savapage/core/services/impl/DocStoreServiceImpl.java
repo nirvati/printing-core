@@ -332,7 +332,17 @@ public final class DocStoreServiceImpl extends AbstractService
 
         final OutboxJobDto pojo = outboxService().createOutboxJob(request,
                 docLog.getCreatedDate(), docLog.getCreatedDate(), createInfo,
-                null);
+                createInfo.getUuidPageCount());
+
+        /*
+         * Userid is not set in some cases. Therefore, explicitly set userid.
+         */
+        pojo.setUserId(request.getIdUser());
+
+        if (pojo.isJobTicket()) {
+            pojo.setPrinter(request.getTicketPrinterName());
+            pojo.setPrinterRedirect(request.getPrinterName());
+        }
 
         this.store(store, DocStoreBranchEnum.OUT_PRINT, pojo, docLog,
                 createInfo);
@@ -342,8 +352,14 @@ public final class DocStoreServiceImpl extends AbstractService
     public void store(final DocStoreTypeEnum store, final OutboxJobDto job,
             final DocLog docLog, final File pdfFile) throws DocStoreException {
 
+        final PdfCreateInfo createInfo;
+        if (pdfFile == null) {
+            createInfo = null;
+        } else {
+            createInfo = new PdfCreateInfo(pdfFile);
+        }
         this.store(store, DocStoreBranchEnum.OUT_PRINT, job, docLog,
-                new PdfCreateInfo(pdfFile));
+                createInfo);
     }
 
     /**
@@ -358,7 +374,8 @@ public final class DocStoreServiceImpl extends AbstractService
      * @param docLog
      *            The {@link DocLog} persisted in the database.
      * @param createInfo
-     *            The {@link PdfCreateInfo} with the PDF file.
+     *            The {@link PdfCreateInfo} with the PDF file. Is {@code null}
+     *            for Copy Job Ticket.
      * @throws DocStoreException
      *             When IO errors.
      */
@@ -372,8 +389,10 @@ public final class DocStoreServiceImpl extends AbstractService
         try {
             FileUtils.forceMkdir(dir.toFile());
 
-            FileUtils.copyFile(createInfo.getPdfFile(),
-                    getStoredPdf(dir, docLog.getUuid()).toFile());
+            if (createInfo != null) {
+                FileUtils.copyFile(createInfo.getPdfFile(),
+                        getStoredPdf(dir, docLog.getUuid()).toFile());
+            }
 
         } catch (IOException e) {
             throw new DocStoreException(e.getMessage());

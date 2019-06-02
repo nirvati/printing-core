@@ -120,15 +120,13 @@ public interface JobTicketService extends StatefulService {
      *
      * @param docLog
      *            The original {@link DocLog}.
-     * @param deliveryDate
-     *            Delivery date.
      * @return The job ticket created.
      * @throws IOException
      *             If IO error.
      * @throws DocStoreException
      *             If original ticket does not exist.
      */
-    OutboxJobDto reopenTicketForExtraCopies(DocLog docLog, Date deliveryDate)
+    OutboxJobDto reopenTicketForExtraCopies(DocLog docLog)
             throws IOException, DocStoreException;
 
     /**
@@ -549,5 +547,14 @@ public interface JobTicketService extends StatefulService {
      *         (Sunday is zero).
      */
     SortedSet<Integer> getDeliveryDaysOfWeek();
+
+    /**
+     * Calculates the next Job Ticket delivery date.
+     *
+     * @param offsetDate
+     *            Date offset.
+     * @return Next Job Ticket delivery date.
+     */
+    Date getDeliveryDateNext(Date offsetDate);
 
 }

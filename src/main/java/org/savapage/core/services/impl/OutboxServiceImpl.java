@@ -324,6 +324,12 @@ public final class OutboxServiceImpl extends AbstractService
             job.setFile(createInfo.getPdfFile().getName());
         }
 
+        // Note: set userid for Job Ticket only. Hold Release jobs do NOT have
+        // userid.
+        if (job.isJobTicket()) {
+            job.setUserId(request.getIdUser());
+        }
+
         job.setSheets(PdfPrintCollector.calcNumberOfPrintedSheets(request,
                 job.getFillerPages()));
 
@@ -339,6 +345,7 @@ public final class OutboxServiceImpl extends AbstractService
         job.setSubmitTime(submitDate.getTime());
         job.setExpiryTime(expiryDate.getTime());
 
+        job.setTicketNumber(request.getJobTicketNumber());
         job.setJobTicketDomain(request.getJobTicketDomain());
         job.setJobTicketUse(request.getJobTicketUse());
         job.setJobTicketTag(request.getJobTicketTag());

@@ -330,8 +330,8 @@ public final class OutboxInfoDto extends AbstractDto {
     public static final class OutboxJobDto extends OutboxJobBaseDto {
 
         /**
-         * The primary database key of the {@link User}. Is {@code null} when in
-         * User outbox.
+         * The primary database key of the {@link User}. Is {@code null} when
+         * this job resides in User outbox.
          */
         private Long userId;
 
@@ -358,6 +358,7 @@ public final class OutboxInfoDto extends AbstractDto {
         /**
          * .
          */
+        @JsonIgnore
         private ExternalSupplierInfo externalSupplierInfo;
 
         private String file;
@@ -474,11 +475,20 @@ public final class OutboxInfoDto extends AbstractDto {
             return booklet;
         }
 
-        //
+        /**
+         *
+         * @return The primary database key of the {@link User}. Is {@code null}
+         *         when this job resides in User outbox.
+         */
         public Long getUserId() {
             return userId;
         }
 
+        /**
+         * @param userId
+         *            The primary database key of the {@link User}. Is
+         *            {@code null} when this job resides in User outbox.
+         */
         public void setUserId(Long userId) {
             this.userId = userId;
         }
@@ -548,10 +558,12 @@ public final class OutboxInfoDto extends AbstractDto {
             this.ippJobState = ippJobState;
         }
 
+        @JsonIgnore
         public ExternalSupplierInfo getExternalSupplierInfo() {
             return externalSupplierInfo;
         }
 
+        @JsonIgnore
         public void setExternalSupplierInfo(
                 ExternalSupplierInfo externalSupplierInfo) {
             this.externalSupplierInfo = externalSupplierInfo;

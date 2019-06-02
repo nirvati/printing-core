@@ -37,6 +37,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -58,6 +59,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.quartz.CronExpression;
 import org.savapage.core.SpException;
 import org.savapage.core.circuitbreaker.CircuitBreakerException;
@@ -92,7 +94,6 @@ import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.PrinterGroupMember;
 import org.savapage.core.jpa.User;
-import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobBaseDto;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
@@ -631,6 +632,35 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     /**
+     * Calculates the next Job Ticket delivery date.
+     *
+     * @param offsetDate
+     *            Date offset.
+     * @return Next Job Ticket delivery date.
+     */
+    @Override
+    public Date getDeliveryDateNext(final Date offsetDate) {
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        Date deliveryDateWlk = offsetDate;
+
+        if (cm.isConfigValue(Key.JOBTICKET_DELIVERY_DATETIME_ENABLE)) {
+
+            deliveryDateWlk = DateUtils.addDays(deliveryDateWlk,
+                    cm.getConfigInt(Key.JOBTICKET_DELIVERY_DAYS, 0));
+
+            deliveryDateWlk = this.getDeliveryDaysOfWeekCron()
+                    .getNextValidTimeAfter(deliveryDateWlk);
+
+            deliveryDateWlk = DateUtils.addMinutes(
+                    DateUtils.truncate(deliveryDateWlk, Calendar.DAY_OF_MONTH),
+                    cm.getConfigInt(Key.JOBTICKET_DELIVERY_DAY_MINUTES, 0));
+        }
+        return deliveryDateWlk;
+    }
+
+    /**
      * Creates a job ticket label from constituents.
      *
      * @param domain
@@ -698,8 +728,8 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
-    public OutboxJobDto reopenTicketForExtraCopies(final DocLog docLog,
-            final Date deliveryDate) throws IOException, DocStoreException {
+    public OutboxJobDto reopenTicketForExtraCopies(final DocLog docLog)
+            throws IOException, DocStoreException {
 
         final PrintOut printOut = docLog.getDocOut().getPrintOut();
         final PrintModeEnum printMode =
@@ -711,60 +741,40 @@ public final class JobTicketServiceImpl extends AbstractService
         OutboxJobDto dto;
         DocStoreTypeEnum docStoreType = null;
 
-        if (isCopyTicket) {
-
-            dto = new OutboxJobDto();
-            dto.setOptionValues(
-                    JsonHelper.createStringMap(printOut.getIppOptions()));
-
-            dto.setCollate(printOut.getCollateCopies().booleanValue());
-            dto.setPages(docLog.getNumberOfPages().intValue());
-
-            // TODO: reconstruct ticket labels from ticket number.
-            // dto.setJobTicketDomain(jobTicketDomain);
-            // dto.setJobTicketUse(jobTicketUse);
-            // dto.setJobTicketTag(jobTicketTag);
-
-            final AccountTrx trxDb = docLog.getTransactions().get(0);
-
-            final OutboxAccountTrxInfo trxInfo = new OutboxAccountTrxInfo();
-            trxInfo.setAccountId(trxDb.getAccount().getId());
-
-            final List<OutboxAccountTrxInfo> trxLst = new ArrayList<>();
-            trxLst.add(trxInfo);
-
-            final OutboxInfoDto.OutboxAccountTrxInfoSet trxSet =
-                    new OutboxInfoDto.OutboxAccountTrxInfoSet();
-            trxSet.setTransactions(trxLst);
-
-            dto.setAccountTransactions(trxSet);
-
-            // TODO: find Ticket Printer.
-
-        } else {
-            docStoreType = DocStoreTypeEnum.ARCHIVE;
-            try {
-                dto = docStoreService().retrieveJob(docStoreType, docLog);
-            } catch (DocStoreException e) {
-                docStoreType = DocStoreTypeEnum.JOURNAL;
-                dto = docStoreService().retrieveJob(docStoreType, docLog);
-            }
+        docStoreType = DocStoreTypeEnum.ARCHIVE;
+        try {
+            dto = docStoreService().retrieveJob(docStoreType, docLog);
+        } catch (DocStoreException e) {
+            docStoreType = DocStoreTypeEnum.JOURNAL;
+            dto = docStoreService().retrieveJob(docStoreType, docLog);
         }
+
         /*
-         * INVARIANT: ticket printer must be present.
+         * Reject old store format.
          */
-        if (StringUtils.isBlank(dto.getPrinter())) {
-            throw new IllegalStateException("No Ticket Printer specified.");
-        } else if (proxyPrintService()
-                .getCachedPrinter(dto.getPrinter()) == null) {
-            throw new IllegalStateException(String.format(
+        if (dto.getUserId() == null || //
+                StringUtils.isBlank(dto.getPrinter()) || //
+                StringUtils.isBlank(dto.getPrinterRedirect()) || //
+                (!isCopyTicket && dto.getUuidPageCount() == null) || //
+                StringUtils.isBlank(dto.getTicketNumber())) {
+            throw new DocStoreException(
+                    "Legacy print store format not supported.");
+        }
+
+        /*
+         * INVARIANT: ticket printer printer must be present.
+         */
+        if (proxyPrintService().getCachedPrinter(dto.getPrinter()) == null) {
+            throw new DocStoreException(String.format(
                     "Ticket Printer [%s] not present.", dto.getPrinter()));
         }
 
         //
         dto.setTicketReopen(Boolean.TRUE);
         dto.setSubmitTime(ServiceContext.getTransactionDate().getTime());
-        dto.setExpiryTime(deliveryDate.getTime());
+        dto.setExpiryTime(
+                this.getDeliveryDateNext(ServiceContext.getTransactionDate())
+                        .getTime());
 
         dto.setTicketNumber(
                 ticketNumberOrg.concat(TICKET_NUMBER_SUFFIX_REOPEN));
@@ -785,7 +795,7 @@ public final class JobTicketServiceImpl extends AbstractService
 
         final UUID uuid = UUID.randomUUID();
         final PdfCreateInfo createInfo;
-        if (docStoreType == null) {
+        if (isCopyTicket) {
             createInfo = null;
         } else {
             final File pdfFileTicket = getJobTicketFile(uuid, FILENAME_EXT_PDF);
@@ -2250,16 +2260,20 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public SortedSet<Integer> getDeliveryDaysOfWeek() {
+        return DateUtil.getWeekDayOrdinals(this.getDeliveryDaysOfWeekCron());
+    }
 
-        final CronExpression exp;
+    /**
+     * @return CRON expression of valid Job Ticket delivery days.
+     */
+    private CronExpression getDeliveryDaysOfWeekCron() {
         try {
-            exp = new CronExpression(String.format("0 0 0 ? * %s",
+            return new CronExpression(String.format("0 0 0 ? * %s",
                     ConfigManager.instance().getConfigValue(
                             Key.JOBTICKET_DELIVERY_DAYS_OF_WEEK)));
         } catch (ParseException e) {
             throw new IllegalStateException(e.getMessage());
         }
-        return DateUtil.getWeekDayOrdinals(exp);
     }
 
     @Override

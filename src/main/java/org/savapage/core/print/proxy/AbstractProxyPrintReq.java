@@ -94,6 +94,7 @@ public abstract class AbstractProxyPrintReq
     private PrintModeEnum printMode;
 
     private String printerName;
+    private String ticketPrinterName;
     private String jobName;
     private int numberOfCopies;
     private int numberOfPages;
@@ -128,6 +129,8 @@ public abstract class AbstractProxyPrintReq
      */
     private boolean localBooklet = false;
 
+    /** */
+    private String jobTicketNumber;
     /** */
     private String jobTicketDomain;
     /** */
@@ -303,6 +306,14 @@ public abstract class AbstractProxyPrintReq
 
     public void setPrinterName(String printerName) {
         this.printerName = printerName;
+    }
+
+    public String getTicketPrinterName() {
+        return ticketPrinterName;
+    }
+
+    public void setTicketPrinterName(String ticketPrinterName) {
+        this.ticketPrinterName = ticketPrinterName;
     }
 
     public String getJobName() {
@@ -775,6 +786,14 @@ public abstract class AbstractProxyPrintReq
      */
     public void setLocalBooklet(boolean localBooklet) {
         this.localBooklet = localBooklet;
+    }
+
+    public String getJobTicketNumber() {
+        return jobTicketNumber;
+    }
+
+    public void setJobTicketNumber(String jobTicketNumber) {
+        this.jobTicketNumber = jobTicketNumber;
     }
 
     /**

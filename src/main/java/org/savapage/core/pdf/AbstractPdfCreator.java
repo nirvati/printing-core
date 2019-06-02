@@ -26,8 +26,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -395,7 +395,7 @@ public abstract class AbstractPdfCreator {
      *             pending.
      */
     public PdfCreateInfo generate(final PdfCreateRequest createReq,
-            final Map<String, Integer> uuidPageCount, final DocLog docLog)
+            final LinkedHashMap<String, Integer> uuidPageCount, final DocLog docLog)
             throws LetterheadNotFoundException, PostScriptDrmException,
             EcoPrintPdfTaskPendingException {
         //
@@ -810,6 +810,7 @@ public abstract class AbstractPdfCreator {
         createInfo.setLogicalJobPages(logicalJobPages);
         createInfo.setPdfOrientationInfo(this.firstPageOrientationInfo);
         createInfo.setPgpSigned(isPgpSigned);
+        createInfo.setUuidPageCount(uuidPageCount);
 
         return createInfo;
     }

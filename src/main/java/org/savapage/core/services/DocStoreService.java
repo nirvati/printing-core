@@ -97,7 +97,7 @@ public interface DocStoreService {
             DocLog docLog, PdfCreateInfo createInfo) throws DocStoreException;
 
     /**
-     * Stores a proxy printed document.
+     * Stores a (proxy) printed document.
      *
      * @param store
      *            Type of store.
@@ -106,7 +106,8 @@ public interface DocStoreService {
      * @param docLog
      *            The {@link DocLog} persisted in the database.
      * @param pdfFile
-     *            The PDF file sent to the printer.
+     *            The PDF file sent to the printer. Is {@code null} for Copy Job
+     *            Ticket print.
      * @throws DocStoreException
      *             When IO errors.
      */

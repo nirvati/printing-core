@@ -837,7 +837,8 @@ public interface ProxyPrintService {
      * @param job
      *            The {@link OutboxJobDto} Job Ticket.
      * @param pdfFileNotToPrint
-     *            The PDF file <b>not</b> to print.
+     *            The PDF file <b>not</b> to proxy print. Is {@code null} for
+     *            Copy Job Ticket.
      * @param extPrinterManager
      *            The {@link ThirdPartyEnum} external print manager:
      *            {@code null} when native SavaPage.
