@@ -519,11 +519,15 @@ public final class InboxServiceImpl implements InboxService {
          */
         final String ranges = rangesIn.trim().replace(" ", "");
 
-        final List<RangeAtom> rangeAtoms;
+        List<RangeAtom> rangeAtoms = null;
 
         try {
             rangeAtoms = this.createSortedRangeArray(ranges);
         } catch (Exception e) {
+            rangeAtoms = null;
+        }
+
+        if (rangeAtoms == null) {
             throw new PageRangeException(PageRangeException.Reason.SYNTAX,
                     nPagesInScope, ranges);
         }
