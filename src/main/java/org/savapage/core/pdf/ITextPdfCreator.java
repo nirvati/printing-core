@@ -361,8 +361,11 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             reader = new PdfReader(filePathPdf);
 
             if (reader.isEncrypted()) {
+
+                final int permissions = (int) reader.getPermissions();
                 final boolean isPrintingAllowed = PdfEncryptor
-                        .isPrintingAllowed((int) reader.getPermissions());
+                        .isPrintingAllowed(permissions)
+                        || PdfEncryptor.isDegradedPrintingAllowed(permissions);
 
                 final PhraseEnum phrase;
                 if (isPrintingAllowed) {
