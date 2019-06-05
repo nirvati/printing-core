@@ -96,7 +96,7 @@ public final class Messages extends MessagesBundleMixin {
      *            The name of the resource bundle without the locale suffix and
      *            file extension.
      * @param locale
-     *            The {@link Locale}.
+     *            The {@link Locale}. Use {@code null} for default locale.
      * @return The {@link ResourceBundle}.
      */
     public static ResourceBundle loadXmlResource(
@@ -107,7 +107,7 @@ public final class Messages extends MessagesBundleMixin {
     }
 
     /**
-     * Loads a {@link ResourceBundle} from the file system.
+     * Loads a custom {@link ResourceBundle} from the file system.
      *
      * @param clazz
      *            The class.
@@ -117,9 +117,27 @@ public final class Messages extends MessagesBundleMixin {
      */
     public static ResourceBundle loadXmlResourceCustom(
             final Class<? extends Object> clazz, final Locale locale) {
+        return loadXmlResourceCustom(clazz, clazz.getSimpleName(), locale);
+    }
+
+    /**
+     * Loads a custom {@link ResourceBundle} from the file system.
+     *
+     * @param clazz
+     *            The class.
+     * @param locale
+     *            The locale.
+     * @param resourceName
+     *            The name of the resource bundle <i>without</i> the locale
+     *            suffix and file extension.
+     * @return {@code null} when resource is not found.
+     */
+    private static ResourceBundle loadXmlResourceCustom(
+            final Class<? extends Object> clazz, final String resourceName,
+            final Locale locale) {
         try {
             return loadXmlResource(ConfigManager.getServerCustomI18nHome(clazz),
-                    clazz.getSimpleName(), locale);
+                    resourceName, locale);
 
         } catch (MissingResourceException e) {
             // no code intended;
@@ -133,10 +151,10 @@ public final class Messages extends MessagesBundleMixin {
      * @param directory
      *            The directory location of the XML resource.
      * @param resourceName
-     *            The name of the resource bundle without the locale suffix and
-     *            file extension.
+     *            The name of the resource bundle <i>without</i> the locale
+     *            suffix and file extension.
      * @param candidate
-     *            The {@link Locale}.
+     *            The {@link Locale}. Use {@code null} for default locale.
      * @return The {@link ResourceBundle}.
      */
     public static ResourceBundle loadXmlResource(final File directory,
@@ -164,7 +182,8 @@ public final class Messages extends MessagesBundleMixin {
      *            The name of the resource bundle without the locale suffix and
      *            file extension.
      * @param candidate
-     *            The {@link Locale} candidate.
+     *            The {@link Locale} candidate. Use {@code null} for default
+     *            locale.
      * @param control
      *            The {@link XMLResourceBundleControl}.
      * @return The {@link ResourceBundle}.
@@ -198,7 +217,8 @@ public final class Messages extends MessagesBundleMixin {
      *            The name of the resource bundle without the locale suffix and
      *            file extension.
      * @param candidate
-     *            The {@link Locale} candidate.
+     *            The {@link Locale} candidate. Use {@code null} for default
+     *            locale.
      * @param control
      *            The {@link XMLResourceBundleControl}.
      * @return The {@link ResourceBundle}.
@@ -237,6 +257,14 @@ public final class Messages extends MessagesBundleMixin {
     private static String loadMessagePattern(
             final Class<? extends Object> reqClass, final Locale locale,
             final String key) {
+
+        if (isCustomI18nEnabled()) {
+            final ResourceBundle bundle = loadXmlResourceCustom(reqClass,
+                    DEFAULT_XML_RESOURCE, locale);
+            if (bundle != null && bundle.containsKey(key)) {
+                return bundle.getString(key);
+            }
+        }
         return loadXmlResource(reqClass, DEFAULT_XML_RESOURCE, locale)
                 .getString(key);
     }
@@ -348,7 +376,7 @@ public final class Messages extends MessagesBundleMixin {
     }
 
     /**
-     * Checks if if default (system) message key exists.
+     * Checks if default (system) message key exists.
      *
      * @param reqClass
      *            The requester {@link Class}.
@@ -358,8 +386,7 @@ public final class Messages extends MessagesBundleMixin {
      */
     public static boolean containsKey(final Class<? extends Object> reqClass,
             final String key) {
-        return loadXmlResource(reqClass, DEFAULT_XML_RESOURCE, null)
-                .containsKey(key);
+        return containsKey(reqClass, key, null);
     }
 
     /**
@@ -370,11 +397,19 @@ public final class Messages extends MessagesBundleMixin {
      * @param key
      *            The message key.
      * @param locale
-     *            The {@link Locale}.
+     *            The {@link Locale}. Use {@code null} for default locale.
      * @return {@code true} if locale message key exists.
      */
     public static boolean containsKey(final Class<? extends Object> reqClass,
             final String key, final Locale locale) {
+
+        if (isCustomI18nEnabled()) {
+            final ResourceBundle bundle = loadXmlResourceCustom(reqClass,
+                    DEFAULT_XML_RESOURCE, locale);
+            if (bundle != null && bundle.containsKey(key)) {
+                return true;
+            }
+        }
         return loadXmlResource(reqClass, DEFAULT_XML_RESOURCE, locale)
                 .containsKey(key);
     }

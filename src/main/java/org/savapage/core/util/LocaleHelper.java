@@ -278,7 +278,7 @@ public final class LocaleHelper {
     public static <E extends Enum<E>> String uiTextArgs(final Enum<E> value,
             final Locale locale, final String... args) {
         if (Messages.isCustomI18nEnabled()) {
-            Messages.formatMessage(uiTextCustom(value, locale), args);
+            return Messages.formatMessage(uiTextCustom(value, locale), args);
         }
         return Messages.formatMessage(uiText(value, locale), args);
     }
@@ -399,7 +399,7 @@ public final class LocaleHelper {
             final ResourceBundle bundle =
                     getResourceBundleCustom(clazz, locale);
             if (bundle != null && bundle.containsKey(key)) {
-                Messages.formatMessage(bundle.getString(key), args);
+                return Messages.formatMessage(bundle.getString(key), args);
             }
         }
         return Messages.formatMessage(
