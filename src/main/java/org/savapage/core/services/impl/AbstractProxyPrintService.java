@@ -2308,23 +2308,23 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         if (request.getClearedObjects() == 0) {
 
-            userMsgKey = "msg-printed";
+            userMsgKey = "sp-user-proxyprint-queued";
             userMsg = localize(request.getLocale(), userMsgKey);
 
         } else if (request.getClearedObjects() == 1) {
 
             if (request.getClearScope() == InboxSelectScopeEnum.JOBS) {
-                userMsgKey = "msg-printed-deleted-job-one";
+                userMsgKey = "sp-user-proxyprint-queued-doc-delete-one";
             } else {
-                userMsgKey = "msg-printed-deleted-one";
+                userMsgKey = "sp-user-proxyprint-queued-page-delete-one";
             }
             userMsg = localize(request.getLocale(), userMsgKey);
         } else {
 
             if (request.getClearScope() == InboxSelectScopeEnum.JOBS) {
-                userMsgKey = "msg-printed-deleted-job-multiple";
+                userMsgKey = "sp-user-proxyprint-queued-doc-delete-multiple";
             } else {
-                userMsgKey = "msg-printed-deleted-multiple";
+                userMsgKey = "sp-user-proxyprint-queued-page-delete-multiple";
             }
             userMsg = localize(request.getLocale(), userMsgKey,
                     String.valueOf(request.getClearedObjects()));
