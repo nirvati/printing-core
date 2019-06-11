@@ -57,6 +57,7 @@ import org.savapage.core.doc.IStreamConverter;
 import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToDecrypted;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.ipp.routing.IppRoutingListener;
 import org.savapage.core.jpa.Device;
 import org.savapage.core.jpa.DocLog;
@@ -67,6 +68,7 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.PdfAbstractException;
 import org.savapage.core.pdf.PdfPasswordException;
 import org.savapage.core.pdf.PdfSecurityException;
+import org.savapage.core.pdf.PdfUnsupportedException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.print.proxy.ProxyPrintException;
@@ -1046,14 +1048,16 @@ public final class DocContentPrintProcessor {
      *             When invalid PDF document.
      * @throws PdfSecurityException
      *             When encrypted PDF document.
-     * @throws PdfPasswordException
-     *             When password protected PDF document.
      * @throws IOException
      *             When file IO error.
+     * @throws PdfPasswordException
+     *             When password protected PDF document.
+     * @throws PdfUnsupportedException
+     *             When unsupported PDF document.
      */
     private SpPdfPageProps createPdfPageProps(final String tempPathPdf)
             throws PdfValidityException, PdfSecurityException, IOException,
-            PdfPasswordException {
+            PdfPasswordException, PdfUnsupportedException {
 
         SpPdfPageProps pdfPageProps;
 
@@ -1068,10 +1072,16 @@ public final class DocContentPrintProcessor {
 
                 final File pdfFile = new File(tempPathPdf);
 
-                // Convert ...
-                FileSystemHelper.replaceWithNewVersion(pdfFile,
-                        new PdfRepair().convert(pdfFile));
-
+                // Convert ...\
+                try {
+                    FileSystemHelper.replaceWithNewVersion(pdfFile,
+                            new PdfRepair().convert(pdfFile));
+                } catch (IOException ignore) {
+                    throw new PdfValidityException(e.getMessage(),
+                            PhraseEnum.PDF_REPAIR_FAILED
+                                    .uiText(ServiceContext.getLocale()),
+                            PhraseEnum.PDF_REPAIR_FAILED);
+                }
                 // and try again.
                 pdfPageProps = SpPdfPageProps.create(tempPathPdf);
 
@@ -1116,6 +1126,7 @@ public final class DocContentPrintProcessor {
      * @return {@link DocContentPrintInInfo}.
      */
     private DocContentPrintInInfo
+
             logPrintIn(final DocLogProtocolEnum protocol) {
 
         final DocContentPrintInInfo printInInfo = new DocContentPrintInInfo();

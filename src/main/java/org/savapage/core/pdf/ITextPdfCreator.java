@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.Iterator;
+import java.util.Locale;
 
 import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.MediaSize;
@@ -78,6 +79,7 @@ import com.itextpdf.text.pdf.PdfObject;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.XfaForm;
 import com.itextpdf.text.pdf.parser.ContentByteUtils;
 import com.itextpdf.text.pdf.parser.FilteredTextRenderListener;
 import com.itextpdf.text.pdf.parser.PdfContentStreamProcessor;
@@ -342,10 +344,21 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         return pageProps;
     }
 
+    /**
+     * Checks if XFA form is present in PDF.
+     *
+     * @param reader
+     *            The PDF reader.
+     * @return {@code true} if XFA form is present.
+     */
+    private static boolean isPdfXfaPresent(final PdfReader reader) {
+        return XfaForm.getXfaObject(reader) != null;
+    }
+
     @Override
     public SpPdfPageProps getPageProps(final String filePathPdf)
             throws PdfSecurityException, PdfValidityException,
-            PdfPasswordException {
+            PdfPasswordException, PdfUnsupportedException {
 
         SpPdfPageProps pageProps = null;
         PdfReader reader = null;
@@ -377,6 +390,14 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 throw new PdfSecurityException(
                         phrase.uiText(ServiceContext.getLocale()), phrase,
                         isPrintingAllowed);
+            }
+
+            if (isPdfXfaPresent(reader)) {
+                throw new PdfUnsupportedException(
+                        PhraseEnum.PDF_XFA_UNSUPPORTED.uiText(Locale.ENGLISH),
+                        PhraseEnum.PDF_XFA_UNSUPPORTED
+                                .uiText(ServiceContext.getLocale()),
+                        PhraseEnum.PDF_XFA_UNSUPPORTED);
             }
 
             pageProps = this.createPageProps(reader.getPageSize(firstPage));

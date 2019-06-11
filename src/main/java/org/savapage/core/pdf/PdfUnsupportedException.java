@@ -19,54 +19,45 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.i18n;
+package org.savapage.core.pdf;
 
-import java.util.Locale;
-
-import org.savapage.core.util.LocaleHelper;
+import org.savapage.core.i18n.PhraseEnum;
 
 /**
- * Common phrases.
+ * An exception to report an unsupported PDF document.
  *
  * @author Rijk Ravestein
  *
  */
-public enum PhraseEnum {
+public final class PdfUnsupportedException extends PdfAbstractException {
 
     /** */
-    ACTIVATE_CARD_READER,
+    private static final long serialVersionUID = 1L;
+
     /** */
-    PDF_INVALID,
-    /** */
-    PDF_ENCRYPTED_UNSUPPORTED,
-    /** */
-    PDF_PASSWORD_UNSUPPORTED,
-    /** */
-    PDF_PRINTING_NOT_ALLOWED,
-    /** */
-    PDF_REPAIR_FAILED,
-    /** */
-    PDF_XFA_UNSUPPORTED,
-    /** */
-    REALTIME_ACTIVITY,
-    /** */
-    SELECT_AND_SORT,
-    /** */
-    SWIPE_CARD,
-    /** */
-    SYS_MAINTENANCE,
-    /** */
-    SYS_TEMP_UNAVAILABLE,
-    /** */
-    USER_DELETE_WARNING;
+    private final String localePhrase;
 
     /**
-     * @param locale
-     *            The {@link Locale}.
-     * @return The localized text.
+     *
+     * @param message
+     *            Message.
+     * @param phraseLocale
+     *            Locale string.
+     * @param phrase
+     *            Message for logging.
      */
-    public String uiText(final Locale locale) {
-        return LocaleHelper.uiText(this, locale);
+    public PdfUnsupportedException(final String message,
+            final String phraseLocale, final PhraseEnum phrase) {
+        super(message, phrase);
+        this.localePhrase = phraseLocale;
+    }
+
+    @Override
+    public String getMessage() {
+        if (this.localePhrase == null) {
+            return this.getLogMessage();
+        }
+        return this.localePhrase;
     }
 
 }

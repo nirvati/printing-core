@@ -215,10 +215,12 @@ public abstract class AbstractPdfCreator {
      *             When encrypted PDF document.
      * @throws PdfPasswordException
      *             When password protected PDF document.
+     * @throws PdfUnsupportedException
+     *             When unsupported PDF document.
      */
     public static SpPdfPageProps pageProps(final String filePathPdf)
             throws PdfValidityException, PdfSecurityException,
-            PdfPasswordException {
+            PdfPasswordException, PdfUnsupportedException {
         return create().getPageProps(filePathPdf);
     }
 
@@ -242,10 +244,12 @@ public abstract class AbstractPdfCreator {
      *             When encrypted PDF document.
      * @throws PdfPasswordException
      *             When password protected PDF document.
+     * @throws PdfUnsupportedException
+     *             When unsupported PDF document.
      */
     protected abstract SpPdfPageProps getPageProps(String filePathPdf)
             throws PdfValidityException, PdfSecurityException,
-            PdfPasswordException;
+            PdfPasswordException, PdfUnsupportedException;
 
     /**
      *
@@ -395,9 +399,9 @@ public abstract class AbstractPdfCreator {
      *             pending.
      */
     public PdfCreateInfo generate(final PdfCreateRequest createReq,
-            final LinkedHashMap<String, Integer> uuidPageCount, final DocLog docLog)
-            throws LetterheadNotFoundException, PostScriptDrmException,
-            EcoPrintPdfTaskPendingException {
+            final LinkedHashMap<String, Integer> uuidPageCount,
+            final DocLog docLog) throws LetterheadNotFoundException,
+            PostScriptDrmException, EcoPrintPdfTaskPendingException {
         //
         this.user = createReq.getUserObj().getUserId();
         this.userhome = ConfigManager.getUserHomeDir(this.user);

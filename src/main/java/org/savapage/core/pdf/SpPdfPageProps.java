@@ -131,10 +131,12 @@ public final class SpPdfPageProps {
      *             When encrypted PDF document.
      * @throws PdfPasswordException
      *             When password protected PDF document.
+     * @throws PdfUnsupportedException
+     *             When unsupported PDF document.
      */
     public static SpPdfPageProps create(final String filePathPdf)
             throws PdfValidityException, PdfSecurityException,
-            PdfPasswordException {
+            PdfPasswordException, PdfUnsupportedException {
         return AbstractPdfCreator.pageProps(filePathPdf);
     }
 }

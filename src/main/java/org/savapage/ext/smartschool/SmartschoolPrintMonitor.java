@@ -75,6 +75,7 @@ import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfPasswordException;
 import org.savapage.core.pdf.PdfSecurityException;
+import org.savapage.core.pdf.PdfUnsupportedException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.print.proxy.ProxyPrintDocReq;
@@ -1442,13 +1443,14 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
      *             When encrypted PDF document.
      * @throws PdfPasswordException
      *             When password protected PDF document.
+     * @throws PdfUnsupportedException
+     *             When unsupported PDF document.
      */
     private static DocContentPrintInInfo createPrintInInfo(
             final SmartschoolConnection connection, final Document document,
             final File downloadedFile, final int nTotCopies, final UUID uuid)
             throws PdfValidityException, PdfSecurityException,
-            PdfPasswordException {
-
+            PdfPasswordException, PdfUnsupportedException {
         /*
          * Get the PDF properties to check security issues.
          */
@@ -1457,7 +1459,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         try {
             pdfProps = SpPdfPageProps.create(downloadedFile.getCanonicalPath());
         } catch (PdfValidityException | PdfSecurityException
-                | PdfPasswordException e) {
+                | PdfPasswordException | PdfUnsupportedException e) {
             throw e;
         } catch (IOException e) {
             throw new SpException(e.getMessage());
@@ -1753,7 +1755,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
                     MSG_COMMENT_PRINT_CANCELLED_PDF_ENCRYPTED,
                     monitor.simulationMode);
 
-        } catch (PdfValidityException e) {
+        } catch (PdfValidityException | PdfUnsupportedException e) {
 
             publishAdminMsg(PubLevelEnum.WARN, localizedMsg("print-cancelled",
                     document.getName(), e.getMessage()));
