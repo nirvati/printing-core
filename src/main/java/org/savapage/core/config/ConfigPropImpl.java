@@ -48,29 +48,23 @@ import org.slf4j.LoggerFactory;
  */
 public final class ConfigPropImpl implements IConfigProp {
 
-    /**
-     *
-     */
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ConfigPropImpl.class);
 
-    /**
-     *
-     */
+    /** */
+    private static final ConfigPropertyDao CONFIG_PROPERTY_DAO =
+            ServiceContext.getDaoContext().getConfigPropertyDao();
+
+    /** */
     private final Map<Key, String> myPropNameByKey = new HashMap<>();
-    /**
-     *
-     */
+    /** */
     private final Map<String, Prop> myPropByName = new HashMap<>();
-    /**
-     *
-     */
+    /** */
     private final Map<String, ConfigProperty> myDbCache =
             new ConcurrentHashMap<>();
 
-    /**
-     *
-     */
+    /** */
     private final Map<LdapType, Map<Key, LdapProp>> myLdapDefaults =
             new HashMap<>();
 
@@ -255,7 +249,7 @@ public final class ConfigPropImpl implements IConfigProp {
         prop.setModifiedBy(actor);
         prop.setModifiedDate(new Date());
 
-        ServiceContext.getDaoContext().getConfigPropertyDao().update(prop);
+        CONFIG_PROPERTY_DAO.update(prop);
 
         /*
          * Update the value in the dictionary, so a calcRunnable will work with
@@ -281,12 +275,9 @@ public final class ConfigPropImpl implements IConfigProp {
     public void saveDbValue(final Key key, final String value,
             final String actor) {
 
-        final ConfigPropertyDao dao =
-                ServiceContext.getDaoContext().getConfigPropertyDao();
-
         final String name = myPropNameByKey.get(key);
 
-        ConfigProperty prop = dao.findByName(name);
+        ConfigProperty prop = CONFIG_PROPERTY_DAO.findByName(name);
 
         if (prop == null) {
 
@@ -307,7 +298,7 @@ public final class ConfigPropImpl implements IConfigProp {
             /*
              * Insert
              */
-            dao.create(prop);
+            CONFIG_PROPERTY_DAO.create(prop);
 
             myDbCache.put(name, prop);
 
@@ -325,7 +316,7 @@ public final class ConfigPropImpl implements IConfigProp {
             /*
              * Update
              */
-            dao.update(prop);
+            CONFIG_PROPERTY_DAO.update(prop);
         }
 
         /*
@@ -338,9 +329,6 @@ public final class ConfigPropImpl implements IConfigProp {
 
     @Override
     public void saveValue(final Key key, final String value) {
-
-        final ConfigPropertyDao dao =
-                ServiceContext.getDaoContext().getConfigPropertyDao();
 
         final String name = myPropNameByKey.get(key);
 
@@ -365,7 +353,7 @@ public final class ConfigPropImpl implements IConfigProp {
             /*
              * Insert
              */
-            dao.create(prop);
+            CONFIG_PROPERTY_DAO.create(prop);
 
             myDbCache.put(name, prop);
 
@@ -383,7 +371,7 @@ public final class ConfigPropImpl implements IConfigProp {
             /*
              * Update
              */
-            dao.update(prop);
+            CONFIG_PROPERTY_DAO.update(prop);
         }
 
         /*
@@ -529,7 +517,11 @@ public final class ConfigPropImpl implements IConfigProp {
             final Prop prop = theKey.getProperty();
 
             myPropNameByKey.put(prop.getKey(), prop.getName());
-            myPropByName.put(prop.getName(), prop);
+
+            if (myPropByName.put(prop.getName(), prop) != null) {
+                throw new SpException(String.format(
+                        "Duplicate Property Name [%s]", prop.getName()));
+            }
 
             final String value = defaultProps.getProperty(prop.getName());
 
@@ -569,16 +561,13 @@ public final class ConfigPropImpl implements IConfigProp {
 
         myDbCache.clear();
 
-        final ConfigPropertyDao dao =
-                ServiceContext.getDaoContext().getConfigPropertyDao();
-
         final ConfigPropertyDao.ListFilter filter =
                 new ConfigPropertyDao.ListFilter();
 
-        final List<ConfigProperty> propsDb = dao.getListChunk(filter, null,
-                null, ConfigPropertyDao.Field.NAME, true);
+        final List<ConfigProperty> propsDb = CONFIG_PROPERTY_DAO.getListChunk(
+                filter, null, null, ConfigPropertyDao.Field.NAME, true);
 
-        for (ConfigProperty propDb : propsDb) {
+        for (final ConfigProperty propDb : propsDb) {
 
             final String name = propDb.getPropertyName();
             final String value = propDb.getValue();
@@ -590,12 +579,11 @@ public final class ConfigPropImpl implements IConfigProp {
                  * REMOVE property that is NOT present in dictionary
                  */
                 if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("ConfigProperty [" + name
-                            + "] REMOVED from Database, because "
-                            + "NOT found in dictionary.");
+                    LOGGER.warn("ConfigProperty [{}] REMOVED from Database. "
+                            + "Reason: NOT found in dictionary.", name);
                 }
 
-                dao.delete(propDb);
+                CONFIG_PROPERTY_DAO.delete(propDb);
 
             } else {
                 /*
@@ -656,8 +644,8 @@ public final class ConfigPropImpl implements IConfigProp {
              * IMPORTANT: even if the value is invalid, we add it to the
              * database and cache.
              */
-            final String msg =
-                    prop.getName() + " [" + prop.valueAsString() + "]";
+            final String msg = String.format("%s [%s]", prop.getName(),
+                    prop.valueAsString());
 
             if (myDbCache.containsKey(prop.getName())) {
 
@@ -676,15 +664,21 @@ public final class ConfigPropImpl implements IConfigProp {
                 /*
                  * Insert dictionary item into database
                  */
-                ConfigProperty configProp = new ConfigProperty();
+                final ConfigProperty configProp = new ConfigProperty();
+
                 configProp.setPropertyName(prop.getName());
                 configProp.setValue(prop.valueAsString());
                 configProp.setCreatedBy(ConfigProperty.ACTOR_SYSTEM);
+                configProp.setModifiedBy(ConfigProperty.ACTOR_SYSTEM);
+                configProp.setCreatedDate(ServiceContext.getTransactionDate());
+                configProp.setModifiedDate(ServiceContext.getTransactionDate());
 
-                final ConfigPropertyDao dao =
-                        ServiceContext.getDaoContext().getConfigPropertyDao();
+                /*
+                 * Insert
+                 */
+                CONFIG_PROPERTY_DAO.create(configProp);
 
-                myDbCache.put(prop.getName(), dao.findByNameInsert(configProp));
+                myDbCache.put(prop.getName(), configProp);
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Dict -> Db: " + msg);

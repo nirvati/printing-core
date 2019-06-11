@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -27,7 +27,7 @@ import org.savapage.core.jpa.ConfigProperty;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface ConfigPropertyDao extends GenericDao<ConfigProperty> {
@@ -62,9 +62,10 @@ public interface ConfigPropertyDao extends GenericDao<ConfigProperty> {
     /**
      *
      * @param filter
-     * @return
+     *            Filter.
+     * @return Row count.
      */
-    long getListCount(final ListFilter filter);
+    long getListCount(ListFilter filter);
 
     /**
      *
@@ -85,9 +86,8 @@ public interface ConfigPropertyDao extends GenericDao<ConfigProperty> {
      *            {@code true} when sorted ascending.
      * @return The chunk.
      */
-    List<ConfigProperty> getListChunk(final ListFilter filter,
-            final Integer startPosition, final Integer maxResults,
-            final Field orderBy, final boolean sortAscending);
+    List<ConfigProperty> getListChunk(ListFilter filter, Integer startPosition,
+            Integer maxResults, Field orderBy, boolean sortAscending);
 
     /**
      * Finds the property by name, when not found null is returned.
@@ -96,16 +96,6 @@ public interface ConfigPropertyDao extends GenericDao<ConfigProperty> {
      *            The unique name of the property.
      * @return The property instance, or null when not found.
      */
-    ConfigProperty findByName(final String propertyName);
-
-    /**
-     * Finds the property by name, when not found the prop is created, so after
-     * the find the property persists in the database.
-     *
-     * @param prop
-     *            The property with the unique property name present.
-     * @return The user instance.
-     */
-    ConfigProperty findByNameInsert(final ConfigProperty prop);
+    ConfigProperty findByName(String propertyName);
 
 }

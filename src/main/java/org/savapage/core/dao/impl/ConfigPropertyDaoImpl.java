@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,6 @@
  */
 package org.savapage.core.dao.impl;
 
-import java.util.Date;
 import java.util.List;
 
 import javax.persistence.NoResultException;
@@ -45,30 +44,6 @@ public final class ConfigPropertyDaoImpl extends GenericDaoImpl<ConfigProperty>
 
     @Override
     public ConfigProperty findByName(final String propertyName) {
-        return readProperty(propertyName, null);
-    }
-
-    @Override
-    public ConfigProperty findByNameInsert(final ConfigProperty prop) {
-        return readProperty(prop.getPropertyName(), prop);
-    }
-
-    /**
-     * Reads the property from database, when not found the value of
-     * propToInsert determines how to proceed.
-     *
-     * @param propertyName
-     *            The unique name of the property.
-     * @param propToInsert
-     *            When NOT {@code null}, ad-hoc insert of this property instance
-     *            into the database when propertyName does not exist.
-     *
-     * @return The property instance from the database, or null when not found.
-     */
-    private ConfigProperty readProperty(final String propertyName,
-            final ConfigProperty propToInsert) {
-
-        final boolean lazyInsertRow = (propToInsert != null);
 
         /*
          * Find the property by unique name
@@ -79,34 +54,11 @@ public final class ConfigPropertyDaoImpl extends GenericDaoImpl<ConfigProperty>
         final Query query = getEntityManager().createQuery(jpql);
         query.setParameter("name", propertyName);
 
-        ConfigProperty configProp = null;
-
         try {
-
-            configProp = (ConfigProperty) query.getSingleResult();
-
+            return (ConfigProperty) query.getSingleResult();
         } catch (NoResultException e) {
-
-            if (lazyInsertRow) {
-
-                configProp = propToInsert;
-
-                /*
-                 * Fill standard attributes
-                 */
-                Date now = new Date();
-                configProp.setModifiedBy(configProp.getCreatedBy());
-                configProp.setCreatedDate(now);
-                configProp.setModifiedDate(now);
-
-                /*
-                 * Insert
-                 */
-                getEntityManager().persist(configProp);
-            }
+            return null;
         }
-
-        return configProp;
     }
 
     @Override
