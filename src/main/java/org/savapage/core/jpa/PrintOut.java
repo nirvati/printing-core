@@ -44,7 +44,7 @@ import org.savapage.core.ipp.IppJobStateEnum;
  * (2^31 - 1).
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -59,9 +59,9 @@ public class PrintOut extends org.savapage.core.jpa.Entity {
     @Id
     @Column(name = "print_out_id")
     @TableGenerator(name = "printOutPropGen", table = Sequence.TABLE_NAME,
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
-            allocationSize = 1)
+            pkColumnName = Sequence.COL_SEQUENCE_NAME,
+            valueColumnName = Sequence.COL_SEQUENCE_NEXT_VALUE,
+            pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "printOutPropGen")
     private Long id;

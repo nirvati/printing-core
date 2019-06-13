@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,9 +40,8 @@ import javax.persistence.UniqueConstraint;
  *
  */
 @Entity
-@Table(name = IppQueueAttrV01.TABLE_NAME,
-        indexes = { //
-                @Index(name = "ix_queue_attr_1", columnList = "queue_id") },
+@Table(name = IppQueueAttrV01.TABLE_NAME, indexes = { //
+        @Index(name = "ix_queue_attr_1", columnList = "queue_id") },
         uniqueConstraints = { //
                 @UniqueConstraint(name = "uc_queue_attr_1",
                         columnNames = { "queue_id", "attrib_name" }) })
@@ -56,9 +55,9 @@ public class IppQueueAttrV01 implements SchemaEntityVersion {
     @Id
     @Column(name = "queue_attr_id")
     @TableGenerator(name = "queueAttrPropGen", table = SequenceV01.TABLE_NAME,
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
-            allocationSize = 1)
+            pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
+            valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
+            pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "queueAttrPropGen")
     private Long id;

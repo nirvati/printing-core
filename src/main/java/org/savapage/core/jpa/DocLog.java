@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -46,7 +46,7 @@ import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 /**
  * Document Log.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -71,8 +71,8 @@ public class DocLog extends org.savapage.core.jpa.Entity {
     @Id
     @Column(name = "doc_id")
     @TableGenerator(name = "doclogPropGen", table = Sequence.TABLE_NAME,
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
+            pkColumnName = Sequence.COL_SEQUENCE_NAME,
+            valueColumnName = Sequence.COL_SEQUENCE_NEXT_VALUE,
             pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "doclogPropGen")
@@ -110,8 +110,8 @@ public class DocLog extends org.savapage.core.jpa.Entity {
             insertable = true, updatable = true)
     private String title;
 
-    @Column(name = "protocol", length = 16, nullable = false,
-            insertable = true, updatable = true)
+    @Column(name = "protocol", length = 16, nullable = false, insertable = true,
+            updatable = true)
     private String deliveryProtocol;
 
     /**
@@ -129,14 +129,14 @@ public class DocLog extends org.savapage.core.jpa.Entity {
 
     /**
      * <p>
-     * According to RFC 4288
-     * "Media Type Specifications and Registration Procedures", type (eg.
-     * "application") and subtype (eg "vnd...") both can be max 127 characters.
-     * That makes 127+1+127 = 255 if you include the slash.
+     * According to RFC 4288 "Media Type Specifications and Registration
+     * Procedures", type (eg. "application") and subtype (eg "vnd...") both can
+     * be max 127 characters. That makes 127+1+127 = 255 if you include the
+     * slash.
      * </p>
      */
-    @Column(name = "mimetype", length = 255, nullable = true,
-            insertable = true, updatable = true)
+    @Column(name = "mimetype", length = 255, nullable = true, insertable = true,
+            updatable = true)
     private String mimetype;
 
     @Column(name = "drm_restricted", nullable = false, insertable = true,

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -36,7 +36,7 @@ import javax.persistence.TableGenerator;
 /**
  * Relation between User and UserGroup.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -51,8 +51,9 @@ public class UserGroupMember extends org.savapage.core.jpa.Entity {
     @Id
     @Column(name = "user_group_member_id")
     @TableGenerator(name = "userGroupMemberPropGen",
-            table = Sequence.TABLE_NAME, pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
+            table = Sequence.TABLE_NAME,
+            pkColumnName = Sequence.COL_SEQUENCE_NAME,
+            valueColumnName = Sequence.COL_SEQUENCE_NEXT_VALUE,
             pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "userGroupMemberPropGen")

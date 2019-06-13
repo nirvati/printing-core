@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -43,7 +43,7 @@ import org.savapage.core.jpa.PosPurchaseItem;
 /**
  * A point-of-sale purchase.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -51,8 +51,8 @@ import org.savapage.core.jpa.PosPurchaseItem;
         uniqueConstraints = { @UniqueConstraint(
                 columnNames = { PosPurchaseV01.COL_RECEIPT_NUM },
                 name = "uc_pos_purchase_1") })
-public class PosPurchaseV01 extends org.savapage.core.jpa.Entity implements
-        SchemaEntityVersion {
+public class PosPurchaseV01 extends org.savapage.core.jpa.Entity
+        implements SchemaEntityVersion {
 
     public static final String TABLE_NAME = "tbl_pos_purchase";
 
@@ -62,8 +62,7 @@ public class PosPurchaseV01 extends org.savapage.core.jpa.Entity implements
 
     @Id
     @Column(name = "pos_purchase_id")
-    @TableGenerator(name = TABLE_GENERATOR_NAME,
-            table = SequenceV01.TABLE_NAME,
+    @TableGenerator(name = TABLE_GENERATOR_NAME, table = SequenceV01.TABLE_NAME,
             //
             pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
             valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -41,15 +41,16 @@ import org.savapage.core.jpa.AccountTrx;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
-@Table(name = AccountVoucherV01.TABLE_NAME, uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "uuid" },
-                name = "uc_account_voucher_1"),
-        @UniqueConstraint(columnNames = { "card_number" },
-                name = "uc_account_voucher_2") },
+@Table(name = AccountVoucherV01.TABLE_NAME,
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = { "uuid" },
+                        name = "uc_account_voucher_1"),
+                @UniqueConstraint(columnNames = { "card_number" },
+                        name = "uc_account_voucher_2") },
         indexes = {
                 @Index(name = "ix_account_voucher_1",
                         columnList = "card_number_batch"),
@@ -57,8 +58,8 @@ import org.savapage.core.jpa.AccountTrx;
                         columnList = "trx_merchant_code, trx_ref_merchant"),
                 @Index(name = "ix_account_voucher_3",
                         columnList = "trx_acquirer_code, trx_ref_acquirer") })
-public class AccountVoucherV01 extends org.savapage.core.jpa.Entity implements
-        SchemaEntityVersion {
+public class AccountVoucherV01 extends org.savapage.core.jpa.Entity
+        implements SchemaEntityVersion {
 
     /**
      *
@@ -68,8 +69,9 @@ public class AccountVoucherV01 extends org.savapage.core.jpa.Entity implements
     @Id
     @Column(name = "account_voucher_id")
     @TableGenerator(name = "accountVoucherPropGen",
-            table = SequenceV01.TABLE_NAME, pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
+            table = SequenceV01.TABLE_NAME,
+            pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
+            valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
             pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "accountVoucherPropGen")

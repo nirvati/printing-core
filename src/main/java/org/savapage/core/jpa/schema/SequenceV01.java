@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,7 +28,7 @@ import javax.persistence.Table;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -44,10 +44,10 @@ public class SequenceV01 implements SchemaEntityVersion {
     public static final String COL_SEQUENCE_NEXT_VALUE = "SEQUENCE_NEXT_VALUE";
 
     @Id
-    @Column(name = "SEQUENCE_NAME")
+    @Column(name = COL_SEQUENCE_NAME)
     private String name;
 
-    @Column(name = "SEQUENCE_NEXT_VALUE")
+    @Column(name = COL_SEQUENCE_NEXT_VALUE)
     private Long value;
 
     public String getName() {

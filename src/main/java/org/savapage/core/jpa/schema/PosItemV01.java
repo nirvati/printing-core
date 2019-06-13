@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -35,14 +35,16 @@ import javax.persistence.UniqueConstraint;
 /**
  * A Point-of-Sale item.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
-@Table(name = PosItemV01.TABLE_NAME, uniqueConstraints = { @UniqueConstraint(
-        columnNames = { PosItemV01.COL_ITEM_NAME }, name = "uc_pos_item_1") })
-public class PosItemV01 extends org.savapage.core.jpa.Entity implements
-        SchemaEntityVersion {
+@Table(name = PosItemV01.TABLE_NAME,
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = { PosItemV01.COL_ITEM_NAME },
+                        name = "uc_pos_item_1") })
+public class PosItemV01 extends org.savapage.core.jpa.Entity
+        implements SchemaEntityVersion {
 
     public static final String TABLE_NAME = "tbl_pos_item";
 
@@ -52,8 +54,7 @@ public class PosItemV01 extends org.savapage.core.jpa.Entity implements
 
     @Id
     @Column(name = "pos_item_id")
-    @TableGenerator(name = TABLE_GENERATOR_NAME,
-            table = SequenceV01.TABLE_NAME,
+    @TableGenerator(name = TABLE_GENERATOR_NAME, table = SequenceV01.TABLE_NAME,
             pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
             valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
             pkColumnValue = TABLE_NAME, allocationSize = 1)

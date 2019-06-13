@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -63,10 +63,10 @@ public class AccountV01 implements SchemaEntityVersion {
     @Id
     @Column(name = "account_id")
     @TableGenerator(name = "accountPropGen", table = SequenceV01.TABLE_NAME,
-            pkColumnName = "SEQUENCE_NAME",
+            pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
             //
-            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
-            allocationSize = 1)
+            valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
+            pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "accountPropGen")
     private Long id;

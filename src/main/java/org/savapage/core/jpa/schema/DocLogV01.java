@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -50,17 +50,15 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
  *
  */
 @Entity
-@Table(name = DocLogV01.TABLE_NAME,
-        indexes = { //
-                @Index(name = "ix_doc_log_1", columnList = "user_id, uuid"),
-                @Index(name = "ix_doc_log_2",
-                        columnList = "ext_supplier, ext_status"),
-                @Index(name = "ix_doc_log_3", columnList = "created_day"),
-                @Index(name = "ix_doc_log_4", columnList = "user_id"),
-                @Index(name = "ix_doc_log_5", columnList = "doc_in_id"),
-                @Index(name = "ix_doc_log_6", columnList = "doc_out_id")
+@Table(name = DocLogV01.TABLE_NAME, indexes = { //
+        @Index(name = "ix_doc_log_1", columnList = "user_id, uuid"),
+        @Index(name = "ix_doc_log_2", columnList = "ext_supplier, ext_status"),
+        @Index(name = "ix_doc_log_3", columnList = "created_day"),
+        @Index(name = "ix_doc_log_4", columnList = "user_id"),
+        @Index(name = "ix_doc_log_5", columnList = "doc_in_id"),
+        @Index(name = "ix_doc_log_6", columnList = "doc_out_id")
         //
-        })
+})
 public class DocLogV01 implements SchemaEntityVersion {
 
     /**
@@ -71,9 +69,9 @@ public class DocLogV01 implements SchemaEntityVersion {
     @Id
     @Column(name = "doc_id")
     @TableGenerator(name = "doclogPropGen", table = SequenceV01.TABLE_NAME,
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
-            allocationSize = 1)
+            pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
+            valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
+            pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "doclogPropGen")
     private Long id;

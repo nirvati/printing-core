@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -39,7 +39,8 @@ import javax.persistence.UniqueConstraint;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 @Entity
 @Table(name = PrinterV01.TABLE_NAME, uniqueConstraints = { @UniqueConstraint(
@@ -54,8 +55,8 @@ public class PrinterV01 implements SchemaEntityVersion {
     @Id
     @Column(name = "printer_id")
     @TableGenerator(name = "printerPropGen", table = SequenceV01.TABLE_NAME,
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
+            pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
+            valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
             pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "printerPropGen")
@@ -69,8 +70,8 @@ public class PrinterV01 implements SchemaEntityVersion {
             insertable = true, updatable = true)
     private String displayName;
 
-    @Column(name = "location", length = 255, nullable = true,
-            insertable = true, updatable = true)
+    @Column(name = "location", length = 255, nullable = true, insertable = true,
+            updatable = true)
     private String location;
 
     @Column(name = "deleted", nullable = false, insertable = true,
@@ -154,9 +155,8 @@ public class PrinterV01 implements SchemaEntityVersion {
     /**
      * The LAZY PrinterGroupMember list.
      */
-    @OneToMany(targetEntity = PrinterGroupMemberV01.class,
-            mappedBy = "printer", cascade = CascadeType.ALL,
-            fetch = FetchType.LAZY)
+    @OneToMany(targetEntity = PrinterGroupMemberV01.class, mappedBy = "printer",
+            cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PrinterGroupMemberV01> printerGroupMembers;
 
     /**

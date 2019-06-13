@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,12 +40,11 @@ import javax.persistence.TableGenerator;
  *
  */
 @Entity
-@Table(name = DocInOutV01.TABLE_NAME,
-        indexes = { //
-                @Index(name = "ix_doc_in_out_1", columnList = "doc_in_id"),
-                @Index(name = "ix_doc_in_out_2", columnList = "doc_out_id")
+@Table(name = DocInOutV01.TABLE_NAME, indexes = { //
+        @Index(name = "ix_doc_in_out_1", columnList = "doc_in_id"),
+        @Index(name = "ix_doc_in_out_2", columnList = "doc_out_id")
         //
-        })
+})
 public class DocInOutV01 implements SchemaEntityVersion {
 
     /**
@@ -56,9 +55,9 @@ public class DocInOutV01 implements SchemaEntityVersion {
     @Id
     @Column(name = "doc_in_out_id")
     @TableGenerator(name = "docInOutPropGen", table = SequenceV01.TABLE_NAME,
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
-            allocationSize = 1)
+            pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
+            valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
+            pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "docInOutPropGen")
     private Long id;

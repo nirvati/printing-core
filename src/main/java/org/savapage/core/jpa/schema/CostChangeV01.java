@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -50,24 +50,23 @@ import org.savapage.core.dao.enums.CostChangeTypeEnum;
  *
  */
 @Entity
-@Table(name = CostChangeV01.TABLE_NAME,
-        indexes = {
-                //
-                @Index(name = "ix_cost_change_1", columnList = "req_date"),
-                //
-                @Index(name = "ix_cost_change_2", columnList = "chg_type"),
-                //
-                @Index(name = "ix_cost_change_3", columnList = "chg_status"),
-                //
-                @Index(name = "ix_cost_change_4", columnList = "chg_date"),
-                //
-                @Index(name = "ix_cost_change_5", columnList = "chg_by"),
-                //
-                @Index(name = "ix_cost_change_6", columnList = "doc_id"),
-                //
-                @Index(name = "ix_cost_change_7", columnList = "req_user_id")
+@Table(name = CostChangeV01.TABLE_NAME, indexes = {
         //
-        })
+        @Index(name = "ix_cost_change_1", columnList = "req_date"),
+        //
+        @Index(name = "ix_cost_change_2", columnList = "chg_type"),
+        //
+        @Index(name = "ix_cost_change_3", columnList = "chg_status"),
+        //
+        @Index(name = "ix_cost_change_4", columnList = "chg_date"),
+        //
+        @Index(name = "ix_cost_change_5", columnList = "chg_by"),
+        //
+        @Index(name = "ix_cost_change_6", columnList = "doc_id"),
+        //
+        @Index(name = "ix_cost_change_7", columnList = "req_user_id")
+        //
+})
 public class CostChangeV01 implements SchemaEntityVersion {
 
     /**
@@ -78,9 +77,9 @@ public class CostChangeV01 implements SchemaEntityVersion {
     @Id
     @Column(name = "cost_change_id")
     @TableGenerator(name = "costChangePropGen", table = SequenceV01.TABLE_NAME,
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE", pkColumnValue = TABLE_NAME,
-            allocationSize = 1)
+            pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
+            valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
+            pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "costChangePropGen")
     private Long id;

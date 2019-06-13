@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,11 +40,9 @@ import javax.persistence.UniqueConstraint;
  *
  */
 @Entity
-@Table(name = UserCardV01.TABLE_NAME,
-        indexes = { //
-                @Index(name = "ix_user_card_1",
-                        columnList = "user_id, card_number"),
-                @Index(name = "ix_user_card_2", columnList = "user_id") },
+@Table(name = UserCardV01.TABLE_NAME, indexes = { //
+        @Index(name = "ix_user_card_1", columnList = "user_id, card_number"),
+        @Index(name = "ix_user_card_2", columnList = "user_id") },
         uniqueConstraints = { //
                 @UniqueConstraint(columnNames = { "card_number" },
                         name = "uc_user_card_1"),
@@ -61,8 +59,8 @@ public class UserCardV01 implements SchemaEntityVersion {
     @Column(name = "user_card_id")
     @TableGenerator(name = "userCardPropGen", table = SequenceV01.TABLE_NAME,
             //
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
+            pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
+            valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
             //
             pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,

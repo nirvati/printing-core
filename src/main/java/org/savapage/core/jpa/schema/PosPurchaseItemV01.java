@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -44,10 +44,9 @@ import org.savapage.core.jpa.PosPurchase;
  *
  */
 @Entity
-@Table(name = PosPurchaseItemV01.TABLE_NAME,
-        indexes = { //
-                @Index(name = "ix_pos_purchase_item_1",
-                        columnList = "pos_purchase_id") })
+@Table(name = PosPurchaseItemV01.TABLE_NAME, indexes = { //
+        @Index(name = "ix_pos_purchase_item_1",
+                columnList = "pos_purchase_id") })
 public class PosPurchaseItemV01 extends org.savapage.core.jpa.Entity
         implements SchemaEntityVersion {
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -62,6 +62,11 @@ public class Entity {
     public static final int DECIMAL_SCALE_2 = 2;
     public static final int DECIMAL_SCALE_6 = 6;
     public static final int DECIMAL_SCALE_8 = 8;
+
+    /**
+     * Entity attribute for (sequence) ID.
+     */
+    public static final String ATTR_ID = "id";
 
     protected Entity() {
     }

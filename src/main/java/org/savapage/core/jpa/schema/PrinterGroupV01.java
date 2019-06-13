@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -37,15 +37,16 @@ import javax.persistence.UniqueConstraint;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
-@Table(name = PrinterGroupV01.TABLE_NAME, uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "group_name" },
-                name = "uc_printer_group_1"),
-        @UniqueConstraint(columnNames = { "display_name" },
-                name = "uc_printer_group_2") })
+@Table(name = PrinterGroupV01.TABLE_NAME,
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = { "group_name" },
+                        name = "uc_printer_group_1"),
+                @UniqueConstraint(columnNames = { "display_name" },
+                        name = "uc_printer_group_2") })
 public class PrinterGroupV01 implements SchemaEntityVersion {
 
     public static final String TABLE_NAME = "tbl_printer_group";
@@ -55,8 +56,8 @@ public class PrinterGroupV01 implements SchemaEntityVersion {
     @TableGenerator(name = "printerGroupPropGen",
             table = SequenceV01.TABLE_NAME,
             //
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
+            pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
+            valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
             //
             pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,

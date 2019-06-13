@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -43,10 +43,8 @@ import javax.persistence.TableGenerator;
  *
  */
 @Entity
-@Table(name = PrintInV01.TABLE_NAME,
- indexes = { //
-        @Index(name = "ix_print_in_1", columnList = "queue_id"),
-})
+@Table(name = PrintInV01.TABLE_NAME, indexes = { //
+        @Index(name = "ix_print_in_1", columnList = "queue_id"), })
 public class PrintInV01 implements SchemaEntityVersion {
 
     public static final String TABLE_NAME = "tbl_print_in";
@@ -54,16 +52,16 @@ public class PrintInV01 implements SchemaEntityVersion {
     @Id
     @Column(name = "print_in_id")
     @TableGenerator(name = "printinPropGen", table = SequenceV01.TABLE_NAME,
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
+            pkColumnName = SequenceV01.COL_SEQUENCE_NAME,
+            valueColumnName = SequenceV01.COL_SEQUENCE_NEXT_VALUE,
             pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
             generator = "printinPropGen")
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "queue_id", nullable = false, foreignKey = @ForeignKey(
-            name = "FK_PRINT_IN_TO_IPP_QUEUE"))
+    @JoinColumn(name = "queue_id", nullable = false,
+            foreignKey = @ForeignKey(name = "FK_PRINT_IN_TO_IPP_QUEUE"))
     private IppQueueV01 queue;
 
     @Column(name = "paper_size", length = 20, nullable = true,

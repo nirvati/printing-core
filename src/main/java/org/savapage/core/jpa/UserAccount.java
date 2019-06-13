@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2014 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -36,7 +36,7 @@ import javax.persistence.TableGenerator;
 /**
  * Relation between User and Account.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
@@ -52,8 +52,8 @@ public class UserAccount extends org.savapage.core.jpa.Entity {
     @Column(name = "user_account_id")
     @TableGenerator(name = "userAccountPropGen", table = Sequence.TABLE_NAME,
             //
-            pkColumnName = "SEQUENCE_NAME",
-            valueColumnName = "SEQUENCE_NEXT_VALUE",
+            pkColumnName = Sequence.COL_SEQUENCE_NAME,
+            valueColumnName = Sequence.COL_SEQUENCE_NEXT_VALUE,
             //
             pkColumnValue = TABLE_NAME, allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.TABLE,
