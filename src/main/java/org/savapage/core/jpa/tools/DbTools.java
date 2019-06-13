@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -73,6 +74,7 @@ import org.hibernate.tool.hbm2ddl.SchemaExport.Action;
 import org.hibernate.tool.schema.TargetType;
 import org.hibernate.type.descriptor.java.JdbcTimestampTypeDescriptor;
 import org.savapage.core.SpException;
+import org.savapage.core.SpInfo;
 import org.savapage.core.VersionInfo;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
@@ -100,12 +102,14 @@ import org.savapage.core.jpa.IppQueueAttr;
 import org.savapage.core.jpa.PdfOut;
 import org.savapage.core.jpa.PosItem;
 import org.savapage.core.jpa.PosPurchase;
+import org.savapage.core.jpa.PosPurchaseItem;
 import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.PrinterAttr;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.PrinterGroupMember;
+import org.savapage.core.jpa.Sequence;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.UserAttr;
@@ -231,6 +235,132 @@ public final class DbTools implements ServiceEntryPoint {
      */
     private static final String XML_DATEFORMAT_PATTERN =
             "yyyy-MM-dd'T'HH:mm:ss.S";
+
+    /**
+     * Table Info for DB health check.
+     * <p>
+     * DB_SCHEMA_DEPENDENT: when a new schema version is introduced this
+     * implementation should be updated (search for DB_SCHEMA_DEPENDENT to find
+     * other critical update places).
+     * </p>
+     */
+    private enum HealthCheckEntityEnum {
+        /** */
+        ACCOUNT(Account.TABLE_NAME, Account.class),
+        /** */
+        ACCOUNT_ATTR(AccountAttr.TABLE_NAME, AccountAttr.class),
+        /** */
+        ACCOUNT_TRX(AccountTrx.TABLE_NAME, AccountTrx.class),
+        /** */
+        ACCOUNT_VOUCHER(AccountVoucher.TABLE_NAME, AccountVoucher.class),
+        /** */
+        APP_LOG(AppLog.TABLE_NAME, AppLog.class),
+        /** */
+        CONFIG_PROPERTY(ConfigProperty.TABLE_NAME, ConfigProperty.class),
+        /** */
+        COST_CHANGE(CostChange.TABLE_NAME, CostChange.class),
+        /** */
+        DEVICE(Device.TABLE_NAME, Device.class),
+        /** */
+        DEVICE_ATTR(DeviceAttr.TABLE_NAME, DeviceAttr.class),
+        /** */
+        DOC_IN(DocIn.TABLE_NAME, DocIn.class),
+        /** */
+        DOC_IN_OUT(DocInOut.TABLE_NAME, DocInOut.class),
+        /** */
+        DOC_LOG(DocLog.TABLE_NAME, DocLog.class),
+        /** */
+        DOC_OUT(DocOut.TABLE_NAME, DocOut.class),
+        /** */
+        IPP_QUEUE(IppQueue.TABLE_NAME, IppQueue.class),
+        /** */
+        IPP_QUEUE_ATTR(IppQueueAttr.TABLE_NAME, IppQueueAttr.class),
+        /** */
+        PDF_OUT(PdfOut.TABLE_NAME, PdfOut.class),
+        /** */
+        POS_ITEM(PosItem.TABLE_NAME, PosItem.class),
+        /** */
+        POS_PURCHASE(PosPurchase.TABLE_NAME, PosPurchase.class),
+        /** */
+        POS_PURCHASE_ITEM(PosPurchaseItem.TABLE_NAME, PosPurchaseItem.class),
+        /** */
+        PRINTER(Printer.TABLE_NAME, Printer.class),
+        /** */
+        PRINTER_ATTR(PrinterAttr.TABLE_NAME, PrinterAttr.class),
+        /** */
+        PRINTER_GROUP(PrinterGroup.TABLE_NAME, PrinterGroup.class),
+        /** */
+        PRINTER_GROUP_MEMBER(PrinterGroupMember.TABLE_NAME,
+                PrinterGroupMember.class),
+        /** */
+        PRINT_IN(PrintIn.TABLE_NAME, PrintIn.class),
+        /** */
+        Print_Out(PrintOut.TABLE_NAME, PrintOut.class),
+        //
+        // Sequence skip intended.
+        //
+        /** */
+        USER(User.TABLE_NAME, User.class),
+        /** */
+        USER_ACCOUNT(UserAccount.TABLE_NAME, UserAccount.class),
+        /** */
+        USER_ATTR(UserAttr.TABLE_NAME, UserAttr.class),
+        /** */
+        USER_CARD(UserCard.TABLE_NAME, UserCard.class),
+        /** */
+        USER_EMAIL(UserEmail.TABLE_NAME, UserEmail.class),
+        /** */
+        USER_GROUP(UserGroup.TABLE_NAME, UserGroup.class),
+        /** */
+        USER_GROUP_ACCOUNT(UserGroupAccount.TABLE_NAME, UserGroupAccount.class),
+        /** */
+        USER_GROUP_ATTR(UserGroupAttr.TABLE_NAME, UserGroupAttr.class),
+        /** */
+        USER_GROUP_MEMBER(UserGroupMember.TABLE_NAME, UserGroupMember.class),
+        /** */
+        USER_NUMBER(UserNumber.TABLE_NAME, UserNumber.class);
+
+        /**
+         * Database table name.
+         */
+        private final String tableName;
+
+        /**
+         * Name of {@link Entity} primary key sequence ID attribute.
+         */
+        private final String attrId;
+
+        /**
+         * Database table {@link Entity} class.
+         */
+        private final Class<? extends Entity> entClazz;
+
+        /**
+         *
+         * @param table
+         *            Table name.
+         * @param clazz
+         *            Entity class.
+         */
+        HealthCheckEntityEnum(final String table,
+                final Class<? extends Entity> clazz) {
+            this.tableName = table;
+            this.entClazz = clazz;
+            this.attrId = Entity.ATTR_ID;
+        }
+
+        /**
+         * @return Look-up with DB table name as key.
+         */
+        public static Map<String, HealthCheckEntityEnum> createLookup() {
+            final Map<String, HealthCheckEntityEnum> map = new HashMap<>();
+            for (final HealthCheckEntityEnum value : HealthCheckEntityEnum
+                    .values()) {
+                map.put(value.tableName, value);
+            }
+            return map;
+        }
+    }
 
     /**
      * <b>*** HISTORY - DO NOT EDIT ***</b>
@@ -963,6 +1093,131 @@ public final class DbTools implements ServiceEntryPoint {
                         metadata.buildMetadata());
             }
         }
+    }
+
+    /**
+     * Checks Database health.
+     *
+     * @param info
+     *            Information log.
+     * @param err
+     *            Error log.
+     * @param fix
+     *            If {@code true} then fix any inconsistency.
+     */
+    private static void checkSequences(final StringBuilder info,
+            final StringBuilder err, final boolean fix) {
+        final Map<String, HealthCheckEntityEnum> lookup =
+                HealthCheckEntityEnum.createLookup();
+
+        final EntityManager em = DaoContextImpl.peekEntityManager();
+
+        final Query queryList = em.createQuery(String
+                .format("SELECT S FROM %s S", Sequence.class.getSimpleName()));
+        @SuppressWarnings("unchecked")
+        final List<Sequence> seqList = queryList.getResultList();
+
+        boolean dbTrx = false;
+        if (fix && !em.getTransaction().isActive()) {
+            em.getTransaction().begin();
+            dbTrx = true;
+        }
+
+        try {
+            for (final Sequence seq : seqList) {
+
+                final String tableName = seq.getName();
+                final HealthCheckEntityEnum entEnum = lookup.get(tableName);
+
+                if (entEnum == null) {
+                    throw new IllegalStateException(tableName + " is missing.");
+                }
+
+                final long lastSequenceId = seq.getValue().longValue();
+
+                final Query queryMax = em.createQuery(String.format(
+                        "SELECT MAX(S.%s) FROM %s S", entEnum.attrId,
+                        entEnum.entClazz.getSimpleName()));
+                final Long maxSeqID = (Long) queryMax.getSingleResult();
+                final long maxIdTable;
+                if (maxSeqID == null) {
+                    maxIdTable = 0;
+                } else {
+                    maxIdTable = maxSeqID.longValue();
+                }
+
+                if (maxSeqID != null && maxIdTable > lastSequenceId) {
+                    if (fix) {
+                        seq.setValue(Long.valueOf(maxIdTable));
+                        em.merge(seq);
+                        if (info.length() > 0) {
+                            info.append("\n");
+                        }
+                        info.append(String.format("FIXED [%s]: id %d > %d",
+                                entEnum.tableName, maxIdTable, lastSequenceId));
+                    } else {
+                        if (err.length() > 0) {
+                            info.append("\n");
+                        }
+                        err.append(String.format("ERROR [%s]: id %d > %d",
+                                entEnum.tableName, maxIdTable, lastSequenceId));
+                    }
+
+                } else {
+                    if (info.length() > 0) {
+                        info.append("\n");
+                    }
+                    info.append(String.format("OK [%s] id %d <= %d",
+                            entEnum.tableName, maxIdTable, lastSequenceId));
+                }
+            }
+        } finally {
+            if (dbTrx) {
+                em.getTransaction().commit();
+            }
+        }
+    }
+
+    /**
+     * Checks Database health.
+     */
+    public static void checkSequences() {
+
+        final StringBuilder info = new StringBuilder();
+        final StringBuilder err = new StringBuilder();
+
+        checkSequences(info, err, false);
+
+        if (err.length() == 0) {
+            SpInfo.instance().log(
+                    String.format("Database [%s] OK.", Sequence.TABLE_NAME));
+        } else {
+            LOGGER.error("{}\n", err.toString());
+            throw new IllegalStateException(String
+                    .format("Database [%s] MISMATCH.", Sequence.TABLE_NAME));
+        }
+    }
+
+    /**
+     * Checks Database health.
+     *
+     * @param strInfo
+     *            Information log.
+     * @param strErr
+     *            Error log.
+     * @param fix
+     *            If {@code true} then fix any inconsistency.
+     */
+    public static void checkSequences(final PrintStream strInfo,
+            final PrintStream strErr, final boolean fix) {
+
+        final StringBuilder info = new StringBuilder();
+        final StringBuilder err = new StringBuilder();
+
+        checkSequences(info, err, fix);
+
+        strInfo.println(info.toString());
+        strErr.println(err.toString());
     }
 
     /**

@@ -39,13 +39,13 @@ public enum RunModeEnum {
     SERVER,
     /**
      * Initialized as a runnable core library (with a fully functional
-     * database), so basic operations can be performed. Followship operations
-     * are not allowed.
+     * database), so basic operations can be performed. Community Membership
+     * operations are not allowed.
      */
     LIB,
     /**
      * Initialized to a core library, without a fully functional database, so
-     * basic operations can be performed. Followship operations are not allowed.
+     * basic operations can be performed. Community Membership are not allowed.
      */
     CORE
 

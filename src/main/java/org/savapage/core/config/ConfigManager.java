@@ -110,6 +110,7 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.tools.DatabaseTypeEnum;
 import org.savapage.core.jpa.tools.DbConfig;
 import org.savapage.core.jpa.tools.DbConnectionPoolEnum;
+import org.savapage.core.jpa.tools.DbTools;
 import org.savapage.core.jpa.tools.DbUpgManager;
 import org.savapage.core.jpa.tools.DbVersionInfo;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
@@ -1265,6 +1266,7 @@ public final class ConfigManager {
         switch (mode) {
         case SERVER:
             initAsServer(new Properties());
+            initOpenPGP();
             break;
         case LIB:
             initAsRunnableCoreLibrary(new Properties());
@@ -1275,8 +1277,6 @@ public final class ConfigManager {
         default:
             throw new SpException("mode [" + mode + "] is not supported");
         }
-
-        initOpenPGP();
 
         runMode = mode;
     }
@@ -1601,6 +1601,8 @@ public final class ConfigManager {
                 .start(new SOfficeConfigProps());
 
         ProxyPrintJobStatusMonitor.init();
+
+        DbTools.checkSequences();
     }
 
     /**

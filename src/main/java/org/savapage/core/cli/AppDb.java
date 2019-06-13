@@ -78,15 +78,18 @@ public final class AppDb extends AbstractApp {
 
     /** */
     private static final String CLI_OPTION_DB_RUN_SQL_SCRIPT = "db-run-script";
-
     /** */
     private static final String CLI_OPTION_DB_RUN_SQL = "db-run-sql";
 
     /** */
     private static final String CLI_OPTION_CONFIG_PROP_GET = "db-config-get";
-
     /** */
     private static final String CLI_OPTION_CONFIG_PROP_SET = "db-config-set";
+
+    /** */
+    private static final String CLI_SWITCH_DBCHECK = "db-check";
+    /** */
+    private static final String CLI_SWITCH_DBCHECK_FIX = "db-check-fix";
 
     /**
      * The number of rows in the result set for export.
@@ -158,6 +161,17 @@ public final class AppDb extends AbstractApp {
                 .desc("Gets configuration property value. "
                         + SENTENCE_ADV_OPTION)
                 .build());
+
+        options.addOption(Option.builder().hasArg(false)
+                .longOpt(CLI_SWITCH_DBCHECK)
+                .desc("Checks database integrity. " + SENTENCE_ADV_OPTION)
+                .build());
+
+        options.addOption(
+                Option.builder().hasArg(false).longOpt(CLI_SWITCH_DBCHECK_FIX)
+                        .desc("Checks and fixes database integrity. "
+                                + NOTE_AS_REQUESTED_BY_SUPPORT)
+                        .build());
 
         final Option opt = Option.builder().hasArg(true).argName("NAME=VALUE")
                 .longOpt(CLI_OPTION_CONFIG_PROP_SET)
@@ -321,6 +335,16 @@ public final class AppDb extends AbstractApp {
                 DbTools.importDb(
                         new File(cmd.getOptionValue(CLI_OPTION_DBIMPORT)),
                         listener);
+
+            } else if (cmd.hasOption(CLI_SWITCH_DBCHECK)) {
+
+                DbTools.checkSequences(getDisplayStream(),
+                        getErrorDisplayStream(), false);
+
+            } else if (cmd.hasOption(CLI_SWITCH_DBCHECK_FIX)) {
+
+                DbTools.checkSequences(getDisplayStream(),
+                        getErrorDisplayStream(), true);
 
             } else if (cmd.hasOption(CLI_OPTION_DB_RUN_SQL_SCRIPT)) {
 
