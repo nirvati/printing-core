@@ -77,6 +77,11 @@ public interface JobTicketService extends StatefulService {
          */
         private String searchTicketId;
 
+        /**
+         * Primary DB key of job ticket printer group.
+         */
+        private Long printerGroupID;
+
         public Long getUserId() {
             return userId;
         }
@@ -91,6 +96,14 @@ public interface JobTicketService extends StatefulService {
 
         public void setSearchTicketId(String searchTicketId) {
             this.searchTicketId = searchTicketId;
+        }
+
+        public Long getPrinterGroupID() {
+            return printerGroupID;
+        }
+
+        public void setPrinterGroupID(Long printerGroupID) {
+            this.printerGroupID = printerGroupID;
         }
 
     }
@@ -296,6 +309,11 @@ public interface JobTicketService extends StatefulService {
      * @return The closed ticket or {@code null} when ticket was not found.
      */
     OutboxJobDto closeTicketPrint(String fileName);
+
+    /**
+     * Updates Job Ticket Printer Groups in ticket cache.
+     */
+    void updatePrinterGroupIDs();
 
     /**
      * Updates a Job Ticket.

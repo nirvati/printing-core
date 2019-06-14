@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dto.AbstractDto;
@@ -356,6 +357,11 @@ public final class OutboxInfoDto extends AbstractDto {
         private IppJobStateEnum ippJobState;
 
         /**
+         * Set with Printer Group IDs the (ticket) printer is member of.
+         */
+        @JsonIgnore
+        private Set<Long> printerGroupIDs;
+        /**
          * .
          */
         @JsonIgnore
@@ -556,6 +562,16 @@ public final class OutboxInfoDto extends AbstractDto {
         @JsonIgnore
         public void setIppJobState(IppJobStateEnum ippJobState) {
             this.ippJobState = ippJobState;
+        }
+
+        @JsonIgnore
+        public Set<Long> getPrinterGroupIDs() {
+            return printerGroupIDs;
+        }
+
+        @JsonIgnore
+        public void setPrinterGroupIDs(Set<Long> printerGroupIDs) {
+            this.printerGroupIDs = printerGroupIDs;
         }
 
         @JsonIgnore

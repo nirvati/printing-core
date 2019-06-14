@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,20 +14,38 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.dao;
 
+import java.util.List;
+
+import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.PrinterGroupMember;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface PrinterGroupMemberDao extends GenericDao<PrinterGroupMember> {
 
+    /**
+     * Gets the list of Printer Groups where Job Ticket Printers are member of.
+     *
+     * @return {@link PrinterGroup} list.
+     */
+    List<PrinterGroup> getGroupsWithJobTicketMembers();
+
+    /**
+     * Gets the list of Printer Groups where printer is member of.
+     *
+     * @param printerName
+     *            Printer name (case insensitive).
+     * @return {@link PrinterGroup} list.
+     */
+    List<PrinterGroup> getGroups(String printerName);
 }

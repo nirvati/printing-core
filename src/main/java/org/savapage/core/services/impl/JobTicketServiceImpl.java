@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -222,6 +223,9 @@ public final class JobTicketServiceImpl extends AbstractService
          */
         private final List<OutboxJobDto> ticketsCreated;
 
+        /** */
+        private Set<Long> printerGroupIDs;
+
         /**
          * @param service
          *            The parent service.
@@ -246,6 +250,8 @@ public final class JobTicketServiceImpl extends AbstractService
         @Override
         protected void onInit(final User lockedUser,
                 final ProxyPrintInboxReq request) {
+            this.printerGroupIDs = this.serviceImpl
+                    .getTicketPrinterGroupIDs(request.getPrinterName());
         }
 
         @Override
@@ -274,6 +280,8 @@ public final class JobTicketServiceImpl extends AbstractService
                         lockedUser, createInfo, uuid, request, this.submitDate,
                         this.deliveryDate, this.label, chunkIndex, chunkSize);
 
+                dto.setPrinterGroupIDs(this.printerGroupIDs);
+
                 ticketsCreated.add(dto);
 
             } catch (IOException e) {
@@ -287,7 +295,6 @@ public final class JobTicketServiceImpl extends AbstractService
         public List<OutboxJobDto> getTicketsCreated() {
             return ticketsCreated;
         }
-
     }
 
     @Override
@@ -515,12 +522,14 @@ public final class JobTicketServiceImpl extends AbstractService
      * @throws IOException
      *             When IO error.
      */
-    private static void initTicketCache(final JobTicketService svc,
+    private static void initTicketCache(final JobTicketServiceImpl svc,
             final ConcurrentHashMap<UUID, OutboxJobDto> jobTicketMap,
             final ConcurrentHashMap<String, OutboxJobDto> reopenedTicketCache,
             final JobTicketQueueInfo queueInfo) throws IOException {
 
         final Set<UUID> uuidToDelete = new HashSet<>();
+
+        final Map<String, Set<Long>> lookupGroupIDs = new HashMap<>();
 
         final SimpleFileVisitor<Path> visitor = new SimpleFileVisitor<Path>() {
             @Override
@@ -540,6 +549,13 @@ public final class JobTicketServiceImpl extends AbstractService
                 try {
                     final OutboxJobDto dto =
                             JsonHelper.read(OutboxJobDto.class, file.toFile());
+
+                    final String lookupKey = dto.getPrinter();
+                    if (!lookupGroupIDs.containsKey(lookupKey)) {
+                        lookupGroupIDs.put(lookupKey,
+                                svc.getTicketPrinterGroupIDs(dto.getPrinter()));
+                    }
+                    dto.setPrinterGroupIDs(lookupGroupIDs.get(lookupKey));
 
                     jobTicketMap.put(uuid, dto);
 
@@ -627,6 +643,22 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     /**
+     * Gets set with Printer Group IDs a ticket printer is member of.
+     *
+     * @param printerName
+     *            Printer name.
+     * @return Printer Group IDs.
+     */
+    private Set<Long> getTicketPrinterGroupIDs(final String printerName) {
+        final Set<Long> set = new HashSet<>();
+        for (final PrinterGroup group : printerGroupMemberDAO()
+                .getGroups(printerName)) {
+            set.add(group.getId());
+        }
+        return set;
+    }
+
+    /**
      * Calculates the next Job Ticket delivery date.
      *
      * @param offsetDate
@@ -709,6 +741,9 @@ public final class JobTicketServiceImpl extends AbstractService
                     submitDate,
                     this.getTicketDeliveryDate(submitDate, deliveryDate),
                     this.createTicketLabel(label), 1, 1);
+
+            dto.setPrinterGroupIDs(
+                    this.getTicketPrinterGroupIDs(request.getPrinterName()));
 
             final String msgKey = "msg-user-print-jobticket-copy";
 
@@ -858,7 +893,8 @@ public final class JobTicketServiceImpl extends AbstractService
 
     @Override
     public List<OutboxJobDto> getTickets(final JobTicketFilter filter) {
-        return filterTickets(filter.getUserId(), filter.getSearchTicketId());
+        return filterTickets(filter.getUserId(), filter.getSearchTicketId(),
+                filter.getPrinterGroupID());
     }
 
     @Override
@@ -879,7 +915,7 @@ public final class JobTicketServiceImpl extends AbstractService
     @Override
     public int cancelTickets(final Long userId) {
         int nRemoved = 0;
-        for (final OutboxJobDto dto : filterTickets(userId, null)) {
+        for (final OutboxJobDto dto : filterTickets(userId, null, null)) {
             if (cancelTicket(dto.getFile()) != null) {
                 nRemoved++;
             }
@@ -931,10 +967,12 @@ public final class JobTicketServiceImpl extends AbstractService
      *            tickets from all users are selected.
      * @param searchTicketId
      *            Part of a ticket id as case-insensitive search argument.
+     * @param printerGroupID
+     *            See {@link PrinterGroup#getId()}.
      * @return The Job Tickets.
      */
     private List<OutboxJobDto> filterTickets(final Long userId,
-            final String searchTicketId) {
+            final String searchTicketId, final Long printerGroupID) {
 
         final List<OutboxJobDto> tickets = new ArrayList<>();
 
@@ -944,14 +982,23 @@ public final class JobTicketServiceImpl extends AbstractService
         for (final Entry<UUID, OutboxJobDto> entry : this.jobTicketCache
                 .entrySet()) {
 
+            // Filter #1
             if (userId != null
                     && !entry.getValue().getUserId().equals(userId)) {
                 continue;
             }
 
+            // Filter #2
             if (!searchSeq.isEmpty() && !StringUtils.contains(
                     entry.getValue().getTicketNumber().toLowerCase(),
                     searchSeq)) {
+                continue;
+            }
+
+            // Filter #3
+            if (printerGroupID != null && printerGroupID.longValue() > 0
+                    && !entry.getValue().getPrinterGroupIDs()
+                            .contains(printerGroupID)) {
                 continue;
             }
 
@@ -1142,6 +1189,24 @@ public final class JobTicketServiceImpl extends AbstractService
         //
         dto.setIppJobState(jobState);
         return dto;
+    }
+
+    @Override
+    public void updatePrinterGroupIDs() {
+
+        final Map<String, Set<Long>> lookupGroupIDs = new HashMap<>();
+
+        for (final OutboxJobDto dto : this.jobTicketCache.values()) {
+
+            final String lookupKey = dto.getPrinter();
+
+            if (!lookupGroupIDs.containsKey(lookupKey)) {
+                lookupGroupIDs.put(lookupKey,
+                        this.getTicketPrinterGroupIDs(dto.getPrinter()));
+            }
+
+            dto.setPrinterGroupIDs(lookupGroupIDs.get(lookupKey));
+        }
     }
 
     @Override

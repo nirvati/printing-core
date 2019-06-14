@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,15 @@
  */
 package org.savapage.core.dao.impl;
 
+import java.util.List;
+
+import javax.persistence.Query;
+
+import org.savapage.core.dao.PrinterAttrDao;
 import org.savapage.core.dao.PrinterGroupMemberDao;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
+import org.savapage.core.dao.helpers.ProxyPrinterName;
+import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.PrinterGroupMember;
 
 /**
@@ -35,6 +43,34 @@ public final class PrinterGroupMemberDaoImpl extends
     @Override
     protected String getCountQuery() {
         return "SELECT COUNT(T.id) FROM PrinterGroupMember T";
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<PrinterGroup> getGroupsWithJobTicketMembers() {
+
+        final String jpql = "SELECT G FROM PrinterGroup G WHERE G.id IN "
+                + "(SELECT DISTINCT(M.group.id) FROM PrinterGroupMember M "
+                + "JOIN PrinterAttr A ON (A.printer = M.printer "
+                + "AND A.name = :attrName AND A.value = :attrValue))";
+
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("attrName",
+                PrinterAttrEnum.JOBTICKET_ENABLE.getDbName());
+        query.setParameter("attrValue", PrinterAttrDao.V_YES);
+
+        return query.getResultList();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<PrinterGroup> getGroups(final String printerName) {
+
+        final String jpql = "SELECT M.group FROM PrinterGroupMember M "
+                + "WHERE M.printer.printerName = :name";
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter("name", ProxyPrinterName.getDaoName(printerName));
+        return query.getResultList();
     }
 
 }
