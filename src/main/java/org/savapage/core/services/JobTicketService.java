@@ -316,6 +316,14 @@ public interface JobTicketService extends StatefulService {
     void updatePrinterGroupIDs();
 
     /**
+     * Updates Job Ticket Printer Groups of printer in ticket cache.
+     *
+     * @param printer
+     *            Printer.
+     */
+    void updatePrinterGroupIDs(Printer printer);
+
+    /**
      * Updates a Job Ticket.
      *
      * @param dto

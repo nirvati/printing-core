@@ -52,7 +52,7 @@ public enum AdjectiveEnum {
     INTERNAL, EXTERNAL,
 
     /** */
-    NONE,
+    ALL, NONE,
 
     /** */
     UNKNOWN, KNOWN,

@@ -2689,6 +2689,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         final String requestingUser = ServiceContext.getActor();
         final Date now = ServiceContext.getTransactionDate();
 
+        final boolean isJobTicket = BooleanUtils.isTrue(dto.getJobTicket());
+
         jpaPrinter.setModifiedBy(requestingUser);
         jpaPrinter.setModifiedDate(now);
 
@@ -2748,7 +2750,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         final Map<String, String> printerGroupLookup = new HashMap<>();
 
-        for (String displayName : StringUtils.split(printerGroups, " ,;:")) {
+        for (final String displayName : StringUtils.split(printerGroups,
+                " ,;:")) {
             printerGroupLookup.put(displayName.trim().toLowerCase(),
                     displayName.trim());
         }
@@ -2762,8 +2765,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          * printer, so clean-up might not be performed, even if it logically
          * should.
          */
-        if (BooleanUtils.isTrue(dto.getJobTicket())
-                || printerGroupLookup.isEmpty()) {
+        if (isJobTicket || printerGroupLookup.isEmpty()) {
 
             final PrinterAttr removedAttr = printerService().removeAttribute(
                     jpaPrinter, PrinterAttrEnum.JOB_SHEETS_MEDIA_SOURCES);
@@ -2776,6 +2778,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
          * (2) Remove PrinterGroupMembers which are not selected now, and remove
          * entries from the Map if member already exists.
          */
+        boolean isGroupMemberChange = false;
+
         List<PrinterGroupMember> printerGroupMembers =
                 jpaPrinter.getPrinterGroupMembers();
 
@@ -2784,7 +2788,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             jpaPrinter.setPrinterGroupMembers(printerGroupMembers);
         }
 
-        Iterator<PrinterGroupMember> iterMembers =
+        final Iterator<PrinterGroupMember> iterMembers =
                 printerGroupMembers.iterator();
 
         while (iterMembers.hasNext()) {
@@ -2798,13 +2802,15 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             } else {
                 printerGroupMemberDAO().delete(member);
                 iterMembers.remove();
+                isGroupMemberChange = true;
             }
         }
 
         /*
          * (3) Lazy add new Groups and GroupMember.
          */
-        for (Entry<String, String> entry : printerGroupLookup.entrySet()) {
+        for (final Entry<String, String> entry : printerGroupLookup
+                .entrySet()) {
 
             final PrinterGroup group = printerGroupDAO().readOrAdd(
                     entry.getKey(), entry.getValue(), requestingUser, now);
@@ -2817,6 +2823,8 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             member.setCreatedDate(now);
 
             printerGroupMembers.add(member);
+
+            isGroupMemberChange = true;
         }
 
         //
@@ -2827,6 +2835,11 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         //
         updateCachedPrinter(jpaPrinter);
+
+        //
+        if (isJobTicket && isGroupMemberChange) {
+            jobTicketService().updatePrinterGroupIDs(jpaPrinter);
+        }
     }
 
     /**

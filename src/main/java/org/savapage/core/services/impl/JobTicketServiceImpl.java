@@ -1210,6 +1210,25 @@ public final class JobTicketServiceImpl extends AbstractService
     }
 
     @Override
+    public void updatePrinterGroupIDs(final Printer printer) {
+
+        final Set<Long> printerGroupIDs = new HashSet<>();
+
+        for (final PrinterGroupMember member : printer
+                .getPrinterGroupMembers()) {
+            printerGroupIDs.add(member.getGroup().getId());
+        }
+
+        final String printerName = printer.getPrinterName();
+
+        for (final OutboxJobDto dto : this.jobTicketCache.values()) {
+            if (printerName.equalsIgnoreCase(dto.getPrinter())) {
+                dto.setPrinterGroupIDs(printerGroupIDs);
+            }
+        }
+    }
+
+    @Override
     public boolean updateTicket(final JobTicketWrapperDto wrapper)
             throws IOException {
 
