@@ -295,7 +295,7 @@ public final class DbTools implements ServiceEntryPoint {
         /** */
         PRINT_IN(PrintIn.TABLE_NAME, PrintIn.class),
         /** */
-        Print_Out(PrintOut.TABLE_NAME, PrintOut.class),
+        PRINT_OUT(PrintOut.TABLE_NAME, PrintOut.class),
         //
         // Sequence skip intended.
         //
