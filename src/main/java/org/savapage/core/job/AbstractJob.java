@@ -88,37 +88,36 @@ public abstract class AbstractJob
     public final void execute(final JobExecutionContext ctx)
             throws JobExecutionException {
 
-        final SpInfo logger = SpInfo.instance();
         final String logPfx =
                 String.format("| %s", this.getClass().getSimpleName());
 
-        logger.log(String.format("%s starting...", logPfx));
+        LOGGER.info("{} starting...", logPfx);
 
         try {
             ServiceContext.open();
 
-            logger.log(String.format("%s ...initializing", logPfx));
+            LOGGER.info("{} ...initializing", logPfx);
             onInit(ctx);
-            logger.log(String.format("%s ...initialized", logPfx));
+            LOGGER.info("{} ...initialized", logPfx);
 
-            logger.log(String.format("%s ...executing", logPfx));
+            LOGGER.info("{} ...executing", logPfx);
             onExecute(ctx);
-            logger.log(String.format("%s ...executed", logPfx));
+            LOGGER.info("{} ...executed", logPfx);
 
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         } finally {
             try {
-                logger.log(String.format("%s ...finalizing", logPfx));
+                LOGGER.info("{} ...finalizing", logPfx);
                 onExit(ctx);
-                logger.log(String.format("%s ...finalized", logPfx));
+                LOGGER.info("{} ...finalized", logPfx);
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);
             } finally {
                 ServiceContext.close();
             }
         }
-        logger.log(String.format("%s finished", logPfx));
+        LOGGER.info("{} finished", logPfx);
     }
 
     /**
