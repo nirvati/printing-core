@@ -135,6 +135,7 @@ import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 /**
  *
@@ -343,6 +344,14 @@ public final class ConfigManager {
     /** */
     private ConfigManager() {
         runMode = null;
+    }
+
+    /**
+     * Redirects Java Logging to Log4j.
+     */
+    public static void initJavaUtilLogging() {
+        java.util.logging.LogManager.getLogManager().reset();
+        SLF4JBridgeHandler.install();
     }
 
     /**
