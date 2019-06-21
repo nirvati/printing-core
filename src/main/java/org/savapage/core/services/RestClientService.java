@@ -47,10 +47,4 @@ public interface RestClientService extends StatefulService {
      * @return RESTful Client.
      */
     Client createClientAuth(String username, String password);
-
-    /**
-     * Tests the service bij calling a simple GET of this application's RESTful
-     * server. The result is logged.
-     */
-    void test();
 }

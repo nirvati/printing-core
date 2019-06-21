@@ -25,13 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -43,7 +38,6 @@ import org.glassfish.jersey.apache.connector.ApacheClientProperties;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.savapage.core.SpInfo;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
@@ -209,47 +203,6 @@ public final class RestClientServiceImpl extends AbstractService
                         .build();
 
         return socketFactoryRegistry;
-    }
-
-    @Override
-    public void test() {
-
-        final ConfigManager cm = ConfigManager.instance();
-
-        final Client client = this.createClientAuth(
-                cm.getConfigValue(IConfigProp.Key.API_RESTFUL_AUTH_USERNAME),
-                cm.getConfigValue(IConfigProp.Key.API_RESTFUL_AUTH_PASSWORD));
-
-        final String restfulPath = "/restful/v1";
-        final String targetPath = "system/version";
-
-        final WebTarget[] webTargets = new WebTarget[] { //
-                client.target("http://localhost:"
-                        + ConfigManager.getServerPort() + restfulPath)
-                        .path(targetPath), //
-                client.target("https://localhost:"
-                        + ConfigManager.getServerSslPort() + restfulPath)
-                        .path(targetPath) };
-        try {
-            for (final WebTarget webTarget : webTargets) {
-
-                final Invocation.Builder invocationBuilder =
-                        webTarget.request(MediaType.TEXT_PLAIN);
-
-                try (Response response = invocationBuilder.get();) {
-                    final String version = response.readEntity(String.class);
-                    SpInfo.instance().log(String.format(
-                            "%s test: GET %s -> %s [%s] [%s]", ALIAS_NAME,
-                            webTarget.getUri().toString(), response.getStatus(),
-                            response.getStatusInfo(), version));
-
-                } catch (ProcessingException e) {
-                    LOGGER.error(e.getMessage());
-                }
-            }
-        } finally {
-            client.close();
-        }
     }
 
     @Override
