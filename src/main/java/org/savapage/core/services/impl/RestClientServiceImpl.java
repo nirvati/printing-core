@@ -23,7 +23,6 @@ package org.savapage.core.services.impl;
 
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -35,9 +34,9 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
@@ -89,12 +88,12 @@ public final class RestClientServiceImpl extends AbstractService
             this.sslContextAllTrusted =
                     InetUtils.createSslContextTrustSelfSigned();
             /*
-             * Since we use a pooling manager, the ClientBuilder#sslContext and
-             * ClientBuilder#hostnameVerifier setters are silently ignored.
-             * Therefore we set trust at pooling manager level.
+             * Set trust level at pooling manager level. This is needed in case
+             * we DO use ApacheConnectorProvider when creating ClientBuilder.
              */
             this.connectionManager = new PoolingHttpClientConnectionManager(
                     createAllTrustedRegistry(this.sslContextAllTrusted));
+
         } else {
             this.connectionManager = new PoolingHttpClientConnectionManager();
         }
@@ -155,21 +154,35 @@ public final class RestClientServiceImpl extends AbstractService
         clientConfig.property(ApacheClientProperties.CONNECTION_MANAGER,
                 this.connectionManager);
 
-        clientConfig.connectorProvider(new ApacheConnectorProvider());
+        /*
+         * When using ApacheConnectorProvider in clientConfig, the
+         * ClientBuilder#sslContext and ClientBuilder#hostnameVerifier setters
+         * are silently ignored. Therefore we fall back to trust set at pooling
+         * manager level.
+         *
+         * IMPORTANT: do NOT use ...
+         *
+         * clientConfig.connectorProvider(new ApacheConnectorProvider());
+         *
+         * Reason: file upload requests are denied because ... "There are some
+         * request headers that have not been sent by connector
+         * [org.glassfish.jersey.apache.connector.ApacheConnector]."
+         */
 
         final ClientBuilder builder = ClientBuilder.newBuilder();
 
         builder.withConfig(clientConfig)
                 .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
                 .readTimeout(readTimeout, TimeUnit.MILLISECONDS);
+        //
+        builder.register(MultiPartFeature.class);
 
         /*
-         * Since we use a pooling manager, the ClientBuilder#sslContext and
-         * ClientBuilder#hostnameVerifier setters are silently ignored.
-         * Therefore we have set trust at pooling manager level.
+         * Since we do NOT use ApacheConnectorProvider, we MUST apply these
+         * methods.
          */
-        // builder.sslContext(this.sslContextAllTrusted)
-        // .hostnameVerifier((s1, s2) -> true);
+        builder.sslContext(this.sslContextAllTrusted)
+                .hostnameVerifier((s1, s2) -> true);
 
         return builder;
     }
@@ -177,12 +190,6 @@ public final class RestClientServiceImpl extends AbstractService
     /**
      * Create ConnectionSocketFactory registry for trusting self-signed SSL
      * certs and accepting hostname cert name mismatch.
-     * <p>
-     * <b>Note</b>: Since we use a pooling manager, the
-     * {@link ClientBuilder#sslContext(SSLContext)} and
-     * {@link ClientBuilder#hostnameVerifier(HostnameVerifier)} setters are
-     * silently ignored.
-     * </p>
      *
      * @param sslContextAllTrusted
      *            All trusted SSLContext.
