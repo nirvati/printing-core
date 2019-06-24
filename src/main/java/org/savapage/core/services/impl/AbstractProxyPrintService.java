@@ -3079,6 +3079,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
             final DocContentPrintInInfo printInInfo, final File pdfFile,
             final IppRoutingListener listener) throws ProxyPrintException {
 
+        try {
+            this.lazyInitPrinterCache();
+        } catch (IppConnectException | IppSyntaxException e1) {
+            throw new ProxyPrintException(e1.getMessage());
+        }
+
         final String printerName = printer.getPrinterName();
         final boolean isColorPrinter = this.isColorPrinter(printerName);
         final boolean isJobTicketPrinter =

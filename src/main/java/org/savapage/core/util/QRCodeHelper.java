@@ -52,18 +52,23 @@ public final class QRCodeHelper {
      * @param codeText
      *            QR text.
      * @param squareWidth
-     *            Width and height (pixels).
+     *            Width and height in pixels.
+     * @param quietZone
+     *            quietZone, in pixels. Use {@code null} for default zone.
      * @throws QRCodeException
      *             If error.
      * @return {@link BufferedImage}.
      */
     public static BufferedImage createImage(final String codeText,
-            final int squareWidth) throws QRCodeException {
+            final int squareWidth, final Integer quietZone)
+            throws QRCodeException {
 
-        final Hashtable<EncodeHintType, ErrorCorrectionLevel> hintMap =
-                new Hashtable<EncodeHintType, ErrorCorrectionLevel>();
+        final Hashtable<EncodeHintType, Object> hintMap = new Hashtable<>();
 
         hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
+        if (quietZone != null) {
+            hintMap.put(EncodeHintType.MARGIN, quietZone);
+        }
 
         final QRCodeWriter qrCodeWriter = new QRCodeWriter();
 
