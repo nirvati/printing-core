@@ -454,9 +454,7 @@ public final class DbTools implements ServiceEntryPoint {
             // since V01.00
             UserGroupMemberV01.class,
             // since V01.06
-            UserGroupAccountV01.class
-
-            /* */
+            UserGroupAccountV01.class //
     };
 
     /**
@@ -480,7 +478,7 @@ public final class DbTools implements ServiceEntryPoint {
      * @since 0.9.6
      * @see Mantis #369
      */
-    private static final String[][] SCHEMA_ENTITIES_XML_EXPORT_ORDER_BY = {
+    private static final String[][] XML_SCHEMA_ENTITIES_EXPORT_ORDER_BY = {
             /*
              * AccountV01 has a foreign key that points to itself. Therefore the
              * rows that do NOT have this relation (NULL value for secondary
@@ -501,6 +499,21 @@ public final class DbTools implements ServiceEntryPoint {
     /**
      * <b>*** HISTORY - DO NOT EDIT ***</b>
      * <p>
+     * Sequence entity class used for the database export and import for the
+     * {@link #SCHEMA_V01} database schema.
+     * </p>
+     * <p>
+     * DB_SCHEMA_DEPENDENT: when a new schema version is introduced a new
+     * constant should be added (search for DB_SCHEMA_DEPENDENT to find other
+     * critical update places).
+     * </p>
+     */
+    private static final Class<?> XML_SCHEMA_SEQUENCE_ENTITY_V01 =
+            XSequenceV01.class;
+
+    /**
+     * <b>*** HISTORY - DO NOT EDIT ***</b>
+     * <p>
      * List of XML @Entity annotated classes used for the database export and
      * import for the {@link #SCHEMA_V01} database schema.
      * </p>
@@ -509,16 +522,12 @@ public final class DbTools implements ServiceEntryPoint {
      * data-model, so foreign key constraints are satisfied.
      * </p>
      * <p>
-     * NOTE: the Sequence class IS part of this list, since its content needs to
-     * be restored.
-     * </p>
-     * <p>
      * DB_SCHEMA_DEPENDENT: when a new schema version is introduced a new
      * constant should be added (search for DB_SCHEMA_DEPENDENT to find other
      * critical update places).
      * </p>
      */
-    private static final Class<?>[] SCHEMA_ENTITIES_V01_XML = {
+    private static final Class<?>[] XML_SCHEMA_ENTITIES_V01 = {
             // since V01
             XAppLogV01.class,
             // since V01
@@ -605,9 +614,7 @@ public final class DbTools implements ServiceEntryPoint {
 
             // --------------------
             // since V01
-            XSequenceV01.class
-
-            /* */
+            XML_SCHEMA_SEQUENCE_ENTITY_V01 //
     };
 
     /**
@@ -780,16 +787,33 @@ public final class DbTools implements ServiceEntryPoint {
     /**
      *
      * @param version
-     * @return
+     *            Schema version.
+     * @return XML schema version entity classes.
      */
-    private static Class<?>[] getSchemaEntitiesForXml(final String version) {
+    private static Class<?>[] getXmlSchemaEntities(final String version) {
 
         if (version.equals(SCHEMA_V01)) {
-            return SCHEMA_ENTITIES_V01_XML;
+            return XML_SCHEMA_ENTITIES_V01;
         }
 
         throw new SpException(
                 "XML schema version [" + version + "] is not supported");
+    }
+
+    /**
+     *
+     * @param version
+     *            Schema version.
+     * @return XML schema version Sequence entity class.
+     */
+    private static Class<?> getXmlSchemaSequenceEntity(final String version) {
+
+        if (version.equals(SCHEMA_V01)) {
+            return XML_SCHEMA_SEQUENCE_ENTITY_V01;
+        }
+
+        throw new SpException("XML Sequence Entity version [" + version
+                + "] is not supported");
     }
 
     /**
@@ -1489,7 +1513,7 @@ public final class DbTools implements ServiceEntryPoint {
              * version of the application, since e.g. we want to backup the
              * database before an upgrade.
              */
-            for (Class<?> objClass : getSchemaEntitiesForXml(
+            for (Class<?> objClass : getXmlSchemaEntities(
                     getDbSchemaVersion())) {
                 exportDbTable(em, queryMaxResults, writer, objClass);
             }
@@ -1545,7 +1569,7 @@ public final class DbTools implements ServiceEntryPoint {
          * Some entities need an ORDER BY clause, to ensure that on import
          * recursive foreign key constraints are satisfied.
          */
-        for (final String[] props : SCHEMA_ENTITIES_XML_EXPORT_ORDER_BY) {
+        for (final String[] props : XML_SCHEMA_ENTITIES_EXPORT_ORDER_BY) {
             if (props[0].equals(entityClassNameSimple)) {
                 jpql.append(" ORDER BY ").append(props[1]);
                 break;
@@ -1843,8 +1867,8 @@ public final class DbTools implements ServiceEntryPoint {
             readerPosition = reader.next();
 
             while (readerPosition == XMLStreamReader.START_ELEMENT) {
-                readerPosition =
-                        importDbEntityFromXml(reader, batchCommitter, listener);
+                readerPosition = importDbEntityFromXml(reader, batchCommitter,
+                        listener, getXmlSchemaSequenceEntity(xmlSchemaVersion));
                 batchCommitter.commit();
             }
 
@@ -1913,23 +1937,30 @@ public final class DbTools implements ServiceEntryPoint {
      *            The {@link DaoBatchCommitter}.
      * @param listener
      *            The {@link DbProcessListener}.
+     * @param schemaSequenceEntityClass
+     *            XML Entity Sequence class.
      * @return The current {@link XMLStreamReader#getEventType()} of the reader.
      * @throws Exception
      *             When an error occurs.
      */
     private static int importDbEntityFromXml(final XMLStreamReader reader,
             final DaoBatchCommitter batchCommitter,
-            final DbProcessListener listener) throws Exception {
+            final DbProcessListener listener,
+            final Class<?> schemaSequenceEntityClass) throws Exception {
 
         final String entityClassName = reader.getAttributeValue("", "name");
         final Class<?> entityClass = getEntityClassFromXmlAttr(entityClassName);
+
+        final boolean isSequenceEntity = entityClass.getSimpleName()
+                .equals(schemaSequenceEntityClass.getSimpleName());
 
         int count = 0;
 
         int readerPosition = reader.next();
 
         while (readerPosition == XMLStreamReader.START_ELEMENT) {
-            readerPosition = importDbEntityRowFromXml(reader, entityClass);
+            readerPosition = importDbEntityRowFromXml(reader, entityClass,
+                    isSequenceEntity);
             count++;
             batchCommitter.increment();
         }
@@ -1951,12 +1982,15 @@ public final class DbTools implements ServiceEntryPoint {
      *            The {@link XMLStreamReader}.
      * @param entityClass
      *            The class of type {@link XEntityVersion}.
+     * @param isSequenceEntityClass
+     *            If {@code true}, entityClass represents a Sequence.
      * @return The current {@link XMLStreamReader#getEventType()} of the reader.
      * @throws Exception
      *             When an error occurs.
      */
     private static int importDbEntityRowFromXml(final XMLStreamReader reader,
-            final Class<?> entityClass) throws Exception {
+            final Class<?> entityClass, final boolean isSequenceEntityClass)
+            throws Exception {
 
         final Map<String, String> properties = new HashMap<String, String>();
         final StringBuilder value = new StringBuilder();
@@ -1991,7 +2025,12 @@ public final class DbTools implements ServiceEntryPoint {
         if (!properties.isEmpty()) {
             BeanUtils.populate(objEntity, properties);
         }
-        em.persist(objEntity);
+
+        if (isSequenceEntityClass) {
+            em.merge(objEntity);
+        } else {
+            em.persist(objEntity);
+        }
 
         return reader.next();
     }
