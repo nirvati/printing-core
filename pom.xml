@@ -463,7 +463,7 @@
         <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>javase</artifactId>
-            <version>3.3.2</version>
+            <version>3.4.0</version>
         </dependency>
     </dependencies>
     <description>SavaPage is a Free Software Solution that uses Open Standards and Commodity Hardware for Secure Pull-Printing, Pay-Per-Print, Delegated Print, Job Ticketing, Auditing and PDF Creation.</description>
