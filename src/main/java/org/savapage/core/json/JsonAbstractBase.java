@@ -124,7 +124,7 @@ public abstract class JsonAbstractBase {
      * @throws IOException
      *             When serialization fails.
      */
-    private static String prettyPrinted(final Object pojo) throws IOException {
+    protected static String prettyPrinted(final Object pojo) throws IOException {
 
         final StringWriter sw = new StringWriter();
         final JsonGenerator jg = jsonFactory.createJsonGenerator(sw);

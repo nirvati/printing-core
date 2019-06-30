@@ -106,6 +106,7 @@ import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.client.IppNotificationRecipient;
 import org.savapage.core.ipp.routing.IppRoutingContextImpl;
 import org.savapage.core.ipp.routing.IppRoutingListener;
+import org.savapage.core.ipp.routing.IppRoutingResult;
 import org.savapage.core.ipp.rules.IppRuleConstraint;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.job.SpJobType;
@@ -3115,6 +3116,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
         printReq.setClearScope(InboxSelectScopeEnum.NONE);
         printReq.setSupplierInfo(null);
 
+        printReq.setArchive(docStoreService().isEnabled(
+                DocStoreTypeEnum.ARCHIVE, DocStoreBranchEnum.OUT_PRINT)
+                && !printerService()
+                        .isDocStoreDisabled(DocStoreTypeEnum.ARCHIVE, printer));
+
         final Map<String, String> ippOptions =
                 this.getDefaultPrinterCostOptions(printerName);
         final Map<String, String> ippOptionsRouting =
@@ -3171,11 +3177,22 @@ public abstract class AbstractProxyPrintService extends AbstractService
         }
 
         if (listener != null) {
+
             final IppRoutingContextImpl ctx = new IppRoutingContextImpl();
             ctx.setOriginatorIp(printInInfo.getOriginatorIp());
             ctx.setUrlPath(queue.getUrlPath());
             ctx.setPdfToPrint(fileToPrint);
-            listener.onIppRoutingEvent(ctx);
+
+            final IppRoutingResult res = new IppRoutingResult();
+
+            listener.onIppRoutingEvent(ctx, res);
+
+            if (res.getRoutingId() != null) {
+                final ExternalSupplierInfo supplierInfo =
+                        new ExternalSupplierInfo();
+                supplierInfo.setId(res.getRoutingId());
+                printReq.setSupplierInfo(supplierInfo);
+            }
         }
         /*
          * Proxy Print Transaction.
@@ -3280,8 +3297,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
         } else {
             docLog.setExternalId(supplierInfo.getId());
             docLog.setExternalStatus(supplierInfo.getStatus());
-            docLog.setExternalSupplier(supplierInfo.getSupplier().toString());
-
+            if (supplierInfo.getSupplier() != null) {
+                docLog.setExternalSupplier(
+                        supplierInfo.getSupplier().toString());
+            }
             if (supplierInfo.getData() != null) {
                 docLog.setExternalData(supplierInfo.getData().dataAsString());
             }

@@ -26,14 +26,19 @@ package org.savapage.core.ipp.routing;
  * @author Rijk Ravestein
  *
  */
-public interface IppRoutingListener {
+public final class IppRoutingResult {
 
     /**
-     * @param ctx
-     *            Routing context.
-     * @param res
-     *            The routing result to be filled.
+     *
      */
-    void onIppRoutingEvent(IppRoutingContext ctx, IppRoutingResult res);
+    private String routingId;
+
+    public String getRoutingId() {
+        return routingId;
+    }
+
+    public void setRoutingId(String routingId) {
+        this.routingId = routingId;
+    }
 
 }

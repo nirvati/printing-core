@@ -844,7 +844,10 @@ public final class DocLogServiceImpl extends AbstractService
         if (supplierInfo != null) {
             docLog.setExternalId(supplierInfo.getId());
             docLog.setExternalStatus(supplierInfo.getStatus());
-            docLog.setExternalSupplier(supplierInfo.getSupplier().toString());
+            if (supplierInfo.getSupplier() != null) {
+                docLog.setExternalSupplier(
+                        supplierInfo.getSupplier().toString());
+            }
             if (supplierInfo.getData() != null) {
                 docLog.setExternalData(supplierInfo.getData().dataAsString());
             }
