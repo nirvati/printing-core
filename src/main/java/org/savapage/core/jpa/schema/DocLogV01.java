@@ -56,8 +56,9 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
         @Index(name = "ix_doc_log_3", columnList = "created_day"),
         @Index(name = "ix_doc_log_4", columnList = "user_id"),
         @Index(name = "ix_doc_log_5", columnList = "doc_in_id"),
-        @Index(name = "ix_doc_log_6", columnList = "doc_out_id")
-        //
+        @Index(name = "ix_doc_log_6", columnList = "doc_out_id"),
+        @Index(name = "ix_doc_log_7", columnList = "ext_supplier, ext_id"),
+        @Index(name = "ix_doc_log_8", columnList = "ext_id") //
 })
 public class DocLogV01 implements SchemaEntityVersion {
 
