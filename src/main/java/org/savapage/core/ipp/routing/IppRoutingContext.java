@@ -23,6 +23,7 @@ package org.savapage.core.ipp.routing;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 import org.savapage.core.jpa.IppQueue;
 
@@ -34,6 +35,11 @@ import org.savapage.core.jpa.IppQueue;
 public interface IppRoutingContext {
 
     /**
+     * @return User ID.
+     */
+    String getUserId();
+
+    /**
      * @return Originator IP address.
      */
     String getOriginatorIp();
@@ -42,6 +48,26 @@ public interface IppRoutingContext {
      * @return URL path of {@link IppQueue#getUrlPath()}.
      */
     String getUrlPath();
+
+    /**
+     * @return Proxy Printer CUPS name.
+     */
+    String getPrinterName();
+
+    /**
+     * @return Proxy Printer display name.
+     */
+    String getPrinterDisplayName();
+
+    /**
+     * @return Print-in job name.
+     */
+    String getJobName();
+
+    /**
+     * @return Date of routing transaction.
+     */
+    Date getTransactionDate();
 
     /**
      * @return The PDF file to print.

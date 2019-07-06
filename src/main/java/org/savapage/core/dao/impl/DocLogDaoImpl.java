@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -71,6 +71,27 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
 
         query.setParameter("userId", userId);
         query.setParameter("uuid", uuid);
+
+        DocLog docLog = null;
+
+        try {
+            docLog = (DocLog) query.getSingleResult();
+        } catch (NoResultException e) {
+            docLog = null;
+        }
+
+        return docLog;
+    }
+
+    @Override
+    public DocLog findByExtId(final String externalId) {
+
+        final String jpql =
+                "SELECT D FROM DocLog D WHERE D.externalId = :extId";
+
+        final Query query = getEntityManager().createQuery(jpql);
+
+        query.setParameter("extId", externalId);
 
         DocLog docLog = null;
 
@@ -200,7 +221,8 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
                 batchCommitter.increment();
                 batchCommitter.commit();
 
-                LOGGER.trace("|                    {}: {} committed.", i, count);
+                LOGGER.trace("|                    {}: {} committed.", i,
+                        count);
             }
         }
         return nDeleted;
@@ -288,7 +310,8 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
                 batchCommitter.increment();
                 batchCommitter.commit();
 
-                LOGGER.trace("|                    {}: {} committed.", i, count);
+                LOGGER.trace("|                    {}: {} committed.", i,
+                        count);
             }
         }
 

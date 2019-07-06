@@ -23,6 +23,7 @@ package org.savapage.core.ipp.routing;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.util.FileSystemHelper;
@@ -35,6 +36,11 @@ import org.savapage.core.util.FileSystemHelper;
 public final class IppRoutingContextImpl implements IppRoutingContext {
 
     /**
+     * User ID.
+     */
+    private String userId;
+
+    /**
      * Originator IP address.
      */
     private String originatorIp;
@@ -43,6 +49,26 @@ public final class IppRoutingContextImpl implements IppRoutingContext {
      * URL path of {@link IppQueue#getUrlPath()}.
      */
     private String urlPath;
+
+    /**
+     * Proxy Printer CUPS name.
+     */
+    private String printerName;
+
+    /**
+     * Proxy Printer display name.
+     */
+    private String printerDisplayName;
+
+    /**
+     * Print-in job name.
+     */
+    private String jobName;
+
+    /**
+     * Date of routing transaction.
+     */
+    private Date transactionDate;
 
     /**
      * The PDF file to print.
@@ -54,11 +80,24 @@ public final class IppRoutingContextImpl implements IppRoutingContext {
         return originatorIp;
     }
 
+    @Override
+    public String getUserId() {
+        return userId;
+    }
+
+    /**
+     * @param userId
+     *            User ID
+     */
+    public void setUserId(final String userId) {
+        this.userId = userId;
+    }
+
     /**
      * @param originatorIp
      *            Originator IP address.
      */
-    public void setOriginatorIp(String originatorIp) {
+    public void setOriginatorIp(final String originatorIp) {
         this.originatorIp = originatorIp;
     }
 
@@ -73,6 +112,58 @@ public final class IppRoutingContextImpl implements IppRoutingContext {
      */
     public void setUrlPath(final String path) {
         this.urlPath = path;
+    }
+
+    @Override
+    public String getPrinterName() {
+        return printerName;
+    }
+
+    /**
+     * @param name
+     *            Proxy Printer CUPS name.
+     */
+    public void setPrinterName(final String name) {
+        this.printerName = name;
+    }
+
+    @Override
+    public String getPrinterDisplayName() {
+        return printerDisplayName;
+    }
+
+    /**
+     * @param name
+     *            Proxy Printer display name.
+     */
+    public void setPrinterDisplayName(final String name) {
+        this.printerDisplayName = name;
+    }
+
+    @Override
+    public String getJobName() {
+        return jobName;
+    }
+
+    /**
+     * @param name
+     *            Print-in job name.
+     */
+    public void setJobName(final String name) {
+        this.jobName = name;
+    }
+
+    @Override
+    public Date getTransactionDate() {
+        return transactionDate;
+    }
+
+    /**
+     * @param date
+     *            Date of routing transaction.
+     */
+    public void setTransactionDate(final Date date) {
+        this.transactionDate = date;
     }
 
     @Override

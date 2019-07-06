@@ -3179,9 +3179,15 @@ public abstract class AbstractProxyPrintService extends AbstractService
         if (listener != null) {
 
             final IppRoutingContextImpl ctx = new IppRoutingContextImpl();
+
             ctx.setOriginatorIp(printInInfo.getOriginatorIp());
             ctx.setUrlPath(queue.getUrlPath());
             ctx.setPdfToPrint(fileToPrint);
+            ctx.setUserId(user.getUserId());
+            ctx.setPrinterName(printerName);
+            ctx.setPrinterDisplayName(printer.getDisplayName());
+            ctx.setJobName(printInInfo.getJobName());
+            ctx.setTransactionDate(ServiceContext.getTransactionDate());
 
             final IppRoutingResult res = new IppRoutingResult();
 
@@ -3194,6 +3200,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printReq.setSupplierInfo(supplierInfo);
             }
         }
+
         /*
          * Proxy Print Transaction.
          */
