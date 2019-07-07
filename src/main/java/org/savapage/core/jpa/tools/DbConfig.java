@@ -155,9 +155,9 @@ public final class DbConfig {
             final String jdbcDriver) {
 
         config.put(HIBERNATE_DIALECT,
-                "org.hibernate.dialect.PostgreSQLDialect");
+                org.hibernate.dialect.PostgreSQL82Dialect.class.getName());
 
-        final String jdbcDriverDefault = "org.postgresql.Driver";
+        final String jdbcDriverDefault = org.postgresql.Driver.class.getName();
 
         if (jdbcUser != null) {
             config.put(JPA_JDBC_USER, jdbcUser);

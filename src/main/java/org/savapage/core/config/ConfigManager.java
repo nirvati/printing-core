@@ -2730,10 +2730,10 @@ public final class ConfigManager {
         }
 
         config.put(DbConfig.JPA_JDBC_DRIVER,
-                "org.apache.derby.jdbc.EmbeddedDriver");
+                org.apache.derby.jdbc.EmbeddedDriver.class.getName());
 
         config.put(DbConfig.HIBERNATE_DIALECT,
-                "org.hibernate.dialect.DerbyTenSevenDialect");
+                org.hibernate.dialect.DerbyTenSevenDialect.class.getName());
     }
 
     /**
