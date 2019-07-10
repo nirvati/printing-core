@@ -217,7 +217,7 @@ public final class ConfigManager {
     private static final String FILENAME_SERVER_PROPERTIES =
             "server.properties";
 
-    private static Properties theServerProps = null;
+    private static volatile Properties theServerProps = null;
 
     public static final String SERVER_PROP_APP_DIR_TMP = "app.dir.tmp";
     public static final String SERVER_PROP_APP_DIR_SAFEPAGES =
@@ -229,10 +229,16 @@ public final class ConfigManager {
             "smartschool.print";
 
     private static final String SERVER_PROP_DB_TYPE = "database.type";
+
     /**
      * The JDBC driver, like "org.postgresql.Driver".
      */
     private static final String SERVER_PROP_DB_DRIVER = "database.driver";
+    /**
+     * The hibernate dialect: e.g.
+     */
+    private static final String SERVER_PROP_DB_HIBERNATE_DIALECT =
+            "database.hibernate.dialect";
     private static final String SERVER_PROP_DB_URL = "database.url";
     private static final String SERVER_PROP_DB_USER = "database.user";
     private static final String SERVER_PROP_DB_PASS = "database.password";
@@ -342,6 +348,13 @@ public final class ConfigManager {
     private PGPPublicKeyInfo pgpPublicKeyInfo;
 
     /** */
+    private final DbConfig.JdbcInfo jdbcInfo = new DbConfig.JdbcInfo();
+
+    /** */
+    private final DbConfig.HibernateInfo hibernateInfo =
+            new DbConfig.HibernateInfo();
+
+    /** */
     private ConfigManager() {
         runMode = null;
     }
@@ -418,6 +431,20 @@ public final class ConfigManager {
      */
     public boolean isInitialized() {
         return (runMode != null);
+    }
+
+    /**
+     * @return JDBC info.
+     */
+    public DbConfig.JdbcInfo getJdbcInfo() {
+        return this.jdbcInfo;
+    }
+
+    /**
+     * @return Hibernate info.
+     */
+    public DbConfig.HibernateInfo getHibernateInfo() {
+        return this.hibernateInfo;
     }
 
     /**
@@ -1120,18 +1147,52 @@ public final class ConfigManager {
     /**
      * Calculates the runnable status of the configuration.
      *
-     * @return <code>true</code if runnable.
+     * @return {@code true} if runnable.
      */
     public boolean calcRunnable() {
         return myConfigProp.calcRunnable();
     }
 
     /**
-     *
-     * @return
+     * @param props
+     *            Server properties.
      */
     public static void setServerProps(final Properties props) {
         theServerProps = props;
+    }
+
+    /**
+     *
+     * @param info
+     *            JDBC information.
+     */
+    public static void putServerProps(final DbConfig.JdbcInfo info) {
+
+        if (theServerProps == null) {
+            theServerProps = new Properties();
+        }
+        if (info.getDriver() != null) {
+            theServerProps.put(SERVER_PROP_DB_DRIVER, info.getDriver());
+        }
+        if (info.getUrl() != null) {
+            theServerProps.put(SERVER_PROP_DB_URL, info.getUrl());
+        }
+    }
+
+    /**
+     *
+     * @param info
+     *            JDBC information.
+     */
+    public static void putServerProps(final DbConfig.HibernateInfo info) {
+
+        if (theServerProps == null) {
+            theServerProps = new Properties();
+        }
+        if (info.getDialect() != null) {
+            theServerProps.put(SERVER_PROP_DB_HIBERNATE_DIALECT,
+                    info.getDialect());
+        }
     }
 
     /**
@@ -2741,26 +2802,56 @@ public final class ConfigManager {
      *
      * @param config
      *            The configuration map.
+     * @return {@code true} if JDBC user is configured.
      */
-    private void initHibernatePostgreSQL(final Map<String, Object> config) {
+    private boolean initHibernatePostgreSQL(final Map<String, Object> config) {
+
+        final String jdbcUser;
 
         if (theServerProps != null) {
 
-            DbConfig.configHibernatePostgreSQL(config,
-                    theServerProps.getProperty(SERVER_PROP_DB_USER),
+            jdbcUser = theServerProps.getProperty(SERVER_PROP_DB_USER);
+
+            DbConfig.configHibernatePostgreSQL(config, jdbcUser,
                     getDbUserPassword(),
                     theServerProps.getProperty(SERVER_PROP_DB_URL),
                     theServerProps.getProperty(SERVER_PROP_DB_DRIVER));
 
         } else {
+            jdbcUser = null;
             DbConfig.configHibernatePostgreSQL(config);
         }
+        return jdbcUser != null;
     }
 
     /**
-     * @return The JDBC user of the PostgreSQL database.
+     * Sets the Hibernate configuration for External database.
+     *
+     * @param config
+     *            The configuration map.
+     * @return {@code true} if JDBC user is configured.
      */
-    public static String getPostgreSQLUser() {
+    private boolean initHibernateExternal(final Map<String, Object> config) {
+
+        if (theServerProps == null) {
+            throw new IllegalArgumentException(
+                    "Server properties are missing.");
+        }
+
+        final String jdbcUser = theServerProps.getProperty(SERVER_PROP_DB_USER);
+
+        DbConfig.configHibernateExternal(config, jdbcUser, getDbUserPassword(),
+                theServerProps.getProperty(SERVER_PROP_DB_URL),
+                theServerProps.getProperty(SERVER_PROP_DB_DRIVER),
+                theServerProps.getProperty(SERVER_PROP_DB_HIBERNATE_DIALECT));
+
+        return jdbcUser != null;
+    }
+
+    /**
+     * @return The JDBC user of the external database.
+     */
+    public static String getExternalDbUser() {
         if (theServerProps == null) {
             return null;
         }
@@ -2768,9 +2859,9 @@ public final class ConfigManager {
     }
 
     /**
-     * @return The JDBC user password of the PostgreSQL database.
+     * @return The JDBC user password of the external database.
      */
-    public static String getPostgreSQLPassword() {
+    public static String getExternalDbPassword() {
         if (theServerProps == null) {
             return null;
         }
@@ -2842,19 +2933,38 @@ public final class ConfigManager {
         }
 
         //
+        final boolean createEmf;
         switch (this.myDatabaseType) {
         case Internal:
             initHibernateDerby(configOverrides);
+            createEmf = true;
             break;
         case PostgreSQL:
-            initHibernatePostgreSQL(configOverrides);
+            createEmf = initHibernatePostgreSQL(configOverrides);
+            break;
+        case External:
+            createEmf = initHibernateExternal(configOverrides);
             break;
         default:
             throw new SpException("Database type [" + this.myDatabaseType
                     + "] is NOT supported");
         }
-
-        this.myEmf = DbConfig.createEntityManagerFactory(configOverrides);
+        //
+        this.jdbcInfo.setDriver(
+                configOverrides.get(DbConfig.JPA_JDBC_DRIVER).toString());
+        //
+        this.hibernateInfo.setDialect(
+                configOverrides.get(DbConfig.HIBERNATE_DIALECT).toString());
+        //
+        if (createEmf) {
+            this.myEmf = DbConfig.createEntityManagerFactory(configOverrides);
+            /*
+             * Get JDBC URL from EntityManagerFactory properties. Derby URL is
+             * implicit and created by EntityManagerFactory as property.
+             */
+            this.jdbcInfo.setUrl(this.myEmf.getProperties()
+                    .get(DbConfig.JPA_JDBC_URL).toString());
+        }
     }
 
     /**

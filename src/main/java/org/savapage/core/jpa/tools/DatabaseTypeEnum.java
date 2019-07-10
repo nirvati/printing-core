@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,12 +34,21 @@ public enum DatabaseTypeEnum {
     Internal(DatabaseTypeEnum.INTERNAL, "Derby"),
 
     /**
-     * The internal Derby database.
+     * Alternative external database.
+     */
+    External(DatabaseTypeEnum.EXTERNAL, DatabaseTypeEnum.EXTERNAL),
+
+    /**
+     * Preferred external PostgreSQL database.
      */
     PostgreSQL(DatabaseTypeEnum.POSTGRES, DatabaseTypeEnum.POSTGRES);
 
-    private static final String POSTGRES = "PostgreSQL";
+    /** */
     private static final String INTERNAL = "Internal";
+    /** */
+    private static final String EXTERNAL = "External";
+    /** */
+    private static final String POSTGRES = "PostgreSQL";
 
     /**
      * The unique ID used in *.properties file.

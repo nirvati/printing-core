@@ -38,6 +38,49 @@ import org.hibernate.jpa.HibernatePersistenceProvider;
 public final class DbConfig {
 
     /**
+     * JDBC information.
+     */
+    public static class JdbcInfo {
+
+        private String driver;
+        private String url;
+
+        public String getDriver() {
+            return driver;
+        }
+
+        public void setDriver(String driver) {
+            this.driver = driver;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+    }
+
+    /**
+     * Hibernate information.
+     */
+    public static class HibernateInfo {
+
+        private String dialect;
+
+        public String getDialect() {
+            return dialect;
+        }
+
+        public void setDialect(String dialect) {
+            this.dialect = dialect;
+        }
+
+    }
+
+    /**
      * Constants only.
      */
     private DbConfig() {
@@ -154,21 +197,48 @@ public final class DbConfig {
             final String jdbcPassword, final String jdbcUrl,
             final String jdbcDriver) {
 
-        config.put(HIBERNATE_DIALECT,
-                org.hibernate.dialect.PostgreSQL82Dialect.class.getName());
+        final String jdbcDriverWrk;
 
-        final String jdbcDriverDefault = org.postgresql.Driver.class.getName();
+        if (jdbcDriver == null) {
+            jdbcDriverWrk = org.postgresql.Driver.class.getName();
+        } else {
+            jdbcDriverWrk = jdbcDriver;
+        }
+
+        configHibernateExternal(config, jdbcUser, jdbcPassword, jdbcUrl,
+                jdbcDriverWrk,
+                org.hibernate.dialect.PostgreSQL82Dialect.class.getName());
+    }
+
+    /**
+     * Sets the Hibernate properties for an external database.
+     *
+     * @param config
+     *            The configuration map.
+     * @param jdbcUser
+     *            User.
+     * @param jdbcPassword
+     *            Password.
+     * @param jdbcUrl
+     *            URL.
+     * @param jdbcDriverClassName
+     *            JDBC driver class name.
+     * @param dialectClassName
+     *            Hibernate dialect class name.
+     */
+    public static void configHibernateExternal(final Map<String, Object> config,
+            final String jdbcUser, final String jdbcPassword,
+            final String jdbcUrl, final String jdbcDriverClassName,
+            final String dialectClassName) {
 
         if (jdbcUser != null) {
             config.put(JPA_JDBC_USER, jdbcUser);
             config.put(JPA_JDBC_PASSWORD, jdbcPassword);
             config.put(JPA_JDBC_URL, jdbcUrl);
         }
-        if (jdbcDriver == null) {
-            config.put(JPA_JDBC_DRIVER, jdbcDriverDefault);
-        } else {
-            config.put(JPA_JDBC_DRIVER, jdbcDriver);
-        }
+
+        config.put(JPA_JDBC_DRIVER, jdbcDriverClassName);
+        config.put(HIBERNATE_DIALECT, dialectClassName);
     }
 
     /**

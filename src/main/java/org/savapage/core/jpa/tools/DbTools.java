@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -50,7 +50,6 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import javax.xml.stream.XMLInputFactory;
@@ -1025,22 +1024,18 @@ public final class DbTools implements ServiceEntryPoint {
         final boolean applyToDatabase =
                 (fileDropSql == null && fileCreateSql == null);
 
-        final EntityManagerFactory theEmf =
-                ConfigManager.instance().getEntityManagerFactory();
-
-        final String hibernateDialect = theEmf.getProperties()
-                .get(DbConfig.HIBERNATE_DIALECT).toString();
-        final String hibernateDriver =
-                theEmf.getProperties().get(DbConfig.JPA_JDBC_DRIVER).toString();
-        final String jdbcUrl =
-                theEmf.getProperties().get(DbConfig.JPA_JDBC_URL).toString();
+        final ConfigManager cm = ConfigManager.instance();
 
         final Map<String, Object> settingsMap = new HashMap<>();
 
-        settingsMap.put(DbConfig.HIBERNATE_DIALECT, hibernateDialect);
-        settingsMap.put(DbConfig.HIBERNATE_DRIVER, hibernateDriver);
+        settingsMap.put(DbConfig.HIBERNATE_DIALECT,
+                cm.getHibernateInfo().getDialect());
+        settingsMap.put(DbConfig.HIBERNATE_DRIVER,
+                cm.getJdbcInfo().getDriver());
 
         if (applyToDatabase) {
+
+            final String jdbcUrl = cm.getJdbcInfo().getUrl();
 
             /*
              * NOTE: the ";create=true" at the end ensures that a new database
@@ -1066,9 +1061,9 @@ public final class DbTools implements ServiceEntryPoint {
                  * DbConfig.JPA_JDBC_PASSWORD keys from theEmf.getProperties().
                  */
                 settingsMap.put(Environment.USER,
-                        ConfigManager.getPostgreSQLUser());
+                        ConfigManager.getExternalDbUser());
                 settingsMap.put(Environment.PASS,
-                        ConfigManager.getPostgreSQLPassword());
+                        ConfigManager.getExternalDbPassword());
             }
 
             settingsMap.put(Environment.URL, url);
