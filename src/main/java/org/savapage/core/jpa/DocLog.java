@@ -53,20 +53,17 @@ import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 @Table(name = DocLog.TABLE_NAME)
 public class DocLog extends org.savapage.core.jpa.Entity {
 
-    /**
-     *
-     */
+    /** */
     public static final String TABLE_NAME = "tbl_doc_log";
 
-    /**
-     * .
-     */
+    /** */
     public static final int COL_TITLE_LENGTH = 255;
 
-    /**
-     * .
-     */
+    /** */
     public static final int COL_LOG_COMMENT_LENGTH = 255;
+
+    /** */
+    public static final int COL_EXT_ID_LENGTH = 64;
 
     @Id
     @Column(name = "doc_id")
@@ -218,7 +215,7 @@ public class DocLog extends org.savapage.core.jpa.Entity {
     /**
      * .
      */
-    @Column(name = "ext_id", length = 64)
+    @Column(name = "ext_id", length = COL_EXT_ID_LENGTH)
     private String externalId;
 
     /**

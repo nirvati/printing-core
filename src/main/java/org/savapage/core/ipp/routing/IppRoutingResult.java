@@ -21,6 +21,8 @@
  */
 package org.savapage.core.ipp.routing;
 
+import org.savapage.core.jpa.DocLog;
+
 /**
  *
  * @author Rijk Ravestein
@@ -28,17 +30,31 @@ package org.savapage.core.ipp.routing;
  */
 public final class IppRoutingResult {
 
-    /**
-     *
-     */
+    /** */
     private String routingId;
 
+    /**
+     * @return Routing ID.
+     */
     public String getRoutingId() {
         return routingId;
     }
 
-    public void setRoutingId(String routingId) {
-        this.routingId = routingId;
+    /**
+     *
+     * @param id
+     *            Routing ID.
+     * @exception IllegalArgumentException
+     *                If routing ID length is GT
+     *                {@link DocLog#COL_EXT_ID_LENGTH}.
+     */
+    public void setRoutingId(final String id) {
+        if (id != null && id.length() > DocLog.COL_EXT_ID_LENGTH) {
+            throw new IllegalArgumentException(
+                    String.format("Routing ID length exceeeds %d characters.",
+                            DocLog.COL_EXT_ID_LENGTH));
+        }
+        this.routingId = id;
     }
 
 }
