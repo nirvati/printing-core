@@ -38,86 +38,79 @@
                 </excludes>
             </resource>
         </resources>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.1</version>
-                    <configuration>
-                        <!-- Prevent: "Error: Could not find or load main 
-                            class org.apache.maven.surefire.booter.ForkedBooter" -->
-                        <useSystemClassLoader>false</useSystemClassLoader>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>default-test</id>
-                            <phase>test</phase>
-                            <goals>
-                                <goal>test</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.0</version>
-                    <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
-                        <!-- <optimize>true</optimize> <debug>true</debug> -->
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <version>1.8</version>
-                    <executions>
-                        <execution>
-                            <id>version-info</id>
-                            <phase>generate-sources</phase>
-                            <configuration>
-                                <target>
-                                    <echo
-                                        message="*** GENERATING VersionInfo.java ***" />
-                                    <property name="_src.dir"
-                                        value="${project.build.sourceDirectory}" />
-                                    <property
-                                        name="_product.package"
-                                        value="org.savapage.core" />
-                                    <property
-                                        name="_product.package.path"
-                                        value="org/savapage/core" />
-                                    <property
-                                        name="_product.name"
-                                        value="${project.artifactId}" />
-                                    <property
-                                        name="_product.license"
-                                        value="savapage" />
-                                    <property
-                                        name="_product.version"
-                                        value="${project.version}" />
-                                    <property
-                                        name="_license.name"
-                                        value="${LICENSE_NAME}" />
-                                    <property
-                                        name="_license.url"
-                                        value="${LICENSE_URL}" />
-                                    <ant
-                                        antfile="${basedir}/build.xml">
-                                        <target
-                                            name="versioninfo" />
-                                    </ant>
-                                </target>
-                            </configuration>
-                            <goals>
-                                <goal>run</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+                <configuration>
+                    <!-- Prevent: "Error: Could not find or load main class 
+                        org.apache.maven.surefire.booter.ForkedBooter" -->
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <!-- <optimize>true</optimize> <debug>true</debug> -->
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>version-info</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <target>
+                                <echo
+                                    message="*** GENERATING VersionInfo.java ***" />
+                                <property name="_src.dir"
+                                    value="${project.build.sourceDirectory}" />
+                                <property
+                                    name="_product.package"
+                                    value="org.savapage.core" />
+                                <property
+                                    name="_product.package.path"
+                                    value="org/savapage/core" />
+                                <property name="_product.name"
+                                    value="${project.artifactId}" />
+                                <property
+                                    name="_product.license"
+                                    value="savapage" />
+                                <property
+                                    name="_product.version"
+                                    value="${project.version}" />
+                                <property name="_license.name"
+                                    value="${LICENSE_NAME}" />
+                                <property name="_license.url"
+                                    value="${LICENSE_URL}" />
+                                <ant antfile="${basedir}/build.xml">
+                                    <target name="versioninfo" />
+                                </ant>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
     <dependencies>
         <!-- LOGGING DEPENDENCIES - LOG4J -->

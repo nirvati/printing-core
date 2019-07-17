@@ -28,19 +28,15 @@ help:
 clean:
 	mvn clean
 
-.PHONY: version-info
-version-info:
-	mvn org.apache.maven.plugins:maven-antrun-plugin:run@version-info
-
 .PHONY: package
-package: version-info 
+package:
 	mvn package
 
 .PHONY: repackage
 repackage: clean package
 
 .PHONY: install
-install: version-info
+install:
 	mvn clean install
 
 # end-of-file
