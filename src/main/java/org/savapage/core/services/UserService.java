@@ -318,6 +318,17 @@ public interface UserService {
     User findUserByNumberUuid(String number, UUID uuid);
 
     /**
+     * Checks if {@link User} has {@link UUID}.
+     *
+     * @param user
+     *            The user.
+     * @param uuid
+     *            The {@link UUID}.
+     * @return {@code true} when present.
+     */
+    boolean isUserUuidPresent(User user, UUID uuid);
+
+    /**
      * Add/Replace the Primary Card to/of the {@link User}.
      *
      * <ul>

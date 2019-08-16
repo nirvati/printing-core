@@ -3344,6 +3344,13 @@ public interface IConfigProp {
                 "web-login.user.session-timeout-mins", NUMBER_VALIDATOR, "60"),
 
         /**
+         * Enable Web Service Print.
+         */
+        WEBSERVICE_PRINT_ENABLE(//
+                "webservice-print.enable", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_OFF),
+
+        /**
          * Enable Web Print.
          */
         WEB_PRINT_ENABLE(//

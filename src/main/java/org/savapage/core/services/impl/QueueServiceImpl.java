@@ -281,6 +281,11 @@ public final class QueueServiceImpl extends AbstractService
         if (queue == null) {
 
             queue = createQueueDefault(reservedQueue.getUrlPath());
+
+            if (reservedQueue == ReservedIppQueueEnum.WEBSERVICE) {
+                queue.setTrusted(Boolean.TRUE);
+            }
+
             ippQueueDAO().create(queue);
 
         } else if (reservedQueue == ReservedIppQueueEnum.AIRPRINT
@@ -387,10 +392,12 @@ public final class QueueServiceImpl extends AbstractService
         case WEBPRINT:
             enabled = CONFIG_MNGR.isConfigValue(Key.WEB_PRINT_ENABLE);
             break;
+        case WEBSERVICE:
+            enabled = CONFIG_MNGR.isConfigValue(Key.WEBSERVICE_PRINT_ENABLE);
+            break;
         default:
             throw new IllegalStateException(String.format("%s is not handled.",
                     queueReserved.toString()));
-
         }
         return enabled;
     }

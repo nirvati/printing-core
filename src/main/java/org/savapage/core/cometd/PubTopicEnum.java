@@ -153,7 +153,12 @@ public enum PubTopicEnum {
     /**
      * User synchronization.
      */
-    USER_SYNC("user-sync");
+    USER_SYNC("user-sync"),
+
+    /**
+     * Web Service API.
+     */
+    WEB_SERVICE("webservice");
 
     /**
      *

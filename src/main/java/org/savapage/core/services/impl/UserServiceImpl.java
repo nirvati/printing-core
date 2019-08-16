@@ -1956,8 +1956,24 @@ public final class UserServiceImpl extends AbstractService
 
     @Override
     public User findUserByNumberUuid(final String number, final UUID uuid) {
+        return this.checkUserByUuid(this.findUserByNumber(number), uuid);
+    }
 
-        final User user = this.findUserByNumber(number);
+    @Override
+    public boolean isUserUuidPresent(final User user, final UUID uuid) {
+        return this.checkUserByUuid(user, uuid) != null;
+    }
+
+    /**
+     * Checks if {@link User} has {@link UUID}.
+     *
+     * @param user
+     *            The user.
+     * @param uuid
+     *            The {@link UUID}.
+     * @return The User or {@code null} when not found.
+     */
+    private User checkUserByUuid(final User user, final UUID uuid) {
 
         if (user != null && user.getAttributes() != null) {
 

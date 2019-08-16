@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -30,8 +30,8 @@ import org.savapage.core.jpa.IppQueue;
  * current database content.
  * </p>
  *
- * @author Datraverse B.V.
- * @since 0.9.6
+ * @author Rijk Ravestein
+ *
  */
 public enum ReservedIppQueueEnum {
 
@@ -78,7 +78,12 @@ public enum ReservedIppQueueEnum {
     /**
      * The dedicated queue for driverless Web printing.
      */
-    WEBPRINT("webprint", "Web Printer", false);
+    WEBPRINT("webprint", "Web Printer", false),
+
+    /**
+     * The dedicated queue for driverless Web Service printing.
+     */
+    WEBSERVICE("webservice", "Web Service", false);
 
     /**
      * The URL path as used in the database.
