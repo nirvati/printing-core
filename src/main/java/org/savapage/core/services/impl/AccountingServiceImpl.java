@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -1576,6 +1576,31 @@ public final class AccountingServiceImpl extends AbstractService
 
     @Override
     public AbstractJsonRpcMethodResponse
+            deleteUserGroupAccount(final String groupName) {
+
+        final Account account = accountDAO().findActiveAccountByName(groupName,
+                AccountTypeEnum.GROUP);
+        /*
+         * INVARIANT: account MUST exist.
+         */
+        if (account == null) {
+            return JsonRpcMethodError.createBasicError(Code.INVALID_REQUEST,
+                    String.format("No active User Group Account [%s] present.",
+                            groupName),
+                    null);
+        }
+
+        accountDAO().setLogicalDelete(account,
+                ServiceContext.getTransactionDate(), ServiceContext.getActor());
+
+        accountDAO().update(account);
+
+        return JsonRpcMethodResult.createOkResult(String.format(
+                "User Group Account [%s] logically deleted.", groupName));
+    }
+
+    @Override
+    public AbstractJsonRpcMethodResponse
             lazyUpdateSharedAccount(final SharedAccountDisplayInfoDto dto) {
 
         /*
@@ -1690,7 +1715,7 @@ public final class AccountingServiceImpl extends AbstractService
 
         if (accountDuplicate != null
                 && !accountDuplicate.getId().equals(dto.getId())) {
-            return createErrorMsg("msg-shared-account-name-in-use");
+            return createErrorMsg(localize("msg-shared-account-name-in-use"));
         }
 
         /*

@@ -35,7 +35,7 @@ import org.savapage.core.json.rpc.impl.ParamsUniqueName;
  * @author Rijk Ravestein
  *
  */
-public class CliDeleteUserGroup extends AbstractAppApi {
+public class CliDeleteUserGroupAccount extends AbstractAppApi {
 
     /**
      *
@@ -45,7 +45,8 @@ public class CliDeleteUserGroup extends AbstractAppApi {
     /**
      *
      */
-    private static final String METHOD_SHORT_DESCRIPT = "Deletes a User Group.";
+    private static final String METHOD_SHORT_DESCRIPT =
+            "Logically deletes a User Group Account.";
 
     /**
      *
@@ -55,13 +56,10 @@ public class CliDeleteUserGroup extends AbstractAppApi {
     /**
      *
      */
-    private static Object[][] theOptions =
-            new Object[][] {
-            //
+    private static Object[][] theOptions = new Object[][] { //
             { ARG_TEXT + "(255)", CLI_OPT_GROUPNAME, "Unique group name.",
-                    Boolean.TRUE }
-            //
-            };
+                    Boolean.TRUE } //
+    };
 
     @Override
     protected final String getApiVersion() {
@@ -70,7 +68,7 @@ public class CliDeleteUserGroup extends AbstractAppApi {
 
     @Override
     protected final String getMethodName() {
-        return JsonRpcMethodName.DELETE_USER_GROUP.getMethodName();
+        return JsonRpcMethodName.DELETE_USER_GROUP_ACCOUNT.getMethodName();
     }
 
     @Override
@@ -102,8 +100,8 @@ public class CliDeleteUserGroup extends AbstractAppApi {
     }
 
     @Override
-    protected final AbstractJsonRpcMethodParms createMethodParms(
-            final CommandLine cmd) {
+    protected final AbstractJsonRpcMethodParms
+            createMethodParms(final CommandLine cmd) {
 
         final ParamsUniqueName parms = new ParamsUniqueName();
         parms.setUniqueName(cmd.getOptionValue(CLI_OPT_GROUPNAME));

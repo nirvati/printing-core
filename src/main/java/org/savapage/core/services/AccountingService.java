@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -237,6 +237,15 @@ public interface AccountingService {
      */
     SharedAccountDisplayInfoDto getSharedAccountDisplayInfo(Account account,
             Locale locale, String currencySymbol);
+
+    /**
+     * Logically deletes a user group account.
+     *
+     * @param groupName
+     *            The name of the User Group account to delete.
+     * @return The JSON-RPC Return message (either a result or an error);
+     */
+    AbstractJsonRpcMethodResponse deleteUserGroupAccount(String groupName);
 
     /**
      * Updates or creates a shared {@link Account} from user input.
