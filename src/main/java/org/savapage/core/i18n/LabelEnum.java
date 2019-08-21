@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ import java.util.Locale;
 import org.savapage.core.util.LocaleHelper;
 
 /**
- * Common phrases.
+ * Common labels.
  *
  * @author Rijk Ravestein
  *
@@ -34,9 +34,11 @@ import org.savapage.core.util.LocaleHelper;
 public enum LabelEnum {
 
     /** */
-    PRIMARY_EMAIL,
+    IP_ADDRESS,
     /** */
-    OTHER_EMAILS;
+    OTHER_EMAILS,
+    /** */
+    PRIMARY_EMAIL;
 
     /**
      * @param locale

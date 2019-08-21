@@ -31,6 +31,8 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -66,6 +68,21 @@ public final class InetUtils {
 
     /** */
     private static final String LOCAL_SUFFIX = ".local";
+
+    /**
+     * Prefix of Docker bridge network interface.
+     */
+    private static final String NETWORKINTERFACE_NAME_PFX_DOCKER = "docker";
+
+    /**
+     * Prefix of libvirt bridge network interface.
+     */
+    private static final String NETWORKINTERFACE_NAME_PFX_LIBVIRT = "virbr";
+
+    /**
+     * Prefix of a tunnel network interface.
+     */
+    private static final String NETWORKINTERFACE_NAME_PFX_TUNNEL = "tun";
 
     /** */
     public static final String URL_PROTOCOL_HTTP = "http";
@@ -110,26 +127,20 @@ public final class InetUtils {
     }
 
     /**
-     * Gets the assigned (static or dynamic) IPv4 address (no loop back address)
-     * of the host system this application is running on, or the loop back
-     * address when no assigned address is found.
+     * Gets the assigned (static or dynamic) IPv4 addresses (no loop back
+     * address) of the host system this application is running on.
      *
-     * @return The local host IPv4 address.
+     * @return Set of local host IPv4 (no loop back) address.
      * @throws UnknownHostException
      *             When non-loop IPv4 address could not be found or I/O errors
-     *             are encountered when. getting the network interfaces.
+     *             are encountered when getting the network interfaces.
      */
-    public static String getServerHostAddress() throws UnknownHostException {
+    public static Set<String> getServerHostAddresses()
+            throws UnknownHostException {
 
-        final String ipAddress = InetAddress.getLocalHost().getHostAddress();
+        final Set<String> ipAddrSet = new HashSet<>();
 
-        if (!ipAddress.startsWith(IP_LOOP_BACK_ADDR_PREFIX)) {
-            return ipAddress;
-        }
-
-        /*
-         * Traverse all network interfaces on this machine.
-         */
+        // Traverse all network interfaces on this machine.
         final Enumeration<NetworkInterface> networkEnum;
 
         try {
@@ -142,35 +153,77 @@ public final class InetUtils {
 
             final NetworkInterface inter = networkEnum.nextElement();
 
-            /*
-             * Traverse all addresses for this interface.
-             */
+            final String nicName = inter.getName().toLowerCase();
+
+            if (nicName.startsWith(NETWORKINTERFACE_NAME_PFX_DOCKER)
+                    || nicName.startsWith(NETWORKINTERFACE_NAME_PFX_LIBVIRT)
+                    || nicName.startsWith(NETWORKINTERFACE_NAME_PFX_TUNNEL)) {
+                continue;
+            }
+
+            // Traverse all addresses for this interface.
             final Enumeration<InetAddress> enumAddr = inter.getInetAddresses();
 
             while (enumAddr.hasMoreElements()) {
-
                 final InetAddress addr = enumAddr.nextElement();
-
-                /*
-                 * IPv4 addresses only.
-                 */
+                // IPv4 addresses only.
                 if (addr instanceof Inet4Address) {
-
                     if (!addr.getHostAddress()
                             .startsWith(IP_LOOP_BACK_ADDR_PREFIX)) {
-                        /*
-                         * Bingo, this is a non-loop back address.
-                         */
-                        return addr.getHostAddress();
+                        ipAddrSet.add(addr.getHostAddress());
                     }
                 }
             }
         }
+        return ipAddrSet;
+    }
 
-        /*
-         * No non-loop back IP v4 addresses found: return loop back address.
-         */
-        return IP_LOOP_BACK_ADDR;
+    /**
+     * Check if IP address is (one of) the server's IP address(es).
+     *
+     * @param ipAddress
+     *            IP address to check.
+     * @return {@code true} when server IP address.
+     * @throws UnknownHostException
+     *             If error getting the network interfaces.
+     */
+    public static boolean isServerHostAddress(final String ipAddress)
+            throws UnknownHostException {
+
+        for (final String addr : getServerHostAddresses()) {
+            if (addr.equals(ipAddress)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the assigned (static or dynamic) IPv4 address (no loop back address)
+     * of the host system this application is running on, or the loop back
+     * address when no assigned address is found.
+     *
+     * @return The local host IPv4 address.
+     * @throws UnknownHostException
+     *             When non-loop IPv4 address could not be found or I/O errors
+     *             are encountered when getting the network interfaces.
+     */
+    public static String getServerHostAddress() throws UnknownHostException {
+
+        final String ipAddress = InetAddress.getLocalHost().getHostAddress();
+
+        if (!ipAddress.startsWith(IP_LOOP_BACK_ADDR_PREFIX)) {
+            return ipAddress;
+        }
+
+        final Set<String> serverAddresses = getServerHostAddresses();
+
+        if (serverAddresses.isEmpty()) {
+            // No non-loop back address found: return loop back address.
+            return IP_LOOP_BACK_ADDR;
+        }
+        // Get the first one.
+        return serverAddresses.iterator().next();
     }
 
     /**
