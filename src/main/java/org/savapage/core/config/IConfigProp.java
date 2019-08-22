@@ -1924,6 +1924,14 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Enable {@code pdffonts} validation for print-in PDF documents (Web
+         * Print) (boolean).
+         */
+        PRINT_IN_VALIDATE_PDFFONTS_ENABLE(//
+                "print-in.validate.pdf.fonts.enable", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /**
          * Number of minutes after which a print-in job expires. When zero (0)
          * there is NO expiry.
          *

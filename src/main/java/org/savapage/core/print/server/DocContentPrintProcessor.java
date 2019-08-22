@@ -80,6 +80,7 @@ import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.system.PdfFontsErrorValidator;
 import org.savapage.core.users.conf.UserAliasList;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.Messages;
@@ -957,6 +958,12 @@ public final class DocContentPrintProcessor {
 
             this.setPageProps(pdfPageProps);
 
+            //
+            if (inputType == DocContentTypeEnum.PDF && ConfigManager.instance()
+                    .isConfigValue(Key.PRINT_IN_VALIDATE_PDFFONTS_ENABLE)) {
+                validatePdfFonts(new File(tempPathPdf));
+            }
+
             /*
              * STEP 1: Log in Database: BEFORE the file MOVE.
              */
@@ -1039,6 +1046,23 @@ public final class DocContentPrintProcessor {
     }
 
     /**
+     * Validates PDF file for font errors.
+     *
+     * @param pdf
+     *            PDF file.
+     * @throws PdfValidityException
+     *             When font error(s) in PDF document.
+     */
+    private static void validatePdfFonts(final File pdf)
+            throws PdfValidityException {
+        if (!new PdfFontsErrorValidator(pdf).execute()) {
+            throw new PdfValidityException("Font errors.",
+                    PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
+                    PhraseEnum.PDF_INVALID);
+        }
+    }
+
+    /**
      * Creates PDF page properties, and optionally repairs or decrypts PDF.
      *
      * @param tempPathPdf
@@ -1112,6 +1136,7 @@ public final class DocContentPrintProcessor {
                 throw e;
             }
         }
+
         return pdfPageProps;
     }
 
