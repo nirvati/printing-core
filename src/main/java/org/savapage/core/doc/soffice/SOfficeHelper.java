@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,6 +27,7 @@ import java.util.Map;
 import org.savapage.core.SpException;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
+import org.savapage.core.system.SystemInfo;
 
 import com.sun.star.beans.PropertyValue;
 import com.sun.star.lang.XComponent;
@@ -272,7 +273,7 @@ public final class SOfficeHelper {
      */
     public static String getLibreOfficeVersion() {
 
-        final String cmd = "libreoffice --version";
+        final String cmd = SystemInfo.Command.LIBREOFFICE.cmdLine("--version");
 
         final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
 

@@ -24,6 +24,7 @@ package org.savapage.core.imaging;
 import java.io.File;
 
 import org.savapage.core.pdf.PdfPageRotateHelper;
+import org.savapage.core.system.SystemInfo;
 
 /**
  * Command using Poppler.
@@ -83,8 +84,9 @@ public final class Pdf2PngPopplerCmd implements Pdf2ImgCommandExt {
         final StringBuilder cmdBuffer =
                 new StringBuilder(STRINGBUILDER_CAPACITY);
 
-        cmdBuffer.append("pdftoppm -png -r ").append(resolution).append(" -f ")
-                .append(pageOneBased).append(" -l ").append(pageOneBased);
+        cmdBuffer.append(SystemInfo.Command.PDFTOPPM.cmd()).append(" -png -r ")
+                .append(resolution).append(" -f ").append(pageOneBased)
+                .append(" -l ").append(pageOneBased);
 
         if (imgWidth != null) {
             cmdBuffer.append(" -scale-to ").append(imgWidth);
@@ -108,8 +110,8 @@ public final class Pdf2PngPopplerCmd implements Pdf2ImgCommandExt {
         if (rotate2Apply.equals(PdfPageRotateHelper.PDF_ROTATION_0)) {
             cmdBuffer.append(" > ");
         } else {
-            cmdBuffer.append(" | convert -rotate ").append(rotate2Apply)
-                    .append(" - ");
+            cmdBuffer.append(" | ").append(SystemInfo.Command.CONVERT.cmd())
+                    .append(" -rotate ").append(rotate2Apply).append(" - ");
         }
         cmdBuffer.append("\"").append(imgFile.getAbsolutePath()).append("\"");
 

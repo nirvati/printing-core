@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -26,11 +26,12 @@ import java.io.File;
 import org.savapage.core.SpException;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
+import org.savapage.core.system.SystemInfo;
 
 /**
  * Converts an XPS file to PDF.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class XpsToPdf extends AbstractDocFileConverter {
@@ -43,13 +44,13 @@ public class XpsToPdf extends AbstractDocFileConverter {
     /**
      *
      */
-    private static final String XPSTOPDF = "xpstopdf";
-
-    /**
-     *
-     */
     public XpsToPdf() {
         super(ExecMode.MULTI_THREADED);
+    }
+
+    @Override
+    protected ExecType getExecType() {
+        return ExecType.ADVANCED;
     }
 
     @Override
@@ -61,12 +62,16 @@ public class XpsToPdf extends AbstractDocFileConverter {
     protected final String getOsCommand(final DocContentTypeEnum contentType,
             final File fileIn, final File fileOut) {
 
-        return XPSTOPDF + " " + fileIn.getAbsolutePath() + " "
-                + fileOut.getAbsolutePath() + " 2>/dev/null";
+        return SystemInfo.Command.XPSTOPDF.cmdLineExt(fileIn.getAbsolutePath(),
+                fileOut.getAbsolutePath(), " 2>/dev/null");
     }
 
+    /**
+     *
+     * @return name.
+     */
     public static String name() {
-        return XPSTOPDF;
+        return SystemInfo.Command.XPSTOPDF.cmd();
     }
 
     /**
@@ -91,7 +96,8 @@ public class XpsToPdf extends AbstractDocFileConverter {
      */
     public static boolean isInstalled() {
 
-        final String cmd = "which " + XPSTOPDF;
+        final String cmd = SystemInfo.Command.WHICH
+                .cmdLine(SystemInfo.Command.XPSTOPDF.cmd());
 
         ICommandExecutor exec = CommandExecutor.createSimple(cmd);
 

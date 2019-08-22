@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import org.apache.commons.io.FilenameUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.system.SystemInfo;
 
 /**
  * Tries to repair a corrupted PDF file.
@@ -62,6 +63,11 @@ public final class PdfRepair extends AbstractFileConverter
     }
 
     @Override
+    protected ExecType getExecType() {
+        return ExecType.ADVANCED;
+    }
+
+    @Override
     protected File getOutputFile(final File fileIn) {
 
         final StringBuilder builder = new StringBuilder(128);
@@ -87,8 +93,9 @@ public final class PdfRepair extends AbstractFileConverter
         final StringBuilder cmd = new StringBuilder(128);
 
         try {
-            cmd.append("pdftocairo -pdf \"").append(fileIn.getCanonicalPath())
-                    .append("\" \"").append(fileOut.getCanonicalPath())
+            cmd.append(SystemInfo.Command.PDFTOCAIRO.cmd()).append(" -pdf \"")
+                    .append(fileIn.getCanonicalPath()).append("\" \"")
+                    .append(fileOut.getCanonicalPath())
                     .append("\" < /dev/null");
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);

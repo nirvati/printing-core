@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import org.apache.commons.io.FilenameUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.system.SystemInfo;
 
 /**
  * Converts a PDF file to PrePress PDF, automatically repairing corrupted PDF
@@ -65,6 +66,11 @@ public final class PdfToPrePress extends AbstractFileConverter
     }
 
     @Override
+    protected ExecType getExecType() {
+        return ExecType.ADVANCED;
+    }
+
+    @Override
     protected File getOutputFile(final File fileIn) {
 
         final StringBuilder builder = new StringBuilder(128);
@@ -90,7 +96,8 @@ public final class PdfToPrePress extends AbstractFileConverter
         final StringBuilder cmd = new StringBuilder(128);
 
         try {
-            cmd.append("gs -sOutputFile=\"").append(fileOut.getCanonicalPath())
+            cmd.append(SystemInfo.Command.GS.cmd()).append(" -sOutputFile=\"")
+                    .append(fileOut.getCanonicalPath())
                     .append("\" -sDEVICE=pdfwrite -q -dNOPAUSE -dBATCH") //
                     .append(" -dPDFSETTINGS=/prepress") //
                     .append(" \"").append(fileIn.getCanonicalPath()) //

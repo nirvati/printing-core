@@ -49,6 +49,8 @@ public final class CommandExecutor {
     }
 
     /**
+     * Creates a safe executor that prevents deadlock in case of abundant stdout
+     * and/or stderr.
      *
      * @param commandInformation
      *            Command.
@@ -87,6 +89,11 @@ public final class CommandExecutor {
     }
 
     /**
+     * Creates a simple executor that <b>can cause deadlock</b> in case of
+     * abundant stdout and/or stderr.
+     * <p>
+     * <i>Use when you're absolutely sure stdout and stderr are limited.</i>
+     * </p>
      *
      * @param command
      *            Command.
@@ -97,6 +104,8 @@ public final class CommandExecutor {
     }
 
     /**
+     * Creates a safe executor that prevents deadlock in case of abundant stdout
+     * and/or stderr.
      *
      * @param command
      *            Command.
@@ -107,7 +116,8 @@ public final class CommandExecutor {
     }
 
     /**
-     * Creates a command with stdin input.
+     * Creates a safe executor with stdin input that prevents deadlock in case
+     * of abundant stdout and/or stderr.
      *
      * @param command
      *            Command.

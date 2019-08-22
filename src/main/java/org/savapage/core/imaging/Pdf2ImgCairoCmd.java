@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@ package org.savapage.core.imaging;
 import java.io.File;
 
 import org.savapage.core.pdf.PdfPageRotateHelper;
+import org.savapage.core.system.SystemInfo;
 
 /**
  * Command using Cairo.
@@ -79,10 +80,10 @@ public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand {
         final StringBuilder cmdBuffer =
                 new StringBuilder(STRINGBUILDER_CAPACITY);
 
-        cmdBuffer.append("pdftocairo ").append(this.imgType.getCmdOpt())
-                .append(" -r ").append(resolution).append(" -f ")
-                .append(pageOneBased).append(" -l ").append(pageOneBased)
-                .append(" -singlefile");
+        cmdBuffer.append(SystemInfo.Command.PDFTOCAIRO.cmd()).append(" ")
+                .append(this.imgType.getCmdOpt()).append(" -r ")
+                .append(resolution).append(" -f ").append(pageOneBased)
+                .append(" -l ").append(pageOneBased).append(" -singlefile");
 
         cmdBuffer.append(" \"").append(pdfFile.getAbsolutePath()).append("\"");
 
@@ -94,8 +95,8 @@ public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand {
         if (rotate2Apply.equals(PdfPageRotateHelper.PDF_ROTATION_0)) {
             cmdBuffer.append(" - > ");
         } else {
-            cmdBuffer.append(" | convert -rotate ").append(rotate2Apply)
-                    .append(" - ");
+            cmdBuffer.append(" | ").append(SystemInfo.Command.CONVERT.cmd())
+                    .append(" -rotate ").append(rotate2Apply).append(" - ");
         }
         cmdBuffer.append("\"").append(imgFile.getAbsolutePath()).append("\"");
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@ package org.savapage.core.doc;
 import java.io.File;
 
 import org.savapage.core.SpException;
+import org.savapage.core.system.SystemInfo;
 
 /**
  * A {@link ExecMode#SINGLE_THREADED} implementation of Libre Office PDF
@@ -32,7 +33,7 @@ import org.savapage.core.SpException;
  * @author Rijk Ravestein
  *
  */
-public class OfficeToPdf extends AbstractDocFileConverter {
+public final class OfficeToPdf extends AbstractDocFileConverter {
 
     /**
      * Constructor.
@@ -42,24 +43,31 @@ public class OfficeToPdf extends AbstractDocFileConverter {
     }
 
     @Override
-    protected final File getOutputFile(final File fileIn) {
+    protected ExecType getExecType() {
+        return ExecType.ADVANCED;
+    }
+
+    @Override
+    protected File getOutputFile(final File fileIn) {
         return getFileSibling(fileIn, DocContentTypeEnum.PDF);
     }
 
     @Override
-    protected final String getOsCommand(final DocContentTypeEnum contentType,
+    protected String getOsCommand(final DocContentTypeEnum contentType,
             final File fileIn, final File fileOut) {
 
-        return "libreoffice --headless --convert-to "
-                + DocContent.FILENAME_EXT_PDF + ":"
-                + getOoOutputFilterName(contentType) + " "
-                + fileIn.getAbsolutePath() + " --outdir " + fileOut.getParent();
+        return SystemInfo.Command.LIBREOFFICE.cmdLineExt("--headless",
+                "--convert-to",
+                DocContent.FILENAME_EXT_PDF + ":"
+                        + getOoOutputFilterName(contentType),
+                fileIn.getAbsolutePath(), "--outdir", fileOut.getParent());
     }
 
     /**
      *
      * @param contentType
-     * @return
+     *            Content type
+     * @return The LibreOffice filter name.
      */
     private String getOoOutputFilterName(final DocContentTypeEnum contentType) {
         switch (contentType) {

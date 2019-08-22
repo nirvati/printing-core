@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -65,24 +65,50 @@ public abstract class AbstractFileConverter {
     /**
      * .
      */
+    protected enum ExecType {
+        /**
+         * Uses separate threads for capturing stdout and stdin. This prevents
+         * deadlock when stdin and stdout fills up input stream buffers to the
+         * max.
+         */
+        ADVANCED,
+
+        /**
+         * Single thread capturing of stdout and stdin after OS process has
+         * finished.
+         * <p>
+         * <b>CAUTION</b>: this might lead to deadlock. <i>Use if you're
+         * absolutely sure stdin and stdout output is small.</i>
+         * </p>
+         */
+        SIMPLE
+    }
+
+    /** */
     private final ExecMode execMode;
 
     /**
      *
-     * @param mode
+     * @param emode
      *            The {@link ExecMode}.
+     * @param etype
+     *            The {@link ExecType}.
      */
-    protected AbstractFileConverter(final ExecMode mode) {
-        this.execMode = mode;
+    protected AbstractFileConverter(final ExecMode emode) {
+        this.execMode = emode;
     }
 
     /**
-     *
-     * @return
+     * @return {@link ExecMode}.
      */
     protected final ExecMode getExecMode() {
         return this.execMode;
     }
+
+    /**
+     * @return {@link ExecType}.
+     */
+    protected abstract ExecType getExecType();
 
     /**
      * Returns the OS shell command to perform the conversion.
@@ -155,7 +181,14 @@ public abstract class AbstractFileConverter {
 
         LOGGER.debug(command);
 
-        ICommandExecutor exec = CommandExecutor.createSimple(command);
+        final ICommandExecutor exec;
+
+        if (this.getExecType() == ExecType.SIMPLE) {
+            exec = CommandExecutor.createSimple(command);
+        } else {
+            exec = CommandExecutor.create(command);
+        }
+
         boolean pdfCreated = false;
 
         try {

@@ -32,9 +32,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A simple command executor, using non-threaded readers for input and error
- * streams, with minimal overhead for simple commands that are executed
- * frequently.
+ * A simple command executor using non-threaded writer/readers for stdin,
+ * stdout/stderr streams. It has minimal overhead for simple commands that are
+ * executed frequently and have limited stream content.
  *
  * @author Rijk Ravestein
  *

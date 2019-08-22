@@ -34,10 +34,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * System Command executor that prevents deadlock by reading stdout and stderr
+ * input streams in separate threads, before waiting for the command process to
+ * finish.
+ *
+ * <p>
  * Adapted from <a href=
  * "https://alvinalexander.com/java/java-exec-processbuilder-process-1">Java
  * exec - execute system processes with Java ProcessBuilder and Process</a> by
  * Alvin Alexander.
+ * </p>
  *
  * @author Rijk Ravestein
  *
@@ -216,11 +222,32 @@ public final class SystemCommandExecutor implements ICommandExecutor {
                 InputStream istrStdOut = process.getInputStream();
                 InputStream istrStdErr = process.getErrorStream();) {
 
+            /*
+             * Read stdout and stderr input streams in separate threads BEFORE
+             * process.waitFor() to prevent deadlock.
+             *
+             * When reading of stdout and stderr input streams is done AFTER
+             * process.waitFor(), all in a single thread, a deadlock occurs when
+             * the command produces abundant stdout and stderr, and the input
+             * stream buffer(s) is (are) full. Since the corresponding streams
+             * are not read, the command process is blocked, waiting for this
+             * thread to continue reading.
+             *
+             * This thread in turn waits for the command process to finish
+             * (which it won't because it waits for this thread, etc. Ergo, this
+             * is a classical deadlock situation.
+             *
+             * Therefore, we continually read from the command input streams in
+             * separate threads, to ensure that they don't block. We start the
+             * reader BEFORE process.waitFor().
+             */
             this.stdoutHandler = new ThreadedInputStreamReader(istrStdOut,
                     ostrStdIn, this.stdinString);
-
             this.stderrHandler = new ThreadedInputStreamReader(istrStdErr);
 
+            /*
+             * Start the threads for reading stdout and stderr.
+             */
             this.stdoutHandler.start();
             this.stderrHandler.start();
 

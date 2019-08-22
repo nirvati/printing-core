@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import org.apache.commons.io.FilenameUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.system.SystemInfo;
 
 /**
  * Converts a PDF file to grayscale PDF.
@@ -60,6 +61,11 @@ public final class PdfToGrayscale extends AbstractFileConverter
     }
 
     @Override
+    protected ExecType getExecType() {
+        return ExecType.ADVANCED;
+    }
+
+    @Override
     protected File getOutputFile(final File fileIn) {
 
         final StringBuilder builder = new StringBuilder(128);
@@ -88,7 +94,8 @@ public final class PdfToGrayscale extends AbstractFileConverter
             /*
              * See #598
              */
-            cmd.append("gs -sOutputFile=\"").append(fileOut.getCanonicalPath())
+            cmd.append(SystemInfo.Command.GS.cmd()).append(" -sOutputFile=\"")
+                    .append(fileOut.getCanonicalPath())
                     .append("\" -sDEVICE=pdfwrite -dNOPAUSE -dBATCH")
                     .append(" -sColorConversionStrategy=Gray")
                     .append(" -sProcessColorModel=DeviceGray")

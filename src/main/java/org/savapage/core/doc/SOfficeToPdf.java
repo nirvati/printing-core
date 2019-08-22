@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -53,6 +53,11 @@ public final class SOfficeToPdf extends AbstractDocFileConverter {
     private static final SOfficeDocFormat PDF_OFFICE_FORMAT =
             new SOfficeDocFormatRegistryDefault()
                     .getFormatByExtension(DocContent.FILENAME_EXT_PDF);
+
+    @Override
+    protected ExecType getExecType() {
+        return ExecType.ADVANCED;
+    }
 
     /**
      * Constructor.

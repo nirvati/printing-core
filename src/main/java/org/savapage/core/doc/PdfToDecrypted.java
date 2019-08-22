@@ -68,6 +68,11 @@ public final class PdfToDecrypted extends AbstractFileConverter
     }
 
     @Override
+    protected ExecType getExecType() {
+        return ExecType.ADVANCED;
+    }
+
+    @Override
     protected File getOutputFile(final File fileIn) {
 
         final StringBuilder builder = new StringBuilder(128);
@@ -96,8 +101,9 @@ public final class PdfToDecrypted extends AbstractFileConverter
             /*
              * See #598
              */
-            cmd.append("qpdf --decrypt \"").append(fileIn.getCanonicalPath())
-                    .append("\" \"").append(fileOut.getCanonicalPath()) //
+            cmd.append(SystemInfo.Command.QPDF.cmd()).append(" --decrypt \"")
+                    .append(fileIn.getCanonicalPath()).append("\" \"")
+                    .append(fileOut.getCanonicalPath()) //
                     .append("\" < /dev/null");
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);

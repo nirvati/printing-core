@@ -27,8 +27,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import org.savapage.core.SpException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Provides information about the host system.
@@ -38,12 +36,108 @@ import org.slf4j.LoggerFactory;
  */
 public final class SystemInfo {
 
-    /** */
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(SystemInfo.class);
+    /**
+     * OS Commands.
+     */
+    public enum Command {
+        /**
+         * Part of Poppler.
+         */
+        PDFFONTS("pdffonts"),
+        /**
+         * Part of ImageMagick.
+         */
+        CONVERT("convert"),
+        /**
+         * Part of LibreOffice.
+         */
+        LIBREOFFICE("libreoffice"),
+        /**
+         * Part of Poppler.
+         */
+        PDFTOPPM("pdftoppm"),
+        /**
+         * Part of Poppler.
+         */
+        PDFTOCAIRO("pdftocairo"),
+        /**
+         * Part of Ghostscript.
+         */
+        GS("gs"),
+        /**
+         * Part of Ghostscript.
+         */
+        PS2PDF("ps2pdf"),
+        /**
+         * .
+         */
+        QPDF("qpdf"),
+        /**
+         * .
+         */
+        ULIMIT("ulimit"),
+        /**
+         * .
+         */
+        SYSCTL("/sbin/sysctl"),
+        /**
+         * .
+         */
+        WHICH("which"),
+        /**
+         * .
+         */
+        XPSTOPDF("xpstopdf");
+
+        /** */
+        private final String cmd;
+
+        /**
+         * @param command
+         *            OS Command.
+         */
+        Command(final String command) {
+            this.cmd = command;
+        }
+
+        /**
+         *
+         * @return OS command.
+         */
+        public String cmd() {
+            return this.cmd;
+        }
+
+        /**
+         * Create command line by concatenating argument to command.
+         *
+         * @param argument
+         *            Command line argument.
+         * @return OS command with argument.
+         */
+        public String cmdLine(final String argument) {
+            return String.format("%s %s", this.cmd, argument);
+        }
+
+        /**
+         * Create command line by concatenating arguments to command.
+         *
+         * @param args
+         *            Arguments.
+         * @return OS command with arguments.
+         */
+        public String cmdLineExt(final String... args) {
+            final StringBuilder line = new StringBuilder();
+            line.append(this.cmd);
+            for (final String arg : args) {
+                line.append(" ").append(arg);
+            }
+            return line.toString();
+        }
+    }
 
     /** */
-    public static enum SysctlEnum {
+    public enum SysctlEnum {
         /** */
         NET_CORE_RMEM_MAX("net.core.rmem_max"),
         /** */
@@ -102,7 +196,7 @@ public final class SystemInfo {
      */
     public static String getPdfToPpmVersion() {
 
-        final String cmd = "pdftoppm -v";
+        final String cmd = Command.PDFTOPPM.cmdLine("-v");
 
         final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
 
@@ -139,7 +233,7 @@ public final class SystemInfo {
      */
     public static String getPdfToCairoVersion() {
 
-        final String cmd = "pdftocairo -v";
+        final String cmd = Command.PDFTOCAIRO.cmdLine("-v");
 
         final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
 
@@ -159,6 +253,39 @@ public final class SystemInfo {
             throw new SpException(e);
         }
     }
+
+    /**
+     * Retrieves the Poppler {@code pdffonts} version from the system.
+     * <p>
+     * <a href=
+     * "http://poppler.freedesktop.org">http://poppler.freedesktop.org</a>
+     * </p>
+     *
+     * @return The version string(s) or {@code null} when not installed.
+     */
+    public static String getPdfFontsVersion() {
+
+        final String cmd = Command.PDFFONTS.cmdLine("-v");
+
+        final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
+
+        try {
+            int rc = exec.executeCommand();
+
+            if (rc != 0 && rc != 99) {
+                return null;
+            }
+
+            /*
+             * Note: version is echoed on stderr.
+             */
+            return exec.getStandardError();
+
+        } catch (Exception e) {
+            throw new SpException(e);
+        }
+    }
+
     /**
      * Retrieves the ImageMagick version from the system.
      *
@@ -167,7 +294,7 @@ public final class SystemInfo {
      */
     public static String getImageMagickVersion() {
 
-        final String cmd = "convert -version";
+        final String cmd = Command.CONVERT.cmdLine("-version");
 
         final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
 
@@ -190,7 +317,7 @@ public final class SystemInfo {
      */
     public static String getGhostscriptVersion() {
 
-        String cmd = "gs -version";
+        final String cmd = Command.GS.cmdLine("-version");
 
         ICommandExecutor exec = CommandExecutor.createSimple(cmd);
 
@@ -230,7 +357,8 @@ public final class SystemInfo {
      */
     public static String getQPdfVersion() {
 
-        final String cmd = "qpdf --version";
+        final String cmd = Command.QPDF.cmdLine("--version");
+
         final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
 
         String version = null;
@@ -253,7 +381,7 @@ public final class SystemInfo {
      */
     public static String getUlimitsNofile() {
 
-        final String cmd = "ulimit -n";
+        final String cmd = Command.ULIMIT.cmdLine("-n");
 
         final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
 
@@ -269,15 +397,13 @@ public final class SystemInfo {
     }
 
     /**
-     * TODO: /sbin/sysctl
-     *
      * @param sysctl
      *            The {@link SysctlEnum}.
      * @return The output of the command: {@code sysctl -n key}.
      */
     public static String getSysctl(final SysctlEnum sysctl) {
 
-        final String cmd = String.format("/sbin/sysctl -n %s", sysctl.getKey());
+        final String cmd = Command.SYSCTL.cmdLineExt("-n", sysctl.getKey());
 
         final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
 
