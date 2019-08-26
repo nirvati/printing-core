@@ -52,6 +52,11 @@ public final class SystemInfo {
          * Part of LibreOffice.
          */
         LIBREOFFICE("libreoffice"),
+
+        /**
+         * Part of fontconfig (generic font configuration library).
+         */
+        FC_MATCH("fc-match"),
         /**
          * Part of Poppler.
          */
@@ -310,6 +315,28 @@ public final class SystemInfo {
     }
 
     /**
+     * Retrieves the fontconfig version from the system.
+     *
+     * @return The version string(s) or {@code null} when not installed.
+     */
+    public static String getFontConfigVersion() {
+
+        final String cmd = Command.FC_MATCH.cmdLine("--version");
+
+        final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
+
+        try {
+            int rc = exec.executeCommand();
+            if (rc != 0) {
+                return null;
+            }
+            return exec.getStandardError();
+        } catch (Exception e) {
+            throw new SpException(e);
+        }
+    }
+
+    /**
      * Retrieves the Ghostscript version from the system.
      *
      * @return The version string(s) or {@code null} when the Ghostscript is not
@@ -349,7 +376,7 @@ public final class SystemInfo {
     }
 
     /**
-     * Retrieves the qpdf version from the system (and sets installed achache
+     * Retrieves the qpdf version from the system (and sets installed cache
      * indication).
      *
      * @return The version string(s) or {@code null} when the qpdf is not
