@@ -332,6 +332,9 @@ public final class PdfDocumentFonts {
          * @return The matched font.
          */
         public String matchWithSystemFont() {
+            if (isStandardFont()) {
+                this.systemFontMatch = STANDARD_FONT_SUBST.get(this.getName());
+            }
             this.systemFontMatch =
                     matchWithSystemFontCmd(getMatchFontCmd(this.getName()));
             return this.systemFontMatch;
@@ -400,6 +403,14 @@ public final class PdfDocumentFonts {
 
     private void addFont(final Font font) {
         this.fonts.put(font.getName(), font);
+    }
+
+    public void matchWithSystemFont() {
+        for (final Font font : this.getFonts().values()) {
+            if ((!font.isEmbedded() || font.isStandardFont())) {
+                font.matchWithSystemFont();
+            }
+        }
     }
 
     /**
@@ -583,6 +594,8 @@ public final class PdfDocumentFonts {
                         reader.getPageN(k).getAsDict(PdfName.RESOURCES));
             }
 
+            info.matchWithSystemFont();
+
         } finally {
             reader.close();
         }
@@ -617,13 +630,6 @@ public final class PdfDocumentFonts {
 
                 for (final PdfDocumentFonts.Font font : info.getFonts()
                         .values()) {
-
-                    // Helvetica font is problematic, since it is a licensed
-                    // font. So, what the matching replacement font is like.
-                    if ((!font.isEmbedded() && !font.isStandardFont())
-                            || font.getName().startsWith(BaseFont.HELVETICA)) {
-                        font.matchWithSystemFont();
-                    }
                     System.out.println(font.getUiLine());
                 }
 

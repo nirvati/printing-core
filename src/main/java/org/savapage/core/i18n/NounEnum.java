@@ -62,6 +62,8 @@ public enum NounEnum {
     /** */
     EMAIL,
     /** */
+    FONT(true),
+    /** */
     GROUP(true),
     /** */
     ID_NUMBER,
@@ -93,6 +95,8 @@ public enum NounEnum {
     REFUND(true),
     /** */
     REMARK(true),
+    /** */
+    RENDERING,
     /** */
     REPORT,
     /** */

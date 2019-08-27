@@ -39,6 +39,20 @@ public enum PhraseEnum {
     PDF_INVALID,
     /** */
     PDF_ENCRYPTED_UNSUPPORTED,
+
+    /** */
+    PDF_FONTS_NONE,
+    /** */
+    PDF_FONTS_ALL_EMBEDDED,
+    /** */
+    PDF_FONTS_ALL_NON_EMBEDDED,
+    /** */
+    PDF_FONTS_ALL_STANDARD,
+    /** */
+    PDF_FONTS_SOME_NON_EMBEDDED,
+    /** */
+    PDF_FONTS_STANDARD_OR_EMBEDDED,
+
     /** */
     PDF_PASSWORD_UNSUPPORTED,
     /** */

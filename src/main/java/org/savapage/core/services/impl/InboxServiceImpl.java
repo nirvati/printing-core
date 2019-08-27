@@ -77,6 +77,7 @@ import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
+import org.savapage.core.pdf.PdfDocumentFonts;
 import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.pdf.PdfPasswordException;
 import org.savapage.core.pdf.PdfSecurityException;
@@ -1617,6 +1618,21 @@ public final class InboxServiceImpl implements InboxService {
         }
 
         storeInboxInfo(user, jobs);
+    }
+
+    @Override
+    public PdfDocumentFonts getJobFonts(final String user, final int iJob) {
+
+        final InboxInfoDto jobs = readInboxInfo(user);
+        final InboxJob job = jobs.getJobs().get(iJob);
+
+        try {
+            return PdfDocumentFonts.create(
+                    Paths.get(ConfigManager.getUserHomeDir(user), job.getFile())
+                            .toFile());
+        } catch (IOException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
     }
 
     @Override

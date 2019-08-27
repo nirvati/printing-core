@@ -113,6 +113,7 @@ import org.savapage.core.jpa.tools.DbConnectionPoolEnum;
 import org.savapage.core.jpa.tools.DbTools;
 import org.savapage.core.jpa.tools.DbUpgManager;
 import org.savapage.core.jpa.tools.DbVersionInfo;
+import org.savapage.core.pdf.PdfDocumentFonts;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
 import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
@@ -1664,6 +1665,13 @@ public final class ConfigManager {
                                 key.getC3p0Key(), entry.getValue()));
             }
         }
+
+        // Fill cache.
+        SpInfo.instance()
+                .log(String.format(
+                        "PDF Standard Fonts: [%s] substitutes retrieved.",
+                        PdfDocumentFonts.Font.getStandardFontSubst().size()));
+
         //
         ServiceContext.getServiceFactory().start();
 

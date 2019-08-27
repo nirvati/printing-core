@@ -42,6 +42,7 @@ import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.job.DocLogClean;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.User;
+import org.savapage.core.pdf.PdfDocumentFonts;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
 import org.savapage.core.services.helpers.InboxPageImageInfo;
@@ -411,6 +412,16 @@ public interface InboxService {
      *            inter-job ordering is gone.
      */
     void editJob(String userId, int iJob, boolean rotate, boolean undelete);
+
+    /**
+     *
+     * @param userId
+     *            The unique user id.
+     * @param iJob
+     *            Zero-based index of the job.
+     * @return {@link PdfDocumentFonts}.
+     */
+    PdfDocumentFonts getJobFonts(String userId, int iJob);
 
     /**
      * Moves page ranges to a page position.
