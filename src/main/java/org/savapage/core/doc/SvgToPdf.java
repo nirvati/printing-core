@@ -26,17 +26,17 @@ import java.io.File;
 import org.savapage.core.system.SystemInfo;
 
 /**
- * ImageMagick file convert to PDF.
+ * SVG file convert to PDF.
  *
  * @author Rijk Ravestein
  *
  */
-public final class ConvertToPdf extends AbstractDocFileConverter {
+public final class SvgToPdf extends AbstractDocFileConverter {
 
     /**
      *
      */
-    public ConvertToPdf() {
+    public SvgToPdf() {
         super(ExecMode.MULTI_THREADED);
     }
 
@@ -53,8 +53,9 @@ public final class ConvertToPdf extends AbstractDocFileConverter {
     @Override
     protected String getOsCommand(final DocContentTypeEnum contentType,
             final File fileIn, final File fileOut) {
-        return SystemInfo.Command.CONVERT.cmdLineExt(fileIn.getAbsolutePath(),
-                fileOut.getAbsolutePath(), "2>/dev/null");
+        return SystemInfo.Command.RSVG_CONVERT.cmdLineExt("-f pdf", "-o",
+                fileOut.getAbsolutePath(), fileIn.getAbsolutePath(),
+                "2>/dev/null");
     }
 
 }

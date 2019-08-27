@@ -78,6 +78,10 @@ public final class SystemInfo {
          */
         QPDF("qpdf"),
         /**
+         * Part of librsvg2-bin package
+         */
+        RSVG_CONVERT("rsvg-convert"),
+        /**
          * .
          */
         ULIMIT("ulimit"),
@@ -191,13 +195,13 @@ public final class SystemInfo {
     }
 
     /**
-     * Retrieves the Poppler {@code pdftoppm} version from the system.
+     * Retrieves the Poppler {@link Command#PDFTOPPM} version from the system.
      * <p>
      * <a href=
      * "http://poppler.freedesktop.org">http://poppler.freedesktop.org</a>
      * </p>
      *
-     * @return The version string(s) or {@code null} when not installed.
+     * @return The version string(s) or {@code null} if not installed.
      */
     public static String getPdfToPpmVersion() {
 
@@ -228,13 +232,13 @@ public final class SystemInfo {
     }
 
     /**
-     * Retrieves the Poppler {@code pdftocairo} version from the system.
+     * Retrieves the Poppler {@link Command#PDFTOCAIRO} version from the system.
      * <p>
      * <a href=
      * "http://poppler.freedesktop.org">http://poppler.freedesktop.org</a>
      * </p>
      *
-     * @return The version string(s) or {@code null} when not installed.
+     * @return The version string(s) or {@code null} if not installed.
      */
     public static String getPdfToCairoVersion() {
 
@@ -260,13 +264,13 @@ public final class SystemInfo {
     }
 
     /**
-     * Retrieves the Poppler {@code pdffonts} version from the system.
+     * Retrieves the Poppler {@link Command#PDFFONTS} version from the system.
      * <p>
      * <a href=
      * "http://poppler.freedesktop.org">http://poppler.freedesktop.org</a>
      * </p>
      *
-     * @return The version string(s) or {@code null} when not installed.
+     * @return The version string(s) or {@code null} if not installed.
      */
     public static String getPdfFontsVersion() {
 
@@ -292,10 +296,10 @@ public final class SystemInfo {
     }
 
     /**
-     * Retrieves the ImageMagick version from the system.
+     * Retrieves the ImageMagick {@link Command#CONVERT} version from the
+     * system.
      *
-     * @return The version string(s) or {@code null} when ImageMagick is not
-     *         installed.
+     * @return The version string(s) or {@code null} if not installed.
      */
     public static String getImageMagickVersion() {
 
@@ -315,9 +319,10 @@ public final class SystemInfo {
     }
 
     /**
-     * Retrieves the fontconfig version from the system.
+     * Retrieves the fontconfig {@link Command#FC_MATCH} version from the
+     * system.
      *
-     * @return The version string(s) or {@code null} when not installed.
+     * @return The version string(s) or {@code null} if not installed.
      */
     public static String getFontConfigVersion() {
 
@@ -337,10 +342,9 @@ public final class SystemInfo {
     }
 
     /**
-     * Retrieves the Ghostscript version from the system.
+     * Retrieves the Ghostscript {@link Command.GS} version from the system.
      *
-     * @return The version string(s) or {@code null} when the Ghostscript is not
-     *         installed.
+     * @return The version string(s) or {@code null} if not installed.
      */
     public static String getGhostscriptVersion() {
 
@@ -362,8 +366,12 @@ public final class SystemInfo {
     /** */
     private static volatile Boolean cachedQPdfInstallIndication = null;
 
+    /** */
+    private static volatile Boolean cachedRSvgConvertInstallIndication = null;
+
     /**
-     * Finds out if {@code qpdf} is installed using indication from cache.
+     * Finds out if {@link Command#QPDF} is installed using indication from
+     * cache.
      *
      * @return {@code true} if installed.
      */
@@ -376,11 +384,10 @@ public final class SystemInfo {
     }
 
     /**
-     * Retrieves the qpdf version from the system (and sets installed cache
-     * indication).
+     * Retrieves the {@link Command#QPDF} version from the system (and sets
+     * installed cache indication).
      *
-     * @return The version string(s) or {@code null} when the qpdf is not
-     *         installed.
+     * @return The version string(s) or {@code null} if not installed.
      */
     public static String getQPdfVersion() {
 
@@ -399,6 +406,47 @@ public final class SystemInfo {
         }
 
         cachedQPdfInstallIndication = Boolean.valueOf(version != null);
+
+        return version;
+    }
+
+    /**
+     * Finds out if {@link Command#RSVG_CONVERT} is installed using indication
+     * from cache.
+     *
+     * @return {@code true} if installed.
+     */
+    public static boolean isRSvgConvertInstalled() {
+
+        if (cachedRSvgConvertInstallIndication == null) {
+            getRSvgConvertVersion();
+        }
+        return cachedRSvgConvertInstallIndication.booleanValue();
+    }
+
+    /**
+     * Retrieves the {@link Command.RSVG_CONVERT} version from the system (and
+     * sets installed cache indication).
+     *
+     * @return The version string(s) or {@code null} if not installed.
+     */
+    public static String getRSvgConvertVersion() {
+
+        final String cmd = Command.RSVG_CONVERT.cmdLine("--version");
+
+        final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
+
+        String version = null;
+
+        try {
+            if (exec.executeCommand() == 0) {
+                version = exec.getStandardOutput();
+            }
+        } catch (Exception e) {
+            throw new SpException(e);
+        }
+
+        cachedRSvgConvertInstallIndication = Boolean.valueOf(version != null);
 
         return version;
     }

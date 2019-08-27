@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,6 +38,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.doc.soffice.SOfficeHelper;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.system.SystemInfo;
 
 /**
  * Helper methods to determine content type of a document, file or data stream.
@@ -475,7 +476,6 @@ public final class DocContent {
         case GIF:
         case JPEG:
         case PNG:
-        case SVG:
         case TIFF:
             return true;
 
@@ -499,6 +499,8 @@ public final class DocContent {
             return ConfigManager.instance()
                     .isConfigValue(Key.DOC_CONVERT_LIBRE_OFFICE_ENABLED)
                     && SOfficeHelper.lazyIsInstalled();
+        case SVG:
+            return SystemInfo.isRSvgConvertInstalled();
 
         case XPS:
             return ConfigManager.instance()
@@ -579,7 +581,7 @@ public final class DocContent {
         case PS:
             return new PsToPdf();
         case SVG:
-            return new ConvertToPdf();
+            return new SvgToPdf();
         case XPS:
             return new XpsToPdf();
 

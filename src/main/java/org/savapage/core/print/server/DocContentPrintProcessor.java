@@ -50,6 +50,7 @@ import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.IppRoutingEnum;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.doc.DocContentToPdfException;
 import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.doc.DocInputStream;
 import org.savapage.core.doc.IDocFileConverter;
@@ -1461,7 +1462,8 @@ public final class DocContentPrintProcessor {
                 pubMessage = exception.getMessage();
                 if ((exception instanceof //
                 org.xhtmlrenderer.util.XRRuntimeException)
-                        || (exception instanceof ExceptionConverter)) {
+                        || (exception instanceof ExceptionConverter)
+                        || (exception instanceof DocContentToPdfException)) {
                     LOGGER.warn("[{}] PDF error: {}", this.getJobName(),
                             pubMessage);
                     pubLevel = PubLevelEnum.WARN;
