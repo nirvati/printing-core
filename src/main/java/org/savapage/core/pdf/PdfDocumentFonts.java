@@ -98,6 +98,13 @@ public final class PdfDocumentFonts {
             PdfName.CIDFONTTYPE2, PdfName.TRUETYPE };
 
     /** */
+    private static final String[] FONT_FOUNDRY_SFX =
+            new String[] { "LT", "MT", "FF", "EF" };
+
+    /** */
+    private static final String[] FONT_SFX_TO_REMOVE = new String[] { "PS" };
+
+    /** */
     public enum FontType {
         /** */
         TYPE_1("Type 1"),
@@ -347,13 +354,26 @@ public final class PdfDocumentFonts {
          * @return System command
          */
         private static String getMatchFontCmd(final String pdfFontName) {
+
+            String pattern = pdfFontName;
+
+            // Which pattern to use: trial-and-error :-(
+            for (final String sfx : FONT_SFX_TO_REMOVE) {
+                pattern = StringUtils.replace(pattern, sfx + "-", "-", 1);
+            }
+
+            pattern = pattern.replace('-', ':').replace(',', ':')
+                    .replace(STYLE_BOLDITALIC, STYLE_BOLD + ":" + STYLE_ITALIC)
+                    .replace(STYLE_BOLDOBLIQUE,
+                            STYLE_BOLD + ":" + STYLE_OBLIQUE);
+
+            for (final String sfx : FONT_FOUNDRY_SFX) {
+                pattern = StringUtils.removeEnd(pattern, sfx);
+            }
+
             return Command.FC_MATCH.cmdLineExt("-f",
-                    "\"%{family} %{style[0]}\"",
-                    pdfFontName.replace('-', ':')
-                            .replace(STYLE_BOLDITALIC,
-                                    STYLE_BOLD + ":" + STYLE_ITALIC)
-                            .replace(STYLE_BOLDOBLIQUE,
-                                    STYLE_BOLD + ":" + STYLE_OBLIQUE));
+                    "\"%{family} %{style[0]}\"", pattern);
+
         }
 
         /**
@@ -453,7 +473,7 @@ public final class PdfDocumentFonts {
 
             // Already got info?
             if (collector.getFonts().containsKey(fontName)) {
-                return;
+                continue;
             }
 
             final PdfDictionary desc = font.getAsDict(PdfName.FONTDESCRIPTOR);
