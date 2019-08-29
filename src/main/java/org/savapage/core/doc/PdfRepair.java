@@ -95,8 +95,7 @@ public final class PdfRepair extends AbstractFileConverter
         try {
             cmd.append(SystemInfo.Command.PDFTOCAIRO.cmd()).append(" -pdf \"")
                     .append(fileIn.getCanonicalPath()).append("\" \"")
-                    .append(fileOut.getCanonicalPath())
-                    .append("\" < /dev/null");
+                    .append(fileOut.getCanonicalPath()).append("\"");
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);
         }

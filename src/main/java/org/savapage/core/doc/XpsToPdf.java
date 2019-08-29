@@ -63,7 +63,7 @@ public class XpsToPdf extends AbstractDocFileConverter {
             final File fileIn, final File fileOut) {
 
         return SystemInfo.Command.XPSTOPDF.cmdLineExt(fileIn.getAbsolutePath(),
-                fileOut.getAbsolutePath(), " 2>/dev/null");
+                fileOut.getAbsolutePath());
     }
 
     /**

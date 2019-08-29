@@ -103,8 +103,7 @@ public final class PdfToDecrypted extends AbstractFileConverter
              */
             cmd.append(SystemInfo.Command.QPDF.cmd()).append(" --decrypt \"")
                     .append(fileIn.getCanonicalPath()).append("\" \"")
-                    .append(fileOut.getCanonicalPath()) //
-                    .append("\" < /dev/null");
+                    .append(fileOut.getCanonicalPath()).append("\"");
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);
         }

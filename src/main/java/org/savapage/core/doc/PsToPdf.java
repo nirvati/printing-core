@@ -55,8 +55,9 @@ public class PsToPdf extends AbstractDocFileConverter {
     @Override
     protected final String getOsCommand(final DocContentTypeEnum contentType,
             final File fileIn, final File fileOut) {
-        return Command.PS2PDF.cmdLineExt(fileIn.getAbsolutePath(),
-                fileOut.getAbsolutePath(), "2>/dev/null");
+        // Although font embedding is default, make it explicit.
+        return Command.PS2PDF.cmdLineExt("-dEmbedAllFonts=true",
+                fileIn.getAbsolutePath(), fileOut.getAbsolutePath());
     }
 
 }

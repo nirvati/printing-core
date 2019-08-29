@@ -54,8 +54,7 @@ public final class SvgToPdf extends AbstractDocFileConverter {
     protected String getOsCommand(final DocContentTypeEnum contentType,
             final File fileIn, final File fileOut) {
         return SystemInfo.Command.RSVG_CONVERT.cmdLineExt("-f pdf", "-o",
-                fileOut.getAbsolutePath(), fileIn.getAbsolutePath(),
-                "2>/dev/null");
+                fileOut.getAbsolutePath(), fileIn.getAbsolutePath());
     }
 
 }

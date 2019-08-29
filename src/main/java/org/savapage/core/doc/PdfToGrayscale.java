@@ -104,7 +104,7 @@ public final class PdfToGrayscale extends AbstractFileConverter
                     .append(" -dPDFUseOldCMS=false")
                     //
                     .append(" -dCompatibilityLevel=1.4 \"")
-                    .append(fileIn.getCanonicalPath()).append("\" < /dev/null");
+                    .append(fileIn.getCanonicalPath()).append("\"");
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);
         }
