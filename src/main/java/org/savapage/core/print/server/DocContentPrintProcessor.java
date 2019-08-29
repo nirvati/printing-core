@@ -57,6 +57,7 @@ import org.savapage.core.doc.IDocFileConverter;
 import org.savapage.core.doc.IStreamConverter;
 import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToDecrypted;
+import org.savapage.core.doc.PdfToPrePress;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.ipp.routing.IppRoutingListener;
@@ -67,6 +68,7 @@ import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.PdfAbstractException;
+import org.savapage.core.pdf.PdfDocumentFonts;
 import org.savapage.core.pdf.PdfPasswordException;
 import org.savapage.core.pdf.PdfSecurityException;
 import org.savapage.core.pdf.PdfUnsupportedException;
@@ -811,6 +813,8 @@ public final class DocContentPrintProcessor {
         final List<File> filesCreated = new ArrayList<>();
         final List<File> files2Delete = new ArrayList<>();
 
+        final ConfigManager cm = ConfigManager.instance();
+
         try {
             /*
              * Keep the job content evaluation WITHIN the try block, so the
@@ -960,9 +964,14 @@ public final class DocContentPrintProcessor {
             this.setPageProps(pdfPageProps);
 
             //
-            if (inputType == DocContentTypeEnum.PDF && ConfigManager.instance()
-                    .isConfigValue(Key.PRINT_IN_VALIDATE_PDFFONTS_ENABLE)) {
-                validatePdfFonts(new File(tempPathPdf));
+            if (inputType == DocContentTypeEnum.PDF) {
+                final File fileWrk = new File(tempPathPdf);
+                if (cm.isConfigValue(Key.PRINT_IN_VALIDATE_PDFFONTS_ENABLE)) {
+                    validatePdfFonts(fileWrk);
+                }
+                if (cm.isConfigValue(Key.PRINT_IN_EMBED_FONT_ENABLE)) {
+                    embedPdfFonts(fileWrk);
+                }
             }
 
             /*
@@ -989,9 +998,8 @@ public final class DocContentPrintProcessor {
                  * Start task to create the shadow EcoPrint PDF file?
                  */
                 if (ConfigManager.isEcoPrintEnabled() && this.getPageProps()
-                        .getNumberOfPages() <= ConfigManager.instance()
-                                .getConfigInt(
-                                        Key.ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT)) {
+                        .getNumberOfPages() <= cm.getConfigInt(
+                                Key.ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT)) {
                     INBOX_SERVICE.startEcoPrintPdfTask(homeDir,
                             pathTarget.toFile(), this.uuidJob);
                 }
@@ -1058,6 +1066,39 @@ public final class DocContentPrintProcessor {
             throws PdfValidityException {
         if (!new PdfFontsErrorValidator(pdf).execute()) {
             throw new PdfValidityException("Font errors.",
+                    PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
+                    PhraseEnum.PDF_INVALID);
+        }
+    }
+
+    /**
+     * Embeds non-standard fonts in PDF file.
+     *
+     * @param pdf
+     *            PDF file.
+     * @throws PdfValidityException
+     *             When embed font error(s)..
+     */
+    private static void embedPdfFonts(final File pdf)
+            throws PdfValidityException {
+
+        final PdfDocumentFonts fonts;
+
+        try {
+            fonts = PdfDocumentFonts.create(pdf);
+        } catch (IOException e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+
+        if (fonts.isAllEmbeddedOrStandard()) {
+            return;
+        }
+
+        try {
+            FileSystemHelper.replaceWithNewVersion(pdf,
+                    new PdfToPrePress().convert(pdf));
+        } catch (IOException e) {
+            throw new PdfValidityException("Embed Font errors.",
                     PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
                     PhraseEnum.PDF_INVALID);
         }

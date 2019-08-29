@@ -29,18 +29,20 @@ import org.savapage.core.SpException;
 import org.savapage.core.system.SystemInfo;
 
 /**
- * Converts a PDF file to PrePress PDF, automatically repairing corrupted PDF
- * along the way.
- *
- * @deprecated Use {@link PdfRepair} for repair actions.
- * @see <a href="https://issues.savapage.org/view.php?id=1011">Mantis #1011</a>
+ * Uses Ghostscript to /prepress a PDF file, this will EmbedAllFonts by default.
+ * <p>
+ * The major difference between {@code /print} and {@code /prepress} is
+ * "CannotEmbedFontPolicy", i.e. the policy Distiller uses if it cannot find, or
+ * cannot embed, a font. {@code /print} has value "Warning" (Distiller displays
+ * a warning and continues) and {@code /prepress} has value "Error" (Distiller
+ * quits distilling the current job).
+ * </p>
  *
  * @author Rijk Ravestein
  *
  */
-@Deprecated
 public final class PdfToPrePress extends AbstractFileConverter
-        implements IPdfRepair, IPdfConverter {
+        implements IPdfConverter {
 
     /**
      * The directory location of the created file (can be {@code null}).
@@ -100,8 +102,8 @@ public final class PdfToPrePress extends AbstractFileConverter
                     .append(fileOut.getCanonicalPath())
                     .append("\" -sDEVICE=pdfwrite -q -dNOPAUSE -dBATCH") //
                     .append(" -dPDFSETTINGS=/prepress") //
-                    .append(" \"").append(fileIn.getCanonicalPath()) //
-                    .append("\" < /dev/null");
+                    .append(" \"").append(fileIn.getCanonicalPath())
+                    .append("\"");
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);
         }

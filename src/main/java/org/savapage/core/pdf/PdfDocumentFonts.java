@@ -434,6 +434,18 @@ public final class PdfDocumentFonts {
     }
 
     /**
+     * @return {@code true} when all fonts are either embedded or standard font.
+     */
+    public boolean isAllEmbeddedOrStandard() {
+        for (final Font font : this.getFonts().values()) {
+            if (!font.isEmbedded() && !font.isStandardFont()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Extracts the font information from page or XObject resources.
      *
      * @param collector
@@ -467,9 +479,15 @@ public final class PdfDocumentFonts {
 
             final PdfDictionary font = fonts.getAsDict(key);
 
+            // Get base font.
+            final PdfName pfdnameBaseFont = font.getAsName(PdfName.BASEFONT);
+
+            if (pfdnameBaseFont == null) {
+                continue;
+            }
+
             // Get base font name and skip leading '/' char.
-            final String fontName =
-                    font.getAsName(PdfName.BASEFONT).toString().substring(1);
+            final String fontName = pfdnameBaseFont.toString().substring(1);
 
             // Already got info?
             if (collector.getFonts().containsKey(fontName)) {

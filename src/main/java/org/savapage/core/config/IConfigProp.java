@@ -1932,6 +1932,15 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Enable embedding of all fonts (including standard PDF fonts) if
+         * non-embedded/non-standard fonts are present in print-in PDF document
+         * (Web Print) (boolean).
+         */
+        PRINT_IN_EMBED_FONT_ENABLE(//
+                "print-in.pdf.embedfont.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
          * Number of minutes after which a print-in job expires. When zero (0)
          * there is NO expiry.
          *
