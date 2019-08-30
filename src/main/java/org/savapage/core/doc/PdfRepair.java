@@ -29,7 +29,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.system.SystemInfo;
 
 /**
- * Tries to repair a corrupted PDF file.
+ * Tries to repair a corrupted PDF file, embedding all fonts along the way.
  *
  * @see <a href="https://issues.savapage.org/view.php?id=1011">Mantis #1011</a>
  *
@@ -37,7 +37,7 @@ import org.savapage.core.system.SystemInfo;
  *
  */
 public final class PdfRepair extends AbstractFileConverter
-        implements IPdfRepair, IPdfConverter {
+        implements IPdfConverter, IPdfRepair, IPdfEmbedAllFonts {
 
     /**
      * The directory location of the created file (can be {@code null}).
@@ -45,7 +45,7 @@ public final class PdfRepair extends AbstractFileConverter
     private final File createHome;
 
     /**
-     *
+     * Tries to repair a corrupted PDF file, embedding all fonts along the way.
      */
     public PdfRepair() {
         super(ExecMode.MULTI_THREADED);

@@ -37,12 +37,29 @@ import org.savapage.core.system.SystemInfo;
  * a warning and continues) and {@code /prepress} has value "Error" (Distiller
  * quits distilling the current job).
  * </p>
+ * <p>
+ * <b>However: warnings and errors are written to stdout and gs returns with
+ * {@code rc == 0}.</b>
+ * </p>
+ * <p>
+ * For example:
+ *
+ * <pre>
+ * Can't find CMap Identity-UTF16-H building a CIDDecoding resource.
+ *  **** Error: can't process embedded font stream,
+ *       attempting to load the font using its name.
+ *              Output may be incorrect.
+ * </pre>
+ * </p>
+ *
+ * @deprecated Use {@link PdfRepair} instead.
  *
  * @author Rijk Ravestein
  *
  */
+@Deprecated
 public final class PdfToPrePress extends AbstractFileConverter
-        implements IPdfConverter {
+        implements IPdfConverter, IPdfEmbedAllFonts {
 
     /**
      * The directory location of the created file (can be {@code null}).

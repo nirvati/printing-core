@@ -57,7 +57,6 @@ import org.savapage.core.doc.IDocFileConverter;
 import org.savapage.core.doc.IStreamConverter;
 import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToDecrypted;
-import org.savapage.core.doc.PdfToPrePress;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.ipp.routing.IppRoutingListener;
@@ -1096,7 +1095,7 @@ public final class DocContentPrintProcessor {
 
         try {
             FileSystemHelper.replaceWithNewVersion(pdf,
-                    new PdfToPrePress().convert(pdf));
+                    new PdfRepair().convert(pdf));
         } catch (IOException e) {
             throw new PdfValidityException("Embed Font errors.",
                     PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
