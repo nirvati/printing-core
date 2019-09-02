@@ -1929,7 +1929,7 @@ public interface IConfigProp {
          * Print) (boolean).
          */
         PRINT_IN_PDF_FONTS_VERIFY(//
-                "print-in.pdf.fonts.verify", BOOLEAN_VALIDATOR, V_YES,
+                "print-in.pdf.fonts.verify", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
 
         /**
