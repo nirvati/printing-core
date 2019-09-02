@@ -588,7 +588,7 @@ public final class DocContentPrintProcessor {
             throws IOException, PostScriptDrmException {
 
         final boolean respectDRM = !ConfigManager.instance()
-                .isConfigValue(IConfigProp.Key.PRINT_IN_ALLOW_ENCRYPTED_PDF);
+                .isConfigValue(IConfigProp.Key.PRINT_IN_PDF_ENCRYPTED_ALLOW);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(istr));
         BufferedWriter writer =
@@ -965,10 +965,10 @@ public final class DocContentPrintProcessor {
             //
             if (inputType == DocContentTypeEnum.PDF) {
                 final File fileWrk = new File(tempPathPdf);
-                if (cm.isConfigValue(Key.PRINT_IN_VALIDATE_PDFFONTS_ENABLE)) {
-                    validatePdfFonts(fileWrk);
+                if (cm.isConfigValue(Key.PRINT_IN_PDF_FONTS_VERIFY)) {
+                    verifyPdfFonts(fileWrk);
                 }
-                if (cm.isConfigValue(Key.PRINT_IN_EMBED_FONT_ENABLE)) {
+                if (cm.isConfigValue(Key.PRINT_IN_PDF_FONTS_EMBED)) {
                     embedPdfFonts(fileWrk);
                 }
             }
@@ -1061,7 +1061,7 @@ public final class DocContentPrintProcessor {
      * @throws PdfValidityException
      *             When font error(s) in PDF document.
      */
-    private static void validatePdfFonts(final File pdf)
+    private static void verifyPdfFonts(final File pdf)
             throws PdfValidityException {
         if (!new PdfFontsErrorValidator(pdf).execute()) {
             throw new PdfValidityException("Font errors.",
@@ -1133,7 +1133,7 @@ public final class DocContentPrintProcessor {
         } catch (PdfValidityException e) {
 
             if (ConfigManager.instance().isConfigValue(
-                    IConfigProp.Key.PRINT_IN_REPAIR_PDF_ENABLE)) {
+                    IConfigProp.Key.PRINT_IN_PDF_INVALID_REPAIR)) {
 
                 final File pdfFile = new File(tempPathPdf);
 
@@ -1159,7 +1159,7 @@ public final class DocContentPrintProcessor {
 
             if (e.isPrintingAllowed()
                     && ConfigManager.instance().isConfigValue(
-                            IConfigProp.Key.PRINT_IN_ALLOW_ENCRYPTED_PDF)
+                            IConfigProp.Key.PRINT_IN_PDF_ENCRYPTED_ALLOW)
                     && PdfToDecrypted.isAvailable()) {
 
                 final File pdfFile = new File(tempPathPdf);

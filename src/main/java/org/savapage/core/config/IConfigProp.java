@@ -1912,23 +1912,24 @@ public interface IConfigProp {
         /**
          *
          */
-        PRINT_IN_ALLOW_ENCRYPTED_PDF(//
-                "print-in.allow-encrypted-pdf", BOOLEAN_VALIDATOR, V_YES),
+        PRINT_IN_PDF_ENCRYPTED_ALLOW(//
+                "print-in.pdf.encrypted.allow", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
 
         /**
          * Enable PDF "repair" option for print-in PDF documents (Web Print)
          * (boolean).
          */
-        PRINT_IN_REPAIR_PDF_ENABLE(//
-                "print-in.repair.pdf.enable", BOOLEAN_VALIDATOR, V_YES,
+        PRINT_IN_PDF_INVALID_REPAIR(//
+                "print-in.pdf.invalid.repair", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
 
         /**
          * Enable {@code pdffonts} validation for print-in PDF documents (Web
          * Print) (boolean).
          */
-        PRINT_IN_VALIDATE_PDFFONTS_ENABLE(//
-                "print-in.validate.pdf.fonts.enable", BOOLEAN_VALIDATOR, V_YES,
+        PRINT_IN_PDF_FONTS_VERIFY(//
+                "print-in.pdf.fonts.verify", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
 
         /**
@@ -1936,8 +1937,8 @@ public interface IConfigProp {
          * non-embedded/non-standard fonts are present in print-in PDF document
          * (Web Print) (boolean).
          */
-        PRINT_IN_EMBED_FONT_ENABLE(//
-                "print-in.pdf.embedfont.enable", BOOLEAN_VALIDATOR, V_NO,
+        PRINT_IN_PDF_FONTS_EMBED(//
+                "print-in.pdf.fonts.embed", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
 
         /**
@@ -2362,7 +2363,10 @@ public interface IConfigProp {
 
         /**
          * Enable "repair" option for Proxy Print (boolean).
+         *
+         * @deprecated Use {@link #PRINT_IN_PDF_FONTS_EMBED} = Y.
          */
+        @Deprecated
         PROXY_PRINT_REPAIR_ENABLE(//
                 "proxy-print.repair.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
