@@ -35,6 +35,9 @@ import org.savapage.core.doc.DocContent;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.imaging.ImageUrl;
+import org.savapage.core.imaging.Pdf2ImgCairoCmd;
+import org.savapage.core.imaging.Pdf2ImgCairoCmd.ImgType;
+import org.savapage.core.imaging.Pdf2ImgCommand;
 import org.savapage.core.imaging.Pdf2ImgCommandExt;
 import org.savapage.core.imaging.Pdf2PngPopplerCmd;
 import org.savapage.core.jpa.DocLog;
@@ -77,10 +80,13 @@ public final class OutputProducer {
     private static final DocLogService DOCLOG_SERVICE =
             ServiceContext.getServiceFactory().getDocLogService();
 
-    /**
-     *
-     */
-    private final Pdf2ImgCommandExt pdf2PngCommand = new Pdf2PngPopplerCmd();
+    /** Option 1. */
+    private final Pdf2ImgCommandExt pdf2PopplerCommand =
+            new Pdf2PngPopplerCmd();
+
+    /** Option 2: Mantis #1079. */
+    private final Pdf2ImgCommand pdf2CairoCommand =
+            new Pdf2ImgCairoCmd(ImgType.PNG);
 
     /**
      *
@@ -248,19 +254,35 @@ public final class OutputProducer {
 
         final File imgFile = new File(imgFileBuilder.toString());
 
-        final int imgWidth;
+        // Soft switch for now: see Mantis #1079.
+        boolean useCairo = true;
 
-        if (thumbnail) {
-            imgWidth = ImageUrl.THUMBNAIL_WIDTH;
+        final String command;
+
+        if (useCairo) {
+            final int pdf2CairoResolution;
+            if (thumbnail) {
+                pdf2CairoResolution = Pdf2ImgCairoCmd.RESOLUTION_FOR_THUMNAIL;
+            } else {
+                pdf2CairoResolution = Pdf2ImgCairoCmd.RESOLUTION_FOR_BROWSER;
+            }
+            command = pdf2CairoCommand.createCommand(srcFile,
+                    pageImageInfo.isLandscape(), pageImageInfo.getRotation(),
+                    imgFile, Integer.parseInt(pageInJobFile),
+                    pdf2CairoResolution, pageImageInfo.getRotate());
         } else {
-            imgWidth = ImageUrl.BROWSER_PAGE_WIDTH;
+            final int imgWidth;
+            if (thumbnail) {
+                imgWidth = ImageUrl.THUMBNAIL_WIDTH;
+            } else {
+                imgWidth = ImageUrl.BROWSER_PAGE_WIDTH;
+            }
+            command = pdf2PopplerCommand.createCommand(srcFile,
+                    pageImageInfo.isLandscape(), pageImageInfo.getRotation(),
+                    imgFile, Integer.parseInt(pageInJobFile),
+                    Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN,
+                    pageImageInfo.getRotate(), imgWidth);
         }
-
-        final String command = pdf2PngCommand.createCommand(srcFile,
-                pageImageInfo.isLandscape(), pageImageInfo.getRotation(),
-                imgFile, Integer.parseInt(pageInJobFile),
-                Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN,
-                pageImageInfo.getRotate(), imgWidth);
 
         LOGGER.trace(command);
 

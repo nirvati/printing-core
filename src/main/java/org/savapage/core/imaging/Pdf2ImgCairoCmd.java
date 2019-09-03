@@ -34,6 +34,13 @@ import org.savapage.core.system.SystemInfo;
  */
 public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand {
 
+    /**
+     * Do not use lower value.
+     */
+    public static final int RESOLUTION_FOR_THUMNAIL = 24;
+    /** */
+    public static final int RESOLUTION_FOR_BROWSER = 72;
+
     /** */
     public enum ImgType {
         /** */
@@ -95,7 +102,7 @@ public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand {
         if (rotate2Apply.equals(PdfPageRotateHelper.PDF_ROTATION_0)) {
             cmdBuffer.append(" - > ");
         } else {
-            cmdBuffer.append(" | ").append(SystemInfo.Command.CONVERT.cmd())
+            cmdBuffer.append(" - | ").append(SystemInfo.Command.CONVERT.cmd())
                     .append(" -rotate ").append(rotate2Apply).append(" - ");
         }
         cmdBuffer.append("\"").append(imgFile.getAbsolutePath()).append("\"");
