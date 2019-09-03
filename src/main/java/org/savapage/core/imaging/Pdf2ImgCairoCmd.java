@@ -27,7 +27,7 @@ import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.system.SystemInfo;
 
 /**
- * Command using Cairo.
+ * Create image from PDF using {@link SystemInfo.Command#PDFTOCAIRO}.
  *
  * @author Rijk Ravestein
  *

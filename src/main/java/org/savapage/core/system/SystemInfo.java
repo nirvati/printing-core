@@ -59,6 +59,9 @@ public final class SystemInfo {
         FC_MATCH("fc-match"),
         /**
          * Part of Poppler.
+         *
+         * @deprecated Use {@link SystemInfo.Command#PDFTOCAIRO} instead (Mantis
+         *             #1079).
          */
         PDFTOPPM("pdftoppm"),
         /**

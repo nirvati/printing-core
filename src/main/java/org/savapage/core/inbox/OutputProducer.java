@@ -80,7 +80,9 @@ public final class OutputProducer {
     private static final DocLogService DOCLOG_SERVICE =
             ServiceContext.getServiceFactory().getDocLogService();
 
-    /** Option 1. */
+    /**
+     * Option 1.
+     */
     private final Pdf2ImgCommandExt pdf2PopplerCommand =
             new Pdf2PngPopplerCmd();
 

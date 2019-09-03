@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https:/www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ import java.io.File;
 import org.savapage.core.pdf.PdfPageRotateHelper;
 
 /**
- * @deprecated Use {@link Pdf2PngPopplerCmd}. See Mantis #326.
+ * @deprecated Use {@link Pdf2ImgCairoCmd}. See Mantis #326, #1079.
  *             <p>
  *             Command using GhostScript.
  *             <p>

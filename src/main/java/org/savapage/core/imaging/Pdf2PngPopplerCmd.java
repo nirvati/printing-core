@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,9 +33,11 @@ import org.savapage.core.system.SystemInfo;
  * have the {@code -jpeg} switch.
  * </p>
  *
+ * @deprecated Use {@link Pdf2ImgCairoCmd} instead (Mantis #1079).
  * @author Rijk Ravestein
  *
  */
+@Deprecated
 public final class Pdf2PngPopplerCmd implements Pdf2ImgCommandExt {
 
     /**
