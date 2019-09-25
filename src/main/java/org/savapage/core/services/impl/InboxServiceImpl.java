@@ -316,9 +316,6 @@ public final class InboxServiceImpl implements InboxService {
 
                 final String filePath = files[i].getAbsolutePath();
 
-                /*
-                 *
-                 */
                 final DocLog docLog = doclogDao.findByUuid(userObj.getId(),
                         FilenameUtils.getBaseName(filePath));
 
@@ -328,16 +325,14 @@ public final class InboxServiceImpl implements InboxService {
                      * official front-end), but must have been manually copied
                      * to the user's SafePages.
                      */
-                    LOGGER.error("file [" + files[i].getAbsolutePath()
-                            + "] NOT found in DocLog.");
+                    files[i].delete();
 
-                    throw new SpException("File [" + files[i].getName()
-                            + "] has NO log entry.");
+                    LOGGER.warn(
+                            "File [{}] deleted. Reason: not found in DocLog.",
+                            files[i].getAbsolutePath());
+                    continue;
                 }
 
-                /*
-                 *
-                 */
                 final InboxInfoDto.InboxJob job = new InboxInfoDto.InboxJob();
 
                 job.setFile(FilenameUtils.getName(filePath));
@@ -372,14 +367,10 @@ public final class InboxServiceImpl implements InboxService {
                 job.setLandscapeView(Boolean.valueOf(
                         PdfPageRotateHelper.isSeenAsLandscape(contentRotation,
                                 rotation, isLandscape, rotate.intValue())));
-                /*
-                 * Append
-                 */
+                // Append
                 jobinfo.getJobs().add(job);
 
-                /*
-                 *
-                 */
+                //
                 final InboxJobRange range = new InboxInfoDto.InboxJobRange();
 
                 range.setJob(i);
