@@ -1925,11 +1925,11 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
-         * Enable {@code pdffonts} validation for print-in PDF documents (Web
-         * Print) (boolean).
+         * Enable {@code pdffonts} validation/repair for print-in PDF documents
+         * (Web Print) (boolean).
          */
         PRINT_IN_PDF_FONTS_VERIFY(//
-                "print-in.pdf.fonts.verify", BOOLEAN_VALIDATOR, V_NO,
+                "print-in.pdf.fonts.verify", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
 
         /**
@@ -1939,6 +1939,13 @@ public interface IConfigProp {
          */
         PRINT_IN_PDF_FONTS_EMBED(//
                 "print-in.pdf.fonts.embed", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /**
+         * Enable/disable cleaning of print-in PDF documents (Web Print).
+         */
+        PRINT_IN_PDF_CLEAN(//
+                "print-in.pdf.clean", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
 
         /**

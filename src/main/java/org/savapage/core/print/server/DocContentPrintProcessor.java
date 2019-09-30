@@ -168,6 +168,11 @@ public final class DocContentPrintProcessor {
     /**
      *
      */
+    private boolean pdfToCairo = false;
+
+    /**
+     *
+     */
     private User userDb = null;
 
     /**
@@ -870,6 +875,7 @@ public final class DocContentPrintProcessor {
             setDrmViolationDetected(false);
             setDrmRestricted(false);
             setPdfRepaired(false);
+            setPdfToCairo(false);
 
             /*
              * Document content converters are needed for non-PDF content.
@@ -955,7 +961,7 @@ public final class DocContentPrintProcessor {
             }
 
             /*
-             * Calculate number of pages, etc...
+             * Calculate number of pages, etc. and repair along the way.
              */
             final SpPdfPageProps pdfPageProps =
                     this.createPdfPageProps(tempPathPdf);
@@ -966,10 +972,15 @@ public final class DocContentPrintProcessor {
             if (inputType == DocContentTypeEnum.PDF) {
                 final File fileWrk = new File(tempPathPdf);
                 if (cm.isConfigValue(Key.PRINT_IN_PDF_FONTS_VERIFY)) {
-                    verifyPdfFonts(fileWrk);
+                    this.verifyPdfFonts(fileWrk);
                 }
-                if (cm.isConfigValue(Key.PRINT_IN_PDF_FONTS_EMBED)) {
-                    embedPdfFonts(fileWrk);
+                if (!this.isPdfToCairo()
+                        && cm.isConfigValue(Key.PRINT_IN_PDF_FONTS_EMBED)) {
+                    this.embedPdfFonts(fileWrk);
+                }
+                if (!this.isPdfToCairo()
+                        && cm.isConfigValue(Key.PRINT_IN_PDF_CLEAN)) {
+                    this.cleanPdf(fileWrk);
                 }
             }
 
@@ -1054,16 +1065,34 @@ public final class DocContentPrintProcessor {
     }
 
     /**
-     * Validates PDF file for font errors.
+     * Validates and optionally repairs PDF file for font errors.
      *
      * @param pdf
      *            PDF file.
      * @throws PdfValidityException
      *             When font error(s) in PDF document.
+     * @throws IOException
+     *             When file IO error.
      */
-    private static void verifyPdfFonts(final File pdf)
-            throws PdfValidityException {
-        if (!new PdfFontsErrorValidator(pdf).execute()) {
+    private void verifyPdfFonts(final File pdf)
+            throws PdfValidityException, IOException {
+
+        final PdfFontsErrorValidator validator =
+                new PdfFontsErrorValidator(pdf);
+
+        if (!validator.execute()) {
+
+            if (!this.isPdfToCairo()) {
+                FileSystemHelper.replaceWithNewVersion(pdf,
+                        new PdfRepair().convert(pdf));
+                // Try again.
+                if (validator.execute()) {
+                    this.setPdfRepaired(true);
+                    this.setPdfToCairo(true);
+                    return;
+                }
+            }
+
             throw new PdfValidityException("Font errors.",
                     PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
                     PhraseEnum.PDF_INVALID);
@@ -1076,10 +1105,9 @@ public final class DocContentPrintProcessor {
      * @param pdf
      *            PDF file.
      * @throws PdfValidityException
-     *             When embed font error(s)..
+     *             When embed font error(s).
      */
-    private static void embedPdfFonts(final File pdf)
-            throws PdfValidityException {
+    private void embedPdfFonts(final File pdf) throws PdfValidityException {
 
         final PdfDocumentFonts fonts;
 
@@ -1096,8 +1124,30 @@ public final class DocContentPrintProcessor {
         try {
             FileSystemHelper.replaceWithNewVersion(pdf,
                     new PdfRepair().convert(pdf));
+            this.setPdfToCairo(true);
         } catch (IOException e) {
             throw new PdfValidityException("Embed Font errors.",
+                    PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
+                    PhraseEnum.PDF_INVALID);
+        }
+    }
+
+    /**
+     * Cleans a PDF file.
+     *
+     * @param pdf
+     *            PDF file.
+     * @throws PdfValidityException
+     *             When error(s).
+     */
+    private void cleanPdf(final File pdf) throws PdfValidityException {
+
+        try {
+            FileSystemHelper.replaceWithNewVersion(pdf,
+                    new PdfRepair().convert(pdf));
+            this.setPdfToCairo(true);
+        } catch (IOException e) {
+            throw new PdfValidityException("PDF cleaning errors.",
                     PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
                     PhraseEnum.PDF_INVALID);
         }
@@ -1151,6 +1201,7 @@ public final class DocContentPrintProcessor {
                 pdfPageProps = SpPdfPageProps.create(tempPathPdf);
 
                 this.setPdfRepaired(true);
+                this.setPdfToCairo(true);
             } else {
                 throw e;
             }
@@ -1192,7 +1243,6 @@ public final class DocContentPrintProcessor {
      * @return {@link DocContentPrintInInfo}.
      */
     private DocContentPrintInInfo
-
             logPrintIn(final DocLogProtocolEnum protocol) {
 
         final DocContentPrintInInfo printInInfo = new DocContentPrintInInfo();
@@ -1349,8 +1399,16 @@ public final class DocContentPrintProcessor {
         return pdfRepaired;
     }
 
-    public void setPdfRepaired(boolean pdfRepaired) {
+    private void setPdfRepaired(boolean pdfRepaired) {
         this.pdfRepaired = pdfRepaired;
+    }
+
+    public boolean isPdfToCairo() {
+        return pdfToCairo;
+    }
+
+    private void setPdfToCairo(boolean pdfToCairo) {
+        this.pdfToCairo = pdfToCairo;
     }
 
     /**
