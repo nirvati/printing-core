@@ -622,8 +622,12 @@ public final class UserServiceImpl extends AbstractService
 
         String ippInternetUuid = "";
         if (encryptedIppInternetUuid != null) {
-            ippInternetUuid = CryptoUser.decryptUserAttr(user.getId(),
-                    encryptedIppInternetUuid);
+            try {
+                ippInternetUuid = CryptoUser.decryptUserAttr(user.getId(),
+                        encryptedIppInternetUuid);
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage());
+            }
         }
 
         dto.setUuid(ippInternetUuid);
