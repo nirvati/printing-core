@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -125,6 +125,10 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
      * INTEGER(0:MAX) }. Dimensions are in hundredths of a millimeter.
      */
     public static final String ATTR_MEDIA_SIZE = "media-size";
+    /** */
+    public static final String ATTR_MEDIA_SIZE_X_DIMENSION = "x-dimension";
+    /** */
+    public static final String ATTR_MEDIA_SIZE_Y_DIMENSION = "y-dimension";
 
     /**
      * .

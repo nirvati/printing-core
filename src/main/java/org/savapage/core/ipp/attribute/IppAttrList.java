@@ -151,13 +151,8 @@ public abstract class IppAttrList {
 
                     final StringBuilder msg = new StringBuilder();
 
-                    msg.append("[")
-                            .append(attrLookup.get(
-                                    IppDictPrinterDescAttr.ATTR_PRINTER_NAME)
-                                    .getSingleValue())
-                            .append("] [").append(attrKey).append("] [")
-                            .append(attr.getAttribute().getSyntax()
-                                    .getValueTag())
+                    msg.append("[").append(attrKey).append("] [").append(
+                            attr.getAttribute().getSyntax().getValueTag())
                             .append("]");
 
                     for (final String value : alreadyPresent.getValues()) {

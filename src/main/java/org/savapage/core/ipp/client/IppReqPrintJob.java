@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,12 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.print.attribute.standard.MediaSizeName;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.savapage.core.inbox.PdfOrientationInfo;
-import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.attribute.AbstractIppDict;
 import org.savapage.core.ipp.attribute.IppAttr;
 import org.savapage.core.ipp.attribute.IppAttrCollection;
@@ -47,6 +44,7 @@ import org.savapage.core.ipp.attribute.syntax.IppInteger;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.attribute.syntax.IppMimeMediaType;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
+import org.savapage.core.ipp.helpers.IppMediaSizeHelper;
 import org.savapage.core.ipp.helpers.IppNumberUpFactory;
 import org.savapage.core.ipp.rules.IppRuleExtra;
 import org.savapage.core.ipp.rules.IppRuleNumberUp;
@@ -59,7 +57,6 @@ import org.savapage.core.print.proxy.JsonProxyPrinterOptChoice;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.PrintScalingEnum;
-import org.savapage.core.util.MediaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -368,8 +365,8 @@ public final class IppReqPrintJob extends IppReqCommon {
                 final IppAttrCollection mediaSizeCollection;
 
                 if (ppdOptionOrg.equals(IppDictJobTemplateAttr.ATTR_MEDIA)) {
-                    mediaSizeCollection =
-                            createMediaSizeCollection(ppdValueNew);
+                    mediaSizeCollection = IppMediaSizeHelper
+                            .createMediaSizeCollection(ppdValueNew);
                 } else {
                     mediaSizeCollection = null;
                 }
@@ -793,7 +790,8 @@ public final class IppReqPrintJob extends IppReqCommon {
 
             if (optionKeyword.equals(IppDictJobTemplateAttr.ATTR_MEDIA)) {
                 // Create here, apply later.
-                collectionMediaSize = createMediaSizeCollection(optionValue);
+                collectionMediaSize = IppMediaSizeHelper
+                        .createMediaSizeCollection(optionValue);
 
             } else if (optionKeyword
                     .equals(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE)) {
@@ -967,33 +965,4 @@ public final class IppReqPrintJob extends IppReqCommon {
         }
     }
 
-    /**
-     * Creates a media-size collection.
-     *
-     * @param mediaOptionValue
-     *            The media option value.
-     * @return The {@link IppAttrCollection}.
-     */
-    private static IppAttrCollection
-            createMediaSizeCollection(final String mediaOptionValue) {
-
-        final IppAttrCollection collectionMediaSize =
-                new IppAttrCollection(IppDictJobTemplateAttr.ATTR_MEDIA_SIZE);
-
-        final MediaSizeName sizeName =
-                IppMediaSizeEnum.findMediaSizeName(mediaOptionValue);
-
-        final int[] array = MediaUtils.getMediaWidthHeight(sizeName);
-
-        // Number of hundredth in a mm.
-        final int hundredthMM = 100;
-
-        collectionMediaSize.add("x-dimension", new IppInteger(0),
-                String.valueOf(array[0] * hundredthMM));
-
-        collectionMediaSize.add("y-dimension", new IppInteger(0),
-                String.valueOf(array[1] * hundredthMM));
-
-        return collectionMediaSize;
-    }
 }

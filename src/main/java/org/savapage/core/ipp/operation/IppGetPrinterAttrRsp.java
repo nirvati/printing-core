@@ -32,7 +32,9 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.ipp.attribute.AbstractIppDict;
 import org.savapage.core.ipp.attribute.IppAttr;
+import org.savapage.core.ipp.attribute.IppAttrCollection;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.attribute.IppAttrValue;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
@@ -40,10 +42,12 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr.ApplEnum;
 import org.savapage.core.ipp.attribute.IppDictPrinterDescAttr;
 import org.savapage.core.ipp.attribute.syntax.IppBoolean;
 import org.savapage.core.ipp.attribute.syntax.IppCharset;
+import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.attribute.syntax.IppNaturalLanguage;
 import org.savapage.core.ipp.attribute.syntax.IppRangeOfInteger;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
 import org.savapage.core.ipp.encoding.IppEncoder;
+import org.savapage.core.ipp.helpers.IppMediaSizeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +56,7 @@ import org.slf4j.LoggerFactory;
  *
  * 3.2.5.2 Get-Printer-Attributes Response
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class IppGetPrinterAttrRsp extends AbstractIppResponse {
@@ -147,7 +151,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             IppGetPrinterAttrReq request, final OutputStream ostr)
             throws IOException {
 
-        List<IppAttrGroup> attrGroups = new ArrayList<>();
+        final List<IppAttrGroup> attrGroups = new ArrayList<>();
 
         IppAttrGroup group = null;
         IppAttrValue value = null;
@@ -254,8 +258,8 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
              * if this attribute had been supplied with a value of 'all'.
              */
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Client requested NO attributes: using ["
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Client requested NO attributes: using ["
                         + IppGetPrinterAttrOperation.ATTR_GRP_ALL
                         + "] attributes");
             }
@@ -264,6 +268,16 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
                     IppGetPrinterAttrOperation.ATTR_GRP_ALL);
 
         } else {
+
+            if (LOGGER.isDebugEnabled()) {
+                final StringBuilder log = new StringBuilder();
+                log.append("requested attributes:");
+                for (final String keyword : operation.getRequestedAttributes()
+                        .getValues()) {
+                    log.append(" ").append(keyword);
+                }
+                LOGGER.debug(log.toString());
+            }
 
             for (final String keyword : operation.getRequestedAttributes()
                     .getValues()) {
@@ -317,6 +331,10 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
 
         switch (name) {
 
+        case IppGetPrinterAttrOperation.ATTR_GRP_NONE:
+            // noop
+            break;
+
         case IppGetPrinterAttrOperation.ATTR_GRP_ALL:
 
             handleRequestedAttr(printerUri, grpSupp, grpUnSupp,
@@ -345,6 +363,23 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
                 grpSupp.addAttribute(
                         getAttrValuePrinterDesc(nameWlk, printerUri));
             }
+            break;
+
+        case IppGetPrinterAttrOperation.ATTR_GRP_MEDIA_COL_DATABASE:
+
+            final IppAttrCollection colDatabase = new IppAttrCollection(
+                    IppGetPrinterAttrOperation.ATTR_GRP_MEDIA_COL_DATABASE);
+
+            grpSupp.addCollection(colDatabase);
+
+            final IppAttrCollection collection = new IppAttrCollection(
+                    IppDictJobTemplateAttr.ATTR_MEDIA_COL);
+            colDatabase.addCollection(collection);
+
+            collection.addCollection(
+                    IppMediaSizeHelper.createMediaSizeCollection());
+            collection.addAttribute(createValueMediaSource());
+
             break;
 
         /*
@@ -832,5 +867,18 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         }
 
         return jobUri.toString();
+    }
+
+    /**
+     *
+     * @return
+     */
+    private static IppAttrValue createValueMediaSource() {
+        final AbstractIppDict dict = IppDictJobTemplateAttr.instance();
+        final IppAttr attr =
+                dict.getAttr(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE);
+        final IppAttrValue attrValueMediaSource = new IppAttrValue(attr);
+        attrValueMediaSource.addValue(IppKeyword.MEDIA_SOURCE_AUTO);
+        return attrValueMediaSource;
     }
 }

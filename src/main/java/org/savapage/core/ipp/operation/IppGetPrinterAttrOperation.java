@@ -53,6 +53,11 @@ import org.savapage.core.ipp.attribute.IppAttrValue;
 public class IppGetPrinterAttrOperation extends AbstractIppOperation {
 
     /**
+     *
+     */
+    public static final String ATTR_GRP_NONE = "none";
+
+    /**
      * The special group 'all' that includes all attributes that the
      * implementation supports for Printer objects.
      */
