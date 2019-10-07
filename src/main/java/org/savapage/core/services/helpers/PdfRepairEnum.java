@@ -19,63 +19,48 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.i18n;
-
-import java.util.Locale;
-
-import org.savapage.core.util.LocaleHelper;
+package org.savapage.core.services.helpers;
 
 /**
- * UI Adjectives.
+ * PDF repair status.
  *
  * @author Rijk Ravestein
  *
  */
-public enum AdjectiveEnum {
-
-    /** */
-    DOWLOADED, ERASED, PRINTED, RECEIVED,
-
-    /** */
-    APPROVED, REJECTED,
-
-    /** */
-    ASCENDING, DESCENDING,
-
-    /** */
-    SCALED,
-
-    /** */
-    VALID, INVALID,
-
-    /** */
-    INTERNAL, EXTERNAL,
-
-    /** */
-    ALL, NONE,
-
-    /** */
-    UNKNOWN, KNOWN,
-
-    /** */
-    REOPENED,
-
-    /** */
-    REPAIRED,
-
-    /** */
-    PREFERRED,
-
-    /** */
-    PENDING;
+public enum PdfRepairEnum {
+    /**
+     * Document repaired.
+     */
+    DOC,
+    /**
+     * Document repair failed.
+     */
+    DOC_FAIL,
+    /**
+     * PDF font(s) repaired.
+     */
+    FONT,
+    /**
+     * PDF font(s) repair failed.
+     */
+    FONT_FAIL,
+    /**
+     * Not repaired.
+     */
+    NONE;
 
     /**
-     * @param locale
-     *            The {@link Locale}.
-     * @return The localized text.
+     * @return {@code true} if repaired.
      */
-    public String uiText(final Locale locale) {
-        return LocaleHelper.uiText(this, locale);
+    public boolean isRepaired() {
+        return this == DOC || this == FONT;
+    }
+
+    /**
+     * @return {@code true} if repair failed.
+     */
+    public boolean isRepairFail() {
+        return this == DOC_FAIL || this == FONT_FAIL;
     }
 
 }

@@ -43,8 +43,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  * A statistical rolling time series for a maximum number of intervals.
  *
  * <p>
- * See <a
- * href="http://en.wikipedia.org/wiki/Time_series">http://en.wikipedia.org
+ * See
+ * <a href="http://en.wikipedia.org/wiki/Time_series">http://en.wikipedia.org
  * /wiki/Time_series</a>
  * </p>
  *
@@ -86,7 +86,8 @@ public class JsonRollingTimeSeries<T> extends JsonAbstractBase {
     public JsonRollingTimeSeries(final TimeSeriesInterval interval,
             int maxIntervals, T zeroValue) {
 
-        if (!(zeroValue instanceof Integer || zeroValue instanceof Long || zeroValue instanceof Double)) {
+        if (!(zeroValue instanceof Integer || zeroValue instanceof Long
+                || zeroValue instanceof Double)) {
             throw new SpException("observation of type ["
                     + zeroValue.getClass().getSimpleName()
                     + "] is not supported");
@@ -244,7 +245,6 @@ public class JsonRollingTimeSeries<T> extends JsonAbstractBase {
      * @param key
      * @param observationTime
      * @param observation
-     * @throws IOException
      */
     public void addDataPoint(final IConfigProp.Key key,
             final Date observationTime, T observation) {
@@ -306,10 +306,8 @@ public class JsonRollingTimeSeries<T> extends JsonAbstractBase {
                  * Initialize pointDate to the first day of the NEXT observation
                  * year (by adding a week to the observation time).
                  */
-                pointDate =
-                        DateUtils.truncate(
-                                DateUtils.addWeeks(observationTime, 1),
-                                Calendar.YEAR);
+                pointDate = DateUtils.truncate(
+                        DateUtils.addWeeks(observationTime, 1), Calendar.YEAR);
 
             } else {
                 /*
@@ -328,16 +326,15 @@ public class JsonRollingTimeSeries<T> extends JsonAbstractBase {
 
             while (observationCal.get(Calendar.DAY_OF_WEEK) != observationCal
                     .getFirstDayOfWeek()) {
-                observationCal.setTime(DateUtils.addDays(
-                        observationCal.getTime(), -1));
+                observationCal.setTime(
+                        DateUtils.addDays(observationCal.getTime(), -1));
             }
             /*
              * Set the point date by adding the number of weeks to the
              * first-day-of-the-week of the observation time.
              */
-            pointDate =
-                    DateUtils.addWeeks(observationCal.getTime(),
-                            observationWeekOfYear);
+            pointDate = DateUtils.addWeeks(observationCal.getTime(),
+                    observationWeekOfYear);
 
         } else {
 
@@ -404,9 +401,9 @@ public class JsonRollingTimeSeries<T> extends JsonAbstractBase {
             final Date lastDate = new Date(lastTime);
             int zeroIntervals = 0;
 
-            while (zeroIntervals < maxIntervals
-                    && !DateUtils.isSameInstant(pointDate,
-                            addInterval(interval, lastDate, zeroIntervals + 1))) {
+            while (zeroIntervals < maxIntervals && !DateUtils.isSameInstant(
+                    pointDate,
+                    addInterval(interval, lastDate, zeroIntervals + 1))) {
                 zeroIntervals++;
             }
 

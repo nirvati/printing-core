@@ -82,6 +82,7 @@ import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.services.helpers.PdfRepairEnum;
 import org.savapage.core.system.PdfFontsErrorValidator;
 import org.savapage.core.users.conf.UserAliasList;
 import org.savapage.core.util.FileSystemHelper;
@@ -161,9 +162,9 @@ public final class DocContentPrintProcessor {
     private boolean drmRestricted = false;
 
     /**
-     *
+     * {@code null} if no PDF document.
      */
-    private boolean pdfRepaired = false;
+    private PdfRepairEnum pdfRepair;
 
     /**
      *
@@ -874,8 +875,8 @@ public final class DocContentPrintProcessor {
              */
             setDrmViolationDetected(false);
             setDrmRestricted(false);
-            setPdfRepaired(false);
             setPdfToCairo(false);
+            this.pdfRepair = null;
 
             /*
              * Document content converters are needed for non-PDF content.
@@ -889,15 +890,14 @@ public final class DocContentPrintProcessor {
              */
             if (inputType == DocContentTypeEnum.PDF) {
 
+                this.pdfRepair = PdfRepairEnum.NONE;
                 saveBinary(istrContent, fostrContent);
 
             } else if (inputType == DocContentTypeEnum.PS) {
-
                 /*
                  * An exception is throw upon a DRM violation.
                  */
                 savePostScript(istrContent, fostrContent);
-
                 /*
                  * Always use a file converter,
                  */
@@ -1034,6 +1034,14 @@ public final class DocContentPrintProcessor {
                 this.logPrintIn(protocol);
 
             } else {
+
+                if (e instanceof PdfValidityException) {
+                    if (this.pdfRepair == null
+                            || !this.pdfRepair.isRepairFail()) {
+                        this.pdfRepair = PdfRepairEnum.DOC_FAIL;
+                    }
+                    this.logPrintIn(protocol);
+                }
                 /*
                  * Save the exception, so it can be thrown at the end of the
                  * parent operation.
@@ -1087,12 +1095,12 @@ public final class DocContentPrintProcessor {
                         new PdfRepair().convert(pdf));
                 // Try again.
                 if (validator.execute()) {
-                    this.setPdfRepaired(true);
+                    this.pdfRepair = PdfRepairEnum.FONT;
                     this.setPdfToCairo(true);
                     return;
                 }
+                this.pdfRepair = PdfRepairEnum.FONT_FAIL;
             }
-
             throw new PdfValidityException("Font errors.",
                     PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
                     PhraseEnum.PDF_INVALID);
@@ -1126,6 +1134,7 @@ public final class DocContentPrintProcessor {
                     new PdfRepair().convert(pdf));
             this.setPdfToCairo(true);
         } catch (IOException e) {
+            this.pdfRepair = PdfRepairEnum.DOC_FAIL;
             throw new PdfValidityException("Embed Font errors.",
                     PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
                     PhraseEnum.PDF_INVALID);
@@ -1147,6 +1156,7 @@ public final class DocContentPrintProcessor {
                     new PdfRepair().convert(pdf));
             this.setPdfToCairo(true);
         } catch (IOException e) {
+            this.pdfRepair = PdfRepairEnum.DOC_FAIL;
             throw new PdfValidityException("PDF cleaning errors.",
                     PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
                     PhraseEnum.PDF_INVALID);
@@ -1185,9 +1195,11 @@ public final class DocContentPrintProcessor {
             if (ConfigManager.instance().isConfigValue(
                     IConfigProp.Key.PRINT_IN_PDF_INVALID_REPAIR)) {
 
+                this.pdfRepair = PdfRepairEnum.DOC_FAIL;
+
                 final File pdfFile = new File(tempPathPdf);
 
-                // Convert ...\
+                // Convert ...
                 try {
                     FileSystemHelper.replaceWithNewVersion(pdfFile,
                             new PdfRepair().convert(pdfFile));
@@ -1200,7 +1212,7 @@ public final class DocContentPrintProcessor {
                 // and try again.
                 pdfPageProps = SpPdfPageProps.create(tempPathPdf);
 
-                this.setPdfRepaired(true);
+                this.pdfRepair = PdfRepairEnum.DOC;
                 this.setPdfToCairo(true);
             } else {
                 throw e;
@@ -1248,6 +1260,7 @@ public final class DocContentPrintProcessor {
         final DocContentPrintInInfo printInInfo = new DocContentPrintInInfo();
 
         printInInfo.setDrmRestricted(this.isDrmRestricted());
+        printInInfo.setPdfRepair(this.pdfRepair);
         printInInfo.setJobBytes(this.getJobBytes());
         printInInfo.setJobName(this.getJobName());
         printInInfo.setMimetype(this.getMimetype());
@@ -1396,11 +1409,7 @@ public final class DocContentPrintProcessor {
     }
 
     public boolean isPdfRepaired() {
-        return pdfRepaired;
-    }
-
-    private void setPdfRepaired(boolean pdfRepaired) {
-        this.pdfRepaired = pdfRepaired;
+        return this.pdfRepair != null && this.pdfRepair.isRepaired();
     }
 
     public boolean isPdfToCairo() {

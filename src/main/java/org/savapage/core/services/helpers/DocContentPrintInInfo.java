@@ -43,6 +43,11 @@ public class DocContentPrintInInfo {
     private boolean drmRestricted = false;
 
     /**
+     * {@code null} if no PDF document.
+     */
+    private PdfRepairEnum pdfRepair;
+
+    /**
      * .
      */
     private String mimetype;
@@ -102,6 +107,21 @@ public class DocContentPrintInInfo {
 
     public void setDrmRestricted(boolean drmRestricted) {
         this.drmRestricted = drmRestricted;
+    }
+
+    /**
+     * @return {@code null} if no PDF document.
+     */
+    public PdfRepairEnum getPdfRepair() {
+        return pdfRepair;
+    }
+
+    /**
+     * @param pdfRepair
+     *            {@code null} if no PDF document.
+     */
+    public void setPdfRepair(PdfRepairEnum pdfRepair) {
+        this.pdfRepair = pdfRepair;
     }
 
     public String getMimetype() {
@@ -188,4 +208,10 @@ public class DocContentPrintInInfo {
         this.accountTrxInfoSet = accountTrxInfoSet;
     }
 
+    /**
+     * @return {@code true} if PDF document and repair failed.
+     */
+    public boolean isPdfRepairFail() {
+        return this.pdfRepair != null && this.pdfRepair.isRepairFail();
+    }
 }

@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -2421,10 +2421,56 @@ public interface IConfigProp {
                 "schedule.auto-sync.user", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * All print-in documents (day).
+         */
+        STATS_PRINT_IN_ROLLING_DAY_DOCS(//
+                "stats.print-in.rolling-day.docs", API_UPDATABLE_OFF),
+
+        /**
+         * All print-in PDF documents (day).
+         */
+        STATS_PRINT_IN_ROLLING_DAY_PDF(//
+                "stats.print-in.rolling-day.pdf", API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_DAY_PDF_REPAIR(//
+                "stats.print-in.rolling-day.pdf.repair", API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_DAY_PDF_REPAIR_FAIL(//
+                "stats.print-in.rolling-day.pdf.repair.fail",
+                API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_DAY_PDF_REPAIR_FONT(//
+                "stats.print-in.rolling-day.pdf.repair.font",
+                API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_DAY_PDF_REPAIR_FONT_FAIL(//
+                "stats.print-in.rolling-day.pdf.repair.font.fail",
+                API_UPDATABLE_OFF),
+
+        /**
          *
          */
         STATS_PRINT_IN_ROLLING_DAY_PAGES(//
                 "stats.print-in.rolling-day.pages", API_UPDATABLE_OFF),
+
+        /**
+         * All print-in documents (week).
+         */
+        STATS_PRINT_IN_ROLLING_WEEK_DOCS(//
+                "stats.print-in.rolling-week.docs", API_UPDATABLE_OFF),
+
+        /**
+         * All print-in PDF documents (week).
+         */
+        STATS_PRINT_IN_ROLLING_WEEK_PDF(//
+                "stats.print-in.rolling-week.pdf", API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_WEEK_PDF_REPAIR(//
+                "stats.print-in.rolling-week.pdf.repair", API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_WEEK_PDF_REPAIR_FAIL(//
+                "stats.print-in.rolling-week.pdf.repair.fail",
+                API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_WEEK_PDF_REPAIR_FONT(//
+                "stats.print-in.rolling-week.pdf.repair.font",
+                API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_WEEK_PDF_REPAIR_FONT_FAIL(//
+                "stats.print-in.rolling-week.pdf.repair.font.fail",
+                API_UPDATABLE_OFF),
 
         /**
          *
@@ -2437,6 +2483,29 @@ public interface IConfigProp {
          */
         STATS_PRINT_IN_ROLLING_WEEK_BYTES(//
                 "stats.print-in.rolling-week.bytes", API_UPDATABLE_OFF),
+
+        /**
+         * All print-in documents (month).
+         */
+        STATS_PRINT_IN_ROLLING_MONTH_DOCS(//
+                "stats.print-in.rolling-month.docs", API_UPDATABLE_OFF),
+
+        /**
+         * All print-in PDF documents (month).
+         */
+        STATS_PRINT_IN_ROLLING_MONTH_PDF(//
+                "stats.print-in.rolling-month.pdf", API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_MONTH_PDF_REPAIR(//
+                "stats.print-in.rolling-month.pdf.repair", API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_MONTH_PDF_REPAIR_FAIL(//
+                "stats.print-in.rolling-month.pdf.repair.fail",
+                API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_MONTH_PDF_REPAIR_FONT(//
+                "stats.print-in.rolling-month.pdf.repair.font",
+                API_UPDATABLE_OFF),
+        STATS_PRINT_IN_ROLLING_MONTH_PDF_REPAIR_FONT_FAIL(//
+                "stats.print-in.rolling-month.pdf.repair.font.fail",
+                API_UPDATABLE_OFF),
 
         /**
          *
@@ -2541,53 +2610,77 @@ public interface IConfigProp {
                 "stats.total.reset-date",
                 String.valueOf(System.currentTimeMillis()), API_UPDATABLE_OFF),
 
+        STATS_TOTAL_RESET_DATE_PRINT_IN(//
+                "stats.total.reset-date.print-in",
+                String.valueOf(System.currentTimeMillis()), API_UPDATABLE_OFF),
+
         /**
          *
          */
         STATS_TOTAL_PDF_OUT_PAGES(//
-                "stats.total.pdf-out.pages", "0", API_UPDATABLE_OFF),
+                "stats.total.pdf-out.pages", V_ZERO, API_UPDATABLE_OFF),
 
         /**
          *
          */
         STATS_TOTAL_PDF_OUT_BYTES(//
-                "stats.total.pdf-out.bytes", "0", API_UPDATABLE_OFF),
+                "stats.total.pdf-out.bytes", V_ZERO, API_UPDATABLE_OFF),
+
+        /**
+        *
+        */
+        STATS_TOTAL_PRINT_IN_DOCS(//
+                "stats.total.print-in.docs", V_ZERO, API_UPDATABLE_OFF),
+
+        STATS_TOTAL_PRINT_IN_PDF(//
+                "stats.total.print-in.pdf", V_ZERO, API_UPDATABLE_OFF),
+        STATS_TOTAL_PRINT_IN_PDF_REPAIR(//
+                "stats.total.print-in.pdf.repair", V_ZERO, API_UPDATABLE_OFF),
+        STATS_TOTAL_PRINT_IN_PDF_REPAIR_FAIL(//
+                "stats.total.print-in.pdf.repair.fail", V_ZERO,
+                API_UPDATABLE_OFF),
+        STATS_TOTAL_PRINT_IN_PDF_REPAIR_FONT(//
+                "stats.total.print-in.pdf.repair.font", V_ZERO,
+                API_UPDATABLE_OFF),
+        STATS_TOTAL_PRINT_IN_PDF_REPAIR_FONT_FAIL(//
+                "stats.total.print-in.pdf.repair.font.fail", V_ZERO,
+                API_UPDATABLE_OFF),
 
         /**
          *
          */
         STATS_TOTAL_PRINT_IN_PAGES(//
-                "stats.total.print-in.pages", "0", API_UPDATABLE_OFF),
+                "stats.total.print-in.pages", V_ZERO, API_UPDATABLE_OFF),
 
         /**
          *
          */
         STATS_TOTAL_PRINT_IN_BYTES(//
-                "stats.total.print-in.bytes", "0", API_UPDATABLE_OFF),
+                "stats.total.print-in.bytes", V_ZERO, API_UPDATABLE_OFF),
 
         /**
          *
          */
         STATS_TOTAL_PRINT_OUT_PAGES(//
-                "stats.total.print-out.pages", "0", API_UPDATABLE_OFF),
+                "stats.total.print-out.pages", V_ZERO, API_UPDATABLE_OFF),
 
         /**
          *
          */
         STATS_TOTAL_PRINT_OUT_SHEETS(//
-                "stats.total.print-out.sheets", "0", API_UPDATABLE_OFF),
+                "stats.total.print-out.sheets", V_ZERO, API_UPDATABLE_OFF),
 
         /**
          *
          */
         STATS_TOTAL_PRINT_OUT_ESU(//
-                "stats.total.print-out.esu", "0", API_UPDATABLE_OFF),
+                "stats.total.print-out.esu", V_ZERO, API_UPDATABLE_OFF),
 
         /**
          *
          */
         STATS_TOTAL_PRINT_OUT_BYTES(//
-                "stats.total.print-out.bytes", "0", API_UPDATABLE_OFF),
+                "stats.total.print-out.bytes", V_ZERO, API_UPDATABLE_OFF),
 
         /**
          * Make a backup before a database schema upgrade.
@@ -2599,7 +2692,7 @@ public interface IConfigProp {
          * Time in milliseconds when last backup was run.
          */
         SYS_BACKUP_LAST_RUN_TIME(//
-                "system.backup.last-run-time", NUMBER_VALIDATOR, "0"),
+                "system.backup.last-run-time", NUMBER_VALIDATOR, V_ZERO),
 
         /**
          *
@@ -2648,7 +2741,7 @@ public interface IConfigProp {
          * </p>
          */
         SYS_SCHEMA_VERSION_MINOR(//
-                "system.schema-version-minor", "0", API_UPDATABLE_OFF),
+                "system.schema-version-minor", V_ZERO, API_UPDATABLE_OFF),
 
         /**
          * Do NOT set a value since it is present in installation database.
@@ -2792,7 +2885,7 @@ public interface IConfigProp {
          * the shadow is not created.
          */
         ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT(//
-                "eco-print.auto-threshold.page-count", NUMBER_VALIDATOR, "0"),
+                "eco-print.auto-threshold.page-count", NUMBER_VALIDATOR, V_ZERO),
 
         /**
          * .

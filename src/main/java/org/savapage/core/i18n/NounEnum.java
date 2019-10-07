@@ -50,6 +50,8 @@ public enum NounEnum {
     /** */
     DATE(true),
     /** */
+    DAY(true), WEEK(true), MONTH(true), YEAR(true),
+    /** */
     DELEGATE(true),
     /** */
     DELEGATOR(true),
