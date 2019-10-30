@@ -199,6 +199,23 @@ public final class DateUtil {
     }
 
     /**
+     * Gets as localized (long)date/(medium)time string of a Date.
+     *
+     * @param date
+     *            The date.
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized date/time string. For example: "May 22, 2025
+     *         3:05:20 PM"
+     */
+    public static String localizedLongMediumDateTime(final Date date,
+            final Locale locale) {
+        return DateFormat
+                .getDateTimeInstance(DateFormat.LONG, DateFormat.MEDIUM, locale)
+                .format(date);
+    }
+
+    /**
      * Gets number of seconds between two dates.
      *
      * @param d1

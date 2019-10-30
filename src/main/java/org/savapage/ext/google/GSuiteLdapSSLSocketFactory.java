@@ -19,31 +19,27 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.net;
+package org.savapage.ext.google;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 
-import org.savapage.core.util.InetUtils;
+import org.savapage.core.net.IClientCertSSLSocketFactory;
+import org.savapage.core.net.SSLSocketFactoryWrapper;
 
 /**
- * Wrapper of an SSLSocketFactory instance that accepts self-signed certificates
- * as trusted. Verification of all other certificates is done by the trust
- * manager configured in the SSL context.
- *
- * <p>
- * See: <i>How to accept self-signed certificates for JNDI/LDAP connections?</i>
- * on <a href=
- * "https://stackoverflow.com/questions/4615163/how-to-accept-self-signed-certificates-for-jndi-ldap-connections">
- * stackoverflow</a>, and <a href=
- * "https://docs.oracle.com/javase/7/docs/technotes/guides/jndi/jndi-ldap-gl.html">JNDI
- * Implementor Guidelines for LDAP Service Providers</a>
- * <p>
+ * G-Suite SocketFactory.
  *
  * @author Rijk Ravestein
  *
  */
-public final class TrustSelfSignedCertSocketFactory
-        extends SSLSocketFactoryWrapper {
+public final class GSuiteLdapSSLSocketFactory extends SSLSocketFactoryWrapper
+        implements IClientCertSSLSocketFactory {
+
+    /**
+     * Cached factory wrapper.
+     */
+    private static SocketFactory socketFactoryWrapper;
 
     /**
      * Returns the default SSL socket factory.
@@ -56,14 +52,19 @@ public final class TrustSelfSignedCertSocketFactory
      * @return An instance of this class.
      */
     public static SocketFactory getDefault() {
-        return new TrustSelfSignedCertSocketFactory();
+        if (socketFactoryWrapper == null) {
+            socketFactoryWrapper = new GSuiteLdapSSLSocketFactory(
+                    GSuiteLdapClient.getSSLSocketFactory());
+        }
+        return socketFactoryWrapper;
     }
 
     /**
-     *
+     * @param factory
+     *            The factory to wrap.
      */
-    public TrustSelfSignedCertSocketFactory() {
-        super(InetUtils.createSslContextTrustSelfSigned().getSocketFactory());
+    private GSuiteLdapSSLSocketFactory(final SSLSocketFactory factory) {
+        super(factory);
     }
 
 }

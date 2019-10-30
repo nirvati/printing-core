@@ -167,6 +167,7 @@ public interface IConfigProp {
     String LDAP_TYPE_V_OPEN_LDAP = "OPEN_LDAP";
     String LDAP_TYPE_V_E_DIR = "NOVELL_EDIRECTORY";
     String LDAP_TYPE_V_ACTIV = "ACTIVE_DIRECTORY";
+    String LDAP_TYPE_V_G_SUITE = "G_SUITE";
 
     String PAPERSIZE_V_SYSTEM = "";
     String PAPERSIZE_V_A4 = MediaSizeName.ISO_A4.toString();
@@ -1046,7 +1047,8 @@ public interface IConfigProp {
         LDAP_SCHEMA_TYPE(//
                 "ldap.schema.type", null, LDAP_TYPE_V_OPEN_LDAP,
                 new String[] { LDAP_TYPE_V_ACTIV, LDAP_TYPE_V_E_DIR,
-                        LDAP_TYPE_V_APPLE, LDAP_TYPE_V_OPEN_LDAP },
+                        LDAP_TYPE_V_APPLE, LDAP_TYPE_V_OPEN_LDAP,
+                        LDAP_TYPE_V_G_SUITE },
                 API_UPDATABLE_ON),
 
         /**
@@ -2885,7 +2887,8 @@ public interface IConfigProp {
          * the shadow is not created.
          */
         ECO_PRINT_AUTO_THRESHOLD_SHADOW_PAGE_COUNT(//
-                "eco-print.auto-threshold.page-count", NUMBER_VALIDATOR, V_ZERO),
+                "eco-print.auto-threshold.page-count", NUMBER_VALIDATOR,
+                V_ZERO),
 
         /**
          * .
@@ -4095,6 +4098,11 @@ public interface IConfigProp {
          * Microsoft Active Directory.
          */
         ACTD,
+
+        /**
+         * Google Cloud Directory (G Suite).
+         */
+        G_SUITE
     };
 
     /**

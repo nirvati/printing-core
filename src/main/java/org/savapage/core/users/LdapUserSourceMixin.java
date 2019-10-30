@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -47,6 +47,7 @@ import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.PagedResultsControl;
 import javax.naming.ldap.Rdn;
+import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
@@ -159,6 +160,21 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
      */
     private static final String OID_RANGE_PROPERTY = OID_AD_BASE + ".1.4.802";
 
+    //
+    private static final String JAVA_NAMING_LDAP_FACTORY_SOCKET =
+            "java.naming.ldap.factory.socket";
+    //
+    private static final String JAVA_NAMING_BATCHSIZE = "java.naming.batchsize";
+
+    //
+    private static final String CONTEXT_SECURITY_PROTOCOL_SSL = "ssl";
+    //
+    private static final String CONTEXT_SECURITY_AUTHENTICATION_SIMPLE =
+            "simple";
+    //
+    private static final String CONTEXT_INITIAL_CONTEXT_FACTORY_CLASS_NAME =
+            "com.sun.jndi.ldap.LdapCtxFactory";
+
     /**
      * The lazy initialized supported controls.
      */
@@ -195,22 +211,32 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                 cm.getConfigValue(this.ldapType, Key.LDAP_SCHEMA_POSIX_GROUPS)
                         .equals(IConfigProp.V_YES);
 
-        // optional
-        this.attrIdUserIdNumber =
-                cm.getConfigValue(Key.LDAP_SCHEMA_USER_ID_NUMBER_FIELD);
+        if (isExtraUserAttributes()) {
+            // optional
+            this.attrIdUserIdNumber =
+                    cm.getConfigValue(Key.LDAP_SCHEMA_USER_ID_NUMBER_FIELD);
 
-        if (StringUtils.isBlank(this.attrIdUserIdNumber)) {
+            if (StringUtils.isBlank(this.attrIdUserIdNumber)) {
+                this.attrIdUserIdNumber = null;
+            }
+            // optional
+            this.attrIdUserCardNumber =
+                    cm.getConfigValue(Key.LDAP_SCHEMA_USER_CARD_NUMBER_FIELD);
+
+            if (StringUtils.isBlank(this.attrIdUserCardNumber)) {
+                this.attrIdUserCardNumber = null;
+            }
+        } else {
             this.attrIdUserIdNumber = null;
-        }
-
-        // optional
-        this.attrIdUserCardNumber =
-                cm.getConfigValue(Key.LDAP_SCHEMA_USER_CARD_NUMBER_FIELD);
-
-        if (StringUtils.isBlank(this.attrIdUserCardNumber)) {
             this.attrIdUserCardNumber = null;
         }
+    }
 
+    /**
+     * @return {@code true} if extra User LDAP attributes can be used.
+     */
+    protected boolean isExtraUserAttributes() {
+        return true;
     }
 
     /**
@@ -524,26 +550,18 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                     final Hashtable<String, String> env = new Hashtable<>();
 
                     env.put(Context.INITIAL_CONTEXT_FACTORY,
-                            "com.sun.jndi.ldap.LdapCtxFactory");
+                            CONTEXT_INITIAL_CONTEXT_FACTORY_CLASS_NAME);
                     env.put(Context.PROVIDER_URL, providerUrl);
 
-                    env.put("java.naming.batchsize", this.batchsize);
+                    env.put(JAVA_NAMING_BATCHSIZE, this.batchsize);
 
-                    env.put(Context.SECURITY_AUTHENTICATION, "simple");
+                    env.put(Context.SECURITY_AUTHENTICATION,
+                            CONTEXT_SECURITY_AUTHENTICATION_SIMPLE);
                     env.put(Context.SECURITY_PRINCIPAL, dn);
                     env.put(Context.SECURITY_CREDENTIALS, password);
 
-                    final ConfigManager cm = ConfigManager.instance();
-
-                    if (cm.isConfigValue(Key.AUTH_LDAP_USE_SSL)) {
-                        env.put(Context.SECURITY_PROTOCOL, "ssl");
-                        if (cm.isConfigValue(
-                                Key.AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED)) {
-                            env.put("java.naming.ldap.factory.socket",
-                                    TrustSelfSignedCertSocketFactory.class
-                                            .getName());
-                        }
-                    }
+                    this.setInitialLdapSSLContext(ConfigManager.instance(),
+                            env);
 
                     ctx = new InitialDirContext(env);
                     /*
@@ -619,6 +637,41 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
     }
 
     /**
+     * Gets the custom {@link SSLSocketFactory} class.
+     *
+     * @return {@code null} if no custom class is present.
+     */
+    protected Class<?> getCustomSSLSocketFactoryClass() {
+        if (ConfigManager.instance()
+                .isConfigValue(Key.AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED)) {
+            return TrustSelfSignedCertSocketFactory.class;
+        }
+        return null;
+    }
+
+    /**
+     * Sets SSL environment for {@link InitialLdapContext}.
+     *
+     * @param cm
+     *            Configuration manager.
+     * @param env
+     *            Environment for {@link InitialLdapContext}.
+     */
+    private void setInitialLdapSSLContext(final ConfigManager cm,
+            final Hashtable<String, String> env) {
+
+        if (cm.isConfigValue(Key.AUTH_LDAP_USE_SSL)) {
+
+            env.put(Context.SECURITY_PROTOCOL, CONTEXT_SECURITY_PROTOCOL_SSL);
+
+            final Class<?> customClass = this.getCustomSSLSocketFactoryClass();
+            if (customClass != null) {
+                env.put(JAVA_NAMING_LDAP_FACTORY_SOCKET, customClass.getName());
+            }
+        }
+    }
+
+    /**
      * Creates the LDAP directory context with security credentials for the
      * Admin DN.
      *
@@ -629,11 +682,11 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
         final Hashtable<String, String> env = new Hashtable<>();
 
         env.put(Context.INITIAL_CONTEXT_FACTORY,
-                "com.sun.jndi.ldap.LdapCtxFactory");
+                CONTEXT_INITIAL_CONTEXT_FACTORY_CLASS_NAME);
 
         env.put(Context.PROVIDER_URL, getProviderUrlBaseDn());
 
-        env.put("java.naming.batchsize", this.batchsize);
+        env.put(JAVA_NAMING_BATCHSIZE, this.batchsize);
 
         /*
          * Use the credentials of the administrator (if present)
@@ -642,19 +695,14 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
         final String adminDn = cm.getConfigValue(Key.AUTH_LDAP_ADMIN_DN).trim();
 
         if (!adminDn.isEmpty()) {
-            env.put(Context.SECURITY_AUTHENTICATION, "simple");
+            env.put(Context.SECURITY_AUTHENTICATION,
+                    CONTEXT_SECURITY_AUTHENTICATION_SIMPLE);
             env.put(Context.SECURITY_PRINCIPAL, adminDn);
             env.put(Context.SECURITY_CREDENTIALS,
                     cm.getConfigValue(Key.AUTH_LDAP_ADMIN_PASSWORD));
         }
 
-        if (cm.isConfigValue(Key.AUTH_LDAP_USE_SSL)) {
-            env.put(Context.SECURITY_PROTOCOL, "ssl");
-            if (cm.isConfigValue(Key.AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED)) {
-                env.put("java.naming.ldap.factory.socket",
-                        TrustSelfSignedCertSocketFactory.class.getName());
-            }
-        }
+        this.setInitialLdapSSLContext(cm, env);
 
         final InitialLdapContext ctx;
 

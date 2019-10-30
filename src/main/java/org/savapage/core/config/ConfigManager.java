@@ -130,6 +130,8 @@ import org.savapage.core.users.conf.UserAliasList;
 import org.savapage.core.util.CurrencyUtil;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.InetUtils;
+import org.savapage.ext.google.GSuiteLdapClient;
+import org.savapage.ext.google.GSuiteUserSource;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
@@ -1680,6 +1682,13 @@ public final class ConfigManager {
 
         ProxyPrintJobStatusMonitor.init();
 
+        //
+        if (GSuiteLdapClient.init()) {
+            SpInfo.instance().log(GSuiteLdapClient.getCertCreateDateLogLine());
+            SpInfo.instance().log(GSuiteLdapClient.getCertExpireDateLogLine());
+        }
+
+        //
         DbTools.checkSequences();
     }
 
@@ -2085,6 +2094,8 @@ public final class ConfigManager {
             return IConfigProp.LdapType.EDIR;
         } else if (schema.equals(IConfigProp.LDAP_TYPE_V_OPEN_LDAP)) {
             return IConfigProp.LdapType.OPEN_LDAP;
+        } else if (schema.equals(IConfigProp.LDAP_TYPE_V_G_SUITE)) {
+            return IConfigProp.LdapType.G_SUITE;
         }
         return IConfigProp.LdapType.OPEN_DIR;
     }
@@ -2696,7 +2707,7 @@ public final class ConfigManager {
      */
     public IUserSource getUserSource() {
 
-        IUserSource source = null;
+        final IUserSource source;
 
         final String mode = myConfigProp.getString(IConfigProp.Key.AUTH_METHOD);
 
@@ -2712,11 +2723,19 @@ public final class ConfigManager {
 
             final LdapType ldapType = getConfigLdapType();
 
-            if (ldapType == LdapType.ACTD) {
+            switch (ldapType) {
+            case ACTD:
                 source = new ActiveDirectoryUserSource();
-            } else {
+                break;
+            case G_SUITE:
+                source = new GSuiteUserSource();
+                break;
+            default:
                 source = new LdapUserSource(ldapType);
+                break;
             }
+        } else {
+            source = null;
         }
         return source;
     }
@@ -2738,7 +2757,7 @@ public final class ConfigManager {
      */
     public IExternalUserAuthenticator getUserAuthenticator() {
 
-        IExternalUserAuthenticator auth = null;
+        final IExternalUserAuthenticator auth;
 
         final String mode = myConfigProp.getString(IConfigProp.Key.AUTH_METHOD);
 
@@ -2754,11 +2773,19 @@ public final class ConfigManager {
 
             final LdapType ldapType = getConfigLdapType();
 
-            if (ldapType == LdapType.ACTD) {
+            switch (ldapType) {
+            case ACTD:
                 auth = new ActiveDirectoryUserSource();
-            } else {
+                break;
+            case G_SUITE:
+                auth = new GSuiteUserSource();
+                break;
+            default:
                 auth = new LdapUserSource(ldapType);
+                break;
             }
+        } else {
+            auth = null;
         }
         return auth;
     }

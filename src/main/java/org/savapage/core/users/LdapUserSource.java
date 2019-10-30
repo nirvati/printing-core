@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@ import org.savapage.core.config.IConfigProp.LdapType;
  * @author Rijk Ravestein
  *
  */
-public final class LdapUserSource extends LdapUserSourceMixin {
+public class LdapUserSource extends LdapUserSourceMixin {
 
     /**
      *
@@ -52,7 +52,7 @@ public final class LdapUserSource extends LdapUserSourceMixin {
     }
 
     @Override
-    protected String createUserNameSearchPattern() {
+    protected final String createUserNameSearchPattern() {
 
         String pattern = getLdapConfigValue(Key.LDAP_SCHEMA_USER_NAME_SEARCH);
 
@@ -71,12 +71,12 @@ public final class LdapUserSource extends LdapUserSourceMixin {
     }
 
     @Override
-    protected String getUserNameSearchExpression(final String userName) {
+    protected final String getUserNameSearchExpression(final String userName) {
         return MessageFormat.format(this.getUserNameSearchPattern(), userName);
     }
 
     @Override
-    protected boolean isUserGroupMember(final Attributes attributes)
+    protected final boolean isUserGroupMember(final Attributes attributes)
             throws NamingException {
         /*
          * Since nested groups are not supported, we assume every member is a
@@ -86,25 +86,25 @@ public final class LdapUserSource extends LdapUserSourceMixin {
     }
 
     @Override
-    protected boolean allowDisabledUsers() {
+    protected final boolean allowDisabledUsers() {
         return false;
     }
 
     @Override
-    protected boolean isUserEnabled(final Attributes userAttributes)
+    protected final boolean isUserEnabled(final Attributes userAttributes)
             throws NamingException {
         return true;
     }
 
     @Override
-    public List<String> getGroupHierarchy(final String parentGroup,
+    public final List<String> getGroupHierarchy(final String parentGroup,
             final boolean indent) {
         final List<String> list = new ArrayList<>();
         return list;
     }
 
     @Override
-    public SortedSet<CommonUser> getUsersInGroup(final String groupName,
+    public final SortedSet<CommonUser> getUsersInGroup(final String groupName,
             final boolean nested) {
         return this.getUsersInGroup(groupName);
     }
