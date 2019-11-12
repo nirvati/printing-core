@@ -157,7 +157,7 @@ public abstract class AbstractIppOperation {
                     trustedIppClientUserId, trustedUserAsRequester);
 
         } else if (operationId == IppOperationId.GET_PRINTER_ATTR.asInt()) {
-            operation = new IppGetPrinterAttrOperation();
+            operation = new IppGetPrinterAttrOperation(queue);
 
         } else if (operationId == IppOperationId.GET_JOBS.asInt()) {
             operation = new IppGetJobsOperation();

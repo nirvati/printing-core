@@ -48,19 +48,21 @@ import org.savapage.core.ipp.attribute.syntax.IppRangeOfInteger;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
 import org.savapage.core.ipp.encoding.IppEncoder;
 import org.savapage.core.ipp.helpers.IppMediaSizeHelper;
+import org.savapage.core.jpa.IppQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  *
  *
- * 3.2.5.2 Get-Printer-Attributes Response
+ * 3.2.5.2 Get-Printer-Attributes Response.
  *
  * @author Rijk Ravestein
  *
  */
 public class IppGetPrinterAttrRsp extends AbstractIppResponse {
 
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(IppGetPrinterAttrRsp.class);
 
@@ -140,6 +142,20 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
      *
      */
     private IppStatusCode ippStatusCode;
+
+    /**
+     * The requested printer queue.
+     */
+    private final IppQueue printerQueue;
+
+    /**
+     *
+     * @param queue
+     *            The requested printer queue (can be {@code null});
+     */
+    public IppGetPrinterAttrRsp(final IppQueue queue) {
+        this.printerQueue = queue;
+    }
 
     /**
      *
@@ -581,10 +597,28 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     }
 
     /**
+     * @return Composed printer name with {@link CommunityDictEnum#SAVAPAGE} and
+     *         optional printer queue name suffix.
+     */
+    private String composePrinterName() {
+        final StringBuilder printerName = new StringBuilder();
+        printerName.append(CommunityDictEnum.SAVAPAGE.getWord());
+
+        if (this.printerQueue != null
+                && StringUtils.isNotBlank(this.printerQueue.getUrlPath())) {
+            printerName.append("-").append(this.printerQueue.getUrlPath());
+        }
+        return printerName.toString();
+    }
+
+    /**
      * Gets the supported value for a REQUIRED or OPTIONAL attribute of the
      * SavaPage Printer.
      *
      * @param name
+     *            IPP attribute name.
+     * @param printerUri
+     *            URI of printer.
      * @return {@code NULL} if the NOT supported
      */
     private IppAttrValue getAttrValuePrinterDesc(final String name,
@@ -670,7 +704,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_NAME:
-            value.addValue(CommunityDictEnum.SAVAPAGE.getWord());
+            value.addValue(this.composePrinterName());
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_STATE:

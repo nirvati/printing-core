@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,6 @@ package org.savapage.core.ipp.operation;
  * @author Rijk Ravestein
  *
  */
-public class IppCupsGetPrintersOperation extends IppGetPrinterAttrOperation {
+public final class IppCupsGetPrintersOperation extends IppGetPrinterAttrOperation {
 
 }

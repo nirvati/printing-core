@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.savapage.core.ipp.attribute.IppAttrValue;
+import org.savapage.core.jpa.IppQueue;
 
 /**
  * This REQUIRED operation allows a client to request the values of the
@@ -90,11 +91,25 @@ public class IppGetPrinterAttrOperation extends AbstractIppOperation {
     /**
      *
      */
-    private final IppGetPrinterAttrRsp response = new IppGetPrinterAttrRsp();
+    private final IppGetPrinterAttrRsp response;
+
+    public IppGetPrinterAttrOperation() {
+        super();
+        this.response = new IppGetPrinterAttrRsp(null);
+    }
 
     /**
      *
-     * @return
+     * @param queue
+     *            The requested printer queue.
+     */
+    public IppGetPrinterAttrOperation(final IppQueue queue) {
+        super();
+        this.response = new IppGetPrinterAttrRsp(queue);
+    }
+
+    /**
+     * @return {@link IppAttrValue}.
      */
     public IppAttrValue getRequestedAttributes() {
         return request.getRequestedAttributes();
