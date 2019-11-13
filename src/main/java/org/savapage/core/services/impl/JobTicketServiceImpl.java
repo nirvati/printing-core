@@ -1424,7 +1424,7 @@ public final class JobTicketServiceImpl extends AbstractService
             extPrinterManager = null;
         }
 
-        final User lockedUser = userDAO().lock(dto.getUserId());
+        final User lockedUser = userService().lockUser(dto.getUserId());
 
         final OutboxJobDto dtoReturn;
 

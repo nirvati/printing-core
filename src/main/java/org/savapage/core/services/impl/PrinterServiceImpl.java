@@ -1232,4 +1232,9 @@ public final class PrinterServiceImpl extends AbstractService
         return obj;
     }
 
+    @Override
+    public Printer lockPrinter(final Long id) {
+        return printerDAO().lock(id);
+    }
+
 }

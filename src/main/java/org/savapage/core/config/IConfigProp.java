@@ -3103,6 +3103,10 @@ public interface IConfigProp {
                 "webapp.user.doc.store.archive.out.print.prompt",
                 BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
+        /** */
+        WEBAPP_USER_DATABASE_USER_ROW_LOCKING_ENABLED(//
+                "webapp.user.database-user-row-locking.enabled",
+                BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
         /**
          * User WebApp: enable a fixed inbox clearing scope after a proxy print
          * job is issued.

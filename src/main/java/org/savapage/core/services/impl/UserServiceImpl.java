@@ -1266,7 +1266,7 @@ public final class UserServiceImpl extends AbstractService
     @Override
     public AbstractJsonRpcMethodResponse deleteUser(final String uid) {
 
-        final User user = userDAO().lockByUserId(uid);
+        final User user = this.lockByUserId(uid);
         if (user == null) {
             return createError("msg-user-not-found", uid);
         }
@@ -1295,7 +1295,7 @@ public final class UserServiceImpl extends AbstractService
     public AbstractJsonRpcMethodResponse eraseUser(final String uid) {
 
         // Erase active user.
-        final User user = userDAO().lockByUserId(uid);
+        final User user = this.lockByUserId(uid);
         if (user != null) {
             final AbstractJsonRpcMethodResponse rsp = this.deleteUser(user);
             if (rsp.isError()) {
@@ -1326,7 +1326,7 @@ public final class UserServiceImpl extends AbstractService
         }
 
         if (users.size() == 1) {
-            userDAO().lock(users.get(0).getId());
+            this.lockUser(users.get(0).getId());
         } else {
             LOGGER.warn(String.format(
                     "Inconsistency corrected when deleting user [%s]: "
@@ -3094,7 +3094,7 @@ public final class UserServiceImpl extends AbstractService
             daoContext.beginTransaction();
 
             try {
-                userDAO().lock(user.getId());
+                this.lockUser(user.getId());
                 lazyUserHomeDir(uid);
             } finally {
                 /*
@@ -3595,6 +3595,16 @@ public final class UserServiceImpl extends AbstractService
         return prunePreferredDelegateDbKeys(user,
                 UserAttrEnum.PROXY_PRINT_DELEGATE_ACCOUNTS_PREFERRED,
                 accountDAO());
+    }
+
+    @Override
+    public User lockByUserId(final String userId) {
+        return userDAO().lockByUserId(userId);
+    }
+
+    @Override
+    public User lockUser(final Long id) {
+        return userDAO().lock(id);
     }
 
 }

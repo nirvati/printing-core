@@ -391,4 +391,17 @@ public interface QueueService {
      */
     boolean isQueueEnabled(ReservedIppQueueEnum queue);
 
+    /**
+     * Finds the {@link IppQueue} by primary key and locks database row.
+     * <p>
+     * Use this method to force serialization among transactions attempting to
+     * update {@link IppQueue} data.
+     * </p>
+     *
+     * @param id
+     *            The primary key.
+     * @return The {@link IppQueue} instance.
+     */
+    IppQueue lockQueue(Long id);
+
 }

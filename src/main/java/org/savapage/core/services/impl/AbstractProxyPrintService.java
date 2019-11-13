@@ -72,7 +72,6 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.PrinterDao;
-import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
@@ -2722,7 +2721,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Lock the user.
          */
-        final User lockedUser = userDAO().lock(cardUser.getId());
+        final User lockedUser = userService().lockUser(cardUser.getId());
 
         /*
          * Get the outbox job candidates.
@@ -2744,7 +2743,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
     public final ProxyPrintOutboxResult proxyPrintOutbox(final Long userDbId,
             final OutboxJobDto job) throws ProxyPrintException {
 
-        final User lockedUser = userDAO().lock(userDbId);
+        final User lockedUser = userService().lockUser(userDbId);
         final List<OutboxJobDto> jobs = new ArrayList<>();
         jobs.add(job);
 
@@ -2843,7 +2842,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Lock the user.
          */
-        final User user = userDAO().lock(cardUser.getId());
+        final User user = userService().lockUser(cardUser.getId());
 
         /*
          * Get the inbox.
@@ -3209,11 +3208,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
         final DaoContext daoContext = ServiceContext.getDaoContext();
 
         try {
-            final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
-
             daoContext.beginTransaction();
 
-            final User lockedUser = userDao.lock(user.getId());
+            final User lockedUser = userService().lockUser(user.getId());
 
             if (printReq.getPrintMode() == PrintModeEnum.HOLD) {
 

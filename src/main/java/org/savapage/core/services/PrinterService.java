@@ -540,4 +540,17 @@ public interface PrinterService {
      */
     void removeSnmpAttr(Printer printer);
 
+    /**
+     * Finds the {@link Printer} by primary key and locks database row.
+     * <p>
+     * Use this method to force serialization among transactions attempting to
+     * update {@link Printer} entity data.
+     * </p>
+     *
+     * @param id
+     *            The primary key.
+     * @return The {@link Printer} instance.
+     */
+    Printer lockPrinter(Long id);
+
 }

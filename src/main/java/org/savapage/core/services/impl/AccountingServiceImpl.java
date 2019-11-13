@@ -48,7 +48,6 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.AccountDao;
 import org.savapage.core.dao.PosPurchaseDao.ReceiptNumberPrefixEnum;
 import org.savapage.core.dao.PrinterDao;
-import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserGroupMemberDao;
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.helpers.AggregateResult;
@@ -2623,10 +2622,9 @@ public final class AccountingServiceImpl extends AbstractService
         /*
          * INVARIANT: Source and target user MUST exist.
          */
-        final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
-
-        final User lockedUserTo = userDao.lockByUserId(dto.getUserIdTo());
-        final User lockedUserFrom = userDao.lockByUserId(dto.getUserIdFrom());
+        final User lockedUserTo = userService().lockByUserId(dto.getUserIdTo());
+        final User lockedUserFrom =
+                userService().lockByUserId(dto.getUserIdFrom());
 
         if (lockedUserFrom == null || lockedUserTo == null) {
 

@@ -2500,6 +2500,15 @@ public final class ConfigManager {
     }
 
     /**
+     * @return {@code true} if user row locking in database is to be applied to
+     *         serialize access to database or user file system (safe-pages).
+     */
+    public static boolean isUserWebAppDatabaseUserRowLocking() {
+        return instance().isConfigValue(
+                IConfigProp.Key.WEBAPP_USER_DATABASE_USER_ROW_LOCKING_ENABLED);
+    }
+
+    /**
      * @return The {@link SystemModeEnum}.
      */
     public static SystemModeEnum getSystemMode() {

@@ -680,6 +680,28 @@ public interface UserService {
     void lazyUserHomeDir(String userId) throws IOException;
 
     /**
+     * Finds the active {@link User} and locks database row.
+     *
+     * @param userId
+     *            The unique user id.
+     * @return {@code null} when not found (or logically deleted).
+     */
+    User lockByUserId(String userId);
+
+    /**
+     * Finds the {@link User} by primary key and locks database row.
+     * <p>
+     * Use this method to force serialization among transactions attempting to
+     * update {@link User} entity data.
+     * </p>
+     *
+     * @param id
+     *            The primary key.
+     * @return The {@link User} instance.
+     */
+    User lockUser(Long id);
+
+    /**
      * Gets the latest saved Job Ticket properties for a {@link User} from the
      * database or by supplying a default.
      *

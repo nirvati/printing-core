@@ -272,7 +272,7 @@ public final class DocLogServiceImpl extends AbstractService
             if (userDAO().isLocked(user)) {
                 lockedUser = user;
             } else {
-                lockedUser = userDAO().lock(user.getId());
+                lockedUser = userService().lockUser(user.getId());
             }
 
             /*
@@ -910,8 +910,8 @@ public final class DocLogServiceImpl extends AbstractService
             /*
              * Printer LOCK.
              */
-            final Printer lockedPrinter = printerDAO()
-                    .lock(docOut.getPrintOut().getPrinter().getId());
+            final Printer lockedPrinter = printerService()
+                    .lockPrinter(docOut.getPrintOut().getPrinter().getId());
 
             printerService().addJobTotals(lockedPrinter,
                     docLog.getCreatedDate(), printOutPages,
@@ -962,7 +962,8 @@ public final class DocLogServiceImpl extends AbstractService
             rollbackTrx = true;
 
             // Queue LOCK.
-            final IppQueue ippQueueLocked = ippQueueDAO().lock(queue.getId());
+            final IppQueue ippQueueLocked =
+                    queueService().lockQueue(queue.getId());
 
             queueService().addJobTotals(ippQueueLocked, docLog.getCreatedDate(),
                     docLog.getNumberOfPages(), docLog.getNumberOfBytes());
@@ -1113,7 +1114,8 @@ public final class DocLogServiceImpl extends AbstractService
                 /*
                  * User and UserAttr - totals: User LOCK.
                  */
-                final User user = userDAO().lock(docLog.getUser().getId());
+                final User user =
+                        userService().lockUser(docLog.getUser().getId());
 
                 userService().addPrintInJobTotals(user, docLog.getCreatedDate(),
                         docLog.getNumberOfPages(), docLog.getNumberOfBytes());

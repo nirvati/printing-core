@@ -626,4 +626,9 @@ public final class QueueServiceImpl extends AbstractService
         return !ippQueueDAO().find(queue).getDisabled();
     }
 
+    @Override
+    public IppQueue lockQueue(final Long id) {
+        return ippQueueDAO().lock(id);
+    }
+
 }

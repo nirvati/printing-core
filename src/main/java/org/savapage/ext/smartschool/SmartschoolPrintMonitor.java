@@ -2715,8 +2715,6 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         final DaoContext daoContext = ServiceContext.getDaoContext();
 
         try {
-            final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
-
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(String.format("Start %s printing of [%s] ...",
                         printReq.getPrintMode().toString(),
@@ -2725,7 +2723,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
 
             daoContext.beginTransaction();
 
-            final User lockedUser = userDao.lock(user.getId());
+            final User lockedUser = USER_SERVICE.lockUser(user.getId());
 
             if (printReq.getPrintMode() == PrintModeEnum.HOLD) {
 
