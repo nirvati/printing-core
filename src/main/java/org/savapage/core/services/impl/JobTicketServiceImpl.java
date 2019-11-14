@@ -916,8 +916,10 @@ public final class JobTicketServiceImpl extends AbstractService
     public int cancelTickets(final Long userId) {
         int nRemoved = 0;
         for (final OutboxJobDto dto : filterTickets(userId, null, null)) {
-            if (cancelTicket(dto.getFile()) != null) {
-                nRemoved++;
+            if (StringUtils.isBlank(dto.getPrinterRedirect())) {
+                if (cancelTicket(dto.getFile()) != null) {
+                    nRemoved++;
+                }
             }
         }
         return nRemoved;

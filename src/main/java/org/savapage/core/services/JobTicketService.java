@@ -250,7 +250,8 @@ public interface JobTicketService extends StatefulService {
     OutboxJobDto getTicket(Long userId, String fileName);
 
     /**
-     * Cancels the pending Job Tickets of a {@link User}.
+     * Cancels the pending Job Tickets of a {@link User} that are waiting to be
+     * printed (no redirect printer is assigned yet).
      *
      * @param userId
      *            The {@link User} database key.
