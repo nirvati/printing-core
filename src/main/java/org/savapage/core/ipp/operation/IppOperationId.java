@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -151,7 +151,8 @@ public enum IppOperationId {
     /*
      * 0x4000-0x8FFF
      *
-     * reserved for vendor extensions (see section 6.4)
+     * IPP Vendor Operation Codes:
+     * https://www.pwg.org/ipp/opcodes/ippopcodes.html
      */
 
     /** CUPS 1.0 : Get the default destination. */

@@ -104,6 +104,12 @@ public final class DocContent {
     public static final String HEADER_PS = "%!PS";
 
     /**
+     * All PJL jobs begin and end with a UEL command (<ESC>%-12345X).
+     */
+    public static final String HEADER_PJL = "\u001b" + "%-12345X";
+
+
+    /**
      * The first bytes (signature) of {@link DocContentTypeEnum#UNIRAST}.
      */
     public static final String HEADER_UNIRAST = "UNIR";

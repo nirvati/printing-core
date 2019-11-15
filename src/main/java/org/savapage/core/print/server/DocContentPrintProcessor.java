@@ -667,6 +667,9 @@ public final class DocContentPrintProcessor {
                 contentType = DocContentTypeEnum.UNIRAST;
             } else if (CupsCommandFile.isSignatureStart(this.signatureString)) {
                 contentType = DocContentTypeEnum.CUPS_COMMAND;
+            } else if (DocContent.HEADER_PJL.startsWith(this.signatureString)) {
+                // Note: HEADER_PJL string length is GT signatureString.
+                contentType = DocContentTypeEnum.PS;
             }
 
         } else if (delivery.equals(DocLogProtocolEnum.IMAP)) {
