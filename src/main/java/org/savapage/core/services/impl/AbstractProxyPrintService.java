@@ -846,6 +846,27 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
+    public final JsonPrinterList getSimplePrinterList()
+            throws IppConnectException, IppSyntaxException {
+        lazyInitPrinterCache();
+        final ArrayList<JsonPrinter> collectedPrinters = new ArrayList<>();
+
+        for (final JsonProxyPrinter printer : this.cupsPrinterCache.values()) {
+
+            final JsonPrinter jsonPrinter = new JsonPrinter();
+
+            final Printer dbPrinter = printer.getDbPrinter();
+
+            jsonPrinter.setName(printer.getName());
+            jsonPrinter.setAlias(dbPrinter.getDisplayName());
+            jsonPrinter.setLocation(dbPrinter.getLocation());
+
+            collectedPrinters.add(jsonPrinter);
+        }
+        return sortPrinters(collectedPrinters);
+    }
+
+    @Override
     public final JsonPrinterList getUserPrinterList(final Device terminal,
             final String userName)
             throws IppConnectException, IppSyntaxException {
@@ -969,6 +990,18 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             }
         }
+
+        return sortPrinters(collectedPrinters);
+    }
+
+    /**
+     *
+     * @param collectedPrinters
+     *            Collected printers.
+     * @return Sorted printer list.
+     */
+    private static JsonPrinterList
+            sortPrinters(final ArrayList<JsonPrinter> collectedPrinters) {
 
         Collections.sort(collectedPrinters, new Comparator<JsonPrinter>() {
 

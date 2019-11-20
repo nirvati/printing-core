@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 package org.savapage.core.dao.impl;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -137,5 +138,100 @@ public final class PrinterGroupDaoImpl extends GenericDaoImpl<PrinterGroup>
         }
 
         return group;
+    }
+
+    /**
+     * Applies the list filter to the JPQL string.
+     *
+     * @param jpql
+     *            The JPA query string.
+     * @param filter
+     *            The {@link ListFilter}.
+     */
+    private void applyListFilter(final StringBuilder jpql,
+            final ListFilter filter) {
+
+        StringBuilder where = new StringBuilder();
+
+        int nWhere = 0;
+
+        if (filter.getContainingNameText() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" P.groupName like :containingNameText");
+        }
+
+        if (nWhere > 0) {
+            jpql.append(" WHERE ").append(where.toString());
+        }
+    }
+
+    /**
+     * Creates the List Query and sets the filter parameters.
+     *
+     * @param jpql
+     *            The JPA query string.
+     * @param filter
+     *            The {@link ListFilter}.
+     * @return The {@link Query}.
+     */
+    private Query createListQuery(final StringBuilder jpql,
+            final ListFilter filter) {
+
+        final Query query = getEntityManager().createQuery(jpql.toString());
+
+        if (filter.getContainingNameText() != null) {
+            query.setParameter("containingNameText",
+                    String.format("%%%s%%", filter.getContainingNameText()));
+        }
+
+        return query;
+    }
+
+    @Override
+    public long getListCount(final ListFilter filter) {
+        final StringBuilder jpql =
+                new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
+
+        jpql.append("SELECT COUNT(P.id) FROM PrinterGroup P");
+
+        applyListFilter(jpql, filter);
+
+        final Query query = createListQuery(jpql, filter);
+        final Number countResult = (Number) query.getSingleResult();
+
+        return countResult.longValue();
+    }
+
+    @Override
+    public List<PrinterGroup> getListChunk(final ListFilter filter,
+            final Integer startPosition, final Integer maxResults,
+            final boolean sortAscending) {
+
+        final StringBuilder jpql =
+                new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
+
+        jpql.append("SELECT P FROM PrinterGroup P");
+
+        applyListFilter(jpql, filter);
+
+        //
+        jpql.append(" ORDER BY P.groupName");
+
+        if (!sortAscending) {
+            jpql.append(" DESC");
+        }
+
+        final Query query = createListQuery(jpql, filter);
+
+        if (startPosition != null) {
+            query.setFirstResult(startPosition);
+        }
+        if (maxResults != null) {
+            query.setMaxResults(maxResults);
+        }
+        return query.getResultList();
     }
 }

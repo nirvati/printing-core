@@ -64,6 +64,7 @@ import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.UserGroup;
+import org.savapage.core.json.JsonPrinter;
 import org.savapage.core.json.JsonPrinterDetail;
 import org.savapage.core.json.JsonPrinterList;
 import org.savapage.core.json.rpc.AbstractJsonRpcMessage;
@@ -495,6 +496,20 @@ public interface ProxyPrintService {
      *             When a syntax error.
      */
     JsonPrinterList getUserPrinterList(Device terminal, String userName)
+            throws IppConnectException, IppSyntaxException;
+
+    /**
+     * Gets a simple list of all printers regardless of status.
+     * {@link JsonPrinter} objects on the list contain basic information only,
+     * like "name", "alias" and "location".
+     *
+     * @throws IppConnectException
+     *             When a connection error occurs.
+     * @throws IppSyntaxException
+     *             When a syntax error.
+     * @return The sorted {@link JsonPrinterList}.
+     */
+    JsonPrinterList getSimplePrinterList()
             throws IppConnectException, IppSyntaxException;
 
     /**

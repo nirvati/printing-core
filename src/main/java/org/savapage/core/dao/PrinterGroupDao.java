@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 package org.savapage.core.dao;
 
 import java.util.Date;
+import java.util.List;
 
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.jpa.Device;
@@ -34,6 +35,21 @@ import org.savapage.core.jpa.PrinterGroupMember;
  *
  */
 public interface PrinterGroupDao extends GenericDao<PrinterGroup> {
+
+    /** */
+    class ListFilter {
+
+        /** */
+        private String containingNameText;
+
+        public String getContainingNameText() {
+            return containingNameText;
+        }
+
+        public void setContainingNameText(String containingNameText) {
+            this.containingNameText = containingNameText;
+        }
+    }
 
     /**
      * Deletes {@link PrinterGroup} instances when:
@@ -78,5 +94,30 @@ public interface PrinterGroupDao extends GenericDao<PrinterGroup> {
      * @return The printer group object or {@code null} when not found.
      */
     PrinterGroup findByName(String groupName);
+
+    /**
+     * @param filter
+     *            The filter.
+     * @return Number of filtered rows.
+     */
+    long getListCount(ListFilter filter);
+
+    /**
+     *
+     * @param filter
+     *            The filter.
+     * @param startPosition
+     *            The zero-based start position of the chunk related to the
+     *            total number of rows. If {@code null} the chunk starts with
+     *            the first row.
+     * @param maxResults
+     *            The maximum number of rows in the chunk. If {@code null}, then
+     *            ALL (remaining rows) are returned.
+     * @param sortAscending
+     *            {@code true} when sorted ascending.
+     * @return The chunk.
+     */
+    List<PrinterGroup> getListChunk(ListFilter filter, Integer startPosition,
+            Integer maxResults, boolean sortAscending);
 
 }
