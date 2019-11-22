@@ -29,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Detector for threads that are deadlocked waiting for object monitors or
+ * ownable synchronizers.
  *
  * @author Rijk Ravestein
  *
