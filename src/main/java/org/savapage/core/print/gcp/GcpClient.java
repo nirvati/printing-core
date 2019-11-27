@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -54,23 +54,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * @deprecated See Mantis #1094.
  *
  * @author Rijk Ravestein
  *
  */
+@Deprecated
 public class GcpClient {
 
     /**
     *
     */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(GcpClient.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(GcpClient.class);
 
     /**
      *
      */
-    private static final QueueService QUEUE_SERVICE = ServiceContext
-            .getServiceFactory().getQueueService();
+    private static final QueueService QUEUE_SERVICE =
+            ServiceContext.getServiceFactory().getQueueService();
 
     /**
      * The SingletonHolder is loaded on the first execution of
@@ -97,19 +99,19 @@ public class GcpClient {
     private static final String CLOUDPRINT_URL =
             "https://www.google.com/cloudprint";
 
-    private static final String CLOUDPRINT_URL_REGISTER = CLOUDPRINT_URL
-            + "/register?anonymous=True";
+    private static final String CLOUDPRINT_URL_REGISTER =
+            CLOUDPRINT_URL + "/register?anonymous=True";
 
-    private static final String CLOUDPRINT_URL_FETCH = CLOUDPRINT_URL
-            + "/fetch";
+    private static final String CLOUDPRINT_URL_FETCH =
+            CLOUDPRINT_URL + "/fetch";
 
-    private static final String CLOUDPRINT_URL_CONTROL = CLOUDPRINT_URL
-            + "/control";
+    private static final String CLOUDPRINT_URL_CONTROL =
+            CLOUDPRINT_URL + "/control";
 
     private static final String CLOUDPRINT_URL_LIST = CLOUDPRINT_URL + "/list";
 
-    private static final String CLOUDPRINT_URL_UPDATE = CLOUDPRINT_URL
-            + "/update";
+    private static final String CLOUDPRINT_URL_UPDATE =
+            CLOUDPRINT_URL + "/update";
 
     /**
      *
@@ -130,33 +132,21 @@ public class GcpClient {
     private static final String CAPABILITIES_CDD = "{"
             + "    \"version\": \"1.0\"," + "    \"printer\": {"
             + "      \"supported_content_type\": ["
-            + "        {\"content_type\": \""
-            + DocContent.MIMETYPE_PDF
-            + "\", \"min_version\": \"1.5\"}"
-            + "      ],"
-            + "      \"vendor_capability\": [],"
-            + "      \"color\": {"
+            + "        {\"content_type\": \"" + DocContent.MIMETYPE_PDF
+            + "\", \"min_version\": \"1.5\"}" + "      ],"
+            + "      \"vendor_capability\": []," + "      \"color\": {"
             + "        \"option\": ["
             + "          {\"type\": \"STANDARD_COLOR\", \"is_default\": true},"
-            + "        ]"
-            + "      },"
-            + "      \"copies\": {"
-            + "        \"default\": 1,"
-            + "        \"max\": 1"
-            + "      },"
-            + "      \"media_size\": {"
-            + "        \"option\": ["
-            + "          {"
-            + "            \"name\": \"ISO_A4\","
+            + "        ]" + "      }," + "      \"copies\": {"
+            + "        \"default\": 1," + "        \"max\": 1" + "      },"
+            + "      \"media_size\": {" + "        \"option\": ["
+            + "          {" + "            \"name\": \"ISO_A4\","
             + "            \"width_microns\": 210000,"
             + "            \"height_microns\": 297000,"
-            + "            \"is_default\": true"
-            + "          },"
-            + "          {"
-            + "            \"name\": \"NA_LETTER\","
+            + "            \"is_default\": true" + "          },"
+            + "          {" + "            \"name\": \"NA_LETTER\","
             + "            \"width_microns\": 215900,"
-            + "            \"height_microns\": 279400"
-            + "          }"
+            + "            \"height_microns\": 279400" + "          }"
             + "        ]," + "      }" + "    }" + "}    ";
 
     /**
@@ -169,8 +159,8 @@ public class GcpClient {
     /**
      *
      */
-    private static final String SEMANTIC_STATE_DIFF_DONE = "{\"state\": "
-            + "{\"type\": \"DONE\"}}";
+    private static final String SEMANTIC_STATE_DIFF_DONE =
+            "{\"state\": " + "{\"type\": \"DONE\"}}";
 
     /**
      *
@@ -327,8 +317,8 @@ public class GcpClient {
      *
      * @throws GcpAuthException
      */
-    private GcpRefreshAccessTokenRsp refreshAccessToken() throws IOException,
-            GcpAuthException {
+    private GcpRefreshAccessTokenRsp refreshAccessToken()
+            throws IOException, GcpAuthException {
 
         /*
          * INVARIANT: Refresh Token MUST be available.
@@ -350,7 +340,8 @@ public class GcpClient {
         final HttpPost httppost = new HttpPost(OAUTH2_TOKEN_URL);
         httppost.setEntity(entity);
 
-        return new GcpRefreshAccessTokenRsp(postRequest(httppost).toByteArray());
+        return new GcpRefreshAccessTokenRsp(
+                postRequest(httppost).toByteArray());
     }
 
     /**
@@ -430,10 +421,9 @@ public class GcpClient {
             docContentPrintReq.setProtocol(DocLogProtocolEnum.GCP);
             docContentPrintReq.setTitle(job.getTitle());
 
-            printRsp =
-                    QUEUE_SERVICE.printDocContent(ReservedIppQueueEnum.GCP,
-                            user, true, docContentPrintReq, httpResponse
-                                    .getEntity().getContent());
+            printRsp = QUEUE_SERVICE.printDocContent(ReservedIppQueueEnum.GCP,
+                    user, true, docContentPrintReq,
+                    httpResponse.getEntity().getContent());
 
         } finally {
             httpClient.close();
@@ -451,8 +441,8 @@ public class GcpClient {
      * @throws IOException
      * @throws GcpAuthException
      */
-    public GcpControlRsp controlJobDone(final String jobid) throws IOException,
-            GcpAuthException {
+    public GcpControlRsp controlJobDone(final String jobid)
+            throws IOException, GcpAuthException {
         return controlJob(jobid, SEMANTIC_STATE_DIFF_DONE);
     }
 
@@ -479,8 +469,8 @@ public class GcpClient {
      * @throws GcpAuthException
      */
     private GcpControlRsp controlJob(final String jobid,
-            final String semanticStateDiff) throws IOException,
-            GcpAuthException {
+            final String semanticStateDiff)
+            throws IOException, GcpAuthException {
 
         final Map<String, String> fields = new HashMap<>();
         fields.put("jobid", jobid);
@@ -541,8 +531,8 @@ public class GcpClient {
      * @throws IOException
      * @throws GcpAuthException
      */
-    public GcpPrinterDetailsRsp getPrinterDetails() throws IOException,
-            GcpAuthException {
+    public GcpPrinterDetailsRsp getPrinterDetails()
+            throws IOException, GcpAuthException {
 
         Map<String, String> fields = new HashMap<>();
         /*
@@ -597,8 +587,8 @@ public class GcpClient {
         mpeBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 
         for (Entry<String, String> field : fields.entrySet()) {
-            mpeBuilder.addPart(field.getKey(), new StringBody(field.getValue(),
-                    ContentType.DEFAULT_TEXT));
+            mpeBuilder.addPart(field.getKey(),
+                    new StringBody(field.getValue(), ContentType.DEFAULT_TEXT));
         }
 
         return mpeBuilder.build();

@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -109,9 +109,12 @@ import com.fasterxml.jackson.databind.JsonNode;
  * }
  * </pre>
  *
- * @author Datraverse B.V.
+ * @deprecated See Mantis #1094.
+ *
+ * @author Rijk Ravestein
  *
  */
+@Deprecated
 public class GcpFetchRsp extends AbstractGcpApiRsp {
 
     private static final String KEY_JOBS = "jobs";
@@ -155,8 +158,8 @@ public class GcpFetchRsp extends AbstractGcpApiRsp {
             job.setContentType(jsonJob.get(KEY_JOB_CONTENTTYPE).textValue());
             job.setOwnerId(jsonJob.get(KEY_JOB_OWNERID).textValue());
             job.setTitle(jsonJob.get(KEY_JOB_TITLE).textValue());
-            job.setNumberOfPages(jsonJob.get(KEY_JOB_NUMBER_OF_PAGES)
-                    .intValue());
+            job.setNumberOfPages(
+                    jsonJob.get(KEY_JOB_NUMBER_OF_PAGES).intValue());
 
             /*
              *

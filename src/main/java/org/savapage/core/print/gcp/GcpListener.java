@@ -65,9 +65,12 @@ import org.slf4j.LoggerFactory;
  * Listens to Google Cloud Printer for incoming print jobs, and processes these
  * jobs.
  *
+ * @deprecated See Mantis #1094.
+ *
  * @author Rijk Ravestein
  *
  */
+@Deprecated
 public final class GcpListener {
 
     private static final String XMPP_SERVICENAME = "gmail.com";
