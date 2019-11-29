@@ -1615,6 +1615,12 @@ public final class InboxServiceImpl implements InboxService {
     public PdfDocumentFonts getJobFonts(final String user, final int iJob) {
 
         final InboxInfoDto jobs = readInboxInfo(user);
+
+        if (iJob >= jobs.getJobs().size()) {
+            LOGGER.warn("User [{}] Job [{}] not present.", user, iJob);
+            throw new IllegalStateException("job not present");
+        }
+
         final InboxJob job = jobs.getJobs().get(iJob);
 
         try {
@@ -1622,6 +1628,7 @@ public final class InboxServiceImpl implements InboxService {
                     Paths.get(ConfigManager.getUserHomeDir(user), job.getFile())
                             .toFile());
         } catch (IOException e) {
+            LOGGER.warn("User [{}] Job [{}] {}", user, iJob, e.getMessage());
             throw new IllegalStateException(e.getMessage());
         }
     }
