@@ -239,7 +239,7 @@ public final class DownloadServiceImpl extends AbstractService
 
             try (InputStream fos = new FileInputStream(target)) {
                 queueService().printDocContent(ReservedIppQueueEnum.WEBPRINT,
-                        user, true, docContentPrintReq, fos);
+                        user.getUserId(), true, docContentPrintReq, fos);
             }
 
         } catch (DocContentPrintException | UnavailableException e) {

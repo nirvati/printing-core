@@ -422,7 +422,7 @@ public class GcpClient {
             docContentPrintReq.setTitle(job.getTitle());
 
             printRsp = QUEUE_SERVICE.printDocContent(ReservedIppQueueEnum.GCP,
-                    user, true, docContentPrintReq,
+                    user.getUserId(), true, docContentPrintReq,
                     httpResponse.getEntity().getContent());
 
         } finally {

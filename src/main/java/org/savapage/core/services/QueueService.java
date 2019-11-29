@@ -338,8 +338,8 @@ public interface QueueService {
      *
      * @param reservedQueue
      *            The {@link ReservedIppQueueEnum}.
-     * @param user
-     *            The {@link User} requesting the print.
+     * @param userId
+     *            The unique ID of the {@link User} requesting the print.
      * @param isUserTrusted
      *            {@code true} when user is trusted.
      * @param printReq
@@ -353,7 +353,7 @@ public interface QueueService {
      *             When PFD conversion is unavailable.
      */
     DocContentPrintRsp printDocContent(ReservedIppQueueEnum reservedQueue,
-            User user, boolean isUserTrusted, DocContentPrintReq printReq,
+            String userId, boolean isUserTrusted, DocContentPrintReq printReq,
             InputStream istrContent)
             throws DocContentPrintException, UnavailableException;
 

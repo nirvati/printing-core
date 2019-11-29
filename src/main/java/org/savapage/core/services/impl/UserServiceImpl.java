@@ -72,6 +72,7 @@ import org.savapage.core.dao.helpers.PGPPubRingKeyDto;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserDto;
 import org.savapage.core.dto.UserEmailDto;
+import org.savapage.core.dto.UserIdDto;
 import org.savapage.core.dto.UserPropertiesDto;
 import org.savapage.core.i18n.AdverbEnum;
 import org.savapage.core.jpa.Account;
@@ -427,7 +428,7 @@ public final class UserServiceImpl extends AbstractService
             boolean doUpdate;
 
             if (dto.getKeepPin()) {
-                doUpdate = this.findUserAttrValue(jpaUser,
+                doUpdate = this.findUserAttrValue(jpaUser.getId(),
                         UserAttrEnum.PIN) == null;
             } else {
                 doUpdate = true;
@@ -464,7 +465,7 @@ public final class UserServiceImpl extends AbstractService
             boolean doUpdate;
 
             if (dto.getKeepUuid()) {
-                doUpdate = this.findUserAttrValue(jpaUser,
+                doUpdate = this.findUserAttrValue(jpaUser.getId(),
                         UserAttrEnum.UUID) == null;
             } else {
                 doUpdate = true;
@@ -501,7 +502,7 @@ public final class UserServiceImpl extends AbstractService
             boolean doUpdate;
 
             if (dto.getKeepPassword()) {
-                doUpdate = (this.findUserAttrValue(jpaUser,
+                doUpdate = (this.findUserAttrValue(jpaUser.getId(),
                         UserAttrEnum.INTERNAL_PASSWORD) == null);
             } else {
                 doUpdate = true;
@@ -605,7 +606,7 @@ public final class UserServiceImpl extends AbstractService
          * PIN.
          */
         final String encryptedPin =
-                this.findUserAttrValue(user, UserAttrEnum.PIN);
+                this.findUserAttrValue(user.getId(), UserAttrEnum.PIN);
 
         String pin = "";
         if (encryptedPin != null) {
@@ -618,7 +619,7 @@ public final class UserServiceImpl extends AbstractService
          * UUID.
          */
         final String encryptedIppInternetUuid =
-                this.findUserAttrValue(user, UserAttrEnum.UUID);
+                this.findUserAttrValue(user.getId(), UserAttrEnum.UUID);
 
         String ippInternetUuid = "";
         if (encryptedIppInternetUuid != null) {
@@ -646,7 +647,7 @@ public final class UserServiceImpl extends AbstractService
          * ACL Roles.
          */
         UserAttr aclAttr =
-                userAttrDAO().findByName(user, UserAttrEnum.ACL_ROLES);
+                userAttrDAO().findByName(user.getId(), UserAttrEnum.ACL_ROLES);
 
         Map<ACLRoleEnum, Boolean> aclRoles;
 
@@ -666,7 +667,8 @@ public final class UserServiceImpl extends AbstractService
         /*
          * OIDS (User).
          */
-        aclAttr = userAttrDAO().findByName(user, UserAttrEnum.ACL_OIDS_USER);
+        aclAttr = userAttrDAO().findByName(user.getId(),
+                UserAttrEnum.ACL_OIDS_USER);
         Map<ACLOidEnum, Integer> aclOids;
 
         if (aclAttr == null) {
@@ -685,7 +687,8 @@ public final class UserServiceImpl extends AbstractService
         /*
          * OIDS (Admin).
          */
-        aclAttr = userAttrDAO().findByName(user, UserAttrEnum.ACL_OIDS_ADMIN);
+        aclAttr = userAttrDAO().findByName(user.getId(),
+                UserAttrEnum.ACL_OIDS_ADMIN);
 
         if (aclAttr == null) {
             aclOids = null;
@@ -1202,7 +1205,7 @@ public final class UserServiceImpl extends AbstractService
     private static void crudUserAttr(final UserAttrDao daoAttr, final User user,
             final UserAttrEnum attrEnum, final String attrValue) {
 
-        UserAttr attr = daoAttr.findByName(user, attrEnum);
+        UserAttr attr = daoAttr.findByName(user.getId(), attrEnum);
 
         if (attr == null) {
             if (attrValue != null) {
@@ -2377,8 +2380,8 @@ public final class UserServiceImpl extends AbstractService
 
         final String hexKeyID;
 
-        final UserAttr attr =
-                userAttrDAO().findByName(user, UserAttrEnum.PGP_PUBKEY_ID);
+        final UserAttr attr = userAttrDAO().findByName(user.getId(),
+                UserAttrEnum.PGP_PUBKEY_ID);
 
         if (attr == null) {
             hexKeyID = null;
@@ -2812,8 +2815,9 @@ public final class UserServiceImpl extends AbstractService
     public void setUserAttrValue(final User user, final UserAttrEnum attrEnum,
             final String attrValue) {
 
-        this.setUserAttrValue(user, userAttrDAO().findByName(user, attrEnum),
-                attrEnum, attrValue);
+        this.setUserAttrValue(user,
+                userAttrDAO().findByName(user.getId(), attrEnum), attrEnum,
+                attrValue);
     }
 
     /**
@@ -2829,8 +2833,9 @@ public final class UserServiceImpl extends AbstractService
     private void setUserAttrValue(final User user, final String attrName,
             final String attrValue) {
 
-        this.setUserAttrValue(user, userAttrDAO().findByName(user, attrName),
-                attrName, attrValue);
+        this.setUserAttrValue(user,
+                userAttrDAO().findByName(user.getId(), attrName), attrName,
+                attrValue);
     }
 
     /**
@@ -2891,14 +2896,12 @@ public final class UserServiceImpl extends AbstractService
     }
 
     @Override
-    public String findUserAttrValue(final User user, final UserAttrEnum name) {
-
-        final UserAttr attr = userAttrDAO().findByName(user, name);
-
+    public String findUserAttrValue(final Long userDbKey,
+            final UserAttrEnum name) {
+        final UserAttr attr = userAttrDAO().findByName(userDbKey, name);
         if (attr == null) {
             return null;
         }
-
         return attr.getValue();
     }
 
@@ -2997,7 +3000,7 @@ public final class UserServiceImpl extends AbstractService
                     + "] is not supported");
         }
 
-        final UserAttr attr = userAttrDAO().findByName(user, name);
+        final UserAttr attr = userAttrDAO().findByName(user.getId(), name);
 
         String json = null;
 
@@ -3055,7 +3058,7 @@ public final class UserServiceImpl extends AbstractService
                     + "] is not supported");
         }
 
-        final UserAttr attr = userAttrDAO().findByName(user, name);
+        final UserAttr attr = userAttrDAO().findByName(user.getId(), name);
 
         String json = null;
 
@@ -3287,7 +3290,8 @@ public final class UserServiceImpl extends AbstractService
     public PdfProperties getPdfProperties(final User user) {
 
         PdfProperties props = null;
-        String json = this.findUserAttrValue(user, UserAttrEnum.PDF_PROPS);
+        String json =
+                this.findUserAttrValue(user.getId(), UserAttrEnum.PDF_PROPS);
         try {
             if (json != null) {
                 props = PdfProperties.create(json);
@@ -3327,7 +3331,7 @@ public final class UserServiceImpl extends AbstractService
     public JobTicketProperties getJobTicketPropsLatest(final User user) {
 
         JobTicketProperties props = null;
-        String json = this.findUserAttrValue(user,
+        String json = this.findUserAttrValue(user.getId(),
                 UserAttrEnum.JOBTICKET_PROPS_LATEST);
         try {
             if (json != null) {
@@ -3339,6 +3343,31 @@ public final class UserServiceImpl extends AbstractService
             LOGGER.warn(
                     "JobTicket properties of user [{}] are reset, because: {}",
                     user.getUserId(), e.getMessage());
+        }
+
+        if (json == null) {
+            props = new JobTicketProperties();
+        }
+
+        return props;
+    }
+
+    @Override
+    public JobTicketProperties getJobTicketPropsLatest(final UserIdDto dto) {
+
+        JobTicketProperties props = null;
+        String json = this.findUserAttrValue(dto.getDbKey(),
+                UserAttrEnum.JOBTICKET_PROPS_LATEST);
+        try {
+            if (json != null) {
+                props = JobTicketProperties.create(json);
+            }
+        } catch (Exception e) {
+            // Be forgiving ...
+            json = null;
+            LOGGER.warn(
+                    "JobTicket properties of user [{}] are reset, because: {}",
+                    dto.getUserId(), e.getMessage());
         }
 
         if (json == null) {

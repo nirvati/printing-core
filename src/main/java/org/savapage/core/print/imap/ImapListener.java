@@ -971,8 +971,8 @@ public final class ImapListener extends MessageCountAdapter {
                     docContentPrintReq.setTitle(fileName);
 
                     QUEUE_SERVICE.printDocContent(
-                            ReservedIppQueueEnum.MAILPRINT, user, true,
-                            docContentPrintReq, part.getInputStream());
+                            ReservedIppQueueEnum.MAILPRINT, user.getUserId(),
+                            true, docContentPrintReq, part.getInputStream());
 
                     nPrinted.increment();
 

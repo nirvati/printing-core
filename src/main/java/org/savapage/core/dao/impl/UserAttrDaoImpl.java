@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,6 @@ import javax.persistence.Query;
 
 import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.dao.enums.UserAttrEnum;
-import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAttr;
 
 /**
@@ -53,19 +52,19 @@ public final class UserAttrDaoImpl extends GenericDaoImpl<UserAttr>
             "%" + STATS_ROLLING + "%";
 
     @Override
-    public UserAttr findByName(final User user, final UserAttrEnum name) {
-        return this.findByName(user, name.getName());
+    public UserAttr findByName(final Long userDbKey, final UserAttrEnum name) {
+        return this.findByName(userDbKey, name.getName());
     }
 
     @Override
-    public UserAttr findByName(final User user, final String name) {
+    public UserAttr findByName(final Long userDbKey, final String name) {
 
         final String jpql = "SELECT A FROM UserAttr A JOIN A.user U "
                 + "WHERE U.id = :userId AND A.name = :name";
 
         final Query query = getEntityManager().createQuery(jpql);
 
-        query.setParameter("userId", user.getId());
+        query.setParameter("userId", userDbKey);
         query.setParameter("name", name);
 
         UserAttr result = null;

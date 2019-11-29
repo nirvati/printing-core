@@ -36,6 +36,7 @@ import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dao.enums.UserGroupAttrEnum;
+import org.savapage.core.dto.UserIdDto;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAttr;
 import org.savapage.core.jpa.UserGroup;
@@ -98,18 +99,18 @@ public final class AccessControlServiceImpl extends AbstractService
     /**
      * Checks if User is authorized for a Role.
      *
-     * @param user
-     *            The {@link User}.
+     * @param userDbKey
+     *            Primary database key of {@link User}.
      * @param role
      *            The {@link ACLRoleEnum};
      * @return {@code true} when authorized, {@code false} when not,
      *         {@code null} when undetermined.
      */
-    private static Boolean isUserAuthorized(final User user,
+    private static Boolean isUserAuthorized(final Long userDbKey,
             final ACLRoleEnum role) {
 
         final UserAttr userAttr =
-                userAttrDAO().findByName(user, UserAttrEnum.ACL_ROLES);
+                userAttrDAO().findByName(userDbKey, UserAttrEnum.ACL_ROLES);
 
         if (userAttr != null) {
             try {
@@ -166,8 +167,13 @@ public final class AccessControlServiceImpl extends AbstractService
 
     @Override
     public boolean isAuthorized(final User user, final ACLRoleEnum role) {
+        return isAuthorized(UserIdDto.create(user), role);
+    }
 
-        final Boolean isUserAuth = isUserAuthorized(user, role);
+    @Override
+    public boolean isAuthorized(final UserIdDto dto, final ACLRoleEnum role) {
+
+        final Boolean isUserAuth = isUserAuthorized(dto.getDbKey(), role);
 
         if (isUserAuth != null) {
             return isUserAuth.booleanValue();
@@ -179,7 +185,7 @@ public final class AccessControlServiceImpl extends AbstractService
         final UserGroupMemberDao.UserFilter filter =
                 new UserGroupMemberDao.UserFilter();
 
-        filter.setUserId(user.getId());
+        filter.setUserId(dto.getDbKey());
 
         final List<UserGroup> groupList =
                 userGroupMemberDAO().getGroupChunk(filter, null, null,
@@ -197,7 +203,7 @@ public final class AccessControlServiceImpl extends AbstractService
          */
         final UserGroup group;
 
-        if (user.getInternal().booleanValue()) {
+        if (dto.isInternalUser()) {
             group = userGroupService().getInternalUserGroup();
         } else {
             group = userGroupService().getExternalUserGroup();
@@ -229,20 +235,29 @@ public final class AccessControlServiceImpl extends AbstractService
 
     @Override
     public boolean hasAccess(final User user, final ACLRoleEnum role) {
+        return hasAccess(UserIdDto.create(user), role);
+    }
+
+    @Override
+    public boolean hasAccess(final UserIdDto dto, final ACLRoleEnum role) {
 
         if (role == ACLRoleEnum.PRINT_DELEGATE && !ConfigManager.instance()
                 .isConfigValue(Key.PROXY_PRINT_DELEGATE_ENABLE)) {
             return false;
         }
-
-        return isAuthorized(user, role);
+        return isAuthorized(dto, role);
     }
 
     @Override
     public boolean hasSharedAccountAccess(final User user) {
+        return hasSharedAccountAccess(UserIdDto.create(user));
+    }
+
+    @Override
+    public boolean hasSharedAccountAccess(final UserIdDto dto) {
         final UserGroupAccountDao.ListFilter filter =
                 new UserGroupAccountDao.ListFilter();
-        filter.setUserId(user.getId());
+        filter.setUserId(dto.getDbKey());
         filter.setDisabled(Boolean.FALSE);
         return userGroupAccountDAO().getListCount(filter) > 0;
     }
@@ -270,18 +285,18 @@ public final class AccessControlServiceImpl extends AbstractService
     /**
      * Get the User permissions for an OID.
      *
-     * @param user
-     *            The user.
+     * @param userDbKey
+     *            The primary database key of User.
      * @param attrEnum
      *            The attribute to read.
      * @param oid
      *            The OID
      * @return {@code null} when undetermined.
      */
-    private static Integer getUserPrivileges(final User user,
+    private static Integer getUserPrivileges(final Long userDbKey,
             final UserAttrEnum attrEnum, final ACLOidEnum oid) {
 
-        final UserAttr userAttr = userAttrDAO().findByName(user, attrEnum);
+        final UserAttr userAttr = userAttrDAO().findByName(userDbKey, attrEnum);
 
         if (userAttr != null) {
             try {
@@ -339,25 +354,30 @@ public final class AccessControlServiceImpl extends AbstractService
     @Override
     public boolean hasPermission(final User user, final ACLOidEnum oid,
             final ACLPermissionEnum perm) {
+        return this.hasPermission(UserIdDto.create(user), oid, perm);
+    }
 
-        final Integer privileges = getPrivileges(user, oid);
-
+    @Override
+    public boolean hasPermission(final UserIdDto dto, final ACLOidEnum oid,
+            final ACLPermissionEnum perm) {
+        final Integer privileges = getPrivileges(dto, oid);
         if (privileges == null) {
             return true;
         }
-
         return perm.isPresent(privileges);
     }
 
     @Override
     public boolean hasAccess(final User user, final ACLOidEnum oid) {
+        return hasAccess(UserIdDto.create(user), oid);
+    }
 
-        final Integer privileges = getPrivileges(user, oid);
-
+    @Override
+    public boolean hasAccess(final UserIdDto dto, final ACLOidEnum oid) {
+        final Integer privileges = getPrivileges(dto, oid);
         if (privileges == null) {
             return true;
         }
-
         return privileges.intValue() != 0;
     }
 
@@ -376,8 +396,14 @@ public final class AccessControlServiceImpl extends AbstractService
     @Override
     public List<ACLPermissionEnum> getPermission(final User user,
             final ACLOidEnum oid) {
+        return getPermission(UserIdDto.create(user), oid);
+    }
 
-        final Integer userPrivileges = getPrivileges(user, oid);
+    @Override
+    public List<ACLPermissionEnum> getPermission(final UserIdDto dto,
+            final ACLOidEnum oid) {
+
+        final Integer userPrivileges = getPrivileges(dto, oid);
 
         if (userPrivileges == null) {
             return null;
@@ -387,14 +413,18 @@ public final class AccessControlServiceImpl extends AbstractService
 
     @Override
     public Integer getPrivileges(final User user, final ACLOidEnum oid) {
+        return this.getPrivileges(UserIdDto.create(user), oid);
+    }
 
+    @Override
+    public Integer getPrivileges(final UserIdDto dto, final ACLOidEnum oid) {
         if (oid.isAdminRole()
-                && ConfigManager.isInternalAdmin(user.getUserId())) {
+                && ConfigManager.isInternalAdmin(dto.getUserId())) {
             return null;
         }
 
-        Integer userPrivileges =
-                getUserPrivileges(user, UserAttrEnum.valueOf(oid), oid);
+        Integer userPrivileges = getUserPrivileges(dto.getDbKey(),
+                UserAttrEnum.valueOf(oid), oid);
 
         if (userPrivileges != null) {
             return userPrivileges;
@@ -408,7 +438,7 @@ public final class AccessControlServiceImpl extends AbstractService
         final UserGroupMemberDao.UserFilter filter =
                 new UserGroupMemberDao.UserFilter();
 
-        filter.setUserId(user.getId());
+        filter.setUserId(dto.getDbKey());
 
         final List<UserGroup> groupList =
                 userGroupMemberDAO().getGroupChunk(filter, null, null,
@@ -426,7 +456,7 @@ public final class AccessControlServiceImpl extends AbstractService
          */
         final UserGroup group;
 
-        if (user.getInternal().booleanValue()) {
+        if (dto.isInternalUser()) {
             group = userGroupService().getInternalUserGroup();
         } else {
             group = userGroupService().getExternalUserGroup();

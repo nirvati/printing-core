@@ -32,6 +32,7 @@ import org.savapage.core.OutOfBoundsException;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.UserDto;
+import org.savapage.core.dto.UserIdDto;
 import org.savapage.core.dto.UserPropertiesDto;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.User;
@@ -544,13 +545,13 @@ public interface UserService {
     /**
      * Reads the attribute value from the database.
      *
-     * @param user
-     *            The {@link User}.
+     * @param userDbKey
+     *            primary database key of {@link User}.
      * @param name
      *            The name of the {@link UserAttr}.
      * @return The attribute value or {@code null} when NOT found.
      */
-    String findUserAttrValue(User user, UserAttrEnum name);
+    String findUserAttrValue(Long userDbKey, UserAttrEnum name);
 
     /**
      * Creates or updates the attribute value to the database.
@@ -710,6 +711,16 @@ public interface UserService {
      * @return The {@link JobTicketProperties}.
      */
     JobTicketProperties getJobTicketPropsLatest(User user);
+
+    /**
+     * Gets the latest saved Job Ticket properties for a {@link User} from the
+     * database or by supplying a default.
+     *
+     * @param dto
+     *            {@link UserIdDto}.
+     * @return The {@link JobTicketProperties}.
+     */
+    JobTicketProperties getJobTicketPropsLatest(UserIdDto dto);
 
     /**
      * Stores the latest properties of Job Ticket, created by a user, to the

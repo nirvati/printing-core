@@ -28,6 +28,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dto.UserIdDto;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroup;
@@ -55,6 +56,20 @@ public interface AccessControlService {
     boolean hasAccess(User user, ACLRoleEnum role);
 
     /**
+     * Checks if {@link User} has access to a Role. First {@link ConfigManager}
+     * is consulted if role is enabled, then the
+     * {@link #isAuthorized(User, ACLRoleEnum)} method is used to check user
+     * authorization.
+     *
+     * @param dto
+     *            The {@link UserIdDto}.
+     * @param role
+     *            The {@link ACLRoleEnum};
+     * @return {@code true} when user has access to role.
+     */
+    boolean hasAccess(UserIdDto dto, ACLRoleEnum role);
+
+    /**
      * Checks if {@link User} is authorized for a Role. Checks are done
      * bottom-up, starting at the {@link User} and moving up to the
      * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
@@ -68,6 +83,21 @@ public interface AccessControlService {
      * @return {@code true} when authorized for role.
      */
     boolean isAuthorized(User user, ACLRoleEnum role);
+
+    /**
+     * Checks if {@link User} is authorized for a Role. Checks are done
+     * bottom-up, starting at the {@link User} and moving up to the
+     * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
+     * first encountered object with a defined {@link ACLRoleEnum} is used for
+     * the check. When no reference object is found, the user is not authorized.
+     *
+     * @param dto
+     *            The {@link UserIdDto}.
+     * @param role
+     *            The {@link ACLRoleEnum};
+     * @return {@code true} when authorized for role.
+     */
+    boolean isAuthorized(UserIdDto dto, ACLRoleEnum role);
 
     /**
      * Checks if UserGroup is authorized for a Role.
@@ -101,6 +131,25 @@ public interface AccessControlService {
     boolean hasAccess(User user, ACLOidEnum oid);
 
     /**
+     * Checks if {@link User} has access to an OID. Checks are done bottom-up,
+     * starting at the {@link User} and moving up to the {@link UserGroup}
+     * objects where user is {@link UserGroupMember} of. The first encountered
+     * object with a defined {@link ACLOidEnum} is used for the check. When no
+     * reference object is found, the user <b>has</b> access.
+     * <p>
+     * NOTE: User has access when {@link ConfigManager#isInternalAdmin(String)}
+     * and {@link ACLOidEnum#isAdminRole()}.
+     * </p>
+     *
+     * @param dto
+     *            The {@link UserIdDto}.
+     * @param oid
+     *            The OID.
+     * @return {@code true} when access.
+     */
+    boolean hasAccess(UserIdDto dto, ACLOidEnum oid);
+
+    /**
      * Checks if {@link User} has permission for an OID. Checks are done
      * bottom-up, starting at the {@link User} and moving up to the
      * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
@@ -122,6 +171,29 @@ public interface AccessControlService {
      * @return {@code true} when permitted.
      */
     boolean hasPermission(User user, ACLOidEnum oid, ACLPermissionEnum perm);
+
+    /**
+     * Checks if {@link User} has permission for an OID. Checks are done
+     * bottom-up, starting at the {@link User} and moving up to the
+     * {@link UserGroup} objects where user is {@link UserGroupMember} of. The
+     * first encountered object with a defined {@link ACLOidEnum} is used for
+     * the check. When no reference object is found, the user <b>is</b>
+     * authorized.
+     * <p>
+     * NOTE: User has permission when
+     * {@link ConfigManager#isInternalAdmin(String)} and
+     * {@link ACLOidEnum#isAdminRole()}.
+     * </p>
+     *
+     * @param dto
+     *            The {@link UserIdDto}.
+     * @param oid
+     *            The OID.
+     * @param perm
+     *            The requested permission.
+     * @return {@code true} when permitted.
+     */
+    boolean hasPermission(UserIdDto dto, ACLOidEnum oid, ACLPermissionEnum perm);
 
     /**
      * Checks if requested permission is part of permission list.
@@ -152,6 +224,22 @@ public interface AccessControlService {
     List<ACLPermissionEnum> getPermission(User user, ACLOidEnum oid);
 
     /**
+     * Gets the OID permissions for an OID a User.
+     * <p>
+     * NOTE: {@code null} is returned when
+     * {@link ConfigManager#isInternalAdmin(String)} and
+     * {@link ACLOidEnum#isAdminRole()}.
+     * </p>
+     *
+     * @param dto
+     *            The {@link UserIdDto}.
+     * @param oid
+     *            The OID.
+     * @return {@code null} when undetermined.
+     */
+    List<ACLPermissionEnum> getPermission(UserIdDto dto, ACLOidEnum oid);
+
+    /**
      * Gets the OID privileges bitmask for an OID a User.
      * <p>
      * NOTE: {@code null} is returned when
@@ -168,6 +256,22 @@ public interface AccessControlService {
     Integer getPrivileges(User user, ACLOidEnum oid);
 
     /**
+     * Gets the OID privileges bitmask for an OID a User.
+     * <p>
+     * NOTE: {@code null} is returned when
+     * {@link ConfigManager#isInternalAdmin(String)} and
+     * {@link ACLOidEnum#isAdminRole()}.
+     * </p>
+     *
+     * @param dto
+     *            The {@link UserIdDto}.
+     * @param oid
+     *            The OID.
+     * @return {@code null} when undetermined.
+     */
+    Integer getPrivileges(UserIdDto dto, ACLOidEnum oid);
+
+    /**
      * @return The {@link ACLRoleEnum} values that are granted access when
      *         indeterminate at "All User" top level.
      */
@@ -182,4 +286,15 @@ public interface AccessControlService {
      * @return {@code true} when user has access.
      */
     boolean hasSharedAccountAccess(User user);
+
+    /**
+     * Checks if {@link User} has access to at least one (1) Shared
+     * {@link Account}.
+     *
+     * @param dto
+     *            The {@link UserIdDto}.
+     * @return {@code true} when user has access.
+     */
+    boolean hasSharedAccountAccess(UserIdDto dto);
+
 }

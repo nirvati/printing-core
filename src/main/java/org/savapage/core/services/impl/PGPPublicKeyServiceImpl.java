@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -225,8 +225,8 @@ public final class PGPPublicKeyServiceImpl extends AbstractService
     public PGPPublicKeyInfo readRingEntry(final User user)
             throws PGPBaseException {
 
-        final UserAttr pgpPubAttr =
-                userAttrDAO().findByName(user, UserAttrEnum.PGP_PUBKEY_ID);
+        final UserAttr pgpPubAttr = userAttrDAO().findByName(user.getId(),
+                UserAttrEnum.PGP_PUBKEY_ID);
 
         if (pgpPubAttr != null) {
             return readRingEntry(user, new PGPKeyID(pgpPubAttr.getValue()));

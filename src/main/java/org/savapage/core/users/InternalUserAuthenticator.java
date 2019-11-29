@@ -1,6 +1,6 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,16 +30,20 @@ import org.savapage.core.services.UserService;
 /**
  * Authenticator for internal users only.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class InternalUserAuthenticator {
+public final class InternalUserAuthenticator {
+
+    /** */
+    private static final UserService USER_SERVICE =
+            ServiceContext.getServiceFactory().getUserService();
 
     /**
-     *
+     * Utility class.
      */
-    private static final UserService USER_SERVICE = ServiceContext
-            .getServiceFactory().getUserService();
+    private InternalUserAuthenticator() {
+    }
 
     /**
      *
@@ -50,9 +54,8 @@ public class InternalUserAuthenticator {
      */
     public static boolean authenticate(final User user, final String password) {
 
-        final String checkSum =
-                USER_SERVICE.findUserAttrValue(user,
-                        UserAttrEnum.INTERNAL_PASSWORD);
+        final String checkSum = USER_SERVICE.findUserAttrValue(user.getId(),
+                UserAttrEnum.INTERNAL_PASSWORD);
 
         return ConfigManager.instance().isUserPasswordValid(checkSum,
                 user.getUserId(), password);

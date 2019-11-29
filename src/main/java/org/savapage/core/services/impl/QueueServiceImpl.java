@@ -44,7 +44,6 @@ import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.IppQueueAttr;
-import org.savapage.core.jpa.User;
 import org.savapage.core.json.JsonRollingTimeSeries;
 import org.savapage.core.json.TimeSeriesInterval;
 import org.savapage.core.print.server.DocContentPrintException;
@@ -404,7 +403,7 @@ public final class QueueServiceImpl extends AbstractService
 
     @Override
     public DocContentPrintRsp printDocContent(
-            final ReservedIppQueueEnum reservedQueue, final User user,
+            final ReservedIppQueueEnum reservedQueue, final String userId,
             final boolean isUserTrusted, final DocContentPrintReq printReq,
             final InputStream istrContent)
             throws DocContentPrintException, UnavailableException {
@@ -442,8 +441,7 @@ public final class QueueServiceImpl extends AbstractService
             /*
              * Create the request.
              */
-            final String requestingUserId = user.getUserId();
-
+            final String requestingUserId = userId;
             final String authWebAppUser;
 
             if (isUserTrusted) {
