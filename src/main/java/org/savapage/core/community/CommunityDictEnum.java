@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2019 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -85,7 +85,13 @@ public enum CommunityDictEnum {
     SAVAPAGE_SUPPORT("SavaPage Support"),
 
     /** */
+    SAVAPAGE_COMMUNITY_URL("https://community.savapage.org"),
+
+    /** */
     SAVAPAGE_SUPPORT_URL("https://support.savapage.org"),
+
+    /** */
+    SAVAPAGE_WIKI_URL("https://wiki.savapage.org"),
 
     /** */
     MEMBER("Member"),
