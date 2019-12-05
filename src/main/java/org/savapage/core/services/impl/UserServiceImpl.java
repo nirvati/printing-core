@@ -1262,8 +1262,8 @@ public final class UserServiceImpl extends AbstractService
             return createOkResult("msg-user-deleted-ok");
         }
 
-        return createOkResult("msg-user-deleted-ok-inc-safepages",
-                NumberUtil.humanReadableByteCount(nBytes, true));
+        return createOkResult("msg-user-deleted-ok-inc-safepages", NumberUtil
+                .humanReadableByteCountSI(ServiceContext.getLocale(), nBytes));
     }
 
     @Override

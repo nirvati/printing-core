@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -1874,13 +1875,14 @@ public final class SyncUsersJob extends AbstractJob {
         final StringBuilder filesMsg = new StringBuilder();
 
         filesMsg.append("Files: present [")
-                .append(NumberUtil
-                        .humanReadableByteCount(nBytesUserFilesPresent, true))
+                .append(NumberUtil.humanReadableByteCountSI(Locale.getDefault(),
+                        nBytesUserFilesPresent))
                 .append("]");
 
         if (nBytesUserFilesDeleted > 0) {
-            filesMsg.append(" deleted [").append(NumberUtil
-                    .humanReadableByteCount(nBytesUserFilesDeleted, true))
+            filesMsg.append(" deleted [")
+                    .append(NumberUtil.humanReadableByteCountSI(
+                            Locale.getDefault(), nBytesUserFilesDeleted))
                     .append("]");
         }
         pubMsg(filesMsg.toString());

@@ -263,8 +263,8 @@ public final class EmailOutboxMonitor extends AbstractJob {
                     final String sendTo =
                             mimeMsg.getRecipients(Message.RecipientType.TO)[0]
                                     .toString();
-                    final String mailSize = NumberUtil
-                            .humanReadableByteCount(mimeMsg.getSize(), true);
+                    final String mailSize = NumberUtil.humanReadableByteCountSI(
+                            Locale.getDefault(), mimeMsg.getSize());
 
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug(localizeLogMsg(msgKey, subject, sendTo,
