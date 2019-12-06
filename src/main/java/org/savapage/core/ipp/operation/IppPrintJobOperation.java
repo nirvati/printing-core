@@ -76,8 +76,6 @@ public final class IppPrintJobOperation extends AbstractIppOperation {
 
     /**
      *
-     * @param originatorIp
-     *            The IP address of the requesting client.
      * @param queue
      *            The print queue. Can be {@code null} is no queue matches the
      *            URI.
@@ -196,7 +194,7 @@ public final class IppPrintJobOperation extends AbstractIppOperation {
         /*
          * Step 4: deferred exception? or not allowed to print?
          */
-        request.evaluateErrorState(isAuthorized());
+        request.evaluateErrorState(this);
     }
 
     /**

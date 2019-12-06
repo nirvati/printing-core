@@ -40,6 +40,8 @@ public enum NounEnum {
     /** NFC card number. */
     CARD_NUMBER,
     /** */
+    CLIENT(true),
+    /** */
     COMMENT,
     /** */
     COST,
@@ -55,6 +57,8 @@ public enum NounEnum {
     DELEGATE(true),
     /** */
     DELEGATOR(true),
+    /** */
+    DESTINATION,
     /** */
     DISK_SPACE,
     /** */
@@ -82,7 +86,7 @@ public enum NounEnum {
     /** */
     NAME(true),
     /** */
-    QUEUE(true),
+    ORIGIN,
     /** */
     OUTPUT,
     /** */
@@ -94,6 +98,8 @@ public enum NounEnum {
     /** */
     PRINTER(true),
     /** */
+    QUEUE(true),
+    /** */
     REFUND(true),
     /** */
     REMARK(true),
@@ -101,6 +107,10 @@ public enum NounEnum {
     RENDERING,
     /** */
     REPORT,
+    /** */
+    SERVER(true),
+    /** */
+    SIGNATURE,
     /** */
     SORTING,
     /** */
