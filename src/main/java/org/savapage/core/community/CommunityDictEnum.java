@@ -108,28 +108,31 @@ public enum CommunityDictEnum {
     /** */
     VISITING_GUEST("Visiting Guest"),
 
-    /**  */
+    /** */
     CARD_HOLDER,
 
-    /**  */
+    /** */
     WEB_PRINT,
 
-    /**  */
+    /** */
     INTERNET_PRINT,
 
-    /**  */
+    /** */
+    RESTFUL_PRINT("RESTful Print"),
+
+    /** */
     ECO_PRINT,
 
-    /**  */
+    /** */
     PROXY_PRINT,
 
-    /**  */
+    /** */
     MAIL_PRINT,
 
-    /**  */
+    /** */
     PARTICIPANTS,
 
-    /**  */
+    /** */
     USERS;
 
     /**

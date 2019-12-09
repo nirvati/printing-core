@@ -153,7 +153,8 @@ public interface QueueService {
     /**
      * Does {@link IppQueue} represent an active queue. A driver (regular and
      * reserved) queue is active when not deleted and not disabled. A driverless
-     * reserved queue is active when enabled by configuration.
+     * reserved queue is active when enabled either by configuration or queue
+     * setting (not deleted and not disabled).
      *
      * @param queue
      *            The {@link IppQueue} .

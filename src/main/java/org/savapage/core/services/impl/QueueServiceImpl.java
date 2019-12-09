@@ -26,10 +26,12 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Map;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.UnavailableException;
+import org.savapage.core.UnavailableException.State;
 import org.savapage.core.concurrent.ReadLockObtainFailedException;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
@@ -280,18 +282,14 @@ public final class QueueServiceImpl extends AbstractService
         if (queue == null) {
 
             queue = createQueueDefault(reservedQueue.getUrlPath());
-
-            if (reservedQueue == ReservedIppQueueEnum.WEBSERVICE) {
-                queue.setTrusted(Boolean.TRUE);
-            }
-
             ippQueueDAO().create(queue);
 
         } else if (reservedQueue == ReservedIppQueueEnum.AIRPRINT
                 || reservedQueue == ReservedIppQueueEnum.WEBPRINT
                 || reservedQueue == ReservedIppQueueEnum.GCP
                 || reservedQueue == ReservedIppQueueEnum.MAILPRINT
-                || reservedQueue == ReservedIppQueueEnum.IPP_PRINT_INTERNET) {
+                || reservedQueue == ReservedIppQueueEnum.IPP_PRINT_INTERNET
+                || reservedQueue == ReservedIppQueueEnum.WEBSERVICE) {
 
             /*
              * Force legacy queues to untrusted: reserved queues are untrusted
@@ -370,7 +368,9 @@ public final class QueueServiceImpl extends AbstractService
         final ReservedIppQueueEnum queueReserved =
                 this.getReservedQueue(queue.getUrlPath());
 
-        if (queueReserved == null || queueReserved.isDriverPrint()) {
+        if (queueReserved == null || queueReserved.isDriverPrint()
+                || queueReserved == ReservedIppQueueEnum.WEBSERVICE) {
+
             return !(queue.getDeleted().booleanValue()
                     || queue.getDisabled().booleanValue());
         }
@@ -390,9 +390,6 @@ public final class QueueServiceImpl extends AbstractService
             break;
         case WEBPRINT:
             enabled = CONFIG_MNGR.isConfigValue(Key.WEB_PRINT_ENABLE);
-            break;
-        case WEBSERVICE:
-            enabled = CONFIG_MNGR.isConfigValue(Key.WEBSERVICE_PRINT_ENABLE);
             break;
         default:
             throw new IllegalStateException(String.format("%s is not handled.",
@@ -437,6 +434,26 @@ public final class QueueServiceImpl extends AbstractService
              * Get the Queue object.
              */
             queue = ippQueueDAO().find(reservedQueue);
+
+            if (!this.isActiveQueue(queue)) {
+                final StringBuilder msg = new StringBuilder();
+                msg.append("queue /").append(queue.getUrlPath());
+                if (BooleanUtils.isTrue(queue.getDeleted())) {
+                    msg.append(" is deleted.");
+                } else if (BooleanUtils.isTrue(queue.getDisabled())) {
+                    msg.append(" is disabled.");
+                }
+                throw new UnavailableException(State.PERMANENT, msg.toString());
+            }
+
+            if (!this.hasClientIpAccessToQueue(queue, queue.getUrlPath(),
+                    printReq.getOriginatorIp())) {
+                final StringBuilder msg = new StringBuilder();
+                msg.append("IP ").append(printReq.getOriginatorIp())
+                        .append(" not allowed for queue /")
+                        .append(queue.getUrlPath());
+                throw new UnavailableException(State.PERMANENT, msg.toString());
+            }
 
             /*
              * Create the request.
@@ -498,6 +515,8 @@ public final class QueueServiceImpl extends AbstractService
         } catch (ReadLockObtainFailedException e) {
             throw new DocContentPrintException(PhraseEnum.SYS_TEMP_UNAVAILABLE
                     .uiText(ServiceContext.getLocale()));
+        } catch (UnavailableException e) {
+            throw e;
         } catch (Exception e) {
             if (processor != null) {
                 processor.setDeferredException(e);
@@ -583,9 +602,7 @@ public final class QueueServiceImpl extends AbstractService
         isTrustedQueue = queue.getTrusted();
 
         /*
-         * Check if client IP address is inrange of the allowed IP CIDR.
-         *
-         * A single IPv4 CIDR for now...
+         * Check if client IP address is in range of the allowed IP CIDR.
          */
         final String ipAllowed = queue.getIpAllowed();
 

@@ -26,7 +26,11 @@ import org.savapage.core.jpa.IppQueue;
 /**
  * Reserved names for {@link IppQueue#getUrlPath()}.
  * <p>
- * Note for developers: do NOT change the name values, since it will invalidate
+ * The term "IPP" is due to legacy naming, and does not restrict these queues to
+ * Internet Printing Protocol (IPP).
+ * </p>
+ * <p>
+ * Note for Developers: do NOT change the name values, since it will invalidate
  * current database content.
  * </p>
  *
@@ -151,6 +155,7 @@ public enum ReservedIppQueueEnum {
      */
     public boolean isNotTrusted() {
         return this == ReservedIppQueueEnum.AIRPRINT
-                || this == ReservedIppQueueEnum.IPP_PRINT_INTERNET;
+                || this == ReservedIppQueueEnum.IPP_PRINT_INTERNET
+                || this == ReservedIppQueueEnum.WEBSERVICE;
     }
 }
