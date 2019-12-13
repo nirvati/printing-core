@@ -127,7 +127,7 @@ public final class QRCodeHelper {
     }
 
     /**
-     * Creates a PDF background image with fill color.
+     * Creates a scaled PDF background image with fill color.
      *
      * @param mmWidth
      *            Width in millimeters.
@@ -153,7 +153,7 @@ public final class QRCodeHelper {
     }
 
     /**
-     * Creates a plain QR code PDF image without margins or quiet zone.
+     * Creates a scaled plain QR code PDF image without margins or quiet zone.
      *
      * @param qrCode
      *            QR text.
@@ -168,20 +168,26 @@ public final class QRCodeHelper {
 
         final int qrcodeWidthPx = (int) pdfMMToPX(mmWidth);
         final int qrDots = numberOfQRDots(qrCode);
+        /*
+         * (1) Create QR code, using width of largest multiple of logical dots,
+         * so no margins and quiet zone are generated.
+         */
         final int squareWidth = qrcodeWidthPx - qrcodeWidthPx % qrDots;
-
+        /*
+         * (2) Scale to PDF image to the requested mmWidth.
+         */
         return createPdfImage(createImage(qrCode, squareWidth, 0),
                 pdfMMToPoints(mmWidth));
     }
 
     /**
-     * Creates PDF image from a {@link BufferedImage}.
+     * Creates a scaled to widthPoints PDF image from a {@link BufferedImage}.
      *
      * @param image
      *            Image.
      * @param widthPoints
      *            PDF width points.
-     * @return PDF image.
+     * @return Scaled PDF image.
      * @throws QRCodeException
      *             If error.
      */
@@ -198,17 +204,36 @@ public final class QRCodeHelper {
     }
 
     /**
-     * Creates a QR code image.
+     * Creates a black and white QR code image.
+     * <ul>
+     * <li>The image consists of "black squares" arranged in a square grid on a
+     * white background.</li>
+     * <li>The more extensive the encrypted data, the more squares are needed on
+     * a single row.</li>
+     * <li>The number of pixels used to paint one (1) square depends on the
+     * requested width of the QR image.</li>
+     * <li>If an image width of 31px is requested to encode data that need 29
+     * squares on a row, each square will be 1x1px, and the image will have a
+     * 1px empty margin at its borders.</li>
+     * <li>If a 100x100px image is requested for the same data, each square will
+     * be 3x3px, and T,R,L,B margins will be 6,6,7,7.</li>
+     * <li>If a 28x28px image is requested (or anything less than 29x29px) for
+     * the same data, each square will be the minimum 1x1px, and the image will
+     * end up being 29x29px without border margins.</li>
+     * <li>The quiet zone will add extra border margins.</li>
+     * </ul>
      *
      * @param codeText
      *            QR text.
      * @param squareWidth
-     *            Width and height in pixels.
+     *            Width and height in pixels of the resulting image.
      * @param quietZone
-     *            quietZone, in pixels. Use {@code null} for default zone.
+     *            Quiet Zone, in pixels. Use {@code null} for default zone
+     *            (2px).
      * @throws QRCodeException
      *             If error.
-     * @return {@link BufferedImage}.
+     * @return {@link BufferedImage}. The size of the image might be greater
+     *         than requested (see remarks above).
      */
     public static BufferedImage createImage(final String codeText,
             final int squareWidth, final Integer quietZone)
