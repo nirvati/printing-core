@@ -1299,7 +1299,14 @@ public final class DocContentPrintProcessor {
             return false;
         }
 
-        final IppRoutingEnum routing = QUEUE_SERVICE.getIppRouting(this.queue);
+        /*
+         * Use a new queue instance to prevent
+         * org.hibernate.LazyInitializationException.
+         */
+        final IppQueue queueWrk = ServiceContext.getDaoContext()
+                .getIppQueueDao().findById(this.queue.getId());
+
+        final IppRoutingEnum routing = QUEUE_SERVICE.getIppRouting(queueWrk);
 
         if (routing == null || routing == IppRoutingEnum.NONE) {
             return false;
@@ -1331,7 +1338,7 @@ public final class DocContentPrintProcessor {
         if (warnMsg != null) {
             final String msg =
                     String.format("IPP Routing of Queue /%s from %s %s",
-                            queue.getUrlPath(), this.originatorIp, warnMsg);
+                            queueWrk.getUrlPath(), this.originatorIp, warnMsg);
             AdminPublisher.instance().publish(PubTopicEnum.PROXY_PRINT,
                     PubLevelEnum.WARN, msg);
             LOGGER.warn(msg);
@@ -1339,7 +1346,7 @@ public final class DocContentPrintProcessor {
         }
 
         try {
-            PROXYPRINT_SERVICE.proxyPrintIppRouting(this.userDb, this.queue,
+            PROXYPRINT_SERVICE.proxyPrintIppRouting(this.userDb, queueWrk,
                     terminal.getPrinter(), printInInfo, pdfFile,
                     this.ippRoutinglistener);
         } catch (ProxyPrintException e) {
