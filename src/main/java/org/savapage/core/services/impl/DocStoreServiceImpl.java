@@ -65,15 +65,13 @@ public final class DocStoreServiceImpl extends AbstractService
             LoggerFactory.getLogger(DocStoreServiceImpl.class);
 
     /** */
-    private static final Path ARCHIVE_HOME =
-            ConfigManager.getDocStoreHome(DocStoreTypeEnum.ARCHIVE);
-
-    /** */
-    private static final Path JOURNAL_HOME =
-            ConfigManager.getDocStoreHome(DocStoreTypeEnum.JOURNAL);
-
-    /** */
     private static final String FILENAME_EXT_JSON = "json";
+
+    /** */
+    private Path homePathArchive;
+
+    /** */
+    private Path homePathJournal;
 
     /**
      * Creates UTC calendar instance from date.
@@ -100,12 +98,12 @@ public final class DocStoreServiceImpl extends AbstractService
      *            The document log.
      * @return The store path for this document.
      */
-    private static Path getStorePath(final DocStoreTypeEnum store,
+    private Path getStorePath(final DocStoreTypeEnum store,
             final DocStoreBranchEnum branch, final DocLog docLog) {
 
         final Calendar cal = createCalendarTime(docLog.getCreatedDate());
 
-        return Paths.get(getStoreBranch(store, branch).toString(),
+        return Paths.get(this.getStoreBranch(store, branch).toString(),
                 String.format("%04d%c%02d%c%02d%c%02d%c%s",
                         cal.get(Calendar.YEAR), File.separatorChar,
                         cal.get(Calendar.MONTH) + 1, File.separatorChar,
@@ -123,17 +121,17 @@ public final class DocStoreServiceImpl extends AbstractService
      *            Branch in store.
      * @return The branch path.
      */
-    private static Path getStoreBranch(final DocStoreTypeEnum store,
+    private Path getStoreBranch(final DocStoreTypeEnum store,
             final DocStoreBranchEnum branch) {
 
         final Path path;
 
         switch (store) {
         case ARCHIVE:
-            path = ARCHIVE_HOME;
+            path = this.homePathArchive;
             break;
         case JOURNAL:
-            path = JOURNAL_HOME;
+            path = this.homePathJournal;
             break;
         default:
             throw new UnknownError(store.toString());
@@ -233,7 +231,7 @@ public final class DocStoreServiceImpl extends AbstractService
     @Override
     public boolean isDocPresent(final DocStoreTypeEnum store,
             final DocStoreBranchEnum branch, final DocLog docLog) {
-        return getStorePath(store, branch, docLog).toFile().exists();
+        return this.getStorePath(store, branch, docLog).toFile().exists();
     }
 
     private DocStoreBranchEnum getStoreBranch(final DocLog docLog)
@@ -292,10 +290,24 @@ public final class DocStoreServiceImpl extends AbstractService
     }
 
     @Override
+    public void start() {
+        this.homePathArchive =
+                ConfigManager.getDocStoreHome(DocStoreTypeEnum.ARCHIVE);
+        this.homePathJournal =
+                ConfigManager.getDocStoreHome(DocStoreTypeEnum.JOURNAL);
+    }
+
+    @Override
+    public void shutdown() {
+        // no code intended.
+    }
+
+    @Override
     public File retrievePdf(final DocStoreTypeEnum store, final DocLog docLog)
             throws DocStoreException {
 
-        final Path dir = getStorePath(store, getStoreBranch(docLog), docLog);
+        final Path dir =
+                this.getStorePath(store, getStoreBranch(docLog), docLog);
         if (!dir.toFile().exists()) {
             throw new DocStoreException("No storage found.");
         }
@@ -312,7 +324,8 @@ public final class DocStoreServiceImpl extends AbstractService
     public OutboxJobDto retrieveJob(final DocStoreTypeEnum store,
             final DocLog docLog) throws DocStoreException, IOException {
 
-        final Path dir = getStorePath(store, getStoreBranch(docLog), docLog);
+        final Path dir =
+                this.getStorePath(store, getStoreBranch(docLog), docLog);
         if (!dir.toFile().exists()) {
             throw new DocStoreException("No storage found.");
         }
@@ -383,7 +396,7 @@ public final class DocStoreServiceImpl extends AbstractService
             final DocLog docLog, final PdfCreateInfo createInfo)
             throws DocStoreException {
 
-        final Path dir = getStorePath(store, branch, docLog);
+        final Path dir = this.getStorePath(store, branch, docLog);
 
         try {
             FileUtils.forceMkdir(dir.toFile());
@@ -420,7 +433,7 @@ public final class DocStoreServiceImpl extends AbstractService
 
         final Date referenceDate = DateUtils.addDays(cleaningDate, -keepDays);
 
-        return new DocStoreCleaner(getStoreBranch(store, branch),
+        return new DocStoreCleaner(this.getStoreBranch(store, branch),
                 createCalendarTime(referenceDate), runMode).clean();
     }
 

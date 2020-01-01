@@ -46,14 +46,14 @@ public enum UserHomePathEnum {
     /**
      *
      * @param subdir
-     *            Relative path in User SafaPages directory.
+     *            Relative path in User SafePages directory.
      */
     UserHomePathEnum(final String subdir) {
         this.path = subdir;
     }
 
     /**
-     * @return Relative path in User SafaPages directory.
+     * @return Relative path in User SafePages directory.
      */
     public String getPath() {
         return this.path;

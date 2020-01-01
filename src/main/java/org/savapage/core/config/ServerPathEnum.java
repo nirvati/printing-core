@@ -86,6 +86,11 @@ public enum ServerPathEnum {
     SAFEPAGES_DEFAULT("data/internal/safepages"),
 
     /**
+     * Public letterheads.
+     */
+    LETTERHEADS("data/internal/letterheads"),
+
+    /**
      * The relative path of the print-jobtickets folder.
      */
     PRINT_JOBTICKETS("data/print-jobtickets"),
@@ -111,14 +116,14 @@ public enum ServerPathEnum {
     /**
      *
      * @param subdir
-     *            Relative path in User SafaPages directory.
+     *            Relative path in server directory.
      */
     ServerPathEnum(final String subdir) {
         this.path = subdir;
     }
 
     /**
-     * @return Relative path in User SafaPages directory.
+     * @return Relative path in server directory.
      */
     public String getPath() {
         return this.path;

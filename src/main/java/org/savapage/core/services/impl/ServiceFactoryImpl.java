@@ -215,6 +215,7 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     private final static StatefulService statefullServices[] =
             new StatefulService[] { //
                     AtomFeedServiceHolder.SERVICE, //
+                    DocStoreServiceHolder.SERVICE, //
                     DownloadServiceHolder.SERVICE, //
                     EcoPrintPdfTaskServiceHolder.SERVICE, //
                     JobTicketServiceHolder.SERVICE, //

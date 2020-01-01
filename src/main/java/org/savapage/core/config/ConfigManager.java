@@ -228,6 +228,11 @@ public final class ConfigManager {
     public static final String SERVER_PROP_APP_DIR_LETTERHEADS =
             "app.dir.letterheads";
 
+    public static final String SERVER_PROP_APP_DIR_DOC_STORE_ARCHIVE =
+            "app.dir.doc.store.archive";
+    public static final String SERVER_PROP_APP_DIR_DOC_STORE_JOURNAL =
+            "app.dir.doc.store.journal";
+
     public static final String SERVER_PROP_SMARTSCHOOL_PRINT =
             "smartschool.print";
 
@@ -821,13 +826,18 @@ public final class ConfigManager {
     }
 
     /**
-     * Returns the location where the public Letterheads are stored.
-     *
-     * @return
+     * @return Location where the public letterheads are stored.
      */
     public static String getLetterheadDir() {
-        return theServerProps.getProperty(SERVER_PROP_APP_DIR_LETTERHEADS,
-                getServerHome() + "/data/internal/letterheads");
+
+        String dir =
+                theServerProps.getProperty(SERVER_PROP_APP_DIR_LETTERHEADS);
+        if (dir == null) {
+            dir = Paths
+                    .get(getServerHome(), ServerPathEnum.LETTERHEADS.getPath())
+                    .toString();
+        }
+        return dir;
     }
 
     /**
@@ -900,16 +910,29 @@ public final class ConfigManager {
      * @return The directory path of the document store.
      */
     public static Path getDocStoreHome(final DocStoreTypeEnum store) {
+
+        final ServerPathEnum serverPath;
+        final String serverPathProp;
+
         switch (store) {
         case ARCHIVE:
-            return Paths.get(getServerHome(),
-                    ServerPathEnum.DOC_ARCHIVE.getPath());
+            serverPath = ServerPathEnum.DOC_ARCHIVE;
+            serverPathProp = theServerProps
+                    .getProperty(SERVER_PROP_APP_DIR_DOC_STORE_ARCHIVE);
+            break;
         case JOURNAL:
-            return Paths.get(getServerHome(),
-                    ServerPathEnum.DOC_JOURNAL.getPath());
+            serverPath = ServerPathEnum.DOC_JOURNAL;
+            serverPathProp = theServerProps
+                    .getProperty(SERVER_PROP_APP_DIR_DOC_STORE_JOURNAL);
+            break;
         default:
             throw new UnknownError(store.toString());
         }
+
+        if (serverPathProp != null) {
+            return Paths.get(serverPathProp);
+        }
+        return Paths.get(getServerHome(), serverPath.getPath());
     }
 
     /**

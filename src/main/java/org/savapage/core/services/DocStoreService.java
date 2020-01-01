@@ -40,7 +40,7 @@ import org.savapage.core.print.proxy.AbstractProxyPrintReq;
  * @author Rijk Ravestein
  *
  */
-public interface DocStoreService {
+public interface DocStoreService extends StatefulService {
 
     /**
      * Checks if store branch is enabled.
