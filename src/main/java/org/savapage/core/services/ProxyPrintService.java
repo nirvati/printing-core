@@ -1,6 +1,6 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -927,6 +927,13 @@ public interface ProxyPrintService {
      */
     void stopSubscription(String requestingUserName)
             throws IppConnectException, IppSyntaxException;
+
+    /**
+     * @param fileName
+     *            PPD extension file name.
+     * @return PPD extension {@link File}.
+     */
+    File getPPDExtFile(String fileName);
 
     /**
      * Checks if the printer URI resides on local CUPS.
