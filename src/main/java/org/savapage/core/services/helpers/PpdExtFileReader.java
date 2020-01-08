@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -1462,11 +1465,13 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      *            The {@link JsonProxyPrinter} containing the IPP options.
      * @param filePpdExt
      *            The {@link File} with the SavaPage PPD extensions.
+     * @return PPD Option as key to JsonProxyPrinterOpt with IPP mapping.
      * @throws IOException
      *             The file IO errors.
      */
-    public static void injectPpdExt(final JsonProxyPrinter proxyPrinter,
-            final File filePpdExt) throws IOException {
+    public static Map<String, JsonProxyPrinterOpt> injectPpdExt(
+            final JsonProxyPrinter proxyPrinter, final File filePpdExt)
+            throws IOException {
 
         final Map<String, JsonProxyPrinterOpt> optionsLookup =
                 proxyPrinter.getOptionsLookup();
@@ -1606,6 +1611,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         proxyPrinter.setBookletClientSide(reader.localBooklet.booleanValue());
         //
         proxyPrinter.setInjectPpdExt(true);
+
+        return reader.ppdOptionMap;
     }
 
     /**
