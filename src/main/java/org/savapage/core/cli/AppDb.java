@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -32,6 +35,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.log4j.PropertyConfigurator;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.RunModeEnum;
 import org.savapage.core.dao.DaoContext;
@@ -90,6 +94,9 @@ public final class AppDb extends AbstractApp {
     private static final String CLI_SWITCH_DBCHECK = "db-check";
     /** */
     private static final String CLI_SWITCH_DBCHECK_FIX = "db-check-fix";
+
+    /** */
+    private static final String CLI_SWITCH_LOG4J = "log4j";
 
     /**
      * The number of rows in the result set for export.
@@ -173,6 +180,10 @@ public final class AppDb extends AbstractApp {
                                 + NOTE_AS_REQUESTED_BY_SUPPORT)
                         .build());
 
+        options.addOption(Option.builder().hasArg(false)
+                .longOpt(CLI_SWITCH_LOG4J)
+                .desc("Use log4j. " + NOTE_AS_REQUESTED_BY_SUPPORT).build());
+
         final Option opt = Option.builder().hasArg(true).argName("NAME=VALUE")
                 .longOpt(CLI_OPTION_CONFIG_PROP_SET)
                 .desc("Sets configuration property value. "
@@ -228,6 +239,26 @@ public final class AppDb extends AbstractApp {
             return EXIT_CODE_OK;
         }
 
+        // ......................................................
+        // log4j?
+        // ......................................................
+        if (cmd.hasOption(CLI_SWITCH_LOG4J)) {
+            final String propKey = "log4j.configuration";
+            final String propfile = System.getProperty(propKey);
+            if (propfile == null) {
+                getDisplayStream().printf("%s property not found.\n", propKey);
+                return EXIT_CODE_EXCEPTION;
+            } else {
+                final File file = new File(propfile);
+                if (!file.exists() || !file.isFile()) {
+                    getDisplayStream().printf("%s not found.\n", propfile);
+                    return EXIT_CODE_EXCEPTION;
+                }
+            }
+            PropertyConfigurator.configure(propfile);
+            getDisplayStream().printf("Using %s\n", propfile);
+        }
+
         // ...................................................................
         // Hardcoded default parameter values
         // ...................................................................
@@ -249,7 +280,6 @@ public final class AppDb extends AbstractApp {
         };
 
         try {
-
             ConfigManager.setServerProps(ConfigManager.loadServerProperties());
 
             if (cmd.hasOption(CLI_SWITCH_DBINIT)
@@ -275,15 +305,9 @@ public final class AppDb extends AbstractApp {
                 }
             }
 
-            /*
-             *
-             */
             ServiceContext.open();
             final DaoContext daoContext = ServiceContext.getDaoContext();
 
-            /*
-             *
-             */
             if (cmd.hasOption(CLI_SWITCH_DBINIT)) {
 
                 DbTools.initDb(listener, false);
@@ -430,9 +454,7 @@ public final class AppDb extends AbstractApp {
             }
 
         } catch (Exception ex) {
-
-            getErrorDisplayStream().println(ex.getMessage());
-
+            ex.printStackTrace(getErrorDisplayStream());
         } finally {
             ServiceContext.close();
         }
@@ -497,8 +519,9 @@ public final class AppDb extends AbstractApp {
      * execution.
      *
      * @param args
+     *            CLI arguments.
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         int status = EXIT_CODE_EXCEPTION;
         AppDb app = new AppDb();
         try {
