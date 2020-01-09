@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Authors: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -99,7 +102,7 @@ public class PosPurchaseV01 extends org.savapage.core.jpa.Entity
             fetch = FetchType.LAZY, optional = true)
     private AccountTrxV01 accountTrx;
 
-    @Column(name = "comment", length = 255)
+    @Column(name = "payment_comment", length = 255)
     private String comment;
 
     @Column(name = "payment_type", length = 50)
