@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -2694,7 +2697,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         jpaPrinter.setModifiedBy(requestingUser);
         jpaPrinter.setModifiedDate(now);
 
-        jpaPrinter.setDisplayName(dto.getDisplayName());
+        // Mantis #1105
+        final String displayNameWrk;
+        if (StringUtils.isBlank(dto.getDisplayName())) {
+            displayNameWrk = dto.getPrinterName();
+        } else {
+            displayNameWrk = dto.getDisplayName();
+        }
+        jpaPrinter.setDisplayName(displayNameWrk);
 
         jpaPrinter.setDisabled(dto.getDisabled());
 

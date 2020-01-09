@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -25,6 +28,7 @@ import java.util.Date;
 
 import javax.persistence.EntityManager;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.AppLogDao;
@@ -37,16 +41,17 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class AppLogServiceImpl extends AbstractService implements AppLogService {
+public class AppLogServiceImpl extends AbstractService
+        implements AppLogService {
 
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(AppLogServiceImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(AppLogServiceImpl.class);
 
     @Override
     public final long countErrors(final Date dateAfter) {
@@ -69,8 +74,8 @@ public class AppLogServiceImpl extends AbstractService implements AppLogService 
      *            all level entries are counted.
      * @return the number of rows in this table after the date/time.
      */
-    private long
-            filteredCount(final AppLogLevelEnum level, final Date dateAfter) {
+    private long filteredCount(final AppLogLevelEnum level,
+            final Date dateAfter) {
 
         final AppLogDao.ListFilter filter = new AppLogDao.ListFilter();
         filter.setDateFrom(dateAfter);
@@ -106,12 +111,11 @@ public class AppLogServiceImpl extends AbstractService implements AppLogService 
 
     @Override
     public final String logMessage(final AppLogLevelEnum level,
-            final Class<? extends Object> callingClass,
-            final String messageKey, final String... args) {
+            final Class<? extends Object> callingClass, final String messageKey,
+            final String... args) {
 
-        final String msgLog =
-                Messages.getMessage(callingClass,
-                        ConfigManager.getDefaultLocale(), messageKey, args);
+        final String msgLog = Messages.getMessage(callingClass,
+                ConfigManager.getDefaultLocale(), messageKey, args);
 
         if (level == AppLogLevelEnum.INFO) {
             LOGGER.debug(msgLog);
@@ -140,7 +144,9 @@ public class AppLogServiceImpl extends AbstractService implements AppLogService 
 
         final AppLog log = new AppLog();
 
-        log.setMessage(message);
+        // Mantis #1105
+        log.setMessage(StringUtils.defaultIfBlank(message, "?"));
+
         log.setLogLevel(level.getDbName());
         log.setLogDate(new Date());
 

@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -31,6 +34,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
@@ -665,7 +669,8 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
                 user.setCreatedBy(insertedBy);
                 user.setCreatedDate(insertDate);
 
-                if (user.getExternalUserName() == null) {
+                // Mantis #1105
+                if (StringUtils.isBlank(user.getExternalUserName())) {
                     user.setExternalUserName(user.getUserId());
                 }
 

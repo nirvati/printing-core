@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -79,6 +82,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
+import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dao.impl.DaoContextImpl;
 import org.savapage.core.job.DbBackupJob;
@@ -954,7 +958,7 @@ public final class DbTools implements ServiceEntryPoint {
             IppQueue queue = new IppQueue();
             queue.setCreatedBy(actor);
             queue.setCreatedDate(now);
-            queue.setUrlPath("");
+            queue.setUrlPath(ReservedIppQueueEnum.IPP_PRINT.getUrlPath());
             queue.setIpAllowed("");
             queue.setTrusted(true);
 
@@ -1142,6 +1146,13 @@ public final class DbTools implements ServiceEntryPoint {
             dbTrx = true;
         }
 
+        if (LOGGER.isDebugEnabled()) {
+            for (final Sequence seq : seqList) {
+                LOGGER.debug("Sequence {} : {}", seq.getName(),
+                        seq.getValue().longValue());
+            }
+        }
+
         try {
             for (final Sequence seq : seqList) {
 
@@ -1154,15 +1165,28 @@ public final class DbTools implements ServiceEntryPoint {
 
                 final long lastSequenceId = seq.getValue().longValue();
 
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Sequence {}|{} : last {}",
+                            entEnum.entClazz.getSimpleName(), entEnum.tableName,
+                            lastSequenceId);
+                }
+
                 final Query queryMax = em.createQuery(String.format(
                         "SELECT MAX(S.%s) FROM %s S", entEnum.attrId,
                         entEnum.entClazz.getSimpleName()));
                 final Long maxSeqID = (Long) queryMax.getSingleResult();
+
                 final long maxIdTable;
                 if (maxSeqID == null) {
                     maxIdTable = 0;
                 } else {
                     maxIdTable = maxSeqID.longValue();
+                }
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("         {}|{} :  max {}",
+                            entEnum.entClazz.getSimpleName(), entEnum.tableName,
+                            maxIdTable);
                 }
 
                 if (maxSeqID != null && maxIdTable > lastSequenceId) {

@@ -3,6 +3,9 @@
  * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -1884,9 +1887,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         final int nUp = ProxyPrintInboxReq.getNup(request.getOptionValues());
 
-        final String cupsPageSet = IppKeyword.CUPS_ATTR_PAGE_SET_ALL;
-        final String cupsJobSheets = "";
-
         final MediaSizeName mediaSizeName =
                 IppMediaSizeEnum.findMediaSizeName(request.getOptionValues()
                         .get(IppDictJobTemplateAttr.ATTR_MEDIA));
@@ -1919,9 +1919,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         printOut.setGrayscale(grayscale);
 
-        printOut.setCupsJobSheets(cupsJobSheets);
+        // Mantis #1105
+        printOut.setCupsJobSheets(IppKeyword.ATTR_JOB_SHEETS_NONE);
+        printOut.setCupsPageSet(IppKeyword.CUPS_ATTR_PAGE_SET_ALL);
+
         printOut.setCupsNumberUp(String.valueOf(nUp));
-        printOut.setCupsPageSet(cupsPageSet);
 
         printOut.setNumberOfCopies(request.getNumberOfCopies());
         printOut.setNumberOfSheets(numberOfSheets);
@@ -2468,7 +2470,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         final PrintOut printOut = docLog.getDocOut().getPrintOut();
 
-        printOut.setCupsJobSheets("");
+        // Mantis #1105
+        printOut.setCupsJobSheets(IppKeyword.ATTR_JOB_SHEETS_NONE);
+
         printOut.setCupsNumberUp(String.valueOf(request.getNup()));
         printOut.setCupsPageSet(IppKeyword.CUPS_ATTR_PAGE_SET_ALL);
 

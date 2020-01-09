@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Authors: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -45,9 +48,9 @@ public enum ReservedIppQueueEnum {
     AIRPRINT("airprint", "AirPrint", true),
 
     /**
-     * The default IPP queue for driver printing.
+     * The default IPP queue for driver printing. See Mantis #1105.
      */
-    IPP_PRINT("", "IPP Printer", true),
+    IPP_PRINT("/", "IPP Printer", true),
 
     /**
      * The default IPP queue for driver printing over public internet.
