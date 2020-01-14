@@ -50,10 +50,11 @@ public class User extends org.savapage.core.jpa.Entity {
     /** */
     public static final String TABLE_NAME = "tbl_user";
 
-    /** Mantis #1105 */
+    /**
+     * Reserved name for an erased user. The name is invalid in LDAP and PAM
+     * context. See Mantis #1105.
+     */
     public static final String ERASED_USER_ID = "=erased=";
-    /** Mantis #1105 */
-    public static final String ERASED_EXTERNAL_USER_NAME = "=erased=";
 
     @Id
     @Column(name = "user_id")

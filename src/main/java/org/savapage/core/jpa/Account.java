@@ -119,9 +119,6 @@ public class Account extends org.savapage.core.jpa.Entity {
     /** */
     public static final String TABLE_NAME = "tbl_account";
 
-    /** Mantis #1105 */
-    public static final String ERASED_ACCOUNT_NAME = "=erased=";
-
     @Id
     @Column(name = "account_id")
     @TableGenerator(name = "accountPropGen", table = Sequence.TABLE_NAME,

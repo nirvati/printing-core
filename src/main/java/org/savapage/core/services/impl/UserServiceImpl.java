@@ -140,9 +140,9 @@ public final class UserServiceImpl extends AbstractService
         }
 
         /*
-         * INVARIANT: Internal admin is a reserved user.
+         * INVARIANT: username MUST NOT be reserved.
          */
-        if (ConfigManager.isInternalAdmin(userid)) {
+        if (isReserverUserId(userid)) {
             return createError("msg-username-reserved", userid);
         }
 
@@ -709,6 +709,17 @@ public final class UserServiceImpl extends AbstractService
         return dto;
     }
 
+    /**
+     *
+     * @param userid
+     *            Unique User ID.
+     * @return {@code true} when User ID is reserved.
+     */
+    private static boolean isReserverUserId(final String userid) {
+        return ConfigManager.isInternalAdmin(userid)
+                || userid.equalsIgnoreCase(User.ERASED_USER_ID);
+    }
+
     @Override
     public AbstractJsonRpcMethodResponse setUser(final UserDto userDto,
             final boolean isNewInternalUser) throws IOException {
@@ -721,7 +732,7 @@ public final class UserServiceImpl extends AbstractService
             return createError("msg-user-userid-is-empty");
         }
 
-        if (ConfigManager.isInternalAdmin(userid)) {
+        if (isReserverUserId(userid)) {
             return createError("msg-username-reserved", userid);
         }
 
@@ -2681,7 +2692,7 @@ public final class UserServiceImpl extends AbstractService
         user.setModifiedDate(trxDate);
 
         user.setUserId(User.ERASED_USER_ID);
-        user.setExternalUserName(User.ERASED_EXTERNAL_USER_NAME);
+        user.setExternalUserName(User.ERASED_USER_ID);
 
         user.setFullName(null);
         user.setDepartment(null);
@@ -2706,14 +2717,14 @@ public final class UserServiceImpl extends AbstractService
                 account.setModifiedBy(ServiceContext.getActor());
                 account.setModifiedDate(trxDate);
 
-                account.setName(Account.ERASED_ACCOUNT_NAME);
-                account.setNameLower(Account.ERASED_ACCOUNT_NAME);
+                account.setName(User.ERASED_USER_ID);
+                account.setNameLower(User.ERASED_USER_ID.toLowerCase());
                 account.setNotes(null);
                 account.setPin(null);
 
                 if (account.getSubName() != null) {
-                    account.setSubName(Account.ERASED_ACCOUNT_NAME);
-                    account.setSubNameLower(Account.ERASED_ACCOUNT_NAME);
+                    account.setSubName(User.ERASED_USER_ID);
+                    account.setSubNameLower(User.ERASED_USER_ID.toLowerCase());
                     account.setSubPin(null);
                 }
             }
