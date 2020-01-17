@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -95,6 +98,7 @@ public final class RestClientServiceImpl extends AbstractService
                     createAllTrustedRegistry(this.sslContextAllTrusted));
 
         } else {
+            this.sslContextAllTrusted = null;
             this.connectionManager = new PoolingHttpClientConnectionManager();
         }
 
@@ -177,13 +181,14 @@ public final class RestClientServiceImpl extends AbstractService
         //
         builder.register(MultiPartFeature.class);
 
-        /*
-         * Since we do NOT use ApacheConnectorProvider, we MUST apply these
-         * methods.
-         */
-        builder.sslContext(this.sslContextAllTrusted)
-                .hostnameVerifier((s1, s2) -> true);
-
+        if (this.sslContextAllTrusted != null) {
+            /*
+             * Since we do NOT use ApacheConnectorProvider, we MUST apply these
+             * methods.
+             */
+            builder.sslContext(this.sslContextAllTrusted)
+                    .hostnameVerifier((s1, s2) -> true);
+        }
         return builder;
     }
 
