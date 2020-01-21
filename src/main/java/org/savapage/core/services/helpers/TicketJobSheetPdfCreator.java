@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -29,8 +32,11 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.print.attribute.standard.MediaSizeName;
 
@@ -360,21 +366,19 @@ public final class TicketJobSheetPdfCreator {
             return;
         }
 
+        // Accumulated copies for assigned user accounts.
+        final Map<String, Integer> userAccountAssigned = new HashMap<>();
+
+        // Delegator copies implicit by SHARED or GROUP account.
         int copiesDelegatorsImplicit = 0;
+        // Delegator copies assigned to USER account.
+        int copiesDelegatorsAssigned = 0;
 
         for (final OutboxAccountTrxInfo trxInfo : trxInfoSet
                 .getTransactions()) {
 
             final Account account =
                     ACCOUNT_DAO.findById(trxInfo.getAccountId());
-
-            final AccountTypeEnum accountType =
-                    AccountTypeEnum.valueOf(account.getAccountType());
-
-            if (accountType != AccountTypeEnum.SHARED
-                    && accountType != AccountTypeEnum.GROUP) {
-                continue;
-            }
 
             final int weightUnit;
 
@@ -385,6 +389,24 @@ public final class TicketJobSheetPdfCreator {
             }
 
             final int copiesAccount = trxInfo.getWeight() / weightUnit;
+
+            final AccountTypeEnum accountType =
+                    AccountTypeEnum.valueOf(account.getAccountType());
+
+            if (accountType != AccountTypeEnum.SHARED
+                    && accountType != AccountTypeEnum.GROUP) {
+
+                final String key = account.getNameLower();
+                Integer count = userAccountAssigned.get(key);
+                if (count == null) {
+                    count = Integer.valueOf(0);
+                }
+                userAccountAssigned.put(key,
+                        Integer.valueOf(count.intValue() + copiesAccount));
+
+                copiesDelegatorsAssigned += copiesAccount;
+                continue;
+            }
 
             copiesDelegatorsImplicit += copiesAccount;
 
@@ -401,12 +423,31 @@ public final class TicketJobSheetPdfCreator {
             sb.append(account.getName()).append(" : ").append(copiesAccount);
         }
 
-        final int copiesDelegatorsIndividual =
+        // Delegator copies explicit to USER account.
+        final int copiesDelegatorsExplicit =
                 job.getCopies() - copiesDelegatorsImplicit;
 
-        if (copiesDelegatorsIndividual > 0) {
+        if (copiesDelegatorsExplicit > 0) {
             sb.append("\n").append(NounEnum.USER.uiText(locale, true))
-                    .append(" : ").append(copiesDelegatorsIndividual);
+                    .append(" : ").append(copiesDelegatorsExplicit);
+
+            /*
+             * Give details of copies for individual users if ALL explicit
+             * copies are assigned copies.
+             */
+            if (copiesDelegatorsExplicit == copiesDelegatorsAssigned) {
+                sb.append("\n");
+                int iWlk = 0;
+                for (final Entry<String, Integer> entry : userAccountAssigned
+                        .entrySet()) {
+                    if (iWlk > 0) {
+                        sb.append(", ");
+                    }
+                    sb.append(entry.getKey()).append(" (")
+                            .append(entry.getValue()).append(")");
+                    iWlk++;
+                }
+            }
         }
 
         par.add(new Paragraph(sb.toString(), FONT_NORMAL));
