@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -3510,7 +3513,28 @@ public interface IConfigProp {
          */
         WEB_PRINT_LIMIT_IP_ADDRESSES(//
                 "web-print.limit-ip-addresses", CIDR_RANGES_VALIDATOR_OPT,
-                API_UPDATABLE_ON);
+                API_UPDATABLE_ON),
+
+        /**
+         * Use X-Forwarded-For (XFF) HTTP header to retrieve Client IP address?
+         */
+        WEBSERVER_HTTP_HEADER_XFF_ENABLE(//
+                "webserver.http.header.xff.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
+         *
+         */
+        WEBSERVER_HTTP_HEADER_XFF_DEBUG(//
+                "webserver.http.header.xff.debug", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
+         * If empty all XFF proxies are allowed.
+         */
+        WEBSERVER_HTTP_HEADER_XFF_PROXIES_ALLOWED(//
+                "webserver.http.header.xff.proxies.allowed",
+                CIDR_RANGES_VALIDATOR_OPT, API_UPDATABLE_ON);
 
         /**
          * Prefix for Web App theme keys.
