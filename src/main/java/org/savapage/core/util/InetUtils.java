@@ -64,7 +64,7 @@ public final class InetUtils {
     private static final String IP_LOOP_BACK_ADDR_PREFIX = "127.0.";
 
     /** */
-    private static final String IP_LOOP_BACK_ADDR = "127.0.0.1";
+    private static final String IPV4_LOOP_BACK_ADDR = "127.0.0.1";
 
     /** */
     public static final String LOCAL_HOST = "localhost";
@@ -107,7 +107,7 @@ public final class InetUtils {
      */
     public static boolean isPortInUse(final int port) {
         boolean inUse;
-        try (Socket socket = new Socket(IP_LOOP_BACK_ADDR, port);) {
+        try (Socket socket = new Socket(IPV4_LOOP_BACK_ADDR, port);) {
             inUse = true;
         } catch (Exception e) {
             inUse = false;
@@ -223,10 +223,73 @@ public final class InetUtils {
 
         if (serverAddresses.isEmpty()) {
             // No non-loop back address found: return loop back address.
-            return IP_LOOP_BACK_ADDR;
+            return IPV4_LOOP_BACK_ADDR;
         }
         // Get the first one.
         return serverAddresses.iterator().next();
+    }
+
+    /**
+     * Checks if an IPv4 or IPv6 address is in range of a collection of CIDRs.
+     * <p>
+     * Note: "127.0.0.1" is considered in range.
+     * </p>
+     *
+     * @param cidrRanges
+     *            CIDRs separated by any of the characters ' ' (space), ','
+     *            (comma) or ';' (semicolon).
+     * @param ipAddr
+     *            The IPv4 or IPv6 address.
+     * @return {@code true} if in range of at least one (1) CIDR.
+     */
+    public static boolean isIpAddrInCidrRanges(final String cidrRanges,
+            final String ipAddr) {
+
+        final String ipAddrWrk = ipAddr.trim();
+
+        boolean inrange = StringUtils.isBlank(cidrRanges)
+                || ipAddrWrk.equals(IPV4_LOOP_BACK_ADDR);
+
+        if (!inrange) {
+            for (final String cidr : StringUtils.split(cidrRanges, " ,;")) {
+                inrange = new CidrChecker(cidr.trim()).isInRange(ipAddrWrk);
+                if (inrange) {
+                    break;
+                }
+            }
+        }
+        return inrange;
+    }
+
+    /**
+     * @param cidrSet
+     *            Set of CIDR ranges.
+     * @return {@code true} if valid.
+     */
+    public static boolean isCidrSetValid(final String cidrSet) {
+        try {
+            /*
+             * Probe with a non-localhost address.
+             */
+            isIpAddrInCidrRanges(cidrSet, "10.0.0.1");
+            return true;
+        } catch (final Throwable thr) {
+            return false;
+        }
+    }
+
+    /**
+     * @param ipAddress
+     *            IP address.
+     * @return {@code true} if valid.
+     */
+    public static boolean isInetAddressValid(final String ipAddress) {
+        try {
+            InetAddress.getByName(ipAddress);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -235,6 +298,8 @@ public final class InetUtils {
      * Note: "127.0.0.1" is considered in range.
      * </p>
      *
+     * @deprecated Use {@link #isIpAddrInCidrRanges(String, String)} instead.
+     *
      * @param cidrRanges
      *            CIDRs separated by any of the characters ' ' (space), ','
      *            (comma), ':' (colon) or ';' (semicolon).
@@ -242,13 +307,14 @@ public final class InetUtils {
      *            The IPv4 address.
      * @return {@code true} if in range of at least one (1) CIDR.
      */
+    @Deprecated
     public static boolean isIp4AddrInCidrRanges(final String cidrRanges,
             final String ipAddr) {
 
         final String ipAddrWrk = ipAddr.trim();
 
         boolean inrange = StringUtils.isBlank(cidrRanges)
-                || ipAddrWrk.equals(IP_LOOP_BACK_ADDR);
+                || ipAddrWrk.equals(IPV4_LOOP_BACK_ADDR);
 
         if (!inrange) {
 
@@ -310,7 +376,7 @@ public final class InetUtils {
 
         try {
             return browserHost.equals(LOCAL_HOST)
-                    || browserHost.equals(IP_LOOP_BACK_ADDR)
+                    || browserHost.equals(IPV4_LOOP_BACK_ADDR)
                     || browserHost.endsWith(LOCAL_SUFFIX)
                     || getServerHostAddress().equals(browserHost);
         } catch (UnknownHostException e) {
