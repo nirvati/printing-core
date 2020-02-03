@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -87,6 +90,9 @@ public abstract class AbstractFileConverter {
     /** */
     private final ExecMode execMode;
 
+    /** */
+    private boolean hasStdout;
+
     /**
      *
      * @param emode
@@ -158,6 +164,21 @@ public abstract class AbstractFileConverter {
     protected abstract File getOutputFile(File fileIn);
 
     /**
+     * Notifies output on stdout.
+     *
+     * @param stdout
+     *            Output on stdout.
+     */
+    protected abstract void onStdout(String stdout);
+
+    /**
+     * @return {@code true} if this converter gave stdout messages.
+     */
+    public boolean hasStdout() {
+        return this.hasStdout;
+    }
+
+    /**
      * Performs a conversion using an OS Command.
      *
      * @param contentType
@@ -208,6 +229,8 @@ public abstract class AbstractFileConverter {
 
                 final String stdout = exec.getStandardOutput();
 
+                this.hasStdout = StringUtils.isNotBlank(stdout);
+
                 if (StringUtils.isNotBlank(stdout)) {
                     LOGGER.debug(stdout);
                 }
@@ -220,6 +243,8 @@ public abstract class AbstractFileConverter {
                     LOGGER.error("[" + pdfName + "] NOT created.");
                     throw new DocContentToPdfException("PDF is not created");
                 }
+
+                this.onStdout(stdout);
 
             } else {
 

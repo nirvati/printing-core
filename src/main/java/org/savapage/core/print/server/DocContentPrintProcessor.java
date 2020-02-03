@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -57,6 +60,7 @@ import org.savapage.core.doc.IDocFileConverter;
 import org.savapage.core.doc.IStreamConverter;
 import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToDecrypted;
+import org.savapage.core.doc.PdfToPrePress;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.ipp.routing.IppRoutingListener;
@@ -878,7 +882,8 @@ public final class DocContentPrintProcessor {
              */
             setDrmViolationDetected(false);
             setDrmRestricted(false);
-            setPdfToCairo(false);
+
+            this.pdfToCairo = false;
             this.pdfRepair = null;
 
             /*
@@ -977,13 +982,16 @@ public final class DocContentPrintProcessor {
                 if (cm.isConfigValue(Key.PRINT_IN_PDF_FONTS_VERIFY)) {
                     this.verifyPdfFonts(fileWrk);
                 }
-                if (!this.isPdfToCairo()
+                if (!this.pdfToCairo
                         && cm.isConfigValue(Key.PRINT_IN_PDF_FONTS_EMBED)) {
                     this.embedPdfFonts(fileWrk);
                 }
-                if (!this.isPdfToCairo()
+                if (!this.pdfToCairo
                         && cm.isConfigValue(Key.PRINT_IN_PDF_CLEAN)) {
                     this.cleanPdf(fileWrk);
+                }
+                if (cm.isConfigValue(Key.PRINT_IN_PDF_PREPRESS)) {
+                    this.cleanPdfPrepress(fileWrk);
                 }
             }
 
@@ -1093,13 +1101,16 @@ public final class DocContentPrintProcessor {
 
         if (!validator.execute()) {
 
-            if (!this.isPdfToCairo()) {
+            if (!this.pdfToCairo) {
+
+                final PdfRepair converter = new PdfRepair();
+
                 FileSystemHelper.replaceWithNewVersion(pdf,
-                        new PdfRepair().convert(pdf));
+                        converter.convert(pdf));
                 // Try again.
                 if (validator.execute()) {
                     this.pdfRepair = PdfRepairEnum.FONT;
-                    this.setPdfToCairo(true);
+                    this.pdfToCairo = true;
                     return;
                 }
                 this.pdfRepair = PdfRepairEnum.FONT_FAIL;
@@ -1132,10 +1143,14 @@ public final class DocContentPrintProcessor {
             return;
         }
 
+        final PdfRepair converter = new PdfRepair();
+
         try {
-            FileSystemHelper.replaceWithNewVersion(pdf,
-                    new PdfRepair().convert(pdf));
-            this.setPdfToCairo(true);
+            FileSystemHelper.replaceWithNewVersion(pdf, converter.convert(pdf));
+            this.pdfToCairo = true;
+            if (converter.hasStdout()) {
+                this.pdfRepair = PdfRepairEnum.DOC;
+            }
         } catch (IOException e) {
             this.pdfRepair = PdfRepairEnum.DOC_FAIL;
             throw new PdfValidityException("Embed Font errors.",
@@ -1154,13 +1169,42 @@ public final class DocContentPrintProcessor {
      */
     private void cleanPdf(final File pdf) throws PdfValidityException {
 
+        final PdfRepair converter = new PdfRepair();
+
         try {
-            FileSystemHelper.replaceWithNewVersion(pdf,
-                    new PdfRepair().convert(pdf));
-            this.setPdfToCairo(true);
+            FileSystemHelper.replaceWithNewVersion(pdf, converter.convert(pdf));
+            this.pdfToCairo = true;
+            if (converter.hasStdout()) {
+                this.pdfRepair = PdfRepairEnum.DOC;
+            }
         } catch (IOException e) {
             this.pdfRepair = PdfRepairEnum.DOC_FAIL;
             throw new PdfValidityException("PDF cleaning errors.",
+                    PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
+                    PhraseEnum.PDF_INVALID);
+        }
+    }
+
+    /**
+     * Cleans a PDF file by executing Ghostscript prepress.
+     *
+     * @param pdf
+     *            PDF file.
+     * @throws PdfValidityException
+     *             When error(s).
+     */
+    private void cleanPdfPrepress(final File pdf) throws PdfValidityException {
+
+        final PdfToPrePress converter = new PdfToPrePress();
+
+        try {
+            FileSystemHelper.replaceWithNewVersion(pdf, converter.convert(pdf));
+            if (converter.hasStdout()) {
+                this.pdfRepair = PdfRepairEnum.DOC;
+            }
+        } catch (IOException e) {
+            this.pdfRepair = PdfRepairEnum.DOC_FAIL;
+            throw new PdfValidityException("PDF prepress errors.",
                     PhraseEnum.PDF_INVALID.uiText(ServiceContext.getLocale()),
                     PhraseEnum.PDF_INVALID);
         }
@@ -1204,8 +1248,9 @@ public final class DocContentPrintProcessor {
 
                 // Convert ...
                 try {
+                    final PdfRepair converter = new PdfRepair();
                     FileSystemHelper.replaceWithNewVersion(pdfFile,
-                            new PdfRepair().convert(pdfFile));
+                            converter.convert(pdfFile));
                 } catch (IOException ignore) {
                     throw new PdfValidityException(e.getMessage(),
                             PhraseEnum.PDF_REPAIR_FAILED
@@ -1216,7 +1261,7 @@ public final class DocContentPrintProcessor {
                 pdfPageProps = SpPdfPageProps.create(tempPathPdf);
 
                 this.pdfRepair = PdfRepairEnum.DOC;
-                this.setPdfToCairo(true);
+                this.pdfToCairo = true;
             } else {
                 throw e;
             }
@@ -1420,14 +1465,6 @@ public final class DocContentPrintProcessor {
 
     public boolean isPdfRepaired() {
         return this.pdfRepair != null && this.pdfRepair.isRepaired();
-    }
-
-    public boolean isPdfToCairo() {
-        return pdfToCairo;
-    }
-
-    private void setPdfToCairo(boolean pdfToCairo) {
-        this.pdfToCairo = pdfToCairo;
     }
 
     /**

@@ -35,6 +35,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.UnavailableException;
 import org.savapage.core.UnavailableException.State;
+import org.savapage.core.cometd.AdminPublisher;
+import org.savapage.core.cometd.PubLevelEnum;
+import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.concurrent.ReadLockObtainFailedException;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
@@ -571,6 +574,10 @@ public final class QueueServiceImpl extends AbstractService
         if (processor.isPdfRepaired()) {
             LOGGER.warn("PDF [{}] is invalid and has been repaired.",
                     printReq.getFileName());
+
+            AdminPublisher.instance().publish(PubTopicEnum.USER,
+                    PubLevelEnum.WARN, String.format("User [%s] [%s] repaired.",
+                            userId, printReq.getFileName()));
         }
 
         return printRsp;

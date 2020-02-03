@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -24,7 +27,6 @@ package org.savapage.core.doc;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.io.FilenameUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.system.SystemInfo;
 
@@ -36,20 +38,13 @@ import org.savapage.core.system.SystemInfo;
  * @author Rijk Ravestein
  *
  */
-public final class PdfRepair extends AbstractFileConverter
-        implements IPdfConverter, IPdfRepair, IPdfEmbedAllFonts {
-
-    /**
-     * The directory location of the created file (can be {@code null}).
-     */
-    private final File createHome;
+public final class PdfRepair extends AbstractPdfRepair {
 
     /**
      * Tries to repair a corrupted PDF file, embedding all fonts along the way.
      */
     public PdfRepair() {
-        super(ExecMode.MULTI_THREADED);
-        this.createHome = null;
+        super();
     }
 
     /**
@@ -58,32 +53,7 @@ public final class PdfRepair extends AbstractFileConverter
      *            The directory location of the created file.
      */
     public PdfRepair(final File createDir) {
-        super(ExecMode.MULTI_THREADED);
-        this.createHome = createDir;
-    }
-
-    @Override
-    protected ExecType getExecType() {
-        return ExecType.ADVANCED;
-    }
-
-    @Override
-    protected File getOutputFile(final File fileIn) {
-
-        final StringBuilder builder = new StringBuilder(128);
-
-        if (this.createHome == null) {
-            builder.append(fileIn.getParent());
-        } else {
-            builder.append(this.createHome.getAbsolutePath());
-        }
-
-        builder.append(File.separator)
-                .append(FilenameUtils.getBaseName(fileIn.getAbsolutePath()))
-                .append("-repaired.")
-                .append(DocContent.getFileExtension(DocContentTypeEnum.PDF));
-
-        return new File(builder.toString());
+        super(createDir);
     }
 
     @Override
@@ -104,13 +74,8 @@ public final class PdfRepair extends AbstractFileConverter
     }
 
     @Override
-    public File convert(final File fileIn) throws IOException {
-        final File filePdf = getOutputFile(fileIn);
-        try {
-            return convertWithOsCommand(DocContentTypeEnum.PDF, fileIn, filePdf,
-                    getOsCommand(DocContentTypeEnum.PDF, fileIn, filePdf));
-        } catch (DocContentToPdfException e) {
-            throw new IOException(e.getMessage());
-        }
+    protected String getUniqueFileNamePfx() {
+        return "-repair";
     }
+
 }

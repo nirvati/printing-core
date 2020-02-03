@@ -1954,6 +1954,13 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Enable/disable prepress of print-in PDF documents (Web Print).
+         */
+        PRINT_IN_PDF_PREPRESS(//
+                "print-in.pdf.prepress", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
          * Number of minutes after which a print-in job expires. When zero (0)
          * there is NO expiry.
          *

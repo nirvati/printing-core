@@ -28,17 +28,17 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FilenameUtils;
-import org.savapage.core.SpException;
-import org.savapage.core.system.SystemInfo;
 
 /**
- * Converts a PDF file to grayscale PDF.
+ * Tries to repair a corrupted PDF file, embedding all fonts along the way.
+ *
+ * @see <a href="https://issues.savapage.org/view.php?id=1011">Mantis #1011</a>
  *
  * @author Rijk Ravestein
  *
  */
-public final class PdfToGrayscale extends AbstractFileConverter
-        implements IPdfConverter {
+public abstract class AbstractPdfRepair extends AbstractFileConverter
+        implements IPdfConverter, IPdfRepair, IPdfEmbedAllFonts {
 
     /**
      * The directory location of the created file (can be {@code null}).
@@ -46,9 +46,9 @@ public final class PdfToGrayscale extends AbstractFileConverter
     private final File createHome;
 
     /**
-     *
+     * Tries to repair a corrupted PDF file, embedding all fonts along the way.
      */
-    public PdfToGrayscale() {
+    public AbstractPdfRepair() {
         super(ExecMode.MULTI_THREADED);
         this.createHome = null;
     }
@@ -58,15 +58,20 @@ public final class PdfToGrayscale extends AbstractFileConverter
      * @param createDir
      *            The directory location of the created file.
      */
-    public PdfToGrayscale(final File createDir) {
+    public AbstractPdfRepair(final File createDir) {
         super(ExecMode.MULTI_THREADED);
         this.createHome = createDir;
     }
 
     @Override
-    protected ExecType getExecType() {
+    protected final ExecType getExecType() {
         return ExecType.ADVANCED;
     }
+
+    /**
+     * @return
+     */
+    protected abstract String getUniqueFileNamePfx();
 
     @Override
     protected File getOutputFile(final File fileIn) {
@@ -81,42 +86,14 @@ public final class PdfToGrayscale extends AbstractFileConverter
 
         builder.append(File.separator)
                 .append(FilenameUtils.getBaseName(fileIn.getAbsolutePath()))
-                .append("-grayscale.")
+                .append(this.getUniqueFileNamePfx())
                 .append(DocContent.getFileExtension(DocContentTypeEnum.PDF));
 
         return new File(builder.toString());
     }
 
     @Override
-    protected String getOsCommand(final DocContentTypeEnum contentType,
-            final File fileIn, final File fileOut) {
-
-        final StringBuilder cmd = new StringBuilder(128);
-
-        try {
-            /*
-             * See #598
-             */
-            cmd.append(SystemInfo.Command.GS.cmd()).append(" -sOutputFile=\"")
-                    .append(fileOut.getCanonicalPath())
-                    .append("\" -sDEVICE=pdfwrite -dNOPAUSE -dBATCH")
-                    .append(" -sColorConversionStrategy=Gray")
-                    .append(" -sProcessColorModel=DeviceGray")
-                    // Needed for gs 9.10
-                    // http://bugs.ghostscript.com/show_bug.cgi?id=694608
-                    .append(" -dPDFUseOldCMS=false")
-                    //
-                    .append(" -dCompatibilityLevel=1.4 \"")
-                    .append(fileIn.getCanonicalPath()).append("\"");
-        } catch (IOException e) {
-            throw new SpException(e.getMessage(), e);
-        }
-
-        return cmd.toString();
-    }
-
-    @Override
-    public File convert(final File fileIn) throws IOException {
+    public final File convert(final File fileIn) throws IOException {
         final File filePdf = getOutputFile(fileIn);
         try {
             return convertWithOsCommand(DocContentTypeEnum.PDF, fileIn, filePdf,
@@ -127,7 +104,8 @@ public final class PdfToGrayscale extends AbstractFileConverter
     }
 
     @Override
-    protected void onStdout(final String stdout) {
-        // no code intended.
+    protected final void onStdout(final String stdout) {
+        // no code intended
     }
+
 }
