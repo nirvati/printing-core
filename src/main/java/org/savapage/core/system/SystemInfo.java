@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -81,7 +84,7 @@ public final class SystemInfo {
          */
         QPDF("qpdf"),
         /**
-         * Part of librsvg2-bin package
+         * Part of librsvg2-bin package.
          */
         RSVG_CONVERT("rsvg-convert"),
         /**
@@ -148,6 +151,36 @@ public final class SystemInfo {
         }
     }
 
+    /**
+     * {@link Command#GS} CLI options.
+     *
+     */
+    public enum ArgumentGS {
+
+        /** */
+        EMBED_ALL_FONTS("-dEmbedAllFonts=true"),
+        /** */
+        STDOUT_TO_STDOUT("-sstdout=%stdout");
+
+        /** */
+        private final String arg;
+
+        /**
+         * @param argument
+         *            CLI argument.
+         */
+        ArgumentGS(final String argument) {
+            this.arg = argument;
+        }
+
+        /**
+         * @return The CLI argument.
+         */
+        public String getArg() {
+            return this.arg;
+        }
+    }
+
     /** */
     public enum SysctlEnum {
         /** */
@@ -185,7 +218,7 @@ public final class SystemInfo {
          * @param key
          *            Key.
          */
-        private SysctlEnum(final String key) {
+        SysctlEnum(final String key) {
             this.key = key;
         }
 

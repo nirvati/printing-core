@@ -59,9 +59,13 @@ public interface IDocFileConverter extends IDocConverter {
             throws DocContentToPdfException, UnavailableException;
 
     /**
-     * @return {@code true} if messages from stdout of any OS command must be
-     *         notified/reported/logged.
+     * @return {@code true} if OS command messages on stdout are present and
+     *         must be notified/reported/logged.
      */
-    boolean notifyStdout();
+    boolean notifyStdOutMsg();
 
+    /**
+     * @return {@code true} if OS command messages on stderr are present.
+     */
+    boolean hasStdErrMsg();
 }

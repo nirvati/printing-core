@@ -27,6 +27,7 @@ package org.savapage.core.doc;
 import java.io.File;
 
 import org.savapage.core.print.server.PostScriptFilter;
+import org.savapage.core.system.SystemInfo.ArgumentGS;
 import org.savapage.core.system.SystemInfo.Command;
 
 /**
@@ -59,12 +60,13 @@ public final class PsToPdf extends AbstractDocFileConverter {
     protected String getOsCommand(final DocContentTypeEnum contentType,
             final File fileIn, final File fileOut) {
         // Although font embedding is default, make it explicit.
-        return Command.PS2PDF.cmdLineExt("-dEmbedAllFonts=true",
-                fileIn.getAbsolutePath(), fileOut.getAbsolutePath());
+        return Command.PS2PDF.cmdLineExt(ArgumentGS.STDOUT_TO_STDOUT.getArg(),
+                ArgumentGS.EMBED_ALL_FONTS.getArg(), fileIn.getAbsolutePath(),
+                fileOut.getAbsolutePath());
     }
 
     @Override
-    public boolean notifyStdout() {
+    public boolean notifyStdOutMsg() {
         return this.hasStdout();
     }
 

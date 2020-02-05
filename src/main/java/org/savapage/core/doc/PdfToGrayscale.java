@@ -30,6 +30,7 @@ import java.io.IOException;
 import org.apache.commons.io.FilenameUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.system.SystemInfo;
+import org.savapage.core.system.SystemInfo.ArgumentGS;
 
 /**
  * Converts a PDF file to grayscale PDF.
@@ -99,7 +100,8 @@ public final class PdfToGrayscale extends AbstractFileConverter
              */
             cmd.append(SystemInfo.Command.GS.cmd()).append(" -sOutputFile=\"")
                     .append(fileOut.getCanonicalPath())
-                    .append("\" -sDEVICE=pdfwrite -dNOPAUSE -dBATCH")
+                    .append("\" -sDEVICE=pdfwrite -dNOPAUSE -dBATCH ")
+                    .append(ArgumentGS.STDOUT_TO_STDOUT.getArg())
                     .append(" -sColorConversionStrategy=Gray")
                     .append(" -sProcessColorModel=DeviceGray")
                     // Needed for gs 9.10

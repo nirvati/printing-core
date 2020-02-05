@@ -860,13 +860,19 @@ public final class DocContentPrintProcessor {
              */
             fostrContent = new FileOutputStream(contentFile);
 
+            final boolean keepPostScriptOnStdErr =
+                    inputType == DocContentTypeEnum.PS && cm
+                            .isConfigValue(Key.PRINT_IN_PS_STDERR_KEEP_FILE);
             /*
              * Administer the just created file as created or 2delete.
              */
             if (inputType == DocContentTypeEnum.PDF) {
                 filesCreated.add(contentFile);
             } else {
-                files2Delete.add(contentFile);
+                // Wait for stderr: do not delete PostScript file yet.
+                if (!keepPostScriptOnStdErr) {
+                    files2Delete.add(contentFile);
+                }
             }
 
             /*
@@ -993,12 +999,22 @@ public final class DocContentPrintProcessor {
                 if (cm.isConfigValue(Key.PRINT_IN_PDF_PREPRESS)) {
                     this.cleanPdfPrepress(fileWrk);
                 }
-            } else if (fileConverter != null && fileConverter.notifyStdout()) {
+            } else if (fileConverter != null && fileConverter.hasStdErrMsg()) {
+                final StringBuilder msg = new StringBuilder();
+                msg.append("User \"").append(this.uidTrusted).append("\" ")
+                        .append(fileConverter.getClass().getSimpleName())
+                        .append(" errors.");
+                if (keepPostScriptOnStdErr) {
+                    msg.append(" PostScript file is kept.");
+                }
                 AdminPublisher.instance().publish(PubTopicEnum.USER,
-                        PubLevelEnum.WARN,
-                        String.format("User \"%s\" %s messages on stdout.",
-                                this.uidTrusted,
-                                fileConverter.getClass().getSimpleName()));
+                        PubLevelEnum.ERROR, msg.toString());
+            }
+
+            // Check again...
+            if (keepPostScriptOnStdErr && !fileConverter.hasStdErrMsg()) {
+                // No stderr: delete PostScript file after all.
+                files2Delete.add(contentFile);
             }
 
             /*

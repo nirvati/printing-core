@@ -109,7 +109,7 @@ public final class SOfficeToPdf extends AbstractDocFileConverter {
     }
 
     @Override
-    public boolean notifyStdout() {
+    public boolean notifyStdOutMsg() {
         return false;
     }
 }

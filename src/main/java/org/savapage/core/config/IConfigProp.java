@@ -1961,6 +1961,14 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Keep print-in PostScript file for debug purposes in temp directory
+         * when stderr on ps2pdf.
+         */
+        PRINT_IN_PS_STDERR_KEEP_FILE(//
+                "print-in.ps.stderr.keep-file", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
          * Number of minutes after which a print-in job expires. When zero (0)
          * there is NO expiry.
          *

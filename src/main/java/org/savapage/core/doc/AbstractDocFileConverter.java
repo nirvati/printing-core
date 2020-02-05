@@ -70,6 +70,11 @@ public abstract class AbstractDocFileConverter extends AbstractFileConverter
     }
 
     @Override
+    public final boolean hasStdErrMsg() {
+        return this.hasStderr();
+    }
+
+    @Override
     protected void onStdout(final String stdout) {
         // no code intended.
     }

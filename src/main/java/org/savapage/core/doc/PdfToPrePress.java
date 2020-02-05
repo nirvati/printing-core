@@ -29,6 +29,7 @@ import java.io.IOException;
 
 import org.savapage.core.SpException;
 import org.savapage.core.system.SystemInfo;
+import org.savapage.core.system.SystemInfo.ArgumentGS;
 
 /**
  * Uses Ghostscript to /prepress a PDF file, this will EmbedAllFonts by default.
@@ -40,8 +41,8 @@ import org.savapage.core.system.SystemInfo;
  * quits distilling the current job).
  * </p>
  * <p>
- * <b>However: warnings and errors are written to stdout and gs returns with
- * {@code rc == 0}.</b>
+ * <b>However: warnings and errors are written to stdout/stderr and gs returns
+ * with {@code rc == 0}.</b>
  * </p>
  * <p>
  * For example:
@@ -84,7 +85,8 @@ public final class PdfToPrePress extends AbstractPdfRepair {
         try {
             cmd.append(SystemInfo.Command.GS.cmd()).append(" -sOutputFile=\"")
                     .append(fileOut.getCanonicalPath())
-                    .append("\" -sDEVICE=pdfwrite -q -dNOPAUSE -dBATCH") //
+                    .append("\" -sDEVICE=pdfwrite -q -dNOPAUSE -dBATCH ") //
+                    .append(ArgumentGS.STDOUT_TO_STDOUT.getArg())
                     .append(" -dPDFSETTINGS=/prepress") //
                     .append(" \"").append(fileIn.getCanonicalPath())
                     .append("\"");

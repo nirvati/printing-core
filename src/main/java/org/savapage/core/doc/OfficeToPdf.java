@@ -102,7 +102,7 @@ public final class OfficeToPdf extends AbstractDocFileConverter {
     }
 
     @Override
-    public boolean notifyStdout() {
+    public boolean notifyStdOutMsg() {
         return false;
     }
 

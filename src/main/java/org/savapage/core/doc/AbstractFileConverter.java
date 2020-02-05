@@ -48,6 +48,9 @@ public abstract class AbstractFileConverter {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(AbstractFileConverter.class);
 
+    /** */
+    private static final int MAX_ERROR_LEN = 512;
+
     /**
      * .
      */
@@ -92,6 +95,9 @@ public abstract class AbstractFileConverter {
 
     /** */
     private boolean hasStdout;
+
+    /** */
+    private boolean hasStderr;
 
     /**
      *
@@ -179,6 +185,13 @@ public abstract class AbstractFileConverter {
     }
 
     /**
+     * @return {@code true} if this converter gave stderr messages.
+     */
+    public boolean hasStderr() {
+        return this.hasStderr;
+    }
+
+    /**
      * Performs a conversion using an OS Command.
      *
      * @param contentType
@@ -223,44 +236,48 @@ public abstract class AbstractFileConverter {
                 rc = exec.executeCommand();
             }
 
-            if (rc == 0) {
+            final String stdout = exec.getStandardOutput();
+            final String stderr = exec.getStandardError();
 
-                pdfCreated = true;
+            this.hasStdout = StringUtils.isNotBlank(stdout);
+            this.hasStderr = StringUtils.isNotBlank(stderr);
 
-                final String stdout = exec.getStandardOutput();
-
-                this.hasStdout = StringUtils.isNotBlank(stdout);
-
-                if (StringUtils.isNotBlank(stdout)) {
-                    LOGGER.debug(stdout);
-                }
-
-                if (filePdf.exists()) {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("[" + pdfName + "] created.");
-                    }
-                } else {
-                    LOGGER.error("[" + pdfName + "] NOT created.");
-                    throw new DocContentToPdfException("PDF is not created");
-                }
-
-                this.onStdout(stdout);
-
-            } else {
-
-                final String stderr = exec.getStandardError();
-
-                String reason = "";
-
-                if (StringUtils.isNotBlank(stderr)) {
-                    reason = " [" + stderr + "]";
-                }
-
-                LOGGER.error("Command [" + command + "] failed." + reason);
-
-                throw new DocContentToPdfException(
-                        "PDF could not be created" + reason);
+            if (this.hasStdout) {
+                LOGGER.debug("[{}] {}", command, stdout);
             }
+
+            final String stderrMsg;
+
+            if (this.hasStderr) {
+                final StringBuilder msg = new StringBuilder();
+                msg.append(" ")
+                        .append(StringUtils.abbreviate(stderr, MAX_ERROR_LEN));
+                if (stderr.length() > MAX_ERROR_LEN) {
+                    msg.append(" (and more)");
+                }
+                stderrMsg = msg.toString();
+                LOGGER.error("[{}]{}", command, stderrMsg);
+            } else {
+                stderrMsg = "";
+            }
+
+            if (rc != 0) {
+                throw new DocContentToPdfException(
+                        "PDF could not be created" + stderrMsg);
+            }
+
+            pdfCreated = true;
+
+            if (filePdf.exists()) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("[" + pdfName + "] created.");
+                }
+            } else {
+                LOGGER.error("[" + pdfName + "] NOT created.");
+                throw new DocContentToPdfException("PDF is not created");
+            }
+
+            this.onStdout(stdout);
 
         } catch (IOException | InterruptedException e) {
             throw new SpException(e);

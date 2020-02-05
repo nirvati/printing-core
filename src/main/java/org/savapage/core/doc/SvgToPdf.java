@@ -61,7 +61,7 @@ public final class SvgToPdf extends AbstractDocFileConverter {
     }
 
     @Override
-    public boolean notifyStdout() {
+    public boolean notifyStdOutMsg() {
         return this.hasStdout();
     }
 
