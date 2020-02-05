@@ -113,4 +113,9 @@ public final class XpsToPdf extends AbstractDocFileConverter {
 
     }
 
+    @Override
+    public boolean notifyStdout() {
+        return this.hasStdout();
+    }
+
 }

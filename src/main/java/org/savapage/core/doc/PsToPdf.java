@@ -63,4 +63,9 @@ public final class PsToPdf extends AbstractDocFileConverter {
                 fileIn.getAbsolutePath(), fileOut.getAbsolutePath());
     }
 
+    @Override
+    public boolean notifyStdout() {
+        return this.hasStdout();
+    }
+
 }

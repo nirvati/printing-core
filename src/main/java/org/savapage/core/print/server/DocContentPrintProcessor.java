@@ -52,7 +52,6 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.IppRoutingEnum;
-import org.savapage.core.doc.AbstractFileConverter;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentToPdfException;
 import org.savapage.core.doc.DocContentTypeEnum;
@@ -994,14 +993,12 @@ public final class DocContentPrintProcessor {
                 if (cm.isConfigValue(Key.PRINT_IN_PDF_PREPRESS)) {
                     this.cleanPdfPrepress(fileWrk);
                 }
-            } else if (fileConverter instanceof AbstractFileConverter) {
-                if (((AbstractFileConverter) fileConverter).hasStdout()) {
-                    AdminPublisher.instance().publish(PubTopicEnum.USER,
-                            PubLevelEnum.WARN,
-                            String.format("User \"%s\" %s errors or warnings.",
-                                    this.uidTrusted,
-                                    fileConverter.getClass().getSimpleName()));
-                }
+            } else if (fileConverter != null && fileConverter.notifyStdout()) {
+                AdminPublisher.instance().publish(PubTopicEnum.USER,
+                        PubLevelEnum.WARN,
+                        String.format("User \"%s\" %s messages on stdout.",
+                                this.uidTrusted,
+                                fileConverter.getClass().getSimpleName()));
             }
 
             /*

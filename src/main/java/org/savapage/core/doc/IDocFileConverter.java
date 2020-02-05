@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -54,5 +57,11 @@ public interface IDocFileConverter extends IDocConverter {
      */
     File convert(DocContentTypeEnum contentType, File file)
             throws DocContentToPdfException, UnavailableException;
+
+    /**
+     * @return {@code true} if messages from stdout of any OS command must be
+     *         notified/reported/logged.
+     */
+    boolean notifyStdout();
 
 }
