@@ -1961,11 +1961,38 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
-         * Keep print-in PostScript file for debug purposes in temp directory
-         * when stderr on ps2pdf.
+         * Trigger to render all driver printed PostScript pages to images.
          */
-        PRINT_IN_PS_STDERR_KEEP_FILE(//
-                "print-in.ps.stderr.keep-file", BOOLEAN_VALIDATOR, V_NO,
+        PRINT_IN_PS_DRIVER_IMAGES_TRIGGER(//
+                "print-in.ps.driver.images.trigger", ON_OFF_ENUM_VALIDATOR,
+                OnOffEnum.AUTO.toString(), API_UPDATABLE_ON),
+
+        /**
+         * Driver printed PostScript image DPI.
+         */
+        PRINT_IN_PS_DRIVER_IMAGES_DPI(//
+                "print-in.ps.driver.images.dpi", NUMBER_VALIDATOR, "300",
+                API_UPDATABLE_ON),
+
+        /**
+         * Temporarily detain driver printed PostScript file.
+         */
+        PRINT_IN_PS_DRIVER_DETAIN(//
+                "print-in.ps.driver.detain", ON_OFF_ENUM_VALIDATOR,
+                OnOffEnum.OFF.toString(), API_UPDATABLE_ON),
+
+        /**
+         * Trigger to render all driver printed PostScript pages to images.
+         */
+        PRINT_IN_PS_DRIVERLESS_IMAGES_TRIGGER(//
+                "print-in.ps.driverless.images.trigger", ON_OFF_ENUM_VALIDATOR,
+                OnOffEnum.AUTO.toString(), API_UPDATABLE_ON),
+
+        /**
+         * Driverless printed PostScript image DPI.
+         */
+        PRINT_IN_PS_DRIVERLESS_IMAGES_DPI(//
+                "print-in.ps.driverless.images.dpi", NUMBER_VALIDATOR, "300",
                 API_UPDATABLE_ON),
 
         /**
@@ -3222,7 +3249,7 @@ public interface IConfigProp {
          */
         WEBAPP_USER_MAIN_NAV_BUTTON_TEXT(//
                 "webapp.user.main.nav-button-text",
-                new EnumValidator<>(OnOffEnum.class), OnOffEnum.AUTO.toString(),
+                ON_OFF_ENUM_VALIDATOR, OnOffEnum.AUTO.toString(),
                 API_UPDATABLE_ON),
 
         /**
@@ -3874,6 +3901,10 @@ public interface IConfigProp {
     /** */
     CronExpressionDaysOfWeekValidator CRON_EXPR_DAY_OF_WEEK_VALIDATOR =
             new CronExpressionDaysOfWeekValidator();
+
+    /** */
+    ConfigPropValidator ON_OFF_ENUM_VALIDATOR =
+            new EnumValidator<>(OnOffEnum.class);
 
     /**
      * .

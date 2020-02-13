@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -759,18 +762,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         new File(this.targetPdfCopyFilePath).delete();
     }
 
-    /**
-     *
-     * @return The Creator string visible in the PDF properties of PDF Reader.
-     */
-    private String getCreatorString() {
-        return String.format("%s %s • %s • %s",
-                CommunityDictEnum.SAVAPAGE.getWord(),
-                ConfigManager.getAppVersion(),
-                CommunityDictEnum.SAVAPAGE_SLOGAN.getWord(),
-                CommunityDictEnum.SAVAPAGE_DOT_ORG.getWord());
-    }
-
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
     protected void onStampMetaDataForExport(final Calendar now,
@@ -792,14 +783,13 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
          * info.setModificationDate(now);
          */
 
-        info.put(PDF_INFO_KEY_CREATOR, this.getCreatorString());
+        info.put(PDF_INFO_KEY_CREATOR, getCreatorString());
 
         if (propPdf.getApply().getKeywords()) {
             info.put(PDF_INFO_KEY_KEYWORDS, propPdf.getDesc().getKeywords());
         }
 
         this.targetStamper.setMoreInfo(info);
-
     }
 
     @Override
@@ -812,7 +802,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         info.put(PDF_INFO_KEY_SUBJECT, "FOR PRINTING PURPOSES ONLY");
         info.put(PDF_INFO_KEY_AUTHOR, CommunityDictEnum.SAVAPAGE.getWord());
 
-        info.put(PDF_INFO_KEY_CREATOR, this.getCreatorString());
+        info.put(PDF_INFO_KEY_CREATOR, getCreatorString());
 
         // info.setModificationDate(now);
         if (propPdf.getApply().getKeywords()) {

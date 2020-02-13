@@ -49,6 +49,7 @@ import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.config.OnOffEnum;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.IppRoutingEnum;
@@ -57,10 +58,12 @@ import org.savapage.core.doc.DocContentToPdfException;
 import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.doc.DocInputStream;
 import org.savapage.core.doc.IDocFileConverter;
+import org.savapage.core.doc.IPostScriptConverter;
 import org.savapage.core.doc.IStreamConverter;
 import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToDecrypted;
 import org.savapage.core.doc.PdfToPrePress;
+import org.savapage.core.doc.PsToImagePdf;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.ipp.routing.IppRoutingListener;
@@ -755,6 +758,32 @@ public final class DocContentPrintProcessor {
     }
 
     /**
+     * @param cm
+     *            {@link ConfigManager}.
+     * @param tempDirApp
+     *            Directory for temporary files.
+     * @param isDriverPrint
+     *            {@code true} if Driver Print.
+     * @return {@link IPostScriptConverter}.
+     */
+    private IPostScriptConverter createPostScriptToImageConverter(
+            final ConfigManager cm, final String tempDirApp,
+            final boolean isDriverPrint) {
+
+        final int dpi;
+
+        if (isDriverPrint) {
+            dpi = cm.getConfigInt(Key.PRINT_IN_PS_DRIVER_IMAGES_DPI);
+        } else {
+            dpi = cm.getConfigInt(Key.PRINT_IN_PS_DRIVERLESS_IMAGES_DPI);
+        }
+
+        return new PsToImagePdf(new File(tempDirApp), dpi, this.jobName,
+                StringUtils.defaultString(this.getUserDb().getFullName(),
+                        this.requestingUserId));
+    }
+
+    /**
      * Processes content to be printed as offered on the input stream, writes a
      * {@link DocLog}, and places the resulting PDF in the user's inbox.
      * <p>
@@ -860,17 +889,25 @@ public final class DocContentPrintProcessor {
              */
             fostrContent = new FileOutputStream(contentFile);
 
-            final boolean keepPostScriptOnStdErr =
-                    inputType == DocContentTypeEnum.PS && cm
-                            .isConfigValue(Key.PRINT_IN_PS_STDERR_KEEP_FILE);
+            final OnOffEnum detainPostScript;
+
+            if (inputType == DocContentTypeEnum.PS
+                    && protocol.isDriverPrint()) {
+                detainPostScript = cm.getConfigEnum(OnOffEnum.class,
+                        Key.PRINT_IN_PS_DRIVER_DETAIN);
+            } else {
+                detainPostScript = OnOffEnum.OFF;
+            }
+
             /*
              * Administer the just created file as created or 2delete.
              */
             if (inputType == DocContentTypeEnum.PDF) {
                 filesCreated.add(contentFile);
             } else {
-                // Wait for stderr: do not delete PostScript file yet.
-                if (!keepPostScriptOnStdErr) {
+                // Wait for PDF conversion outcome:
+                // do not delete PostScript file yet.
+                if (detainPostScript == OnOffEnum.OFF) {
                     files2Delete.add(contentFile);
                 }
             }
@@ -897,6 +934,7 @@ public final class DocContentPrintProcessor {
              */
             IStreamConverter streamConverter = null;
             IDocFileConverter fileConverter = null;
+            IPostScriptConverter postScriptConverter = null;
 
             /*
              * Directly write (rest of) offered content to PostScript or PDF, or
@@ -912,10 +950,30 @@ public final class DocContentPrintProcessor {
                  * An exception is throw upon a DRM violation.
                  */
                 savePostScript(istrContent, fostrContent);
-                /*
-                 * Always use a file converter,
-                 */
-                fileConverter = DocContent.createPdfFileConverter(inputType);
+
+                if (protocol.isDriverPrint()) {
+                    if (OnOffEnum.ON == cm.getConfigEnum(OnOffEnum.class,
+                            Key.PRINT_IN_PS_DRIVER_IMAGES_TRIGGER)) {
+                        postScriptConverter =
+                                this.createPostScriptToImageConverter(cm,
+                                        tempDirApp, true);
+                    }
+                } else {
+                    if (OnOffEnum.ON == cm.getConfigEnum(OnOffEnum.class,
+                            Key.PRINT_IN_PS_DRIVERLESS_IMAGES_TRIGGER)) {
+                        postScriptConverter =
+                                this.createPostScriptToImageConverter(cm,
+                                        tempDirApp, false);
+                    }
+                }
+
+                if (postScriptConverter == null) {
+                    /*
+                     * Always use a file converter,
+                     */
+                    fileConverter =
+                            DocContent.createPdfFileConverter(inputType);
+                }
 
             } else if (inputType == DocContentTypeEnum.CUPS_PDF_BANNER) {
 
@@ -939,12 +997,6 @@ public final class DocContentPrintProcessor {
             }
 
             /*
-             * Path of the PDF file BEFORE it is moved to its final destination.
-             * As a DEFAULT we use the path of the streamed content.
-             */
-            String tempPathPdf = contentFile.getAbsolutePath();
-
-            /*
              * Convert to PDF with a stream converter?
              */
             if (streamConverter != null) {
@@ -955,6 +1007,12 @@ public final class DocContentPrintProcessor {
                 this.inputByteCount = streamConverter.convert(inputType,
                         istrDoc, fostrContent);
             }
+
+            /*
+             * Path of the PDF file BEFORE it is moved to its final destination.
+             * As a DEFAULT we use the path of the streamed content.
+             */
+            String tempPathPdf = contentFile.getAbsolutePath();
 
             /*
              * We're done with capturing the content input stream, so close the
@@ -968,8 +1026,47 @@ public final class DocContentPrintProcessor {
              */
             if (fileConverter != null) {
                 this.inputByteCount = contentFile.length();
+
                 final File pdfOutputFile =
                         fileConverter.convert(inputType, contentFile);
+
+                /*
+                 * Retry with PostScript converter?
+                 */
+                if (inputType == DocContentTypeEnum.PS
+                        && fileConverter.hasStdErrMsg()) {
+
+                    if (protocol.isDriverPrint()) {
+                        if (OnOffEnum.AUTO == cm.getConfigEnum(OnOffEnum.class,
+                                Key.PRINT_IN_PS_DRIVER_IMAGES_TRIGGER)) {
+                            postScriptConverter =
+                                    this.createPostScriptToImageConverter(cm,
+                                            tempDirApp, true);
+                        }
+                    } else {
+                        if (OnOffEnum.AUTO == cm.getConfigEnum(OnOffEnum.class,
+                                Key.PRINT_IN_PS_DRIVERLESS_IMAGES_TRIGGER)) {
+                            postScriptConverter =
+                                    this.createPostScriptToImageConverter(cm,
+                                            tempDirApp, false);
+                        }
+                    }
+
+                    if (postScriptConverter == null) {
+                        filesCreated.add(pdfOutputFile);
+                    } else {
+                        pdfOutputFile.delete();
+                    }
+                }
+                tempPathPdf = pdfOutputFile.getAbsolutePath();
+            }
+
+            /*
+             * Convert to PDF with PostScript converter?
+             */
+            if (postScriptConverter != null) {
+                final File pdfOutputFile =
+                        postScriptConverter.convert(contentFile);
                 filesCreated.add(pdfOutputFile);
                 tempPathPdf = pdfOutputFile.getAbsolutePath();
             }
@@ -999,20 +1096,45 @@ public final class DocContentPrintProcessor {
                 if (cm.isConfigValue(Key.PRINT_IN_PDF_PREPRESS)) {
                     this.cleanPdfPrepress(fileWrk);
                 }
-            } else if (fileConverter != null && fileConverter.hasStdErrMsg()) {
+            } else if (fileConverter != null && (fileConverter.hasStdErrMsg()
+                    || detainPostScript == OnOffEnum.ON)) {
+
                 final StringBuilder msg = new StringBuilder();
                 msg.append("User \"").append(this.uidTrusted).append("\" ")
-                        .append(fileConverter.getClass().getSimpleName())
-                        .append(" errors.");
-                if (keepPostScriptOnStdErr) {
-                    msg.append(" PostScript file is kept.");
+                        .append(fileConverter.getClass().getSimpleName());
+
+                if (fileConverter.hasStdErrMsg()) {
+                    msg.append(" errors.");
+                } else {
+                    msg.append(".");
                 }
-                AdminPublisher.instance().publish(PubTopicEnum.USER,
-                        PubLevelEnum.ERROR, msg.toString());
+
+                final PubLevelEnum pubLevel;
+
+                if (postScriptConverter == null) {
+                    if (detainPostScript == OnOffEnum.OFF) {
+                        pubLevel = PubLevelEnum.ERROR;
+                        msg.append(" Rendering invalid.");
+                    } else {
+                        pubLevel = PubLevelEnum.WARN;
+                    }
+                } else {
+                    pubLevel = PubLevelEnum.WARN;
+                    msg.append(" Pages rendered as images.");
+                }
+
+                if (detainPostScript == OnOffEnum.ON
+                        || (detainPostScript == OnOffEnum.AUTO
+                                && fileConverter.hasStdErrMsg())) {
+                    msg.append(" (PostScript file is detained).");
+                }
+                AdminPublisher.instance().publish(PubTopicEnum.USER, pubLevel,
+                        msg.toString());
             }
 
             // Check again...
-            if (keepPostScriptOnStdErr && !fileConverter.hasStdErrMsg()) {
+            if (detainPostScript == OnOffEnum.AUTO && (fileConverter == null
+                    || !fileConverter.hasStdErrMsg())) {
                 // No stderr: delete PostScript file after all.
                 files2Delete.add(contentFile);
             }
@@ -1025,8 +1147,11 @@ public final class DocContentPrintProcessor {
             /*
              * STEP 2: Optional IPP Routing.
              */
-            if (!this.processIppRouting(printInInfo, new File(tempPathPdf))) {
+            final File pdfIppRoutingFile = new File(tempPathPdf);
 
+            if (this.processIppRouting(printInInfo, pdfIppRoutingFile)) {
+                files2Delete.add(pdfIppRoutingFile);
+            } else {
                 /*
                  * Move to user safepages home.
                  */

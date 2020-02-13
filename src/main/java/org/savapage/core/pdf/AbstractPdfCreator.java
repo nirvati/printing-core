@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -34,6 +37,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.savapage.core.LetterheadNotFoundException;
 import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
+import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.doc.PdfToPgpSignedPdf;
@@ -202,6 +206,17 @@ public abstract class AbstractPdfCreator {
 
     public static int pageCountInPdfFile(final String filePathPdf) {
         return create().getNumberOfPagesInPdfFile(filePathPdf);
+    }
+
+    /**
+     * @return The Creator string visible in the PDF properties of PDF Reader.
+     */
+    public static String getCreatorString() {
+        return String.format("%s %s • %s • %s",
+                CommunityDictEnum.SAVAPAGE.getWord(),
+                ConfigManager.getAppVersion(),
+                CommunityDictEnum.SAVAPAGE_SLOGAN.getWord(),
+                CommunityDictEnum.SAVAPAGE_DOT_ORG.getWord());
     }
 
     /**

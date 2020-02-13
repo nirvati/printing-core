@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -26,7 +29,7 @@ import java.util.Map;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public enum DocLogProtocolEnum {
@@ -77,19 +80,19 @@ public enum DocLogProtocolEnum {
     GCP("GCP");
 
     /**
-   *
-   */
+    *
+    */
     private static class Lookup {
 
         /**
-       *
-       */
+        *
+        */
         private final Map<String, DocLogProtocolEnum> enumLookup =
                 new HashMap<String, DocLogProtocolEnum>();
 
         /**
-       *
-       */
+        *
+        */
         public Lookup() {
             for (DocLogProtocolEnum value : DocLogProtocolEnum.values()) {
                 enumLookup.put(value.dbName, value);
@@ -148,4 +151,10 @@ public enum DocLogProtocolEnum {
         return this.dbName;
     }
 
+    /**
+     * @return {@code true} if this is a driver print protocol.
+     */
+    public boolean isDriverPrint() {
+        return this == IPP || this == RAW;
+    }
 }
