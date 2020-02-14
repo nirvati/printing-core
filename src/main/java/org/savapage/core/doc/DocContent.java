@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -105,9 +108,15 @@ public final class DocContent {
 
     /**
      * All PJL jobs begin and end with a UEL command (<ESC>%-12345X).
+     * <p>
+     * The Universal Exit Language (UEL) Command causes the printer to exit the
+     * active printer language. The printer then returns control to PJL. The UEL
+     * command is used at the beginning and end of every PJL job. See
+     * <a href="https://en.wikipedia.org/wiki/Printer_Job_Language">
+     * Printer_Job_Language</a> in Wikipedia.
+     * </p>
      */
     public static final String HEADER_PJL = "\u001b" + "%-12345X";
-
 
     /**
      * The first bytes (signature) of {@link DocContentTypeEnum#UNIRAST}.
