@@ -658,7 +658,7 @@ public final class DocContentPrintProcessor {
             byte[] signature = new byte[4];
             content.read(signature);
 
-            setReadAheadInputBytes(signature);
+            this.setReadAheadInputBytes(signature);
 
             this.signatureString = new String(signature);
 
@@ -820,8 +820,6 @@ public final class DocContentPrintProcessor {
         }
 
         this.originatorEmail = originatorEmail;
-
-        this.readAheadInputBytes = null;
 
         final DocContentTypeEnum inputType =
                 checkJobContent(protocol, contentTypeProvided, istrContent);
