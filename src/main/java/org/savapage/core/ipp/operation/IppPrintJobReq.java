@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -30,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.ipp.attribute.IppAttrValue;
+import org.savapage.core.ipp.attribute.IppDictJobDescAttr;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.User;
 import org.savapage.core.print.server.DocContentPrintProcessor;
@@ -133,7 +137,8 @@ public final class IppPrintJobReq extends AbstractIppRequest {
      */
     public String getJobName() {
 
-        final IppAttrValue ippValue = getAttrValue("job-name");
+        final IppAttrValue ippValue =
+                getAttrValue(IppDictJobDescAttr.ATTR_JOB_NAME);
 
         if (ippValue == null || ippValue.getValues().isEmpty()) {
             return "";
