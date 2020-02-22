@@ -123,6 +123,7 @@ import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.ServiceFactory;
 import org.savapage.core.services.helpers.SOfficeConfigProps;
+import org.savapage.core.system.SystemInfo;
 import org.savapage.core.users.ActiveDirectoryUserSource;
 import org.savapage.core.users.IExternalUserAuthenticator;
 import org.savapage.core.users.IUserSource;
@@ -1713,6 +1714,9 @@ public final class ConfigManager {
             SpInfo.instance().log(GSuiteLdapClient.getCertCreateDateLogLine());
             SpInfo.instance().log(GSuiteLdapClient.getCertExpireDateLogLine());
         }
+
+        //
+        SystemInfo.init();
 
         //
         DbTools.checkSequences();

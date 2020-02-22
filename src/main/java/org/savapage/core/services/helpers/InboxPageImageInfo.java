@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -32,6 +35,11 @@ public final class InboxPageImageInfo {
      * Basename of the PDF file.
      */
     private String file;
+
+    /**
+     * Number of pages of PDF file.
+     */
+    private int numberOfPages;
 
     /**
      * Zero-based page number WITHIN the job file.
@@ -69,6 +77,21 @@ public final class InboxPageImageInfo {
      */
     public void setFile(String file) {
         this.file = file;
+    }
+
+    /**
+     * @return Number of pages of PDF file.
+     */
+    public int getNumberOfPages() {
+        return numberOfPages;
+    }
+
+    /**
+     * @param numberOfPages
+     *            Number of pages of PDF file.
+     */
+    public void setNumberOfPages(int numberOfPages) {
+        this.numberOfPages = numberOfPages;
     }
 
     /**

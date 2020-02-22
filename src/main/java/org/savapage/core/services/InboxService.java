@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -264,7 +267,7 @@ public interface InboxService {
     File createLetterhead(User user) throws PostScriptDrmException;
 
     /**
-     * Finds and returns the letterhead by letterheadId.
+     * Finds and returns the letterhead by letterhead ID.
      *
      * @param user
      *            If {@code null} the public letterheads are returned.
@@ -274,6 +277,20 @@ public interface InboxService {
      * @return <code>null</code> when not found
      */
     LetterheadInfo.LetterheadJob getLetterhead(User user, String letterheadId);
+
+    /**
+     * Finds and returns the letterhead by letterhead ID.
+     *
+     * @param user
+     *            Unique user id. If {@code null} the public letterheads are
+     *            returned.
+     * @param letterheadId
+     *            The basename of the letterhead file.
+     *
+     * @return <code>null</code> when not found
+     */
+    LetterheadInfo.LetterheadJob getLetterheadExt(String user,
+            String letterheadId);
 
     /**
      * Gets the page URLs and other properties of a letterhead.

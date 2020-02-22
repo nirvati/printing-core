@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -38,8 +41,6 @@ import org.savapage.core.imaging.ImageUrl;
 import org.savapage.core.imaging.Pdf2ImgCairoCmd;
 import org.savapage.core.imaging.Pdf2ImgCairoCmd.ImgType;
 import org.savapage.core.imaging.Pdf2ImgCommand;
-import org.savapage.core.imaging.Pdf2ImgCommandExt;
-import org.savapage.core.imaging.Pdf2PngPopplerCmd;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.AbstractPdfCreator;
@@ -62,31 +63,19 @@ import org.slf4j.LoggerFactory;
  */
 public final class OutputProducer {
 
-    /**
-     * .
-     */
+    /** */
     private static final InboxService INBOX_SERVICE =
             ServiceContext.getServiceFactory().getInboxService();
 
-    /**
-     * The logger.
-     */
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(OutputProducer.class);
 
-    /**
-     * .
-     */
+    /** */
     private static final DocLogService DOCLOG_SERVICE =
             ServiceContext.getServiceFactory().getDocLogService();
 
-    /**
-     * Option 1.
-     */
-    private final Pdf2ImgCommandExt pdf2PopplerCommand =
-            new Pdf2PngPopplerCmd();
-
-    /** Option 2: Mantis #1079. */
+    /** Mantis #1079. */
     private final Pdf2ImgCommand pdf2CairoCommand =
             new Pdf2ImgCairoCmd(ImgType.PNG);
 
@@ -159,16 +148,23 @@ public final class OutputProducer {
 
         if (isLetterhead) {
 
+            final String userLetterhead;
             if (isLetterheadPublic) {
+                userLetterhead = null;
                 jobHomeDir = ConfigManager.getLetterheadDir();
             } else {
+                userLetterhead = user;
                 jobHomeDir = UserHomePathEnum.LETTERHEADS.getFullPath(user);
             }
+
+            final LetterheadInfo.LetterheadJob letterheadJob =
+                    INBOX_SERVICE.getLetterheadExt(userLetterhead, jobName);
 
             pageImageInfo = new InboxPageImageInfo();
 
             pageImageInfo.setFile(jobName);
             pageImageInfo.setLandscape(false);
+            pageImageInfo.setNumberOfPages(letterheadJob.getPages().intValue());
             pageImageInfo.setPageInFile(Integer.valueOf(pageIn));
 
             jobFileName = jobName;
@@ -256,35 +252,18 @@ public final class OutputProducer {
 
         final File imgFile = new File(imgFileBuilder.toString());
 
-        // Soft switch for now: see Mantis #1079.
-        boolean useCairo = true;
-
         final String command;
 
-        if (useCairo) {
-            final int pdf2CairoResolution;
-            if (thumbnail) {
-                pdf2CairoResolution = Pdf2ImgCairoCmd.RESOLUTION_FOR_THUMNAIL;
-            } else {
-                pdf2CairoResolution = Pdf2ImgCairoCmd.RESOLUTION_FOR_BROWSER;
-            }
-            command = pdf2CairoCommand.createCommand(srcFile,
-                    pageImageInfo.isLandscape(), pageImageInfo.getRotation(),
-                    imgFile, Integer.parseInt(pageInJobFile),
-                    pdf2CairoResolution, pageImageInfo.getRotate());
+        final int pdf2CairoResolution;
+        if (thumbnail) {
+            pdf2CairoResolution = Pdf2ImgCairoCmd.RESOLUTION_FOR_THUMNAIL;
         } else {
-            final int imgWidth;
-            if (thumbnail) {
-                imgWidth = ImageUrl.THUMBNAIL_WIDTH;
-            } else {
-                imgWidth = ImageUrl.BROWSER_PAGE_WIDTH;
-            }
-            command = pdf2PopplerCommand.createCommand(srcFile,
-                    pageImageInfo.isLandscape(), pageImageInfo.getRotation(),
-                    imgFile, Integer.parseInt(pageInJobFile),
-                    Pdf2PngPopplerCmd.RESOLUTION_FOR_SCREEN,
-                    pageImageInfo.getRotate(), imgWidth);
+            pdf2CairoResolution = Pdf2ImgCairoCmd.RESOLUTION_FOR_BROWSER;
         }
+
+        command = pdf2CairoCommand.createCommand(Pdf2ImgCommand.CreateParms
+                .create(srcFile, imgFile, pageImageInfo,
+                        Integer.parseInt(pageInJobFile), pdf2CairoResolution));
 
         LOGGER.trace(command);
 

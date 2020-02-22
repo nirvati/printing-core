@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -401,6 +404,7 @@ public final class InboxServiceImpl implements InboxService {
         final InboxPageImageInfo dto = new InboxPageImageInfo();
 
         dto.setFile(job.getFile());
+        dto.setNumberOfPages(job.getPages().intValue());
         dto.setLandscape(job.getLandscape().booleanValue());
         dto.setRotation(job.getRotation().intValue());
 
@@ -1186,8 +1190,16 @@ public final class InboxServiceImpl implements InboxService {
     public LetterheadInfo.LetterheadJob getLetterhead(final User user,
             final String letterheadId) {
 
-        LetterheadInfo letterheadInfo = getLetterheads(user);
-        return getLetterhead(letterheadId, letterheadInfo);
+        final LetterheadInfo letterheadInfo = this.getLetterheads(user);
+        return this.getLetterhead(letterheadId, letterheadInfo);
+    }
+
+    @Override
+    public LetterheadInfo.LetterheadJob getLetterheadExt(final String user,
+            final String letterheadId) {
+
+        final LetterheadInfo letterheadInfo = this.getLetterheadsExt(user);
+        return this.getLetterhead(letterheadId, letterheadInfo);
     }
 
     /**
@@ -1274,7 +1286,32 @@ public final class InboxServiceImpl implements InboxService {
     @Override
     public LetterheadInfo getLetterheads(final User userObj) {
 
-        final String user = userObj == null ? null : userObj.getUserId();
+        final String user;
+
+        if (userObj == null) {
+            user = null;
+        } else {
+            user = userObj.getUserId();
+        }
+        return this.getLetterheadsExt(user);
+    }
+
+    /**
+     * Returns private or public letterhead store.
+     * <p>
+     * The store is read from a json file and updated (written) with newly
+     * arrived PDF letterheads.
+     * </p>
+     * <p>
+     * The user Letterhead directory is created when it does not exist.
+     * </p>
+     *
+     * @param user
+     *            Unique user id. If {@code null} the public letterheads are
+     *            returned.
+     * @return The {@link LetterheadInfo}.
+     */
+    private LetterheadInfo getLetterheadsExt(final String user) {
 
         final String workdir = getLetterheadsDir(user);
 
@@ -1336,7 +1373,7 @@ public final class InboxServiceImpl implements InboxService {
 
                 job.setForeground(true);
                 job.setName("untitled");
-                job.setPub(userObj == null);
+                job.setPub(user == null);
 
                 /*
                  * Append

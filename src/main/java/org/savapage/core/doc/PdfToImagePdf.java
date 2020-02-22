@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -176,12 +179,22 @@ public final class PdfToImagePdf extends AbstractPdfConverter
                 imageOut = new File(String.format("%s/%s.jpg",
                         this.tempDir.toString(), UUID.randomUUID().toString()));
 
-                // final Pdf2ImgCommand cmd = new Pdf2PngPopplerCmd();
                 final Pdf2ImgCommand cmd =
                         new Pdf2ImgCairoCmd(Pdf2ImgCairoCmd.ImgType.JPEG);
 
-                final String command = cmd.createCommand(pdfFile, pageLandscape,
-                        pageRotation, imageOut, i, resolutionDpi, 0);
+                final Pdf2ImgCommand.CreateParms parms =
+                        new Pdf2ImgCommand.CreateParms();
+
+                parms.setImgFile(imageOut);
+                parms.setLandscape(pageLandscape);
+                parms.setNumberOfPages(nPagesMax);
+                parms.setPageOrdinal(i);
+                parms.setPdfFile(pdfFile);
+                parms.setResolution(resolutionDpi);
+                parms.setRotate(0);
+                parms.setRotation(pageRotation);
+
+                final String command = cmd.createCommand(parms);
 
                 final ICommandExecutor exec =
                         CommandExecutor.createSimple(command);

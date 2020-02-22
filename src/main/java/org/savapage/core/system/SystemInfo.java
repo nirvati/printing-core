@@ -227,7 +227,57 @@ public final class SystemInfo {
         }
     }
 
+    /**
+     * Registry of one-time lazy captured {@link Command} versions (not
+     * refreshed).
+     */
+    public static final class CommandVersionRegistry {
+
+        /** */
+        private final String pdfToCairo;
+
+        /** */
+        private CommandVersionRegistry() {
+            pdfToCairo = SystemInfo.getPdfToCairoVersion();
+        }
+
+        /**
+         *
+         * @return The {@link Command#PDFTOCAIRO} version.
+         */
+        public String getPdfToCairo() {
+            return pdfToCairo;
+        }
+
+    }
+
+    /** */
+    private static class VersionRegistryHolder {
+        /**
+         * The singleton.
+         */
+        private static final CommandVersionRegistry INSTANCE =
+                new SystemInfo.CommandVersionRegistry();
+    }
+
+    /**
+     * Utility class.
+     */
     private SystemInfo() {
+    }
+
+    /**
+     * @return {@link SystemInfo.CommandVersionRegistry}.
+     */
+    public static CommandVersionRegistry getCommandVersionRegistry() {
+        return VersionRegistryHolder.INSTANCE;
+    }
+
+    /**
+     * Initialize.
+     */
+    public static void init() {
+        getCommandVersionRegistry();
     }
 
     /**
