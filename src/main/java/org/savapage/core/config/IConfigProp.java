@@ -61,6 +61,7 @@ import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.dao.impl.DaoBatchCommitterImpl;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.imaging.Pdf2ImgCairoCmd;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.json.rpc.JsonRpcMethodName;
@@ -2817,6 +2818,13 @@ public interface IConfigProp {
         /**
          *
          */
+        SYS_HOST_CMD_PDFTOCAIRO_IMG_STRATEGY(
+                "system.host.cmd.pdftocairo.img.strategy",
+                new EnumValidator<>(Pdf2ImgCairoCmd.Strategy.class),
+                Pdf2ImgCairoCmd.Strategy.AUTO.toString(), API_UPDATABLE_ON),
+        /**
+         *
+         */
         USER_CAN_CHANGE_PIN(//
                 "user.can-change-pin", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
@@ -3248,9 +3256,8 @@ public interface IConfigProp {
          * User WebApp: must text of navigation buttons on main window be shown?
          */
         WEBAPP_USER_MAIN_NAV_BUTTON_TEXT(//
-                "webapp.user.main.nav-button-text",
-                ON_OFF_ENUM_VALIDATOR, OnOffEnum.AUTO.toString(),
-                API_UPDATABLE_ON),
+                "webapp.user.main.nav-button-text", ON_OFF_ENUM_VALIDATOR,
+                OnOffEnum.AUTO.toString(), API_UPDATABLE_ON),
 
         /**
          * User WebApp: show environmental effect?

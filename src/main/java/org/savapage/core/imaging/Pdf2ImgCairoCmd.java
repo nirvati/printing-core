@@ -28,6 +28,8 @@ import java.io.File;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.system.ICommandStrategy;
 import org.savapage.core.system.SystemInfo;
@@ -85,7 +87,11 @@ public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand, ICommandStrategy {
     /**
      * Command strategy.
      */
-    private enum Strategy {
+    public enum Strategy {
+        /**
+         * Automatic.
+         */
+        AUTO,
         /**
          * Use stdout/stdin redirection.
          */
@@ -104,9 +110,6 @@ public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand, ICommandStrategy {
          * @return The strategy.
          */
         static Strategy getStrategy() {
-            /*
-             *
-             */
             if (SystemInfo.getCommandVersionRegistry().getPdfToCairo()
                     .contains(PROBE_V_0_26_5)) {
                 return Strategy.SPLIT;
@@ -117,10 +120,25 @@ public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand, ICommandStrategy {
 
     /** */
     private static final class StrategyHolder {
-        /**
-         * The singleton.
-         */
+        /** The singleton. */
         private static final Strategy INSTANCE = Strategy.getStrategy();
+
+        /**
+         * Determines strategy.
+         *
+         * @return {@link Strategy}.
+         */
+        private static Strategy determineStrategy() {
+
+            final Strategy configStrategy = ConfigManager.instance()
+                    .getConfigEnum(Pdf2ImgCairoCmd.Strategy.class,
+                            IConfigProp.Key.SYS_HOST_CMD_PDFTOCAIRO_IMG_STRATEGY);
+
+            if (configStrategy == Strategy.AUTO) {
+                return StrategyHolder.INSTANCE;
+            }
+            return configStrategy;
+        }
     }
 
     /**
@@ -157,7 +175,7 @@ public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand, ICommandStrategy {
                 SystemInfo.Command.PDFTOCAIRO.cmd(), this.imgType.getCmdOpt(),
                 parms.getResolution(), pageOneBased, pageOneBased));
 
-        if (StrategyHolder.INSTANCE == Strategy.STREAM) {
+        if (StrategyHolder.determineStrategy() == Strategy.STREAM) {
 
             cmdBuffer.append(String.format("-singlefile \"%s\"",
                     parms.getPdfFile().getAbsolutePath()));
