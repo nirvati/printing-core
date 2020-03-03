@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -34,7 +37,7 @@ import org.savapage.core.json.rpc.impl.ResultUserGroupAccess;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class CliPrinterAccessControl extends AbstractAppApi {
@@ -89,40 +92,29 @@ public class CliPrinterAccessControl extends AbstractAppApi {
     /**
      *
      */
-    private static Object[][] theOptions =
-            new Object[][] {
-                    { ARG_TEXT + "(255)", CLI_OPT_PRINTERNAME,
-                            "CUPS name of the proxy printer.", Boolean.TRUE },
-                    {
-                            null,
-                            CLI_SWITCH_ALLOW,
-                            "Allow access to --"
-                                    + CLI_OPT_GROUPNAME
-                                    + " (existing denied user groups are removed)." },
-                    {
-                            null,
-                            CLI_SWITCH_DENY,
-                            "Deny access to --"
-                                    + CLI_OPT_GROUPNAME
-                                    + " (existing allowed user groups are removed)." },
-                    {
-                            null,
-                            CLI_SWITCH_REMOVE,
-                            "Remove --" + CLI_OPT_GROUPNAME
-                                    + " from the access list." },
-                    {
-                            ARG_TEXT + "(255)",
-                            CLI_OPT_GROUPNAME,
-                            "Name of the user group to --" + CLI_SWITCH_ALLOW
-                                    + ", --" + CLI_SWITCH_DENY + " or --"
-                                    + CLI_SWITCH_REMOVE + " access",
-                            Boolean.FALSE },
-                    { null, CLI_SWITCH_REMOVE_ALL,
-                            "Remove all user groups from the access list." },
-                    { null, CLI_SWITCH_LIST,
-                            "Echoes the access list to stdout in CSV format." },
+    private static Object[][] theOptions = new Object[][] {
+            { ARG_TEXT + "(255)", CLI_OPT_PRINTERNAME,
+                    "CUPS name of the proxy printer.", Boolean.TRUE },
+            { null, CLI_SWITCH_ALLOW,
+                    "Allow access to --" + CLI_OPT_GROUPNAME
+                            + " (existing denied user groups are removed)." },
+            { null, CLI_SWITCH_DENY,
+                    "Deny access to --" + CLI_OPT_GROUPNAME
+                            + " (existing allowed user groups are removed)." },
+            { null, CLI_SWITCH_REMOVE,
+                    "Remove --" + CLI_OPT_GROUPNAME
+                            + " from the access list." },
+            { ARG_TEXT + "(255)", CLI_OPT_GROUPNAME,
+                    "Name of the user group to --" + CLI_SWITCH_ALLOW + ", --"
+                            + CLI_SWITCH_DENY + " or --" + CLI_SWITCH_REMOVE
+                            + " access",
+                    Boolean.FALSE },
+            { null, CLI_SWITCH_REMOVE_ALL,
+                    "Remove all user groups from the access list." },
+            { null, CLI_SWITCH_LIST,
+                    "Echoes the access list to stdout in CSV format." },
 
-            };
+    };
 
     @Override
     protected final String getApiVersion() {
@@ -213,8 +205,8 @@ public class CliPrinterAccessControl extends AbstractAppApi {
     }
 
     @Override
-    protected final AbstractJsonRpcMethodParms createMethodParms(
-            final CommandLine cmd) {
+    protected final AbstractJsonRpcMethodParms
+            createMethodParms(final CommandLine cmd) {
 
         final ParamsPrinterAccessControl parms =
                 new ParamsPrinterAccessControl();
@@ -264,15 +256,12 @@ public class CliPrinterAccessControl extends AbstractAppApi {
             final String printerName =
                     this.getCommandLine().getOptionValue(CLI_OPT_PRINTERNAME);
 
-            final JsonUserGroupAccess userGroupAccess =
-                    result.data(ResultUserGroupAccess.class)
-                            .getUserGroupAccess();
+            final JsonUserGroupAccess userGroupAccess = result
+                    .data(ResultUserGroupAccess.class).getUserGroupAccess();
 
             for (final String group : userGroupAccess.getGroups()) {
-                getDisplayStream().println(
-                        "\"" + printerName + "\",\""
-                                + userGroupAccess.getScope() + "\",\"" + group
-                                + "\"");
+                getDisplayStream().println("\"" + printerName + "\",\""
+                        + userGroupAccess.getScope() + "\",\"" + group + "\"");
             }
         }
 

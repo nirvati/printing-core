@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -36,7 +39,7 @@ import org.savapage.core.util.BigDecimalUtil;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class DtoTest {
@@ -57,7 +60,7 @@ public class DtoTest {
      */
     public void test(final Locale locale) throws ParseException, IOException {
 
-        final MediaCostDto obj = new MediaCostDto ();
+        final MediaCostDto obj = new MediaCostDto();
 
         final String cost11 = "0.1111";
         final String cost12 = "0.2222";
@@ -74,8 +77,8 @@ public class DtoTest {
         newCost.setCostColor(BigDecimalUtil.localize(new BigDecimal(cost11), 4,
                 locale, false));
 
-        newCost.setCostGrayscale(BigDecimalUtil.localize(
-                new BigDecimal(cost12), 4, locale, false));
+        newCost.setCostGrayscale(BigDecimalUtil.localize(new BigDecimal(cost12),
+                4, locale, false));
 
         //
         newCost = new MediaPageCostDto();
@@ -84,12 +87,12 @@ public class DtoTest {
         newCost.setCostColor(BigDecimalUtil.localize(new BigDecimal(cost21), 4,
                 locale, false));
 
-        newCost.setCostGrayscale(BigDecimalUtil.localize(
-                new BigDecimal(cost22), 4, locale, false));
+        newCost.setCostGrayscale(BigDecimalUtil.localize(new BigDecimal(cost22),
+                4, locale, false));
 
         //
-        final MediaCostDto pageCost =
-                JsonAbstractBase.create(MediaCostDto.class, obj.stringify(locale));
+        final MediaCostDto pageCost = JsonAbstractBase
+                .create(MediaCostDto.class, obj.stringify(locale));
 
         assertTrue(pageCost.getCostOneSided().getCostColor().equals("0.1111"));
 

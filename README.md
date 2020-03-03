@@ -1,11 +1,16 @@
+<!-- 
+    SPDX-FileCopyrightText: 2011-2020 Datraverse BV <info@datraverse.com> 
+    SPDX-License-Identifier: AGPL-3.0-or-later 
+-->
+
 # savapage-core
 
-SavaPage Core library.    
- 
+SavaPage Core library.
+
 ### License
 
 This module is part of the SavaPage project <https://www.savapage.org>,
-copyright (c) 2011-2019 Datraverse B.V. and licensed under the
+copyright (c) 2011-2020 Datraverse B.V. and licensed under the
 [GNU Affero General Public License (AGPL)](https://www.gnu.org/licenses/agpl.html)
 version 3, or (at your option) any later version.
 
