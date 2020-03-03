@@ -1,3 +1,5 @@
+<!-- SPDX-FileCopyrightText: 2011-2020 Datraverse BV <info@datraverse.com> -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -389,7 +391,7 @@
         <dependency>
             <groupId>com.github.scribejava</groupId>
             <artifactId>scribejava-apis</artifactId>
-            <version>6.5.1</version>
+            <version>6.9.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
