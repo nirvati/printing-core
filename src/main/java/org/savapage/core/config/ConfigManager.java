@@ -297,6 +297,14 @@ public final class ConfigManager {
     private static final String SERVER_PROP_START_CLEANUP_DOCLOG =
             "start.cleanup-doclog";
 
+    /** */
+    private static final String SERVER_PROP_START_CLEANUP_USERHOME =
+            "start.cleanup-userhome";
+
+    /** */
+    private static final String SERVER_PROP_SYSTEM_CLEANUP_USERHOME_TEST =
+            "system.cleanup-userhome.test";
+
     // ========================================================================
     // Undocumented ad-hoc properties for testing purposes.
     // ========================================================================
@@ -315,6 +323,11 @@ public final class ConfigManager {
     /** */
     private static final String APP_OWNER =
             CommunityDictEnum.DATRAVERSE_BV.getWord();
+
+    /**
+     * Depth of a user home directory relative to root of all home directories.
+     */
+    private static final int USER_HOME_DEPTH_FROM_ROOT = 3;
 
     /** */
     private final CryptoApp myCipher = new CryptoApp();
@@ -747,13 +760,22 @@ public final class ConfigManager {
     }
 
     /**
+     * @return Depth of a user home directory relative to root of all home
+     *         directories.
+     */
+    public static int getUserHomeDepthFromRoot() {
+        return USER_HOME_DEPTH_FROM_ROOT;
+    }
+
+    /**
      * Returns the location where the user's SafePages are stored.
      * <p>
      * The SafePages home of all users defaults to the
      * {@link #SERVER_REL_PATH_SAFEPAGES_DEFAULT} relative to $(server.home).
      * Each user's home is a subdirectory in this location with path
      * {@code x/y/user} where {@code x} and {@code y} are the first characters
-     * of the md5sum of the {@code user}.
+     * of the md5sum of the {@code user}. See
+     * {@link #USER_HOME_DEPTH_FROM_ROOT}.
      * </p>
      *
      * @param user
@@ -791,7 +813,6 @@ public final class ConfigManager {
     }
 
     /**
-     *
      * @return
      */
     public static boolean isCleanUpDocLogAtStart() {
@@ -799,6 +820,26 @@ public final class ConfigManager {
                 theServerProps.getProperty(SERVER_PROP_START_CLEANUP_DOCLOG,
                         Boolean.TRUE.toString()))
                 .booleanValue();
+    }
+
+    /**
+     * @return
+     */
+    public static boolean isCleanUpUserHomeAtStart() {
+        return theServerProps != null && BooleanUtils.toBooleanObject(
+                theServerProps.getProperty(SERVER_PROP_START_CLEANUP_USERHOME,
+                        Boolean.TRUE.toString()))
+                .booleanValue();
+    }
+
+    /**
+     * @return
+     */
+    public static boolean isCleanUpUserHomeTest() {
+        return theServerProps != null
+                && BooleanUtils.toBooleanObject(theServerProps.getProperty(
+                        SERVER_PROP_SYSTEM_CLEANUP_USERHOME_TEST,
+                        Boolean.FALSE.toString())).booleanValue();
     }
 
     /**

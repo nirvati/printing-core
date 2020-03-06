@@ -60,6 +60,7 @@ import org.savapage.core.crypto.OneTimeAuthToken;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.dao.impl.DaoBatchCommitterImpl;
+import org.savapage.core.dto.UserHomeStatsDto;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.imaging.Pdf2ImgCairoCmd;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
@@ -1999,10 +2000,19 @@ public interface IConfigProp {
         /**
          * Number of minutes after which a print-in job expires. When zero (0)
          * there is NO expiry.
-         *
          */
         PRINT_IN_JOB_EXPIRY_MINS(//
-                "print-in.job-expiry.mins", NUMBER_VALIDATOR, V_ZERO),
+                "print-in.job-expiry.mins", NUMBER_VALIDATOR, V_ZERO,
+                API_UPDATABLE_ON),
+
+        /**
+         * Number of minutes added to print-in job expiry (if applicable) after
+         * which job is considered ignored. Ignored jobs are removed by a
+         * scheduled monitor task.
+         */
+        PRINT_IN_JOB_EXPIRY_IGNORED_MINS(//
+                "print-in.job-expiry-ignored.mins", NUMBER_VALIDATOR, "10",
+                API_UPDATABLE_ON),
 
         /**
          * Enable Copy Job option for Job Ticket (boolean). When {@code true} a
@@ -2386,10 +2396,31 @@ public interface IConfigProp {
                 "proxy-print.fast-expiry-mins", NUMBER_VALIDATOR, "10"),
 
         /**
-         *
+         * Number of minutes after which a Hold Print Job expires. When
+         * expiration is detected in an active User Web App session, the job is
+         * removed.
          */
         PROXY_PRINT_HOLD_EXPIRY_MINS(//
-                "proxy-print.hold-expiry-mins", NUMBER_VALIDATOR, "60"),
+                "proxy-print.hold-expiry-mins", NUMBER_VALIDATOR, "60",
+                API_UPDATABLE_ON),
+
+        /**
+         * Number of minutes added to current time to determine a new expiry
+         * time. If this time is after the current Hold Print Job expiry time,
+         * expiry can be set to this new time at the request of the user.
+         */
+        PROXY_PRINT_HOLD_EXTEND_MINS(//
+                "proxy-print.hold-extend-mins", NUMBER_VALIDATOR, "10",
+                API_UPDATABLE_ON),
+
+        /**
+         * Number of minutes added to Hold Print Job expiry after which job is
+         * considered ignored. Ignored jobs are removed by a scheduled monitor
+         * task.
+         */
+        PROXY_PRINT_HOLD_IGNORED_MINS(//
+                "proxy-print.hold-ignored-mins", NUMBER_VALIDATOR, "10",
+                API_UPDATABLE_ON),
 
         /**
          *
@@ -2729,6 +2760,12 @@ public interface IConfigProp {
          */
         STATS_TOTAL_PRINT_OUT_BYTES(//
                 "stats.total.print-out.bytes", V_ZERO, API_UPDATABLE_OFF),
+
+        /**
+         * JSON string of {@link UserHomeStatsDto}.
+         */
+        STATS_USERHOME(//
+                "stats.userhome", API_UPDATABLE_OFF),
 
         /**
          * Make a backup before a database schema upgrade.

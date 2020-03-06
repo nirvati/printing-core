@@ -22,57 +22,13 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.config;
-
-import java.io.File;
+package org.savapage.core.doc;
 
 /**
- * User home paths.
+ * Visits documents from file system.
  *
  * @author Rijk Ravestein
  *
  */
-public enum UserHomePathEnum {
-
-    /** */
-    BASE(""),
-
-    /** */
-    LETTERHEADS("letterheads"),
-
-    /** */
-    OUTBOX("outbox"),
-
-    /** */
-    PGP_PUBRING("pgp.pubring");
-
-    /** */
-    private final String path;
-
-    /**
-     *
-     * @param subdir
-     *            Relative path in User SafePages directory.
-     */
-    UserHomePathEnum(final String subdir) {
-        this.path = subdir;
-    }
-
-    /**
-     * @return Relative path in User SafePages directory.
-     */
-    public String getPath() {
-        return this.path;
-    }
-
-    /**
-     * @param userid
-     *            User id.
-     * @return Full path of user subdirectory.
-     */
-    public String getFullPath(final String userid) {
-        return String.format("%s%c%s", ConfigManager.getUserHomeDir(userid),
-                File.separatorChar, this.getPath());
-    }
-
+public interface IDocVisitor {
 }

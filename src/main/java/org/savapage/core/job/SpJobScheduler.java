@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -159,6 +162,10 @@ public final class SpJobScheduler {
                 scheduleOneShotJob(SpJobType.DOC_STORE_CLEAN, 1L);
             }
 
+            if (ConfigManager.isCleanUpUserHomeAtStart()) {
+                scheduleOneShotJob(SpJobType.USER_HOME_CLEAN, 1L);
+            }
+
             scheduleOneShotJob(SpJobType.PRINTER_GROUP_CLEAN, 1L);
 
             /*
@@ -249,6 +256,11 @@ public final class SpJobScheduler {
                  * Wait for SystemMonitor to finish...
                  */
                 interruptSystemMonitor();
+
+                /*
+                 * Wait for UserHomeClean to finish...
+                 */
+                interruptUserHomeClean();
 
                 /*
                  * Wait for EmailOutputMonitor to finish...
@@ -361,6 +373,10 @@ public final class SpJobScheduler {
             jobClass = org.savapage.core.job.DocStoreClean.class;
             break;
 
+        case USER_HOME_CLEAN:
+            jobClass = org.savapage.core.job.UserHomeClean.class;
+            break;
+
         case IPP_GET_NOTIFICATIONS:
             jobClass = org.savapage.core.job.IppGetNotifications.class;
             break;
@@ -424,7 +440,8 @@ public final class SpJobScheduler {
             myDailyJobs.add(createJob(jobType, JOB_GROUP_SCHEDULED));
         }
 
-        for (final SpJobType jobType : EnumSet.of(SpJobType.PRINTER_SNMP)) {
+        for (final SpJobType jobType : EnumSet.of(SpJobType.PRINTER_SNMP,
+                SpJobType.USER_HOME_CLEAN)) {
             myDailyMaintJobs.add(createJob(jobType, JOB_GROUP_SCHEDULED));
         }
 
@@ -616,10 +633,11 @@ public final class SpJobScheduler {
 
         final JobDataMap data = new JobDataMap();
 
-        final JobDetail job = newJob(org.savapage.core.job.SystemMonitorJob.class)
-                .withIdentity(SpJobType.SYSTEM_MONITOR.toString(),
-                        JOB_GROUP_ONESHOT)
-                .usingJobData(data).build();
+        final JobDetail job =
+                newJob(org.savapage.core.job.SystemMonitorJob.class)
+                        .withIdentity(SpJobType.SYSTEM_MONITOR.toString(),
+                                JOB_GROUP_ONESHOT)
+                        .usingJobData(data).build();
 
         rescheduleOneShotJob(job, milliSecondsFromNow);
     }
@@ -793,8 +811,15 @@ public final class SpJobScheduler {
     }
 
     /**
-     * .
-     *
+     * @return {@code true} if at least one instance of the identified job was
+     *         found and interrupted.
+     */
+    private static boolean interruptUserHomeClean() {
+        return instance().interruptJob(SpJobType.USER_HOME_CLEAN,
+                JOB_GROUP_ONESHOT);
+    }
+
+    /**
      * @return {@code true} if at least one instance of the identified job was
      *         found and interrupted.
      */
