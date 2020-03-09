@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -32,6 +35,7 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
+import org.savapage.core.job.RunModeSwitch;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto;
@@ -155,17 +159,17 @@ public interface OutboxService {
     /**
      * Reads and prunes the {@link OutboxInfoDto} JSON file from user's outbox
      * directory.
-     * <p>
-     * NOTE: The JSON file is created when it does not exist.
-     * </p>
      *
      * @param userId
      *            The unique user id.
      * @param expiryRef
      *            The reference date for calculating the expiration.
+     * @param mode
+     *            Run mode.
      * @return the {@link OutboxInfoDto} object.
      */
-    OutboxInfoDto pruneOutboxInfo(String userId, Date expiryRef);
+    OutboxInfoDto pruneOutboxInfo(String userId, Date expiryRef,
+            RunModeSwitch mode);
 
     /**
      * Gets the full path {@link File} from an outbox file name.
@@ -239,8 +243,6 @@ public interface OutboxService {
 
     /**
      *
-     * @since 0.9.11
-     *
      * @param userId
      *            The unique user id.
      * @return The number of outbox jobs.
@@ -253,8 +255,6 @@ public interface OutboxService {
      * Note: prunes the {@link OutboxJobDto} instances in {@link OutboxInfoDto}
      * for jobs which are expired for Proxy Printing.
      * </p>
-     *
-     * @since 0.9.6
      *
      * @param userId
      *            The unique user id.
@@ -282,8 +282,6 @@ public interface OutboxService {
     /**
      * Creates the {@link AccountTrxInfoSet} from the {@link OutboxJobDto}
      * source.
-     *
-     * @since 0.9.11
      *
      * @param source
      *            The {@link OutboxJobDto}.

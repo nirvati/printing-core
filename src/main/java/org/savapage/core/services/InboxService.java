@@ -59,6 +59,11 @@ import org.savapage.core.services.helpers.PageRangeException;
 public interface InboxService {
 
     /**
+     * File extension for EcoPrint shadow PDF file.
+     */
+    public static final String FILENAME_EXT_ECO = "eco";
+
+    /**
      * Checks if user home directory (SafePages) exists.
      *
      * @param userId

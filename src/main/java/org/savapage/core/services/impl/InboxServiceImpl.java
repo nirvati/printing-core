@@ -128,11 +128,6 @@ public final class InboxServiceImpl implements InboxService {
             ServiceContext.getServiceFactory().getEcoPrintPdfTaskService();
 
     /**
-     * File extension for EcoPrint shadow PDF file.
-     */
-    public static final String FILENAME_EXT_ECO = "eco";
-
-    /**
      *
      */
     public static final String FILENAME_EXT_SCAN = DocContent.FILENAME_EXT_PNM;

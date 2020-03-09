@@ -26,6 +26,7 @@ package org.savapage.core.job;
 
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.Locale;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.quartz.JobExecutionContext;
@@ -37,6 +38,7 @@ import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.dao.enums.AppLogLevelEnum;
 import org.savapage.core.inbox.UserHomeVisitor;
 import org.savapage.core.util.AppLogHelper;
 import org.slf4j.Logger;
@@ -77,6 +79,38 @@ public final class UserHomeClean extends AbstractJob {
         // noop
     }
 
+    /**
+     * @return Mode tag.
+     */
+    public static String getModeTag() {
+        return getModeTag(getRunMode());
+    }
+
+    /**
+     * @param mode
+     *            Mode.
+     * @return Mode tag.
+     */
+    public static String getModeTag(final RunModeSwitch mode) {
+        if (mode == RunModeSwitch.DRY) {
+            return "Scan";
+        } else {
+            return "Cleanup";
+        }
+    }
+
+    /**
+     *
+     * @return Run mode.
+     */
+    public static RunModeSwitch getRunMode() {
+        if (ConfigManager.isCleanUpUserHomeTest()) {
+            return RunModeSwitch.DRY;
+        } else {
+            return RunModeSwitch.REAL;
+        }
+    }
+
     @Override
     public void onExecute(final JobExecutionContext ctx)
             throws JobExecutionException {
@@ -105,15 +139,13 @@ public final class UserHomeClean extends AbstractJob {
         }
 
         final RunModeSwitch runMode;
-        final String runModeTag;
-
         if (ConfigManager.isCleanUpUserHomeTest()) {
             runMode = RunModeSwitch.DRY;
-            runModeTag = "Scan";
         } else {
             runMode = RunModeSwitch.REAL;
-            runModeTag = "Cleanup";
         }
+
+        final String runModeTag = getModeTag(runMode);
 
         //
         final Date holdJobCleanDate = DateUtils.addMinutes(dateNow,
@@ -137,9 +169,13 @@ public final class UserHomeClean extends AbstractJob {
                         this.localizeSysMsg(PUB_MSGKEY_BASE.concat(".busy"),
                                 runModeTag));
             } else {
-                publisher.publish(PubTopicEnum.USER, PubLevelEnum.INFO,
+
+                final String msg =
                         this.localizeSysMsg(PUB_MSGKEY_BASE.concat(".finished"),
-                                runModeTag));
+                                runModeTag, stats.infoMessage(Locale.ENGLISH));
+
+                publisher.publish(PubTopicEnum.USER, PubLevelEnum.INFO, msg);
+                AppLogHelper.log(AppLogLevelEnum.INFO, msg);
 
                 SpInfo.instance().log(this.getClass().getSimpleName()
                         .concat("\n").concat(stats.summary()));
@@ -156,6 +192,7 @@ public final class UserHomeClean extends AbstractJob {
                             "[%s] %s", e.getClass().getName(), e.getMessage()));
 
             publisher.publish(PubTopicEnum.USER, PubLevelEnum.ERROR, msg);
+            AppLogHelper.log(AppLogLevelEnum.ERROR, msg);
         }
     }
 

@@ -27,6 +27,8 @@ package org.savapage.core.dto;
 import java.math.BigInteger;
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -68,6 +70,7 @@ public class UserHomeStatsDto extends AbstractDto {
         }
 
     }
+
     @JsonInclude(Include.NON_NULL)
     public static class Stats {
 
@@ -105,7 +108,6 @@ public class UserHomeStatsDto extends AbstractDto {
     private boolean cleaned;
     private Stats current;
     private Stats cleanup;
-
 
     public Date getDate() {
         return date;
@@ -145,8 +147,20 @@ public class UserHomeStatsDto extends AbstractDto {
                 + ", cleaned=" + cleaned + "]";
     }
 
+    /**
+     * @param json
+     *            JSON string.
+     * @return {@code null} if JSON is blank or invalid.
+     */
     public static UserHomeStatsDto create(final String json) {
-        return create(UserHomeStatsDto.class, json);
+        if (!StringUtils.isBlank(json)) {
+            try {
+                return create(UserHomeStatsDto.class, json);
+            } catch (Exception e) {
+                // noop
+            }
+        }
+        return null;
     }
 
 }

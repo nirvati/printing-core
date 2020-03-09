@@ -24,6 +24,7 @@
  */
 package org.savapage.core.inbox;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.FileVisitResult;
@@ -33,7 +34,13 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,9 +55,15 @@ import org.savapage.core.dao.DaoContext;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.IDocVisitor;
 import org.savapage.core.dto.UserHomeStatsDto;
+import org.savapage.core.i18n.AdverbEnum;
+import org.savapage.core.i18n.NounEnum;
 import org.savapage.core.job.RunModeSwitch;
+import org.savapage.core.outbox.OutboxInfoDto;
+import org.savapage.core.services.InboxService;
+import org.savapage.core.services.OutboxService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.DateUtil;
+import org.savapage.core.util.LocaleHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -341,6 +354,44 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         }
 
         /**
+         * @param locale
+         *            Locale.
+         * @return A one-line info message.
+         */
+        public String infoMessage(final Locale locale) {
+
+            final LocaleHelper localeHelper = new LocaleHelper(locale);
+
+            final StringBuilder msg = new StringBuilder();
+            if (this.mode.isReal()) {
+                msg.append(AdverbEnum.CLEANED_UP.uiText(locale));
+            } else {
+                msg.append(AdverbEnum.CLEANABLE.uiText(locale));
+            }
+            msg.append(": ");
+
+            final long nUsers = this.userHomeCleanup;
+
+            msg.append(localeHelper.getNumber(nUsers)).append(" ")
+                    .append(NounEnum.USER.uiText(locale, nUsers != 1));
+
+            if (nUsers > 0) {
+
+                final long nFiles = pdfInbox.cleanup + pdfOutbox.cleanup;
+
+                msg.append(", ").append(localeHelper.getNumber(nFiles))
+                        .append(" ")
+                        .append(NounEnum.DOCUMENT.uiText(locale, nFiles != 1))
+                        .append(", ")
+                        .append(FileUtils
+                                .byteCountToDisplaySize(pdfInbox.bytesCleanup
+                                        .add(pdfOutbox.bytesCleanup)));
+            }
+            msg.append(".");
+            return msg.toString();
+        }
+
+        /**
          * @return Summary table.
          */
         public String summary() {
@@ -452,6 +503,10 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
     private static final Logger LOGGER =
             LoggerFactory.getLogger(UserHomeVisitor.class);
 
+    /** */
+    private static final OutboxService OUTBOX_SERVICE =
+            ServiceContext.getServiceFactory().getOutboxService();
+
     /**
      * Indicated if execution is in progress.
      */
@@ -467,6 +522,9 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
     private final ExecStats stats;
 
     /** */
+    private String wlkUserId;
+
+    /** */
     private UserHomePathEnum wlkUserHomePath;
 
     /** */
@@ -479,13 +537,20 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
     private boolean wlkUserHomeCleaned;
 
     /**
+     * Lookup by User Outbox PDF filename.
+     */
+    private final Map<String, BigInteger> wlkUserOutboxJobsMap;
+
+    private final List<Path> wlkUserInboxEcoFiles;
+
+    /**
      * @param inboxHome
      *            SafePages home directory.
      * @param dateCleanInbox
-     *            Date before which inbox PDF documents are cleaned. If
-     *            {@code null} no cleaning is done.
+     *            Inbox PDF documents with creation date before this date are
+     *            cleaned. If {@code null} no cleaning is done.
      * @param dateCleanOutbox
-     *            The reference date before which outbox PDF documents are
+     *            Outbox PDF documents with expiration date before this date are
      *            cleaned. If {@code null} no cleaning is done.
      * @param mode
      *            The run mode. If {@code RunModeSwitch#DRY}, processing is done
@@ -501,6 +566,9 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         this.stats = new ExecStats(mode);
         this.stats.pdfInbox.cleanDate = dateCleanInbox;
         this.stats.pdfOutbox.cleanDate = dateCleanOutbox;
+
+        this.wlkUserOutboxJobsMap = new HashMap<>();
+        this.wlkUserInboxEcoFiles = new ArrayList<>();
     }
 
     /**
@@ -512,6 +580,8 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         this.wlkUserHomeCleaned = false;
         this.wlkPdfStats = this.stats.pdfInbox;
         this.wlkDepth = 0;
+        this.wlkUserOutboxJobsMap.clear();
+        this.wlkUserInboxEcoFiles.clear();
     }
 
     /**
@@ -557,15 +627,15 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
 
             this.stats.duration =
                     Duration.ofMillis(System.currentTimeMillis() - execStart);
-        } catch (Exception e) {
+        } finally {
             executing.compareAndSet(true, false);
-            throw e;
         }
+
         return this.stats;
     }
 
     /**
-     * Terminates executions.
+     * Terminates execution.
      */
     public void terminate() {
         this.stats.terminated = true;
@@ -630,10 +700,11 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         } else if (this.wlkDepth == ConfigManager.getUserHomeDepthFromRoot()) {
 
             this.wlkUserHomePath = UserHomePathEnum.BASE;
+            this.wlkUserId = dir.getFileName().toString();
             this.wlkPdfStats = this.stats.pdfInbox;
             this.stats.userHomeScanned++;
 
-            LOGGER.debug("Home [{}]", dir.getFileName());
+            LOGGER.debug("Home [{}]", this.wlkUserId);
 
         } else {
 
@@ -641,6 +712,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
 
             if (this.wlkUserHomePath == UserHomePathEnum.OUTBOX) {
                 this.wlkPdfStats = this.stats.pdfOutbox;
+                this.wlkUserOutboxJobsMap.clear();
             } else {
                 this.wlkPdfStats = null;
             }
@@ -685,33 +757,42 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         if (fileName == null) {
             return FileVisitResult.CONTINUE;
         }
+
+        // Anything to scan?
+        if (this.wlkPdfStats == null) {
+            return FileVisitResult.CONTINUE;
+        }
+
+        final String ext = FilenameUtils.getExtension(fileName.toString());
+
         try {
-            if (this.wlkPdfStats == null) {
-                // TODO: other stats
-            } else {
+            // Postpone .eco file cleaning.
+            if (this.wlkUserHomePath == UserHomePathEnum.BASE
+                    && ext.equalsIgnoreCase(InboxService.FILENAME_EXT_ECO)) {
+                this.wlkUserInboxEcoFiles.add(file);
+            }
 
-                final String ext =
-                        FilenameUtils.getExtension(fileName.toString());
-                if (!ext.equalsIgnoreCase(DocContent.FILENAME_EXT_PDF)) {
-                    // TODO: stats for non-PDF files.
-                    return FileVisitResult.CONTINUE;
-                }
+            //
+            if (!ext.equalsIgnoreCase(DocContent.FILENAME_EXT_PDF)) {
+                // TODO: stats for non-PDF files.
+                return FileVisitResult.CONTINUE;
+            }
 
-                final String baseName =
-                        FilenameUtils.getBaseName(fileName.toString());
+            final String baseName =
+                    FilenameUtils.getBaseName(fileName.toString());
 
-                if (!isUUID(baseName)) {
-                    // TODO: stats for invalid files.
-                    LOGGER.warn("{} : invalid UUID [{}]", file.toString(),
-                            baseName);
-                }
+            if (!isUUID(baseName)) {
+                // TODO: stats for invalid files.
+                LOGGER.warn("{} : invalid UUID [{}]", file.toString(),
+                        baseName);
+            }
 
-                this.wlkPdfStats.scanned++;
+            final BigInteger fileSize = getFileSize(file);
 
-                final BigInteger fileSize = getFileSize(file);
+            this.wlkPdfStats.scanned++;
+            this.wlkPdfStats.bytes = this.wlkPdfStats.bytes.add(fileSize);
 
-                this.wlkPdfStats.bytes = this.wlkPdfStats.bytes.add(fileSize);
-
+            if (this.wlkUserHomePath == UserHomePathEnum.BASE) {
                 if (this.wlkPdfStats.cleanDate != null && FileUtils.isFileOlder(
                         file.toFile(), this.wlkPdfStats.cleanDate)) {
 
@@ -725,7 +806,10 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
 
                     this.wlkUserHomeCleaned = true;
                 }
+            } else if (this.wlkUserHomePath == UserHomePathEnum.OUTBOX) {
+                this.wlkUserOutboxJobsMap.put(fileName.toString(), fileSize);
             }
+
         } catch (IOException e) {
             this.stats.conflicts++;
             LOGGER.error("{} {} ", e.getClass().getSimpleName(),
@@ -764,7 +848,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         Objects.requireNonNull(dir);
 
         if (exc != null) {
-            throw exc; // TODO
+            throw exc;
         }
 
         final FileVisitResult visitResult = FileVisitResult.CONTINUE;
@@ -773,21 +857,88 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             return visitResult;
         }
 
+        if (this.wlkUserHomePath == UserHomePathEnum.OUTBOX) {
+            this.onPostVisitOutbox();
+        }
+
         this.wlkDepth--;
 
         if (this.wlkDepth == ConfigManager.getUserHomeDepthFromRoot()) {
-
             this.wlkUserHomePath = UserHomePathEnum.BASE;
             this.wlkPdfStats = this.stats.pdfInbox;
-
         } else if (this.wlkDepth < ConfigManager.getUserHomeDepthFromRoot()) {
-            if (this.wlkUserHomeCleaned) {
-                this.stats.userHomeCleanup++;
-            }
-            this.wlkUserHomeCleaned = false;
+            this.onPostVisitBase();
         }
 
         return visitResult;
     }
 
+    /**
+     * Invoked for a {@link UserHomePathEnum#OUTBOX} directory after entries in
+     * this directory, and all of their descendants, have been visited.
+     */
+    private void onPostVisitOutbox() {
+
+        if (this.wlkUserOutboxJobsMap.isEmpty()
+                || this.wlkPdfStats.cleanDate == null) {
+            return;
+        }
+
+        final OutboxInfoDto dto = OUTBOX_SERVICE.pruneOutboxInfo(this.wlkUserId,
+                this.wlkPdfStats.cleanDate, this.runMode);
+
+        if (dto.getJobCount() == this.wlkUserOutboxJobsMap.size()) {
+            return;
+        }
+
+        for (final Entry<String, BigInteger> entry : this.wlkUserOutboxJobsMap
+                .entrySet()) {
+
+            if (!dto.containsJob(entry.getKey())) {
+                this.wlkPdfStats.cleanup++;
+                this.wlkPdfStats.bytesCleanup =
+                        this.wlkPdfStats.bytesCleanup.add(entry.getValue());
+                this.wlkUserHomeCleaned = true;
+            }
+        }
+    }
+
+    /**
+     * Invoked for a {@link UserHomePathEnum#BASE} directory after entries in
+     * this directory, and all of their descendants, have been visited.
+     *
+     * @throws IOException
+     *             When file delete error.
+     */
+    private void onPostVisitBase() {
+
+        for (final Path path : this.wlkUserInboxEcoFiles) {
+            final File file =
+                    new File(FilenameUtils.removeExtension(path.toString()));
+            try {
+                if (!file.exists()) {
+                    final BigInteger size = getFileSize(path);
+
+                    if (this.runMode.isReal()) {
+                        Files.delete(path);
+                    }
+
+                    this.wlkPdfStats.bytes = this.wlkPdfStats.bytes.add(size);
+                    this.wlkPdfStats.bytesCleanup =
+                            this.wlkPdfStats.bytesCleanup.add(size);
+                    this.wlkUserHomeCleaned = true;
+                }
+            } catch (IOException e) {
+                LOGGER.warn("{} {}", e.getClass().getSimpleName(),
+                        e.getMessage());
+            }
+        }
+
+        this.wlkUserInboxEcoFiles.clear();
+
+        if (this.wlkUserHomeCleaned) {
+            this.stats.userHomeCleanup++;
+        }
+        this.wlkUserHomeCleaned = false;
+    }
 }

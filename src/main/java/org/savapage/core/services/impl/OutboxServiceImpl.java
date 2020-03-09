@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -52,6 +55,7 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
+import org.savapage.core.job.RunModeSwitch;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
@@ -234,14 +238,14 @@ public final class OutboxServiceImpl extends AbstractService
     /**
      * Reads {@link OutboxInfoDto} JSON file from user's outbox directory.
      * <p>
-     * NOTE: The JSON file is created when it does not exist.
+     * <i>An empty object is returned when JSON file does not exist.</i>
      * </p>
      *
      * @param userId
      *            The unique user id.
      * @return {@link OutboxInfoDto} object.
      */
-    public OutboxInfoDto readOutboxInfo(final String userId) {
+    private OutboxInfoDto readOutboxInfo(final String userId) {
 
         final ObjectMapper mapper = new ObjectMapper();
 
@@ -481,8 +485,8 @@ public final class OutboxServiceImpl extends AbstractService
     public List<OutboxJobDto> getOutboxJobs(final String userId,
             final Set<String> printerNames, final Date expiryRef) {
 
-        final OutboxInfoDto outboxInfo =
-                pruneOutboxInfo(userId, readOutboxInfo(userId), expiryRef);
+        final OutboxInfoDto outboxInfo = pruneOutboxInfo(userId,
+                readOutboxInfo(userId), expiryRef, RunModeSwitch.REAL);
 
         final List<OutboxJobDto> jobs = new ArrayList<>();
 
@@ -511,14 +515,14 @@ public final class OutboxServiceImpl extends AbstractService
 
     @Override
     public OutboxInfoDto pruneOutboxInfo(final String userId,
-            final Date expiryRef) {
+            final Date expiryRef, final RunModeSwitch mode) {
 
         final OutboxInfoDto dtoRead = readOutboxInfo(userId);
 
         final OutboxInfoDto dtoPruned =
-                pruneOutboxInfo(userId, dtoRead, expiryRef);
+                pruneOutboxInfo(userId, dtoRead, expiryRef, mode);
 
-        if (dtoPruned != dtoRead) {
+        if (mode == RunModeSwitch.REAL && dtoPruned != dtoRead) {
             this.storeOutboxInfo(userId, dtoPruned);
         }
 
@@ -539,20 +543,21 @@ public final class OutboxServiceImpl extends AbstractService
      * NOT persisted.
      * </p>
      *
-     * @since 0.9.6
-     *
      * @param userId
      *            The unique user id.
      * @param outboxInfo
      *            The full {@link OutboxInfoDto}
      * @param expiryRef
      *            The reference date for calculating the expiration.
+     * @param mode
+     *            Run mode.
      * @return A new {@link OutboxInfoDto} object with a subset of valid Fast
      *         Proxy Printing jobs, or the {@link OutboxInfoDto} input object
      *         when nothing was pruned.
      */
     private OutboxInfoDto pruneOutboxInfo(final String userId,
-            final OutboxInfoDto outboxInfo, final Date expiryRef) {
+            final OutboxInfoDto outboxInfo, final Date expiryRef,
+            final RunModeSwitch mode) {
 
         /*
          * Return when jobs are absent.
@@ -606,9 +611,12 @@ public final class OutboxServiceImpl extends AbstractService
         /*
          * Always check if PDF files are in sync with job descriptions.
          */
-        returnInfo.setJobs(pruneOutboxJobFiles(userId, returnInfo.getJobs()));
+        returnInfo.setJobs(
+                pruneOutboxJobFiles(userId, returnInfo.getJobs(), mode));
 
-        storeOutboxInfo(userId, returnInfo);
+        if (mode == RunModeSwitch.REAL) {
+            storeOutboxInfo(userId, returnInfo);
+        }
 
         return returnInfo;
     }
@@ -620,11 +628,14 @@ public final class OutboxServiceImpl extends AbstractService
      *            The unique user id.
      * @param outboxJobs
      *            the outbox jobs.
+     * @param mode
+     *            Run mode.
      * @return the pruned jobs.
      */
     private LinkedHashMap<String, OutboxJobDto> pruneOutboxJobFiles(
             final String userId,
-            final LinkedHashMap<String, OutboxJobDto> outboxJobs) {
+            final LinkedHashMap<String, OutboxJobDto> outboxJobs,
+            final RunModeSwitch mode) {
 
         final FileFilter filefilter = new FileFilter() {
             @Override
@@ -657,7 +668,9 @@ public final class OutboxServiceImpl extends AbstractService
                     /*
                      * No job description found for PDF file: delete PDF.
                      */
-                    file.delete();
+                    if (mode == RunModeSwitch.REAL) {
+                        file.delete();
+                    }
                 }
             }
         }
@@ -676,7 +689,7 @@ public final class OutboxServiceImpl extends AbstractService
 
         final int jobCount = outboxInfo.getJobCount();
         final OutboxInfoDto dto = new OutboxInfoDto();
-        this.pruneOutboxJobFiles(userId, dto.getJobs());
+        this.pruneOutboxJobFiles(userId, dto.getJobs(), RunModeSwitch.REAL);
         storeOutboxInfo(userId, dto);
         return jobCount;
     }
@@ -921,8 +934,8 @@ public final class OutboxServiceImpl extends AbstractService
     public OutboxInfoDto getOutboxJobTicketInfo(final User user,
             final Date expiryRef) {
 
-        final OutboxInfoDto outboxInfo =
-                pruneOutboxInfo(user.getUserId(), expiryRef);
+        final OutboxInfoDto outboxInfo = pruneOutboxInfo(user.getUserId(),
+                expiryRef, RunModeSwitch.REAL);
 
         final JobTicketService.JobTicketFilter filter =
                 new JobTicketService.JobTicketFilter();

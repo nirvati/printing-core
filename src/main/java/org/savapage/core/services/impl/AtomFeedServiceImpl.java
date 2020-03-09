@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Authors: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -57,6 +60,7 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.config.SslCertInfo;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.helpers.ProxyPrinterSnmpInfoDto;
+import org.savapage.core.dto.UserHomeStatsDto;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.json.JsonRollingTimeSeries;
 import org.savapage.core.json.TimeSeriesInterval;
@@ -70,6 +74,7 @@ import org.savapage.core.system.SystemInfo;
 import org.savapage.core.template.dto.TemplateAdminFeedDto;
 import org.savapage.core.template.dto.TemplatePrinterSnmpDto;
 import org.savapage.core.template.dto.TemplateSslCertDto;
+import org.savapage.core.template.dto.TemplateUserHomeStatsDto;
 import org.savapage.core.template.feed.AdminFeedTemplate;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.DeadlockedThreadsDetector;
@@ -129,7 +134,7 @@ public final class AtomFeedServiceImpl extends AbstractService
         final Path pathJson = Paths.get(feedHome, FEED_FILE_JSON);
 
         final StringBuilder xhtml = new StringBuilder();
-        createAdminFeedXhtml(Locale.ENGLISH, xhtml);
+        this.createAdminFeedXhtml(Locale.ENGLISH, xhtml);
 
         //
         final FeedEntryDto dto = new FeedEntryDto();
@@ -369,7 +374,7 @@ public final class AtomFeedServiceImpl extends AbstractService
                 getRollingPages(Key.STATS_PDF_OUT_ROLLING_DAY_PAGES));
 
         if (ConfigManager.instance().isConfigValue(Key.PRINTER_SNMP_ENABLE)) {
-            dto.setPrintersSnmp(getPrintersSnmp(locale));
+            dto.setPrintersSnmp(this.getPrintersSnmp(locale));
         }
 
         //
@@ -392,6 +397,15 @@ public final class AtomFeedServiceImpl extends AbstractService
             dto.getSslCert()
                     .setNotAfterWarning(sslCert.isNotAfterWithinMonth(now));
         }
+
+        //
+        final UserHomeStatsDto userHomeStats = UserHomeStatsDto.create(
+                ConfigManager.instance().getConfigValue(Key.STATS_USERHOME));
+        if (userHomeStats != null) {
+            dto.setUserHomeStats(
+                    TemplateUserHomeStatsDto.create(userHomeStats));
+        }
+
         //
         xhtml.append(new AdminFeedTemplate(dto).render(locale));
     }
