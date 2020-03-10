@@ -539,7 +539,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
     /**
      * Lookup by User Outbox PDF filename.
      */
-    private final Map<String, BigInteger> wlkUserOutboxJobsMap;
+    private final Map<String, Path> wlkUserOutboxJobsMap;
 
     private final List<Path> wlkUserInboxEcoFiles;
 
@@ -807,7 +807,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
                     this.wlkUserHomeCleaned = true;
                 }
             } else if (this.wlkUserHomePath == UserHomePathEnum.OUTBOX) {
-                this.wlkUserOutboxJobsMap.put(fileName.toString(), fileSize);
+                this.wlkUserOutboxJobsMap.put(fileName.toString(), file);
             }
 
         } catch (IOException e) {
@@ -891,14 +891,31 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             return;
         }
 
-        for (final Entry<String, BigInteger> entry : this.wlkUserOutboxJobsMap
+        for (final Entry<String, Path> entry : this.wlkUserOutboxJobsMap
                 .entrySet()) {
 
             if (!dto.containsJob(entry.getKey())) {
-                this.wlkPdfStats.cleanup++;
-                this.wlkPdfStats.bytesCleanup =
-                        this.wlkPdfStats.bytesCleanup.add(entry.getValue());
-                this.wlkUserHomeCleaned = true;
+
+                final Path path = entry.getValue();
+
+                try {
+
+                    final BigInteger fileSize = getFileSize(path);
+
+                    if (this.runMode.isReal()) {
+                        Files.delete(path);
+                    }
+
+                    this.wlkPdfStats.cleanup++;
+                    this.wlkPdfStats.bytesCleanup =
+                            this.wlkPdfStats.bytesCleanup.add(fileSize);
+                    this.wlkUserHomeCleaned = true;
+
+                } catch (IOException e) {
+                    this.stats.conflicts++;
+                    LOGGER.error("{} {} ", e.getClass().getSimpleName(),
+                            e.getMessage());
+                }
             }
         }
     }

@@ -747,8 +747,12 @@ public final class ConfigManager {
      */
     public static String getSafePagesHomeDir() {
 
-        String homeSafePages =
-                theServerProps.getProperty(SERVER_PROP_APP_DIR_SAFEPAGES);
+        String homeSafePages = null;
+
+        if (theServerProps != null) {
+            homeSafePages =
+                    theServerProps.getProperty(SERVER_PROP_APP_DIR_SAFEPAGES);
+        }
 
         if (homeSafePages == null) {
             homeSafePages =
