@@ -31,6 +31,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
@@ -528,6 +529,9 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
     private UserHomePathEnum wlkUserHomePath;
 
     /** */
+    private Path wlkUserOutboxDir;
+
+    /** */
     private int wlkDepth;
 
     /** */
@@ -539,8 +543,9 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
     /**
      * Lookup by User Outbox PDF filename.
      */
-    private final Map<String, Path> wlkUserOutboxJobsMap;
+    private final Map<String, BigInteger> wlkUserOutboxJobsMap;
 
+    /** */
     private final List<Path> wlkUserInboxEcoFiles;
 
     /**
@@ -580,6 +585,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         this.wlkUserHomeCleaned = false;
         this.wlkPdfStats = this.stats.pdfInbox;
         this.wlkDepth = 0;
+        this.wlkUserOutboxDir = null;
         this.wlkUserOutboxJobsMap.clear();
         this.wlkUserInboxEcoFiles.clear();
     }
@@ -713,6 +719,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             if (this.wlkUserHomePath == UserHomePathEnum.OUTBOX) {
                 this.wlkPdfStats = this.stats.pdfOutbox;
                 this.wlkUserOutboxJobsMap.clear();
+                this.wlkUserOutboxDir = dir;
             } else {
                 this.wlkPdfStats = null;
             }
@@ -807,7 +814,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
                     this.wlkUserHomeCleaned = true;
                 }
             } else if (this.wlkUserHomePath == UserHomePathEnum.OUTBOX) {
-                this.wlkUserOutboxJobsMap.put(fileName.toString(), file);
+                this.wlkUserOutboxJobsMap.put(fileName.toString(), fileSize);
             }
 
         } catch (IOException e) {
@@ -859,6 +866,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
 
         if (this.wlkUserHomePath == UserHomePathEnum.OUTBOX) {
             this.onPostVisitOutbox();
+            this.wlkUserOutboxDir = null;
         }
 
         this.wlkDepth--;
@@ -884,36 +892,42 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             return;
         }
 
-        final OutboxInfoDto dto = OUTBOX_SERVICE.pruneOutboxInfo(this.wlkUserId,
-                this.wlkPdfStats.cleanDate, this.runMode);
+        final OutboxInfoDto outboxInfo = OUTBOX_SERVICE.pruneOutboxInfo(
+                this.wlkUserId, this.wlkPdfStats.cleanDate, this.runMode);
 
-        if (dto.getJobCount() == this.wlkUserOutboxJobsMap.size()) {
+        if (outboxInfo.getJobCount() == this.wlkUserOutboxJobsMap.size()) {
             return;
         }
 
-        for (final Entry<String, Path> entry : this.wlkUserOutboxJobsMap
+        for (final Entry<String, BigInteger> entry : this.wlkUserOutboxJobsMap
                 .entrySet()) {
 
-            if (!dto.containsJob(entry.getKey())) {
+            if (outboxInfo.containsJob(entry.getKey())) {
+                continue;
+            }
 
-                final Path path = entry.getValue();
+            /*
+             * Observed PDF is not part of outbox job info: add to cleanup.
+             */
+            this.wlkPdfStats.cleanup++;
+            this.wlkPdfStats.bytesCleanup =
+                    this.wlkPdfStats.bytesCleanup.add(entry.getValue());
+            this.wlkUserHomeCleaned = true;
+
+            if (this.runMode.isReal()) {
+                /*
+                 * If PDF exists (was not pruned), it is orphaned (due to some
+                 * error) and not an active job. So, we prune prune it here.
+                 */
+                final Path pdfPath = Paths.get(this.wlkUserOutboxDir.toString(),
+                        entry.getKey());
 
                 try {
-
-                    final BigInteger fileSize = getFileSize(path);
-
-                    if (this.runMode.isReal()) {
-                        Files.delete(path);
+                    if (Files.exists(pdfPath)) {
+                        Files.delete(pdfPath);
                     }
-
-                    this.wlkPdfStats.cleanup++;
-                    this.wlkPdfStats.bytesCleanup =
-                            this.wlkPdfStats.bytesCleanup.add(fileSize);
-                    this.wlkUserHomeCleaned = true;
-
                 } catch (IOException e) {
-                    this.stats.conflicts++;
-                    LOGGER.error("{} {} ", e.getClass().getSimpleName(),
+                    LOGGER.warn("{} {}", e.getClass().getSimpleName(),
                             e.getMessage());
                 }
             }
