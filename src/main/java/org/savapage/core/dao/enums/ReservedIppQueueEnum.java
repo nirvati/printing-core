@@ -1,7 +1,7 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2020 Datraverse B.V.
- * Authors: Rijk Ravestein.
+ * Author: Rijk Ravestein.
  *
  * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
