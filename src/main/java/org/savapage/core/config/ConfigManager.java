@@ -2170,6 +2170,8 @@ public final class ConfigManager {
             return IConfigProp.LdapType.EDIR;
         } else if (schema.equals(IConfigProp.LDAP_TYPE_V_OPEN_LDAP)) {
             return IConfigProp.LdapType.OPEN_LDAP;
+        } else if (schema.equals(IConfigProp.LDAP_TYPE_V_FREE_IPA)) {
+            return IConfigProp.LdapType.FREE_IPA;
         } else if (schema.equals(IConfigProp.LDAP_TYPE_V_G_SUITE)) {
             return IConfigProp.LdapType.G_SUITE;
         }

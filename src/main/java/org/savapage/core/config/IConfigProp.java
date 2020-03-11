@@ -170,6 +170,7 @@ public interface IConfigProp {
 
     String LDAP_TYPE_V_APPLE = "APPLE_OPENDIR";
     String LDAP_TYPE_V_OPEN_LDAP = "OPEN_LDAP";
+    String LDAP_TYPE_V_FREE_IPA = "FREE_IPA";
     String LDAP_TYPE_V_E_DIR = "NOVELL_EDIRECTORY";
     String LDAP_TYPE_V_ACTIV = "ACTIVE_DIRECTORY";
     String LDAP_TYPE_V_G_SUITE = "G_SUITE";
@@ -1053,7 +1054,7 @@ public interface IConfigProp {
                 "ldap.schema.type", null, LDAP_TYPE_V_OPEN_LDAP,
                 new String[] { LDAP_TYPE_V_ACTIV, LDAP_TYPE_V_E_DIR,
                         LDAP_TYPE_V_APPLE, LDAP_TYPE_V_OPEN_LDAP,
-                        LDAP_TYPE_V_G_SUITE },
+                        LDAP_TYPE_V_FREE_IPA, LDAP_TYPE_V_G_SUITE },
                 API_UPDATABLE_ON),
 
         /**
@@ -4204,6 +4205,11 @@ public interface IConfigProp {
          * Novell eDirectory.
          */
         EDIR,
+
+        /**
+         * FreeIPA
+         */
+        FREE_IPA,
 
         /**
          * Microsoft Active Directory.

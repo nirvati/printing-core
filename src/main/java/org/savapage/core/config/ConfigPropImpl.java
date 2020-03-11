@@ -92,7 +92,7 @@ public final class ConfigPropImpl implements IConfigProp {
         return new LdapProp[] {
 
                 /*
-                 * OpenLDAP (== G Suite)
+                 * OpenLDAP (== G Suite == FreeIPA)
                  */
                 new LdapProp(LdapType.OPEN_LDAP,
                         Key.LDAP_SCHEMA_GROUP_MEMBER_FIELD, "member"),
@@ -126,7 +126,41 @@ public final class ConfigPropImpl implements IConfigProp {
                         Key.LDAP_SCHEMA_USER_OFFICE_FIELD, null),
 
                 /*
-                 * G Suite == OpenLDAP
+                 * FreeIPA == G Suite == OpenLDAP
+                 */
+                new LdapProp(LdapType.FREE_IPA,
+                        Key.LDAP_SCHEMA_GROUP_MEMBER_FIELD, "member"),
+                //
+                new LdapProp(LdapType.FREE_IPA,
+                        Key.LDAP_SCHEMA_GROUP_NAME_FIELD, "cn"),
+                new LdapProp(LdapType.FREE_IPA,
+                        Key.LDAP_SCHEMA_GROUP_FULL_NAME_FIELD, "displayName"),
+
+                //
+                new LdapProp(LdapType.FREE_IPA, Key.LDAP_SCHEMA_GROUP_SEARCH,
+                        "(&(cn={0})(objectClass=groupOfNames))"),
+
+                new LdapProp(LdapType.FREE_IPA, Key.LDAP_SCHEMA_POSIX_GROUPS,
+                        V_NO),
+
+                //
+                new LdapProp(LdapType.FREE_IPA,
+                        Key.LDAP_SCHEMA_USER_DEPARTMENT_FIELD,
+                        "departmentNumber"),
+                new LdapProp(LdapType.FREE_IPA,
+                        Key.LDAP_SCHEMA_USER_EMAIL_FIELD, "mail"),
+                new LdapProp(LdapType.FREE_IPA,
+                        Key.LDAP_SCHEMA_USER_FULL_NAME_FIELD, "cn"),
+                new LdapProp(LdapType.FREE_IPA, Key.LDAP_SCHEMA_USER_NAME_FIELD,
+                        "uid"),
+                new LdapProp(LdapType.FREE_IPA,
+                        Key.LDAP_SCHEMA_USER_NAME_SEARCH, "(uid={0})"),
+                // not set
+                new LdapProp(LdapType.FREE_IPA,
+                        Key.LDAP_SCHEMA_USER_OFFICE_FIELD, null),
+
+                /*
+                 * G Suite == OpenLDAP == FreeIPA
                  */
                 new LdapProp(LdapType.G_SUITE,
                         Key.LDAP_SCHEMA_GROUP_MEMBER_FIELD, "member"),
