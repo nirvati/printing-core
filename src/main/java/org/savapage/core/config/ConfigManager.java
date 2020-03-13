@@ -91,7 +91,7 @@ import org.savapage.core.community.MemberCard;
 import org.savapage.core.concurrent.ReadLockObtainFailedException;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.IConfigProp.Key;
-import org.savapage.core.config.IConfigProp.LdapType;
+import org.savapage.core.config.IConfigProp.LdapTypeEnum;
 import org.savapage.core.config.IConfigProp.Prop;
 import org.savapage.core.config.validator.EnumSetValidator;
 import org.savapage.core.config.validator.ValidationResult;
@@ -134,8 +134,8 @@ import org.savapage.core.users.conf.UserAliasList;
 import org.savapage.core.util.CurrencyUtil;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.InetUtils;
-import org.savapage.ext.google.GSuiteLdapClient;
-import org.savapage.ext.google.GSuiteUserSource;
+import org.savapage.ext.google.GoogleLdapClient;
+import org.savapage.ext.google.GoogleLdapUserSource;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
@@ -1755,9 +1755,9 @@ public final class ConfigManager {
         ProxyPrintJobStatusMonitor.init();
 
         //
-        if (GSuiteLdapClient.init()) {
-            SpInfo.instance().log(GSuiteLdapClient.getCertCreateDateLogLine());
-            SpInfo.instance().log(GSuiteLdapClient.getCertExpireDateLogLine());
+        if (GoogleLdapClient.init()) {
+            SpInfo.instance().log(GoogleLdapClient.getCertCreateDateLogLine());
+            SpInfo.instance().log(GoogleLdapClient.getCertExpireDateLogLine());
         }
 
         //
@@ -2160,22 +2160,22 @@ public final class ConfigManager {
     /**
      *
      */
-    public IConfigProp.LdapType getConfigLdapType() {
+    public IConfigProp.LdapTypeEnum getConfigLdapType() {
 
         final String schema = myConfigProp.getString(Key.LDAP_SCHEMA_TYPE);
 
         if (schema.equals(IConfigProp.LDAP_TYPE_V_ACTIV)) {
-            return IConfigProp.LdapType.ACTD;
+            return IConfigProp.LdapTypeEnum.ACTD;
         } else if (schema.equals(IConfigProp.LDAP_TYPE_V_E_DIR)) {
-            return IConfigProp.LdapType.EDIR;
+            return IConfigProp.LdapTypeEnum.EDIR;
         } else if (schema.equals(IConfigProp.LDAP_TYPE_V_OPEN_LDAP)) {
-            return IConfigProp.LdapType.OPEN_LDAP;
+            return IConfigProp.LdapTypeEnum.OPEN_LDAP;
         } else if (schema.equals(IConfigProp.LDAP_TYPE_V_FREE_IPA)) {
-            return IConfigProp.LdapType.FREE_IPA;
-        } else if (schema.equals(IConfigProp.LDAP_TYPE_V_G_SUITE)) {
-            return IConfigProp.LdapType.G_SUITE;
+            return IConfigProp.LdapTypeEnum.FREE_IPA;
+        } else if (schema.equals(IConfigProp.LDAP_TYPE_V_GOOGLE_CLOUD)) {
+            return IConfigProp.LdapTypeEnum.GOOGLE_CLOUD;
         }
-        return IConfigProp.LdapType.OPEN_DIR;
+        return IConfigProp.LdapTypeEnum.OPEN_DIR;
     }
 
     /**
@@ -2282,7 +2282,7 @@ public final class ConfigManager {
      *            The key of the property.
      * @return <code>null</code> when property is not found.
      */
-    public String getConfigValue(final IConfigProp.LdapType ldapType,
+    public String getConfigValue(final IConfigProp.LdapTypeEnum ldapType,
             final IConfigProp.Key key) {
         return myConfigProp.getString(ldapType, key);
     }
@@ -2296,7 +2296,7 @@ public final class ConfigManager {
      *            The key of the property.
      * @return <code>null</code> when property is not found.
      */
-    public Boolean isConfigValue(final IConfigProp.LdapType ldapType,
+    public Boolean isConfigValue(final IConfigProp.LdapTypeEnum ldapType,
             final IConfigProp.Key key) {
         return myConfigProp.getBoolean(ldapType, key);
     }
@@ -2808,14 +2808,14 @@ public final class ConfigManager {
 
         } else if (mode.equals(IConfigProp.AUTH_METHOD_V_LDAP)) {
 
-            final LdapType ldapType = getConfigLdapType();
+            final LdapTypeEnum ldapType = getConfigLdapType();
 
             switch (ldapType) {
             case ACTD:
                 source = new ActiveDirectoryUserSource();
                 break;
-            case G_SUITE:
-                source = new GSuiteUserSource();
+            case GOOGLE_CLOUD:
+                source = new GoogleLdapUserSource();
                 break;
             default:
                 source = new LdapUserSource(ldapType);
@@ -2858,14 +2858,14 @@ public final class ConfigManager {
 
         } else if (mode.equals(IConfigProp.AUTH_METHOD_V_LDAP)) {
 
-            final LdapType ldapType = getConfigLdapType();
+            final LdapTypeEnum ldapType = getConfigLdapType();
 
             switch (ldapType) {
             case ACTD:
                 auth = new ActiveDirectoryUserSource();
                 break;
-            case G_SUITE:
-                auth = new GSuiteUserSource();
+            case GOOGLE_CLOUD:
+                auth = new GoogleLdapUserSource();
                 break;
             default:
                 auth = new LdapUserSource(ldapType);

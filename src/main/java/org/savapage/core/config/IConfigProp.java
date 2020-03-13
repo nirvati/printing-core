@@ -173,7 +173,7 @@ public interface IConfigProp {
     String LDAP_TYPE_V_FREE_IPA = "FREE_IPA";
     String LDAP_TYPE_V_E_DIR = "NOVELL_EDIRECTORY";
     String LDAP_TYPE_V_ACTIV = "ACTIVE_DIRECTORY";
-    String LDAP_TYPE_V_G_SUITE = "G_SUITE";
+    String LDAP_TYPE_V_GOOGLE_CLOUD = "GOOGLE_CLOUD";
 
     String PAPERSIZE_V_SYSTEM = "";
     String PAPERSIZE_V_A4 = MediaSizeName.ISO_A4.toString();
@@ -1054,7 +1054,7 @@ public interface IConfigProp {
                 "ldap.schema.type", null, LDAP_TYPE_V_OPEN_LDAP,
                 new String[] { LDAP_TYPE_V_ACTIV, LDAP_TYPE_V_E_DIR,
                         LDAP_TYPE_V_APPLE, LDAP_TYPE_V_OPEN_LDAP,
-                        LDAP_TYPE_V_FREE_IPA, LDAP_TYPE_V_G_SUITE },
+                        LDAP_TYPE_V_FREE_IPA, LDAP_TYPE_V_GOOGLE_CLOUD },
                 API_UPDATABLE_ON),
 
         /**
@@ -4189,7 +4189,7 @@ public interface IConfigProp {
      * @author rijk
      *
      */
-    enum LdapType {
+    enum LdapTypeEnum {
 
         /**
          * OpenLDAP.
@@ -4217,9 +4217,9 @@ public interface IConfigProp {
         ACTD,
 
         /**
-         * Google Cloud Directory (G Suite).
+         * Google Cloud Directory.
          */
-        G_SUITE
+        GOOGLE_CLOUD
     };
 
     /**
@@ -4229,7 +4229,7 @@ public interface IConfigProp {
      */
     static class LdapProp {
 
-        private LdapType ldapType;
+        private LdapTypeEnum ldapType;
         private Key key;
         private String value;
 
@@ -4237,18 +4237,18 @@ public interface IConfigProp {
         private LdapProp() {
         }
 
-        public LdapProp(final LdapType ldapType, final Key key,
+        public LdapProp(final LdapTypeEnum ldapType, final Key key,
                 final String value) {
             this.ldapType = ldapType;
             this.key = key;
             this.value = value;
         }
 
-        public LdapType getLdapType() {
+        public LdapTypeEnum getLdapType() {
             return ldapType;
         }
 
-        public void setLdapType(LdapType ldapType) {
+        public void setLdapType(LdapTypeEnum ldapType) {
             this.ldapType = ldapType;
         }
 
@@ -4383,7 +4383,7 @@ public interface IConfigProp {
      *            The key.
      * @return The string value or {@code null} when not found.
      */
-    String getString(LdapType ldapType, Key key);
+    String getString(LdapTypeEnum ldapType, Key key);
 
     /**
      * Gets the value of an LDAP configuration key as Boolean.
@@ -4394,7 +4394,7 @@ public interface IConfigProp {
      *            The key.
      * @return The boolean value or {@code null} when not found.
      */
-    Boolean getBoolean(LdapType ldapType, Key key);
+    Boolean getBoolean(LdapTypeEnum ldapType, Key key);
 
     /**
      * Gets the value of a configuration key as double.

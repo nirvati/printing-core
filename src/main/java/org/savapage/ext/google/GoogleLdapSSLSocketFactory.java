@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -28,12 +31,12 @@ import org.savapage.core.net.IClientCertSSLSocketFactory;
 import org.savapage.core.net.SSLSocketFactoryWrapper;
 
 /**
- * G-Suite SocketFactory.
+ * Google LDAP SocketFactory.
  *
  * @author Rijk Ravestein
  *
  */
-public final class GSuiteLdapSSLSocketFactory extends SSLSocketFactoryWrapper
+public final class GoogleLdapSSLSocketFactory extends SSLSocketFactoryWrapper
         implements IClientCertSSLSocketFactory {
 
     /**
@@ -53,8 +56,8 @@ public final class GSuiteLdapSSLSocketFactory extends SSLSocketFactoryWrapper
      */
     public static SocketFactory getDefault() {
         if (socketFactoryWrapper == null) {
-            socketFactoryWrapper = new GSuiteLdapSSLSocketFactory(
-                    GSuiteLdapClient.getSSLSocketFactory());
+            socketFactoryWrapper = new GoogleLdapSSLSocketFactory(
+                    GoogleLdapClient.getSSLSocketFactory());
         }
         return socketFactoryWrapper;
     }
@@ -63,7 +66,7 @@ public final class GSuiteLdapSSLSocketFactory extends SSLSocketFactoryWrapper
      * @param factory
      *            The factory to wrap.
      */
-    private GSuiteLdapSSLSocketFactory(final SSLSocketFactory factory) {
+    private GoogleLdapSSLSocketFactory(final SSLSocketFactory factory) {
         super(factory);
     }
 

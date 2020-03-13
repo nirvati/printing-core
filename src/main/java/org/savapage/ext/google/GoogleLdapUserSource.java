@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,7 +24,7 @@
  */
 package org.savapage.ext.google;
 
-import org.savapage.core.config.IConfigProp.LdapType;
+import org.savapage.core.config.IConfigProp.LdapTypeEnum;
 import org.savapage.core.users.LdapUserSource;
 
 /**
@@ -29,20 +32,49 @@ import org.savapage.core.users.LdapUserSource;
  * @author Rijk Ravestein
  *
  */
-public final class GSuiteUserSource extends LdapUserSource {
+public final class GoogleLdapUserSource extends LdapUserSource {
 
     /** */
-    public GSuiteUserSource() {
-        super(LdapType.G_SUITE);
+    public static final String LDAP_HOST = "ldap.google.com";
+
+    /**
+     * LDAPS (SSL/TLS enabled).
+     */
+    public static final String LDAP_PORT = "636";
+
+    /** */
+    public GoogleLdapUserSource() {
+        super(LdapTypeEnum.GOOGLE_CLOUD);
     }
 
     @Override
     protected Class<?> getCustomSSLSocketFactoryClass() {
-        return GSuiteLdapSSLSocketFactory.class;
+        return GoogleLdapSSLSocketFactory.class;
     }
 
     @Override
     protected boolean isExtraUserAttributes() {
+        return false;
+    }
+
+    @Override
+    protected String getLdapHost() {
+        return LDAP_HOST;
+
+    }
+
+    @Override
+    protected String getLdapPort() {
+        return LDAP_PORT;
+    }
+
+    @Override
+    protected boolean isLdapSSL() {
+        return true;
+    }
+
+    @Override
+    protected boolean isLdapUseTrustSelfSignedSSL() {
         return false;
     }
 

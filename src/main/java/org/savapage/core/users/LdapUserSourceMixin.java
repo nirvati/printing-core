@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -54,7 +57,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
-import org.savapage.core.config.IConfigProp.LdapType;
+import org.savapage.core.config.IConfigProp.LdapTypeEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.net.TrustSelfSignedCertSocketFactory;
 import org.savapage.core.rfid.RfidNumberFormat;
@@ -126,7 +129,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
     /**
      *
      */
-    private final LdapType ldapType;
+    private final LdapTypeEnum ldapType;
 
     /**
      * The lazy initialized LDAP search filter pattern to select a group.
@@ -183,7 +186,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
     /**
      *
      */
-    public LdapUserSourceMixin(final LdapType ldapType) {
+    public LdapUserSourceMixin(final LdapTypeEnum ldapType) {
 
         final ConfigManager cm = ConfigManager.instance();
 
@@ -281,9 +284,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
 
     /**
      *
-     * @return The {@link LdapType}.
+     * @return The {@link LdapTypeEnum}.
      */
-    protected final IConfigProp.LdapType getLdapType() {
+    protected final IConfigProp.LdapTypeEnum getLdapType() {
         return this.ldapType;
     }
 
@@ -344,25 +347,53 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
     }
 
     /**
+     * @return LDAP host.
+     */
+    protected String getLdapHost() {
+        return ConfigManager.instance()
+                .getConfigValue(IConfigProp.Key.AUTH_LDAP_HOST);
+    }
+
+    /**
+     * @return LDAP port.
+     */
+    protected String getLdapPort() {
+        return ConfigManager.instance()
+                .getConfigValue(IConfigProp.Key.AUTH_LDAP_PORT);
+    }
+
+    /**
+     * @return {@code true} if SSL.
+     */
+    protected boolean isLdapSSL() {
+        return ConfigManager.instance()
+                .isConfigValue(IConfigProp.Key.AUTH_LDAP_USE_SSL);
+    }
+
+    /**
+     * @return {@code true} if self-signed certificate for LDAP SSL is trusted.
+     */
+    protected boolean isLdapUseTrustSelfSignedSSL() {
+        return ConfigManager.instance()
+                .isConfigValue(Key.AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED);
+    }
+
+    /**
      *
      * @return The URL.
      */
     private String getProviderUrl() {
 
-        final ConfigManager cm = ConfigManager.instance();
-
         final StringBuilder schema = new StringBuilder();
 
         schema.append("ldap");
 
-        if (cm.isConfigValue(IConfigProp.Key.AUTH_LDAP_USE_SSL)) {
+        if (this.isLdapSSL()) {
             schema.append("s");
         }
 
-        schema.append("://")
-                .append(cm.getConfigValue(IConfigProp.Key.AUTH_LDAP_HOST))
-                .append(":")
-                .append(cm.getConfigValue(IConfigProp.Key.AUTH_LDAP_PORT));
+        schema.append("://").append(this.getLdapHost()).append(":")
+                .append(this.getLdapPort());
 
         return schema.toString();
     }
@@ -642,8 +673,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
      * @return {@code null} if no custom class is present.
      */
     protected Class<?> getCustomSSLSocketFactoryClass() {
-        if (ConfigManager.instance()
-                .isConfigValue(Key.AUTH_LDAP_USE_SSL_TRUST_SELF_SIGNED)) {
+        if (this.isLdapUseTrustSelfSignedSSL()) {
             return TrustSelfSignedCertSocketFactory.class;
         }
         return null;
@@ -660,7 +690,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
     private void setInitialLdapSSLContext(final ConfigManager cm,
             final Hashtable<String, String> env) {
 
-        if (cm.isConfigValue(Key.AUTH_LDAP_USE_SSL)) {
+        if (this.isLdapSSL()) {
 
             env.put(Context.SECURITY_PROTOCOL, CONTEXT_SECURITY_PROTOCOL_SSL);
 

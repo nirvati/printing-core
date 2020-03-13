@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -35,6 +38,14 @@ public enum PhraseEnum {
 
     /** */
     ACTIVATE_CARD_READER,
+
+    /** */
+    CERT_EXPIRED_ON,
+    /** */
+    CERT_EXPIRES_ON,
+    /** */
+    CERT_VALID_UNTIL,
+
     /** */
     PDF_INVALID,
     /** */
@@ -81,6 +92,30 @@ public enum PhraseEnum {
      */
     public String uiText(final Locale locale) {
         return LocaleHelper.uiText(this, locale);
+    }
+
+    /**
+     * Get the localized UI text with argument. To be used for:
+     * {@link #CERT_EXPIRED_ON}, {@link #CERT_EXPIRES_ON},
+     * {@link #CERT_VALID_UNTIL}.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param args
+     *            The arguments.
+     * @return The localized text.
+     */
+    public String uiText(final Locale locale, final String... args) {
+        switch (this) {
+        case CERT_EXPIRED_ON:
+        case CERT_EXPIRES_ON:
+        case CERT_VALID_UNTIL:
+            return LocaleHelper.uiTextArgs(this, locale, args);
+        default:
+            throw new IllegalArgumentException(String
+                    .format("%s does not support arguments.", this.toString()));
+        }
+
     }
 
 }

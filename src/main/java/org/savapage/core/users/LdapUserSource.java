@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -31,11 +34,11 @@ import javax.naming.directory.Attributes;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.config.IConfigProp.Key;
-import org.savapage.core.config.IConfigProp.LdapType;
+import org.savapage.core.config.IConfigProp.LdapTypeEnum;
 
 /**
- * Standard LDAP User Source for all {@link LdapType}, <b>except</b> for
- * {@link LdapType#ACTD}).
+ * Standard LDAP User Source for all {@link LdapTypeEnum}, <b>except</b> for
+ * {@link LdapTypeEnum#ACTD}).
  *
  * @author Rijk Ravestein
  *
@@ -45,9 +48,9 @@ public class LdapUserSource extends LdapUserSourceMixin {
     /**
      *
      * @param ldapType
-     *            The {@link LdapType}.
+     *            The {@link LdapTypeEnum}.
      */
-    public LdapUserSource(final LdapType ldapType) {
+    public LdapUserSource(final LdapTypeEnum ldapType) {
         super(ldapType);
     }
 

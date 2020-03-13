@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -41,6 +44,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.ServerPathEnum;
 import org.savapage.core.util.DateUtil;
@@ -50,22 +54,14 @@ import org.savapage.core.util.DateUtil;
  * @author Rijk Ravestein
  *
  */
-public final class GSuiteLdapClient {
-
-    /** */
-    public static final String LDAP_HOST = "ldap.google.com";
-
-    /**
-     * LDAPS (SSL/TLS enabled).
-     */
-    public static final String LDAP_PORT = "636";
+public final class GoogleLdapClient {
 
     /** */
     private static final String CLIENT_CERT_FILE_NAME =
-            "gsuite-ldap-client-cert.p12";
+            "google-ldap-client-cert.p12";
     /** */
     private static final String CLIENT_CERT_PROPS_FILE_NAME =
-            "gsuite-ldap-client-cert.pw";
+            "google-ldap-client-cert.pw";
 
     /** */
     private static final String PROP_KEY_PASSWORD = "password";
@@ -78,9 +74,15 @@ public final class GSuiteLdapClient {
     private static final String KEYMANAGERFACTORY_ALGORITHM_SUNX509 = "SunX509";
 
     /** */
+    private static final String LOG_LINE_PREFIX = "Google Cloud LDAP Cert";
+
+    /** */
+    private static final int CERT_EXPIRE_NEARING_DAYS = 30;
+
+    /** */
     private static class SingletonHolder {
         /** */
-        public static final GSuiteLdapClient INSTANCE = new GSuiteLdapClient();
+        public static final GoogleLdapClient INSTANCE = new GoogleLdapClient();
     }
 
     /** */
@@ -101,13 +103,13 @@ public final class GSuiteLdapClient {
     private Date certCreateDate;
 
     /** */
-    private GSuiteLdapClient() {
+    private GoogleLdapClient() {
     }
 
     /**
      * @return The singleton instance.
      */
-    private static GSuiteLdapClient instance() {
+    private static GoogleLdapClient instance() {
         return SingletonHolder.INSTANCE;
     }
 
@@ -142,8 +144,24 @@ public final class GSuiteLdapClient {
     }
 
     /**
-     * @return Expire date.
+     * @param when
+     *            Reference date.
+     * @return {@code true} if certificate is expired.
      */
+    public static boolean isCertExpired(final Date when) {
+        return getCertExpireDate().before(when);
+    }
+
+    /**
+     * @param when
+     *            Reference date.
+     * @return {@code true} if certificate expiration is nearing.
+     */
+    public static boolean isCertExpireNearing(final Date when) {
+        return isCertExpired(DateUtils.addDays(when, CERT_EXPIRE_NEARING_DAYS));
+    }
+
+    /** */
     private void setCertDates() {
         try {
             final Enumeration<String> aliases = this.clientKeyStore.aliases();
@@ -189,16 +207,13 @@ public final class GSuiteLdapClient {
         return instance().sslSocketFactory;
     }
 
-    /** */
-    private static final String LOG_LINE_PREFIX = "G Suite LDAP Cert";
-
     /**
      * @return Log line with certificate create date.
      */
     public static String getCertCreateDateLogLine() {
         return String.format("%s Created [%s]", LOG_LINE_PREFIX,
                 DateUtil.localizedLongMediumDateTime(
-                        GSuiteLdapClient.getCertCreateDate(), Locale.ENGLISH));
+                        GoogleLdapClient.getCertCreateDate(), Locale.ENGLISH));
     }
 
     /**
@@ -207,7 +222,7 @@ public final class GSuiteLdapClient {
     public static String getCertExpireDateLogLine() {
         return String.format("%s Expires [%s]", LOG_LINE_PREFIX,
                 DateUtil.localizedLongMediumDateTime(
-                        GSuiteLdapClient.getCertExpireDate(), Locale.ENGLISH));
+                        GoogleLdapClient.getCertExpireDate(), Locale.ENGLISH));
     }
 
     /**
