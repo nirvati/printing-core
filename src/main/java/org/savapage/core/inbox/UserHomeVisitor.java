@@ -62,6 +62,7 @@ import org.savapage.core.job.RunModeSwitch;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.OutboxService;
+import org.savapage.core.services.PGPPublicKeyService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.LocaleHelper;
@@ -78,18 +79,45 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         implements IDocVisitor {
 
     /**
-     * File statistics.
+     * File cleanup statistics.
      */
-    public static final class FileStats {
+    public static class FileStats {
 
         /** */
         private long scanned;
 
         /** */
-        private long cleanup;
+        private BigInteger bytes;
+
+        public void init() {
+            this.scanned = 0;
+            this.bytes = BigInteger.ZERO;
+        }
+
+        public final long getScanned() {
+            return scanned;
+        }
+
+        public final BigInteger getBytes() {
+            return bytes;
+        }
+
+        public final void incrementScanned() {
+            this.scanned++;
+        }
+
+        public final void addBytes(final BigInteger fileSize) {
+            this.bytes = this.bytes.add(fileSize);
+        }
+    }
+
+    /**
+     * File cleanup statistics.
+     */
+    public static final class FileCleanupStats extends FileStats {
 
         /** */
-        private BigInteger bytes;
+        private long cleanup;
 
         /** */
         private BigInteger bytesCleanup;
@@ -98,19 +126,15 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         private Date cleanDate;
 
         /** */
-        private FileStats() {
+        private FileCleanupStats() {
             this.init();
         }
 
+        @Override
         public void init() {
-            this.scanned = 0;
-            this.bytes = BigInteger.ZERO;
+            super.init();
             this.bytesCleanup = BigInteger.ZERO;
             this.cleanup = 0;
-        }
-
-        public long getScanned() {
-            return scanned;
         }
 
         public Date getCleanDate() {
@@ -121,12 +145,16 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             return cleanup;
         }
 
-        public BigInteger getBytes() {
-            return bytes;
-        }
-
         public BigInteger getBytesCleanup() {
             return bytesCleanup;
+        }
+
+        public final void incrementCleanup() {
+            this.cleanup++;
+        }
+
+        public void addBytesCleanup(final BigInteger fileSize) {
+            this.bytesCleanup = this.bytesCleanup.add(fileSize);
         }
 
     }
@@ -157,6 +185,21 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         private long userHomeScanned;
 
         /**
+         * User home letterhead files.
+         */
+        private final FileStats filesHomeLetterheads;
+
+        /**
+         * User home PGP pubring public key files.
+         */
+        private final FileStats filesHomePgpPubRing;
+
+        /**
+         * Unknown (unidentified) user home files.
+         */
+        private final FileStats filesUnknown;
+
+        /**
          * Number of user homes (to be) cleaned up.
          */
         private long userHomeCleanup;
@@ -164,12 +207,12 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         /**
          *
          */
-        private final FileStats pdfInbox;
+        private final FileCleanupStats pdfInbox;
 
         /**
          *
          */
-        private final FileStats pdfOutbox;
+        private final FileCleanupStats pdfOutbox;
 
         /** */
         private final RunModeSwitch mode;
@@ -187,8 +230,11 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
          */
         private ExecStats(final RunModeSwitch run) {
             this.mode = run;
-            this.pdfInbox = new FileStats();
-            this.pdfOutbox = new FileStats();
+            this.filesUnknown = new FileStats();
+            this.filesHomeLetterheads = new FileStats();
+            this.filesHomePgpPubRing = new FileStats();
+            this.pdfInbox = new FileCleanupStats();
+            this.pdfOutbox = new FileCleanupStats();
         }
 
         /**
@@ -199,6 +245,9 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             this.userHomeCleanup = 0;
             this.terminated = false;
             this.conflicts = 0;
+            this.filesUnknown.init();
+            this.filesHomeLetterheads.init();
+            this.filesHomePgpPubRing.init();
             this.pdfInbox.init();
             this.pdfOutbox.init();
         }
@@ -225,6 +274,27 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         }
 
         /**
+         * @return User home letterheads files.
+         */
+        public FileStats getFilesHomeLetterheads() {
+            return this.filesHomeLetterheads;
+        }
+
+        /**
+         * @return User home PGP pubring public key files.
+         */
+        public FileStats getFilesHomePgpPubRing() {
+            return this.filesHomePgpPubRing;
+        }
+
+        /**
+         * @return Unknown (unidentified) user home files.
+         */
+        public FileStats getFilesUnknown() {
+            return this.filesUnknown;
+        }
+
+        /**
          * @return Number of IO errors.
          */
         public long getConflicts() {
@@ -234,14 +304,14 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
         /**
          * @return PDF inbox statistics.
          */
-        public FileStats getPdfInbox() {
+        public FileCleanupStats getPdfInbox() {
             return this.pdfInbox;
         }
 
         /**
          * @return PDF outbox statistics.
          */
-        public FileStats getPdfOutbox() {
+        public FileCleanupStats getPdfOutbox() {
             return this.pdfOutbox;
         }
 
@@ -273,12 +343,18 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             dto.setDate(
                     new Date(this.start.getTime() + this.duration.toMillis()));
 
+            if (this.terminated) {
+                dto.setReturnCode(1);
+            } else {
+                dto.setReturnCode(0);
+            }
+
             dto.setCleaned(this.mode.isReal());
 
             UserHomeStatsDto.Stats statsWlk;
             UserHomeStatsDto.Scope scopeWlk;
 
-            FileStats fileStatsWlk;
+            FileCleanupStats fileStatsWlk;
 
             // -----------------------
             // Current
@@ -291,6 +367,30 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             statsWlk.setUsers(scopeWlk);
 
             scopeWlk.setCount(this.userHomeScanned);
+
+            // --- Letterheads
+            if (this.filesHomeLetterheads.getScanned() > 0) {
+                scopeWlk = new UserHomeStatsDto.Scope();
+                scopeWlk.setCount(this.filesHomeLetterheads.getScanned());
+                scopeWlk.setSize(this.filesHomeLetterheads.getBytes());
+                statsWlk.setLetterheads(scopeWlk);
+            }
+
+            // --- PGP
+            if (this.filesHomePgpPubRing.getScanned() > 0) {
+                scopeWlk = new UserHomeStatsDto.Scope();
+                scopeWlk.setCount(this.filesHomePgpPubRing.getScanned());
+                scopeWlk.setSize(this.filesHomePgpPubRing.getBytes());
+                statsWlk.setPgpPubRing(scopeWlk);
+            }
+
+            // --- Unknown
+            if (this.filesUnknown.getScanned() > 0) {
+                scopeWlk = new UserHomeStatsDto.Scope();
+                scopeWlk.setCount(this.filesUnknown.getScanned());
+                scopeWlk.setSize(this.filesUnknown.getBytes());
+                statsWlk.setUnkown(scopeWlk);
+            }
 
             // --- Inbox
             scopeWlk = new UserHomeStatsDto.Scope();
@@ -384,9 +484,9 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
                         .append(" ")
                         .append(NounEnum.DOCUMENT.uiText(locale, nFiles != 1))
                         .append(", ")
-                        .append(FileUtils
-                                .byteCountToDisplaySize(pdfInbox.bytesCleanup
-                                        .add(pdfOutbox.bytesCleanup)));
+                        .append(FileUtils.byteCountToDisplaySize(
+                                pdfInbox.getBytesCleanup()
+                                        .add(pdfOutbox.getBytesCleanup())));
             }
             msg.append(".");
             return msg.toString();
@@ -423,27 +523,44 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             msg.append(String.format(
                     "\n" + "| Home       | users | %7d |   %7d | %7s |",
                     this.userHomeScanned, this.userHomeCleanup, ""));
+
+            if (this.filesHomeLetterheads.getScanned() > 0) {
+                msg.append(String.format(
+                        "\n" + "|            | lhead | %7d |   %7s | %7s |",
+                        this.filesHomeLetterheads.getScanned(), "", ""));
+            }
+            if (this.filesHomePgpPubRing.getScanned() > 0) {
+                msg.append(String.format(
+                        "\n" + "|            | pgp   | %7d |   %7s | %7s |",
+                        this.filesHomePgpPubRing.getScanned(), "", ""));
+            }
+            if (this.filesUnknown.getScanned() > 0) {
+                msg.append(String.format(
+                        "\n" + "|            | ???   | %7d |   %7s | %7s |",
+                        this.filesUnknown.getScanned(), "", ""));
+            }
+
             msg.append(String.format(
                     "\n" + "| Print-In   | jobs  | %7d |   %7d | %7d |",
-                    this.pdfInbox.scanned, this.pdfInbox.cleanup,
-                    this.pdfInbox.scanned - this.pdfInbox.cleanup));
+                    this.pdfInbox.getScanned(), this.pdfInbox.cleanup,
+                    this.pdfInbox.getScanned() - this.pdfInbox.cleanup));
             msg.append(String.format(
                     "\n" + "|            | size  | %7s |   %7s | %7s |",
-                    byteCountToDisplaySize(this.pdfInbox.bytes),
-                    byteCountToDisplaySize(this.pdfInbox.bytesCleanup),
-                    byteCountToDisplaySize(this.pdfInbox.bytes
-                            .subtract(this.pdfInbox.bytesCleanup))));
+                    byteCountToDisplaySize(this.pdfInbox.getBytes()),
+                    byteCountToDisplaySize(this.pdfInbox.getBytesCleanup()),
+                    byteCountToDisplaySize(this.pdfInbox.getBytes()
+                            .subtract(this.pdfInbox.getBytesCleanup()))));
 
             msg.append(String.format(
                     "\n" + "| Print-Hold | jobs  | %7d |   %7d | %7d |",
-                    this.pdfOutbox.scanned, this.pdfOutbox.cleanup,
-                    this.pdfOutbox.scanned - this.pdfOutbox.cleanup));
+                    this.pdfOutbox.getScanned(), this.pdfOutbox.cleanup,
+                    this.pdfOutbox.getScanned() - this.pdfOutbox.cleanup));
             msg.append(String.format(
                     "\n" + "|            | size  | %7s |   %7s | %7s |",
-                    byteCountToDisplaySize(this.pdfOutbox.bytes),
-                    byteCountToDisplaySize(this.pdfOutbox.bytesCleanup),
-                    byteCountToDisplaySize(this.pdfOutbox.bytes
-                            .subtract(this.pdfOutbox.bytesCleanup))));
+                    byteCountToDisplaySize(this.pdfOutbox.getBytes()),
+                    byteCountToDisplaySize(this.pdfOutbox.getBytesCleanup()),
+                    byteCountToDisplaySize(this.pdfOutbox.getBytes()
+                            .subtract(this.pdfOutbox.getBytesCleanup()))));
 
             msg.append("\n"
                     + "+============+=======+=========+===========+=========+");
@@ -505,9 +622,16 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             LoggerFactory.getLogger(UserHomeVisitor.class);
 
     /** */
+    private static final InboxService INBOX_SERVICE =
+            ServiceContext.getServiceFactory().getInboxService();
+
+    /** */
     private static final OutboxService OUTBOX_SERVICE =
             ServiceContext.getServiceFactory().getOutboxService();
 
+    /** */
+    private static final PGPPublicKeyService PGP_PUBLICKEY_SERVICE =
+            ServiceContext.getServiceFactory().getPGPPublicKeyService();
     /**
      * Indicated if execution is in progress.
      */
@@ -535,7 +659,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
     private int wlkDepth;
 
     /** */
-    private FileStats wlkPdfStats;
+    private FileCleanupStats wlkPdfStats;
 
     /** */
     private boolean wlkUserHomeCleaned;
@@ -765,41 +889,69 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             return FileVisitResult.CONTINUE;
         }
 
-        // Anything to scan?
-        if (this.wlkPdfStats == null) {
-            return FileVisitResult.CONTINUE;
-        }
-
         final String ext = FilenameUtils.getExtension(fileName.toString());
 
-        try {
-            // Postpone .eco file cleaning.
-            if (this.wlkUserHomePath == UserHomePathEnum.BASE
-                    && ext.equalsIgnoreCase(InboxService.FILENAME_EXT_ECO)) {
+        final boolean isValidFileName;
+
+        if (this.wlkUserHomePath == UserHomePathEnum.BASE) {
+            if (ext.equalsIgnoreCase(InboxService.FILENAME_EXT_ECO)) {
+                // Postpone .eco file cleaning.
                 this.wlkUserInboxEcoFiles.add(file);
             }
+            isValidFileName =
+                    INBOX_SERVICE.isValidInboxFileName(fileName.toString());
+        } else if (this.wlkUserHomePath == UserHomePathEnum.OUTBOX) {
+            isValidFileName =
+                    OUTBOX_SERVICE.isValidOutboxFileName(fileName.toString());
+        } else if (this.wlkUserHomePath == UserHomePathEnum.LETTERHEADS) {
+            isValidFileName = INBOX_SERVICE
+                    .isValidInboxLetterheadFileName(fileName.toString());
+        } else if (this.wlkUserHomePath == UserHomePathEnum.PGP_PUBRING) {
+            isValidFileName = PGP_PUBLICKEY_SERVICE
+                    .isValidRingEntryFileName(fileName.toString());
+        } else {
+            isValidFileName = false;
+        }
 
-            //
-            if (!ext.equalsIgnoreCase(DocContent.FILENAME_EXT_PDF)) {
-                // TODO: stats for non-PDF files.
-                return FileVisitResult.CONTINUE;
-            }
-
-            final String baseName =
-                    FilenameUtils.getBaseName(fileName.toString());
-
-            if (!isUUID(baseName)) {
-                // TODO: stats for invalid files.
-                LOGGER.warn("{} : invalid UUID [{}]", file.toString(),
-                        baseName);
-            }
+        try {
 
             final BigInteger fileSize = getFileSize(file);
 
-            this.wlkPdfStats.scanned++;
-            this.wlkPdfStats.bytes = this.wlkPdfStats.bytes.add(fileSize);
+            // Homes
+            // this.stats.
 
-            if (this.wlkUserHomePath == UserHomePathEnum.BASE) {
+            // --- Unknown
+            if (!isValidFileName) {
+                this.stats.filesUnknown.incrementScanned();
+                this.stats.filesUnknown.addBytes(fileSize);
+                LOGGER.warn("Unknown filename syntax [{}]", file.toString());
+            }
+
+            final boolean isPdf =
+                    ext.equalsIgnoreCase(DocContent.FILENAME_EXT_PDF);
+
+            switch (this.wlkUserHomePath) {
+
+            case PGP_PUBRING:
+                this.stats.filesHomePgpPubRing.incrementScanned();
+                this.stats.filesHomePgpPubRing.addBytes(fileSize);
+                break;
+
+            case LETTERHEADS:
+                if (isPdf) {
+                    this.stats.filesHomeLetterheads.incrementScanned();
+                    this.stats.filesHomeLetterheads.addBytes(fileSize);
+                }
+                break;
+
+            case OUTBOX:
+                if (isPdf) {
+                    this.wlkUserOutboxJobsMap.put(fileName.toString(),
+                            fileSize);
+                }
+                break;
+
+            case BASE:
                 if (this.wlkPdfStats.cleanDate != null && FileUtils.isFileOlder(
                         file.toFile(), this.wlkPdfStats.cleanDate)) {
 
@@ -807,14 +959,21 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
                         Files.delete(file);
                     }
 
-                    this.wlkPdfStats.cleanup++;
-                    this.wlkPdfStats.bytesCleanup =
-                            this.wlkPdfStats.bytesCleanup.add(fileSize);
+                    this.wlkPdfStats.incrementCleanup();
+                    this.wlkPdfStats.addBytesCleanup(fileSize);
 
                     this.wlkUserHomeCleaned = true;
                 }
-            } else if (this.wlkUserHomePath == UserHomePathEnum.OUTBOX) {
-                this.wlkUserOutboxJobsMap.put(fileName.toString(), fileSize);
+                break;
+
+            default:
+                throw new java.lang.UnsupportedOperationException(
+                        this.wlkUserHomePath.toString());
+            }
+
+            if (isPdf && this.wlkPdfStats != null) {
+                this.wlkPdfStats.incrementScanned();
+                this.wlkPdfStats.addBytes(fileSize);
             }
 
         } catch (IOException e) {
@@ -909,9 +1068,8 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             /*
              * Observed PDF is not part of outbox job info: add to cleanup.
              */
-            this.wlkPdfStats.cleanup++;
-            this.wlkPdfStats.bytesCleanup =
-                    this.wlkPdfStats.bytesCleanup.add(entry.getValue());
+            this.wlkPdfStats.incrementCleanup();
+            this.wlkPdfStats.addBytesCleanup(entry.getValue());
             this.wlkUserHomeCleaned = true;
 
             if (this.runMode.isReal()) {
@@ -954,9 +1112,8 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
                         Files.delete(path);
                     }
 
-                    this.wlkPdfStats.bytes = this.wlkPdfStats.bytes.add(size);
-                    this.wlkPdfStats.bytesCleanup =
-                            this.wlkPdfStats.bytesCleanup.add(size);
+                    this.wlkPdfStats.addBytes(size);
+                    this.wlkPdfStats.addBytesCleanup(size);
                     this.wlkUserHomeCleaned = true;
                 }
             } catch (IOException e) {

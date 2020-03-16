@@ -149,7 +149,7 @@ public final class UserHomeClean extends AbstractJob {
 
         //
         final Date holdJobCleanDate = DateUtils.addMinutes(dateNow,
-                cm.getConfigInt(Key.PROXY_PRINT_HOLD_IGNORED_MINS));
+                -1 * cm.getConfigInt(Key.PROXY_PRINT_HOLD_IGNORED_MINS));
 
         final AdminPublisher publisher = AdminPublisher.instance();
 

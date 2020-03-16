@@ -656,7 +656,7 @@ public interface InboxService {
 
     /**
      * Checks if the file represents a supported job type. It is irrelevant if
-     * the file exists or not.
+     * the file actually exists.
      * <p>
      * pdf, ps, and pnm (scan) are supported job types.
      * </p>
@@ -666,6 +666,24 @@ public interface InboxService {
      * @return {@code true} if supported.
      */
     boolean isSupportedJobType(File file);
+
+    /**
+     * Checks is inbox file name syntax is valid.
+     *
+     * @param filename
+     *            File name.
+     * @return {@code true} if inbox file name syntax is valid.
+     */
+    boolean isValidInboxFileName(String filename);
+
+    /**
+     * Checks is letterhead inbox file name syntax is valid.
+     *
+     * @param filename
+     *            File name.
+     * @return {@code true} if letterhead inbox file name syntax is valid.
+     */
+    boolean isValidInboxLetterheadFileName(String filename);
 
     /**
      * Gets the {@link InboxPageImageInfo} belonging to the overall SafePages
@@ -819,4 +837,5 @@ public interface InboxService {
      *             When file system error.
      */
     Long getLastPrintInTime(String userId) throws IOException;
+
 }

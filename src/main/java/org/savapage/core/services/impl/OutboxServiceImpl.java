@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -1044,6 +1045,23 @@ public final class OutboxServiceImpl extends AbstractService
 
         return paperCutService().isMonitorPaperCutPrintStatus(job.getPrinter(),
                 isNonPersonalPrint);
+    }
+
+    @Override
+    public boolean isValidOutboxFileName(final String filename) {
+        if (filename.equals(OUTBOX_DESCRIPT_FILE_NAME)) {
+            return true;
+        }
+        if (FilenameUtils.getExtension(filename)
+                .equalsIgnoreCase(DocContent.FILENAME_EXT_PDF)) {
+            try {
+                UUID.fromString(FilenameUtils.getBaseName(filename));
+                return true;
+            } catch (Exception e) {
+                // noop
+            }
+        }
+        return false;
     }
 
 }

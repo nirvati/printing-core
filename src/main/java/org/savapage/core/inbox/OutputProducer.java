@@ -64,6 +64,9 @@ import org.slf4j.LoggerFactory;
 public final class OutputProducer {
 
     /** */
+    public static final String LETTERHEAD_FILE_PREFIX = "letterhead-";
+
+    /** */
     private static final InboxService INBOX_SERVICE =
             ServiceContext.getServiceFactory().getInboxService();
 
@@ -356,8 +359,9 @@ public final class OutputProducer {
             EcoPrintPdfTaskPendingException {
 
         final StringBuilder pdfFile = new StringBuilder().append(directory)
-                .append("/letterhead-").append(System.currentTimeMillis())
-                .append(".").append(DocContent.FILENAME_EXT_PDF);
+                .append("/").append(LETTERHEAD_FILE_PREFIX)
+                .append(System.currentTimeMillis()).append(".")
+                .append(DocContent.FILENAME_EXT_PDF);
 
         final PdfCreateRequest pdfRequest = new PdfCreateRequest();
 

@@ -308,4 +308,13 @@ public interface OutboxService {
      */
     OutboxInfoDto getOutboxJobTicketInfo(User user, Date expiryRef);
 
+    /**
+     * Checks is outbox file name syntax is valid.
+     *
+     * @param filename
+     *            File name.
+     * @return {@code true} if outbox file name is valid.
+     */
+    boolean isValidOutboxFileName(String filename);
+
 }

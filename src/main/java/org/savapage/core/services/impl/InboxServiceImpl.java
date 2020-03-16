@@ -79,6 +79,7 @@ import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
+import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.pdf.AbstractPdfCreator;
 import org.savapage.core.pdf.PdfDocumentFonts;
 import org.savapage.core.pdf.PdfPageRotateHelper;
@@ -2687,6 +2688,44 @@ public final class InboxServiceImpl implements InboxService {
         }
 
         return null;
+    }
+
+    @Override
+    public boolean isValidInboxFileName(final String filename) {
+
+        if (filename.equals(UserMsgIndicator.FILE_BASENAME)
+                || filename.equals(INBOX_DESCRIPT_FILE_NAME)) {
+            return true;
+        }
+
+        final String ext = FilenameUtils.getExtension(filename);
+
+        if (ext.equalsIgnoreCase(DocContent.FILENAME_EXT_PDF)
+                || ext.equalsIgnoreCase(FILENAME_EXT_ECO)) {
+            try {
+                UUID.fromString(FilenameUtils.getBaseName(filename));
+                return true;
+            } catch (Exception e) {
+                // noop
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isValidInboxLetterheadFileName(final String filename) {
+
+        if (filename.equals(LETTERHEADS_DESCRIPT_FILE_NAME)) {
+            return true;
+        }
+
+        final String ext = FilenameUtils.getExtension(filename);
+
+        if (ext.equalsIgnoreCase(DocContent.FILENAME_EXT_PDF)
+                && filename.startsWith(OutputProducer.LETTERHEAD_FILE_PREFIX)) {
+            return true;
+        }
+        return false;
     }
 
 }
