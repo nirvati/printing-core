@@ -41,7 +41,7 @@ public enum AdverbEnum {
     /** */
     AUTOMATICALLY,
     /** */
-    CLEANED_UP,
+    CLEANED,
     /** */
     CLEANABLE,
     /** */

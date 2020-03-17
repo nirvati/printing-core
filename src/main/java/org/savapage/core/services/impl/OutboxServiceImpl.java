@@ -548,8 +548,10 @@ public final class OutboxServiceImpl extends AbstractService
      *            The unique user id.
      * @param outboxInfo
      *            The full {@link OutboxInfoDto}
-     * @param expiryRef
-     *            The reference date for calculating the expiration.
+     * @param pruneRefDate
+     *            The reference date to determinate if an outbox job must be
+     *            pruned. If expiry of an outbox job is before the reference
+     *            date, the job is pruned.
      * @param mode
      *            Run mode.
      * @return A new {@link OutboxInfoDto} object with a subset of valid Fast
@@ -557,7 +559,7 @@ public final class OutboxServiceImpl extends AbstractService
      *         when nothing was pruned.
      */
     private OutboxInfoDto pruneOutboxInfo(final String userId,
-            final OutboxInfoDto outboxInfo, final Date expiryRef,
+            final OutboxInfoDto outboxInfo, final Date pruneRefDate,
             final RunModeSwitch mode) {
 
         /*
@@ -567,10 +569,7 @@ public final class OutboxServiceImpl extends AbstractService
             return outboxInfo;
         }
 
-        /*
-         * Time parameters.
-         */
-        final long expiryRefTime = expiryRef.getTime();
+        final long pruneRefTime = pruneRefDate.getTime();
 
         /*
          * Initialize the pruned OutboxInfoDto.
@@ -590,7 +589,7 @@ public final class OutboxServiceImpl extends AbstractService
             /*
              * Add job if not expired.
              */
-            if (job.getExpiryTime() - expiryRefTime > 0) {
+            if (job.getExpiryTime() - pruneRefTime > 0) {
                 prunedInboxInfo.addJob(job.getFile(), job);
             } else {
                 nPruned++;

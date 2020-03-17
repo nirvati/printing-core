@@ -162,13 +162,15 @@ public interface OutboxService {
      *
      * @param userId
      *            The unique user id.
-     * @param expiryRef
-     *            The reference date for calculating the expiration.
+     * @param pruneRefDate
+     *            The reference date to determinate if an outbox job must be
+     *            pruned. If expiry of an outbox job is before the reference
+     *            date, the job is pruned.
      * @param mode
      *            Run mode.
      * @return the {@link OutboxInfoDto} object.
      */
-    OutboxInfoDto pruneOutboxInfo(String userId, Date expiryRef,
+    OutboxInfoDto pruneOutboxInfo(String userId, Date pruneRefDate,
             RunModeSwitch mode);
 
     /**

@@ -133,8 +133,9 @@ public final class UserHomeClean extends AbstractJob {
         if (printInExpiryMinutes == 0) {
             printInCleanDate = null;
         } else {
+            // Set print-in cleaning date back in time.
             printInCleanDate = DateUtils.addMinutes(dateNow,
-                    printInExpiryMinutes + cm.getConfigInt(
+                    -printInExpiryMinutes - cm.getConfigInt(
                             Key.PRINT_IN_JOB_EXPIRY_IGNORED_MINS));
         }
 
@@ -147,7 +148,7 @@ public final class UserHomeClean extends AbstractJob {
 
         final String runModeTag = getModeTag(runMode);
 
-        //
+        // Set hold job cleaning date back in time.
         final Date holdJobCleanDate = DateUtils.addMinutes(dateNow,
                 -1 * cm.getConfigInt(Key.PROXY_PRINT_HOLD_IGNORED_MINS));
 

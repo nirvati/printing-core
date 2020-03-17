@@ -58,6 +58,7 @@ import org.savapage.core.doc.IDocVisitor;
 import org.savapage.core.dto.UserHomeStatsDto;
 import org.savapage.core.i18n.AdverbEnum;
 import org.savapage.core.i18n.NounEnum;
+import org.savapage.core.i18n.PrintOutNounEnum;
 import org.savapage.core.job.RunModeSwitch;
 import org.savapage.core.outbox.OutboxInfoDto;
 import org.savapage.core.services.InboxService;
@@ -465,7 +466,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
 
             final StringBuilder msg = new StringBuilder();
             if (this.mode.isReal()) {
-                msg.append(AdverbEnum.CLEANED_UP.uiText(locale));
+                msg.append(AdverbEnum.CLEANED.uiText(locale));
             } else {
                 msg.append(AdverbEnum.CLEANABLE.uiText(locale));
             }
@@ -474,21 +475,35 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             final long nUsers = this.userHomeCleanup;
 
             msg.append(localeHelper.getNumber(nUsers)).append(" ")
-                    .append(NounEnum.USER.uiText(locale, nUsers != 1));
+                    .append(NounEnum.USER.uiText(locale, nUsers != 1))
+                    .append(".");
 
             if (nUsers > 0) {
 
-                final long nFiles = pdfInbox.cleanup + pdfOutbox.cleanup;
+                FileCleanupStats stats = pdfInbox;
+                long nCount = stats.cleanup;
+                if (nCount > 0) {
+                    msg.append(" ").append(localeHelper.getNumber(nCount));
+                    msg.append(" ").append(
+                            NounEnum.DOCUMENT.uiText(locale, nCount != 1));
+                    msg.append(": ")
+                            .append(FileUtils
+                                    .byteCountToDisplaySize(stats.bytesCleanup))
+                            .append(".");
+                }
 
-                msg.append(", ").append(localeHelper.getNumber(nFiles))
-                        .append(" ")
-                        .append(NounEnum.DOCUMENT.uiText(locale, nFiles != 1))
-                        .append(", ")
-                        .append(FileUtils.byteCountToDisplaySize(
-                                pdfInbox.getBytesCleanup()
-                                        .add(pdfOutbox.getBytesCleanup())));
+                stats = pdfOutbox;
+                nCount = stats.cleanup;
+                if (nCount > 0) {
+                    msg.append(" ").append(localeHelper.getNumber(nCount));
+                    msg.append(" ").append(
+                            PrintOutNounEnum.JOB.uiText(locale, nCount != 1));
+                    msg.append(": ")
+                            .append(FileUtils
+                                    .byteCountToDisplaySize(stats.bytesCleanup))
+                            .append(".");
+                }
             }
-            msg.append(".");
             return msg.toString();
         }
 
@@ -676,11 +691,11 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
      * @param inboxHome
      *            SafePages home directory.
      * @param dateCleanInbox
-     *            Inbox PDF documents with creation date before this date are
-     *            cleaned. If {@code null} no cleaning is done.
+     *            Inbox PDF documents with creation date <i>before</i> this date
+     *            are cleaned. If {@code null}, no cleaning is done.
      * @param dateCleanOutbox
-     *            Outbox PDF documents with expiration date before this date are
-     *            cleaned. If {@code null} no cleaning is done.
+     *            Outbox jobs with expiration date <i>before</i> this date are
+     *            cleaned. If {@code null}, no cleaning is done.
      * @param mode
      *            The run mode. If {@code RunModeSwitch#DRY}, processing is done
      *            without cleaning.
@@ -952,8 +967,9 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
                 break;
 
             case BASE:
-                if (this.wlkPdfStats.cleanDate != null && FileUtils.isFileOlder(
-                        file.toFile(), this.wlkPdfStats.cleanDate)) {
+                if (isPdf && this.wlkPdfStats.cleanDate != null
+                        && FileUtils.isFileOlder(file.toFile(),
+                                this.wlkPdfStats.cleanDate)) {
 
                     if (this.runMode.isReal()) {
                         Files.delete(file);

@@ -2700,10 +2700,19 @@ public final class InboxServiceImpl implements InboxService {
 
         final String ext = FilenameUtils.getExtension(filename);
 
+        // .pdf and .pdf.eco
         if (ext.equalsIgnoreCase(DocContent.FILENAME_EXT_PDF)
                 || ext.equalsIgnoreCase(FILENAME_EXT_ECO)) {
+
+            String baseName = FilenameUtils.getBaseName(filename);
+
+            if (ext.equalsIgnoreCase(FILENAME_EXT_ECO)) {
+                // strip .pdf from basename.
+                baseName = FilenameUtils.getBaseName(baseName);
+            }
+
             try {
-                UUID.fromString(FilenameUtils.getBaseName(filename));
+                UUID.fromString(baseName);
                 return true;
             } catch (Exception e) {
                 // noop
