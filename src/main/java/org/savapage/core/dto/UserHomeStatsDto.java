@@ -41,7 +41,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 
 @JsonInclude(Include.NON_NULL)
-public class UserHomeStatsDto extends AbstractDto {
+public final class UserHomeStatsDto extends AbstractDto {
 
     @JsonInclude(Include.NON_NULL)
     public static class ScopeCount {
@@ -140,6 +140,7 @@ public class UserHomeStatsDto extends AbstractDto {
     }
 
     private Date date;
+    private long duration;
 
     @JsonProperty("rc")
     private int returnCode;
@@ -154,6 +155,14 @@ public class UserHomeStatsDto extends AbstractDto {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
+    public void setDuration(long duration) {
+        this.duration = duration;
     }
 
     /**
@@ -231,6 +240,7 @@ public class UserHomeStatsDto extends AbstractDto {
     public BigInteger calcCleanupBytes() {
         return sumBytes(this.cleanup);
     }
+
     /**
      * @param stats
      *            Stats.
@@ -277,12 +287,6 @@ public class UserHomeStatsDto extends AbstractDto {
             tot = tot.add(stats.pgpPubRing.getSize());
         }
         return tot;
-    }
-
-    @Override
-    public String toString() {
-        return "UserHomeStatsDto [current=" + current + ", cleanup=" + cleanup
-                + ", cleaned=" + cleaned + "]";
     }
 
     /**

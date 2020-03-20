@@ -25,7 +25,9 @@
 package org.savapage.core.template.dto;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.savapage.core.dto.UserHomeStatsDto;
+import org.savapage.core.util.DateUtil;
 
 /**
  *
@@ -75,6 +77,9 @@ public class TemplateUserHomeStatsDto implements TemplateDto {
 
     /** */
     private String cleanupBytes;
+
+    /** */
+    private String duration;
 
     public Long getUsers() {
         return users;
@@ -188,6 +193,14 @@ public class TemplateUserHomeStatsDto implements TemplateDto {
         this.cleanupBytes = cleanupBytes;
     }
 
+    public String getDuration() {
+        return duration;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
+    }
+
     /**
      * Creates template from info.
      *
@@ -244,6 +257,13 @@ public class TemplateUserHomeStatsDto implements TemplateDto {
                     dto.cleaned = Boolean.TRUE;
                 }
             }
+        }
+
+        if (info.getDuration() < DateUtil.DURATION_MSEC_SECOND) {
+            dto.setDuration(String.format("%d msec", info.getDuration()));
+        } else {
+            dto.setDuration(DurationFormatUtils
+                    .formatDurationWords(info.getDuration(), true, true));
         }
 
         return dto;

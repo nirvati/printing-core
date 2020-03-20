@@ -344,6 +344,8 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
             dto.setDate(
                     new Date(this.start.getTime() + this.duration.toMillis()));
 
+            dto.setDuration(this.duration.toMillis());
+
             if (this.terminated) {
                 dto.setReturnCode(1);
             } else {
