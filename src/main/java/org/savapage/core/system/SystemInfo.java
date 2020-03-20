@@ -60,6 +60,7 @@ public final class SystemInfo {
          * Part of fontconfig (generic font configuration library).
          */
         FC_MATCH("fc-match"),
+
         /**
          * Part of Poppler.
          *
@@ -67,6 +68,7 @@ public final class SystemInfo {
          *             #1079).
          */
         PDFTOPPM("pdftoppm"),
+
         /**
          * Part of Poppler.
          */
@@ -201,8 +203,12 @@ public final class SystemInfo {
         NET_IPV4_TCP_SYNCOOKIES("net.ipv4.tcp_syncookies"),
         /** */
         NET_IPV4_IP_LOCAL_PORT_RANGE("net.ipv4.ip_local_port_range"),
-        /** */
+
+        /**
+         * Not present in Ubuntu 18.04.
+         */
         NET_IPV4_TCP_TW_RECYCLE("net.ipv4.tcp_tw_recycle"),
+
         /** */
         NET_IPV4_TCP_TW_REUSE("net.ipv4.tcp_tw_reuse"),
         /** */
@@ -560,7 +566,8 @@ public final class SystemInfo {
     /**
      * @param sysctl
      *            The {@link SysctlEnum}.
-     * @return The output of the command: {@code sysctl -n key}.
+     * @return The output of the command: {@code sysctl -n key}, or {@code null}
+     *         when value of key not found.
      */
     public static String getSysctl(final SysctlEnum sysctl) {
 
