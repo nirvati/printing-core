@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -140,6 +143,15 @@ public class IppKeyword extends AbstractIppAttrSyntax {
      */
     public static final String PRINT_COLOR_MODE_PROCESS_MONOCHROME =
             "process-monochrome";
+
+    //
+    public static final String JOB_PASSWORD_ENCRYPTION_NONE = "none";
+    public static final String JOB_PASSWORD_ENCRYPTION_MD5 = "md5";
+    // and lots more encryption possible.
+
+    //
+    public static final String MULTIPLE_DOCUMENT_HANDLING_SINGLE =
+            "single-document";
 
     // ------------------------------------------------------------------------
     // sheet-collate (RFC 3381)

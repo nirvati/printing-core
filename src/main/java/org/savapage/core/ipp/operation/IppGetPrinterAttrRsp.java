@@ -52,6 +52,7 @@ import org.savapage.core.ipp.encoding.IppDelimiterTag;
 import org.savapage.core.ipp.encoding.IppEncoder;
 import org.savapage.core.ipp.helpers.IppMediaSizeHelper;
 import org.savapage.core.jpa.IppQueue;
+import org.savapage.core.services.ServiceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +69,12 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(IppGetPrinterAttrRsp.class);
+
+    /** */
+    private static class CUPSVersionHolder {
+        public static final String VERSION = ServiceContext.getServiceFactory()
+                .getProxyPrintService().getCupsVersion();
+    }
 
     /**
      * Job Template attributes supported by SavaPage.
@@ -459,7 +466,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
          * the create request or implicitly as an embedded instruction within
          * the document data).
          */
-        case "copies-supported":
+        case IppDictPrinterDescAttr.ATTR_COPIES_SUPPORTED:
 
             attr = new IppAttr(name, new IppRangeOfInteger());
             value = new IppAttrValue(attr);
@@ -861,6 +868,24 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
              * savapage.drv
              */
             value.addValue(IppBoolean.TRUE);
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_CUPS_VERSION:
+            value.addValue(CUPSVersionHolder.VERSION);
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINT_COLOR_MODE_SUPPORTED:
+            value.addValue(IppKeyword.PRINT_COLOR_MODE_AUTO);
+            value.addValue(IppKeyword.PRINT_COLOR_MODE_COLOR);
+            value.addValue(IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_JOB_PASSWORD_ENCRYPTION_SUPPORTED:
+            value.addValue(IppKeyword.JOB_PASSWORD_ENCRYPTION_MD5);
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_MULTIPLE_DOCUMENT_HANDLING_SUPPORTED:
+            value.addValue(IppKeyword.MULTIPLE_DOCUMENT_HANDLING_SINGLE);
             break;
 
         default:

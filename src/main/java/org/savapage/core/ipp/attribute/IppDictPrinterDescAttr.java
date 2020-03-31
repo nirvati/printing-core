@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -131,6 +134,24 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
      */
     public static final String ATTR_MEMBER_NAMES = "member-names";
 
+    /** */
+    public static final String ATTR_COPIES_SUPPORTED = "copies-supported";
+
+    /** */
+    public static final String ATTR_PRINT_COLOR_MODE_SUPPORTED =
+            "print-color-mode-supported";
+
+    /** */
+    public static final String ATTR_JOB_PASSWORD_ENCRYPTION_SUPPORTED =
+            "job-password-encryption-supported";
+
+    /** */
+    public static final String ATTR_MULTIPLE_DOCUMENT_HANDLING_SUPPORTED =
+            "multiple-document-handling-supported";
+
+    /** */
+    public static final String ATTR_MEDIA_COL_SUPPORTED = "media-col-supported";
+
     /**
      * Required for IPP everywhere:
      * <a href="https://tools.ietf.org/html/rfc3995#section-6.1">RFC 3995</a> :
@@ -139,51 +160,77 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     public static final String ATTR_PRINTER_STATE_CHANGE_TIME =
             "printer-state-change-time";
 
+    /** */
     public static final String ATTR_PRINTER_STATE_REASONS =
             "printer-state-reasons";
+    /** */
     public static final String ATTR_PRINTER_STATE_MESSAGE =
             "printer-state-message";
+    /** */
     public static final String ATTR_IPP_VERSIONS_SUPP =
             "ipp-versions-supported";
+    /** */
     public static final String ATTR_OPERATIONS_SUPPORTED =
             "operations-supported";
+    /** */
     public static final String ATTR_MULTIPLE_DOC_JOBS_SUPPORTED =
             "multiple-document-jobs-supported";
+    /** */
     public static final String ATTR_CHARSET_CONFIGURED = "charset-configured";
+    /** */
     public static final String ATTR_CHARSET_SUPPORTED = "charset-supported";
+    /** */
     public static final String ATTR_NATURAL_LANG_CONFIGURED =
             "natural-language-configured";
+    /** */
     public static final String ATTR_GENERATED_NATURAL_LANG_SUPPORTED =
             "generated-natural-language-supported";
+    /** */
     public static final String ATTR_DOC_FORMAT_DEFAULT =
             "document-format-default";
+    /** */
     public static final String ATTR_DOC_FORMAT_SUPPORTED =
             "document-format-supported";
 
+    /** */
     public static final String ATTR_PRINTER_IS_ACCEPTING_JOBS =
             "printer-is-accepting-jobs";
+    /** */
     public static final String ATTR_QUEUES_JOB_COUNT = "queued-job-count";
+    /** */
     public static final String ATTR_PRINTER_MSG_FROM_OPERATOR =
             "printer-message-from-operator";
+    /** */
     public static final String ATTR_COLOR_SUPPORTED = "color-supported";
+    /** */
     public static final String ATTR_REF_URI_SCHEMES_SUPPORTED =
             "reference-uri-schemes-supported";
+    /** */
     public static final String ATTR_PDL_OVERRIDE_SUPPORTED =
             "pdl-override-supported";
+    /** */
     public static final String ATTR_PRINTER_UP_TIME = "printer-up-time";
+    /** */
     public static final String ATTR_PRINTER_CURRENT_TIME =
             "printer-current-time";
+    /** */
     public static final String ATTR_MULTIPLE_OPERATION_TIME_OUT =
             "multiple-operation-time-out";
+    /** */
     public static final String ATTR_COMPRESSION_SUPPORTED =
             "compression-supported";
+    /** */
     public static final String ATTR_JOB_K_OCTETS_SUPPORTED =
             "job-k-octets-supported";
+    /** */
     public static final String ATTR_JOB_IMPRESSIONS_SUPPORTED =
             "job-impressions-supported";
+    /** */
     public static final String ATTR_JOB_MEDIA_SHEETS_SUPPORTED =
             "job-media-sheets-supported";
+    /** */
     public static final String ATTR_PAGES_PER_MIN = "pages-per-minute";
+    /** */
     public static final String ATTR_PAGES_PER_MIN_COLOR =
             "pages-per-minute-color";
 
@@ -582,7 +629,20 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
             /*
              * CUPS extension
              */
-            new IppAttr(ATTR_CUPS_VERSION, IppText.instance())
+            new IppAttr(ATTR_CUPS_VERSION, IppText.instance()),
+
+            /** */
+            new IppAttr(ATTR_PRINT_COLOR_MODE_SUPPORTED, IppKeyword.instance()),
+
+            /** */
+            new IppAttr(ATTR_JOB_PASSWORD_ENCRYPTION_SUPPORTED,
+                    IppKeyword.instance()),
+
+            /** */
+            new IppAttr(ATTR_MULTIPLE_DOCUMENT_HANDLING_SUPPORTED,
+                    IppKeyword.instance())
+
+            //ATTR_MEDIA_COL_SUPPORTED
 
     };
 
