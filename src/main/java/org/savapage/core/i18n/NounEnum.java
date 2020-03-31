@@ -37,6 +37,8 @@ import org.savapage.core.util.LocaleHelper;
 public enum NounEnum {
 
     /** */
+    ADDRESS(true),
+    /** */
     ARCHIVE,
     /** Financial position. */
     BALANCE,
@@ -87,7 +89,11 @@ public enum NounEnum {
     /** */
     LOCATION,
     /** */
+    MANUFACTURER(true),
+    /** */
     MODE(true),
+    /** As in Type/Model. */
+    MODEL(true),
     /** */
     NAME(true),
     /** */
@@ -102,6 +108,8 @@ public enum NounEnum {
     PREFERRED_LIST,
     /** */
     PRINTER(true),
+    /** */
+    PROTOCOL(true),
     /** */
     QUEUE(true),
     /** */
