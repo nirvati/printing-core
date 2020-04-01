@@ -3223,7 +3223,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             final IppRoutingContextImpl ctx = new IppRoutingContextImpl();
 
             ctx.setOriginatorIp(printInInfo.getOriginatorIp());
-            ctx.setUrlPath(queue.getUrlPath());
+            ctx.setQueueName(queue.getUrlPath());
             ctx.setPdfToPrint(fileToPrint);
             ctx.setUserId(user.getUserId());
             ctx.setPrinterName(printerName);

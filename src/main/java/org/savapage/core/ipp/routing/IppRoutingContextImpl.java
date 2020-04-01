@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -48,7 +51,7 @@ public final class IppRoutingContextImpl implements IppRoutingContext {
     /**
      * URL path of {@link IppQueue#getUrlPath()}.
      */
-    private String urlPath;
+    private String queueName;
 
     /**
      * Proxy Printer CUPS name.
@@ -102,16 +105,16 @@ public final class IppRoutingContextImpl implements IppRoutingContext {
     }
 
     @Override
-    public String getUrlPath() {
-        return urlPath;
+    public String getQueueName() {
+        return queueName;
     }
 
     /**
-     * @param path
+     * @param name
      *            URL path of {@link IppQueue#getUrlPath()}.
      */
-    public void setUrlPath(final String path) {
-        this.urlPath = path;
+    public void setQueueName(final String name) {
+        this.queueName = name;
     }
 
     @Override
