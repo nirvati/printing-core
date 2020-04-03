@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -23,6 +26,7 @@ package org.savapage.core.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -37,6 +41,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -521,9 +526,31 @@ public final class JsonHelper {
      */
     public static void write(final Object pojo, final Writer writer)
             throws IOException {
-        final JsonGenerator jg = jsonFactory.createJsonGenerator(writer);
+        final JsonGenerator jg = jsonFactory.createGenerator(writer);
         jg.useDefaultPrettyPrinter();
         mapper.writeValue(jg, pojo);
+    }
+
+    /**
+     * Creates a pretty printed JSON string without NULL values from an POJO
+     * {@link Object}.
+     *
+     * @param pojo
+     *            The POJO.
+     * @return The JSON String.
+     * @throws IOException
+     *             When IO error.
+     */
+    public static String stringifyObjectPretty(final Object pojo)
+            throws IOException {
+        // Do not use static class mapper.
+        final ObjectMapper mpr = new ObjectMapper();
+        final StringWriter w = new StringWriter();
+        final JsonGenerator jg = jsonFactory.createGenerator(w);
+        jg.useDefaultPrettyPrinter();
+        mpr.setSerializationInclusion(Include.NON_NULL);
+        mpr.writeValue(jg, pojo);
+        return w.toString();
     }
 
     /**

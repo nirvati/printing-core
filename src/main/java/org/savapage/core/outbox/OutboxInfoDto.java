@@ -24,8 +24,6 @@
  */
 package org.savapage.core.outbox;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -49,8 +47,6 @@ import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 
 /**
  *
@@ -1002,20 +998,6 @@ public final class OutboxInfoDto extends AbstractDto {
      */
     public static OutboxInfoDto create(final String json) throws Exception {
         return getMapper().readValue(json, OutboxInfoDto.class);
-    }
-
-    /**
-     *
-     * @return
-     * @throws IOException
-     */
-    public String prettyPrinted() throws IOException {
-        final JsonFactory jsonFactory = new JsonFactory();
-        final StringWriter sw = new StringWriter();
-        final JsonGenerator jg = jsonFactory.createJsonGenerator(sw);
-        jg.useDefaultPrettyPrinter();
-        getMapper().writeValue(jg, this);
-        return sw.toString();
     }
 
 }

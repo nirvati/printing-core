@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -38,11 +41,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * <p>
  * References:
  * <ul>
- * <li><a
- * href="http://wiki.fasterxml.com/JacksonDocumentation">http://wiki.fasterxml
+ * <li><a href=
+ * "http://wiki.fasterxml.com/JacksonDocumentation">http://wiki.fasterxml
  * .com/JacksonDocumentation</a></li>
- * <li><a
- * href="http://wiki.fasterxml.com/JacksonInFiveMinutes">http://wiki.fasterxml
+ * <li><a href=
+ * "http://wiki.fasterxml.com/JacksonInFiveMinutes">http://wiki.fasterxml
  * .com/JacksonInFiveMinutes</a></li>
  * </ul>
  * </p>
@@ -104,7 +107,7 @@ public abstract class JsonAbstractBase {
     /**
      * Returns a pretty printed version of a plain JSON string.
      *
-     * @param plainJson
+     * @param json
      *            The plain JSON string.
      * @return The pretty-printed JSON.
      * @throws IOException
@@ -124,10 +127,11 @@ public abstract class JsonAbstractBase {
      * @throws IOException
      *             When serialization fails.
      */
-    protected static String prettyPrinted(final Object pojo) throws IOException {
+    protected static String prettyPrinted(final Object pojo)
+            throws IOException {
 
         final StringWriter sw = new StringWriter();
-        final JsonGenerator jg = jsonFactory.createJsonGenerator(sw);
+        final JsonGenerator jg = jsonFactory.createGenerator(sw);
 
         jg.useDefaultPrettyPrinter();
         mapper.writeValue(jg, pojo);
@@ -161,9 +165,8 @@ public abstract class JsonAbstractBase {
      *
      * @param date
      *            The milliseconds date as used in {@link Date#Date(long)}.
-     * @return The {@link Date} value truncated as {@link Calendar#DAY_OF_MONTH
-     *         }
-     *         .
+     * @return The {@link Date} value truncated as
+     *         {@link Calendar#DAY_OF_MONTH } .
      */
     public final Date dayOfMonth(final Long date) {
         return DateUtils.truncate(new Date(date.longValue()),
