@@ -111,6 +111,16 @@ public enum UserAttrEnum {
     PDF_PROPS("pdf-properties"),
 
     /**
+     * Enable RFC 6238 Time-based One-time Password (TOTP).
+     */
+    TOTP_ENABLE("totp.enable"),
+
+    /**
+     * Secret key for RFC 6238 Time-based One-time Password (TOTP).
+     */
+    TOTP_SECRET("totp.secret"),
+
+    /**
      * The Encrypted PIN {@link UUID} used for identification when printing from
      * the internet. See {@link ReservedIppQueueEnum#IPP_PRINT_INTERNET} and
      * {@link ReservedIppQueueEnum#WEBSERVICE}.
