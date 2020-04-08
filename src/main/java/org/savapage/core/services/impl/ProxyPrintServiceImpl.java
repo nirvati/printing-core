@@ -54,7 +54,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
-import org.savapage.core.dao.PrinterAttrDao;
+import org.savapage.core.dao.IAttrDao;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
@@ -3570,7 +3570,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 if (clientSideMonochrome != null
                         && clientSideMonochrome.booleanValue()) {
 
-                    printerAttr.setValue(PrinterAttrDao.V_YES);
+                    printerAttr.setValue(IAttrDao.V_YES);
                     clientSideMonochrome = null;
 
                 } else {
@@ -3707,7 +3707,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 && clientSideMonochrome.booleanValue()) {
             createAddPrinterAttr(printer,
                     PrinterAttrEnum.CLIENT_SIDE_MONOCHROME,
-                    PrinterAttrDao.V_YES);
+                    IAttrDao.V_YES);
         }
 
         /*

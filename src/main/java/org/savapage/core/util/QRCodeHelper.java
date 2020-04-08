@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -24,8 +27,12 @@ package org.savapage.core.util;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Hashtable;
+
+import javax.imageio.ImageIO;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -35,6 +42,8 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.lowagie.text.BadElementException;
 import com.lowagie.text.Image;
+
+import net.iharder.Base64;
 
 /**
  *
@@ -268,6 +277,34 @@ public final class QRCodeHelper {
             }
         }
         return image;
+    }
+
+    /**
+     * Creates base64 encoded PNG file with QR code.
+     *
+     * @param codeText
+     *            QR code text.
+     * @param squareWidth
+     *            width and height in pixels.
+     * @return The base64 encoded PNG file with QR code.
+     * @throws QRCodeException
+     *             If error.
+     */
+    public static String createImagePngBase64(final String codeText,
+            final int squareWidth) throws QRCodeException {
+
+        final BufferedImage image =
+                QRCodeHelper.createImage(codeText, squareWidth, null);
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+                OutputStream b64 = new Base64.OutputStream(out)) {
+
+            ImageIO.write(image, "png", b64);
+            return out.toString();
+
+        } catch (IOException e) {
+            throw new QRCodeException(e.getMessage());
+        }
     }
 
     /**

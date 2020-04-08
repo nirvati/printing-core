@@ -27,6 +27,8 @@ package org.savapage.core.dao.impl;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.dao.IAttrDao;
 import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.jpa.UserAttr;
@@ -37,7 +39,7 @@ import org.savapage.core.jpa.UserAttr;
  *
  */
 public final class UserAttrDaoImpl extends GenericDaoImpl<UserAttr>
-        implements UserAttrDao {
+        implements UserAttrDao, IAttrDao {
 
     @Override
     protected String getCountQuery() {
@@ -110,6 +112,20 @@ public final class UserAttrDaoImpl extends GenericDaoImpl<UserAttr>
         final Query query = getEntityManager().createQuery(jpql);
         query.setParameter("name", SQL_LIKE_STATS_ROLLING);
         query.executeUpdate();
+    }
+
+    @Override
+    public boolean getBooleanValue(final UserAttr attr) {
+        return attr != null && StringUtils.defaultString(attr.getValue(), V_NO)
+                .equalsIgnoreCase(V_YES);
+    }
+
+    @Override
+    public String getDbBooleanValue(final boolean value) {
+        if (value) {
+            return V_YES;
+        }
+        return V_NO;
     }
 
 }

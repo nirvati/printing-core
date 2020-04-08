@@ -39,12 +39,6 @@ import org.savapage.core.services.helpers.PrinterAttrLookup;
  */
 public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
 
-    /** Database value YES (boolean true). */
-    String V_YES = "Y";
-
-    /** Database value NO (boolean false). */
-    String V_NO = "N";
-
     /**
      * Prefix for all rolling statistics attributes.
      */

@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -38,7 +41,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.SpException;
-import org.savapage.core.dao.PrinterAttrDao;
+import org.savapage.core.dao.IAttrDao;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.AccessControlScopeEnum;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
@@ -484,7 +487,7 @@ public final class PrinterServiceImpl extends AbstractService
             final PrinterAttrEnum attr, final boolean defaultValue) {
         final String value = this.getPrinterAttrValue(printer, attr);
         if (value != null) {
-            return value.equals(PrinterAttrDao.V_YES);
+            return value.equals(IAttrDao.V_YES);
         }
         return defaultValue;
     }

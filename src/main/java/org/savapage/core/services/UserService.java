@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -30,6 +33,7 @@ import java.util.UUID;
 
 import org.savapage.core.OutOfBoundsException;
 import org.savapage.core.config.IConfigProp;
+import org.savapage.core.dao.IAttrDao;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.UserDto;
 import org.savapage.core.dto.UserIdDto;
@@ -503,6 +507,19 @@ public interface UserService {
     String getUserAttrValue(User user, UserAttrEnum attrEnum);
 
     /**
+     * Checks the {@link UserAttr#getValue()} from {@link User#getAttributes()}
+     * list.
+     *
+     * @param user
+     *            The {@link User}.
+     * @param attrEnum
+     *            The {@link UserAttrEnum} to search for.
+     * @return {@code true} if attribute is found and equal to
+     *         {@link IAttrDao#V_YES}.
+     */
+    boolean isUserAttrValue(User user, UserAttrEnum attrEnum);
+
+    /**
      * Removes an attribute from the User's list of attributes AND from the
      * database.
      *
@@ -543,7 +560,8 @@ public interface UserService {
     UUID lazyAddUserAttrUuid(User user);
 
     /**
-     * Reads the attribute value from the database.
+     * Reads the attribute value from the database. Encrypted value is
+     * <b>not</b> decrypted.
      *
      * @param userDbKey
      *            primary database key of {@link User}.
@@ -555,6 +573,9 @@ public interface UserService {
 
     /**
      * Creates or updates the attribute value to the database.
+     * <p>
+     * Value encryption is responsibility of client.
+     * </p>
      *
      * @param user
      *            The user.
@@ -564,6 +585,18 @@ public interface UserService {
      *            The value.
      */
     void setUserAttrValue(User user, UserAttrEnum attrEnum, String attrValue);
+
+    /**
+     * Creates or updates boolean attribute value to the database.
+     *
+     * @param user
+     *            The user.
+     * @param attrEnum
+     *            The name of the {@link UserAttr}.
+     * @param attrValue
+     *            The value.
+     */
+    void setUserAttrValue(User user, UserAttrEnum attrEnum, boolean attrValue);
 
     /**
      * Encrypts an (internal) user password.

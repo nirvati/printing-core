@@ -32,7 +32,7 @@ import javax.persistence.Query;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.savapage.core.SpException;
-import org.savapage.core.dao.PrinterAttrDao;
+import org.savapage.core.dao.IAttrDao;
 import org.savapage.core.dao.PrinterDao;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
@@ -188,16 +188,14 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
                         + "(SELECT PG.id FROM PrinterGroup PG "
                         + " WHERE PG.displayName IN"
                         + " (SELECT A1.value FROM PrinterAttr A1"
-                        + "  WHERE A1.name = '%s' "
-                        + "  AND A1.printer.id IN " //
+                        + "  WHERE A1.name = '%s' " + "  AND A1.printer.id IN " //
                         + "  (SELECT A2.printer.id FROM PrinterAttr A2"
                         + "   WHERE A2.name = '%s' AND A2.value = '%s'"
                         + "  ) GROUP BY A1.value" //
                         + " )" //
                         + ")", //
                 PrinterAttrEnum.JOBTICKET_PRINTER_GROUP.getDbName(),
-                PrinterAttrEnum.JOBTICKET_ENABLE.getDbName(),
-                PrinterAttrDao.V_YES);
+                PrinterAttrEnum.JOBTICKET_ENABLE.getDbName(), IAttrDao.V_YES);
 
         final Query query = getEntityManager().createQuery(jpql);
         query.setParameter("id", id);
@@ -344,9 +342,9 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
         where.append("(A.name = \'").append(attrName.getDbName())
                 .append("\' AND A.value = \'");
         if (attrValue) {
-            where.append(PrinterAttrDao.V_YES);
+            where.append(IAttrDao.V_YES);
         } else {
-            where.append(PrinterAttrDao.V_NO);
+            where.append(IAttrDao.V_NO);
         }
         where.append("\')");
     }

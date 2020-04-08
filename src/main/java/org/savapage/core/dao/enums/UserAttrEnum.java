@@ -116,7 +116,7 @@ public enum UserAttrEnum {
     TOTP_ENABLE("totp.enable"),
 
     /**
-     * Secret key for RFC 6238 Time-based One-time Password (TOTP).
+     * Encrypted secret key for RFC 6238 Time-based One-time Password (TOTP).
      */
     TOTP_SECRET("totp.secret"),
 
@@ -359,6 +359,14 @@ public enum UserAttrEnum {
      */
     public final String getName() {
         return this.name;
+    }
+
+    /**
+     *
+     * @return {@code true} if encrypted.
+     */
+    public final boolean isEncrypted() {
+        return this == PIN || this == UUID || this == TOTP_SECRET;
     }
 
     /**

@@ -28,7 +28,7 @@ import java.util.List;
 
 import javax.persistence.Query;
 
-import org.savapage.core.dao.PrinterAttrDao;
+import org.savapage.core.dao.IAttrDao;
 import org.savapage.core.dao.PrinterGroupMemberDao;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.helpers.ProxyPrinterName;
@@ -60,7 +60,7 @@ public final class PrinterGroupMemberDaoImpl extends
         final Query query = getEntityManager().createQuery(jpql);
         query.setParameter("attrName",
                 PrinterAttrEnum.JOBTICKET_ENABLE.getDbName());
-        query.setParameter("attrValue", PrinterAttrDao.V_YES);
+        query.setParameter("attrValue", IAttrDao.V_YES);
 
         return query.getResultList();
     }

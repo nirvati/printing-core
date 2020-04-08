@@ -55,9 +55,9 @@ public final class TOTPAuthenticator {
 
     /**
      * Default number of periods (steps) used to check codes generated in the
-     * near past.
+     * near past and future.
      */
-    public static final int PAST_TIME_STEPS_DEFAULT = 3;
+    public static final int SYNC_TIME_STEPS_DEFAULT = 3;
 
     /**
      *
@@ -75,9 +75,14 @@ public final class TOTPAuthenticator {
 
         /**
          * Number of periods (steps) used to check codes generated in the near
-         * past. Use this value to tune how far back you're willing to go.
+         * past or future.
+         *
+         * "Because of possible clock drifts between a client and a validation
+         * server, we RECOMMEND that the validator be set with a specific limit
+         * to the number of time steps a prover can be "out of synch" before
+         * being rejected.
          */
-        private int pastSteps;
+        private int syncSteps;
 
         /**
          * Constructs defaults.
@@ -88,7 +93,7 @@ public final class TOTPAuthenticator {
             this.returnDigits = CodeDigitsEnum.getDefault();
             this.hmacAlgorithm = HmacAlgorithmEnum.getDefault();
             this.stepSeconds = TIME_STEP_SECONDS_DEFAULT;
-            this.pastSteps = PAST_TIME_STEPS_DEFAULT;
+            this.syncSteps = SYNC_TIME_STEPS_DEFAULT;
         }
 
         /**
@@ -122,6 +127,15 @@ public final class TOTPAuthenticator {
         public Builder setKey(final String secretKey) {
             this.key = secretKey;
             return this;
+        }
+
+        /**
+         * Gets the secret key.
+         *
+         * @return Secret key.
+         */
+        public String getKey() {
+            return this.key;
         }
 
         /**
@@ -176,7 +190,7 @@ public final class TOTPAuthenticator {
             copy.returnDigits = obj.returnDigits;
             copy.hmacAlgorithm = obj.hmacAlgorithm;
             copy.stepSeconds = obj.stepSeconds;
-            copy.pastSteps = obj.pastSteps;
+            copy.syncSteps = obj.syncSteps;
 
             return copy;
         }
@@ -438,14 +452,33 @@ public final class TOTPAuthenticator {
     }
 
     /**
+     * Generates a TOTP value on reference date/time.
+     *
+     * @param date
+     *            Reference data/time.
+     * @return TOTP code.
+     */
+    private String generateTOTP(final Date date) {
+
+        final long steps =
+                getTimeStepsFromZeroTime(date, this.builder.stepSeconds);
+        final String stepsHex = StringUtils
+                .leftPad(Long.toHexString(steps).toUpperCase(), 16, '0');
+
+        return TOTP.generateTOTP(
+                Hex.encodeHexString(
+                        this.builder.keyCodec.decode(this.builder.key)),
+                stepsHex, this.builder.returnDigits.getDigitsAsString(),
+                this.builder.hmacAlgorithm.getName());
+    }
+
+    /**
      * Generates the current (time = now) TOTP value.
      *
      * @return TOTP code.
      */
     public String generateTOTP() {
-        return generateTOTP(this.builder.key, this.builder.keyCodec,
-                this.builder.stepSeconds, this.builder.returnDigits,
-                this.builder.hmacAlgorithm);
+        return this.generateTOTP(new Date());
     }
 
     /**
@@ -469,9 +502,20 @@ public final class TOTPAuthenticator {
      *             When key or algorithm is invalid.
      */
     public boolean verifyTOTP(final long code) throws TOTPException {
-        return isCodeValid(this.builder.key, this.builder.keyCodec, code,
-                this.builder.returnDigits, this.builder.stepSeconds,
-                this.builder.pastSteps, this.builder.hmacAlgorithm);
+
+        final Date now = new Date();
+
+        for (int i =
+                -this.builder.syncSteps; i <= this.builder.syncSteps; ++i) {
+
+            final Date stepDate =
+                    DateUtils.addSeconds(now, i * this.builder.stepSeconds);
+            final long codeProbe = Long.parseLong(this.generateTOTP(stepDate));
+            if (code == codeProbe) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -486,9 +530,24 @@ public final class TOTPAuthenticator {
      * @return URI.
      */
     public String getURI(final String issuer, final String account) {
-        return getURI(issuer, account, this.builder.key,
-                this.builder.returnDigits, this.builder.stepSeconds,
-                this.builder.hmacAlgorithm);
+
+        final StringBuilder uri = new StringBuilder();
+        try {
+            uri.append("otpauth://totp/");
+            uri.append(URLEncoder
+                    .encode(String.format("%s:%s", issuer, account), "UTF-8")
+                    .replace("+", "%20"));
+            uri.append("?secret=").append(this.builder.key).append("&issuer=");
+            uri.append(URLEncoder.encode(issuer, "UTF-8").replace("+", "%20"));
+            uri.append("&algorithm=")
+                    .append(this.builder.hmacAlgorithm.getUriValue())
+                    .append("&digits=")
+                    .append(this.builder.returnDigits.getDigits())
+                    .append("&period=").append(this.builder.stepSeconds);
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException(e);
+        }
+        return uri.toString();
     }
 
     /**
@@ -523,150 +582,6 @@ public final class TOTPAuthenticator {
     private static long getTimeStepsFromZeroTime(final Date date,
             final long stepSeconds) {
         return date.getTime() / TimeUnit.SECONDS.toMillis(stepSeconds);
-    }
-
-    /**
-     * Checks if code is valid.
-     *
-     * @param secretKey
-     *            Secret key.
-     * @param secretKeyCodec
-     *            Secret key codec.
-     * @param code
-     *            code to check.
-     * @param codeDigits
-     *            Number of code digits.
-     * @param stepSeconds
-     *            Number of seconds in times step.
-     * @param pastSteps
-     *            Number of time steps (window) used to check codes generated in
-     *            the near past. Use this value to tune how far back you're
-     *            willing to go.
-     * @param hmacAlgorithm
-     *            {@link HmacAlgorithmEnum} of code.
-     *
-     * @return {@code true} if code is valid.
-     *
-     * @throws TOTPException
-     *             When key or algorithm is invalid.
-     */
-    private static boolean isCodeValid(final String secretKey,
-            final BaseNCodecEnum secretKeyCodec, final long code,
-            final CodeDigitsEnum codeDigits, final int stepSeconds,
-            final int pastSteps, final HmacAlgorithmEnum hmacAlgorithm)
-            throws TOTPException {
-
-        final Date now = new Date();
-
-        for (int i = -pastSteps; i <= pastSteps; ++i) {
-
-            final Date stepDate = DateUtils.addSeconds(now, i * stepSeconds);
-            final long codeProbe = Long.parseLong(
-                    generateTOTPExt(stepDate, secretKey, secretKeyCodec,
-                            stepSeconds, codeDigits, hmacAlgorithm));
-            if (code == codeProbe) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * See <a href=
-     * "https://github.com/google/google-authenticator/wiki/Key-Uri-Format"> Key
-     * URI Format</a>.
-     *
-     * @param issuer
-     *            The organization this account belongs to.
-     * @param account
-     *            User's account name. e.g. email address or username.
-     * @param secret
-     *            BaseN encoded secret key.
-     * @param digits
-     *            Number of code digits.
-     * @param period
-     *            Number of seconds in times step.
-     * @param hmacAlgorithm
-     *            {@link HmacAlgorithmEnum} of code.
-     * @return URI.
-     */
-    private static String getURI(final String issuer, final String account,
-            final String secret, final CodeDigitsEnum digits, final int period,
-            final HmacAlgorithmEnum hmacAlgorithm) {
-
-        final StringBuilder uri = new StringBuilder();
-
-        try {
-            uri.append("otpauth://totp/");
-            uri.append(URLEncoder
-                    .encode(String.format("%s:%s", issuer, account), "UTF-8")
-                    .replace("+", "%20"));
-            uri.append("?secret=").append(secret).append("&issuer=");
-            uri.append(URLEncoder.encode(issuer, "UTF-8").replace("+", "%20"));
-            uri.append("&algorithm=").append(hmacAlgorithm.getUriValue())
-                    .append("&digits=").append(digits.getDigits())
-                    .append("&period=").append(period);
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException(e);
-        }
-        return uri.toString();
-    }
-
-    /**
-     * Generates the current (time = now) TOTP value for the given set of
-     * parameters.
-     *
-     * @param secretKey
-     *            BaseN encoded secret key.
-     * @param secretKeyCodec
-     *            BaseN codec of secret key.
-     * @param stepSeconds
-     *            Valid period in seconds.
-     * @param returnDigits
-     *            Number of digits to return.
-     * @param hmacAlgorithm
-     *            HMAC algorithm.
-     * @return TOTP code.
-     */
-    private static String generateTOTP(final String secretKey,
-            final BaseNCodecEnum secretKeyCodec, final int stepSeconds,
-            final CodeDigitsEnum returnDigits,
-            final HmacAlgorithmEnum hmacAlgorithm) {
-
-        return generateTOTPExt(new Date(), secretKey, secretKeyCodec,
-                stepSeconds, returnDigits, hmacAlgorithm);
-    }
-
-    /**
-     * Generates a TOTP value on reference date/time for the given set of
-     * parameters.
-     *
-     * @param date
-     *            Reference data/time.
-     * @param secretKey
-     *            BaseN encoded secret key.
-     * @param secretKeyCodec
-     *            BaseN codec of secret key.
-     * @param stepSeconds
-     *            Valid period in seconds.
-     * @param returnDigits
-     *            Number of digits to return.
-     * @param hmacAlgorithm
-     *            HMAC algorithm.
-     * @return TOTP code.
-     */
-    private static String generateTOTPExt(final Date date,
-            final String secretKey, final BaseNCodecEnum secretKeyCodec,
-            final int stepSeconds, final CodeDigitsEnum returnDigits,
-            final HmacAlgorithmEnum hmacAlgorithm) {
-
-        final long steps = getTimeStepsFromZeroTime(date, stepSeconds);
-        final String stepsHex = StringUtils
-                .leftPad(Long.toHexString(steps).toUpperCase(), 16, '0');
-
-        return TOTP.generateTOTP(
-                Hex.encodeHexString(secretKeyCodec.decode(secretKey)), stepsHex,
-                returnDigits.getDigitsAsString(), hmacAlgorithm.getName());
     }
 
 }

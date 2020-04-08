@@ -30,6 +30,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.dao.IAttrDao;
 import org.savapage.core.dao.PrinterAttrDao;
 import org.savapage.core.dao.PrinterDao.IppKeywordAttr;
 import org.savapage.core.dao.enums.PrinterAttrEnum;
@@ -43,7 +44,7 @@ import org.savapage.core.services.helpers.PrinterAttrLookup;
  *
  */
 public final class PrinterAttrDaoImpl extends GenericDaoImpl<PrinterAttr>
-        implements PrinterAttrDao {
+        implements PrinterAttrDao, IAttrDao {
 
     /**
      * This SQL LIKE value is used to select all rolling statistics.

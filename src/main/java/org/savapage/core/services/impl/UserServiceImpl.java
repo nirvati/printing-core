@@ -64,6 +64,7 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.GenericDao;
+import org.savapage.core.dao.IAttrDao;
 import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserEmailDao;
@@ -1965,7 +1966,7 @@ public final class UserServiceImpl extends AbstractService
         if (user.getAttributes() != null) {
             for (final UserAttr attr : user.getAttributes()) {
                 if (attr.getName().equals(attrEnum.getName())) {
-                    if (attrEnum == UserAttrEnum.UUID) {
+                    if (attrEnum.isEncrypted()) {
                         return CryptoUser.decryptUserAttr(user.getId(),
                                 attr.getValue());
                     }
@@ -1974,6 +1975,13 @@ public final class UserServiceImpl extends AbstractService
             }
         }
         return null;
+    }
+
+    @Override
+    public boolean isUserAttrValue(final User user,
+            final UserAttrEnum attrEnum) {
+        return StringUtils.defaultString(this.getUserAttrValue(user, attrEnum),
+                IAttrDao.V_NO).equals(IAttrDao.V_YES);
     }
 
     @Override
@@ -2835,6 +2843,13 @@ public final class UserServiceImpl extends AbstractService
                 attrValue);
     }
 
+    @Override
+    public void setUserAttrValue(final User user, final UserAttrEnum attrEnum,
+            final boolean attrValue) {
+        this.setUserAttrValue(user, attrEnum,
+                userAttrDAO().getDbBooleanValue(attrValue));
+    }
+
     /**
      * Creates or updates the attribute value to the database.
      *
@@ -2855,6 +2870,9 @@ public final class UserServiceImpl extends AbstractService
 
     /**
      * Creates or updates a {@link UserAttr} value to the database.
+     * <p>
+     * Value encryption is responsibility of client.
+     * </p>
      *
      * @param user
      *            The {@link User}.
@@ -2875,6 +2893,9 @@ public final class UserServiceImpl extends AbstractService
 
     /**
      * Creates or updates a {@link UserAttr} value to the database.
+     * <p>
+     * Value encryption is responsibility of client.
+     * </p>
      *
      * @param user
      *            The {@link User}.

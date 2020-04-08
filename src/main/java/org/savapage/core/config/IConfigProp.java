@@ -2917,6 +2917,19 @@ public interface IConfigProp {
                 "user-source.update-user-details", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+         * Enable TOTP 2FA authentication.
+         */
+        USER_TOTP_ENABLE("user.totp.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
+         * Overwrite for Community Member name as issuer in
+         * "otpauth://totp/[issuer]" URI.
+         *
+         */
+        USER_TOTP_ISSUER("user.totp.issuer", "", API_UPDATABLE_ON),
+
+        /**
          * Client IP addresses (CIDR) that are allowed to use the User Client
          * App (when void, all client addresses are allowed).
          */
