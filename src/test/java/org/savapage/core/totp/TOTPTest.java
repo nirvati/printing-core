@@ -28,9 +28,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.savapage.core.totp.TOTPAuthenticator.BaseNCodecEnum;
-import org.savapage.core.totp.TOTPAuthenticator.HmacAlgorithmEnum;
-import org.savapage.core.totp.TOTPAuthenticator.KeySizeEnum;
+import org.savapage.lib.totp.TOTPAuthenticator;
+import org.savapage.lib.totp.TOTPException;
+import org.savapage.lib.totp.TOTPAuthenticator.BaseNCodecEnum;
+import org.savapage.lib.totp.TOTPAuthenticator.HmacAlgorithmEnum;
+import org.savapage.lib.totp.TOTPAuthenticator.KeySizeEnum;
 
 /**
  *

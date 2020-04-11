@@ -47,6 +47,9 @@ public enum PhraseEnum {
     CERT_VALID_UNTIL,
 
     /** */
+    MAIL_SENT,
+
+    /** */
     PDF_INVALID,
     /** */
     PDF_ENCRYPTED_UNSUPPORTED,

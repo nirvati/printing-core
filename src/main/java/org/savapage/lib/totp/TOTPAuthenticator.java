@@ -22,7 +22,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.totp;
+package org.savapage.lib.totp;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

@@ -1,7 +1,7 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2011-2020 Datraverse B.V.
- * Author: Rijk Ravestein.
+ * Authors: Rijk Ravestein.
  *
  * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
@@ -24,39 +24,49 @@
  */
 package org.savapage.core.totp;
 
+import java.util.Date;
+
+import org.savapage.core.dto.AbstractDto;
+
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class TOTPException extends Exception {
+public class TOTPRecoveryCodeDto extends AbstractDto {
 
-    /** */
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * @param cause
-     *            The cause.
-     */
-    public TOTPException(final Throwable cause) {
-        super(cause);
-    }
+    private Date issued;
+    private int trial;
+    private String code;
 
     /**
-     * @param message
-     *            The detail message.
+     *
      */
-    public TOTPException(final String message) {
-        super(message);
+    public TOTPRecoveryCodeDto() {
     }
 
-    /**
-     * @param message
-     *            The detail message.
-     * @param cause
-     *            The cause.
-     */
-    public TOTPException(final String message, final Throwable cause) {
-        super(message, cause);
+    public Date getIssued() {
+        return issued;
     }
+
+    public void setIssued(Date issued) {
+        this.issued = issued;
+    }
+
+    public int getTrial() {
+        return trial;
+    }
+
+    public void setTrial(int trial) {
+        this.trial = trial;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
 }
