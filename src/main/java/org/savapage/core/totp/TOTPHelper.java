@@ -58,8 +58,8 @@ public final class TOTPHelper {
      *
      * @return Backup code.
      */
-    public static TOTPRecoveryCodeDto generateRecoveryCode() {
-        final TOTPRecoveryCodeDto dto = new TOTPRecoveryCodeDto();
+    public static TOTPRecoveryDto generateRecoveryCode() {
+        final TOTPRecoveryDto dto = new TOTPRecoveryDto();
         dto.setIssued(new Date());
         dto.setTrial(0);
         dto.setCode(RandomStringUtils.randomAlphanumeric(RECOVERY_CODE_SIZE));
@@ -88,14 +88,14 @@ public final class TOTPHelper {
         }
 
         final String json = userService.getUserAttrValue(userDb,
-                UserAttrEnum.TOTP_RECOVERY_CODE);
+                UserAttrEnum.TOTP_RECOVERY);
 
         if (json == null) {
             return false;
         }
 
-        final TOTPRecoveryCodeDto dto =
-                JsonHelper.createOrNull(TOTPRecoveryCodeDto.class, json);
+        final TOTPRecoveryDto dto =
+                JsonHelper.createOrNull(TOTPRecoveryDto.class, json);
 
         boolean remove = true;
         boolean valid = false;
@@ -116,7 +116,7 @@ public final class TOTPHelper {
         }
 
         if (remove) {
-            userService.removeUserAttr(userDb, UserAttrEnum.TOTP_RECOVERY_CODE);
+            userService.removeUserAttr(userDb, UserAttrEnum.TOTP_RECOVERY);
         }
 
         return valid;
@@ -136,10 +136,10 @@ public final class TOTPHelper {
      *             If JSON error.
      */
     public static void setRecoveryCodeDB(final UserService userService,
-            final User userDb, final TOTPRecoveryCodeDto dto)
+            final User userDb, final TOTPRecoveryDto dto)
             throws IOException {
 
-        userService.setUserAttrValue(userDb, UserAttrEnum.TOTP_RECOVERY_CODE,
+        userService.setUserAttrValue(userDb, UserAttrEnum.TOTP_RECOVERY,
                 CryptoUser.encryptUserAttr(userDb.getId(),
                         JsonHelper.stringifyObject(dto)));
     }

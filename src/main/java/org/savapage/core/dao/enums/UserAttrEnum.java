@@ -31,7 +31,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.dao.UserAttrDao;
 import org.savapage.core.jpa.UserAttr;
 import org.savapage.core.json.JobTicketProperties;
-import org.savapage.core.totp.TOTPRecoveryCodeDto;
+import org.savapage.core.totp.TOTPRecoveryDto;
 import org.savapage.lib.pgp.PGPKeyID;
 
 /**
@@ -122,9 +122,9 @@ public enum UserAttrEnum {
     TOTP_SECRET("totp.secret"),
 
     /**
-     * See {@link TOTPRecoveryCodeDto}.
+     * See {@link TOTPRecoveryDto}.
      */
-    TOTP_RECOVERY_CODE("totp.recovery-code"),
+    TOTP_RECOVERY("totp.recovery"),
 
     /**
      * The Encrypted PIN {@link UUID} used for identification when printing from
@@ -373,7 +373,7 @@ public enum UserAttrEnum {
      */
     public final boolean isEncrypted() {
         return this == PIN || this == UUID || this == TOTP_SECRET
-                || this == TOTP_RECOVERY_CODE;
+                || this == TOTP_RECOVERY;
     }
 
     /**

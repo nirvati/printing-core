@@ -33,7 +33,7 @@ import org.savapage.core.dto.AbstractDto;
  * @author Rijk Ravestein
  *
  */
-public class TOTPRecoveryCodeDto extends AbstractDto {
+public class TOTPRecoveryDto extends AbstractDto {
 
     private Date issued;
     private int trial;
@@ -42,7 +42,7 @@ public class TOTPRecoveryCodeDto extends AbstractDto {
     /**
      *
      */
-    public TOTPRecoveryCodeDto() {
+    public TOTPRecoveryDto() {
     }
 
     public Date getIssued() {
