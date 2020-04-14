@@ -37,6 +37,9 @@ import org.savapage.core.util.LocaleHelper;
 public enum PhraseEnum {
 
     /** */
+    ACTION_CANNOT_BE_UNDONE,
+
+    /** */
     ACTIVATE_CARD_READER,
 
     /** */
@@ -75,6 +78,10 @@ public enum PhraseEnum {
     PDF_REPAIR_FAILED,
     /** */
     PDF_XFA_UNSUPPORTED,
+
+    /** Question. */
+    Q_REPLACE_SECRET_CODE,
+
     /** */
     REALTIME_ACTIVITY,
     /** */

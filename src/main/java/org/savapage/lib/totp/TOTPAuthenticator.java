@@ -174,6 +174,14 @@ public final class TOTPAuthenticator {
             return this;
         }
 
+        public int getStepSeconds() {
+            return stepSeconds;
+        }
+
+        public int getSyncSteps() {
+            return syncSteps;
+        }
+
         /**
          * Creates object copy.
          *
