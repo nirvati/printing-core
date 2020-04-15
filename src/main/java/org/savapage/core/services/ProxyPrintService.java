@@ -3,6 +3,9 @@
  * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
@@ -173,6 +176,16 @@ public interface ProxyPrintService {
      * @return The URL.
      */
     URL getCupsPrinterUrl(String printerName);
+
+    /**
+     * Gets the CUPS printer device URI.
+     *
+     * @param printerName
+     *            The printer name.
+     * @return The URI or {@code null} if the printer is not present in CUPS and
+     *         not part of the printer cache.
+     */
+    URI getCupsPrinterURI(String printerName);
 
     /**
      * Gets the CUPS Web Interface Administration URL.

@@ -3706,8 +3706,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         if (clientSideMonochrome != null
                 && clientSideMonochrome.booleanValue()) {
             createAddPrinterAttr(printer,
-                    PrinterAttrEnum.CLIENT_SIDE_MONOCHROME,
-                    IAttrDao.V_YES);
+                    PrinterAttrEnum.CLIENT_SIDE_MONOCHROME, IAttrDao.V_YES);
         }
 
         /*
@@ -3826,6 +3825,16 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         } catch (UnknownHostException e) {
             throw new SpException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public URI getCupsPrinterURI(final String printerName) {
+        final JsonProxyPrinter proxyPrinter =
+                this.getCachedPrinter(printerName);
+        if (proxyPrinter == null) {
+            return null;
+        }
+        return proxyPrinter.getDeviceUri();
     }
 
     /**

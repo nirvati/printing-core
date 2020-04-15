@@ -26,6 +26,7 @@ package org.savapage.core.ipp.routing;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Date;
 
 import org.savapage.core.jpa.IppQueue;
@@ -56,6 +57,11 @@ public interface IppRoutingContext {
      * @return Proxy Printer CUPS name.
      */
     String getPrinterName();
+
+    /**
+     * @return Proxy Printer CUPS URI.
+     */
+    URI getPrinterURI();
 
     /**
      * @return Proxy Printer display name.

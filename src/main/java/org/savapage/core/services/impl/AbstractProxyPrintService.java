@@ -3227,6 +3227,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             ctx.setPdfToPrint(fileToPrint);
             ctx.setUserId(user.getUserId());
             ctx.setPrinterName(printerName);
+            ctx.setPrinterURI(this.getCupsPrinterURI(printerName));
             ctx.setPrinterDisplayName(printer.getDisplayName());
             ctx.setJobName(printInInfo.getJobName());
             ctx.setTransactionDate(ServiceContext.getTransactionDate());
