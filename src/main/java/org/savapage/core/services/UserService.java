@@ -560,6 +560,16 @@ public interface UserService {
     UUID lazyAddUserAttrUuid(User user);
 
     /**
+     * Generates a Primary ID number for a user if it does exist. <i>This method
+     * performs a database commit.</i>
+     *
+     * @param user
+     *            The {@link User}.
+     * @return Primary ID number or {@code null} if generate did not succeed.
+     */
+    String lazyAddUserPrimaryIdNumber(User user);
+
+    /**
      * Reads the attribute value from the database. Encrypted value is
      * <b>not</b> decrypted.
      *

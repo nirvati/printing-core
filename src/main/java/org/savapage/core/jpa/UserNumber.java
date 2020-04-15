@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2011-2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -34,17 +37,18 @@ import javax.persistence.TableGenerator;
 /**
  * An ID Number associated with a user.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @Entity
 @Table(name = UserNumber.TABLE_NAME)
 public class UserNumber extends org.savapage.core.jpa.Entity {
 
-    /**
-     *
-     */
+    /** */
     public static final String TABLE_NAME = "tbl_user_number";
+
+    /** */
+    public static final int COL_ID_NUMBER_LENGTH = 32;
 
     @Id
     @Column(name = "user_number_id")
@@ -63,7 +67,7 @@ public class UserNumber extends org.savapage.core.jpa.Entity {
     @Column(name = "index_number", nullable = false)
     private Integer indexNumber;
 
-    @Column(name = "id_number", length = 32, nullable = false)
+    @Column(name = "id_number", length = COL_ID_NUMBER_LENGTH, nullable = false)
     private String number;
 
     @Column(name = "id_name", length = 255, nullable = true)

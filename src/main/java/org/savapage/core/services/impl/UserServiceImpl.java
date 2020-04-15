@@ -52,6 +52,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.OutOfBoundsException;
@@ -126,6 +127,9 @@ public final class UserServiceImpl extends AbstractService
      */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(UserServiceImpl.class);
+
+    /** */
+    private static final int MAX_USER_ID_NUMBER_GENERATE_TRIALS = 10;
 
     @Override
     public AbstractJsonRpcMethodResponse
@@ -2832,6 +2836,55 @@ public final class UserServiceImpl extends AbstractService
         this.setUserAttrValue(user, UserAttrEnum.UUID, encryptedUuid);
 
         return uuid;
+    }
+
+    @Override
+    public String lazyAddUserPrimaryIdNumber(final User user) {
+
+        final String idNumber = this.getPrimaryIdNumber(user);
+
+        if (StringUtils.isNotBlank(idNumber)) {
+            return idNumber;
+        }
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        if (!cm.isConfigValue(Key.USER_ID_NUMBER_GENERATE_ENABLE)) {
+            return null;
+        }
+
+        final int length = cm.getConfigInt(Key.USER_ID_NUMBER_GENERATE_LENGTH);
+
+        final DaoContext ctx = ServiceContext.getDaoContext();
+
+        for (int i = 0; i < MAX_USER_ID_NUMBER_GENERATE_TRIALS; i++) {
+
+            final String random = RandomStringUtils.randomNumeric(length);
+
+            if (userNumberDAO().findByNumber(random) == null) {
+                try {
+                    if (!ctx.isTransactionActive()) {
+                        ctx.beginTransaction();
+                    }
+                    this.assocPrimaryIdNumber(user, random);
+                    ctx.commit();
+                    if (i > 0) {
+                        LOGGER.warn("User [{}] Number ID generated: trial [{}]",
+                                user.getUserId(), i + 1);
+                    }
+                    return random;
+                } catch (Exception e) {
+                    // Highly unlikely duplicate collision.
+                } finally {
+                    ctx.rollback();
+                }
+            }
+        }
+
+        LOGGER.warn("User [{}] Number ID could not be generated: trial [{}]",
+                user.getUserId(), MAX_USER_ID_NUMBER_GENERATE_TRIALS);
+
+        return null;
     }
 
     @Override

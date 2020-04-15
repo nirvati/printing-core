@@ -65,6 +65,7 @@ import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.imaging.Pdf2ImgCairoCmd;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.PrinterGroup;
+import org.savapage.core.jpa.UserNumber;
 import org.savapage.core.json.rpc.JsonRpcMethodName;
 import org.savapage.core.services.helpers.DocLogScopeEnum;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
@@ -2886,6 +2887,19 @@ public interface IConfigProp {
                 "user.id-number-length-min", NUMBER_VALIDATOR, "4"),
 
         /**
+         *
+         */
+        USER_ID_NUMBER_GENERATE_ENABLE(//
+                "user.id-number-generate.enable", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         *
+         */
+        USER_ID_NUMBER_GENERATE_LENGTH(//
+                "user.id-number-generate.length",
+                USER_ID_NUMBER_LENGTH_VALIDATOR, "8"),
+
+        /**
          * Insert users ad-hoc after successful authentication at the login
          * page.
          */
@@ -2919,7 +2933,7 @@ public interface IConfigProp {
         /**
          * Enable TOTP 2FA authentication.
          */
-        USER_TOTP_ENABLE("user.totp.enable", BOOLEAN_VALIDATOR, V_NO,
+        USER_TOTP_ENABLE("user.totp.enable", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
 
         /**
@@ -3949,6 +3963,11 @@ public interface IConfigProp {
     /** */
     NumberValidator ACCOUNTING_DECIMAL_VALIDATOR = new NumberValidator(0L,
             Integer.valueOf(MAX_FINANCIAL_DECIMALS_IN_DB).longValue(), false);
+
+    /** */
+    NumberValidator USER_ID_NUMBER_LENGTH_VALIDATOR = new NumberValidator(6L,
+            Integer.valueOf(UserNumber.COL_ID_NUMBER_LENGTH).longValue(),
+            false);
 
     /** */
     InternalFontFamilyValidator INTERNAL_FONT_FAMILY_VALIDATOR =
