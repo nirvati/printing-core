@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,14 @@
  */
 package org.savapage.core.totp;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,7 +39,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.AbstractDto;
@@ -43,6 +53,10 @@ import org.savapage.lib.totp.TOTPAuthenticator;
 import org.savapage.lib.totp.TOTPException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  *
@@ -62,6 +76,56 @@ public final class TOTPHelper {
     /** */
     private static final long MAX_RECOVERY_AGE_MSEC = DateUtils.MILLIS_PER_HOUR;
 
+    /**
+     * Telegram BOT API. {0} = BOT token, {1} = User Telegram ID, {2} =
+     * Generated TOTP Code.
+     */
+    private static final String TELEGRAM_API_FORMAT =
+            "https://api.telegram.org/bot{0}/sendMessage"
+                    + "?chat_id={1}&disable_web_page_preview=1&text={2}";
+
+    /** */
+    private static final int TELEGRAM_API_CONN_TIMEOUT_MSEC = 3000;
+    /** */
+    private static final int TELEGRAM_API_READ_TIMEOUT_MSEC = 2000;
+
+    /**
+     * Main part of the Telegram JSON response, just enough to evaluate success.
+     */
+    @JsonInclude(Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TelegramResponse {
+
+        private boolean ok;
+        private Integer error_code;
+        private String description;
+
+        public boolean isOk() {
+            return ok;
+        }
+
+        public void setOk(boolean ok) {
+            this.ok = ok;
+        }
+
+        public Integer getError_code() {
+            return error_code;
+        }
+
+        public void setError_code(Integer error_code) {
+            this.error_code = error_code;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+    }
+
     /** Utility class. */
     private TOTPHelper() {
     }
@@ -77,6 +141,107 @@ public final class TOTPHelper {
         dto.setTrial(0);
         dto.setCode(RandomStringUtils.randomAlphanumeric(RECOVERY_CODE_SIZE));
         return dto;
+    }
+
+    /**
+     * @param userService
+     *            User service.
+     * @param userDb
+     *            User.
+     * @return TOTP authentication builder.
+     */
+    private static TOTPAuthenticator.Builder getAuthenticatorBuilder(
+            final UserService userService, final User userDb) {
+        final String secretKey =
+                userService.getUserAttrValue(userDb, UserAttrEnum.TOTP_SECRET);
+        if (secretKey == null) {
+            throw new IllegalStateException(
+                    "Application error: user TOTP secret missing.");
+        }
+        return new TOTPAuthenticator.Builder(secretKey);
+    }
+
+    /**
+     *
+     * @param userService
+     *            User service.
+     * @param userDb
+     *            User.
+     * @return {@code true} if a generated TOTP code was send to User Telegram
+     *         ID. {@code false} when code was <i>not</i> send because Telegram
+     *         TOTP bot is not enabled/configured, or User Telegram ID is not
+     *         specified, or User TOTP code by Telegram is disabled.
+     * @throws IOException
+     *             If send failed.
+     */
+    public static boolean sendCodeToTelegram(final UserService userService,
+            final User userDb) throws IOException {
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        if (!cm.isConfigValue(Key.USER_EXT_TELEGRAM_TOTP_ENABLE)
+                || !userService.isUserAttrValue(userDb,
+                        UserAttrEnum.EXT_TELEGRAM_TOTP_ENABLE)) {
+            return false;
+        }
+
+        final String botToken = cm.getConfigValue(Key.EXT_TELEGRAM_BOT_TOKEN);
+
+        if (StringUtils.isBlank(botToken)) {
+            return false;
+        }
+
+        final String telegramID = userService.getUserAttrValue(userDb,
+                UserAttrEnum.EXT_TELEGRAM_ID);
+
+        if (StringUtils.isBlank(telegramID)) {
+            return false;
+        }
+
+        final TOTPAuthenticator.Builder authBuilder =
+                getAuthenticatorBuilder(userService, userDb);
+        final TOTPAuthenticator auth = authBuilder.build();
+
+        final URL url;
+        try {
+            url = new URL(MessageFormat.format(TELEGRAM_API_FORMAT, botToken,
+                    telegramID, auth.generateTOTP()));
+        } catch (MalformedURLException e) {
+            throw new IllegalStateException(
+                    "Application error: Telegram URL error.");
+        }
+
+        final URLConnection connection = url.openConnection();
+
+        connection.setConnectTimeout(TELEGRAM_API_CONN_TIMEOUT_MSEC);
+        connection.setReadTimeout(TELEGRAM_API_READ_TIMEOUT_MSEC);
+
+        final StringBuilder json = new StringBuilder();
+
+        try (InputStream istr = connection.getInputStream();
+                InputStreamReader istrReader = new InputStreamReader(istr);
+                BufferedReader br = new BufferedReader(istrReader);) {
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                json.append(line);
+                json.append(System.lineSeparator());
+            }
+
+        }
+        final TelegramResponse rsp = JsonHelper
+                .createOrNull(TelegramResponse.class, json.toString());
+
+        if (rsp == null) {
+            LOGGER.error("{} : JSON to Object error.", json.toString());
+            return false;
+        }
+
+        if (!rsp.isOk()) {
+            LOGGER.warn(json.toString());
+        }
+
+        return rsp.isOk();
     }
 
     /**
@@ -105,7 +270,7 @@ public final class TOTPHelper {
         }
 
         final TOTPAuthenticator.Builder authBuilder =
-                new TOTPAuthenticator.Builder(secretKey);
+                getAuthenticatorBuilder(userService, userDb);
         final TOTPAuthenticator auth = authBuilder.build();
 
         boolean isAuthenticated = false;

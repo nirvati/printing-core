@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -111,6 +111,17 @@ public enum UserAttrEnum {
      *
      */
     PDF_PROPS("pdf-properties"),
+
+    /**
+     * Encrypted Telegram ID.
+     */
+    EXT_TELEGRAM_ID("ext.telegram.id"),
+
+    /**
+     * Enable sending One-time Password (TOTP) to
+     * {@link UserAttrEnum#EXT_TELEGRAM_ID}.
+     */
+    EXT_TELEGRAM_TOTP_ENABLE("ext.telegram.totp.enable"),
 
     /**
      * Enable RFC 6238 Time-based One-time Password (TOTP).
@@ -386,8 +397,9 @@ public enum UserAttrEnum {
      * @return {@code true} if encrypted.
      */
     public final boolean isEncrypted() {
-        return this == PIN || this == UUID || this == TOTP_SECRET
-                || this == TOTP_HISTORY || this == TOTP_RECOVERY;
+        return this == PIN || this == UUID || this == EXT_TELEGRAM_ID
+                || this == TOTP_SECRET || this == TOTP_HISTORY
+                || this == TOTP_RECOVERY;
     }
 
     /**

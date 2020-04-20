@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -832,6 +832,11 @@ public interface IConfigProp {
         EXT_PAPERCUT_USER_SYNC_IP_ADDRESSES_ALLOWED(//
                 "ext.papercut.user.sync.ip-addresses-allowed",
                 CIDR_RANGES_VALIDATOR_OPT, API_UPDATABLE_OFF),
+
+        /**
+         * Secret token to access the Telegram HTTP API.
+         */
+        EXT_TELEGRAM_BOT_TOKEN("ext.telegram.bot.token", API_UPDATABLE_ON),
 
         /**
          * The base URL, i.e. "protocol://authority" <i>without</i> the path, of
@@ -2929,6 +2934,12 @@ public interface IConfigProp {
          */
         USER_SOURCE_UPDATE_USER_DETAILS(//
                 "user-source.update-user-details", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
+         * Enable sending User TOTP 2FA code via Telegram bot.
+         */
+        USER_EXT_TELEGRAM_TOTP_ENABLE("user.ext.telegram.totp.enable",
+                BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * Enable TOTP 2FA authentication.
