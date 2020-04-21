@@ -834,6 +834,18 @@ public interface IConfigProp {
                 CIDR_RANGES_VALIDATOR_OPT, API_UPDATABLE_OFF),
 
         /**
+         * Enable Telegram messaging.
+         */
+        EXT_TELEGRAM_ENABLE("ext.telegram.enable",
+                BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
+         * Telegram BOT username of HTTP API.
+         */
+        EXT_TELEGRAM_BOT_USERNAME("ext.telegram.bot.username",
+                API_UPDATABLE_ON),
+
+        /**
          * Secret token to access the Telegram HTTP API.
          */
         EXT_TELEGRAM_BOT_TOKEN("ext.telegram.bot.token", API_UPDATABLE_ON),

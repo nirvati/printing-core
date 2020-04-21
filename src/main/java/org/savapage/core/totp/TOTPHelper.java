@@ -24,14 +24,7 @@
  */
 package org.savapage.core.totp;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,16 +40,14 @@ import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.AbstractDto;
 import org.savapage.core.jpa.User;
+import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.util.JsonHelper;
+import org.savapage.ext.telegram.TelegramHelper;
 import org.savapage.lib.totp.TOTPAuthenticator;
 import org.savapage.lib.totp.TOTPException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  *
@@ -69,62 +60,15 @@ public final class TOTPHelper {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(TOTPHelper.class);
 
+    private static final UserService USER_SERVICE =
+            ServiceContext.getServiceFactory().getUserService();
+
     /** */
     private static final int RECOVERY_CODE_SIZE = 12;
     /** */
     private static final int MAX_RECOVERY_TRIALS = 3;
     /** */
     private static final long MAX_RECOVERY_AGE_MSEC = DateUtils.MILLIS_PER_HOUR;
-
-    /**
-     * Telegram BOT API. {0} = BOT token, {1} = User Telegram ID, {2} =
-     * Generated TOTP Code.
-     */
-    private static final String TELEGRAM_API_FORMAT =
-            "https://api.telegram.org/bot{0}/sendMessage"
-                    + "?chat_id={1}&disable_web_page_preview=1&text={2}";
-
-    /** */
-    private static final int TELEGRAM_API_CONN_TIMEOUT_MSEC = 3000;
-    /** */
-    private static final int TELEGRAM_API_READ_TIMEOUT_MSEC = 2000;
-
-    /**
-     * Main part of the Telegram JSON response, just enough to evaluate success.
-     */
-    @JsonInclude(Include.NON_NULL)
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class TelegramResponse {
-
-        private boolean ok;
-        private Integer error_code;
-        private String description;
-
-        public boolean isOk() {
-            return ok;
-        }
-
-        public void setOk(boolean ok) {
-            this.ok = ok;
-        }
-
-        public Integer getError_code() {
-            return error_code;
-        }
-
-        public void setError_code(Integer error_code) {
-            this.error_code = error_code;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-    }
 
     /** Utility class. */
     private TOTPHelper() {
@@ -177,17 +121,12 @@ public final class TOTPHelper {
     public static boolean sendCodeToTelegram(final UserService userService,
             final User userDb) throws IOException {
 
-        final ConfigManager cm = ConfigManager.instance();
-
-        if (!cm.isConfigValue(Key.USER_EXT_TELEGRAM_TOTP_ENABLE)
-                || !userService.isUserAttrValue(userDb,
-                        UserAttrEnum.EXT_TELEGRAM_TOTP_ENABLE)) {
+        if (!TelegramHelper.isTOTPEnabled()) {
             return false;
         }
 
-        final String botToken = cm.getConfigValue(Key.EXT_TELEGRAM_BOT_TOKEN);
-
-        if (StringUtils.isBlank(botToken)) {
+        if (!userService.isUserAttrValue(userDb,
+                UserAttrEnum.EXT_TELEGRAM_TOTP_ENABLE)) {
             return false;
         }
 
@@ -202,46 +141,28 @@ public final class TOTPHelper {
                 getAuthenticatorBuilder(userService, userDb);
         final TOTPAuthenticator auth = authBuilder.build();
 
-        final URL url;
-        try {
-            url = new URL(MessageFormat.format(TELEGRAM_API_FORMAT, botToken,
-                    telegramID, auth.generateTOTP()));
-        } catch (MalformedURLException e) {
-            throw new IllegalStateException(
-                    "Application error: Telegram URL error.");
-        }
+        return TelegramHelper.sendMessage(telegramID, auth.generateTOTP());
+    }
 
-        final URLConnection connection = url.openConnection();
+    /**
+     * @return {@code true} if User TOTP is enabled.
+     */
+    public static boolean isTOTPEnabled() {
+        return ConfigManager.instance().isConfigValue(Key.USER_TOTP_ENABLE);
+    }
 
-        connection.setConnectTimeout(TELEGRAM_API_CONN_TIMEOUT_MSEC);
-        connection.setReadTimeout(TELEGRAM_API_READ_TIMEOUT_MSEC);
-
-        final StringBuilder json = new StringBuilder();
-
-        try (InputStream istr = connection.getInputStream();
-                InputStreamReader istrReader = new InputStreamReader(istr);
-                BufferedReader br = new BufferedReader(istrReader);) {
-
-            String line;
-            while ((line = br.readLine()) != null) {
-                json.append(line);
-                json.append(System.lineSeparator());
-            }
-
-        }
-        final TelegramResponse rsp = JsonHelper
-                .createOrNull(TelegramResponse.class, json.toString());
-
-        if (rsp == null) {
-            LOGGER.error("{} : JSON to Object error.", json.toString());
-            return false;
-        }
-
-        if (!rsp.isOk()) {
-            LOGGER.warn(json.toString());
-        }
-
-        return rsp.isOk();
+    /**
+     *
+     * @param userDb
+     *            User.
+     * @return {@code true} if TOTP is activated for User.
+     */
+    public static boolean isTOTPActivated(final User userDb) {
+        return isTOTPEnabled()
+                && USER_SERVICE.isUserAttrValue(userDb,
+                        UserAttrEnum.TOTP_ENABLE)
+                && StringUtils.isNotBlank(USER_SERVICE.getUserAttrValue(userDb,
+                        UserAttrEnum.TOTP_SECRET));
     }
 
     /**
