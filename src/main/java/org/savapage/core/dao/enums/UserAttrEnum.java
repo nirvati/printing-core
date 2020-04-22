@@ -33,6 +33,7 @@ import org.savapage.core.jpa.UserAttr;
 import org.savapage.core.json.JobTicketProperties;
 import org.savapage.core.totp.TOTPHistoryDto;
 import org.savapage.core.totp.TOTPRecoveryDto;
+import org.savapage.core.totp.TOTPSentDto;
 import org.savapage.lib.pgp.PGPKeyID;
 
 /**
@@ -122,6 +123,11 @@ public enum UserAttrEnum {
      * {@link UserAttrEnum#EXT_TELEGRAM_ID}.
      */
     EXT_TELEGRAM_TOTP_ENABLE("ext.telegram.totp.enable"),
+
+    /**
+     * Last TOTP code sent to Telegram. See {@link TOTPSentDto}.
+     */
+    EXT_TELEGRAM_TOTP_SENT("ext.telegram.totp.sent"),
 
     /**
      * Enable RFC 6238 Time-based One-time Password (TOTP).
@@ -399,7 +405,7 @@ public enum UserAttrEnum {
     public final boolean isEncrypted() {
         return this == PIN || this == UUID || this == EXT_TELEGRAM_ID
                 || this == TOTP_SECRET || this == TOTP_HISTORY
-                || this == TOTP_RECOVERY;
+                || this == TOTP_RECOVERY || this == EXT_TELEGRAM_TOTP_SENT;
     }
 
     /**

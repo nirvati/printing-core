@@ -60,6 +60,7 @@ public final class TOTPHelper {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(TOTPHelper.class);
 
+    /** */
     private static final UserService USER_SERVICE =
             ServiceContext.getServiceFactory().getUserService();
 
@@ -88,16 +89,14 @@ public final class TOTPHelper {
     }
 
     /**
-     * @param userService
-     *            User service.
      * @param userDb
      *            User.
      * @return TOTP authentication builder.
      */
-    private static TOTPAuthenticator.Builder getAuthenticatorBuilder(
-            final UserService userService, final User userDb) {
+    private static TOTPAuthenticator.Builder
+            getAuthenticatorBuilder(final User userDb) {
         final String secretKey =
-                userService.getUserAttrValue(userDb, UserAttrEnum.TOTP_SECRET);
+                USER_SERVICE.getUserAttrValue(userDb, UserAttrEnum.TOTP_SECRET);
         if (secretKey == null) {
             throw new IllegalStateException(
                     "Application error: user TOTP secret missing.");
@@ -107,8 +106,28 @@ public final class TOTPHelper {
 
     /**
      *
-     * @param userService
-     *            User service.
+     * @param userDb
+     *            User.
+     * @return {@code null} when not found or sending TOTP code to Telegram is
+     *         disabled.
+     */
+    private static String getEnabledTelegramID(final User userDb) {
+
+        if (!TelegramHelper.isTOTPEnabled()) {
+            return null;
+        }
+
+        if (!USER_SERVICE.isUserAttrValue(userDb,
+                UserAttrEnum.EXT_TELEGRAM_TOTP_ENABLE)) {
+            return null;
+        }
+
+        return USER_SERVICE.getUserAttrValue(userDb,
+                UserAttrEnum.EXT_TELEGRAM_ID);
+    }
+
+    /**
+     *
      * @param userDb
      *            User.
      * @return {@code true} if a generated TOTP code was send to User Telegram
@@ -118,30 +137,54 @@ public final class TOTPHelper {
      * @throws IOException
      *             If send failed.
      */
-    public static boolean sendCodeToTelegram(final UserService userService,
-            final User userDb) throws IOException {
+    public static boolean sendCodeToTelegram(final User userDb)
+            throws IOException {
 
         if (!TelegramHelper.isTOTPEnabled()) {
             return false;
         }
 
-        if (!userService.isUserAttrValue(userDb,
+        if (!USER_SERVICE.isUserAttrValue(userDb,
                 UserAttrEnum.EXT_TELEGRAM_TOTP_ENABLE)) {
             return false;
         }
 
-        final String telegramID = userService.getUserAttrValue(userDb,
-                UserAttrEnum.EXT_TELEGRAM_ID);
+        final String telegramID = getEnabledTelegramID(userDb);
 
         if (StringUtils.isBlank(telegramID)) {
             return false;
         }
 
         final TOTPAuthenticator.Builder authBuilder =
-                getAuthenticatorBuilder(userService, userDb);
+                getAuthenticatorBuilder(userDb);
         final TOTPAuthenticator auth = authBuilder.build();
 
-        return TelegramHelper.sendMessage(telegramID, auth.generateTOTP());
+        try {
+            final TOTPSentDto dtoSent = getTelegramSentCode(userDb);
+            /*
+             * If sent code is not consumed yet, verify is code is valid for at
+             * least one (1) step. If so, do not resent the code.
+             */
+            if (dtoSent != null && auth.verifyTOTP(
+                    DateUtils.addSeconds(new Date(),
+                            -1 * authBuilder.getStepSeconds()),
+                    Long.parseLong(dtoSent.getCode()))) {
+                return true;
+            }
+        } catch (NumberFormatException | TOTPException e) {
+            // no code intended
+        }
+
+        final String totpCode = auth.generateTOTP();
+        final boolean isSent = TelegramHelper.sendMessage(telegramID, totpCode);
+
+        if (isSent) {
+            final TOTPSentDto dto = new TOTPSentDto();
+            dto.setSent(new Date());
+            dto.setCode(totpCode);
+            TOTPHelper.setTelegramSentCodeDB(userDb, dto);
+        }
+        return isSent;
     }
 
     /**
@@ -169,8 +212,6 @@ public final class TOTPHelper {
      * Verifies if code is a valid TOTP code, and updates/deletes user TOTP code
      * history in database (within commit scope of caller).
      *
-     * @param userService
-     *            User service.
      * @param userDb
      *            User.
      * @param code
@@ -179,11 +220,11 @@ public final class TOTPHelper {
      * @throws IOException
      *             If JSON error.
      */
-    public static boolean verifyCode(final UserService userService,
-            final User userDb, final String code) throws IOException {
+    public static boolean verifyCode(final User userDb, final String code)
+            throws IOException {
 
         final String secretKey =
-                userService.getUserAttrValue(userDb, UserAttrEnum.TOTP_SECRET);
+                USER_SERVICE.getUserAttrValue(userDb, UserAttrEnum.TOTP_SECRET);
 
         if (secretKey == null) {
             throw new IllegalStateException(
@@ -191,7 +232,7 @@ public final class TOTPHelper {
         }
 
         final TOTPAuthenticator.Builder authBuilder =
-                getAuthenticatorBuilder(userService, userDb);
+                getAuthenticatorBuilder(userDb);
         final TOTPAuthenticator auth = authBuilder.build();
 
         boolean isAuthenticated = false;
@@ -204,12 +245,24 @@ public final class TOTPHelper {
             throw new IllegalStateException(e);
         }
 
+        TOTPSentDto telegramSentCode = null;
+
+        if (isAuthenticated) {
+            // Code is valid, but does it match the code sent to Telegram?
+            telegramSentCode = getTelegramSentCode(userDb);
+            if (telegramSentCode != null
+                    && !code.equals(telegramSentCode.getCode())
+                    && StringUtils.isNotBlank(getEnabledTelegramID(userDb))) {
+                isAuthenticated = false;
+            }
+        }
+
         if (!isAuthenticated) {
             return false;
         }
 
-        final String json =
-                userService.getUserAttrValue(userDb, UserAttrEnum.TOTP_HISTORY);
+        final String json = USER_SERVICE.getUserAttrValue(userDb,
+                UserAttrEnum.TOTP_HISTORY);
 
         TOTPHistoryDto history = null;
         if (json != null) {
@@ -259,18 +312,21 @@ public final class TOTPHelper {
                     userDb.getUserId(), codes.size());
         }
 
-        setEncryptUserAttrInDB(userService, userDb, UserAttrEnum.TOTP_HISTORY,
-                history);
+        setEncryptUserAttrInDB(userDb, UserAttrEnum.TOTP_HISTORY, history);
 
-        return isAuthenticated;
+        // Prune code sent to Telegram.
+        if (telegramSentCode != null) {
+            USER_SERVICE.removeUserAttr(userDb,
+                    UserAttrEnum.EXT_TELEGRAM_TOTP_SENT);
+        }
+
+        return true;
     }
 
     /**
      * Verifies if code is a valid recovery code, and updates/deletes user
      * recovery code in database (within commit scope of caller).
      *
-     * @param userService
-     *            User service.
      * @param userDb
      *            User.
      * @param code
@@ -279,14 +335,14 @@ public final class TOTPHelper {
      * @throws IOException
      *             If JSON error.
      */
-    public static boolean verifyRecoveryCode(final UserService userService,
-            final User userDb, final String code) throws IOException {
+    public static boolean verifyRecoveryCode(final User userDb,
+            final String code) throws IOException {
 
         if (code == null) {
             return false;
         }
 
-        final String json = userService.getUserAttrValue(userDb,
+        final String json = USER_SERVICE.getUserAttrValue(userDb,
                 UserAttrEnum.TOTP_RECOVERY);
 
         if (json == null) {
@@ -310,13 +366,13 @@ public final class TOTPHelper {
                 remove = valid || currentTrial == MAX_RECOVERY_TRIALS;
                 if (!remove) {
                     dto.setTrial(currentTrial);
-                    setRecoveryCodeDB(userService, userDb, dto);
+                    setRecoveryCodeDB(userDb, dto);
                 }
             }
         }
 
         if (remove) {
-            userService.removeUserAttr(userDb, UserAttrEnum.TOTP_RECOVERY);
+            USER_SERVICE.removeUserAttr(userDb, UserAttrEnum.TOTP_RECOVERY);
         }
 
         if (LOGGER.isDebugEnabled()) {
@@ -328,11 +384,35 @@ public final class TOTPHelper {
     }
 
     /**
+     * Get TOTP code sent to user's Telegram ID.
+     *
+     * @param userDb
+     *            User.
+     * @return {@code null} if no code was sent or code is removed because
+     *         expired or consumed.
+     */
+    private static TOTPSentDto getTelegramSentCode(final User userDb) {
+
+        final String json = USER_SERVICE.getUserAttrValue(userDb,
+                UserAttrEnum.EXT_TELEGRAM_TOTP_SENT);
+
+        if (json == null) {
+            return null;
+        }
+
+        final TOTPSentDto dto =
+                JsonHelper.createOrNull(TOTPSentDto.class, json);
+
+        if (dto == null) {
+            return null;
+        }
+        return dto;
+    }
+
+    /**
      * Updates/creates user recovery code in database (within commit scope of
      * caller).
      *
-     * @param userService
-     *            User service.
      * @param userDb
      *            User.
      * @param attrEnum
@@ -342,11 +422,11 @@ public final class TOTPHelper {
      * @throws IOException
      *             If JSON error.
      */
-    private static void setEncryptUserAttrInDB(final UserService userService,
-            final User userDb, final UserAttrEnum attrEnum,
-            final AbstractDto dto) throws IOException {
+    private static void setEncryptUserAttrInDB(final User userDb,
+            final UserAttrEnum attrEnum, final AbstractDto dto)
+            throws IOException {
 
-        userService.setUserAttrValue(userDb, attrEnum,
+        USER_SERVICE.setUserAttrValue(userDb, attrEnum,
                 CryptoUser.encryptUserAttr(userDb.getId(),
                         JsonHelper.stringifyObject(dto)));
     }
@@ -355,8 +435,6 @@ public final class TOTPHelper {
      * Updates/creates user recovery code in database (within commit scope of
      * caller).
      *
-     * @param userService
-     *            User service.
      * @param userDb
      *            User.
      * @param dto
@@ -364,9 +442,25 @@ public final class TOTPHelper {
      * @throws IOException
      *             If JSON error.
      */
-    public static void setRecoveryCodeDB(final UserService userService,
-            final User userDb, final TOTPRecoveryDto dto) throws IOException {
-        setEncryptUserAttrInDB(userService, userDb, UserAttrEnum.TOTP_RECOVERY,
+    public static void setRecoveryCodeDB(final User userDb,
+            final TOTPRecoveryDto dto) throws IOException {
+        setEncryptUserAttrInDB(userDb, UserAttrEnum.TOTP_RECOVERY, dto);
+    }
+
+    /**
+     * Updates/creates user TOTP code snt to Telegram in database (within commit
+     * scope of caller).
+     *
+     * @param userDb
+     *            User.
+     * @param dto
+     *            Sent code.
+     * @throws IOException
+     *             If JSON error.
+     */
+    public static void setTelegramSentCodeDB(final User userDb,
+            final TOTPSentDto dto) throws IOException {
+        setEncryptUserAttrInDB(userDb, UserAttrEnum.EXT_TELEGRAM_TOTP_SENT,
                 dto);
     }
 

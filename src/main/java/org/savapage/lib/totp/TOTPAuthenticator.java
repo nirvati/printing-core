@@ -510,14 +510,30 @@ public final class TOTPAuthenticator {
      *             When key or algorithm is invalid.
      */
     public boolean verifyTOTP(final long code) throws TOTPException {
+        return this.verifyTOTP(new Date(), code);
+    }
 
-        final Date now = new Date();
+    /**
+     * Verifies if TOTP code is valid at a certain point in time.
+     *
+     * @param date
+     *            Point in time.
+     * @param code
+     *            Code to check.
+     *
+     * @return {@code true} if code is valid.
+     *
+     * @throws TOTPException
+     *             When key or algorithm is invalid.
+     */
+    public boolean verifyTOTP(final Date date, final long code)
+            throws TOTPException {
 
         for (int i =
                 -this.builder.syncSteps; i <= this.builder.syncSteps; ++i) {
 
             final Date stepDate =
-                    DateUtils.addSeconds(now, i * this.builder.stepSeconds);
+                    DateUtils.addSeconds(date, i * this.builder.stepSeconds);
             final long codeProbe = Long.parseLong(this.generateTOTP(stepDate));
             if (code == codeProbe) {
                 return true;

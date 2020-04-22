@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.text.MessageFormat;
 
 import org.apache.commons.lang3.StringUtils;
@@ -159,7 +160,8 @@ public final class TelegramHelper {
         try {
             url = new URL(MessageFormat.format(SEND_MESSAGE_URL_PATTERN,
                     CONFIG_MANAGER.getConfigValue(Key.EXT_TELEGRAM_BOT_TOKEN),
-                    telegramID, msg));
+                    telegramID,
+                    URLEncoder.encode(msg, "UTF-8").replace("+", "%20")));
         } catch (MalformedURLException e) {
             throw new IllegalStateException(
                     "Application error: Telegram URL error.");
