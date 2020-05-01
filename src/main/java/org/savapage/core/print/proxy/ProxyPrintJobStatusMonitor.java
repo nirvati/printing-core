@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -113,11 +116,6 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
      */
     private final ConcurrentMap<Integer, PrintJobStatus> jobStatusMap =
             new ConcurrentHashMap<>();
-
-    /**
-     * Polling time of the job status map.
-     */
-    private static final long POLLING_MSEC = 2 * DateUtil.DURATION_MSEC_SECOND;
 
     /**
      * Waiting time till processing finished.
@@ -506,7 +504,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
     }
 
     /**
-     * Processes a print job status entry.
+     * Processes a print job status entry. Updates PrintOut database row and
+     * sends Admin and User Web App notification messages if job status changed.
      *
      * @param printOut
      *            {@link PrintOut} object.
@@ -625,14 +624,31 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
     }
 
     /**
+     * @return Heartbeat (milliseconds) for performing a CUPS pull of job id
+     *         status while monitoring CUPS notifications.
+     */
+    private static long getCupsPullHearbeat() {
+        return ConfigManager.instance().getConfigLong(
+                IConfigProp.Key.CUPS_NOTIFICATION_PULL_HEARTBEAT_MSEC);
+    }
+
+    /**
+     * @return Heartbeat (milliseconds) for monitoring pushed CUPS job id status
+     *         notifications.
+     */
+    private static long getCupsPushHearbeat() {
+        return ConfigManager.instance().getConfigLong(
+                IConfigProp.Key.CUPS_NOTIFICATION_PUSH_HEARTBEAT_MSEC);
+    }
+
+    /**
      * Processes print job status instances from {@link #jobStatusMap}.
      */
     private void processJobStatusMap() {
 
         final long timeNow = System.currentTimeMillis();
 
-        final long pullHeatbeat = ConfigManager.instance().getConfigLong(
-                IConfigProp.Key.CUPS_NOTIFIER_JOB_STATUS_PULL_HEARTBEAT_MSEC);
+        final long pullHeatbeat = getCupsPullHearbeat();
 
         final boolean cancelIfStopped = ConfigManager.instance()
                 .isConfigValue(Key.CUPS_JOBSTATE_CANCEL_IF_STOPPED_ENABLE);
@@ -809,7 +825,19 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                     LOGGER.error(e.getMessage());
                 }
             } else {
+
+                final IppJobStateEnum stateBefore =
+                        jobIter.getJobStateCupsUpdate();
+
                 evaluateJobStatusPull(jobIter, timeNow, pullHeatbeat);
+
+                if (printOut != null
+                        && stateBefore != jobIter.getJobStateCupsUpdate()) {
+                    if (this.processJobStatusEntry(printOut, jobIter)) {
+                        iter.remove();
+                    }
+                }
+
             }
 
         } // end-while iter.
@@ -849,9 +877,15 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                         ippState.uiText(Locale.ENGLISH).toUpperCase());
             } else {
                 ippState = cupsJob.getIppJobState();
-                LOGGER.warn("Pulled job #{} [{}] from CUPS.",
-                        jobStatus.getJobId(),
-                        ippState.uiText(Locale.ENGLISH).toUpperCase());
+                if (ConfigManager.isCupsPushNotification()) {
+                    LOGGER.warn("Pulled job #{} [{}] from CUPS.",
+                            jobStatus.getJobId(),
+                            ippState.uiText(Locale.ENGLISH).toUpperCase());
+                } else if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Pulled job #{} [{}] from CUPS.",
+                            jobStatus.getJobId(),
+                            ippState.uiText(Locale.ENGLISH).toUpperCase());
+                }
             }
 
             // Simulate the CUPS Notifier.
@@ -887,7 +921,14 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("wait ...");
                     }
-                    Thread.sleep(POLLING_MSEC);
+
+                    final long msecSleep;
+                    if (ConfigManager.isCupsPushNotification()) {
+                        msecSleep = getCupsPushHearbeat();
+                    } else {
+                        msecSleep = getCupsPullHearbeat();
+                    }
+                    Thread.sleep(msecSleep);
 
                     ServiceContext.reopen(); // !!!
                 }

@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -324,8 +324,8 @@ public final class SpJobScheduler {
             jobClass = org.savapage.core.job.AtomFeedJob.class;
             break;
 
-        case CUPS_SUBS_RENEW:
-            jobClass = org.savapage.core.job.CupsSubsRenew.class;
+        case CUPS_PUSH_EVENT_SUBS_RENEWAL:
+            jobClass = org.savapage.core.job.CupsPushEventSubsRenewal.class;
             break;
 
         case CUPS_SYNC_PRINT_JOBS:
@@ -377,10 +377,6 @@ public final class SpJobScheduler {
             jobClass = org.savapage.core.job.UserHomeClean.class;
             break;
 
-        case IPP_GET_NOTIFICATIONS:
-            jobClass = org.savapage.core.job.IppGetNotifications.class;
-            break;
-
         case IMAP_LISTENER_JOB:
             jobClass = org.savapage.core.job.ImapListenerJob.class;
             break;
@@ -429,8 +425,8 @@ public final class SpJobScheduler {
      */
     private void initJobDetails() {
 
-        myHourlyJobs
-                .add(createJob(SpJobType.CUPS_SUBS_RENEW, JOB_GROUP_SCHEDULED));
+        myHourlyJobs.add(createJob(SpJobType.CUPS_PUSH_EVENT_SUBS_RENEWAL,
+                JOB_GROUP_SCHEDULED));
 
         myWeeklyJobs.add(createJob(SpJobType.DB_BACKUP, JOB_GROUP_SCHEDULED));
 
@@ -578,30 +574,6 @@ public final class SpJobScheduler {
                 .withIdentity(SpJobType.PRINTER_SNMP.toString(),
                         JOB_GROUP_ONESHOT)
                 .usingJobData(data).build();
-
-        rescheduleOneShotJob(job,
-                secondsFromNow * DateUtil.DURATION_MSEC_SECOND);
-    }
-
-    /**
-     *
-     * @param requestingUser
-     * @param subscriptionId
-     * @param secondsFromNow
-     */
-    public void scheduleOneShotIppNotifications(final String requestingUser,
-            final String subscriptionId, final long secondsFromNow) {
-
-        final JobDataMap data = new JobDataMap();
-        data.put(IppGetNotifications.ATTR_REQUESTING_USER, requestingUser);
-        data.put(IppGetNotifications.ATTR_SUBSCRIPTION_ID, subscriptionId);
-
-        final JobDetail job =
-                newJob(org.savapage.core.job.IppGetNotifications.class)
-                        .withIdentity(
-                                SpJobType.IPP_GET_NOTIFICATIONS.toString(),
-                                JOB_GROUP_ONESHOT)
-                        .usingJobData(data).build();
 
         rescheduleOneShotJob(job,
                 secondsFromNow * DateUtil.DURATION_MSEC_SECOND);
@@ -873,25 +845,30 @@ public final class SpJobScheduler {
     }
 
     /**
-     * Tells quartz to resume the {@link SpJobType#CUPS_SUBS_RENEW}.
+     * Tells quartz to resume the {@link SpJobType#CUPS_PUSH_EVENT_SUBS_RENEWAL}
+     * job.
      */
-    public static void resumeCupSubsRenew() {
-        instance().resumeJob(SpJobType.CUPS_SUBS_RENEW, JOB_GROUP_SCHEDULED);
+    public static void resumeCUPSPushEventRenewal() {
+        instance().resumeJob(SpJobType.CUPS_PUSH_EVENT_SUBS_RENEWAL,
+                JOB_GROUP_SCHEDULED);
     }
 
     /**
-     * Tells quartz to pause the {@link SpJobType#CUPS_SUBS_RENEW}.
-     *
-     * @return {@code true} if the Job was found and deleted.
+     * Tells quartz to pause the {@link SpJobType#CUPS_PUSH_EVENT_SUBS_RENEWAL}
+     * job.
      */
-    public static void pauseCupSubsRenew() {
-        instance().pauseJob(SpJobType.CUPS_SUBS_RENEW, JOB_GROUP_SCHEDULED);
+    public static void pauseCUPSPushEventRenewal() {
+        instance().pauseJob(SpJobType.CUPS_PUSH_EVENT_SUBS_RENEWAL,
+                JOB_GROUP_SCHEDULED);
     }
 
     /**
+     * Pauses a job.
      *
      * @param typeOfJob
+     *            Job type.
      * @param group
+     *            Job group.
      */
     public void pauseJob(final SpJobType typeOfJob, final String group) {
         try {
@@ -902,9 +879,12 @@ public final class SpJobScheduler {
     }
 
     /**
+     * Resumes a job.
      *
      * @param typeOfJob
+     *            Job type.
      * @param group
+     *            Job group.
      */
     public void resumeJob(final SpJobType typeOfJob, final String group) {
         try {

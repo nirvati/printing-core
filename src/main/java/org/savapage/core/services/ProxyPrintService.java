@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -55,7 +55,6 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.client.IppConnectException;
 import org.savapage.core.ipp.client.IppNotificationRecipient;
 import org.savapage.core.ipp.helpers.IppOptionMap;
-import org.savapage.core.ipp.operation.IppStatusCode;
 import org.savapage.core.ipp.routing.IppRoutingListener;
 import org.savapage.core.jpa.CostChange;
 import org.savapage.core.jpa.Device;
@@ -218,19 +217,6 @@ public interface ProxyPrintService {
      * @return The {@link IppNotificationRecipient}.
      */
     IppNotificationRecipient notificationRecipient();
-
-    /**
-     *
-     * @param requestingUser
-     * @param subscriptionId
-     * @param response
-     *            The output response.
-     * @return The IPP status code after sending the request.
-     * @throws IppConnectException
-     *             When an connection error occurs.
-     */
-    IppStatusCode getNotifications(String requestingUser, String subscriptionId,
-            List<IppAttrGroup> response) throws IppConnectException;
 
     /**
      * Checks if PPD is present in CUPS for printer.
@@ -911,34 +897,31 @@ public interface ProxyPrintService {
             throws IppConnectException, EcoPrintPdfTaskPendingException;
 
     /**
-     * Creates a CUPS event subscription. This is an idempotent operation: when
-     * the subscription already exists it is renewed.
+     * Starts a CUPS push event subscription, if CUPS push notification is
+     * configured/enabled in SavaPage. This is an idempotent operation: when the
+     * subscription already exists it is renewed.
      *
-     * @param requestingUserName
-     *            The requesting user. If {@code null} the current CUPS user is
-     *            used.
+     * @return {@code false} if CUPS Push notification is not enabled.
      *
      * @throws IppConnectException
      *             When a connection error occurs.
      * @throws IppSyntaxException
      *             When a syntax error.
      */
-    void startSubscription(String requestingUserName)
+    boolean startCUPSPushEventSubscription()
             throws IppConnectException, IppSyntaxException;
 
     /**
-     * Cancels a CUPS event subscription. This is an idempotent operation: when
-     * the subscription does not exists, the cancel is not executed.
+     * Stops any active CUPS event subscription that was started with
+     * {@link #startCUPSPushEventSubscription()}. This is an idempotent
+     * operation: when the subscription does not exists, it is not stopped.
      *
-     * @param requestingUserName
-     *            The requesting user. If {@code null} the current CUPS user is
-     *            used.
      * @throws IppConnectException
      *             When a connection error occurs.
      * @throws IppSyntaxException
      *             When a syntax error.
      */
-    void stopSubscription(String requestingUserName)
+    void stopCUPSEventSubscription()
             throws IppConnectException, IppSyntaxException;
 
     /**

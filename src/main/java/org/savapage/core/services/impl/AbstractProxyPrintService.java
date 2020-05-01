@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -471,7 +471,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          * catched and logged at INFO level.
          */
         try {
-            stopSubscription(null);
+            stopCUPSEventSubscription();
         } catch (SpException e) {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info(e.getMessage());
@@ -1441,76 +1441,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
         return Math.round(nSheets * 100);
     }
 
-    /**
-     * Gets the CUPS {@code notify-recipient-uri}.
-     * <p>
-     * Example: {@code savapage:localhost:8631}
-     * </p>
-     *
-     * @return
-     */
-    private String getSubscrNotifyRecipientUri() {
-        return ConfigManager.getCupsNotifier() + ":localhost:"
-                + ConfigManager.getServerPort();
-    }
-
-    /**
-     *
-     * @return
-     */
-    private String getSubscrNotifyLeaseSeconds() {
-        return ConfigManager.instance()
-                .getConfigValue(Key.CUPS_IPP_SUBSCR_NOTIFY_LEASE_DURATION);
-    }
-
-    /**
-     *
-     * @param requestingUser
-     * @return
-     */
-    private String getSubscrRequestingUser(final String requestingUser) {
-        if (requestingUser == null) {
-            return ConfigManager.getProcessUserName();
-        }
-        return requestingUser;
-    }
-
-    @Override
-    public final void startSubscription(final String requestingUser)
-            throws IppConnectException, IppSyntaxException {
-        startSubscription(getSubscrRequestingUser(requestingUser),
-                getSubscrNotifyLeaseSeconds(), getSubscrNotifyRecipientUri());
-    }
-
-    @Override
-    public final void stopSubscription(final String requestingUser)
-            throws IppConnectException, IppSyntaxException {
-        stopSubscription(getSubscrRequestingUser(requestingUser),
-                getSubscrNotifyRecipientUri());
-    }
-
-    /**
-     *
-     * @param requestingUser
-     * @param recipientUri
-     * @throws IppConnectException
-     * @throws IppSyntaxException
-     */
-    abstract protected void stopSubscription(final String requestingUser,
-            String recipientUri) throws IppConnectException, IppSyntaxException;
-
-    /**
-     *
-     * @param requestingUser
-     * @param leaseSeconds
-     * @param recipientUri
-     * @throws IppConnectException
-     * @throws IppSyntaxException
-     */
-    abstract protected void startSubscription(final String requestingUser,
-            String leaseSeconds, String recipientUri)
-            throws IppConnectException, IppSyntaxException;
-
     @Override
     public final void lazyInitPrinterCache()
             throws IppConnectException, IppSyntaxException {
@@ -1670,7 +1600,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
          */
         if (!connectedToCupsPrv && isConnectedToCups()) {
 
-            startSubscription(null);
+            this.startCUPSPushEventSubscription();
 
             LOGGER.trace("CUPS job synchronization started");
 

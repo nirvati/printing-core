@@ -597,14 +597,6 @@ public interface IConfigProp {
                 API_UPDATABLE_OFF),
 
         /**
-         * IMPORTANT: the value of this key should be GT one (1) hour, since the
-         * renewal is Quartz scheduled with Key.ScheduleHourly.
-         */
-        CUPS_IPP_SUBSCR_NOTIFY_LEASE_DURATION(//
-                "cups.ipp.subscription.notify-lease-duration", NUMBER_VALIDATOR,
-                "4200", API_UPDATABLE_ON),
-
-        /**
          * Max number of IPP connections per CUPS server.
          */
         CUPS_IPP_MAX_CONNECTIONS(//
@@ -659,15 +651,34 @@ public interface IConfigProp {
                 "cups.job-state.cancel-if-stopped.enable", BOOLEAN_VALIDATOR,
                 V_YES, API_UPDATABLE_ON),
 
+        /** */
+        CUPS_NOTIFICATION_METHOD(//
+                "cups.notification.method", PULL_PUSH_ENUM_VALIDATOR,
+                PullPushEnum.PUSH.toString(), API_UPDATABLE_ON),
+
+        /**
+         * Heartbeat (milliseconds) for monitoring pushed CUPS job id status
+         * notifications.
+         */
+        CUPS_NOTIFICATION_PUSH_HEARTBEAT_MSEC(//
+                "cups.notification.push.heartbeat-msec", NUMBER_VALIDATOR,
+                "4000"),
+
+        /**
+         * IMPORTANT: the value of this key should be GT one (1) hour, since the
+         * renewal is Quartz scheduled with Key.ScheduleHourly.
+         */
+        CUPS_NOTIFICATION_PUSH_NOTIFY_LEASE_DURATION(//
+                "cups.notification.push.notify-lease-duration",
+                NUMBER_VALIDATOR, "4200", API_UPDATABLE_ON),
+
         /**
          * Heartbeat (milliseconds) for performing a CUPS pull of job id status
-         * while monitoring CUPS notifications. When CUPS notifies (push) job id
-         * status in between, the heartbeat offset for this job id is reset to
-         * zero.
+         * while monitoring CUPS notifications.
          */
-        CUPS_NOTIFIER_JOB_STATUS_PULL_HEARTBEAT_MSEC(//
-                "cups.notifier.job-status-pull.heartbeat-msec",
-                NUMBER_VALIDATOR, "30000"),
+        CUPS_NOTIFICATION_PULL_HEARTBEAT_MSEC(//
+                "cups.notification.pull.heartbeat-msec", NUMBER_VALIDATOR,
+                "30000"),
 
         /**
          *
@@ -836,8 +847,8 @@ public interface IConfigProp {
         /**
          * Enable Telegram messaging.
          */
-        EXT_TELEGRAM_ENABLE("ext.telegram.enable",
-                BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+        EXT_TELEGRAM_ENABLE("ext.telegram.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
 
         /**
          * Telegram BOT username of HTTP API.
@@ -4005,6 +4016,10 @@ public interface IConfigProp {
     /** */
     ConfigPropValidator ON_OFF_ENUM_VALIDATOR =
             new EnumValidator<>(OnOffEnum.class);
+
+    /** */
+    ConfigPropValidator PULL_PUSH_ENUM_VALIDATOR =
+            new EnumValidator<>(PullPushEnum.class);
 
     /**
      * .

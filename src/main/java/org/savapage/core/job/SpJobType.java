@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,9 +39,9 @@ public enum SpJobType {
     ATOM_FEED,
 
     /**
-     * CUPS event subscription renewal.
+     * CUPS push event subscription renewal.
      */
-    CUPS_SUBS_RENEW,
+    CUPS_PUSH_EVENT_SUBS_RENEWAL,
 
     /**
      * CUPS job synchronization.
@@ -122,11 +122,6 @@ public enum SpJobType {
      * @deprecated SmartSchool.
      */
     SMARTSCHOOL_PRINT_MONITOR_JOB,
-
-    /**
-     *
-     */
-    IPP_GET_NOTIFICATIONS,
 
     /**
      * Mail Print.

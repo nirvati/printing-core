@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -45,7 +48,7 @@ public final class IppDictSubscriptionAttr extends AbstractIppDict {
     public static final String ATTR_NOTIFY_RECIPIENT_URI =
             "notify-recipient-uri";
 
-    public static final String ATTR_NOTIFY_SUBSCRIBER_USER_NAMER =
+    public static final String ATTR_NOTIFY_SUBSCRIBER_USER_NAME =
             "notify-subscriber-user-name";
 
     public static final String ATTR_NOTIFY_PULL_METHOD = "notify-pull-method";
@@ -67,31 +70,26 @@ public final class IppDictSubscriptionAttr extends AbstractIppDict {
     /**
      * Group 1: Operation Attributes.
      */
-    private final IppAttr[] attributes =
-            {
-                    /* */
-                    new IppAttr(ATTR_NOTIFY_EVENTS, IppKeyword.instance()),
-                    /* */
-                    new IppAttr(ATTR_NOTIFY_LEASE_DURATION,
-                            IppInteger.instance()),
-                    /* */
-                    new IppAttr(ATTR_NOTIFY_RECIPIENT_URI, IppUri.instance()),
-                    /* */
-                    new IppAttr(ATTR_NOTIFY_SUBSCRIBER_USER_NAMER,
-                            IppName.instance()),
-                    /* */
-                    new IppAttr(ATTR_NOTIFY_TIME_INTERVAL,
-                            IppInteger.instance()),
-                    /* */
-                    new IppAttr(ATTR_NOTIFY_SUBSCRIPTION_ID,
-                            IppInteger.instance()),
-                    /* */
-                    new IppAttr(ATTR_NOTIFY_PULL_METHOD, IppKeyword.instance()),
-                    /* */
-                    new IppAttr(ATTR_NOTIFY_USER_DATA, new IppOctetString(63)),
+    private final IppAttr[] attributes = {
+            /* */
+            new IppAttr(ATTR_NOTIFY_EVENTS, IppKeyword.instance()),
+            /* */
+            new IppAttr(ATTR_NOTIFY_LEASE_DURATION, IppInteger.instance()),
+            /* */
+            new IppAttr(ATTR_NOTIFY_RECIPIENT_URI, IppUri.instance()),
+            /* */
+            new IppAttr(ATTR_NOTIFY_SUBSCRIBER_USER_NAME, IppName.instance()),
+            /* */
+            new IppAttr(ATTR_NOTIFY_TIME_INTERVAL, IppInteger.instance()),
+            /* */
+            new IppAttr(ATTR_NOTIFY_SUBSCRIPTION_ID, IppInteger.instance()),
+            /* */
+            new IppAttr(ATTR_NOTIFY_PULL_METHOD, IppKeyword.instance()),
+            /* */
+            new IppAttr(ATTR_NOTIFY_USER_DATA, new IppOctetString(63)),
             //
 
-            };
+    };
 
     /**
      * The SingletonHolder is loaded on the first execution of

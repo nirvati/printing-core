@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -260,16 +260,6 @@ public final class ConfigManager {
      */
     public static final String SERVER_PROP_CUPS_NOTIFIER = "cups.notifier";
     private static final String DEFAULT_CUPS_NOTIFIER = "savapage";
-
-    /*
-     *
-     */
-    private static final String SERVER_PROP_PRINT_PROXY_NOTIFICATION_METHOD =
-            "print.proxy.notification.method";
-    private static final String VAL_PRINT_PROXY_NOTIFICATION_METHOD_PUSH =
-            "push";
-    private static final String DEFAULT_PRINT_PROXY_NOTIFICATION_METHOD =
-            VAL_PRINT_PROXY_NOTIFICATION_METHOD_PUSH;
 
     private static final String SERVER_PROP_CUPS_SERVER_PORT =
             "cups.server.port";
@@ -1367,19 +1357,11 @@ public final class ConfigManager {
 
     /**
      *
-     * @return
+     * @return {@code true} if CUPS job status PUSH notification.
      */
     public static boolean isCupsPushNotification() {
-
-        String method = DEFAULT_PRINT_PROXY_NOTIFICATION_METHOD;
-
-        if (theServerProps != null) {
-            method = theServerProps.getProperty(
-                    SERVER_PROP_PRINT_PROXY_NOTIFICATION_METHOD,
-                    ConfigManager.DEFAULT_PRINT_PROXY_NOTIFICATION_METHOD);
-        }
-        return method
-                .equalsIgnoreCase(VAL_PRINT_PROXY_NOTIFICATION_METHOD_PUSH);
+        return instance().getConfigEnum(PullPushEnum.class,
+                Key.CUPS_NOTIFICATION_METHOD) == PullPushEnum.PUSH;
     }
 
     /**

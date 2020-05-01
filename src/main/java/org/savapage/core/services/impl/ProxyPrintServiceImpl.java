@@ -94,7 +94,6 @@ import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.ipp.operation.IppGetPrinterAttrOperation;
 import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.ipp.operation.IppStatusCode;
-import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.jpa.Printer;
@@ -1686,11 +1685,117 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         return job;
     }
 
+    /**
+     * @return Value of IPP "requesting-user-name" keyword for CUPS event
+     *         subscription.
+     */
+    private static String getCUPSEventSubscrRequestingUserName() {
+        return ConfigManager.getProcessUserName();
+    }
+
+    /**
+     * Gets the value of IPP "notify-recipient-uri" keyword for CUPS even push
+     * notification.
+     * <p>
+     * Example: {@code savapage:localhost:8631}
+     * </p>
+     *
+     * @return IPP keyword value.
+     */
+    private static String getCUPSPushSubscrNotifyRecipientUri() {
+        return String.format("%s:localhost:%s", ConfigManager.getCupsNotifier(),
+                ConfigManager.getServerPort());
+    }
+
     @Override
-    protected void stopSubscription(final String requestingUser,
-            final String recipientUri)
+    public boolean startCUPSPushEventSubscription()
             throws IppConnectException, IppSyntaxException {
 
+        if (!ConfigManager.isCupsPushNotification()) {
+            return false;
+        }
+
+        final String requestingUser = getCUPSEventSubscrRequestingUserName();
+        final String recipientUri = getCUPSPushSubscrNotifyRecipientUri();
+        final String leaseSeconds = ConfigManager.instance().getConfigValue(
+                Key.CUPS_NOTIFICATION_PUSH_NOTIFY_LEASE_DURATION);
+
+        /*
+         * Step 1: Get the existing printer subscriptions for requestingUser.
+         */
+        List<IppAttrGroup> response = new ArrayList<>();
+
+        IppStatusCode statusCode =
+                ippClient.send(this.getUrlDefaultServer(),
+                        IppOperationId.GET_SUBSCRIPTIONS,
+                        this.reqGetPrinterSubscriptions(
+                                SUBSCRIPTION_PRINTER_URI, requestingUser),
+                        response);
+
+        /*
+         * NOTE: When this is a first-time subscription it is possible that
+         * there are NO subscriptions for the user, this will result in status
+         * IppStatusCode.CLI_NOTFND or IppStatusCode.CLI_NOTPOS.
+         */
+        if (statusCode != IppStatusCode.OK
+                && statusCode != IppStatusCode.CLI_NOTFND
+                && statusCode != IppStatusCode.CLI_NOTPOS) {
+            throw new IppSyntaxException(statusCode.toString());
+        }
+
+        /*
+         * Step 2: Renew only our OWN printer subscription.
+         */
+        boolean isRenewed = false;
+
+        for (final IppAttrGroup group : response) {
+
+            if (group.getDelimiterTag() != IppDelimiterTag.SUBSCRIPTION_ATTR) {
+                continue;
+            }
+
+            /*
+             * There might be other subscription that are NOT ours (like native
+             * CUPS descriptions).
+             */
+            final String recipientUriFound = group.getAttrSingleValue(
+                    IppDictSubscriptionAttr.ATTR_NOTIFY_RECIPIENT_URI);
+
+            if (recipientUriFound == null
+                    || !recipientUri.equals(recipientUriFound)) {
+                continue;
+            }
+
+            final String subscriptionId = group.getAttrSingleValue(
+                    IppDictSubscriptionAttr.ATTR_NOTIFY_SUBSCRIPTION_ID);
+
+            ippClient.send(getUrlDefaultServer(),
+                    IppOperationId.RENEW_SUBSCRIPTION,
+                    reqRenewPrinterSubscription(requestingUser, subscriptionId,
+                            leaseSeconds));
+
+            isRenewed = true;
+        }
+
+        /*
+         * ... or create when not renewed.
+         */
+        if (!isRenewed) {
+            ippClient.send(getUrlDefaultServer(),
+                    IppOperationId.CREATE_PRINTER_SUBSCRIPTIONS,
+                    this.reqCreatePrinterPushSubscriptions(requestingUser,
+                            recipientUri, leaseSeconds));
+        }
+
+        return true;
+    }
+
+    @Override
+    public void stopCUPSEventSubscription()
+            throws IppConnectException, IppSyntaxException {
+
+        final String requestingUser = getCUPSEventSubscrRequestingUserName();
+        final String recipientUri = getCUPSPushSubscrNotifyRecipientUri();
         /*
          * Step 1: Get the existing printer subscriptions for requestingUser.
          */
@@ -1737,28 +1842,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     IppOperationId.CANCEL_SUBSCRIPTION,
                     reqCancelPrinterSubscription(requestingUser,
                             subscriptionId));
-        }
-
-    }
-
-    @Override
-    protected void startSubscription(final String requestingUser,
-            final String leaseSeconds, final String recipientUri)
-            throws IppConnectException, IppSyntaxException {
-
-        if (ConfigManager.isCupsPushNotification()) {
-
-            startPushSubscription(requestingUser, recipientUri, leaseSeconds);
-
-        } else {
-
-            final String subscriptionId =
-                    startPullSubscription(requestingUser, leaseSeconds);
-
-            final long secondsFromNow = 2L;
-
-            SpJobScheduler.instance().scheduleOneShotIppNotifications(
-                    requestingUser, subscriptionId, secondsFromNow);
         }
     }
 
@@ -1863,23 +1946,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @param recipientUri
      *            The recipient as as value of
      *            {@link IppDictSubscriptionAttr#ATTR_NOTIFY_RECIPIENT_URI}
-     *            <p>
-     *            {@code null} when notifyPullMethod is specified.
-     *            </p>
-     * @param notifyPullMethod
-     *            The pull method as value of
-     *            {@link IppDictSubscriptionAttr#ATTR_NOTIFY_PULL_METHOD}
-     *            <p>
-     *            {@code null} when recipientUri is specified.
-     *            </p>
      * @param leaseSeconds
      *            The lease seconds.
      *
      * @return The IPP request.
      */
-    private List<IppAttrGroup> reqCreatePrinterSubscriptions(
-            String requestingUser, String recipientUri, String notifyPullMethod,
-            String leaseSeconds) {
+    private List<IppAttrGroup> reqCreatePrinterPushSubscriptions(
+            final String requestingUser, final String recipientUri,
+            final String leaseSeconds) {
 
         List<IppAttrGroup> attrGroups = new ArrayList<>();
 
@@ -1912,13 +1986,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     dict.getAttr(
                             IppDictSubscriptionAttr.ATTR_NOTIFY_RECIPIENT_URI),
                     recipientUri);
-        }
-
-        if (notifyPullMethod != null) {
-            group.add(
-                    dict.getAttr(
-                            IppDictSubscriptionAttr.ATTR_NOTIFY_PULL_METHOD),
-                    notifyPullMethod);
         }
 
         group.add(dict.getAttr(IppDictSubscriptionAttr.ATTR_NOTIFY_USER_DATA),
@@ -2293,232 +2360,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     @Override
     public Date getCupsDate(final Integer cupsTime) {
         return new Date(cupsTime.longValue() * NumberUtil.INT_THOUSAND);
-    }
-
-    @Override
-    public IppStatusCode getNotifications(final String requestingUser,
-            final String subscriptionId, final List<IppAttrGroup> response)
-            throws IppConnectException {
-
-        List<IppAttrGroup> request = new ArrayList<>();
-
-        IppAttrGroup group = null;
-        AbstractIppDict dict = null;
-
-        /*
-         * Group 1: Operation Attributes
-         */
-        dict = IppDictOperationAttr.instance();
-
-        group = createOperationGroup();
-        request.add(group);
-
-        // ---
-        group.add(dict.getAttr(IppDictOperationAttr.ATTR_PRINTER_URI),
-                SUBSCRIPTION_PRINTER_URI);
-
-        group.add(dict.getAttr(IppDictOperationAttr.ATTR_REQUESTING_USER_NAME),
-                requestingUser);
-
-        // ---
-        group.add(
-                dict.getAttr(IppDictOperationAttr.ATTR_NOTIFY_SUBSCRIPTION_IDS),
-                subscriptionId);
-
-        group.add(dict.getAttr(IppDictOperationAttr.ATTR_NOTIFY_WAIT),
-                IppBoolean.FALSE);
-
-        // ------
-        return ippClient.send(getUrlDefaultServer(),
-                IppOperationId.GET_NOTIFICATIONS, request, response);
-    }
-
-    /**
-     * Starts (renews) an asynchronous subscription using the recipient uri.
-     *
-     * @param requestingUser
-     *            The requesting user.
-     * @param recipientUri
-     *            The recipient uri.
-     * @param leaseSeconds
-     *            The lease seconds.
-     * @throws IppConnectException
-     * @throws IppSyntaxException
-     */
-    private void startPushSubscription(final String requestingUser,
-            final String recipientUri, final String leaseSeconds)
-            throws IppConnectException, IppSyntaxException {
-
-        /*
-         * Step 1: Get the existing printer subscriptions for requestingUser.
-         */
-        List<IppAttrGroup> response = new ArrayList<>();
-
-        IppStatusCode statusCode = ippClient.send(getUrlDefaultServer(),
-                IppOperationId.GET_SUBSCRIPTIONS, reqGetPrinterSubscriptions(
-                        SUBSCRIPTION_PRINTER_URI, requestingUser),
-                response);
-
-        /*
-         * NOTE: When this is a first-time subscription it is possible that
-         * there are NO subscriptions for the user, this will result in status
-         * IppStatusCode.CLI_NOTFND or IppStatusCode.CLI_NOTPOS.
-         */
-        if (statusCode != IppStatusCode.OK
-                && statusCode != IppStatusCode.CLI_NOTFND
-                && statusCode != IppStatusCode.CLI_NOTPOS) {
-            throw new IppSyntaxException(statusCode.toString());
-        }
-
-        /*
-         * Step 2: Renew only our OWN printer subscription.
-         */
-        boolean isRenewed = false;
-
-        for (final IppAttrGroup group : response) {
-
-            if (group.getDelimiterTag() != IppDelimiterTag.SUBSCRIPTION_ATTR) {
-                continue;
-            }
-
-            /*
-             * There might be other subscription that are NOT ours (like native
-             * CUPS descriptions).
-             */
-            final String recipientUriFound = group.getAttrSingleValue(
-                    IppDictSubscriptionAttr.ATTR_NOTIFY_RECIPIENT_URI);
-
-            if (recipientUriFound == null
-                    || !recipientUri.equals(recipientUriFound)) {
-                continue;
-            }
-
-            final String subscriptionId = group.getAttrSingleValue(
-                    IppDictSubscriptionAttr.ATTR_NOTIFY_SUBSCRIPTION_ID);
-
-            ippClient.send(getUrlDefaultServer(),
-                    IppOperationId.RENEW_SUBSCRIPTION,
-                    reqRenewPrinterSubscription(requestingUser, subscriptionId,
-                            leaseSeconds));
-
-            isRenewed = true;
-
-        }
-
-        /*
-         * ... or create when not renewed.
-         */
-        if (!isRenewed) {
-            ippClient.send(getUrlDefaultServer(),
-                    IppOperationId.CREATE_PRINTER_SUBSCRIPTIONS,
-                    reqCreatePrinterSubscriptions(requestingUser, recipientUri,
-                            null, leaseSeconds));
-        }
-
-    }
-
-    /**
-     * Starts (renews) a PULL subscription using the {@link #NOTIFY_PULL_METHOD}
-     * .
-     *
-     * @param requestingUser
-     *            The requesting user.
-     * @param leaseSeconds
-     *            The lease seconds.
-     * @return
-     * @throws IppConnectException
-     * @throws IppSyntaxException
-     */
-    private String startPullSubscription(final String requestingUser,
-            final String leaseSeconds)
-            throws IppConnectException, IppSyntaxException {
-
-        String subscriptionId = null;
-
-        /*
-         * Step 1: Get the existing printer subscriptions for requestingUser.
-         */
-        List<IppAttrGroup> response = new ArrayList<>();
-
-        final IppStatusCode statusCode = ippClient.send(getUrlDefaultServer(),
-                IppOperationId.GET_SUBSCRIPTIONS, reqGetPrinterSubscriptions(
-                        SUBSCRIPTION_PRINTER_URI, requestingUser),
-                response);
-        /*
-         * NOTE: it is possible that there are NO subscriptions for the user,
-         * this will given an IPP_NOT_FOUND.
-         */
-        if (statusCode != IppStatusCode.OK
-                && statusCode != IppStatusCode.CLI_NOTFND) {
-            throw new IppSyntaxException(statusCode.toString());
-        }
-
-        /*
-         * Step 2: Renew only our OWN printer subscription.
-         */
-        boolean isRenewed = false;
-
-        for (final IppAttrGroup group : response) {
-
-            if (group.getDelimiterTag() != IppDelimiterTag.SUBSCRIPTION_ATTR) {
-                continue;
-            }
-
-            /*
-             * There might be other subscription that are NOT ours (like native
-             * CUPS descriptions).
-             */
-            final String notifyPullMethod = group.getAttrSingleValue(
-                    IppDictSubscriptionAttr.ATTR_NOTIFY_PULL_METHOD);
-
-            if (notifyPullMethod == null
-                    || !notifyPullMethod.equals(NOTIFY_PULL_METHOD)) {
-                continue;
-            }
-
-            final String notifyUserData = group.getAttrSingleValue(
-                    IppDictSubscriptionAttr.ATTR_NOTIFY_USER_DATA);
-
-            if (notifyUserData == null
-                    || !notifyUserData.equals(NOTIFY_USER_DATA)) {
-                continue;
-            }
-
-            subscriptionId = group.getAttrSingleValue(
-                    IppDictSubscriptionAttr.ATTR_NOTIFY_SUBSCRIPTION_ID);
-
-            ippClient.send(getUrlDefaultServer(),
-                    IppOperationId.RENEW_SUBSCRIPTION,
-                    reqRenewPrinterSubscription(requestingUser, subscriptionId,
-                            leaseSeconds));
-
-            isRenewed = true;
-
-        }
-
-        /*
-         * ... or create when not renewed.
-         */
-        if (!isRenewed) {
-            response = ippClient.send(getUrlDefaultServer(),
-                    IppOperationId.CREATE_PRINTER_SUBSCRIPTIONS,
-                    reqCreatePrinterSubscriptions(requestingUser, null,
-                            NOTIFY_PULL_METHOD, leaseSeconds));
-
-            for (IppAttrGroup group : response) {
-
-                if (group
-                        .getDelimiterTag() != IppDelimiterTag.SUBSCRIPTION_ATTR) {
-                    continue;
-                }
-                subscriptionId = group.getAttrSingleValue(
-                        IppDictSubscriptionAttr.ATTR_NOTIFY_SUBSCRIPTION_ID);
-
-            }
-
-        }
-
-        return subscriptionId;
     }
 
     @Override
