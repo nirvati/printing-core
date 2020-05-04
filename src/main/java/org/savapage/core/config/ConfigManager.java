@@ -1361,7 +1361,7 @@ public final class ConfigManager {
      */
     public static boolean isCupsPushNotification() {
         return instance().getConfigEnum(PullPushEnum.class,
-                Key.CUPS_NOTIFICATION_METHOD) == PullPushEnum.PUSH;
+                Key.CUPS_IPP_NOTIFICATION_METHOD) == PullPushEnum.PUSH;
     }
 
     /**

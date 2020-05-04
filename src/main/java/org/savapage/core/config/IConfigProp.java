@@ -647,38 +647,47 @@ public interface IConfigProp {
         /**
          * Cancel CUPS job when stopped.
          */
-        CUPS_JOBSTATE_CANCEL_IF_STOPPED_ENABLE(//
-                "cups.job-state.cancel-if-stopped.enable", BOOLEAN_VALIDATOR,
-                V_YES, API_UPDATABLE_ON),
+        CUPS_IPP_JOBSTATE_CANCEL_IF_STOPPED_ENABLE(//
+                "cups.ipp.job-state.cancel-if-stopped.enable",
+                BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /** */
-        CUPS_NOTIFICATION_METHOD(//
-                "cups.notification.method", PULL_PUSH_ENUM_VALIDATOR,
+        CUPS_IPP_NOTIFICATION_METHOD(//
+                "cups.ipp.notification.method", PULL_PUSH_ENUM_VALIDATOR,
                 PullPushEnum.PUSH.toString(), API_UPDATABLE_ON),
 
         /**
          * Heartbeat (milliseconds) for monitoring pushed CUPS job id status
          * notifications.
          */
-        CUPS_NOTIFICATION_PUSH_HEARTBEAT_MSEC(//
-                "cups.notification.push.heartbeat-msec", NUMBER_VALIDATOR,
+        CUPS_IPP_NOTIFICATION_PUSH_HEARTBEAT_MSEC(//
+                "cups.ipp.notification.push.heartbeat-msec", NUMBER_VALIDATOR,
                 "4000"),
+
+        /**
+         * Number of milliseconds since the last pushed print job status
+         * notification by CUPS Notifier after which a job status update is
+         * pulled from CUPS.
+         */
+        CUPS_IPP_NOTIFICATION_PUSH_PULL_FALLBACK_MSEC(//
+                "cups.ipp.notification.push.pull-fallback-msec",
+                NUMBER_VALIDATOR, "30000"),
 
         /**
          * IMPORTANT: the value of this key should be GT one (1) hour, since the
          * renewal is Quartz scheduled with Key.ScheduleHourly.
          */
-        CUPS_NOTIFICATION_PUSH_NOTIFY_LEASE_DURATION(//
-                "cups.notification.push.notify-lease-duration",
+        CUPS_IPP_NOTIFICATION_PUSH_NOTIFY_LEASE_DURATION(//
+                "cups.ipp.notification.push.notify-lease-duration",
                 NUMBER_VALIDATOR, "4200", API_UPDATABLE_ON),
 
         /**
          * Heartbeat (milliseconds) for performing a CUPS pull of job id status
          * while monitoring CUPS notifications.
          */
-        CUPS_NOTIFICATION_PULL_HEARTBEAT_MSEC(//
-                "cups.notification.pull.heartbeat-msec", NUMBER_VALIDATOR,
-                "30000"),
+        CUPS_IPP_NOTIFICATION_PULL_HEARTBEAT_MSEC(//
+                "cups.ipp.notification.pull.heartbeat-msec", NUMBER_VALIDATOR,
+                "5000"),
 
         /**
          *
@@ -2866,9 +2875,9 @@ public interface IConfigProp {
         /**
          * Enable CUPS job status synchronization at startup.
          */
-        SYS_STARTUP_CUPS_SYNC_PRINT_JOBS_ENABLE(//
-                "system.startup.cups.sync-print-jobs.enable", BOOLEAN_VALIDATOR,
-                V_YES, API_UPDATABLE_ON),
+        SYS_STARTUP_CUPS_IPP_SYNC_PRINT_JOBS_ENABLE(//
+                "system.startup.cups.ipp.sync-print-jobs.enable",
+                BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
 
         /**
          * When system is in maintenance mode, only admins can login to Web Apps

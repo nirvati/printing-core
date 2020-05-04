@@ -304,7 +304,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
             final DaoBatchCommitter batchCommitter) throws IppConnectException {
 
         final boolean cancelIfStopped = ConfigManager.instance()
-                .isConfigValue(Key.CUPS_JOBSTATE_CANCEL_IF_STOPPED_ENABLE);
+                .isConfigValue(Key.CUPS_IPP_JOBSTATE_CANCEL_IF_STOPPED_ENABLE);
 
         final int nJobsActive = printOutList.size();
 

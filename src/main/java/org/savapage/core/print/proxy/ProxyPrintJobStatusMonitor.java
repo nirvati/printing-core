@@ -111,6 +111,9 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
      */
     private boolean isProcessing = false;
 
+    /** */
+    private boolean isCupsPushNotification;
+
     /**
      * Look-up of {@link PrintJobStatus} by CUPS Job ID.
      */
@@ -629,7 +632,17 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
      */
     private static long getCupsPullHearbeat() {
         return ConfigManager.instance().getConfigLong(
-                IConfigProp.Key.CUPS_NOTIFICATION_PULL_HEARTBEAT_MSEC);
+                IConfigProp.Key.CUPS_IPP_NOTIFICATION_PULL_HEARTBEAT_MSEC);
+    }
+
+    /**
+     * @return Number of milliseconds since the last pushed print job status
+     *         notification by CUPS Notifier after which a job status update is
+     *         pulled from CUPS.
+     */
+    private static long getCupsPushPullFallback() {
+        return ConfigManager.instance().getConfigLong(
+                IConfigProp.Key.CUPS_IPP_NOTIFICATION_PUSH_PULL_FALLBACK_MSEC);
     }
 
     /**
@@ -638,7 +651,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
      */
     private static long getCupsPushHearbeat() {
         return ConfigManager.instance().getConfigLong(
-                IConfigProp.Key.CUPS_NOTIFICATION_PUSH_HEARTBEAT_MSEC);
+                IConfigProp.Key.CUPS_IPP_NOTIFICATION_PUSH_HEARTBEAT_MSEC);
     }
 
     /**
@@ -648,10 +661,16 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
         final long timeNow = System.currentTimeMillis();
 
-        final long pullHeatbeat = getCupsPullHearbeat();
+        final long pullWaitMsec;
+
+        if (this.isCupsPushNotification) {
+            pullWaitMsec = getCupsPushPullFallback();
+        } else {
+            pullWaitMsec = getCupsPullHearbeat();
+        }
 
         final boolean cancelIfStopped = ConfigManager.instance()
-                .isConfigValue(Key.CUPS_JOBSTATE_CANCEL_IF_STOPPED_ENABLE);
+                .isConfigValue(Key.CUPS_IPP_JOBSTATE_CANCEL_IF_STOPPED_ENABLE);
 
         final Iterator<Integer> iter = this.jobStatusMap.keySet().iterator();
 
@@ -829,7 +848,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                 final IppJobStateEnum stateBefore =
                         jobIter.getJobStateCupsUpdate();
 
-                evaluateJobStatusPull(jobIter, timeNow, pullHeatbeat);
+                this.evaluateJobStatusPull(jobIter, timeNow, pullWaitMsec);
 
                 if (printOut != null
                         && stateBefore != jobIter.getJobStateCupsUpdate()) {
@@ -851,14 +870,14 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
      *            {@link PrintJobStatus}.
      * @param timeNow
      *            Current time in milliseconds.
-     * @param pullHeatbeat
+     * @param pullWaitMsec
      *            Max wait for a CUPS job id notification before <b>pulling</b>
      *            its status from CUPS.
      */
     private void evaluateJobStatusPull(final PrintJobStatus jobStatus,
-            final long timeNow, final long pullHeatbeat) {
+            final long timeNow, final long pullWaitMsec) {
 
-        if (timeNow - jobStatus.getUpdateTime() < pullHeatbeat) {
+        if (timeNow - jobStatus.getUpdateTime() < pullWaitMsec) {
             return;
         }
 
@@ -877,7 +896,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                         ippState.uiText(Locale.ENGLISH).toUpperCase());
             } else {
                 ippState = cupsJob.getIppJobState();
-                if (ConfigManager.isCupsPushNotification()) {
+                if (this.isCupsPushNotification) {
                     LOGGER.warn("Pulled job #{} [{}] from CUPS.",
                             jobStatus.getJobId(),
                             ippState.uiText(Locale.ENGLISH).toUpperCase());
@@ -910,6 +929,9 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
         while (this.keepProcessing) {
 
+            this.isCupsPushNotification =
+                    ConfigManager.isCupsPushNotification();
+
             try {
                 processJobStatusMap();
             } catch (Exception e) {
@@ -923,7 +945,7 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                     }
 
                     final long msecSleep;
-                    if (ConfigManager.isCupsPushNotification()) {
+                    if (this.isCupsPushNotification) {
                         msecSleep = getCupsPushHearbeat();
                     } else {
                         msecSleep = getCupsPullHearbeat();

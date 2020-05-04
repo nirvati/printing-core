@@ -1718,7 +1718,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         final String requestingUser = getCUPSEventSubscrRequestingUserName();
         final String recipientUri = getCUPSPushSubscrNotifyRecipientUri();
         final String leaseSeconds = ConfigManager.instance().getConfigValue(
-                Key.CUPS_NOTIFICATION_PUSH_NOTIFY_LEASE_DURATION);
+                Key.CUPS_IPP_NOTIFICATION_PUSH_NOTIFY_LEASE_DURATION);
 
         /*
          * Step 1: Get the existing printer subscriptions for requestingUser.
