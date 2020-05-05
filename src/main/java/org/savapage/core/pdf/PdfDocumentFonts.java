@@ -622,21 +622,39 @@ public final class PdfDocumentFonts {
      */
     public static PdfDocumentFonts create(final File file) throws IOException {
 
-        final PdfDocumentFonts info = new PdfDocumentFonts();
         final PdfReader reader = new PdfReader(file.getAbsolutePath());
+        final PdfDocumentFonts info;
 
         try {
-            // Traverse pages to get font details.
-            for (int k = 1; k <= reader.getNumberOfPages(); ++k) {
-                processResource(info,
-                        reader.getPageN(k).getAsDict(PdfName.RESOURCES));
-            }
-
-            info.matchWithSystemFont();
-
+            info = create(reader);
         } finally {
             reader.close();
         }
+        return info;
+    }
+
+    /**
+     * Create info for PDF file.
+     *
+     * @param reader
+     *            PDF file reader.
+     * @return info.
+     * @throws IOException
+     *             If file access error.
+     */
+    public static PdfDocumentFonts create(final PdfReader reader)
+            throws IOException {
+
+        final PdfDocumentFonts info = new PdfDocumentFonts();
+
+        // Traverse pages to get font details.
+        for (int k = 1; k <= reader.getNumberOfPages(); ++k) {
+            processResource(info,
+                    reader.getPageN(k).getAsDict(PdfName.RESOURCES));
+        }
+
+        info.matchWithSystemFont();
+
         return info;
     }
 

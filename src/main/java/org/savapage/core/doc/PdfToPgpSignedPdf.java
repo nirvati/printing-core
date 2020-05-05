@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -26,9 +29,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.savapage.core.json.PdfProperties;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
+import org.savapage.lib.pgp.pdf.PdfPgpSignParms;
 import org.savapage.lib.pgp.pdf.PdfPgpSigner;
 import org.savapage.lib.pgp.pdf.PdfPgpVerifyUrl;
 
@@ -38,7 +43,7 @@ import org.savapage.lib.pgp.pdf.PdfPgpVerifyUrl;
  *
  */
 public final class PdfToPgpSignedPdf extends AbstractPdfConverter
-        implements IPdfConverter {
+        implements IPdfConverter, PdfPgpSignParms {
 
     /**
      * A unique suffix to type the kind of PDF convert.
@@ -56,6 +61,9 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
     /** */
     private final PdfPgpVerifyUrl verifyUrl;
 
+    /** */
+    private final PdfProperties pdfEncryption;
+
     /**
      * @param signer
      *            The {@link PdfPgpSigner}.
@@ -67,10 +75,14 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
      *            Public key of the author ({@code null} when not available.
      * @param url
      *            The verification URL.
+     * @param encryptionProps
+     *            PDF properties used for encryption. If {@code null},
+     *            encryption is not applicable.
      */
     public PdfToPgpSignedPdf(final PdfPgpSigner signer,
             final PGPSecretKeyInfo secKey, final PGPPublicKeyInfo pubKeySigner,
-            final PGPPublicKeyInfo pubKeyAuthor, final PdfPgpVerifyUrl url) {
+            final PGPPublicKeyInfo pubKeyAuthor, final PdfPgpVerifyUrl url,
+            final PdfProperties encryptionProps) {
 
         super();
 
@@ -83,6 +95,8 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
         pubKeyInfoList.add(pubKeySigner);
 
         this.pubKeyInfoAuthor = pubKeyAuthor;
+
+        this.pdfEncryption = encryptionProps;
     }
 
     @Override
@@ -91,9 +105,7 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
         final File pdfOut = this.getOutputFile(pdfFile);
 
         try {
-            this.pdfPgpSigner.sign(pdfFile, pdfOut, this.secKeyInfo,
-                    this.pubKeyInfoAuthor, this.pubKeyInfoList, this.verifyUrl,
-                    false);
+            this.pdfPgpSigner.sign(pdfFile, pdfOut, this);
         } catch (PGPBaseException e) {
             throw new IOException(e);
         }
@@ -104,6 +116,36 @@ public final class PdfToPgpSignedPdf extends AbstractPdfConverter
     @Override
     protected String getOutputFileSfx() {
         return OUTPUT_FILE_SFX;
+    }
+
+    @Override
+    public PGPSecretKeyInfo getSecretKeyInfo() {
+        return this.secKeyInfo;
+    }
+
+    @Override
+    public PGPPublicKeyInfo getPubKeyAuthor() {
+        return this.pubKeyInfoAuthor;
+    }
+
+    @Override
+    public PdfPgpVerifyUrl getUrlBuilder() {
+        return this.verifyUrl;
+    }
+
+    @Override
+    public PdfProperties getEncryptionProps() {
+        return this.pdfEncryption;
+    }
+
+    @Override
+    public List<PGPPublicKeyInfo> getPubKeyInfoList() {
+        return this.pubKeyInfoList;
+    }
+
+    @Override
+    public boolean isEmbeddedSignature() {
+        return false;
     }
 
 }

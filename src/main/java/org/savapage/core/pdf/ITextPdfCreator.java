@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -48,6 +48,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.doc.PdfRepair;
+import org.savapage.core.doc.PdfToAnnotatedURL;
 import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
@@ -62,7 +63,6 @@ import com.itextpdf.awt.geom.AffineTransform;
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.ExceptionConverter;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
@@ -83,9 +83,6 @@ import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.XfaForm;
-import com.itextpdf.text.pdf.parser.ContentByteUtils;
-import com.itextpdf.text.pdf.parser.FilteredTextRenderListener;
-import com.itextpdf.text.pdf.parser.PdfContentStreamProcessor;
 
 /**
  * PDF Creator using the iText AGPL version.
@@ -146,7 +143,20 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     /**
      * Create URL links by default.
      */
-    private final boolean isAnnotateUrls = true;
+    private boolean isAnnotateUrls = true;
+
+    /** */
+    private boolean onExitAnnotateUrls = false;
+
+    /** */
+    private boolean onExitStampEncryption = false;
+
+    /** */
+    private PdfProperties.PdfAllow pdfAllow;
+    /** */
+    private String pdfOwnerPass;
+    /** */
+    private String pdfUserPass;
 
     /**
      * {@code true} if the created pdf is to be converted to grayscale onExit.
@@ -448,6 +458,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         this.nPagesAdded2Target = 0;
         this.firstPageSeenAsLandscape = null;
 
+        this.isAnnotateUrls = !isForPrinting() && !this.onExitConvertToGrayscale
+                && !this.onExitBookletPageOrder;
+
+        this.onExitAnnotateUrls = false;
+        this.onExitStampEncryption = false;
+
         try {
 
             final OutputStream ostr =
@@ -481,6 +497,24 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         if (this.onExitBookletPageOrder) {
             replaceWithConvertedPdf(pdfFile,
                     new PdfToBooklet().convert(pdfFile));
+        }
+
+        /*
+         * Annotate URLs including Letterhead. Note: optional PDF encryption is
+         * part of last action.
+         */
+        if (this.onExitAnnotateUrls) {
+
+            final PdfToAnnotatedURL converter;
+
+            if (this.onExitStampEncryption) {
+                converter = new PdfToAnnotatedURL(this.pdfAllow,
+                        this.pdfOwnerPass, this.pdfUserPass);
+            } else {
+                converter = new PdfToAnnotatedURL();
+            }
+
+            replaceWithConvertedPdf(pdfFile, converter.convert(pdfFile));
         }
     }
 
@@ -650,7 +684,9 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onStampLetterhead(final String pdfLetterhead)
             throws Exception {
-
+        this.letterheadReader = new PdfReader(pdfLetterhead);
+        this.onExitAnnotateUrls =
+                this.isAnnotateUrls && hasFonts(this.letterheadReader);
     }
 
     @Override
@@ -663,71 +699,25 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     @Override
-    protected void onStampEncryptionForExport(final PdfProperties propPdf,
-            final String ownerPass, final String userPass,
-            final boolean hasVisitorText) {
+    protected void onStampEncryptionForExport(
+            final PdfProperties.PdfAllow allow, final String ownerPass,
+            final String userPass) {
 
-        PdfProperties.PdfAllow allow = propPdf.getAllow();
+        final int iPermissions = ITextHelperV5.getPermissions(allow);
 
-        int iPermissions = 0;
+        this.onExitStampEncryption = this.onExitAnnotateUrls;
 
-        boolean bStrength = true; // 128 bit: TODO
-
-        propPdf.getEncryption();
-
-        if (allow.getAssembly()) {
-            iPermissions |= PdfWriter.ALLOW_ASSEMBLY;
-        }
-        if (allow.getCopy()) {
-            iPermissions |= PdfWriter.ALLOW_COPY;
-        }
-        if (allow.getCopyForAccess()) {
-            iPermissions |= PdfWriter.ALLOW_SCREENREADERS;
-        }
-        if (allow.getFillin()) {
-            iPermissions |= PdfWriter.ALLOW_FILL_IN;
-        }
-        if (allow.getPrinting()) {
-            iPermissions |= PdfWriter.ALLOW_PRINTING;
-        }
-        if (allow.getDegradedPrinting()) {
-            iPermissions |= PdfWriter.ALLOW_DEGRADED_PRINTING;
-        }
-
-        if (!hasVisitorText) {
-            if (allow.getModifyContents()) {
-                iPermissions |= PdfWriter.ALLOW_MODIFY_CONTENTS;
+        if (this.onExitStampEncryption) {
+            this.pdfAllow = allow;
+            this.pdfOwnerPass = ownerPass;
+            this.pdfUserPass = userPass;
+        } else {
+            try {
+                this.targetStamper.setEncryption(true, userPass, ownerPass,
+                        iPermissions);
+            } catch (DocumentException e) {
+                throw new SpException(e);
             }
-            if (allow.getModifyAnnotations()) {
-                iPermissions |= PdfWriter.ALLOW_MODIFY_ANNOTATIONS;
-            }
-        }
-
-        try {
-            this.targetStamper.setEncryption(bStrength, userPass, ownerPass,
-                    iPermissions);
-        } catch (DocumentException e) {
-            throw new SpException(e);
-        }
-
-    }
-
-    @Override
-    protected void onStampEncryptionForPrinting() {
-        /*
-         * For security reasons, just printing is allowed.
-         */
-        int iPermissions = 0;
-        boolean bStrength = true; // 128 bit
-
-        iPermissions |= PdfWriter.ALLOW_PRINTING;
-        iPermissions |= PdfWriter.ALLOW_DEGRADED_PRINTING;
-
-        try {
-            this.targetStamper.setEncryption(bStrength, null, null,
-                    iPermissions);
-        } catch (DocumentException e) {
-            throw new SpException(e);
         }
     }
 
@@ -826,6 +816,18 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 new PdfStamper(this.readerWlk, new FileOutputStream(pdfFile));
     }
 
+    /**
+     *
+     * @param reader
+     *            PDF reader.
+     * @return {@code true} if PDF document contains fonts.
+     * @throws IOException
+     *             If IO error.
+     */
+    private static boolean hasFonts(final PdfReader reader) throws IOException {
+        return PdfDocumentFonts.create(reader).getFonts().size() > 0;
+    }
+
     @Override
     protected void onExitStamp() throws Exception {
 
@@ -833,14 +835,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             minifyPdfImages();
         }
 
-        if (this.isAnnotateUrls && !isForPrinting()) {
-            annotateUrls();
+        if (this.isApplyLetterhead()) {
+            applyLetterhead();
         }
 
-        final boolean isLetterhead = myPdfFileLetterhead != null;
-
-        if (isLetterhead) {
-            applyLetterhead();
+        if (this.isAnnotateUrls && !this.onExitAnnotateUrls) {
+            ITextPdfUrlAnnotator.annotate(this.readerWlk, this.targetStamper);
         }
     }
 
@@ -848,6 +848,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      * Applies the letterhead.
      *
      * @throws IOException
+     *             If IO error.
      */
     private void applyLetterhead() throws IOException {
 
@@ -856,13 +857,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         PdfImportedPage letterheadPage = null;
 
-        this.letterheadReader = new PdfReader(myPdfFileLetterhead);
         nLetterheadPageMax = myLetterheadJob.getPages();
 
         /*
          * Iterate over document's pages.
          */
-        int nDocPages = this.readerWlk.getNumberOfPages();
+        final int nDocPages = this.readerWlk.getNumberOfPages();
         Rectangle rectLetterheadPageWlk = null;
 
         for (int i = 0; i < nDocPages;) {
@@ -1077,52 +1077,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 }
             }
         }
-    }
-
-    /**
-     *
-     * @throws IOException
-     */
-    private void annotateUrls() throws IOException {
-
-        final PdfReader reader = this.readerWlk;
-        final PdfStamper stamper = this.targetStamper;
-        int pageCount = reader.getNumberOfPages();
-
-        for (int i = 1; i <= pageCount; i++) {
-
-            final ITextPdfUrlAnnotator delegate =
-                    new ITextPdfUrlAnnotator(stamper, i);
-
-            final FilteredTextRenderListener listener =
-                    new FilteredTextRenderListener(delegate);
-
-            final PdfContentStreamProcessor processor =
-                    new PdfContentStreamProcessor(listener);
-
-            final PdfDictionary pageDic = reader.getPageN(i);
-
-            final PdfDictionary resourcesDic =
-                    pageDic.getAsDict(PdfName.RESOURCES);
-
-            try {
-                final byte[] content =
-                        ContentByteUtils.getContentBytesForPage(reader, i);
-
-                processor.processContent(content, resourcesDic);
-
-            } catch (ExceptionConverter e) {
-                // TODO
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn(String.format("%s [%s]",
-                            e.getClass().getSimpleName(), e.getMessage()));
-                }
-            }
-
-            // Flush remaining text
-            delegate.checkCollectedText();
-        }
-
     }
 
 }

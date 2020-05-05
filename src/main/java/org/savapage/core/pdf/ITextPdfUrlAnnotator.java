@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,13 +17,14 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
 package org.savapage.core.pdf;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -32,12 +36,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.itextpdf.awt.geom.Rectangle2D;
+import com.itextpdf.text.ExceptionConverter;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfAction;
 import com.itextpdf.text.pdf.PdfAnnotation;
 import com.itextpdf.text.pdf.PdfBorderDictionary;
+import com.itextpdf.text.pdf.PdfDictionary;
+import com.itextpdf.text.pdf.PdfName;
+import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
+import com.itextpdf.text.pdf.parser.ContentByteUtils;
+import com.itextpdf.text.pdf.parser.FilteredTextRenderListener;
 import com.itextpdf.text.pdf.parser.ImageRenderInfo;
+import com.itextpdf.text.pdf.parser.PdfContentStreamProcessor;
 import com.itextpdf.text.pdf.parser.TextExtractionStrategy;
 import com.itextpdf.text.pdf.parser.TextRenderInfo;
 import com.itextpdf.text.pdf.parser.Vector;
@@ -45,7 +56,7 @@ import com.itextpdf.text.pdf.parser.Vector;
 /**
  * Creates {@link PdfAnnotation} on URL text.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
@@ -473,4 +484,54 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
         return this.collectedTextWlk.toString();
     }
 
+    /**
+     * Annotates URL links in PDF file.
+     *
+     * @param reader
+     *            PDF in.
+     * @param stamper
+     *            PDF out.
+     * @throws IOException
+     *             If IO error.
+     */
+    public static void annotate(final PdfReader reader,
+            final PdfStamper stamper) throws IOException {
+
+        final int pageCount = reader.getNumberOfPages();
+
+        for (int i = 1; i <= pageCount; i++) {
+
+            final ITextPdfUrlAnnotator delegate =
+                    new ITextPdfUrlAnnotator(stamper, i);
+
+            final FilteredTextRenderListener listener =
+                    new FilteredTextRenderListener(delegate);
+
+            final PdfContentStreamProcessor processor =
+                    new PdfContentStreamProcessor(listener);
+
+            final PdfDictionary pageDic = reader.getPageN(i);
+
+            final PdfDictionary resourcesDic =
+                    pageDic.getAsDict(PdfName.RESOURCES);
+
+            try {
+                final byte[] content =
+                        ContentByteUtils.getContentBytesForPage(reader, i);
+
+                processor.processContent(content, resourcesDic);
+
+            } catch (ExceptionConverter e) {
+                // TODO
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn(String.format("%s [%s]",
+                            e.getClass().getSimpleName(), e.getMessage()));
+                }
+            }
+
+            // Flush remaining text
+            delegate.checkCollectedText();
+        }
+
+    }
 }

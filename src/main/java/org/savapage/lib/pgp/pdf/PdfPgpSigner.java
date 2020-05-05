@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -23,12 +26,9 @@ package org.savapage.lib.pgp.pdf;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.savapage.lib.pgp.PGPBaseException;
-import org.savapage.lib.pgp.PGPPublicKeyInfo;
-import org.savapage.lib.pgp.PGPSecretKeyInfo;
 
 /**
  * PDF/PGP Signer interface.
@@ -47,25 +47,14 @@ public interface PdfPgpSigner {
      *            The PDF to sign.
      * @param fileOut
      *            The signed PDF.
-     * @param secKeyInfo
-     *            The secret key to sign with.
-     * @param pubKeyAuthor
-     *            Public key of the author ({@code null} when not available.
-     * @param pubKeyInfoList
-     *            The public keys to encrypt with.
-     * @param urlBuilder
-     *            The verification URL builder.
-     * @param embeddedSignature
-     *            If {@code true}, signature if embedded just before %%EOF. If
-     *            {@code false} signature if appended just after %%EOF.
+     * @param parms
+     *            Signing parameters.
      *
      * @throws PGPBaseException
      *             When error.
      */
-    void sign(File fileIn, File fileOut, PGPSecretKeyInfo secKeyInfo,
-            PGPPublicKeyInfo pubKeyAuthor,
-            List<PGPPublicKeyInfo> pubKeyInfoList, PdfPgpVerifyUrl urlBuilder,
-            boolean embeddedSignature) throws PGPBaseException;
+    void sign(File fileIn, File fileOut, PdfPgpSignParms parms)
+            throws PGPBaseException;
 
     /**
      * Verifies a PGP signed (appended or embedded) PDF file.

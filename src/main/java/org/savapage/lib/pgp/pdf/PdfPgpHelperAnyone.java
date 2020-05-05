@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -34,14 +37,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.savapage.core.doc.PdfToAnyone;
+import org.savapage.core.pdf.ITextHelperV2;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
@@ -219,11 +223,10 @@ public final class PdfPgpHelperAnyone extends AbstractPdfPgpHelper {
 
     @Override
     public void sign(final File fileIn, final File fileOut,
-            final PGPSecretKeyInfo secKeyInfo,
-            final PGPPublicKeyInfo pubKeyAuthor,
-            final List<PGPPublicKeyInfo> pubKeyInfoList,
-            final PdfPgpVerifyUrl urlBuilder, final boolean embeddedSignature)
-            throws PGPBaseException {
+            final PdfPgpSignParms parms) throws PGPBaseException {
+
+        final PGPSecretKeyInfo secKeyInfo = parms.getSecretKeyInfo();
+        final PGPPublicKeyInfo pubKeyAuthor = parms.getPubKeyAuthor();
 
         try {
             FileSystemHelper.replaceWithNewVersion(fileIn,
@@ -232,19 +235,24 @@ public final class PdfPgpHelperAnyone extends AbstractPdfPgpHelper {
             throw new PGPBaseException(e.getMessage());
         }
 
-        boolean verificationParms = false; // TODO
+        final boolean encryptOwnerPwAsURLParm = !ENCRYPT_OWNER_PW_AS_URL_PARM;
+
+        final String ownerPwGiven = getOwnerPassword(parms);
+        final String ownerPw;
+
+        if (encryptOwnerPwAsURLParm) {
+            if (StringUtils.isBlank(ownerPwGiven)) {
+                ownerPw = RandomStringUtils.random(PDF_OWNER_PASSWORD_SIZE,
+                        true, true);
+            } else {
+                ownerPw = ownerPwGiven;
+            }
+        } else {
+            ownerPw = ownerPwGiven;
+        }
 
         PdfReader reader = null;
         PdfStamper stamper = null;
-
-        final String ownerPw;
-
-        if (verificationParms) {
-            ownerPw = RandomStringUtils.random(PDF_OWNER_PASSWORD_SIZE, true,
-                    true);
-        } else {
-            ownerPw = null;
-        }
 
         try (InputStream pdfIn = new FileInputStream(fileIn);
                 OutputStream pdfSigned = new FileOutputStream(fileOut);) {
@@ -252,7 +260,13 @@ public final class PdfPgpHelperAnyone extends AbstractPdfPgpHelper {
             reader = new PdfReader(pdfIn);
             stamper = new PdfStamper(reader, pdfSigned);
 
-            if (verificationParms) {
+            // Encrypt?
+            if (parms.getEncryptionProps() != null) {
+                stamper.setEncryption(true,
+                        parms.getEncryptionProps().getPw().getUser(), ownerPw,
+                        ITextHelperV2.getPermissions(
+                                parms.getEncryptionProps().getAllow()));
+            } else if (encryptOwnerPwAsURLParm) {
                 stamper.setEncryption(null, ownerPw.getBytes(),
                         PdfWriter.ALLOW_PRINTING, PdfWriter.ENCRYPTION_AES_128
                                 | PdfWriter.DO_NOT_ENCRYPT_METADATA);
@@ -265,7 +279,7 @@ public final class PdfPgpHelperAnyone extends AbstractPdfPgpHelper {
              */
             final byte[] payload;
 
-            if (verificationParms) {
+            if (encryptOwnerPwAsURLParm) {
 
                 final InputStream istrPayload =
                         new ByteArrayInputStream(ownerPw.getBytes());
@@ -273,8 +287,9 @@ public final class PdfPgpHelperAnyone extends AbstractPdfPgpHelper {
                         new ByteArrayOutputStream();
 
                 PGPHelper.instance().encryptOnePassSignature(istrPayload,
-                        bostrSignedEncrypted, secKeyInfo, pubKeyInfoList,
-                        PGP_PAYLOAD_FILE_NAME, new Date(), ASCII_ARMOR);
+                        bostrSignedEncrypted, secKeyInfo,
+                        parms.getPubKeyInfoList(), PGP_PAYLOAD_FILE_NAME,
+                        new Date(), ASCII_ARMOR);
                 payload = bostrSignedEncrypted.toByteArray();
 
             } else {
@@ -303,8 +318,8 @@ public final class PdfPgpHelperAnyone extends AbstractPdfPgpHelper {
             push.setFont(NORMAL_FONT_COURIER.getBaseFont());
             push.setVisibility(PushbuttonField.VISIBLE_BUT_DOES_NOT_PRINT);
 
-            final String urlVerify =
-                    urlBuilder.build(secKeyInfo, payload).toExternalForm();
+            final String urlVerify = parms.getUrlBuilder()
+                    .build(secKeyInfo, payload).toExternalForm();
 
             final PdfFormField pushButton = push.getField();
             pushButton.setAction(new PdfAction(urlVerify));
@@ -353,7 +368,7 @@ public final class PdfPgpHelperAnyone extends AbstractPdfPgpHelper {
                     ostrPdfSig, secKeyInfo, PGPHelper.CONTENT_SIGN_ALGORITHM,
                     ASCII_ARMOR);
 
-            if (embeddedSignature) {
+            if (parms.isEmbeddedSignature()) {
 
                 final File fileOutSigned = new File(String.format("%s.%s",
                         fileOut.getPath(), UUID.randomUUID().toString()));
