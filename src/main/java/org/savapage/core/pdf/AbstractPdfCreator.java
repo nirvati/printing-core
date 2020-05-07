@@ -385,11 +385,6 @@ public abstract class AbstractPdfCreator {
 
     /**
      *
-     */
-    protected abstract void onStampRotateForPrinting() throws Exception;
-
-    /**
-     *
      * Generates PDF file from the edited jobs for a user.
      *
      * @param createReq
@@ -765,13 +760,6 @@ public abstract class AbstractPdfCreator {
                 }
 
             }
-            // --------------------------------------------------------
-            // Make sure everything is printed in portrait
-            // --------------------------------------------------------
-            if (createReq.isForPrinting()) {
-                this.onStampRotateForPrinting();
-            }
-
             // --------------------------------------------------------
             // Compress
             // --------------------------------------------------------

@@ -35,8 +35,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.MediaSize;
@@ -51,6 +53,7 @@ import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToAnnotatedURL;
 import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
+import org.savapage.core.doc.PdfToRotateAlignedPdf;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.json.PdfProperties;
@@ -115,9 +118,21 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     private String targetPdfCopyFilePath;
     private Document targetDocument;
 
+    /** */
     private PdfCopy targetPdfCopy;
-    private int nPagesAdded2Target;
 
+    /**
+     * Zero-based page number walker in {@link #targetPdfCopy}.
+     */
+    private int targetPdfCopyPageWlk;
+
+    /**
+     * A set with one-based page numbers that need page orientation change to
+     * align to orientation of first page in overall PDF document.
+     */
+    private Set<Integer> targetPdfCopyPages2Align;
+
+    /** */
     private PdfStamper targetStamper;
 
     private PdfReader readerWlk;
@@ -455,17 +470,21 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         this.onExitRepairPdf = this.isRepairPdf();
 
         this.targetPdfCopyFilePath = String.format("%s.tmp", this.pdfFile);
-        this.nPagesAdded2Target = 0;
+        this.targetPdfCopyPageWlk = 0;
+        if (this.isForPrinting() && this.isApplyLetterhead()) {
+            this.targetPdfCopyPages2Align = new HashSet<>();
+        }
+
         this.firstPageSeenAsLandscape = null;
 
-        this.isAnnotateUrls = !isForPrinting() && !this.onExitConvertToGrayscale
-                && !this.onExitBookletPageOrder;
+        this.isAnnotateUrls =
+                !this.isForPrinting() && !this.onExitConvertToGrayscale
+                        && !this.onExitBookletPageOrder;
 
         this.onExitAnnotateUrls = false;
         this.onExitStampEncryption = false;
 
         try {
-
             final OutputStream ostr =
                     new FileOutputStream(this.targetPdfCopyFilePath);
 
@@ -497,6 +516,16 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         if (this.onExitBookletPageOrder) {
             replaceWithConvertedPdf(pdfFile,
                     new PdfToBooklet().convert(pdfFile));
+        }
+
+        /*
+         * Ad-hoc rotate?
+         */
+        if (this.targetPdfCopyPages2Align != null
+                && this.targetPdfCopyPages2Align.size() > 0) {
+            replaceWithConvertedPdf(pdfFile,
+                    new PdfToRotateAlignedPdf(this.firstPageSeenAsLandscape,
+                            this.targetPdfCopyPages2Align).convert(pdfFile));
         }
 
         /*
@@ -570,6 +599,57 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         return this.singleBlankPagePdfReader;
     }
 
+    /**
+     * @param nPage
+     *            One-based page number in resulting PDF document.
+     * @param pageRotationCur
+     *            Current page rotation.
+     * @param pageRotationUser
+     *            Rotation requested by user.
+     * @param alignedRotation
+     *            Rotation needed to become same orientation as 1st printed
+     *            page.
+     * @return Rotation to be applied for this page <b>now</b>.
+     * @throws IOException
+     *             When IO error.
+     */
+    private int onExitJobPagePrintAlign(final int nPage,
+            final int pageRotationCur, final int pageRotationUser,
+            final int alignedRotation) throws IOException {
+
+        if (this.isApplyLetterhead()) {
+
+            if (pageRotationUser == pageRotationCur) {
+                /*
+                 * If alignment is needed, perform later.
+                 */
+                if (alignedRotation != pageRotationCur) {
+                    this.targetPdfCopyPages2Align.add(Integer.valueOf(nPage));
+                }
+                /*
+                 * Use current orientation to correctly position letterhead.
+                 */
+                return pageRotationCur;
+            }
+
+            /*
+             * User requested a different orientation: perform alignment later
+             * and use user requested orientation to correctly position
+             * letterhead.
+             */
+            this.targetPdfCopyPages2Align.add(Integer.valueOf(nPage));
+
+            return pageRotationUser;
+
+        } else {
+            /*
+             * No letterhead: user requested orientation is irrelevant. Use
+             * aligned rotation.
+             */
+            return alignedRotation;
+        }
+    }
+
     @Override
     protected void onExitJob(final int blankPagesToAppend) throws Exception {
 
@@ -604,24 +684,31 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
          * Traverse pages.
          */
         for (int nPage =
-                1; nPage <= pages; nPage++, this.nPagesAdded2Target++) {
+                1; nPage <= pages; nPage++, this.targetPdfCopyPageWlk++) {
 
             final int pageRotationCur = this.readerWlk.getPageRotation(nPage);
+
+            final int pageRotationUser = PdfPageRotateHelper
+                    .applyUserRotate(pageRotationCur, this.jobUserRotateWlk);
+
+            // Page rotation to apply now.
             final int pageRotationNew;
 
-            if (this.isForPrinting() && this.nPagesAdded2Target > 0) {
+            if (this.isForPrinting() && this.targetPdfCopyPageWlk > 0) {
 
-                pageRotationNew = PdfPageRotateHelper.getAlignedRotation(
-                        this.readerWlk, this.firstPageSeenAsLandscape, nPage);
+                final int alignedRotation =
+                        PdfPageRotateHelper.getAlignedRotation(this.readerWlk,
+                                this.firstPageSeenAsLandscape, nPage);
+
+                pageRotationNew = this.onExitJobPagePrintAlign(
+                        this.targetPdfCopyPageWlk + 1, pageRotationCur,
+                        pageRotationUser, alignedRotation);
             } else {
-
-                pageRotationNew = PdfPageRotateHelper.applyUserRotate(
-                        pageRotationCur, this.jobUserRotateWlk);
+                pageRotationNew = pageRotationUser;
             }
 
-            final PdfDictionary pageDict = this.readerWlk.getPageN(nPage);
-
             if (pageRotationCur != pageRotationNew) {
+                final PdfDictionary pageDict = this.readerWlk.getPageN(nPage);
                 pageDict.put(PdfName.ROTATE, new PdfNumber(pageRotationNew));
             }
 
@@ -659,7 +746,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         }
 
         //
-        for (int i = 0; i < blankPagesToAppend; i++) {
+        for (int i =
+                0; i < blankPagesToAppend; i++, this.targetPdfCopyPageWlk++) {
             this.targetPdfCopy.addPage(this.targetPdfCopy.getImportedPage(
                     this.getBlankPageReader(this.targetPdfCopy.getPageSize()),
                     1));
@@ -803,13 +891,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     @Override
-    protected void onStampRotateForPrinting() throws Exception {
-        /*
-         * No code intended: rotation is done in exitStamping.
-         */
-    }
-
-    @Override
     protected void onInitStamp() throws Exception {
         this.readerWlk = new PdfReader(this.targetPdfCopyFilePath);
         this.targetStamper =
@@ -863,11 +944,13 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
          * Iterate over document's pages.
          */
         final int nDocPages = this.readerWlk.getNumberOfPages();
+
         Rectangle rectLetterheadPageWlk = null;
+        int nPageWlk;
 
-        for (int i = 0; i < nDocPages;) {
+        for (int i = 0; i < nDocPages; i++) {
 
-            ++i;
+            nPageWlk = i + 1;
 
             /*
              * If the letterhead document has more than one page, each page of
@@ -876,7 +959,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
              * letterhead, then the final letterhead page is repeated across
              * these remaining pages of the output document.
              */
-
             if (nLetterheadPage < nLetterheadPageMax) {
 
                 nLetterheadPage++;
@@ -898,16 +980,16 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             final PdfContentByte contentByte;
 
             if (myLetterheadJob.getForeground()) {
-                contentByte = this.targetStamper.getOverContent(i);
+                contentByte = this.targetStamper.getOverContent(nPageWlk);
             } else {
-                contentByte = this.targetStamper.getUnderContent(i);
+                contentByte = this.targetStamper.getUnderContent(nPageWlk);
             }
 
             /*
              *
              */
-            final Rectangle rectDocPage = this.readerWlk.getPageSize(i);
-            final int pageRotation = this.readerWlk.getPageRotation(i);
+            final Rectangle rectDocPage = this.readerWlk.getPageSize(nPageWlk);
+            final int pageRotation = this.readerWlk.getPageRotation(nPageWlk);
 
             final boolean swapWidhtHeight;
 
