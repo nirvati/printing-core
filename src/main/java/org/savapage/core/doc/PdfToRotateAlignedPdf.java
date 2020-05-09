@@ -41,8 +41,7 @@ import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 
 /**
- * Converts a PDF file to a PDF with pages rotated to orientation of first PDF
- * page.
+ * Converts a PDF file to a PDF with pages rotated to a requested orientation.
  *
  * @author Rijk Ravestein
  *

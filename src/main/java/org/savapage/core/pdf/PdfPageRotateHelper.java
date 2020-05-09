@@ -390,7 +390,7 @@ public final class PdfPageRotateHelper {
      * Is PDF page seen in landscape orientation?
      *
      * @param ctm
-     *            The CTM of the PDF page (can be {@code null}.
+     *            The CTM of the PDF page (can be {@code null}).
      * @param pageRotation
      *            The PDF page rotation.
      * @param landscape
@@ -522,6 +522,29 @@ public final class PdfPageRotateHelper {
                 readerWlk.close();
             }
         }
+    }
+
+    /**
+     * Is PDF page seen in landscape orientation?
+     *
+     * @param reader
+     *            The PDF file.
+     * @param nPage
+     *            The 1-based page ordinal.
+     * @return {@code true} when seen in landscape.
+     * @throws IOException
+     *             When IO errors.
+     */
+    public static boolean isSeenAsLandscape(final PdfReader reader,
+            final int nPage) throws IOException {
+
+        final AffineTransform ctm = getPdfPageCTM(reader, nPage);
+        final int page1Rotation = reader.getPageRotation(nPage);
+        final boolean page1Landscape =
+                isLandscapePage(reader.getPageSize(nPage));
+
+        return isSeenAsLandscape(ctm, page1Rotation, page1Landscape,
+                Integer.valueOf(0));
     }
 
     /**
