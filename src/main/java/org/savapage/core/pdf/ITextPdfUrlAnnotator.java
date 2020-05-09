@@ -299,9 +299,7 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
                         matcher.start(), matcher.end(), url));
             } catch (MalformedURLException e) {
                 // Log and ignore
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn(e.getMessage());
-                }
+                LOGGER.warn(e.getMessage());
             }
         }
 
@@ -402,28 +400,57 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
         final boolean textTechHorizontal = this.rectangleFirstWlk
                 .getLeft() < this.rectangleFirstWlk.getRight();
 
+        final boolean textSeenVertical;
+
         if (textTechHorizontal) {
 
-            if (this.isPageSeenAsLandscape && this.pageRotation != 0) {
-                /*
-                 * Too complicated to render.
-                 */
-                return;
+            textSeenVertical =
+                    this.isPageSeenAsLandscape && this.pageRotation != 0;
+
+            if (textSeenVertical) {
+
+                if (this.pageRotation != PdfPageRotateHelper.ROTATION_90) {
+                    // TODO
+                    LOGGER.warn(
+                            "Page [{}] Rotation [{}] to Landscape: "
+                                    + "not implemented yet.",
+                            this.nStamperPage, this.pageRotation);
+                    return;
+                }
+
+                final float perceivedPageHeight = this.pageRectangle.getWidth();
+
+                llx = this.rectangleFirstWlk.getBottom();
+                lly = perceivedPageHeight - this.rectangleLastWlk.getRight();
+                urx = this.rectangleLastWlk.getTop();
+                ury = perceivedPageHeight - this.rectangleFirstWlk.getLeft();
+
+                techPadding = (urx - llx) * ANNOTATION_TEXT_PADDING_PERC;
+
+                llxPadding = -techPadding;
+                llyPadding = -techPadding;
+                urxPadding = techPadding;
+                uryPadding = techPadding;
+
+            } else {
+
+                llx = this.rectangleFirstWlk.getLeft();
+                lly = this.rectangleFirstWlk.getBottom();
+                urx = this.rectangleLastWlk.getRight();
+                ury = this.rectangleLastWlk.getTop();
+
+                techPadding = (ury - lly) * ANNOTATION_TEXT_PADDING_PERC;
+
+                llxPadding = -techPadding;
+                llyPadding = -techPadding;
+                urxPadding = techPadding;
+                uryPadding = techPadding;
             }
 
-            llx = this.rectangleFirstWlk.getLeft();
-            lly = this.rectangleFirstWlk.getBottom();
-            urx = this.rectangleLastWlk.getRight();
-            ury = this.rectangleLastWlk.getTop();
-
-            techPadding = (ury - lly) * ANNOTATION_TEXT_PADDING_PERC;
-
-            llxPadding = -techPadding;
-            llyPadding = -techPadding;
-            urxPadding = techPadding;
-            uryPadding = techPadding;
-
         } else {
+
+            textSeenVertical = false;
+
             // PDF Text is technically vertical.
             final float heightCorrection;
 
@@ -465,25 +492,45 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
             final float fontWidthAnnotation =
                     info.getFont().getWidth(match.getText());
 
-            /*
-             * Convert text font width to PDF info width.
-             */
-            final float infoWidthPrefix =
-                    infoRectTotal.getWidth() * fontWidthPrefix / fontWidthTotal;
+            final float llxWlk;
+            final float llyWlk;
+            final float urxWlk;
+            final float uryWlk;
 
-            final float infoWidthAnnotation = infoRectTotal.getWidth()
-                    * fontWidthAnnotation / fontWidthTotal;
-            /*
-             * Calculate info x-left x-right of the annotation.
-             */
-            final float infoLeftWlk = infoRectTotal.getLeft() + infoWidthPrefix;
-            final float infoRightWlk = infoLeftWlk + infoWidthAnnotation;
+            if (textSeenVertical) {
 
-            final float llxWlk = infoLeftWlk;
-            final float llyWlk = infoRectTotal.getBottom();
-            final float urxWlk = infoRightWlk;
-            final float uryWlk =
-                    infoRectTotal.getBottom() + infoRectTotal.getHeight();
+                final float infoWidthPrefix = infoRectTotal.getHeight()
+                        * fontWidthPrefix / fontWidthTotal;
+
+                final float infoWidthAnnotation = infoRectTotal.getHeight()
+                        * fontWidthAnnotation / fontWidthTotal;
+
+                final float infoTopWlk =
+                        infoRectTotal.getTop() - infoWidthPrefix;
+                final float infoBottomWlk = infoTopWlk - infoWidthAnnotation;
+
+                llxWlk = infoRectTotal.getLeft();
+                llyWlk = infoBottomWlk;
+                urxWlk = infoRectTotal.getRight();
+                uryWlk = infoTopWlk;
+
+            } else {
+
+                final float infoWidthPrefix = infoRectTotal.getWidth()
+                        * fontWidthPrefix / fontWidthTotal;
+
+                final float infoWidthAnnotation = infoRectTotal.getWidth()
+                        * fontWidthAnnotation / fontWidthTotal;
+
+                final float infoLeftWlk =
+                        infoRectTotal.getLeft() + infoWidthPrefix;
+                final float infoRightWlk = infoLeftWlk + infoWidthAnnotation;
+
+                llxWlk = infoLeftWlk;
+                llyWlk = infoRectTotal.getBottom();
+                urxWlk = infoRightWlk;
+                uryWlk = infoRectTotal.getBottom() + infoRectTotal.getHeight();
+            }
 
             this.addAnnotation(llxWlk + llxPadding, llyWlk + llyPadding,
                     urxWlk + urxPadding, uryWlk + uryPadding, match.getUrl());
@@ -619,10 +666,8 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
 
             } catch (ExceptionConverter e) {
                 // TODO
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn(String.format("%s [%s]",
-                            e.getClass().getSimpleName(), e.getMessage()));
-                }
+                LOGGER.warn(String.format("%s [%s]",
+                        e.getClass().getSimpleName(), e.getMessage()));
             }
 
             // Flush remaining text
