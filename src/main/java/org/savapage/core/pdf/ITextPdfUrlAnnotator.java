@@ -379,6 +379,12 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
             return;
         }
 
+        if (this.rectangleFirstWlk.getTop() < this.rectangleFirstWlk
+                .getBottom()) {
+            LOGGER.warn("Skip text: unsupported rotation.");
+            return;
+        }
+
         /*
          * Annotation coordinates must be converted from technical PDF text
          * coordinates to the "logical" coordinates as perceived by user.
