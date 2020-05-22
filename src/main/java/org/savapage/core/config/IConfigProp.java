@@ -579,6 +579,31 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Use STARTTLS for the LDAP connection.
+         */
+        AUTH_LDAP_USE_STARTTLS(//
+                "auth.ldap.use-starttls", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
+         * The "DNS Name" in the SSL Certificate "Subject Alternative Name"
+         * group (RFC 6125). This is usually the fully qualified DNS hostname.
+         * For example: www.example.com
+         *
+         * When "DNS Name" is not present (self-signed certificates), the Common
+         * Name (CN) the certificate is "issued to" can be used (not RFC 6125).
+         */
+        AUTH_LDAP_STARTTLS_CERT_DNSNAME(//
+                "auth.ldap.starttls-cert-dnsname", API_UPDATABLE_ON),
+
+        /**
+         *
+         */
+        AUTH_LDAP_SSL_HOSTNAME_VERIFICATION_DISABLE(//
+                "auth.ldap.ssl.hostname-verification-disable",
+                BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
          *
          */
         CARD_NUMBER_FORMAT(//

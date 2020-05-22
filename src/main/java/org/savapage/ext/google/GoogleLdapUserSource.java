@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,11 +40,18 @@ public final class GoogleLdapUserSource extends LdapUserSource {
     /**
      * LDAPS (SSL/TLS enabled).
      */
-    public static final String LDAP_PORT = "636";
+    private static final String LDAP_PORT = "636";
 
     /** */
     public GoogleLdapUserSource() {
         super(LdapTypeEnum.GOOGLE_CLOUD);
+    }
+
+    /**
+     * @return Google LDAP port.
+     */
+    public static String getLdapPortValue() {
+        return LDAP_PORT;
     }
 
     @Override
@@ -65,12 +72,17 @@ public final class GoogleLdapUserSource extends LdapUserSource {
 
     @Override
     protected String getLdapPort() {
-        return LDAP_PORT;
+        return getLdapPortValue();
     }
 
     @Override
     protected boolean isLdapSSL() {
         return true;
+    }
+
+    @Override
+    protected boolean isLdapStartTLS() {
+        return false;
     }
 
     @Override

@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
  */
 package org.savapage.core.users;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -42,7 +43,6 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
-import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
@@ -50,6 +50,8 @@ import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.PagedResultsControl;
 import javax.naming.ldap.Rdn;
+import javax.naming.ldap.StartTlsRequest;
+import javax.naming.ldap.StartTlsResponse;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.lang3.StringUtils;
@@ -61,6 +63,7 @@ import org.savapage.core.config.IConfigProp.LdapTypeEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.net.TrustSelfSignedCertSocketFactory;
 import org.savapage.core.rfid.RfidNumberFormat;
+import org.savapage.core.util.InetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -371,6 +374,14 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
     }
 
     /**
+     * @return {@code true} if StartTLS.
+     */
+    protected boolean isLdapStartTLS() {
+        return ConfigManager.instance()
+                .isConfigValue(Key.AUTH_LDAP_USE_STARTTLS);
+    }
+
+    /**
      * @return {@code true} if self-signed certificate for LDAP SSL is trusted.
      */
     protected boolean isLdapUseTrustSelfSignedSSL() {
@@ -394,6 +405,15 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
 
         schema.append("://").append(this.getLdapHost()).append(":")
                 .append(this.getLdapPort());
+
+        if (this.isLdapStartTLS()) {
+            String dnsName = ConfigManager.instance()
+                    .getConfigValue(Key.AUTH_LDAP_STARTTLS_CERT_DNSNAME);
+            if (StringUtils.isBlank(dnsName)) {
+                dnsName = this.getLdapHost();
+            }
+            schema.append("/o=").append(dnsName);
+        }
 
         return schema.toString();
     }
@@ -548,11 +568,14 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
         /*
          * Search with administrator credentials for the user.
          */
-        DirContext ctx = createLdapContextForAdmin();
+        LdapContext ctx = this.createLdapContextForAdmin();
 
         NamingEnumeration<SearchResult> results = null;
 
+        StartTlsResponse tls = null;
+
         try {
+            tls = this.setInitialLdapStartTLS(ctx);
 
             final SearchControls controls = new SearchControls();
 
@@ -575,8 +598,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                      * New context with the credentials of the user to
                      * authenticate.
                      */
-                    ctx.close();
+                    closeResources(null, tls, ctx);
                     ctx = null;
+                    tls = null;
 
                     final Hashtable<String, String> env = new Hashtable<>();
 
@@ -594,10 +618,9 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                     this.setInitialLdapSSLContext(ConfigManager.instance(),
                             env);
 
-                    ctx = new InitialDirContext(env);
-                    /*
-                     *
-                     */
+                    ctx = new InitialLdapContext(env, null);
+                    tls = this.setInitialLdapStartTLS(ctx);
+
                     Attributes attributes = searchResult.getAttributes();
 
                     if (LOGGER.isDebugEnabled()) {
@@ -611,7 +634,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                         LOGGER.debug(
                                 "Authentication for [" + uid + "] failed!");
                     }
-                } catch (NamingException namEx) {
+                } catch (IOException | NamingException namEx) {
                     throw new SpException("LDAP NamingException", namEx);
                 }
 
@@ -627,8 +650,12 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
 
             throw new SpException("LDAP NamingException", e);
 
+        } catch (IOException e) {
+
+            throw new SpException("LDAP IO exception", e);
+
         } finally {
-            closeResources(results, ctx);
+            closeResources(results, tls, ctx);
         }
 
         return user;
@@ -668,7 +695,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
     }
 
     /**
-     * Gets the custom {@link SSLSocketFactory} class.
+     * Gets the custom {@link TrustSelfSignedCertSocketFactory} class.
      *
      * @return {@code null} if no custom class is present.
      */
@@ -699,6 +726,65 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                 env.put(JAVA_NAMING_LDAP_FACTORY_SOCKET, customClass.getName());
             }
         }
+    }
+
+    /**
+     * Constructs a StartTLS extended request (if LDAP StartTLS is configured).
+     *
+     * @param ctx
+     *            LDAP context.
+     * @return {@code null} if LDAP StartTLS is <i>not</i> configured.
+     * @throws NamingException
+     *             If an error occurred while performing the extended operation.
+     * @throws IOException
+     *             If an IO error was encountered while establishing the TLS
+     *             session
+     */
+    protected final StartTlsResponse setInitialLdapStartTLS(
+            final LdapContext ctx) throws NamingException, IOException {
+
+        if (this.isLdapStartTLS()) {
+
+            final StartTlsResponse tls = (StartTlsResponse) ctx
+                    .extendedOperation(new StartTlsRequest());
+
+            if (tls != null) {
+
+                final SSLSocketFactory factory;
+
+                if (this.isLdapUseTrustSelfSignedSSL()) {
+                    factory = new TrustSelfSignedCertSocketFactory();
+                } else {
+                    factory = null;
+                }
+
+                if (ConfigManager.instance().isConfigValue(
+                        Key.AUTH_LDAP_SSL_HOSTNAME_VERIFICATION_DISABLE)) {
+                    tls.setHostnameVerifier(
+                            InetUtils.getHostnameVerifierTrustAll());
+                }
+
+                /*
+                 * Initiate the TLS handshake.
+                 */
+                tls.negotiate(factory);
+                /*
+                 * No exception thrown: TLS has been started on the context's
+                 * connection. Any method you invoke on the LdapContext will use
+                 * the security layer just negotiated to communicate with the
+                 * LDAP server.
+                 *
+                 * StartTlsResponse instance is returned so any client can call
+                 * StartTlsResponse.close() after done with the TLS session.
+                 *
+                 * Note: the close() method terminates the TLS without closing
+                 * the underlying network connection: which in that case falls
+                 * back to insecure communication.
+                 */
+                return tls;
+            }
+        }
+        return null;
     }
 
     /**
@@ -818,9 +904,11 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
 
         final String providerUrl = getProviderUrlBaseDn();
 
-        final InitialLdapContext ctx = createLdapContextForAdmin();
+        final InitialLdapContext ctx = this.createLdapContextForAdmin();
+        StartTlsResponse tls = null;
 
         try {
+            tls = this.setInitialLdapStartTLS(ctx);
 
             final String groupNameField =
                     getLdapConfigValue(Key.LDAP_SCHEMA_GROUP_NAME_FIELD);
@@ -857,7 +945,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                                 groupFullNameField, results.next()));
                     }
                 } finally {
-                    closeResources(results, null);
+                    closeResources(results, null, null);
                 }
 
                 hasNextPage = ldapPager.hasNextPage();
@@ -866,10 +954,10 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
         } catch (NameNotFoundException e) {
             throw new SpException(
                     "LDAP base context [" + this.baseDN + "] not found", e);
-        } catch (NamingException e) {
+        } catch (IOException | NamingException e) {
             throw new SpException(e.getMessage(), e);
         } finally {
-            closeResources(null, ctx);
+            closeResources(null, tls, ctx);
         }
 
         return sset;
@@ -926,11 +1014,14 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                     + "] : " + ldapFilterExpression);
         }
 
-        final DirContext ctx = createLdapContextForAdmin();
+        final LdapContext ctx = this.createLdapContextForAdmin();
 
         NamingEnumeration<SearchResult> results = null;
 
+        StartTlsResponse tls = null;
+
         try {
+            tls = this.setInitialLdapStartTLS(ctx);
 
             final SearchControls controls = new SearchControls();
 
@@ -948,7 +1039,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                         results.next());
             }
 
-        } catch (NamingException e) {
+        } catch (IOException | NamingException e) {
 
             LOGGER.error(String.format("isGroupPresent(\"%s\"): %s", groupName,
                     e.getMessage()));
@@ -956,7 +1047,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
             commonUserGroup = null;
 
         } finally {
-            closeResources(results, ctx);
+            closeResources(results, tls, ctx);
         }
 
         return commonUserGroup;
@@ -980,9 +1071,11 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
         final SortedSet<CommonUser> sset =
                 new TreeSet<>(new CommonUserComparator());
 
-        final InitialLdapContext ctx = createLdapContextForAdmin();
+        final InitialLdapContext ctx = this.createLdapContextForAdmin();
+        StartTlsResponse tls = null;
 
         try {
+            tls = this.setInitialLdapStartTLS(ctx);
 
             final SearchControls searchControls = new SearchControls();
 
@@ -1021,7 +1114,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                     }
 
                 } finally {
-                    closeResources(results, null);
+                    closeResources(results, null, null);
                 }
 
                 hasNextPage = ldapPager.hasNextPage();
@@ -1032,10 +1125,10 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
         NameNotFoundException e) {
             throw new SpException(
                     "LDAP base context [" + this.baseDN + "] not found", e);
-        } catch (NamingException e) {
+        } catch (IOException | NamingException e) {
             throw new SpException(e.getMessage(), e);
         } finally {
-            closeResources(null, ctx);
+            closeResources(null, tls, ctx);
         }
         return sset;
     }
@@ -1059,14 +1152,17 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
         final SortedSet<CommonUser> sset =
                 new TreeSet<>(new CommonUserComparator());
 
-        final InitialLdapContext ctx = createLdapContextForAdmin();
+        final InitialLdapContext ctx = this.createLdapContextForAdmin();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getUsersInGroup() from [" + providerUrl + "] : "
                     + ldapFilterExpression);
         }
 
+        StartTlsResponse tls = null;
+
         try {
+            tls = this.setInitialLdapStartTLS(ctx);
 
             final SearchControls searchControls = new SearchControls();
 
@@ -1106,8 +1202,10 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
         } catch (NamingException e) {
             throw new SpException(String.format("%s | %s", e.getMessage(),
                     getResultControlSupportDiagnostic(ctx)), e);
+        } catch (IOException e) {
+            throw new SpException(e.getMessage());
         } finally {
-            closeResources(null, ctx);
+            closeResources(null, tls, ctx);
         }
         return sset;
     }
@@ -1264,7 +1362,7 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
             }
 
         } finally {
-            closeResources(results, null);
+            closeResources(results, null, null);
         }
         return cuser;
     }
@@ -1283,11 +1381,15 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                     + ldapFilterExpression);
         }
 
-        final DirContext ctx = createLdapContextForAdmin();
+        final LdapContext ctx = this.createLdapContextForAdmin();
 
         NamingEnumeration<SearchResult> results = null;
 
+        StartTlsResponse tls = null;
+
         try {
+            tls = this.setInitialLdapStartTLS(ctx);
+
             /*
              * Example:
              *
@@ -1330,14 +1432,14 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                 found = results.hasMore();
             }
 
-        } catch (NamingException e) {
+        } catch (IOException | NamingException e) {
 
             LOGGER.error(e.getMessage());
 
             found = false;
 
         } finally {
-            closeResources(results, ctx);
+            closeResources(results, tls, ctx);
         }
         return found;
     }
@@ -1359,11 +1461,14 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                     + ldapFilterExpression);
         }
 
-        final DirContext ctx = createLdapContextForAdmin();
+        final LdapContext ctx = this.createLdapContextForAdmin();
 
         NamingEnumeration<SearchResult> results = null;
 
+        StartTlsResponse tls = null;
+
         try {
+            tls = this.setInitialLdapStartTLS(ctx);
             /*
              * Example:
              *
@@ -1397,12 +1502,12 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
                 cuser = createCommonUser(attributes);
             }
 
-        } catch (NamingException e) {
+        } catch (IOException | NamingException e) {
 
             cuser = null;
 
         } finally {
-            closeResources(results, ctx);
+            closeResources(results, tls, ctx);
         }
         return cuser;
     }
@@ -1455,16 +1560,25 @@ public abstract class LdapUserSourceMixin extends AbstractUserSource
      *
      * @param results
      *            The results.
+     * @param tls
+     *            StartTLS response.
      * @param ctx
      *            The {@link DirContext}.
      */
     protected final void closeResources(
             final NamingEnumeration<SearchResult> results,
-            final DirContext ctx) {
+            final StartTlsResponse tls, final DirContext ctx) {
 
         if (results != null) {
             try {
                 results.close();
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        }
+        if (tls != null) {
+            try {
+                tls.close();
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);
             }

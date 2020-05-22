@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,12 +33,15 @@ import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
@@ -91,6 +94,33 @@ public final class InetUtils {
     public static final String URL_PROTOCOL_HTTP = "http";
     /** */
     public static final String URL_PROTOCOL_HTTPS = "https";
+
+    /**
+     * A hostname verifier that always returns true. NOTE: This verifier is
+     * useful for testing/debugging and should not be used in production.
+     */
+    static final class DebugHostVerifier implements HostnameVerifier {
+
+        /**
+         * Singleton instance.
+         */
+        public static final DebugHostVerifier INSTANCE =
+                new DebugHostVerifier();
+
+        @Override
+        public boolean verify(final String hostname, final SSLSession session) {
+            System.out.println("Checking: " + hostname + " in");
+            try {
+                final Certificate[] cert = session.getPeerCertificates();
+                for (int i = 0; i < cert.length; i++) {
+                    System.out.println(cert[i]);
+                }
+            } catch (SSLPeerUnverifiedException e) {
+                return false;
+            }
+            return true;
+        }
+    }
 
     /**
      * No public instantiation.
@@ -410,6 +440,20 @@ public final class InetUtils {
      */
     public static HostnameVerifier getHostnameVerifierTrustAll() {
         return NoopHostnameVerifier.INSTANCE;
+    }
+
+    /**
+     * Gets HostnameVerifier that turns hostname verification off and prints
+     * hostname certs on stdout.
+     * <p>
+     * NOTE: This verifier is useful for testing/debugging and should not be
+     * used in production.
+     * </p>
+     *
+     * @return The verifier.
+     */
+    public static HostnameVerifier getHostnameVerifierTrustAllDebug() {
+        return DebugHostVerifier.INSTANCE;
     }
 
 }
