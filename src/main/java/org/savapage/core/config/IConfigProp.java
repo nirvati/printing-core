@@ -3225,6 +3225,13 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Is HTML5 canvas enabled in User Web App Page Browser.
+         */
+        WEBAPP_USER_PAGE_BROWSER_CANVAS_ENABLE(//
+                "webapp.user.page-browser-canvas.enable", BOOLEAN_VALIDATOR,
+                V_NO, API_UPDATABLE_ON),
+
+        /**
          * Contact email address for GDPR (erase) requests.
          */
         WEBAPP_USER_GDPR_CONTACT_EMAIL(//
