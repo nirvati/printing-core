@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,8 @@
  */
 package org.savapage.core.services.helpers;
 
+import java.util.Base64;
+
 /**
  *
  * @author Rijk Ravestein
@@ -33,6 +35,9 @@ public final class InboxPageImageInfo {
 
     /**
      * Basename of the PDF file.
+     * <p>
+     * For example: c3e7af09-2cd3-4c92-afc2-788faf09a0ce.pdf
+     * </p>
      */
     private String file;
 
@@ -61,6 +66,11 @@ public final class InboxPageImageInfo {
      * The rotation on the PDF inbox document set by the User.
      */
     private int rotate;
+
+    /**
+     * Base64 encoded SVG overlay. If {@code null}, no overlay is present.
+     */
+    private String overlaySVG64;
 
     /**
      *
@@ -162,6 +172,33 @@ public final class InboxPageImageInfo {
      */
     public void setRotate(int rotate) {
         this.rotate = rotate;
+    }
+
+    /**
+     * @return Base64 encoded SVG overlay. If {@code null}, no overlay is
+     *         present.
+     */
+    public String getOverlaySVG64() {
+        return overlaySVG64;
+    }
+
+    /**
+     * @param overlaySVG64
+     *            Base64 encoded SVG overlay. If {@code null}, no overlay is
+     *            present.
+     */
+    public void setOverlaySVG64(String overlaySVG64) {
+        this.overlaySVG64 = overlaySVG64;
+    }
+
+    /**
+     * @return SVG overlay. If {@code null}, no overlay is present.
+     */
+    public String getOverlaySVG() {
+        if (this.overlaySVG64 == null) {
+            return null;
+        }
+        return new String(Base64.getDecoder().decode(this.overlaySVG64));
     }
 
 }

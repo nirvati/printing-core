@@ -34,10 +34,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.print.attribute.Size2DSyntax;
@@ -45,15 +49,20 @@ import javax.print.attribute.standard.MediaSize;
 import javax.print.attribute.standard.MediaSizeName;
 
 import org.savapage.core.SpException;
+import org.savapage.core.UnavailableException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.doc.DocContentToPdfException;
+import org.savapage.core.doc.DocContentTypeEnum;
+import org.savapage.core.doc.IDocFileConverter;
 import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToAnnotatedURL;
 import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.doc.PdfToRotateAlignedPdf;
+import org.savapage.core.doc.SvgToPdf;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.json.PdfProperties;
@@ -137,6 +146,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
     private PdfReader readerWlk;
     private PdfReader letterheadReader;
+    private List<PdfReader> overlayReaders;
 
     private StringBuilder jobRangesWlk;
 
@@ -832,6 +842,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             this.letterheadReader.close();
         }
 
+        if (this.overlayReaders != null) {
+            for (final PdfReader rdr : this.overlayReaders) {
+                rdr.close();
+            }
+        }
+
         if (this.readerWlk != null) {
             this.readerWlk.close();
             this.readerWlk = null;
@@ -910,10 +926,15 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     @Override
-    protected void onExitStamp() throws Exception {
+    protected void onExitStamp(final Map<Integer, String> pageOverlay)
+            throws Exception {
 
         if (this.isRemoveGraphics) {
             minifyPdfImages();
+        }
+
+        if (!pageOverlay.isEmpty()) {
+            this.applyOverlay(pageOverlay);
         }
 
         if (this.isApplyLetterhead()) {
@@ -923,6 +944,85 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         if (this.isAnnotateUrls && !this.onExitAnnotateUrls) {
             ITextPdfUrlAnnotator.annotate(this.readerWlk, this.targetStamper);
         }
+    }
+
+    /**
+     * Applies the page overlays.
+     *
+     * @param pageOverlay
+     *            Base64 encoded SVG overlay (value) for one-based ordinal pages
+     *            (key) of the overall PDF document.
+     * @throws IOException
+     *             If IO error.
+     */
+    private void applyOverlay(final Map<Integer, String> pageOverlay)
+            throws IOException {
+
+        final IDocFileConverter converter = new SvgToPdf();
+
+        this.overlayReaders = new ArrayList<>();
+
+        final int nDocPages = this.readerWlk.getNumberOfPages();
+        int nPageWlk;
+
+        for (int i = 0; i < nDocPages; i++) {
+
+            nPageWlk = i + 1;
+
+            final String svg64 = pageOverlay.get(Integer.valueOf(nPageWlk));
+            if (svg64 == null) {
+                continue;
+            }
+
+            final File tempFileSVG = File.createTempFile("temp-", ".svg");
+
+            File tempFilePDF = null;
+            PdfReader overlayReader = null;
+
+            try (FileOutputStream fostr = new FileOutputStream(tempFileSVG)) {
+
+                fostr.write(Base64.getDecoder().decode(svg64));
+                fostr.close();
+
+                tempFilePDF =
+                        converter.convert(DocContentTypeEnum.SVG, tempFileSVG);
+
+                overlayReader = new PdfReader(tempFilePDF.getAbsolutePath());
+
+                final PdfImportedPage importedPage =
+                        this.targetStamper.getImportedPage(overlayReader, 1);
+
+                // Add overlay 'on top of' the page content.
+                final PdfContentByte contentByte =
+                        this.targetStamper.getOverContent(nPageWlk);
+
+                // ----------------------------------------------------
+                // SCALE + TRANSLATE
+                // ----------------------------------------------------
+                // a : sX (scale, in x-direction)
+                // b : 0
+                // c : 0
+                // d : sY (scale, in y-direction)
+                // e : tX (translate, moves e pixels in x-direction)
+                // f : tY (translate, moves f pixels in y-direction)
+                // ----------------------------------------------------
+                final float sX = 1.0f;
+                final float sY = sX;
+
+                contentByte.addTemplate(importedPage, sX, 0, 0, sY, 0, 0);
+
+            } catch (DocContentToPdfException | UnavailableException e) {
+                throw new SpException(e.getMessage());
+            } finally {
+                if (overlayReader != null) {
+                    this.overlayReaders.add(overlayReader);
+                }
+                tempFileSVG.delete();
+                if (tempFilePDF != null) {
+                    tempFilePDF.delete();
+                }
+            }
+        } // for-loop
     }
 
     /**
@@ -985,9 +1085,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 contentByte = this.targetStamper.getUnderContent(nPageWlk);
             }
 
-            /*
-             *
-             */
             final Rectangle rectDocPage = this.readerWlk.getPageSize(nPageWlk);
             final int pageRotation = this.readerWlk.getPageRotation(nPageWlk);
 

@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -29,8 +29,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -322,17 +324,21 @@ public abstract class AbstractPdfCreator {
     protected abstract void onInitStamp() throws Exception;
 
     /**
-     *
+     * @param pageOverlay
+     *            Base64 encoded SVG overlay (value) for one-based ordinal pages
+     *            (key) of the job pages.
      * @throws Exception
+     *             If error.
      */
-    protected abstract void onExitStamp() throws Exception;
+    protected abstract void onExitStamp(Map<Integer, String> pageOverlay)
+            throws Exception;
 
     /**
      *
      * @param pdfLetterhead
      * @throws Exception
      */
-    protected abstract void onStampLetterhead(final String pdfLetterhead)
+    protected abstract void onStampLetterhead(String pdfLetterhead)
             throws Exception;
 
     /**
@@ -528,6 +534,10 @@ public abstract class AbstractPdfCreator {
         String ownerPass = null;
         String userPass = null;
 
+        //
+        final Map<Integer, String> pageOverlayMap = new HashMap<>();
+        int nPageOverlayWlk = 0;
+
         try {
             propPdf = USER_SERVICE.getPdfProperties(createReq.getUserObj());
 
@@ -543,6 +553,7 @@ public abstract class AbstractPdfCreator {
 
                 final InboxJob job = inboxInfo.getJobs().get(page.getJob());
                 final String pdfFileWlk = job.getFile();
+                final Map<Integer, String> pdfPageOverlayWlk = job.getOverlay();
 
                 final String filePath = String.format("%s%c%s", this.userhome,
                         File.separatorChar, pdfFileWlk);
@@ -580,6 +591,21 @@ public abstract class AbstractPdfCreator {
                     final int nPageTo = rangeAtom.pageEnd;
                     final int nPagesinAtom = nPageTo - nPageFrom + 1;
 
+                    // Traverse page-by-page to find page overlay.
+                    for (int i = nPageFrom - 1; i < nPageTo; i++) {
+                        nPageOverlayWlk++;
+                        if (pdfPageOverlayWlk != null
+                                && !pdfPageOverlayWlk.isEmpty()) {
+                            final String svg64 =
+                                    pdfPageOverlayWlk.get(Integer.valueOf(i));
+                            if (svg64 != null) {
+                                pageOverlayMap.put(
+                                        Integer.valueOf(nPageOverlayWlk),
+                                        svg64);
+                            }
+                        }
+                    }
+                    //
                     this.onProcessJobPages(nPageFrom, nPageTo,
                             this.removeGraphics);
 
@@ -767,7 +793,7 @@ public abstract class AbstractPdfCreator {
                 this.onCompress();
             }
 
-            this.onExitStamp();
+            this.onExitStamp(pageOverlayMap);
 
             /*
              * End

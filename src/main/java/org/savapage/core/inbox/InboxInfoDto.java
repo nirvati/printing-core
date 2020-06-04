@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -26,6 +26,7 @@ package org.savapage.core.inbox;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +51,7 @@ public final class InboxInfoDto {
     /**
      *
      */
+    @JsonInclude(Include.NON_NULL)
     public final static class InboxJob {
 
         private String file;
@@ -59,6 +61,11 @@ public final class InboxInfoDto {
 
         private Boolean drm;
         private String media;
+
+        /**
+         * Base64 encoded SVG overlay (value) for zero-based pages (key).
+         */
+        private Map<Integer, String> overlay;
 
         /**
          * {@code true} if the mediabox orientation of the first PDF page is
@@ -157,6 +164,23 @@ public final class InboxInfoDto {
          */
         public void setMedia(String media) {
             this.media = media;
+        }
+
+        /**
+         * @return Base64 encoded SVG overlay (value) for zero-based pages
+         *         (key).
+         */
+        public Map<Integer, String> getOverlay() {
+            return overlay;
+        }
+
+        /**
+         * @param overlay
+         *            Base64 encoded SVG overlay (value) for zero-based pages
+         *            (key).
+         */
+        public void setOverlay(Map<Integer, String> overlay) {
+            this.overlay = overlay;
         }
 
         /**
@@ -297,6 +321,7 @@ public final class InboxInfoDto {
     /**
      *
      */
+    @JsonInclude(Include.NON_NULL)
     public static class InboxJobRange {
 
         private Integer myJob;
@@ -319,6 +344,7 @@ public final class InboxInfoDto {
         }
     }
 
+    @JsonInclude(Include.NON_NULL)
     public static class InboxLetterhead {
 
         private String id;
