@@ -3228,7 +3228,7 @@ public interface IConfigProp {
          * Is HTML5 canvas enabled in User Web App Page Browser.
          */
         WEBAPP_USER_PAGE_BROWSER_CANVAS_ENABLE(//
-                "webapp.user.page-browser-canvas.enable", BOOLEAN_VALIDATOR,
+                "webapp.user.page-browser-canvas.enable.1", BOOLEAN_VALIDATOR,
                 V_NO, API_UPDATABLE_ON),
 
         /**

@@ -553,7 +553,8 @@ public abstract class AbstractPdfCreator {
 
                 final InboxJob job = inboxInfo.getJobs().get(page.getJob());
                 final String pdfFileWlk = job.getFile();
-                final Map<Integer, String> pdfPageOverlayWlk = job.getOverlay();
+                final Map<Integer, InboxInfoDto.PageOverlay> pdfPageOverlayWlk =
+                        job.getOverlay();
 
                 final String filePath = String.format("%s%c%s", this.userhome,
                         File.separatorChar, pdfFileWlk);
@@ -596,12 +597,13 @@ public abstract class AbstractPdfCreator {
                         nPageOverlayWlk++;
                         if (pdfPageOverlayWlk != null
                                 && !pdfPageOverlayWlk.isEmpty()) {
-                            final String svg64 =
+                            final InboxInfoDto.PageOverlay pageOverlay =
                                     pdfPageOverlayWlk.get(Integer.valueOf(i));
-                            if (svg64 != null) {
+                            if (pageOverlay != null
+                                    && pageOverlay.getSvg64() != null) {
                                 pageOverlayMap.put(
                                         Integer.valueOf(nPageOverlayWlk),
-                                        svg64);
+                                        pageOverlay.getSvg64());
                             }
                         }
                     }

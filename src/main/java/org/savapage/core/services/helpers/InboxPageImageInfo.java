@@ -73,6 +73,12 @@ public final class InboxPageImageInfo {
     private String overlaySVG64;
 
     /**
+     * Base64 encoded JSON representation of overlay. If {@code null}, no
+     * overlay or no JSON representation of overlay is present.
+     */
+    private String overlayJSON64;
+
+    /**
      *
      * @return Basename of the PDF file.
      */
@@ -189,6 +195,24 @@ public final class InboxPageImageInfo {
      */
     public void setOverlaySVG64(String overlaySVG64) {
         this.overlaySVG64 = overlaySVG64;
+    }
+
+    /**
+     * @return Base64 encoded JSON representation of overlay. If {@code null},
+     *         no overlay or no JSON representation of overlay is present.
+     */
+    public String getOverlayJSON64() {
+        return overlayJSON64;
+    }
+
+    /**
+     * @param overlayJSON64
+     *            Base64 encoded JSON representation of overlay. If
+     *            {@code null}, no overlay or no JSON representation of overlay
+     *            is present.
+     */
+    public void setOverlayJSON64(String overlayJSON64) {
+        this.overlayJSON64 = overlayJSON64;
     }
 
     /**

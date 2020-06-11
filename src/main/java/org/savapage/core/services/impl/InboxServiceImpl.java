@@ -415,7 +415,12 @@ public final class InboxServiceImpl implements InboxService {
         }
 
         if (job.getOverlay() != null) {
-            dto.setOverlaySVG64(job.getOverlay().get(Integer.valueOf(iPage)));
+            final InboxInfoDto.PageOverlay pageOverlay =
+                    job.getOverlay().get(Integer.valueOf(iPage));
+            if (pageOverlay != null) {
+                dto.setOverlaySVG64(pageOverlay.getSvg64());
+                dto.setOverlayJSON64(pageOverlay.getFabric64());
+            }
         }
 
         return dto;

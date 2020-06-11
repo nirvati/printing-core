@@ -48,11 +48,50 @@ public final class InboxInfoDto {
      */
     private static ObjectMapper mapper = new ObjectMapper();
 
-    /**
-     *
-     */
+    /** */
     @JsonInclude(Include.NON_NULL)
-    public final static class InboxJob {
+    public static final class PageOverlay {
+
+        /**
+         * Base64 encoded SVG overlay.
+         */
+        private String svg64;
+
+        /**
+         * Base64 encoded FabricJS JSON object of SVG overlay. If {@code null},
+         * SVG is a valid to restore HTML canvas.
+         */
+        private String fabric64;
+
+        public String getSvg64() {
+            return svg64;
+        }
+
+        public void setSvg64(String svg64) {
+            this.svg64 = svg64;
+        }
+
+        /**
+         * @return Optional Base64 encoded FabricJS JSON object of SVG overlay.
+         */
+        public String getFabric64() {
+            return fabric64;
+        }
+
+        /**
+         * @param fabric64
+         *            Optional Base64 encoded FabricJS JSON object of SVG
+         *            overlay.
+         */
+        public void setFabric64(String fabric64) {
+            this.fabric64 = fabric64;
+        }
+
+    }
+
+    /** */
+    @JsonInclude(Include.NON_NULL)
+    public static final class InboxJob {
 
         private String file;
         private Long createdTime;
@@ -63,9 +102,9 @@ public final class InboxInfoDto {
         private String media;
 
         /**
-         * Base64 encoded SVG overlay (value) for zero-based pages (key).
+         * Optional page overlay (value) for zero-based pages (key).
          */
-        private Map<Integer, String> overlay;
+        private Map<Integer, PageOverlay> overlay;
 
         /**
          * {@code true} if the mediabox orientation of the first PDF page is
@@ -167,19 +206,17 @@ public final class InboxInfoDto {
         }
 
         /**
-         * @return Base64 encoded SVG overlay (value) for zero-based pages
-         *         (key).
+         * @return Optional page overlay (value) for zero-based pages (key).
          */
-        public Map<Integer, String> getOverlay() {
+        public Map<Integer, PageOverlay> getOverlay() {
             return overlay;
         }
 
         /**
          * @param overlay
-         *            Base64 encoded SVG overlay (value) for zero-based pages
-         *            (key).
+         *            Optional page overlay (value) for zero-based pages (key).
          */
-        public void setOverlay(Map<Integer, String> overlay) {
+        public void setOverlay(Map<Integer, PageOverlay> overlay) {
             this.overlay = overlay;
         }
 
@@ -322,7 +359,7 @@ public final class InboxInfoDto {
      *
      */
     @JsonInclude(Include.NON_NULL)
-    public static class InboxJobRange {
+    public static final class InboxJobRange {
 
         private Integer myJob;
         private String myRange;
@@ -345,7 +382,7 @@ public final class InboxInfoDto {
     }
 
     @JsonInclude(Include.NON_NULL)
-    public static class InboxLetterhead {
+    public static final class InboxLetterhead {
 
         private String id;
         private Boolean pub;
@@ -458,8 +495,7 @@ public final class InboxInfoDto {
     }
 
     /**
-     *
-     * @return
+     * @return Number of jobs.
      */
     @JsonIgnore
     public int jobCount() {
