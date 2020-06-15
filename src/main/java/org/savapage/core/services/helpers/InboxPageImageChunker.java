@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -158,7 +161,16 @@ public final class InboxPageImageChunker {
     private InboxInfoDto.InboxJob jobChunkWlk;
 
     private int nChunkStartWlk;
+
+    /**
+     * Number of pages in a chunked page.
+     */
     private int nChunkedPagesWlk;
+
+    /**
+     * Number of overlay pages in a chunked page.
+     */
+    private int nChunkedOverlayPagesWlk;
 
     private boolean bScanPageWlk;
     private boolean bScanPageChunkWlk;
@@ -343,6 +355,7 @@ public final class InboxPageImageChunker {
 
         nChunkStartWlk = nPageCountWlk;
         nChunkedPagesWlk = 0;
+        nChunkedOverlayPagesWlk = 0;
 
         bScanPageWlk = false;
         bScanPageChunkWlk = false;
@@ -480,6 +493,7 @@ public final class InboxPageImageChunker {
         //
         nChunkStartWlk = nPageCountWlk;
         nChunkedPagesWlk = 0;
+        nChunkedOverlayPagesWlk = 0;
 
         bScanPageChunkWlk = bScanPageWlk;
 
@@ -510,6 +524,12 @@ public final class InboxPageImageChunker {
      * Next page from the inbox.
      */
     private void onNextPage() {
+
+        if (jobWlk.getOverlay() != null
+                && jobWlk.getOverlay().containsKey(Integer.valueOf(iWlk))) {
+            nChunkedOverlayPagesWlk++;
+        }
+
         iWlk++;
         nextPageRangeWlk = !(iWlk < iEndWlk);
         nextPageRangesWlk = false;
@@ -579,8 +599,14 @@ public final class InboxPageImageChunker {
         pageTmp.setJob(iJobChunkWlk);
         pageTmp.setRotate(jobChunkWlk.getRotate());
         pageTmp.setDrm(jobChunkWlk.getDrm());
+
+        pageTmp.setOverlay(Boolean.valueOf(
+                jobChunkWlk.getOverlay() != null && jobChunkWlk.getOverlay()
+                        .containsKey(Integer.valueOf(pageUrlParmChunkWlk))));
+
         pageTmp.setMedia(jobChunkWlk.getMedia());
         pageTmp.setPages(nChunkedPagesWlk);
+        pageTmp.setOverlayPages(nChunkedOverlayPagesWlk);
 
         if (msecJobExpirySignal > 0) {
             pageTmp.setExpiryTime(jobChunkWlk.getCreatedTime() + msecJobExpiry);
