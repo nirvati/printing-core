@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -120,7 +123,6 @@ public final class PrintDelegationServiceImpl extends AbstractService
 
         final Map<Long, Integer> sharedAccountCopies = new HashMap<>();
 
-        int weightTotal = 0;
         int copiesTotal = 0;
 
         /*
@@ -140,7 +142,6 @@ public final class PrintDelegationServiceImpl extends AbstractService
             final int copiesWlk = addUserAccountToTrxList(targetList, user,
                     idUser.getValue(), 1, null);
 
-            weightTotal += copiesWlk;
             copiesTotal += copiesWlk;
         }
 
@@ -170,7 +171,6 @@ public final class PrintDelegationServiceImpl extends AbstractService
             targetList.add(
                     createAccountTrxInfo(groupAccount, copiesWlk, 1, null));
 
-            weightTotal += copiesWlk;
             copiesTotal += copiesWlk;
         }
 
@@ -188,7 +188,6 @@ public final class PrintDelegationServiceImpl extends AbstractService
 
             final int copiesGroupWlk = idGroup.getValue().intValue();
 
-            weightTotal += copiesGroupWlk;
             copiesTotal += copiesGroupWlk;
 
             groupMemberFilterWlk.setGroupId(idGroup.getKey());
@@ -317,15 +316,13 @@ public final class PrintDelegationServiceImpl extends AbstractService
             targetList
                     .add(createAccountTrxInfo(account, sharedCopies, 1, null));
 
-            weightTotal += sharedCopies.intValue();
             copiesTotal += sharedCopies.intValue();
         }
 
         /*
          * Wrap-up
          */
-        final AccountTrxInfoSet target =
-                new AccountTrxInfoSet(weightTotal, copiesTotal);
+        final AccountTrxInfoSet target = new AccountTrxInfoSet(copiesTotal);
         target.setAccountTrxInfoList(targetList);
         return target;
     }

@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -33,14 +36,14 @@ import java.util.List;
 public final class AccountTrxInfoSet {
 
     /**
-     * .
+     * The weight total (number of printed copies).
+     * <p>
+     * This total need NOT be the same as the accumulated weight of the
+     * individual Account transactions. For example: parts of the printing costs
+     * may be charged to (personal and shared) multiple accounts.
+     * </p>
      */
     private final int weightTotal;
-
-    /**
-     * The number of units (e.g. printed copies).
-     */
-    private final int unitTotal;
 
     /**
      * .
@@ -50,30 +53,10 @@ public final class AccountTrxInfoSet {
     /**
      *
      * @param weightTot
-     *            The weight total. IMPORTANT: This total need NOT be the same
-     *            as the accumulated weight of the individual Account
-     *            transactions. For example: parts of the printing costs may be
-     *            charged to (personal and shared) multiple accounts.
-     *
+     *            The weight total (number of printed copies).
      */
     public AccountTrxInfoSet(final int weightTot) {
         this.weightTotal = weightTot;
-        this.unitTotal = weightTot;
-    }
-
-    /**
-     *
-     * @param weightTot
-     *            The weight total. IMPORTANT: This total need NOT be the same
-     *            as the accumulated weight of the individual Account
-     *            transactions. For example: parts of the printing costs may be
-     *            charged to (personal and shared) multiple accounts.
-     * @param unitTot
-     *            The number of units (e.g. printed copies).
-     */
-    public AccountTrxInfoSet(final int weightTot, final int unitTot) {
-        this.weightTotal = weightTot;
-        this.unitTotal = unitTot;
     }
 
     /**
@@ -94,25 +77,10 @@ public final class AccountTrxInfoSet {
     }
 
     /**
-     * Gets the weights total.
-     *
-     * <p>
-     * IMPORTANT: This total need NOT be the same as the accumulated weight of
-     * the individual Account transactions. For example: parts of the printing
-     * costs may be charged to (personal and shared) multiple accounts.
-     * </p>
-     *
-     * @return The weight total.
+     * @return The weight total (number of printed copies).
      */
     public int getWeightTotal() {
         return weightTotal;
-    }
-
-    /**
-     * @return The number of units (e.g. printed copies).
-     */
-    public int getUnitTotal() {
-        return unitTotal;
     }
 
 }
