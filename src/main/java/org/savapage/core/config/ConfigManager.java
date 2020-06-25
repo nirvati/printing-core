@@ -2438,6 +2438,16 @@ public final class ConfigManager {
     }
 
     /**
+     * @return {@code true} if SafePages overlay editor is enabled <i>and</i>
+     *         SVG to PDF converter is installed.
+     */
+    public static boolean isPdfOverlayEditorEnabled() {
+        return instance()
+                .isConfigValue(Key.WEBAPP_USER_PAGE_BROWSER_CANVAS_ENABLE)
+                && SystemInfo.isRSvgConvertInstalled();
+    }
+
+    /**
      *
      * @return
      */
