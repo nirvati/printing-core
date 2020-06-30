@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -22,8 +25,12 @@
 package org.savapage.core.services;
 
 import java.io.IOException;
+import java.util.Map;
 
+import org.savapage.core.dao.enums.ACLOidEnum;
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
+import org.savapage.core.dao.enums.UserGroupAttrEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dto.UserGroupPropertiesDto;
 import org.savapage.core.jpa.UserGroup;
@@ -34,7 +41,7 @@ import org.savapage.core.json.rpc.impl.ResultListStrings;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public interface UserGroupService {
@@ -64,6 +71,31 @@ public interface UserGroupService {
      * @return The {@link UserGroup} or {@code null} when not found.
      */
     UserGroup getInternalUserGroup();
+
+    /**
+     * Gets user group roles.
+     *
+     * @param group
+     *            User Group.
+     * @return A map of enabled/disabled (value) user roles (key).
+     */
+    Map<ACLRoleEnum, Boolean> getUserGroupRoles(UserGroup group);
+
+    /**
+     * @param group
+     *            User Group.
+     * @return A map of bitwise OR-ed ACL values by Admin ACL keys. See
+     *         {@link UserGroupAttrEnum#ACL_OIDS_ADMIN}
+     */
+    Map<ACLOidEnum, Integer> getUserGroupACLAdmin(UserGroup group);
+
+    /**
+     * @param group
+     *            User Group.
+     * @return A map of bitwise OR-ed ACL values by User ACL keys. See
+     *         {@link UserGroupAttrEnum#ACL_OIDS_USER}
+     */
+    Map<ACLOidEnum, Integer> getUserGroupACLUser(UserGroup group);
 
     /**
      * Checks if group name is reserved.
@@ -188,9 +220,8 @@ public interface UserGroupService {
      * @throws IOException
      *             When something goes wrong.
      */
-    AbstractJsonRpcMethodResponse addUserGroup(
-            DaoBatchCommitter batchCommitter, String groupName)
-            throws IOException;
+    AbstractJsonRpcMethodResponse addUserGroup(DaoBatchCommitter batchCommitter,
+            String groupName) throws IOException;
 
     /**
      * Adds an internal user group. All internal and (synchronized) external
@@ -204,8 +235,8 @@ public interface UserGroupService {
      * @throws IOException
      *             When something goes wrong.
      */
-    int addInternalUserGroup(DaoBatchCommitter batchCommitter,
-            String groupName) throws IOException;
+    int addInternalUserGroup(DaoBatchCommitter batchCommitter, String groupName)
+            throws IOException;
 
     /**
      * Updates one or more properties for an existing Internal or External User
@@ -218,7 +249,7 @@ public interface UserGroupService {
      *             When something went wrong.
      */
     AbstractJsonRpcMethodResponse setUserGroupProperties(
-            final UserGroupPropertiesDto dto) throws IOException;
+            UserGroupPropertiesDto dto) throws IOException;
 
     /**
      * Synchronizes a user group with the external user source. Synchronized
@@ -232,9 +263,9 @@ public interface UserGroupService {
      * @throws IOException
      *             When something goes wrong.
      */
-    AbstractJsonRpcMethodResponse syncUserGroup(
-            DaoBatchCommitter batchCommitter, String groupName)
-            throws IOException;
+    AbstractJsonRpcMethodResponse
+            syncUserGroup(DaoBatchCommitter batchCommitter, String groupName)
+                    throws IOException;
 
     /**
      * Synchronizes with an internal user group. Internal and (synchronized)

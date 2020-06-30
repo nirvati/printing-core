@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -40,6 +43,7 @@ import org.savapage.core.dao.UserGroupAttrDao;
 import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.UserGroupDao.SchedulePeriodEnum;
 import org.savapage.core.dao.UserGroupMemberDao;
+import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.dao.enums.UserGroupAttrEnum;
@@ -124,6 +128,27 @@ public final class UserGroupServiceImpl extends AbstractService
             userGroupDAO().create(group);
         }
         return group;
+    }
+
+    @Override
+    public Map<ACLRoleEnum, Boolean> getUserGroupRoles(final UserGroup group) {
+
+        final UserGroupAttr aclAttr = userGroupAttrDAO().findByName(group,
+                UserGroupAttrEnum.ACL_ROLES);
+
+        Map<ACLRoleEnum, Boolean> aclRoles;
+
+        if (aclAttr == null) {
+            aclRoles = null;
+        } else {
+            aclRoles = JsonHelper.createEnumBooleanMapOrNull(ACLRoleEnum.class,
+                    aclAttr.getValue());
+        }
+
+        if (aclRoles == null) {
+            aclRoles = new HashMap<ACLRoleEnum, Boolean>();
+        }
+        return aclRoles;
     }
 
     @Override
@@ -744,6 +769,45 @@ public final class UserGroupServiceImpl extends AbstractService
             userGroupDb.setModifiedDate(ServiceContext.getTransactionDate());
             userGroupDAO().update(userGroupDb);
         }
+    }
+
+    @Override
+    public Map<ACLOidEnum, Integer>
+            getUserGroupACLAdmin(final UserGroup group) {
+        return this.getAclOidMap(group, UserGroupAttrEnum.ACL_OIDS_ADMIN);
+    }
+
+    @Override
+    public Map<ACLOidEnum, Integer> getUserGroupACLUser(final UserGroup group) {
+        return this.getAclOidMap(group, UserGroupAttrEnum.ACL_OIDS_USER);
+    }
+
+    /**
+     * @param group
+     *            User Group.
+     * @param attrEnum
+     *            Attribute type.
+     * @return map.
+     */
+    private Map<ACLOidEnum, Integer> getAclOidMap(final UserGroup group,
+            final UserGroupAttrEnum attrEnum) {
+
+        final UserGroupAttr aclAttr =
+                userGroupAttrDAO().findByName(group, attrEnum);
+
+        Map<ACLOidEnum, Integer> aclOids;
+
+        if (aclAttr == null) {
+            aclOids = null;
+        } else {
+            aclOids = JsonHelper.createEnumIntegerMapOrNull(ACLOidEnum.class,
+                    aclAttr.getValue());
+        }
+
+        if (aclOids == null) {
+            aclOids = new HashMap<ACLOidEnum, Integer>();
+        }
+        return aclOids;
     }
 
     @Override

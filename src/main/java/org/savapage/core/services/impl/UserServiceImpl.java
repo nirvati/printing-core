@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -652,10 +652,53 @@ public final class UserServiceImpl extends AbstractService
         dto.setAccounting(accountingService().getUserAccounting(user));
 
         /*
-         * ACL Roles.
+         * Roles.
          */
-        UserAttr aclAttr =
-                userAttrDAO().findByName(user.getId(), UserAttrEnum.ACL_ROLES);
+        dto.setAclRoles(this.getUserRoles(user.getId()));
+
+        /*
+         * ACL.
+         */
+        dto.setAclOidsUser(ACLOidEnum.asMapPerms(
+                this.getAclOidMap(user.getId(), UserAttrEnum.ACL_OIDS_USER)));
+        dto.setAclOidsAdmin(ACLOidEnum.asMapPerms(
+                this.getAclOidMap(user.getId(), UserAttrEnum.ACL_OIDS_ADMIN)));
+        //
+        return dto;
+    }
+
+    /**
+     * @param userID
+     *            User key.
+     * @param attrEnum
+     *            Attribute type.
+     * @return map.
+     */
+    private Map<ACLOidEnum, Integer> getAclOidMap(final Long userID,
+            final UserAttrEnum attrEnum) {
+
+        final UserAttr aclAttr = userAttrDAO().findByName(userID, attrEnum);
+        Map<ACLOidEnum, Integer> aclOids;
+
+        if (aclAttr == null) {
+            aclOids = null;
+        } else {
+            aclOids = JsonHelper.createEnumIntegerMapOrNull(ACLOidEnum.class,
+                    aclAttr.getValue());
+        }
+
+        if (aclOids == null) {
+            aclOids = new HashMap<ACLOidEnum, Integer>();
+        }
+
+        return aclOids;
+    }
+
+    @Override
+    public Map<ACLRoleEnum, Boolean> getUserRoles(final Long userID) {
+
+        final UserAttr aclAttr =
+                userAttrDAO().findByName(userID, UserAttrEnum.ACL_ROLES);
 
         Map<ACLRoleEnum, Boolean> aclRoles;
 
@@ -670,48 +713,7 @@ public final class UserServiceImpl extends AbstractService
             aclRoles = new HashMap<ACLRoleEnum, Boolean>();
         }
 
-        dto.setAclRoles(aclRoles);
-
-        /*
-         * OIDS (User).
-         */
-        aclAttr = userAttrDAO().findByName(user.getId(),
-                UserAttrEnum.ACL_OIDS_USER);
-        Map<ACLOidEnum, Integer> aclOids;
-
-        if (aclAttr == null) {
-            aclOids = null;
-        } else {
-            aclOids = JsonHelper.createEnumIntegerMapOrNull(ACLOidEnum.class,
-                    aclAttr.getValue());
-        }
-
-        if (aclOids == null) {
-            aclOids = new HashMap<ACLOidEnum, Integer>();
-        }
-
-        dto.setAclOidsUser(ACLOidEnum.asMapPerms(aclOids));
-
-        /*
-         * OIDS (Admin).
-         */
-        aclAttr = userAttrDAO().findByName(user.getId(),
-                UserAttrEnum.ACL_OIDS_ADMIN);
-
-        if (aclAttr == null) {
-            aclOids = null;
-        } else {
-            aclOids = JsonHelper.createEnumIntegerMapOrNull(ACLOidEnum.class,
-                    aclAttr.getValue());
-        }
-
-        if (aclOids == null) {
-            aclOids = new HashMap<ACLOidEnum, Integer>();
-        }
-
-        dto.setAclOidsAdmin(ACLOidEnum.asMapPerms(aclOids));
-        //
-        return dto;
+        return aclRoles;
     }
 
     /**

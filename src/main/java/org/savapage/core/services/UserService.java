@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,12 +28,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.savapage.core.OutOfBoundsException;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.IAttrDao;
+import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dto.UserDto;
 import org.savapage.core.dto.UserIdDto;
@@ -505,6 +507,15 @@ public interface UserService {
      * @return The (un-encrypted) value string or {@code null} when not found.
      */
     String getUserAttrValue(User user, UserAttrEnum attrEnum);
+
+    /**
+     * Gets user roles.
+     *
+     * @param userID
+     *            Primary ID of User
+     * @return A map of enabled/disabled (value) user roles (key).
+     */
+    Map<ACLRoleEnum, Boolean> getUserRoles(Long userID);
 
     /**
      * Checks the {@link UserAttr#getValue()} from {@link User#getAttributes()}
