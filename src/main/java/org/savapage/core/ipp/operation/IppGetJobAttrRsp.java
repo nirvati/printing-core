@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -34,7 +37,6 @@ import org.savapage.core.ipp.attribute.syntax.IppCharset;
 import org.savapage.core.ipp.attribute.syntax.IppJobState;
 import org.savapage.core.ipp.attribute.syntax.IppNaturalLanguage;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
-import org.savapage.core.ipp.encoding.IppEncoder;
 
 /**
  *
@@ -126,21 +128,9 @@ public class IppGetJobAttrRsp extends AbstractIppResponse {
         attrGroups.add(createGroupJobAttr(ostr, request.getJobUri(),
                 request.getJobId()));
 
-        // ---------------------------------------------------------------------
-        // Response: Header
-        ostr.write(operation.getVersionMajor());
-        ostr.write(operation.getVersionMinor());
-
-        // StatusCode - ignored some attributes
-        IppEncoder.writeInt16(ostr, IppStatusCode.OK.asInt());
-
-        //
-        IppEncoder.writeInt32(ostr, operation.getRequestId());
-
-        writeAttributes(attrGroups, ostr, request.getAttributesCharset());
-
-        ostr.write(IppDelimiterTag.END_OF_ATTR.asInt());
-
+        // StatusCode OK : ignored some attributes
+        writeHeaderAndAttributes(operation, IppStatusCode.OK, attrGroups, ostr,
+                request.getAttributesCharset());
     }
 
     /**

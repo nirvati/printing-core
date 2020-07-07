@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -119,9 +119,15 @@ public final class DocContent {
     public static final String HEADER_PJL = "\u001b" + "%-12345X";
 
     /**
-     * The first bytes (signature) of {@link DocContentTypeEnum#UNIRAST}.
+     * The first bytes (signature) of {@link DocContentTypeEnum#URF}.
      */
     public static final String HEADER_UNIRAST = "UNIR";
+
+    /**
+     * The first bytes (signature) of {@link DocContentTypeEnum#PWG}. Full
+     * signature: RaS2PwgRaster.
+     */
+    public static final String HEADER_PWGRAST = "RaS2";
 
     /** */
     public static final String FILENAME_EXT_PDF = "pdf";
@@ -221,7 +227,8 @@ public final class DocContent {
 
         init(DocContentTypeEnum.TXT, "text/plain", "txt");
 
-        init(DocContentTypeEnum.UNIRAST, "image/urf", "urf");
+        init(DocContentTypeEnum.PWG, "image/pwg-raster", "pwg");
+        init(DocContentTypeEnum.URF, "image/urf", "urf");
 
         init(DocContentTypeEnum.VCARD, "text/x-vcard", "vcf");
 
@@ -437,7 +444,8 @@ public final class DocContent {
         for (DocContentTypeEnum contentType : new DocContentTypeEnum[] {
                 DocContentTypeEnum.JPEG, DocContentTypeEnum.PNG,
                 DocContentTypeEnum.GIF, DocContentTypeEnum.SVG,
-                DocContentTypeEnum.TIFF, DocContentTypeEnum.BMP }) {
+                DocContentTypeEnum.TIFF, DocContentTypeEnum.BMP,
+                DocContentTypeEnum.PWG, DocContentTypeEnum.URF }) {
 
             if (excludeTypes.contains(contentType)
                     || !isSupported(contentType)) {
@@ -525,8 +533,11 @@ public final class DocContent {
         case CUPS_PDF_BANNER:
             return true;
 
+        case PWG:
+        case URF:
+            return true;
+
         case CUPS_COMMAND:
-        case UNIRAST:
         case VCARD:
         case WMF:
         default:
@@ -548,16 +559,19 @@ public final class DocContent {
             final DocContentTypeEnum contentType,
             final InternalFontFamilyEnum preferredOutputFont) {
 
+        /*
+         * Exempt image files that do NOT have stream converter but DO have a
+         * file converter.
+         */
+        if (contentType == DocContentTypeEnum.SVG
+                || contentType == DocContentTypeEnum.PWG
+                || contentType == DocContentTypeEnum.URF) {
+            return null;
+        }
+
         final IStreamConverter converter;
 
-        if (contentType == DocContentTypeEnum.SVG) {
-            /*
-             * Since SVG is an image, we make this exception: we have NO stream
-             * converter (though we DO have a file converter).
-             */
-            converter = null;
-
-        } else if (DocContent.isImage(contentType)) {
+        if (DocContent.isImage(contentType)) {
             converter = new ImageToPdf();
 
         } else if (contentType == DocContentTypeEnum.HTML) {
@@ -579,6 +593,7 @@ public final class DocContent {
         } else {
             converter = null;
         }
+
         return converter;
     }
 
@@ -599,6 +614,10 @@ public final class DocContent {
             return new SvgToPdf();
         case XPS:
             return new XpsToPdf();
+        case PWG:
+            return new PWGToPdf();
+        case URF:
+            return new URFToPdf();
 
         case RTF:
         case DOC:

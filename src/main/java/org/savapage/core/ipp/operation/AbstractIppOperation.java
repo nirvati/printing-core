@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.savapage.core.ipp.IppProcessingException;
+import org.savapage.core.ipp.IppVersionEnum;
 import org.savapage.core.ipp.encoding.IppEncoder;
 import org.savapage.core.jpa.IppQueue;
 import org.slf4j.Logger;
@@ -67,6 +68,29 @@ public abstract class AbstractIppOperation {
 
     public void setRequestId(int requestId) {
         this.requestId = requestId;
+    }
+
+    /**
+     * @return {@code true} if IPP/2.x
+     */
+    public final boolean isIPPversion2() {
+        return IppVersionEnum.isIPPversion2(this.versionMajor);
+    }
+
+    /**
+     *
+     * @return {@code true} if request-id is valid.
+     */
+    public boolean isRequestIdValid() {
+        return this.requestId != 0;
+    }
+
+    /**
+     *
+     * @return {@code true} if IPP version is supported.
+     */
+    public boolean isIPPVersionSupported() {
+        return IppVersionEnum.isSupported(versionMajor, versionMinor);
     }
 
     /**
@@ -159,6 +183,9 @@ public abstract class AbstractIppOperation {
         } else if (operationId == IppOperationId.GET_PRINTER_ATTR.asInt()) {
             operation = new IppGetPrinterAttrOperation(queue);
 
+        } else if (operationId == IppOperationId.IDENTIFY_PRINTER.asInt()) {
+            operation = new IppIdentifyPrinterOperation(queue);
+
         } else if (operationId == IppOperationId.GET_JOBS.asInt()) {
             operation = new IppGetJobsOperation();
 
@@ -204,4 +231,5 @@ public abstract class AbstractIppOperation {
 
         return ippOperationId;
     }
+
 }

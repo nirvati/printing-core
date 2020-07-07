@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,6 +31,9 @@ import org.savapage.core.SpException;
  * <p>
  * See <a href="http://tools.ietf.org/html/rfc2911#section-13.1">RFC2911</a>
  * </p>
+ *
+ * @author Rijk Ravestein
+ *
  */
 public enum IppStatusCode {
     /** success. */
@@ -44,19 +50,20 @@ public enum IppStatusCode {
     CLI_BADREQ(0x0400),
 
     /**
-     * request is forbidden.
-     *
+     * client-error-forbidden
+     * <p>
      * The IPP object understood the request, but is refusing to fulfill it.
      * Additional authentication information or authorization credentials will
      * not help and the request SHOULD NOT be repeated. This status code is
      * commonly used when the IPP object does not wish to reveal exactly why the
      * request has been refused or when no other response is applicable.
+     * </p>
      */
     CLI_FORBID(0x0401),
 
     /**
-     * authentication required.
-     *
+     * client-error-not-authenticated
+     * <p>
      * The request requires user authentication. The IPP client may repeat the
      * request with suitable authentication information. If the request already
      * included authentication information, then this status code indicates that
@@ -65,6 +72,7 @@ public enum IppStatusCode {
      * already attempted authentication at least once, then the response message
      * may contain relevant diagnostic information. This status codes reveals
      * more information than "client-error-forbidden".
+     * </p>
      */
     CLI_NOAUTH(0x0402),
 
@@ -245,8 +253,9 @@ public enum IppStatusCode {
         } else if (value == IppStatusCode.SRV_NOMULTI.asInt()) {
             return SRV_NOMULTI;
         }
-        throw new SpException("value [" + value
-                + "] can not be converted to enum");
+        throw new SpException(
+                String.format("Value [%d] can not be converted to %s.", value,
+                        IppStatusCode.class.getSimpleName()));
     }
 
 }

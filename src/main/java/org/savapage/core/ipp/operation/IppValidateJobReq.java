@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,10 +40,12 @@ import org.savapage.core.print.server.DocContentPrintProcessor;
  */
 public final class IppValidateJobReq extends AbstractIppRequest {
 
+    /** */
     private DocContentPrintProcessor printInReqHandler = null;
 
     @Override
-    protected void process(final InputStream istr) {
+    protected void process(final AbstractIppOperation operation,
+            final InputStream istr) {
         // no code intended
     }
 
@@ -75,7 +77,7 @@ public final class IppValidateJobReq extends AbstractIppRequest {
         /*
          * Then, read the IPP attributes.
          */
-        readAttributes(istr);
+        readAttributes(operation, istr);
 
         /*
          * Then, get the IPP requesting user.

@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -192,6 +192,20 @@ public abstract class AbstractFileConverter {
     }
 
     /**
+     * @return {@code true} if stdout messages must be reported.
+     */
+    protected boolean reportStdout() {
+        return true;
+    }
+
+    /**
+     * @return {@code true} if stderr messages must be reported.
+     */
+    protected boolean reportStderr() {
+        return true;
+    }
+
+    /**
      * Performs a conversion using an OS Command.
      *
      * @param contentType
@@ -242,13 +256,13 @@ public abstract class AbstractFileConverter {
             this.hasStdout = StringUtils.isNotBlank(stdout);
             this.hasStderr = StringUtils.isNotBlank(stderr);
 
-            if (this.hasStdout) {
+            if (this.hasStdout && this.reportStdout()) {
                 LOGGER.debug("[{}] {}", command, stdout);
             }
 
             final String stderrMsg;
 
-            if (this.hasStderr) {
+            if (this.hasStderr && this.reportStderr()) {
                 final StringBuilder msg = new StringBuilder();
                 msg.append(" ")
                         .append(StringUtils.abbreviate(stderr, MAX_ERROR_LEN));

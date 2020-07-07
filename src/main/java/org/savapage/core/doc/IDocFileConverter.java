@@ -65,7 +65,8 @@ public interface IDocFileConverter extends IDocConverter {
     boolean notifyStdOutMsg();
 
     /**
-     * @return {@code true} if OS command messages on stderr are present.
+     * @return {@code true} if OS command messages on stderr are present and
+     *         must be reported.
      */
     boolean hasStdErrMsg();
 }

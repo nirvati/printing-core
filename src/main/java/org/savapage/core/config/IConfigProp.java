@@ -1003,6 +1003,11 @@ public interface IConfigProp {
                 "ipp.routing.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
 
+        /** */
+        IPP_PRINTER_ATTR_PRINTER_UUID(//
+                "ipp.printer-attr.printer-uuid", UUID_VALIDATOR,
+                UUID.randomUUID().toString(), API_UPDATABLE_ON),
+
         /**
          * See this <a href=
          * "http://docs.oracle.com/javase/jndi/tutorial/ldap/search/batch.html"

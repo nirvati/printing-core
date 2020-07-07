@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -32,6 +35,7 @@ import java.util.List;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.attribute.IppAttrValue;
 import org.savapage.core.ipp.attribute.IppDictOperationAttr;
+import org.savapage.core.ipp.encoding.IppDelimiterTag;
 import org.savapage.core.ipp.encoding.IppEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,125 +59,31 @@ public abstract class AbstractIppRequest extends IppMessageMixin {
      */
     private List<IppAttrGroup> attrGroups = new ArrayList<>();
 
-    /*
-     * The only operations that support supplying the document data within an
-     * operation request are Print-Job and Send- Document.
-     */
-
-    /*
-     * When an IPP object receives a request to perform an operation it does not
-     * support, it returns the ’server-error-operation-not-supported’ status
-     * code (see section 13.1.5.2). An IPP object is non-conformant if it does
-     * not support a REQUIRED operation.
-     */
-
-    /*
-     * The operation target attributes are REQUIRED operation attributes that
-     * MUST be included in every operation request. Like the charset and natural
-     * language attributes (see section 3.1.4), the operation target attributes
-     * are specially ordered operation attributes. In all cases, the operation
-     * target attributes immediately follow the "attributes-charset" and
-     * "attributes-natural-language" attributes within the operation attribute
-     * group, however the specific ordering rules are:
-     *
-     * - In the case where there is only one operation target attribute (i.e.,
-     * either only the "printer-uri" attribute or only the "job-uri" attribute),
-     * that attribute MUST be the third attribute in the operation attributes
-     * group.
-     *
-     * - In the case where Job operations use two operation target attributes
-     * (i.e., the "printer-uri" and "job-id" attributes), the "printer-uri"
-     * attribute MUST be the third attribute and the "job-id" attribute MUST be
-     * the fourth attribute.
-     *
-     * In all cases, the target URIs contained within the body of IPP operation
-     * requests and responses must be in absolute format rather than relative
-     * format (a relative URL identifies a resource with the scope of the HTTP
-     * server, but does not include scheme, host or port).
-     *
-     * The following rules apply to the use of port numbers in URIs that
-     * identify IPP objects:
-     *
-     * 1. If the URI scheme allows the port number to be explicitly included in
-     * the URI string, and a port number is specified within the URI, then that
-     * port number MUST be used by the client to contact the IPP object.
-     *
-     * 2. If the URI scheme allows the port included in the URI string, and a
-     * within the URI, then default port scheme MUST be used by the client
-     * number to be explicitly port number is not specified number implied by
-     * that URI to contact the IPP object.
-     *
-     * 3. If the URI scheme does not allow an explicit port number to be
-     * specified within the URI, then the default port number implied by that
-     * URI MUST be used by the client to contact the IPP object.
-     */
-
-    /*
-     * 3.1.8 Versions
-     *
-     * Each operation request and response carries with it a "version- number
-     * " parameter. Each value of the "version-number" is in the form "X.Y"
-     * where X is the major version number and Y is the minor version number. By
-     * including a version number in the client request, it allows the client to
-     * identify which version of IPP it is interested in using, i.e., the
-     * version whose conformance requirements the client may be depending upon
-     * the Printer to meet.
-     *
-     * If the IPP object does not support that major version number supplied by
-     * the client, i.e., the major version field of the "version-number"
-     * parameter does not match any of the values of the Printer’s "ipp-
-     * versions-supported" (see section 4.4.14), the object MUST respond with a
-     * status code of ’server-error-version-not-supported’ along with the
-     * closest version number that is supported (see section 13.1.5.4). If the
-     * major version number is supported, but the minor version number is not,
-     * the IPP object SHOULD accept and attempt to perform the request (or
-     * reject the request if the operation is not supported), else it rejects
-     * the request and returns the ’server- error-version-not-supported’ status
-     * code. In all cases, the IPP object MUST return the "version-number" that
-     * it supports that is closest to the version number supplied by the client
-     * in the request.
-     *
-     * There is no version negotiation per se. However, if after receiving a
-     * ’server-error-version-not-supported’ status code from an IPP object, a
-     * client SHOULD try again with a different version number. A client MAY
-     * also determine the versions supported either from a directory that
-     * conforms to Appendix E (see section 16) or by querying the Printer
-     * object’s "ipp-versions-supported" attribute (see section 4.4.14) to
-     * determine which versions are supported.
-     *
-     * An IPP object implementation MUST support version ’1.1’, i.e., meet the
-     * conformance requirements for IPP/1.1 as specified in this document and
-     * [RFC2910]. It is recommended that IPP object implementations accept any
-     * request with the major version ’1’ (or reject the request if the
-     * operation is not supported).
-     *
-     * There is only one notion of "version number" that covers both IPP Model
-     * and IPP Protocol changes. Thus the version number MUST change when
-     * introducing a new version of the Model and Semantics document (this
-     * document) or a new version of the "Encoding and Transport" document
-     * [RFC2910].
-     *
-     * ...
-     *
-     */
-
     /**
      * Processes IPP stream.
      *
+     * @param operation
+     *            IPP operation.
      * @param istr
      *            The stream to process.
      * @throws IOException
      *             If IO error.
      */
-    abstract void process(InputStream istr) throws IOException;
+    abstract void process(AbstractIppOperation operation, InputStream istr)
+            throws IOException;
 
     /**
      * Generic read of attributes.
      *
+     * @param operation
+     *            Requesting IPP operation.
      * @param istr
+     *            IPP input stream.
      * @throws IOException
+     *             If error occurred.
      */
-    protected void readAttributes(final InputStream istr) throws IOException {
+    protected void readAttributes(final AbstractIppOperation operation,
+            final InputStream istr) throws IOException {
 
         Writer traceLog = null;
 
@@ -184,9 +94,14 @@ public abstract class AbstractIppRequest extends IppMessageMixin {
         attrGroups = IppEncoder.readAttributes(istr, traceLog);
 
         if (traceLog != null) {
+            final String header = String.format(
+                    "HEADER :" + "\n  IPP/%d.%d" + "\n  request-id [%d]",
+                    operation.getVersionMajor(), operation.getVersionMinor(),
+                    operation.getRequestId());
+
             LOGGER.trace("\n+----------------------------------------+"
                     + "\n| Request: " + this.getClass().getSimpleName()
-                    + "\n+----------------------------------------+"
+                    + "\n+----------------------------------------+\n" + header
                     + traceLog.toString());
         }
     }
@@ -222,17 +137,67 @@ public abstract class AbstractIppRequest extends IppMessageMixin {
         return value;
     }
 
+    private String getAttrSingleValue(final String name) {
+        final IppAttrValue val = getAttrValue(name);
+        if (val != null && val.getValues().size() == 1) {
+            return val.getValues().get(0);
+        }
+        return null;
+    }
+
     /**
      * @return the IPP attribute "requesting-user-name" or {@code null} when not
      *         found.
      */
     public final String getRequestingUserName() {
-        final IppAttrValue val =
-                getAttrValue(IppDictOperationAttr.ATTR_REQUESTING_USER_NAME);
-        if (val != null && val.getValues().size() == 1) {
-            return val.getValues().get(0);
+        return this.getAttrSingleValue(
+                IppDictOperationAttr.ATTR_REQUESTING_USER_NAME);
+    }
+
+    /**
+     * @return the IPP attribute "printer-uri" or {@code null} when not found.
+     */
+    public final String getPrinterURI() {
+        return this.getAttrSingleValue(IppDictOperationAttr.ATTR_PRINTER_URI);
+    }
+
+    /**
+     * RFC 8011 4.1.4 The "attributes-charset" attribute MUST be the first
+     * attribute in the group, and the "attributes-natural-language" attribute
+     * MUST be the second attribute in the group.
+     *
+     * @return {@code true} operation attributes are present and valid.
+     */
+    public boolean areOperationAttrValid() {
+
+        String charset = null;
+        String language = null;
+
+        for (IppAttrGroup group : attrGroups) {
+
+            if (group.getDelimiterTag()
+                    .equals(IppDelimiterTag.OPERATION_ATTR)) {
+
+                for (final IppAttrValue value : group.getAttributes()) {
+                    final String kw = value.getAttribute().getKeyword();
+                    if (kw.equals(
+                            IppDictOperationAttr.ATTR_ATTRIBUTES_CHARSET)) {
+                        if (language != null) {
+                            return false;
+                        }
+                        charset = value.getSingleValue();
+                    } else if (kw.equals(
+                            IppDictOperationAttr.ATTR_ATTRIBUTES_NATURAL_LANG)) {
+                        if (charset == null) {
+                            return false;
+                        }
+                        language = value.getSingleValue();
+
+                    }
+                }
+            }
         }
-        return null;
+        return charset != null && language != null;
     }
 
 }

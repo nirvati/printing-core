@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,11 +30,16 @@ import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.community.CommunityDictEnum;
+import org.savapage.core.community.MemberCard;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.ipp.IppMediaSizeEnum;
+import org.savapage.core.ipp.IppVersionEnum;
 import org.savapage.core.ipp.attribute.AbstractIppDict;
 import org.savapage.core.ipp.attribute.IppAttr;
 import org.savapage.core.ipp.attribute.IppAttrCollection;
@@ -44,12 +49,11 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr.ApplEnum;
 import org.savapage.core.ipp.attribute.IppDictPrinterDescAttr;
 import org.savapage.core.ipp.attribute.syntax.IppBoolean;
-import org.savapage.core.ipp.attribute.syntax.IppCharset;
+import org.savapage.core.ipp.attribute.syntax.IppDateTime;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
-import org.savapage.core.ipp.attribute.syntax.IppNaturalLanguage;
 import org.savapage.core.ipp.attribute.syntax.IppRangeOfInteger;
+import org.savapage.core.ipp.attribute.syntax.IppResolution;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
-import org.savapage.core.ipp.encoding.IppEncoder;
 import org.savapage.core.ipp.helpers.IppMediaSizeHelper;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.services.ServiceContext;
@@ -70,21 +74,34 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(IppGetPrinterAttrRsp.class);
 
-    /** */
+    /**
+     * CUPS version singleton holder.
+     */
     private static class CUPSVersionHolder {
+        /** CUPS version singleton. */
         public static final String VERSION = ServiceContext.getServiceFactory()
                 .getProxyPrintService().getCupsVersion();
     }
 
     /**
-     * Job Template attributes supported by SavaPage.
+     * Job Template attributes supported by SavaPage Printer.
      */
-    private static final String[] SUPPORTED_ATTR_JOB_TPL =
-            { IppDictJobTemplateAttr.ATTR_COPIES,
-                    IppDictJobTemplateAttr.ATTR_MEDIA };
+    private static final String[] SUPPORTED_ATTR_JOB_TPL = {
+            //
+            IppDictJobTemplateAttr.ATTR_COPIES,
+            IppDictJobTemplateAttr.ATTR_MEDIA,
+            IppDictJobTemplateAttr.ATTR_ORIENTATION_REQUESTED,
+
+            /* PWG 5100.12 - IPP/2.0 Standard. */
+            IppDictJobTemplateAttr.ATTR_OUTPUT_BIN,
+            IppDictJobTemplateAttr.ATTR_SIDES,
+            IppDictJobTemplateAttr.ATTR_PRINT_QUALITY,
+            IppDictJobTemplateAttr.ATTR_PRINTER_RESOLUTION
+            //
+    };
 
     /**
-     *
+     * Printer attributes supported by SavaPage Printer.
      */
     private static final String[] SUPPORTED_ATTR_PRINTER_DESC = {
             /* REQUIRED */
@@ -134,24 +151,40 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             IppDictPrinterDescAttr.ATTR_COLOR_SUPPORTED,
 
             /* OPTIONAL: but needed for IPP Everywhere */
-            IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO,
-            /* OPTIONAL: but needed for IPP Everywhere */
+            IppDictPrinterDescAttr.ATTR_IPP_FEATURES_SUPP,
+            IppDictPrinterDescAttr.ATTR_PRINTER_DEVICE_ID,
             IppDictPrinterDescAttr.ATTR_PRINTER_UUID,
-            /* OPTIONAL: but needed for IPP Everywhere */
             IppDictPrinterDescAttr.ATTR_DOC_PASSWORD_SUPPORTED,
-            /* OPTIONAL: but needed for IPP Everywhere */
             IppDictPrinterDescAttr.ATTR_PRINTER_STATE_MESSAGE,
-            /* OPTIONAL: but needed for IPP Everywhere */
             IppDictPrinterDescAttr.ATTR_PRINTER_STATE_CHANGE_TIME,
-            /* OPTIONAL: but needed for IPP Everywhere */
-            IppDictPrinterDescAttr.ATTR_PRINTER_MAKE_MODEL
+            IppDictPrinterDescAttr.ATTR_PRINTER_MAKE_MODEL,
+            IppDictPrinterDescAttr.ATTR_PRINTER_INFO,
+            IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO,
+            IppDictPrinterDescAttr.ATTR_PRINTER_LOCATION,
+            IppDictPrinterDescAttr.ATTR_PRINTER_GEO_LOCATION,
+            IppDictPrinterDescAttr.ATTR_PRINTER_ORGANIZATION,
+            IppDictPrinterDescAttr.ATTR_PRINTER_ORGANIZATIONAL_UNIT,
+            IppDictPrinterDescAttr.ATTR_PRINTER_CURRENT_TIME,
+            IppDictPrinterDescAttr.ATTR_PRINTER_SUPPLY,
+            IppDictPrinterDescAttr.ATTR_PRINTER_SUPPLY_DESCRIPTION,
+            IppDictPrinterDescAttr.ATTR_PRINTER_SUPPLY_INFO_URI,
+            IppDictPrinterDescAttr.ATTR_IDENTIFY_ACTIONS_DEFAULT,
+            IppDictPrinterDescAttr.ATTR_IDENTIFY_ACTIONS_SUPPORTED,
+            IppDictPrinterDescAttr.ATTR_MEDIA_READY,
+            IppDictPrinterDescAttr.ATTR_WHICH_JOBS_SUPPORTED,
+            IppDictPrinterDescAttr.ATTR_PRINT_COLOR_MODE_DEFAULT,
+            IppDictPrinterDescAttr.ATTR_PRINT_COLOR_MODE_SUPPORTED,
+            IppDictPrinterDescAttr.ATTR_PRINT_CONTENT_OPTIMIZE_DEFAULT,
+            IppDictPrinterDescAttr.ATTR_PRINT_CONTENT_OPTIMIZE_SUPPORTED
             //
     };
+    /** */
+    private IppStatusCode ippStatusCode;
 
     /**
-     *
+     * {@code true} if IPP/2.x.
      */
-    private IppStatusCode ippStatusCode;
+    private boolean ippVersion2;
 
     /**
      * The requested printer queue.
@@ -170,176 +203,155 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     /**
      *
      * @param operation
+     *            IPP operation.
+     * @param request
+     *            IPP request.
      * @param ostr
+     *            IPP output stream.
      * @throws IOException
+     *             If error.
      */
     public void process(final IppGetPrinterAttrOperation operation,
-            IppGetPrinterAttrReq request, final OutputStream ostr)
+            final IppGetPrinterAttrReq request, final OutputStream ostr)
             throws IOException {
 
+        this.ippVersion2 = operation.isIPPversion2();
+        this.ippStatusCode = this.determineStatusCode(operation, request);
+
+        if (this.ippStatusCode == IppStatusCode.OK
+                && StringUtils.isBlank(request.getPrinterURI())) {
+            this.ippStatusCode = IppStatusCode.CLI_BADREQ;
+        }
+
         final List<IppAttrGroup> attrGroups = new ArrayList<>();
-
-        IppAttrGroup group = null;
-        IppAttrValue value = null;
-        IppAttr attr = null;
-
-        ippStatusCode = IppStatusCode.OK;
 
         /**
          * Group 1: Operation Attributes
          */
-        group = new IppAttrGroup(IppDelimiterTag.OPERATION_ATTR);
-        attrGroups.add(group);
+        attrGroups.add(this.createOperationGroup());
 
         /*
-         * Status Message:
-         *
          * In addition to the REQUIRED status code returned in every response,
          * the response OPTIONALLY includes a "status-message" (text(255))
          * and/or a "detailed-status-message" (text(MAX)) operation attribute as
          * described in sections 13 and 3.1.6.
          */
 
-        // TODO
+        if (this.ippStatusCode == IppStatusCode.OK) {
 
-        /*
-         * Natural Language and Character Set:
-         *
-         * The "attributes-charset" and "attributes-natural-language" attributes
-         * as described in section 3.1.4.2.
-         */
-        attr = new IppAttr("attributes-charset", new IppCharset());
-        value = new IppAttrValue(attr);
-        value.addValue("utf-8");
-        group.addAttribute(value);
-
-        attr = new IppAttr("attributes-natural-language",
-                new IppNaturalLanguage());
-        value = new IppAttrValue(attr);
-        value.addValue("en-us");
-        group.addAttribute(value);
-
-        /**
-         * Group 2: Unsupported Attributes
-         *
-         * See section 3.1.7 for details on returning Unsupported Attributes.
-         *
-         * The response NEED NOT contain the "requested-attributes" operation
-         * attribute with any supplied values (attribute keywords) that were
-         * requested by the client but are not supported by the IPP object.
-         *
-         * If the Printer object does return unsupported attributes referenced
-         * in the "requested-attributes" operation attribute and that attribute
-         * included group names, such as 'all', the unsupported attributes MUST
-         * NOT include attributes described in the standard but not supported by
-         * the implementation.
-         */
-        final IppAttrGroup groupAttrUnsupp =
-                new IppAttrGroup(IppDelimiterTag.UNSUPP_ATTR);
-
-        /**
-         * Group 3: Printer Object Attributes
-         *
-         * This is the set of requested attributes and their current values.
-         *
-         * The Printer object ignores (does not respond with) any requested
-         * attribute which is not supported.
-         *
-         * The Printer object MAY respond with a subset of the supported
-         * attributes and values, depending on the security policy in force.
-         *
-         * However, the Printer object MUST respond with the 'unknown' value for
-         * any supported attribute (including all REQUIRED attributes) for which
-         * the Printer object does not know the value.
-         *
-         * Also the Printer object MUST respond with the 'no-value' for any
-         * supported attribute (including all REQUIRED attributes) for which the
-         * system administrator has not configured a value. See the description
-         * of the "out-of-band" values in the beginning of Section 4.1.
-         */
-        final IppAttrGroup groupAttrSupp =
-                new IppAttrGroup(IppDelimiterTag.PRINTER_ATTR);
-
-        final IppAttrValue printerUriAttr = request.getAttrValue("printer-uri");
-
-        final URI printerUri;
-
-        if (printerUriAttr == null || printerUriAttr.getValues().isEmpty()) {
-            printerUri = null;
-        } else {
-            try {
-                printerUri = new URI(printerUriAttr.getValues().get(0));
-            } catch (URISyntaxException e) {
-                throw new IllegalStateException(e.getMessage());
-            }
-        }
-
-        if (operation.getRequestedAttributes() == null) {
             /*
-             * The client OPTIONALLY supplies a set of attribute names and/or
-             * attribute group names in whose values the requester is
-             * interested. The Printer object MUST support this attribute.
+             * Group 2: Unsupported Attributes
              *
-             * If the client omits this attribute, the Printer MUST respond as
-             * if this attribute had been supplied with a value of 'all'.
+             * See section 3.1.7 for details on returning Unsupported
+             * Attributes.
+             *
+             * The response NEED NOT contain the "requested-attributes"
+             * operation attribute with any supplied values (attribute keywords)
+             * that were requested by the client but are not supported by the
+             * IPP object.
+             *
+             * If the Printer object does return unsupported attributes
+             * referenced in the "requested-attributes" operation attribute and
+             * that attribute included group names, such as 'all', the
+             * unsupported attributes MUST NOT include attributes described in
+             * the standard but not supported by the implementation.
              */
+            final IppAttrGroup groupAttrUnsupp =
+                    new IppAttrGroup(IppDelimiterTag.UNSUPP_ATTR);
 
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Client requested NO attributes: using ["
-                        + IppGetPrinterAttrOperation.ATTR_GRP_ALL
-                        + "] attributes");
+            /*
+             * Group 3: Printer Object Attributes
+             *
+             * This is the set of requested attributes and their current values.
+             *
+             * The Printer object ignores (does not respond with) any requested
+             * attribute which is not supported.
+             *
+             * The Printer object MAY respond with a subset of the supported
+             * attributes and values, depending on the security policy in force.
+             *
+             * However, the Printer object MUST respond with the 'unknown' value
+             * for any supported attribute (including all REQUIRED attributes)
+             * for which the Printer object does not know the value.
+             *
+             * Also the Printer object MUST respond with the 'no-value' for any
+             * supported attribute (including all REQUIRED attributes) for which
+             * the system administrator has not configured a value. See the
+             * description of the "out-of-band" values in the beginning of
+             * Section 4.1.
+             */
+            final IppAttrGroup groupAttrSupp =
+                    new IppAttrGroup(IppDelimiterTag.PRINTER_ATTR);
+
+            final IppAttrValue printerUriAttr =
+                    request.getAttrValue("printer-uri");
+
+            final URI printerUri;
+
+            if (printerUriAttr == null
+                    || printerUriAttr.getValues().isEmpty()) {
+                printerUri = null;
+            } else {
+                try {
+                    printerUri = new URI(printerUriAttr.getValues().get(0));
+                } catch (URISyntaxException e) {
+                    throw new IllegalStateException(e.getMessage());
+                }
             }
 
-            handleRequestedAttr(printerUri, groupAttrSupp, groupAttrUnsupp,
-                    IppGetPrinterAttrOperation.ATTR_GRP_ALL);
+            if (operation.getRequestedAttributes() == null) {
+                /*
+                 * The client OPTIONALLY supplies a set of attribute names
+                 * and/or attribute group names in whose values the requester is
+                 * interested. The Printer object MUST support this attribute.
+                 *
+                 * If the client omits this attribute, the Printer MUST respond
+                 * as if this attribute had been supplied with a value of 'all'.
+                 */
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Client requested NO attributes: using ["
+                            + IppGetPrinterAttrOperation.ATTR_GRP_ALL
+                            + "] attributes");
+                }
 
-        } else {
+                this.handleRequestedAttr(printerUri, groupAttrSupp,
+                        groupAttrUnsupp,
+                        IppGetPrinterAttrOperation.ATTR_GRP_ALL);
 
-            if (LOGGER.isDebugEnabled()) {
-                final StringBuilder log = new StringBuilder();
-                log.append("requested attributes:");
+            } else {
+
+                if (LOGGER.isDebugEnabled()) {
+                    final StringBuilder log = new StringBuilder();
+                    log.append("requested attributes:");
+                    for (final String keyword : operation
+                            .getRequestedAttributes().getValues()) {
+                        log.append(" ").append(keyword);
+                    }
+                    LOGGER.debug(log.toString());
+                }
+
                 for (final String keyword : operation.getRequestedAttributes()
                         .getValues()) {
-                    log.append(" ").append(keyword);
+                    this.handleRequestedAttr(printerUri, groupAttrSupp,
+                            groupAttrUnsupp, keyword);
                 }
-                LOGGER.debug(log.toString());
             }
 
-            for (final String keyword : operation.getRequestedAttributes()
-                    .getValues()) {
-                handleRequestedAttr(printerUri, groupAttrSupp, groupAttrUnsupp,
-                        keyword);
+            /*
+             * If the Printer object is not returning any Unsupported Attributes
+             * in the response, the Printer object SHOULD omit Group 2 rather
+             * than sending an empty group. However, a client MUST be able to
+             * accept an empty group.
+             */
+            if (!groupAttrUnsupp.getAttributes().isEmpty()) {
+                attrGroups.add(groupAttrUnsupp);
             }
+
+            attrGroups.add(groupAttrSupp);
         }
 
-        /*
-         * If the Printer object is not returning any Unsupported Attributes in
-         * the response, the Printer object SHOULD omit Group 2 rather than
-         * sending an empty group. However, a client MUST be able to accept an
-         * empty group.
-         */
-        if (!groupAttrUnsupp.getAttributes().isEmpty()) {
-            attrGroups.add(groupAttrUnsupp);
-        }
-
-        attrGroups.add(groupAttrSupp);
-
-        // ---------------------------------------------------------------------
-        // Response: Header
-        ostr.write(operation.getVersionMajor());
-        ostr.write(operation.getVersionMinor());
-
-        // StatusCode - ignored some attributes
-        IppEncoder.writeInt16(ostr, ippStatusCode.asInt());
-
-        // Request ID
-        IppEncoder.writeInt32(ostr, operation.getRequestId());
-
-        // Attribute groups
-        writeAttributes(attrGroups, ostr, request.getAttributesCharset());
-
-        // End--of-Attr
-        ostr.write(IppDelimiterTag.END_OF_ATTR.asInt());
+        this.writeHeaderAndAttributes(operation, this.ippStatusCode, attrGroups,
+                ostr, request.getAttributesCharset());
     }
 
     /**
@@ -484,7 +496,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
                 break;
             }
 
-            ippStatusCode = IppStatusCode.OK_ATTRIGN;
+            this.ippStatusCode = IppStatusCode.OK_ATTRIGN;
 
             /*
              * 'unknown': The attribute is supported by the IPP object, but the
@@ -585,12 +597,41 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictJobTemplateAttr.ATTR_MEDIA:
-            value.addValue("main");
+            // Same as IppDictPrinterDescAttr.ATTR_MEDIA_READY:
+            value.addValue(IppMediaSizeEnum.ISO_A4.getIppKeyword());
             if (attrAppl == ApplEnum.SUPPORTED) {
-                value.addValue("top");
-                value.addValue("middle");
-                value.addValue("bottom");
-                value.addValue("side");
+                value.addValue(IppMediaSizeEnum.NA_LETTER.getIppKeyword());
+                value.addValue(IppMediaSizeEnum.ISO_A0.getIppKeyword());
+                value.addValue(IppMediaSizeEnum.ISO_A1.getIppKeyword());
+                value.addValue(IppMediaSizeEnum.ISO_A2.getIppKeyword());
+                value.addValue(IppMediaSizeEnum.ISO_A3.getIppKeyword());
+            }
+            break;
+        case IppDictJobTemplateAttr.ATTR_PRINTER_RESOLUTION:
+            value.addValue(IppResolution.format(600, 600, IppResolution.DPI));
+            if (attrAppl == ApplEnum.SUPPORTED) {
+                value.addValue(
+                        IppResolution.format(1200, 1200, IppResolution.DPI));
+            }
+            break;
+        case IppDictJobTemplateAttr.ATTR_ORIENTATION_REQUESTED:
+            value.addValue("3"); // portrait
+            if (attrAppl == ApplEnum.SUPPORTED) {
+                value.addValue("4"); // landscape
+                value.addValue("5"); // reverse-landscape
+                value.addValue("6"); // reverse-portrait
+            }
+            break;
+        case IppDictJobTemplateAttr.ATTR_OUTPUT_BIN:
+            value.addValue(IppKeyword.OUTPUT_BIN_AUTO);
+            break;
+        case IppDictJobTemplateAttr.ATTR_SIDES:
+            value.addValue(IppKeyword.SIDES_ONE_SIDED);
+            break;
+        case IppDictJobTemplateAttr.ATTR_PRINT_QUALITY:
+            value.addValue("5"); // high
+            if (attrAppl == ApplEnum.SUPPORTED) {
+                value.addValue("4"); // normal
             }
             break;
         default:
@@ -646,12 +687,14 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         case IppDictPrinterDescAttr.ATTR_PRINTER_URI_SUPPORTED:
 
             if (printerUri != null) {
-                value.addValue(getPrinterUriSupported(printerUri, "ipp",
-                        ConfigManager.getServerPort()));
-                value.addValue(getPrinterUriSupported(printerUri, "http",
-                        ConfigManager.getServerPort()));
-                value.addValue(getPrinterUriSupported(printerUri, "https",
-                        ConfigManager.getServerSslPort()));
+                if (!this.ippVersion2) {
+                    value.addValue(getPrinterUriSupported(printerUri, "ipp",
+                            ConfigManager.getServerPort()));
+                    value.addValue(getPrinterUriSupported(printerUri, "http",
+                            ConfigManager.getServerPort()));
+                    value.addValue(getPrinterUriSupported(printerUri, "https",
+                            ConfigManager.getServerSslPort()));
+                }
                 value.addValue(getPrinterUriSupported(printerUri, "ipps",
                         ConfigManager.getServerSslPort()));
             }
@@ -695,9 +738,11 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
              * authenticated user is the textual name contained within the
              * certificate.
              */
-            value.addValue("requesting-user-name");
-            value.addValue("requesting-user-name");
-            value.addValue("requesting-user-name");
+            if (!this.ippVersion2) {
+                value.addValue("requesting-user-name");
+                value.addValue("requesting-user-name");
+                value.addValue("requesting-user-name");
+            }
             value.addValue("requesting-user-name");
             break;
 
@@ -707,9 +752,11 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
              * (contain the same number of values) as the
              * "printer-uri-supported" attribute.
              */
-            value.addValue("none");
-            value.addValue("none");
-            value.addValue("tls");
+            if (!this.ippVersion2) {
+                value.addValue("none");
+                value.addValue("none");
+                value.addValue("tls");
+            }
             value.addValue("tls");
             break;
 
@@ -726,10 +773,18 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_IPP_VERSIONS_SUPP:
-            value.addValue("1.0");
-            value.addValue("1.1");
-            // value.addValue("2.0");
-            // value.addValue("2.1");
+            for (final IppVersionEnum version : IppVersionEnum.values()) {
+                if (version.isSupported()) {
+                    value.addValue(version.getVersionKeyword());
+                }
+            }
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_IPP_FEATURES_SUPP:
+            if (this.ippVersion2) {
+                // PWG 5100.14 – IPP Everywhere
+                value.addValue("ipp-everywhere");
+            }
             break;
 
         case IppDictPrinterDescAttr.ATTR_OPERATIONS_SUPPORTED:
@@ -754,6 +809,12 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             value.addValue("en-us");
             break;
 
+        case IppDictPrinterDescAttr.ATTR_IDENTIFY_ACTIONS_DEFAULT:
+            // no break intended.
+        case IppDictPrinterDescAttr.ATTR_IDENTIFY_ACTIONS_SUPPORTED:
+            value.addValue("display");
+            break;
+
         case IppDictPrinterDescAttr.ATTR_DOC_FORMAT_DEFAULT:
             value.addValue("application/pdf");
             break;
@@ -763,12 +824,11 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_PDF);
             value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_POSTSCRIPT);
 
-            /**
-             * TODO: Required for IPP Everywhere
-             */
-            // value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_JPEG);
-            // value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_PWG_RASTER);
-
+            if (this.ippVersion2) {
+                value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_JPEG);
+                value.addValue(
+                        IppDictPrinterDescAttr.DOCUMENT_FORMAT_PWG_RASTER);
+            }
             /*
              * IMPORTANT: image/urf MUST be present for iOS printing !!!!
              */
@@ -822,6 +882,10 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             value.addValue("0"); // TODO
             break;
 
+        case IppDictPrinterDescAttr.ATTR_PRINTER_CURRENT_TIME:
+            value.addValue(IppDateTime.formatDate(new Date()));
+            break;
+
         case IppDictPrinterDescAttr.ATTR_PRINTER_MAKE_MODEL:
             value.addValue(ConfigManager.getAppNameVersionBuild());
             break;
@@ -830,18 +894,68 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             value.addValue("SavaPage Print Server");
             break;
 
+        case IppDictPrinterDescAttr.ATTR_PRINTER_GEO_LOCATION:
+            // North pole for now :-)
+            value.addValue("geo:90.000000,0.000000");
+            break;
+
         case IppDictPrinterDescAttr.ATTR_PRINTER_INFO:
             value.addValue("SavaPage Virtual Printer");
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO:
-            value.addValue(StringUtils.defaultString(
-                    ConfigManager.getWebAppAdminSslUrl().toString()));
+            value.addValue(ConfigManager.getWebAppUserSslUrl().toString());
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINTER_ORGANIZATION:
+            value.addValue(MemberCard.instance().getMemberOrganisation());
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINTER_ORGANIZATIONAL_UNIT:
+            value.addValue(
+                    MemberCard.instance().getStatusUserText(Locale.ENGLISH));
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINTER_SUPPLY:
+            final String format =
+                    "type=toner;maxcapacity=100;level=100;index=%s;"
+                            + "markerindex=1;"
+                            + "class=supplyThatIsConsumed;unit=percent;"
+                            + "colorantindex=4;colorantrole=process;"
+                            + "colorantname=%s;coloranttonality=128;";
+            value.addValue(String.format(format, "1", "cyan"));
+            value.addValue(String.format(format, "2", "magenta"));
+            value.addValue(String.format(format, "3", "yellow"));
+            value.addValue(String.format(format, "4", "black"));
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINTER_SUPPLY_DESCRIPTION:
+            /// Same cardinality as ATTR_PRINTER_SUPPLY
+            final String formatDesc = "%s Virtual Toner Cartridge";
+            value.addValue(String.format(formatDesc, "Cyan"));
+            value.addValue(String.format(formatDesc, "Magenta"));
+            value.addValue(String.format(formatDesc, "Yellow"));
+            value.addValue(String.format(formatDesc, "Black"));
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINTER_SUPPLY_INFO_URI:
+            value.addValue(ConfigManager.getWebAppUserSslUrl().toString());
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_UUID:
-            value.addValue(String.format("urn:uuid:%s",
-                    ConfigManager.getIppPrinterUuid()));
+            // TODO: linked to UUID in Avahi service file?
+            final String printerUUID = ConfigManager.getIppPrinterUuid();
+            if (StringUtils.isNotBlank(printerUUID)) {
+                value.addValue(String.format("urn:uuid:%s", printerUUID));
+            }
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINTER_DEVICE_ID:
+            // IEEE 1284 Device ID strings
+            value.addValue("MANUFACTURER:SavaPage;" + "MODEL:SavaPage;"
+                    + "DESCRIPTION:SavaPage;"
+            // + "COMMAND SET:PS,PDF;" // ??
+            );
             break;
 
         case IppDictPrinterDescAttr.ATTR_DOC_PASSWORD_SUPPORTED:
@@ -874,6 +988,18 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             value.addValue(CUPSVersionHolder.VERSION);
             break;
 
+        case IppDictPrinterDescAttr.ATTR_PRINT_CONTENT_OPTIMIZE_DEFAULT:
+            value.addValue("auto");
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINT_CONTENT_OPTIMIZE_SUPPORTED:
+            value.addValue("auto");
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINT_COLOR_MODE_DEFAULT:
+            value.addValue(IppKeyword.PRINT_COLOR_MODE_AUTO);
+            break;
+
         case IppDictPrinterDescAttr.ATTR_PRINT_COLOR_MODE_SUPPORTED:
             value.addValue(IppKeyword.PRINT_COLOR_MODE_AUTO);
             value.addValue(IppKeyword.PRINT_COLOR_MODE_COLOR);
@@ -888,13 +1014,32 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             value.addValue(IppKeyword.MULTIPLE_DOCUMENT_HANDLING_SINGLE);
             break;
 
+        case IppDictPrinterDescAttr.ATTR_MEDIA_READY:
+            // Same as IppDictJobTemplateAttr.ATTR_MEDIA
+            value.addValue(IppMediaSizeEnum.ISO_A4.getIppKeyword());
+            value.addValue(IppMediaSizeEnum.NA_LETTER.getIppKeyword());
+            value.addValue(IppMediaSizeEnum.ISO_A0.getIppKeyword());
+            value.addValue(IppMediaSizeEnum.ISO_A1.getIppKeyword());
+            value.addValue(IppMediaSizeEnum.ISO_A2.getIppKeyword());
+            value.addValue(IppMediaSizeEnum.ISO_A3.getIppKeyword());
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_WHICH_JOBS_SUPPORTED:
+            /*
+             * aborted, all, canceled, completed, fetchable, not-completed,
+             * pending, pending-held, processing, processing-stopped,
+             * proof-print, saved
+             */
+            value.addValue("completed");
+            value.addValue("not-completed");
+            break;
+
         default:
             /**
              * UNSUPPORTED (for this moment)
              *
              * <pre>
              * printer-driver-installer
-             * printer-make-and-model
              * printer-message-from-operator
              * reference-uri-schemes-supported
              * printer-current-time

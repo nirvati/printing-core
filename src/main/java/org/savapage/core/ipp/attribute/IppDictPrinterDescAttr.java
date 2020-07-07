@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,6 +33,7 @@ import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.attribute.syntax.IppMimeMediaType;
 import org.savapage.core.ipp.attribute.syntax.IppName;
 import org.savapage.core.ipp.attribute.syntax.IppNaturalLanguage;
+import org.savapage.core.ipp.attribute.syntax.IppOctetString;
 import org.savapage.core.ipp.attribute.syntax.IppRangeOfInteger;
 import org.savapage.core.ipp.attribute.syntax.IppText;
 import org.savapage.core.ipp.attribute.syntax.IppUri;
@@ -105,9 +106,21 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     public static final String ATTR_URI_AUTH_SUPPORTED =
             "uri-authentication-supported";
 
+    /**
+     * text(1023) - PWG5107.2
+     */
+    public static final String ATTR_PRINTER_DEVICE_ID = "printer-device-id";
+
     public static final String ATTR_PRINTER_NAME = "printer-name";
 
     public static final String ATTR_PRINTER_LOCATION = "printer-location";
+    public static final String ATTR_PRINTER_GEO_LOCATION =
+            "printer-geo-location";
+
+    public static final String ATTR_PRINTER_ORGANIZATION =
+            "printer-organization";
+    public static final String ATTR_PRINTER_ORGANIZATIONAL_UNIT =
+            "printer-organizational-unit";
 
     public static final String ATTR_PRINTER_INFO = "printer-info";
 
@@ -138,8 +151,18 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     public static final String ATTR_COPIES_SUPPORTED = "copies-supported";
 
     /** */
+    public static final String ATTR_PRINT_COLOR_MODE_DEFAULT =
+            "print-color-mode-default";
+    /** */
     public static final String ATTR_PRINT_COLOR_MODE_SUPPORTED =
             "print-color-mode-supported";
+
+    /** */
+    public static final String ATTR_PRINT_CONTENT_OPTIMIZE_DEFAULT =
+            "print-content-optimize-default";
+    /** */
+    public static final String ATTR_PRINT_CONTENT_OPTIMIZE_SUPPORTED =
+            "print-content-optimize-supported";
 
     /** */
     public static final String ATTR_JOB_PASSWORD_ENCRYPTION_SUPPORTED =
@@ -149,8 +172,20 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     public static final String ATTR_MULTIPLE_DOCUMENT_HANDLING_SUPPORTED =
             "multiple-document-handling-supported";
 
-    /** */
-    public static final String ATTR_MEDIA_COL_SUPPORTED = "media-col-supported";
+    // 1setOf octetString(MAX)
+    public static final String ATTR_PRINTER_SUPPLY = "printer-supply";
+
+    // 1setOf text(MAX)
+    public static final String ATTR_PRINTER_SUPPLY_DESCRIPTION =
+            "printer-supply-description";
+
+    // uri
+    public static final String ATTR_PRINTER_SUPPLY_INFO_URI =
+            "printer-supply-info-uri";
+
+    // 1setOf type2 keyword
+    public static final String ATTR_WHICH_JOBS_SUPPORTED =
+            "which-jobs-supported";
 
     /**
      * Required for IPP everywhere:
@@ -166,9 +201,14 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     /** */
     public static final String ATTR_PRINTER_STATE_MESSAGE =
             "printer-state-message";
-    /** */
+
+    /** 1setOf type2 keyword */
     public static final String ATTR_IPP_VERSIONS_SUPP =
             "ipp-versions-supported";
+
+    /** 1setOf type2 keyword */
+    public static final String ATTR_IPP_FEATURES_SUPP =
+            "ipp-features-supported";
     /** */
     public static final String ATTR_OPERATIONS_SUPPORTED =
             "operations-supported";
@@ -233,6 +273,8 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     /** */
     public static final String ATTR_PAGES_PER_MIN_COLOR =
             "pages-per-minute-color";
+    /** */
+    public static final String ATTR_MEDIA_READY = "media-ready";
 
     /**
      * This OPTIONAL extension enables an IPP client to query the printer for
@@ -286,6 +328,18 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     public static final String ATTR_PRINTER_STATE_CHANGE_DATE_TIME =
             "printer-state-change-date-time";
 
+    /**
+     * 1setOf type2 keyword.
+     */
+    public static final String ATTR_IDENTIFY_ACTIONS_DEFAULT =
+            "identify-actions-default";
+
+    /**
+     * 1setOf type2 keyword.
+     */
+    public static final String ATTR_IDENTIFY_ACTIONS_SUPPORTED =
+            "identify-actions-supported";
+
     // =========================================================================
 
     /**
@@ -293,94 +347,7 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
      */
     public static final String ATTR_CUPS_VERSION = "cups-version";
 
-    /**
-     * <pre>
-     * +----------------------------+---------------------------+-----------+
-     * |      Attribute             |     Syntax                | REQUIRED? |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-uri-supported      | 1setOf uri                |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | uri-security-supported     | 1setOf type2 keyword      |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | uri-authentication-        | 1setOf type2 keyword      |  REQUIRED |
-     * |     supported              |                           |           |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-name               | name (127)                |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-location           | text (127)                |           |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-info               | text (127)                |           |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-more-info          | uri                       |           |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-driver-installer   | uri                       |           |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-make-and-model     | text (127)                |           |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-more-info-         | uri                       |           |
-     * | manufacturer               |                           |           |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-state              | type1 enum                |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-state-reasons      | 1setOf type2 keyword      |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-state-message      | text (MAX)                |           |
-     * +----------------------------+---------------------------+-----------+
-     * | ipp-versions-supported     | 1setOf type2 keyword      |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | operations-supported       | 1setOf type2 enum         |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | multiple-document-jobs-    | boolean                   |           |
-     * |     supported              |                           |           |
-     * +----------------------------+---------------------------+-----------+
-     * | charset-configured         | charset                   |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | charset-supported          | 1setOf charset            |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | natural-language-configured| naturalLanguage           |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | generated-natural-language-| 1setOf naturalLanguage    |  REQUIRED |
-     * | supported                  |                           |           |
-     * +----------------------------+---------------------------+-----------+
-     * | document-format-default    | mimeMediaType             |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | document-format-supported  | 1setOf mimeMediaType      |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-is-accepting-jobs  | boolean                   |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | queued-job-count           | integer (0:MAX)           |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-message-from-      | text (127)                |           |
-     * | operator                   |                           |           |
-     * +----------------------------+---------------------------+-----------+
-     * | color-supported            | boolean                   |           |
-     * +----------------------------+---------------------------+-----------+
-     * | reference-uri-schemes-     | 1setOf uriScheme          |           |
-     * |   supported                |                           |           |
-     * +----------------------------+---------------------------+-----------+
-     * | pdl-override-supported     | type2 keyword             |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-up-time            | integer (1:MAX)           |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | printer-current-time       | dateTime                  |           |
-     * +----------------------------+---------------------------+-----------+
-     * | multiple-operation-time-out| integer (1:MAX)           |           |
-     * +----------------------------+---------------------------+-----------+
-     * | compression-supported      | 1setOf type3 keyword      |  REQUIRED |
-     * +----------------------------+---------------------------+-----------+
-     * | job-k-octets-supported     | rangeOfInteger (0:MAX)    |           |
-     * +----------------------------+---------------------------+-----------+
-     * | job-impressions-supported  | rangeOfInteger (0:MAX)    |           |
-     * +----------------------------+---------------------------+-----------+
-     * | job-media-sheets-supported | rangeOfInteger (0:MAX)    |           |
-     * +----------------------------+---------------------------+-----------+
-     * | pages-per-minute           | integer(0:MAX)            |           |
-     * +----------------------------+---------------------------+-----------+
-     * | pages-per-minute-color     | integer(0:MAX)            |           |
-     * +----------------------------+---------------------------+-----------+
-     * </pre>
-     *
-     */
+    /** */
     private final IppAttr[] attributes = {
 
             /*
@@ -404,9 +371,22 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
             new IppAttr(ATTR_PRINTER_NAME, new IppName(127)),
 
             /*
+             * PWG5107.2: printer-device-id - text(1023)
+             */
+            new IppAttr(ATTR_PRINTER_DEVICE_ID, new IppText(1023)),
+
+            /*
              * 4.4.5 printer-location (text(127))
              */
             new IppAttr(ATTR_PRINTER_LOCATION, new IppText(127)),
+
+            //
+            new IppAttr(ATTR_PRINTER_GEO_LOCATION, IppUri.instance()),
+
+            // (1setOf text(MAX))
+            new IppAttr(ATTR_PRINTER_ORGANIZATION, new IppText()),
+            // (1setOf text(MAX))
+            new IppAttr(ATTR_PRINTER_ORGANIZATIONAL_UNIT, new IppText()),
 
             /*
              * 4.4.6 printer-info (text(127))
@@ -487,6 +467,16 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
              * 4.4.14 ipp-versions-supported (1setOf type2 keyword)
              */
             new IppAttr(ATTR_IPP_VERSIONS_SUPP, IppKeyword.instance()),
+
+            /*
+             * PWG 5100.13 – IPP: Job and Printer Extensions – Set 3
+             * ipp-features-supported (1setOf type2 keyword)
+             */
+            new IppAttr(ATTR_IPP_FEATURES_SUPP, IppKeyword.instance()),
+
+            //
+            new IppAttr(ATTR_IDENTIFY_ACTIONS_DEFAULT, IppKeyword.instance()),
+            new IppAttr(ATTR_IDENTIFY_ACTIONS_SUPPORTED, IppKeyword.instance()),
 
             /*
              * 4.4.15 operations-supported (1setOf type2 enum)
@@ -611,6 +601,9 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
             new IppAttr(ATTR_JOB_SETTABLE_ATTRIBUTES_SUPPORTED,
                     IppKeyword.instance()),
 
+            new IppAttr(ATTR_MEDIA_READY, IppKeyword.instance()),
+
+            new IppAttr(ATTR_WHICH_JOBS_SUPPORTED, IppKeyword.instance()),
             /*
              * 4.4.36 pages-per-minute (integer(0:MAX))
              */
@@ -626,13 +619,26 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
              */
             new IppAttr(ATTR_PRINTER_UUID, IppUri.instance()),
 
+            /* */
+            new IppAttr(ATTR_PRINTER_SUPPLY, IppOctetString.instance()),
+            /* */
+            new IppAttr(ATTR_PRINTER_SUPPLY_DESCRIPTION, IppText.instance()),
+            /* */
+            new IppAttr(ATTR_PRINTER_SUPPLY_INFO_URI, IppUri.instance()),
+
+            /* */
+            new IppAttr(ATTR_PRINT_COLOR_MODE_DEFAULT, IppKeyword.instance()),
+            new IppAttr(ATTR_PRINT_COLOR_MODE_SUPPORTED, IppKeyword.instance()),
+
+            new IppAttr(ATTR_PRINT_CONTENT_OPTIMIZE_DEFAULT,
+                    IppKeyword.instance()),
+            new IppAttr(ATTR_PRINT_CONTENT_OPTIMIZE_SUPPORTED,
+                    IppKeyword.instance()),
+
             /*
              * CUPS extension
              */
             new IppAttr(ATTR_CUPS_VERSION, IppText.instance()),
-
-            /** */
-            new IppAttr(ATTR_PRINT_COLOR_MODE_SUPPORTED, IppKeyword.instance()),
 
             /** */
             new IppAttr(ATTR_JOB_PASSWORD_ENCRYPTION_SUPPORTED,
@@ -641,8 +647,6 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
             /** */
             new IppAttr(ATTR_MULTIPLE_DOCUMENT_HANDLING_SUPPORTED,
                     IppKeyword.instance())
-
-            //ATTR_MEDIA_COL_SUPPORTED
 
     };
 

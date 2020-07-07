@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -216,7 +219,7 @@ public class IppPrintJobRsp extends AbstractIppResponse {
             requestStatus = IppStatusCode.OK;
 
             jobState = IppJobState.STATE_ABORTED;
-            jobStateReasons = "job-aborted-by-system";
+            jobStateReasons = "aborted-by-system";
 
         } else if (operation.isAuthorized()) {
             /*
@@ -276,12 +279,12 @@ public class IppPrintJobRsp extends AbstractIppResponse {
                  */
                 requestStatus = IppStatusCode.CLI_NOAUTH;
                 // jobState = IppJobState.STATE_CANCELED;
-                // jobStateReasons = "job-aborted-by-system";
+                // jobStateReasons = "aborted-by-system";
 
             } else {
                 requestStatus = IppStatusCode.CLI_FORBID;
                 jobState = IppJobState.STATE_ABORTED;
-                jobStateReasons = "job-aborted-by-system";
+                jobStateReasons = "aborted-by-system";
             }
 
         }

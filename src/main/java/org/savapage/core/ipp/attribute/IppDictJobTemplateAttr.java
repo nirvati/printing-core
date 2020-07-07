@@ -98,6 +98,7 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
 
     public static final String ATTR_NUMBER_UP = "number-up";
 
+    /** type2 enum */
     public static final String ATTR_ORIENTATION_REQUESTED =
             "orientation-requested";
 

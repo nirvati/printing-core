@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -63,6 +66,7 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.ipp.IppResponseHeader;
 import org.savapage.core.ipp.IppSyntaxException;
+import org.savapage.core.ipp.IppVersionEnum;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.encoding.IppContentParser;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
@@ -148,9 +152,7 @@ public final class IppClient {
     }
 
     /** */
-    private static final int IPP_VERSION_MAJOR = 1;
-    /** */
-    private static final int IPP_VERSION_MINOR = 1;
+    private static final IppVersionEnum IPP_VERSION = IppVersionEnum.V_1_1;
 
     /** */
     private int requestIdWlk = 0;
@@ -738,8 +740,8 @@ public final class IppClient {
         // -----------------------------------------------
         // | version-number (2 bytes - required)
         // -----------------------------------------------
-        ostr.write(IPP_VERSION_MAJOR);
-        ostr.write(IPP_VERSION_MINOR);
+        ostr.write(IPP_VERSION.getVersionMajor());
+        ostr.write(IPP_VERSION.getVersionMinor());
 
         // -----------------------------------------------
         // | operation-id (request) or status-code (response)

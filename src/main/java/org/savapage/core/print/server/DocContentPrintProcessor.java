@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -671,7 +671,10 @@ public final class DocContentPrintProcessor {
                 contentType = DocContentTypeEnum.PS;
             } else if (this.signatureString
                     .startsWith(DocContent.HEADER_UNIRAST)) {
-                contentType = DocContentTypeEnum.UNIRAST;
+                contentType = DocContentTypeEnum.URF;
+            } else if (this.signatureString
+                    .startsWith(DocContent.HEADER_PWGRAST)) {
+                contentType = DocContentTypeEnum.PWG;
             } else if (CupsCommandFile.isSignatureStart(this.signatureString)) {
                 contentType = DocContentTypeEnum.CUPS_COMMAND;
             } else if (DocContent.HEADER_PJL.startsWith(this.signatureString)) {

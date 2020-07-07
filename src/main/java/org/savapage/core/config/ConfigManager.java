@@ -271,9 +271,6 @@ public final class ConfigManager {
             "server.print.port.raw";
     public static final String PRINTER_RAW_PORT_DEFAULT = "9100";
 
-    private static final String SERVER_PROP_IPP_PRINTER_UUID =
-            "ipp.printer-uuid";
-
     private static final String SERVER_PROP_OPENPGP_PUBLICKEY_FILE =
             "pgp.publickey.file";
 
@@ -368,6 +365,16 @@ public final class ConfigManager {
     /** */
     private final DbConfig.HibernateInfo hibernateInfo =
             new DbConfig.HibernateInfo();
+
+    /**
+     * The SSL URL of the Admin WebApp.
+     */
+    private static URL theWebAppAdminSslUrl;
+
+    /**
+     * The SSL URL of the User WebApp.
+     */
+    private static URL theWebAppUserSslUrl;
 
     /** */
     private ConfigManager() {
@@ -845,11 +852,10 @@ public final class ConfigManager {
     }
 
     /**
-     *
-     * @return
+     * @return IPP printer UUID.
      */
     public static String getIppPrinterUuid() {
-        return theServerProps.getProperty(SERVER_PROP_IPP_PRINTER_UUID, "");
+        return instance().getConfigValue(Key.IPP_PRINTER_ATTR_PRINTER_UUID);
     }
 
     /**
@@ -1261,24 +1267,23 @@ public final class ConfigManager {
     }
 
     /**
-     * The SSL URL of the Admin WebApp.
-     */
-    private static URL theWebAppAdminSslUrl;
-
-    /**
-     * Sets the path of the Admin WebApp.
+     * Sets the path of the User and Admin WebApp.
      * <p>
      * This method must be called after {@link #setServerProps(Properties)} .
      * </p>
      *
-     * @param path
+     * @param pathAdmin
      *            The path of the Admin WebApp.
+     * @param pathUser
+     *            The path of the User WebApp.
      */
-    public static void setWebAppAdminPath(final String path) {
+    public static void setWebAppPaths(final String pathAdmin,
+            final String pathUser) {
         try {
-            theWebAppAdminSslUrl = new URL("https",
-                    InetUtils.getServerHostAddress(),
-                    Integer.valueOf(getServerSslPort()).intValue(), path);
+            final String host = InetUtils.getServerHostAddress();
+            final int port = Integer.valueOf(getServerSslPort()).intValue();
+            theWebAppAdminSslUrl = new URL("https", host, port, pathAdmin);
+            theWebAppUserSslUrl = new URL("https", host, port, pathUser);
         } catch (NumberFormatException | MalformedURLException
                 | UnknownHostException e) {
             throw new SpException(e.getMessage(), e);
@@ -1286,12 +1291,17 @@ public final class ConfigManager {
     }
 
     /**
-     *
-     * @param url
-     *            The The SSL {@link URL} of the Admin WebApp.
+     * @return The SSL {@link URL} of the Admin WebApp.
      */
     public static URL getWebAppAdminSslUrl() {
         return theWebAppAdminSslUrl;
+    }
+
+    /**
+     * @return The SSL {@link URL} of the User WebApp.
+     */
+    public static URL getWebAppUserSslUrl() {
+        return theWebAppUserSslUrl;
     }
 
     /**

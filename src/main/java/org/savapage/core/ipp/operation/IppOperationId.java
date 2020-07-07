@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -29,11 +32,14 @@ import org.savapage.core.SpException;
  * <a href="http://tools.ietf.org/html/rfc2911#section-4.4.15">RFC2911</a>.
  * </p>
  * <p>
- * CUPS provides <a
- * href="http://www.cups.org/documentation.php/spec-ipp.html">16 extension
+ * CUPS provides
+ * <a href="http://www.cups.org/documentation.php/spec-ipp.html">16 extension
  * operations </a> in addition to most of the standard IPP and registered
  * extension operations.
  * </p>
+ *
+ * @author Rijk Ravestein
+ *
  */
 public enum IppOperationId {
 
@@ -225,25 +231,25 @@ public enum IppOperationId {
             CANCEL_JOB,
             // REQUIRED
             VALIDATE_JOB,
-    // ---------------------------------------
-    // IPP Everywhere
-    // TODO CREATE_JOB,
-    // IPP Everywhere
-    // TODO SEND_DOC,
-    // IPP Everywhere
-    // TODO CANCEL_MY_JOBS,
-    // IPP Everywhere
-    // TODO CLOSE_JOB,
-    // IPP Everywhere
-    // TODO IDENTIFY_PRINTER
-            };
+            // IPP Everywhere
+            IDENTIFY_PRINTER
+            // ---------------------------------------
+            // IPP Everywhere
+            // TODO CREATE_JOB,
+            // IPP Everywhere
+            // TODO SEND_DOC,
+            // IPP Everywhere
+            // TODO CANCEL_MY_JOBS,
+            // IPP Everywhere
+            // TODO CLOSE_JOB,
+    };
 
     /**
     *
     */
-    private static IppOperationId[] optional = new IppOperationId[] {
-            PRINT_URI, CREATE_JOB, PAUSE_PRINTER, RESUME_PRINTER, PURGE_JOBS,
-            SEND_DOC, SEND_URI, HOLD_JOB, RELEASE_JOB, RESTART_JOB };
+    private static IppOperationId[] optional = new IppOperationId[] { PRINT_URI,
+            CREATE_JOB, PAUSE_PRINTER, RESUME_PRINTER, PURGE_JOBS, SEND_DOC,
+            SEND_URI, HOLD_JOB, RELEASE_JOB, RESTART_JOB };
 
     /**
      * Creates an enum value from an integer.
@@ -315,8 +321,9 @@ public enum IppOperationId {
             return CUPS_GET_DEFAULT;
         }
 
-        throw new SpException("value [" + value
-                + "] can not be converted to enum");
+        throw new SpException(
+                String.format("Value [%d] can not be converted to %s.", value,
+                        IppOperationId.class.getSimpleName()));
     }
 
     /**

@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -71,6 +74,11 @@ public final class DateUtil {
      * A hundredth of a second in milliseconds.
      */
     public static final int MSEC_IN_HUNDREDTH_OF_SECOND = 10;
+
+    /**
+     * A tenth of a second in milliseconds.
+     */
+    public static final int MSEC_IN_DECI_SECOND = 100;
 
     /**
      * The number of seconds in a minute.

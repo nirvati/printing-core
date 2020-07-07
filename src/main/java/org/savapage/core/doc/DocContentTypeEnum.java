@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -32,7 +35,8 @@ package org.savapage.core.doc;
  * </ul>
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public enum DocContentTypeEnum {
 
@@ -40,8 +44,8 @@ public enum DocContentTypeEnum {
     BMP,
 
     /**
-     * More info in the <a
-     * href="http://www.cups.org/documentation.php/spec-command.html">Online
+     * More info in the
+     * <a href="http://www.cups.org/documentation.php/spec-command.html">Online
      * CUPS Documentation</a>.
      */
     CUPS_COMMAND,
@@ -100,6 +104,9 @@ public enum DocContentTypeEnum {
     /** PostScript. */
     PS,
 
+    /** PWG raster file. */
+    PWG,
+
     /** Scalable Vector Graphics. */
     SVG,
 
@@ -118,8 +125,8 @@ public enum DocContentTypeEnum {
     /** */
     TXT,
 
-    /** */
-    UNIRAST,
+    /** UNIRAST File Format (URF). */
+    URF,
 
     /** */
     VCARD,

@@ -22,44 +22,19 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.ipp.operation;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+package org.savapage.core.doc;
 
 /**
- * 3.2.6 Get-Jobs Operation
- *
- * This REQUIRED operation allows a client to retrieve the list of Job objects
- * belonging to the target Printer object. The client may also supply a list of
- * Job attribute names and/or attribute group names. A group of Job object
- * attributes will be returned for each Job object that is returned.
- *
- * This operation is similar to the Get-Job-Attributes operation, except that
- * this Get-Jobs operation returns attributes from possibly more than one
- * object.
+ * Convert UNIRAST File Format (URF) to PDF.
  *
  * @author Rijk Ravestein
  *
  */
-public class IppGetJobsOperation extends AbstractIppOperation {
+public final class URFToPdf extends CUPSFilterToPdf {
 
-    /**
-     *
-     */
-    private final IppGetJobsReq request = new IppGetJobsReq();
-
-    /**
-     *
-     */
-    private final IppGetJobsRsp response = new IppGetJobsRsp();
-
-    @Override
-    protected final void process(final InputStream istr,
-            final OutputStream ostr) throws IOException {
-        request.process(this, istr);
-        response.process(this, request, ostr);
+    /** */
+    public URFToPdf() {
+        super(DocContentTypeEnum.URF);
     }
 
 }

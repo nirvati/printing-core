@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -40,7 +43,8 @@ import org.savapage.core.ipp.encoding.IppValueTag;
  * <li>The SIGNED-BYTE contains the units.</li>
  * </ul>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public class IppResolution extends AbstractIppAttrSyntax {
 
@@ -96,7 +100,7 @@ public class IppResolution extends AbstractIppAttrSyntax {
      * @param z
      * @return
      */
-    private static String format(int x, int y, int z) {
+    public static String format(int x, int y, int z) {
         return String.format("%d%c%d %s", x, FORMAT_X, y,
                 (z == DPI ? FORMAT_DPI : FORMAT_DPC));
     }

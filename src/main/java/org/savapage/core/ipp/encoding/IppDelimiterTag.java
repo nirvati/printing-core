@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -24,19 +27,19 @@ package org.savapage.core.ipp.encoding;
 import org.savapage.core.SpException;
 
 /**
- * Enumeration of IPP delimiter tags, see <a
- * href="http://tools.ietf.org/html/rfc2910#section-3.5.1">RFC2910</a>.
+ * Enumeration of IPP delimiter tags, see
+ * <a href="http://tools.ietf.org/html/rfc2910#section-3.5.1">RFC2910</a>.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  */
 public enum IppDelimiterTag {
 
     /**
      * Reserved for definition in a future IETF standards track document.
      */
-    RESERVED_X00(0x00), RESERVED_X08(0x08), RESERVED_X09(0x09), RESERVED_X0A(
-            0x0A), RESERVED_X0B(0x0B), RESERVED_X0C(0x0C), RESERVED_X0D(0x0D),
-    RESERVED_X0E(0x0E), RESERVED_X0F(0x0F),
+    RESERVED_X00(0x00), RESERVED_X08(0x08), RESERVED_X09(0x09),
+    RESERVED_X0A(0x0A), RESERVED_X0B(0x0B), RESERVED_X0C(0x0C),
+    RESERVED_X0D(0x0D), RESERVED_X0E(0x0E), RESERVED_X0F(0x0F),
 
     /**
      * subscription-attributes-tag: RFC3995 Section 14.
@@ -70,7 +73,7 @@ public enum IppDelimiterTag {
      * "delimiter-tag". If the operation has a document-content group, the
      * document data in that group MUST follow the "end-of-attributes-tag".
      * </p>
-     * */
+     */
     END_OF_ATTR(0x03),
 
     /**
@@ -117,8 +120,8 @@ public enum IppDelimiterTag {
                 || value == RESERVED_X0B.asInt()
                 || value == RESERVED_X0C.asInt()
                 || value == RESERVED_X0D.asInt()
-                || value == RESERVED_X0E.asInt() || value == RESERVED_X0F
-                    .asInt());
+                || value == RESERVED_X0E.asInt()
+                || value == RESERVED_X0F.asInt());
     }
 
     /**
@@ -169,8 +172,10 @@ public enum IppDelimiterTag {
         } else if (value == IppDelimiterTag.RESERVED_X0F.asInt()) {
             return RESERVED_X0F;
         }
-        throw new SpException("value [" + value
-                + "] can not be converted to enum");
+
+        throw new SpException(
+                String.format("Value [%d] can not be converted to %s.", value,
+                        IppDelimiterTag.class.getSimpleName()));
     }
 
 }

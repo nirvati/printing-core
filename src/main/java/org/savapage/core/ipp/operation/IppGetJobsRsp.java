@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -33,7 +36,6 @@ import org.savapage.core.ipp.attribute.IppAttrValue;
 import org.savapage.core.ipp.attribute.syntax.IppCharset;
 import org.savapage.core.ipp.attribute.syntax.IppNaturalLanguage;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
-import org.savapage.core.ipp.encoding.IppEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,9 @@ import org.slf4j.LoggerFactory;
  * have returned 1 or more jobs with a status code of 'successful-ok' if there
  * had been jobs matching the criteria, then the status code for 0 jobs MUST be
  * 'successful-ok'.
+ *
+ * @author Rijk Ravestein
+ *
  */
 public class IppGetJobsRsp extends AbstractIppResponse {
 
@@ -220,14 +225,8 @@ public class IppGetJobsRsp extends AbstractIppResponse {
             final List<IppAttrGroup> attrGroups, final Charset charset)
             throws IOException {
 
-        ostr.write(operation.getVersionMajor());
-        ostr.write(operation.getVersionMinor());
-
-        IppEncoder.writeInt16(ostr, statusCode.asInt());
-        IppEncoder.writeInt32(ostr, operation.getRequestId());
-
-        writeAttributes(attrGroups, ostr, charset);
-        ostr.write(IppDelimiterTag.END_OF_ATTR.asInt());
+        writeHeaderAndAttributes(operation, statusCode, attrGroups, ostr,
+                charset);
     }
 
 }
