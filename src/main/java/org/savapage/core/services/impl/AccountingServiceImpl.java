@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Authors: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -109,6 +112,11 @@ import org.savapage.ext.papercut.PaperCutHelper;
  */
 public final class AccountingServiceImpl extends AbstractService
         implements AccountingService {
+
+    /**
+     * Use grouping for integer part of localized currency amount.
+     */
+    private static final boolean CURRENCY_AMOUNT_GROUPING_USED = true;
 
     @Override
     public PrinterDao.CostMediaAttr getCostMediaAttr() {
@@ -283,6 +291,67 @@ public final class AccountingServiceImpl extends AbstractService
         return this.createUserGroupAccount(userGroup);
     }
 
+    /**
+     * Localizes a {@link BigDecimal} with a minimal precision.
+     *
+     * @param decimal
+     *            The {@link BigDecimal} to localize.
+     * @param fractionDigitsMinimum
+     *            The minimum number of fraction digits in the result.
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized decimal as string.
+     * @throws ParseException
+     *             When parsing fails.
+     */
+    private String localizeMinimalPrecision(final BigDecimal decimal,
+            final int fractionDigitsMinimum, final Locale locale)
+            throws ParseException {
+        return BigDecimalUtil.localizeMinimalPrecision(decimal,
+                fractionDigitsMinimum, locale, CURRENCY_AMOUNT_GROUPING_USED);
+    }
+
+    /**
+     * Localizes a {@link BigDecimal}.
+     *
+     * @param decimal
+     *            The {@link BigDecimal} to localize.
+     * @param fractionDigits
+     *            The number of fraction digits in the result.
+     * @param locale
+     *            The {@link Locale}.
+     * @param currencySymbol
+     *            The currency symbol to prepend to the formatted decimal.
+     * @return The localized string.
+     * @throws ParseException
+     *             When parsing fails.
+     */
+    private String localize(final BigDecimal decimal, final int fractionDigits,
+            final Locale locale, final String currencySymbol)
+            throws ParseException {
+        return BigDecimalUtil.localize(decimal, fractionDigits, locale,
+                currencySymbol, CURRENCY_AMOUNT_GROUPING_USED);
+    }
+
+    /**
+     * Localizes a {@link BigDecimal}.
+     *
+     * @param decimal
+     *            The {@link BigDecimal} to localize.
+     * @param fractionDigits
+     *            The number of fraction digits in the result.
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized string.
+     * @throws ParseException
+     *             When parsing fails.
+     */
+    private String localize(final BigDecimal decimal, final int fractionDigits,
+            final Locale locale) throws ParseException {
+        return BigDecimalUtil.localize(decimal, fractionDigits, locale,
+                CURRENCY_AMOUNT_GROUPING_USED);
+    }
+
     @Override
     public UserAccountingDto createUserAccounting(final BigDecimal balance,
             final Boolean restricted, final Boolean useGlobalOverdraft,
@@ -294,8 +363,8 @@ public final class AccountingServiceImpl extends AbstractService
         dto.setLocale(ServiceContext.getLocale().toLanguageTag());
 
         try {
-            dto.setBalance(BigDecimalUtil.localizeMinimalPrecision(balance,
-                    minimalDecimals, ServiceContext.getLocale(), true));
+            dto.setBalance(this.localizeMinimalPrecision(balance,
+                    minimalDecimals, ServiceContext.getLocale()));
 
             CreditLimitDtoEnum creditLimit;
 
@@ -310,9 +379,8 @@ public final class AccountingServiceImpl extends AbstractService
             }
 
             dto.setCreditLimit(creditLimit);
-            dto.setCreditLimitAmount(
-                    BigDecimalUtil.localizeMinimalPrecision(overdraft,
-                            minimalDecimals, ServiceContext.getLocale(), true));
+            dto.setCreditLimitAmount(this.localizeMinimalPrecision(overdraft,
+                    minimalDecimals, ServiceContext.getLocale()));
 
         } catch (ParseException e) {
             throw new SpException(e);
@@ -355,8 +423,8 @@ public final class AccountingServiceImpl extends AbstractService
         if (dto.getBalance() != null) {
 
             final String amount = dto.getBalance();
-            group.setInitialCredit(
-                    BigDecimalUtil.parse(amount, dtoLocale, false, false));
+            group.setInitialCredit(BigDecimalUtil.parse(amount, dtoLocale,
+                    false, CURRENCY_AMOUNT_GROUPING_USED));
         }
 
         final CreditLimitDtoEnum creditLimit = dto.getCreditLimit();
@@ -371,8 +439,8 @@ public final class AccountingServiceImpl extends AbstractService
 
             if (creditLimit == CreditLimitDtoEnum.INDIVIDUAL) {
                 final String amount = dto.getCreditLimitAmount();
-                group.setInitialOverdraft(
-                        BigDecimalUtil.parse(amount, dtoLocale, false, false));
+                group.setInitialOverdraft(BigDecimalUtil.parse(amount,
+                        dtoLocale, false, CURRENCY_AMOUNT_GROUPING_USED));
             }
         }
     }
@@ -449,8 +517,8 @@ public final class AccountingServiceImpl extends AbstractService
             final String amount = dto.getBalance();
 
             try {
-                final BigDecimal balanceNew =
-                        BigDecimalUtil.parse(amount, dtoLocale, false, false);
+                final BigDecimal balanceNew = BigDecimalUtil.parse(amount,
+                        dtoLocale, false, CURRENCY_AMOUNT_GROUPING_USED);
                 checkCreateAccountTrx(account, balanceNew, dto.getComment());
             } catch (ParseException e) {
                 return createError("msg-amount-error", amount);
@@ -469,7 +537,7 @@ public final class AccountingServiceImpl extends AbstractService
                 final String amount = dto.getCreditLimitAmount();
                 try {
                     account.setOverdraft(BigDecimalUtil.parse(amount, dtoLocale,
-                            false, false));
+                            false, CURRENCY_AMOUNT_GROUPING_USED));
                 } catch (ParseException e) {
                     return createError("msg-amount-error", amount);
                 }
@@ -1264,8 +1332,8 @@ public final class AccountingServiceImpl extends AbstractService
         String cost = null;
 
         try {
-            cost = BigDecimalUtil.localize(value,
-                    ConfigManager.getPrinterCostDecimals(), locale, true);
+            cost = this.localize(value, ConfigManager.getPrinterCostDecimals(),
+                    locale);
         } catch (ParseException e) {
             throw new SpException(e.getMessage());
         }
@@ -1306,14 +1374,14 @@ public final class AccountingServiceImpl extends AbstractService
                 if (creditLimit.compareTo(BigDecimal.ZERO) == 0) {
 
                     throw new ProxyPrintException(
-                            localize("msg-print-denied-no-balance",
+                            this.localize("msg-print-denied-no-balance",
                                     localizedPrinterCost(balanceBefore, locale,
                                             currencySymbol),
                                     localizedPrinterCost(cost, locale,
                                             currencySymbol)));
 
                 } else {
-                    throw new ProxyPrintException(localize(
+                    throw new ProxyPrintException(this.localize(
                             "msg-print-denied-no-credit",
                             localizedPrinterCost(creditLimit, locale,
                                     currencySymbol),
@@ -1392,9 +1460,9 @@ public final class AccountingServiceImpl extends AbstractService
         }
 
         try {
-            return BigDecimalUtil.localize(balance,
+            return this.localize(balance,
                     ConfigManager.getUserBalanceDecimals(), locale,
-                    currencySymbolWrk, true);
+                    currencySymbolWrk);
         } catch (ParseException e) {
             throw new SpException(e);
         }
@@ -1441,36 +1509,32 @@ public final class AccountingServiceImpl extends AbstractService
             valueWlk = valueEmpty;
 
             if (aggr.getAvg() != null) {
-                valueWlk = BigDecimalUtil.localize(
-                        aggr.getAvg().multiply(multiplicand), balanceDecimals,
-                        locale, currencySymbol, true);
+                valueWlk = this.localize(aggr.getAvg().multiply(multiplicand),
+                        balanceDecimals, locale, currencySymbol);
             }
             stats.setAvg(valueWlk);
 
             //
             valueWlk = valueEmpty;
             if (aggr.getMax() != null) {
-                valueWlk = BigDecimalUtil.localize(
-                        aggr.getMax().multiply(multiplicand), balanceDecimals,
-                        locale, currencySymbol, true);
+                valueWlk = this.localize(aggr.getMax().multiply(multiplicand),
+                        balanceDecimals, locale, currencySymbol);
             }
             stats.setMax(valueWlk);
 
             //
             valueWlk = valueEmpty;
             if (aggr.getMin() != null) {
-                valueWlk = BigDecimalUtil.localize(
-                        aggr.getMin().multiply(multiplicand), balanceDecimals,
-                        locale, currencySymbol, true);
+                valueWlk = this.localize(aggr.getMin().multiply(multiplicand),
+                        balanceDecimals, locale, currencySymbol);
             }
             stats.setMin(valueWlk);
 
             //
             valueWlk = valueEmpty;
             if (aggr.getSum() != null) {
-                valueWlk = BigDecimalUtil.localize(
-                        aggr.getSum().multiply(multiplicand), balanceDecimals,
-                        locale, currencySymbol, true);
+                valueWlk = this.localize(aggr.getSum().multiply(multiplicand),
+                        balanceDecimals, locale, currencySymbol);
             }
             stats.setSum(valueWlk);
 
@@ -1539,7 +1603,7 @@ public final class AccountingServiceImpl extends AbstractService
         final SharedAccountDisplayInfoDto dto =
                 new SharedAccountDisplayInfoDto();
 
-        fillAccountDisplayInfo(account, locale, currencySymbol, dto);
+        this.fillAccountDisplayInfo(account, locale, currencySymbol, dto);
 
         dto.setId(account.getId());
         dto.setName(account.getName());
@@ -1714,7 +1778,8 @@ public final class AccountingServiceImpl extends AbstractService
 
         if (accountDuplicate != null
                 && !accountDuplicate.getId().equals(dto.getId())) {
-            return createErrorMsg(localize("msg-shared-account-name-in-use"));
+            return createErrorMsg(
+                    this.localize("msg-shared-account-name-in-use"));
         }
 
         /*
@@ -1771,7 +1836,8 @@ public final class AccountingServiceImpl extends AbstractService
             if (!BigDecimalUtil.isValid(balance, dtoLocale, false)) {
                 throw new ParseException(balance, 0);
             }
-            balanceNew = BigDecimalUtil.parse(balance, dtoLocale, false, false);
+            balanceNew = BigDecimalUtil.parse(balance, dtoLocale, false,
+                    CURRENCY_AMOUNT_GROUPING_USED);
         } catch (ParseException e) {
             return createErrorMsg("msg-amount-error", balance);
         }
@@ -1969,7 +2035,7 @@ public final class AccountingServiceImpl extends AbstractService
         final Account account = this
                 .lazyGetUserAccount(user, AccountTypeEnum.USER).getAccount();
 
-        fillAccountDisplayInfo(account, locale, currencySymbol, dto);
+        this.fillAccountDisplayInfo(account, locale, currencySymbol, dto);
 
         return dto;
     }
@@ -1986,7 +2052,7 @@ public final class AccountingServiceImpl extends AbstractService
      * @param dto
      *            The {@link AccountDisplayInfoDto} object
      */
-    private static void fillAccountDisplayInfo(final Account account,
+    private void fillAccountDisplayInfo(final Account account,
             final Locale locale, final String currencySymbol,
             final AccountDisplayInfoDto dto) {
 
@@ -2010,8 +2076,8 @@ public final class AccountingServiceImpl extends AbstractService
             }
 
             try {
-                formattedCreditLimit = BigDecimalUtil.localize(creditLimit,
-                        balanceDecimals, locale, currencySymbolWrk, true);
+                formattedCreditLimit = this.localize(creditLimit,
+                        balanceDecimals, locale, currencySymbolWrk);
             } catch (ParseException e) {
                 throw new SpException(e);
             }
@@ -2036,8 +2102,8 @@ public final class AccountingServiceImpl extends AbstractService
         }
 
         try {
-            dto.setBalance(BigDecimalUtil.localize(account.getBalance(),
-                    balanceDecimals, locale, currencySymbolWrk, true));
+            dto.setBalance(this.localize(account.getBalance(), balanceDecimals,
+                    locale, currencySymbolWrk));
         } catch (ParseException e) {
             throw new SpException(e);
         }
@@ -2093,8 +2159,8 @@ public final class AccountingServiceImpl extends AbstractService
         /*
          * Create transaction.
          */
-        final String comment =
-                localize("msg-voucher-redeem-trx-comment", dto.getCardNumber());
+        final String comment = this.localize("msg-voucher-redeem-trx-comment",
+                dto.getCardNumber());
 
         final AccountTrx accountTrx = this.createAccountTrx(account,
                 AccountTrxTypeEnum.VOUCHER, voucher.getValueAmount(),
@@ -2518,7 +2584,7 @@ public final class AccountingServiceImpl extends AbstractService
             result.append("[TEST] ");
         }
 
-        result.append(localize("msg-changed-base-currency",
+        result.append(this.localize("msg-changed-base-currency",
                 currencyFrom.getCurrencyCode(), currencyTo.getCurrencyCode(),
                 Double.valueOf(exchangeRate).toString(),
                 Integer.valueOf(nTrx).toString(),
@@ -2598,7 +2664,7 @@ public final class AccountingServiceImpl extends AbstractService
         if (!BigDecimalUtil.isValid(plainAmount)) {
 
             return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
-                    localize("msg-amount-error", plainAmount));
+                    this.localize("msg-amount-error", plainAmount));
         }
 
         final BigDecimal transferAmount = BigDecimalUtil.valueOf(plainAmount);
@@ -2608,7 +2674,7 @@ public final class AccountingServiceImpl extends AbstractService
          */
         if (transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
             return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
-                    localize("msg-amount-must-be-positive"));
+                    this.localize("msg-amount-must-be-positive"));
         }
 
         /*
@@ -2616,7 +2682,7 @@ public final class AccountingServiceImpl extends AbstractService
          */
         if (dto.getUserIdFrom().equalsIgnoreCase(dto.getUserIdTo())) {
             return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
-                    localize("msg-user-credit-transfer-err-user-same"));
+                    this.localize("msg-user-credit-transfer-err-user-same"));
         }
 
         /*
@@ -2631,13 +2697,14 @@ public final class AccountingServiceImpl extends AbstractService
             final String msg;
 
             if (lockedUserFrom != null) {
-                msg = localize("msg-user-credit-transfer-err-unknown-user",
+                msg = this.localize("msg-user-credit-transfer-err-unknown-user",
                         dto.getUserIdTo());
             } else if (lockedUserTo != null) {
-                msg = localize("msg-user-credit-transfer-err-unknown-user",
+                msg = this.localize("msg-user-credit-transfer-err-unknown-user",
                         dto.getUserIdFrom());
             } else {
-                msg = localize("msg-user-credit-transfer-err-unknown-users",
+                msg = this.localize(
+                        "msg-user-credit-transfer-err-unknown-users",
                         dto.getUserIdFrom(), dto.getUserIdTo());
             }
 
@@ -2658,8 +2725,8 @@ public final class AccountingServiceImpl extends AbstractService
 
         if (!isPaymentWithinBalance(accountFrom.getBalance(), transferAmount,
                 userBalanceDecimals)) {
-            return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
-                    localize("msg-user-credit-transfer-err-amount-greater"));
+            return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS, this
+                    .localize("msg-user-credit-transfer-err-amount-greater"));
         }
 
         /*
@@ -2675,12 +2742,10 @@ public final class AccountingServiceImpl extends AbstractService
                     && transferAmount.compareTo(minimalTransfer) < 0) {
 
                 return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
-                        localize("msg-amount-must-be-gt-eq",
-                                BigDecimalUtil.localize(minimalTransfer,
-                                        userBalanceDecimals,
-                                        ServiceContext.getLocale(),
-                                        ServiceContext.getAppCurrencySymbol(),
-                                        true)));
+                        this.localize("msg-amount-must-be-gt-eq", this.localize(
+                                minimalTransfer, userBalanceDecimals,
+                                ServiceContext.getLocale(),
+                                ServiceContext.getAppCurrencySymbol())));
             }
 
             final BigDecimal maximalTransfer =
@@ -2691,12 +2756,10 @@ public final class AccountingServiceImpl extends AbstractService
                     && transferAmount.compareTo(maximalTransfer) > 0) {
 
                 return JsonRpcMethodError.createBasicError(Code.INVALID_PARAMS,
-                        localize("msg-amount-must-be-lt-eq",
-                                BigDecimalUtil.localize(maximalTransfer,
-                                        userBalanceDecimals,
-                                        ServiceContext.getLocale(),
-                                        ServiceContext.getAppCurrencySymbol(),
-                                        true)));
+                        this.localize("msg-amount-must-be-lt-eq", this.localize(
+                                maximalTransfer, userBalanceDecimals,
+                                ServiceContext.getLocale(),
+                                ServiceContext.getAppCurrencySymbol())));
             }
         } catch (ParseException e) {
             throw new SpException(e.getMessage(), e);
@@ -2730,21 +2793,21 @@ public final class AccountingServiceImpl extends AbstractService
         final String userNotification;
 
         try {
-            userNotification = localize("msg-user-credit-transfer-for-user",
-                    BigDecimalUtil.localize(transferAmount, userBalanceDecimals,
-                            ServiceContext.getLocale(),
-                            ServiceContext.getAppCurrencySymbol(), true),
-                    dto.getUserIdTo());
+            userNotification =
+                    this.localize("msg-user-credit-transfer-for-user",
+                            this.localize(transferAmount, userBalanceDecimals,
+                                    ServiceContext.getLocale(),
+                                    ServiceContext.getAppCurrencySymbol()),
+                            dto.getUserIdTo());
 
             AdminPublisher.instance().publish(PubTopicEnum.USER,
                     PubLevelEnum.INFO,
                     Messages.getSystemMessage(getClass(),
                             "msg-user-credit-transfer-for-system",
                             dto.getUserIdFrom(),
-                            BigDecimalUtil.localize(transferAmount,
-                                    userBalanceDecimals,
+                            this.localize(transferAmount, userBalanceDecimals,
                                     ConfigManager.getDefaultLocale(),
-                                    ConfigManager.getAppCurrencyCode(), true),
+                                    ConfigManager.getAppCurrencyCode()),
                             dto.getUserIdTo()));
 
             UserMsgIndicator.notifyAccountInfoEvent(dto.getUserIdFrom());
