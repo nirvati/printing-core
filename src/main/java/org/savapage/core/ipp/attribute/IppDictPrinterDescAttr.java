@@ -35,6 +35,7 @@ import org.savapage.core.ipp.attribute.syntax.IppName;
 import org.savapage.core.ipp.attribute.syntax.IppNaturalLanguage;
 import org.savapage.core.ipp.attribute.syntax.IppOctetString;
 import org.savapage.core.ipp.attribute.syntax.IppRangeOfInteger;
+import org.savapage.core.ipp.attribute.syntax.IppResolution;
 import org.savapage.core.ipp.attribute.syntax.IppText;
 import org.savapage.core.ipp.attribute.syntax.IppUri;
 import org.savapage.core.ipp.attribute.syntax.IppUriScheme;
@@ -130,11 +131,13 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     public static final String ATTR_PRINTER_MAKE_MODEL =
             "printer-make-and-model";
 
+    /** 1setOf uri. */
+    public static final String ATTR_PRINTER_ICONS = "printer-icons";
+
+    /** */
     public static final String ATTR_PRINTER_STATE = "printer-state";
 
-    /*
-     * (type2 enum)
-     */
+    /** type2 enum. */
     public static final String ATTR_PRINTER_TYPE = "printer-type";
 
     /**
@@ -168,30 +171,60 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     public static final String ATTR_JOB_PASSWORD_ENCRYPTION_SUPPORTED =
             "job-password-encryption-supported";
 
+    /** Boolean. */
+    public static final String ATTR_JOB_IDS_SUPPORTED = "job-ids-supported";
+
+    /** Boolean. */
+    public static final String ATTR_PAGE_RANGES_SUPPORTED =
+            "page-ranges-supported";
+
+    /** 1setOf type2 keyword. */
+    public static final String ATTR_PWG_RASTER_DOCUMENT_TYPE_SUPPORTED =
+            "pwg-raster-document-type-supported";
+
+    /** 1setOf resolution */
+    public static final String ATTR_PWG_RASTER_DOCUMENT_RESOLUTION_SUPPORTED =
+            "pwg-raster-document-resolution-supported";
+
+    /** 1setOf keyword */
+    public static final String ATTR_OVERRIDES_SUPPORTED = "overrides-supported";
+
+    /** type2 keyword. */
+    public static final String ATTR_PRINT_RENDERING_INTENT_DEFAULT =
+            "print-rendering-intent-default";
+
+    /** 1setOf type2 keyword. */
+    public static final String ATTR_PRINT_RENDERING_INTENT_SUPPORTED =
+            "print-rendering-intent-supported";
+
     /** */
     public static final String ATTR_MULTIPLE_DOCUMENT_HANDLING_SUPPORTED =
             "multiple-document-handling-supported";
 
-    // 1setOf octetString(MAX)
+    /** dateTime. */
+    public static final String ATTR_PRINTER_CONFIG_CHANGE_DATE_TIME =
+            "printer-config-change-date-time";
+
+    /** integer(1:MAX). */
+    public static final String ATTR_PRINTER_CONFIG_CHANGE_TIME =
+            "printer-config-change-time";
+
+    /** 1setOf octetString(MAX). */
     public static final String ATTR_PRINTER_SUPPLY = "printer-supply";
 
-    // 1setOf text(MAX)
+    /** 1setOf text(MAX). */
     public static final String ATTR_PRINTER_SUPPLY_DESCRIPTION =
             "printer-supply-description";
 
-    // uri
+    /** uri. */
     public static final String ATTR_PRINTER_SUPPLY_INFO_URI =
             "printer-supply-info-uri";
 
-    // 1setOf type2 keyword
+    /** 1setOf type2 keyword. */
     public static final String ATTR_WHICH_JOBS_SUPPORTED =
             "which-jobs-supported";
 
-    /**
-     * Required for IPP everywhere:
-     * <a href="https://tools.ietf.org/html/rfc3995#section-6.1">RFC 3995</a> :
-     * (dateTime).
-     */
+    /** */
     public static final String ATTR_PRINTER_STATE_CHANGE_TIME =
             "printer-state-change-time";
 
@@ -202,32 +235,39 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     public static final String ATTR_PRINTER_STATE_MESSAGE =
             "printer-state-message";
 
-    /** 1setOf type2 keyword */
+    /** 1setOf type2 keyword. */
     public static final String ATTR_IPP_VERSIONS_SUPP =
             "ipp-versions-supported";
 
-    /** 1setOf type2 keyword */
+    /** 1setOf type2 keyword. */
     public static final String ATTR_IPP_FEATURES_SUPP =
             "ipp-features-supported";
     /** */
     public static final String ATTR_OPERATIONS_SUPPORTED =
             "operations-supported";
-    /** */
-    public static final String ATTR_MULTIPLE_DOC_JOBS_SUPPORTED =
+
+    /** boolean */
+    public static final String ATTR_MULTIPLE_DOCUMENT_JOBS_SUPPORTED =
             "multiple-document-jobs-supported";
+
     /** */
     public static final String ATTR_CHARSET_CONFIGURED = "charset-configured";
+
     /** */
     public static final String ATTR_CHARSET_SUPPORTED = "charset-supported";
+
     /** */
     public static final String ATTR_NATURAL_LANG_CONFIGURED =
             "natural-language-configured";
+
     /** */
     public static final String ATTR_GENERATED_NATURAL_LANG_SUPPORTED =
             "generated-natural-language-supported";
+
     /** */
     public static final String ATTR_DOC_FORMAT_DEFAULT =
             "document-format-default";
+
     /** */
     public static final String ATTR_DOC_FORMAT_SUPPORTED =
             "document-format-supported";
@@ -235,13 +275,16 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     /** */
     public static final String ATTR_PRINTER_IS_ACCEPTING_JOBS =
             "printer-is-accepting-jobs";
+
     /** */
     public static final String ATTR_QUEUES_JOB_COUNT = "queued-job-count";
+
     /** */
     public static final String ATTR_PRINTER_MSG_FROM_OPERATOR =
             "printer-message-from-operator";
     /** */
     public static final String ATTR_COLOR_SUPPORTED = "color-supported";
+
     /** */
     public static final String ATTR_REF_URI_SCHEMES_SUPPORTED =
             "reference-uri-schemes-supported";
@@ -253,9 +296,14 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     /** */
     public static final String ATTR_PRINTER_CURRENT_TIME =
             "printer-current-time";
-    /** */
+
+    /** integer(1:MAX). */
     public static final String ATTR_MULTIPLE_OPERATION_TIME_OUT =
             "multiple-operation-time-out";
+
+    /** type2 keyword */
+    public static final String ATTR_MULTIPLE_OPERATION_TIME_OUT_ACTION =
+            "multiple-operation-time-out-action";
     /** */
     public static final String ATTR_COMPRESSION_SUPPORTED =
             "compression-supported";
@@ -270,6 +318,42 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
             "job-media-sheets-supported";
     /** */
     public static final String ATTR_PAGES_PER_MIN = "pages-per-minute";
+
+    /** collection. */
+    public static final String ATTR_MEDIA_COL_DEFAULT = "media-col-default";
+
+    /** 1setOf collection. */
+    public static final String ATTR_MEDIA_COL_READY = "media-col-ready";
+
+    /**
+     * Keyword names of the member attributes supported in the "media-col"
+     * Job/Document Template attribute: 1setOf keyword.
+     */
+    public static final String ATTR_MEDIA_COL_SUPPORTED = "media-col-supported";
+
+    /**
+     * Keyword names of the member attributes supported in the "media-size"
+     * Job/Document Template attribute: 1setOf collection.
+     */
+    public static final String ATTR_MEDIA_SIZE_SUPPORTED =
+            "media-size-supported";
+
+    /** 1setOf integer(0:MAX). */
+    public static final String ATTR_MEDIA_TOP_MARGIN_SUPPORTED =
+            "media-top-margin-supported";
+
+    /** 1setOf integer(0:MAX). */
+    public static final String ATTR_MEDIA_BOTTOM_MARGIN_SUPPORTED =
+            "media-bottom-margin-supported";
+
+    /** 1setOf integer(0:MAX). */
+    public static final String ATTR_MEDIA_LEFT_MARGIN_SUPPORTED =
+            "media-left-margin-supported";
+
+    /** 1setOf integer(0:MAX). */
+    public static final String ATTR_MEDIA_RIGHT_MARGIN_SUPPORTED =
+            "media-right-margin-supported";
+
     /** */
     public static final String ATTR_PAGES_PER_MIN_COLOR =
             "pages-per-minute-color";
@@ -280,71 +364,47 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
      * This OPTIONAL extension enables an IPP client to query the printer for
      * the set of job attributes that can be set by the client during a
      * Create-Job, Print-Job, Validate-Job, or Print-URI operation.
-     *
-     * <a href=
-     * "ftp://ftp.pwg.org/pub/pwg/candidates/cs-ippjobprinterext10-20101030-5100.11.pdf"
-     * >PWG-5100.11-2010 IPP: Job and Printer Extensions – Set 2 (JPS2) 30
-     * October 2010</a>
      */
     public static final String ATTR_JOB_CREATION_ATTRIBUTES_SUPPORTED =
             "job-creation-attributes-supported";
 
-    /**
-     *
-     */
+    /** boolean. */
+    public static final String ATTR_PREFERRED_ATTRIBUTES_SUPPORTED =
+            "preferred-attributes-supported";
+
+    /** 1setOf keyword. */
+    public static final String ATTR_PRINTER_GET_ATTRIBUTES_SUPPORTED =
+            "printer-get-attributes-supported";
+    /** */
     public static final String ATTR_JOB_SETTABLE_ATTRIBUTES_SUPPORTED =
             "job-settable-attributes-supported";
-
-    /**
-     *
-     */
+    /** */
     public static final String ATTR_PRINTER_MORE_INFO_MANUFACTURER =
             "printer-more-info-manufacturer";
 
-    // =========================================================================
-    // Added for IPP everywhere
-    // =========================================================================
-    /**
-     * Required for IPP everywhere.
-     */
+    /** */
     public static final String ATTR_PRINTER_MORE_INFO = "printer-more-info";
 
-    /**
-     * Required for IPP everywhere.
-     */
+    /** */
     public static final String ATTR_PRINTER_UUID = "printer-uuid";
 
-    /**
-     * Required for IPP everywhere.
-     */
+    /** */
     public static final String ATTR_DOC_PASSWORD_SUPPORTED =
             "document-password-supported";
 
-    /**
-     * Required for IPP everywhere:
-     * <a href="https://tools.ietf.org/html/rfc3995#section-6.2">RFC 3995</a> :
-     * (integer(1:MAX)).
-     */
+    /** */
     public static final String ATTR_PRINTER_STATE_CHANGE_DATE_TIME =
             "printer-state-change-date-time";
 
-    /**
-     * 1setOf type2 keyword.
-     */
+    /** 1setOf type2 keyword. */
     public static final String ATTR_IDENTIFY_ACTIONS_DEFAULT =
             "identify-actions-default";
 
-    /**
-     * 1setOf type2 keyword.
-     */
+    /** 1setOf type2 keyword. */
     public static final String ATTR_IDENTIFY_ACTIONS_SUPPORTED =
             "identify-actions-supported";
 
-    // =========================================================================
-
-    /**
-     * CUPS extension.
-     */
+    /** CUPS extension. */
     public static final String ATTR_CUPS_VERSION = "cups-version";
 
     /** */
@@ -453,8 +513,6 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
 
             /*
              * 4.4.12 printer-state-reasons (1setOf type2 keyword)
-             *
-             * ...
              */
             new IppAttr(ATTR_PRINTER_STATE_REASONS, IppKeyword.instance()),
 
@@ -567,7 +625,11 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
             /*
              * 4.4.31 multiple-operation-time-out (integer(1:MAX))
              */
-            new IppAttr(ATTR_MULTIPLE_OPERATION_TIME_OUT, new IppInteger(1)),
+            new IppAttr(ATTR_MULTIPLE_OPERATION_TIME_OUT,
+                    IppInteger.instance()),
+
+            new IppAttr(ATTR_MULTIPLE_OPERATION_TIME_OUT_ACTION,
+                    IppKeyword.instance()),
 
             /*
              * 4.4.32 compression-supported (1setOf type3 keyword)
@@ -598,25 +660,46 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
             new IppAttr(ATTR_JOB_CREATION_ATTRIBUTES_SUPPORTED,
                     IppKeyword.instance()),
 
+            new IppAttr(ATTR_PREFERRED_ATTRIBUTES_SUPPORTED,
+                    IppBoolean.instance()),
+
             new IppAttr(ATTR_JOB_SETTABLE_ATTRIBUTES_SUPPORTED,
+                    IppKeyword.instance()),
+
+            new IppAttr(ATTR_PRINTER_GET_ATTRIBUTES_SUPPORTED,
                     IppKeyword.instance()),
 
             new IppAttr(ATTR_MEDIA_READY, IppKeyword.instance()),
 
             new IppAttr(ATTR_WHICH_JOBS_SUPPORTED, IppKeyword.instance()),
+
+            new IppAttr(ATTR_MEDIA_COL_SUPPORTED, IppKeyword.instance()),
+
             /*
              * 4.4.36 pages-per-minute (integer(0:MAX))
              */
-            new IppAttr(ATTR_PAGES_PER_MIN, new IppInteger(0, IppInteger.MAX)),
+            new IppAttr(ATTR_PAGES_PER_MIN, IppInteger.instance()),
             /*
              * 4.4.37 pages-per-minute-color (integer(0:MAX))
              */
-            new IppAttr(ATTR_PAGES_PER_MIN_COLOR,
-                    new IppInteger(0, IppInteger.MAX)),
+            new IppAttr(ATTR_PAGES_PER_MIN_COLOR, IppInteger.instance()),
 
-            /*
-             *
-             */
+            /** 1setOf integer(0:MAX). */
+            new IppAttr(ATTR_MEDIA_TOP_MARGIN_SUPPORTED, IppInteger.instance()),
+
+            /** 1setOf integer(0:MAX). */
+            new IppAttr(ATTR_MEDIA_BOTTOM_MARGIN_SUPPORTED,
+                    IppInteger.instance()),
+
+            /** 1setOf integer(0:MAX). */
+            new IppAttr(ATTR_MEDIA_LEFT_MARGIN_SUPPORTED,
+                    IppInteger.instance()),
+
+            /** 1setOf integer(0:MAX). */
+            new IppAttr(ATTR_MEDIA_RIGHT_MARGIN_SUPPORTED,
+                    IppInteger.instance()),
+
+            /* */
             new IppAttr(ATTR_PRINTER_UUID, IppUri.instance()),
 
             /* */
@@ -635,9 +718,41 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
             new IppAttr(ATTR_PRINT_CONTENT_OPTIMIZE_SUPPORTED,
                     IppKeyword.instance()),
 
-            /*
-             * CUPS extension
-             */
+            /** */
+            new IppAttr(ATTR_MULTIPLE_DOCUMENT_JOBS_SUPPORTED,
+                    IppBoolean.instance()),
+
+            /** */
+            new IppAttr(ATTR_JOB_IDS_SUPPORTED, IppBoolean.instance()),
+
+            /** */
+            new IppAttr(ATTR_PAGE_RANGES_SUPPORTED, IppBoolean.instance()),
+
+            /** */
+            new IppAttr(ATTR_PWG_RASTER_DOCUMENT_TYPE_SUPPORTED,
+                    IppKeyword.instance()),
+            /** */
+            new IppAttr(ATTR_PWG_RASTER_DOCUMENT_RESOLUTION_SUPPORTED,
+                    IppResolution.instance()),
+            /** */
+            new IppAttr(ATTR_OVERRIDES_SUPPORTED, IppKeyword.instance()),
+            /** */
+            new IppAttr(ATTR_PRINT_RENDERING_INTENT_DEFAULT,
+                    IppKeyword.instance()),
+            /** */
+            new IppAttr(ATTR_PRINT_RENDERING_INTENT_SUPPORTED,
+                    IppKeyword.instance()),
+
+            /** */
+            new IppAttr(ATTR_PRINTER_STATE_CHANGE_DATE_TIME,
+                    IppDateTime.instance()),
+            /** */
+            new IppAttr(ATTR_PRINTER_CONFIG_CHANGE_DATE_TIME,
+                    IppDateTime.instance()),
+            /** */
+            new IppAttr(ATTR_PRINTER_CONFIG_CHANGE_TIME, IppInteger.instance()),
+
+            /** CUPS extension */
             new IppAttr(ATTR_CUPS_VERSION, IppText.instance()),
 
             /** */
@@ -646,8 +761,12 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
 
             /** */
             new IppAttr(ATTR_MULTIPLE_DOCUMENT_HANDLING_SUPPORTED,
-                    IppKeyword.instance())
+                    IppKeyword.instance()),
 
+            /** */
+            new IppAttr(ATTR_PRINTER_ICONS, IppUri.instance())
+
+            //
     };
 
     /**

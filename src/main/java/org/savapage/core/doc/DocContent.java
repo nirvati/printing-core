@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.config.ConfigManager;
@@ -129,6 +131,11 @@ public final class DocContent {
      */
     public static final String HEADER_PWGRAST = "RaS2";
 
+    /**
+     * The first 3 bytes (signature) of {@link DocContentTypeEnum#JPEG}
+     */
+    public static final byte[] HEADER_JPEG = decodeHex("FFD8FF");
+
     /** */
     public static final String FILENAME_EXT_PDF = "pdf";
     /** */
@@ -155,6 +162,20 @@ public final class DocContent {
 
     /** */
     public static final String MIMETYPE_POSTSCRIPT = "application/postscript";
+
+    /**
+     * @param hex
+     *            A String containing hexadecimal digits. For example: "FFD8FF"
+     * @return A byte array containing binary data decoded from the supplied
+     *         char array.
+     */
+    private static byte[] decodeHex(final String hex) {
+        try {
+            return Hex.decodeHex(hex);
+        } catch (DecoderException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
 
     /**
      * The SingletonHolder is loaded on the first execution of
@@ -614,6 +635,8 @@ public final class DocContent {
             return new SvgToPdf();
         case XPS:
             return new XpsToPdf();
+        case JPEG:
+            return new JPEGToPdf();
         case PWG:
             return new PWGToPdf();
         case URF:

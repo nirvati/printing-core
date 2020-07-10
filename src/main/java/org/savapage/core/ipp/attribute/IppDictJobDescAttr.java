@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -25,6 +28,7 @@ import org.savapage.core.ipp.attribute.syntax.IppInteger;
 import org.savapage.core.ipp.attribute.syntax.IppJobState;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.attribute.syntax.IppName;
+import org.savapage.core.ipp.attribute.syntax.IppText;
 import org.savapage.core.ipp.attribute.syntax.IppUri;
 import org.savapage.core.ipp.encoding.IppEncoder;
 import org.savapage.core.ipp.encoding.IppValueTag;
@@ -127,6 +131,9 @@ public final class IppDictJobDescAttr extends AbstractIppDict {
 
             // 4.3.8 job-state-reasons (1setOf type2 keyword)
             new IppAttr(ATTR_JOB_STATE_REASONS, IppKeyword.instance()), // REQUIRED
+
+            // IPP Everywhere
+            new IppAttr(ATTR_JOB_STATE_MESSAGE, IppText.instance()),
 
             // new IppAttr("job-state-message",),
             // new IppAttr("job-detailed-status-messages",),

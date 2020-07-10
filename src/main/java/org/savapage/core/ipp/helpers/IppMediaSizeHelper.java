@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -26,6 +29,7 @@ import javax.print.attribute.standard.MediaSizeName;
 
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.attribute.IppAttrCollection;
+import org.savapage.core.ipp.attribute.IppAttrCollectionSet;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppInteger;
 import org.savapage.core.util.MediaUtils;
@@ -52,35 +56,90 @@ public final class IppMediaSizeHelper {
     }
 
     /**
-     * Creates a media-size collection of all IppMediaSizeEnum values.
+     * Creates a 1setOf collection with 'media-size' collections each with
+     * attributes 'x-dimension' and 'y-dimension' of {@link IppMediaSizeEnum}
+     * values.
      *
+     * @param keyword
+     *            IPP keyword of the collection.
+     * @param ippMediaValues
+     *            {@link IppMediaSizeEnum} values.
      * @return The {@link IppAttrCollection}.
      */
-    public static IppAttrCollection createMediaSizeCollection() {
+    public static IppAttrCollection createMediaCollection(final String keyword,
+            final IppMediaSizeEnum[] ippMediaValues) {
 
-        final IppAttrCollection collectionMediaSize =
-                new IppAttrCollection(IppDictJobTemplateAttr.ATTR_MEDIA_SIZE);
-
-        for (final IppMediaSizeEnum ippMediaSize : IppMediaSizeEnum.values()) {
-            final MediaSizeName sizeName = ippMediaSize.getMediaSizeName();
-            if (MediaSize.getMediaSizeForName(sizeName) == null) {
-                continue;
-            }
-            addMediaSize(collectionMediaSize, sizeName);
-        }
-        return collectionMediaSize;
+        final IppAttrCollection collection = new IppAttrCollection(keyword);
+        return createMediaCollection(collection, keyword, ippMediaValues);
     }
 
     /**
-     * Adds a media size to collection.
+     * Creates a 1setOf collection set of collections with attributes
+     * 'x-dimension' and 'y-dimension' of {@link IppMediaSizeEnum} values.
+     *
+     * @param keyword
+     *            IPP keyword of the collection.
+     * @param ippMediaValues
+     *            {@link IppMediaSizeEnum} values.
+     * @return The {@link IppAttrCollectionSet}.
+     */
+    public static IppAttrCollectionSet createMediaCollectionSet(
+            final String keyword, final IppMediaSizeEnum[] ippMediaValues) {
+
+        final IppAttrCollectionSet collection =
+                new IppAttrCollectionSet(keyword);
+        createMediaCollection(collection, keyword, ippMediaValues);
+        return collection;
+    }
+
+    /**
+     * Creates a 1setOf collection set of collections with attributes
+     * 'x-dimension' and 'y-dimension' of {@link IppMediaSizeEnum} values.
      *
      * @param collection
-     *            The collection.
-     * @param sizeName
-     *            MediaSizeName.
+     *            The {@link IppAttrCollection} to append on.
+     * @param keyword
+     *            IPP keyword of the collection.
+     * @param ippMediaValues
+     *            {@link IppMediaSizeEnum} values.
+     * @return The collection appended on.
      */
-    private static void addMediaSize(final IppAttrCollection collection,
-            final MediaSizeName sizeName) {
+    private static IppAttrCollection createMediaCollection(
+            final IppAttrCollection collection, final String keyword,
+            final IppMediaSizeEnum[] ippMediaValues) {
+
+        for (final IppMediaSizeEnum ippMediaSize : ippMediaValues) {
+
+            final MediaSizeName sizeName = ippMediaSize.getMediaSizeName();
+
+            if (MediaSize.getMediaSizeForName(sizeName) == null) {
+                continue;
+            }
+
+            final IppAttrCollection mediaCollection;
+            if (collection instanceof IppAttrCollectionSet) {
+                mediaCollection = new IppAttrCollection(null);
+            } else {
+                mediaCollection = new IppAttrCollection(
+                        IppDictJobTemplateAttr.ATTR_MEDIA_SIZE);
+            }
+            collection.addCollection(
+                    createMediaSizeCollection(mediaCollection, sizeName));
+        }
+        return collection;
+    }
+
+    /**
+     * Creates a media-size collection.
+     *
+     * @param collection
+     *            The {@link IppAttrCollection} to append on.
+     * @param sizeName
+     *            {@link MediaSizeName}. The IPP "media" keyword value.
+     * @return The collection appended on.
+     */
+    private static IppAttrCollection createMediaSizeCollection(
+            final IppAttrCollection collection, final MediaSizeName sizeName) {
 
         final int[] array = MediaUtils.getMediaWidthHeight(sizeName);
 
@@ -89,10 +148,13 @@ public final class IppMediaSizeHelper {
 
         collection.add(IppDictJobTemplateAttr.ATTR_MEDIA_SIZE_Y_DIMENSION,
                 IPP_INTEGER_ZERO, String.valueOf(array[1] * HUNDREDTH_MM));
+
+        return collection;
     }
 
     /**
-     * Creates a media-size collection with one item.
+     * Creates a 'media-size' collection with attributes 'x-dimension' and
+     * 'y-dimension'.
      *
      * @param ippMediaValue
      *            The IPP "media" keyword value.
@@ -101,15 +163,9 @@ public final class IppMediaSizeHelper {
     public static IppAttrCollection
             createMediaSizeCollection(final String ippMediaValue) {
 
-        final IppAttrCollection collectionMediaSize =
-                new IppAttrCollection(IppDictJobTemplateAttr.ATTR_MEDIA_SIZE);
-
-        final MediaSizeName sizeName =
-                IppMediaSizeEnum.findMediaSizeName(ippMediaValue);
-
-        addMediaSize(collectionMediaSize, sizeName);
-
-        return collectionMediaSize;
+        return createMediaSizeCollection(
+                new IppAttrCollection(IppDictJobTemplateAttr.ATTR_MEDIA_SIZE),
+                IppMediaSizeEnum.findMediaSizeName(ippMediaValue));
     }
 
 }

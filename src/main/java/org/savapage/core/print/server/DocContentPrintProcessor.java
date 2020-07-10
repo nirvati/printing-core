@@ -626,6 +626,29 @@ public final class DocContentPrintProcessor {
     }
 
     /**
+     * @param signature
+     *            Signature bytes.
+     * @param reference
+     *            Reference bytes.
+     * @return {@code true} if signature matches reference.
+     */
+    private boolean isSignatureMatch(final byte[] signature,
+            final byte[] reference) {
+        final int max;
+        if (signature.length < reference.length) {
+            max = signature.length;
+        } else {
+            max = reference.length;
+        }
+        for (int i = 0; i < max; i++) {
+            if (signature[i] != reference[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Checks or assigns the content type of the job depending on the delivery
      * protocol.
      * <p>
@@ -641,6 +664,7 @@ public final class DocContentPrintProcessor {
      *            The content input stream.
      * @return The assigned content type.
      * @throws IOException
+     *             If IO error.
      */
     private DocContentTypeEnum checkJobContent(
             final DocLogProtocolEnum delivery,
@@ -664,10 +688,10 @@ public final class DocContentPrintProcessor {
 
             if (this.signatureString.startsWith(DocContent.HEADER_PDF)) {
                 contentType = DocContentTypeEnum.PDF;
-            } else if (this.signatureString
-                    .startsWith(DocContent.HEADER_PDF_BANNER)) {
-                contentType = DocContentTypeEnum.CUPS_PDF_BANNER;
             } else if (this.signatureString.startsWith(DocContent.HEADER_PS)) {
+                contentType = DocContentTypeEnum.PS;
+            } else if (DocContent.HEADER_PJL.startsWith(this.signatureString)) {
+                // Note: HEADER_PJL string length is GT signatureString.
                 contentType = DocContentTypeEnum.PS;
             } else if (this.signatureString
                     .startsWith(DocContent.HEADER_UNIRAST)) {
@@ -675,11 +699,14 @@ public final class DocContentPrintProcessor {
             } else if (this.signatureString
                     .startsWith(DocContent.HEADER_PWGRAST)) {
                 contentType = DocContentTypeEnum.PWG;
+            } else if (this.isSignatureMatch(signature,
+                    DocContent.HEADER_JPEG)) {
+                contentType = DocContentTypeEnum.JPEG;
+            } else if (this.signatureString
+                    .startsWith(DocContent.HEADER_PDF_BANNER)) {
+                contentType = DocContentTypeEnum.CUPS_PDF_BANNER;
             } else if (CupsCommandFile.isSignatureStart(this.signatureString)) {
                 contentType = DocContentTypeEnum.CUPS_COMMAND;
-            } else if (DocContent.HEADER_PJL.startsWith(this.signatureString)) {
-                // Note: HEADER_PJL string length is GT signatureString.
-                contentType = DocContentTypeEnum.PS;
             }
 
         } else if (delivery.equals(DocLogProtocolEnum.IMAP)) {
@@ -707,6 +734,17 @@ public final class DocContentPrintProcessor {
     private final static boolean SAVE_UNSUPPORTED_CONTENT = false;
 
     /**
+     * @return Hex representation of captured signature.
+     */
+    private String hexSignature() {
+        final StringBuilder strHex = new StringBuilder();
+        for (final byte ch : this.readAheadInputBytes) {
+            strHex.append(String.format("%02X ", ch));
+        }
+        return strHex.toString().trim();
+    }
+
+    /**
      * Evaluates assigned the DocContentType and throws an exception when
      * content is NOT supported.
      * <p>
@@ -726,18 +764,18 @@ public final class DocContentPrintProcessor {
 
         UnsupportedPrintJobContent formatException = null;
         FileOutputStream fostr = null;
+
         try {
             if (assignedContentType == DocContentTypeEnum.UNKNOWN) {
 
-                formatException = new UnsupportedPrintJobContent("header ["
-                        + StringUtils.defaultString(this.signatureString)
-                        + "] unknown");
+                formatException = new UnsupportedPrintJobContent(
+                        "header [" + this.hexSignature() + "] unknown");
 
                 if (SAVE_UNSUPPORTED_CONTENT) {
                     fostr = new FileOutputStream(
                             ConfigManager.getAppTmpDir() + "/" + delivery + "_"
                                     + System.currentTimeMillis() + ".unknown");
-                    fostr.write(readAheadInputBytes);
+                    fostr.write(this.readAheadInputBytes);
                     saveBinary(content, fostr);
                 }
 
@@ -983,8 +1021,10 @@ public final class DocContentPrintProcessor {
 
             } else {
 
-                streamConverter = DocContent.createPdfStreamConverter(inputType,
-                        preferredOutputFont);
+                if (!protocol.isDriverPrint()) {
+                    streamConverter = DocContent.createPdfStreamConverter(
+                            inputType, preferredOutputFont);
+                }
 
                 if (streamConverter == null) {
 

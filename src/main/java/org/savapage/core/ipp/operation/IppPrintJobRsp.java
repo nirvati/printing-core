@@ -396,29 +396,39 @@ public class IppPrintJobRsp extends AbstractIppResponse {
         group = new IppAttrGroup(IppDelimiterTag.JOB_ATTR);
         attrGroups.add(group);
 
-        attr = IppDictJobDescAttr.instance().getAttr("job-uri");
+        final IppDictJobDescAttr dict = IppDictJobDescAttr.instance();
+
+        attr = dict.getAttr(IppDictJobDescAttr.ATTR_JOB_URI);
         value = new IppAttrValue(attr);
         value.addValue(request.getJobUri(jobId));
         group.addAttribute(value);
 
-        /*
-         * Job ID which is a 32- bit, positive integer. The Job's "job-id"
-         * attribute contains the Job ID. The Job ID is only unique within the
-         * context of the Printer object which created the Job object.
-         */
-        attr = IppDictJobDescAttr.instance().getAttr("job-id");
+        attr = dict.getAttr(IppDictJobDescAttr.ATTR_JOB_ID);
         value = new IppAttrValue(attr);
         value.addValue(String.valueOf(jobId));
         group.addAttribute(value);
 
-        attr = IppDictJobDescAttr.instance().getAttr("job-state");
+        attr = dict.getAttr(IppDictJobDescAttr.ATTR_JOB_STATE);
         value = new IppAttrValue(attr);
         value.addValue(jobState);
         group.addAttribute(value);
 
-        attr = IppDictJobDescAttr.instance().getAttr("job-state-reasons");
+        attr = dict.getAttr(IppDictJobDescAttr.ATTR_JOB_STATE_REASONS);
         value = new IppAttrValue(attr);
         value.addValue(jobStateReasons);
+        group.addAttribute(value);
+
+        attr = dict.getAttr(IppDictJobDescAttr.ATTR_JOB_STATE_MESSAGE);
+        value = new IppAttrValue(attr);
+        if (requestStatus == IppStatusCode.OK) {
+            value.addValue("Open SavaPage Web App to see the print.");
+        } else {
+            if (operation.isAuthorized()) {
+                value.addValue("Something went wrong");
+            } else {
+                value.addValue("Login to the SavaPage WebApp before printing!");
+            }
+        }
         group.addAttribute(value);
 
         //

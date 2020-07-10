@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import javax.mail.internet.InternetAddress;
 import javax.management.InstanceAlreadyExistsException;
@@ -295,6 +296,8 @@ public final class ConfigManager {
     // ========================================================================
     // Undocumented ad-hoc properties for testing purposes.
     // ========================================================================
+    private static final String SERVER_PROP_IPP_TRUST_IP_USER =
+            "ipp.trust.ip-user";
 
     // ========================================================================
 
@@ -315,6 +318,12 @@ public final class ConfigManager {
      * Depth of a user home directory relative to root of all home directories.
      */
     private static final int USER_HOME_DEPTH_FROM_ROOT = 3;
+
+    /**
+     *
+     */
+    private static final Map<String, String> theTrustedUsersByIP =
+            new HashMap<>();
 
     /** */
     private final CryptoApp myCipher = new CryptoApp();
@@ -375,6 +384,11 @@ public final class ConfigManager {
      * The SSL URL of the User WebApp.
      */
     private static URL theWebAppUserSslUrl;
+
+    /**
+     * Home of the IPP printer-icons.
+     */
+    private static String theIppPrinterIconsUrlPath;
 
     /** */
     private ConfigManager() {
@@ -1229,7 +1243,40 @@ public final class ConfigManager {
      *            Server properties.
      */
     public static void setServerProps(final Properties props) {
+
         theServerProps = props;
+
+        if (theServerProps != null
+                && theServerProps.containsKey(SERVER_PROP_IPP_TRUST_IP_USER)) {
+
+            final StringTokenizer st = new StringTokenizer(
+                    theServerProps.getProperty(SERVER_PROP_IPP_TRUST_IP_USER));
+            String ip = null;
+            String user = null;
+            while (st.hasMoreTokens()) {
+                final String token = st.nextToken();
+                if (ip == null) {
+                    ip = token;
+                } else if (user == null) {
+                    user = token;
+                }
+                if (ip != null && user != null) {
+                    theTrustedUsersByIP.put(ip, user);
+                    ip = null;
+                    user = null;
+                }
+            }
+        }
+    }
+
+    /**
+     *
+     * @param remoteAddr
+     *            Remote IP address.
+     * @return Trusted user id, or {@code null} when not present.
+     */
+    public static String getTrustedUserByIP(final String remoteAddr) {
+        return theTrustedUsersByIP.get(remoteAddr);
     }
 
     /**
@@ -1273,17 +1320,20 @@ public final class ConfigManager {
      * </p>
      *
      * @param pathAdmin
-     *            The path of the Admin WebApp.
+     *            Path of the Admin WebApp.
      * @param pathUser
-     *            The path of the User WebApp.
+     *            Path of the User WebApp.
+     * @param pathIppPrinterIcons
+     *            The path of the IPP printer-icons.
      */
     public static void setWebAppPaths(final String pathAdmin,
-            final String pathUser) {
+            final String pathUser, final String pathIppPrinterIcons) {
         try {
             final String host = InetUtils.getServerHostAddress();
             final int port = Integer.valueOf(getServerSslPort()).intValue();
             theWebAppAdminSslUrl = new URL("https", host, port, pathAdmin);
             theWebAppUserSslUrl = new URL("https", host, port, pathUser);
+            theIppPrinterIconsUrlPath = pathIppPrinterIcons;
         } catch (NumberFormatException | MalformedURLException
                 | UnknownHostException e) {
             throw new SpException(e.getMessage(), e);
@@ -1302,6 +1352,13 @@ public final class ConfigManager {
      */
     public static URL getWebAppUserSslUrl() {
         return theWebAppUserSslUrl;
+    }
+
+    /**
+     * @return URL Path of the IPP printer-icons.
+     */
+    public static String getIppPrinterIconsUrlPath() {
+        return theIppPrinterIconsUrlPath;
     }
 
     /**

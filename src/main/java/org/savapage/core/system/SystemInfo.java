@@ -600,6 +600,13 @@ public final class SystemInfo {
     }
 
     /**
+     * @return Start time of the Java virtual machine in milliseconds.
+     */
+    public static long getStarttime() {
+        return ManagementFactory.getRuntimeMXBean().getStartTime();
+    }
+
+    /**
      *
      * @return {@link OperatingSystemProps}.
      */
