@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -85,61 +88,36 @@ public final class IppDictEventNotificationAttr extends AbstractIppDict {
     public static final String ATTR_JOB_IMPRESSIONS_COMPLETED =
             "job-impressions-completed";
 
-    /*
-     * Group 1: Operation Attributes
+    /**
+     * Group 1: Operation Attributes.
      */
     private final IppAttr[] attributes = {
-            /* */
+            //
             new IppAttr(ATTR_NOTIFY_CHARSET, IppCharset.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_NATURAL_LANGUAGE,
                     IppNaturalLanguage.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_SUBSCRIPTION_ID, IppInteger.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_SEQUENCE_NUMBER, IppInteger.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_SUBSCRIBED_EVENT, IppKeyword.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_TEXT, IppText.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_USER_DATA, IppOctetString.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_PRINTER_URI, IppUri.instance()),
-            /* */
             new IppAttr(ATTR_PRINTER_IS_ACCEPTING_JOBS, IppBoolean.instance()),
-            /* */
             new IppAttr(ATTR_PRINTER_NAME, IppName.instance()),
-            /* */
             new IppAttr(ATTR_PRINTER_STATE, IppEnum.instance()),
-            /* */
             new IppAttr(ATTR_PRINTER_STATE_REASONS, IppKeyword.instance()),
-            /* */
             new IppAttr(ATTR_PRINTER_UP_TIME, IppInteger.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_JOB_ID, IppInteger.instance()),
-            /* */
             new IppAttr(ATTR_JOB_STATE, IppEnum.instance()),
-            /* */
             new IppAttr(ATTR_JOB_STATE_REASONS, IppKeyword.instance()),
-            /* */
             new IppAttr(ATTR_JOB_NAME, IppName.instance()),
-            /* */
             new IppAttr(ATTR_JOB_IMPRESSIONS_COMPLETED, IppInteger.instance()),
             //
     };
 
-    /**
-     * The SingletonHolder is loaded on the first execution of
-     * {@link IppDictEventNotificationAttr#instance()} or the first access to
-     * {@link SingletonHolder#INSTANCE}, not before.
-     * <p>
-     * <a href=
-     * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>.
-     * </p>
-     */
+    /** */
     private static class SingletonHolder {
+        /** */
         public static final IppDictEventNotificationAttr INSTANCE =
                 new IppDictEventNotificationAttr();
     }

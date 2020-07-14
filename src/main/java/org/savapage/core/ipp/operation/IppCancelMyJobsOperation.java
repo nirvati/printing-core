@@ -38,10 +38,11 @@ import org.savapage.core.ipp.attribute.IppAttrValue;
  * @author Rijk Ravestein
  *
  */
-public final class IppCancelJobOperation extends AbstractIppOperation {
+public final class IppCancelMyJobsOperation extends AbstractIppOperation {
 
     /** */
-    private static final class IppCancelJobRequest extends AbstractIppRequest {
+    private static final class IppCancelMyJobsRequest
+            extends AbstractIppRequest {
 
         @Override
         public void process(final AbstractIppOperation operation,
@@ -52,11 +53,11 @@ public final class IppCancelJobOperation extends AbstractIppOperation {
     }
 
     /** */
-    private static final class IppCancelJobResponse
+    private static final class IppCancelMyJobsResponse
             extends AbstractIppResponse {
 
         /** */
-        IppCancelJobResponse() {
+        IppCancelMyJobsResponse() {
         }
 
         /**
@@ -70,8 +71,8 @@ public final class IppCancelJobOperation extends AbstractIppOperation {
          * @throws IOException
          *             If error.
          */
-        public void process(final IppCancelJobOperation operation,
-                final IppCancelJobRequest request, final OutputStream ostr)
+        public void process(final IppCancelMyJobsOperation operation,
+                final IppCancelMyJobsRequest request, final OutputStream ostr)
                 throws IOException {
 
             IppStatusCode ippStatusCode =
@@ -97,15 +98,15 @@ public final class IppCancelJobOperation extends AbstractIppOperation {
     }
 
     /** */
-    private final IppCancelJobRequest request;
+    private final IppCancelMyJobsRequest request;
     /** */
-    private final IppCancelJobResponse response;
+    private final IppCancelMyJobsResponse response;
 
     /** */
-    public IppCancelJobOperation() {
+    public IppCancelMyJobsOperation() {
         super();
-        this.request = new IppCancelJobRequest();
-        this.response = new IppCancelJobResponse();
+        this.request = new IppCancelMyJobsRequest();
+        this.response = new IppCancelMyJobsResponse();
     }
 
     /**

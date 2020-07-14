@@ -30,10 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.ipp.attribute.IppAttr;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.attribute.IppAttrValue;
-import org.savapage.core.ipp.attribute.syntax.IppCharset;
-import org.savapage.core.ipp.attribute.syntax.IppNaturalLanguage;
 import org.savapage.core.ipp.attribute.syntax.IppText;
-import org.savapage.core.ipp.encoding.IppDelimiterTag;
 
 /**
  *
@@ -81,42 +78,20 @@ public class IppValidateJobRsp extends AbstractIppResponse {
         /**
          * Group 1: Operation Attributes
          */
-        group = new IppAttrGroup(IppDelimiterTag.OPERATION_ATTR);
+        group = this.createOperationGroup();
         attrGroups.add(group);
-
-        /*
-         * Natural Language and Character Set:
-         *
-         * The "attributes-charset" and "attributes-natural-language" attributes
-         * as described in section 3.1.4.2.
-         */
-        attr = new IppAttr("attributes-charset", new IppCharset());
-        value = new IppAttrValue(attr);
-        value.addValue("utf-8");
-        group.addAttribute(value);
-
-        attr =
-                new IppAttr("attributes-natural-language",
-                        new IppNaturalLanguage());
-        value = new IppAttrValue(attr);
-        value.addValue("en-us");
-        group.addAttribute(value);
 
         /*
          * (detailed) messages
          */
         if (!operation.isAuthorized()) {
-            /*
-             *
-             */
+
             attr = new IppAttr("status-message", new IppText());
             value = new IppAttrValue(attr);
-            value.addValue("before printing login to the SavaPage WebApp first");
+            value.addValue(
+                    "before printing login to the SavaPage WebApp first");
             group.addAttribute(value);
 
-            /*
-             *
-             */
             attr = new IppAttr("detailed-status-message", new IppText());
             value = new IppAttrValue(attr);
             value.addValue("You are printing to an untrusted SavaPage Queue. "
@@ -126,17 +101,11 @@ public class IppValidateJobRsp extends AbstractIppResponse {
 
         } else if (request.hasDeferredException()) {
 
-            /*
-             *
-             */
             attr = new IppAttr("status-message", new IppText());
             value = new IppAttrValue(attr);
             value.addValue("Internal Savapage Error");
             group.addAttribute(value);
 
-            /*
-             *
-             */
             String msg = request.getDeferredException().getMessage();
             if (StringUtils.isNotBlank(msg)) {
                 attr = new IppAttr("detailed-status-message", new IppText());
@@ -146,15 +115,7 @@ public class IppValidateJobRsp extends AbstractIppResponse {
             }
         }
 
-        /**
-         * Group 2: Unsupported Attributes
-         *
-         */
-        // group = new IppAttrGroup(IppDelimiterTag.UNSUPP_ATTR);
-        // attrGroups.add(group);
-
-        //
-        write(operation, requestStatus, attrGroups, ostr,
+        this.write(operation, requestStatus, attrGroups, ostr,
                 request.getAttributesCharset());
     }
 

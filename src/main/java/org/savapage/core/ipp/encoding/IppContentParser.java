@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -36,13 +39,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Streaming parser for IPP content.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class IppContentParser {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(IppContentParser.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(IppContentParser.class);
 
     private static final String TRACE_SEP = "+---------------------------"
             + "-------------------------------------------+";
@@ -211,8 +214,7 @@ public abstract class IppContentParser {
     /**
      * @throws Exception
      *
-     * @param bytes
-     * @throws
+     * @param bytes @throws
      */
     public void parse(byte[] bytes) {
         try {
@@ -225,8 +227,7 @@ public abstract class IppContentParser {
     /**
      * @throws Exception
      *
-     * @param bytes
-     * @throws
+     * @param bytes @throws
      */
     public void read(byte[] bytes) throws Exception {
 
@@ -296,9 +297,8 @@ public abstract class IppContentParser {
 
                 if (iBytesFieldLength == N_BYTES_FIELD_LENGTH) {
 
-                    nBytesField =
-                            IppEncoder.readInt16(bytesFieldLength[0],
-                                    bytesFieldLength[1]);
+                    nBytesField = IppEncoder.readInt16(bytesFieldLength[0],
+                            bytesFieldLength[1]);
 
                     if (state == StateEnum.ATTR_NAME_LENGTH) {
                         /*

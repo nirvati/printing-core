@@ -71,45 +71,27 @@ public final class IppDictSubscriptionAttr extends AbstractIppDict {
      * Group 1: Operation Attributes.
      */
     private final IppAttr[] attributes = {
-            /* */
+            //
             new IppAttr(ATTR_NOTIFY_EVENTS, IppKeyword.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_LEASE_DURATION, IppInteger.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_RECIPIENT_URI, IppUri.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_SUBSCRIBER_USER_NAME, IppName.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_TIME_INTERVAL, IppInteger.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_SUBSCRIPTION_ID, IppInteger.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_PULL_METHOD, IppKeyword.instance()),
-            /* */
             new IppAttr(ATTR_NOTIFY_USER_DATA, new IppOctetString(63)),
             //
-
     };
 
-    /**
-     * The SingletonHolder is loaded on the first execution of
-     * {@link IppDictSubscriptionAttr#instance()} or the first access to
-     * {@link SingletonHolder#INSTANCE}, not before.
-     * <p>
-     * <a href=
-     * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>
-     * </p>
-     */
+    /** */
     private static class SingletonHolder {
+        /** */
         public static final IppDictSubscriptionAttr INSTANCE =
                 new IppDictSubscriptionAttr();
     }
 
     /**
-     * Gets the singleton instance.
-     *
-     * @return the singleton instance.
+     * @return The singleton instance.
      */
     public static IppDictSubscriptionAttr instance() {
         return SingletonHolder.INSTANCE;

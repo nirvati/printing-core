@@ -175,6 +175,14 @@ public abstract class AbstractIppOperation {
             operation = new IppPrintJobOperation(queue, hasPrintAccessToQueue,
                     trustedIppClientUserId, trustedUserAsRequester, ctx);
 
+        } else if (operationId == IppOperationId.CREATE_JOB.asInt()) {
+            operation = new IppCreateJobOperation(queue, hasPrintAccessToQueue,
+                    trustedIppClientUserId, trustedUserAsRequester, ctx);
+
+        } else if (operationId == IppOperationId.SEND_DOC.asInt()) {
+            operation = new IppSendDocOperation(queue, hasPrintAccessToQueue,
+                    trustedIppClientUserId, trustedUserAsRequester, ctx);
+
         } else if (operationId == IppOperationId.VALIDATE_JOB.asInt()) {
             operation = new IppValidateJobOperation(ctx.getRemoteAddr(), queue,
                     ctx.getRequestedQueueUrlPath(), hasPrintAccessToQueue,
@@ -192,14 +200,14 @@ public abstract class AbstractIppOperation {
         } else if (operationId == IppOperationId.CANCEL_JOB.asInt()) {
             operation = new IppCancelJobOperation();
 
+        } else if (operationId == IppOperationId.CLOSE_JOB.asInt()) {
+            operation = new IppCloseJobOperation();
+
+        } else if (operationId == IppOperationId.CANCEL_MY_JOBS.asInt()) {
+            operation = new IppCancelMyJobsOperation();
+
         } else if (operationId == IppOperationId.GET_JOB_ATTR.asInt()) {
             operation = new IppGetJobAttrOperation();
-
-        } else if (operationId == IppOperationId.CUPS_GET_PRINTERS.asInt()) {
-            operation = new IppCupsGetPrintersOperation();
-
-        } else if (operationId == IppOperationId.CUPS_GET_DEFAULT.asInt()) {
-            operation = new IppCupsGetDefaultOperation();
 
         } else {
             operation = null;

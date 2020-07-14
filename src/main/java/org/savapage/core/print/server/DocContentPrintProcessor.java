@@ -89,6 +89,7 @@ import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.PdfRepairEnum;
 import org.savapage.core.system.PdfFontsErrorValidator;
 import org.savapage.core.users.conf.UserAliasList;
@@ -834,9 +835,11 @@ public final class DocContentPrintProcessor {
      *
      * @param istrContent
      *            The input stream containing the content to be printed.
+     * @param supplierInfo
+     *            {@link ExternalSupplierInfo} (can be {@code null}).
      * @param protocol
      *            The originating printing protocol.
-     * @param originatorEmail
+     * @param originatorEmailAddr
      *            MUST be present for {@link DocLogProtocolEnum#IMAP} and
      *            {@link DocLogProtocolEnum#GCP}. For all other protocols
      *            {@code null}.
@@ -851,7 +854,8 @@ public final class DocContentPrintProcessor {
      *             If IO errors.
      */
     public void process(final InputStream istrContent,
-            final DocLogProtocolEnum protocol, final String originatorEmail,
+            final ExternalSupplierInfo supplierInfo,
+            final DocLogProtocolEnum protocol, final String originatorEmailAddr,
             final DocContentTypeEnum contentTypeProvided,
             final InternalFontFamilyEnum preferredOutputFont)
             throws IOException {
@@ -860,14 +864,12 @@ public final class DocContentPrintProcessor {
             return;
         }
 
-        this.originatorEmail = originatorEmail;
+        this.originatorEmail = originatorEmailAddr;
 
         final DocContentTypeEnum inputType =
                 checkJobContent(protocol, contentTypeProvided, istrContent);
 
-        /*
-         * Skip CUPS_COMMAND for now.
-         */
+        // Skip CUPS_COMMAND for now.
         if (inputType == DocContentTypeEnum.CUPS_COMMAND) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(CupsCommandFile.FIRST_LINE_SIGNATURE + " ignored");
@@ -875,15 +877,11 @@ public final class DocContentPrintProcessor {
             return;
         }
 
-        /*
-         *
-         */
+        //
         final String homeDir = ConfigManager.getUserHomeDir(this.uidTrusted);
         final String tempDirApp = ConfigManager.getAppTmpDir();
 
-        /*
-         * Lazy create user home directory.
-         */
+        //
         USER_SERVICE.lazyUserHomeDir(userDb);
 
         FileOutputStream fostrContent = null;
@@ -1183,7 +1181,8 @@ public final class DocContentPrintProcessor {
             /*
              * STEP 1: Log in Database: BEFORE the file MOVE.
              */
-            final DocContentPrintInInfo printInInfo = this.logPrintIn(protocol);
+            final DocContentPrintInInfo printInInfo =
+                    this.logPrintIn(protocol, supplierInfo);
 
             /*
              * STEP 2: Optional IPP Routing.
@@ -1230,7 +1229,7 @@ public final class DocContentPrintProcessor {
                  * We also need to log the rejected print-in, since we want to
                  * notify the result in the User WebApp.
                  */
-                this.logPrintIn(protocol);
+                this.logPrintIn(protocol, supplierInfo);
 
             } else {
 
@@ -1239,7 +1238,7 @@ public final class DocContentPrintProcessor {
                             || !this.pdfRepair.isRepairFail()) {
                         this.pdfRepair = PdfRepairEnum.DOC_FAIL;
                     }
-                    this.logPrintIn(protocol);
+                    this.logPrintIn(protocol, supplierInfo);
                 }
                 /*
                  * Save the exception, so it can be thrown at the end of the
@@ -1488,10 +1487,12 @@ public final class DocContentPrintProcessor {
      *
      * @param protocol
      *            The {@link DocLogProtocolEnum}.
+     * @param supplierInfo
+     *            {@link {@link ExternalSupplierInfo}} (can be {@code null}).
      * @return {@link DocContentPrintInInfo}.
      */
-    private DocContentPrintInInfo
-            logPrintIn(final DocLogProtocolEnum protocol) {
+    private DocContentPrintInInfo logPrintIn(final DocLogProtocolEnum protocol,
+            final ExternalSupplierInfo supplierInfo) {
 
         final DocContentPrintInInfo printInInfo = new DocContentPrintInInfo();
 
@@ -1504,6 +1505,7 @@ public final class DocContentPrintProcessor {
         printInInfo.setOriginatorIp(this.getOriginatorIp());
         printInInfo.setPageProps(this.getPageProps());
         printInInfo.setUuidJob(this.getUuidJob());
+        printInInfo.setSupplierInfo(supplierInfo);
 
         DOC_LOG_SERVICE.logPrintIn(this.getUserDb(), this.getQueue(), protocol,
                 printInInfo);

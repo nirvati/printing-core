@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -497,8 +497,8 @@ public final class QueueServiceImpl extends AbstractService
                      * Process content stream, write DocLog and move PDF to
                      * inbox.
                      */
-                    processor.process(istrContent, protocol, originatorEmail,
-                            contentType, preferredOutputFont);
+                    processor.process(istrContent, null, protocol,
+                            originatorEmail, contentType, preferredOutputFont);
 
                     /*
                      * Fill response.

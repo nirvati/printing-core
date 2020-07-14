@@ -71,7 +71,7 @@ import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.encoding.IppContentParser;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
 import org.savapage.core.ipp.encoding.IppEncoder;
-import org.savapage.core.ipp.operation.IppMessageMixin;
+import org.savapage.core.ipp.operation.IppOperationContext;
 import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.ipp.operation.IppStatusCode;
 import org.savapage.core.util.IOHelper;
@@ -300,7 +300,7 @@ public final class IppClient {
      * <ul>
      * <li>When using a "UTF-8" character set when constructing
      * {@link ContentType}, CUPS responds with an authorization error HTML page.
-     * So, just use the {@link IppMessageMixin#CONTENT_TYPE_IPP}.</li>
+     * So, just use the {@link IppOperationContext#CONTENT_TYPE_IPP}.</li>
      * </ul>
      * </p>
      *
@@ -359,7 +359,7 @@ public final class IppClient {
          *
          */
         final ContentType contentType =
-                ContentType.create(IppMessageMixin.CONTENT_TYPE_IPP);
+                ContentType.create(IppOperationContext.CONTENT_TYPE_IPP);
 
         long length = ostr.size();
 

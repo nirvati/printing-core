@@ -30,18 +30,23 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.savapage.core.ipp.attribute.IppAttr;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.attribute.IppAttrValue;
+import org.savapage.core.ipp.attribute.IppDictJobDescAttr;
+import org.savapage.core.ipp.attribute.IppDictOperationAttr;
+import org.savapage.core.ipp.attribute.syntax.IppJobState;
+import org.savapage.core.ipp.encoding.IppDelimiterTag;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class IppCancelJobOperation extends AbstractIppOperation {
+public final class IppCloseJobOperation extends AbstractIppOperation {
 
     /** */
-    private static final class IppCancelJobRequest extends AbstractIppRequest {
+    private static final class IppCloseJobRequest extends AbstractIppRequest {
 
         @Override
         public void process(final AbstractIppOperation operation,
@@ -52,11 +57,10 @@ public final class IppCancelJobOperation extends AbstractIppOperation {
     }
 
     /** */
-    private static final class IppCancelJobResponse
-            extends AbstractIppResponse {
+    private static final class IppCloseJobResponse extends AbstractIppResponse {
 
         /** */
-        IppCancelJobResponse() {
+        IppCloseJobResponse() {
         }
 
         /**
@@ -70,8 +74,8 @@ public final class IppCancelJobOperation extends AbstractIppOperation {
          * @throws IOException
          *             If error.
          */
-        public void process(final IppCancelJobOperation operation,
-                final IppCancelJobRequest request, final OutputStream ostr)
+        public void process(final IppCloseJobOperation operation,
+                final IppCloseJobRequest request, final OutputStream ostr)
                 throws IOException {
 
             IppStatusCode ippStatusCode =
@@ -79,15 +83,37 @@ public final class IppCancelJobOperation extends AbstractIppOperation {
 
             final List<IppAttrGroup> attrGroups = new ArrayList<>();
 
-            /**
+            /*
              * Group 1: Operation Attributes
              */
             attrGroups.add(this.createOperationGroup());
 
             if (ippStatusCode == IppStatusCode.OK) {
-                // All submitted jobs are inherently completed, so this cancel
-                // operation is not possible.
-                ippStatusCode = IppStatusCode.CLI_NOTPOS;
+
+                final IppAttrValue valuePrinterUri = request
+                        .getAttrValue(IppDictOperationAttr.ATTR_PRINTER_URI);
+
+                final IppAttrValue valueJobId =
+                        request.getAttrValue(IppDictJobDescAttr.ATTR_JOB_ID);
+
+                if (valuePrinterUri == null || valueJobId == null) {
+                    ippStatusCode = IppStatusCode.CLI_BADREQ;
+
+                } else {
+
+                    final IppAttrGroup group =
+                            new IppAttrGroup(IppDelimiterTag.JOB_ATTR);
+                    attrGroups.add(group);
+
+                    group.addAttribute(valuePrinterUri);
+                    group.addAttribute(valueJobId);
+
+                    final IppAttr attr = IppDictJobDescAttr.instance()
+                            .getAttr(IppDictJobDescAttr.ATTR_JOB_STATE);
+                    final IppAttrValue value = new IppAttrValue(attr);
+                    value.addValue(IppJobState.STATE_COMPLETED);
+                    group.addAttribute(value);
+                }
             }
 
             this.writeHeaderAndAttributes(operation, ippStatusCode, attrGroups,
@@ -97,15 +123,15 @@ public final class IppCancelJobOperation extends AbstractIppOperation {
     }
 
     /** */
-    private final IppCancelJobRequest request;
+    private final IppCloseJobRequest request;
     /** */
-    private final IppCancelJobResponse response;
+    private final IppCloseJobResponse response;
 
     /** */
-    public IppCancelJobOperation() {
+    public IppCloseJobOperation() {
         super();
-        this.request = new IppCancelJobRequest();
-        this.response = new IppCancelJobResponse();
+        this.request = new IppCloseJobRequest();
+        this.response = new IppCloseJobResponse();
     }
 
     /**

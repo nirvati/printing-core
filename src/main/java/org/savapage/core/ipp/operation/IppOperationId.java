@@ -43,9 +43,6 @@ import org.savapage.core.SpException;
  */
 public enum IppOperationId {
 
-    // 0x0000 reserved, not used
-    // 0x0001 reserved, not used
-
     /**  */
     PRINT_JOB(0x02),
 
@@ -97,9 +94,8 @@ public enum IppOperationId {
     PURGE_JOBS(0x12),
 
     /*
-     * 0x0013-0x3FFF
-     *
-     * reserved for future IETF standards track operations (see section 6.4).
+     * 0x0013-0x3FFF : reserved for future IETF standards track operations (see
+     * section 6.4).
      */
 
     /**
@@ -155,11 +151,14 @@ public enum IppOperationId {
     IDENTIFY_PRINTER(0x3C),
 
     /*
-     * 0x4000-0x8FFF
-     *
-     * IPP Vendor Operation Codes:
+     * 0x4000-0x8FFF : IPP Vendor Operation Codes.
      * https://www.pwg.org/ipp/opcodes/ippopcodes.html
      */
+
+    /**
+     * Observed when printing IPP/1.x from MS Windows. No documentation found.
+     */
+    MICROSOFT_UNDOCUMENTED(0x4000),
 
     /** CUPS 1.0 : Get the default destination. */
     CUPS_GET_DEFAULT(0x4001),
@@ -210,46 +209,34 @@ public enum IppOperationId {
     CUPS_GET_DOCUMENT(0x4027);
 
     /**
-     *
+     * Operation code.
      */
-    private int bitPattern = 0;
+    private int opcode = 0;
 
     /**
-    *
-    */
-    private static IppOperationId[] supported = new IppOperationId[] {
-            // ---------------------------------------
-            // REQUIRED
-            GET_PRINTER_ATTR,
-            // REQUIRED
-            PRINT_JOB,
-            // REQUIRED
-            GET_JOB_ATTR,
-            // REQUIRED
-            GET_JOBS,
-            // REQUIRED
-            CANCEL_JOB,
-            // REQUIRED
-            VALIDATE_JOB,
-            // IPP Everywhere
-            IDENTIFY_PRINTER
-            // ---------------------------------------
-            // IPP Everywhere
-            // TODO CREATE_JOB,
-            // IPP Everywhere
-            // TODO SEND_DOC,
-            // IPP Everywhere
-            // TODO CANCEL_MY_JOBS,
-            // IPP Everywhere
-            // TODO CLOSE_JOB,
+     * Supported IPP/1.x operations.
+     */
+    private static IppOperationId[] supportedV1 = new IppOperationId[] {
+            //
+            GET_PRINTER_ATTR, //
+            PRINT_JOB, //
+            GET_JOB_ATTR, //
+            GET_JOBS, //
+            CANCEL_JOB, //
+            VALIDATE_JOB //
     };
 
     /**
-    *
-    */
-    private static IppOperationId[] optional = new IppOperationId[] { PRINT_URI,
-            CREATE_JOB, PAUSE_PRINTER, RESUME_PRINTER, PURGE_JOBS, SEND_DOC,
-            SEND_URI, HOLD_JOB, RELEASE_JOB, RESTART_JOB };
+     * Supported IPP/2.x operations.
+     */
+    private static IppOperationId[] supportedV2 = new IppOperationId[] {
+            //
+            IDENTIFY_PRINTER, //
+            CREATE_JOB, //
+            SEND_DOC, //
+            CANCEL_MY_JOBS, //
+            CLOSE_JOB //
+    };
 
     /**
      * Creates an enum value from an integer.
@@ -258,7 +245,7 @@ public enum IppOperationId {
      *            The integer.
      */
     IppOperationId(final int value) {
-        this.bitPattern = value;
+        this.opcode = value;
     }
 
     /**
@@ -267,14 +254,17 @@ public enum IppOperationId {
      * @return The integer.
      */
     public int asInt() {
-        return this.bitPattern;
+        return this.opcode;
     }
 
     /**
+     * Converts int to enum.
+     *
      * Note: these are only the values used by SavaPage in print server role.
      *
      * @param value
-     * @return
+     *            numeric code.
+     * @return {@link IppOperationId}.
      */
     public static IppOperationId asEnum(final int value) {
         if (value == IppOperationId.PRINT_JOB.asInt()) {
@@ -320,31 +310,23 @@ public enum IppOperationId {
         } else if (value == IppOperationId.CUPS_GET_DEFAULT.asInt()) {
             return CUPS_GET_DEFAULT;
         }
-
         throw new SpException(
                 String.format("Value [%d] can not be converted to %s.", value,
                         IppOperationId.class.getSimpleName()));
     }
 
     /**
-     *
-     * @return
+     * @return Supported IPP/1.x operations.
      */
-    public static IppOperationId[] supported() {
-        return supported;
+    public static IppOperationId[] supportedV1() {
+        return supportedV1;
     }
 
     /**
-     *
-     * @return
+     * @return Supported IPP/2.x operations.
      */
-    public static boolean isSupported(final IppOperationId operation) {
-        for (IppOperationId wlk : supported()) {
-            if (wlk.equals(operation)) {
-                return true;
-            }
-        }
-        return false;
+    public static IppOperationId[] supportedV2() {
+        return supportedV2;
     }
 
 }

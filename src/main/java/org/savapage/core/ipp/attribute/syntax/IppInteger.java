@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,16 +26,19 @@ package org.savapage.core.ipp.attribute.syntax;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
 
 import org.savapage.core.ipp.encoding.IppEncoder;
 import org.savapage.core.ipp.encoding.IppValueTag;
+import org.savapage.core.util.DateUtil;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class IppInteger extends AbstractIppAttrSyntax {
+public final class IppInteger extends AbstractIppAttrSyntax {
 
     public static final int MIN = -2 ^ 31;
     public static final int MAX = 2 ^ 31 - 1;
@@ -43,17 +49,9 @@ public class IppInteger extends AbstractIppAttrSyntax {
     private IppInteger() {
     }
 
-    /**
-     * The SingletonHolder is loaded on the first execution of
-     * {@link IppInteger#instance()} or the first access to
-     * {@link SingletonHolder#INSTANCE}, not before.
-     * <p>
-     * <a href=
-     * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>
-     * </p>
-     */
+    /** */
     private static class SingletonHolder {
+        /** */
         public static final IppInteger INSTANCE = new IppInteger();
     }
 
@@ -67,24 +65,29 @@ public class IppInteger extends AbstractIppAttrSyntax {
     }
 
     /**
-     * Gets the singleton instance.
-     *
-     * @return
+     * @return The singleton instance.
      */
     public static IppInteger instance() {
         return SingletonHolder.INSTANCE;
     }
 
     @Override
-    public final IppValueTag getValueTag() {
+    public IppValueTag getValueTag() {
         return IppValueTag.INTEGER;
     }
 
     @Override
-    public final void write(final OutputStream ostr, final String value,
+    public void write(final OutputStream ostr, final String value,
             final Charset charset) throws IOException {
         IppEncoder.writeInt16(ostr, 4); // length
         IppEncoder.writeInt32(ostr, Integer.parseInt(value)); // value
     }
 
+    /**
+     * @return IPP Printer uptime in seconds.
+     */
+    public static int getPrinterUpTime() {
+        return (int) (ManagementFactory.getRuntimeMXBean().getUptime()
+                / DateUtil.DURATION_MSEC_SECOND);
+    }
 }

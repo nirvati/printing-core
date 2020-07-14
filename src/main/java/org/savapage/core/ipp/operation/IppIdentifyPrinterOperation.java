@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.savapage.core.ipp.attribute.IppAttrGroup;
-import org.savapage.core.ipp.attribute.IppAttrValue;
 import org.savapage.core.jpa.IppQueue;
 
 /**
@@ -39,10 +38,11 @@ import org.savapage.core.jpa.IppQueue;
  * @author Rijk Ravestein
  *
  */
-public class IppIdentifyPrinterOperation extends AbstractIppOperation {
+public final class IppIdentifyPrinterOperation extends AbstractIppOperation {
 
     /** */
-    private static final class Request extends AbstractIppRequest {
+    private static final class IppIdentifyPrinterRequest
+            extends AbstractIppRequest {
 
         @Override
         public void process(final AbstractIppOperation operation,
@@ -53,19 +53,14 @@ public class IppIdentifyPrinterOperation extends AbstractIppOperation {
     }
 
     /** */
-    private static final class Response extends AbstractIppResponse {
-
-        /**
-         * The requested printer queue.
-         */
-        private final IppQueue printerQueue;
+    private static final class IppIdentifyPrinterResponse
+            extends AbstractIppResponse {
 
         /**
          * @param queue
          *            The requested printer queue (can be {@code null});
          */
-        Response(final IppQueue queue) {
-            this.printerQueue = queue;
+        IppIdentifyPrinterResponse(final IppQueue queue) {
         }
 
         /**
@@ -80,8 +75,8 @@ public class IppIdentifyPrinterOperation extends AbstractIppOperation {
          *             If error.
          */
         public void process(final IppIdentifyPrinterOperation operation,
-                final Request request, final OutputStream ostr)
-                throws IOException {
+                final IppIdentifyPrinterRequest request,
+                final OutputStream ostr) throws IOException {
 
             final IppStatusCode ippStatusCode =
                     this.determineStatusCode(operation, request);
@@ -104,9 +99,9 @@ public class IppIdentifyPrinterOperation extends AbstractIppOperation {
     }
 
     /** */
-    private final Request request = new Request();
+    private final IppIdentifyPrinterRequest request;
     /** */
-    private final Response response;
+    private final IppIdentifyPrinterResponse response;
 
     /**
      *
@@ -115,19 +110,13 @@ public class IppIdentifyPrinterOperation extends AbstractIppOperation {
      */
     public IppIdentifyPrinterOperation(final IppQueue queue) {
         super();
-        this.response = new Response(queue);
-    }
-
-    /**
-     * @return {@link IppAttrValue}.
-     */
-    public IppAttrValue getRequestedAttributes() {
-        return request.getRequestedAttributes();
+        this.request = new IppIdentifyPrinterRequest();
+        this.response = new IppIdentifyPrinterResponse(queue);
     }
 
     @Override
-    protected final void process(final InputStream istr,
-            final OutputStream ostr) throws IOException {
+    protected void process(final InputStream istr, final OutputStream ostr)
+            throws IOException {
         request.process(this, istr);
         response.process(this, request, ostr);
     }

@@ -26,7 +26,6 @@ package org.savapage.core.ipp.operation;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.community.MemberCard;
@@ -54,6 +54,7 @@ import org.savapage.core.ipp.attribute.syntax.IppInteger;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.attribute.syntax.IppRangeOfInteger;
 import org.savapage.core.ipp.attribute.syntax.IppResolution;
+import org.savapage.core.ipp.attribute.syntax.IppUri;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
 import org.savapage.core.ipp.helpers.IppMediaSizeHelper;
 import org.savapage.core.jpa.IppQueue;
@@ -86,7 +87,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     }
 
     /** */
-    private static final IppMediaSizeEnum IPP_MEDIA_DEFAULT =
+    public static final IppMediaSizeEnum IPP_MEDIA_DEFAULT =
             IppMediaSizeEnum.ISO_A4;
 
     /** */
@@ -591,12 +592,9 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictJobTemplateAttr.ATTR_PRINTER_RESOLUTION:
-            value.addValue(IppResolution.format(600, 600, IppResolution.DPI));
-            if (attrAppl == ApplEnum.SUPPORTED) {
-                value.addValue(
-                        IppResolution.format(1200, 1200, IppResolution.DPI));
-            }
+            value.addValue(IppResolution.DPI_600X600);
             break;
+
         case IppDictJobTemplateAttr.ATTR_ORIENTATION_REQUESTED:
             value.addValue("3"); // portrait
             if (attrAppl == ApplEnum.SUPPORTED) {
@@ -612,10 +610,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             value.addValue(IppKeyword.SIDES_ONE_SIDED);
             break;
         case IppDictJobTemplateAttr.ATTR_PRINT_QUALITY:
-            value.addValue("5"); // high
-            if (attrAppl == ApplEnum.SUPPORTED) {
-                value.addValue("4"); // normal
-            }
+            value.addValue(IppKeyword.PRINT_QUALITY_HIGH);
             break;
         default:
             // unsupported
@@ -717,7 +712,13 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_STATE_REASONS:
-            value.addValue("none");
+            if (this.printerQueue == null
+                    || BooleanUtils.isTrue(this.printerQueue.getDisabled())) {
+                // Satisfy IPP-everywhere self certification test.
+                value.addValue("media-needed");
+            } else {
+                value.addValue("none");
+            }
             break;
 
         case IppDictPrinterDescAttr.ATTR_IPP_VERSIONS_SUPP:
@@ -738,8 +739,13 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_OPERATIONS_SUPPORTED:
-            for (IppOperationId id : IppOperationId.supported()) {
+            for (final IppOperationId id : IppOperationId.supportedV1()) {
                 value.addValue(String.valueOf(id.asInt()));
+            }
+            if (this.isIPPversion2()) {
+                for (final IppOperationId id : IppOperationId.supportedV2()) {
+                    value.addValue(String.valueOf(id.asInt()));
+                }
             }
             break;
 
@@ -766,7 +772,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_DOC_FORMAT_DEFAULT:
-            value.addValue("application/pdf");
+            value.addValue(IppDictPrinterDescAttr.DOCUMENT_FORMAT_PDF);
             break;
 
         case IppDictPrinterDescAttr.ATTR_DOC_FORMAT_SUPPORTED:
@@ -799,9 +805,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_UP_TIME:
-            value.addValue(String.valueOf(
-                    (int) ManagementFactory.getRuntimeMXBean().getUptime()
-                            / DateUtil.DURATION_MSEC_SECOND));
+            value.addValue(String.valueOf(IppInteger.getPrinterUpTime()));
             break;
 
         case IppDictPrinterDescAttr.ATTR_COMPRESSION_SUPPORTED:
@@ -889,7 +893,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         case IppDictPrinterDescAttr.ATTR_PRINTER_UUID:
             final String printerUUID = ConfigManager.getIppPrinterUuid();
             if (StringUtils.isNotBlank(printerUUID)) {
-                value.addValue(String.format("urn:uuid:%s", printerUUID));
+                value.addValue(IppUri.getUrnUuid(printerUUID));
             }
             break;
 
@@ -1036,8 +1040,6 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
 
         case IppDictPrinterDescAttr.ATTR_PRINT_COLOR_MODE_SUPPORTED:
             value.addValue(IppKeyword.PRINT_COLOR_MODE_AUTO);
-            value.addValue(IppKeyword.PRINT_COLOR_MODE_COLOR);
-            value.addValue(IppKeyword.PRINT_COLOR_MODE_MONOCHROME);
             break;
 
         case IppDictPrinterDescAttr.ATTR_JOB_PASSWORD_ENCRYPTION_SUPPORTED:

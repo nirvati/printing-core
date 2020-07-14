@@ -28,9 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * 3.2.5.1 Get-Printer-Attributes Request.
- *
- * http://tools.ietf.org/html/rfc2911#section-3.2.5
  *
  * @author Rijk Ravestein
  *

@@ -47,111 +47,13 @@ import org.slf4j.LoggerFactory;
  * @author Rijk Ravestein
  *
  */
-public abstract class AbstractIppResponse extends IppMessageMixin {
+public abstract class AbstractIppResponse {
 
     /**
      *
      */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(AbstractIppResponse.class);
-
-    /**
-     * There are no operation responses that include document data.
-     */
-
-    /**
-     * 3.1.6 Operation Response Status Codes and Status Messages
-     *
-     * Every operation response includes a REQUIRED "status-code" parameter and
-     * an OPTIONAL "status-message" operation attribute, and an OPTIONAL
-     * "detailed-status-message" operation attribute.
-     *
-     * The Print-URI and Send-URI response MAY include an OPTIONAL
-     * "document-access-error" operation attribute.
-     *
-     */
-
-    /**
-     * 3.1.7 Unsupported Attributes
-     *
-     * The Unsupported Attributes group contains attributes that are not
-     * supported by the operation.
-     *
-     * This group is primarily for the job creation operations, but all
-     * operations can return this group.
-     *
-     * A Printer object MUST include an Unsupported Attributes group in a
-     * response if the status code is one of the following:
-     *
-     * <pre>
-     * ’successful-ok-ignored-or-substituted-attributes’,
-     * ’successful-ok-conflicting-attributes’,
-     * ’client-error-attributes-or-values-not-supported’ or
-     * ’client-error-conflicting-attributes’.
-     * </pre>
-     *
-     * If the status code is one of the four specified in the preceding
-     * paragraph, the Unsupported Attributes group MUST contain all of those
-     * attributes and only those attributes that are:
-     *
-     * <pre>
-     * a. an Operation or Job Template attribute supplied in the request, and
-     * b. unsupported by the printer. See below for details on the three
-     * categories "unsupported" attributes.
-     * </pre>
-     *
-     * If the status code is one of those in the table in section 3.1.6.1, the
-     * Unsupported Attributes group NEED NOT contain the unsupported parameter
-     * or attribute indicated in that table.
-     *
-     * If the Printer object is not returning any Unsupported Attributes in the
-     * response, the Printer object SHOULD omit Group 2 rather than sending an
-     * empty group. However, a client MUST be able to accept an empty group.
-     *
-     * Unsupported attributes fall into three categories:
-     *
-     * <pre>
-     * 1. The Printer object does not support the supplied attribute (no
-     * matter what the attribute syntax or value).
-     * 2. The Printer object does support the attribute, but does not
-     * support some or all of the particular attribute syntaxes or
-     * values supplied by the client (i.e., the Printer object does
-     * not have those attribute syntaxes or values in its
-     * corresponding "xxx-supported" attribute).
-     * 3. The Printer object does support the attributes and values
-     * supplied, but the particular values are in conflict with one
-     * another, because they violate a constraint, such as not being
-     * able to staple transparencies.
-     * </pre>
-     *
-     * In the case of an unsupported attribute name, the Printer object returns
-     * the client-supplied attribute with a substituted value of ’unsupported’.
-     * This value’s syntax type is "out-of-band" and its encoding is defined by
-     * special rules for "out-of-band" values in the "Encoding and Transport"
-     * document [RFC2910]. Its value indicates no support for the attribute
-     * itself (see the beginning of section 4.1).
-     *
-     * In the case of a supported attribute with one or more unsupported
-     * attribute syntaxes or values, the Printer object simply returns the
-     * client-supplied attribute with the unsupported attribute syntaxes or
-     * values as supplied by the client. This indicates support for the
-     * attribute, but no support for that particular attribute syntax or value.
-     * If the client supplies a multi-valued attribute with more than one value
-     * and the Printer object supports the attribute but only supports a subset
-     * of the client-supplied attribute syntaxes or values, the Printer object
-     *
-     * MUST return only those attribute syntaxes or values that are unsupported.
-     *
-     * In the case of two (or more) supported attribute values that are in
-     * conflict with one another (although each is supported independently, the
-     * values conflict when requested together within the same job), the Printer
-     * object MUST return all the values that it ignores or substitutes to
-     * resolve the conflict, but not any of the values that it is still using.
-     * The choice for exactly how to resolve the conflict is implementation
-     * dependent. See sections 3.2.1.2 and 15. See The Implementer’s Guide
-     * [IPP-IIG] for an example.
-     *
-     */
 
     /**
      * Determines IPP status code for this IPP Response.

@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -43,46 +46,21 @@ import org.savapage.core.ipp.attribute.syntax.AbstractIppAttrSyntax;
  * attribute syntaxes.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class IppAttr {
+public final class IppAttr {
 
+    /** */
     protected static final boolean REQUIRED = true;
+    /** */
     protected static final boolean OPTIONAL = false;
-
-    /*
-     * The value of an attribute in a response (but not in a request) MAY be one
-     * of the "out-of-band" values whose special encoding rules are defined in
-     * the "Encoding and Transport" document [RFC2910]. Standard "out-of-band"
-     * values are:
-     *
-     * 'unknown': The attribute is supported by the IPP object, but the value is
-     * unknown to the IPP object for some reason.
-     *
-     * 'unsupported': The attribute is unsupported by the IPP object. This value
-     * MUST be returned only as the value of an attribute in the Unsupported
-     * Attributes Group.
-     *
-     * 'no-value': The attribute is supported by the Printer object, but the
-     * administrator has not yet configured a value.
-     *
-     * Thus clients MUST NOT supply attributes with "out-of-band" values.
-     *
-     * All attributes in a response MUST have one or more values as defined in
-     * Sections 4.2 to 4.4 or a single "out-of-band" value.
-     */
 
     /**
      * Unique keyword (name) identifying the attribute.
-     * <p>
-     * Note: Not only are keywords used to identify attributes, but one of the
-     * attribute syntaxes described below is "keyword" so that some attributes
-     * have keyword values. Therefore, these attributes are defined as having an
-     * attribute syntax that is a set of keywords.
-     * </p>
      */
     private final String keyword;
+    /** */
     private final AbstractIppAttrSyntax syntax;
 
     /**

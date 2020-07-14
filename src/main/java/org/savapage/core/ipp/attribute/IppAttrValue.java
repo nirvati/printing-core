@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -36,10 +39,10 @@ import org.savapage.core.ipp.attribute.syntax.AbstractIppAttrSyntax;
  * TODO: Each value in an attribute can have a different type.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class IppAttrValue {
+public final class IppAttrValue {
 
     private IppAttr attribute;
 
@@ -50,7 +53,8 @@ public class IppAttrValue {
      * @param keyword
      * @param syntax
      */
-    public IppAttrValue(final String keyword, final AbstractIppAttrSyntax syntax) {
+    public IppAttrValue(final String keyword,
+            final AbstractIppAttrSyntax syntax) {
         this.setAttribute(new IppAttr(keyword, syntax));
     }
 
@@ -122,7 +126,7 @@ public class IppAttrValue {
      * @param charset
      * @throws IOException
      */
-    public final void write(final OutputStream ostr, final String value,
+    public void write(final OutputStream ostr, final String value,
             final Charset charset) throws IOException {
         getAttribute().getSyntax().write(ostr, value, charset);
     }

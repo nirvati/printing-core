@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -30,35 +33,15 @@ import org.savapage.core.ipp.encoding.IppValueTag;
 /**
  * A text attribute is an attribute whose value is a sequence of zero or more
  * characters encoded in a maximum of 1023 ('MAX') octets.
- * <p>
- * MAX is the maximum length for each value of any text attribute. However, if
- * an attribute will always contain values whose maximum length is much less
- * than MAX, the definition of that attribute will include a qualifier that
- * defines the maximum length for values of that attribute.
- * </p>
- * <p>
- * For example: the "printer-location" attribute is specified as
- * "printer-location (text(127))". In this case, text values for
- * "printer-location" MUST NOT exceed 127 octets; if supplied with a longer text
- * string via some external interface (other than the protocol), implementations
- * are free to truncate to this shorter length limitation.
- * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class IppText extends AbstractIppAttrSyntax {
+public final class IppText extends AbstractIppAttrSyntax {
 
-    /**
-     * The SingletonHolder is loaded on the first execution of
-     * {@link IppText#instance()} or the first access to
-     * {@link SingletonHolder#INSTANCE}, not before.
-     * <p>
-     * <a href=
-     * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>
-     * </p>
-     */
+    /** */
     private static class SingletonHolder {
+        /** */
         public static final IppText INSTANCE = new IppText();
     }
 
@@ -91,16 +74,14 @@ public class IppText extends AbstractIppAttrSyntax {
     }
 
     /**
-     * Gets the singleton instance.
-     *
-     * @return
+     * @return The singleton instance.
      */
     public static IppText instance() {
         return SingletonHolder.INSTANCE;
     }
 
     @Override
-    public final IppValueTag getValueTag() {
+    public IppValueTag getValueTag() {
         /*
          * Generally, one natural language applies to all text attributes in a
          * given request or response. The language is indicated by the
@@ -113,7 +94,7 @@ public class IppText extends AbstractIppAttrSyntax {
     }
 
     @Override
-    public final void write(final OutputStream ostr, final String value,
+    public void write(final OutputStream ostr, final String value,
             final Charset charset) throws IOException {
         write(ostr, value.getBytes(charset));
     }

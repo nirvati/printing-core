@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -31,10 +34,10 @@ import org.savapage.core.ipp.encoding.IppValueTag;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class IppOutOfBand extends AbstractIppAttrSyntax {
+public final class IppOutOfBand extends AbstractIppAttrSyntax {
 
     private IppValueTag valueTag;
 
@@ -55,8 +58,8 @@ public class IppOutOfBand extends AbstractIppAttrSyntax {
             this.valueTag = valueTag;
             break;
         default:
-            throw new SpException(valueTag.toString()
-                    + " is no valid out-of-band value");
+            throw new SpException(
+                    valueTag.toString() + " is no valid out-of-band value");
         }
 
     }
@@ -67,7 +70,7 @@ public class IppOutOfBand extends AbstractIppAttrSyntax {
     }
 
     @Override
-    public final void write(final OutputStream ostr, final String value,
+    public void write(final OutputStream ostr, final String value,
             final Charset charset) throws IOException {
         /*
          * For "out-of-band" "value-tag" fields defined in this document, such
@@ -80,25 +83,6 @@ public class IppOutOfBand extends AbstractIppAttrSyntax {
          * unless the definition explicitly states that the "value-length" MAY
          * be non-zero and the "value" non-empty.
          */
-
-        /**
-         * <pre>
-         *   0x05          start unsupported-attributes  unsupported-attributes tag
-         *
-         *   0x21          integer type                  value-tag
-         *   0x0006                                      name-length
-         *   copies        copies                        name
-         *   0x0004                                      value-length
-         *   0x00000014    20                            value
-         *
-         *   0x10          unsupported  (type)           value-tag
-         *   0x0005                                      name-length
-         *   sides         sides                         name
-         *   0x0000                                      value-length
-         *
-         * </pre>
-         */
-
         IppEncoder.writeInt16(ostr, 0);
     }
 

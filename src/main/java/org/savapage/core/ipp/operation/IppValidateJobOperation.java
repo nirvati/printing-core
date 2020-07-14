@@ -1,7 +1,10 @@
 /*
-+ * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -19,6 +22,7 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
+
 package org.savapage.core.ipp.operation;
 
 import java.io.IOException;
@@ -36,58 +40,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 3.2.3 Validate-Job Operation.
- * <p>
- * This REQUIRED operation is similar to the Print-Job operation (section 3.2.1)
- * except that a client supplies no document data and the Printer allocates no
- * resources (i.e., it does not create a new Job object).
- * </p>
- * <p>
- * This operation is used only to verify capabilities of a printer object
- * against whatever attributes are supplied by the client in the Validate-Job
- * request.
- * </p>
- * <p>
- * By using the Validate-Job operation a client can validate that an identical
- * Print-Job operation (with the document data) would be accepted.
- * </p>
- * <p>
- * The Validate-Job operation also performs the same security negotiation as the
- * Print-Job operation (see section 8), so that a client can check that the
- * client and Printer object security requirements can be met before performing
- * a Print-Job operation.
- * </p>
- * <p>
- * The Validate-Job operation does not accept a "document-uri" attribute in
- * order to allow a client to check that the same Print-URI operation will be
- * accepted, since the client doesn't send the data with the Print-URI
- * operation. The client SHOULD just issue the Print-URI request.
- * </p>
- * <p>
- * The Printer object returns the same status codes, Operation Attributes (Group
- * 1) and Unsupported Attributes (Group 2) as the Print-Job operation. However,
- * no Job Object Attributes (Group 3) are returned, since no Job object is
- * created.
- * </p>
  *
  * @author Rijk Ravestein
  *
  */
-public class IppValidateJobOperation extends AbstractIppOperation {
+public final class IppValidateJobOperation extends AbstractIppOperation {
 
     private static final Logger LOGGER =
             LoggerFactory.getLogger(IppValidateJobOperation.class);
 
-    private final IppValidateJobReq request = new IppValidateJobReq();
-    private final IppValidateJobRsp response = new IppValidateJobRsp();
+    private final IppValidateJobReq request;
+    private final IppValidateJobRsp response;
 
     private final IppQueue queue;
     private final String requestedQueueUrlPath;
     private final boolean clientIpAccessToQueue;
 
-    /**
-     * .
-     */
+    /** */
     private final String trustedIppClientUserId;
 
     /**
@@ -96,9 +65,7 @@ public class IppValidateJobOperation extends AbstractIppOperation {
      */
     private final boolean trustedUserAsRequester;
 
-    /**
-     * .
-     */
+    /** */
     private final String remoteAddr;
 
     /**
@@ -131,6 +98,9 @@ public class IppValidateJobOperation extends AbstractIppOperation {
         this.clientIpAccessToQueue = clientIpAccessToQueue;
         this.trustedIppClientUserId = trustedIppClientUserId;
         this.trustedUserAsRequester = trustedUserAsRequester;
+
+        this.request = new IppValidateJobReq();
+        this.response = new IppValidateJobRsp();
     }
 
     public IppQueue getQueue() {
@@ -142,8 +112,8 @@ public class IppValidateJobOperation extends AbstractIppOperation {
     }
 
     @Override
-    protected final void process(final InputStream istr,
-            final OutputStream ostr) throws IppProcessingException {
+    protected void process(final InputStream istr, final OutputStream ostr)
+            throws IppProcessingException {
         /*
          * IMPORTANT: we want to give a response in ALL cases. When an exception
          * occurs, the response will act in such a way that the client will not

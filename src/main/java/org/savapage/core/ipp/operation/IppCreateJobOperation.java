@@ -38,9 +38,10 @@ import org.savapage.core.jpa.IppQueue;
  * @author Rijk Ravestein
  *
  */
-public class IppPrintJobOperation extends AbstractIppJobOperation {
+public final class IppCreateJobOperation extends AbstractIppJobOperation {
 
     /**
+     *
      * @param queue
      *            The print queue. Can be {@code null} is no queue matches the
      *            URI.
@@ -56,51 +57,19 @@ public class IppPrintJobOperation extends AbstractIppJobOperation {
      * @param ctx
      *            The operation context.
      */
-    public IppPrintJobOperation(final IppQueue queue,
+    public IppCreateJobOperation(final IppQueue queue,
             final boolean clientIpAccessToQueue,
             final String trustedIppClientUserId,
             final boolean trustedUserAsRequester,
             final IppOperationContext ctx) {
 
         super(queue, clientIpAccessToQueue, trustedIppClientUserId,
-                trustedUserAsRequester, ctx, new IppPrintJobReq(),
-                new IppPrintJobRsp());
-    }
-
-    /**
-     * @param queue
-     *            The print queue. Can be {@code null} is no queue matches the
-     *            URI.
-     * @param clientIpAccessToQueue
-     *            Indicates if client has access to printing. When {@code false}
-     *            , printing is NOT allowed.
-     * @param trustedIppClientUserId
-     *            The user id of the trusted on the IPP client. If {@code null}
-     *            there is NO trusted user.
-     * @param trustedUserAsRequester
-     *            If {@code true}, the trustedIppClientUserId overrules the
-     *            requesting user.
-     * @param ctx
-     *            The operation context.
-     * @param req
-     *            IPP Request.
-     * @param rsp
-     *            IPP Response.
-     */
-    protected IppPrintJobOperation(final IppQueue queue,
-            final boolean clientIpAccessToQueue,
-            final String trustedIppClientUserId,
-            final boolean trustedUserAsRequester, final IppOperationContext ctx,
-            final AbstractIppPrintJobReq req,
-            final AbstractIppPrintJobRsp rsp) {
-
-        super(queue, clientIpAccessToQueue, trustedIppClientUserId,
-                trustedUserAsRequester, ctx, req, rsp);
+                trustedUserAsRequester, ctx, new IppCreateJobReq(),
+                new IppCreateJobRsp());
     }
 
     @Override
-    protected final void process(final InputStream istr,
-            final OutputStream ostr)
+    protected void process(final InputStream istr, final OutputStream ostr)
             throws IOException, IppProcessingException {
 
         /*
@@ -137,24 +106,15 @@ public class IppPrintJobOperation extends AbstractIppJobOperation {
             }
 
             /*
-             * Step 2.
+             * Step 2: processing the request is n/a (no document).
              */
-            try {
-                if (isAuthorized()) {
-                    getRequest().process(this, istr);
-                }
-            } catch (IOException e) {
-                getRequest().setDeferredException(new IppProcessingException(
-                        IppProcessingException.StateEnum.INTERNAL_ERROR,
-                        e.getMessage()));
-            }
 
             /*
              * Step 3.
              */
             try {
                 getResponse().process(this, getRequest(), ostr,
-                        IppJobState.STATE_COMPLETED);
+                        IppJobState.STATE_PROCESSING);
             } catch (IOException e) {
                 getRequest().setDeferredException(new IppProcessingException(
                         IppProcessingException.StateEnum.INTERNAL_ERROR,
@@ -175,10 +135,11 @@ public class IppPrintJobOperation extends AbstractIppJobOperation {
          * Step 4: deferred exception? or not allowed to print?
          */
         getRequest().evaluateErrorState(this);
+
     }
 
     @Override
-    protected final boolean isRequestingUserTrusted() {
+    protected boolean isRequestingUserTrusted() {
         return getRequest().isTrustedUser();
     }
 

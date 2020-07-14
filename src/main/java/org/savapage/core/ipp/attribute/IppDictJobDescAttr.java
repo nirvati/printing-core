@@ -24,24 +24,23 @@
  */
 package org.savapage.core.ipp.attribute;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import org.savapage.core.ipp.attribute.syntax.IppDateTime;
+import org.savapage.core.ipp.attribute.syntax.IppEnum;
 import org.savapage.core.ipp.attribute.syntax.IppInteger;
 import org.savapage.core.ipp.attribute.syntax.IppJobState;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.ipp.attribute.syntax.IppMimeMediaType;
 import org.savapage.core.ipp.attribute.syntax.IppName;
+import org.savapage.core.ipp.attribute.syntax.IppResolution;
 import org.savapage.core.ipp.attribute.syntax.IppText;
 import org.savapage.core.ipp.attribute.syntax.IppUri;
-import org.savapage.core.ipp.encoding.IppEncoder;
 import org.savapage.core.ipp.encoding.IppValueTag;
 
 /**
- * Job Description attribute dictionary on attribute name. See: section 4.3 of
- * <a href="http://tools.ietf.org/html/rfc2911">RFC2911</a>.
- *
- * <p>
- * NOTE: <a href="http://tools.ietf.org/html/rfc3382">RFC3382</a> is parsed in
- * {@link IppEncoder.Util#readValueTagValue(IppValueTag, java.io.InputStream, int, java.nio.charset.Charset)}
- * but <b>not</b> interpreted.
- * </p>
+ * Job Description attribute dictionary on attribute name.
  *
  * @author Rijk Ravestein
  *
@@ -50,167 +49,116 @@ public final class IppDictJobDescAttr extends AbstractIppDict {
 
     public static final String ATTR_JOB_NAME = "job-name";
     public static final String ATTR_JOB_STATE = "job-state";
+
     public static final String ATTR_JOB_STATE_MESSAGE = "job-state-message";
     public static final String ATTR_JOB_STATE_REASONS = "job-state-reasons";
     public static final String ATTR_JOB_URI = "job-uri";
     public static final String ATTR_JOB_ID = "job-id";
+    public static final String ATTR_JOB_UUID = "job-uuid";
     public static final String ATTR_JOB_MORE_INFO = "job-more-info";
-    public static final String ATTR_TIME_AT_CREATION = "time-at-creation";
-    public static final String ATTR_TIME_AT_COMPLETED = "time-at-completed";
-    public static final String ATTR_TIME_AT_PROCESSING = "time-at-processing";
+
     public static final String ATTR_JOB_PRINTER_URI = "job-printer-uri";
     public static final String ATTR_JOB_ORIGINATING_USER_NAME =
             "job-originating-user-name";
+
+    public static final String ATTR_JOB_PRINTER_UP_TIME = "job-printer-up-time";
+
+    /** */
+    public static final String ATTR_JOB_IMPRESSIONS = "job-impressions";
+    /** */
+    public static final String ATTR_JOB_IMPRESSIONS_COMPLETED =
+            "job-impressions-completed";
+
+    /** */
+    public static final String ATTR_DOCUMENT_NAME_SUPPLIED =
+            "document-name-supplied";
+
+    public static final String ATTR_DATE_TIME_AT_CREATION =
+            "date-time-at-creation";
+    public static final String ATTR_DATE_TIME_AT_COMPLETED =
+            "date-time-at-completed";
+    public static final String ATTR_DATE_TIME_AT_PROCESSING =
+            "date-time-at-processing";
+
+    public static final String ATTR_TIME_AT_CREATION = "time-at-creation";
+    public static final String ATTR_TIME_AT_COMPLETED = "time-at-completed";
+    public static final String ATTR_TIME_AT_PROCESSING = "time-at-processing";
+
+    public static final String ATTR_COMPRESSION_SUPPLIED =
+            "compression-supplied";
+
+    public static final String ATTR_SIDES = "sides";
+    public static final String ATTR_PRINT_COLOR_MODE = "print-color-mode";
+    public static final String ATTR_PRINT_QUALITY = "print-quality";
+    public static final String ATTR_PRINTER_RESOLUTION = "printer-resolution";
+    public static final String ATTR_MEDIA = "media";
+
+    /** */
+    public static final String ATTR_PRINT_CONTENT_OPTIMIZE =
+            "print-content-optimize";
+
+    /** type2 keyword. */
+    public static final String ATTR_PRINT_RENDERING_INTENT =
+            "print-rendering-intent";
+
+    /** */
+    public static final String ATTR_DOC_FORMAT_SUPPLIED =
+            "document-format-supplied";
+
     /**
      *
      */
     private final IppAttr[] attributes = {
-            //
-            /*
-             * 4.3.1 job-uri (uri)
-             *
-             * The Printer object MUST return the Job object's URI by returning
-             * the contents of the REQUIRED "job-uri" Job object attribute.
-             *
-             * The client uses the Job object's URI when directing operations at
-             * the Job object.
-             *
-             * The Printer object always uses its configured security policy
-             * when creating the new URI.
-             *
-             * However, if the Printer object supports more than one URI, the
-             * Printer object also uses information about which URI was used in
-             * the Print-Job Request to generated the new URI so that the new
-             * URI references the correct access channel.
-             *
-             * In other words, if the Print-Job Request comes in over a secure
-             * channel, the Printer object MUST generate a Job URI that uses the
-             * secure channel as well.
-             */
-            new IppAttr(ATTR_JOB_URI, IppUri.instance()), // REQUIRED
-
-            /*
-             * 4.3.2 job-id (integer(1:MAX))
-             *
-             * The Printer object MUST return the Job object's Job ID by
-             * returning the REQUIRED "job-id" Job object attribute.
-             *
-             * The client uses this "job-id" attribute in conjunction with the
-             * "printer-uri" attribute used in the Print-Job Request when
-             * directing Job operations at the Printer object.
-             */
-            new IppAttr(ATTR_JOB_ID, new IppInteger(1)), // REQUIRED
-
-            // 4.3.3 job-printer-uri (uri)
-            new IppAttr(ATTR_JOB_PRINTER_URI, IppUri.instance()), // REQUIRED
-
-            // 4.3.4 job-more-info (uri)
+            // REQUIRED
+            new IppAttr(ATTR_JOB_URI, IppUri.instance()),
+            new IppAttr(ATTR_JOB_ID, new IppInteger(1)),
+            new IppAttr(ATTR_JOB_PRINTER_URI, IppUri.instance()),
             new IppAttr(ATTR_JOB_MORE_INFO, IppUri.instance()),
-
-            // 4.3.5 job-name (name(MAX))
-            new IppAttr(ATTR_JOB_NAME, IppName.instance()), // REQUIRED
-
-            // 4.3.6 job-originating-user-name (name(MAX))
-            new IppAttr(ATTR_JOB_ORIGINATING_USER_NAME, IppName.instance()), // REQUIRED
-
-            /*
-             * 4.3.7 job-state (type1 enum)
-             *
-             * The Printer object MUST return the Job object's REQUIRED "job-
-             * state" attribute.
-             *
-             * The value of this attribute (along with the value of the next
-             * attribute: "job-state-reasons") is taken from a "snapshot" of the
-             * new Job object at some meaningful point in time (implementation
-             * defined) between when the Printer object receives the Print-Job
-             * Request and when the Printer object returns the response.
-             */
-            // 4.3.7.1 Forwarding Servers
-            // 4.3.7.2 Partitioning of Job States
-            new IppAttr(ATTR_JOB_STATE, IppJobState.instance()), // REQUIRED
-
-            // 4.3.8 job-state-reasons (1setOf type2 keyword)
-            new IppAttr(ATTR_JOB_STATE_REASONS, IppKeyword.instance()), // REQUIRED
-
-            // IPP Everywhere
-            new IppAttr(ATTR_JOB_STATE_MESSAGE, IppText.instance()),
-
-            // new IppAttr("job-state-message",),
-            // new IppAttr("job-detailed-status-messages",),
-            // new IppAttr("job-document-access-errors",),
-            // new IppAttr("number-of-documents",),
-            // new IppAttr("output-device-assigned",),
-            // new IppAttr("job-printer-up-time",),
-            // new IppAttr("date-time-at-creation",),
-            // new IppAttr("date-time-at-processing",),
-            // new IppAttr("date-time-at-completed",),
-            // new IppAttr("number-of-intervening-jobs",),
-            // new IppAttr("job-message-from-operator",),
-            // new IppAttr("job-k-octets",),
-            // new IppAttr("job-impressions",),
-            // new IppAttr("job-media-sheets",),
-            // new IppAttr("job-k-octets-processed",),
-            // new IppAttr("job-impressions-completed",),
-            // new IppAttr("job-media-sheets-completed",),
-            // new IppAttr("attributes-charset",),
-            // new IppAttr("attributes-natural-language",),
-
+            new IppAttr(ATTR_JOB_NAME, IppName.instance()),
+            new IppAttr(ATTR_JOB_ORIGINATING_USER_NAME, IppName.instance()),
+            new IppAttr(ATTR_JOB_STATE, IppJobState.instance()),
+            // 1setOf type2 keyword
+            new IppAttr(ATTR_JOB_STATE_REASONS, IppKeyword.instance()),
             //
-
-            // 4.3.9 job-state-message (text(MAX))
-            // 4.3.10 job-detailed-status-messages (1setOf text(MAX))
-            // 4.3.11 job-document-access-errors (1setOf text(MAX))
-            // 4.3.12 number-of-documents (integer(0:MAX))
-            // 4.3.13 output-device-assigned (name(127))
-
-            // 4.3.14 Event Time Job Description Attributes
-            new IppAttr(ATTR_TIME_AT_PROCESSING, IppInteger.instance()),
-
-            /*
-             * 4.3.14.1 time-at-creation (integer(MIN:MAX))
-             */
+            new IppAttr(ATTR_JOB_STATE_MESSAGE, IppText.instance()),
+            // integer(MIN:MAX)
             new IppAttr(ATTR_TIME_AT_CREATION, IppInteger.instance()),
-
-            /*
-             * 4.3.14.2 time-at-processing (integer(MIN:MAX))
-             */
+            // integer(MIN:MAX)
             new IppAttr(ATTR_TIME_AT_PROCESSING, IppInteger.instance()),
-
-            /*
-             * 4.3.14.3 time-at-completed (integer(MIN:MAX))
-             */
+            // integer(MIN:MAX)
             new IppAttr(ATTR_TIME_AT_COMPLETED, IppInteger.instance()),
 
-            // 4.3.14.4 job-printer-up-time (integer(1:MAX))
-            // 4.3.14.5 date-time-at-creation (dateTime)
-            // 4.3.14.6 date-time-at-processing (dateTime)
-            // 4.3.14.7 date-time-at-completed (dateTime)
+            new IppAttr(ATTR_DATE_TIME_AT_CREATION, IppDateTime.instance()),
+            new IppAttr(ATTR_DATE_TIME_AT_PROCESSING, IppDateTime.instance()),
+            new IppAttr(ATTR_DATE_TIME_AT_COMPLETED, IppDateTime.instance()),
+            new IppAttr(ATTR_COMPRESSION_SUPPLIED, IppKeyword.instance()),
+            new IppAttr(ATTR_JOB_UUID, IppUri.instance()),
+            new IppAttr(ATTR_JOB_PRINTER_UP_TIME, IppInteger.instance()),
 
-            // 4.3.15 number-of-intervening-jobs (integer(0:MAX))
-            // 4.3.16 job-message-from-operator (text(127))
-            // 4.3.17 Job Size Attributes
-            // 4.3.17.1 job-k-octets (integer(0:MAX))
-            // 4.3.17.2 job-impressions (integer(0:MAX))
-            // 4.3.17.3 job-media-sheets (integer(0:MAX))
-            // 4.3.18 Job Progress Attributes
-            // 4.3.18.1 job-k-octets-processed (integer(0:MAX))
-            // 4.3.18.2 job-impressions-completed (integer(0:MAX))
-            // 4.3.18.3 job-media-sheets-completed (integer(0:MAX))
-            // 4.3.19 attributes-charset (charset)
-            // 4.3.20 attributes-natural-language (naturalLanguage)
+            /* integer(0:MAX) */
+            new IppAttr(ATTR_JOB_IMPRESSIONS, IppInteger.instance()),
+            /* integer(0:MAX) */
+            new IppAttr(ATTR_JOB_IMPRESSIONS_COMPLETED, IppInteger.instance()),
+            /* name(MAX) */
+            new IppAttr(ATTR_DOCUMENT_NAME_SUPPLIED, IppName.instance()),
+            new IppAttr(ATTR_SIDES, IppKeyword.instance()),
+            new IppAttr(ATTR_PRINT_COLOR_MODE, IppKeyword.instance()),
+            new IppAttr(ATTR_PRINT_QUALITY, IppEnum.instance()),
+            new IppAttr(ATTR_PRINTER_RESOLUTION, IppResolution.instance()),
+            new IppAttr(ATTR_MEDIA, IppKeyword.instance()),
+            new IppAttr(ATTR_PRINT_CONTENT_OPTIMIZE, IppKeyword.instance()),
+            new IppAttr(ATTR_PRINT_RENDERING_INTENT, IppKeyword.instance()),
+            new IppAttr(ATTR_DOC_FORMAT_SUPPLIED, IppMimeMediaType.instance())
+            //
     };
 
     /**
      * The SingletonHolder is loaded on the first execution of
      * {@link IppDictJobDescAttr#instance()} or the first access to
      * {@link SingletonHolder#INSTANCE}, not before.
-     * <p>
-     * <a href=
-     * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>.
-     * </p>
      */
     private static class SingletonHolder {
+        /** */
         public static final IppDictJobDescAttr INSTANCE =
                 new IppDictJobDescAttr();
     }
@@ -223,10 +171,54 @@ public final class IppDictJobDescAttr extends AbstractIppDict {
     }
 
     /**
+     * Creates a "job-uri" attribute value.
+     * <p>
+     * "The Printer object assigns the new Job object a URI which is stored in
+     * the "job-uri" Job attribute. This URI is then used by clients as the
+     * target for subsequent Job operations. The Printer object generates a Job
+     * URI based on its configured security policy and the URI used by the
+     * client in the create request."
+     * </p>
+     *
+     * @param printerUri
+     *            URI of printer.
+     * @param jobId
+     *            Job ID.
+     * @return Job URI.
+     * @throws URISyntaxException
+     *             If error.
+     */
+    public static String createJobUri(final String printerUri,
+            final String jobId) throws URISyntaxException {
+
+        final URI uri = new URI(printerUri);
+
+        final StringBuilder jobUri = new StringBuilder(64);
+
+        jobUri.append(uri.getScheme()).append("://").append(uri.getHost());
+
+        if (uri.getPort() != -1) {
+            jobUri.append(":").append(uri.getPort());
+        }
+
+        final String path = uri.getPath();
+
+        if (path != null && path.length() > 1) {
+            jobUri.append(path);
+        }
+
+        jobUri.append("/jobs/").append(jobId);
+
+        // TODO: check on max 1023 octets
+
+        return jobUri.toString();
+    }
+
+    /**
      *
      */
     private IppDictJobDescAttr() {
-        init(attributes);
+        init(this.attributes);
     }
 
     @Override

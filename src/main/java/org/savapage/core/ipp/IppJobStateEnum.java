@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -27,9 +30,6 @@ import org.savapage.core.util.LocaleHelper;
 
 /**
  * Enumeration of IPP job states.
- * <p>
- * See <a href="https://tools.ietf.org/html/rfc8011#section-5.3.7">RFC 8011</a>
- * </p>
  *
  * @author Rijk Ravestein
  *
@@ -60,10 +60,8 @@ public enum IppJobStateEnum {
     /** Job has completed successfully. */
     IPP_JOB_COMPLETED(0x09, "COMPLETED");
 
-    /**
-     *
-     */
-    private final int bitPattern;
+    /** */
+    private final int jobState;
 
     /**
      * Text to be used in user interface.
@@ -79,7 +77,7 @@ public enum IppJobStateEnum {
      *            Text to be used in user interface.
      */
     IppJobStateEnum(final int value, final String text) {
-        this.bitPattern = value;
+        this.jobState = value;
         this.logText = text;
     }
 
@@ -89,7 +87,7 @@ public enum IppJobStateEnum {
      * @return The int value.
      */
     public int asInt() {
-        return this.bitPattern;
+        return this.jobState;
     }
 
     /**
@@ -124,8 +122,8 @@ public enum IppJobStateEnum {
      * @return {@code true} when state is PENDING, HELD, PROCESSING or STOPPED.
      */
     public boolean isPresentOnQueue() {
-        return this.bitPattern != IPP_JOB_UNKNOWN.bitPattern
-                && this.bitPattern < getFirstAbsentOnQueueOrdinal().asInt();
+        return this.jobState != IPP_JOB_UNKNOWN.jobState
+                && this.jobState < getFirstAbsentOnQueueOrdinal().asInt();
     }
 
     /**

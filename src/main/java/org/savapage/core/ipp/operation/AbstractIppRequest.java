@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * @author Rijk Ravestein
  *
  */
-public abstract class AbstractIppRequest extends IppMessageMixin {
+public abstract class AbstractIppRequest {
 
     /** */
     private static final Logger LOGGER =

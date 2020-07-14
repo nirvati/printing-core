@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -135,7 +138,6 @@ public abstract class IppAttrList {
             final IppAttrValue alreadyPresent = attrLookup.put(attrKey, attr);
 
             if (alreadyPresent != null) {
-
                 /*
                  * Several attributes are returned twice (CUPS bug?). For all
                  * these attributes the value is valid and consistent, except

@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -27,9 +30,6 @@ import org.savapage.core.util.LocaleHelper;
 
 /**
  * Enumeration of IPP job states.
- * <p>
- * See <a href="https://tools.ietf.org/html/rfc8011#section-5.3.7">RFC 8011</a>
- * </p>
  *
  * @author Rijk Ravestein
  *
@@ -54,10 +54,8 @@ public enum IppPrinterStateEnum {
      */
     STOPPED(0x05, "STOPPED");
 
-    /**
-     *
-     */
-    private final int bitPattern;
+    /** */
+    private final int printerState;
 
     /**
      * Text to be used in user interface.
@@ -73,7 +71,7 @@ public enum IppPrinterStateEnum {
      *            Text to be used in user interface.
      */
     IppPrinterStateEnum(final int value, final String text) {
-        this.bitPattern = value;
+        this.printerState = value;
         this.logText = text;
     }
 
@@ -83,7 +81,7 @@ public enum IppPrinterStateEnum {
      * @return The int value.
      */
     public int asInt() {
-        return this.bitPattern;
+        return this.printerState;
     }
 
     /**

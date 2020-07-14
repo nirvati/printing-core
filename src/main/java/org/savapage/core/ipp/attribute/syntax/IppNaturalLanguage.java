@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -33,42 +36,22 @@ import org.savapage.core.ipp.encoding.IppValueTag;
  * The values for this syntax type are defined by RFC 1766 [RFC1766]. Though
  * RFC1766 requires that the values be case-insensitive US-ASCII [ASCII], IPP
  * requires all lower case to simplify comparing by IPP clients and Printer
- * objects. Examples include:
- * </p>
- * <ul>
- * <li>'en': for English</li>
- * <li>'en-us': for US English</li>
- * <li>'fr': for French</li>
- * <li>'de': for German</li>
- * </ul>
- * <p>
- * The maximum length of 'naturalLanguage' values used to represent IPP
- * attribute values is 63 octets.
- * </p>
+ * objects.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
-public class IppNaturalLanguage extends AbstractIppAttrSyntax {
+public final class IppNaturalLanguage extends AbstractIppAttrSyntax {
 
-    /**
-     * The SingletonHolder is loaded on the first execution of
-     * {@link IppNaturalLanguage#instance()} or the first access to
-     * {@link SingletonHolder#INSTANCE}, not before.
-     * <p>
-     * <a href=
-     * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>
-     * </p>
-     */
+    /** */
     private static class SingletonHolder {
+        /** */
         public static final IppNaturalLanguage INSTANCE =
                 new IppNaturalLanguage();
     }
 
     /**
-     * Gets the singleton instance.
-     *
-     * @return
+     * @return The singleton instance.
      */
     public static IppNaturalLanguage instance() {
         return SingletonHolder.INSTANCE;
@@ -80,12 +63,12 @@ public class IppNaturalLanguage extends AbstractIppAttrSyntax {
     public static final int MAX = 63;
 
     @Override
-    public final IppValueTag getValueTag() {
+    public IppValueTag getValueTag() {
         return IppValueTag.NATULANG;
     }
 
     @Override
-    public final void write(final OutputStream ostr, final String value,
+    public void write(final OutputStream ostr, final String value,
             final Charset charset) throws IOException {
         writeUsAscii(ostr, value);
     }

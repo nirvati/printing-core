@@ -27,59 +27,325 @@ package org.savapage.core.ipp.operation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.savapage.core.SpException;
+import org.savapage.core.ipp.attribute.IppAttr;
+import org.savapage.core.ipp.attribute.IppAttrGroup;
+import org.savapage.core.ipp.attribute.IppAttrValue;
+import org.savapage.core.ipp.attribute.IppDictJobDescAttr;
+import org.savapage.core.ipp.attribute.IppDictOperationAttr;
+import org.savapage.core.ipp.attribute.IppDictPrinterDescAttr;
+import org.savapage.core.ipp.attribute.syntax.IppDateTime;
+import org.savapage.core.ipp.attribute.syntax.IppInteger;
+import org.savapage.core.ipp.attribute.syntax.IppJobState;
+import org.savapage.core.ipp.attribute.syntax.IppKeyword;
+import org.savapage.core.ipp.attribute.syntax.IppResolution;
+import org.savapage.core.ipp.attribute.syntax.IppUri;
+import org.savapage.core.ipp.encoding.IppDelimiterTag;
+import org.savapage.core.services.ServiceContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * This REQUIRED operation allows a client to request the values of attributes
- * of a Job object and it is almost identical to the Get-Printer-Attributes
- * operation (see section 3.2.5). The only differences are that the operation is
- * directed at a Job object rather than a Printer object, there is no
- * "document-format" operation attribute used when querying a Job object, and
- * the returned attribute group is a set of Job object attributes rather than a
- * set of Printer object attributes.
- *
- * For Jobs, the possible names of attribute groups are:
- *
- * - 'job-template': the subset of the Job Template attributes that apply to a
- * Job object (the first column of the table in Section 4.2) that the
- * implementation supports for Job objects.
- *
- * - 'job-description': the subset of the Job Description attributes specified
- * in Section 4.3 that the implementation supports for Job objects.
- *
- * - 'all': the special group 'all' that includes all attributes that the
- * implementation supports for Job objects.
- *
- * Since a client MAY request specific attributes or named groups, there is a
- * potential that there is some overlap. For example, if a client requests,
- * 'job-name' and 'job-description', the client is actually requesting the
- * "job-name" attribute once by naming it explicitly, and once by inclusion in
- * the 'job-description' group. In such cases, the Printer object NEED NOT
- * return the attribute only once in the response even if it is requested
- * multiple times. The client SHOULD NOT request the same attribute in multiple
- * ways.
- *
- * It is NOT REQUIRED that a Job object support all attributes belonging to a
- * group (since some attributes are OPTIONAL). However it is REQUIRED that each
- * Job object support all these group names.
  *
  * @author Rijk Ravestein
  *
  */
-public class IppGetJobAttrOperation extends AbstractIppOperation {
+public final class IppGetJobAttrOperation extends AbstractIppOperation {
 
-    /**
-     *
-     */
-    private final IppGetJobAttrReq request = new IppGetJobAttrReq();
+    /** */
+    private static class IppGetJobAttrRequest extends AbstractIppRequest {
 
-    /**
-     *
-     */
-    private final IppGetJobAttrRsp response = new IppGetJobAttrRsp();
+        /**
+         * The logger.
+         */
+        private static final Logger LOGGER =
+                LoggerFactory.getLogger(IppGetJobAttrRequest.class);
+
+        @Override
+        void process(final AbstractIppOperation operation,
+                final InputStream istr) throws IOException {
+            readAttributes(operation, istr);
+        }
+
+        /**
+         * @return
+         */
+        public String getJobId() {
+            return getAttrValue(IppDictJobDescAttr.ATTR_JOB_ID).getValues()
+                    .get(0);
+        }
+
+        /**
+         * @return
+         */
+        public String getJobUri() {
+            try {
+                return IppDictJobDescAttr.createJobUri(
+                        getAttrValue(IppDictOperationAttr.ATTR_PRINTER_URI)
+                                .getValues().get(0),
+                        getJobId());
+            } catch (URISyntaxException e) {
+                LOGGER.error(e.getMessage());
+                return null; // TODO
+            }
+        }
+    }
+
+    private static class IppGetJobAttrResponse extends AbstractIppResponse {
+
+        /**
+         * Job Description attributes..
+         */
+        private static final String[] ATTR_JOB_DESC_KEYWORDS = {
+                //
+                IppDictJobDescAttr.ATTR_JOB_URI, //
+                IppDictJobDescAttr.ATTR_JOB_ID,
+                IppDictJobDescAttr.ATTR_JOB_UUID,
+                IppDictJobDescAttr.ATTR_JOB_STATE,
+                IppDictJobDescAttr.ATTR_JOB_STATE_REASONS,
+                IppDictJobDescAttr.ATTR_JOB_STATE_MESSAGE,
+                //
+                IppDictJobDescAttr.ATTR_JOB_NAME,
+                IppDictJobDescAttr.ATTR_DOCUMENT_NAME_SUPPLIED,
+                IppDictJobDescAttr.ATTR_JOB_ORIGINATING_USER_NAME,
+                IppDictJobDescAttr.ATTR_JOB_PRINTER_UP_TIME,
+                //
+                IppDictJobDescAttr.ATTR_JOB_IMPRESSIONS,
+                IppDictJobDescAttr.ATTR_JOB_IMPRESSIONS_COMPLETED,
+
+                IppDictJobDescAttr.ATTR_JOB_PRINTER_URI,
+                //
+                IppDictJobDescAttr.ATTR_TIME_AT_CREATION,
+                IppDictJobDescAttr.ATTR_TIME_AT_PROCESSING,
+                IppDictJobDescAttr.ATTR_TIME_AT_COMPLETED,
+                //
+                IppDictJobDescAttr.ATTR_DATE_TIME_AT_CREATION,
+                IppDictJobDescAttr.ATTR_DATE_TIME_AT_PROCESSING,
+                IppDictJobDescAttr.ATTR_DATE_TIME_AT_COMPLETED,
+                //
+                IppDictJobDescAttr.ATTR_COMPRESSION_SUPPLIED,
+
+                IppDictJobDescAttr.ATTR_SIDES, IppDictJobDescAttr.ATTR_MEDIA,
+                IppDictJobDescAttr.ATTR_PRINT_COLOR_MODE,
+                IppDictJobDescAttr.ATTR_PRINT_QUALITY,
+                IppDictJobDescAttr.ATTR_PRINT_CONTENT_OPTIMIZE,
+                IppDictJobDescAttr.ATTR_PRINT_RENDERING_INTENT,
+                IppDictJobDescAttr.ATTR_PRINTER_RESOLUTION,
+                IppDictJobDescAttr.ATTR_DOC_FORMAT_SUPPLIED
+                //
+        };
+
+        /**
+         *
+         * @param operation
+         * @param ostr
+         * @param request
+         * @throws IOException
+         *             If IO error.
+         */
+        public final void process(final IppGetJobAttrOperation operation,
+                final IppGetJobAttrRequest request, final OutputStream ostr)
+                throws IOException {
+
+            final List<IppAttrGroup> attrGroups = new ArrayList<>();
+
+            /*
+             * Group 1: Operation Attributes
+             */
+            attrGroups.add(this.createOperationGroup());
+
+            /*
+             * Group 2: Unsupported Attributes
+             */
+            final IppAttrGroup group =
+                    new IppAttrGroup(IppDelimiterTag.UNSUPP_ATTR);
+            attrGroups.add(group);
+
+            /*
+             * Group 3: Job Object Attributes
+             */
+            attrGroups.add(createGroupJobAttr(ostr, request));
+
+            // StatusCode OK : ignored some attributes
+            writeHeaderAndAttributes(operation, IppStatusCode.OK, attrGroups,
+                    ostr, request.getAttributesCharset());
+        }
+
+        /**
+         *
+         * @param ostr
+         *            IPP output stream.
+         * @param request
+         *            IPP request.
+         * @return IPP group.
+         */
+        public static final IppAttrGroup createGroupJobAttr(
+                final OutputStream ostr, final IppGetJobAttrRequest request) {
+
+            final String printerURI = request.getPrinterURI();
+            final String jobUri = request.getJobUri();
+            final String jobId = request.getJobId();
+            final String requestingUserName = request.getRequestingUserName();
+
+            final IppDictJobDescAttr dict = IppDictJobDescAttr.instance();
+
+            final IppAttrGroup group =
+                    new IppAttrGroup(IppDelimiterTag.JOB_ATTR);
+
+            final String printerUptime =
+                    String.valueOf(IppInteger.getPrinterUpTime());
+
+            // TODO
+            final String dateTimeNow =
+                    IppDateTime.formatDate(ServiceContext.getTransactionDate());
+
+            for (final String ippKw : ATTR_JOB_DESC_KEYWORDS) {
+
+                final IppAttr attr = dict.getAttr(ippKw);
+
+                if (attr == null) {
+                    throw new SpException(
+                            "IPP keyword [" + ippKw + "] not found.");
+                }
+
+                final IppAttrValue value = new IppAttrValue(attr);
+                group.addAttribute(value);
+
+                switch (ippKw) {
+
+                case IppDictJobDescAttr.ATTR_JOB_URI:
+                    value.addValue(jobUri);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_JOB_ID:
+                    value.addValue(jobId);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_JOB_UUID:
+                    // TODO
+                    value.addValue(
+                            IppUri.getUrnUuid(UUID.randomUUID().toString()));
+                    break;
+
+                case IppDictJobDescAttr.ATTR_JOB_PRINTER_URI:
+                    value.addValue(printerURI);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_JOB_STATE:
+                    value.addValue(IppJobState.STATE_COMPLETED);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_JOB_STATE_REASONS:
+                    value.addValue("job-completed-successfully");
+                    break;
+
+                case IppDictJobDescAttr.ATTR_JOB_STATE_MESSAGE:
+                    value.addValue("OK");
+                    break;
+
+                case IppDictJobDescAttr.ATTR_JOB_NAME:
+                case IppDictJobDescAttr.ATTR_DOCUMENT_NAME_SUPPLIED:
+                    // TODO
+                    value.addValue("");
+                    break;
+
+                case IppDictJobDescAttr.ATTR_JOB_ORIGINATING_USER_NAME:
+                    value.addValue(requestingUserName);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_JOB_PRINTER_UP_TIME:
+                    value.addValue(printerUptime);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_JOB_IMPRESSIONS:
+                    // no break intended.
+                case IppDictJobDescAttr.ATTR_JOB_IMPRESSIONS_COMPLETED:
+                    // Just a number.
+                    value.addValue("100");
+                    break;
+
+                case IppDictJobDescAttr.ATTR_TIME_AT_CREATION:
+                    // no break intended.
+                case IppDictJobDescAttr.ATTR_TIME_AT_PROCESSING:
+                    // no break intended.
+                case IppDictJobDescAttr.ATTR_TIME_AT_COMPLETED:
+                    // TODO
+                    value.addValue(printerUptime);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_DATE_TIME_AT_CREATION:
+                    // no break intended.
+                case IppDictJobDescAttr.ATTR_DATE_TIME_AT_PROCESSING:
+                    // no break intended.
+                case IppDictJobDescAttr.ATTR_DATE_TIME_AT_COMPLETED:
+                    // TODO
+                    value.addValue(dateTimeNow);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_COMPRESSION_SUPPLIED:
+                    value.addValue("none");
+                    break;
+
+                case IppDictJobDescAttr.ATTR_SIDES:
+                    value.addValue(IppKeyword.SIDES_ONE_SIDED);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_MEDIA:
+                    value.addValue(IppGetPrinterAttrRsp.IPP_MEDIA_DEFAULT
+                            .getIppKeyword());
+                    break;
+
+                case IppDictJobDescAttr.ATTR_PRINT_COLOR_MODE:
+                    value.addValue(IppKeyword.PRINT_COLOR_MODE_AUTO);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_PRINT_QUALITY:
+                    value.addValue(IppKeyword.PRINT_QUALITY_HIGH);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_PRINT_CONTENT_OPTIMIZE:
+                    value.addValue("auto");
+                    break;
+
+                case IppDictJobDescAttr.ATTR_PRINT_RENDERING_INTENT:
+                    value.addValue("auto");
+                    break;
+
+                case IppDictJobDescAttr.ATTR_PRINTER_RESOLUTION:
+                    value.addValue(IppResolution.DPI_600X600);
+                    break;
+
+                case IppDictJobDescAttr.ATTR_DOC_FORMAT_SUPPLIED:
+                    // TODO
+                    value.addValue(
+                            IppDictPrinterDescAttr.DOCUMENT_FORMAT_POSTSCRIPT);
+                    break;
+
+                default:
+                    throw new SpException(
+                            "Unhandled IPP keyword [" + ippKw + "].");
+                }
+            }
+
+            return group;
+        }
+
+    }
+
+    /** */
+    private final IppGetJobAttrRequest request = new IppGetJobAttrRequest();
+
+    /** */
+    private final IppGetJobAttrResponse response = new IppGetJobAttrResponse();
 
     @Override
-    protected final void process(final InputStream istr,
-            final OutputStream ostr) throws IOException {
+    protected void process(final InputStream istr, final OutputStream ostr)
+            throws IOException {
         request.process(this, istr);
         response.process(this, request, ostr);
     }

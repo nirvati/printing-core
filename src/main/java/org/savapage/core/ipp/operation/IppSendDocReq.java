@@ -22,43 +22,27 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.ipp.attribute.syntax;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-
-import org.savapage.core.ipp.encoding.IppValueTag;
+package org.savapage.core.ipp.operation;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public final class IppUriScheme extends AbstractIppAttrSyntax {
+public final class IppSendDocReq extends AbstractIppPrintJobReq {
 
     /** */
-    private static class SingletonHolder {
-        /** */
-        public static final IppUriScheme INSTANCE = new IppUriScheme();
-    }
-
-    /**
-     * @return The singleton instance.
-     */
-    public static IppUriScheme instance() {
-        return SingletonHolder.INSTANCE;
+    public IppSendDocReq() {
+        super();
     }
 
     @Override
-    public IppValueTag getValueTag() {
-        return IppValueTag.URISCHEME;
+    protected String getPrintInJobName() {
+        return this.getDocumentName();
     }
 
     @Override
-    public void write(final OutputStream ostr, final String value,
-            final Charset charset) throws IOException {
-        writeUsAscii(ostr, value);
+    protected boolean isJobIdGenerated() {
+        return false;
     }
-
 }

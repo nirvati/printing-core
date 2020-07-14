@@ -27,37 +27,224 @@ package org.savapage.core.ipp.operation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.savapage.core.ipp.attribute.IppAttrGroup;
+import org.savapage.core.ipp.attribute.IppAttrValue;
+import org.savapage.core.ipp.attribute.syntax.IppBoolean;
+import org.savapage.core.ipp.encoding.IppDelimiterTag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * 3.2.6 Get-Jobs Operation
- *
- * This REQUIRED operation allows a client to retrieve the list of Job objects
- * belonging to the target Printer object. The client may also supply a list of
- * Job attribute names and/or attribute group names. A group of Job object
- * attributes will be returned for each Job object that is returned.
- *
- * This operation is similar to the Get-Job-Attributes operation, except that
- * this Get-Jobs operation returns attributes from possibly more than one
- * object.
  *
  * @author Rijk Ravestein
  *
  */
-public class IppGetJobsOperation extends AbstractIppOperation {
+public final class IppGetJobsOperation extends AbstractIppOperation {
 
-    /**
-     *
-     */
-    private final IppGetJobsReq request = new IppGetJobsReq();
+    /** */
+    private static class IppGetJobsRequest extends AbstractIppRequest {
 
-    /**
-     *
-     */
-    private final IppGetJobsRsp response = new IppGetJobsRsp();
+        /**
+         * 'completed': This includes any Job object whose state is 'completed',
+         * 'canceled', or 'aborted'.
+         */
+        public static final String JOB_COMPLETED = "completed";
+
+        /**
+         * 'not-completed': This includes any Job object whose state is
+         * 'pending', 'processing', 'processing-stopped', or 'pending- held'.
+         */
+        public static final String JOB_NOT_COMPLETED = "not-completed";
+
+        @Override
+        void process(final AbstractIppOperation operation,
+                final InputStream istr) throws IOException {
+            readAttributes(operation, istr);
+        }
+
+        /**
+         * The maximum number of jobs that a client will receive from the
+         * Printer even if "which-jobs" or "my-jobs" constrain which jobs are
+         * returned.
+         * <p>
+         * If {@code null} the Printer object responds with all applicable jobs.
+         * </p>
+         *
+         * @return {@code null} if NO limit.
+         */
+        public final String getLimit() {
+            IppAttrValue value = getAttrValue("limit");
+            if (value == null) {
+                return null;
+            }
+            return value.getValues().get(0);
+        }
+
+        /**
+         * If the client does not supply this attribute, the Printer object MUST
+         * respond as if the client had supplied the attribute with a value of
+         * 'not-completed'.
+         *
+         * @return {@link #JOB_COMPLETED} or {@link #JOB_NOT_COMPLETED}
+         */
+        public final String getWhichJobs() {
+            IppAttrValue value = getAttrValue("which-jobs");
+            if (value == null) {
+                return JOB_NOT_COMPLETED;
+            }
+            return value.getValues().get(0);
+        }
+
+        /**
+         * Indicates whether jobs from all users or just the jobs submitted by
+         * the requesting user of this request are considered as candidate jobs
+         * to be returned by the Printer object.
+         *
+         * @return {@code true} if jobs from THIS requesting user. {@code false}
+         *         if jobs from ALL users.
+         */
+        public final boolean isMyJobs() {
+            IppAttrValue value = getAttrValue("my-jobs");
+            if (value == null) {
+                return false;
+            }
+            return value.getValues().get(0).equals(IppBoolean.TRUE);
+        }
+
+    }
+
+    /** */
+    private static class IppGetJobsResponse extends AbstractIppResponse {
+
+        private static final Logger LOGGER =
+                LoggerFactory.getLogger(IppGetJobsResponse.class);
+
+        /**
+         *
+         * @param operation
+         * @param request
+         * @param ostr
+         * @throws IOException
+         */
+        public final void process(final IppGetJobsOperation operation,
+                final IppGetJobsRequest request, final OutputStream ostr)
+                throws IOException {
+
+            IppStatusCode statusCode = IppStatusCode.OK;
+
+            final List<IppAttrGroup> attrGroups = new ArrayList<>();
+
+            /*
+             * Group 1: Operation Attributes
+             */
+            attrGroups.add(this.createOperationGroup());
+
+            /*
+             * Group 2: Unsupported Attributes
+             */
+            final IppAttrGroup group =
+                    new IppAttrGroup(IppDelimiterTag.UNSUPP_ATTR);
+            attrGroups.add(group);
+
+            /*
+             * "which-jobs" (type2 keyword):
+             *
+             * If a client supplies some other value, the Printer object MUST
+             * ...
+             *
+             * (1) copy the attribute and the unsupported value to the
+             * Unsupported Attributes response group
+             *
+             * (2) reject the request and return the
+             * 'client-error-attributes-or-values-not-supported' status code.
+             */
+            final String whichJobs = request.getWhichJobs();
+
+            if (!whichJobs.equals(IppGetJobsRequest.JOB_COMPLETED)
+                    && !whichJobs.equals(IppGetJobsRequest.JOB_NOT_COMPLETED)) {
+
+                statusCode = IppStatusCode.CLI_NOTSUP;
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("[" + whichJobs + "] is not supported");
+                }
+                // TODO
+            }
+
+            /*
+             * Groups 3 to N: Job Object Attributes
+             *
+             * The Printer object responds with one set of Job Object Attributes
+             * for each returned Job object.
+             *
+             * The Printer object ignores (does not respond with) any requested
+             * attribute or value which is not supported or which is restricted
+             * by the security policy in force, including whether the requesting
+             * user is the user that submitted the job (job originating user) or
+             * not (see section 8).
+             *
+             * However, the Printer object MUST respond with the 'unknown' value
+             * for any supported attribute (including all REQUIRED attributes)
+             * for which the Printer object does not know the value, unless it
+             * would violate the security policy. See the description of the
+             * "out-of- band" values in the beginning of Section 4.1.
+             *
+             * Jobs are returned in the following order:
+             *
+             * - If the client requests all 'completed' Jobs (Jobs in the
+             * 'completed', 'aborted', or 'canceled' states), then the Jobs are
+             * returned newest to oldest (with respect to actual completion
+             * time)
+             *
+             * - If the client requests all 'not-completed' Jobs (Jobs in the
+             * 'pending', 'processing', 'pending-held', and 'processing-
+             * stopped' states), then Jobs are returned in relative
+             * chronological order of expected time to complete (based on
+             * whatever scheduling algorithm is configured for the Printer
+             * object).
+             */
+
+            if (request.isMyJobs()) {
+
+                // final String reqUserName = request.getRequestingUserName();
+
+                if (whichJobs.equals(IppGetJobsRequest.JOB_COMPLETED)) {
+                    /*
+                     * Jobs in the 'completed', 'aborted', or 'canceled' states
+                     * are returned newest to oldest (with respect to actual
+                     * completion time)
+                     */
+                } else {
+                    /*
+                     * Jobs in the 'pending', 'processing', 'pending-held', and
+                     * 'processing- stopped' states are returned in relative
+                     * chronological order of expected time to complete (based
+                     * on whatever scheduling algorithm is configured for the
+                     * Printer object).
+                     */
+                }
+            }
+
+            // IppGetJobAttrRsp.createGroupJobAttr(ostr, jobUri, jobId);
+
+            // ---------------------------------------------------------------------
+            this.writeHeaderAndAttributes(operation, statusCode, attrGroups,
+                    ostr, request.getAttributesCharset());
+        }
+
+    }
+
+    /** */
+    private final IppGetJobsRequest request = new IppGetJobsRequest();
+    /** */
+    private final IppGetJobsResponse response = new IppGetJobsResponse();
 
     @Override
-    protected final void process(final InputStream istr,
-            final OutputStream ostr) throws IOException {
+    protected void process(final InputStream istr, final OutputStream ostr)
+            throws IOException {
         request.process(this, istr);
         response.process(this, request, ostr);
     }
