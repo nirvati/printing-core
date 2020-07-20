@@ -177,8 +177,14 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             /* OPTIONAL */
             IppDictPrinterDescAttr.ATTR_PAGES_PER_MIN_COLOR,
             /* OPTIONAL */
-            IppDictPrinterDescAttr.ATTR_COLOR_SUPPORTED
+            IppDictPrinterDescAttr.ATTR_COLOR_SUPPORTED,
             //
+
+            // REQUIRED by Bonjour.
+            IppDictPrinterDescAttr.ATTR_PRINTER_UUID,
+            // REQUIRED by Bonjour.
+            IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO
+
     };
     /**
      * Printer attributes supported by SavaPage Printer IPP/2.x.
@@ -186,13 +192,11 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     private static final String[] SUPPORTED_ATTR_PRINTER_DESC_V2 = {
             IppDictPrinterDescAttr.ATTR_IPP_FEATURES_SUPP,
             IppDictPrinterDescAttr.ATTR_PRINTER_DEVICE_ID,
-            IppDictPrinterDescAttr.ATTR_PRINTER_UUID,
             IppDictPrinterDescAttr.ATTR_DOC_PASSWORD_SUPPORTED,
             IppDictPrinterDescAttr.ATTR_PRINTER_STATE_MESSAGE,
             IppDictPrinterDescAttr.ATTR_PRINTER_STATE_CHANGE_TIME,
             IppDictPrinterDescAttr.ATTR_PRINTER_MAKE_MODEL,
             IppDictPrinterDescAttr.ATTR_PRINTER_INFO,
-            IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO,
             IppDictPrinterDescAttr.ATTR_PRINTER_LOCATION,
             IppDictPrinterDescAttr.ATTR_PRINTER_GEO_LOCATION,
             IppDictPrinterDescAttr.ATTR_PRINTER_ORGANIZATION,
@@ -341,12 +345,6 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
                  * If the client omits this attribute, the Printer MUST respond
                  * as if this attribute had been supplied with a value of 'all'.
                  */
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Client requested NO attributes: using ["
-                            + IppGetPrinterAttrOperation.ATTR_GRP_ALL
-                            + "] attributes");
-                }
-
                 this.handleRequestedAttr(printerUri, groupAttrSupp,
                         groupAttrUnsupp,
                         IppGetPrinterAttrOperation.ATTR_GRP_ALL);
@@ -842,6 +840,11 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_MORE_INFO:
+            /*
+             * Value must match
+             * <txt-record>adminurl=https://host:port/user</txt-record> in Avahi
+             * service file.
+             */
             value.addValue(ConfigManager.getWebAppUserSslUrl().toString());
             break;
 
@@ -891,6 +894,10 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             }
             break;
         case IppDictPrinterDescAttr.ATTR_PRINTER_UUID:
+            /*
+             * Value must match <txt-record>UUID=xxxx</txt-record> in Avahi
+             * service file.
+             */
             final String printerUUID = ConfigManager.getIppPrinterUuid();
             if (StringUtils.isNotBlank(printerUUID)) {
                 value.addValue(IppUri.getUrnUuid(printerUUID));
@@ -1069,13 +1076,10 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_WHICH_JOBS_SUPPORTED:
-            /*
-             * Possible values: aborted, all, canceled, completed, fetchable,
-             * not-completed, pending, pending-held, processing,
-             * processing-stopped, proof-print, saved
-             */
-            value.addValue("completed");
-            value.addValue("not-completed");
+            // Required by IPP everywhere.
+            value.addValue(IppGetJobsOperation.WHICH_JOB_COMPLETED);
+            // Required by IPP everywhere.
+            value.addValue(IppGetJobsOperation.WHICH_JOB_NOT_COMPLETED);
             break;
 
         default:

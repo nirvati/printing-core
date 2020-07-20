@@ -122,10 +122,19 @@ public abstract class AbstractIppRequest {
         return MY_CHARSET;
     }
 
+    /**
+     * @return {@code null} when not present.
+     */
     public final IppAttrValue getRequestedAttributes() {
-        return getAttrValue(IppDictOperationAttr.ATTR_REQUESTED_ATTRIBUTES);
+        return this
+                .getAttrValue(IppDictOperationAttr.ATTR_REQUESTED_ATTRIBUTES);
     }
 
+    /**
+     * @param name
+     *            IPP attribute name.
+     * @return Attribute value, or {@code null} when attribute is not present.
+     */
     public final IppAttrValue getAttrValue(final String name) {
         IppAttrValue value = null;
         for (IppAttrGroup group : attrGroups) {
@@ -137,6 +146,11 @@ public abstract class AbstractIppRequest {
         return value;
     }
 
+    /**
+     * @param name
+     *            IPP attribute name.
+     * @return Single attribute value, or {@code null} when attribute is not present.
+     */
     private String getAttrSingleValue(final String name) {
         final IppAttrValue val = getAttrValue(name);
         if (val != null && val.getValues().size() == 1) {

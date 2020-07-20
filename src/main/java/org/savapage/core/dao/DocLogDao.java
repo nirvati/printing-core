@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -88,6 +88,9 @@ public interface DocLogDao extends UserErasableDao<DocLog> {
         private String containingExternalIdText;
         private ExternalSupplierStatusEnum externalStatus;
 
+        private String userId;
+        private Long ippQueueId;
+
         public DocLogProtocolEnum getProtocol() {
             return protocol;
         }
@@ -128,6 +131,23 @@ public interface DocLogDao extends UserErasableDao<DocLog> {
                 setExternalStatus(ExternalSupplierStatusEnum externalStatus) {
             this.externalStatus = externalStatus;
         }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+
+        public Long getIppQueueId() {
+            return ippQueueId;
+        }
+
+        public void setIppQueueId(Long ippQueueId) {
+            this.ippQueueId = ippQueueId;
+        }
+
     }
 
     /**
@@ -138,9 +158,9 @@ public interface DocLogDao extends UserErasableDao<DocLog> {
     long getListCount(final ListFilter filter);
 
     /**
-     *
      * @param filter
-     * @return
+     *            List filter.
+     * @return List of {@link DocLog} objects sorted ascending by creation date.
      */
     List<DocLog> getListChunk(ListFilter filter);
 

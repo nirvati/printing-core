@@ -24,6 +24,8 @@
  */
 package org.savapage.core.ipp.operation;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.savapage.core.ipp.attribute.IppDictOperationAttr;
 import org.savapage.core.ipp.routing.IppRoutingListener;
 import org.savapage.core.jpa.IppQueue;
 
@@ -34,26 +36,20 @@ import org.savapage.core.jpa.IppQueue;
  */
 public abstract class AbstractIppJobOperation extends AbstractIppOperation {
 
-    /**
-     *
-     */
+    /** */
     private final IppQueue queue;
 
     /**
-     *
+     * Authenticated user in Web App. If {@code null}, no authenticated user is
+     * present.
      */
-    private final boolean clientIpAccessToQueue;
+    private final String authenticatedUser;
 
     /**
-     *
+     * If {@code true}, the {@link #authenticatedUser} overrules the IPP
+     * {@link IppDictOperationAttr#ATTR_REQUESTING_USER_NAME}.
      */
-    private final String trustedIppClientUserId;
-
-    /**
-     * If {@code true}, the trustedIppClientUserId overrules the requesting
-     * user.
-     */
-    private final boolean trustedUserAsRequester;
+    private final boolean isAuthUserIppRequester;
 
     /** */
     private final String originatorIp;
@@ -70,19 +66,14 @@ public abstract class AbstractIppJobOperation extends AbstractIppOperation {
     private final AbstractIppPrintJobRsp response;
 
     /**
-     *
-     * @param queue
-     *            The print queue. Can be {@code null} is no queue matches the
-     *            URI.
-     * @param clientIpAccessToQueue
-     *            Indicates if client has access to printing. When {@code false}
-     *            , printing is NOT allowed.
-     * @param trustedIppClientUserId
-     *            The user id of the trusted on the IPP client. If {@code null}
-     *            there is NO trusted user.
-     * @param trustedUserAsRequester
-     *            If {@code true}, the trustedIppClientUserId overrules the
-     *            requesting user.
+     * @param ippQueue
+     *            The print queue.
+     * @param authUser
+     *            The authenticated user id associated with the IPP client. If
+     *            {@code null} there is NO authenticated user.
+     * @param isAuthUserIppReq
+     *            If {@code true}, the authUser overrules the IPP requesting
+     *            user.
      * @param ctx
      *            The operation context.
      * @param req
@@ -90,22 +81,18 @@ public abstract class AbstractIppJobOperation extends AbstractIppOperation {
      * @param rsp
      *            IPP Response.
      */
-    protected AbstractIppJobOperation(final IppQueue queue,
-            final boolean clientIpAccessToQueue,
-            final String trustedIppClientUserId,
-            final boolean trustedUserAsRequester, final IppOperationContext ctx,
-            final AbstractIppPrintJobReq req,
+    protected AbstractIppJobOperation(final IppQueue ippQueue,
+            final String authUser, final boolean isAuthUserIppReq,
+            final IppOperationContext ctx, final AbstractIppPrintJobReq req,
             final AbstractIppPrintJobRsp rsp) {
 
         this.originatorIp = ctx.getRemoteAddr();
-        this.queue = queue;
-        this.clientIpAccessToQueue = clientIpAccessToQueue;
-        this.trustedIppClientUserId = trustedIppClientUserId;
-        this.trustedUserAsRequester = trustedUserAsRequester;
+        this.queue = ippQueue;
+        this.authenticatedUser = authUser;
+        this.isAuthUserIppRequester = isAuthUserIppReq;
         this.request = req;
         this.response = rsp;
         this.ippRoutingListener = ctx.getIppRoutingListener();
-
     }
 
     /**
@@ -130,54 +117,35 @@ public abstract class AbstractIppJobOperation extends AbstractIppOperation {
     }
 
     /**
-     * Is the remoteAddr (client) and requesting user allowed to print?
-     *
-     * @return {@code true} if remoteAddr (client) and requesting user are
-     *         allowed to print to this queue.
+     * @return {@code true} if user is allowed/authorized to print on queue.
      */
     public boolean isAuthorized() {
-        return this.hasClientIpAccessToQueue()
-                && (this.isTrustedQueue()
-                        || this.getTrustedIppClientUserId() != null)
-                && this.isRequestingUserTrusted();
+        if (BooleanUtils.isTrue(queue.getDisabled())) {
+            return false;
+        }
+        if (this.isAuthUserIppRequester) {
+            return this.authenticatedUser != null;
+        } else {
+            return this.queue.getTrusted();
+        }
     }
 
     /**
-     * Get the user id of the Person who is currently trusted on the IPP client.
+     * Get the user id authenticated in User Web App or otherwise.
      *
-     * @return {@code null} if there is NO trusted user.
+     * @return {@code null} if there is NO authenticated user.
      */
-    public String getTrustedIppClientUserId() {
-        return this.trustedIppClientUserId;
+    public String getAuthenticatedUser() {
+        return this.authenticatedUser;
     }
 
     /**
-     * @return {@code true} if IPP "requesting-user" is trusted.
+     * @return {@code true} if
+     *         {@link AbstractIppJobOperation#getAuthenticatedUser()} overrules
+     *         the requesting user.
      */
-    protected abstract boolean isRequestingUserTrusted();
-
-    /**
-     * @return {@code true} if the trustedIppClientUserId overrules the
-     *         requesting user.
-     */
-    public boolean isTrustedUserAsRequester() {
-        return this.trustedUserAsRequester;
-    }
-
-    /**
-     *
-     * @return {@code true} if printed to trusted queue.
-     */
-    public boolean isTrustedQueue() {
-        return this.queue != null && this.queue.getTrusted();
-    }
-
-    /**
-     *
-     * @return {@code true} if remote client IP address has access to queue.
-     */
-    public boolean hasClientIpAccessToQueue() {
-        return this.clientIpAccessToQueue;
+    public boolean isAuthUserIppRequester() {
+        return this.isAuthUserIppRequester;
     }
 
     /**

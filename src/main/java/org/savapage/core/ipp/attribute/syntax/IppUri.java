@@ -40,6 +40,9 @@ import org.savapage.core.ipp.encoding.IppValueTag;
 public final class IppUri extends AbstractIppAttrSyntax {
 
     /** */
+    public static final int MAX_OCTETS = 1023;
+
+    /** */
     private static class SingletonHolder {
         /** */
         public static final IppUri INSTANCE = new IppUri();

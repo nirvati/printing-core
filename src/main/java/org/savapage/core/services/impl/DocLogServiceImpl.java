@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -111,7 +114,7 @@ public final class DocLogServiceImpl extends AbstractService
     private static final Integer INTEGER_ONE = Integer.valueOf(1);
 
     @Override
-    public final String generateSignature(final DocLog docLog) {
+    public String generateSignature(final DocLog docLog) {
 
         final String message = DateUtil.dateAsIso8601(docLog.getCreatedDate())
                 + docLog.getUser().getUserId() + docLog.getTitle()
@@ -1471,21 +1474,29 @@ public final class DocLogServiceImpl extends AbstractService
 
         final List<DocLog> list = docLogDAO().getListChunk(filter);
 
-        /*
-         * Same document ID can be used by different accounts from same
-         * Supplier: find the right one.
-         */
         Long docLogId = null;
 
         for (final DocLog docLog : list) {
+
             if (docLog.getExternalData() == null) {
                 continue;
             }
-            final SmartschoolPrintInData data = SmartschoolPrintInData
-                    .createFromData(docLog.getExternalData());
-            if (data != null && data.getAccount().equals(supplierAccount)) {
+
+            if (supplier == ExternalSupplierEnum.SMARTSCHOOL) {
+                /*
+                 * Same document ID can be used by different accounts from same
+                 * Supplier: find the right one.
+                 */
+                final SmartschoolPrintInData data = SmartschoolPrintInData
+                        .createFromData(docLog.getExternalData());
+                if (data != null && data.getAccount().equals(supplierAccount)) {
+                    docLogId = docLog.getId();
+                }
+            } else if (supplier == ExternalSupplierEnum.IPP_CLIENT) {
                 docLogId = docLog.getId();
             }
+
+            // Keep going to get the most recent one.
         }
 
         if (docLogId == null) {

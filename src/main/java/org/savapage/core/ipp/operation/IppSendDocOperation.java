@@ -35,28 +35,21 @@ public final class IppSendDocOperation extends IppPrintJobOperation {
 
     /**
      * @param queue
-     *            The print queue. Can be {@code null} is no queue matches the
-     *            URI.
-     * @param clientIpAccessToQueue
-     *            Indicates if client has access to printing. When {@code false}
-     *            , printing is NOT allowed.
-     * @param trustedIppClientUserId
-     *            The user id of the trusted on the IPP client. If {@code null}
-     *            there is NO trusted user.
-     * @param trustedUserAsRequester
-     *            If {@code true}, the trustedIppClientUserId overrules the
-     *            requesting user.
+     *            The print queue.
+     * @param authUser
+     *            The authenticated user id associated with the IPP client. If
+     *            {@code null} there is NO authenticated user.
+     * @param isAuthUserIppRequester
+     *            If {@code true}, the authUser overrules the IPP requesting
+     *            user.
      * @param ctx
      *            The operation context.
      */
-    public IppSendDocOperation(final IppQueue queue,
-            final boolean clientIpAccessToQueue,
-            final String trustedIppClientUserId,
-            final boolean trustedUserAsRequester,
+    public IppSendDocOperation(final IppQueue queue, final String authUser,
+            final boolean isAuthUserIppRequester,
             final IppOperationContext ctx) {
 
-        super(queue, clientIpAccessToQueue, trustedIppClientUserId,
-                trustedUserAsRequester, ctx, new IppSendDocReq(),
+        super(queue, authUser, isAuthUserIppRequester, ctx, new IppSendDocReq(),
                 new IppSendDocRsp());
     }
 

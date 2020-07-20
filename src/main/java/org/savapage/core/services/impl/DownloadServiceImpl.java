@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -239,7 +242,7 @@ public final class DownloadServiceImpl extends AbstractService
 
             try (InputStream fos = new FileInputStream(target)) {
                 queueService().printDocContent(ReservedIppQueueEnum.WEBPRINT,
-                        user.getUserId(), true, docContentPrintReq, fos);
+                        user.getUserId(), docContentPrintReq, fos);
             }
 
         } catch (DocContentPrintException | UnavailableException e) {

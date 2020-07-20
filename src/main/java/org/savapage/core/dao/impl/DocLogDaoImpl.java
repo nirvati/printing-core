@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -366,7 +366,8 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
 
         jpql.append("SELECT COUNT(D.id) FROM DocLog D");
 
-        applyListFilter(jpql, filter);
+        this.applyJoins(jpql, filter);
+        this.applyListFilter(jpql, filter);
 
         final Query query = createListQuery(jpql, filter);
         final Number countResult = (Number) query.getSingleResult();
@@ -396,7 +397,8 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
 
         jpql.append("SELECT D FROM DocLog D");
 
-        applyListFilter(jpql, filter);
+        this.applyJoins(jpql, filter);
+        this.applyListFilter(jpql, filter);
 
         //
         if (orderBy != null) {
@@ -418,7 +420,7 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
         }
 
         //
-        final Query query = createListQuery(jpql, filter);
+        final Query query = this.createListQuery(jpql, filter);
 
         //
         if (startPosition != null) {
@@ -428,6 +430,24 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
             query.setMaxResults(maxResults);
         }
         return query.getResultList();
+    }
+
+    /**
+     * Applies the joins.
+     *
+     * @param jpql
+     *            The JPA query string.
+     * @param filter
+     *            Row filter.
+     */
+    private void applyJoins(final StringBuilder jpql, final ListFilter filter) {
+
+        if (filter.getIppQueueId() != null) {
+            jpql.append(" JOIN D.docIn I JOIN I.printIn P JOIN P.queue Q");
+        }
+        if (filter.getUserId() != null) {
+            jpql.append(" JOIN D.user U");
+        }
     }
 
     /**
@@ -485,6 +505,22 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
             where.append(" lower(D.externalId) like :containingExternalIdText");
         }
 
+        if (filter.getUserId() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" U.userId = :user_name");
+        }
+
+        if (filter.getIppQueueId() != null) {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" Q.id = :queue_id");
+        }
+
         if (nWhere > 0) {
             jpql.append(" WHERE").append(where);
         }
@@ -525,6 +561,14 @@ public final class DocLogDaoImpl extends GenericDaoImpl<DocLog>
             query.setParameter("containingExternalIdText", String.format(
                     "%%%s%%",
                     filter.getContainingExternalIdText().toLowerCase()));
+        }
+
+        if (filter.getUserId() != null) {
+            query.setParameter("user_name", filter.getUserId());
+        }
+
+        if (filter.getIppQueueId() != null) {
+            query.setParameter("queue_id", filter.getIppQueueId());
         }
 
         return query;

@@ -54,16 +54,15 @@ public final class IppValidateJobOperation extends AbstractIppOperation {
 
     private final IppQueue queue;
     private final String requestedQueueUrlPath;
-    private final boolean clientIpAccessToQueue;
 
     /** */
-    private final String trustedIppClientUserId;
+    private final String authenticatedUser;
 
     /**
      * If {@code true}, the trustedIppClientUserId overrules the requesting
      * user.
      */
-    private final boolean trustedUserAsRequester;
+    private final boolean isAuthUserIppRequester;
 
     /** */
     private final String remoteAddr;
@@ -73,31 +72,25 @@ public final class IppValidateJobOperation extends AbstractIppOperation {
      * @param remoteAddr
      *            The client IP address.
      * @param queue
-     *            The print queue. Can be {@code null} is no queue matches the
-     *            URI.
+     *            The print queue.
      * @param requestedQueueUrlPath
-     * @param clientIpAccessToQueue
-     *            Indicates if client has access to printing. When {@code false}
-     *            , printing is NOT allowed.
-     * @param trustedIppClientUserId
-     *            The user id of the trusted on the IPP client. If {@code null}
-     *            there is NO trusted user.
-     * @param trustedUserAsRequester
-     *            If {@code true}, the trustedIppClientUserId overrules the
-     *            requesting user.
+     * @param authUser
+     *            The authenticated user id associated with the IPP client. If
+     *            {@code null} there is NO authenticated user.
+     * @param isAuthUserIppReq
+     *            If {@code true}, the authUser overrules the IPP requesting
+     *            user.
      */
     public IppValidateJobOperation(final String remoteAddr,
             final IppQueue queue, final String requestedQueueUrlPath,
-            final boolean clientIpAccessToQueue,
-            final String trustedIppClientUserId,
-            final boolean trustedUserAsRequester) {
+            final String authUser, final boolean isAuthUserIppReq) {
 
         this.remoteAddr = remoteAddr;
         this.queue = queue;
         this.requestedQueueUrlPath = requestedQueueUrlPath;
-        this.clientIpAccessToQueue = clientIpAccessToQueue;
-        this.trustedIppClientUserId = trustedIppClientUserId;
-        this.trustedUserAsRequester = trustedUserAsRequester;
+
+        this.authenticatedUser = authUser;
+        this.isAuthUserIppRequester = isAuthUserIppReq;
 
         this.request = new IppValidateJobReq();
         this.response = new IppValidateJobRsp();
@@ -224,8 +217,7 @@ public final class IppValidateJobOperation extends AbstractIppOperation {
      *         allowed to print to this queue.
      */
     public boolean isAuthorized() {
-        return hasClientIpAccessToQueue()
-                && (isTrustedQueue() || getTrustedIppClientUserId() != null)
+        return (this.queue.getTrusted() || getAuthenticatedUser() != null)
                 && request.isTrustedUser();
     }
 
@@ -236,29 +228,17 @@ public final class IppValidateJobOperation extends AbstractIppOperation {
      *
      * @return {@code null} if no user is authenticated.
      */
-    public String getTrustedIppClientUserId() {
-        return trustedIppClientUserId;
+    public String getAuthenticatedUser() {
+        return authenticatedUser;
     }
 
     /**
-     * @return If {@code true}, the trustedIppClientUserId overrules the
-     *         requesting user.
+     * @return If {@code true}, the
+     *         {@link IppValidateJobOperation#getAuthenticatedUser()} overrules
+     *         the requesting user.
      */
-    public boolean isTrustedUserAsRequester() {
-        return trustedUserAsRequester;
-    }
-
-    /**
-     * Is the Queue trusted?
-     *
-     * @return
-     */
-    public boolean isTrustedQueue() {
-        return (queue == null) ? false : queue.getTrusted();
-    }
-
-    public boolean hasClientIpAccessToQueue() {
-        return clientIpAccessToQueue;
+    public boolean isAuthUserIppRequester() {
+        return isAuthUserIppRequester;
     }
 
 }

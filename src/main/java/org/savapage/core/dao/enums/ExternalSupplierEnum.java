@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,8 +24,15 @@
  */
 package org.savapage.core.dao.enums;
 
+import org.savapage.core.jpa.DocLog;
+
 /**
  * Supplier of print data.
+ * <ul>
+ * <li>Do NOT changes enum names since they are stored in the database.</li>
+ * <li>Enum name must fit the size of the
+ * {@link DocLog#setExternalSupplier(String)} column.</li>
+ * </ul>
  *
  * @author Rijk Ravestein
  *
@@ -41,6 +48,11 @@ public enum ExternalSupplierEnum {
      * G.
      */
     GOOGLE("Google", "google.png"),
+
+    /**
+     * IPP Client.
+     */
+    IPP_CLIENT("IPP", "savapage.png"),
 
     /**
      * SavaPage in role as external supplier.

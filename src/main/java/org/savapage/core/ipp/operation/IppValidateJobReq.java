@@ -53,48 +53,54 @@ public final class IppValidateJobReq extends AbstractIppRequest {
      * Just the attributes, not the print job data.
      *
      * @param operation
+     *            IPP operation
      * @param istr
+     *            IPP input stream
      * @throws Exception
+     *             If error.
      */
     public void processAttributes(final IppValidateJobOperation operation,
             final InputStream istr) throws IOException {
 
         final String authWebAppUser;
 
-        if (operation.isTrustedUserAsRequester()) {
-            authWebAppUser = null;
+        if (operation.isAuthUserIppRequester()) {
+            authWebAppUser = operation.getAuthenticatedUser();
         } else {
-            authWebAppUser = operation.getTrustedIppClientUserId();
+            authWebAppUser = null;
         }
 
         /*
-         * Create generic PrintIn handler. This should be a first action because
-         * this handler holds the deferred exception.
+         * Step 1: Create generic PrintIn handler.
+         *
+         * This should be a first action because this handler holds the deferred
+         * exception.
          */
-        printInReqHandler = new DocContentPrintProcessor(operation.getQueue(),
-                operation.getRemoteAddr(), null, authWebAppUser);
+        this.printInReqHandler =
+                new DocContentPrintProcessor(operation.getQueue(),
+                        operation.getRemoteAddr(), null, authWebAppUser);
 
         /*
-         * Then, read the IPP attributes.
+         * Step 2: Read the IPP attributes.
          */
         readAttributes(operation, istr);
 
         /*
-         * Then, get the IPP requesting user.
+         * Then, assign user.
          */
-        final String requestingUserId;
+        final String assignedUserId;
 
-        if (operation.isTrustedUserAsRequester()) {
-            requestingUserId = operation.getTrustedIppClientUserId();
+        if (operation.isAuthUserIppRequester()) {
+            assignedUserId = operation.getAuthenticatedUser();
         } else {
-            requestingUserId = this.getRequestingUserName();
+            assignedUserId = this.getRequestingUserName();
         }
 
         /*
          * Check...
          */
-        printInReqHandler.setJobName(getJobName());
-        printInReqHandler.processRequestingUser(requestingUserId);
+        this.printInReqHandler.setJobName(this.getJobName());
+        this.printInReqHandler.processAssignedUser(assignedUserId);
     }
 
     /**
@@ -119,7 +125,7 @@ public final class IppValidateJobReq extends AbstractIppRequest {
      * @return {@code null} when unknown.
      */
     public User getUserDb() {
-        return printInReqHandler.getUserDb();
+        return this.printInReqHandler.getUserDb();
     }
 
     /**
@@ -132,7 +138,7 @@ public final class IppValidateJobReq extends AbstractIppRequest {
     }
 
     public boolean hasDeferredException() {
-        return printInReqHandler.getDeferredException() != null;
+        return this.printInReqHandler.getDeferredException() != null;
     }
 
     public IppProcessingException getDeferredException() {

@@ -42,44 +42,34 @@ public class IppPrintJobOperation extends AbstractIppJobOperation {
 
     /**
      * @param queue
-     *            The print queue. Can be {@code null} is no queue matches the
-     *            URI.
-     * @param clientIpAccessToQueue
-     *            Indicates if client has access to printing. When {@code false}
-     *            , printing is NOT allowed.
-     * @param trustedIppClientUserId
-     *            The user id of the trusted on the IPP client. If {@code null}
-     *            there is NO trusted user.
-     * @param trustedUserAsRequester
-     *            If {@code true}, the trustedIppClientUserId overrules the
-     *            requesting user.
+     *            The print queue.
+     * @param authUser
+     *            The authenticated user id associated with the IPP client. If
+     *            {@code null} there is NO authenticated user.
+     * @param isAuthUserIppRequester
+     *            If {@code true}, the authUser overrules the IPP requesting
+     *            user.
      * @param ctx
      *            The operation context.
      */
-    public IppPrintJobOperation(final IppQueue queue,
-            final boolean clientIpAccessToQueue,
-            final String trustedIppClientUserId,
-            final boolean trustedUserAsRequester,
+    public IppPrintJobOperation(final IppQueue queue, final String authUser,
+            final boolean isAuthUserIppRequester,
             final IppOperationContext ctx) {
 
-        super(queue, clientIpAccessToQueue, trustedIppClientUserId,
-                trustedUserAsRequester, ctx, new IppPrintJobReq(),
-                new IppPrintJobRsp());
+        super(queue, authUser, isAuthUserIppRequester, ctx,
+                new IppPrintJobReq(), new IppPrintJobRsp());
     }
 
     /**
      * @param queue
      *            The print queue. Can be {@code null} is no queue matches the
      *            URI.
-     * @param clientIpAccessToQueue
-     *            Indicates if client has access to printing. When {@code false}
-     *            , printing is NOT allowed.
-     * @param trustedIppClientUserId
-     *            The user id of the trusted on the IPP client. If {@code null}
-     *            there is NO trusted user.
-     * @param trustedUserAsRequester
-     *            If {@code true}, the trustedIppClientUserId overrules the
-     *            requesting user.
+     * @param authUser
+     *            The authenticated user id associated with the IPP client. If
+     *            {@code null} there is NO authenticated user.
+     * @param isAuthUserIppRequester
+     *            If {@code true}, the authUser overrules the IPP requesting
+     *            user.
      * @param ctx
      *            The operation context.
      * @param req
@@ -87,15 +77,12 @@ public class IppPrintJobOperation extends AbstractIppJobOperation {
      * @param rsp
      *            IPP Response.
      */
-    protected IppPrintJobOperation(final IppQueue queue,
-            final boolean clientIpAccessToQueue,
-            final String trustedIppClientUserId,
-            final boolean trustedUserAsRequester, final IppOperationContext ctx,
+    protected IppPrintJobOperation(final IppQueue queue, final String authUser,
+            final boolean isAuthUserIppRequester, final IppOperationContext ctx,
             final AbstractIppPrintJobReq req,
             final AbstractIppPrintJobRsp rsp) {
 
-        super(queue, clientIpAccessToQueue, trustedIppClientUserId,
-                trustedUserAsRequester, ctx, req, rsp);
+        super(queue, authUser, isAuthUserIppRequester, ctx, req, rsp);
     }
 
     @Override
@@ -129,42 +116,46 @@ public class IppPrintJobOperation extends AbstractIppJobOperation {
              * Step 1.
              */
             try {
-                getRequest().processAttributes(this, istr);
+                this.getRequest().processAttributes(this, istr);
             } catch (IOException e) {
-                getRequest().setDeferredException(new IppProcessingException(
-                        IppProcessingException.StateEnum.INTERNAL_ERROR,
-                        e.getMessage()));
+                this.getRequest()
+                        .setDeferredException(new IppProcessingException(
+                                IppProcessingException.StateEnum.INTERNAL_ERROR,
+                                e.getMessage()));
             }
 
             /*
              * Step 2.
              */
             try {
-                if (isAuthorized()) {
-                    getRequest().process(this, istr);
+                if (this.isAuthorized()) {
+                    this.getRequest().process(this, istr);
                 }
             } catch (IOException e) {
-                getRequest().setDeferredException(new IppProcessingException(
-                        IppProcessingException.StateEnum.INTERNAL_ERROR,
-                        e.getMessage()));
+                this.getRequest()
+                        .setDeferredException(new IppProcessingException(
+                                IppProcessingException.StateEnum.INTERNAL_ERROR,
+                                e.getMessage()));
             }
 
             /*
              * Step 3.
              */
             try {
-                getResponse().process(this, getRequest(), ostr,
+                this.getResponse().process(this, getRequest(), ostr,
                         IppJobState.STATE_COMPLETED);
             } catch (IOException e) {
-                getRequest().setDeferredException(new IppProcessingException(
-                        IppProcessingException.StateEnum.INTERNAL_ERROR,
-                        e.getMessage()));
+                this.getRequest()
+                        .setDeferredException(new IppProcessingException(
+                                IppProcessingException.StateEnum.INTERNAL_ERROR,
+                                e.getMessage()));
             }
 
         } catch (Exception e) {
-            getRequest().setDeferredException(new IppProcessingException(
-                    IppProcessingException.StateEnum.INTERNAL_ERROR,
-                    e.getMessage()));
+            this.getRequest()
+                    .setDeferredException(new IppProcessingException(
+                            IppProcessingException.StateEnum.INTERNAL_ERROR,
+                            e.getMessage()));
         } finally {
             if (isDbReadLock) {
                 ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
@@ -174,12 +165,7 @@ public class IppPrintJobOperation extends AbstractIppJobOperation {
         /*
          * Step 4: deferred exception? or not allowed to print?
          */
-        getRequest().evaluateErrorState(this);
-    }
-
-    @Override
-    protected final boolean isRequestingUserTrusted() {
-        return getRequest().isTrustedUser();
+        this.getRequest().evaluateErrorState(this);
     }
 
 }

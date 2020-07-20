@@ -206,7 +206,13 @@ public enum IppOperationId {
     CUPS_GET_PPD(0x400F),
 
     /** CUPS 1.4 : Get a document file from a job. */
-    CUPS_GET_DOCUMENT(0x4027);
+    CUPS_GET_DOCUMENT(0x4027),
+
+    /**
+     * CUPS 2.2 : Creates a local (temporary) print queue pointing to a remote
+     * IPP Everywhere printer.
+     */
+    CUPS_CREATE_LOCAL_PRINTER(0x4028);
 
     /**
      * Operation code.

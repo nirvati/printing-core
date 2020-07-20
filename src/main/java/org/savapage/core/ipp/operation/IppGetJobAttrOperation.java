@@ -27,18 +27,18 @@ package org.savapage.core.ipp.operation;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.ipp.attribute.IppAttr;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.attribute.IppAttrValue;
 import org.savapage.core.ipp.attribute.IppDictJobDescAttr;
 import org.savapage.core.ipp.attribute.IppDictOperationAttr;
-import org.savapage.core.ipp.attribute.IppDictPrinterDescAttr;
 import org.savapage.core.ipp.attribute.syntax.IppDateTime;
 import org.savapage.core.ipp.attribute.syntax.IppInteger;
 import org.savapage.core.ipp.attribute.syntax.IppJobState;
@@ -46,6 +46,9 @@ import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.attribute.syntax.IppResolution;
 import org.savapage.core.ipp.attribute.syntax.IppUri;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
+import org.savapage.core.ipp.helpers.IppPrintInData;
+import org.savapage.core.jpa.DocLog;
+import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.ServiceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +61,10 @@ import org.slf4j.LoggerFactory;
 public final class IppGetJobAttrOperation extends AbstractIppOperation {
 
     /** */
+    private static final DocLogService DOCLOG_SERVICE =
+            ServiceContext.getServiceFactory().getDocLogService();
+
+    /** */
     private static class IppGetJobAttrRequest extends AbstractIppRequest {
 
         /**
@@ -66,34 +73,130 @@ public final class IppGetJobAttrOperation extends AbstractIppOperation {
         private static final Logger LOGGER =
                 LoggerFactory.getLogger(IppGetJobAttrRequest.class);
 
+        private String jobId;
+        private String jobUri;
+        private String jobUuid;
+        private String jobName;
+        private String documentName;
+        private String documentFormat;
+
+        private IppPrintInData printInData;
+        private DocLog docLog;
+
         @Override
         void process(final AbstractIppOperation operation,
                 final InputStream istr) throws IOException {
+
             readAttributes(operation, istr);
-        }
 
-        /**
-         * @return
-         */
-        public String getJobId() {
-            return getAttrValue(IppDictJobDescAttr.ATTR_JOB_ID).getValues()
-                    .get(0);
-        }
+            //
+            this.jobId = getAttrValue(IppDictJobDescAttr.ATTR_JOB_ID)
+                    .getValues().get(0);
 
-        /**
-         * @return
-         */
-        public String getJobUri() {
-            try {
-                return IppDictJobDescAttr.createJobUri(
-                        getAttrValue(IppDictOperationAttr.ATTR_PRINTER_URI)
-                                .getValues().get(0),
-                        getJobId());
-            } catch (URISyntaxException e) {
-                LOGGER.error(e.getMessage());
-                return null; // TODO
+            this.jobUri = IppDictJobDescAttr.createJobUri(
+                    this.getAttrValue(IppDictOperationAttr.ATTR_PRINTER_URI)
+                            .getValues().get(0),
+                    this.jobId);
+
+            //
+            this.docLog = DOCLOG_SERVICE.getSuppliedDocLog(
+                    ExternalSupplierEnum.IPP_CLIENT,
+                    this.getRequestingUserName(), this.jobId, null);
+
+            if (this.docLog != null && this.docLog.getExternalData() != null) {
+                this.printInData =
+                        IppPrintInData.createFromData(docLog.getExternalData());
+
+            } else {
+                this.printInData = null;
+            }
+
+            this.jobName = this.retrieveJobName();
+            this.documentName = this.retrieveDocumentName();
+            this.documentFormat = this.retrieveDocumentFormat();
+
+            if (docLog != null) {
+                this.jobUuid = docLog.getUuid();
+            } else {
+                this.jobUuid = UUID.randomUUID().toString();
             }
         }
+
+        /**
+         * @return job-uuid.
+         */
+        public String getJobUid() {
+            return this.jobUuid;
+        }
+
+        /**
+         * @return job-id.
+         */
+        public String getJobId() {
+            return this.jobId;
+        }
+
+        /**
+         * @return job-uri.
+         */
+        public String getJobUri() {
+            return this.jobUri;
+        }
+
+        /**
+         * @return job-name.
+         */
+        public String getJobName() {
+            return this.jobName;
+        }
+
+        /**
+         * @return document-name.
+         */
+        public String getDocumentName() {
+            return this.documentName;
+        }
+
+        /**
+         * @return document-format.
+         */
+        public String getDocumentFormat() {
+            return this.documentFormat;
+        }
+
+        public String retrieveJobName() {
+            String value = null;
+            if (this.printInData != null) {
+                value = this.printInData.getJobName();
+            }
+            if (value == null && this.docLog != null) {
+                value = this.docLog.getTitle();
+            }
+            return StringUtils.defaultString(value);
+        }
+
+        public String retrieveDocumentName() {
+            String value = null;
+            if (this.printInData != null) {
+                value = this.printInData.getDocumentName();
+            }
+            if (value == null && this.docLog != null) {
+                value = this.docLog.getTitle();
+            }
+            return StringUtils.defaultString(value);
+        }
+
+        public String retrieveDocumentFormat() {
+            String value = null;
+            if (this.printInData != null) {
+                value = this.printInData.getDocumentFormat();
+            }
+            if (value == null && this.docLog != null) {
+                value = this.docLog.getMimetype();
+            }
+            return StringUtils.defaultString(value);
+        }
+
     }
 
     private static class IppGetJobAttrResponse extends AbstractIppResponse {
@@ -130,7 +233,8 @@ public final class IppGetJobAttrOperation extends AbstractIppOperation {
                 //
                 IppDictJobDescAttr.ATTR_COMPRESSION_SUPPLIED,
 
-                IppDictJobDescAttr.ATTR_SIDES, IppDictJobDescAttr.ATTR_MEDIA,
+                IppDictJobDescAttr.ATTR_SIDES, //
+                IppDictJobDescAttr.ATTR_MEDIA,
                 IppDictJobDescAttr.ATTR_PRINT_COLOR_MODE,
                 IppDictJobDescAttr.ATTR_PRINT_QUALITY,
                 IppDictJobDescAttr.ATTR_PRINT_CONTENT_OPTIMIZE,
@@ -169,7 +273,7 @@ public final class IppGetJobAttrOperation extends AbstractIppOperation {
             /*
              * Group 3: Job Object Attributes
              */
-            attrGroups.add(createGroupJobAttr(ostr, request));
+            attrGroups.add(createGroupJobAttr(request));
 
             // StatusCode OK : ignored some attributes
             writeHeaderAndAttributes(operation, IppStatusCode.OK, attrGroups,
@@ -177,19 +281,14 @@ public final class IppGetJobAttrOperation extends AbstractIppOperation {
         }
 
         /**
-         *
-         * @param ostr
-         *            IPP output stream.
          * @param request
          *            IPP request.
          * @return IPP group.
          */
-        public static final IppAttrGroup createGroupJobAttr(
-                final OutputStream ostr, final IppGetJobAttrRequest request) {
+        public static final IppAttrGroup
+                createGroupJobAttr(final IppGetJobAttrRequest request) {
 
             final String printerURI = request.getPrinterURI();
-            final String jobUri = request.getJobUri();
-            final String jobId = request.getJobId();
             final String requestingUserName = request.getRequestingUserName();
 
             final IppDictJobDescAttr dict = IppDictJobDescAttr.instance();
@@ -209,27 +308,24 @@ public final class IppGetJobAttrOperation extends AbstractIppOperation {
                 final IppAttr attr = dict.getAttr(ippKw);
 
                 if (attr == null) {
-                    throw new SpException(
+                    throw new IllegalStateException(
                             "IPP keyword [" + ippKw + "] not found.");
                 }
 
                 final IppAttrValue value = new IppAttrValue(attr);
-                group.addAttribute(value);
 
                 switch (ippKw) {
 
                 case IppDictJobDescAttr.ATTR_JOB_URI:
-                    value.addValue(jobUri);
+                    value.addValue(request.getJobUri());
                     break;
 
                 case IppDictJobDescAttr.ATTR_JOB_ID:
-                    value.addValue(jobId);
+                    value.addValue(request.getJobId());
                     break;
 
                 case IppDictJobDescAttr.ATTR_JOB_UUID:
-                    // TODO
-                    value.addValue(
-                            IppUri.getUrnUuid(UUID.randomUUID().toString()));
+                    value.addValue(IppUri.getUrnUuid(request.getJobUid()));
                     break;
 
                 case IppDictJobDescAttr.ATTR_JOB_PRINTER_URI:
@@ -249,9 +345,11 @@ public final class IppGetJobAttrOperation extends AbstractIppOperation {
                     break;
 
                 case IppDictJobDescAttr.ATTR_JOB_NAME:
+                    value.addValue(request.getJobName());
+                    break;
+
                 case IppDictJobDescAttr.ATTR_DOCUMENT_NAME_SUPPLIED:
-                    // TODO
-                    value.addValue("");
+                    value.addValue(request.getDocumentName());
                     break;
 
                 case IppDictJobDescAttr.ATTR_JOB_ORIGINATING_USER_NAME:
@@ -321,15 +419,15 @@ public final class IppGetJobAttrOperation extends AbstractIppOperation {
                     break;
 
                 case IppDictJobDescAttr.ATTR_DOC_FORMAT_SUPPLIED:
-                    // TODO
-                    value.addValue(
-                            IppDictPrinterDescAttr.DOCUMENT_FORMAT_POSTSCRIPT);
+                    value.addValue(request.getDocumentFormat());
                     break;
 
                 default:
                     throw new SpException(
                             "Unhandled IPP keyword [" + ippKw + "].");
                 }
+
+                group.addAttribute(value);
             }
 
             return group;

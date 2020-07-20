@@ -26,14 +26,13 @@ package org.savapage.core.ipp.operation;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.attribute.IppAttrValue;
@@ -47,8 +46,6 @@ import org.savapage.core.print.server.DocContentPrintProcessor;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.system.SystemInfo;
 import org.savapage.core.util.DateUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -72,10 +69,6 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
      *
      * Group 3: Document Content
      */
-
-    /** */
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(AbstractIppPrintJobReq.class);
 
     /** */
     private DocContentPrintProcessor printInProcessor = null;
@@ -115,15 +108,17 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
 
         final String authWebAppUser;
 
-        if (operation.isTrustedUserAsRequester()) {
-            authWebAppUser = null;
+        if (operation.isAuthUserIppRequester()) {
+            authWebAppUser = operation.getAuthenticatedUser();
         } else {
-            authWebAppUser = operation.getTrustedIppClientUserId();
+            authWebAppUser = null;
         }
 
         /*
-         * Create generic PrintIn handler. This should be a first action because
-         * this handler holds the deferred exception.
+         * Step 1: Create generic PrintIn handler.
+         *
+         * This should be a first action because this handler holds the deferred
+         * exception.
          */
         this.printInProcessor =
                 new DocContentPrintProcessor(operation.getQueue(),
@@ -133,7 +128,7 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
                 .setIppRoutinglistener(operation.getIppRoutingListener());
 
         /*
-         * Then, read the IPP attributes.
+         * Step 2: Read the IPP attributes.
          */
         this.readAttributes(operation, istr);
 
@@ -144,19 +139,18 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
             this.jobId = this.getJobIdAttr().intValue();
         }
 
-        /*
-         * Then, get the IPP requesting user.
-         */
-        final String requestingUserId;
+        this.printInProcessor.setJobName(this.getPrintInJobName());
 
-        if (operation.isTrustedUserAsRequester()) {
-            requestingUserId = operation.getTrustedIppClientUserId();
+        /** */
+        final String assignedUserId;
+
+        if (operation.isAuthUserIppRequester()) {
+            assignedUserId = operation.getAuthenticatedUser();
         } else {
-            requestingUserId = this.getRequestingUserName();
+            assignedUserId = this.getRequestingUserName();
         }
 
-        this.printInProcessor.setJobName(this.getPrintInJobName());
-        this.printInProcessor.processRequestingUser(requestingUserId);
+        this.printInProcessor.processAssignedUser(assignedUserId);
     }
 
     /**
@@ -222,9 +216,10 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
             throws IOException {
 
         final ExternalSupplierInfo supplierInfo = new ExternalSupplierInfo();
-        supplierInfo.setSupplier(ExternalSupplierEnum.SAVAPAGE);
+        supplierInfo.setSupplier(ExternalSupplierEnum.IPP_CLIENT);
         supplierInfo.setData(this.createIppPrintInData());
         supplierInfo.setId(String.valueOf(this.getJobId()));
+        supplierInfo.setStatus(ExternalSupplierStatusEnum.COMPLETED.toString());
 
         this.printInProcessor.process(istr, supplierInfo,
                 DocLogProtocolEnum.IPP, null, null, null);
@@ -278,16 +273,11 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
      *            Job id.
      * @return Job URI.
      */
-    public String getJobUri(final int jobId) {
-        try {
-            return IppDictJobDescAttr.createJobUri(
-                    this.getAttrValue(IppDictOperationAttr.ATTR_PRINTER_URI)
-                            .getValues().get(0),
-                    String.valueOf(jobId));
-        } catch (URISyntaxException e) {
-            LOGGER.error(e.getMessage());
-            return null; // TODO
-        }
+    public String getJobUri(final int theJobId) {
+        return IppDictJobDescAttr.createJobUri(
+                this.getAttrValue(IppDictOperationAttr.ATTR_PRINTER_URI)
+                        .getValues().get(0),
+                String.valueOf(theJobId));
     }
 
     /**
@@ -369,31 +359,16 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
         } else if (!isAuthorized) {
 
             final IppQueue queue = operation.getQueue();
+
             final StringBuilder msg = new StringBuilder();
 
-            if (operation.hasClientIpAccessToQueue()) {
-                msg.append("User");
-            } else {
-                msg.append(operation.getOriginatorIp());
-            }
-            msg.append(" access denied to queue");
+            msg.append("User access denied to queue");
 
-            if (queue == null) {
-                msg.append(" (not present)");
-            } else {
-                msg.append(" \"/").append(queue.getUrlPath()).append("\"");
-                if (queue.getDeleted().booleanValue()) {
-                    msg.append(" (deleted)");
-                } else if (queue.getDisabled().booleanValue()) {
-                    msg.append(" (disabled)");
-                } else if (!operation.hasClientIpAccessToQueue()) {
-                    msg.append(". Allowed: ");
-                    if (StringUtils.isNotBlank(queue.getIpAllowed())) {
-                        msg.append(queue.getIpAllowed());
-                    } else {
-                        msg.append("private network");
-                    }
-                }
+            msg.append(" \"/").append(queue.getUrlPath()).append("\"");
+            if (queue.getDeleted().booleanValue()) {
+                msg.append(" (deleted)");
+            } else if (queue.getDisabled().booleanValue()) {
+                msg.append(" (disabled)");
             }
             msg.append(".");
 

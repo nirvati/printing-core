@@ -407,8 +407,7 @@ public final class QueueServiceImpl extends AbstractService
     @Override
     public DocContentPrintRsp printDocContent(
             final ReservedIppQueueEnum reservedQueue, final String userId,
-            final boolean isUserTrusted, final DocContentPrintReq printReq,
-            final InputStream istrContent)
+            final DocContentPrintReq printReq, final InputStream istrContent)
             throws DocContentPrintException, UnavailableException {
 
         final DocLogProtocolEnum protocol = printReq.getProtocol();
@@ -436,9 +435,6 @@ public final class QueueServiceImpl extends AbstractService
             ReadWriteLockEnum.DATABASE_READONLY.tryReadLock();
             isDbReadLock = true;
 
-            /*
-             * Get the Queue object.
-             */
             queue = ippQueueDAO().find(reservedQueue);
 
             if (!this.isActiveQueue(queue)) {
@@ -461,30 +457,15 @@ public final class QueueServiceImpl extends AbstractService
                 throw new UnavailableException(State.PERMANENT, msg.toString());
             }
 
-            /*
-             * Create the request.
-             */
-            final String requestingUserId = userId;
-            final String authWebAppUser;
-
-            if (isUserTrusted) {
-                /*
-                 * Simulate an authenticated Web App user.
-                 */
-                authWebAppUser = requestingUserId;
-            } else {
-                authWebAppUser = null;
-            }
-
             processor = new DocContentPrintProcessor(queue, originatorIp, title,
-                    authWebAppUser);
+                    userId);
 
             /*
              * If we tracked the user down by his email address, we know he
              * already exists in the database, so a lazy user insert is no issue
              * (same argument for a Web Print).
              */
-            processor.processRequestingUser(requestingUserId);
+            processor.processAssignedUser(userId);
 
             isAuthorized = processor.isAuthorized();
 
@@ -493,16 +474,9 @@ public final class QueueServiceImpl extends AbstractService
                 if (contentType != null
                         && DocContent.isSupported(contentType)) {
 
-                    /*
-                     * Process content stream, write DocLog and move PDF to
-                     * inbox.
-                     */
                     processor.process(istrContent, null, protocol,
                             originatorEmail, contentType, preferredOutputFont);
 
-                    /*
-                     * Fill response.
-                     */
                     printRsp.setResult(PrintInResultEnum.OK);
                     printRsp.setDocumentUuid(processor.getUuidJob());
 
@@ -515,7 +489,7 @@ public final class QueueServiceImpl extends AbstractService
                 printRsp.setResult(PrintInResultEnum.USER_NOT_AUTHORIZED);
                 LOGGER.warn(
                         String.format("User [%s] not authorized for Queue [%s]",
-                                requestingUserId, reservedQueue.getUrlPath()));
+                                userId, reservedQueue.getUrlPath()));
             }
 
         } catch (ReadLockObtainFailedException e) {
@@ -564,9 +538,6 @@ public final class QueueServiceImpl extends AbstractService
          */
         processor.evaluateErrorState(isAuthorized);
 
-        /*
-         * Throw deferred exception.
-         */
         if (printException != null) {
             throw printException;
         }
@@ -579,19 +550,12 @@ public final class QueueServiceImpl extends AbstractService
                     PubLevelEnum.WARN, String.format("User [%s] [%s] repaired.",
                             userId, printReq.getFileName()));
         }
-
         return printRsp;
     }
 
     @Override
     public boolean hasClientIpAccessToQueue(final IppQueue queue,
             final String printerNameForLogging, final String clientIpAddr) {
-
-        /*
-         * Assume remote host has NO access to printing.
-         */
-        boolean hasPrintAccessToQueue = false;
-        boolean isTrustedQueue = false;
 
         /*
          * Is IppQueue present ... and can it be used?
@@ -601,23 +565,11 @@ public final class QueueServiceImpl extends AbstractService
                     printerNameForLogging));
         }
 
-        if (queue.getDisabled()) {
-            throw new SpException(String.format("queue [%s] is disabled.",
-                    queue.getUrlPath()));
-        }
-
-        /*
-         * Can the queue be trusted?
-         */
-        isTrustedQueue = queue.getTrusted();
-
         /*
          * Check if client IP address is in range of the allowed IP CIDR.
          */
-        final String ipAllowed = queue.getIpAllowed();
-
-        hasPrintAccessToQueue =
-                InetUtils.isIpAddrInCidrRanges(ipAllowed, clientIpAddr);
+        final boolean hasPrintAccessToQueue = InetUtils
+                .isIpAddrInCidrRanges(queue.getIpAllowed(), clientIpAddr);
 
         /*
          * Logging
@@ -628,7 +580,7 @@ public final class QueueServiceImpl extends AbstractService
 
             msg.append("Queue [").append(queue.getUrlPath()).append("] ");
 
-            if (isTrustedQueue) {
+            if (queue.getTrusted()) {
                 msg.append("TRUSTED");
             } else {
                 msg.append("NOT Trusted");

@@ -109,9 +109,7 @@ import com.itextpdf.text.ExceptionConverter;
  */
 public final class DocContentPrintProcessor {
 
-    /**
-     * The logger.
-     */
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(DocContentPrintProcessor.class);
 
@@ -134,14 +132,10 @@ public final class DocContentPrintProcessor {
     private static final UserService USER_SERVICE =
             ServiceContext.getServiceFactory().getUserService();
 
-    /**
-     *
-     */
+    /** */
     private static final int BUFFER_SIZE = 4096;
 
-    /**
-     *
-     */
+    /** */
     private java.util.UUID uuidJob = java.util.UUID.randomUUID();
 
     /**
@@ -149,24 +143,16 @@ public final class DocContentPrintProcessor {
      */
     private long inputByteCount = 0;
 
-    /**
-     *
-     */
+    /** */
     private byte[] readAheadInputBytes = null;
 
-    /**
-     *
-     */
+    /** */
     private SpPdfPageProps pageProps = null;
 
-    /**
-     *
-     */
+    /** */
     private boolean drmViolationDetected = false;
 
-    /**
-     *
-     */
+    /** */
     private boolean drmRestricted = false;
 
     /**
@@ -174,38 +160,26 @@ public final class DocContentPrintProcessor {
      */
     private PdfRepairEnum pdfRepair;
 
-    /**
-     *
-     */
+    /** */
     private boolean pdfToCairo = false;
 
-    /**
-     *
-     */
+    /** */
     private User userDb = null;
 
-    /**
-     *
-     */
+    /** */
     private String uidTrusted = null;
 
-    /**
-     *
-     */
+    /** */
     private String mimetype;
 
-    /**
-     *
-     */
+    /** */
     private String signatureString = null;
 
-    /**
-     *
-     */
+    /** */
     private final IppQueue queue;
 
     /**
-     *
+     * The authenticated WebApp user: {@code null} if not present.
      */
     private final String authWebAppUser;
 
@@ -214,40 +188,20 @@ public final class DocContentPrintProcessor {
      */
     private Exception deferredException = null;
 
-    /**
-     *
-     */
-    private String requestingUserId = null;
+    /** */
+    private String assignedUserId = null;
 
-    /**
-     *
-     */
+    /** */
     private String jobName;
 
-    /**
-     *
-     */
+    /** */
     private final String originatorIp;
 
     /** */
     private IppRoutingListener ippRoutinglistener;
 
-    /**
-     *
-     */
+    /** */
     private String originatorEmail;
-
-    /**
-     *
-     */
-    @SuppressWarnings("unused")
-    private DocContentPrintProcessor() {
-        this.queue = null;
-        this.authWebAppUser = null;
-        this.jobName = null;
-        this.originatorIp = null;
-        this.originatorEmail = null;
-    }
 
     /**
      * Creates a print server request.
@@ -337,7 +291,7 @@ public final class DocContentPrintProcessor {
 
             msg.append("Authorized [").append(authorized).append("] :");
 
-            msg.append(" Requesting User [").append(this.requestingUserId)
+            msg.append(" Assigned User [").append(this.assignedUserId)
                     .append("]");
 
             msg.append(" Trusted User [").append(this.uidTrusted).append("]");
@@ -370,69 +324,61 @@ public final class DocContentPrintProcessor {
     /**
      * Is the authenticated WebApp User present?
      *
-     * @return
+     * @return {@code true} if present.
      */
     public boolean isAuthWebAppUser() {
         return StringUtils.isNotBlank(this.authWebAppUser);
     }
 
     /**
-     * Processes the requesting user, i.e. checks whether he is trusted to print
-     * a job. Trust can either be direct, by alias, or by authenticated WebApp
+     * Processes the assigned user, i.e. checks whether he is trusted to print a
+     * job. Trust can either be direct, by alias, or by authenticated WebApp
      * User. The user (alias) must be a Person.
      * <p>
      * <b>Note</b>: On a trusted Queue (and lazy print enabled) a user is lazy
      * inserted. <i>This method has its own database transaction scope.</i>
      * </p>
      *
-     * @param requestingUserId
-     *            The name (id) of the requesting user. Can be {@code null} is
-     *            not available.
+     * @param assignedUser
+     *            Assigned user id. {@code null} if not available.
      * @return {@code true} if we have a trusted uid.
      */
-    public boolean processRequestingUser(final String requestingUserId) {
+    public boolean processAssignedUser(final String assignedUser) {
 
         final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
 
-        this.requestingUserId = requestingUserId;
+        this.assignedUserId = assignedUser;
 
         String uid = null;
 
-        if (requestingUserId == null) {
-
+        if (assignedUser == null) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(
-                        String.format("Requesting user id [%s] is unknown.",
-                                requestingUserId));
+                LOGGER.debug(String.format("Assigned user [%s] is unknown.",
+                        assignedUser));
             }
-
             this.userDb = null;
             this.uidTrusted = null;
 
         } else {
-            /*
-             * Get the alias (if present).
-             */
-            uid = UserAliasList.instance().getUserName(this.requestingUserId);
+            // Get the alias (if present).
+            uid = UserAliasList.instance().getUserName(this.assignedUserId);
 
-            if (!uid.equals(this.requestingUserId)) {
+            if (!uid.equals(this.assignedUserId)) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("using user [" + uid + "] for alias ["
-                            + this.requestingUserId + "]");
+                    LOGGER.debug(String.format(
+                            "Replaced assigned user [%s] alias by user [%s].",
+                            this.assignedUserId, uid));
                 }
             }
 
-            final ConfigManager cm = ConfigManager.instance();
-
-            /*
-             * Read (alias) user from database.
-             */
             this.userDb = userDao.findActiveUserByUserId(uid);
 
             /*
              * On a trusted queue (and lazy print enabled) we can lazy insert a
              * user...
              */
+            final ConfigManager cm = ConfigManager.instance();
+
             if (this.userDb == null && this.isTrustedQueue()
                     && cm.isUserInsertLazyPrint()) {
 
@@ -452,11 +398,8 @@ public final class DocContentPrintProcessor {
             }
         }
 
-        /*
-         * Do we have a (lazy inserted) database user?
-         */
+        // Do we have a (lazy inserted) database user?
         if (this.userDb == null) {
-
             /*
              * The user is not found in the database (no lazy insert). Try the
              * authenticated WebApp user (if present)...
@@ -468,9 +411,6 @@ public final class DocContentPrintProcessor {
             }
 
         } else {
-            /*
-             * The user is present in the database.
-             */
             this.uidTrusted = uid;
         }
 
@@ -481,7 +421,6 @@ public final class DocContentPrintProcessor {
         final String reason;
 
         if (this.userDb == null) {
-
             /*
              * No (trusted WepApp) database user.
              */
@@ -503,7 +442,6 @@ public final class DocContentPrintProcessor {
             } else {
                 reason = "is NOT a Person";
             }
-
         }
 
         if (isAuthorized) {
@@ -521,9 +459,6 @@ public final class DocContentPrintProcessor {
 
         } else {
 
-            /*
-             * Log the reason why not authorized.
-             */
             if (reason != null) {
 
                 if (this.uidTrusted != null && !this.uidTrusted.equals(uid)) {
@@ -537,15 +472,11 @@ public final class DocContentPrintProcessor {
 
                 } else {
                     if (LOGGER.isWarnEnabled()) {
-                        LOGGER.warn("Requesting user [" + uid + "] " + reason
-                                + ": print denied");
+                        LOGGER.warn("Requesting user [" + assignedUser + "] "
+                                + reason + ": print denied");
                     }
                 }
             }
-
-            /*
-             * Set uidTrusted as indicator for printing allowed.
-             */
             this.uidTrusted = null;
         }
 
@@ -822,7 +753,7 @@ public final class DocContentPrintProcessor {
 
         return new PsToImagePdf(new File(tempDirApp), dpi, this.jobName,
                 StringUtils.defaultString(this.getUserDb().getFullName(),
-                        this.requestingUserId));
+                        this.assignedUserId));
     }
 
     /**
@@ -1822,7 +1753,7 @@ public final class DocContentPrintProcessor {
         String deniedUserId = userid;
 
         if (StringUtils.isBlank(deniedUserId)) {
-            deniedUserId = this.requestingUserId;
+            deniedUserId = this.assignedUserId;
         }
 
         AdminPublisher.instance().publish(PubTopicEnum.USER, pubLevel,

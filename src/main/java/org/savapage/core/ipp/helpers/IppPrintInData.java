@@ -28,9 +28,12 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.savapage.core.SpException;
+import org.savapage.core.ipp.attribute.IppDictJobDescAttr;
+import org.savapage.core.ipp.attribute.IppDictOperationAttr;
 import org.savapage.core.json.JsonAbstractBase;
 import org.savapage.core.services.helpers.ExternalSupplierData;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -85,6 +88,48 @@ public final class IppPrintInData extends JsonAbstractBase
      */
     public void setAttrJob(final Map<String, String> attr) {
         this.attrJob = attr;
+    }
+
+    /**
+     *
+     * @param ippKeyword
+     *            IPP keyword.
+     * @return {@code null} when not found.
+     */
+    @JsonIgnore
+    private String getAttrValue(final String ippKeyword) {
+        String value = null;
+        if (this.attrJob != null) {
+            value = this.attrJob.get(ippKeyword);
+        }
+        if (value == null && this.attrOperation != null) {
+            value = this.attrOperation.get(ippKeyword);
+        }
+        return value;
+    }
+
+    /**
+     * @return 'job-name' value, or {@code null} when not found.
+     */
+    @JsonIgnore
+    public String getJobName() {
+        return this.getAttrValue(IppDictJobDescAttr.ATTR_JOB_NAME);
+    }
+
+    /**
+     * @return 'document-name' value, or {@code null} when not found.
+     */
+    @JsonIgnore
+    public String getDocumentName() {
+        return this.getAttrValue(IppDictOperationAttr.ATTR_DOCUMENT_NAME);
+    }
+
+    /**
+     * @return 'document-format' value, or {@code null} when not found.
+     */
+    @JsonIgnore
+    public String getDocumentFormat() {
+        return this.getAttrValue(IppDictOperationAttr.ATTR_DOCUMENT_FORMAT);
     }
 
     /**

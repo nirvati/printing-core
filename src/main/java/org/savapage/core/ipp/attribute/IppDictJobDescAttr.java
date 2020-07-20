@@ -184,34 +184,41 @@ public final class IppDictJobDescAttr extends AbstractIppDict {
      *            URI of printer.
      * @param jobId
      *            Job ID.
-     * @return Job URI.
-     * @throws URISyntaxException
-     *             If error.
+     * @return 'job-uri' value.
      */
     public static String createJobUri(final String printerUri,
-            final String jobId) throws URISyntaxException {
+            final String jobId) {
 
-        final URI uri = new URI(printerUri);
+        try {
+            final URI uri = new URI(printerUri);
 
-        final StringBuilder jobUri = new StringBuilder(64);
+            final StringBuilder jobUri = new StringBuilder(64);
 
-        jobUri.append(uri.getScheme()).append("://").append(uri.getHost());
+            jobUri.append(uri.getScheme()).append("://").append(uri.getHost());
 
-        if (uri.getPort() != -1) {
-            jobUri.append(":").append(uri.getPort());
+            if (uri.getPort() != -1) {
+                jobUri.append(":").append(uri.getPort());
+            }
+
+            final String path = uri.getPath();
+
+            if (path != null && path.length() > 1) {
+                jobUri.append(path);
+            }
+
+            jobUri.append("/jobs/").append(jobId);
+
+            if (jobUri.length() > IppUri.MAX_OCTETS) {
+                throw new IllegalArgumentException(
+                        String.format("URI [] exceeds %d octets.",
+                                jobUri.toString(), IppUri.MAX_OCTETS));
+            }
+
+            return jobUri.toString();
+
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e.getMessage());
         }
-
-        final String path = uri.getPath();
-
-        if (path != null && path.length() > 1) {
-            jobUri.append(path);
-        }
-
-        jobUri.append("/jobs/").append(jobId);
-
-        // TODO: check on max 1023 octets
-
-        return jobUri.toString();
     }
 
     /**
