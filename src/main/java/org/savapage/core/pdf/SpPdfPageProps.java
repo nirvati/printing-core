@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -27,23 +30,24 @@ package org.savapage.core.pdf;
  * @author Rijk Ravestein
  *
  */
-public final class SpPdfPageProps {
+public final class SpPdfPageProps implements IPdfPageProps {
 
-    /**
-     * The IPP RFC2911 "media" name.
-     */
+    /** */
     private String size;
 
-    int mmWidth = 0;
-    int mmHeight = 0;
-    int numberOfPages = 0;
+    /** */
+    private int mmWidth = 0;
+    /** */
+    private int mmHeight = 0;
+    /** */
+    private int numberOfPages = 0;
 
-    int rotationFirstPage = 0;
-    int contentRotationFirstPage = 0;
+    /** */
+    private int rotationFirstPage = 0;
+    /** */
+    private int contentRotationFirstPage = 0;
 
-    /**
-     * @return the IPP RFC2911 "media" name.
-     */
+    @Override
     public String getSize() {
         return size;
     }
@@ -54,69 +58,92 @@ public final class SpPdfPageProps {
      * @param size
      *            the IPP RFC2911 "media" name.
      */
-    public void setSize(String size) {
+    public void setSize(final String size) {
         this.size = size;
     }
 
-    /**
-     * @return The PDF mediabox width in millimeters.
-     */
+    @Override
     public int getMmWidth() {
         return mmWidth;
     }
 
     /**
-     * @param mmWidth
+     * @param width
      *            The PDF mediabox width in millimeters.
      */
-    public void setMmWidth(int mmWidth) {
-        this.mmWidth = mmWidth;
+    public void setMmWidth(final int width) {
+        this.mmWidth = width;
     }
 
-    /**
-     * @return The PDF mediabox height in millimeters.
-     */
+    @Override
     public int getMmHeight() {
         return mmHeight;
     }
 
     /**
-     * @param mmHeight
+     * @param height
      *            The PDF mediabox height in millimeters.
      */
-    public void setMmHeight(int mmHeight) {
-        this.mmHeight = mmHeight;
+    public void setMmHeight(final int height) {
+        this.mmHeight = height;
     }
 
+    @Override
     public int getNumberOfPages() {
         return numberOfPages;
     }
 
-    public void setNumberOfPages(int numberOfPages) {
-        this.numberOfPages = numberOfPages;
+    /**
+     *
+     * @param nPages
+     *            Number of pages.
+     */
+    public void setNumberOfPages(final int nPages) {
+        this.numberOfPages = nPages;
     }
 
+    @Override
     public int getRotationFirstPage() {
         return rotationFirstPage;
     }
 
-    public void setRotationFirstPage(int rotationFirstPage) {
-        this.rotationFirstPage = rotationFirstPage;
+    /**
+     * @param rotation
+     *            Rotation of first page.
+     */
+    public void setRotationFirstPage(final int rotation) {
+        this.rotationFirstPage = rotation;
     }
 
+    @Override
     public int getContentRotationFirstPage() {
         return contentRotationFirstPage;
     }
 
-    public void setContentRotationFirstPage(int contentRotationFirstPage) {
-        this.contentRotationFirstPage = contentRotationFirstPage;
+    /**
+     * @param rotation
+     *            Content rotation of first page.
+     */
+    public void setContentRotationFirstPage(final int rotation) {
+        this.contentRotationFirstPage = rotation;
     }
 
-    /**
-     * @return {@code true} when the PDF mediabox is in landscape orientation.
-     */
+    @Override
     public boolean isLandscape() {
         return this.mmHeight < this.mmWidth;
+    }
+
+    @Override
+    public boolean isSeenAsLandscape() {
+        return PdfPageRotateHelper.isSeenAsLandscape(this.isLandscape(),
+                this.getRotationFirstPage());
+    }
+
+    @Override
+    public int getRotateToOrientationSeen(final boolean toLandscape) {
+        return PdfPageRotateHelper.rotateToOrientationSeen(toLandscape,
+                this.isLandscape(), this.getRotationFirstPage(),
+                this.getContentRotationFirstPage());
     }
 
     /**
@@ -139,4 +166,5 @@ public final class SpPdfPageProps {
             PdfPasswordException, PdfUnsupportedException {
         return AbstractPdfCreator.pageProps(filePathPdf);
     }
+
 }

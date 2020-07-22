@@ -73,6 +73,7 @@ import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
+import org.savapage.core.pdf.IPdfPageProps;
 import org.savapage.core.pdf.PdfAbstractException;
 import org.savapage.core.pdf.PdfDocumentFonts;
 import org.savapage.core.pdf.PdfPasswordException;
@@ -147,7 +148,7 @@ public final class DocContentPrintProcessor {
     private byte[] readAheadInputBytes = null;
 
     /** */
-    private SpPdfPageProps pageProps = null;
+    private IPdfPageProps pageProps = null;
 
     /** */
     private boolean drmViolationDetected = false;
@@ -1044,7 +1045,7 @@ public final class DocContentPrintProcessor {
             /*
              * Calculate number of pages, etc. and repair along the way.
              */
-            final SpPdfPageProps pdfPageProps =
+            final IPdfPageProps pdfPageProps =
                     this.createPdfPageProps(tempPathPdf);
 
             this.setPageProps(pdfPageProps);
@@ -1345,11 +1346,11 @@ public final class DocContentPrintProcessor {
      * @throws PdfUnsupportedException
      *             When unsupported PDF document.
      */
-    private SpPdfPageProps createPdfPageProps(final String tempPathPdf)
+    private IPdfPageProps createPdfPageProps(final String tempPathPdf)
             throws PdfValidityException, PdfSecurityException, IOException,
             PdfPasswordException, PdfUnsupportedException {
 
-        SpPdfPageProps pdfPageProps;
+        IPdfPageProps pdfPageProps;
 
         try {
 
@@ -1542,11 +1543,11 @@ public final class DocContentPrintProcessor {
         this.inputByteCount = jobBytes;
     }
 
-    public SpPdfPageProps getPageProps() {
+    public IPdfPageProps getPageProps() {
         return pageProps;
     }
 
-    public void setPageProps(SpPdfPageProps pageProps) {
+    public void setPageProps(IPdfPageProps pageProps) {
         this.pageProps = pageProps;
     }
 

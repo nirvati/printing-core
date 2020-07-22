@@ -81,6 +81,7 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.pdf.AbstractPdfCreator;
+import org.savapage.core.pdf.IPdfPageProps;
 import org.savapage.core.pdf.PdfDocumentFonts;
 import org.savapage.core.pdf.PdfPageRotateHelper;
 import org.savapage.core.pdf.PdfPasswordException;
@@ -257,9 +258,9 @@ public final class InboxServiceImpl implements InboxService {
      *
      * @param filePathPdf
      *            The PDF document file path.
-     * @return The {@link SpPdfPageProps}.
+     * @return The {@link IPdfPageProps}.
      */
-    private static SpPdfPageProps getPdfPageProps(final String filePathPdf) {
+    private static IPdfPageProps getPdfPageProps(final String filePathPdf) {
         try {
             return SpPdfPageProps.create(filePathPdf);
 
@@ -349,7 +350,7 @@ public final class InboxServiceImpl implements InboxService {
                  * Landscape, page rotation, content rotation, user rotate,
                  * media.
                  */
-                final SpPdfPageProps pageProps = getPdfPageProps(filePath);
+                final IPdfPageProps pageProps = getPdfPageProps(filePath);
 
                 final boolean isLandscape = pageProps.isLandscape();
                 final int rotation = pageProps.getRotationFirstPage();

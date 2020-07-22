@@ -72,6 +72,7 @@ import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.Printer;
 import org.savapage.core.jpa.User;
 import org.savapage.core.msg.UserMsgIndicator;
+import org.savapage.core.pdf.IPdfPageProps;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.pdf.PdfPasswordException;
 import org.savapage.core.pdf.PdfSecurityException;
@@ -1454,7 +1455,7 @@ public final class SmartschoolPrintMonitor implements PaperCutPrintJobListener {
         /*
          * Get the PDF properties to check security issues.
          */
-        final SpPdfPageProps pdfProps;
+        final IPdfPageProps pdfProps;
 
         try {
             pdfProps = SpPdfPageProps.create(downloadedFile.getCanonicalPath());

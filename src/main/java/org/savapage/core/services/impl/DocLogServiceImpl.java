@@ -74,8 +74,8 @@ import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.json.JsonRollingTimeSeries;
 import org.savapage.core.json.TimeSeriesInterval;
 import org.savapage.core.msg.UserMsgIndicator;
+import org.savapage.core.pdf.IPdfPageProps;
 import org.savapage.core.pdf.PdfCreateInfo;
-import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.print.proxy.JsonProxyPrintJob;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
 import org.savapage.core.services.DocLogService;
@@ -997,7 +997,7 @@ public final class DocLogServiceImpl extends AbstractService
 
         final DaoContext daoContext = ServiceContext.getDaoContext();
 
-        final SpPdfPageProps pageProps = printInInfo.getPageProps();
+        final IPdfPageProps pageProps = printInInfo.getPageProps();
 
         final boolean isPrinted = pageProps != null;
 

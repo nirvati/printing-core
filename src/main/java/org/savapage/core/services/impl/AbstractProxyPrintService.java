@@ -3161,6 +3161,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             ctx.setPrinterDisplayName(printer.getDisplayName());
             ctx.setJobName(printInInfo.getJobName());
             ctx.setTransactionDate(ServiceContext.getTransactionDate());
+            ctx.setPageProperties(printInInfo.getPageProps());
 
             final IppRoutingResult res = new IppRoutingResult();
 

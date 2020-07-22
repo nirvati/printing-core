@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -30,6 +30,7 @@ import java.net.URI;
 import java.util.Date;
 
 import org.savapage.core.jpa.IppQueue;
+import org.savapage.core.pdf.IPdfPageProps;
 import org.savapage.core.util.FileSystemHelper;
 
 /**
@@ -78,6 +79,9 @@ public final class IppRoutingContextImpl implements IppRoutingContext {
      * Date of routing transaction.
      */
     private Date transactionDate;
+
+    /** */
+    private IPdfPageProps pageProperties;
 
     /**
      * The PDF file to print.
@@ -186,6 +190,19 @@ public final class IppRoutingContextImpl implements IppRoutingContext {
      */
     public void setTransactionDate(final Date date) {
         this.transactionDate = date;
+    }
+
+    @Override
+    public IPdfPageProps getPageProperties() {
+        return pageProperties;
+    }
+
+    /**
+     * @param props
+     *            PDF page properties.
+     */
+    public void setPageProperties(final IPdfPageProps props) {
+        this.pageProperties = props;
     }
 
     @Override

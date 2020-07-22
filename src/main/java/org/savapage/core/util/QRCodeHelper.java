@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -118,6 +118,15 @@ public final class QRCodeHelper {
      */
     public static float pdfMMToPoints(final int mm) {
         return pdfMMToPX(mm) * IMG_PIXEL_TO_PDF_POINT;
+    }
+
+    /**
+     * @param points
+     *            Points.
+     * @return Millimeters of points (rounded to the nearest int value).
+     */
+    public static int pdfPointsToMM(final float points) {
+        return Math.round(MM_PER_INCH * (points / PDF_POINTS_PER_INCH));
     }
 
     /**

@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
@@ -139,7 +140,8 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
             this.jobId = this.getJobIdAttr().intValue();
         }
 
-        this.printInProcessor.setJobName(this.getPrintInJobName());
+        this.printInProcessor.setJobName(StringUtils.defaultString(
+                this.getPrintInJobName(), this.getDocumentName()));
 
         /** */
         final String assignedUserId;
