@@ -29,9 +29,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.savapage.core.concurrent.ReadWriteLockEnum;
+import org.savapage.core.dao.enums.DocLogProtocolEnum;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.ipp.attribute.syntax.IppJobState;
 import org.savapage.core.jpa.IppQueue;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
 
 /**
  *
@@ -39,6 +43,61 @@ import org.savapage.core.jpa.IppQueue;
  *
  */
 public class IppPrintJobOperation extends AbstractIppJobOperation {
+
+    /**
+     *
+     * @author Rijk Ravestein
+     *
+     */
+    private static final class IppPrintJobReq extends AbstractIppPrintJobReq {
+
+        /** */
+        IppPrintJobReq() {
+            super();
+        }
+
+        @Override
+        protected String getPrintInJobName() {
+            return this.getJobName();
+        }
+
+        @Override
+        protected boolean isJobIdGenerated() {
+            return true;
+        }
+
+        @Override
+        void process(final AbstractIppOperation operation,
+                final InputStream istr) throws IOException {
+
+            final ExternalSupplierInfo supplierInfo =
+                    new ExternalSupplierInfo();
+            supplierInfo.setSupplier(ExternalSupplierEnum.IPP_CLIENT);
+            supplierInfo.setData(this.createIppPrintInData());
+            supplierInfo.setId(String.valueOf(this.getJobId()));
+            supplierInfo
+                    .setStatus(ExternalSupplierStatusEnum.COMPLETED.toString());
+
+            this.getPrintInProcessor().setPrintInParent(null);
+
+            this.getPrintInProcessor().process(istr, supplierInfo,
+                    DocLogProtocolEnum.IPP, null, null, null);
+        }
+
+        @Override
+        protected IppStatusCode getResponseStatusCode() {
+            return IppStatusCode.OK;
+        }
+
+    }
+
+    /**
+     *
+     * @author Rijk Ravestein
+     *
+     */
+    private static final class IppPrintJobRsp extends AbstractIppPrintJobRsp {
+    }
 
     /**
      * @param queue

@@ -24,7 +24,22 @@
  */
 package org.savapage.core.ipp.operation;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.dao.enums.DocLogProtocolEnum;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
+import org.savapage.core.ipp.helpers.IppPrintInData;
+import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.IppQueue;
+import org.savapage.core.print.server.DocContentPrintProcessor;
+import org.savapage.core.services.DocLogService;
+import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -32,6 +47,103 @@ import org.savapage.core.jpa.IppQueue;
  *
  */
 public final class IppSendDocOperation extends IppPrintJobOperation {
+
+    /** */
+    private static final DocLogService DOC_LOG_SERVICE =
+            ServiceContext.getServiceFactory().getDocLogService();
+
+    /**
+     *
+     * @author Rijk Ravestein
+     *
+     */
+    private static final class IppSendDocReq extends AbstractIppPrintJobReq {
+
+        /** */
+        private static final Logger LOGGER =
+                LoggerFactory.getLogger(IppSendDocReq.class);
+
+        /** */
+        private IppStatusCode responseStatusCode;
+
+        /** */
+        IppSendDocReq() {
+            super();
+            this.responseStatusCode = IppStatusCode.OK;
+        }
+
+        @Override
+        protected String getPrintInJobName() {
+            return this.getJobName();
+        }
+
+        @Override
+        protected boolean isJobIdGenerated() {
+            return false;
+        }
+
+        @Override
+        void process(final AbstractIppOperation operation,
+                final InputStream istr) throws IOException {
+
+            final DocContentPrintProcessor processor =
+                    this.getPrintInProcessor();
+
+            final String userId = processor.getUserDb().getUserId();
+
+            final DocLog docLog = DOC_LOG_SERVICE.getSuppliedDocLog(
+                    ExternalSupplierEnum.IPP_CLIENT, userId,
+                    String.valueOf(this.getJobId()),
+                    ExternalSupplierStatusEnum.PENDING);
+
+            if (docLog == null || docLog.getExternalData() == null) {
+                LOGGER.warn("DocLog not found: user [{}] job-id [{}]", userId,
+                        this.getJobId());
+                this.responseStatusCode = IppStatusCode.CLI_NOTFND;
+                return;
+            }
+
+            final IppPrintInData createJobData =
+                    IppPrintInData.createFromData(docLog.getExternalData());
+
+            // Append document data
+            final IppPrintInData sendDocData = this.createIppPrintInData();
+
+            createJobData.setAttrJob(sendDocData.getAttrOperation());
+
+            final ExternalSupplierInfo supplierInfo =
+                    new ExternalSupplierInfo();
+
+            supplierInfo.setSupplier(ExternalSupplierEnum.IPP_CLIENT);
+            supplierInfo.setData(createJobData);
+            supplierInfo.setId(String.valueOf(this.getJobId()));
+            supplierInfo
+                    .setStatus(ExternalSupplierStatusEnum.COMPLETED.toString());
+
+            if (StringUtils.isBlank(StringUtils.defaultString(
+                    this.getPrintInJobName(), docLog.getTitle()))) {
+                processor.setJobName(docLog.getTitle());
+            }
+
+            processor.setPrintInParent(docLog);
+            processor.process(istr, supplierInfo, DocLogProtocolEnum.IPP, null,
+                    null, null);
+        }
+
+        @Override
+        protected IppStatusCode getResponseStatusCode() {
+            return this.responseStatusCode;
+        }
+
+    }
+
+    /**
+     *
+     * @author Rijk Ravestein
+     *
+     */
+    private static final class IppSendDocRsp extends AbstractIppPrintJobRsp {
+    }
 
     /**
      * @param queue

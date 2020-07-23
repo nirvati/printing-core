@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -83,11 +86,11 @@ public class DocLog extends org.savapage.core.jpa.Entity {
     private User user;
 
     @Column(name = "created_date", nullable = false, insertable = true,
-            updatable = false)
+            updatable = true)
     private Date createdDate;
 
     @Column(name = "created_day", nullable = false, insertable = true,
-            updatable = false)
+            updatable = true)
     private Date createdDay;
 
     /**
@@ -121,7 +124,7 @@ public class DocLog extends org.savapage.core.jpa.Entity {
     private Integer numberOfPages;
 
     @Column(name = "size_bytes", nullable = false, insertable = true,
-            updatable = false)
+            updatable = true)
     private Long numberOfBytes;
 
     /**

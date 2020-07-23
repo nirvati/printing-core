@@ -101,16 +101,16 @@ public abstract class AbstractIppPrintJobRsp extends AbstractIppResponse {
             jobStateReasons = "aborted-by-system";
 
         } else if (operation.isAuthorized()) {
-            /*
-             *
-             * EFFECT IN CLIENT WEBAPP
-             *
-             * Pop-up that printing was successful.
-             */
-            requestStatus = IppStatusCode.OK;
 
-            jobState = jobStateSuccess;
-            jobStateReasons = "job-completed-successfully";
+            requestStatus = request.getResponseStatusCode();
+
+            if (requestStatus == IppStatusCode.OK) {
+                jobState = jobStateSuccess;
+                jobStateReasons = "job-completed-successfully";
+            } else {
+                jobState = IppJobState.STATE_CANCELED;
+                jobStateReasons = "aborted-by-system";
+            }
 
         } else {
             /*

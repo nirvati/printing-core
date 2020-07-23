@@ -31,9 +31,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
-import org.savapage.core.dao.enums.DocLogProtocolEnum;
-import org.savapage.core.dao.enums.ExternalSupplierEnum;
-import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.attribute.IppAttrValue;
@@ -44,7 +41,6 @@ import org.savapage.core.ipp.helpers.IppPrintInData;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.User;
 import org.savapage.core.print.server.DocContentPrintProcessor;
-import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.system.SystemInfo;
 import org.savapage.core.util.DateUtil;
 
@@ -93,6 +89,18 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
      *         job-id is taken from the IPP Operation group attributes.
      */
     protected abstract boolean isJobIdGenerated();
+
+    /**
+     * @return The status code of the response.
+     */
+    protected abstract IppStatusCode getResponseStatusCode();
+
+    /**
+     * @return Print-in processor.
+     */
+    protected DocContentPrintProcessor getPrintInProcessor() {
+        return this.printInProcessor;
+    }
 
     /**
      * Just the attributes, not the print job data.
@@ -167,7 +175,7 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
      *
      * @return {@link IppPrintInData}.
      */
-    private IppPrintInData createIppPrintInData() {
+    protected IppPrintInData createIppPrintInData() {
 
         final IppPrintInData data = new IppPrintInData();
         final Map<String, String> attrJob = new HashMap<>();
@@ -211,20 +219,6 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
             data.setAttrOperation(attrOperation);
         }
         return data;
-    }
-
-    @Override
-    void process(final AbstractIppOperation operation, final InputStream istr)
-            throws IOException {
-
-        final ExternalSupplierInfo supplierInfo = new ExternalSupplierInfo();
-        supplierInfo.setSupplier(ExternalSupplierEnum.IPP_CLIENT);
-        supplierInfo.setData(this.createIppPrintInData());
-        supplierInfo.setId(String.valueOf(this.getJobId()));
-        supplierInfo.setStatus(ExternalSupplierStatusEnum.COMPLETED.toString());
-
-        this.printInProcessor.process(istr, supplierInfo,
-                DocLogProtocolEnum.IPP, null, null, null);
     }
 
     /**
@@ -271,7 +265,7 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
     }
 
     /**
-     * @param jobId
+     * @param theJobId
      *            Job id.
      * @return Job URI.
      */

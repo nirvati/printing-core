@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -989,16 +990,76 @@ public final class DocLogServiceImpl extends AbstractService
     }
 
     @Override
+    public DocLog logIppCreateJob(final User userDb,
+            final ExternalSupplierInfo supplierInfo, final String jobName) {
+
+        final DocLog docLog = new DocLog();
+
+        this.applyCreationDate(docLog, ServiceContext.getTransactionDate());
+
+        docLog.setUser(userDb);
+        docLog.setTitle(jobName);
+        docLog.setUuid(UUID.randomUUID().toString());
+        docLog.setDeliveryProtocol(DocLogProtocolEnum.IPP.getDbName());
+        docLog.setNumberOfBytes(0L);
+
+        docLog.setExternalId(supplierInfo.getId());
+        docLog.setExternalStatus(supplierInfo.getStatus());
+        docLog.setExternalSupplier(supplierInfo.getSupplier().toString());
+        docLog.setExternalData(supplierInfo.getData().dataAsString());
+
+        final DaoContext daoContext = ServiceContext.getDaoContext();
+        boolean rollbackTrx = false;
+
+        try {
+            daoContext.beginTransaction();
+            rollbackTrx = true;
+
+            daoContext.getDocLogDao().create(docLog);
+
+            daoContext.commit();
+            rollbackTrx = false;
+
+        } finally {
+            if (rollbackTrx) {
+                daoContext.rollback();
+            }
+        }
+
+        return docLog;
+    }
+
+    @Override
     public void logPrintIn(final User userDb, final IppQueue queue,
             final DocLogProtocolEnum protocol,
             final DocContentPrintInInfo printInInfo) {
 
+        this.logPrintIn(null, userDb, queue, protocol, printInInfo);
+    }
+
+    @Override
+    public void attachPrintIn(final DocLog docLog, final User userDb,
+            final IppQueue queue, final DocLogProtocolEnum protocol,
+            final DocContentPrintInInfo printInInfo) {
+
+        this.logPrintIn(docLog, userDb, queue, protocol, printInInfo);
+    }
+
+    /**
+     *
+     * @param docLogExisting
+     * @param userDb
+     * @param queue
+     * @param protocol
+     * @param printInInfo
+     */
+    private void logPrintIn(final DocLog docLogExisting, final User userDb,
+            final IppQueue queue, final DocLogProtocolEnum protocol,
+            final DocContentPrintInInfo printInInfo) {
+
         final Date perfStartTime = PerformanceLogger.startTime();
 
-        final DaoContext daoContext = ServiceContext.getDaoContext();
-
         final IPdfPageProps pageProps = printInInfo.getPageProps();
-
         final boolean isPrinted = pageProps != null;
 
         PrintInDeniedReasonEnum deniedReason = null;
@@ -1014,7 +1075,13 @@ public final class DocLogServiceImpl extends AbstractService
         /*
          * DocLog
          */
-        final DocLog docLog = new DocLog();
+        final DocLog docLog;
+
+        if (docLogExisting == null) {
+            docLog = new DocLog();
+        } else {
+            docLog = docLogExisting;
+        }
 
         this.applyCreationDate(docLog, ServiceContext.getTransactionDate());
 
@@ -1071,6 +1138,7 @@ public final class DocLogServiceImpl extends AbstractService
         /*
          * Transaction with User lock.
          */
+        final DaoContext daoContext = ServiceContext.getDaoContext();
         boolean rollbackTrx = false;
 
         try {

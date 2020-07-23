@@ -29,9 +29,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.savapage.core.concurrent.ReadWriteLockEnum;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
+import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.ipp.attribute.syntax.IppJobState;
 import org.savapage.core.jpa.IppQueue;
+import org.savapage.core.services.DocLogService;
+import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
 
 /**
  *
@@ -39,6 +44,63 @@ import org.savapage.core.jpa.IppQueue;
  *
  */
 public final class IppCreateJobOperation extends AbstractIppJobOperation {
+
+    /** */
+    private static final DocLogService DOC_LOG_SERVICE =
+            ServiceContext.getServiceFactory().getDocLogService();
+
+    /**
+     *
+     * @author Rijk Ravestein
+     *
+     */
+    private static final class IppCreateJobReq extends AbstractIppPrintJobReq {
+
+        /** */
+        IppCreateJobReq() {
+            super();
+        }
+
+        @Override
+        protected String getPrintInJobName() {
+            return this.getJobName();
+        }
+
+        @Override
+        protected boolean isJobIdGenerated() {
+            return true;
+        }
+
+        @Override
+        void process(final AbstractIppOperation operation,
+                final InputStream istr) throws IOException {
+
+            final ExternalSupplierInfo supplierInfo =
+                    new ExternalSupplierInfo();
+
+            supplierInfo.setSupplier(ExternalSupplierEnum.IPP_CLIENT);
+            supplierInfo.setData(this.createIppPrintInData());
+            supplierInfo.setId(String.valueOf(this.getJobId()));
+            supplierInfo
+                    .setStatus(ExternalSupplierStatusEnum.PENDING.toString());
+
+            DOC_LOG_SERVICE.logIppCreateJob(this.getUserDb(), supplierInfo,
+                    this.getPrintInJobName());
+        }
+
+        @Override
+        protected IppStatusCode getResponseStatusCode() {
+            return IppStatusCode.OK;
+        }
+    }
+
+    /**
+     *
+     * @author Rijk Ravestein
+     *
+     */
+    private static final class IppCreateJobRsp extends AbstractIppPrintJobRsp {
+    }
 
     /**
      * @param queue
@@ -98,25 +160,37 @@ public final class IppCreateJobOperation extends AbstractIppJobOperation {
             }
 
             /*
-             * Step 2: processing the request is n/a (no document).
+             * Step 2: register as pending.
              */
+            try {
+                if (this.isAuthorized()) {
+                    this.getRequest().process(this, istr);
+                }
+            } catch (IOException e) {
+                this.getRequest()
+                        .setDeferredException(new IppProcessingException(
+                                IppProcessingException.StateEnum.INTERNAL_ERROR,
+                                e.getMessage()));
+            }
 
             /*
              * Step 3.
              */
             try {
-                getResponse().process(this, getRequest(), ostr,
+                this.getResponse().process(this, getRequest(), ostr,
                         IppJobState.STATE_PROCESSING);
             } catch (IOException e) {
-                getRequest().setDeferredException(new IppProcessingException(
-                        IppProcessingException.StateEnum.INTERNAL_ERROR,
-                        e.getMessage()));
+                this.getRequest()
+                        .setDeferredException(new IppProcessingException(
+                                IppProcessingException.StateEnum.INTERNAL_ERROR,
+                                e.getMessage()));
             }
 
         } catch (Exception e) {
-            getRequest().setDeferredException(new IppProcessingException(
-                    IppProcessingException.StateEnum.INTERNAL_ERROR,
-                    e.getMessage()));
+            this.getRequest()
+                    .setDeferredException(new IppProcessingException(
+                            IppProcessingException.StateEnum.INTERNAL_ERROR,
+                            e.getMessage()));
         } finally {
             if (isDbReadLock) {
                 ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);

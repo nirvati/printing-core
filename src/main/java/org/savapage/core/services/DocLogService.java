@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -30,6 +33,7 @@ import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
+import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.ConfigProperty;
 import org.savapage.core.jpa.DocIn;
@@ -46,6 +50,7 @@ import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMonitor;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.DocContentPrintInInfo;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
 
 /**
  *
@@ -154,7 +159,7 @@ public interface DocLogService {
     void logDocOut(User lockedUser, DocOut docOut);
 
     /**
-     * Logs a {@link PrintIn} job in the database using the
+     * Logs a {@link PrintIn} job in the database using
      * {@link DocContentPrintInInfo}.
      * <p>
      * <b>IMPORTANT</b>: This method manages its <u>own transaction scopes</u>.
@@ -184,9 +189,49 @@ public interface DocLogService {
      * @param printInInfo
      *            The {@link DocContentPrintInInfo}.
      */
-    void logPrintIn(final User userDb, final IppQueue queue,
-            final DocLogProtocolEnum protocol,
-            final DocContentPrintInInfo printInInfo);
+    void logPrintIn(User userDb, IppQueue queue, DocLogProtocolEnum protocol,
+            DocContentPrintInInfo printInInfo);
+
+    /**
+     * Attaches a {@link PrintIn} job to an existing {@link DocLog} in the
+     * database using {@link DocContentPrintInInfo}.
+     *
+     * This method has same end result as
+     * {@link #logPrintIn(User, IppQueue, DocLogProtocolEnum, DocContentPrintInInfo)}.
+     *
+     * <p>
+     * <b>IMPORTANT</b>: This method manages its <u>own transaction scopes</u>.
+     * </p>
+     *
+     * @param docLog
+     *            {@link DocLog} that already exists in the database.
+     * @param userDb
+     *            The {@link User}.
+     * @param queue
+     *            The {@link IppQueue}.
+     * @param protocol
+     *            The protocol with which the printIn was acquired.
+     * @param printInInfo
+     *            The {@link DocContentPrintInInfo}.
+     */
+    void attachPrintIn(DocLog docLog, User userDb, IppQueue queue,
+            DocLogProtocolEnum protocol, DocContentPrintInInfo printInInfo);
+
+    /**
+     * Logs {@link IppOperationId#CREATE_JOB} data in the database.
+     * <p>
+     * <b>IMPORTANT</b>: This method manages its <u>own transaction scope</u>.
+     *
+     * @param userDb
+     *            The {@link User}.
+     * @param supplierInfo
+     *            {@link ExternalSupplierInfo};
+     * @param jobName
+     *            job-name.
+     * @return The created {@link DocLog}.
+     */
+    DocLog logIppCreateJob(User userDb, ExternalSupplierInfo supplierInfo,
+            String jobName);
 
     /**
      * Gets the input {@link DocLog} from an External Supplier with a specific
@@ -202,9 +247,9 @@ public interface DocLogService {
      *            The status.
      * @return {@code null} when not found.
      */
-    DocLog getSuppliedDocLog(final ExternalSupplierEnum supplier,
-            final String supplierAccount, final String suppliedId,
-            final ExternalSupplierStatusEnum status);
+    DocLog getSuppliedDocLog(ExternalSupplierEnum supplier,
+            String supplierAccount, String suppliedId,
+            ExternalSupplierStatusEnum status);
 
     /**
      * Collects data for the DocOut object using the merged PDF out file and the
@@ -242,10 +287,10 @@ public interface DocLogService {
      * @param docLogCollect
      *            Collects data for the DocOut object.
      * @param numberOfPages
-     *            The number of pages of the orginal document.
+     *            The number of pages of the original document.
      */
-    void collectData4DocOutCopyJob(final User user, final DocLog docLogCollect,
-            final int numberOfPages);
+    void collectData4DocOutCopyJob(User user, DocLog docLogCollect,
+            int numberOfPages);
 
     /**
      *

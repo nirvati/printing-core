@@ -205,6 +205,11 @@ public final class DocContentPrintProcessor {
     private String originatorEmail;
 
     /**
+     * {@link DocLog} to attach {@link PrintIn} to. Can be {@code null}.
+     */
+    private DocLog printInParent;
+
+    /**
      * Creates a print server request.
      *
      * @param queue
@@ -1439,8 +1444,13 @@ public final class DocContentPrintProcessor {
         printInInfo.setUuidJob(this.getUuidJob());
         printInInfo.setSupplierInfo(supplierInfo);
 
-        DOC_LOG_SERVICE.logPrintIn(this.getUserDb(), this.getQueue(), protocol,
-                printInInfo);
+        if (this.printInParent == null) {
+            DOC_LOG_SERVICE.logPrintIn(this.getUserDb(), this.getQueue(),
+                    protocol, printInInfo);
+        } else {
+            DOC_LOG_SERVICE.attachPrintIn(this.printInParent, this.getUserDb(),
+                    this.getQueue(), protocol, printInInfo);
+        }
 
         return printInInfo;
     }
@@ -1524,7 +1534,15 @@ public final class DocContentPrintProcessor {
     }
 
     /**
-     *
+     * @param docLog
+     *            {@link DocLog} to attach {@link PrintIn} to. Can be
+     *            {@code null}.
+     */
+    public void setPrintInParent(final DocLog docLog) {
+        this.printInParent = docLog;
+    }
+
+    /**
      * @return
      */
     public java.util.UUID getUuidJob() {
@@ -1537,10 +1555,6 @@ public final class DocContentPrintProcessor {
 
     public long getJobBytes() {
         return inputByteCount;
-    }
-
-    public void setJobBytes(long jobBytes) {
-        this.inputByteCount = jobBytes;
     }
 
     public IPdfPageProps getPageProps() {
