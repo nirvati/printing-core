@@ -74,7 +74,8 @@ public final class IppSendDocOperation extends IppPrintJobOperation {
 
         @Override
         protected String getPrintInJobName() {
-            return this.getJobName();
+            return StringUtils.defaultIfBlank(this.getDocumentName(),
+                    this.getJobName());
         }
 
         @Override
@@ -103,25 +104,21 @@ public final class IppSendDocOperation extends IppPrintJobOperation {
                 return;
             }
 
-            final IppPrintInData createJobData =
+            final IppPrintInData printInData =
                     IppPrintInData.createFromData(docLog.getExternalData());
-
-            // Append document data
-            final IppPrintInData sendDocData = this.createIppPrintInData();
-
-            createJobData.setAttrJob(sendDocData.getAttrOperation());
+            printInData.setAttrSendDocument(this.selectIppPrintInData());
 
             final ExternalSupplierInfo supplierInfo =
                     new ExternalSupplierInfo();
 
             supplierInfo.setSupplier(ExternalSupplierEnum.IPP_CLIENT);
-            supplierInfo.setData(createJobData);
+            supplierInfo.setData(printInData);
             supplierInfo.setId(String.valueOf(this.getJobId()));
             supplierInfo
                     .setStatus(ExternalSupplierStatusEnum.COMPLETED.toString());
 
-            if (StringUtils.isBlank(StringUtils.defaultString(
-                    this.getPrintInJobName(), docLog.getTitle()))) {
+            // Override job name determined by processor?
+            if (StringUtils.isBlank(this.getPrintInJobName())) {
                 processor.setJobName(docLog.getTitle());
             }
 

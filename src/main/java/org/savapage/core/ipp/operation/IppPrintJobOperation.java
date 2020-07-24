@@ -34,6 +34,7 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.ipp.attribute.syntax.IppJobState;
+import org.savapage.core.ipp.helpers.IppPrintInData;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 
@@ -73,10 +74,14 @@ public class IppPrintJobOperation extends AbstractIppJobOperation {
             final ExternalSupplierInfo supplierInfo =
                     new ExternalSupplierInfo();
             supplierInfo.setSupplier(ExternalSupplierEnum.IPP_CLIENT);
-            supplierInfo.setData(this.createIppPrintInData());
             supplierInfo.setId(String.valueOf(this.getJobId()));
             supplierInfo
                     .setStatus(ExternalSupplierStatusEnum.COMPLETED.toString());
+
+            final IppPrintInData data = new IppPrintInData();
+            data.setIppVersion(operation.getIppVersion().getVersionKeyword());
+            data.setAttrPrintJob(this.selectIppPrintInData());
+            supplierInfo.setData(data);
 
             this.getPrintInProcessor().setPrintInParent(null);
 

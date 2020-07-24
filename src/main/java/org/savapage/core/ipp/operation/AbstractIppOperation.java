@@ -98,6 +98,13 @@ public abstract class AbstractIppOperation {
     }
 
     /**
+     * @return IPP version of this operation.
+     */
+    public IppVersionEnum getIppVersion() {
+        return IppVersionEnum.getVersion(this.versionMajor, this.versionMinor);
+    }
+
+    /**
      *
      * @param istr
      *            Input stream.

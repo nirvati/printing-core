@@ -35,9 +35,9 @@ import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.attribute.IppAttrValue;
 import org.savapage.core.ipp.attribute.IppDictJobDescAttr;
+import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.IppDictOperationAttr;
 import org.savapage.core.ipp.encoding.IppDelimiterTag;
-import org.savapage.core.ipp.helpers.IppPrintInData;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.jpa.User;
 import org.savapage.core.print.server.DocContentPrintProcessor;
@@ -171,54 +171,45 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
     }
 
     /**
-     * Creates PrintIn data.
+     * Selects IPP attributes for PrintIn data.
      *
-     * @return {@link IppPrintInData}.
+     * @return IPP attribute key/value map.
      */
-    protected IppPrintInData createIppPrintInData() {
+    protected final Map<String, String> selectIppPrintInData() {
 
-        final IppPrintInData data = new IppPrintInData();
-        final Map<String, String> attrJob = new HashMap<>();
-        final Map<String, String> attrOperation = new HashMap<>();
+        final Map<String, String> attr = new HashMap<>();
 
         for (final IppAttrGroup group : this.getAttrGroups()) {
 
-            final Map<String, String> attrWlk;
+            if (group.getDelimiterTag() == IppDelimiterTag.OPERATION_ATTR
+                    || group.getDelimiterTag() == IppDelimiterTag.JOB_ATTR) {
 
-            if (group.getDelimiterTag() == IppDelimiterTag.OPERATION_ATTR) {
-                attrWlk = attrOperation;
-            } else if (group.getDelimiterTag() == IppDelimiterTag.JOB_ATTR) {
-                attrWlk = attrJob;
-            } else {
-                continue;
+                for (final IppAttrValue value : group.getAttributes()) {
+
+                    if (value.getValues().size() == 1) {
+
+                        final String kw = value.getAttribute().getKeyword();
+
+                        switch (kw) {
+                        // no breaks intended
+                        case IppDictOperationAttr.ATTR_REQUESTING_USER_NAME:
+                        case IppDictOperationAttr.ATTR_PRINTER_URI:
+                        case IppDictOperationAttr.ATTR_JOB_ID:
+                        case IppDictOperationAttr.ATTR_JOB_NAME:
+                        case IppDictOperationAttr.ATTR_DOCUMENT_FORMAT:
+                        case IppDictOperationAttr.ATTR_DOCUMENT_NAME:
+                        case IppDictJobTemplateAttr.ATTR_ORIENTATION_REQUESTED:
+                            attr.put(kw, value.getSingleValue());
+                            break;
+                        default:
+                            // no code intended
+                            break;
+                        }
+                    }
+                }
             }
-
-            for (final IppAttrValue value : group.getAttributes()) {
-
-                if (value.getValues().size() != 1) {
-                    continue;
-                }
-
-                final String kw = value.getAttribute().getKeyword();
-
-                if (kw.equals(IppDictOperationAttr.ATTR_ATTRIBUTES_CHARSET)) {
-                    continue;
-                }
-                if (kw.equals(
-                        IppDictOperationAttr.ATTR_ATTRIBUTES_NATURAL_LANG)) {
-                    continue;
-                }
-                attrWlk.put(kw, value.getSingleValue());
-            }
-
         }
-        if (!attrJob.isEmpty()) {
-            data.setAttrJob(attrJob);
-        }
-        if (!attrOperation.isEmpty()) {
-            data.setAttrOperation(attrOperation);
-        }
-        return data;
+        return attr;
     }
 
     /**

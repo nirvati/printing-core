@@ -30,6 +30,7 @@ import java.util.Map;
 import org.savapage.core.SpException;
 import org.savapage.core.ipp.attribute.IppDictJobDescAttr;
 import org.savapage.core.ipp.attribute.IppDictOperationAttr;
+import org.savapage.core.ipp.operation.IppOperationId;
 import org.savapage.core.json.JsonAbstractBase;
 import org.savapage.core.services.helpers.ExternalSupplierData;
 
@@ -48,62 +49,133 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  */
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({ "operation", "job" })
+@JsonPropertyOrder({ IppPrintInData.JSON_IPP_VERSION,
+        IppPrintInData.JSON_PRINT_JOB, IppPrintInData.JSON_CREATE_JOB,
+        IppPrintInData.JSON_SEND_DOCUMENT })
 public final class IppPrintInData extends JsonAbstractBase
         implements ExternalSupplierData {
 
     /** */
-    @JsonProperty("operation")
-    private Map<String, String> attrOperation;
+    public static final String JSON_IPP_VERSION = "ipp-version";
+    /** */
+    public static final String JSON_PRINT_JOB = "print-job";
+    /** */
+    public static final String JSON_CREATE_JOB = "create-job";
+    /** */
+    public static final String JSON_SEND_DOCUMENT = "send-document";
 
     /** */
-    @JsonProperty("job")
-    private Map<String, String> attrJob;
+    @JsonProperty(JSON_IPP_VERSION)
+    private String ippVersion;
+
+    /** */
+    @JsonProperty(JSON_PRINT_JOB)
+    private Map<String, String> attrPrintJob;
+
+    /** */
+    @JsonProperty(IppPrintInData.JSON_CREATE_JOB)
+    private Map<String, String> attrCreateJob;
+
+    /** */
+    @JsonProperty(IppPrintInData.JSON_SEND_DOCUMENT)
+    private Map<String, String> attrSendDocument;
 
     /**
-     * @return IPP Operation attribute keyword/value.
+     * @return IPP version.
      */
-    public Map<String, String> getAttrOperation() {
-        return attrOperation;
+    public String getIppVersion() {
+        return ippVersion;
+    }
+
+    /**
+     * @param version
+     *            IPP version.
+     */
+    public void setIppVersion(final String version) {
+        this.ippVersion = version;
+    }
+
+    /**
+     * @return Selected {@link IppOperationId#PRINT_JOB} IPP attributes
+     *         keyword/value.
+     */
+    public Map<String, String> getAttrPrintJob() {
+        return attrPrintJob;
     }
 
     /**
      * @param attr
-     *            IPP Operation attribute keyword/value.
+     *            Selected {@link IppOperationId#PRINT_JOB} IPP attributes
+     *            keyword/value.
      */
-    public void setAttrOperation(final Map<String, String> attr) {
-        this.attrOperation = attr;
+    public void setAttrPrintJob(final Map<String, String> attr) {
+        this.attrPrintJob = attr;
     }
 
     /**
-     * @return IPP Job attribute keyword/value.
+     * @return Selected {@link IppOperationId#CREATE_JOB} IPP attributes
+     *         keyword/value.
      */
-    public Map<String, String> getAttrJob() {
-        return attrJob;
+    public Map<String, String> getAttrCreateJob() {
+        return attrCreateJob;
     }
 
     /**
      * @param attr
-     *            IPP Job attribute keyword/value.
+     *            Selected {@link IppOperationId#CREATE_JOB} IPP attributes
+     *            keyword/value.
      */
-    public void setAttrJob(final Map<String, String> attr) {
-        this.attrJob = attr;
+    public void setAttrCreateJob(final Map<String, String> attr) {
+        this.attrCreateJob = attr;
     }
 
     /**
-     *
+     * @return Selected {@link IppOperationId#SEND_DOC} IPP attributes
+     *         keyword/value.
+     */
+    public Map<String, String> getAttrSendDocument() {
+        return attrSendDocument;
+    }
+
+    /**
+     * @param attr
+     *            Selected {@link IppOperationId#SEND_DOC} IPP attributes
+     *            keyword/value.
+     */
+    public void setAttrSendDocument(final Map<String, String> attr) {
+        this.attrSendDocument = attr;
+    }
+
+    /**
+     * @param map
+     *            Key/value map
+     * @param key
+     *            Key
+     * @return Value, or {@code null} if not found.
+     */
+    @JsonIgnore
+    private static String findAttrValue(final Map<String, String> map,
+            final String key) {
+        if (map == null) {
+            return null;
+        }
+        return map.get(key);
+    }
+
+    /**
      * @param ippKeyword
      *            IPP keyword.
-     * @return {@code null} when not found.
+     * @return {@code null} if not found.
      */
     @JsonIgnore
     private String getAttrValue(final String ippKeyword) {
-        String value = null;
-        if (this.attrJob != null) {
-            value = this.attrJob.get(ippKeyword);
-        }
-        if (value == null && this.attrOperation != null) {
-            value = this.attrOperation.get(ippKeyword);
+
+        String value = findAttrValue(this.attrPrintJob, ippKeyword);
+        if (value == null) {
+            value = findAttrValue(this.attrCreateJob, ippKeyword);
+            if (value == null) {
+                value = findAttrValue(this.attrSendDocument, ippKeyword);
+            }
         }
         return value;
     }

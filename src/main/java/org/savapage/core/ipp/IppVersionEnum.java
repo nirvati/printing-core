@@ -144,12 +144,24 @@ public enum IppVersionEnum {
      * @return {@code true} if supported by SavaPage IPP Printer.
      */
     public static boolean isSupported(final int vMajor, final int vMinor) {
+        final IppVersionEnum version = getVersion(vMajor, vMinor);
+        return version != null && version.isSupported();
+    }
+
+    /**
+     * @param vMajor
+     *            IPP major version.
+     * @param vMinor
+     *            IPP minor version.
+     * @return {@link IppVersionEnum} or {@code null} if not found.
+     */
+    public static IppVersionEnum getVersion(final int vMajor,
+            final int vMinor) {
         for (final IppVersionEnum version : IppVersionEnum.values()) {
-            if (version.isSupported() && version.major == vMajor
-                    && version.minor == vMinor) {
-                return true;
+            if (version.major == vMajor && version.minor == vMinor) {
+                return version;
             }
         }
-        return false;
+        return null;
     }
 }
