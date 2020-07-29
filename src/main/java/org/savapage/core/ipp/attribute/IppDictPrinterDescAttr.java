@@ -407,6 +407,16 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     /** CUPS extension. */
     public static final String ATTR_CUPS_VERSION = "cups-version";
 
+    /**
+     * 1setOf type2 keyword: CUPS 1.3/macOS 10.5.
+     *
+     * The client OPTIONALLY supplies one or more authentication keywords that
+     * are required to communicate with the printer/remote queue.
+     *
+     * <a href="https://www.cups.org/doc/spec-ipp.html">spec-ipp.html</a>
+     */
+    public static final String ATTR_AUTH_INFO_REQUIRED = "auth-info-required";
+
     /** */
     private final IppAttr[] attributes = {
             // 1setOf uri
@@ -570,6 +580,9 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
 
             // CUPS extension
             new IppAttr(ATTR_CUPS_VERSION, IppText.instance()),
+            new IppAttr(ATTR_AUTH_INFO_REQUIRED, IppKeyword.instance()),
+
+            new IppAttr(ATTR_PRINTER_TYPE, IppKeyword.instance()),
 
             new IppAttr(ATTR_JOB_PASSWORD_ENCRYPTION_SUPPORTED,
                     IppKeyword.instance()),

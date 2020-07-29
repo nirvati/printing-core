@@ -39,6 +39,7 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.community.MemberCard;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.ipp.IppMediaSizeEnum;
+import org.savapage.core.ipp.IppPrinterType;
 import org.savapage.core.ipp.IppVersionEnum;
 import org.savapage.core.ipp.attribute.IppAttr;
 import org.savapage.core.ipp.attribute.IppAttrCollection;
@@ -100,11 +101,24 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     };
 
     /**
+     * Same as {@link #IPP_MEDIA_SUPPORTED}, but with different order, i.e.
+     * media default as last. Test shows that iOS uses last value as default
+     * media.
+     */
+    private static final IppMediaSizeEnum[] IPP_MEDIA_READY = {
+            //
+            IppMediaSizeEnum.ISO_A0, IppMediaSizeEnum.ISO_A1,
+            IppMediaSizeEnum.ISO_A2, IppMediaSizeEnum.ISO_A3,
+            IppMediaSizeEnum.NA_LETTER, IPP_MEDIA_DEFAULT
+            //
+    };
+
+    /**
      *
      */
     private static final String[] PRINTER_ICONS_PNG = {
             //
-            "48x48.png", "128x128.png", "512x512.png", };
+            "48x48.png", "128x128.png", "512x512.png" };
 
     /**
      * Job Template attributes supported by SavaPage Printer IPP/1.1.
@@ -113,7 +127,11 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             //
             IppDictJobTemplateAttr.ATTR_COPIES,
             IppDictJobTemplateAttr.ATTR_MEDIA,
-            IppDictJobTemplateAttr.ATTR_ORIENTATION_REQUESTED
+            IppDictJobTemplateAttr.ATTR_ORIENTATION_REQUESTED,
+            IppDictJobTemplateAttr.ATTR_NUMBER_UP,
+            IppDictJobTemplateAttr.ATTR_JOB_SHEETS,
+            IppDictJobTemplateAttr.ATTR_OUTPUT_BIN,
+            IppDictJobTemplateAttr.ATTR_SIDES
             //
     };
 
@@ -122,8 +140,6 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
      */
     private static final String[] SUPPORTED_ATTR_JOB_TPL_V2 = {
             //
-            IppDictJobTemplateAttr.ATTR_OUTPUT_BIN,
-            IppDictJobTemplateAttr.ATTR_SIDES,
             IppDictJobTemplateAttr.ATTR_PRINT_QUALITY,
             IppDictJobTemplateAttr.ATTR_PRINTER_RESOLUTION
             //
@@ -431,7 +447,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
 
             case IppDictPrinterDescAttr.ATTR_MEDIA_COL_READY:
                 final IppAttrCollection colDatabase = IppMediaSizeHelper
-                        .createMediaCollection(nameWlk, IPP_MEDIA_SUPPORTED);
+                        .createMediaCollection(nameWlk, IPP_MEDIA_READY);
                 attrGroup.addCollection(colDatabase);
                 break;
 
@@ -522,6 +538,11 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             if (value != null) {
                 grpSupp.addAttribute(value);
                 break;
+            } else {
+                if (this.handleRequestedAttrJobTemplate(grpSupp, name,
+                        printerUri)) {
+                    break;
+                }
             }
             this.ippStatusCode = IppStatusCode.OK_ATTRIGN;
             break;
@@ -529,17 +550,81 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
     }
 
     /**
-     *
+     * @param grpSupp
      * @param name
      *            IPP attribute name.
+     * @param printerUri
+     *            Printer URI.
+     */
+    private boolean handleRequestedAttrJobTemplate(final IppAttrGroup grpSupp,
+            final String name, final URI printerUri) {
+
+        if (name.equals(IppDictPrinterDescAttr.ATTR_MEDIA_SIZE_SUPPORTED)) {
+            grpSupp.addCollection(IppMediaSizeHelper
+                    .createMediaCollectionSet(name, IPP_MEDIA_SUPPORTED));
+            return true;
+        }
+
+        if (name.equals(IppDictPrinterDescAttr.ATTR_MEDIA_COL_DEFAULT)) {
+            final IppAttrCollection collection = new IppAttrCollection(name);
+            collection
+                    .addCollection(IppMediaSizeHelper.createMediaSizeCollection(
+                            IPP_MEDIA_DEFAULT.getIppKeyword()));
+            grpSupp.addCollection(collection);
+            return true;
+        }
+
+        if (name.equals(IppDictPrinterDescAttr.ATTR_MEDIA_COL_READY)) {
+            grpSupp.addCollection(IppMediaSizeHelper.createMediaCollection(name,
+                    IPP_MEDIA_READY));
+            return true;
+        }
+
+        //
+        final String ippBaseName;
+        final ApplEnum attrAppl;
+
+        if (name.endsWith(IppDictJobTemplateAttr._DFLT)) {
+            ippBaseName =
+                    StringUtils.removeEnd(name, IppDictJobTemplateAttr._DFLT);
+            attrAppl = ApplEnum.DEFAULT;
+        } else if (name.endsWith(IppDictJobTemplateAttr._SUPP)) {
+            ippBaseName =
+                    StringUtils.removeEnd(name, IppDictJobTemplateAttr._SUPP);
+            attrAppl = ApplEnum.SUPPORTED;
+        } else {
+            ippBaseName = null;
+            attrAppl = null;
+        }
+
+        final IppAttrValue ippValue;
+        if (ippBaseName == null) {
+            ippValue = this.getAttrValuePrinterDesc(name, printerUri);
+        } else {
+            ippValue = this.getAttrValueJobTemplate(ippBaseName, attrAppl);
+        }
+
+        if (ippValue != null) {
+            grpSupp.addAttribute(ippValue);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get "-default" and "-supported" value of IPP attribute base name.
+     *
+     * @param ippBaseName
+     *            IPP attribute base name.
      * @param attrAppl
      *            {@link ApplEnum}.
      * @return {@code NULL} if the NOT supported
      */
-    private IppAttrValue getAttrValueJobTemplate(final String name,
+    private IppAttrValue getAttrValueJobTemplate(final String ippBaseName,
             final ApplEnum attrAppl) {
 
-        IppAttr attr = IppDictJobTemplateAttr.instance().getAttr(name);
+        IppAttr attr = IppDictJobTemplateAttr.instance().getAttr(ippBaseName);
 
         if (attr == null) {
             return null;
@@ -547,16 +632,17 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
 
         if (attrAppl == ApplEnum.DEFAULT) {
 
-            attr = attr.copy(name + "-default");
+            attr = attr.copy(ippBaseName + IppDictJobTemplateAttr._DFLT);
 
         } else {
 
-            final String nameSupported = name + "-supported";
+            final String nameSupported =
+                    ippBaseName + IppDictJobTemplateAttr._SUPP;
 
             /*
              * Some "supported" variants have a different syntax.
              */
-            if (name.equals(IppDictJobTemplateAttr.ATTR_COPIES)) {
+            if (ippBaseName.equals(IppDictJobTemplateAttr.ATTR_COPIES)) {
                 attr = new IppAttr(nameSupported, new IppRangeOfInteger());
             } else {
                 attr = attr.copy(nameSupported);
@@ -568,7 +654,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
          */
         IppAttrValue value = new IppAttrValue(attr);
 
-        switch (name) {
+        switch (ippBaseName) {
 
         case IppDictJobTemplateAttr.ATTR_COPIES:
             if (attrAppl == ApplEnum.DEFAULT) {
@@ -601,6 +687,15 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
                 value.addValue("6"); // reverse-portrait
             }
             break;
+
+        case IppDictJobTemplateAttr.ATTR_NUMBER_UP:
+            value.addValue("1");
+            break;
+
+        case IppDictJobTemplateAttr.ATTR_JOB_SHEETS:
+            value.addValue("none");
+            break;
+
         case IppDictJobTemplateAttr.ATTR_OUTPUT_BIN:
             value.addValue(IppKeyword.OUTPUT_BIN_AUTO);
             break;
@@ -610,8 +705,12 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         case IppDictJobTemplateAttr.ATTR_PRINT_QUALITY:
             value.addValue(IppKeyword.PRINT_QUALITY_HIGH);
             break;
+        case IppDictJobTemplateAttr.ATTR_PRINT_SCALING:
+            value.addValue("auto");
+            break;
         default:
             // unsupported
+            value = null;
             break;
         }
         return value;
@@ -701,8 +800,17 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             value.addValue("tls");
             break;
 
+        case IppDictPrinterDescAttr.ATTR_AUTH_INFO_REQUIRED:
+            value.addValue("none");
+            break;
+
         case IppDictPrinterDescAttr.ATTR_PRINTER_NAME:
             value.addValue(this.composePrinterName());
+            break;
+
+        case IppDictPrinterDescAttr.ATTR_PRINTER_TYPE:
+            value.addValue(String.valueOf(
+                    IppPrinterType.BitEnum.CAN_PRINT_IN_COLOR.asInt()));
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_STATE:
@@ -880,8 +988,8 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_SUPPLY_INFO_URI:
-            value.addValue(String.format("https://%s:%d", printerUri.getHost(),
-                    printerUri.getPort()));
+            value.addValue(String.format("http://%s:%s", printerUri.getHost(),
+                    ConfigManager.getServerPort()));
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_ICONS:
@@ -906,9 +1014,12 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_DEVICE_ID:
             // IEEE 1284 Device ID strings
-            value.addValue("MANUFACTURER:SavaPage;" + "MODEL:SavaPage;"
-                    + "DESCRIPTION:SavaPage;"
-            // + "COMMAND SET:PS,PDF;" // ??
+            // MODEL == MDL
+            // MANUFACTURER == MFG
+            // COMMAND SET == CMD
+            value.addValue(
+                    "MFG:SavaPage;" + "MDL:SavaPage;" + "DESCRIPTION:SavaPage;"
+            // + "CMD:PS,PDF;" // ??
             );
             break;
 
@@ -1070,7 +1181,7 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
 
         case IppDictPrinterDescAttr.ATTR_MEDIA_READY:
             // As in IppDictJobTemplateAttr.ATTR_MEDIA
-            for (final IppMediaSizeEnum mediaSize : IPP_MEDIA_SUPPORTED) {
+            for (final IppMediaSizeEnum mediaSize : IPP_MEDIA_READY) {
                 value.addValue(mediaSize.getIppKeyword());
             }
             break;

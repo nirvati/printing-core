@@ -453,7 +453,7 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     /*
      * Defaults
      */
-    private static final String _DFLT = "-default";
+    public static final String _DFLT = "-default";
 
     public static final String ATTR_JOB_PRIORITY_DFLT =
             ATTR_JOB_PRIORITY + _DFLT;
@@ -504,7 +504,7 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     /*
      * Supported
      */
-    private static final String _SUPP = "-supported";
+    public static final String _SUPP = "-supported";
 
     public static final String ATTR_JOB_PRIORITY_SUPP =
             ATTR_JOB_PRIORITY + _SUPP;
