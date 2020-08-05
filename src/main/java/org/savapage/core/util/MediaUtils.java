@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -31,7 +34,6 @@ import javax.print.attribute.Size2DSyntax;
 import javax.print.attribute.standard.MediaSize;
 import javax.print.attribute.standard.MediaSizeName;
 
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
@@ -428,9 +430,8 @@ public final class MediaUtils {
             // Check inches
             size = ms.getSize(Size2DSyntax.INCH);
 
-            if (NumberUtils.compare(inchWidth, size[iSizeWidth]) == 0
-                    && NumberUtils.compare(inchHeight,
-                            size[iSizeHeight]) == 0) {
+            if (inchWidth == size[iSizeWidth]
+                    && inchHeight == size[iSizeHeight]) {
                 return name;
             }
 
