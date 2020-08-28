@@ -27,22 +27,22 @@ package org.savapage.core.reports.impl;
 import java.util.Locale;
 import java.util.Map;
 
-import org.savapage.core.dao.helpers.UserPagerReq;
+import org.savapage.core.dao.helpers.UserPrintOutTotalsReq;
 
 import net.sf.jasperreports.engine.JRDataSource;
 
 /**
- * User List Report creator.
+ * User Print-Out Totals Report creator.
  *
  * @author Rijk Ravestein
  *
  */
-public final class UserListReport extends ReportCreator {
+public final class UserPrintOutTotalsReport extends ReportCreator {
 
     /**
      * The unique ID of this report.
      */
-    public static final String REPORT_ID = "UserList";
+    public static final String REPORT_ID = "UserPrintOutTotals";
 
     /**
      * Constructor.
@@ -56,7 +56,7 @@ public final class UserListReport extends ReportCreator {
      * @param locale
      *            {@link Locale} of the report.
      */
-    public UserListReport(final String requestingUser,
+    public UserPrintOutTotalsReport(final String requestingUser,
             final boolean requestingUserAdmin, final String inputData,
             final Locale locale) {
         super(requestingUser, requestingUserAdmin, inputData, locale);
@@ -66,17 +66,16 @@ public final class UserListReport extends ReportCreator {
     protected JRDataSource onCreateDataSource(final String inputData,
             final Locale locale, final Map<String, Object> reportParameters) {
 
-        final UserPagerReq request = UserPagerReq.read(inputData);
+        final UserPrintOutTotalsReq request =
+                UserPrintOutTotalsReq.create(inputData);
 
         this.onUserAuthentication(null);
 
-        final UserDataSource dataSource = new UserDataSource(request, locale);
+        final UserPrintOutTotalsDataSource dataSource =
+                new UserPrintOutTotalsDataSource(request, locale);
 
         reportParameters.put(REPORT_PARM_DATA_SELECTION,
                 dataSource.getSelectionInfo());
-
-        reportParameters.put("SP_COL_HEADER_BALANCE",
-                dataSource.getBalanceHeaderText());
 
         return dataSource;
     }

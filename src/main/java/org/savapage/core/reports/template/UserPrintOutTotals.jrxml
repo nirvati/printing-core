@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.14.0.final using JasperReports Library version 6.14.0-2ab0d8625be255bf609c78e1181801213e51db8f  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AccountTrxList" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6b8622d7-e334-4e46-b14d-5733f54c66d8">
+	<style name="Base" isDefault="true"/>
+	<parameter name="SP_REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<parameterDescription><![CDATA[Report Title]]></parameterDescription>
+	</parameter>
+	<parameter name="SP_REPORT_ACTOR" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SP_REPORT_DATE" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new Date();]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SP_APP_VERSION" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SP_REPORT_IMAGE" class="java.net.URL"/>
+	<parameter name="SP_DATA_SELECTION" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="USER_ID" class="java.lang.String"/>
+	<field name="USER_NAME" class="java.lang.String"/>
+	<field name="KLAS" class="java.lang.String"/>
+	<field name="AMOUNT" class="java.lang.String"/>
+	<field name="TRANSACTIONS" class="java.lang.String"/>
+	<field name="COPIES" class="java.lang.String"/>
+	<field name="PAGES" class="java.lang.String"/>
+	<field name="PAGES_A4" class="java.lang.String"/>
+	<field name="PAGES_A3" class="java.lang.String"/>
+	<field name="PAGES_1_SIDED" class="java.lang.String"/>
+	<field name="PAGES_2_SIDED" class="java.lang.String"/>
+	<field name="PAGES_BW" class="java.lang.String"/>
+	<field name="PAGES_COLOR" class="java.lang.String"/>
+	<field name="DATE_FROM" class="java.lang.String"/>
+	<field name="DATE_TO" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="100" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<image scaleImage="RealSize">
+				<reportElement x="0" y="0" width="72" height="72" uuid="34095ee6-8044-4ee2-bdc9-0ee98a34196e">
+					<property name="local_mesure_unitx" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[$P{SP_REPORT_IMAGE}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="180" y="15" width="621" height="42" uuid="05775f5e-704b-4505-9e48-4d4163035375">
+					<property name="local_mesure_unity" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font size="30"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.title}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="1" y="75" width="801" height="1" uuid="ddf177ba-d707-4409-9150-26d96ab6af37">
+					<property name="local_mesure_unity" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+			</line>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="0" y="80" width="802" height="16" uuid="8f530644-fd25-44e0-8cd6-c6d54f5bac0b">
+					<property name="local_mesure_unitx" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="local_mesure_unity" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textFieldExpression><![CDATA[$P{SP_DATA_SELECTION}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="25" splitType="Stretch">
+			<textField>
+				<reportElement mode="Opaque" x="0" y="0" width="90" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="31f3c6cf-0bde-47f2-baa0-7ee2ecb1c046"/>
+				<box padding="3"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.userid}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="90" y="0" width="85" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="750b353c-9ce1-4fce-bfa9-cf61c448426d"/>
+				<box padding="3"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.username}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="175" y="0" width="70" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="11dedaf0-23be-4167-bff0-846234cde09c"/>
+				<box padding="3"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.klas}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="245" y="0" width="50" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="dfc4e9ba-1c47-488c-8f47-b25af78ba5b0"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.amount}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="295" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="aecfedf3-937c-470c-9726-5d9348ab6730"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.transactions}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="335" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="f306ca0b-559a-4985-bc47-01a3fc9c0b64"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.copies}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="375" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="0db0bd7c-e7ca-11ea-85a0-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.pages}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="415" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="15ae8a9a-e7ca-11ea-8a33-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.pages_a4}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="455" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="1b066c24-e7ca-11ea-b573-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.pages_a3}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="495" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="227d643a-e7ca-11ea-9339-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.pages_singlex}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="535" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="29acfe00-e7ca-11ea-9a62-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.pages_duplex}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="575" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="301b50b6-e7ca-11ea-9f6e-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.pages_grayscale}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="615" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="36571d8e-e7ca-11ea-bc3c-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.pages_color}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="655" y="0" width="73" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="3b059090-e7ca-11ea-86a5-406186940c49"/>
+				<box padding="3"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.date_from}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="728" y="0" width="72" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="40488ecc-e7ca-11ea-a156-406186940c49"/>
+				<box padding="3"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.date_to}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="25" splitType="Stretch">
+			<textField textAdjust="StretchHeight">
+				<reportElement x="0" y="0" width="90" height="20" uuid="ed3fc4d1-96c4-4e17-b949-5e6b3640bcfb"/>
+				<box padding="3"/>
+				<textElement markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{USER_ID}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="90" y="0" width="85" height="20" uuid="cf9a98c6-c905-4d54-accb-ddad768217eb"/>
+				<box padding="3"/>
+				<textElement markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{USER_NAME}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="175" y="0" width="70" height="20" uuid="53ab20b6-15f5-43f8-b142-23dbc80c0d82"/>
+				<box padding="3"/>
+				<textElement markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{KLAS}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="245" y="0" width="50" height="20" uuid="81224532-ed53-425e-97ad-94a925b1578d"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{AMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="295" y="0" width="40" height="20" uuid="1b659231-b340-4d8e-92c4-98fccb6d2f7f"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{TRANSACTIONS}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="335" y="0" width="40" height="20" uuid="786029a1-19cc-4674-b5aa-2f98c6b76ce1"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{COPIES}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="375" y="0" width="40" height="20" uuid="2fec96a4-6ec7-4cfe-8ac3-02218af74c3f"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PAGES}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="415" y="0" width="40" height="20" uuid="4c16f810-e7ca-11ea-9b37-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PAGES_A4}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="455" y="0" width="40" height="20" uuid="50d18834-e7ca-11ea-9377-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PAGES_A3}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="495" y="0" width="40" height="20" uuid="5761d802-e7ca-11ea-9c56-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PAGES_1_SIDED}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="535" y="0" width="40" height="20" uuid="619a87e2-e7ca-11ea-b76c-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PAGES_2_SIDED}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="575" y="0" width="40" height="20" uuid="68fb827a-e7ca-11ea-b8c7-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PAGES_BW}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="615" y="0" width="40" height="20" uuid="6dd969f6-e7ca-11ea-82ba-406186940c49"/>
+				<box padding="3"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PAGES_COLOR}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="655" y="0" width="73" height="20" uuid="728248ec-e7ca-11ea-afb3-406186940c49"/>
+				<box padding="3"/>
+				<textElement markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DATE_FROM}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="728" y="0" width="72" height="20" uuid="7c302094-e7ca-11ea-8bc6-406186940c49"/>
+				<box padding="3"/>
+				<textElement markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{DATE_TO}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="60" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField>
+				<reportElement x="640" y="0" width="120" height="20" uuid="bfdf5e4b-947a-4bd2-bd1c-7438931387a1"/>
+				<textElement textAlignment="Right" markup="none">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[msg($R{common.page-number},$V{PAGE_NUMBER})]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="760" y="0" width="40" height="20" uuid="c3b61ba9-4515-4d97-83af-072e163f0786"/>
+				<box leftPadding="2" rightPadding="0"/>
+				<textElement textAlignment="Left">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="30" width="180" height="17" uuid="3eb6a6cb-914c-4690-a665-266560d618ff"/>
+				<textFieldExpression><![CDATA[msg($R{common.run-by}, $P{SP_REPORT_ACTOR})]]></textFieldExpression>
+			</textField>
+			<textField pattern="MMM d, yyyy h:mm:ss a">
+				<reportElement x="580" y="30" width="222" height="17" uuid="e025b67a-8d7c-4c97-8e66-3046746b1047"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$P{SP_REPORT_DATE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="180" y="30" width="400" height="20" uuid="f6f9901f-7c34-4948-a7f0-5e19b6552516"/>
+				<textElement textAlignment="Center">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SP_APP_VERSION}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

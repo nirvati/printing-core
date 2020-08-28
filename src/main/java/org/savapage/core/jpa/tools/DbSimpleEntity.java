@@ -35,6 +35,9 @@ import org.savapage.core.jpa.xml.XEntityVersion;
 public final class DbSimpleEntity {
 
     /** */
+    public static final String ACCOUNT = DbXEntityEnum.ACCOUNT.psql();
+
+    /** */
     public static final String ACCOUNT_TRX = DbXEntityEnum.ACCOUNT_TRX.psql();
     /** */
     public static final String ACCOUNT_VOUCHER =

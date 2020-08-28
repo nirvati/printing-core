@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,8 @@ import javax.persistence.TypedQuery;
 
 import org.savapage.core.dao.enums.AccountTrxTypeEnum;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
+import org.savapage.core.dao.helpers.UserPrintOutTotalsReq;
+import org.savapage.core.dto.UserPrintOutTotalDto;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.AccountVoucher;
@@ -170,10 +172,18 @@ public interface AccountTrxDao extends UserErasableDao<AccountTrx> {
     /**
      *
      * @param filter
+     *            List filter.
      * @param startPosition
+     *            The zero-based start position of the chunk related to the
+     *            total number of rows. If {@code null} the chunk starts with
+     *            the first row.
      * @param maxResults
+     *            The maximum number of rows in the chunk. If {@code null}, then
+     *            ALL (remaining rows) are returned.
      * @param orderBy
+     *            Order by field.
      * @param sortAscending
+     *            Sort indicator.
      * @return The list.
      */
     List<AccountTrx> getListChunk(ListFilter filter, Integer startPosition,
@@ -219,4 +229,20 @@ public interface AccountTrxDao extends UserErasableDao<AccountTrx> {
      */
     TypedQuery<AccountTrx> getExportQuery(User user);
 
+    /**
+     *
+     * @param req
+     *            Request
+     * @param startPosition
+     *            The zero-based start position of the chunk related to the
+     *            total number of rows. If {@code null} the chunk starts with
+     *            the first row.
+     * @param maxResults
+     *            The maximum number of rows in the chunk. If {@code null}, then
+     *            ALL (remaining rows) are returned.
+     * @return List of object.
+     */
+    List<UserPrintOutTotalDto> getUserPrintOutTotalsChunk(
+            UserPrintOutTotalsReq req, Integer startPosition,
+            Integer maxResults);
 }

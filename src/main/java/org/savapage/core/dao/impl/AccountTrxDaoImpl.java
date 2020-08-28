@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,9 @@
  */
 package org.savapage.core.dao.impl;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -38,9 +41,15 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.dao.AccountTrxDao;
 import org.savapage.core.dao.helpers.DaoBatchCommitter;
+import org.savapage.core.dao.helpers.SQLHelper;
+import org.savapage.core.dao.helpers.UserPrintOutTotalsReq;
+import org.savapage.core.dto.UserPrintOutTotalDto;
 import org.savapage.core.jpa.Account;
+import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
@@ -432,6 +441,136 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         final CriteriaQuery<AccountTrx> select = q.select(root);
 
         return getEntityManager().createQuery(select);
+    }
+
+    @Override
+    public List<UserPrintOutTotalDto> getUserPrintOutTotalsChunk(
+            final UserPrintOutTotalsReq req, final Integer startPosition,
+            final Integer maxResults) {
+
+        final StringBuilder jpql = new StringBuilder();
+
+        jpql.append("SELECT");
+        jpql.append("\n\tACC.nameLower");
+        jpql.append(",\n\tU.fullName");
+        jpql.append(",\n\t-SUM(TRX.amount)");
+        jpql.append(",\n\tCOUNT(TRX.amount)");
+        jpql.append(",\n\tSUM(PO.numberOfCopies)");
+        jpql.append(",\n\tSUM(D.numberOfPages)");
+        jpql.append(",\n\tSUM(CASE WHEN PO.paperSize = 'iso-a4'"
+                + " THEN D.numberOfPages ELSE 0 END)");
+        jpql.append(",\n\tSUM(CASE WHEN PO.paperSize = 'iso-a3'"
+                + " THEN D.numberOfPages ELSE 0 END)");
+        jpql.append(",\n\tSUM(CASE WHEN PO.duplex = false"
+                + " THEN D.numberOfPages ELSE 0 END)");
+        jpql.append(",\n\tSUM(CASE WHEN PO.duplex = true"
+                + " THEN D.numberOfPages ELSE 0 END)");
+        jpql.append(",\n\tSUM(CASE WHEN PO.grayscale = true"
+                + " THEN D.numberOfPages ELSE 0 END)");
+        jpql.append(",\n\tSUM(CASE WHEN PO.grayscale = false"
+                + " THEN 0 ELSE D.numberOfPages END)");
+        jpql.append(",\n\tMAX(TRX.extDetails)"); // klas
+        jpql.append(",\n\tMIN(TRX.transactionDate)"); // Date_From,
+        jpql.append(",\n\tMAX(TRX.transactionDate)"); // Date_To
+        //
+        jpql.append("\nFROM");
+        jpql.append("\n\t" + DbSimpleEntity.ACCOUNT_TRX + " TRX");
+        jpql.append("\n\tJOIN " + DbSimpleEntity.ACCOUNT + " ACC"
+                + " ON ACC.id = TRX.account");
+        jpql.append("\n\tJOIN " + DbSimpleEntity.USER_ACCOUNT + " UACC"
+                + " ON UACC.account = ACC.id");
+        jpql.append("\n\tJOIN " + DbSimpleEntity.USER + " U"
+                + " ON U.id = UACC.user");
+        jpql.append("\n\tJOIN " + DbSimpleEntity.DOC_LOG + " D"
+                + " ON D.id = TRX.docLog");
+        jpql.append("\n\tJOIN " + DbSimpleEntity.DOC_OUT + " DO"
+                + " ON DO.id = D.docOut");
+        jpql.append("\n\tJOIN " + DbSimpleEntity.PRINT_OUT + " PO"
+                + " ON PO.id = DO.printOut");
+
+        //
+        jpql.append("\nWHERE");
+        jpql.append("\n\tACC.accountType = '" + AccountTypeEnum.USER.toString()
+                + "'");
+        if (req.getUserGroups() != null && !req.getUserGroups().isEmpty()) {
+            jpql.append("\n\tAND (");
+            int i = 0;
+            for (final String group : req.getUserGroups()) {
+                if (i > 0) {
+                    jpql.append(" OR ");
+                }
+                jpql.append("LOWER(TRX.extDetails) LIKE '")
+                        .append(SQLHelper.escapeForSql(group).toLowerCase())
+                        .append("%'");
+                i++;
+            }
+            jpql.append(")");
+        }
+        if (req.getTimeFrom() != null) {
+            jpql.append("\n\tAND TRX.transactionDate >= :timeFrom");
+        }
+        if (req.getTimeTo() != null) {
+            jpql.append("\n\tAND TRX.transactionDate < :timeTo");
+        }
+
+        //
+        jpql.append("\nGROUP BY");
+        jpql.append("\n\tACC.nameLower");
+        jpql.append(",\n\tU.fullName");
+        //
+        jpql.append("\nORDER BY");
+        jpql.append("\n\tACC.nameLower");
+
+        final Query query = getEntityManager().createQuery(jpql.toString());
+
+        if (req.getTimeFrom() != null) {
+            query.setParameter("timeFrom", new Date(req.getTimeFrom()));
+        }
+        if (req.getTimeTo() != null) {
+            // next day 0:00
+            final Date timeTo = DateUtils.truncate(
+                    DateUtils.addDays(new Date(req.getTimeTo().longValue()), 1),
+                    Calendar.DAY_OF_MONTH);
+            query.setParameter("timeTo", timeTo);
+        }
+
+        if (startPosition != null) {
+            query.setFirstResult(startPosition);
+        }
+        if (maxResults != null) {
+            query.setMaxResults(maxResults);
+        }
+
+        @SuppressWarnings("unchecked")
+        final List<Object[]> rows = query.getResultList();
+        final List<UserPrintOutTotalDto> objs = new ArrayList<>();
+
+        for (final Object[] row : rows) {
+            final UserPrintOutTotalDto dto = new UserPrintOutTotalDto();
+            int i = 0;
+            //
+            dto.setUserId(row[i++].toString());
+            dto.setUserName(row[i++].toString());
+            dto.setAmount((BigDecimal) row[i++]);
+            dto.setTransactions((Long) row[i++]);
+            dto.setCopies((Long) row[i++]);
+            dto.setPages((Long) row[i++]);
+            //
+            dto.setPagesA4((Long) row[i++]);
+            dto.setPagesA3((Long) row[i++]);
+            dto.setPagesSinglex((Long) row[i++]);
+            dto.setPagesDuplex((Long) row[i++]);
+            dto.setPagesGrayscale((Long) row[i++]);
+            dto.setPagesColor((Long) row[i++]);
+            //
+            final String klas = StringUtils.defaultString((String) row[i++]);
+            dto.setUserGroup(klas);
+            dto.setDateFrom((Date) row[i++]);
+            dto.setDateTo((Date) row[i++]);
+            //
+            objs.add(dto);
+        }
+        return objs;
     }
 
 }

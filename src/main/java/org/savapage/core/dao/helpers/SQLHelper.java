@@ -22,59 +22,30 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.ext.papercut;
-
-import java.util.List;
-
-import org.savapage.core.dto.AbstractDto;
+package org.savapage.core.dao.helpers;
 
 /**
  *
  * @author Rijk Ravestein
  *
  */
-public class DelegatedPrintPeriodDto extends AbstractDto {
-
-    private Long timeFrom;
-    private Long timeTo;
+public final class SQLHelper {
 
     /**
-     * The list of Klassen or Accounts.
+     * Utility class.
      */
-    private List<String> classes;
-
-    private String personalAccountType;
-
-    public Long getTimeFrom() {
-        return timeFrom;
+    private SQLHelper() {
     }
 
-    public void setTimeFrom(Long timeFrom) {
-        this.timeFrom = timeFrom;
-    }
-
-    public Long getTimeTo() {
-        return timeTo;
-    }
-
-    public void setTimeTo(Long timeTo) {
-        this.timeTo = timeTo;
-    }
-
-    public List<String> getClasses() {
-        return classes;
-    }
-
-    public void setClasses(List<String> classes) {
-        this.classes = classes;
-    }
-
-    public String getPersonalAccountType() {
-        return personalAccountType;
-    }
-
-    public void setPersonalAccountType(String personalAccountType) {
-        this.personalAccountType = personalAccountType;
+    /**
+     * Escapes a string for usage in SQL statement.
+     *
+     * @param input
+     *            The input string.
+     * @return The escaped result.
+     */
+    public static String escapeForSql(final String input) {
+        return input.replaceAll("'", "''");
     }
 
 }

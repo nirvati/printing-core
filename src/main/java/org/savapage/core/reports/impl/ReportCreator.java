@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
- * Authors: Rijk Ravestein.
+ * Copyright (c) 2020 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -79,6 +82,10 @@ public abstract class ReportCreator {
      * {@link Locale} of the report.
      */
     private Locale locale;
+
+    /** */
+    protected static final String REPORT_PARM_DATA_SELECTION =
+            "SP_DATA_SELECTION";
 
     /**
      * Constructor.
@@ -265,10 +272,10 @@ public abstract class ReportCreator {
      * @param reportlocale
      *            {@link Locale} of the report.
      * @param reportParameters
-     *            The report parameter map.
+     *            The report parameter map for setting customer parameters.
      * @return The {@link JRDataSource}.
      */
-    protected abstract JRDataSource onCreateDataSource(final String input,
+    protected abstract JRDataSource onCreateDataSource(String input,
             Locale reportlocale, Map<String, Object> reportParameters);
 
 }

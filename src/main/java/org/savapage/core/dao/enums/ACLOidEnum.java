@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -62,6 +62,9 @@ public enum ACLOidEnum {
 
     /** */
     A_DEVICES(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR)),
+
+    /** */
+    A_REPORTS(EnumSet.of(ACLPermissionEnum.READER)),
 
     /** */
     A_DOCUMENTS(EnumSet.of(ACLPermissionEnum.READER)),
@@ -147,10 +150,10 @@ public enum ACLOidEnum {
      * OIDs for administrator role. The enum order is the top to bottom order in
      * the UI.
      */
-    private static final ACLOidEnum[] ADMIN_ENUMS_ARRAY =
-            new ACLOidEnum[] { A_DASHBOARD, A_USERS, A_USER_GROUPS, A_ACCOUNTS,
-                    A_TRANSACTIONS, A_QUEUES, A_PRINTERS, A_DEVICES, A_OPTIONS,
-                    A_DOCUMENTS, A_LOG, A_ABOUT, A_VOUCHERS, A_CONFIG_EDITOR };
+    private static final ACLOidEnum[] ADMIN_ENUMS_ARRAY = new ACLOidEnum[] {
+            A_DASHBOARD, A_USERS, A_USER_GROUPS, A_ACCOUNTS, A_TRANSACTIONS,
+            A_QUEUES, A_PRINTERS, A_DEVICES, A_REPORTS, A_OPTIONS, A_DOCUMENTS,
+            A_LOG, A_ABOUT, A_VOUCHERS, A_CONFIG_EDITOR };
 
     /**
      * OIDs for administrator role. The enum order is lost.

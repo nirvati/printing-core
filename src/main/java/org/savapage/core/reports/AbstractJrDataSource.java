@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,7 +31,7 @@ import org.savapage.core.util.Messages;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public abstract class AbstractJrDataSource {
@@ -36,7 +39,6 @@ public abstract class AbstractJrDataSource {
     private final Locale locale;
 
     private int userBalanceDecimals;
-    //private String currencySymbol;
 
     /**
      *
@@ -45,7 +47,6 @@ public abstract class AbstractJrDataSource {
     protected AbstractJrDataSource(Locale locale) {
         this.locale = locale;
         this.setUserBalanceDecimals(ConfigManager.getUserBalanceDecimals());
-        //this.setCurrencySymbol(CurrencyUtil.getCurrencySymbol(this.locale));
     }
 
     /**
@@ -57,7 +58,8 @@ public abstract class AbstractJrDataSource {
      *            The values to fill the placeholders.
      * @return The localized string.
      */
-    protected final String localized(final String key, final String... objects) {
+    protected final String localized(final String key,
+            final String... objects) {
         return Messages.getMessage(this.getClass(), this.locale, key, objects);
     }
 

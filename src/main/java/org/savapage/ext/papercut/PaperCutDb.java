@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -49,6 +52,7 @@ import org.savapage.core.circuitbreaker.CircuitTrippingException;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.dao.helpers.SQLHelper;
 import org.savapage.core.util.IOHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -394,17 +398,6 @@ public abstract class PaperCutDb {
                 }
             }
         }
-    }
-
-    /**
-     * Escapes a string for usage in SQL statement.
-     *
-     * @param input
-     *            The input string.
-     * @return The escaped result.
-     */
-    private static String escapeForSql(final String input) {
-        return input.replaceAll("'", "''");
     }
 
     /**
@@ -815,7 +808,8 @@ public abstract class PaperCutDb {
                 sql.append(", ");
             }
 
-            final String escapedTitle = escapeForSql(iterUniqueTitle.next());
+            final String escapedTitle =
+                    SQLHelper.escapeForSql(iterUniqueTitle.next());
 
             sql.append('\'').append(escapedTitle).append('\'');
             nCounter++;
@@ -1030,7 +1024,8 @@ public abstract class PaperCutDb {
                 if (i > 0) {
                     sql.append(" OR ");
                 }
-                sql.append("TRX.txn_comment like '").append(escapeForSql(klas))
+                sql.append("TRX.txn_comment like '")
+                        .append(SQLHelper.escapeForSql(klas))
                         .append(PaperCutPrintCommentSyntax.FIELD_SEPARATOR)
                         .append("%'");
                 i++;

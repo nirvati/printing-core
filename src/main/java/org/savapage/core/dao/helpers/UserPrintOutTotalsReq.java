@@ -22,10 +22,11 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.ext.papercut;
+package org.savapage.core.dao.helpers;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dto.AbstractDto;
 
 /**
@@ -33,17 +34,15 @@ import org.savapage.core.dto.AbstractDto;
  * @author Rijk Ravestein
  *
  */
-public class DelegatedPrintPeriodDto extends AbstractDto {
+public final class UserPrintOutTotalsReq extends AbstractDto {
 
     private Long timeFrom;
     private Long timeTo;
 
     /**
-     * The list of Klassen or Accounts.
+     * The list of User Group names.
      */
-    private List<String> classes;
-
-    private String personalAccountType;
+    private List<String> userGroups;
 
     public Long getTimeFrom() {
         return timeFrom;
@@ -61,20 +60,28 @@ public class DelegatedPrintPeriodDto extends AbstractDto {
         this.timeTo = timeTo;
     }
 
-    public List<String> getClasses() {
-        return classes;
+    public List<String> getUserGroups() {
+        return userGroups;
     }
 
-    public void setClasses(List<String> classes) {
-        this.classes = classes;
+    public void setUserGroups(List<String> groups) {
+        this.userGroups = groups;
     }
 
-    public String getPersonalAccountType() {
-        return personalAccountType;
-    }
-
-    public void setPersonalAccountType(String personalAccountType) {
-        this.personalAccountType = personalAccountType;
+    /**
+     * @param json
+     *            JSON string.
+     * @return {@code null} if JSON is blank or invalid.
+     */
+    public static UserPrintOutTotalsReq create(final String json) {
+        if (!StringUtils.isBlank(json)) {
+            try {
+                return create(UserPrintOutTotalsReq.class, json);
+            } catch (Exception e) {
+                // noop
+            }
+        }
+        return null;
     }
 
 }
