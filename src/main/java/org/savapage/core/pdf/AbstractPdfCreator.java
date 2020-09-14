@@ -24,6 +24,7 @@
  */
 package org.savapage.core.pdf;
 
+import java.awt.print.PageFormat;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -142,6 +143,11 @@ public abstract class AbstractPdfCreator {
      *
      */
     protected LetterheadInfo.LetterheadJob myLetterheadJob = null;
+
+    /**
+     * The {@link PageFormat} of the first page of first job.
+     */
+    protected PageFormat firstPageFormat;
 
     /**
      * The {@link PdfOrientationInfo} of the first page of first job, used to
@@ -438,6 +444,7 @@ public abstract class AbstractPdfCreator {
 
         this.removeGraphics = createReq.isRemoveGraphics();
 
+        this.firstPageFormat = null;
         this.firstPageOrientationInfo = null;
 
         /*
@@ -825,6 +832,7 @@ public abstract class AbstractPdfCreator {
 
         createInfo.setBlankFillerPages(totFillerPages);
         createInfo.setLogicalJobPages(logicalJobPages);
+        createInfo.setFirstPageFormat(this.firstPageFormat);
         createInfo.setPdfOrientationInfo(this.firstPageOrientationInfo);
         createInfo.setPgpSigned(isPgpSigned);
         createInfo.setUuidPageCount(uuidPageCount);

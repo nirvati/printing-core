@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,6 +24,7 @@
  */
 package org.savapage.core.pdf;
 
+import java.awt.print.PageFormat;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,6 +58,11 @@ public final class PdfCreateInfo {
      * sub-jobs are defined.
      */
     private List<Integer> logicalJobPages;
+
+    /**
+     * The {@link PageFormat} of the first page of first job.
+     */
+    protected PageFormat firstPageFormat;
 
     /**
      * The {@link PdfOrientationInfo} of the first page, used to find the
@@ -155,6 +164,21 @@ public final class PdfCreateInfo {
     public void
             setPdfOrientationInfo(final PdfOrientationInfo orientationInfo) {
         this.pdfOrientationInfo = orientationInfo;
+    }
+
+    /**
+     * @return The {@link PageFormat} of the first page of first job.
+     */
+    public PageFormat getFirstPageFormat() {
+        return firstPageFormat;
+    }
+
+    /**
+     * @param firstPageFormat
+     *            The {@link PageFormat} of the first page of first job.
+     */
+    public void setFirstPageFormat(final PageFormat firstPageFormat) {
+        this.firstPageFormat = firstPageFormat;
     }
 
     /**

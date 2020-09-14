@@ -422,6 +422,11 @@ public final class OutboxInfoDto extends AbstractDto {
         private String mediaSourceJobSheet;
 
         /**
+         * IPP RFC2911 "media" name.
+         */
+        private String media;
+
+        /**
          * {@code true} when one of the job pages has landscape orientation.
          * {@code null} when unknown.
          */
@@ -756,6 +761,21 @@ public final class OutboxInfoDto extends AbstractDto {
 
         public void setTicketReopen(Boolean ticketReopen) {
             this.ticketReopen = ticketReopen;
+        }
+
+        /**
+         * @return IPP RFC2911 "media" name.
+         */
+        public String getMedia() {
+            return media;
+        }
+
+        /**
+         * @param media
+         *            IPP RFC2911 "media" name.
+         */
+        public void setMedia(String media) {
+            this.media = media;
         }
 
         /**

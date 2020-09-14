@@ -343,6 +343,23 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     /**
+     * Gets the PageFormat from the media box {@link Rectangle}.
+     *
+     * @param mediabox
+     *            The mediabox {@link Rectangle}.
+     * @return The {@link PageFormat}.
+     */
+    private PageFormat createPageFormat(final Rectangle mediabox) {
+
+        final PageFormat pageFormat = new PageFormat();
+        final Paper paper = new Paper();
+
+        paper.setSize(mediabox.getWidth(), mediabox.getHeight());
+        pageFormat.setPaper(paper);
+        return pageFormat;
+    }
+
+    /**
      * Gets the PDF page properties from the media box {@link Rectangle}.
      *
      * @param mediabox
@@ -351,11 +368,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      */
     private SpPdfPageProps createPageProps(final Rectangle mediabox) {
 
-        final PageFormat pageFormat = new PageFormat();
-        final Paper paper = new Paper();
-
-        paper.setSize(mediabox.getWidth(), mediabox.getHeight());
-        pageFormat.setPaper(paper);
+        final PageFormat pageFormat = this.createPageFormat(mediabox);
 
         // NOTE: the size in returned in PORTRAIT mode.
         final int[] size = MediaUtils.getMediaWidthHeight(pageFormat);
@@ -676,8 +689,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                     .getPdfPageCTM(this.readerWlk, firstPage);
 
             final int page1Rotation = this.readerWlk.getPageRotation(firstPage);
-            final boolean page1Landscape = PdfPageRotateHelper
-                    .isLandscapePage(this.readerWlk.getPageSize(firstPage));
+            final Rectangle page1Size = this.readerWlk.getPageSize(firstPage);
+
+            final boolean page1Landscape =
+                    PdfPageRotateHelper.isLandscapePage(page1Size);
+
+            this.firstPageFormat = this.createPageFormat(page1Size);
 
             this.firstPageSeenAsLandscape =
                     PdfPageRotateHelper.isSeenAsLandscape(ctm, page1Rotation,
