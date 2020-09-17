@@ -3187,11 +3187,6 @@ public interface IConfigProp {
                 "webapp.jobtickets.reopen.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
 
-        /** */
-        WEBAPP_JOBTICKETS_COPIES_EDIT_ENABLE(//
-                "webapp.jobtickets.copies-edit.enable.1", BOOLEAN_VALIDATOR,
-                V_NO, API_UPDATABLE_ON),
-
         /**
          * Number of job tickets to show in the list. A value of zero means all
          * available tickets are shown.
