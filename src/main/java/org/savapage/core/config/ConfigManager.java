@@ -1159,24 +1159,19 @@ public final class ConfigManager {
     }
 
     /**
-     * Returns "Major.Minor.Revision"
-     *
-     * @return
+     * @return "Major.Minor.RevisionStatus".
      */
     public static String getAppVersion() {
-        return String.format("%s.%s.%s", VersionInfo.VERSION_A_MAJOR,
-                VersionInfo.VERSION_B_MINOR, VersionInfo.VERSION_C_REVISION);
+        return String.format("%s.%s.%s%s", VersionInfo.VERSION_A_MAJOR,
+                VersionInfo.VERSION_B_MINOR, VersionInfo.VERSION_C_REVISION,
+                VersionInfo.VERSION_D_STATUS);
     }
 
     /**
-     * Returns "Major.Minor.Revision (Build xxxx)"
-     *
-     * @return
+     * @return "Major.Minor.RevisionStatus (Build xxxx)".
      */
     public static String getAppVersionBuild() {
-        return String.format("%s.%s.%s%s (Build %s)",
-                VersionInfo.VERSION_A_MAJOR, VersionInfo.VERSION_B_MINOR,
-                VersionInfo.VERSION_C_REVISION, VersionInfo.VERSION_D_STATUS,
+        return String.format("%s (Build %s)", getAppVersion(),
                 VersionInfo.VERSION_E_BUILD);
     }
 
