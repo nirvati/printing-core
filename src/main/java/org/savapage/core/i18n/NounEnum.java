@@ -44,6 +44,10 @@ public enum NounEnum {
     AUTHENTICATION,
     /** Financial position. */
     BALANCE,
+    /** */
+    BORDER,
+    /** */
+    BRUSH,
     /** NFC card number. */
     CARD_NUMBER,
     /** */
@@ -140,6 +144,8 @@ public enum NounEnum {
     SERVER(true),
     /** */
     SHAPE(true),
+    /** */
+    SIZE,
     /** */
     SIGNATURE,
     /** */

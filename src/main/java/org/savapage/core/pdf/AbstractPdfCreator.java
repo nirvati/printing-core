@@ -43,6 +43,8 @@ import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
+import org.savapage.core.dao.enums.ACLOidEnum;
+import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.doc.PdfToPgpSignedPdf;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
@@ -60,6 +62,7 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.json.PdfProperties;
 import org.savapage.core.json.PdfProperties.PdfPasswords;
 import org.savapage.core.print.proxy.BasePrintSheetCalcParms;
+import org.savapage.core.services.AccessControlService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.PGPPublicKeyService;
 import org.savapage.core.services.ServiceContext;
@@ -81,6 +84,10 @@ import org.savapage.lib.pgp.pdf.PdfPgpVerifyUrl;
  *
  */
 public abstract class AbstractPdfCreator {
+
+    /** */
+    private static final AccessControlService ACCESS_CONTROL_SERVICE =
+            ServiceContext.getServiceFactory().getAccessControlService();
 
     /** */
     private static final InboxService INBOX_SERVICE =
@@ -423,6 +430,10 @@ public abstract class AbstractPdfCreator {
             final DocLog docLog) throws LetterheadNotFoundException,
             PostScriptDrmException, EcoPrintPdfTaskPendingException {
         //
+        final boolean isUserInboxEditor =
+                ACCESS_CONTROL_SERVICE.hasPermission(createReq.getUserObj(),
+                        ACLOidEnum.U_INBOX, ACLPermissionEnum.EDITOR);
+        //
         this.user = createReq.getUserObj().getUserId();
         this.userhome = ConfigManager.getUserHomeDir(this.user);
         this.appTmpDir = ConfigManager.getAppTmpDir();
@@ -560,8 +571,13 @@ public abstract class AbstractPdfCreator {
 
                 final InboxJob job = inboxInfo.getJobs().get(page.getJob());
                 final String pdfFileWlk = job.getFile();
-                final Map<Integer, InboxInfoDto.PageOverlay> pdfPageOverlayWlk =
-                        job.getOverlay();
+
+                final Map<Integer, InboxInfoDto.PageOverlay> pdfPageOverlayWlk;
+                if (isUserInboxEditor) {
+                    pdfPageOverlayWlk = job.getOverlay();
+                } else {
+                    pdfPageOverlayWlk = null;
+                }
 
                 final String filePath = String.format("%s%c%s", this.userhome,
                         File.separatorChar, pdfFileWlk);
