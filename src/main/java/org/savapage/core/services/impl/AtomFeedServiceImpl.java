@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Authors: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -394,6 +394,7 @@ public final class AtomFeedServiceImpl extends AbstractService
         final SslCertInfo sslCert = ConfigManager.getSslCertInfo();
         if (sslCert != null) {
             dto.setSslCert(TemplateSslCertDto.create(sslCert));
+            dto.getSslCert().setNotAfterError(sslCert.isNotAfterWithinDay(now));
             dto.getSslCert()
                     .setNotAfterWarning(sslCert.isNotAfterWithinMonth(now));
         }

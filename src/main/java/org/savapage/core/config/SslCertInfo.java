@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -95,7 +95,7 @@ public final class SslCertInfo {
      * Checks if notAfter date is within a year.
      *
      * @param dateRef
-     *            Reference date
+     *            Reference date.
      * @return {@code true} when warning is applicable.
      */
     public boolean isNotAfterWithinYear(final Date dateRef) {
@@ -107,12 +107,24 @@ public final class SslCertInfo {
      * Checks if notAfter date is within a month.
      *
      * @param dateRef
-     *            Reference date
+     *            Reference date.
      * @return {@code true} when warning is applicable.
      */
     public boolean isNotAfterWithinMonth(final Date dateRef) {
         final long delta = this.getNotAfter().getTime() - dateRef.getTime();
         return delta < DateUtil.DURATION_MSEC_DAY * DAYS_IN_MONTH;
+    }
+
+    /**
+     * Checks if notAfter date is within a day.
+     *
+     * @param dateRef
+     *            Reference date.
+     * @return {@code true} when error is applicable.
+     */
+    public boolean isNotAfterWithinDay(final Date dateRef) {
+        final long delta = this.getNotAfter().getTime() - dateRef.getTime();
+        return delta < DateUtil.DURATION_MSEC_DAY;
     }
 
 }
