@@ -73,7 +73,10 @@ public enum AdjectiveEnum {
     PENDING,
 
     /** */
-    TRANSPARENT;
+    TRANSPARENT,
+
+    /** */
+    FIXED, CHANGEABLE;
 
     /**
      * @param locale
