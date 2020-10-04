@@ -55,6 +55,11 @@ public enum ExternalSupplierEnum {
     IPP_CLIENT("IPP", "savapage.png"),
 
     /**
+     * <a href="https://www.keycloak.org/about">www.keycloak.org</a>.
+     */
+    KEYCLOAK("Keycloak", "keycloak.png"),
+
+    /**
      * SavaPage in role as external supplier.
      */
     SAVAPAGE("SavaPage", "savapage.png"),
