@@ -66,7 +66,7 @@ public enum ServerPathEnum {
     /**
      * The relative path of the custom web files.
      */
-    CUSTOM_WEB("custom/web"),
+    CUSTOM_WEB(ServerBasePath.CUSTOM_WEB),
 
     /**
      * The relative path of the custom web themes.
@@ -97,6 +97,11 @@ public enum ServerPathEnum {
      * Public letterheads.
      */
     LETTERHEADS("data/internal/letterheads"),
+
+    /**
+     * LibreJS license info injector.
+     */
+    LIBREJS(ServerBasePath.LIBREJS),
 
     /**
      * The relative path of the print-jobtickets folder.
