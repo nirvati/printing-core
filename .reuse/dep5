@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: SavaPage Core Library
+Upstream-Contact: Datraverse B.V. <info@datraverse.com>
+Source: https://gitlab.com/savapage/savapage-core/
+
+Files:  src/main/java/org/savapage/ext/smartschool/*.*
+Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
+License: AGPL-3.0-or-later
+
+Files:  src/main/java/org/savapage/core/print/gcp/*.*
+Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
+License: AGPL-3.0-or-later

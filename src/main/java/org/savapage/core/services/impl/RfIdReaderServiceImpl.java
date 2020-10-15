@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -35,14 +38,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class RfIdReaderServiceImpl extends AbstractService implements
-        RfIdReaderService {
+public class RfIdReaderServiceImpl extends AbstractService
+        implements RfIdReaderService {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(RfIdReaderServiceImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(RfIdReaderServiceImpl.class);
 
     private static final int CONNECT_TIMEOUT_MSEC = 3000;
     private static final int READ_TIMEOUT_MSEC = 2000;
@@ -59,9 +62,8 @@ public class RfIdReaderServiceImpl extends AbstractService implements
             clientSocket = new Socket();
             clientSocket.connect(sockaddr, CONNECT_TIMEOUT_MSEC);
 
-            final BufferedReader inFromServer =
-                    new BufferedReader(new InputStreamReader(
-                            clientSocket.getInputStream()));
+            final BufferedReader inFromServer = new BufferedReader(
+                    new InputStreamReader(clientSocket.getInputStream()));
             /*
              * We want a timeout here, for a connect to the wrong server won't
              * give us a reply.

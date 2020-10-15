@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
- * Authors: Rijk Ravestein.
+ * Copyright (c) 2020 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -172,8 +175,7 @@ public final class RedirectPrinterDto extends AbstractDto {
      * @param map
      *            Map with key (media-source choice) and value (media).
      */
-    public void setMediaSourceMediaMap(
-            final Map<String, String> map) {
+    public void setMediaSourceMediaMap(final Map<String, String> map) {
         this.mediaSourceMediaMap = map;
     }
 

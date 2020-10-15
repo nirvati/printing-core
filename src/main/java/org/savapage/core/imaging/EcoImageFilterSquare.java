@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -38,8 +41,8 @@ import java.awt.image.BufferedImage;
  * sharp contour.
  * </p>
  *
- * @author Datraverse B.V.
- * @since 0.9.9
+ * @author Rijk Ravestein
+ *
  */
 public final class EcoImageFilterSquare extends EcoImageFilterMixin {
 
@@ -264,8 +267,8 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
      *            Y-coordinate of pixel.
      * @return {@code true} when a filter square was applied.
      */
-    private boolean
-            process(final BufferedImage image, final int x, final int y) {
+    private boolean process(final BufferedImage image, final int x,
+            final int y) {
 
         int filterSquareWidth = 0;
 
@@ -277,7 +280,8 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
          */
         for (int iX = x, iY = y; search
                 && filterSquareWidth <= this.parms.getFilterSquareWidthMax()
-                && iX < this.imageWidth && iY < this.imageHeight; iX++, iY++, filterSquareWidth++) {
+                && iX < this.imageWidth
+                && iY < this.imageHeight; iX++, iY++, filterSquareWidth++) {
 
             for (int i = 0; search && i <= filterSquareWidth; i++) {
 
@@ -296,16 +300,15 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
             return false;
         }
 
-        int filterSquareBorder =
-                Double.valueOf(
-                        filterSquareWidth
-                                * this.parms.getFilterSquareBorderFraction()
-                                + 0.5).intValue();
+        int filterSquareBorder = Double
+                .valueOf(filterSquareWidth
+                        * this.parms.getFilterSquareBorderFraction() + 0.5)
+                .intValue();
 
         if (filterSquareBorder < this.parms.getFilterSquareBorderWidthMin()) {
             filterSquareBorder = this.parms.getFilterSquareBorderWidthMin();
-            if (filterSquareWidth - 2
-                    * this.parms.getFilterSquareBorderWidthMin() < 1) {
+            if (filterSquareWidth
+                    - 2 * this.parms.getFilterSquareBorderWidthMin() < 1) {
                 return false;
             }
         }
@@ -320,17 +323,15 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
 
         for (int iY = y; iY < filterBottomY; iY++) {
 
-            final boolean borderHorz =
-                    iY < y + filterSquareBorder
-                            || iY >= filterBottomY - filterSquareBorder;
+            final boolean borderHorz = iY < y + filterSquareBorder
+                    || iY >= filterBottomY - filterSquareBorder;
 
             for (int iX = x; iX < filterRightX; iX++) {
 
                 this.filterSquarePixels[iX][iY] = true;
 
-                final boolean borderVert =
-                        iX < x + filterSquareBorder
-                                || iX >= filterRightX - filterSquareBorder;
+                final boolean borderVert = iX < x + filterSquareBorder
+                        || iX >= filterRightX - filterSquareBorder;
 
                 if (borderHorz || borderVert) {
                     /*
@@ -345,11 +346,11 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
 
                         if (filterSquareBorder == 1) {
                             image.setRGB(iX, iY, rgbCenter);
-                        } else if (borderHorz
-                                && (iY == y || iY == y + filterSquareWidth - 1)) {
+                        } else if (borderHorz && (iY == y
+                                || iY == y + filterSquareWidth - 1)) {
                             // outermost horizontal border pixels: noop.
-                        } else if (borderVert
-                                && (iX == x || iX == x + filterSquareWidth - 1)) {
+                        } else if (borderVert && (iX == x
+                                || iX == x + filterSquareWidth - 1)) {
                             // outermost vertical border pixels: noop.
                         } else {
                             image.setRGB(iX, iY, rgbCenter);
@@ -496,8 +497,8 @@ public final class EcoImageFilterSquare extends EcoImageFilterMixin {
                  * Advance to next filter square pixel and copy ahead on current
                  * to imageOut ahead-line in one go.
                  */
-                for (; x < this.imageWidth
-                        && !this.isFilterSquarePixel(imageOut, x, y); x++, xCopy++) {
+                for (; x < this.imageWidth && !this
+                        .isFilterSquarePixel(imageOut, x, y); x++, xCopy++) {
 
                     if (xCopy < this.imageWidth && yCopy < this.imageHeight
                             && !this.filterSquarePixels[xCopy][yCopy]) {

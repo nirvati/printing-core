@@ -1,6 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  * Author: Rijk Ravestein.
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +18,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -27,7 +31,7 @@ import java.util.PropertyResourceBundle;
 /**
  * Helper class for loading a {@link PropertyResourceBundle}.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class MessagesBundleProp extends MessagesBundleMixin {
@@ -54,16 +58,15 @@ public final class MessagesBundleProp extends MessagesBundleMixin {
         Locale locale = determineLocale(candidate);
 
         PropertyResourceBundle resourceBundle =
-                (PropertyResourceBundle) PropertyResourceBundle.getBundle(
-                        resourceBundleBaseName, locale);
+                (PropertyResourceBundle) PropertyResourceBundle
+                        .getBundle(resourceBundleBaseName, locale);
 
         locale = checkAlternative(locale, resourceBundle);
 
         if (locale != null) {
 
-            resourceBundle =
-                    (PropertyResourceBundle) PropertyResourceBundle.getBundle(
-                            resourceBundleBaseName, locale);
+            resourceBundle = (PropertyResourceBundle) PropertyResourceBundle
+                    .getBundle(resourceBundleBaseName, locale);
         }
 
         return resourceBundle;

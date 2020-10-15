@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -42,12 +45,10 @@ import javax.persistence.TableGenerator;
  *
  */
 @Entity
-@Table(name = PrinterGroupMemberV01.TABLE_NAME,
-        indexes = { //
-                @Index(name = "ix_printer_group_member_1",
-                        columnList = "printer_id"),
-                @Index(name = "ix_printer_group_member_2",
-                        columnList = "printer_group_id") })
+@Table(name = PrinterGroupMemberV01.TABLE_NAME, indexes = { //
+        @Index(name = "ix_printer_group_member_1", columnList = "printer_id"),
+        @Index(name = "ix_printer_group_member_2",
+                columnList = "printer_group_id") })
 public class PrinterGroupMemberV01 implements SchemaEntityVersion {
 
     public static final String TABLE_NAME = "tbl_printer_group_member";

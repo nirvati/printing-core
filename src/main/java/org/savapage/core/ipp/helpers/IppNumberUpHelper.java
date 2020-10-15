@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2018 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -306,14 +309,13 @@ public final class IppNumberUpHelper implements IppNumberUpRuleFinder {
                 findCustomRule(createRuleList(testRules), template);
 
         if (rule != null) {
-            LOGGER.warn(
-                    "Test Rule\n" //
-                            + "PDF  landscape   [{}] rotation [{}]\n" //
-                            + "User rotate      [{}] n-up [{}]\n" //
-                            + "---> orientation [{}] layout [{}]",
-                    rule.isLandscape(), rule.getPdfRotation(),
-                    rule.getUserRotate(), rule.getNumberUp(),
-                    rule.getOrientationRequested(), rule.getNumberUpLayout());
+            LOGGER.warn("Test Rule\n" //
+                    + "PDF  landscape   [{}] rotation [{}]\n" //
+                    + "User rotate      [{}] n-up [{}]\n" //
+                    + "---> orientation [{}] layout [{}]", rule.isLandscape(),
+                    rule.getPdfRotation(), rule.getUserRotate(),
+                    rule.getNumberUp(), rule.getOrientationRequested(),
+                    rule.getNumberUpLayout());
         }
         return rule;
     }
@@ -323,10 +325,9 @@ public final class IppNumberUpHelper implements IppNumberUpRuleFinder {
             final IppRuleNumberUp template) {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(
-                    "Template\n" //
-                            + "PDF  landscape [{}] rotation [{}] content [{}]\n"
-                            + "User rotate    [{}] n-up [{}]", //
+            LOGGER.debug("Template\n" //
+                    + "PDF  landscape [{}] rotation [{}] content [{}]\n"
+                    + "User rotate    [{}] n-up [{}]", //
                     template.isLandscape(), template.getPdfRotation(),
                     template.getPdfContentRotation(), template.getUserRotate(),
                     template.getNumberUp());

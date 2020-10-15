@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -551,9 +551,9 @@ public final class UserMsgIndicator {
 
         if (singleTime) {
 
-            jpql.append(
-                    " AND (" + " (D.createdDate = :lastDate AND PI.printed = false)"
-                            + " OR (PO.cupsCompletedTime = :lastSeconds))");
+            jpql.append(" AND ("
+                    + " (D.createdDate = :lastDate AND PI.printed = false)"
+                    + " OR (PO.cupsCompletedTime = :lastSeconds))");
         } else {
             jpql.append(" AND ( (D.createdDate > :prevDate"
                     + " AND D.createdDate <= :lastDate AND PI.printed = false)"

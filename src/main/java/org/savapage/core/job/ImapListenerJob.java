@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -54,13 +57,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class ImapListenerJob extends AbstractJob {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ImapListenerJob.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(ImapListenerJob.class);
 
     /**
      * Number of seconds after restarting this job after an exception occurs.
@@ -87,8 +90,8 @@ public final class ImapListenerJob extends AbstractJob {
      * @author Datraverse B.V.
      *
      */
-    private static class MailPrintCircuitOperation implements
-            CircuitBreakerOperation {
+    private static class MailPrintCircuitOperation
+            implements CircuitBreakerOperation {
 
         private final ImapListenerJob parentJob;
 
@@ -197,8 +200,8 @@ public final class ImapListenerJob extends AbstractJob {
          * @throws MessagingException
          *
          */
-        public void onInterrupt() throws MessagingException,
-                InterruptedException {
+        public void onInterrupt()
+                throws MessagingException, InterruptedException {
             if (this.listener != null) {
                 this.listener.disconnect();
             }
@@ -209,9 +212,8 @@ public final class ImapListenerJob extends AbstractJob {
     @Override
     protected void onInit(final JobExecutionContext ctx) {
 
-        this.breaker =
-                ConfigManager
-                        .getCircuitBreaker(CircuitBreakerEnum.MAILPRINT_CONNECTION);
+        this.breaker = ConfigManager
+                .getCircuitBreaker(CircuitBreakerEnum.MAILPRINT_CONNECTION);
 
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info(localizeLogMsg("ImapListener.started"));
@@ -253,9 +255,8 @@ public final class ImapListenerJob extends AbstractJob {
 
         } catch (Exception t) {
 
-            this.millisUntilNextInvocation =
-                    RESTART_SECS_AFTER_EXCEPTION
-                            * DateUtil.DURATION_MSEC_SECOND;
+            this.millisUntilNextInvocation = RESTART_SECS_AFTER_EXCEPTION
+                    * DateUtil.DURATION_MSEC_SECOND;
 
             AdminPublisher.instance().publish(PubTopicEnum.SMTP,
                     PubLevelEnum.ERROR,
@@ -305,12 +306,9 @@ public final class ImapListenerJob extends AbstractJob {
                             (double) this.millisUntilNextInvocation
                                     / DateUtil.DURATION_MSEC_SECOND;
 
-                    pubMsg =
-                            localizeSysMsg(
-                                    "ImapListener.restart",
-                                    BigDecimalUtil.localize(
-                                            BigDecimal.valueOf(seconds),
-                                            Locale.getDefault(), false));
+                    pubMsg = localizeSysMsg("ImapListener.restart",
+                            BigDecimalUtil.localize(BigDecimal.valueOf(seconds),
+                                    Locale.getDefault(), false));
                 } catch (ParseException e) {
                     throw new SpException(e.getMessage());
                 }

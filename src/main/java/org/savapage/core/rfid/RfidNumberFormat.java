@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -31,7 +34,7 @@ import org.savapage.core.config.IConfigProp.Key;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class RfidNumberFormat {
@@ -39,8 +42,8 @@ public class RfidNumberFormat {
     public final static int MIN_LENGTH_HEX = 8;
     public final static int MIN_LENGTH_DEC = 10;
 
-    private final static Pattern PATTERN_CHECKSUM = Pattern
-            .compile("(\\d*)=\\d*");
+    private final static Pattern PATTERN_CHECKSUM =
+            Pattern.compile("(\\d*)=\\d*");
 
     public enum Format {
         /**
@@ -77,15 +80,15 @@ public class RfidNumberFormat {
 
         ConfigManager cm = ConfigManager.instance();
 
-        if (cm.getConfigValue(Key.CARD_NUMBER_FIRST_BYTE).equals(
-                IConfigProp.CARD_NUMBER_FIRSTBYTE_V_LSB)) {
+        if (cm.getConfigValue(Key.CARD_NUMBER_FIRST_BYTE)
+                .equals(IConfigProp.CARD_NUMBER_FIRSTBYTE_V_LSB)) {
             this.firstByte = RfidNumberFormat.FirstByte.LSB;
         } else {
             this.firstByte = RfidNumberFormat.FirstByte.MSB;
         }
 
-        if (cm.getConfigValue(Key.CARD_NUMBER_FORMAT).equals(
-                IConfigProp.CARD_NUMBER_FORMAT_V_HEX)) {
+        if (cm.getConfigValue(Key.CARD_NUMBER_FORMAT)
+                .equals(IConfigProp.CARD_NUMBER_FORMAT_V_HEX)) {
             this.format = RfidNumberFormat.Format.HEX;
         } else {
             this.format = RfidNumberFormat.Format.DEC;

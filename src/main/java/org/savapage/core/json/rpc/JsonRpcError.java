@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -28,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 /**
  * Base class for all JSON-RPC Errors.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @JsonPropertyOrder({ "code", "message", "data" })
@@ -39,8 +42,8 @@ public class JsonRpcError {
     }
 
     /**
-     * See specification <a
-     * href="http://www.jsonrpc.org/specification#error_object">here</a>.
+     * See specification
+     * <a href="http://www.jsonrpc.org/specification#error_object">here</a>.
      * <p>
      * Note: Range -32000 to -32099 is reserved for implementation-defined
      * server-errors.

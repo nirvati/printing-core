@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -27,7 +30,7 @@ import java.io.IOException;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class PostScriptFilter {
@@ -47,25 +50,24 @@ public class PostScriptFilter {
         DRM_NEGLECTED
     }
 
-    private static final String DRM_SIGNATURE[] =
-            {
-                    //
-                    "%ADOBeginClientInjection: DocumentSetup Start \"No Re-Distill\"",
-                    "%% Removing the following eleven lines is illegal, subject to the Digital Copyright Act of 1998.",
-                    "mark currentfile eexec",
-                    "54dc5232e897cbaaa7584b7da7c23a6c59e7451851159cdbf40334cc2600",
-                    "30036a856fabb196b3ddab71514d79106c969797b119ae4379c5ac9b7318",
-                    "33471fc81a8e4b87bac59f7003cddaebea2a741c4e80818b4b136660994b",
-                    "18a85d6b60e3c6b57cc0815fe834bc82704ac2caf0b6e228ce1b2218c8c7",
-                    "67e87aef6db14cd38dda844c855b4e9c46d510cab8fdaa521d67cbb83ee1",
-                    "af966cc79653b9aca2a5f91f908bbd3f06ecc0c940097ec77e210e6184dc",
-                    "2f5777aacfc6907d43f1edb490a2a89c9af5b90ff126c0c3c5da9ae99f59",
-                    "d47040be1c0336205bf3c6169b1b01cd78f922ec384cd0fcab955c0c20de",
-                    "000000000000000000000000000000000000000000000000000000000000",
-                    "cleartomark",
-                    "%ADOEndClientInjection: DocumentSetup Start \"No Re-Distill\""
+    private static final String DRM_SIGNATURE[] = {
             //
-            };
+            "%ADOBeginClientInjection: DocumentSetup Start \"No Re-Distill\"",
+            "%% Removing the following eleven lines is illegal, subject to the Digital Copyright Act of 1998.",
+            "mark currentfile eexec",
+            "54dc5232e897cbaaa7584b7da7c23a6c59e7451851159cdbf40334cc2600",
+            "30036a856fabb196b3ddab71514d79106c969797b119ae4379c5ac9b7318",
+            "33471fc81a8e4b87bac59f7003cddaebea2a741c4e80818b4b136660994b",
+            "18a85d6b60e3c6b57cc0815fe834bc82704ac2caf0b6e228ce1b2218c8c7",
+            "67e87aef6db14cd38dda844c855b4e9c46d510cab8fdaa521d67cbb83ee1",
+            "af966cc79653b9aca2a5f91f908bbd3f06ecc0c940097ec77e210e6184dc",
+            "2f5777aacfc6907d43f1edb490a2a89c9af5b90ff126c0c3c5da9ae99f59",
+            "d47040be1c0336205bf3c6169b1b01cd78f922ec384cd0fcab955c0c20de",
+            "000000000000000000000000000000000000000000000000000000000000",
+            "cleartomark",
+            "%ADOEndClientInjection: DocumentSetup Start \"No Re-Distill\""
+            //
+    };
 
     /**
      * Streams the lines from the PostScript reader to the writer.

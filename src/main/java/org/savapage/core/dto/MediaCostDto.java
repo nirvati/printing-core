@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
- * Authors: Rijk Ravestein.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -35,7 +38,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * A container for one-sided and two-sided page {@link MediaPageCostDto}.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 @JsonInclude(Include.NON_NULL)
@@ -95,10 +98,10 @@ public final class MediaCostDto extends AbstractDto {
 
         oldCost = dto.getCostOneSided();
 
-        newCost.setCostColor(BigDecimalUtil.toPlainString(
-                oldCost.getCostColor(), locale, false));
-        newCost.setCostGrayscale(BigDecimalUtil.toPlainString(
-                oldCost.getCostGrayscale(), locale, false));
+        newCost.setCostColor(BigDecimalUtil
+                .toPlainString(oldCost.getCostColor(), locale, false));
+        newCost.setCostGrayscale(BigDecimalUtil
+                .toPlainString(oldCost.getCostGrayscale(), locale, false));
 
         //
         newCost = new MediaPageCostDto();
@@ -106,10 +109,10 @@ public final class MediaCostDto extends AbstractDto {
 
         oldCost = dto.getCostTwoSided();
 
-        newCost.setCostColor(BigDecimalUtil.toPlainString(
-                oldCost.getCostColor(), locale, false));
-        newCost.setCostGrayscale(BigDecimalUtil.toPlainString(
-                oldCost.getCostGrayscale(), locale, false));
+        newCost.setCostColor(BigDecimalUtil
+                .toPlainString(oldCost.getCostColor(), locale, false));
+        newCost.setCostGrayscale(BigDecimalUtil
+                .toPlainString(oldCost.getCostGrayscale(), locale, false));
 
         //
         return obj;
@@ -127,8 +130,8 @@ public final class MediaCostDto extends AbstractDto {
      * @throws ParseException
      *             When something goes wrong with BigDecimal parsing.
      */
-    public String stringify(final Locale locale) throws IOException,
-            ParseException {
+    public String stringify(final Locale locale)
+            throws IOException, ParseException {
         return toDatabaseObject(this, locale).stringify();
     }
 

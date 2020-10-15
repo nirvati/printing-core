@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2017 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -37,7 +40,6 @@ public class JsonRpcMethod extends AbstractJsonRpcMessage {
 
     public static final String ATTR_METHOD = "method";
     public static final String ATTR_PARAMS = "params";
-
 
     @JsonProperty(JsonRpcMethod.ATTR_METHOD)
     private String method;

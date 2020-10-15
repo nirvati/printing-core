@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -43,19 +46,20 @@ import org.savapage.core.util.BigDecimalUtil;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
-public class AccountVoucherServiceImpl extends AbstractService implements
-        AccountVoucherService {
+public class AccountVoucherServiceImpl extends AbstractService
+        implements AccountVoucherService {
 
     @Override
     public boolean isVoucherExpired(final AccountVoucher voucher,
             final Date dateToday) {
 
-        return DateUtils.truncate(voucher.getExpiryDate(),
-                Calendar.DAY_OF_MONTH).getTime() <= DateUtils.truncate(
-                dateToday, Calendar.DAY_OF_MONTH).getTime();
+        return DateUtils
+                .truncate(voucher.getExpiryDate(), Calendar.DAY_OF_MONTH)
+                .getTime() <= DateUtils
+                        .truncate(dateToday, Calendar.DAY_OF_MONTH).getTime();
     }
 
     @Override
@@ -92,9 +96,8 @@ public class AccountVoucherServiceImpl extends AbstractService implements
 
         BigDecimal valueAmount;
         try {
-            valueAmount =
-                    BigDecimalUtil.parse(dto.getValue(),
-                            ServiceContext.getLocale(), false, false);
+            valueAmount = BigDecimalUtil.parse(dto.getValue(),
+                    ServiceContext.getLocale(), false, false);
         } catch (ParseException e) {
             return createError("msg-voucher-value-invalid", dto.getValue());
         }
@@ -120,8 +123,8 @@ public class AccountVoucherServiceImpl extends AbstractService implements
          * Create the cards
          */
         final Set<String> voucherNumbers =
-                AccountVoucherUtil.generateVoucherNumbers(dto.getBatchId(), dto
-                        .getNumber().intValue());
+                AccountVoucherUtil.generateVoucherNumbers(dto.getBatchId(),
+                        dto.getNumber().intValue());
 
         final Iterator<String> iter = voucherNumbers.iterator();
 
@@ -137,8 +140,8 @@ public class AccountVoucherServiceImpl extends AbstractService implements
             voucher.setIssuedDate(now);
             voucher.setUuid(UUID.randomUUID().toString());
             voucher.setValueAmount(valueAmount);
-            voucher.setVoucherType(AccountVoucherDao.DbVoucherType.CARD
-                    .toString());
+            voucher.setVoucherType(
+                    AccountVoucherDao.DbVoucherType.CARD.toString());
 
             accountVoucherDAO().create(voucher);
         }

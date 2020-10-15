@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: © 2020 Datraverse BV <info@datraverse.com> -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 <fontFamilies>
 
     <fontFamily name="DejaVu Sans">
@@ -24,7 +26,7 @@
         <pdfEncoding>Identity-H</pdfEncoding>
         <pdfEmbedded>true</pdfEmbedded>
     </fontFamily>
-  
+
     <fontFamily name="Droid Sans Fallback">
         <normal>org/savapage/core/fonts/truetype/droid/DroidSansFallbackFull.ttf</normal>
         <pdfEncoding>Identity-H</pdfEncoding>

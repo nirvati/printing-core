@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -43,7 +46,8 @@ import org.savapage.core.imaging.EcoPrintPdfTaskInfo;
  * @author Rijk Ravestein
  *
  */
-public final class EcoPrintPdfTaskThreadPoolExecutor extends ThreadPoolExecutor {
+public final class EcoPrintPdfTaskThreadPoolExecutor
+        extends ThreadPoolExecutor {
 
     /**
      * .
@@ -63,8 +67,8 @@ public final class EcoPrintPdfTaskThreadPoolExecutor extends ThreadPoolExecutor 
     /**
      * List with currently running objects.
      */
-    private final List<Runnable> running = Collections
-            .synchronizedList(new ArrayList<Runnable>());
+    private final List<Runnable> running =
+            Collections.synchronizedList(new ArrayList<Runnable>());
 
     /**
      * Creates a new {@code ThreadPoolExecutor} with the given initial

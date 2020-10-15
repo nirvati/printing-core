@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -39,13 +42,13 @@ import org.slf4j.LoggerFactory;
  * >this</a> sample from the Java 7 SE documentation.
  * </p>
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class RfIdReader {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(RfIdReader.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(RfIdReader.class);
 
     /**
      *
@@ -104,9 +107,9 @@ public class RfIdReader {
              * Tell the world about produced the event!
              */
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Producer: signalled "
-                        + event.getEvent().toString() + " ["
-                        + event.getCardNumber() + "]");
+                LOGGER.trace(
+                        "Producer: signalled " + event.getEvent().toString()
+                                + " [" + event.getCardNumber() + "]");
             }
 
             this.notEmpty.signal();
@@ -130,8 +133,8 @@ public class RfIdReader {
             throws InterruptedException {
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Consumer: waiting for event ... (max " + timeout
-                    + " " + timeUnit.toString() + ")");
+            LOGGER.trace("Consumer: waiting for event ... (max " + timeout + " "
+                    + timeUnit.toString() + ")");
         }
 
         this.lock.lock();
@@ -145,13 +148,11 @@ public class RfIdReader {
              */
             if (this.lastEvent != null) {
 
-                final long expiryMsec =
-                        ConfigManager.instance().getConfigLong(
-                                Key.AUTH_MODE_CARD_IP_EXPIRY_MSECS);
+                final long expiryMsec = ConfigManager.instance()
+                        .getConfigLong(Key.AUTH_MODE_CARD_IP_EXPIRY_MSECS);
 
-                final boolean eventExpired =
-                        (System.currentTimeMillis() - this.lastEvent.getDate()
-                                .getTime()) > expiryMsec;
+                final boolean eventExpired = (System.currentTimeMillis()
+                        - this.lastEvent.getDate().getTime()) > expiryMsec;
 
                 if (eventExpired) {
 
@@ -187,9 +188,9 @@ public class RfIdReader {
             if (event != null) {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Consumer: consumed "
-                            + event.getEvent().toString() + " ["
-                            + event.getCardNumber() + "]");
+                    LOGGER.trace(
+                            "Consumer: consumed " + event.getEvent().toString()
+                                    + " [" + event.getCardNumber() + "]");
                 }
                 /*
                  * Tell the world the next event can be produced!

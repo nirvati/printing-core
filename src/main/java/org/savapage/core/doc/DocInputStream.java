@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -30,7 +33,7 @@ import org.apache.commons.lang3.mutable.MutableLong;
 /**
  * Our own BufferedInputStream, since we need to know the number of bytes read.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public class DocInputStream extends BufferedInputStream {

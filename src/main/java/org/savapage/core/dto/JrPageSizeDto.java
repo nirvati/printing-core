@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
- * Authors: Rijk Ravestein.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
+ * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -24,7 +27,7 @@ package org.savapage.core.dto;
 /**
  * Jasper Report Page Size.
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class JrPageSizeDto extends AbstractDto {
@@ -35,17 +38,17 @@ public final class JrPageSizeDto extends AbstractDto {
     private static final Integer A4_PORTRAIT_WIDTH = Integer.valueOf(595);
     private static final Integer A4_PORTRAIT_HEIGHT = Integer.valueOf(842);
 
-    public static final JrPageSizeDto LETTER_PORTRAIT = new JrPageSizeDto(
-            LETTER_PORTRAIT_WIDTH, LETTER_PORTRAIT_HEIGHT);
+    public static final JrPageSizeDto LETTER_PORTRAIT =
+            new JrPageSizeDto(LETTER_PORTRAIT_WIDTH, LETTER_PORTRAIT_HEIGHT);
 
-    public static final JrPageSizeDto LETTER_LANDSCAPE = new JrPageSizeDto(
-            LETTER_PORTRAIT_HEIGHT, LETTER_PORTRAIT_WIDTH);
+    public static final JrPageSizeDto LETTER_LANDSCAPE =
+            new JrPageSizeDto(LETTER_PORTRAIT_HEIGHT, LETTER_PORTRAIT_WIDTH);
 
-    public static final JrPageSizeDto A4_PORTRAIT = new JrPageSizeDto(
-            A4_PORTRAIT_WIDTH, A4_PORTRAIT_HEIGHT);
+    public static final JrPageSizeDto A4_PORTRAIT =
+            new JrPageSizeDto(A4_PORTRAIT_WIDTH, A4_PORTRAIT_HEIGHT);
 
-    public static final JrPageSizeDto A4_LANDSCAPE = new JrPageSizeDto(
-            A4_PORTRAIT_HEIGHT, A4_PORTRAIT_WIDTH);
+    public static final JrPageSizeDto A4_LANDSCAPE =
+            new JrPageSizeDto(A4_PORTRAIT_HEIGHT, A4_PORTRAIT_WIDTH);
 
     private JrPageSizeDto() {
     }

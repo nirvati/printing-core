@@ -2,7 +2,7 @@ SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
 Creator:Organization: Datraverse B.V. (info@datraverse.com)
 PackageName: SavaPage Core Library
-PackageCopyrightText: <text>2011-2020 Datraverse B.V.</text>
+PackageCopyrightText: <text>(c) 2020 Datraverse B.V.</text>
 PackageOriginator:Organization: Datraverse B.V. (info@datraverse.com)
 PackageHomePage: https://gitlab.com/savapage/savapage-core/
 PackageLicenseDeclared: AGPL-3.0-or-later

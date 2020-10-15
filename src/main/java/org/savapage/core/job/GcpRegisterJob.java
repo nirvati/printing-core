@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -40,13 +43,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class GcpRegisterJob extends AbstractJob {
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(GcpRegisterJob.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(GcpRegisterJob.class);
 
     public static final String KEY_POLLING_URL =
             GcpRegisterPrinterRsp.KEY_POLLING_URL;
@@ -156,20 +159,19 @@ public final class GcpRegisterJob extends AbstractJob {
 
         } catch (GcpAuthException e) {
 
-            final String msg =
-                    AppLogHelper.logError(getClass(), "GcpRegister.error",
-                            "Failed to get Auth Tokens (" + e.getMessage()
-                                    + ")");
+            final String msg = AppLogHelper.logError(getClass(),
+                    "GcpRegister.error",
+                    "Failed to get Auth Tokens (" + e.getMessage() + ")");
 
-            adminPub.publish(PubTopicEnum.GCP_REGISTER, PubLevelEnum.ERROR, msg);
+            adminPub.publish(PubTopicEnum.GCP_REGISTER, PubLevelEnum.ERROR,
+                    msg);
 
         } catch (Exception e) {
 
             LoggerFactory.getLogger(this.getClass()).error(e.getMessage(), e);
 
-            final String msg =
-                    AppLogHelper.logError(getClass(), "GcpRegister.error",
-                            e.getMessage());
+            final String msg = AppLogHelper.logError(getClass(),
+                    "GcpRegister.error", e.getMessage());
 
             if (adminPub != null) {
                 adminPub.publish(PubTopicEnum.GCP_REGISTER, PubLevelEnum.ERROR,

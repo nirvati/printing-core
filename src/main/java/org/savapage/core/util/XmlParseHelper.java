@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -23,15 +26,16 @@ package org.savapage.core.util;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
+ *
  */
 public final class XmlParseHelper {
 
     /**
      * A regular expression for invalid XML 1.0 characters.
      * <p>
-     * See this <a href="http://stackoverflow.
-     * com/questions/4237625/removing-invalid-
+     * See this
+     * <a href="http://stackoverflow. com/questions/4237625/removing-invalid-
      * xml-characters-from-a-string-in-java">Stackoverflow</a> question.
      * </p>
      * <p>
@@ -41,15 +45,15 @@ public final class XmlParseHelper {
      * {@code #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]}
      * </p>
      */
-    private static final String XML_1_0_PATTERN_INVALID_CHARS = "[^"
-            + "\u0009\r\n" + "\u0020-\uD7FF" + "\uE000-\uFFFD"
-            + "\ud800\udc00-\udbff\udfff" + "]";
+    private static final String XML_1_0_PATTERN_INVALID_CHARS =
+            "[^" + "\u0009\r\n" + "\u0020-\uD7FF" + "\uE000-\uFFFD"
+                    + "\ud800\udc00-\udbff\udfff" + "]";
 
     /**
      * A regular expression for invalid XML 1.1 characters.
      * <p>
-     * See this <a href="http://stackoverflow.
-     * com/questions/4237625/removing-invalid-
+     * See this
+     * <a href="http://stackoverflow. com/questions/4237625/removing-invalid-
      * xml-characters-from-a-string-in-java">Stackoverflow</a> question.
      * </p>
      * <p>
@@ -60,9 +64,9 @@ public final class XmlParseHelper {
      * </p>
      */
     @SuppressWarnings("unused")
-    private static final String XML_1_1_PATTERN_INVALID_CHARS = "[^"
-            + "\u0001-\uD7FF" + "\uE000-\uFFFD" + "\ud800\udc00-\udbff\udfff"
-            + "]+";
+    private static final String XML_1_1_PATTERN_INVALID_CHARS =
+            "[^" + "\u0001-\uD7FF" + "\uE000-\uFFFD"
+                    + "\ud800\udc00-\udbff\udfff" + "]+";
 
     /**
      *

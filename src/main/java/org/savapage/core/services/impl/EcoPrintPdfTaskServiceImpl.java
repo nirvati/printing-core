@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2015 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -45,13 +48,14 @@ import org.slf4j.LoggerFactory;
  * @author Rijk Ravestein
  *
  */
-public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService {
+public final class EcoPrintPdfTaskServiceImpl
+        implements EcoPrintPdfTaskService {
 
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(EcoPrintPdfTaskServiceImpl.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(EcoPrintPdfTaskServiceImpl.class);
 
     /**
      * When the number of threads is greater than the
@@ -79,8 +83,9 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
                     final EcoPrintPdfTaskInfo info =
                             ((EcoPrintPdfTask) r).getTaskInfo();
 
-                    LOGGER.error(String.format("[%s] %s is REJECTED", info
-                            .getUuid().toString(), info.getPdfIn().getName()));
+                    LOGGER.error(String.format("[%s] %s is REJECTED",
+                            info.getUuid().toString(),
+                            info.getPdfIn().getName()));
                 }
             };
 
@@ -117,11 +122,10 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
          */
         final int corePoolSize = maximumPoolSize;
 
-        this.executorPool =
-                new EcoPrintPdfTaskThreadPoolExecutor(corePoolSize,
-                        maximumPoolSize, THREADPOOL_KEEP_ALIVE_SECONDS,
-                        TimeUnit.SECONDS, this.workQueue,
-                        Executors.defaultThreadFactory(), this.rejectionHandler);
+        this.executorPool = new EcoPrintPdfTaskThreadPoolExecutor(corePoolSize,
+                maximumPoolSize, THREADPOOL_KEEP_ALIVE_SECONDS,
+                TimeUnit.SECONDS, this.workQueue,
+                Executors.defaultThreadFactory(), this.rejectionHandler);
     }
 
     @Override
@@ -184,9 +188,8 @@ public final class EcoPrintPdfTaskServiceImpl implements EcoPrintPdfTaskService 
         }
 
         if (!isPresent) {
-            isPresent =
-                    this.executorPool.isTaskRunning(new EcoPrintPdfTaskInfo(
-                            uuid));
+            isPresent = this.executorPool
+                    .isTaskRunning(new EcoPrintPdfTaskInfo(uuid));
         }
 
         return isPresent;

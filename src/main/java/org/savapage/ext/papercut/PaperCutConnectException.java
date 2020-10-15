@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -20,7 +23,6 @@
  * address: info@datraverse.com
  */
 package org.savapage.ext.papercut;
-
 
 /**
  * When PaperCut server cannot be reached.
@@ -62,7 +64,8 @@ public class PaperCutConnectException extends RuntimeException {
      * @param cause
      *            The cause.
      */
-    public PaperCutConnectException(final String message, final Throwable cause) {
+    public PaperCutConnectException(final String message,
+            final Throwable cause) {
         super(message, cause);
     }
 

@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -37,8 +40,8 @@ import org.savapage.core.util.MediaUtils;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 /**
- *
- * @author Datraverse B.V.
+ * 
+ * @author Rijk Ravestein
  *
  */
 public class HtmlToPdf implements IStreamConverter {
@@ -116,8 +119,8 @@ public class HtmlToPdf implements IStreamConverter {
             Map<String, String> attributes = new HashMap<>();
             attributes.put("type", "text/css");
             style.setAttributes(attributes);
-            style.insertChild(0, new ContentNode("@page {size: " + pageSize
-                    + ";}"));
+            style.insertChild(0,
+                    new ContentNode("@page {size: " + pageSize + ";}"));
             nodeHead.insertChild(0, style);
         }
     }

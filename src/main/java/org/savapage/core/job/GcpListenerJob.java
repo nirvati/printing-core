@@ -1,7 +1,10 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
- * Copyright (c) 2011-2014 Datraverse B.V.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -14,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -61,7 +64,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Datraverse B.V.
+ * @author Rijk Ravestein
  *
  */
 public final class GcpListenerJob extends AbstractJob {
@@ -69,8 +72,8 @@ public final class GcpListenerJob extends AbstractJob {
     /**
      * The logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(GcpListenerJob.class);
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(GcpListenerJob.class);
 
     /**
      * Number of seconds after restarting this job after an exception occurs.
@@ -97,7 +100,8 @@ public final class GcpListenerJob extends AbstractJob {
      * @author Datraverse B.V.
      *
      */
-    private static class GcpCircuitOperation implements CircuitBreakerOperation {
+    private static class GcpCircuitOperation
+            implements CircuitBreakerOperation {
 
         /**
          *
@@ -132,9 +136,8 @@ public final class GcpListenerJob extends AbstractJob {
 
             } catch (GcpPrinterNotFoundException e) {
 
-                throw new CircuitDamagingException(
-                        this.parentJob
-                                .localizedMessage("GcpListener.printer-not-found"));
+                throw new CircuitDamagingException(this.parentJob
+                        .localizedMessage("GcpListener.printer-not-found"));
 
             } catch (MessagingException | IOException | XMPPException e) {
 
@@ -208,20 +211,18 @@ public final class GcpListenerJob extends AbstractJob {
              */
             final Date tokenExpiryDate = GcpPrinter.getAccessTokenExpiry();
 
-            final String restartTime =
-                    DateFormat.getTimeInstance(DateFormat.SHORT,
-                            Locale.getDefault()).format(tokenExpiryDate);
+            final String restartTime = DateFormat
+                    .getTimeInstance(DateFormat.SHORT, Locale.getDefault())
+                    .format(tokenExpiryDate);
 
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info(this.parentJob.localizeLogMsg(
-                        "GcpListener.started", restartTime));
+                LOGGER.info(this.parentJob.localizeLogMsg("GcpListener.started",
+                        restartTime));
             }
 
-            AdminPublisher.instance().publish(
-                    PubTopicEnum.GCP_PRINT,
-                    PubLevelEnum.INFO,
-                    this.parentJob.localizeSysMsg("GcpListener.started",
-                            restartTime));
+            AdminPublisher.instance().publish(PubTopicEnum.GCP_PRINT,
+                    PubLevelEnum.INFO, this.parentJob.localizeSysMsg(
+                            "GcpListener.started", restartTime));
 
             /*
              * Start listening ...
@@ -244,9 +245,8 @@ public final class GcpListenerJob extends AbstractJob {
     @Override
     protected void onInit(final JobExecutionContext ctx) {
 
-        this.breaker =
-                ConfigManager
-                        .getCircuitBreaker(CircuitBreakerEnum.GCP_CONNECTION);
+        this.breaker = ConfigManager
+                .getCircuitBreaker(CircuitBreakerEnum.GCP_CONNECTION);
 
         GcpPrinter.reset();
         GcpPrinter.setOnline(true);
@@ -295,9 +295,8 @@ public final class GcpListenerJob extends AbstractJob {
 
         } catch (Exception t) {
 
-            this.millisUntilNextInvocation =
-                    RESTART_SECS_AFTER_EXCEPTION
-                            * DateUtil.DURATION_MSEC_SECOND;
+            this.millisUntilNextInvocation = RESTART_SECS_AFTER_EXCEPTION
+                    * DateUtil.DURATION_MSEC_SECOND;
 
             AdminPublisher.instance().publish(PubTopicEnum.GCP_PRINT,
                     PubLevelEnum.ERROR,
@@ -350,12 +349,9 @@ public final class GcpListenerJob extends AbstractJob {
                             (double) this.millisUntilNextInvocation
                                     / DateUtil.DURATION_MSEC_SECOND;
 
-                    pubMsg =
-                            localizeSysMsg(
-                                    "GcpListener.restart",
-                                    BigDecimalUtil.localize(
-                                            BigDecimal.valueOf(seconds),
-                                            Locale.getDefault(), false));
+                    pubMsg = localizeSysMsg("GcpListener.restart",
+                            BigDecimalUtil.localize(BigDecimal.valueOf(seconds),
+                                    Locale.getDefault(), false));
                 } catch (ParseException e) {
                     throw new SpException(e.getMessage());
                 }
@@ -371,8 +367,8 @@ public final class GcpListenerJob extends AbstractJob {
                         + this.millisUntilNextInvocation + "] milliseconds");
             }
 
-            SpJobScheduler.instance().scheduleOneShotGcpListener(
-                    this.millisUntilNextInvocation);
+            SpJobScheduler.instance()
+                    .scheduleOneShotGcpListener(this.millisUntilNextInvocation);
         }
 
     }

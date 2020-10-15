@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2016 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -47,9 +50,8 @@ public final class SOfficeProcessManager {
      * LibreOffice starts it will create the files and then immediately quit
      * with exit code 81.
      * <ul>
-     * <li><a href=
-     * "http://code.google.com/p/jodconverter/issues/ detail?id=84" >
-     * JODConverter issue #84</a></li>
+     * <li><a href= "http://code.google.com/p/jodconverter/issues/ detail?id=84"
+     * > JODConverter issue #84</a></li>
      * <li><a href="https://github.com/dagwieers/unoconv/issues/192">Unoconv
      * issue #192</a></li>
      * </ul>
@@ -151,8 +153,7 @@ public final class SOfficeProcessManager {
         try {
             future.get();
         } catch (Exception exception) {
-            throw new SOfficeException("Failed to stop process.",
-                    exception);
+            throw new SOfficeException("Failed to stop process.", exception);
         }
     }
 

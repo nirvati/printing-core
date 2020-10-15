@@ -1,7 +1,10 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2019 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
+ *
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -37,8 +40,8 @@ import javax.persistence.TableGenerator;
  *
  */
 @Entity
-@javax.persistence.Table(name = AppLogV01.TABLE_NAME, indexes = { @Index(
-        name = "ix_application_log_1", columnList = "log_date") })
+@javax.persistence.Table(name = AppLogV01.TABLE_NAME, indexes = {
+        @Index(name = "ix_application_log_1", columnList = "log_date") })
 public class AppLogV01 implements SchemaEntityVersion {
 
     /**
