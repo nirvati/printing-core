@@ -109,6 +109,11 @@ public enum PubTopicEnum {
     PAYMENT_GATEWAY("payment-gateway"),
 
     /**
+     * Plug-in.
+     */
+    PLUGIN("plugin"),
+
+    /**
      * Proxy Print.
      */
     PROXY_PRINT("proxyprint"),
