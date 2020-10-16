@@ -3,10 +3,30 @@ Upstream-Name: SavaPage Core Library
 Upstream-Contact: Datraverse B.V. <info@datraverse.com>
 Source: https://gitlab.com/savapage/savapage-core/
 
-Files:  src/main/java/org/savapage/ext/smartschool/*.*
+Files: src/main/java/META-INF/MANIFEST.MF
+Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
+License: CC0-1.0
+
+Files: src/main/java/org/savapage/ext/smartschool/*.*
 Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
 License: AGPL-3.0-or-later
 
-Files:  src/main/java/org/savapage/core/print/gcp/*.*
+Files: src/main/java/org/savapage/core/print/gcp/*.*
 Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
 License: AGPL-3.0-or-later
+
+Files: src/test/resources/*.csv
+Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
+License: CC-BY-NC-SA-4.0
+
+Files: src/main/java/org/savapage/core/reports/*.png
+Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
+License: CC-BY-NC-SA-4.0
+
+Files: src/main/java/org/savapage/core/reports/template/*.jrxml
+Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
+License: AGPL-3.0-or-later
+
+Files: src/main/java/org/savapage/core/template/email/savapage-*.png
+Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
+License: CC-BY-NC-SA-4.0
