@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -138,8 +138,8 @@ public enum CircuitBreakerEnum {
          * @param cause
          */
         @Override
-        public void
-                onTrippingException(CircuitBreaker breaker, Exception cause) {
+        public void onTrippingException(CircuitBreaker breaker,
+                Exception cause) {
             this.publishWarning(cause);
         }
 
@@ -185,7 +185,8 @@ public enum CircuitBreakerEnum {
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
                 Exception exception) {
             return !(exception instanceof CircuitTrippingException
-                    || exception instanceof IOException || exception instanceof MessagingException);
+                    || exception instanceof IOException
+                    || exception instanceof MessagingException);
         }
 
         @Override
@@ -213,7 +214,8 @@ public enum CircuitBreakerEnum {
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
                 Exception exception) {
             return !(exception instanceof IOException
-                    || exception instanceof MessagingException || exception instanceof CircuitTrippingException);
+                    || exception instanceof MessagingException
+                    || exception instanceof CircuitTrippingException);
         }
 
         @Override
@@ -241,7 +243,8 @@ public enum CircuitBreakerEnum {
         public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
                 Exception exception) {
             return !(exception instanceof PaperCutConnectException
-                    || exception instanceof PaperCutException || exception instanceof CircuitNonTrippingException);
+                    || exception instanceof PaperCutException
+                    || exception instanceof CircuitNonTrippingException);
         }
 
         @Override
@@ -252,34 +255,6 @@ public enum CircuitBreakerEnum {
         @Override
         protected String getMessageBaseKey() {
             return "circuit-papercut-connection";
-        }
-
-    }),
-
-    /**
-     * Breaker for SmartSchool connectivity.
-     * <p>
-     * See {@link CircuitBreakerListenerMixin} how {@link CircuitBreaker} events
-     * are handled.
-     * </p>
-     */
-    SMARTSCHOOL_CONNECTION(1, 60000, new CircuitBreakerListenerMixin() {
-
-        @Override
-        public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
-                Exception exception) {
-            return !(exception instanceof IOException
-                    || exception instanceof MessagingException || exception instanceof CircuitTrippingException);
-        }
-
-        @Override
-        protected PubTopicEnum getPubTopic() {
-            return PubTopicEnum.SMARTSCHOOL;
-        }
-
-        @Override
-        protected String getMessageBaseKey() {
-            return "circuit-smartschool-connection";
         }
 
     }),

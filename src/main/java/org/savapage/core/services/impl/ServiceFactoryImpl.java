@@ -55,10 +55,6 @@ import org.savapage.core.services.UserGroupService;
 import org.savapage.core.services.UserService;
 import org.savapage.ext.papercut.services.PaperCutService;
 import org.savapage.ext.papercut.services.impl.PaperCutServiceImpl;
-import org.savapage.ext.smartschool.services.SmartschoolProxyService;
-import org.savapage.ext.smartschool.services.SmartschoolService;
-import org.savapage.ext.smartschool.services.impl.SmartschoolProxyServiceImpl;
-import org.savapage.ext.smartschool.services.impl.SmartschoolServiceImpl;
 
 /**
  * Service factory with one (1) SingletonHolder per Service.
@@ -198,16 +194,6 @@ public final class ServiceFactoryImpl implements ServiceFactory {
 
     private static class QueueServiceHolder {
         public static final QueueService SERVICE = new QueueServiceImpl();
-    }
-
-    private static class SmartSchoolServiceHolder {
-        public static final SmartschoolService SERVICE =
-                new SmartschoolServiceImpl();
-    }
-
-    private static class SmartSchoolProxyServiceHolder {
-        public static final SmartschoolProxyService SERVICE =
-                new SmartschoolProxyServiceImpl();
     }
 
     private static class SnmpRetrieveServiceHolder {
@@ -357,16 +343,6 @@ public final class ServiceFactoryImpl implements ServiceFactory {
     @Override
     public RestClientService getRestClientService() {
         return RestClientServiceHolder.SERVICE;
-    }
-
-    @Override
-    public SmartschoolService getSmartSchoolService() {
-        return SmartSchoolServiceHolder.SERVICE;
-    }
-
-    @Override
-    public SmartschoolProxyService getSmartSchoolProxyService() {
-        return SmartSchoolProxyServiceHolder.SERVICE;
     }
 
     @Override

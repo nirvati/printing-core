@@ -2445,11 +2445,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
      * Printer.</i>
      * </p>
      * <p>
-     * For example, when a {@link ExternalSupplierEnum#SMARTSCHOOL} ticket is
-     * printed to a SavaPage Job Ticket Printer, and released to a
+     * For example, when a (future) external supplier X prints to a SavaPage Job
+     * Ticket Printer, and the ticket is released to a
      * {@link ThirdPartyEnum#PAPERCUT} managed printer from there, it will be as
-     * if the external ticket was directly printed to the PaperCut managed
-     * printer: the SavaPage Ticket was just a detour.
+     * if the external print request was directly printed to the PaperCut
+     * managed printer: the SavaPage Ticket was just a detour.
      * </p>
      *
      * @param job

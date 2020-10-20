@@ -100,12 +100,6 @@ public final class QueueServiceImpl extends AbstractService
     }
 
     @Override
-    public boolean isSmartSchoolQueue(final IppQueue queue) {
-        return queue.getUrlPath()
-                .equals(ReservedIppQueueEnum.SMARTSCHOOL.getUrlPath());
-    }
-
-    @Override
     public boolean isWebPrintQueue(final IppQueue queue) {
         return queue.getUrlPath()
                 .equals(ReservedIppQueueEnum.WEBPRINT.getUrlPath());
@@ -332,19 +326,11 @@ public final class QueueServiceImpl extends AbstractService
     @Override
     public void lazyCreateReservedQueues() {
 
-        final boolean hasSmartSchoolModule =
-                ConfigManager.isSmartSchoolPrintModuleActivated();
-
         final boolean hasFtpModule = ConfigManager.isFtpPrintActivated();
 
         for (final ReservedIppQueueEnum value : ReservedIppQueueEnum.values()) {
 
             if (value == ReservedIppQueueEnum.FTP && !hasFtpModule) {
-                continue;
-            }
-
-            if (value == ReservedIppQueueEnum.SMARTSCHOOL
-                    && !hasSmartSchoolModule) {
                 continue;
             }
 
@@ -389,10 +375,6 @@ public final class QueueServiceImpl extends AbstractService
             break;
         case MAILPRINT:
             enabled = CONFIG_MNGR.isConfigValue(Key.PRINT_IMAP_ENABLE);
-            break;
-        case SMARTSCHOOL:
-            enabled = CONFIG_MNGR.isConfigValue(Key.SMARTSCHOOL_1_ENABLE)
-                    || CONFIG_MNGR.isConfigValue(Key.SMARTSCHOOL_2_ENABLE);
             break;
         case WEBPRINT:
             enabled = CONFIG_MNGR.isConfigValue(Key.WEB_PRINT_ENABLE);

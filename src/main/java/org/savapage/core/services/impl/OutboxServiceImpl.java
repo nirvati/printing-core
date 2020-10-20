@@ -996,50 +996,9 @@ public final class OutboxServiceImpl extends AbstractService
             return;
         }
 
-        if (supplier != ExternalSupplierEnum.SMARTSCHOOL) {
-            throw new SpException(String.format("%s.%s is not handled.",
-                    ExternalSupplierInfo.class.getSimpleName(),
-                    supplier.toString()));
-        }
-
-        final String accountToFind = supplierInfo.getAccount();
-
-        final String supplierId = supplierInfo.getId();
-
-        final ExternalSupplierStatusEnum statusCurrent =
-                ExternalSupplierStatusEnum.PENDING;
-
-        final DocLog docLog = docLogService().getSuppliedDocLog(supplier,
-                accountToFind, supplierId, statusCurrent);
-
-        /*
-         * Be forgiving if no DocLog found.
-         */
-        if (docLog == null) {
-            LOGGER.error(String.format(
-                    "DocLog from External Supplier [%s] Account [%s] "
-                            + "ID [%s] Status [%s]: not found.",
-                    supplier.toString(), accountToFind, supplierId,
-                    statusCurrent.toString()));
-            return;
-        }
-
-        final ExternalSupplierStatusEnum statusNew;
-        if (isCanceled) {
-            statusNew = ExternalSupplierStatusEnum.PENDING_CANCEL;
-        } else {
-            statusNew = ExternalSupplierStatusEnum.PENDING_COMPLETE;
-        }
-
-        docLogService().updateExternalStatus(docLog, statusNew);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace(String.format(
-                    "DocLog from External Supplier [%s] Account [%s] "
-                            + "ID [%s]: changed external status [%s] to [%s]",
-                    supplier.toString(), accountToFind, supplierId,
-                    statusCurrent.toString(), statusNew.toString()));
-        }
+        throw new SpException(String.format("%s.%s is not handled.",
+                ExternalSupplierInfo.class.getSimpleName(),
+                supplier.toString()));
     }
 
     @Override

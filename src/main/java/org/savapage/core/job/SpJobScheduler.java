@@ -56,8 +56,6 @@ import org.savapage.core.print.gcp.GcpPrinter;
 import org.savapage.core.print.imap.ImapPrinter;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
-import org.savapage.ext.smartschool.SmartschoolPrinter;
-import org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,13 +187,6 @@ public final class SpJobScheduler {
             }
 
             /*
-             * SmartSchool active and enabled?
-             */
-            if (ConfigManager.isSmartSchoolPrintActiveAndEnabled()) {
-                scheduleOneShotSmartSchoolPrintMonitor(false, 1L);
-            }
-
-            /*
              * Google Cloud Print enabled AND configured?
              */
             if (ConfigManager.isGcpEnabled() && GcpPrinter.isConfigured()) {
@@ -281,11 +272,6 @@ public final class SpJobScheduler {
                  * Wait for PaperCut Print Monitor to finish...
                  */
                 interruptPaperCutPrintMonitor();
-
-                /*
-                 * Wait for SmartSchoolListener to finish...
-                 */
-                interruptSmartSchoolPoller();
 
                 /*
                  * The 'true' parameters makes the shutdown call block till all
@@ -400,11 +386,6 @@ public final class SpJobScheduler {
 
         case PRINTER_SNMP:
             jobClass = org.savapage.core.job.PrinterSnmpJob.class;
-            break;
-
-        case SMARTSCHOOL_PRINT_MONITOR_JOB:
-            jobClass =
-                    org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class;
             break;
 
         default:
@@ -655,29 +636,6 @@ public final class SpJobScheduler {
      *
      * @param milliSecondsFromNow
      */
-    public void scheduleOneShotSmartSchoolPrintMonitor(final boolean simulate,
-            final long milliSecondsFromNow) {
-
-        final JobDataMap data = new JobDataMap();
-
-        data.put(SmartschoolPrintMonitorJob.ATTR_SIMULATION,
-                Boolean.valueOf(simulate));
-
-        final JobDetail job = newJob(
-                org.savapage.ext.smartschool.job.SmartschoolPrintMonitorJob.class)
-                        .withIdentity(SpJobType.SMARTSCHOOL_PRINT_MONITOR_JOB
-                                .toString(), JOB_GROUP_ONESHOT)
-                        .usingJobData(data).build();
-
-        rescheduleOneShotJob(job, milliSecondsFromNow);
-
-        SmartschoolPrinter.setOnline(true);
-    }
-
-    /**
-     *
-     * @param milliSecondsFromNow
-     */
     public void scheduleOneShotGcpListener(final long milliSecondsFromNow) {
 
         final JobDataMap data = new JobDataMap();
@@ -816,16 +774,6 @@ public final class SpJobScheduler {
      */
     public static boolean interruptGcpListener() {
         return instance().interruptJob(SpJobType.GCP_LISTENER_JOB,
-                JOB_GROUP_ONESHOT);
-    }
-
-    /**
-     * @return {@code true} if at least one instance of the identified job was
-     *         found and interrupted.
-     */
-    public static boolean interruptSmartSchoolPoller() {
-        SmartschoolPrinter.setOnline(false);
-        return instance().interruptJob(SpJobType.SMARTSCHOOL_PRINT_MONITOR_JOB,
                 JOB_GROUP_ONESHOT);
     }
 

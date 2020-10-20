@@ -86,7 +86,6 @@ import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
 import org.savapage.core.services.helpers.PdfRepairEnum;
 import org.savapage.core.util.DateUtil;
-import org.savapage.ext.smartschool.SmartschoolPrintInData;
 
 /**
  *
@@ -1550,17 +1549,7 @@ public final class DocLogServiceImpl extends AbstractService
                 continue;
             }
 
-            if (supplier == ExternalSupplierEnum.SMARTSCHOOL) {
-                /*
-                 * Same document ID can be used by different accounts from same
-                 * Supplier: find the right one.
-                 */
-                final SmartschoolPrintInData data = SmartschoolPrintInData
-                        .createFromData(docLog.getExternalData());
-                if (data != null && data.getAccount().equals(supplierAccount)) {
-                    docLogId = docLog.getId();
-                }
-            } else if (supplier == ExternalSupplierEnum.IPP_CLIENT) {
+            if (supplier == ExternalSupplierEnum.IPP_CLIENT) {
                 docLogId = docLog.getId();
             }
 

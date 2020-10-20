@@ -215,15 +215,6 @@ public interface QueueService {
     boolean isMailPrintQueue(IppQueue queue);
 
     /**
-     * Does {@link IppQueue} represent the SmartSchool queue.
-     *
-     * @param queue
-     *            The {@link IppQueue} .
-     * @return {@code true} when queue represents the SmartSchool queue.
-     */
-    boolean isSmartSchoolQueue(IppQueue queue);
-
-    /**
      * Does {@link IppQueue} represent the Web Print queue.
      *
      * @param queue

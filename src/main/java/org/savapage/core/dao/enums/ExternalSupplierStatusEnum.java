@@ -28,11 +28,9 @@ import java.util.Locale;
 
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.util.LocaleHelper;
-import org.savapage.ext.smartschool.SmartschoolPrintStatusEnum;
 
 /**
- * Generic status of (proxy) print request from External Supplier. Also see
- * {@link SmartschoolPrintStatusEnum}.
+ * Generic status of (proxy) print request from External Supplier.
  * <ul>
  * <li>Do NOT changes enum names since they are stored in the database.</li>
  * <li>Enum names must fit the size of the

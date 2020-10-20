@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -65,6 +65,7 @@ public enum ReservedIppQueueEnum {
     /**
      * The dedicated queue for driverless Google Cloud printing.
      */
+    @Deprecated
     GCP("gcp", "Google Cloud Printer", false),
 
     /**
@@ -76,11 +77,6 @@ public enum ReservedIppQueueEnum {
      * The dedicated raw queue (JetDirect) for driver printing.
      */
     RAW_PRINT("raw", "Raw Printer", true),
-
-    /**
-     * The dedicated queue for driverless SmartSchool printing.
-     */
-    SMARTSCHOOL("smartschool", "SmartSchool Printer", false),
 
     /**
      * The dedicated queue for driverless Web printing.

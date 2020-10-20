@@ -7,10 +7,6 @@ Files: src/main/java/META-INF/MANIFEST.MF
 Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
 License: CC0-1.0
 
-Files: src/main/java/org/savapage/ext/smartschool/*.*
-Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
-License: AGPL-3.0-or-later
-
 Files: src/main/java/org/savapage/core/print/gcp/*.*
 Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
 License: AGPL-3.0-or-later

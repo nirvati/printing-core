@@ -138,7 +138,6 @@ import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.savapage.ext.papercut.PaperCutHelper;
 import org.savapage.ext.papercut.PaperCutIntegrationEnum;
-import org.savapage.ext.smartschool.SmartschoolPrintInData;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1751,22 +1750,6 @@ public final class JobTicketServiceImpl extends AbstractService
                     supplierInfo = paperCutService()
                             .createExternalSupplierInfo(request);
                     extSupplierRetry = ExternalSupplierEnum.SAVAPAGE;
-
-                } else if (extSupplierCurrent == ExternalSupplierEnum.SMARTSCHOOL) {
-
-                    supplierInfo = new ExternalSupplierInfo();
-                    supplierInfo.setSupplier(extSupplierCurrent);
-                    supplierInfo.setId(docLog.getExternalId());
-                    supplierInfo.setStatus(docLog.getExternalStatus());
-
-                    final SmartschoolPrintInData extData =
-                            SmartschoolPrintInData
-                                    .createFromData(docLog.getExternalData());
-
-                    supplierInfo.setData(extData);
-                    supplierInfo.setAccount(extData.getAccount());
-
-                    extSupplierRetry = extSupplierCurrent;
 
                 } else {
                     throw new IllegalStateException(

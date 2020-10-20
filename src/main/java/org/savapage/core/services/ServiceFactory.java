@@ -25,8 +25,6 @@
 package org.savapage.core.services;
 
 import org.savapage.ext.papercut.services.PaperCutService;
-import org.savapage.ext.smartschool.services.SmartschoolProxyService;
-import org.savapage.ext.smartschool.services.SmartschoolService;
 
 /**
  *
@@ -213,20 +211,6 @@ public interface ServiceFactory {
      * @return The singleton.
      */
     RfIdReaderService getRfIdReaderService();
-
-    /**
-     * Gets the {@link SmartschoolService} singleton.
-     *
-     * @return The singleton.
-     */
-    SmartschoolService getSmartSchoolService();
-
-    /**
-     * Gets the {@link SmartschoolProxyService} singleton.
-     *
-     * @return The singleton.
-     */
-    SmartschoolProxyService getSmartSchoolProxyService();
 
     /**
      * Gets the {@link SnmpRetrieveService} singleton.

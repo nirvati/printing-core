@@ -119,11 +119,6 @@ public enum SpJobType {
     PRINTER_SNMP,
 
     /**
-     * @deprecated SmartSchool.
-     */
-    SMARTSCHOOL_PRINT_MONITOR_JOB,
-
-    /**
      * Mail Print.
      */
     IMAP_LISTENER_JOB,
@@ -131,6 +126,7 @@ public enum SpJobType {
     /**
      * Google Cloud Print: listen to incoming jobs.
      */
+    @Deprecated
     GCP_LISTENER_JOB,
 
     /**
@@ -138,6 +134,7 @@ public enum SpJobType {
      * registration (the poll will be a success when the user submits the
      * registration_token of the registered printer within x seconds).
      */
+    @Deprecated
     GCP_POLL_FOR_AUTH_CODE
 
 }
