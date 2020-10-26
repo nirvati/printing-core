@@ -13,11 +13,11 @@ License: AGPL-3.0-or-later
 
 Files: src/test/resources/*.csv
 Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
-License: CC-BY-NC-SA-4.0
+License: CC-BY-SA-4.0
 
 Files: src/main/java/org/savapage/core/reports/*.png
 Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
-License: CC-BY-NC-SA-4.0
+License: CC-BY-SA-4.0
 
 Files: src/main/java/org/savapage/core/reports/template/*.jrxml
 Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
@@ -25,4 +25,4 @@ License: AGPL-3.0-or-later
 
 Files: src/main/java/org/savapage/core/template/email/savapage-*.png
 Copyright: (c) 2020 Datraverse BV <info@datraverse.com>
-License: CC-BY-NC-SA-4.0
+License: CC-BY-SA-4.0
