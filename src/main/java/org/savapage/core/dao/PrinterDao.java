@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -61,10 +61,22 @@ public interface PrinterDao extends GenericDao<Printer> {
     class ListFilter {
 
         private String containingText;
+        private String printerGroup;
         private Boolean disabled;
         private Boolean deleted;
+
+        /**
+         * {@link PrinterAttrEnum#ACCESS_INTERNAL} value to find in database.
+         * Absence in database is interpreted as "N", i.e. "public printer".
+         */
         private Boolean internal;
+
+        /**
+         * {@link PrinterAttrEnum#JOBTICKET_ENABLE} value to find in database.
+         * Absence in database is interpreted as "N".
+         */
         private Boolean jobTicket;
+
         private Boolean snmp;
 
         public String getContainingText() {
@@ -73,6 +85,14 @@ public interface PrinterDao extends GenericDao<Printer> {
 
         public void setContainingText(String containingText) {
             this.containingText = containingText;
+        }
+
+        public String getPrinterGroup() {
+            return printerGroup;
+        }
+
+        public void setPrinterGroup(String printerGroup) {
+            this.printerGroup = printerGroup;
         }
 
         public Boolean getDisabled() {
@@ -91,18 +111,38 @@ public interface PrinterDao extends GenericDao<Printer> {
             this.deleted = deleted;
         }
 
+        /**
+         * @return {@link PrinterAttrEnum#ACCESS_INTERNAL} value to find in
+         *         database. Absence in database is interpreted as "N", i.e.
+         *         "public printer".
+         */
         public Boolean getInternal() {
             return internal;
         }
 
+        /**
+         * @param internal
+         *            {@link PrinterAttrEnum#ACCESS_INTERNAL} value to find in
+         *            database. Absence in database is interpreted as "N", i.e.
+         *            "public printer".
+         */
         public void setInternal(Boolean internal) {
             this.internal = internal;
         }
 
+        /**
+         * @return {@link PrinterAttrEnum#JOBTICKET_ENABLE} value to find in
+         *         database. Absence in database is interpreted as "N".
+         */
         public Boolean getJobTicket() {
             return jobTicket;
         }
 
+        /**
+         * @param jobTicket
+         *            {@link PrinterAttrEnum#JOBTICKET_ENABLE} value to find in
+         *            database. Absence in database is interpreted as "N".
+         */
         public void setJobTicket(Boolean jobTicket) {
             this.jobTicket = jobTicket;
         }

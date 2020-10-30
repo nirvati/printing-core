@@ -37,6 +37,9 @@ import org.savapage.core.util.LocaleHelper;
 public enum AdjectiveEnum {
 
     /** */
+    ACTIVE,
+
+    /** */
     DOWLOADED, ERASED, PRINTED, RECEIVED,
 
     /** */
@@ -76,7 +79,10 @@ public enum AdjectiveEnum {
     TRANSPARENT,
 
     /** */
-    FIXED, CHANGEABLE;
+    FIXED, CHANGEABLE,
+
+    /** */
+    PUBLIC, PRIVATE;
 
     /**
      * @param locale

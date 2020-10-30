@@ -131,6 +131,8 @@ public enum NounEnum {
     /** */
     QUEUE(true),
     /** */
+    RANGE,
+    /** */
     RECTANGLE(true),
     /** */
     REFUND(true),
@@ -140,6 +142,8 @@ public enum NounEnum {
     RENDERING,
     /** */
     REPORT,
+    /** */
+    SCOPE,
     /** */
     SERVER(true),
     /** */

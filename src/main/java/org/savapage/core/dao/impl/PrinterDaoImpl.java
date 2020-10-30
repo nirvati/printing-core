@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -52,6 +52,15 @@ import org.savapage.core.json.JsonAbstractBase;
  */
 public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
         implements PrinterDao {
+
+    /** */
+    private static final String QPARM_CONTAINING_TEXT = "containingText";
+    /** */
+    private static final String QPARM_PRINTER_GROUP = "printerGroup";
+    /** */
+    private static final String QPARM_SEL_DISABLED = "selDisabled";
+    /** */
+    private static final String QPARM_SEL_DELETED = "selDeleted";
 
     @Override
     protected String getCountQuery() {
@@ -233,9 +242,9 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
 
         jpql.append("SELECT COUNT(P.id) FROM Printer P");
 
-        applyListFilter(jpql, filter);
+        this.applyListFilter(jpql, filter);
 
-        final Query query = createListQuery(jpql.toString(), filter);
+        final Query query = this.createListQuery(jpql.toString(), filter);
         final Number countResult = (Number) query.getSingleResult();
 
         return countResult.longValue();
@@ -255,7 +264,7 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
          */
         jpql.append("SELECT P FROM Printer P");
 
-        applyListFilter(jpql, filter);
+        this.applyListFilter(jpql, filter);
 
         //
         jpql.append(" ORDER BY ");
@@ -271,7 +280,7 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
         }
 
         //
-        final Query query = createListQuery(jpql.toString(), filter);
+        final Query query = this.createListQuery(jpql.toString(), filter);
 
         //
         if (startPosition != null) {
@@ -298,16 +307,21 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
         final Query query = getEntityManager().createQuery(jpql);
 
         if (filter.getContainingText() != null) {
-            query.setParameter("containingText", String.format("%%%s%%",
+            query.setParameter(QPARM_CONTAINING_TEXT, String.format("%%%s%%",
                     filter.getContainingText().toLowerCase()));
         }
 
+        if (filter.getPrinterGroup() != null) {
+            query.setParameter(QPARM_PRINTER_GROUP, String.format("%%%s%%",
+                    filter.getPrinterGroup().toLowerCase()));
+        }
+
         if (filter.getDisabled() != null) {
-            query.setParameter("selDisabled", filter.getDisabled());
+            query.setParameter(QPARM_SEL_DISABLED, filter.getDisabled());
         }
 
         if (filter.getDeleted() != null) {
-            query.setParameter("selDeleted", filter.getDeleted());
+            query.setParameter(QPARM_SEL_DELETED, filter.getDeleted());
         }
 
         return query;
@@ -369,7 +383,8 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" lower(P.displayName) like :containingText");
+            where.append(" lower(P.displayName) like :")
+                    .append(QPARM_CONTAINING_TEXT);
         }
 
         if (filter.getDisabled() != null) {
@@ -377,7 +392,7 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" P.disabled = :selDisabled");
+            where.append(" P.disabled = :").append(QPARM_SEL_DISABLED);
         }
 
         if (filter.getDeleted() != null) {
@@ -385,36 +400,52 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" P.deleted = :selDeleted");
+            where.append(" P.deleted = :").append(QPARM_SEL_DELETED);
         }
 
-        if (filter.getInternal() != null || filter.getJobTicket() != null) {
+        if (filter.getInternal() != null) {
 
             if (nWhere > 0) {
                 where.append(" AND");
             }
             nWhere++;
 
-            where.append(
-                    " P NOT IN (SELECT A.printer FROM PrinterAttr A WHERE ");
+            final boolean selectInternal = filter.getInternal().booleanValue();
 
-            int nConstraint = 0;
-
-            if (filter.getInternal() != null) {
-                applyPrinterAttrConstraint(where,
-                        PrinterAttrEnum.ACCESS_INTERNAL,
-                        !filter.getInternal().booleanValue());
-                nConstraint++;
+            if (selectInternal) {
+                where.append(
+                        " P IN (SELECT A.printer FROM PrinterAttr A WHERE ");
+                this.applyPrinterAttrConstraint(where,
+                        PrinterAttrEnum.ACCESS_INTERNAL, selectInternal);
+            } else {
+                where.append(" P NOT IN (SELECT A.printer "
+                        + "FROM PrinterAttr A WHERE ");
+                this.applyPrinterAttrConstraint(where,
+                        PrinterAttrEnum.ACCESS_INTERNAL, !selectInternal);
             }
+            where.append(")");
+        }
 
-            if (filter.getJobTicket() != null) {
-                if (nConstraint > 0) {
-                    where.append(" OR ");
-                }
-                applyPrinterAttrConstraint(where,
-                        PrinterAttrEnum.JOBTICKET_ENABLE,
-                        !filter.getJobTicket().booleanValue());
-                nConstraint++;
+        if (filter.getJobTicket() != null) {
+
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+
+            final boolean selectJobTicket =
+                    filter.getJobTicket().booleanValue();
+
+            if (selectJobTicket) {
+                where.append(
+                        " P IN (SELECT A.printer FROM PrinterAttr A WHERE ");
+                this.applyPrinterAttrConstraint(where,
+                        PrinterAttrEnum.JOBTICKET_ENABLE, selectJobTicket);
+            } else {
+                where.append(" P NOT IN (SELECT A.printer "
+                        + "FROM PrinterAttr A WHERE ");
+                this.applyPrinterAttrConstraint(where,
+                        PrinterAttrEnum.JOBTICKET_ENABLE, !selectJobTicket);
             }
             where.append(")");
         }
@@ -427,8 +458,20 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
             nWhere++;
 
             where.append(" P IN (SELECT A.printer FROM PrinterAttr A WHERE ");
-            applyPrinterAttrConstraint(where, PrinterAttrEnum.SNMP_DATE);
+            this.applyPrinterAttrConstraint(where, PrinterAttrEnum.SNMP_DATE);
             where.append(")");
+        }
+
+        if (filter.getPrinterGroup() != null) {
+
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+
+            where.append(" P IN (SELECT M.printer FROM PrinterGroupMember M"
+                    + " WHERE M.group.groupName like :")
+                    .append(QPARM_PRINTER_GROUP).append(")");
         }
 
         //
