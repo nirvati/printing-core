@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: © 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,11 @@
  * address: info@datraverse.com
  */
 package org.savapage.core.dao.enums;
+
+import java.util.Locale;
+
+import org.savapage.core.i18n.NounEnum;
+import org.savapage.core.util.LocaleHelper;
 
 /**
  *
@@ -46,6 +51,11 @@ public enum AppLogLevelEnum {
      */
     ERROR;
 
+    /**
+     * @param dbName
+     *            The value as used in the database.
+     * @return Enum.
+     */
     public static AppLogLevelEnum asEnum(final String dbName) {
         return AppLogLevelEnum.valueOf(dbName);
     }
@@ -55,6 +65,23 @@ public enum AppLogLevelEnum {
      */
     public String getDbName() {
         return this.toString();
+    }
+
+    /**
+     * @param locale
+     *            The {@link Locale}.
+     * @return The localized text.
+     */
+    public String uiText(final Locale locale) {
+
+        switch (this) {
+        case WARN:
+            return NounEnum.WARNING.uiText(locale);
+        case ERROR:
+            return NounEnum.ERROR.uiText(locale);
+        default:
+            return LocaleHelper.uiText(this, locale);
+        }
     }
 
 }

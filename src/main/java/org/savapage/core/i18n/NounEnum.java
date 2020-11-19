@@ -38,6 +38,8 @@ public enum NounEnum {
 
     /** */
     ADDRESS(true),
+    /**  */
+    ADMINISTRATOR(true),
     /** */
     ARCHIVE,
     /** */
@@ -75,6 +77,8 @@ public enum NounEnum {
     /** */
     DESTINATION,
     /** */
+    DEVICE(true),
+    /** */
     DISK_SPACE,
     /** */
     DOCUMENT(true),
@@ -85,6 +89,10 @@ public enum NounEnum {
     /** */
     EMAIL,
     /** */
+    ERROR(true),
+    /** */
+    EXPIRATION,
+    /** */
     FILE(true),
     /** */
     FILL,
@@ -92,6 +100,8 @@ public enum NounEnum {
     FONT(true),
     /** */
     GROUP(true),
+    /** */
+    ID,
     /** */
     ID_NUMBER,
     /** */
@@ -101,11 +111,17 @@ public enum NounEnum {
     /** */
     JOURNAL,
     /** */
+    KEY(true),
+    /** */
+    LEVEL(true),
+    /** */
     LINE(true),
     /** */
     LOCATION,
     /** */
     MANUFACTURER(true),
+    /** */
+    MESSAGE(true),
     /** */
     MODE(true),
     /** As in Type/Model. */
@@ -122,6 +138,8 @@ public enum NounEnum {
     PASSWORD(true),
     /** */
     PERIOD(true),
+    /** */
+    PERSON(true),
     /** */
     PREFERRED_LIST,
     /** */
@@ -142,6 +160,8 @@ public enum NounEnum {
     RENDERING,
     /** */
     REPORT,
+    /** */
+    ROLE(true),
     /** */
     SCOPE,
     /** */
@@ -175,7 +195,11 @@ public enum NounEnum {
     /** */
     TYPE(true),
     /** */
+    VALUE(true),
+    /** */
     VERIFICATION,
+    /** */
+    WARNING(true),
     /** */
     WIDTH,
     /** */
