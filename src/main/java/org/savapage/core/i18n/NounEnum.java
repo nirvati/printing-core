@@ -40,6 +40,8 @@ public enum NounEnum {
     ADDRESS(true),
     /**  */
     ADMINISTRATOR(true),
+    /**  */
+    ALIAS(true),
     /** */
     ARCHIVE,
     /** */

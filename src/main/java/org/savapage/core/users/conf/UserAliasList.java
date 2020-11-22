@@ -27,7 +27,9 @@ package org.savapage.core.users.conf;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -40,27 +42,31 @@ public final class UserAliasList extends ConfFileReader {
      * The SingletonHolder is loaded on the first execution of
      * {@link UserAliasList#instance()} or the first access to
      * {@link SingletonHolder#INSTANCE}, not before.
-     * <p>
-     * <a href=
-     * "http://en.wikipedia.org/wiki/Singleton_pattern#The_solution_of_Bill_Pugh"
-     * >The Singleton solution of Bill Pugh</a>
-     * </p>
      */
     private static class SingletonHolder {
+        /** */
         public static final UserAliasList INSTANCE = new UserAliasList();
     }
 
     /**
-     * Key: alias name, Value: user name
+     * Key: alias name, Value: user name.
      */
     private final Map<String, String> myAliasUser =
             new HashMap<String, String>();
 
     /**
+     * Key: user name, Value: aliases.
+     */
+    private final Map<String, Set<String>> myUserAliases =
+            new HashMap<String, Set<String>>();
+
+    /** */
+    private static final Set<String> EMPTY_SET = new HashSet<>();
+
+    /**
      *
      */
     private UserAliasList() {
-
     }
 
     /**
@@ -73,8 +79,26 @@ public final class UserAliasList extends ConfFileReader {
     }
 
     @Override
-    protected void onItem(final String key, final String value) {
-        myAliasUser.put(key, value);
+    protected void onItem(final String alias, final String userid) {
+
+        /*
+         * If alias is already assigned to a user, remove it from their alias
+         * list.
+         */
+        final String useridCur = this.myAliasUser.get(alias);
+        if (useridCur != null) {
+            this.myUserAliases.get(useridCur).remove(alias);
+        }
+
+        //
+        Set<String> userAliases = this.myUserAliases.get(userid);
+        if (userAliases == null) {
+            userAliases = new HashSet<String>();
+        }
+        userAliases.add(alias);
+
+        this.myAliasUser.put(alias, userid);
+        this.myUserAliases.put(userid, userAliases);
     }
 
     /**
@@ -86,9 +110,10 @@ public final class UserAliasList extends ConfFileReader {
      *             When error reading the file.
      */
     public int load(final File file) throws IOException {
-        myAliasUser.clear();
+        this.myAliasUser.clear();
+        this.myUserAliases.clear();
         this.read(file);
-        return myAliasUser.size();
+        return this.myAliasUser.size();
     }
 
     /**
@@ -100,10 +125,25 @@ public final class UserAliasList extends ConfFileReader {
      *         candidate user name if not.
      */
     public String getUserName(final String candidate) {
-        final String username = myAliasUser.get(candidate);
+        final String username = this.myAliasUser.get(candidate);
         if (username == null) {
             return candidate;
         }
         return username;
     }
+
+    /**
+     * Get the aliases for a user.
+     *
+     * @param user
+     *            The user id.
+     * @return Set of aliases (can be empty).
+     */
+    public Set<String> getUserAliases(final String user) {
+        if (this.myUserAliases.containsKey(user)) {
+            return this.myUserAliases.get(user);
+        }
+        return EMPTY_SET;
+    }
+
 }

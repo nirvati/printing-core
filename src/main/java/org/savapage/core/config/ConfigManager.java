@@ -1728,7 +1728,7 @@ public final class ConfigManager {
              */
             loadAdminProperties();
 
-            final int nAliases = initUserAliasList();
+            final int nAliases = initUserNameAliasList();
 
             if (nAliases > 0) {
                 SpInfo.instance().log(
@@ -1966,10 +1966,13 @@ public final class ConfigManager {
     }
 
     /**
+     * Loads username aliases from file.
+     *
+     * @return Number of aliases.
      * @throws IOException
      *             When IO errors reading the list.
      */
-    private int initUserAliasList() throws IOException {
+    public static int initUserNameAliasList() throws IOException {
         return UserAliasList.instance()
                 .load(new File(String.format("%s%c%s%c%s", getServerHome(),
                         File.separatorChar, ServerPathEnum.DATA_CONF.getPath(),
