@@ -52,7 +52,6 @@ import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.jpa.Printer;
-import org.savapage.core.print.gcp.GcpPrinter;
 import org.savapage.core.print.imap.ImapPrinter;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
@@ -186,13 +185,6 @@ public final class SpJobScheduler {
                 scheduleOneShotImapListener(1L);
             }
 
-            /*
-             * Google Cloud Print enabled AND configured?
-             */
-            if (ConfigManager.isGcpEnabled() && GcpPrinter.isConfigured()) {
-                scheduleOneShotGcpListener(1L);
-            }
-
         } catch (SchedulerException e) {
             throw new SpException(e.getMessage(), e);
         }
@@ -262,11 +254,6 @@ public final class SpJobScheduler {
                  * Wait for ImapListener to finish...
                  */
                 interruptImapListener();
-
-                /*
-                 * Wait for GcpListener to finish...
-                 */
-                interruptGcpListener();
 
                 /*
                  * Wait for PaperCut Print Monitor to finish...
@@ -365,14 +352,6 @@ public final class SpJobScheduler {
 
         case IMAP_LISTENER_JOB:
             jobClass = org.savapage.core.job.ImapListenerJob.class;
-            break;
-
-        case GCP_LISTENER_JOB:
-            jobClass = org.savapage.core.job.GcpListenerJob.class;
-            break;
-
-        case GCP_POLL_FOR_AUTH_CODE:
-            jobClass = org.savapage.core.job.GcpRegisterJob.class;
             break;
 
         case PAPERCUT_PRINT_MONITOR:
@@ -634,42 +613,6 @@ public final class SpJobScheduler {
 
     /**
      *
-     * @param milliSecondsFromNow
-     */
-    public void scheduleOneShotGcpListener(final long milliSecondsFromNow) {
-
-        final JobDataMap data = new JobDataMap();
-
-        final JobDetail job = newJob(org.savapage.core.job.GcpListenerJob.class)
-                .withIdentity(SpJobType.GCP_LISTENER_JOB.toString(),
-                        JOB_GROUP_ONESHOT)
-                .usingJobData(data).build();
-
-        rescheduleOneShotJob(job, milliSecondsFromNow);
-    }
-
-    /**
-     *
-     * @param milliSecondsFromNow
-     */
-    public void scheduleOneShotGcpPollForAuthCode(final String pollingUrl,
-            final Integer tokenDuration, final long milliSecondsFromNow) {
-
-        final JobDataMap data = new JobDataMap();
-
-        data.put(GcpRegisterJob.KEY_POLLING_URL, pollingUrl);
-        data.put(GcpRegisterJob.KEY_TOKEN_DURATION, tokenDuration);
-
-        final JobDetail job = newJob(org.savapage.core.job.GcpRegisterJob.class)
-                .withIdentity(SpJobType.GCP_POLL_FOR_AUTH_CODE.toString(),
-                        JOB_GROUP_ONESHOT)
-                .usingJobData(data).build();
-
-        rescheduleOneShotJob(job, milliSecondsFromNow);
-    }
-
-    /**
-     *
      * @param jobType
      * @return
      */
@@ -765,15 +708,6 @@ public final class SpJobScheduler {
     public static boolean interruptImapListener() {
         ImapPrinter.setOnline(false);
         return instance().interruptJob(SpJobType.IMAP_LISTENER_JOB,
-                JOB_GROUP_ONESHOT);
-    }
-
-    /**
-     * @return {@code true} if at least one instance of the identified job was
-     *         found and interrupted.
-     */
-    public static boolean interruptGcpListener() {
-        return instance().interruptJob(SpJobType.GCP_LISTENER_JOB,
                 JOB_GROUP_ONESHOT);
     }
 

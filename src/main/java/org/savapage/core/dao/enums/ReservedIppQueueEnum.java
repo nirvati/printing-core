@@ -63,12 +63,6 @@ public enum ReservedIppQueueEnum {
     FTP("ftp", "FTP Printer", false),
 
     /**
-     * The dedicated queue for driverless Google Cloud printing.
-     */
-    @Deprecated
-    GCP("gcp", "Google Cloud Printer", false),
-
-    /**
      * The dedicated queue for driverless IMAP mail printing.
      */
     MAILPRINT("mailprint", "Mail Printer", false),

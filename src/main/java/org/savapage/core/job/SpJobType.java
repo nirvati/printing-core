@@ -123,18 +123,4 @@ public enum SpJobType {
      */
     IMAP_LISTENER_JOB,
 
-    /**
-     * Google Cloud Print: listen to incoming jobs.
-     */
-    @Deprecated
-    GCP_LISTENER_JOB,
-
-    /**
-     * Google Cloud Print: poll for authentication_code after printer
-     * registration (the poll will be a success when the user submits the
-     * registration_token of the registered printer within x seconds).
-     */
-    @Deprecated
-    GCP_POLL_FOR_AUTH_CODE
-
 }

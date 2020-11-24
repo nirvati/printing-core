@@ -188,15 +188,6 @@ public interface QueueService {
     boolean isReservedQueue(String urlPath);
 
     /**
-     * Does {@link IppQueue} represent the GCP print queue.
-     *
-     * @param queue
-     *            The queue.
-     * @return {@code true} when queue represents the GCP print queue.
-     */
-    boolean isGcpPrintQueue(IppQueue queue);
-
-    /**
      * Does {@link IppQueue} support IPP Routing.
      *
      * @param queue

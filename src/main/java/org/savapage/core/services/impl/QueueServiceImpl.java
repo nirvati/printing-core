@@ -89,11 +89,6 @@ public final class QueueServiceImpl extends AbstractService
     }
 
     @Override
-    public boolean isGcpPrintQueue(final IppQueue queue) {
-        return queue.getUrlPath().equals(ReservedIppQueueEnum.GCP.getUrlPath());
-    }
-
-    @Override
     public boolean isMailPrintQueue(final IppQueue queue) {
         return queue.getUrlPath()
                 .equals(ReservedIppQueueEnum.MAILPRINT.getUrlPath());
@@ -286,7 +281,6 @@ public final class QueueServiceImpl extends AbstractService
 
         } else if (reservedQueue == ReservedIppQueueEnum.AIRPRINT
                 || reservedQueue == ReservedIppQueueEnum.WEBPRINT
-                || reservedQueue == ReservedIppQueueEnum.GCP
                 || reservedQueue == ReservedIppQueueEnum.MAILPRINT
                 || reservedQueue == ReservedIppQueueEnum.IPP_PRINT_INTERNET
                 || reservedQueue == ReservedIppQueueEnum.WEBSERVICE) {
@@ -370,9 +364,6 @@ public final class QueueServiceImpl extends AbstractService
         final boolean enabled;
 
         switch (queueReserved) {
-        case GCP:
-            enabled = CONFIG_MNGR.isConfigValue(Key.GCP_ENABLE);
-            break;
         case MAILPRINT:
             enabled = CONFIG_MNGR.isConfigValue(Key.PRINT_IMAP_ENABLE);
             break;

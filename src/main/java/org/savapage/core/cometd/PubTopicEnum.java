@@ -59,16 +59,6 @@ public enum PubTopicEnum {
     FEED("feed"),
 
     /**
-     * Google Cloud Print, waiting for print jobs.
-     */
-    GCP_PRINT("gcp-print"),
-
-    /**
-     * Google Cloud Print SavaPage printer registration.
-     */
-    GCP_REGISTER("gcp-register"),
-
-    /**
      * {@link URLConnection} to the internet.
      */
     INTERNET_URL_CONNECTION("url-connection"),

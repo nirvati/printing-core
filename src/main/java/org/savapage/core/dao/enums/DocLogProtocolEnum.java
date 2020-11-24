@@ -70,13 +70,11 @@ public enum DocLogProtocolEnum {
     IMAP("IMAP"),
 
     /**
-    *
-    */
+     * Google Cloud Print (DocLog history only).
+     */
     GCP("GCP");
 
-    /**
-    *
-    */
+    /** */
     private static class Lookup {
 
         /**
@@ -85,9 +83,7 @@ public enum DocLogProtocolEnum {
         private final Map<String, DocLogProtocolEnum> enumLookup =
                 new HashMap<String, DocLogProtocolEnum>();
 
-        /**
-        *
-        */
+        /** */
         public Lookup() {
             for (DocLogProtocolEnum value : DocLogProtocolEnum.values()) {
                 enumLookup.put(value.dbName, value);

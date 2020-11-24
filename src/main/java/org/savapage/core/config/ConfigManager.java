@@ -2597,14 +2597,6 @@ public final class ConfigManager {
     }
 
     /**
-     *
-     * @return
-     */
-    public static boolean isGcpEnabled() {
-        return instance().isConfigValue(Key.GCP_ENABLE);
-    }
-
-    /**
      * Tells whether the Application is part of an infrastructure that is
      * connected to the Internet.
      *

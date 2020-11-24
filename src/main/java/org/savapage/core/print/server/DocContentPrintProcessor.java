@@ -777,9 +777,8 @@ public final class DocContentPrintProcessor {
      * @param protocol
      *            The originating printing protocol.
      * @param originatorEmailAddr
-     *            MUST be present for {@link DocLogProtocolEnum#IMAP} and
-     *            {@link DocLogProtocolEnum#GCP}. For all other protocols
-     *            {@code null}.
+     *            MUST be present for {@link DocLogProtocolEnum#IMAP}. For all
+     *            other protocols {@code null}.
      * @param contentTypeProvided
      *            The content type as claimed by the provider. This parameter is
      *            {@code null} and ignored when protocol is

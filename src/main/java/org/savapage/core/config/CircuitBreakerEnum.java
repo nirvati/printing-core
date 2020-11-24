@@ -146,32 +146,6 @@ public enum CircuitBreakerEnum {
     }),
 
     /**
-     * Breaker for Google Cloud Print connectivity.
-     * <p>
-     * See {@link CircuitBreakerListenerMixin} how {@link CircuitBreaker} events
-     * are handled.
-     * </p>
-     */
-    GCP_CONNECTION(1, 60000, new CircuitBreakerListenerMixin() {
-
-        @Override
-        public boolean isLogExceptionTracktrace(CircuitBreaker breaker,
-                Exception exception) {
-            return true;
-        }
-
-        @Override
-        protected PubTopicEnum getPubTopic() {
-            return PubTopicEnum.GCP_PRINT;
-        }
-
-        @Override
-        protected String getMessageBaseKey() {
-            return "circuit-gcp-connection";
-        }
-    }),
-
-    /**
      * Breaker for {@link URLConnection} to the internet (as opposed to
      * <i>intranet</i>).
      * <p>

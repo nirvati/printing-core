@@ -892,43 +892,6 @@ public interface IConfigProp {
                 "ext.webapi.redirect.url-webapp-user", URL_VALIDATOR_OPT, ""),
 
         /**
-         * Google Cloud Print enabled (boolean).
-         */
-        GCP_ENABLE("gcp.enable", BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_OFF),
-
-        /**
-         * Max seconds to wait for a GCP connect.
-         */
-        GC_CONNECT_TIMEOUT_SECS(//
-                "gcp.connect-timeout-secs", NUMBER_VALIDATOR, "5"),
-
-        /**
-         * Max seconds to wait for a GCP event.
-         */
-        GCP_EVENT_TIMEOUT_SECS("gcp.event-timeout-secs", NUMBER_VALIDATOR, "5"),
-
-        /**
-         *
-         */
-        GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_ENABLE(//
-                "gcp.job-owner-unknown.cancel-mail.enable", BOOLEAN_VALIDATOR,
-                V_YES),
-
-        /**
-         *
-         */
-        GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_BODY(//
-                "gcp.job-owner-unknown.cancel-mail.body",
-                KeyType.LOCALIZED_MULTI_LINE),
-
-        /**
-         *
-         */
-        GCP_JOB_OWNER_UNKNOWN_CANCEL_MAIL_SUBJECT(//
-                "gcp.job-owner-unknown.cancel-mail.subject",
-                KeyType.LOCALIZED_SINGLE_LINE),
-
-        /**
          * Do we have an Internet connection?
          */
         INFRA_INTERNET_CONNECTED(//

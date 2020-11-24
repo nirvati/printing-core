@@ -41,8 +41,8 @@ public class DocContentPrintReq {
     private DocLogProtocolEnum protocol;
 
     /**
-     * MUST be present for {@link DocLogProtocolEnum#IMAP} and
-     * {@link DocLogProtocolEnum#GCP}. For all other protocols {@code null}.
+     * MUST be present for {@link DocLogProtocolEnum#IMAP}. For all other
+     * protocols {@code null}.
      */
     private String originatorEmail;
 
