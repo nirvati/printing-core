@@ -1553,6 +1553,22 @@ public final class ConfigManager {
     }
 
     /**
+     * @return Configuration categories to setup for status "ready-to-use".
+     */
+    public EnumSet<SetupNeededEnum> getReadyToUseSetupNeeded() {
+        final EnumSet<SetupNeededEnum> es =
+                EnumSet.noneOf(SetupNeededEnum.class);
+
+        if (!this.isValidValue(Key.MAIL_FROM_ADDRESS)) {
+            es.add(SetupNeededEnum.MAIL);
+        }
+        if (!this.isValidValue(Key.FINANCIAL_GLOBAL_CURRENCY_CODE)) {
+            es.add(SetupNeededEnum.CURRENCY);
+        }
+        return es;
+    }
+
+    /**
      * Checks whether the application is read-to-use.
      *
      * @return {@code true} when read-to-use.
@@ -1613,6 +1629,17 @@ public final class ConfigManager {
      */
     public ValidationResult validate(final Key key, final String value) {
         return myConfigProp.validate(key, value);
+    }
+
+    /**
+     * Checks whether the current value for a {@link Prop} key is valid.
+     * 
+     * @param key
+     *            The property key.
+     * @return {@code true} if valid.
+     */
+    public boolean isValidValue(final Key key) {
+        return this.validate(key, this.getConfigValue(key)).isValid();
     }
 
     /**

@@ -67,6 +67,8 @@ public enum NounEnum {
     /** */
     CREDIT_LIMIT,
     /** */
+    CURRENCY,
+    /** */
     DATABASE,
     /** */
     DATE(true),
@@ -120,6 +122,8 @@ public enum NounEnum {
     LINE(true),
     /** */
     LOCATION,
+    /** */
+    MAIL,
     /** */
     MANUFACTURER(true),
     /** */
