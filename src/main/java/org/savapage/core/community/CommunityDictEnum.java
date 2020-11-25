@@ -124,6 +124,9 @@ public enum CommunityDictEnum {
     RESTFUL_PRINT("RESTful Print"),
 
     /** */
+    DELEGATED_PRINT,
+
+    /** */
     ECO_PRINT,
 
     /** */
