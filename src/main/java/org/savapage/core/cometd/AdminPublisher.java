@@ -34,8 +34,8 @@ import org.cometd.bayeux.Message;
 import org.cometd.bayeux.client.ClientSession;
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.client.BayeuxClient;
+import org.cometd.client.http.jetty.JettyHttpClientTransport;
 import org.cometd.client.transport.ClientTransport;
-import org.cometd.client.transport.LongPollingTransport;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.savapage.common.dto.CometdConnectDto;
@@ -160,7 +160,7 @@ public final class AdminPublisher extends CometdClientMixin {
         final Map<String, Object> options = new HashMap<String, Object>();
 
         final ClientTransport transport =
-                new LongPollingTransport(options, httpClient);
+                new JettyHttpClientTransport(options, httpClient);
 
         //
         myClientSession = new BayeuxClient(clientUrl.toString(), transport);
