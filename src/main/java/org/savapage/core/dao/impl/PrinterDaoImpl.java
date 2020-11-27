@@ -383,8 +383,10 @@ public final class PrinterDaoImpl extends GenericDaoImpl<Printer>
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" lower(P.displayName) like :")
-                    .append(QPARM_CONTAINING_TEXT);
+            where.append(" (").append("lower(P.displayName) like :")
+                    .append(QPARM_CONTAINING_TEXT)
+                    .append(" OR lower(P.printerName) like :")
+                    .append(QPARM_CONTAINING_TEXT).append(")");
         }
 
         if (filter.getDisabled() != null) {
