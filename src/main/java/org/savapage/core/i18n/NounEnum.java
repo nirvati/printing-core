@@ -46,6 +46,10 @@ public enum NounEnum {
     ARCHIVE,
     /** */
     AUTHENTICATION,
+    /** */
+    AUTHOR,
+    /** */
+    BACKGROUND,
     /** Financial position. */
     BALANCE,
     /** */
@@ -93,6 +97,8 @@ public enum NounEnum {
     /** */
     EMAIL,
     /** */
+    ENCRYPTION,
+    /** */
     ERROR(true),
     /** */
     EXPIRATION,
@@ -102,6 +108,8 @@ public enum NounEnum {
     FILL,
     /** */
     FONT(true),
+    /** */
+    FOREGROUND,
     /** */
     GROUP(true),
     /** */
@@ -116,6 +124,12 @@ public enum NounEnum {
     JOURNAL,
     /** */
     KEY(true),
+    /** */
+    KEYWORD(true),
+    /** */
+    LAYOUT,
+    /** */
+    LETTERHEAD(true),
     /** */
     LEVEL(true),
     /** */
@@ -146,6 +160,8 @@ public enum NounEnum {
     PERIOD(true),
     /** */
     PERSON(true),
+    /** */
+    POSITION,
     /** */
     PREFERRED_LIST,
     /** */
@@ -184,6 +200,8 @@ public enum NounEnum {
     STATISTICS,
     /** */
     STATUS,
+    /** */
+    SUBJECT,
     /** */
     TERMINAL(true),
     /** */

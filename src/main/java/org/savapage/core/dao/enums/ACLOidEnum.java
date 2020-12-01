@@ -32,6 +32,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.savapage.core.i18n.NounEnum;
 import org.savapage.core.util.LocaleHelper;
 
 /**
@@ -234,7 +235,12 @@ public enum ACLOidEnum {
      * @return The localized text.
      */
     public String uiText(final Locale locale) {
-        return LocaleHelper.uiText(this, locale);
+        switch (this) {
+        case U_LETTERHEAD:
+            return NounEnum.LETTERHEAD.uiText(locale);
+        default:
+            return LocaleHelper.uiText(this, locale);
+        }
     }
 
     /**
