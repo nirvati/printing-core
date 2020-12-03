@@ -3095,6 +3095,13 @@ public interface IConfigProp {
                 "webapp.card-assoc.dialog-max-secs", NUMBER_VALIDATOR, "30"),
 
         /**
+         * Enable default WebApp style.
+         */
+        WEBAPP_STYLE_DEFAULT(//
+                Key.WEBAPP_STYLE_PFX + "default.enable", BOOLEAN_VALIDATOR,
+                V_YES, API_UPDATABLE_ON),
+
+        /**
          * The custom jQuery Mobile Theme CSS file for the Admin Web App as
          * present in the {@code server/custom/web/themes/} folder.
          */
@@ -3382,6 +3389,11 @@ public interface IConfigProp {
         WEBSERVER_HTTP_HEADER_XFF_PROXIES_ALLOWED(//
                 "webserver.http.header.xff.proxies.allowed",
                 CIDR_RANGES_VALIDATOR_OPT, API_UPDATABLE_ON);
+
+        /**
+         * Prefix for Web App style keys.
+         */
+        public final static String WEBAPP_STYLE_PFX = "webapp.style.";
 
         /**
          * Prefix for Web App theme keys.
