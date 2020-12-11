@@ -604,6 +604,11 @@ public final class InboxPageImageChunker {
                 jobChunkWlk.getOverlay() != null && jobChunkWlk.getOverlay()
                         .containsKey(Integer.valueOf(pageUrlParmChunkWlk))));
 
+        if (pageTmp.getOverlay()) {
+            pageTmp.setOverlaySVG64(jobChunkWlk.getOverlay()
+                    .get(Integer.valueOf(pageUrlParmChunkWlk)).getSvg64());
+        }
+
         pageTmp.setMedia(jobChunkWlk.getMedia());
         pageTmp.setPages(nChunkedPagesWlk);
         pageTmp.setOverlayPages(nChunkedOverlayPagesWlk);

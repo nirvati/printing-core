@@ -157,6 +157,7 @@ public final class PageImages {
         private String rotate;
         private Boolean drm;
         private Boolean overlay;
+        private String overlaySVG64;
         private String media;
         private Long expiryTime;
         private Long expiryTimeSignal;
@@ -220,6 +221,14 @@ public final class PageImages {
 
         public void setOverlay(Boolean overlay) {
             this.overlay = overlay;
+        }
+
+        public String getOverlaySVG64() {
+            return overlaySVG64;
+        }
+
+        public void setOverlaySVG64(String overlaySVG64) {
+            this.overlaySVG64 = overlaySVG64;
         }
 
         public String getMedia() {
