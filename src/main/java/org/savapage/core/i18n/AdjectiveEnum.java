@@ -88,7 +88,13 @@ public enum AdjectiveEnum {
     OPEN, CLOSED,
 
     /** */
-    PUBLIC, PRIVATE;
+    PUBLIC, PRIVATE,
+
+    /** */
+    EDITED, SELECTED, CUT, COPIED, PASTED,
+
+    /** */
+    HELD, RELEASED;
 
     /**
      * @param locale

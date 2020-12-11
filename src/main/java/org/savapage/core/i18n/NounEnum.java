@@ -155,6 +155,8 @@ public enum NounEnum {
     /** */
     OUTPUT,
     /** */
+    PAGE(true),
+    /** */
     PASSWORD(true),
     /** */
     PERIOD(true),
