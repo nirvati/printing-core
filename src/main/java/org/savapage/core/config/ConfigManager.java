@@ -2525,12 +2525,12 @@ public final class ConfigManager {
     }
 
     /**
-     * @return {@code true} if SafePages overlay editor is enabled <i>and</i>
-     *         SVG to PDF converter is installed.
+     * @return {@code true} if SavaPageDraw is enabled <i>and</i> SVG to PDF
+     *         converter is installed.
      */
-    public static boolean isPdfOverlayEditorEnabled() {
+    public static boolean isSavaPageDrawEnabled() {
         return instance()
-                .isConfigValue(Key.WEBAPP_USER_PAGE_BROWSER_CANVAS_ENABLE)
+                .isConfigValue(Key.WEBAPP_USER_PAGE_BROWSER_DRAW_ENABLE)
                 && SystemInfo.isRSvgConvertInstalled();
     }
 
