@@ -46,6 +46,7 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.doc.PdfToPgpSignedPdf;
+import org.savapage.core.dto.UserIdDto;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
 import org.savapage.core.inbox.InboxInfoDto;
@@ -533,6 +534,10 @@ public abstract class AbstractPdfCreator {
                 this.isForPrinting && createReq.isForPrintingFillerPages()
                         && INBOX_SERVICE.isInboxVanilla(inboxInfo);
 
+        final boolean isPageOverlayAllowed =
+                USER_SERVICE.hasSavaPageDrawPermission(
+                        UserIdDto.create(createReq.getUserObj()));
+
         final int nJobRangeTot = pages.size();
         int nJobRangeWlk = 0;
         int totFillerPages = 0;
@@ -615,18 +620,21 @@ public abstract class AbstractPdfCreator {
                     final int nPageTo = rangeAtom.pageEnd;
                     final int nPagesinAtom = nPageTo - nPageFrom + 1;
 
-                    // Traverse page-by-page to find page overlay.
-                    for (int i = nPageFrom - 1; i < nPageTo; i++) {
-                        nPageOverlayWlk++;
-                        if (pdfPageOverlayWlk != null
-                                && !pdfPageOverlayWlk.isEmpty()) {
-                            final InboxInfoDto.PageOverlay pageOverlay =
-                                    pdfPageOverlayWlk.get(Integer.valueOf(i));
-                            if (pageOverlay != null
-                                    && pageOverlay.getSvg64() != null) {
-                                pageOverlayMap.put(
-                                        Integer.valueOf(nPageOverlayWlk),
-                                        pageOverlay.getSvg64());
+                    if (isPageOverlayAllowed) {
+                        // Traverse page-by-page to find page overlay.
+                        for (int i = nPageFrom - 1; i < nPageTo; i++) {
+                            nPageOverlayWlk++;
+                            if (pdfPageOverlayWlk != null
+                                    && !pdfPageOverlayWlk.isEmpty()) {
+                                final InboxInfoDto.PageOverlay pageOverlay =
+                                        pdfPageOverlayWlk
+                                                .get(Integer.valueOf(i));
+                                if (pageOverlay != null
+                                        && pageOverlay.getSvg64() != null) {
+                                    pageOverlayMap.put(
+                                            Integer.valueOf(nPageOverlayWlk),
+                                            pageOverlay.getSvg64());
+                                }
                             }
                         }
                     }

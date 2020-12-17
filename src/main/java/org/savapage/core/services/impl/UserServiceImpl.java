@@ -71,6 +71,7 @@ import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.UserEmailDao;
 import org.savapage.core.dao.UserGroupDao;
 import org.savapage.core.dao.enums.ACLOidEnum;
+import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.dao.helpers.PGPPubRingKeyDto;
@@ -3725,6 +3726,13 @@ public final class UserServiceImpl extends AbstractService
     @Override
     public User lockUser(final Long id) {
         return userDAO().lock(id);
+    }
+
+    @Override
+    public boolean hasSavaPageDrawPermission(final UserIdDto dto) {
+        final boolean isUserInboxEditor = accessControlService().hasPermission(
+                dto, ACLOidEnum.U_INBOX, ACLPermissionEnum.EDITOR);
+        return isUserInboxEditor && ConfigManager.isSavaPageDrawEnabled();
     }
 
 }

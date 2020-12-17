@@ -84,6 +84,14 @@ public interface UserService {
     boolean hasAssocPrimaryCard(User user);
 
     /**
+     * @param dto
+     *            {@link UserIdDto}.
+     * @return {@code true} if SavaPage Draw is active and user has permission
+     *         SafaPages edit permission.
+     */
+    boolean hasSavaPageDrawPermission(UserIdDto dto);
+
+    /**
      *
      * @param user
      *            The {@link User}.
