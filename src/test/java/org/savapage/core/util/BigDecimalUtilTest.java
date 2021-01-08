@@ -1,9 +1,9 @@
 /*
  * This file is part of the SavaPage project <https://www.savapage.org>.
- * Copyright (c) 2011-2020 Datraverse B.V.
+ * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
- * SPDX-FileCopyrightText: 2011-2020 Datraverse B.V. <info@datraverse.com>
+ * SPDX-FileCopyrightText: 2020 Datraverse B.V. <info@datraverse.com>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * This program is free software: you can redistribute it and/or modify
@@ -41,61 +41,43 @@ import org.junit.Test;
  */
 public class BigDecimalUtilTest {
 
-    final static String EURO = "€";
-
     @Test
     public void test1() throws ParseException {
 
-        final String decimal = "2.343.298,09324798";
-        final String decimalCurrency = EURO + " " + decimal;
         final Locale locale = new Locale("nl", "NL");
+        final String decimalNL = "2.343.298,09324798";
 
-        BigDecimal bigDecimal;
+        final BigDecimal bigDecimal =
+                BigDecimalUtil.parse(decimalNL, locale, false, true);
 
-        bigDecimal = BigDecimalUtil.parse(decimal, locale, false, true);
         assertEquals(BigDecimalUtil.localize(bigDecimal, 8, locale, true),
-                decimal);
-
-        bigDecimal = BigDecimalUtil.parse(decimalCurrency, locale, true, true);
-        assertEquals(
-                BigDecimalUtil.localize(bigDecimal, 8, locale, true, true),
-                decimalCurrency);
-
+                decimalNL);
     }
 
     @Test
     public void test1a() throws ParseException {
 
-        final String decimal = "2343298,09324798";
-        final String decimalCurrency = EURO + " " + decimal;
         final Locale locale = new Locale("nl", "NL");
+        final String decimal = "2343298,09324798";
 
-        BigDecimal bigDecimal;
+        final BigDecimal bigDecimal =
+                BigDecimalUtil.parse(decimal, locale, false, false);
 
-        bigDecimal = BigDecimalUtil.parse(decimal, locale, false, false);
         assertEquals(BigDecimalUtil.localize(bigDecimal, 8, locale, false),
                 decimal);
-
-        bigDecimal = BigDecimalUtil.parse(decimalCurrency, locale, true, false);
-        assertEquals(
-                BigDecimalUtil.localize(bigDecimal, 8, locale, true, false),
-                decimalCurrency);
-
     }
 
     @Test
     public void test2() throws ParseException {
 
-        BigDecimal bigDecimal;
-        String strDecimal;
-
         final Locale locale = new Locale("nl", "NL");
 
-        bigDecimal = new BigDecimal("10.15");
-        strDecimal = BigDecimalUtil.localize(bigDecimal, 2, locale, true, true);
+        final BigDecimal bigDecimal = new BigDecimal("10.15");
+        final String strDecimal =
+                BigDecimalUtil.localize(bigDecimal, 2, locale, true, true);
 
-        assertEquals(strDecimal, EURO + " 10,15");
-
+        assertEquals(bigDecimal,
+                BigDecimalUtil.parse(strDecimal, locale, true, true));
     }
 
     @Test
@@ -110,7 +92,6 @@ public class BigDecimalUtilTest {
         strDecimal = BigDecimalUtil.localize(bigDecimal, 2, locale, false);
 
         assertEquals(strDecimal, "10,15");
-
     }
 
     @Test
@@ -118,7 +99,6 @@ public class BigDecimalUtilTest {
 
         assertTrue(BigDecimalUtil.isValid("10.15"));
         assertFalse(BigDecimalUtil.isValid("10,15"));
-
     }
 
     @Test
@@ -126,14 +106,12 @@ public class BigDecimalUtilTest {
 
         final Locale locale = new Locale("en");
 
-        String strDecimal =
-                BigDecimalUtil.parse("10,15", locale, false, true)
-                        .toPlainString();
+        String strDecimal = BigDecimalUtil.parse("10,15", locale, false, true)
+                .toPlainString();
         assertEquals(strDecimal, "1015");
 
         assertTrue(BigDecimalUtil.isValid("10.15", locale, true));
         assertTrue(BigDecimalUtil.isValid("10,15", locale, true));
-
     }
 
     @Test
@@ -141,14 +119,12 @@ public class BigDecimalUtilTest {
 
         final Locale locale = new Locale("nl");
 
-        String strDecimal =
-                BigDecimalUtil.parse("10.15", locale, false, true)
-                        .toPlainString();
+        String strDecimal = BigDecimalUtil.parse("10.15", locale, false, true)
+                .toPlainString();
         assertEquals(strDecimal, "1015");
 
         assertTrue(BigDecimalUtil.isValid("10,15", locale, true));
         assertTrue(BigDecimalUtil.isValid("10.15", locale, true));
-
     }
 
     @Test
@@ -156,14 +132,12 @@ public class BigDecimalUtilTest {
 
         final Locale locale = new Locale("nl");
 
-        String strDecimal =
-                BigDecimalUtil.parse("10.15", locale, false, true)
-                        .toPlainString();
+        String strDecimal = BigDecimalUtil.parse("10.15", locale, false, true)
+                .toPlainString();
         assertEquals(strDecimal, "1015");
 
         assertTrue(BigDecimalUtil.isValid("10,15", locale, true));
         assertTrue(BigDecimalUtil.isValid("10.15", locale, true));
-
     }
 
     @Test
@@ -176,7 +150,6 @@ public class BigDecimalUtilTest {
          * Why is "10,5kanniet" and "10,kanniet,6" valid ??
          */
         // assertFalse(BigDecimalUtil.isValid("10,kanniet,6", locale, false));
-
     }
 
     @Test
@@ -201,16 +174,14 @@ public class BigDecimalUtilTest {
                 { "10.580000", "2", "10.58" },
                 //
                 { "10.000000", "2", "10.00" }
-        //
-                };
+                //
+        };
 
         for (final String[] test : strDecimalTest) {
-            final String localized =
-                    BigDecimalUtil.localizeMinimalPrecision(new BigDecimal(
-                            test[0]), Integer.valueOf(test[1]).intValue(),
-                            locale, false);
+            final String localized = BigDecimalUtil.localizeMinimalPrecision(
+                    new BigDecimal(test[0]),
+                    Integer.valueOf(test[1]).intValue(), locale, false);
             assertEquals(localized, test[2]);
         }
-
     }
 }
