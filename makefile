@@ -31,16 +31,20 @@ help:
 clean:
 	mvn clean
 
+# Mantis #1160
+.PHONY: version-info
+version-info:
+	mvn antrun:run@version-info
+
 .PHONY: package
-package:
+package: version-info
 	mvn package
 
 .PHONY: repackage
 repackage: clean package
 
 .PHONY: install
-install:
-	mvn clean install
-
-# end-of-file
+install: clean version-info
+	mvn install
 	
+# end-of-file

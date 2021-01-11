@@ -73,50 +73,60 @@
                     <!-- <optimize>true</optimize> <debug>true</debug> -->
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
-                <executions>
-                    <execution>
-                        <id>version-info</id>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <target>
-                                <echo
-                                    message="*** GENERATING VersionInfo.java ***" />
-                                <property name="_src.dir"
-                                    value="${project.build.sourceDirectory}" />
-                                <property
-                                    name="_product.package"
-                                    value="org.savapage.core" />
-                                <property
-                                    name="_product.package.path"
-                                    value="org/savapage/core" />
-                                <property name="_product.name"
-                                    value="${project.artifactId}" />
-                                <property
-                                    name="_product.license"
-                                    value="savapage" />
-                                <property
-                                    name="_product.version"
-                                    value="${project.version}" />
-                                <property name="_license.name"
-                                    value="${LICENSE_NAME}" />
-                                <property name="_license.url"
-                                    value="${LICENSE_URL}" />
-                                <ant antfile="${basedir}/build.xml">
-                                    <target name="versioninfo" />
-                                </ant>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
+        <pluginManagement>
+            <!-- Mantis #1160 -->
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>1.8</version>
+                    <executions>
+                        <execution>
+                            <id>version-info</id>
+                            <phase>generate-sources</phase>
+                            <configuration>
+                                <target>
+                                    <echo
+                                        message="*** GENERATING VersionInfo.java ***" />
+                                    <property name="_src.dir"
+                                        value="${project.build.sourceDirectory}" />
+                                    <property
+                                        name="_product.package"
+                                        value="org.savapage.core" />
+                                    <property
+                                        name="_product.package.path"
+                                        value="org/savapage/core" />
+                                    <property
+                                        name="_product.name"
+                                        value="${project.artifactId}" />
+                                    <property
+                                        name="_product.license"
+                                        value="savapage" />
+                                    <property
+                                        name="_product.version"
+                                        value="${project.version}" />
+                                    <property
+                                        name="_license.name"
+                                        value="${LICENSE_NAME}" />
+                                    <property
+                                        name="_license.url"
+                                        value="${LICENSE_URL}" />
+                                    <ant
+                                        antfile="${basedir}/build.xml">
+                                        <target
+                                            name="versioninfo" />
+                                    </ant>
+                                </target>
+                            </configuration>
+                            <goals>
+                                <goal>run</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
     <dependencies>
         <!-- LOGGING DEPENDENCIES - LOG4J -->
