@@ -3,7 +3,7 @@ Copyright (c) 2011 IETF Trust and the persons identified as
 authors of the code. All rights reserved.
 
 SPDX-FileCopyrightText: Copyright (c) 2011 IETF Trust. Johan Rydell, PortWise, Inc.
-SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+SPDX-License-Identifier: BSD-2-Clause
 
 Redistribution and use in source and binary forms, with or without
 modification, is permitted pursuant to, and subject to the license
