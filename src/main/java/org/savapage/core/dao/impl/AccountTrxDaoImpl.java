@@ -48,6 +48,7 @@ import org.savapage.core.dao.helpers.DaoBatchCommitter;
 import org.savapage.core.dao.helpers.SQLHelper;
 import org.savapage.core.dao.helpers.UserPrintOutTotalsReq;
 import org.savapage.core.dto.UserPrintOutTotalDto;
+import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
@@ -492,6 +493,9 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         jpql.append("\nWHERE");
         jpql.append("\n\tACC.accountType = '" + AccountTypeEnum.USER.toString()
                 + "'");
+
+        jpql.append("\n\tAND PO.cupsJobState = :cupsJobState");
+
         if (req.getUserGroups() != null && !req.getUserGroups().isEmpty()) {
             jpql.append("\n\tAND (");
             int i = 0;
@@ -522,6 +526,9 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         jpql.append("\n\tACC.nameLower");
 
         final Query query = getEntityManager().createQuery(jpql.toString());
+
+        query.setParameter("cupsJobState",
+                IppJobStateEnum.IPP_JOB_COMPLETED.asInteger());
 
         if (req.getTimeFrom() != null) {
             query.setParameter("timeFrom", new Date(req.getTimeFrom()));
