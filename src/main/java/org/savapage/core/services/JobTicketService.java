@@ -440,6 +440,13 @@ public interface JobTicketService extends StatefulService {
             throws IOException;
 
     /**
+     * @param number
+     *            Ticket number.
+     * @return {@code true} if present.
+     */
+    boolean isTicketNumberPresent(String number);
+
+    /**
      * Checks if job represents a reopened Job Ticket.
      *
      * @param job

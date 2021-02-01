@@ -2483,8 +2483,14 @@ public final class UserServiceImpl extends AbstractService
             final int jobPages, final int jobSheets, final long jobEsu,
             final long jobBytes) {
 
+        final int incrementJob;
+        if (jobPages < 0) {
+            incrementJob = -1;
+        } else {
+            incrementJob = 1;
+        }
         user.setNumberOfPrintOutJobs(
-                user.getNumberOfPrintOutJobs().intValue() + 1);
+                user.getNumberOfPrintOutJobs().intValue() + incrementJob);
         user.setNumberOfPrintOutPages(
                 user.getNumberOfPrintOutPages().intValue() + jobPages);
         user.setNumberOfPrintOutSheets(

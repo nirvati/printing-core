@@ -343,7 +343,10 @@ public interface PrinterService {
      * @param jobDate
      *            The date.
      * @param jobPages
-     *            The number of pages.
+     *            The number of pages. *
+     *            <p>
+     *            <i>A value LT zero signifies a print job reversal.</i>
+     *            </p>
      * @param jobSheets
      *            The number of sheets.
      * @param jobEsu

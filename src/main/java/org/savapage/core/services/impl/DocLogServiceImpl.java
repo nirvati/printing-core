@@ -35,6 +35,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,6 +60,8 @@ import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintInDeniedReasonEnum;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.i18n.AdjectiveEnum;
+import org.savapage.core.i18n.PrintOutNounEnum;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocInOut;
@@ -130,6 +133,93 @@ public final class DocLogServiceImpl extends AbstractService
     public void applyCreationDate(final DocLog docLog, final Date date) {
         docLog.setCreatedDate(date);
         docLog.setCreatedDay(DateUtils.truncate(date, Calendar.DAY_OF_MONTH));
+    }
+
+    @Override
+    public void reversePrintOutPagometers(final PrintOut printOut,
+            final Locale locale) {
+
+        final DocOut docOut = printOut.getDocOut();
+        final DocLog docLog = docOut.getDocLog();
+
+        final String actor = Entity.ACTOR_SYSTEM;
+
+        ServiceContext.setActor(actor);
+        ServiceContext.resetTransactionDate();
+
+        final Date now = ServiceContext.getTransactionDate();
+
+        final DaoContext daoContext = ServiceContext.getDaoContext();
+
+        if (!daoContext.isTransactionActive()) {
+            daoContext.beginTransaction();
+        }
+
+        boolean isCommitted = false;
+
+        final int docPages = docOut.getDocLog().getNumberOfPages();
+        final int reversedCopies = -1 * printOut.getNumberOfCopies();
+        final int reversedPages = docPages * reversedCopies;
+        final int reversedSheets = -1 * printOut.getNumberOfSheets();
+        final long reversedEsu = -1 * printOut.getNumberOfEsu();
+        final long reversedBytes = -1 * docLog.getNumberOfBytes();
+
+        try {
+            // ----- User
+            final User lockedUser = userService()
+                    .lockUser(docOut.getDocLog().getUser().getId());
+
+            userService().addPrintOutJobTotals(lockedUser, now, reversedPages,
+                    reversedSheets, reversedEsu, reversedBytes);
+            userDAO().update(lockedUser);
+
+            userService().logPrintOut(lockedUser, now, reversedPages,
+                    reversedSheets, reversedEsu, reversedBytes);
+
+            // ----- Printer
+            final Printer lockedPrinter =
+                    printerService().lockPrinter(printOut.getPrinter().getId());
+
+            printerService().addJobTotals(lockedPrinter,
+                    docLog.getCreatedDate(), reversedPages, reversedSheets,
+                    reversedEsu, reversedBytes);
+            printerDAO().update(lockedPrinter);
+
+            printerService().logPrintOut(lockedPrinter, now, reversedPages,
+                    reversedSheets, reversedEsu);
+
+            // -------------
+            daoContext.commit();
+            isCommitted = true;
+        } finally {
+            if (!isCommitted) {
+                daoContext.rollback();
+            }
+        }
+
+        // ----- Global
+        final DocLog docLogDummy = new DocLog();
+        docLogDummy.setCreatedDate(now);
+        docLogDummy.setNumberOfPages(docPages);
+        docLogDummy.setNumberOfBytes(reversedBytes);
+
+        final PrintOut printOutDummy = new PrintOut();
+        printOutDummy.setNumberOfCopies(reversedCopies);
+        printOutDummy.setNumberOfSheets(reversedSheets);
+        printOutDummy.setNumberOfEsu(reversedEsu);
+
+        final DocOut docOutDummy = new DocOut();
+        docOutDummy.setDocLog(docLogDummy);
+        docOutDummy.setPrintOut(printOutDummy);
+
+        this.commitDocOutStatsGlobal(docOutDummy);
+
+        AdminPublisher.instance().publish(PubTopicEnum.PROXY_PRINT,
+                PubLevelEnum.WARN,
+                String.format("CUPS %s #%d %s.",
+                        PrintOutNounEnum.JOB.uiText(locale).toLowerCase(),
+                        printOut.getCupsJobId(),
+                        AdjectiveEnum.REVERSED.uiText(locale).toLowerCase()));
     }
 
     @Override

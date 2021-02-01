@@ -185,6 +185,9 @@ public final class JobTicketServiceImpl extends AbstractService
     /** By UUID. */
     private ConcurrentHashMap<UUID, OutboxJobDto> jobTicketCache;
 
+    /** By Ticket ID. */
+    private ConcurrentHashMap<String, OutboxJobDto> jobTicketsByNumber;
+
     /** By Ticket Number. */
     private ConcurrentHashMap<String, OutboxJobDto> reopenedTicketCache;
 
@@ -421,6 +424,7 @@ public final class JobTicketServiceImpl extends AbstractService
         }
 
         this.jobTicketCache.put(uuid, dto);
+        this.jobTicketsByNumber.put(dto.getTicketNumber(), dto);
 
         if (this.isReopenedTicketNumber(dto.getTicketNumber())) {
             this.reopenedTicketCache.put(dto.getTicketNumber(), dto);
@@ -517,6 +521,8 @@ public final class JobTicketServiceImpl extends AbstractService
      *            This service.
      * @param jobTicketMap
      *            Cache on UUID.
+     * @param jobTicketNumbers
+     *            Cache on Ticket number
      * @param reopenedTicketCache
      *            Reopened ticket cache on Ticket number.
      * @param queueInfo
@@ -526,6 +532,7 @@ public final class JobTicketServiceImpl extends AbstractService
      */
     private static void initTicketCache(final JobTicketServiceImpl svc,
             final ConcurrentHashMap<UUID, OutboxJobDto> jobTicketMap,
+            final ConcurrentHashMap<String, OutboxJobDto> jobTicketNumbers,
             final ConcurrentHashMap<String, OutboxJobDto> reopenedTicketCache,
             final JobTicketQueueInfo queueInfo) throws IOException {
 
@@ -560,6 +567,7 @@ public final class JobTicketServiceImpl extends AbstractService
                     dto.setPrinterGroupIDs(lookupGroupIDs.get(lookupKey));
 
                     jobTicketMap.put(uuid, dto);
+                    jobTicketNumbers.put(dto.getTicketNumber(), dto);
 
                     if (svc.isReopenedTicket(dto)) {
                         reopenedTicketCache.put(dto.getTicketNumber(), dto);
@@ -601,12 +609,13 @@ public final class JobTicketServiceImpl extends AbstractService
     public void start() {
 
         this.jobTicketCache = new ConcurrentHashMap<>();
+        this.jobTicketsByNumber = new ConcurrentHashMap<>();
         this.reopenedTicketCache = new ConcurrentHashMap<>();
         this.jobTicketQueueInfo = new JobTicketQueueInfo();
 
         try {
-            initTicketCache(this, this.jobTicketCache, this.reopenedTicketCache,
-                    this.jobTicketQueueInfo);
+            initTicketCache(this, this.jobTicketCache, this.jobTicketsByNumber,
+                    this.reopenedTicketCache, this.jobTicketQueueInfo);
         } catch (IOException e) {
             throw new SpException(e.getMessage(), e);
         }
@@ -1051,6 +1060,8 @@ public final class JobTicketServiceImpl extends AbstractService
 
         final OutboxJobDto dto = this.jobTicketCache.remove(uuid);
 
+        this.jobTicketsByNumber.remove(dto.getTicketNumber());
+
         if (this.isReopenedTicketNumber(dto.getTicketNumber())) {
             this.reopenedTicketCache.remove(dto.getTicketNumber());
         }
@@ -1251,6 +1262,7 @@ public final class JobTicketServiceImpl extends AbstractService
         }
 
         this.jobTicketCache.put(uuid, dto);
+        this.jobTicketsByNumber.put(dto.getTicketNumber(), dto);
 
         if (this.isReopenedTicketNumber(dto.getTicketNumber())) {
             this.reopenedTicketCache.put(dto.getTicketNumber(), dto);
@@ -2341,6 +2353,11 @@ public final class JobTicketServiceImpl extends AbstractService
         } catch (ParseException e) {
             throw new IllegalStateException(e.getMessage());
         }
+    }
+
+    @Override
+    public boolean isTicketNumberPresent(final String number) {
+        return this.jobTicketsByNumber.containsKey(number);
     }
 
     @Override

@@ -46,7 +46,7 @@ public enum AdjectiveEnum {
     DOWLOADED, ERASED, PRINTED, RECEIVED,
 
     /** */
-    APPROVED, REJECTED,
+    APPROVED, REJECTED, REVERSED, REFUNDED,
 
     /** */
     ASCENDING, DESCENDING,
@@ -71,6 +71,9 @@ public enum AdjectiveEnum {
 
     /** */
     REPAIRED,
+
+    /** */
+    ROLLED_BACK,
 
     /** */
     PREFERRED,

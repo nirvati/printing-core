@@ -27,6 +27,7 @@ package org.savapage.core.services;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.savapage.core.cometd.AdminPublisher;
@@ -157,6 +158,17 @@ public interface DocLogService {
      *            The {@link DocOut} instance.
      */
     void logDocOut(User lockedUser, DocOut docOut);
+
+    /**
+     * Reverses PrintOut pagometers (statistics). This method holds its own
+     * database transactions.
+     *
+     * @param printOut
+     *            The {@link PrintOut} instance.
+     * @param locale
+     *            The {@link Locale} used for UI messages.
+     */
+    void reversePrintOutPagometers(PrintOut printOut, Locale locale);
 
     /**
      * Logs a {@link PrintIn} job in the database using

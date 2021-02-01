@@ -503,7 +503,13 @@ public final class PrinterServiceImpl extends AbstractService
             final int jobPages, final int jobSheets, final long jobEsu,
             final long jobBytes) {
 
-        printer.setTotalJobs(printer.getTotalJobs().intValue() + 1);
+        final int incrementJob;
+        if (jobPages < 0) {
+            incrementJob = -1;
+        } else {
+            incrementJob = 1;
+        }
+        printer.setTotalJobs(printer.getTotalJobs().intValue() + incrementJob);
 
         printer.setTotalPages(printer.getTotalPages().intValue() + jobPages);
         printer.setTotalSheets(printer.getTotalSheets().intValue() + jobSheets);

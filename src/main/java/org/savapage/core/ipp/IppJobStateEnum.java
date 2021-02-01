@@ -137,6 +137,16 @@ public enum IppJobStateEnum {
     }
 
     /**
+     * Checks if status means a job has failed.
+     *
+     * @return {@code true} when state is CANCELED or ABORTED
+     */
+    public boolean isFailure() {
+        return this.jobState == IPP_JOB_CANCELED.jobState
+                || this.jobState == IPP_JOB_ABORTED.jobState;
+    }
+
+    /**
      *
      * @return The {@link IppJobStateEnum} that is the first ordinal indicating
      *         a status that job is end-of-state.
