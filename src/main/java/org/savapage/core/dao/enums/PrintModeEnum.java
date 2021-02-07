@@ -91,4 +91,12 @@ public enum PrintModeEnum {
         return LocaleHelper.uiText(this, locale);
     }
 
+    /**
+     * @return {@code true} if one of the job tickets variants.
+     */
+    public boolean isJobTicket() {
+        return this == PrintModeEnum.TICKET || this == PrintModeEnum.TICKET_C
+                || this == PrintModeEnum.TICKET_E;
+
+    }
 }

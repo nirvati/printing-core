@@ -189,7 +189,7 @@ public class DocLog extends org.savapage.core.jpa.Entity {
      *
      */
     @Column(name = "cost_original", nullable = false, precision = 10, scale = 6)
-    private BigDecimal costOriginal = BigDecimal.ZERO;;
+    private BigDecimal costOriginal = BigDecimal.ZERO;
 
     /**
      *
@@ -204,7 +204,7 @@ public class DocLog extends org.savapage.core.jpa.Entity {
     private Boolean invoiced = true;
 
     /**
-     * for future use
+     * {@code true} if refunded or reversed.
      */
     @Column(name = "refunded", nullable = false)
     private Boolean refunded = false;

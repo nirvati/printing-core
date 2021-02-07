@@ -24,6 +24,7 @@
  */
 package org.savapage.ext.papercut.job;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.text.ParseException;
@@ -31,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -44,9 +46,12 @@ import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
+import org.savapage.core.dao.enums.PrintModeEnum;
 import org.savapage.core.job.AbstractJob;
 import org.savapage.core.job.SpJobScheduler;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.PrintOut;
+import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
@@ -376,6 +381,33 @@ public final class PaperCutPrintMonitorJob extends AbstractJob
 
         AdminPublisher.instance().publish(PubTopicEnum.PAPERCUT, pubLevel,
                 msg.toString());
+
+        /*
+         * Send user message?
+         */
+        final PrintOut printOut = docLogOut.getDocOut().getPrintOut();
+        final PrintModeEnum printMode =
+                EnumUtils.getEnum(PrintModeEnum.class, printOut.getPrintMode());
+
+        if (printMode != null && !printMode.isJobTicket()) {
+
+            final UserMsgIndicator.Msg userMsg;
+            if (printStatus.isFailure()) {
+                userMsg = UserMsgIndicator.Msg.PRINT_OUT_EXT_FAILED;
+            } else {
+                userMsg = UserMsgIndicator.Msg.PRINT_OUT_EXT_COMPLETED;
+            }
+
+            try {
+                UserMsgIndicator.write(docLogOut.getUser().getUserId(),
+                        new Date(), userMsg,
+                        docLogOut.getDocOut().getPrintOut().getId().toString());
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage());
+                AdminPublisher.instance().publish(PubTopicEnum.PAPERCUT,
+                        PubLevelEnum.ERROR, e.getMessage());
+            }
+        }
     }
 
     @Override

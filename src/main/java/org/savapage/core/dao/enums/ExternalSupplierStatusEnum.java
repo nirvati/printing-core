@@ -102,4 +102,22 @@ public enum ExternalSupplierStatusEnum {
     public String uiText(final Locale locale) {
         return LocaleHelper.uiText(this, locale);
     }
+
+    /**
+     * Checks if this status is a failure.
+     *
+     * @return {@code true} when state is CANCELED, ERROR or EXPIRED
+     */
+    public boolean isFailure() {
+        return this == CANCELLED || this == ERROR || this == EXPIRED;
+    }
+
+    /**
+     * Checks if this status is a finished.
+     *
+     * @return {@code true} when state is COMPLETED, CANCELED, ERROR or EXPIRED
+     */
+    public boolean isFinished() {
+        return this == COMPLETED || this.isFailure();
+    }
 }

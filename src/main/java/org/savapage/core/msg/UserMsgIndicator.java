@@ -43,6 +43,8 @@ import javax.persistence.Query;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.PrintOutDao;
+import org.savapage.core.i18n.AdjectiveEnum;
+import org.savapage.core.i18n.NounEnum;
 import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
@@ -53,6 +55,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.IOHelper;
 import org.savapage.core.util.Messages;
+import org.savapage.ext.papercut.services.PaperCutService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,6 +129,16 @@ public final class UserMsgIndicator {
          * A document was successfully proxy printed.
          */
         PRINT_OUT_COMPLETED,
+
+        /**
+         * External print manager successfully printed a document.
+         */
+        PRINT_OUT_EXT_COMPLETED,
+
+        /**
+         * External print manager failed to print a document.
+         */
+        PRINT_OUT_EXT_FAILED,
 
         /**
          * Proxy Print Authentication required.
@@ -517,6 +530,55 @@ public final class UserMsgIndicator {
     }
 
     /**
+     * Returns user print messages from external print manager.
+     *
+     * @param printOut
+     *            The originating {@link PrintOut}, or {@code null} if unknown.
+     * @param locale
+     *            The message locale.
+     * @param messageDate
+     *            The time of the message.
+     * @param isCompleted
+     *            {@code true} if print is completed.
+     * @return The messages.
+     */
+    public static JsonUserMsgNotification getPrintOutExtMsgNotification(
+            final PrintOut printOut, final Locale locale,
+            final Date messageDate, final boolean isCompleted) {
+
+        final JsonUserMsgNotification json = new JsonUserMsgNotification();
+        json.setMsgTime(messageDate.getTime());
+
+        final JsonUserMsg msg = new JsonUserMsg();
+        final String jobId;
+        final String printerName;
+
+        if (printOut == null) {
+            jobId = String.format("(%s)", AdjectiveEnum.EXTERNAL.uiText(locale))
+                    .toLowerCase();
+            printerName = NounEnum.PRINTER.uiText(locale).toLowerCase();
+        } else {
+            jobId = String.format("#%s", printOut.getCupsJobId().toString());
+            printerName = printOut.getPrinter().getDisplayName();
+        }
+
+        final String key;
+        if (isCompleted) {
+            msg.setLevel(JsonUserMsg.LEVEL_INFO);
+            key = "msg-print-out-completed";
+        } else {
+            msg.setLevel(JsonUserMsg.LEVEL_WARN);
+            key = "msg-print-out-canceled";
+        }
+        msg.setText(
+                localizeMsg(msg.getClass(), locale, key, jobId, printerName));
+
+        json.addUserMsg(msg);
+
+        return json;
+    }
+
+    /**
      * Returns {@link PrintIn} or {@link PrintOut} user messages AFTER prevTime
      * and TILL (including) lastTime.
      *
@@ -638,6 +700,16 @@ public final class UserMsgIndicator {
     }
 
     /**
+     * @param printOut
+     * @return
+     */
+    private static boolean isExtPaperCutPrint(final PrintOut printOut) {
+        final PaperCutService svc =
+                ServiceContext.getServiceFactory().getPaperCutService();
+        return svc.isExtPaperCutPrint(printOut.getPrinter().getPrinterName());
+    }
+
+    /**
      *
      * @param printOut
      * @param locale
@@ -663,8 +735,10 @@ public final class UserMsgIndicator {
             key = "msg-print-out-aborted";
             break;
         case IPP_JOB_COMPLETED:
-            level = JsonUserMsg.LEVEL_INFO;
-            key = "msg-print-out-completed";
+            if (!isExtPaperCutPrint(printOut)) {
+                level = JsonUserMsg.LEVEL_INFO;
+                key = "msg-print-out-completed";
+            }
             break;
         default:
             key = null;
@@ -674,8 +748,10 @@ public final class UserMsgIndicator {
         JsonUserMsg msg = null;
 
         if (key != null) {
+
             msg = new JsonUserMsg();
             msg.setLevel(level);
+
             msg.setText(localizeMsg(msg.getClass(), locale, key,
                     "#" + String.valueOf(printOut.getCupsJobId()),
                     printOut.getPrinter().getDisplayName()));
