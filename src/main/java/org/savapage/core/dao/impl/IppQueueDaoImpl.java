@@ -89,6 +89,14 @@ public final class IppQueueDaoImpl extends GenericDaoImpl<IppQueue>
     }
 
     @Override
+    public void updateDisabled(final ReservedIppQueueEnum reserved,
+            final boolean disabled) {
+        final IppQueue queue = this.find(reserved);
+        queue.setDisabled(disabled);
+        this.update(queue);
+    }
+
+    @Override
     public int pruneQueues(final DaoBatchCommitter batchCommitter) {
         /*
          * NOTE: We do NOT use bulk delete with JPQL since we want the option to
@@ -243,7 +251,7 @@ public final class IppQueueDaoImpl extends GenericDaoImpl<IppQueue>
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" Q.disabled= :selDisabled");
+            where.append(" Q.disabled = :selDisabled");
         }
 
         if (filter.getDeleted() != null) {
@@ -251,7 +259,7 @@ public final class IppQueueDaoImpl extends GenericDaoImpl<IppQueue>
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" Q.deleted= :selDeleted");
+            where.append(" Q.deleted = :selDeleted");
         }
         //
         if (nWhere > 0) {

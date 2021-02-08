@@ -162,4 +162,12 @@ public interface IppQueueDao extends GenericDao<IppQueue> {
      */
     int pruneQueues(DaoBatchCommitter batchCommitter);
 
+    /**
+     * @param reserved
+     *            Reserved queue.
+     * @param disabled
+     *            {@code} if disabled.
+     */
+    void updateDisabled(ReservedIppQueueEnum reserved, boolean disabled);
+
 }
