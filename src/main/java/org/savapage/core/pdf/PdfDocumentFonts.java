@@ -152,6 +152,7 @@ public final class PdfDocumentFonts {
         CID_TT("CID TrueType"),
         /** Placeholder for unforeseen values. */
         UNKNOWN("");
+
         /** */
         private final String text;
 
@@ -625,7 +626,8 @@ public final class PdfDocumentFonts {
      */
     public static PdfDocumentFonts create(final File file) throws IOException {
 
-        final PdfReader reader = new PdfReader(file.getAbsolutePath());
+        final PdfReader reader =
+                ITextPdfCreator.createPdfReader(file.getAbsolutePath());
         final PdfDocumentFonts info;
 
         try {

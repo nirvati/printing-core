@@ -24,8 +24,12 @@
  */
 package org.savapage.core.pdf;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+
 import org.savapage.core.json.PdfProperties;
 
+import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.PdfWriter;
 
 /**
@@ -80,4 +84,21 @@ public final class ITextHelperV2 implements ITextHelper {
 
         return iPermissions;
     }
+
+    /**
+     * Wraps creation of {@link PdfReader} to force using
+     * {@link FileInputStream} in order to prevent Java 11 stderr message
+     * "<i>WARNING: An illegal reflective access operation has occurred".</i>
+     *
+     * @param filePathPdf
+     *            PDF file path.
+     * @return {@link PdfReader}.
+     * @throws IOException
+     *             If IO error.
+     */
+    public static PdfReader createPdfReader(final String filePathPdf)
+            throws IOException {
+        return new PdfReader(new FileInputStream(filePathPdf));
+    }
+
 }

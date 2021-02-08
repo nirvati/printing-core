@@ -31,6 +31,7 @@ import java.awt.print.Paper;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -331,7 +332,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         PdfReader reader = null;
         try {
-            reader = new PdfReader(filePathPdf);
+            reader = createPdfReader(filePathPdf);
             return reader.getNumberOfPages();
         } catch (IOException e) {
             throw new SpException(e);
@@ -406,6 +407,22 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         return XfaForm.getXfaObject(reader) != null;
     }
 
+    /**
+     * Wraps creation of {@link PdfReader} to force using
+     * {@link FileInputStream} in order to prevent Java 11 stderr message
+     * "<i>WARNING: An illegal reflective access operation has occurred".</i>
+     *
+     * @param filePathPdf
+     *            PDF file path.
+     * @return {@link PdfReader}.
+     * @throws IOException
+     *             If IO error.
+     */
+    public static PdfReader createPdfReader(final String filePathPdf)
+            throws IOException {
+        return new PdfReader(new FileInputStream(filePathPdf));
+    }
+
     @Override
     public SpPdfPageProps getPageProps(final String filePathPdf)
             throws PdfSecurityException, PdfValidityException,
@@ -422,7 +439,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
              * InvalidPdfException, which are subclasses of IOException: map
              * these exception to our own variants.
              */
-            reader = new PdfReader(filePathPdf);
+            reader = createPdfReader(filePathPdf);
 
             if (reader.isEncrypted()) {
 
@@ -571,11 +588,11 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     }
 
     @Override
-    protected void onInitJob(final String jobPfdName, final Integer userRotate)
+    protected void onInitJob(final String jobPdfName, final Integer userRotate)
             throws Exception {
 
-        this.jobPdfFileWlk = new File(jobPfdName);
-        this.readerWlk = new PdfReader(jobPfdName);
+        this.jobPdfFileWlk = new File(jobPdfName);
+        this.readerWlk = createPdfReader(jobPdfName);
 
         this.jobUserRotateWlk = userRotate;
         this.jobRangesWlk = new StringBuilder();
@@ -799,7 +816,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onStampLetterhead(final String pdfLetterhead)
             throws Exception {
-        this.letterheadReader = new PdfReader(pdfLetterhead);
+        this.letterheadReader = createPdfReader(pdfLetterhead);
         this.onExitAnnotateUrls =
                 this.isAnnotateUrls && hasFonts(this.letterheadReader);
     }
@@ -925,7 +942,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
     @Override
     protected void onInitStamp() throws Exception {
-        this.readerWlk = new PdfReader(this.targetPdfCopyFilePath);
+        this.readerWlk = createPdfReader(this.targetPdfCopyFilePath);
         this.targetStamper =
                 new PdfStamper(this.readerWlk, new FileOutputStream(pdfFile));
     }
@@ -1004,7 +1021,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 tempFilePDF =
                         converter.convert(DocContentTypeEnum.SVG, tempFileSVG);
 
-                overlayReader = new PdfReader(tempFilePDF.getAbsolutePath());
+                overlayReader = createPdfReader(tempFilePDF.getAbsolutePath());
 
                 final PdfImportedPage importedPage =
                         this.targetStamper.getImportedPage(overlayReader, 1);

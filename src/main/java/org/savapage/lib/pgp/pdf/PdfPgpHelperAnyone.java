@@ -178,7 +178,8 @@ public final class PdfPgpHelperAnyone extends AbstractPdfPgpHelper {
     protected PGPPublicKeyInfo getPubKeyAuthor(final File pdfFile)
             throws IOException, PGPBaseException {
 
-        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
+        final PdfReader reader =
+                ITextHelperV2.createPdfReader(pdfFile.getAbsolutePath());
 
         try {
             final PdfDictionary root = reader.getCatalog();

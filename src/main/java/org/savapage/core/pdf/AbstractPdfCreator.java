@@ -297,14 +297,14 @@ public abstract class AbstractPdfCreator {
 
     /**
      *
-     * @param jobPfdName
+     * @param jobPdfName
      *            PDF name.
      * @param userRotate
      *            The user rotate for the job.
      * @throws Exception
      *             When errors.
      */
-    protected abstract void onInitJob(String jobPfdName, Integer userRotate)
+    protected abstract void onInitJob(String jobPdfName, Integer userRotate)
             throws Exception;
 
     /**

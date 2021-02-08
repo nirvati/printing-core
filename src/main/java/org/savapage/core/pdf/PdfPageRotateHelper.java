@@ -502,7 +502,8 @@ public final class PdfPageRotateHelper {
         PdfReader readerWlk = null;
 
         try {
-            readerWlk = new PdfReader(pdfFile.getAbsolutePath());
+            readerWlk =
+                    ITextPdfCreator.createPdfReader(pdfFile.getAbsolutePath());
 
             readerWlk.selectPages(String.valueOf(page));
 

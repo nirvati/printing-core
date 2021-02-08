@@ -44,6 +44,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.savapage.core.pdf.ITextHelperV5;
+import org.savapage.core.pdf.ITextPdfCreator;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
@@ -166,7 +167,8 @@ public final class PdfPgpHelper extends AbstractPdfPgpHelper {
     protected PGPPublicKeyInfo getPubKeyAuthor(final File pdfFile)
             throws IOException, PGPBaseException {
 
-        final PdfReader reader = new PdfReader(pdfFile.getAbsolutePath());
+        final PdfReader reader =
+                ITextPdfCreator.createPdfReader(pdfFile.getAbsolutePath());
 
         try {
             final PdfDictionary root = reader.getCatalog();
