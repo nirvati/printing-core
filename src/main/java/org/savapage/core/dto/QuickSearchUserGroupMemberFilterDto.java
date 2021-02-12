@@ -33,9 +33,14 @@ import org.savapage.core.dao.enums.ACLRoleEnum;
  */
 public class QuickSearchUserGroupMemberFilterDto extends QuickSearchFilterDto {
 
+    /** */
+    public enum UserDetail {
+        FULL, ID, NAME
+    }
+
     private Long groupId;
 
-    private Boolean hideId;
+    private UserDetail userDetail;
 
     private ACLRoleEnum aclRole;
 
@@ -53,12 +58,12 @@ public class QuickSearchUserGroupMemberFilterDto extends QuickSearchFilterDto {
         this.groupId = groupId;
     }
 
-    public Boolean getHideId() {
-        return hideId;
+    public UserDetail getUserDetail() {
+        return userDetail;
     }
 
-    public void setHideId(Boolean hideId) {
-        this.hideId = hideId;
+    public void setUserDetail(UserDetail userDetail) {
+        this.userDetail = userDetail;
     }
 
     public ACLRoleEnum getAclRole() {

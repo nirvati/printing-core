@@ -59,6 +59,8 @@ import org.savapage.core.config.validator.ValidationStatusEnum;
 import org.savapage.core.crypto.OneTimeAuthToken;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
 import org.savapage.core.dao.impl.DaoBatchCommitterImpl;
+import org.savapage.core.dto.QuickSearchFilterUserGroupDto;
+import org.savapage.core.dto.QuickSearchUserGroupMemberFilterDto;
 import org.savapage.core.dto.UserHomeStatsDto;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.imaging.Pdf2ImgCairoCmd;
@@ -1365,8 +1367,8 @@ public interface IConfigProp {
                 IMAP_MAX_FILES_V_DEFAULT.toString(), API_UPDATABLE_ON),
 
         /**
-        *
-        */
+         *
+         */
         PRINTER_SNMP_ENABLE(//
                 "printer.snmp.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
@@ -3007,16 +3009,37 @@ public interface IConfigProp {
         /**
          * User WebApp: Is userid hidden of Delegator User?
          */
+        @Deprecated
         WEBAPP_USER_PROXY_PRINT_DELEGATOR_USER_HIDE_ID(//
                 "webapp.user.proxy-print.delegator-user.hide-id",
                 BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
+         * User WebApp: Field(s) to display of Delegator User.
+         */
+        WEBAPP_USER_PROXY_PRINT_DELEGATOR_USER_DETAIL(//
+                "webapp.user.proxy-print.delegator-user.detail",
+                new EnumValidator<>(
+                        QuickSearchUserGroupMemberFilterDto.UserDetail.class),
+                QuickSearchUserGroupMemberFilterDto.UserDetail.FULL.toString()),
+
+        /**
          * User WebApp: Is group name (id) hidden of Delegator Group?
          */
+        @Deprecated
         WEBAPP_USER_PROXY_PRINT_DELEGATOR_GROUP_HIDE_ID(//
                 "webapp.user.proxy-print.delegator-group.hide-id",
                 BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+
+        /**
+         * User WebApp: Field(s) to display of Delegator Group.
+         */
+        WEBAPP_USER_PROXY_PRINT_DELEGATOR_GROUP_DETAIL(//
+                "webapp.user.proxy-print.delegator-group.detail",
+                new EnumValidator<>(
+                        QuickSearchFilterUserGroupDto.GroupDetail.class),
+                QuickSearchFilterUserGroupDto.GroupDetail.FULL.toString(),
+                API_UPDATABLE_ON),
 
         /**
          * User WebApp: enable the "Print documents separately" option for proxy

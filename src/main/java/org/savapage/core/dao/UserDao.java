@@ -53,7 +53,7 @@ public interface UserDao extends GenericDao<User> {
      * Field identifiers used for select and sort.
      */
     enum Field {
-        USERID, EMAIL
+        USERID, NAME, EMAIL
     }
 
     /** */

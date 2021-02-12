@@ -191,6 +191,8 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
 
         if (orderBy == Field.USERID) {
             jpql.append("U.userId");
+        } else if (orderBy == Field.NAME) {
+            jpql.append("U.fullName");
         } else {
             jpql.append("E.address");
         }
