@@ -123,11 +123,17 @@ public final class InboxServiceImpl implements InboxService {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(InboxServiceImpl.class);
 
-    /**
-     * .
-     */
+    /** */
     private static final EcoPrintPdfTaskService ECOPRINT_SERVICE =
             ServiceContext.getServiceFactory().getEcoPrintPdfTaskService();
+
+    /** */
+    private static final DocLogDao DOCLOG_DAO =
+            ServiceContext.getDaoContext().getDocLogDao();
+
+    /** */
+    private static final UserDao USER_DAO =
+            ServiceContext.getDaoContext().getUserDao();
 
     /**
      *
@@ -271,18 +277,12 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public InboxInfoDto getInboxInfo(final String userName) {
+    public InboxInfoDto getInboxInfo(final String userId) {
 
-        final DocLogDao doclogDao =
-                ServiceContext.getDaoContext().getDocLogDao();
+        final String workdir = ConfigManager.getUserHomeDir(userId);
 
-        final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
-
-        final String workdir = ConfigManager.getUserHomeDir(userName);
-
-        final InboxInfoDto jobinfo = readInboxInfo(userName);
-
-        int iJobOffset = jobinfo.jobCount();
+        final InboxInfoDto jobinfo = this.readInboxInfo(userId);
+        final int oldJobCount = jobinfo.jobCount();
 
         final FileFilter filefilter = new FileFilter() {
             @Override
@@ -293,96 +293,102 @@ public final class InboxServiceImpl implements InboxService {
 
         final File[] files = new File(workdir).listFiles(filefilter);
 
-        if (null != files && files.length > 0) {
-            // .....................................................
-            // SORT ascending by creation time
-            // .....................................................
-            java.util.Arrays.sort(files, new Comparator<File>() {
-                @Override
-                public int compare(final File o1, final File o2) {
-                    final Long m1 = o1.lastModified();
-                    final Long m2 = o2.lastModified();
-                    return m1.compareTo(m2);
-                }
-            });
-
-            User userObj = null;
-
-            if (iJobOffset < files.length) {
-                userObj = userDao.findActiveUserByUserId(userName);
-            }
-
-            for (int i = iJobOffset; i < files.length; i++) {
-
-                final String filePath = files[i].getAbsolutePath();
-
-                final DocLog docLog = doclogDao.findByUuid(userObj.getId(),
-                        FilenameUtils.getBaseName(filePath));
-
-                if (docLog == null) {
-                    /*
-                     * The file was not created by a printing (or another
-                     * official front-end), but must have been manually copied
-                     * to the user's SafePages.
-                     */
-                    files[i].delete();
-
-                    LOGGER.warn(
-                            "File [{}] deleted. Reason: not found in DocLog.",
-                            files[i].getAbsolutePath());
-                    continue;
-                }
-
-                final InboxInfoDto.InboxJob job = new InboxInfoDto.InboxJob();
-
-                job.setFile(FilenameUtils.getName(filePath));
-                job.setTitle(docLog.getTitle());
-                job.setCreatedTime(docLog.getCreatedDate().getTime());
-
-                job.setPages(docLog.getNumberOfPages());
-
-                /*
-                 * DRM restricted?
-                 */
-                job.setDrm(docLog.getDrmRestricted());
-
-                /*
-                 * Landscape, page rotation, content rotation, user rotate,
-                 * media.
-                 */
-                final IPdfPageProps pageProps = getPdfPageProps(filePath);
-
-                final boolean isLandscape = pageProps.isLandscape();
-                final int rotation = pageProps.getRotationFirstPage();
-                final int contentRotation =
-                        pageProps.getContentRotationFirstPage();
-
-                final Integer rotate = PdfPageRotateHelper.PDF_ROTATION_0;
-
-                job.setLandscape(Boolean.valueOf(isLandscape));
-                job.setRotation(Integer.valueOf(rotation));
-                job.setContentRotation(Integer.valueOf(contentRotation));
-                job.setRotate(rotate.toString());
-                job.setMedia(pageProps.getSize());
-                job.setLandscapeView(Boolean.valueOf(
-                        PdfPageRotateHelper.isSeenAsLandscape(contentRotation,
-                                rotation, isLandscape, rotate.intValue())));
-                // Append
-                jobinfo.getJobs().add(job);
-
-                //
-                final InboxJobRange range = new InboxInfoDto.InboxJobRange();
-
-                range.setJob(i);
-                range.setRange(RangeAtom.FULL_PAGE_RANGE);
-
-                jobinfo.getPages().add(range); // append
-            }
-
-            if (iJobOffset < files.length) {
-                storeInboxInfo(userName, jobinfo);
-            }
+        if (null == files || files.length == 0) {
+            return jobinfo;
         }
+
+        // Lookup of current jobs.
+        final Set<String> jobLookup = new HashSet<>();
+        for (final InboxInfoDto.InboxJob job : jobinfo.getJobs()) {
+            jobLookup.add(job.getFile());
+        }
+
+        // SORT ascending by time the file was last modified.
+        java.util.Arrays.sort(files, new Comparator<File>() {
+            @Override
+            public int compare(final File o1, final File o2) {
+                final Long m1 = o1.lastModified();
+                final Long m2 = o2.lastModified();
+                return m1.compareTo(m2);
+            }
+        });
+
+        int iJobNew = oldJobCount;
+        User userObj = null; // lazy init
+
+        // See Mantis #1167
+        for (final File fileWlk : files) {
+
+            final String filePath = fileWlk.getAbsolutePath();
+            final String fileName = FilenameUtils.getName(filePath);
+
+            if (jobLookup.contains(fileName)) {
+                continue;
+            }
+
+            if (userObj == null) {
+                userObj = USER_DAO.findActiveUserByUserId(userId);
+            }
+
+            final String fileBaseName = FilenameUtils.getBaseName(filePath);
+            final DocLog docLog =
+                    DOCLOG_DAO.findByUuid(userObj.getId(), fileBaseName);
+
+            if (docLog == null) {
+                /*
+                 * The file was not created by a printing (or another official
+                 * front-end), but must have been manually copied to the user's
+                 * SafePages.
+                 */
+                fileWlk.delete();
+                LOGGER.warn("File [{}] deleted. Reason: not found in DocLog.",
+                        fileWlk.getAbsolutePath());
+                continue;
+            }
+
+            final InboxInfoDto.InboxJob job = new InboxInfoDto.InboxJob();
+
+            job.setFile(fileName);
+            job.setTitle(docLog.getTitle());
+            job.setCreatedTime(Long.valueOf(fileWlk.lastModified()));
+
+            job.setPages(docLog.getNumberOfPages());
+
+            // DRM restricted?
+            job.setDrm(docLog.getDrmRestricted());
+
+            // Landscape, page rotation, content rotation, user rotate, media.
+            final IPdfPageProps pageProps = getPdfPageProps(filePath);
+
+            final boolean isLandscape = pageProps.isLandscape();
+            final int rotation = pageProps.getRotationFirstPage();
+            final int contentRotation = pageProps.getContentRotationFirstPage();
+            final Integer rotate = PdfPageRotateHelper.PDF_ROTATION_0;
+
+            job.setLandscape(Boolean.valueOf(isLandscape));
+            job.setRotation(Integer.valueOf(rotation));
+            job.setContentRotation(Integer.valueOf(contentRotation));
+            job.setRotate(rotate.toString());
+            job.setMedia(pageProps.getSize());
+            job.setLandscapeView(Boolean.valueOf(
+                    PdfPageRotateHelper.isSeenAsLandscape(contentRotation,
+                            rotation, isLandscape, rotate.intValue())));
+            // Append job
+            jobinfo.getJobs().add(job);
+            // ... and range
+            final InboxJobRange range = new InboxInfoDto.InboxJobRange();
+            range.setJob(iJobNew);
+            range.setRange(RangeAtom.FULL_PAGE_RANGE);
+            jobinfo.getPages().add(range); // append
+
+            // prepare for next job
+            iJobNew++;
+        }
+
+        if (jobinfo.jobCount() > oldJobCount) {
+            this.storeInboxInfo(userId, jobinfo);
+        }
+
         return jobinfo;
     }
 
