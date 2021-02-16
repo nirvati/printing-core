@@ -1369,6 +1369,18 @@ public interface IConfigProp {
         /**
          *
          */
+        PRINT_IMAP_TICKET_ENABLE(//
+                "print.imap.ticket.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+        /**
+         *
+         */
+        PRINT_IMAP_TICKET_OPERATOR(//
+                "print.imap.ticket.operator", API_UPDATABLE_ON),
+
+        /**
+         *
+         */
         PRINTER_SNMP_ENABLE(//
                 "printer.snmp.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),

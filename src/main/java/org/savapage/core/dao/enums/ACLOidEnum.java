@@ -124,13 +124,13 @@ public enum ACLOidEnum {
     U_PERSONAL_PRINT(EnumSet.of(ACLPermissionEnum.READER)),
 
     /**
-     * Print Archive.
+     * PrintOut Archive.
      */
     U_PRINT_ARCHIVE(EnumSet.of(ACLPermissionEnum.EDITOR),
             EnumSet.of(ACLPermissionEnum.SELECT)),
 
     /**
-     * Print Journal.
+     * PrintOut Journal.
      */
     U_PRINT_JOURNAL(EnumSet.of(ACLPermissionEnum.READER));
 

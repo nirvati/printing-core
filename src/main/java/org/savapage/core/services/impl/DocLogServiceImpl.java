@@ -1172,7 +1172,7 @@ public final class DocLogServiceImpl extends AbstractService
             docLog = docLogExisting;
         }
 
-        this.applyCreationDate(docLog, ServiceContext.getTransactionDate());
+        this.applyCreationDate(docLog, printInInfo.getPrintInDate());
 
         docLog.setMimetype(printInInfo.getMimetype());
         docLog.setDrmRestricted(printInInfo.isDrmRestricted());
@@ -1313,8 +1313,7 @@ public final class DocLogServiceImpl extends AbstractService
 
         String originator = originatorIp;
 
-        if (protocol == DocLogProtocolEnum.IMAP
-                || protocol == DocLogProtocolEnum.GCP) {
+        if (protocol == DocLogProtocolEnum.IMAP) {
             originator = printInInfo.getOriginatorEmail();
         }
 

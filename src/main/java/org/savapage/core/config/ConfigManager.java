@@ -100,6 +100,7 @@ import org.savapage.core.crypto.CryptoApp;
 import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.impl.DaoContextImpl;
+import org.savapage.core.doc.store.DocStoreBranchEnum;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.SystemModeEnum;
@@ -2550,11 +2551,54 @@ public final class ConfigManager {
     }
 
     /**
-     *
-     * @return
+     * @return {@code true} if MailPrint is enabled.
      */
     public static boolean isPrintImapEnabled() {
         return instance().isConfigValue(Key.PRINT_IMAP_ENABLE);
+    }
+
+    /**
+     * @return {@code true} if MailPrint Ticketing is enabled.
+     */
+    public static boolean isPrintImapTicketingEnabled() {
+        return getPrintImapTicketOperator() != null;
+    }
+
+    /**
+     * Checks MailPrint Ticketing is enabled and user is the Ticket Operator.
+     *
+     * @param user
+     *            MailPrint user (can be {@code null}).
+     * @return {@code true} if MailPrint is enabled and redirected to user.
+     */
+    public static boolean isPrintImapTicketingEnabled(final User user) {
+        if (user != null) {
+            final String redirectUserId = getPrintImapTicketOperator();
+            return redirectUserId != null
+                    && redirectUserId.equalsIgnoreCase(user.getUserId());
+        }
+        return false;
+    }
+
+    /**
+     * Gets the User ID a MailPrint is redirected to.
+     *
+     * @return {@code null} if MailPrint or MailPrint Redirect is disabled, or
+     *         Redirect user is not specified.
+     */
+    public static String getPrintImapTicketOperator() {
+        final ConfigManager cm = instance();
+        if (isPrintImapEnabled()
+                && cm.isConfigValue(Key.PRINT_IMAP_TICKET_ENABLE)
+                && ServiceContext.getServiceFactory().getDocStoreService()
+                        .getMainStore(DocStoreBranchEnum.IN_PRINT) != null) {
+            final String redirectUserId =
+                    cm.getConfigValue(Key.PRINT_IMAP_TICKET_OPERATOR);
+            if (StringUtils.isNotBlank(redirectUserId)) {
+                return redirectUserId;
+            }
+        }
+        return null;
     }
 
     /**

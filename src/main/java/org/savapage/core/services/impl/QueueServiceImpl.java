@@ -62,6 +62,8 @@ import org.savapage.core.print.server.PrintInResultEnum;
 import org.savapage.core.print.server.UnsupportedPrintJobContent;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.ExternalSupplierInfo;
+import org.savapage.core.services.helpers.ImapPrintInData;
 import org.savapage.core.util.InetUtils;
 import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
@@ -392,6 +394,18 @@ public final class QueueServiceImpl extends AbstractService
         final InternalFontFamilyEnum preferredOutputFont =
                 printReq.getPreferredOutputFont();
 
+        final ExternalSupplierInfo extSupplierInfo;
+        if (reservedQueue == ReservedIppQueueEnum.MAILPRINT) {
+            final ImapPrintInData data = new ImapPrintInData();
+            data.setFromAddress(originatorEmail);
+            data.setSubject(null); // for now
+            extSupplierInfo = new ExternalSupplierInfo();
+            extSupplierInfo.setData(data);
+            extSupplierInfo.setId(printReq.getMailPrintTicket());
+        } else {
+            extSupplierInfo = null;
+        }
+
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Printing [" + fileName + "] ...");
         }
@@ -421,8 +435,9 @@ public final class QueueServiceImpl extends AbstractService
                 throw new UnavailableException(State.PERMANENT, msg.toString());
             }
 
-            if (!this.hasClientIpAccessToQueue(queue, queue.getUrlPath(),
-                    printReq.getOriginatorIp())) {
+            if (reservedQueue != ReservedIppQueueEnum.MAILPRINT
+                    && !this.hasClientIpAccessToQueue(queue, queue.getUrlPath(),
+                            printReq.getOriginatorIp())) {
                 final StringBuilder msg = new StringBuilder();
                 msg.append("IP ").append(printReq.getOriginatorIp())
                         .append(" not allowed for queue /")
@@ -432,7 +447,6 @@ public final class QueueServiceImpl extends AbstractService
 
             processor = new DocContentPrintProcessor(queue, originatorIp, title,
                     userId);
-
             /*
              * If we tracked the user down by his email address, we know he
              * already exists in the database, so a lazy user insert is no issue
@@ -447,7 +461,7 @@ public final class QueueServiceImpl extends AbstractService
                 if (contentType != null
                         && DocContent.isSupported(contentType)) {
 
-                    processor.process(istrContent, null, protocol,
+                    processor.process(istrContent, extSupplierInfo, protocol,
                             originatorEmail, contentType, preferredOutputFont);
 
                     printRsp.setResult(PrintInResultEnum.OK);
@@ -481,7 +495,6 @@ public final class QueueServiceImpl extends AbstractService
                 ReadWriteLockEnum.DATABASE_READONLY.setReadLock(false);
             }
         }
-
         /*
          * Get the deferred exception before evaluating the error state, because
          * deferred exceptions get nullified while being evaluated.
@@ -489,14 +502,11 @@ public final class QueueServiceImpl extends AbstractService
         final DocContentPrintException printException;
 
         if (processor.hasDeferredException()) {
-
             final Exception e = processor.getDeferredException();
-
             if (e instanceof UnavailableException) {
                 throw (UnavailableException) e;
             }
             printException = new DocContentPrintException(e.getMessage(), e);
-
         } else {
             if (processor.isDrmViolationDetected()) {
                 printException = new DocContentPrintException(
@@ -505,7 +515,6 @@ public final class QueueServiceImpl extends AbstractService
                 printException = null;
             }
         }
-
         /*
          * Evaluate to trigger the message handling.
          */
@@ -518,7 +527,6 @@ public final class QueueServiceImpl extends AbstractService
         if (processor.isPdfRepaired()) {
             LOGGER.warn("PDF [{}] is invalid and has been repaired.",
                     printReq.getFileName());
-
             AdminPublisher.instance().publish(PubTopicEnum.USER,
                     PubLevelEnum.WARN, String.format("User [%s] [%s] repaired.",
                             userId, printReq.getFileName()));

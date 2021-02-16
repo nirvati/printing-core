@@ -72,6 +72,7 @@ public enum DocLogProtocolEnum {
     /**
      * Google Cloud Print (DocLog history only).
      */
+    @Deprecated
     GCP("GCP");
 
     /** */

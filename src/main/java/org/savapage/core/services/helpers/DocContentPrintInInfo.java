@@ -24,6 +24,8 @@
  */
 package org.savapage.core.services.helpers;
 
+import java.util.Date;
+
 import org.savapage.core.pdf.IPdfPageProps;
 
 /**
@@ -33,7 +35,10 @@ import org.savapage.core.pdf.IPdfPageProps;
  * @author Rijk Ravestein
  *
  */
-public class DocContentPrintInInfo {
+public final class DocContentPrintInInfo {
+
+    /** */
+    private Date printInDate;
 
     /**
      * .
@@ -101,9 +106,16 @@ public class DocContentPrintInInfo {
     private AccountTrxInfoSet accountTrxInfoSet;
 
     /**
-     *
-     * @return
+     * @return Date of print-in.
      */
+    public Date getPrintInDate() {
+        return printInDate;
+    }
+
+    public void setPrintInDate(Date printInDate) {
+        this.printInDate = printInDate;
+    }
+
     public boolean isDrmRestricted() {
         return drmRestricted;
     }

@@ -46,6 +46,7 @@ import javax.mail.event.MessageCountEvent;
 import javax.mail.event.MessageCountListener;
 import javax.mail.internet.InternetAddress;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.SpException;
@@ -57,6 +58,7 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.doc.DocContent;
@@ -65,8 +67,10 @@ import org.savapage.core.job.ImapListenerJob;
 import org.savapage.core.jpa.User;
 import org.savapage.core.print.server.DocContentPrintException;
 import org.savapage.core.print.server.DocContentPrintReq;
+import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
@@ -103,19 +107,23 @@ import com.sun.mail.imap.IMAPFolder;
  */
 public final class ImapListener extends MessageCountAdapter {
 
+    /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ImapListener.class);
-
+    /** */
+    private static final JobTicketService JOBTICKET_SERVICE =
+            ServiceContext.getServiceFactory().getJobTicketService();
+    /** */
+    private static final UserService USER_SERVICE =
+            ServiceContext.getServiceFactory().getUserService();
+    /** */
+    private static final UserDao USER_DAO =
+            ServiceContext.getDaoContext().getUserDao();
     /**
     *
     */
     private static final QueueService QUEUE_SERVICE =
             ServiceContext.getServiceFactory().getQueueService();
-
-    /*
-     * Use local host as originator IP.
-     */
-    final private static String ORIGINATOR_IP = "127.0.0.1";
 
     final private String host;
     final private int port;
@@ -257,8 +265,8 @@ public final class ImapListener extends MessageCountAdapter {
     @Override
     public void messagesRemoved(final MessageCountEvent ev) {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("IMAP notification: [" + ev.getMessages().length
-                    + "] message(s) REMOVED from [" + this.inboxFolder + "]");
+            LOGGER.trace("IMAP notification: [{}] message(s) REMOVED from [{}]",
+                    ev.getMessages().length, this.inboxFolder);
         }
     }
 
@@ -273,14 +281,14 @@ public final class ImapListener extends MessageCountAdapter {
     public void messagesAdded(final MessageCountEvent ev) {
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("IMAP notification: [" + ev.getMessages().length
-                    + "] message(s) ADDED to [" + this.inboxFolder + "]");
+            LOGGER.trace("IMAP notification: [{}] message(s) ADDED to [{}]",
+                    ev.getMessages().length, this.inboxFolder);
         }
 
         boolean hasException = true;
 
         try {
-            processMessages(ev.getMessages());
+            this.processMessages(ev.getMessages());
             hasException = false;
         } catch (MessagingException | IOException e) {
             LOGGER.error(e.getMessage(), e);
@@ -332,9 +340,9 @@ public final class ImapListener extends MessageCountAdapter {
         this.store = session.getStore(this.protocol);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Connecting to " + this.protocol.toUpperCase() + " ["
-                    + username + "]@" + this.host + ":" + this.port
-                    + " (timeout " + this.connectionTimeout + " millis) ...");
+            LOGGER.debug("Connecting to {} [{}]@{}:{} (timeout {} millis) ...",
+                    this.protocol.toUpperCase(), username, this.host, this.port,
+                    this.connectionTimeout);
         }
 
         this.store.connect(this.host, this.port, username, password);
@@ -378,9 +386,7 @@ public final class ImapListener extends MessageCountAdapter {
                     "[" + this.inboxFolder + "] is not an IMAP folder.");
         }
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Folders opened.");
-        }
+        LOGGER.debug("Folders opened.");
     }
 
     /**
@@ -395,25 +401,19 @@ public final class ImapListener extends MessageCountAdapter {
     private void waitForProcessing(final long millisInterval)
             throws InterruptedException {
 
-        boolean waiting = this.isProcessing;
+        final boolean waiting = this.isProcessing;
 
         if (waiting) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("waiting for processing to finish ...");
-            }
+            LOGGER.trace("waiting for processing to finish ...");
         }
 
         while (this.isProcessing) {
             Thread.sleep(millisInterval);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("processing ...");
-            }
+            LOGGER.trace("processing ...");
         }
 
         if (waiting) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("processing finished.");
-            }
+            LOGGER.trace("processing finished.");
         }
     }
 
@@ -461,7 +461,7 @@ public final class ImapListener extends MessageCountAdapter {
         /*
          * Wait for processing to finish.
          */
-        waitForProcessing(1000L);
+        this.waitForProcessing(1000L);
 
         /*
          * Close the IMAP folders.
@@ -472,9 +472,7 @@ public final class ImapListener extends MessageCountAdapter {
 
             this.inbox.close(expungeDeleted);
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Closed folder [" + this.inboxFolder + "]");
-            }
+            LOGGER.trace("Closed folder [{}]", this.inboxFolder);
 
             this.inbox = null;
             nActions++;
@@ -484,9 +482,7 @@ public final class ImapListener extends MessageCountAdapter {
 
             this.trash.close(expungeDeleted);
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Closed folder [" + this.trashFolder + "]");
-            }
+            LOGGER.trace("Closed folder [{}]", this.trashFolder);
 
             this.trash = null;
             nActions++;
@@ -499,9 +495,8 @@ public final class ImapListener extends MessageCountAdapter {
 
             this.store.close();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Closed the store.");
-            }
+            LOGGER.trace("Closed the store.");
+
             this.store = null;
             nActions++;
         }
@@ -517,10 +512,10 @@ public final class ImapListener extends MessageCountAdapter {
      * @return {@link true} when an unrecoverable error occurred.
      */
     public boolean hasUnrecoverableError() {
-        if (idleSupported == null) {
+        if (this.idleSupported == null) {
             return false;
         }
-        return !idleSupported.booleanValue();
+        return !this.idleSupported.booleanValue();
     }
 
     /**
@@ -534,8 +529,7 @@ public final class ImapListener extends MessageCountAdapter {
     }
 
     /**
-     *
-     * @return
+     * @return IMAP host.
      */
     public String getHost() {
         return host;
@@ -599,18 +593,16 @@ public final class ImapListener extends MessageCountAdapter {
                 }
 
                 if (!ConfigManager.isPrintImapEnabled()) {
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Mail Print disabled by administrator.");
-                    }
+                    LOGGER.trace("Mail Print disabled by administrator.");
                     break;
                 }
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Waiting [" + (++nInterval) + "] next ["
-                            + dateFormat.format(DateUtils.addSeconds(now,
-                                    sessionHeartbeatSecs))
-                            + "] till [" + dateFormat.format(dateMax)
-                            + "] ...");
+                    LOGGER.trace("Waiting [{}] next [{}] till [{}] ...",
+                            (++nInterval),
+                            dateFormat.format(DateUtils.addSeconds(now,
+                                    sessionHeartbeatSecs)),
+                            dateFormat.format(dateMax));
                 }
 
                 /*
@@ -624,7 +616,6 @@ public final class ImapListener extends MessageCountAdapter {
                  * call idle() again.
                  */
                 try {
-
                     watchFolder.idle(true);
                     /*
                      * At this point we know that IDLE is supported by the
@@ -672,13 +663,11 @@ public final class ImapListener extends MessageCountAdapter {
                 /*
                  * Wait for processing to finish.
                  */
-                waitForProcessing(1000L);
+                this.waitForProcessing(1000L);
             }
 
         } finally {
-
-            disconnect();
-
+            this.disconnect();
         }
     }
 
@@ -692,15 +681,15 @@ public final class ImapListener extends MessageCountAdapter {
             throws MessagingException {
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Moving " + messages.length
-                    + " message(s) to TRASH folder ...");
+            LOGGER.debug("Moving {} message(s) to TRASH folder ...",
+                    messages.length);
         }
 
         this.inbox.copyMessages(messages, trash);
 
         int nMsg = 0;
 
-        for (Message message : messages) {
+        for (final Message message : messages) {
 
             nMsg++;
 
@@ -717,18 +706,17 @@ public final class ImapListener extends MessageCountAdapter {
                 try {
                     if (message.isSet(Flags.Flag.DELETED)) {
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Message # " + nMsg + " deleted");
+                            LOGGER.trace("Message #{} deleted", nMsg);
                         }
                     } else {
                         message.setFlag(Flags.Flag.DELETED, true);
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace(
-                                    "Message # " + nMsg + " AD-HOC deleted");
+                            LOGGER.trace("Message #{} AD-HOC deleted", nMsg);
                         }
                     }
                 } catch (MessageRemovedException e) {
                     if (LOGGER.isWarnEnabled()) {
-                        LOGGER.warn("Message # " + nMsg + " ALREADY removed");
+                        LOGGER.warn("Message #{} ALREADY removed", nMsg);
                     }
                 }
             }
@@ -736,7 +724,7 @@ public final class ImapListener extends MessageCountAdapter {
     }
 
     /**
-     * Processes email messages
+     * Processes email messages.
      *
      * @param messages
      *            The array of email messages.
@@ -747,6 +735,7 @@ public final class ImapListener extends MessageCountAdapter {
             throws MessagingException, IOException {
 
         final boolean USE_TRASH_BUFFER = false;
+
         final List<Message> trashBuffer = new ArrayList<>();
 
         this.isProcessing = true;
@@ -754,24 +743,23 @@ public final class ImapListener extends MessageCountAdapter {
         int nMsg = 0;
 
         try {
+            final Message[] array = new Message[1];
 
-            Message[] array = new Message[1];
-
-            for (Message message : messages) {
+            for (final Message message : messages) {
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Message #" + (++nMsg));
+                    LOGGER.debug("Message #{}", (++nMsg));
                 }
 
                 array[0] = message;
 
                 try {
-                    processMessage(message);
+                    this.processMessage(message);
                 } finally {
                     if (USE_TRASH_BUFFER) {
                         trashBuffer.add(message);
                     } else {
-                        moveToTrash(array);
+                        this.moveToTrash(array);
                     }
                 }
             }
@@ -781,7 +769,7 @@ public final class ImapListener extends MessageCountAdapter {
             if (!trashBuffer.isEmpty()) {
                 final Message[] array = new Message[trashBuffer.size()];
                 trashBuffer.toArray(array);
-                moveToTrash(array);
+                this.moveToTrash(array);
             }
 
             this.isProcessing = false;
@@ -813,21 +801,31 @@ public final class ImapListener extends MessageCountAdapter {
                         .getAddress();
 
         if (LOGGER.isTraceEnabled()) {
-            String trace = "";
-            trace += "\n\tFrom     : " + from;
-            trace += "\n\tSubject  : " + message.getSubject();
-            trace += "\n\tSent     : " + message.getSentDate();
-            trace += "\n\tReceived : " + message.getReceivedDate();
-            trace += "\n\tSize     : " + message.getSize();
-            LOGGER.trace(trace);
+            final StringBuilder trace = new StringBuilder();
+            trace.append("\n\tFrom     : ").append(from);
+            trace.append("\n\tSubject  : ").append(message.getSubject());
+            trace.append("\n\tSent     : ").append(message.getSentDate());
+            trace.append("\n\tReceived : ").append(message.getReceivedDate());
+            trace.append("\n\tSize     : ").append(message.getSize());
+            LOGGER.trace(trace.toString());
         }
 
         final ConfigManager cm = ConfigManager.instance();
 
-        try {
+        final String redirectUserId =
+                ConfigManager.getPrintImapTicketOperator();
 
-            final User user = ServiceContext.getServiceFactory()
-                    .getUserService().findUserByEmail(from);
+        try {
+            final User user;
+            final String mailPrintTicket;
+
+            if (StringUtils.isBlank(redirectUserId)) {
+                user = USER_SERVICE.findUserByEmail(from);
+                mailPrintTicket = null;
+            } else {
+                user = USER_DAO.findActiveUserByUserId(redirectUserId);
+                mailPrintTicket = JOBTICKET_SERVICE.createTicketNumber();
+            }
 
             if (user == null) {
 
@@ -835,16 +833,15 @@ public final class ImapListener extends MessageCountAdapter {
                         PubLevelEnum.WARN, localize("pub-no-user-found", from));
 
                 if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("No user found for [" + from + "]");
+                    LOGGER.warn("No user found for [{}]", from);
                 }
 
             } else {
 
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("User [" + user.getUserId() + "] belongs to ["
-                            + from + "]");
+                    LOGGER.trace("User [{}] belongs to [{}]" + user.getUserId(),
+                            from);
                 }
-
                 /*
                  * Iterate the attachments.
                  */
@@ -852,32 +849,34 @@ public final class ImapListener extends MessageCountAdapter {
 
                 if (content instanceof Multipart) {
 
-                    int maxPrintedAllowed =
+                    final int maxPrintedAllowed =
                             cm.getConfigInt(Key.PRINT_IMAP_MAX_FILES);
 
-                    long maxBytesAllowed =
+                    final long maxBytesAllowed =
                             cm.getConfigLong(Key.PRINT_IMAP_MAX_FILE_MB) * 1024
                                     * 1024;
 
-                    Multipart multipart = (Multipart) content;
+                    final Multipart multipart = (Multipart) content;
                     final MutableInt nPrinted = new MutableInt(0);
 
                     for (int i = 0; i < multipart.getCount(); i++) {
-                        printMessagePart(from, user, multipart.getBodyPart(i),
-                                i, nPrinted, maxPrintedAllowed,
-                                maxBytesAllowed);
+
+                        if (this.printMessagePart(from, user, mailPrintTicket,
+                                multipart.getBodyPart(i), i, nPrinted,
+                                maxPrintedAllowed, maxBytesAllowed)
+                                && mailPrintTicket != null) {
+                        }
                     }
 
                 } else {
                     if (LOGGER.isWarnEnabled()) {
-                        LOGGER.warn("\t*** UNSUPPORTED: " + content.getClass()
-                                + " ***");
+                        LOGGER.warn("\t*** UNSUPPORTED: {} ***",
+                                content.getClass());
                     }
                 }
             }
-
         } finally {
-
+            // noop
         }
     }
 
@@ -890,18 +889,21 @@ public final class ImapListener extends MessageCountAdapter {
      *
      * @param originatorEmail
      * @param user
+     * @param mailPrintTicket
      * @param part
      * @param i
      * @param nPrinted
      * @param maxPrintedAllowed
      * @param maxBytesAllowed
+     *
+     * @return {@code false} if message is rejected.
      * @throws MessagingException
      * @throws IOException
      */
-    private void printMessagePart(final String originatorEmail, final User user,
-            final Part part, final int i, final MutableInt nPrinted,
-            final int maxPrintedAllowed, final long maxBytesAllowed)
-            throws MessagingException, IOException {
+    private boolean printMessagePart(final String originatorEmail,
+            final User user, final String mailPrintTicket, final Part part,
+            final int i, final MutableInt nPrinted, final int maxPrintedAllowed,
+            final long maxBytesAllowed) throws MessagingException, IOException {
 
         final String fileName = part.getFileName();
 
@@ -933,19 +935,18 @@ public final class ImapListener extends MessageCountAdapter {
          * ***********************************************************
          */
         if (LOGGER.isTraceEnabled()) {
-
-            String trace = "[" + i + "] [" + contentType + "]";
-
+            final StringBuilder trace = new StringBuilder();
+            trace.append("[").append(i).append("] [").append(contentType)
+                    .append("]");
             if (fileName != null) {
-                trace += " file [" + fileName + "]";
+                trace.append(" file [").append(fileName).append("]");
             }
-
-            trace += " size [" + partSize + "]";
-            LOGGER.trace(trace);
+            trace.append(" size [").append(partSize).append("]");
+            LOGGER.trace(trace.toString());
         }
 
         if (fileName == null) {
-            return;
+            return false;
         }
 
         String rejectedReason = null;
@@ -968,7 +969,7 @@ public final class ImapListener extends MessageCountAdapter {
                             DocContent.getContentTypeFromFile(fileName));
                     docContentPrintReq.setFileName(fileName);
                     docContentPrintReq.setOriginatorEmail(originatorEmail);
-                    docContentPrintReq.setOriginatorIp(ORIGINATOR_IP);
+                    docContentPrintReq.setMailPrintTicket(mailPrintTicket);
                     docContentPrintReq.setPreferredOutputFont(null);
                     docContentPrintReq.setProtocol(DocLogProtocolEnum.IMAP);
                     docContentPrintReq.setTitle(fileName);
@@ -979,33 +980,41 @@ public final class ImapListener extends MessageCountAdapter {
 
                     nPrinted.increment();
 
+                    if (mailPrintTicket != null) {
+                        this.sendEmail(originatorEmail,
+                                "Your SavaPage Print Ticket", mailPrintTicket,
+                                "You can pick up your printout at our"
+                                        + " print desk with the"
+                                        + " ticket number above. ");
+                    }
+
                 } catch (DocContentPrintException e) {
                     rejectedReason = e.getMessage();
                 } catch (UnavailableException e) {
                     if (e.getState() == UnavailableException.State.TEMPORARY) {
-                        rejectedReason = "print for this file type is "
+                        rejectedReason = "print for this type of file is "
                                 + "currently uavailable";
                     } else {
                         rejectedReason =
-                                "print for this file type is unvailable";
+                                "print for this type of file is unvailable";
                     }
                 }
 
             } else {
-                rejectedReason =
-                        "size exceeds [" + maxBytesAllowed + "] bytes.";
+                rejectedReason = String.format("size exceeds [%d] bytes.",
+                        maxBytesAllowed);
             }
 
         } else {
-            rejectedReason = "max files [" + maxPrintedAllowed + "] reached.";
+            rejectedReason =
+                    String.format("max files [%d] reached.", maxPrintedAllowed);
         }
 
-        //
         if (rejectedReason != null) {
 
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("File [" + fileName + "] rejected. Reason: "
-                        + rejectedReason);
+                LOGGER.info("File [{}] rejected. Reason: {}", fileName,
+                        rejectedReason);
             }
 
             final String subject =
@@ -1020,6 +1029,8 @@ public final class ImapListener extends MessageCountAdapter {
                             CommunityDictEnum.SAVAPAGE.getWord()),
                     content);
         }
+
+        return rejectedReason == null;
     }
 
     /**
@@ -1038,7 +1049,6 @@ public final class ImapListener extends MessageCountAdapter {
             final String headerText, final String content) {
 
         try {
-
             final EmailMsgParms emailParms = new EmailMsgParms();
 
             emailParms.setToAddress(toAddress);
@@ -1050,13 +1060,12 @@ public final class ImapListener extends MessageCountAdapter {
                     .writeEmail(emailParms);
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Sent email to [" + toAddress + "] subject ["
-                        + subject + "]");
+                LOGGER.trace("Sent email to [{}] subject [{}]", toAddress,
+                        subject);
             }
-
         } catch (MessagingException | IOException | PGPBaseException e) {
-            LOGGER.error("Sending email to [" + toAddress + "] failed: "
-                    + e.getMessage());
+            LOGGER.error("Sending email to [{}] failed: {}", toAddress,
+                    e.getMessage());
         }
     }
 
@@ -1107,7 +1116,7 @@ public final class ImapListener extends MessageCountAdapter {
      */
     public void processInbox() throws MessagingException, IOException {
         LOGGER.trace("Checking inbox ...");
-        processMessages(this.inbox.getMessages());
+        this.processMessages(this.inbox.getMessages());
     }
 
     private int inboxMessageCount() throws MessagingException {
@@ -1132,8 +1141,8 @@ public final class ImapListener extends MessageCountAdapter {
     public static void test(final MutableInt nMessagesInbox,
             final MutableInt nMessagesTrash) throws Exception {
 
-        ConfigManager cm = ConfigManager.instance();
-        ImapListener listener = new ImapListener(cm);
+        final ConfigManager cm = ConfigManager.instance();
+        final ImapListener listener = new ImapListener(cm);
         try {
             listener.connect(cm.getConfigValue(Key.PRINT_IMAP_USER_NAME),
                     cm.getConfigValue(Key.PRINT_IMAP_PASSWORD));

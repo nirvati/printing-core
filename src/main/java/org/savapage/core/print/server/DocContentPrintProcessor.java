@@ -53,6 +53,7 @@ import org.savapage.core.config.OnOffEnum;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.IppRoutingEnum;
+import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentToPdfException;
 import org.savapage.core.doc.DocContentTypeEnum;
@@ -64,6 +65,9 @@ import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToDecrypted;
 import org.savapage.core.doc.PdfToPrePress;
 import org.savapage.core.doc.PsToImagePdf;
+import org.savapage.core.doc.store.DocStoreBranchEnum;
+import org.savapage.core.doc.store.DocStoreException;
+import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.ipp.routing.IppRoutingListener;
@@ -84,6 +88,7 @@ import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
+import org.savapage.core.services.DocStoreService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.QueueService;
@@ -120,6 +125,10 @@ public final class DocContentPrintProcessor {
     /** */
     private static final DocLogService DOC_LOG_SERVICE =
             ServiceContext.getServiceFactory().getDocLogService();
+    /** */
+    private static final DocStoreService DOC_STORE_SERVICE =
+            ServiceContext.getServiceFactory().getDocStoreService();
+
     /** */
     private static final InboxService INBOX_SERVICE =
             ServiceContext.getServiceFactory().getInboxService();
@@ -179,6 +188,9 @@ public final class DocContentPrintProcessor {
     /** */
     private final IppQueue queue;
 
+    /** */
+    private final ReservedIppQueueEnum reservedQueue;
+
     /**
      * The authenticated WebApp user: {@code null} if not present.
      */
@@ -224,10 +236,18 @@ public final class DocContentPrintProcessor {
     public DocContentPrintProcessor(final IppQueue queue,
             final String originatorIp, final String jobName,
             final String authWebAppUser) {
+
         this.jobName = jobName;
         this.queue = queue;
         this.originatorIp = originatorIp;
         this.authWebAppUser = authWebAppUser;
+
+        if (this.queue == null) {
+            this.reservedQueue = null;
+        } else {
+            this.reservedQueue = QUEUE_SERVICE
+                    .getReservedQueue(this.getQueue().getUrlPath());
+        }
     }
 
     /**
@@ -1121,23 +1141,37 @@ public final class DocContentPrintProcessor {
                     this.logPrintIn(protocol, supplierInfo);
 
             /*
-             * STEP 2: Optional IPP Routing.
+             * STEP 2: PDF to Doc Store?
              */
-            final File pdfIppRoutingFile = new File(tempPathPdf);
+            final File pdfTempFile = new File(tempPathPdf);
 
-            if (this.processIppRouting(printInInfo, pdfIppRoutingFile)) {
-                files2Delete.add(pdfIppRoutingFile);
+            final boolean isDocStorage =
+                    this.processDocStorage(printInInfo, pdfTempFile);
+
+            /*
+             * STEP 3: IPP Routing?
+             */
+            final boolean isIppRouting =
+                    this.processIppRouting(printInInfo, pdfTempFile);
+
+            /*
+             * STEP 4: Move to user safepages home?
+             */
+            final boolean isMailPrintTicket =
+                    isDocStorage && this.isMailPrintTicket();
+
+            if (isIppRouting || isMailPrintTicket) {
+                files2Delete.add(pdfTempFile);
             } else {
-                /*
-                 * Move to user safepages home.
-                 */
+                // See Mantis #1167 : "touch" PDF file.
+                pdfTempFile.setLastModified(System.currentTimeMillis());
+
                 final Path pathTarget = FileSystems.getDefault()
                         .getPath(homeDir, jobFileBasePdf);
 
                 FileSystemHelper.doAtomicFileMove(//
                         FileSystems.getDefault().getPath(tempPathPdf),
                         pathTarget);
-
                 /*
                  * Start task to create the shadow EcoPrint PDF file?
                  */
@@ -1432,6 +1466,8 @@ public final class DocContentPrintProcessor {
 
         final DocContentPrintInInfo printInInfo = new DocContentPrintInInfo();
 
+        printInInfo.setPrintInDate(ServiceContext.getTransactionDate());
+
         printInInfo.setDrmRestricted(this.isDrmRestricted());
         printInInfo.setPdfRepair(this.pdfRepair);
         printInInfo.setJobBytes(this.getJobBytes());
@@ -1452,6 +1488,28 @@ public final class DocContentPrintProcessor {
         }
 
         return printInInfo;
+    }
+
+    /**
+     * Stores PDF file into Document Store, if applicable.
+     *
+     * @param printInInfo
+     *            {@link PrintIn} information.
+     * @param pdfFile
+     *            The PDF document to route.
+     * @return {@code true} if PDF was stored in Document Store, {@code false}
+     *         if not.
+     * @throws DocStoreException
+     */
+    private boolean processDocStorage(final DocContentPrintInInfo printInInfo,
+            final File pdfFile) throws DocStoreException {
+        final DocStoreTypeEnum store =
+                DOC_STORE_SERVICE.getMainStore(DocStoreBranchEnum.IN_PRINT);
+        if (store == null) {
+            return false;
+        }
+        DOC_STORE_SERVICE.store(store, printInInfo, pdfFile);
+        return true;
     }
 
     /**
@@ -1609,6 +1667,15 @@ public final class DocContentPrintProcessor {
      */
     public boolean isTrustedUser() {
         return this.uidTrusted != null;
+    }
+
+    /**
+     * @return {@code true} if content is a processed as MailPrint Ticket.
+     */
+    private boolean isMailPrintTicket() {
+        return this.reservedQueue != null
+                && this.reservedQueue == ReservedIppQueueEnum.MAILPRINT
+                && ConfigManager.isPrintImapTicketingEnabled(this.getUserDb());
     }
 
     public Exception getDeferredException() {

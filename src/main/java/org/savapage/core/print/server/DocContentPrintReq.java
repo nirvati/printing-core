@@ -47,6 +47,10 @@ public class DocContentPrintReq {
     private String originatorEmail;
 
     /**
+     * Optional unique MailPrint ticket number.
+     */
+    private String mailPrintTicket;
+    /**
      * The originator client IP address.
      */
     private String originatorIp;
@@ -86,6 +90,21 @@ public class DocContentPrintReq {
 
     public void setOriginatorEmail(String originatorEmail) {
         this.originatorEmail = originatorEmail;
+    }
+
+    /**
+     * @return Optional unique MailPrint ticket number.
+     */
+    public String getMailPrintTicket() {
+        return mailPrintTicket;
+    }
+
+    /**
+     * @param mailPrintTicket
+     *            Optional unique MailPrint ticket number.
+     */
+    public void setMailPrintTicket(String mailPrintTicket) {
+        this.mailPrintTicket = mailPrintTicket;
     }
 
     public String getOriginatorIp() {

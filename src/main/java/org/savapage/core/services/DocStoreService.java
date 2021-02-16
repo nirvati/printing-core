@@ -34,9 +34,11 @@ import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
 import org.savapage.core.job.RunModeSwitch;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.PrintIn;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
+import org.savapage.core.services.helpers.DocContentPrintInInfo;
 
 /**
  *
@@ -44,6 +46,18 @@ import org.savapage.core.print.proxy.AbstractProxyPrintReq;
  *
  */
 public interface DocStoreService extends StatefulService {
+
+    /**
+     * Gets the main enabled type of store of a branch: i.e.
+     * {@link DocStoreTypeEnum#ARCHIVE} or {@link DocStoreTypeEnum#JOURNAL}, in
+     * that order.
+     *
+     * @param branch
+     *            Branch in store.
+     * @return Main enabled type of store, or {@code null} if no store is
+     *         enabled.
+     */
+    DocStoreTypeEnum getMainStore(DocStoreBranchEnum branch);
 
     /**
      * Checks if store branch is enabled.
@@ -116,6 +130,21 @@ public interface DocStoreService extends StatefulService {
      */
     void store(DocStoreTypeEnum store, OutboxJobDto job, DocLog docLog,
             File pdfFile) throws DocStoreException;
+
+    /**
+     * Stores a {@link PrintIn} PDF document.
+     *
+     * @param store
+     *            Type of store.
+     * @param info
+     *            PrintIn information.
+     * @param pdfFile
+     *            The PDF file.
+     * @throws DocStoreException
+     *             When IO errors.
+     */
+    void store(DocStoreTypeEnum store, DocContentPrintInInfo info, File pdfFile)
+            throws DocStoreException;
 
     /**
      * Retrieves PDF of a logged document.

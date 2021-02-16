@@ -33,6 +33,7 @@ import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -44,6 +45,7 @@ import org.savapage.core.doc.store.DocStoreCleaner;
 import org.savapage.core.doc.store.DocStoreConfig;
 import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
+import org.savapage.core.inbox.PrintInInfoDto;
 import org.savapage.core.job.RunModeSwitch;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.json.JsonAbstractBase;
@@ -51,6 +53,7 @@ import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.PdfCreateInfo;
 import org.savapage.core.print.proxy.AbstractProxyPrintReq;
 import org.savapage.core.services.DocStoreService;
+import org.savapage.core.services.helpers.DocContentPrintInInfo;
 import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,8 +106,28 @@ public final class DocStoreServiceImpl extends AbstractService
      */
     private Path getStorePath(final DocStoreTypeEnum store,
             final DocStoreBranchEnum branch, final DocLog docLog) {
+        return this.getStorePath(store, branch, docLog.getCreatedDate(),
+                docLog.getUuid());
+    }
 
-        final Calendar cal = createCalendarTime(docLog.getCreatedDate());
+    /**
+     * Gets the unique storage path for a document.
+     *
+     * @param store
+     *            The store.
+     * @param branch
+     *            Branch in store.
+     * @param createDate
+     *            Date of creation.
+     * @param uuid
+     *            {@link UUID} as string.
+     * @return The store path for this document.
+     */
+    private Path getStorePath(final DocStoreTypeEnum store,
+            final DocStoreBranchEnum branch, final Date createDate,
+            final String uuid) {
+
+        final Calendar cal = createCalendarTime(createDate);
 
         return Paths.get(this.getStoreBranch(store, branch).toString(),
                 String.format("%04d%c%02d%c%02d%c%02d%c%s",
@@ -112,7 +135,7 @@ public final class DocStoreServiceImpl extends AbstractService
                         cal.get(Calendar.MONTH) + 1, File.separatorChar,
                         cal.get(Calendar.DAY_OF_MONTH), File.separatorChar,
                         cal.get(Calendar.HOUR_OF_DAY), File.separatorChar,
-                        docLog.getUuid()));
+                        uuid));
     }
 
     /**
@@ -140,6 +163,18 @@ public final class DocStoreServiceImpl extends AbstractService
             throw new UnknownError(store.toString());
         }
         return Paths.get(path.toString(), branch.getBranch().toString());
+    }
+
+    @Override
+    public DocStoreTypeEnum getMainStore(final DocStoreBranchEnum branch) {
+        DocStoreTypeEnum store = DocStoreTypeEnum.ARCHIVE;
+        if (!this.isEnabled(store, branch)) {
+            store = DocStoreTypeEnum.JOURNAL;
+            if (!this.isEnabled(store, branch)) {
+                store = null;
+            }
+        }
+        return store;
     }
 
     @Override
@@ -377,6 +412,24 @@ public final class DocStoreServiceImpl extends AbstractService
                 createInfo);
     }
 
+    @Override
+    public void store(final DocStoreTypeEnum store,
+            final DocContentPrintInInfo info, final File pdfFile)
+            throws DocStoreException {
+
+        final DocStoreBranchEnum branch = DocStoreBranchEnum.IN_PRINT;
+        final String uuid = info.getUuidJob().toString();
+
+        this.store(store, DocStoreBranchEnum.IN_PRINT,
+                PrintInInfoDto.create(info), info.getPrintInDate(), uuid,
+                new PdfCreateInfo(pdfFile));
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Stored {} [{}] in {}/{}", uuid, info.getJobName(),
+                    store.toString(), branch.toString());
+        }
+    }
+
     /**
      * Stores a document.
      *
@@ -399,32 +452,60 @@ public final class DocStoreServiceImpl extends AbstractService
             final DocLog docLog, final PdfCreateInfo createInfo)
             throws DocStoreException {
 
-        final Path dir = this.getStorePath(store, branch, docLog);
+        this.store(store, branch, pojo, docLog.getCreatedDate(),
+                docLog.getUuid(), createInfo);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Stored {} [{}] in {}/{}", docLog.getUuid(),
+                    docLog.getTitle(), store.toString(), branch.toString());
+        }
+    }
+
+    /**
+     * Stores a document.
+     *
+     * @param store
+     *            The store.
+     * @param branch
+     *            Branch in store.
+     * @param pojo
+     *            POJO to store.
+     * @param createDate
+     *            Date of creation.
+     * @param uuid
+     *            {@link UUID} as string.
+     * @param createInfo
+     *            The {@link PdfCreateInfo} with the PDF file. Is {@code null}
+     *            for Copy Job Ticket.
+     * @throws DocStoreException
+     *             When IO errors.
+     */
+    private void store(final DocStoreTypeEnum store,
+            final DocStoreBranchEnum branch, final JsonAbstractBase pojo,
+            final Date createDate, final String uuid,
+            final PdfCreateInfo createInfo) throws DocStoreException {
+
+        final Path dir = this.getStorePath(store, branch, createDate, uuid);
 
         try {
             FileUtils.forceMkdir(dir.toFile());
 
             if (createInfo != null) {
                 FileUtils.copyFile(createInfo.getPdfFile(),
-                        getStoredPdf(dir, docLog.getUuid()).toFile());
+                        getStoredPdf(dir, uuid).toFile());
             }
 
         } catch (IOException e) {
             throw new DocStoreException(e.getMessage());
         }
 
-        try (FileWriter writer = new FileWriter(
-                getStoredJson(dir, docLog.getUuid()).toFile());) {
+        try (FileWriter writer =
+                new FileWriter(getStoredJson(dir, uuid).toFile());) {
 
             JsonHelper.write(pojo, writer);
 
         } catch (IOException e) {
             throw new DocStoreException(e.getMessage());
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Stored {} [{}] in archive", docLog.getTitle(),
-                    docLog.getTitle());
         }
     }
 
