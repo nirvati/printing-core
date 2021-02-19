@@ -52,7 +52,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.jpa.Printer;
-import org.savapage.core.print.imap.ImapPrinter;
+import org.savapage.core.print.imap.MailPrinter;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
@@ -181,8 +181,8 @@ public final class SpJobScheduler {
             /*
              * Mail Print enabled?
              */
-            if (ConfigManager.isPrintImapEnabled()) {
-                scheduleOneShotImapListener(1L);
+            if (ConfigManager.isMailPrintEnabled()) {
+                scheduleOneShotMailPrintListener(1L);
             }
 
         } catch (SchedulerException e) {
@@ -251,9 +251,9 @@ public final class SpJobScheduler {
                 interruptEmailOutputMonitor();
 
                 /*
-                 * Wait for ImapListener to finish...
+                 * Wait for MailPrintListener to finish...
                  */
-                interruptImapListener();
+                interruptMailPrintListener();
 
                 /*
                  * Wait for PaperCut Print Monitor to finish...
@@ -350,8 +350,8 @@ public final class SpJobScheduler {
             jobClass = org.savapage.core.job.UserHomeClean.class;
             break;
 
-        case IMAP_LISTENER_JOB:
-            jobClass = org.savapage.core.job.ImapListenerJob.class;
+        case MAILPRINT_LISTENER_JOB:
+            jobClass = org.savapage.core.job.MailPrintListenerJob.class;
             break;
 
         case PAPERCUT_PRINT_MONITOR:
@@ -595,20 +595,21 @@ public final class SpJobScheduler {
 
     /**
      *
-     * @param milliSecondsFromNow
+     * @param msecsFromNow
+     *            milliSeconds from now.
      */
-    public void scheduleOneShotImapListener(long milliSecondsFromNow) {
+    public void scheduleOneShotMailPrintListener(final long msecsFromNow) {
 
         JobDataMap data = new JobDataMap();
 
-        JobDetail job = newJob(org.savapage.core.job.ImapListenerJob.class)
-                .withIdentity(SpJobType.IMAP_LISTENER_JOB.toString(),
+        JobDetail job = newJob(org.savapage.core.job.MailPrintListenerJob.class)
+                .withIdentity(SpJobType.MAILPRINT_LISTENER_JOB.toString(),
                         JOB_GROUP_ONESHOT)
                 .usingJobData(data).build();
 
-        rescheduleOneShotJob(job, milliSecondsFromNow);
+        rescheduleOneShotJob(job, msecsFromNow);
 
-        ImapPrinter.setOnline(true);
+        MailPrinter.setOnline(true);
     }
 
     /**
@@ -705,9 +706,9 @@ public final class SpJobScheduler {
      * @return {@code true} if at least one instance of the identified job was
      *         found and interrupted.
      */
-    public static boolean interruptImapListener() {
-        ImapPrinter.setOnline(false);
-        return instance().interruptJob(SpJobType.IMAP_LISTENER_JOB,
+    public static boolean interruptMailPrintListener() {
+        MailPrinter.setOnline(false);
+        return instance().interruptJob(SpJobType.MAILPRINT_LISTENER_JOB,
                 JOB_GROUP_ONESHOT);
     }
 

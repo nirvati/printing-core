@@ -51,6 +51,8 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.config.OnOffEnum;
 import org.savapage.core.dao.UserDao;
+import org.savapage.core.dao.enums.ACLOidEnum;
+import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.IppRoutingEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
@@ -68,6 +70,7 @@ import org.savapage.core.doc.PsToImagePdf;
 import org.savapage.core.doc.store.DocStoreBranchEnum;
 import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
+import org.savapage.core.dto.UserIdDto;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.ipp.routing.IppRoutingListener;
@@ -86,6 +89,7 @@ import org.savapage.core.pdf.PdfUnsupportedException;
 import org.savapage.core.pdf.PdfValidityException;
 import org.savapage.core.pdf.SpPdfPageProps;
 import org.savapage.core.print.proxy.ProxyPrintException;
+import org.savapage.core.services.AccessControlService;
 import org.savapage.core.services.DeviceService;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.DocStoreService;
@@ -119,6 +123,9 @@ public final class DocContentPrintProcessor {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(DocContentPrintProcessor.class);
 
+    /** */
+    private static final AccessControlService ACCESS_CONTROL_SERVICE =
+            ServiceContext.getServiceFactory().getAccessControlService();
     /** */
     private static final DeviceService DEVICE_SERVICE =
             ServiceContext.getServiceFactory().getDeviceService();
@@ -1145,8 +1152,8 @@ public final class DocContentPrintProcessor {
              */
             final File pdfTempFile = new File(tempPathPdf);
 
-            final boolean isDocStorage =
-                    this.processDocStorage(printInInfo, pdfTempFile);
+            final boolean isDocJournal =
+                    this.processDocJournal(printInInfo, pdfTempFile);
 
             /*
              * STEP 3: IPP Routing?
@@ -1158,7 +1165,7 @@ public final class DocContentPrintProcessor {
              * STEP 4: Move to user safepages home?
              */
             final boolean isMailPrintTicket =
-                    isDocStorage && this.isMailPrintTicket();
+                    isDocJournal && this.isMailPrintTicket();
 
             if (isIppRouting || isMailPrintTicket) {
                 files2Delete.add(pdfTempFile);
@@ -1491,25 +1498,31 @@ public final class DocContentPrintProcessor {
     }
 
     /**
-     * Stores PDF file into Document Store, if applicable.
+     * Stores PDF file into the Journal branch of the Document Store, if this
+     * branch is enabled and user has permission to journal their SavePages.
      *
      * @param printInInfo
      *            {@link PrintIn} information.
      * @param pdfFile
      *            The PDF document to route.
      * @return {@code true} if PDF was stored in Document Store, {@code false}
-     *         if not.
+     *         if store/branch is disabled..
      * @throws DocStoreException
      */
-    private boolean processDocStorage(final DocContentPrintInInfo printInInfo,
+    private boolean processDocJournal(final DocContentPrintInInfo printInInfo,
             final File pdfFile) throws DocStoreException {
-        final DocStoreTypeEnum store =
-                DOC_STORE_SERVICE.getMainStore(DocStoreBranchEnum.IN_PRINT);
-        if (store == null) {
-            return false;
+
+        final DocStoreTypeEnum store = DocStoreTypeEnum.JOURNAL;
+
+        if (DOC_STORE_SERVICE.isEnabled(store, DocStoreBranchEnum.IN_PRINT)
+                && this.userDb != null
+                && ACCESS_CONTROL_SERVICE.hasPermission(
+                        UserIdDto.create(userDb), ACLOidEnum.U_INBOX,
+                        ACLPermissionEnum.JOURNAL)) {
+            DOC_STORE_SERVICE.store(store, printInInfo, pdfFile);
+            return true;
         }
-        DOC_STORE_SERVICE.store(store, printInInfo, pdfFile);
-        return true;
+        return false;
     }
 
     /**
@@ -1675,7 +1688,7 @@ public final class DocContentPrintProcessor {
     private boolean isMailPrintTicket() {
         return this.reservedQueue != null
                 && this.reservedQueue == ReservedIppQueueEnum.MAILPRINT
-                && ConfigManager.isPrintImapTicketingEnabled(this.getUserDb());
+                && ConfigManager.isMailPrintTicketingEnabled(this.getUserDb());
     }
 
     public Exception getDeferredException() {

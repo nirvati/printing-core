@@ -28,11 +28,16 @@ import org.savapage.core.template.dto.TemplateAdminFeedDto;
 import org.savapage.core.template.dto.TemplateAppDto;
 import org.savapage.core.template.dto.TemplateDto;
 import org.savapage.core.template.dto.TemplateJobTicketDto;
+import org.savapage.core.template.dto.TemplateMailTicketDto;
 import org.savapage.core.template.dto.TemplateUserDto;
 import org.savapage.core.template.email.EmailStationary;
 
 /**
  * Template attributes as object identifiers.
+ * <p>
+ * <b>Warning</b>: Changing any enum value will invalidate all dependent XML
+ * templates.
+ * </p>
  *
  * @author Rijk Ravestein
  *
@@ -42,32 +47,43 @@ public enum TemplateAttrEnum {
     /**
      * Application.
      */
-    APP(TemplateAppDto.class),
+    APP("app", TemplateAppDto.class),
 
     /**
      * Email Content-ID.
      */
-    CID(null),
+    CID("cid", null),
 
     /**
      * Admin Feed.
      */
-    FEED_ADMIN(TemplateAdminFeedDto.class),
+    FEED_ADMIN("feed_admin", TemplateAdminFeedDto.class),
 
     /**
      * Email stationary.
      */
-    STATIONARY(EmailStationary.class),
+    STATIONARY("stationary", EmailStationary.class),
 
     /**
      * Job Ticket.
      */
-    TICKET(TemplateJobTicketDto.class),
+    TICKET("ticket", TemplateJobTicketDto.class),
+
+    /**
+     * Mail Ticket.
+     */
+    MAIL_TICKET("mailTicket", TemplateMailTicketDto.class),
 
     /**
      * User.
      */
-    USER(TemplateUserDto.class);
+    USER("user", TemplateUserDto.class);
+
+    /**
+     * The attribute/object name used as object identifier in any dependent XML
+     * template.
+     */
+    private final String attr;
 
     /**
      * Reserved for future use.
@@ -77,18 +93,24 @@ public enum TemplateAttrEnum {
     /**
      * @param <T>
      *            Class of type {@link TemplateDto}.
+     * @param attrName
+     *            Attribute name as used as object identifier in any dependent
+     *            XML template.
      * @param clazz
      *            The class.
      */
-    <T extends TemplateDto> TemplateAttrEnum(final Class<T> clazz) {
+    <T extends TemplateDto> TemplateAttrEnum(final String attrName,
+            final Class<T> clazz) {
+        this.attr = attrName;
         this.dtoClass = clazz;
     }
 
     /**
-     * @return The attribute/object name as lower-case enum value.
+     * @return The attribute/object name as lower-case enum value. This name is
+     *         used as object identifier in any dependent XML template.
      */
     public String asAttr() {
-        return this.toString().toLowerCase();
+        return this.attr;
     }
 
 }

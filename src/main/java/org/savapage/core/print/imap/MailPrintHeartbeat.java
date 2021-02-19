@@ -51,10 +51,10 @@ import com.sun.mail.imap.protocol.IMAPProtocol;
  * @author Rijk Ravestein
  *
  */
-public class ImapHeartbeat implements Runnable {
+public class MailPrintHeartbeat implements Runnable {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(ImapHeartbeat.class);
+            LoggerFactory.getLogger(MailPrintHeartbeat.class);
 
     /**
      * 5 minutes.
@@ -71,7 +71,7 @@ public class ImapHeartbeat implements Runnable {
      * @param heartbeatSecs
      *            The keep interval in seconds
      */
-    public ImapHeartbeat(IMAPFolder folder, long heartbeatSecs) {
+    public MailPrintHeartbeat(IMAPFolder folder, long heartbeatSecs) {
 
         this.folder = folder;
         this.heartbeatSecs = heartbeatSecs;
@@ -117,7 +117,7 @@ public class ImapHeartbeat implements Runnable {
 
                     /**
                      * Note: p can be null when an exception occurred in
-                     * {@link ImapListener}.
+                     * {@link MailPrintListener}.
                      */
                     @Override
                     public Object doCommand(IMAPProtocol p)

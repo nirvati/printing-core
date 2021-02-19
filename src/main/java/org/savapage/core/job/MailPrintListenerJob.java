@@ -47,8 +47,8 @@ import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.config.CircuitBreakerEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
-import org.savapage.core.print.imap.ImapListener;
-import org.savapage.core.print.imap.ImapPrinter;
+import org.savapage.core.print.imap.MailPrintListener;
+import org.savapage.core.print.imap.MailPrinter;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
@@ -60,10 +60,10 @@ import org.slf4j.LoggerFactory;
  * @author Rijk Ravestein
  *
  */
-public final class ImapListenerJob extends AbstractJob {
+public final class MailPrintListenerJob extends AbstractJob {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(ImapListenerJob.class);
+            LoggerFactory.getLogger(MailPrintListenerJob.class);
 
     /**
      * Number of seconds after restarting this job after an exception occurs.
@@ -93,15 +93,15 @@ public final class ImapListenerJob extends AbstractJob {
     private static class MailPrintCircuitOperation
             implements CircuitBreakerOperation {
 
-        private final ImapListenerJob parentJob;
+        private final MailPrintListenerJob parentJob;
 
-        private ImapListener listener = null;
+        private MailPrintListener listener = null;
 
         /**
          *
          * @param theJob
          */
-        public MailPrintCircuitOperation(final ImapListenerJob parentJob) {
+        public MailPrintCircuitOperation(final MailPrintListenerJob parentJob) {
             this.parentJob = parentJob;
         }
 
@@ -124,7 +124,7 @@ public final class ImapListenerJob extends AbstractJob {
                 /*
                  *
                  */
-                this.listener = new ImapListener(cm);
+                this.listener = new MailPrintListener(cm);
 
                 this.listener.connect(username, password);
 
@@ -239,7 +239,7 @@ public final class ImapListenerJob extends AbstractJob {
     protected void onExecute(final JobExecutionContext ctx)
             throws JobExecutionException {
 
-        if (!ImapPrinter.isOnline()) {
+        if (!MailPrinter.isOnline()) {
             return;
         }
 
@@ -274,8 +274,8 @@ public final class ImapListenerJob extends AbstractJob {
 
         final AdminPublisher publisher = AdminPublisher.instance();
 
-        if (this.isInterrupted() || !ImapPrinter.isOnline()
-                || !ConfigManager.isPrintImapEnabled()) {
+        if (this.isInterrupted() || !MailPrinter.isOnline()
+                || !ConfigManager.isMailPrintEnabled()) {
 
             publisher.publish(PubTopicEnum.MAILPRINT, PubLevelEnum.INFO,
                     localizeSysMsg("ImapListener.stopped"));
@@ -324,7 +324,7 @@ public final class ImapListenerJob extends AbstractJob {
                         + this.millisUntilNextInvocation + "] milliseconds");
             }
 
-            SpJobScheduler.instance().scheduleOneShotImapListener(
+            SpJobScheduler.instance().scheduleOneShotMailPrintListener(
                     this.millisUntilNextInvocation);
         }
 

@@ -121,6 +121,6 @@ public enum SpJobType {
     /**
      * Mail Print.
      */
-    IMAP_LISTENER_JOB,
+    MAILPRINT_LISTENER_JOB,
 
 }

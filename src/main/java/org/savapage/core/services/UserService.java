@@ -295,6 +295,18 @@ public interface UserService {
     User findUserByEmail(String email);
 
     /**
+     * Finds an active {@link User} by email address.
+     * <p>
+     * When offered email is blank, {@code null} is returned.
+     * </p>
+     *
+     * @param email
+     *            The unique email address.
+     * @return The User or {@code null} when not found.
+     */
+    User findActiveUserByEmail(String email);
+
+    /**
      * Finds a {@link User} by ID number.
      * <p>
      * When offered number is blank, {@code null} is returned.

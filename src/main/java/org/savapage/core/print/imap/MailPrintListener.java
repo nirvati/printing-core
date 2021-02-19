@@ -46,11 +46,13 @@ import javax.mail.event.MessageCountEvent;
 import javax.mail.event.MessageCountListener;
 import javax.mail.internet.InternetAddress;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.time.DateUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.UnavailableException;
+import org.savapage.core.circuitbreaker.CircuitBreakerException;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
@@ -59,21 +61,31 @@ import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.UserDao;
+import org.savapage.core.dao.enums.ACLOidEnum;
+import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.dto.UserIdDto;
+import org.savapage.core.i18n.AdjectiveEnum;
+import org.savapage.core.i18n.NounEnum;
 import org.savapage.core.job.AbstractJob;
-import org.savapage.core.job.ImapListenerJob;
+import org.savapage.core.job.MailPrintListenerJob;
 import org.savapage.core.jpa.User;
 import org.savapage.core.print.server.DocContentPrintException;
 import org.savapage.core.print.server.DocContentPrintReq;
+import org.savapage.core.services.AccessControlService;
+import org.savapage.core.services.EmailService;
 import org.savapage.core.services.JobTicketService;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.UserService;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
+import org.savapage.core.template.dto.TemplateDtoCreator;
+import org.savapage.core.template.email.MailPrintTicketReceived;
 import org.savapage.core.util.DateUtil;
 import org.savapage.core.util.Messages;
+import org.savapage.core.util.NumberUtil;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,11 +117,18 @@ import com.sun.mail.imap.IMAPFolder;
  * @author Rijk Ravestein
  *
  */
-public final class ImapListener extends MessageCountAdapter {
+public final class MailPrintListener extends MessageCountAdapter {
 
     /** */
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(ImapListener.class);
+            LoggerFactory.getLogger(MailPrintListener.class);
+
+    /** */
+    private static final AccessControlService ACCESS_CONTROL_SERVICE =
+            ServiceContext.getServiceFactory().getAccessControlService();
+    /** */
+    private static final EmailService EMAIL_SERVICE =
+            ServiceContext.getServiceFactory().getEmailService();
     /** */
     private static final JobTicketService JOBTICKET_SERVICE =
             ServiceContext.getServiceFactory().getJobTicketService();
@@ -117,14 +136,15 @@ public final class ImapListener extends MessageCountAdapter {
     private static final UserService USER_SERVICE =
             ServiceContext.getServiceFactory().getUserService();
     /** */
-    private static final UserDao USER_DAO =
-            ServiceContext.getDaoContext().getUserDao();
-    /**
-    *
-    */
     private static final QueueService QUEUE_SERVICE =
             ServiceContext.getServiceFactory().getQueueService();
+    /** */
+    private static final UserDao USER_DAO =
+            ServiceContext.getDaoContext().getUserDao();
 
+    /**
+     *
+     */
     final private String host;
     final private int port;
     final private String inboxFolder;
@@ -189,7 +209,7 @@ public final class ImapListener extends MessageCountAdapter {
     /**
      *
      */
-    public ImapListener(String host, int port, String security,
+    public MailPrintListener(String host, int port, String security,
             String inboxFolder, String trashFolder, boolean imapDebug) {
         this.host = host;
         this.port = port;
@@ -201,7 +221,7 @@ public final class ImapListener extends MessageCountAdapter {
     }
 
     @SuppressWarnings("unused")
-    private ImapListener() {
+    private MailPrintListener() {
         this.host = null;
         this.port = 0;
         this.inboxFolder = null;
@@ -222,7 +242,7 @@ public final class ImapListener extends MessageCountAdapter {
      * @param cm
      *            The configuration manager.
      */
-    public ImapListener(ConfigManager cm) {
+    public MailPrintListener(ConfigManager cm) {
         this.host = cm.getConfigValue(Key.PRINT_IMAP_HOST);
         this.port = cm.getConfigInt(Key.PRINT_IMAP_PORT);
         this.security = cm.getConfigValue(Key.PRINT_IMAP_SECURITY);
@@ -424,7 +444,7 @@ public final class ImapListener extends MessageCountAdapter {
      * multiple threads. E.g. as result of an exception (in the finally block)
      * or as a result from a Quartz scheduler job interrupt. See the
      * {@link AbstractJob#interrupt()} implementation, and its handling in
-     * {@link ImapListenerJob}.
+     * {@link MailPrintListenerJob}.
      * </p>
      * <p>
      * Note: this method is idempotent, i.e. it can be called more than once
@@ -558,11 +578,8 @@ public final class ImapListener extends MessageCountAdapter {
         try {
 
             this.idleSupported = null;
-
             this.messageCountListener = null;
-
             this.inbox.addMessageCountListener(this);
-
             this.messageCountListener = this;
 
             int nInterval = 0;
@@ -570,8 +587,8 @@ public final class ImapListener extends MessageCountAdapter {
             final IMAPFolder watchFolder = (IMAPFolder) inbox;
 
             this.keepConnectionAlive = new Thread(
-                    new ImapHeartbeat(watchFolder, sessionHeartbeatSecs),
-                    ImapHeartbeat.class.getSimpleName());
+                    new MailPrintHeartbeat(watchFolder, sessionHeartbeatSecs),
+                    MailPrintHeartbeat.class.getSimpleName());
 
             this.keepConnectionAlive.start();
 
@@ -592,7 +609,7 @@ public final class ImapListener extends MessageCountAdapter {
                     break;
                 }
 
-                if (!ConfigManager.isPrintImapEnabled()) {
+                if (!ConfigManager.isMailPrintEnabled()) {
                     LOGGER.trace("Mail Print disabled by administrator.");
                     break;
                 }
@@ -604,7 +621,6 @@ public final class ImapListener extends MessageCountAdapter {
                                     sessionHeartbeatSecs)),
                             dateFormat.format(dateMax));
                 }
-
                 /*
                  * This call returns when a Message[] arrives or when an IMAP
                  * NOOP command is issued by the ImapKeepAliveActor.
@@ -638,7 +654,6 @@ public final class ImapListener extends MessageCountAdapter {
                     throw e;
 
                 } catch (MessagingException e) {
-
                     /*
                      * If the server doesn't support the IDLE extension, we get
                      * upon the FIRST idle() call (when idleSupported == null).
@@ -646,7 +661,6 @@ public final class ImapListener extends MessageCountAdapter {
                     if (this.idleSupported == null) {
                         idleSupported = Boolean.FALSE;
                     }
-
                     /*
                      * At this point, idleSupported can be true or false. In
                      * both cases we re-throw the exception.
@@ -659,11 +673,10 @@ public final class ImapListener extends MessageCountAdapter {
                      */
                     throw e;
                 }
-
                 /*
                  * Wait for processing to finish.
                  */
-                this.waitForProcessing(1000L);
+                this.waitForProcessing(DateUtil.DURATION_MSEC_SECOND);
             }
 
         } finally {
@@ -694,7 +707,7 @@ public final class ImapListener extends MessageCountAdapter {
             nMsg++;
 
             /*
-             * The MessageRemovedException thrown when an invalid method is
+             * The MessageRemovedException is thrown if an invalid method is
              * invoked on an expunged Message. The only valid methods on an
              * expunged Message are <code>isExpunged()</code> and
              * <code>getMessageNumber()</code>.
@@ -777,6 +790,21 @@ public final class ImapListener extends MessageCountAdapter {
     }
 
     /**
+     * @param user
+     *            User (can be {@code null}).
+     * @return {@code true} if user has permission to journal a PrintIn
+     *         document.
+     */
+    private static boolean hasInboxJournalPermission(final User user) {
+        if (user == null) {
+            return false;
+        }
+        final UserIdDto dto = UserIdDto.create(user);
+        return ACCESS_CONTROL_SERVICE.hasPermission(dto, ACLOidEnum.U_INBOX,
+                ACLPermissionEnum.JOURNAL);
+    }
+
+    /**
      * Processes an IMAP message.
      * <p>
      * INVARIANT (TO BE IMPLEMENTED):
@@ -796,6 +824,12 @@ public final class ImapListener extends MessageCountAdapter {
     private void processMessage(final Message message)
             throws MessagingException, IOException {
 
+        final Locale locale = ConfigManager.getDefaultLocale();
+        final String mailPrintWord =
+                CommunityDictEnum.MAIL_PRINT.getWord(locale);
+
+        ServiceContext.resetTransactionDate();
+
         final String from =
                 new InternetAddress(InternetAddress.toString(message.getFrom()))
                         .getAddress();
@@ -812,71 +846,123 @@ public final class ImapListener extends MessageCountAdapter {
 
         final ConfigManager cm = ConfigManager.instance();
 
-        final String redirectUserId =
-                ConfigManager.getPrintImapTicketOperator();
+        final String imapTicketOperator =
+                ConfigManager.getMailPrintTicketOperator();
 
-        try {
-            final User user;
-            final String mailPrintTicket;
+        final User user;
+        final boolean isImapTicket;
 
-            if (StringUtils.isBlank(redirectUserId)) {
-                user = USER_SERVICE.findUserByEmail(from);
-                mailPrintTicket = null;
+        if (StringUtils.isNotBlank(imapTicketOperator)) {
+
+            final User targetUser;
+
+            if (cm.isConfigValue(Key.PRINT_IMAP_TICKET_INCLUDE_KNOWN_USERS)) {
+                targetUser = null;
             } else {
-                user = USER_DAO.findActiveUserByUserId(redirectUserId);
-                mailPrintTicket = JOBTICKET_SERVICE.createTicketNumber();
+                // returns null if not found.
+                targetUser = USER_SERVICE.findActiveUserByEmail(from);
             }
 
-            if (user == null) {
-
-                AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
-                        PubLevelEnum.WARN, localize("pub-no-user-found", from));
-
-                if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("No user found for [{}]", from);
+            if (targetUser == null) {
+                // returns null if not found.
+                final User operator =
+                        USER_DAO.findActiveUserByUserId(imapTicketOperator);
+                isImapTicket = hasInboxJournalPermission(operator);
+                if (isImapTicket) {
+                    user = operator;
+                } else {
+                    user = null;
                 }
-
             } else {
+                user = targetUser;
+                isImapTicket = false;
+            }
+        } else {
+            user = USER_SERVICE.findActiveUserByEmail(from);
+            isImapTicket = false;
+        }
 
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("User [{}] belongs to [{}]" + user.getUserId(),
+        final boolean printInDisabled =
+                user != null && BooleanUtils.isTrue(user.getDisabledPrintIn());
+
+        if (user == null || printInDisabled) {
+
+            final String userMsg;
+            final String pubMsg;
+
+            if (printInDisabled) {
+                userMsg = localize("user-msg-body-account-disabled");
+                pubMsg = localize("pub-account-disabled", mailPrintWord,
+                        user.getUserId(), from);
+                LOGGER.warn("PrintIn disabled for [{}] [{}]", user.getUserId(),
+                        from);
+            } else {
+                userMsg = localize("user-msg-body-email-unknown");
+                pubMsg = localize("pub-no-user-found", mailPrintWord, from);
+                LOGGER.warn("No user found for [{}]", from);
+            }
+
+            this.sendEmail(from, localize("user-msg-subject-denied",
+                    CommunityDictEnum.SAVAPAGE.getWord(), mailPrintWord),
+                    localize("user-msg-header-not-authorized"), userMsg);
+
+            AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
+                    PubLevelEnum.WARN, pubMsg);
+        } else {
+
+            if (LOGGER.isTraceEnabled()) {
+                if (isImapTicket) {
+                    LOGGER.trace("Mail Print Ticket for [{}] to operator [{}]",
+                            from, user.getUserId(), from);
+                } else {
+                    LOGGER.trace("User [{}] belongs to [{}]", user.getUserId(),
                             from);
                 }
-                /*
-                 * Iterate the attachments.
-                 */
-                final Object content = message.getContent();
-
-                if (content instanceof Multipart) {
-
-                    final int maxPrintedAllowed =
-                            cm.getConfigInt(Key.PRINT_IMAP_MAX_FILES);
-
-                    final long maxBytesAllowed =
-                            cm.getConfigLong(Key.PRINT_IMAP_MAX_FILE_MB) * 1024
-                                    * 1024;
-
-                    final Multipart multipart = (Multipart) content;
-                    final MutableInt nPrinted = new MutableInt(0);
-
-                    for (int i = 0; i < multipart.getCount(); i++) {
-
-                        if (this.printMessagePart(from, user, mailPrintTicket,
-                                multipart.getBodyPart(i), i, nPrinted,
-                                maxPrintedAllowed, maxBytesAllowed)
-                                && mailPrintTicket != null) {
-                        }
-                    }
-
-                } else {
-                    if (LOGGER.isWarnEnabled()) {
-                        LOGGER.warn("\t*** UNSUPPORTED: {} ***",
-                                content.getClass());
-                    }
-                }
             }
-        } finally {
-            // noop
+            /*
+             * Iterate the attachments.
+             */
+            final Object content = message.getContent();
+
+            if (content instanceof Multipart) {
+
+                final String mailPrintTicket;
+                if (isImapTicket) {
+                    mailPrintTicket = JOBTICKET_SERVICE.createTicketNumber();
+                } else {
+                    mailPrintTicket = null;
+                }
+
+                final int maxPrintedAllowed =
+                        cm.getConfigInt(Key.PRINT_IMAP_MAX_FILES);
+
+                final long maxBytesAllowed =
+                        cm.getConfigLong(Key.PRINT_IMAP_MAX_FILE_MB) * 1024
+                                * 1024;
+
+                final Multipart multipart = (Multipart) content;
+                final MutableInt nPrinted = new MutableInt(0);
+
+                for (int i = 0; i < multipart.getCount()
+                        && nPrinted.intValue() < maxPrintedAllowed; i++) {
+                    // Print
+                    this.printMessagePart(from, user, mailPrintTicket,
+                            multipart, i, nPrinted, maxPrintedAllowed,
+                            maxBytesAllowed);
+                }
+
+            } else {
+                this.sendEmail(from, localize("user-msg-subject-error",
+                        CommunityDictEnum.SAVAPAGE.getWord(), mailPrintWord),
+                        NounEnum.ERROR.uiText(locale),
+                        localize("user-msg-body-content-unsupported"));
+                final String msg = String.format(
+                        "Mail Print from [%s] : unsupported content [%s].",
+                        from, content.getClass().getSimpleName());
+                AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
+                        PubLevelEnum.WARN, msg);
+                LOGGER.warn(msg);
+            }
         }
     }
 
@@ -890,9 +976,11 @@ public final class ImapListener extends MessageCountAdapter {
      * @param originatorEmail
      * @param user
      * @param mailPrintTicket
-     * @param part
-     * @param i
+     * @param multipart
+     * @param iPart
+     *            Zero-based index of Part to print.
      * @param nPrinted
+     *            Running total of successful prints.
      * @param maxPrintedAllowed
      * @param maxBytesAllowed
      *
@@ -901,10 +989,16 @@ public final class ImapListener extends MessageCountAdapter {
      * @throws IOException
      */
     private boolean printMessagePart(final String originatorEmail,
-            final User user, final String mailPrintTicket, final Part part,
-            final int i, final MutableInt nPrinted, final int maxPrintedAllowed,
+            final User user, final String mailPrintTicket,
+            final Multipart multipart, final int iPart,
+            final MutableInt nPrinted, final int maxPrintedAllowed,
             final long maxBytesAllowed) throws MessagingException, IOException {
 
+        final Locale locale = ConfigManager.getDefaultLocale();
+
+        final int nParts = multipart.getCount();
+
+        final Part part = multipart.getBodyPart(iPart);
         final String fileName = part.getFileName();
 
         final String contentType = part.getContentType()
@@ -936,8 +1030,8 @@ public final class ImapListener extends MessageCountAdapter {
          */
         if (LOGGER.isTraceEnabled()) {
             final StringBuilder trace = new StringBuilder();
-            trace.append("[").append(i).append("] [").append(contentType)
-                    .append("]");
+            trace.append("[").append(iPart + 1).append("/").append(nParts);
+            trace.append("] [").append(contentType).append("]");
             if (fileName != null) {
                 trace.append(" file [").append(fileName).append("]");
             }
@@ -946,6 +1040,7 @@ public final class ImapListener extends MessageCountAdapter {
         }
 
         if (fileName == null) {
+            // No attachment, just the message body.
             return false;
         }
 
@@ -981,56 +1076,88 @@ public final class ImapListener extends MessageCountAdapter {
                     nPrinted.increment();
 
                     if (mailPrintTicket != null) {
-                        this.sendEmail(originatorEmail,
-                                "Your SavaPage Print Ticket", mailPrintTicket,
-                                "You can pick up your printout at our"
-                                        + " print desk with the"
-                                        + " ticket number above. ");
+                        this.notifyMailTicketByEmail(docContentPrintReq, user);
                     }
 
                 } catch (DocContentPrintException e) {
                     rejectedReason = e.getMessage();
                 } catch (UnavailableException e) {
                     if (e.getState() == UnavailableException.State.TEMPORARY) {
-                        rejectedReason = "print for this type of file is "
-                                + "currently uavailable";
+                        rejectedReason = localize(
+                                "user-msg-file-denied-temp-unavailable");
                     } else {
                         rejectedReason =
-                                "print for this type of file is unvailable";
+                                localize("user-msg-file-denied-unavailable");
                     }
                 }
 
             } else {
-                rejectedReason = String.format("size exceeds [%d] bytes.",
-                        maxBytesAllowed);
+                rejectedReason = localize("user-msg-file-denied-max-size",
+                        NumberUtil.humanReadableByteCountSI(locale,
+                                maxBytesAllowed));
             }
 
         } else {
-            rejectedReason =
-                    String.format("max files [%d] reached.", maxPrintedAllowed);
+            rejectedReason = localize("user-msg-file-denied-max-number",
+                    String.valueOf(maxPrintedAllowed));
         }
 
         if (rejectedReason != null) {
 
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("File [{}] rejected. Reason: {}", fileName,
-                        rejectedReason);
-            }
+            final String mailPrintWord =
+                    CommunityDictEnum.MAIL_PRINT.getWord(locale);
 
-            final String subject =
-                    String.format("%s Mail Print rejected file [%s]",
-                            CommunityDictEnum.SAVAPAGE.getWord(), fileName);
+            AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
+                    PubLevelEnum.WARN,
+                    localize("pub-file-rejected", mailPrintWord,
+                            originatorEmail, fileName, rejectedReason));
 
-            final String content = String.format("File: %s<p>Reason: %s</p>",
+            LOGGER.info("[{}] file [{}] rejected. Reason: {}", originatorEmail,
                     fileName, rejectedReason);
 
-            this.sendEmail(originatorEmail, subject,
-                    String.format("%s Mail Print rejected",
-                            CommunityDictEnum.SAVAPAGE.getWord()),
-                    content);
+            this.sendEmail(originatorEmail,
+                    localize("user-msg-subject-file-rejected",
+                            CommunityDictEnum.SAVAPAGE.getWord(), mailPrintWord,
+                            fileName),
+                    AdjectiveEnum.REJECTED.uiText(locale),
+                    String.format("%s \"%s\" : %s",
+                            NounEnum.FILE.uiText(locale), fileName,
+                            rejectedReason));
         }
 
         return rejectedReason == null;
+    }
+
+    /**
+     * Notifies Mail Ticket requester by email.
+     *
+     * @param req
+     *            The print request.
+     * @param ticketOperator
+     *            Operator.
+     */
+    private void notifyMailTicketByEmail(final DocContentPrintReq req,
+            final User ticketOperator) {
+
+        final MailPrintTicketReceived tpl = new MailPrintTicketReceived(
+                ConfigManager.getServerCustomEmailTemplateHome(),
+                TemplateDtoCreator.templateMailTicketDto(req,
+                        StringUtils.defaultIfBlank(ticketOperator.getFullName(),
+                                ticketOperator.getUserId())));
+
+        final boolean asHtml = ConfigManager.instance()
+                .isConfigValue(Key.PRINT_IMAP_TICKET_EMAIL_CONTENT_TYPE_HTML);
+
+        final EmailMsgParms emailParms = EmailMsgParms.create(
+                req.getOriginatorEmail(), tpl, Locale.getDefault(), asHtml);
+
+        try {
+            EMAIL_SERVICE.sendEmail(emailParms);
+        } catch (InterruptedException | CircuitBreakerException
+                | MessagingException | IOException | PGPBaseException e) {
+            LOGGER.error("Sending Mail Print Ticket email to [{}] failed: {}",
+                    req.getOriginatorEmail(), e.getMessage());
+        }
     }
 
     /**
@@ -1056,8 +1183,7 @@ public final class ImapListener extends MessageCountAdapter {
             emailParms.setBodyInStationary(headerText, content,
                     Locale.getDefault(), true);
 
-            ServiceContext.getServiceFactory().getEmailService()
-                    .writeEmail(emailParms);
+            EMAIL_SERVICE.writeEmail(emailParms);
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Sent email to [{}] subject [{}]", toAddress,
@@ -1142,7 +1268,7 @@ public final class ImapListener extends MessageCountAdapter {
             final MutableInt nMessagesTrash) throws Exception {
 
         final ConfigManager cm = ConfigManager.instance();
-        final ImapListener listener = new ImapListener(cm);
+        final MailPrintListener listener = new MailPrintListener(cm);
         try {
             listener.connect(cm.getConfigValue(Key.PRINT_IMAP_USER_NAME),
                     cm.getConfigValue(Key.PRINT_IMAP_PASSWORD));

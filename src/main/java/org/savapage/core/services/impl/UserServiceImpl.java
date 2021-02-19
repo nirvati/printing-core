@@ -52,6 +52,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -1853,6 +1854,15 @@ public final class UserServiceImpl extends AbstractService
             if (userEmail != null) {
                 user = userEmail.getUser();
             }
+        }
+        return user;
+    }
+
+    @Override
+    public User findActiveUserByEmail(final String emailAddress) {
+        final User user = this.findUserByEmail(emailAddress);
+        if (user == null || BooleanUtils.isTrue(user.getDeleted())) {
+            return null;
         }
         return user;
     }

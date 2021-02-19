@@ -2553,15 +2553,15 @@ public final class ConfigManager {
     /**
      * @return {@code true} if MailPrint is enabled.
      */
-    public static boolean isPrintImapEnabled() {
+    public static boolean isMailPrintEnabled() {
         return instance().isConfigValue(Key.PRINT_IMAP_ENABLE);
     }
 
     /**
      * @return {@code true} if MailPrint Ticketing is enabled.
      */
-    public static boolean isPrintImapTicketingEnabled() {
-        return getPrintImapTicketOperator() != null;
+    public static boolean isMailPrintTicketingEnabled() {
+        return getMailPrintTicketOperator() != null;
     }
 
     /**
@@ -2571,9 +2571,9 @@ public final class ConfigManager {
      *            MailPrint user (can be {@code null}).
      * @return {@code true} if MailPrint is enabled and redirected to user.
      */
-    public static boolean isPrintImapTicketingEnabled(final User user) {
+    public static boolean isMailPrintTicketingEnabled(final User user) {
         if (user != null) {
-            final String redirectUserId = getPrintImapTicketOperator();
+            final String redirectUserId = getMailPrintTicketOperator();
             return redirectUserId != null
                     && redirectUserId.equalsIgnoreCase(user.getUserId());
         }
@@ -2581,17 +2581,19 @@ public final class ConfigManager {
     }
 
     /**
-     * Gets the User ID a MailPrint is redirected to.
+     * Gets the User ID of the MailPrint Ticket Operator.
      *
-     * @return {@code null} if MailPrint or MailPrint Redirect is disabled, or
-     *         Redirect user is not specified.
+     * @return {@code null} if MailPrint or MailPrint Ticketing is disabled, or
+     *         PrintIn journal is disabled or MailPrint Ticket Operator is not
+     *         specified.
      */
-    public static String getPrintImapTicketOperator() {
+    public static String getMailPrintTicketOperator() {
         final ConfigManager cm = instance();
-        if (isPrintImapEnabled()
+        if (isMailPrintEnabled()
                 && cm.isConfigValue(Key.PRINT_IMAP_TICKET_ENABLE)
                 && ServiceContext.getServiceFactory().getDocStoreService()
-                        .getMainStore(DocStoreBranchEnum.IN_PRINT) != null) {
+                        .isEnabled(DocStoreTypeEnum.JOURNAL,
+                                DocStoreBranchEnum.IN_PRINT)) {
             final String redirectUserId =
                     cm.getConfigValue(Key.PRINT_IMAP_TICKET_OPERATOR);
             if (StringUtils.isNotBlank(redirectUserId)) {

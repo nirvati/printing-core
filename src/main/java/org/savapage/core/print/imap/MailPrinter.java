@@ -30,7 +30,7 @@ package org.savapage.core.print.imap;
  * @author Rijk Ravestein
  *
  */
-public final class ImapPrinter {
+public final class MailPrinter {
 
     /**
      * Status of the Google Cloud Printer.
@@ -53,7 +53,7 @@ public final class ImapPrinter {
     /**
      *
      */
-    private ImapPrinter() {
+    private MailPrinter() {
     }
 
     /**

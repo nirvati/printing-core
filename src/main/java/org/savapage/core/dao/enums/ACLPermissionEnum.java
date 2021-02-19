@@ -59,6 +59,11 @@ public enum ACLPermissionEnum {
     DOWNLOAD(ACLPermissionEnum.BIT_READER_DOWNLOAD),
 
     /**
+     * Allowed to journal a domain object.
+     */
+    JOURNAL(ACLPermissionEnum.BIT_READER_JOURNAL),
+
+    /**
      * Allowed to select domain object.
      */
     SELECT(ACLPermissionEnum.BIT_READER_SELECT),
@@ -125,8 +130,8 @@ public enum ACLPermissionEnum {
     private static final int BIT_READER_SEND = 0x4;
     private static final int BIT_READER_SELECT = 0x8;
     private static final int BIT_READER_SIGN = 0x10;
+    private static final int BIT_READER_JOURNAL = 0x20;
     //
-    private static final int BIT_RESERVED_6 = 0x20;
     private static final int BIT_RESERVED_7 = 0x40;
     private static final int BIT_RESERVED_8 = 0x80;
     private static final int BIT_RESERVED_9 = 0x100;
@@ -190,8 +195,9 @@ public enum ACLPermissionEnum {
      * Permissions a {@link #READER} can have.
      */
     private static final EnumSet<ACLPermissionEnum> PERMS_READER =
-            EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND,
-                    ACLPermissionEnum.SELECT, ACLPermissionEnum.SIGN);
+            EnumSet.of(ACLPermissionEnum.JOURNAL, ACLPermissionEnum.DOWNLOAD,
+                    ACLPermissionEnum.SEND, ACLPermissionEnum.SELECT,
+                    ACLPermissionEnum.SIGN);
 
     /**
      * Permissions an {@link #EDITOR} can have.

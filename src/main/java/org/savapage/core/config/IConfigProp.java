@@ -1381,6 +1381,20 @@ public interface IConfigProp {
         /**
          *
          */
+        PRINT_IMAP_TICKET_INCLUDE_KNOWN_USERS(//
+                "print.imap.ticket.include-known-users", BOOLEAN_VALIDATOR,
+                V_NO, API_UPDATABLE_ON),
+
+        /**
+         * Send Mail Print ticket email notification with content-type as
+         * "text/html".
+         */
+        PRINT_IMAP_TICKET_EMAIL_CONTENT_TYPE_HTML(//
+                "print.imap.ticket.notify-email.content-type.html",
+                BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+        /**
+         *
+         */
         PRINTER_SNMP_ENABLE(//
                 "printer.snmp.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
@@ -1822,7 +1836,7 @@ public interface IConfigProp {
          */
         JOBTICKET_NOTIFY_EMAIL_CONTENT_TYPE_HTML(//
                 "jobticket.notify-email.content-type.html", BOOLEAN_VALIDATOR,
-                V_NO, API_UPDATABLE_ON),
+                V_YES, API_UPDATABLE_ON),
 
         /**
          * A comma separated list of Job Ticket domains to be applied as job
