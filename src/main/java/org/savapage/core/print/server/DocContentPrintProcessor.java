@@ -1515,6 +1515,7 @@ public final class DocContentPrintProcessor {
         final DocStoreTypeEnum store = DocStoreTypeEnum.JOURNAL;
 
         if (DOC_STORE_SERVICE.isEnabled(store, DocStoreBranchEnum.IN_PRINT)
+                && !QUEUE_SERVICE.isDocStoreJournalDisabled(this.getQueue())
                 && this.userDb != null
                 && ACCESS_CONTROL_SERVICE.hasPermission(
                         UserIdDto.create(userDb), ACLOidEnum.U_INBOX,

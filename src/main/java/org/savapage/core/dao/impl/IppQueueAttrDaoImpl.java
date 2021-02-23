@@ -27,6 +27,8 @@ package org.savapage.core.dao.impl;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
+import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.dao.IAttrDao;
 import org.savapage.core.dao.IppQueueAttrDao;
 import org.savapage.core.dao.enums.IppQueueAttrEnum;
 import org.savapage.core.jpa.IppQueueAttr;
@@ -37,7 +39,7 @@ import org.savapage.core.jpa.IppQueueAttr;
  *
  */
 public final class IppQueueAttrDaoImpl extends GenericDaoImpl<IppQueueAttr>
-        implements IppQueueAttrDao {
+        implements IppQueueAttrDao, IAttrDao {
 
     @Override
     protected String getCountQuery() {
@@ -47,16 +49,15 @@ public final class IppQueueAttrDaoImpl extends GenericDaoImpl<IppQueueAttr>
     /**
      * This SQL LIKE value is used to DELETE all rolling statistics.
      */
-    private static final String SQL_LIKE_STATS_ROLLING = STATS_ROLLING_PREFIX
-            + "%";
+    private static final String SQL_LIKE_STATS_ROLLING =
+            STATS_ROLLING_PREFIX + "%";
 
     @Override
     public IppQueueAttr findByName(final Long queueId,
             final IppQueueAttrEnum attrName) {
 
-        final String jpql =
-                "SELECT A FROM IppQueueAttr A JOIN A.queue Q "
-                        + "WHERE Q.id = :queueId AND A.name = :name";
+        final String jpql = "SELECT A FROM IppQueueAttr A JOIN A.queue Q "
+                + "WHERE Q.id = :queueId AND A.name = :name";
 
         final Query query = getEntityManager().createQuery(jpql);
 
@@ -81,6 +82,20 @@ public final class IppQueueAttrDaoImpl extends GenericDaoImpl<IppQueueAttr>
         final Query query = getEntityManager().createQuery(jpql);
         query.setParameter("name", SQL_LIKE_STATS_ROLLING);
         query.executeUpdate();
+    }
+
+    @Override
+    public boolean getBooleanValue(final IppQueueAttr attr) {
+        return attr != null && StringUtils.defaultString(attr.getValue(), V_NO)
+                .equalsIgnoreCase(V_YES);
+    }
+
+    @Override
+    public String getDbBooleanValue(final boolean value) {
+        if (value) {
+            return V_YES;
+        }
+        return V_NO;
     }
 
 }

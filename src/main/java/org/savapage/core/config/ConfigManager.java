@@ -2558,6 +2558,17 @@ public final class ConfigManager {
     }
 
     /**
+     * @param userId
+     *            User ID.
+     * @return {@code true} if user is Mail Print Ticket operator.
+     */
+    public static boolean isMailPrintTicketOperator(final String userId) {
+        final String operator =
+                instance().getConfigValue(Key.PRINT_IMAP_TICKET_OPERATOR);
+        return operator != null && userId.equals(operator);
+    }
+
+    /**
      * @return {@code true} if MailPrint Ticketing is enabled.
      */
     public static boolean isMailPrintTicketingEnabled() {
@@ -2594,10 +2605,10 @@ public final class ConfigManager {
                 && ServiceContext.getServiceFactory().getDocStoreService()
                         .isEnabled(DocStoreTypeEnum.JOURNAL,
                                 DocStoreBranchEnum.IN_PRINT)) {
-            final String redirectUserId =
+            final String operator =
                     cm.getConfigValue(Key.PRINT_IMAP_TICKET_OPERATOR);
-            if (StringUtils.isNotBlank(redirectUserId)) {
-                return redirectUserId;
+            if (StringUtils.isNotBlank(operator)) {
+                return operator;
             }
         }
         return null;

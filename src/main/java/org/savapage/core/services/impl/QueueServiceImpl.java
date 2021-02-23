@@ -27,6 +27,8 @@ package org.savapage.core.services.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -42,6 +44,7 @@ import org.savapage.core.concurrent.ReadLockObtainFailedException;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.dao.IAttrDao;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.IppQueueAttrEnum;
 import org.savapage.core.dao.enums.IppRoutingEnum;
@@ -63,7 +66,7 @@ import org.savapage.core.print.server.UnsupportedPrintJobContent;
 import org.savapage.core.services.QueueService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.ExternalSupplierInfo;
-import org.savapage.core.services.helpers.ImapPrintInData;
+import org.savapage.core.services.helpers.MailPrintData;
 import org.savapage.core.util.InetUtils;
 import org.savapage.core.util.JsonHelper;
 import org.slf4j.Logger;
@@ -103,14 +106,53 @@ public final class QueueServiceImpl extends AbstractService
     }
 
     @Override
-    public String getAttrValue(final IppQueue queue,
-            final IppQueueAttrEnum attr) {
+    public IppQueueAttr removeAttribute(final IppQueue queue,
+            final IppQueueAttrEnum name) {
 
-        for (final IppQueueAttr attrWlk : queue.getAttributes()) {
+        final List<IppQueueAttr> attributes = queue.getAttributes();
 
-            if (attrWlk.getName().equals(attr.getDbName())) {
-                return attrWlk.getValue();
+        if (attributes != null) {
+
+            final String dbName = name.getDbName();
+
+            final Iterator<IppQueueAttr> iter = attributes.iterator();
+            while (iter.hasNext()) {
+                final IppQueueAttr attr = iter.next();
+                if (attr.getName().equals(dbName)) {
+                    iter.remove();
+                    return attr;
+                }
             }
+        }
+        return null;
+    }
+
+    @Override
+    public IppQueueAttr getAttribute(final IppQueue queue,
+            final IppQueueAttrEnum name) {
+
+        final List<IppQueueAttr> attributes = queue.getAttributes();
+
+        if (attributes != null) {
+
+            final String dbName = name.getDbName();
+
+            for (final IppQueueAttr attr : attributes) {
+                if (attr.getName().equals(dbName)) {
+                    return attr;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getAttrValue(final IppQueue queue,
+            final IppQueueAttrEnum name) {
+
+        final IppQueueAttr attr = this.getAttribute(queue, name);
+        if (attr != null) {
+            return attr.getValue();
         }
         return null;
     }
@@ -271,6 +313,48 @@ public final class QueueServiceImpl extends AbstractService
     }
 
     @Override
+    public void setQueueAttrValue(final IppQueue queue,
+            final IppQueueAttrEnum attribute, final Boolean attrValue) {
+
+        final boolean boolValue = BooleanUtils.isTrue(attrValue);
+
+        final IppQueueAttr queueAttr = this.getAttribute(queue, attribute);
+
+        if (queueAttr == null) {
+
+            if (boolValue) {
+
+                final IppQueueAttr attr = new IppQueueAttr();
+
+                attr.setQueue(queue);
+                attr.setName(attribute.getDbName());
+                attr.setValue(ippQueueAttrDAO().getDbBooleanValue(boolValue));
+
+                queue.getAttributes().add(attr);
+
+                ippQueueAttrDAO().create(attr);
+            }
+
+        } else {
+
+            final boolean currentValue =
+                    ippQueueAttrDAO().getBooleanValue(queueAttr);
+
+            if (boolValue != currentValue) {
+
+                if (boolValue) {
+                    queueAttr.setValue(
+                            ippQueueAttrDAO().getDbBooleanValue(boolValue));
+                    ippQueueAttrDAO().update(queueAttr);
+                } else {
+                    this.removeAttribute(queue, attribute);
+                    ippQueueAttrDAO().delete(queueAttr);
+                }
+            }
+        }
+    }
+
+    @Override
     public IppQueue
             getOrCreateReservedQueue(final ReservedIppQueueEnum reservedQueue) {
 
@@ -350,6 +434,38 @@ public final class QueueServiceImpl extends AbstractService
         return this.getReservedQueue(urlPath) != null;
     }
 
+    /**
+     * Checks boolean value of queue attribute.
+     *
+     * @param queue
+     *            The queue.
+     * @param attr
+     *            The attribute.
+     * @param defaultValue
+     *            The default value when queue attribute is not present.
+     * @return Queue attribute value.
+     */
+    private boolean isQueueAttr(final IppQueue queue,
+            final IppQueueAttrEnum attr, final boolean defaultValue) {
+        final String value = this.getAttrValue(queue, attr);
+        if (value != null) {
+            return value.equals(IAttrDao.V_YES);
+        }
+        return defaultValue;
+    }
+
+    @Override
+    public boolean isDocStoreJournalDisabled(final Long id) {
+        final IppQueueAttr attr = ippQueueAttrDAO().findByName(id,
+                IppQueueAttrEnum.JOURNAL_DISABLE);
+        return ippQueueAttrDAO().getBooleanValue(attr);
+    }
+
+    @Override
+    public boolean isDocStoreJournalDisabled(final IppQueue queue) {
+        return this.isQueueAttr(queue, IppQueueAttrEnum.JOURNAL_DISABLE, false);
+    }
+
     @Override
     public boolean isActiveQueue(final IppQueue queue) {
 
@@ -396,7 +512,7 @@ public final class QueueServiceImpl extends AbstractService
 
         final ExternalSupplierInfo extSupplierInfo;
         if (reservedQueue == ReservedIppQueueEnum.MAILPRINT) {
-            final ImapPrintInData data = new ImapPrintInData();
+            final MailPrintData data = new MailPrintData();
             data.setFromAddress(originatorEmail);
             data.setSubject(null); // for now
             extSupplierInfo = new ExternalSupplierInfo();
@@ -536,14 +652,14 @@ public final class QueueServiceImpl extends AbstractService
 
     @Override
     public boolean hasClientIpAccessToQueue(final IppQueue queue,
-            final String printerNameForLogging, final String clientIpAddr) {
+            final String queueNameForLogging, final String clientIpAddr) {
 
         /*
          * Is IppQueue present ... and can it be used?
          */
         if (queue == null || queue.getDeleted()) {
             throw new SpException(String.format("No queue found for [%s]",
-                    printerNameForLogging));
+                    queueNameForLogging));
         }
 
         /*

@@ -153,6 +153,9 @@ public class DocLogPagerReq extends AbstractPagerReq {
         @JsonProperty("ticket_number")
         private String ticketNumber = null;
 
+        @JsonProperty("ticket_number_mail")
+        private String ticketNumberMail = null;
+
         public Long getDateFrom() {
             return dateFrom;
         }
@@ -328,6 +331,14 @@ public class DocLogPagerReq extends AbstractPagerReq {
 
         public void setTicketNumber(String ticketNumber) {
             this.ticketNumber = ticketNumber;
+        }
+
+        public String getTicketNumberMail() {
+            return ticketNumberMail;
+        }
+
+        public void setTicketNumberMail(String ticketNumberMail) {
+            this.ticketNumberMail = ticketNumberMail;
         }
 
         public Integer getJobState() {

@@ -1146,7 +1146,7 @@ public final class MailPrintListener extends MessageCountAdapter {
                                 ticketOperator.getUserId())));
 
         final boolean asHtml = ConfigManager.instance()
-                .isConfigValue(Key.PRINT_IMAP_TICKET_EMAIL_CONTENT_TYPE_HTML);
+                .isConfigValue(Key.PRINT_IMAP_TICKET_REPLY_CONTENT_TYPE_HTML);
 
         final EmailMsgParms emailParms = EmailMsgParms.create(
                 req.getOriginatorEmail(), tpl, Locale.getDefault(), asHtml);

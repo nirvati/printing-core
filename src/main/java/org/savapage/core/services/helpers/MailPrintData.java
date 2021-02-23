@@ -44,8 +44,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  */
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({ ImapPrintInData.JSON_FROM, ImapPrintInData.JSON_SUBJECT })
-public final class ImapPrintInData extends JsonAbstractBase
+@JsonPropertyOrder({ MailPrintData.JSON_FROM, MailPrintData.JSON_SUBJECT })
+public final class MailPrintData extends JsonAbstractBase
         implements ExternalSupplierData {
 
     /** */
@@ -109,13 +109,13 @@ public final class ImapPrintInData extends JsonAbstractBase
      *
      * @param json
      *            The serialized data.
-     * @return The {@link ImapPrintInData} object or {@code null} if JSON is
-     *         blank or de-serialization failed.
+     * @return The {@link MailPrintData} object or {@code null} if JSON is blank
+     *         or de-serialization failed.
      */
-    public static ImapPrintInData createFromData(final String json) {
+    public static MailPrintData createFromData(final String json) {
         if (!StringUtils.isBlank(json)) {
             try {
-                return ImapPrintInData.create(ImapPrintInData.class, json);
+                return MailPrintData.create(MailPrintData.class, json);
             } catch (Exception e) {
                 // noop
             }

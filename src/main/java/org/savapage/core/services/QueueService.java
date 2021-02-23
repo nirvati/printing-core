@@ -155,6 +155,28 @@ public interface QueueService {
     IppQueue getOrCreateReservedQueue(ReservedIppQueueEnum reservedQueue);
 
     /**
+     * Reads the database to check if document store journal is disabled.
+     *
+     * @param id
+     *            The database primary key.
+     * @return {@code true} when document journal store is disabled.
+     */
+    boolean isDocStoreJournalDisabled(Long id);
+
+    /**
+     * Checks if document journal is disabled.
+     * <p>
+     * Traverses the internal {@link IppQueueAttr} list of a {@link IppQueue} to
+     * find the {@link IppQueueAttrEnum} value.
+     * </p>
+     *
+     * @param queue
+     *            The {@link IppQueue}.
+     * @return {@code true} when document store journal is disabled.
+     */
+    boolean isDocStoreJournalDisabled(IppQueue queue);
+
+    /**
      * Does {@link IppQueue} represent an active queue. A driver (regular and
      * reserved) queue is active when not deleted and not disabled. A driverless
      * reserved queue is active when enabled either by configuration or queue
@@ -215,6 +237,33 @@ public interface QueueService {
     boolean isWebPrintQueue(IppQueue queue);
 
     /**
+     * Traverses the internal {@link IppQueueAttr} list of a {@link IppQueue} to
+     * remove a {@link IppQueueAttr}.
+     *
+     * @param queue
+     *            The {@link IppQueue}.
+     * @param name
+     *            The {@link IppQueueAttrEnum}.
+     *
+     * @return The {@link IppQueueAttr} that was removed, or {@code null} when
+     *         not found.
+     */
+    IppQueueAttr removeAttribute(IppQueue queue, IppQueueAttrEnum name);
+
+    /**
+     * Traverses the internal {@link IppQueueAttr} list of a {@link IppQueue} to
+     * get the {@link IppQueueAttr}.
+     *
+     * @param queue
+     *            The {@link IppQueue}.
+     * @param name
+     *            The {@link IppQueueAttrEnum}.
+     *
+     * @return {@code null} when not found.
+     */
+    IppQueueAttr getAttribute(IppQueue queue, IppQueueAttrEnum name);
+
+    /**
      * Traverses the attributes of a {@link IppQueue} to get the value of an
      * attribute.
      *
@@ -259,6 +308,19 @@ public interface QueueService {
      */
     void setQueueAttrValue(IppQueue queue, IppQueueAttrEnum attrEnum,
             String attrValue);
+
+    /**
+     * Creates, updates or removes a queue boolean attribute in the database.
+     *
+     * @param queue
+     *            The {@link IppQueue}.
+     * @param attrEnum
+     *            The name of the {@link IppQueueAttr}.
+     * @param attrValue
+     *            The value.
+     */
+    void setQueueAttrValue(IppQueue queue, IppQueueAttrEnum attrEnum,
+            Boolean attrValue);
 
     /**
      * Deletes the attribute from the database.
@@ -346,8 +408,8 @@ public interface QueueService {
      *
      * @param queue
      *            The queue.
-     * @param printerNameForLogging
-     *            The printer name used for logging when errors are encountered.
+     * @param queueNameForLogging
+     *            The queue name used for logging when errors are encountered.
      * @param clientIpAddr
      *            The IP address of the requesting user.
      * @return {@code true} when IP access to queue is allowed, {@code false}
@@ -356,7 +418,7 @@ public interface QueueService {
      *             If queue is deleted.
      */
     boolean hasClientIpAccessToQueue(IppQueue queue,
-            String printerNameForLogging, String clientIpAddr);
+            String queueNameForLogging, String clientIpAddr);
 
     /**
      * Checks if the reserved queue is enabled.

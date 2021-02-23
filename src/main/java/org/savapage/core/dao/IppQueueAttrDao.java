@@ -56,4 +56,23 @@ public interface IppQueueAttrDao extends GenericDao<IppQueueAttr> {
      */
     void deleteRollingStats();
 
+    /**
+     * Returns attribute value as boolean.
+     *
+     * @see {@link IppQueueAttr#getValue()}.
+     * @param attr
+     *            The {@link IppQueueAttr} ({@code null} is allowed).
+     * @return {@code true} When value is {@code true}.
+     */
+    boolean getBooleanValue(IppQueueAttr attr);
+
+    /**
+     * Returns the database value of a boolean value.
+     *
+     * @param value
+     *            The value.
+     * @return The string representation of a boolean value
+     */
+    String getDbBooleanValue(boolean value);
+
 }

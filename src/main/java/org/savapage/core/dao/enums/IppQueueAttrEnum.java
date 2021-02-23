@@ -49,6 +49,11 @@ public enum IppQueueAttrEnum {
     IPP_ROUTING_OPTIONS("ipp.routing.options"),
 
     /**
+     * Boolean: Y | N. When not present N is assumed.
+     */
+    JOURNAL_DISABLE("journal.disable"),
+
+    /**
      * Statistic time series. Example:
      * <p>
      * {@code 1342562400000,2,1,4,0,0,2,0,..,0,8,1,0}

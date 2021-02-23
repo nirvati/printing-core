@@ -24,12 +24,16 @@
  */
 package org.savapage.core.dao.impl;
 
+import java.util.List;
+
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
 
 import org.savapage.core.dao.DocInOutDao;
+import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocInOut;
 import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.PrintOut;
 
 /**
  *
@@ -38,6 +42,9 @@ import org.savapage.core.jpa.DocLog;
  */
 public final class DocInOutDaoImpl extends GenericDaoImpl<DocInOut>
         implements DocInOutDao {
+
+    /** */
+    protected static final String QPARM_ID = "parm_id";
 
     @Override
     protected String getCountQuery() {
@@ -48,12 +55,12 @@ public final class DocInOutDaoImpl extends GenericDaoImpl<DocInOut>
     public DocLog findDocOutSource(final Long docOutId) {
 
         final String jpql = "SELECT L FROM DocInOut D " + "JOIN D.docIn I "
-                + "JOIN I.docLog L " + "JOIN D.docOut O"
-                + " WHERE O.id = :docOutId";
+                + "JOIN I.docLog L " + "JOIN D.docOut O" + " WHERE O.id = :"
+                + QPARM_ID;
 
         final Query query = getEntityManager().createQuery(jpql);
 
-        query.setParameter("docOutId", docOutId);
+        query.setParameter(QPARM_ID, docOutId);
 
         DocLog docLog = null;
 
@@ -64,6 +71,33 @@ public final class DocInOutDaoImpl extends GenericDaoImpl<DocInOut>
         }
 
         return docLog;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<PrintOut> getPrintOutOfDocIn(final Long docInId) {
+
+        final String jpql = "SELECT P FROM DocInOut D " + "JOIN D.docIn I "
+                + "JOIN D.docOut O " + "JOIN O.printOut P " + " WHERE I.id = :"
+                + QPARM_ID;
+
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter(QPARM_ID, docInId);
+
+        return query.getResultList();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<DocIn> getDocInOfDocOut(final Long docOutId) {
+
+        final String jpql = "SELECT I FROM DocInOut D " + "JOIN D.docIn I "
+                + "JOIN D.docOut O " + " WHERE O.id = :" + QPARM_ID;
+
+        final Query query = getEntityManager().createQuery(jpql);
+        query.setParameter(QPARM_ID, docOutId);
+
+        return query.getResultList();
     }
 
 }

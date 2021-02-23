@@ -1389,9 +1389,9 @@ public interface IConfigProp {
          * Send Mail Print ticket email notification with content-type as
          * "text/html".
          */
-        PRINT_IMAP_TICKET_EMAIL_CONTENT_TYPE_HTML(//
-                "print.imap.ticket.notify-email.content-type.html",
-                BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+        PRINT_IMAP_TICKET_REPLY_CONTENT_TYPE_HTML(//
+                "print.imap.ticket.reply.content-type.html", BOOLEAN_VALIDATOR,
+                V_YES, API_UPDATABLE_ON),
         /**
          *
          */

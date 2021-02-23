@@ -24,11 +24,15 @@
  */
 package org.savapage.core.dao;
 
+import java.util.List;
+
 import javax.persistence.NonUniqueResultException;
 
+import org.savapage.core.jpa.DocIn;
 import org.savapage.core.jpa.DocInOut;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.DocOut;
+import org.savapage.core.jpa.PrintOut;
 
 /**
  *
@@ -50,4 +54,21 @@ public interface DocInOutDao extends GenericDao<DocInOut> {
      */
     DocLog findDocOutSource(Long docOutId);
 
+    /**
+     * Finds the {@link PrintOut} instances related to a {@link DocIn}.
+     *
+     * @param docInId
+     *            The primary key of the {@link DocIn}.
+     * @return list.
+     */
+    List<PrintOut> getPrintOutOfDocIn(Long docInId);
+
+    /**
+     * Finds the {@link DocIn} instances related to a {@link DocOut}.
+     *
+     * @param docOutId
+     *            The primary key of the {@link DocOut}.
+     * @return list.
+     */
+    List<DocIn> getDocInOfDocOut(Long docOutId);
 }
