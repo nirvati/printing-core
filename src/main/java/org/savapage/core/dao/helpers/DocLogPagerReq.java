@@ -43,6 +43,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class DocLogPagerReq extends AbstractPagerReq {
 
+    /** */
+    private Boolean ticketNumberMailView;
+
     /**
      *
      */
@@ -407,6 +410,14 @@ public class DocLogPagerReq extends AbstractPagerReq {
             }
         }
 
+    }
+
+    public Boolean getTicketNumberMailView() {
+        return ticketNumberMailView;
+    }
+
+    public void setTicketNumberMailView(Boolean ticketNumberMailView) {
+        this.ticketNumberMailView = ticketNumberMailView;
     }
 
     public Select getSelect() {
