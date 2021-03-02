@@ -2378,11 +2378,16 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         dto.setInternal(printerService().isInternalPrinter(printer.getId()));
 
-        dto.setArchiveDisabled(printerService()
-                .isDocStoreDisabled(DocStoreTypeEnum.ARCHIVE, printer.getId()));
-
-        dto.setJournalDisabled(printerService()
-                .isDocStoreDisabled(DocStoreTypeEnum.JOURNAL, printer.getId()));
+        if (docStoreService().isEnabled(DocStoreTypeEnum.ARCHIVE,
+                DocStoreBranchEnum.OUT_PRINT)) {
+            dto.setArchiveDisabled(printerService().isDocStoreDisabled(
+                    DocStoreTypeEnum.ARCHIVE, printer.getId()));
+        }
+        if (docStoreService().isEnabled(DocStoreTypeEnum.JOURNAL,
+                DocStoreBranchEnum.OUT_PRINT)) {
+            dto.setJournalDisabled(printerService().isDocStoreDisabled(
+                    DocStoreTypeEnum.JOURNAL, printer.getId()));
+        }
 
         dto.setPpdExtFile(printerService().getAttributeValue(printer,
                 PrinterAttrEnum.CUSTOM_PPD_EXT_FILE));
@@ -2392,13 +2397,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         dto.setJobTicketGroup(printerService().getAttributeValue(printer,
                 PrinterAttrEnum.JOBTICKET_PRINTER_GROUP));
 
-        final boolean isJobTicketLabelsEnabled =
-                printerService().isJobTicketLabelsEnabled(printer);
-
-        final ConfigManager cm = ConfigManager.instance();
-
-        dto.setJobTicketLabelsEnabled(isJobTicketLabelsEnabled
-                && cm.isConfigValue(Key.JOBTICKET_TAGS_ENABLE));
+        if (jobTicketService().isJobTicketLabelsEnabled()) {
+            dto.setJobTicketLabelsEnabled(
+                    printerService().isJobTicketLabelsEnabled(printer));
+        }
 
         /*
          * Printer Groups.
@@ -2549,9 +2551,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
 
         jpaPrinter.setDisabled(dto.getDisabled());
 
-        /*
-         * Deleted?
-         */
+        // Deleted?
         final boolean isDeleted = dto.getDeleted();
 
         if (jpaPrinter.getDeleted() != isDeleted) {
@@ -2563,20 +2563,23 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
             }
         }
 
-        /*
-         * Location.
-         */
+        // Location.
         jpaPrinter.setLocation(dto.getLocation());
 
         //
         setPrinterAttr(jpaPrinter, PrinterAttrEnum.ACCESS_INTERNAL,
                 dto.getInternal());
 
-        setPrinterAttr(jpaPrinter, PrinterAttrEnum.ARCHIVE_DISABLE,
-                dto.getArchiveDisabled());
-
-        setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOURNAL_DISABLE,
-                dto.getJournalDisabled());
+        if (docStoreService().isEnabled(DocStoreTypeEnum.ARCHIVE,
+                DocStoreBranchEnum.OUT_PRINT)) {
+            setPrinterAttr(jpaPrinter, PrinterAttrEnum.ARCHIVE_DISABLE,
+                    dto.getArchiveDisabled());
+        }
+        if (docStoreService().isEnabled(DocStoreTypeEnum.JOURNAL,
+                DocStoreBranchEnum.OUT_PRINT)) {
+            setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOURNAL_DISABLE,
+                    dto.getJournalDisabled());
+        }
 
         setPrinterAttr(jpaPrinter, PrinterAttrEnum.CUSTOM_PPD_EXT_FILE,
                 dto.getPpdExtFile());
@@ -2587,10 +2590,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOBTICKET_PRINTER_GROUP,
                 dto.getJobTicketGroup());
 
-        setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOBTICKET_LABELS_ENABLE,
-                Boolean.valueOf(BooleanUtils.isNotTrue(dto.getJobTicket())
-                        && BooleanUtils
-                                .isTrue(dto.getJobTicketLabelsEnabled())));
+        if (jobTicketService().isJobTicketLabelsEnabled()) {
+            setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOBTICKET_LABELS_ENABLE,
+                    Boolean.valueOf(BooleanUtils.isNotTrue(dto.getJobTicket())
+                            && BooleanUtils
+                                    .isTrue(dto.getJobTicketLabelsEnabled())));
+        }
 
         /*
          * Printer Groups.

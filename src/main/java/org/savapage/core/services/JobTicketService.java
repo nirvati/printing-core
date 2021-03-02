@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.SortedSet;
 
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.ACLRoleEnum;
 import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.dto.JobTicketDomainDto;
@@ -472,6 +473,14 @@ public interface JobTicketService extends StatefulService {
      * @return {@code true} when ticket number is active as reopened Job Ticket.
      */
     boolean isTicketReopened(String ticketNumber);
+
+    /**
+     * @return {@code true} if one of
+     *         {@link IConfigProp.Key#JOBTICKET_DOMAINS_ENABLE},
+     *         {@link IConfigProp.Key#JOBTICKET_USES_ENABLE} or
+     *         {@link IConfigProp.Key#JOBTICKET_TAGS_ENABLE} is enabled.
+     */
+    boolean isJobTicketLabelsEnabled();
 
     /**
      * Gets the list of {@link RedirectPrinterDto} compatible printers for a Job

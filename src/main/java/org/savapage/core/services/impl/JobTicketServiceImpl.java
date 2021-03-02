@@ -2377,4 +2377,12 @@ public final class JobTicketServiceImpl extends AbstractService
                 .containsKey(ticketNumber.concat(TICKET_NUMBER_SUFFIX_REOPEN));
     }
 
+    @Override
+    public boolean isJobTicketLabelsEnabled() {
+        final ConfigManager cm = ConfigManager.instance();
+        return cm.isConfigValue(Key.JOBTICKET_DOMAINS_ENABLE)
+                || cm.isConfigValue(Key.JOBTICKET_USES_ENABLE)
+                || cm.isConfigValue(Key.JOBTICKET_TAGS_ENABLE);
+    }
+
 }
