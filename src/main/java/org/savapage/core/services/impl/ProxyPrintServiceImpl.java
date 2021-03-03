@@ -1230,8 +1230,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
         option.setDefchoice(defChoiceFound);
         option.setDefchoiceIpp(defChoiceFound);
 
-        if (option.getChoices().size() > 1) {
-            printerOptions.add(option);
+        if (!option.getChoices().isEmpty()) {
+            // A single media-source choice is added, but single choices of
+            // other IPP attributes are not. See Mantis #1171.
+            if (isMediaSource || option.getChoices().size() > 1) {
+                printerOptions.add(option);
+            }
         }
 
         if (isSides) {
