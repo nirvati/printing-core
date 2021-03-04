@@ -2583,10 +2583,21 @@ public final class ConfigManager {
      * @return {@code true} if MailPrint is enabled and redirected to user.
      */
     public static boolean isMailPrintTicketingEnabled(final User user) {
-        if (user != null) {
+        return user != null && isMailPrintTicketOperator(user.getUserId());
+    }
+
+    /**
+     * Checks MailPrint Ticketing is enabled and user is the Ticket Operator.
+     *
+     * @param userid
+     *            MailPrint User ID (can be {@code null}).
+     * @return {@code true} if MailPrint is enabled and redirected to user.
+     */
+    public static boolean isMailPrintTicketingEnabled(final String userid) {
+        if (userid != null) {
             final String redirectUserId = getMailPrintTicketOperator();
             return redirectUserId != null
-                    && redirectUserId.equalsIgnoreCase(user.getUserId());
+                    && redirectUserId.equalsIgnoreCase(userid);
         }
         return false;
     }
