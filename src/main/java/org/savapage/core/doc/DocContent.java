@@ -263,7 +263,7 @@ public final class DocContent {
         init(DocContentTypeEnum.XPS,
                 new String[] { "application/oxps",
                         "application/vnd.ms-xpsdocument" },
-                new String[] { "xps" });
+                new String[] { "xps", "oxps" });
 
         /*
          * ODF
