@@ -978,7 +978,7 @@ public abstract class PaperCutDb {
         final String[][] sumColInfo =
                 { { "5", "A4", "pages_a4" }, { "5", "A3", "pages_a3" },
                         { "6", PaperCutPrintCommentSyntax.INDICATOR_DUPLEX_OFF,
-                                "pages_singlex" },
+                                "pages_simplex" },
                         { "6", PaperCutPrintCommentSyntax.INDICATOR_DUPLEX_ON,
                                 "pages_duplex" },
                         { "7", PaperCutPrintCommentSyntax.INDICATOR_COLOR_OFF,
