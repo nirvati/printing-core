@@ -926,13 +926,6 @@ public final class MailPrintListener extends MessageCountAdapter {
 
             if (content instanceof Multipart) {
 
-                final String mailPrintTicket;
-                if (isImapTicket) {
-                    mailPrintTicket = JOBTICKET_SERVICE.createTicketNumber();
-                } else {
-                    mailPrintTicket = null;
-                }
-
                 final int maxPrintedAllowed =
                         cm.getConfigInt(Key.PRINT_IMAP_MAX_FILES);
 
@@ -945,6 +938,15 @@ public final class MailPrintListener extends MessageCountAdapter {
 
                 for (int i = 0; i < multipart.getCount()
                         && nPrinted.intValue() < maxPrintedAllowed; i++) {
+
+                    final String mailPrintTicket;
+                    if (isImapTicket) {
+                        mailPrintTicket =
+                                JOBTICKET_SERVICE.createTicketNumber();
+                    } else {
+                        mailPrintTicket = null;
+                    }
+
                     // Print
                     this.printMessagePart(from, user, mailPrintTicket,
                             multipart, i, nPrinted, maxPrintedAllowed,

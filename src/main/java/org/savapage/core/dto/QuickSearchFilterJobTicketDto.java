@@ -29,7 +29,7 @@ package org.savapage.core.dto;
  * @author Rijk Ravestein
  *
  */
-public final class QuickSearchFilterJobTicketDto extends QuickSearchFilterDto {
+public class QuickSearchFilterJobTicketDto extends QuickSearchFilterDto {
 
     private Long userId;
 

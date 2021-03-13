@@ -29,24 +29,10 @@ package org.savapage.core.dto;
  * @author Rijk Ravestein
  *
  */
-public final class QuickSearchMailTicketItemDto extends QuickSearchItemDto {
+public final class QuickSearchFilterMailTicketDto
+        extends QuickSearchFilterJobTicketDto {
 
-    private String email;
     private boolean docStore;
-    private Integer printOutJobs;
-
-    private String paperSize;
-    private String pages;
-    private String title;
-    private String byteCount;
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
 
     public boolean isDocStore() {
         return docStore;
@@ -54,46 +40,6 @@ public final class QuickSearchMailTicketItemDto extends QuickSearchItemDto {
 
     public void setDocStore(boolean docStore) {
         this.docStore = docStore;
-    }
-
-    public Integer getPrintOutJobs() {
-        return printOutJobs;
-    }
-
-    public void setPrintOutJobs(Integer printOutJobs) {
-        this.printOutJobs = printOutJobs;
-    }
-
-    public String getPaperSize() {
-        return paperSize;
-    }
-
-    public void setPaperSize(String paperSize) {
-        this.paperSize = paperSize;
-    }
-
-    public String getPages() {
-        return pages;
-    }
-
-    public void setPages(String pages) {
-        this.pages = pages;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getByteCount() {
-        return byteCount;
-    }
-
-    public void setByteCount(String byteCount) {
-        this.byteCount = byteCount;
     }
 
 }
