@@ -171,7 +171,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
          */
         final long startTime = System.currentTimeMillis();
 
-        final long nActiveCupsJobs = printOutDAO.countActiveCupsJobs();
+        final long nActiveCupsJobs = printOutDAO.countActiveCupsJobs(false);
 
         SpInfo.instance()
                 .log(String.format("|   %s : %d Active PrintOut jobs.",
@@ -191,7 +191,7 @@ public final class CupsSyncPrintJobs extends AbstractJob {
         while (hasNext) {
 
             final List<PrintOut> list = printOutDAO.getActiveCupsJobsChunk(
-                    Integer.valueOf(MAX_RESULT_PRINT_OUT_LIST));
+                    Integer.valueOf(MAX_RESULT_PRINT_OUT_LIST), false);
 
             final SyncPrintJobsResult result = syncPrintJobs(proxyPrintService,
                     printOutDAO, cupsJobIdLast, list, batchCommitter);

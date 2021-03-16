@@ -120,16 +120,22 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
     }
 
     @Override
-    public List<PrintOut> getActiveCupsJobsChunk(final Integer maxResults) {
+    public List<PrintOut> getActiveCupsJobsChunk(final Integer maxResults,
+            final boolean regardCompletedTime) {
 
-        final String jpql = "SELECT O FROM PrintOut O " //
+        final StringBuilder jpql = new StringBuilder();
+
+        jpql.append("SELECT O FROM PrintOut O " //
                 + "WHERE O.cupsJobId > 0 "
-                + "AND O.cupsJobState < :cupsJobState "
-                + "AND (O.cupsCompletedTime IS NULL"
-                + " OR O.cupsCompletedTime = 0) "
-                + "ORDER BY O.cupsJobId, O.id DESC";
+                + "AND O.cupsJobState < :cupsJobState ");
 
-        final Query query = getEntityManager().createQuery(jpql);
+        if (regardCompletedTime) {
+            jpql.append("AND (O.cupsCompletedTime IS NULL"
+                    + " OR O.cupsCompletedTime = 0) ");
+        }
+        jpql.append("ORDER BY O.cupsJobId, O.id DESC");
+
+        final Query query = getEntityManager().createQuery(jpql.toString());
 
         query.setParameter("cupsJobState",
                 IppJobStateEnum.getFirstAbsentOnQueueOrdinal().asInteger());
@@ -147,9 +153,14 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
     /**
      * @param countUsers
      *            If {@code true}, distinct users are counted.
+     * @param regardCompletedTime
+     *            If {@code true}, look at CUPS job state and take completed
+     *            time into account. If {@code false}, look at CUPS job state
+     *            only
      * @return Number of distinct users or CUPS jobs.
      */
-    private long countActiveCupsJobs(final boolean countUsers) {
+    private long countActiveCupsJobs(final boolean countUsers,
+            final boolean regardCompletedTime) {
 
         final CriteriaBuilder cb = getEntityManager().getCriteriaBuilder();
         final CriteriaQuery<Long> cq = cb.createQuery(Long.class);
@@ -162,11 +173,15 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
         final Predicate prd2 = cb.lessThan(root.get("cupsJobState"),
                 IppJobStateEnum.getFirstAbsentOnQueueOrdinal().asInteger());
 
-        final Predicate prd3a = cb.isNull(root.get("cupsCompletedTime"));
-        final Predicate prd3b =
-                cb.equal(root.get("cupsCompletedTime"), Integer.valueOf(0));
+        if (regardCompletedTime) {
+            final Predicate prd3a = cb.isNull(root.get("cupsCompletedTime"));
+            final Predicate prd3b =
+                    cb.equal(root.get("cupsCompletedTime"), Integer.valueOf(0));
 
-        cq.where(cb.and(prd1, prd2), cb.and(cb.or(prd3a, prd3b)));
+            cq.where(cb.and(prd1, prd2), cb.and(cb.or(prd3a, prd3b)));
+        } else {
+            cq.where(cb.and(prd1, prd2));
+        }
 
         if (countUsers) {
             final Join<PrintOut, DocOut> joinDocOut = root.join("docOut");
@@ -181,13 +196,13 @@ public final class PrintOutDaoImpl extends GenericDaoImpl<PrintOut>
     }
 
     @Override
-    public long countActiveCupsJobs() {
-        return this.countActiveCupsJobs(false);
+    public long countActiveCupsJobs(final boolean regardCompletedTime) {
+        return this.countActiveCupsJobs(false, regardCompletedTime);
     }
 
     @Override
-    public long countActiveCupsJobUsers() {
-        return this.countActiveCupsJobs(true);
+    public long countActiveCupsJobUsers(final boolean regardCompletedTime) {
+        return this.countActiveCupsJobs(true, regardCompletedTime);
     }
 
     /**

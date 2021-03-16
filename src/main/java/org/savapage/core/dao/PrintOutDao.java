@@ -42,14 +42,26 @@ import org.savapage.core.print.proxy.JsonProxyPrintJob;
 public interface PrintOutDao extends GenericDao<PrintOut> {
 
     /**
-     * @return Number of distinct active CUPS jobs.
+     * Gets number of distinct active CUPS jobs. See Mantis #1174.
+     *
+     * @param regardCompletedTime
+     *            If {@code true}, look at CUPS job state and take completed
+     *            time into account. If {@code false}, look at CUPS job state
+     *            only.
+     * @return Number of jobs.
      */
-    long countActiveCupsJobs();
+    long countActiveCupsJobs(boolean regardCompletedTime);
 
     /**
-     * @return Number of distinct users with active CUPS jobs.
+     * Gets number of distinct users with active CUPS jobs. See Mantis #1174.
+     *
+     * @param regardCompletedTime
+     *            If {@code true}, look at CUPS job state and take completed
+     *            time into account. If {@code false}, look at CUPS job state
+     *            only.
+     * @return Number of users.
      */
-    long countActiveCupsJobUsers();
+    long countActiveCupsJobUsers(boolean regardCompletedTime);
 
     /**
      * @param suppl
@@ -72,32 +84,38 @@ public interface PrintOutDao extends GenericDao<PrintOut> {
             ExternalSupplierStatusEnum stat);
 
     /**
-     * Finds the CUPS print job, that is NOT end-of-state, with the
-     * identifying attributes equal to the parameters passed.
+     * Finds the CUPS print job, that is NOT end-of-state, with the identifying
+     * attributes equal to the parameters passed.
      *
      * @param jobPrinterName
      *            The name of the printer.
      * @param jobId
      *            The job ID.
+     *
      * @return The PrintOut object or {@code null} when not found.
      */
     PrintOut findActiveCupsJob(String jobPrinterName, Integer jobId);
 
     /**
-     * Finds the CUPS print job, that is end-of-state, with the
-     * identifying attributes equal to the parameters passed.
+     * Finds the CUPS print job, that is end-of-state, with the identifying
+     * attributes equal to the parameters passed.
      *
      * @param jobPrinterName
      *            The name of the printer.
      * @param jobId
      *            The job ID.
+     *
      * @return The PrintOut object or {@code null} when not found.
      */
     PrintOut findEndOfStateCupsJob(String jobPrinterName, Integer jobId);
 
     /**
-     * Finds the CUPS jobs that are NOT end-of-state.
+     * Finds the CUPS jobs that are NOT end-of-state. See Mantis #1174.
      *
+     * @param regardCompletedTime
+     *            If {@code true}, look at CUPS job state and take completed
+     *            time into account. If {@code false}, look at CUPS job state
+     *            only.
      * @param maxResults
      *            The maximum number of rows in the chunk. If {@code null}, then
      *            ALL (remaining rows) are returned.
@@ -106,7 +124,8 @@ public interface PrintOutDao extends GenericDao<PrintOut> {
      *         {@link PrintOut#getCupsJobId()} ascending and
      *         {@link PrintOut#getId()} descending.
      */
-    List<PrintOut> getActiveCupsJobsChunk(Integer maxResults);
+    List<PrintOut> getActiveCupsJobsChunk(Integer maxResults,
+            boolean regardCompletedTime);
 
     /**
      * Updates a {@link PrintOut} instance with new CUPS job state data.
