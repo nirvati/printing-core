@@ -469,7 +469,7 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         jpql.append(",\n\tSUM(CASE WHEN PO.grayscale = true"
                 + " THEN D.numberOfPages ELSE 0 END)");
         jpql.append(",\n\tSUM(CASE WHEN PO.grayscale = false"
-                + " THEN 0 ELSE D.numberOfPages END)");
+                + " THEN D.numberOfPages ELSE 0 END)");
         jpql.append(",\n\tMAX(TRX.extDetails)"); // klas
         jpql.append(",\n\tMIN(TRX.transactionDate)"); // Date_From,
         jpql.append(",\n\tMAX(TRX.transactionDate)"); // Date_To
@@ -565,7 +565,7 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
             //
             dto.setPagesA4((Long) row[i++]);
             dto.setPagesA3((Long) row[i++]);
-            dto.setPagesSinglex((Long) row[i++]);
+            dto.setPagesSimplex((Long) row[i++]);
             dto.setPagesDuplex((Long) row[i++]);
             dto.setPagesGrayscale((Long) row[i++]);
             dto.setPagesColor((Long) row[i++]);

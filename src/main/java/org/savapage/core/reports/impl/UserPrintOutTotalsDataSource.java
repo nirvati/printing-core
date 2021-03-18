@@ -221,7 +221,7 @@ public final class UserPrintOutTotalsDataSource extends AbstractJrDataSource
             break;
 
         case "PAGES_1_SIDED":
-            value.append(this.chunkDtoWlk.getPagesSinglex());
+            value.append(this.chunkDtoWlk.getPagesSimplex());
             break;
 
         case "PAGES_2_SIDED":

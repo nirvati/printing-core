@@ -60,7 +60,7 @@ public class UserPrintOutTotalDto extends AbstractDto {
     private Long pagesA3;
 
     /** */
-    private Long pagesSinglex;
+    private Long pagesSimplex;
 
     /** */
     private Long pagesDuplex;
@@ -144,12 +144,12 @@ public class UserPrintOutTotalDto extends AbstractDto {
         this.pagesA3 = pagesA3;
     }
 
-    public Long getPagesSinglex() {
-        return pagesSinglex;
+    public Long getPagesSimplex() {
+        return pagesSimplex;
     }
 
-    public void setPagesSinglex(Long pagesSinglex) {
-        this.pagesSinglex = pagesSinglex;
+    public void setPagesSimplex(Long pagesSimplex) {
+        this.pagesSimplex = pagesSimplex;
     }
 
     public Long getPagesDuplex() {
