@@ -80,6 +80,9 @@ public enum PhraseEnum {
     PDF_XFA_UNSUPPORTED,
 
     /** Question. */
+    Q_DELETE_DOCUMENT,
+
+    /** Question. */
     Q_REPLACE_SECRET_CODE,
 
     /** */

@@ -52,7 +52,6 @@ import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.config.OnOffEnum;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.ACLOidEnum;
-import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.IppRoutingEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
@@ -70,7 +69,6 @@ import org.savapage.core.doc.PsToImagePdf;
 import org.savapage.core.doc.store.DocStoreBranchEnum;
 import org.savapage.core.doc.store.DocStoreException;
 import org.savapage.core.doc.store.DocStoreTypeEnum;
-import org.savapage.core.dto.UserIdDto;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.ipp.routing.IppRoutingListener;
@@ -1516,10 +1514,8 @@ public final class DocContentPrintProcessor {
 
         if (DOC_STORE_SERVICE.isEnabled(store, DocStoreBranchEnum.IN_PRINT)
                 && !QUEUE_SERVICE.isDocStoreJournalDisabled(this.getQueue())
-                && this.userDb != null
-                && ACCESS_CONTROL_SERVICE.hasPermission(
-                        UserIdDto.create(userDb), ACLOidEnum.U_INBOX,
-                        ACLPermissionEnum.JOURNAL)) {
+                && this.userDb != null && ACCESS_CONTROL_SERVICE
+                        .hasAccess(userDb, ACLOidEnum.U_QUEUE_JOURNAL)) {
             DOC_STORE_SERVICE.store(store, printInInfo, pdfFile);
             return true;
         }

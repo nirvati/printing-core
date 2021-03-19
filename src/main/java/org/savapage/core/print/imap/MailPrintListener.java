@@ -62,11 +62,9 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.ACLOidEnum;
-import org.savapage.core.dao.enums.ACLPermissionEnum;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.doc.DocContent;
-import org.savapage.core.dto.UserIdDto;
 import org.savapage.core.i18n.AdjectiveEnum;
 import org.savapage.core.i18n.NounEnum;
 import org.savapage.core.job.AbstractJob;
@@ -799,9 +797,8 @@ public final class MailPrintListener extends MessageCountAdapter {
         if (user == null) {
             return false;
         }
-        final UserIdDto dto = UserIdDto.create(user);
-        return ACCESS_CONTROL_SERVICE.hasPermission(dto, ACLOidEnum.U_INBOX,
-                ACLPermissionEnum.JOURNAL);
+        return ACCESS_CONTROL_SERVICE.hasAccess(user,
+                ACLOidEnum.U_QUEUE_JOURNAL);
     }
 
     /**

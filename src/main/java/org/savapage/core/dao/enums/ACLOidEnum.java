@@ -104,8 +104,8 @@ public enum ACLOidEnum {
      * The user inbox (SafePages).
      */
     U_INBOX(EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR), //
-            EnumSet.of(ACLPermissionEnum.JOURNAL, ACLPermissionEnum.DOWNLOAD,
-                    ACLPermissionEnum.SEND, ACLPermissionEnum.SIGN)),
+            EnumSet.of(ACLPermissionEnum.DOWNLOAD, ACLPermissionEnum.SEND,
+                    ACLPermissionEnum.SIGN)),
 
     /**
      * Financial.
@@ -124,22 +124,30 @@ public enum ACLOidEnum {
     U_PERSONAL_PRINT(EnumSet.of(ACLPermissionEnum.READER)),
 
     /**
-     * PrintOut Archive.
+     * PrintIn Journal.
      */
-    U_PRINT_ARCHIVE(EnumSet.of(ACLPermissionEnum.EDITOR),
-            EnumSet.of(ACLPermissionEnum.SELECT)),
+    U_QUEUE_JOURNAL(
+            EnumSet.of(ACLPermissionEnum.READER, ACLPermissionEnum.EDITOR), //
+            EnumSet.of(ACLPermissionEnum.SELECT, ACLPermissionEnum.DOWNLOAD),
+            EnumSet.of(ACLPermissionEnum.DELETE)),
 
     /**
      * PrintOut Journal.
      */
-    U_PRINT_JOURNAL(EnumSet.of(ACLPermissionEnum.READER));
+    U_PRINT_JOURNAL(EnumSet.of(ACLPermissionEnum.READER)),
+
+    /**
+     * PrintOut Archive.
+     */
+    U_PRINT_ARCHIVE(EnumSet.of(ACLPermissionEnum.EDITOR),
+            EnumSet.of(ACLPermissionEnum.SELECT));
 
     /**
      * OIDs for user role. The enum order is the top to bottom order in the UI.
      */
     private static final ACLOidEnum[] USER_ENUMS_ARRAY = new ACLOidEnum[] {
-            U_INBOX, U_USER, U_PERSONAL_PRINT, U_PRINT_JOURNAL, U_PRINT_ARCHIVE,
-            U_FINANCIAL, U_LETTERHEAD };
+            U_INBOX, U_USER, U_PERSONAL_PRINT, U_QUEUE_JOURNAL, U_PRINT_JOURNAL,
+            U_PRINT_ARCHIVE, U_FINANCIAL, U_LETTERHEAD };
 
     /**
      * OIDs for user role. The enum order is lost.
@@ -211,7 +219,6 @@ public enum ACLOidEnum {
     }
 
     /**
-     *
      * @param permRoles
      *            The role permissions that can be selected to grant access for.
      * @param permsReader

@@ -127,6 +127,9 @@ public enum CommunityDictEnum {
     DELEGATED_PRINT,
 
     /** */
+    DOC_STORE,
+
+    /** */
     ECO_PRINT,
 
     /** */
