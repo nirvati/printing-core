@@ -26,9 +26,7 @@ package org.savapage.core.print.imap;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 
@@ -683,55 +681,63 @@ public final class MailPrintListener extends MessageCountAdapter {
     }
 
     /**
-     * Moves messages to the Trash folder.
+     * Deletes a message.
      *
-     * @param messages
+     * @param message
+     *            {@link Message}.
+     * @param nMsg
+     *            1-based message ordinal.
      * @throws MessagingException
      */
-    private void moveToTrash(final Message[] messages)
+    private void deleteMessage(final Message message, final int nMsg)
             throws MessagingException {
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Moving {} message(s) to TRASH folder ...",
-                    messages.length);
-        }
-
-        this.inbox.copyMessages(messages, trash);
-
-        int nMsg = 0;
-
-        for (final Message message : messages) {
-
-            nMsg++;
-
-            /*
-             * The MessageRemovedException is thrown if an invalid method is
-             * invoked on an expunged Message. The only valid methods on an
-             * expunged Message are <code>isExpunged()</code> and
-             * <code>getMessageNumber()</code>.
-             *
-             * 2013-06-19: tested OK with Gmail.
-             */
-            if (!message.isExpunged()) {
-
-                try {
-                    if (message.isSet(Flags.Flag.DELETED)) {
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Message #{} deleted", nMsg);
-                        }
-                    } else {
-                        message.setFlag(Flags.Flag.DELETED, true);
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Message #{} AD-HOC deleted", nMsg);
-                        }
+        if (!message.isExpunged()) {
+            try {
+                if (message.isSet(Flags.Flag.DELETED)) {
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Message #{} already deleted", nMsg);
                     }
-                } catch (MessageRemovedException e) {
-                    if (LOGGER.isWarnEnabled()) {
-                        LOGGER.warn("Message #{} ALREADY removed", nMsg);
+                } else {
+                    message.setFlag(Flags.Flag.DELETED, true);
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Message #{} deleted", nMsg);
                     }
+                }
+                this.inbox.expunge();
+
+            } catch (MessageRemovedException e) {
+                /*
+                 * The MessageRemovedException is thrown if an invalid method is
+                 * invoked on an expunged Message. The only valid methods on an
+                 * expunged Message are <code>isExpunged()</code> and
+                 * <code>getMessageNumber()</code>.
+                 */
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Message #{} ALREADY removed", nMsg);
                 }
             }
         }
+    }
+
+    /**
+     * Moves messages to the Trash folder.
+     *
+     * @param message
+     *            {@link Message}.
+     * @param nMsg
+     *            1-based message ordinal.
+     * @throws MessagingException
+     */
+    private void moveToTrash(final Message message, final int nMsg)
+            throws MessagingException {
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Message #{} moved to trash folder", nMsg);
+        }
+        final Message[] messages = { message };
+        this.inbox.copyMessages(messages, trash);
+        this.deleteMessage(message, nMsg);
     }
 
     /**
@@ -745,44 +751,38 @@ public final class MailPrintListener extends MessageCountAdapter {
     private void processMessages(final Message[] messages)
             throws MessagingException, IOException {
 
-        final boolean USE_TRASH_BUFFER = false;
-
-        final List<Message> trashBuffer = new ArrayList<>();
+        final boolean isMoveToTrash = ConfigManager.instance()
+                .isConfigValue(Key.PRINT_IMAP_TRASH_FOLDER_ENABLE);
 
         this.isProcessing = true;
 
         int nMsg = 0;
 
         try {
-            final Message[] array = new Message[1];
-
             for (final Message message : messages) {
+
+                if (message.isExpunged()) {
+                    LOGGER.warn("Message #{} skipped. Reason: expunged.",
+                            (++nMsg));
+                    continue;
+                }
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Message #{}", (++nMsg));
                 }
 
-                array[0] = message;
-
                 try {
                     this.processMessage(message);
                 } finally {
-                    if (USE_TRASH_BUFFER) {
-                        trashBuffer.add(message);
+                    if (isMoveToTrash) {
+                        this.moveToTrash(message, nMsg);
                     } else {
-                        this.moveToTrash(array);
+                        this.deleteMessage(message, nMsg);
                     }
                 }
             }
 
         } finally {
-
-            if (!trashBuffer.isEmpty()) {
-                final Message[] array = new Message[trashBuffer.size()];
-                trashBuffer.toArray(array);
-                this.moveToTrash(array);
-            }
-
             this.isProcessing = false;
         }
     }
@@ -950,19 +950,54 @@ public final class MailPrintListener extends MessageCountAdapter {
                             maxBytesAllowed);
                 }
 
+                if (nPrinted.intValue() == 0) {
+                    this.sendEmailPubLog(from,
+                            localize("user-msg-subject-error",
+                                    CommunityDictEnum.SAVAPAGE.getWord(),
+                                    mailPrintWord),
+                            NounEnum.ERROR.uiText(locale),
+                            localize("user-msg-body-content-notfound"),
+                            String.format(
+                                    "Mail Print from [%s] : "
+                                            + "no content to print [%s].",
+                                    from, content.getClass().getSimpleName()));
+                }
+
             } else {
-                this.sendEmail(from, localize("user-msg-subject-error",
+                this.sendEmailPubLog(from, localize("user-msg-subject-error",
                         CommunityDictEnum.SAVAPAGE.getWord(), mailPrintWord),
                         NounEnum.ERROR.uiText(locale),
-                        localize("user-msg-body-content-unsupported"));
-                final String msg = String.format(
-                        "Mail Print from [%s] : unsupported content [%s].",
-                        from, content.getClass().getSimpleName());
-                AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
-                        PubLevelEnum.WARN, msg);
-                LOGGER.warn(msg);
+                        localize("user-msg-body-content-unsupported"),
+                        String.format(
+                                "Mail Print from [%s] : "
+                                        + "unsupported content [%s].",
+                                from, content.getClass().getSimpleName()));
             }
         }
+    }
+
+    /**
+     * Sends an email.
+     *
+     * @param eToAddress
+     *            The email address.
+     * @param eSubject
+     *            The subject of the message.
+     * @param eHeaderText
+     *            The email content header text.
+     * @param eContent
+     *            The email body text with optional newline {@code \n}
+     *            characters. *
+     * @param msgPubLog
+     *            Warning message for {@link AdminPublisher} and logger.
+     */
+    private void sendEmailPubLog(final String eToAddress, final String eSubject,
+            final String eHeaderText, final String eContent,
+            final String msgPubLog) {
+        this.sendEmail(eToAddress, eSubject, eHeaderText, eContent);
+        AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
+                PubLevelEnum.WARN, msgPubLog);
+        LOGGER.warn(msgPubLog);
     }
 
     /**
