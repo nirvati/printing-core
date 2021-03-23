@@ -626,8 +626,9 @@ public final class JobTicketServiceImpl extends AbstractService
                 .initTicketDomains(cm.getConfigValue(Key.JOBTICKET_DOMAINS));
         JobTicketLabelCache
                 .initTicketUses(cm.getConfigValue(Key.JOBTICKET_USES));
-        JobTicketLabelCache
-                .initTicketTags(cm.getConfigValue(Key.JOBTICKET_TAGS));
+        JobTicketLabelCache.initTicketTags(
+                cm.getConfigValue(Key.JOBTICKET_TAGS),
+                cm.getConfigValue(Key.JOBTICKET_TAGS_1));
     }
 
     @Override

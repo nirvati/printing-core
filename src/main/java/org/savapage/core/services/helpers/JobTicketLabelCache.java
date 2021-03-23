@@ -189,23 +189,24 @@ public final class JobTicketLabelCache {
     }
 
     /**
-     * Sets the tags in the cache.
+     * Sets the tags in the maps.
      *
+     * @param mapByID
+     *            Tag by ID.
+     * @param mapByWord
+     *            Tag by Word.
      * @param tags
      *            The tag list.
      */
-    private static void setTicketTags(final List<JobTicketTagDto> tags) {
-
-        final TreeMap<String, JobTicketTagDto> mapByID = new TreeMap<>();
-        final TreeMap<String, JobTicketTagDto> mapByWord = new TreeMap<>();
+    private static void setTicketTags(
+            final TreeMap<String, JobTicketTagDto> mapByID,
+            final TreeMap<String, JobTicketTagDto> mapByWord,
+            final List<JobTicketTagDto> tags) {
 
         for (final JobTicketTagDto dto : tags) {
             mapByID.put(dto.getId(), dto);
             mapByWord.put(dto.getName(), dto);
         }
-
-        tagsByID = mapByID;
-        tagsByName = mapByWord;
     }
 
     /**
@@ -235,13 +236,24 @@ public final class JobTicketLabelCache {
     /**
      * Parses formatted ticket tags and sets the cache.
      *
-     * @param formattedTags
-     *            The formatted tags string.
+     * @param formattedTags1
+     *            Formatted tags Part 1.
+     * @param formattedTags2
+     *            Formatted tags Part 2.
      * @throws IllegalArgumentException
      *             When invalid tag format.
      */
-    public static void initTicketTags(final String formattedTags) {
-        setTicketTags(parseTicketTags(formattedTags));
+    public static void initTicketTags(final String formattedTags1,
+            final String formattedTags2) {
+
+        final TreeMap<String, JobTicketTagDto> mapByID = new TreeMap<>();
+        final TreeMap<String, JobTicketTagDto> mapByWord = new TreeMap<>();
+
+        setTicketTags(mapByID, mapByWord, parseTicketTags(formattedTags1));
+        setTicketTags(mapByID, mapByWord, parseTicketTags(formattedTags2));
+
+        tagsByID = mapByID;
+        tagsByName = mapByWord;
     }
 
     /**
@@ -255,9 +267,23 @@ public final class JobTicketLabelCache {
      */
     public static List<JobTicketDomainDto>
             parseTicketDomains(final String formattedDomains) {
-
         final List<JobTicketDomainDto> list = new ArrayList<>();
+        parseTicketDomains(list, formattedDomains);
+        return list;
+    }
 
+    /**
+     * Parses formatted ticket domains (cache is <b>not</b> updated).
+     *
+     * @param list
+     *            List to add domains to.
+     * @param formattedDomains
+     *            The formatted domains string.
+     * @throws IllegalArgumentException
+     *             When invalid tag format.
+     */
+    private static void parseTicketDomains(final List<JobTicketDomainDto> list,
+            final String formattedDomains) {
         for (final String item : splitFormattedItems(formattedDomains)) {
             final String[] res = splitItem(item);
             final JobTicketDomainDto dto = new JobTicketDomainDto();
@@ -265,7 +291,6 @@ public final class JobTicketLabelCache {
             dto.setName(res[LABEL_SPLIT_IDX_NAME]);
             list.add(dto);
         }
-        return list;
     }
 
     /**
