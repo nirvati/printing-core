@@ -1341,6 +1341,13 @@ public interface IConfigProp {
                 "print.imap.folder.trash", "Trash", API_UPDATABLE_OFF),
 
         /**
+        *
+        */
+        PRINT_IMAP_TRASH_FOLDER_ENABLE(//
+                "print.imap.folder.trash.enable", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /**
          *
          */
         PRINT_IMAP_SESSION_HEARTBEAT_SECS(//
@@ -1866,6 +1873,13 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Retain last Job Ticket Domain choice.
+         */
+        JOBTICKET_DOMAINS_RETAIN(//
+                "jobticket.domains.retain", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /**
          * A comma separated list of Job Ticket uses (applications) within a
          * domain to be applied as job ticket number prefix. Each use on the
          * list is formatted as "USE/usage", where "USE" is a unique N-letter
@@ -1903,6 +1917,9 @@ public interface IConfigProp {
          * applied, a generated ticket number looks like "MATH/EE1-FA3E-6596".
          */
         JOBTICKET_TAGS("jobticket.tags", KeyType.MULTI_LINE),
+
+        /** Part 2. **/
+        JOBTICKET_TAGS_1("jobticket.tags.1", KeyType.MULTI_LINE),
 
         /**
          * Enable {@link IConfigProp.Key#JOBTICKET_TAGS} (boolean).
