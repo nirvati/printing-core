@@ -162,7 +162,7 @@ public final class DocContentPrintProcessor {
     private byte[] readAheadInputBytes = null;
 
     /** */
-    private IPdfPageProps pageProps = null;
+    private SpPdfPageProps pageProps = null;
 
     /** */
     private boolean drmViolationDetected = false;
@@ -1074,7 +1074,7 @@ public final class DocContentPrintProcessor {
             /*
              * Calculate number of pages, etc. and repair along the way.
              */
-            final IPdfPageProps pdfPageProps =
+            final SpPdfPageProps pdfPageProps =
                     this.createPdfPageProps(tempPathPdf);
 
             this.setPageProps(pdfPageProps);
@@ -1389,11 +1389,11 @@ public final class DocContentPrintProcessor {
      * @throws PdfUnsupportedException
      *             When unsupported PDF document.
      */
-    private IPdfPageProps createPdfPageProps(final String tempPathPdf)
+    private SpPdfPageProps createPdfPageProps(final String tempPathPdf)
             throws PdfValidityException, PdfSecurityException, IOException,
             PdfPasswordException, PdfUnsupportedException {
 
-        IPdfPageProps pdfPageProps;
+        SpPdfPageProps pdfPageProps;
 
         try {
 
@@ -1628,7 +1628,11 @@ public final class DocContentPrintProcessor {
         return pageProps;
     }
 
-    public void setPageProps(IPdfPageProps pageProps) {
+    public int getNumberOfPages() {
+        return pageProps.getNumberOfPages();
+    }
+
+    private void setPageProps(final SpPdfPageProps pageProps) {
         this.pageProps = pageProps;
     }
 

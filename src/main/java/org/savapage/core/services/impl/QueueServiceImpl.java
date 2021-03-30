@@ -582,6 +582,7 @@ public final class QueueServiceImpl extends AbstractService
 
                     printRsp.setResult(PrintInResultEnum.OK);
                     printRsp.setDocumentUuid(processor.getUuidJob());
+                    printRsp.setNumberOfPages(processor.getNumberOfPages());
 
                 } else {
                     throw new UnsupportedPrintJobContent(

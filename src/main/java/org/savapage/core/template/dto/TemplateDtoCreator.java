@@ -27,6 +27,7 @@ package org.savapage.core.template.dto;
 import org.savapage.core.jpa.User;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobBaseDto;
 import org.savapage.core.print.server.DocContentPrintReq;
+import org.savapage.core.print.server.DocContentPrintRsp;
 
 /**
  *
@@ -83,18 +84,23 @@ public final class TemplateDtoCreator {
      *
      * @param req
      *            The {@link DocContentPrintReq}.
+     * @param rsp
+     *            The {@link DocContentPrintRsp}.
      * @param operator
      *            The name of the ticket operator.
      * @return The created instance.
      */
     public static TemplateMailTicketDto templateMailTicketDto(
-            final DocContentPrintReq req, final String operator) {
+            final DocContentPrintReq req, final DocContentPrintRsp rsp,
+            final String operator) {
 
         final TemplateMailTicketDto templateDto = new TemplateMailTicketDto();
 
         templateDto.setNumber(req.getMailPrintTicket());
         templateDto.setOperator(operator);
         templateDto.setFile(req.getFileName());
+        templateDto.setPages(rsp.getNumberOfPages());
+        templateDto.setSinglePage(rsp.getNumberOfPages() == 1);
 
         return templateDto;
     }

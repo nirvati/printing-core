@@ -37,6 +37,8 @@ public class DocContentPrintRsp {
 
     private UUID documentUuid;
 
+    private int numberOfPages;
+
     public PrintInResultEnum getResult() {
         return result;
     }
@@ -51,6 +53,14 @@ public class DocContentPrintRsp {
 
     public void setDocumentUuid(UUID documentUuid) {
         this.documentUuid = documentUuid;
+    }
+
+    public int getNumberOfPages() {
+        return numberOfPages;
+    }
+
+    public void setNumberOfPages(int numberOfPages) {
+        this.numberOfPages = numberOfPages;
     }
 
 }

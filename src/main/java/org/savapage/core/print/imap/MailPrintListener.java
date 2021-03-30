@@ -70,6 +70,7 @@ import org.savapage.core.job.MailPrintListenerJob;
 import org.savapage.core.jpa.User;
 import org.savapage.core.print.server.DocContentPrintException;
 import org.savapage.core.print.server.DocContentPrintReq;
+import org.savapage.core.print.server.DocContentPrintRsp;
 import org.savapage.core.services.AccessControlService;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.JobTicketService;
@@ -1103,14 +1104,16 @@ public final class MailPrintListener extends MessageCountAdapter {
                     docContentPrintReq.setProtocol(DocLogProtocolEnum.IMAP);
                     docContentPrintReq.setTitle(fileName);
 
-                    QUEUE_SERVICE.printDocContent(
-                            ReservedIppQueueEnum.MAILPRINT, user.getUserId(),
-                            docContentPrintReq, part.getInputStream());
+                    final DocContentPrintRsp docContentPrintRsp = QUEUE_SERVICE
+                            .printDocContent(ReservedIppQueueEnum.MAILPRINT,
+                                    user.getUserId(), docContentPrintReq,
+                                    part.getInputStream());
 
                     nPrinted.increment();
 
                     if (mailPrintTicket != null) {
-                        this.notifyMailTicketByEmail(docContentPrintReq, user);
+                        this.notifyMailTicketByEmail(docContentPrintReq,
+                                docContentPrintRsp, user);
                     }
 
                 } catch (DocContentPrintException e) {
@@ -1167,15 +1170,17 @@ public final class MailPrintListener extends MessageCountAdapter {
      *
      * @param req
      *            The print request.
+     * @param rsp
+     *            The print response.
      * @param ticketOperator
      *            Operator.
      */
     private void notifyMailTicketByEmail(final DocContentPrintReq req,
-            final User ticketOperator) {
+            final DocContentPrintRsp rsp, final User ticketOperator) {
 
         final MailPrintTicketReceived tpl = new MailPrintTicketReceived(
                 ConfigManager.getServerCustomEmailTemplateHome(),
-                TemplateDtoCreator.templateMailTicketDto(req,
+                TemplateDtoCreator.templateMailTicketDto(req, rsp,
                         StringUtils.defaultIfBlank(ticketOperator.getFullName(),
                                 ticketOperator.getUserId())));
 

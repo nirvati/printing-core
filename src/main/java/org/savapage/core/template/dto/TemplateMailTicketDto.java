@@ -33,6 +33,8 @@ public class TemplateMailTicketDto implements TemplateDto {
 
     private String number;
     private String file;
+    private Integer pages;
+    private boolean singlePage;
     private String operator;
 
     public String getNumber() {
@@ -49,6 +51,22 @@ public class TemplateMailTicketDto implements TemplateDto {
 
     public void setFile(String file) {
         this.file = file;
+    }
+
+    public Integer getPages() {
+        return pages;
+    }
+
+    public void setPages(Integer pages) {
+        this.pages = pages;
+    }
+
+    public boolean isSinglePage() {
+        return singlePage;
+    }
+
+    public void setSinglePage(boolean singlePage) {
+        this.singlePage = singlePage;
     }
 
     public String getOperator() {
