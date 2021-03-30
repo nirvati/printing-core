@@ -44,6 +44,15 @@ public class ConfigProperty extends org.savapage.core.jpa.Entity {
 
     public static final String TABLE_NAME = "tbl_config";
 
+    /** */
+    public static final int COL_VALUE_NAME = 100;
+    /** */
+    public static final int COL_VALUE_LENGTH = 1000;
+    /** */
+    public static final int COL_CREATED_BY_LENGTH = 50;
+    /** */
+    public static final int COL_MODIFIED_BY_LENGTH = 50;
+
     @Id
     @Column(name = "config_id")
     @TableGenerator(name = "configPropGen", table = Sequence.TABLE_NAME,
@@ -54,11 +63,11 @@ public class ConfigProperty extends org.savapage.core.jpa.Entity {
             generator = "configPropGen")
     private Long id;
 
-    @Column(name = "property_name", length = 100, nullable = false,
+    @Column(name = "property_name", length = COL_VALUE_NAME, nullable = false,
             insertable = true, updatable = false)
     private String propertyName;
 
-    @Column(name = "property_value", length = 1000, nullable = true,
+    @Column(name = "property_value", length = COL_VALUE_LENGTH, nullable = true,
             insertable = true, updatable = true)
     private String value;
 
@@ -66,16 +75,16 @@ public class ConfigProperty extends org.savapage.core.jpa.Entity {
             updatable = true)
     private Date createdDate;
 
-    @Column(name = "created_by", length = 50, nullable = false,
-            insertable = true, updatable = true)
+    @Column(name = "created_by", length = COL_CREATED_BY_LENGTH,
+            nullable = false, insertable = true, updatable = true)
     private String createdBy;
 
     @Column(name = "modified_date", nullable = false, insertable = true,
             updatable = true)
     private Date modifiedDate;
 
-    @Column(name = "modified_by", length = 50, nullable = false,
-            insertable = true, updatable = true)
+    @Column(name = "modified_by", length = COL_MODIFIED_BY_LENGTH,
+            nullable = false, insertable = true, updatable = true)
     private String modifiedBy;
 
     /**
