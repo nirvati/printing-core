@@ -35,6 +35,87 @@ import java.util.Date;
  */
 public class UserPrintOutTotalDto extends AbstractDto {
 
+    public static class Detail {
+
+        /** */
+        private Long total;
+
+        /** */
+        private Long a4;
+
+        /** */
+        private Long a3;
+
+        /** */
+        private Long simplex;
+
+        /** */
+        private Long duplex;
+
+        /** */
+        private Long grayscale;
+
+        /** */
+        private Long color;
+
+        public Long getTotal() {
+            return total;
+        }
+
+        public void setTotal(Long total) {
+            this.total = total;
+        }
+
+        public Long getA4() {
+            return a4;
+        }
+
+        public void setA4(Long a4) {
+            this.a4 = a4;
+        }
+
+        public Long getA3() {
+            return a3;
+        }
+
+        public void setA3(Long a3) {
+            this.a3 = a3;
+        }
+
+        public Long getSimplex() {
+            return simplex;
+        }
+
+        public void setSimplex(Long simplex) {
+            this.simplex = simplex;
+        }
+
+        public Long getDuplex() {
+            return duplex;
+        }
+
+        public void setDuplex(Long duplex) {
+            this.duplex = duplex;
+        }
+
+        public Long getGrayscale() {
+            return grayscale;
+        }
+
+        public void setGrayscale(Long grayscale) {
+            this.grayscale = grayscale;
+        }
+
+        public Long getColor() {
+            return color;
+        }
+
+        public void setColor(Long color) {
+            this.color = color;
+        }
+
+    }
+
     /** */
     private String userId;
 
@@ -47,29 +128,11 @@ public class UserPrintOutTotalDto extends AbstractDto {
     /** */
     private Long transactions;
 
-    /** */
-    private Long copies;
-
-    /** */
-    private Long pages;
-
-    /** */
-    private Long pagesA4;
-
-    /** */
-    private Long pagesA3;
-
-    /** */
-    private Long pagesSimplex;
-
-    /** */
-    private Long pagesDuplex;
-
-    /** */
-    private Long pagesGrayscale;
-
-    /** */
-    private Long pagesColor;
+    private Detail totalPagesSent;
+    private Detail totalPagesPrinted;
+    private Detail totalSheets;
+    private Detail totalJobs;
+    private Detail totalCopies;
 
     /** */
     private String userGroup;
@@ -112,68 +175,44 @@ public class UserPrintOutTotalDto extends AbstractDto {
         this.transactions = transactions;
     }
 
-    public Long getCopies() {
-        return copies;
+    public Detail getTotalPagesSent() {
+        return totalPagesSent;
     }
 
-    public void setCopies(Long copies) {
-        this.copies = copies;
+    public void setTotalPagesSent(Detail totalPagesSent) {
+        this.totalPagesSent = totalPagesSent;
     }
 
-    public Long getPages() {
-        return pages;
+    public Detail getTotalPagesPrinted() {
+        return totalPagesPrinted;
     }
 
-    public void setPages(Long pages) {
-        this.pages = pages;
+    public void setTotalPagesPrinted(Detail totalPagesPrinted) {
+        this.totalPagesPrinted = totalPagesPrinted;
     }
 
-    public Long getPagesA4() {
-        return pagesA4;
+    public Detail getTotalSheets() {
+        return totalSheets;
     }
 
-    public void setPagesA4(Long pagesA4) {
-        this.pagesA4 = pagesA4;
+    public void setTotalSheets(Detail totalSheets) {
+        this.totalSheets = totalSheets;
     }
 
-    public Long getPagesA3() {
-        return pagesA3;
+    public Detail getTotalJobs() {
+        return totalJobs;
     }
 
-    public void setPagesA3(Long pagesA3) {
-        this.pagesA3 = pagesA3;
+    public void setTotalJobs(Detail totalJobs) {
+        this.totalJobs = totalJobs;
     }
 
-    public Long getPagesSimplex() {
-        return pagesSimplex;
+    public Detail getTotalCopies() {
+        return totalCopies;
     }
 
-    public void setPagesSimplex(Long pagesSimplex) {
-        this.pagesSimplex = pagesSimplex;
-    }
-
-    public Long getPagesDuplex() {
-        return pagesDuplex;
-    }
-
-    public void setPagesDuplex(Long pagesDuplex) {
-        this.pagesDuplex = pagesDuplex;
-    }
-
-    public Long getPagesGrayscale() {
-        return pagesGrayscale;
-    }
-
-    public void setPagesGrayscale(Long pagesGrayscale) {
-        this.pagesGrayscale = pagesGrayscale;
-    }
-
-    public Long getPagesColor() {
-        return pagesColor;
-    }
-
-    public void setPagesColor(Long pagesColor) {
-        this.pagesColor = pagesColor;
+    public void setTotalCopies(Detail totalCopies) {
+        this.totalCopies = totalCopies;
     }
 
     public String getUserGroup() {

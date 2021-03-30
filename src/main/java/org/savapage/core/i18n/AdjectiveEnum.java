@@ -43,7 +43,7 @@ public enum AdjectiveEnum {
     ACTIVE,
 
     /** */
-    DOWLOADED, ERASED, PRINTED, RECEIVED,
+    DOWLOADED, ERASED, PRINTED, RECEIVED, SENT,
 
     /** */
     APPROVED, REJECTED, REVERSED, REFUNDED,

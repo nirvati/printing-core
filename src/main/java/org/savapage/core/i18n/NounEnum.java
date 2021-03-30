@@ -151,6 +151,8 @@ public enum NounEnum {
     /** */
     OPACITY,
     /** */
+    OPTION(true),
+    /** */
     ORIGIN,
     /** */
     OUTPUT,

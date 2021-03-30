@@ -25,9 +25,12 @@
 package org.savapage.core.dao.helpers;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dto.AbstractDto;
+import org.savapage.core.i18n.AdjectiveEnum;
+import org.savapage.core.i18n.PrintOutNounEnum;
 
 /**
  *
@@ -36,8 +39,61 @@ import org.savapage.core.dto.AbstractDto;
  */
 public final class UserPrintOutTotalsReq extends AbstractDto {
 
+    public enum Aspect {
+        /** */
+        PAGES(PrintOutNounEnum.PAGE),
+        /** */
+        SHEETS(PrintOutNounEnum.SHEET),
+        /** */
+        JOBS(PrintOutNounEnum.JOB),
+        /** */
+        COPIES(PrintOutNounEnum.COPY);
+
+        /** */
+        private final PrintOutNounEnum noun;
+
+        Aspect(final PrintOutNounEnum n) {
+            this.noun = n;
+        }
+
+        /**
+         * @param locale
+         *            {@link Locale}.
+         * @return i18n text.
+         */
+        public String uiText(final Locale locale) {
+            return this.noun.uiText(locale, true);
+        }
+    }
+
+    public enum Pages {
+        /** */
+        SENT(AdjectiveEnum.SENT),
+        /** */
+        PRINTED(AdjectiveEnum.PRINTED);
+
+        /** */
+        private final AdjectiveEnum adjective;
+
+        Pages(final AdjectiveEnum adj) {
+            this.adjective = adj;
+        }
+
+        /**
+         * @param locale
+         *            {@link Locale}.
+         * @return i18n text.
+         */
+        public String uiText(final Locale locale) {
+            return this.adjective.uiText(locale);
+        }
+    }
+
     private Long timeFrom;
     private Long timeTo;
+
+    private Aspect aspect;
+    private Pages pages;
 
     /**
      * The list of User Group names.
@@ -66,6 +122,22 @@ public final class UserPrintOutTotalsReq extends AbstractDto {
 
     public void setUserGroups(List<String> groups) {
         this.userGroups = groups;
+    }
+
+    public Aspect getAspect() {
+        return aspect;
+    }
+
+    public void setAspect(Aspect aspect) {
+        this.aspect = aspect;
+    }
+
+    public Pages getPages() {
+        return pages;
+    }
+
+    public void setPages(Pages pages) {
+        this.pages = pages;
     }
 
     /**

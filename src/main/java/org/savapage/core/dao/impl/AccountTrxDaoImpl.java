@@ -449,31 +449,153 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
             final UserPrintOutTotalsReq req, final Integer startPosition,
             final Integer maxResults) {
 
+        final String optionA4 = "PO.paperSize = 'iso-a4'";
+        final String optionA3 = "PO.paperSize = 'iso-a3'";
+        final String optionSimplex = "PO.duplex = false";
+        final String optionDuplex = "PO.duplex = true";
+        final String optionGrayscale = "PO.grayscale = true";
+        final String optionColor = "PO.grayscale = false";
+
+        final String[] printOptions = { optionA4, optionA3, optionSimplex,
+                optionDuplex, optionGrayscale, optionColor };
+
+        final String condPrintDebit = "TRX.isCredit = false";
+
+        //
+        final String condPrintPersonal = "U.id = D.user";
+
+        //
         final StringBuilder jpql = new StringBuilder();
 
         jpql.append("SELECT");
         jpql.append("\n\tACC.nameLower");
         jpql.append(",\n\tU.fullName");
+
+        // ------------------------
+        // Grand totals
+        // ------------------------
         jpql.append(",\n\t-SUM(TRX.amount)");
         jpql.append(",\n\tCOUNT(TRX.amount)");
-        jpql.append(",\n\tSUM(PO.numberOfCopies)");
-        jpql.append(",\n\tSUM(D.numberOfPages)");
-        jpql.append(",\n\tSUM(CASE WHEN PO.paperSize = 'iso-a4'"
-                + " THEN D.numberOfPages ELSE 0 END)");
-        jpql.append(",\n\tSUM(CASE WHEN PO.paperSize = 'iso-a3'"
-                + " THEN D.numberOfPages ELSE 0 END)");
-        jpql.append(",\n\tSUM(CASE WHEN PO.duplex = false"
-                + " THEN D.numberOfPages ELSE 0 END)");
-        jpql.append(",\n\tSUM(CASE WHEN PO.duplex = true"
-                + " THEN D.numberOfPages ELSE 0 END)");
-        jpql.append(",\n\tSUM(CASE WHEN PO.grayscale = true"
-                + " THEN D.numberOfPages ELSE 0 END)");
-        jpql.append(",\n\tSUM(CASE WHEN PO.grayscale = false"
-                + " THEN D.numberOfPages ELSE 0 END)");
+
+        // ---------------------------------------
+        // Pages (sent): reverse credit trx.
+        // ---------------------------------------
+        jpql.append(",\n\tSUM(CASE WHEN (").append(condPrintDebit)
+                .append(") THEN D.numberOfPages ELSE -D.numberOfPages END)");
+
+        for (final String option : printOptions) {
+            jpql.append(",\n\tSUM(CASE WHEN (").append(option)
+                    .append(") THEN (CASE WHEN (").append(condPrintDebit)
+                    .append(") THEN D.numberOfPages ELSE -D.numberOfPages END)"
+                            + " ELSE 0 END)");
+        }
+
+        // ---------------------------------------------------------------
+        // Pages (printed): reverse credit trx + skip delegated print.
+        // ---------------------------------------------------------------
+        jpql.append(",\n\tSUM(CASE WHEN (").append(condPrintPersonal)
+                .append(") THEN (CASE WHEN (").append(condPrintDebit)
+                .append(") THEN (D.numberOfPages * PO.numberOfCopies) "
+                        + "ELSE (-D.numberOfPages * PO.numberOfCopies) END)"
+                        + " ELSE 0 END)");
+
+        for (final String option : printOptions) {
+            jpql.append(",\n\tSUM(");
+            jpql.append("CASE WHEN (").append(condPrintPersonal);
+            jpql.append(" ) THEN (");
+            jpql.append("   CASE WHEN (").append(option);
+            jpql.append("   ) THEN (");
+            jpql.append("      CASE WHEN (").append(condPrintDebit);
+            jpql.append("       ) THEN (D.numberOfPages * PO.numberOfCopies)");
+            jpql.append("         ELSE (-D.numberOfPages * PO.numberOfCopies)");
+            jpql.append("         END)");
+            jpql.append("   ELSE 0");
+            jpql.append("   END)");
+            jpql.append(" ELSE 0");
+            jpql.append(" END");
+            jpql.append(")");
+        }
+
+        // ---------------------------------------------------------
+        // Sheets: reverse credit trx + skip delegated print.
+        // ---------------------------------------------------------
+        jpql.append(",\n\tSUM(CASE WHEN (").append(condPrintPersonal)
+                .append(") THEN (CASE WHEN (").append(condPrintDebit)
+                .append(") THEN PO.numberOfSheets "
+                        + "ELSE -PO.numberOfSheets END)" + " ELSE 0 END)");
+
+        for (final String option : printOptions) {
+            jpql.append(",\n\tSUM(");
+            jpql.append("CASE WHEN (").append(condPrintPersonal);
+            jpql.append(" ) THEN (");
+            jpql.append("   CASE WHEN (").append(option);
+            jpql.append("   ) THEN (");
+            jpql.append("      CASE WHEN (").append(condPrintDebit);
+            jpql.append("       ) THEN PO.numberOfSheets");
+            jpql.append("         ELSE -PO.numberOfSheets");
+            jpql.append("         END)");
+            jpql.append("   ELSE 0");
+            jpql.append("   END)");
+            jpql.append(" ELSE 0");
+            jpql.append(" END");
+            jpql.append(")");
+        }
+
+        // ---------------------------------------------------------
+        // Copies: reverse credit trx + skip delegated print.
+        // ---------------------------------------------------------
+        jpql.append(",\n\tSUM(CASE WHEN (").append(condPrintPersonal)
+                .append(") THEN (CASE WHEN (").append(condPrintDebit)
+                .append(") THEN PO.numberOfCopies "
+                        + "ELSE -PO.numberOfCopies END)" + " ELSE 0 END)");
+
+        for (final String option : printOptions) {
+            jpql.append(",\n\tSUM(");
+            jpql.append("CASE WHEN (").append(condPrintPersonal);
+            jpql.append(" ) THEN (");
+            jpql.append("   CASE WHEN (").append(option);
+            jpql.append("   ) THEN (");
+            jpql.append("      CASE WHEN (").append(condPrintDebit);
+            jpql.append("       ) THEN PO.numberOfCopies");
+            jpql.append("         ELSE -PO.numberOfCopies");
+            jpql.append("         END)");
+            jpql.append("   ELSE 0");
+            jpql.append("   END)");
+            jpql.append(" ELSE 0");
+            jpql.append(" END");
+            jpql.append(")");
+        }
+
+        // ---------------------------------------------------------
+        // Jobs: reverse credit trx + skip delegated print.
+        // ---------------------------------------------------------
+        jpql.append(",\n\tSUM(CASE WHEN (").append(condPrintPersonal)
+                .append(") THEN (CASE WHEN (").append(condPrintDebit)
+                .append(") THEN 1 " + "ELSE -1 END)" + " ELSE 0 END)");
+
+        for (final String option : printOptions) {
+            jpql.append(",\n\tSUM(");
+            jpql.append("CASE WHEN (").append(condPrintPersonal);
+            jpql.append(" ) THEN (");
+            jpql.append("   CASE WHEN (").append(option);
+            jpql.append("   ) THEN (");
+            jpql.append("      CASE WHEN (").append(condPrintDebit);
+            jpql.append("       ) THEN 1");
+            jpql.append("         ELSE -1");
+            jpql.append("         END)");
+            jpql.append("   ELSE 0");
+            jpql.append("   END)");
+            jpql.append(" ELSE 0");
+            jpql.append(" END");
+            jpql.append(")");
+        }
+
+        // ------------------------
         jpql.append(",\n\tMAX(TRX.extDetails)"); // klas
         jpql.append(",\n\tMIN(TRX.transactionDate)"); // Date_From,
         jpql.append(",\n\tMAX(TRX.transactionDate)"); // Date_To
-        //
+
+        // ---------------------
         jpql.append("\nFROM");
         jpql.append("\n\t" + DbSimpleEntity.ACCOUNT_TRX + " TRX");
         jpql.append("\n\tJOIN " + DbSimpleEntity.ACCOUNT + " ACC"
@@ -553,23 +675,90 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         final List<UserPrintOutTotalDto> objs = new ArrayList<>();
 
         for (final Object[] row : rows) {
+
             final UserPrintOutTotalDto dto = new UserPrintOutTotalDto();
+            UserPrintOutTotalDto.Detail detailWlk;
+
             int i = 0;
             //
             dto.setUserId(row[i++].toString());
             dto.setUserName(row[i++].toString());
             dto.setAmount((BigDecimal) row[i++]);
             dto.setTransactions((Long) row[i++]);
-            dto.setCopies((Long) row[i++]);
-            dto.setPages((Long) row[i++]);
-            //
-            dto.setPagesA4((Long) row[i++]);
-            dto.setPagesA3((Long) row[i++]);
-            dto.setPagesSimplex((Long) row[i++]);
-            dto.setPagesDuplex((Long) row[i++]);
-            dto.setPagesGrayscale((Long) row[i++]);
-            dto.setPagesColor((Long) row[i++]);
-            //
+
+            // Pages (sent)
+
+            detailWlk = new UserPrintOutTotalDto.Detail();
+            dto.setTotalPagesSent(detailWlk);
+
+            detailWlk.setTotal((Long) row[i++]);
+
+            detailWlk.setA4((Long) row[i++]);
+            detailWlk.setA3((Long) row[i++]);
+            detailWlk.setSimplex((Long) row[i++]);
+            detailWlk.setDuplex((Long) row[i++]);
+            detailWlk.setGrayscale((Long) row[i++]);
+            detailWlk.setColor((Long) row[i++]);
+
+            // Pages (printed)
+            detailWlk = new UserPrintOutTotalDto.Detail();
+            dto.setTotalPagesPrinted(detailWlk);
+
+            detailWlk.setTotal((Long) row[i++]);
+
+            detailWlk.setA4((Long) row[i++]);
+            detailWlk.setA3((Long) row[i++]);
+            detailWlk.setSimplex((Long) row[i++]);
+            detailWlk.setDuplex((Long) row[i++]);
+            detailWlk.setGrayscale((Long) row[i++]);
+            detailWlk.setColor((Long) row[i++]);
+
+            // ------------------------
+            // Sheets
+            // ------------------------
+            detailWlk = new UserPrintOutTotalDto.Detail();
+            dto.setTotalSheets(detailWlk);
+
+            detailWlk.setTotal((Long) row[i++]);
+
+            detailWlk.setA4((Long) row[i++]);
+            detailWlk.setA3((Long) row[i++]);
+            detailWlk.setSimplex((Long) row[i++]);
+            detailWlk.setDuplex((Long) row[i++]);
+            detailWlk.setGrayscale((Long) row[i++]);
+            detailWlk.setColor((Long) row[i++]);
+
+            // ------------------------
+            // Copies
+            // ------------------------
+            detailWlk = new UserPrintOutTotalDto.Detail();
+            dto.setTotalCopies(detailWlk);
+
+            detailWlk.setTotal((Long) row[i++]);
+
+            detailWlk.setA4((Long) row[i++]);
+            detailWlk.setA3((Long) row[i++]);
+            detailWlk.setSimplex((Long) row[i++]);
+            detailWlk.setDuplex((Long) row[i++]);
+            detailWlk.setGrayscale((Long) row[i++]);
+            detailWlk.setColor((Long) row[i++]);
+
+            // ------------------------
+            // Jobs
+            // ------------------------
+            detailWlk = new UserPrintOutTotalDto.Detail();
+            dto.setTotalJobs(detailWlk);
+
+            detailWlk.setTotal((Long) row[i++]);
+
+            detailWlk.setA4((Long) row[i++]);
+            detailWlk.setA3((Long) row[i++]);
+            detailWlk.setSimplex((Long) row[i++]);
+            detailWlk.setDuplex((Long) row[i++]);
+            detailWlk.setGrayscale((Long) row[i++]);
+            detailWlk.setColor((Long) row[i++]);
+
+            // ------------------------
             final String klas = StringUtils.defaultString((String) row[i++]);
             dto.setUserGroup(klas);
             dto.setDateFrom((Date) row[i++]);

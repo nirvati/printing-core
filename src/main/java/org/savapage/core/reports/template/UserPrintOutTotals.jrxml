@@ -19,7 +19,7 @@
 	<field name="USER_NAME" class="java.lang.String"/>
 	<field name="KLAS" class="java.lang.String"/>
 	<field name="AMOUNT" class="java.lang.String"/>
-	<field name="TRANSACTIONS" class="java.lang.String"/>
+	<field name="JOBS" class="java.lang.String"/>
 	<field name="COPIES" class="java.lang.String"/>
 	<field name="PAGES" class="java.lang.String"/>
 	<field name="PAGES_A4" class="java.lang.String"/>
@@ -114,7 +114,7 @@
 				<textElement textAlignment="Right">
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$R{user_printout_totals.transactions}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$R{user_printout_totals.jobs}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement mode="Opaque" x="335" y="0" width="40" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="f306ca0b-559a-4985-bc47-01a3fc9c0b64"/>
@@ -238,7 +238,7 @@
 				<textElement textAlignment="Right" markup="none">
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{TRANSACTIONS}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{JOBS}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="335" y="0" width="40" height="20" uuid="786029a1-19cc-4674-b5aa-2f98c6b76ce1"/>

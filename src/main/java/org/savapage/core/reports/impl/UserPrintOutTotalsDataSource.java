@@ -100,36 +100,55 @@ public final class UserPrintOutTotalsDataSource extends AbstractJrDataSource
 
         int nSelect = 0;
 
-        if (request.getTimeFrom() != null) {
+        final String aspectTxt = this.request.getAspect().uiText(getLocale());
+
+        // Pages (sent|printed)
+        where.append(
+                UserPrintOutTotalsReq.Aspect.PAGES.uiText(this.getLocale()))
+                .append(" (").append(this.request.getPages()
+                        .uiText(this.getLocale()).toLowerCase())
+                .append(")");
+
+        // Aspect
+        if (this.request.getAspect() != UserPrintOutTotalsReq.Aspect.PAGES) {
+            where.append(", ")
+                    .append(NounEnum.OPTION.uiText(this.getLocale(), true))
+                    .append(" (").append(aspectTxt.toLowerCase()).append(")");
+        }
+
+        nSelect++;
+
+        if (this.request.getTimeFrom() != null) {
             if (nSelect > 0) {
                 where.append(", ");
             }
             nSelect++;
             where.append(PrepositionEnum.FROM_TIME.uiText(getLocale()))
                     .append(" ")
-                    .append(dfMediumDate.format(request.getTimeFrom()));
+                    .append(dfMediumDate.format(this.request.getTimeFrom()));
         }
 
-        if (request.getTimeTo() != null) {
+        if (this.request.getTimeTo() != null) {
             if (nSelect > 0) {
                 where.append(", ");
             }
             nSelect++;
             where.append(PrepositionEnum.TO_TIME.uiText(getLocale()))
                     .append(" ")
-                    .append(dfMediumDate.format(request.getTimeTo()));
+                    .append(dfMediumDate.format(this.request.getTimeTo()));
         }
 
-        if (request.getUserGroups() != null && !request.getUserGroups().isEmpty()) {
+        if (this.request.getUserGroups() != null
+                && !this.request.getUserGroups().isEmpty()) {
             if (nSelect > 0) {
                 where.append(". ");
             }
             where.append(NounEnum.GROUP.uiText(getLocale(),
-                    request.getUserGroups().size() > 1)).append(": ");
+                    this.request.getUserGroups().size() > 1)).append(": ");
 
             nSelect = 0;
 
-            for (final String group : request.getUserGroups()) {
+            for (final String group : this.request.getUserGroups()) {
                 if (nSelect > 0) {
                     where.append(", ");
                 }
@@ -153,7 +172,6 @@ public final class UserPrintOutTotalsDataSource extends AbstractJrDataSource
     private void getNextChunk(final Integer startPosition,
             final Integer maxResults) {
 
-        /** */
         final List<UserPrintOutTotalDto> entryList = ServiceContext
                 .getDaoContext().getAccountTrxDao().getUserPrintOutTotalsChunk(
                         this.request, startPosition, maxResults);
@@ -180,6 +198,31 @@ public final class UserPrintOutTotalsDataSource extends AbstractJrDataSource
     @Override
     public Object getFieldValue(final JRField jrField) throws JRException {
 
+        final UserPrintOutTotalDto.Detail detailDto;
+
+        switch (this.request.getAspect()) {
+        case COPIES:
+            detailDto = this.chunkDtoWlk.getTotalCopies();
+            break;
+        case JOBS:
+            detailDto = this.chunkDtoWlk.getTotalJobs();
+            break;
+        case PAGES:
+            if (this.request
+                    .getPages() == UserPrintOutTotalsReq.Pages.PRINTED) {
+                detailDto = this.chunkDtoWlk.getTotalPagesPrinted();
+            } else {
+                detailDto = this.chunkDtoWlk.getTotalPagesSent();
+            }
+            break;
+        case SHEETS:
+            detailDto = this.chunkDtoWlk.getTotalSheets();
+            break;
+        default:
+            throw new RuntimeException(String.format("%s not handled.",
+                    this.request.getAspect().toString()));
+        }
+
         final StringBuilder value = new StringBuilder(256);
 
         switch (jrField.getName()) {
@@ -200,40 +243,46 @@ public final class UserPrintOutTotalsDataSource extends AbstractJrDataSource
             value.append(this.formattedCurrency(this.chunkDtoWlk.getAmount()));
             break;
 
-        case "TRANSACTIONS":
-            value.append(this.chunkDtoWlk.getTransactions());
+        case "JOBS":
+            value.append(this.chunkDtoWlk.getTotalJobs().getTotal());
             break;
 
         case "COPIES":
-            value.append(this.chunkDtoWlk.getCopies());
+            value.append(this.chunkDtoWlk.getTotalCopies().getTotal());
             break;
 
         case "PAGES":
-            value.append(this.chunkDtoWlk.getPages());
+            if (this.request
+                    .getPages() == UserPrintOutTotalsReq.Pages.PRINTED) {
+                value.append(
+                        this.chunkDtoWlk.getTotalPagesPrinted().getTotal());
+            } else {
+                value.append(this.chunkDtoWlk.getTotalPagesSent().getTotal());
+            }
             break;
 
         case "PAGES_A4":
-            value.append(this.chunkDtoWlk.getPagesA4());
+            value.append(detailDto.getA4());
             break;
 
         case "PAGES_A3":
-            value.append(this.chunkDtoWlk.getPagesA3());
+            value.append(detailDto.getA3());
             break;
 
         case "PAGES_1_SIDED":
-            value.append(this.chunkDtoWlk.getPagesSimplex());
+            value.append(detailDto.getSimplex());
             break;
 
         case "PAGES_2_SIDED":
-            value.append(this.chunkDtoWlk.getPagesDuplex());
+            value.append(detailDto.getDuplex());
             break;
 
         case "PAGES_BW":
-            value.append(this.chunkDtoWlk.getPagesGrayscale());
+            value.append(detailDto.getGrayscale());
             break;
 
         case "PAGES_COLOR":
-            value.append(this.chunkDtoWlk.getPagesColor());
+            value.append(detailDto.getColor());
             break;
 
         case "DATE_FROM":
