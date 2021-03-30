@@ -33,6 +33,7 @@ import java.util.UUID;
 
 import javax.print.attribute.standard.MediaSizeName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.validator.BooleanValidator;
@@ -65,6 +66,7 @@ import org.savapage.core.dto.UserHomeStatsDto;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
 import org.savapage.core.imaging.Pdf2ImgCairoCmd;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
+import org.savapage.core.jpa.ConfigProperty;
 import org.savapage.core.jpa.PrinterGroup;
 import org.savapage.core.jpa.UserNumber;
 import org.savapage.core.json.rpc.JsonRpcMethodName;
@@ -3895,18 +3897,32 @@ public interface IConfigProp {
         /**
          * Validates a candidate value using the validator of a property.
          *
+         * @param prop
+         *            Property.
          * @param value
          *            The candidate value.
          * @return The {@link ValidationResult}.
          */
         public static ValidationResult validate(final Prop prop,
                 final String value) {
-            ValidationResult validationResult = null;
-            final ConfigPropValidator validator = prop.getValidator();
-            if (validator == null) {
-                validationResult = new ValidationResult(value);
+
+            final ValidationResult validationResult;
+
+            if (value.length() > ConfigProperty.COL_VALUE_LENGTH) {
+                final String abbrev = StringUtils.abbreviate(value, 20);
+                validationResult = new ValidationResult(abbrev,
+                        ValidationStatusEnum.ERROR_MAX_LEN_EXCEEDED,
+                        String.format(
+                                "[%s] length %d exceeds maximum length %s.",
+                                abbrev, value.length(),
+                                ConfigProperty.COL_VALUE_LENGTH));
             } else {
-                validationResult = validator.validate(value);
+                final ConfigPropValidator validator = prop.getValidator();
+                if (validator == null) {
+                    validationResult = new ValidationResult(value);
+                } else {
+                    validationResult = validator.validate(value);
+                }
             }
             return validationResult;
         }

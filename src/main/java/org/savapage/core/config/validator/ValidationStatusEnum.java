@@ -57,6 +57,9 @@ public enum ValidationStatusEnum {
     ERROR_CURRENCY,
 
     /** */
+    ERROR_MAX_LEN_EXCEEDED,
+
+    /** */
     ERROR_NOT_NUMERIC,
 
     /** */
