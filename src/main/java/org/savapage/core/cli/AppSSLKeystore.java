@@ -49,8 +49,13 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -61,6 +66,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.RunModeEnum;
+import org.savapage.core.config.ServerPathEnum;
 import org.savapage.core.jpa.tools.DatabaseTypeEnum;
 import org.savapage.core.util.IOHelper;
 
@@ -71,14 +77,11 @@ import org.savapage.core.util.IOHelper;
  */
 public final class AppSSLKeystore extends AbstractApp {
 
-    /*
-     * !!! IMPORTANT !!!
-     *
-     * Adds the Bouncy castle provider to java security.
-     *
-     * This is needed so you can use the "BC" provider in security methods.
-     */
     static {
+        /*
+         * IMPORTANT: Add Bouncy castle provider to java security. This is
+         * needed so you can use the "BC" provider in security methods.
+         */
         Security.addProvider(new BouncyCastleProvider());
     }
 
@@ -94,7 +97,9 @@ public final class AppSSLKeystore extends AbstractApp {
     /** */
     private static final String CLI_SWITCH_FORCE_LONG = "force";
     /** */
-    private static final String CLI_OPTION_SYSTEM_NAME = "system-name";
+    private static final String CLI_OPTION_COMMON_NAME = "common-name";
+    /** */
+    private static final String CLI_OPTION_SUBJECT_ALT_DNS_NAME = "dns-name";
 
     /** */
     private final String keystorePathDefault;
@@ -119,7 +124,8 @@ public final class AppSSLKeystore extends AbstractApp {
      */
     private AppSSLKeystore() throws UnknownHostException {
 
-        final String relPath = "data/default-ssl-keystore";
+        final String relPath =
+                ServerPathEnum.DATA.getPath() + "/default-ssl-keystore";
 
         if (ConfigManager.getServerHome() == null) {
             this.keystorePathDefault = relPath;
@@ -141,8 +147,8 @@ public final class AppSSLKeystore extends AbstractApp {
         final String propKeyPassword = "password";
 
         final Properties props = new Properties();
-        final File filePw = new File(ConfigManager.getServerHome()
-                + "/data/default-ssl-keystore.pw");
+        final File filePw = new File(ConfigManager.getServerHome() + "/"
+                + ServerPathEnum.DATA.getPath() + "/default-ssl-keystore.pw");
 
         InputStream istr = null;
         Writer writer = null;
@@ -183,37 +189,39 @@ public final class AppSSLKeystore extends AbstractApp {
      *            The keystore file.
      * @param holderCommonName
      *            CN name of the holder.
-     *
+     * @param subjectAlternativeName
+     *            Certificate Subject Alternative Name Extension If
+     *            {@code null}. not applicable.
      * @throws Exception
      *             When things went wrong.
      */
     private void createKeystore(final File keystoreFile,
-            final String holderCommonName) throws Exception {
-
+            final String holderCommonName, final String subjectAlternativeName)
+            throws Exception {
         /*
          * GENERATE THE PUBLIC/PRIVATE RSA KEY PAIR
          */
         final int keysize = 2048; // 1024, 2048, 4096
 
-        KeyPairGenerator keyPairGenerator =
+        final KeyPairGenerator keyPairGenerator =
                 KeyPairGenerator.getInstance("RSA", "BC");
 
         keyPairGenerator.initialize(keysize, new SecureRandom());
         final KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
         /*
-         * Yesterday, as notBefore date
+         * Yesterday, as notBefore date.
          */
         final Date dateNotBefore =
                 new Date(System.currentTimeMillis() - 24L * 60L * 60L * 1000L);
         /*
-         * 10 Years After, as notAfter date
+         * 10 Years After, as notAfter date.
          */
         final Date dateNotAfter = new Date(System.currentTimeMillis()
                 + (10L * 365 * 24L * 60L * 60L * 1000L));
 
         /*
-         * GENERATE THE X509 CERTIFICATE
+         * GENERATE THE X509 CERTIFICATE.
          */
         final byte[] publickeyb = keyPair.getPublic().getEncoded();
 
@@ -228,37 +236,31 @@ public final class AppSSLKeystore extends AbstractApp {
         final BigInteger serial =
                 BigInteger.valueOf(System.currentTimeMillis());
 
-        /*
-         * SAMPLE:
-         *
-         * "CN=SavaPage Self-Signed Certificate, OU=SavaPage, O=Datraverse B.V.,
-         * L=Almere, ST=Flevoland, C=NL";
-         */
+        //
+        // Examples:
+        //
+        // "CN=SavaPage Self-Signed Certificate, OU=SavaPage, O=Datraverse B.V.,
+        // L=Almere, ST=Flevoland, C=NL";
+        //
+        // "CN=Apache Wicket Quickstart Certificate, OU=Apache Wicket, " +
+        // "O=The Apache Software Foundation, L=Unknown, ST=Unknown, C=Unknown";
+        //
 
-        /*
-         * SAMPLE:
-         *
-         * "CN=Apache Wicket Quickstart Certificate, OU=Apache Wicket, " +
-         * "O=The Apache Software Foundation, L=Unknown, ST=Unknown, C=Unknown";
-         */
-
-        // X509v1CertificateBuilder v1CertGen = new X509v1CertificateBuilder(
-
-        /*
-         * VeriSign uses the concept of classes for different types of digital
-         * certificates
-         *
-         * Class 1 for individuals, intended for email.
-         *
-         * Class 2 for organizations, for which proof of identity is required.
-         *
-         * Class 3 for servers and software signing, for which independent
-         * verification and checking of identity and authority is done by the
-         * issuing certificate authority.
-         */
-        X509v3CertificateBuilder certBuilder =
+        final X509v3CertificateBuilder certBuilder =
                 new X509v3CertificateBuilder(issuer, serial, dateNotBefore,
                         dateNotAfter, holder, subPubKeyInfo);
+
+        // This extension makes our cert a Cert Authority (CA) so it can be
+        // imported into a browser as trusted CA. Mantis #1179.
+        certBuilder.addExtension(Extension.basicConstraints, true,
+                new BasicConstraints(true));
+
+        if (StringUtils.isNotBlank(subjectAlternativeName)) {
+            // Mantis #1179.
+            certBuilder.addExtension(Extension.subjectAlternativeName, false,
+                    new GeneralNames(new GeneralName(GeneralName.dNSName,
+                            subjectAlternativeName)));
+        }
 
         // Mantis #561
         final ContentSigner contentSigner =
@@ -271,24 +273,18 @@ public final class AppSSLKeystore extends AbstractApp {
         final X509Certificate cert = new JcaX509CertificateConverter()
                 .setProvider("BC").getCertificate(certHolder);
 
-        /*
-         * Create empty keystore
-         */
+        // Create empty keystore.
         final KeyStore ks = KeyStore.getInstance("JKS");
         ks.load(null);
 
-        /*
-         * Fill keystore
-         */
+        // Fill keystore.
         final String alias = CommunityDictEnum.SAVAPAGE.getWord();
 
         ks.setKeyEntry(alias, keyPair.getPrivate(),
                 this.keyEntryPassword.toCharArray(),
                 new X509Certificate[] { cert });
 
-        /*
-         * Write keystore
-         */
+        // Write keystore.
         try (FileOutputStream ostr = new FileOutputStream(keystoreFile);) {
             ks.store(ostr, this.keystorePassword.toCharArray());
         }
@@ -311,7 +307,7 @@ public final class AppSSLKeystore extends AbstractApp {
         ks.load(new FileInputStream(ksFile), password.toCharArray());
 
         final String alias = ks.aliases().nextElement();
-        X509Certificate t = (X509Certificate) ks.getCertificate(alias);
+        final X509Certificate t = (X509Certificate) ks.getCertificate(alias);
 
         getDisplayStream().println("Version    : " + t.getVersion());
         getDisplayStream()
@@ -349,11 +345,18 @@ public final class AppSSLKeystore extends AbstractApp {
                 .desc("Creates a specific keystore file.").build());
 
         options.addOption(Option.builder().hasArg(true).argName("NAME")
-                .longOpt(CLI_OPTION_SYSTEM_NAME)
-                .desc("The name of the computer/server used for the "
-                        + "SSL Certificate. If not set the current "
-                        + "computer name '" + this.hostnameDefault
-                        + "' is used.")
+                .longOpt(CLI_OPTION_COMMON_NAME)
+                .desc("Subject and Issuer CN of the SSL Certificate "
+                        + "(optional). If not set the computer hostname '"
+                        + this.hostnameDefault + "' is used.")
+                .build());
+
+        options.addOption(Option.builder().hasArg(true).argName("NAME")
+                .longOpt(CLI_OPTION_SUBJECT_ALT_DNS_NAME)
+                .desc("Subject Alternative DNS Name "
+                        + "of the SSL Certificate (optional). "
+                        + "If not set the value of --" + CLI_OPTION_COMMON_NAME
+                        + " is used.")
                 .build());
 
         options.addOption(CLI_SWITCH_FORCE, CLI_SWITCH_FORCE_LONG, false,
@@ -378,7 +381,7 @@ public final class AppSSLKeystore extends AbstractApp {
             cmd = parser.parse(options, args);
         } catch (org.apache.commons.cli.ParseException e) {
             getDisplayStream().println(e.getMessage());
-            usage(cmdLineSyntax, options);
+            this.usage(cmdLineSyntax, options);
             return EXIT_CODE_PARMS_PARSE_ERROR;
         }
 
@@ -387,18 +390,24 @@ public final class AppSSLKeystore extends AbstractApp {
         // ......................................................
         if (args.length == 0 || cmd.hasOption(CLI_SWITCH_HELP)
                 || cmd.hasOption(CLI_SWITCH_HELP_LONG)) {
-            usage(cmdLineSyntax, options);
+            this.usage(cmdLineSyntax, options);
             return EXIT_CODE_OK;
         }
 
         // ......................................................
         //
         // ......................................................
-        lazyCreateDefaultPasswords();
+        this.lazyCreateDefaultPasswords();
 
         // ......................................................
         //
         // ......................................................
+        final String commonName = cmd.getOptionValue(CLI_OPTION_COMMON_NAME,
+                this.hostnameDefault);
+
+        final String subjectAlternativeName =
+                cmd.getOptionValue(CLI_OPTION_SUBJECT_ALT_DNS_NAME, commonName);
+
         final boolean forceCreate = (cmd.hasOption(CLI_SWITCH_FORCE)
                 || cmd.hasOption(CLI_SWITCH_FORCE_LONG));
 
@@ -408,11 +417,11 @@ public final class AppSSLKeystore extends AbstractApp {
         if (cmd.hasOption(CLI_SWITCH_DEFAULT)
                 || cmd.hasOption(CLI_SWITCH_DEFAULT_LONG)) {
 
-            File file = new File(this.keystorePathDefault);
+            final File file = new File(this.keystorePathDefault);
             final boolean exists = file.exists();
 
             if (forceCreate || !exists) {
-                createKeystore(file, this.hostnameDefault);
+                this.createKeystore(file, commonName, subjectAlternativeName);
             }
 
             if (!forceCreate && exists) {
@@ -426,9 +435,6 @@ public final class AppSSLKeystore extends AbstractApp {
         /*
          * Create the custom key store
          */
-        final String systemName = cmd.getOptionValue(CLI_OPTION_SYSTEM_NAME,
-                this.hostnameDefault);
-
         final File keystore = new File(cmd.getOptionValue(CLI_OPTION_CREATE,
                 this.keystorePathDefault));
 
@@ -439,13 +445,14 @@ public final class AppSSLKeystore extends AbstractApp {
         }
 
         if (keystore.exists() && !forceCreate) {
-            getErrorDisplayStream().println("Error: SSL key store "
-                    + keystore.getAbsolutePath() + " already exists. "
-                    + "Use the force option to overwrite");
+            getErrorDisplayStream().println(
+                    "Error: SSL key store " + keystore.getAbsolutePath()
+                            + " already exists. " + "Use the --"
+                            + CLI_SWITCH_FORCE_LONG + " option to overwrite");
             return EXIT_CODE_ERROR;
         }
 
-        createKeystore(keystore, systemName);
+        this.createKeystore(keystore, commonName, subjectAlternativeName);
 
         return EXIT_CODE_OK;
     }
@@ -470,7 +477,7 @@ public final class AppSSLKeystore extends AbstractApp {
     public static void main(final String[] args) {
         int status = EXIT_CODE_EXCEPTION;
         try {
-            AppSSLKeystore app = new AppSSLKeystore();
+            final AppSSLKeystore app = new AppSSLKeystore();
             status = app.run(args);
         } catch (Exception e) {
             getErrorDisplayStream().println(e.getMessage());
