@@ -92,10 +92,15 @@ public final class AppSSLKeystore extends AbstractApp {
 
     /** */
     private static final String CLI_OPTION_CREATE = "create";
+
     /** */
     private static final String CLI_SWITCH_FORCE = "f";
     /** */
     private static final String CLI_SWITCH_FORCE_LONG = "force";
+
+    /** */
+    private static final String CLI_SWITCH_NO_CA_LONG = "no-ca";
+
     /** */
     private static final String CLI_OPTION_COMMON_NAME = "common-name";
     /** */
@@ -192,12 +197,14 @@ public final class AppSSLKeystore extends AbstractApp {
      * @param subjectAlternativeName
      *            Certificate Subject Alternative Name Extension If
      *            {@code null}. not applicable.
+     * @param isCA
+     *            If {@code true}, make certificate a Cert Authority (CA).
      * @throws Exception
      *             When things went wrong.
      */
     private void createKeystore(final File keystoreFile,
-            final String holderCommonName, final String subjectAlternativeName)
-            throws Exception {
+            final String holderCommonName, final String subjectAlternativeName,
+            final boolean isCA) throws Exception {
         /*
          * GENERATE THE PUBLIC/PRIVATE RSA KEY PAIR
          */
@@ -249,17 +256,17 @@ public final class AppSSLKeystore extends AbstractApp {
         final X509v3CertificateBuilder certBuilder =
                 new X509v3CertificateBuilder(issuer, serial, dateNotBefore,
                         dateNotAfter, holder, subPubKeyInfo);
-
-        // This extension makes our cert a Cert Authority (CA) so it can be
-        // imported into a browser as trusted CA. Mantis #1179.
-        certBuilder.addExtension(Extension.basicConstraints, true,
-                new BasicConstraints(true));
-
         if (StringUtils.isNotBlank(subjectAlternativeName)) {
             // Mantis #1179.
             certBuilder.addExtension(Extension.subjectAlternativeName, false,
                     new GeneralNames(new GeneralName(GeneralName.dNSName,
                             subjectAlternativeName)));
+        }
+        if (isCA) {
+            // This extension makes our cert a Cert Authority (CA) so it can be
+            // imported into a browser as trusted CA. Mantis #1179.
+            certBuilder.addExtension(Extension.basicConstraints, true,
+                    new BasicConstraints(true));
         }
 
         // Mantis #561
@@ -360,7 +367,13 @@ public final class AppSSLKeystore extends AbstractApp {
                 .build());
 
         options.addOption(CLI_SWITCH_FORCE, CLI_SWITCH_FORCE_LONG, false,
-                "Force. Overwrite any existing keystore file.");
+                "Force. Overwrites any existing keystore file.");
+
+        options.addOption(
+                Option.builder().hasArg(false).longOpt(CLI_SWITCH_NO_CA_LONG)
+                        .desc("SSL Certificate Issuer is not a "
+                                + "Certificate Authority (CA).")
+                        .build());
 
         return options;
     }
@@ -411,6 +424,8 @@ public final class AppSSLKeystore extends AbstractApp {
         final boolean forceCreate = (cmd.hasOption(CLI_SWITCH_FORCE)
                 || cmd.hasOption(CLI_SWITCH_FORCE_LONG));
 
+        final boolean isCA = !cmd.hasOption(CLI_SWITCH_NO_CA_LONG);
+
         /*
          * Create the default key store
          */
@@ -421,7 +436,8 @@ public final class AppSSLKeystore extends AbstractApp {
             final boolean exists = file.exists();
 
             if (forceCreate || !exists) {
-                this.createKeystore(file, commonName, subjectAlternativeName);
+                this.createKeystore(file, commonName, subjectAlternativeName,
+                        isCA);
             }
 
             if (!forceCreate && exists) {
@@ -452,7 +468,7 @@ public final class AppSSLKeystore extends AbstractApp {
             return EXIT_CODE_ERROR;
         }
 
-        this.createKeystore(keystore, commonName, subjectAlternativeName);
+        this.createKeystore(keystore, commonName, subjectAlternativeName, isCA);
 
         return EXIT_CODE_OK;
     }
