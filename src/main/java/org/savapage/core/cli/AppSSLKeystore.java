@@ -105,6 +105,8 @@ public final class AppSSLKeystore extends AbstractApp {
     private static final String CLI_OPTION_COMMON_NAME = "common-name";
     /** */
     private static final String CLI_OPTION_SUBJECT_ALT_DNS_NAME = "dns-name";
+    /** */
+    private static final String CLI_OPTION_SUBJECT_ALT_IP_ADDR = "ip-addr";
 
     /** */
     private final String keystorePathDefault;
@@ -194,17 +196,19 @@ public final class AppSSLKeystore extends AbstractApp {
      *            The keystore file.
      * @param holderCommonName
      *            CN name of the holder.
-     * @param subjectAlternativeName
-     *            Certificate Subject Alternative Name Extension If
-     *            {@code null}. not applicable.
+     * @param subjectAltDNSname
+     *            Certificate Subject Alternative Names (DNS name).
+     * @param subjectAltIPaddr
+     *            Certificate Subject Alternative Names (IP Address).
      * @param isCA
      *            If {@code true}, make certificate a Cert Authority (CA).
      * @throws Exception
      *             When things went wrong.
      */
     private void createKeystore(final File keystoreFile,
-            final String holderCommonName, final String subjectAlternativeName,
-            final boolean isCA) throws Exception {
+            final String holderCommonName, final String[] subjectAltDNSname,
+            final String[] subjectAltIPaddr, final boolean isCA)
+            throws Exception {
         /*
          * GENERATE THE PUBLIC/PRIVATE RSA KEY PAIR
          */
@@ -256,12 +260,27 @@ public final class AppSSLKeystore extends AbstractApp {
         final X509v3CertificateBuilder certBuilder =
                 new X509v3CertificateBuilder(issuer, serial, dateNotBefore,
                         dateNotAfter, holder, subPubKeyInfo);
-        if (StringUtils.isNotBlank(subjectAlternativeName)) {
+
+        if (subjectAltDNSname.length > 0 || subjectAltIPaddr.length > 0) {
             // Mantis #1179.
+            final GeneralName[] names = new GeneralName[subjectAltDNSname.length
+                    + subjectAltIPaddr.length];
+
+            int iNames = 0;
+
+            for (int i = 0; i < subjectAltDNSname.length; i++, iNames++) {
+                names[iNames] = new GeneralName(GeneralName.dNSName,
+                        subjectAltDNSname[i].trim());
+            }
+            for (int i = 0; i < subjectAltIPaddr.length; i++, iNames++) {
+                names[iNames] = new GeneralName(GeneralName.iPAddress,
+                        subjectAltIPaddr[i].trim());
+            }
+
             certBuilder.addExtension(Extension.subjectAlternativeName, false,
-                    new GeneralNames(new GeneralName(GeneralName.dNSName,
-                            subjectAlternativeName)));
+                    new GeneralNames(names));
         }
+
         if (isCA) {
             // This extension makes our cert a Cert Authority (CA) so it can be
             // imported into a browser as trusted CA. Mantis #1179.
@@ -358,12 +377,19 @@ public final class AppSSLKeystore extends AbstractApp {
                         + this.hostnameDefault + "' is used.")
                 .build());
 
-        options.addOption(Option.builder().hasArg(true).argName("NAME")
+        options.addOption(Option.builder().hasArg(true).argName("LIST")
                 .longOpt(CLI_OPTION_SUBJECT_ALT_DNS_NAME)
-                .desc("Subject Alternative DNS Name "
-                        + "of the SSL Certificate (optional). "
-                        + "If not set the value of --" + CLI_OPTION_COMMON_NAME
+                .desc("A list of comma separated DNS names to use as "
+                        + "SSL Certificate Subject Alternative Name (optional)."
+                        + " If not set the value of --" + CLI_OPTION_COMMON_NAME
                         + " is used.")
+                .build());
+
+        options.addOption(Option.builder().hasArg(true).argName("LIST")
+                .longOpt(CLI_OPTION_SUBJECT_ALT_IP_ADDR)
+                .desc("A list of comma separated IP addresses "
+                        + "to use as SSL Certificate Subject Alternative "
+                        + "Name (optional).")
                 .build());
 
         options.addOption(CLI_SWITCH_FORCE, CLI_SWITCH_FORCE_LONG, false,
@@ -418,8 +444,12 @@ public final class AppSSLKeystore extends AbstractApp {
         final String commonName = cmd.getOptionValue(CLI_OPTION_COMMON_NAME,
                 this.hostnameDefault);
 
-        final String subjectAlternativeName =
-                cmd.getOptionValue(CLI_OPTION_SUBJECT_ALT_DNS_NAME, commonName);
+        final String[] subjectAltDNSname = StringUtils.split(
+                cmd.getOptionValue(CLI_OPTION_SUBJECT_ALT_DNS_NAME, commonName),
+                " ,");
+
+        final String[] subjectAltIPaddr = StringUtils.split(
+                cmd.getOptionValue(CLI_OPTION_SUBJECT_ALT_IP_ADDR, ""), " ,");
 
         final boolean forceCreate = (cmd.hasOption(CLI_SWITCH_FORCE)
                 || cmd.hasOption(CLI_SWITCH_FORCE_LONG));
@@ -436,8 +466,8 @@ public final class AppSSLKeystore extends AbstractApp {
             final boolean exists = file.exists();
 
             if (forceCreate || !exists) {
-                this.createKeystore(file, commonName, subjectAlternativeName,
-                        isCA);
+                this.createKeystore(file, commonName, subjectAltDNSname,
+                        subjectAltIPaddr, isCA);
             }
 
             if (!forceCreate && exists) {
@@ -468,7 +498,8 @@ public final class AppSSLKeystore extends AbstractApp {
             return EXIT_CODE_ERROR;
         }
 
-        this.createKeystore(keystore, commonName, subjectAlternativeName, isCA);
+        this.createKeystore(keystore, commonName, subjectAltDNSname,
+                subjectAltIPaddr, isCA);
 
         return EXIT_CODE_OK;
     }
