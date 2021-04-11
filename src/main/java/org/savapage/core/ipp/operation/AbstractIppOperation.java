@@ -171,11 +171,10 @@ public abstract class AbstractIppOperation {
         final int requestId = IppEncoder.readInt32(istr);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("+---------------------------------"
-                    + "-------------------------------------+");
-            LOGGER.trace("| " + IppOperationId.asEnum(operationId).toString());
-            LOGGER.trace("+---------------------------"
-                    + "-------------------------------------------+");
+            final String bar = "+---------------------------------"
+                    + "-------------------------------------+";
+            LOGGER.trace("\n{}\n| {}\n{}", bar,
+                    IppOperationId.asEnum(operationId).toString(), bar);
         }
         /*
          *

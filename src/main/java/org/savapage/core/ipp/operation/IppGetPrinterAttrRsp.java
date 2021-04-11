@@ -820,7 +820,12 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
         case IppDictPrinterDescAttr.ATTR_PRINTER_STATE_REASONS:
             if (this.printerQueue == null
                     || BooleanUtils.isTrue(this.printerQueue.getDisabled())) {
-                // Satisfy IPP-everywhere self certification test.
+                /*
+                 * Satisfy IPP-everywhere self certification test (I.27) when
+                 * "media-needed" is expected. In that case, the (/airprint)
+                 * printer Queue in must be temporarily disable the "Admin Web
+                 * App > Queue Edit" dialog.
+                 */
                 value.addValue("media-needed");
             } else {
                 value.addValue("none");
