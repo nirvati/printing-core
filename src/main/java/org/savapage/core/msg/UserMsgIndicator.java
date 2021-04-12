@@ -43,6 +43,7 @@ import javax.persistence.Query;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.PrintOutDao;
+import org.savapage.core.dao.helpers.IppQueueHelper;
 import org.savapage.core.i18n.AdjectiveEnum;
 import org.savapage.core.i18n.NounEnum;
 import org.savapage.core.jpa.DocIn;
@@ -693,7 +694,7 @@ public final class UserMsgIndicator {
         msg.setLevel(JsonUserMsg.LEVEL_WARN);
 
         msg.setText(localizeMsg(msg.getClass(), locale, "msg-print-in-denied",
-                "/" + printIn.getQueue().getUrlPath(),
+                IppQueueHelper.uiPath(printIn.getQueue()),
                 printIn.getDeniedReason()));
 
         return msg;

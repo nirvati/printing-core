@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.dao.helpers.IppQueueHelper;
 import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.ipp.attribute.IppAttrGroup;
 import org.savapage.core.ipp.attribute.IppAttrValue;
@@ -151,16 +152,17 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
         this.printInProcessor.setJobName(StringUtils.defaultString(
                 this.getPrintInJobName(), this.getDocumentName()));
 
-        /** */
+        final String requestingUserName = this.getRequestingUserName();
         final String assignedUserId;
 
         if (operation.isAuthUserIppRequester()) {
             assignedUserId = operation.getAuthenticatedUser();
         } else {
-            assignedUserId = this.getRequestingUserName();
+            assignedUserId = requestingUserName;
         }
 
-        this.printInProcessor.processAssignedUser(assignedUserId);
+        this.printInProcessor.processAssignedUser(assignedUserId,
+                requestingUserName);
     }
 
     /**
@@ -326,7 +328,8 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
     }
 
     /**
-     * Wraps the {@link DocContentPrintProcessor#evaluateErrorState(boolean)}
+     * Wraps the
+     * {@link DocContentPrintProcessor#evaluateErrorState(boolean, String)}
      * method.
      *
      * @param operation
@@ -338,7 +341,10 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
             throws IppProcessingException {
 
         final boolean isAuthorized = operation.isAuthorized();
-        this.printInProcessor.evaluateErrorState(isAuthorized);
+        final String requestingUserName = this.getRequestingUserName();
+
+        this.printInProcessor.evaluateErrorState(isAuthorized,
+                requestingUserName);
 
         if (hasDeferredException()) {
             throw getDeferredException();
@@ -349,9 +355,10 @@ public abstract class AbstractIppPrintJobReq extends AbstractIppRequest {
 
             final StringBuilder msg = new StringBuilder();
 
-            msg.append("User access denied to queue");
+            msg.append("User \"" + requestingUserName
+                    + "\" denied access to queue");
+            msg.append(" \"").append(IppQueueHelper.uiPath(queue)).append("\"");
 
-            msg.append(" \"/").append(queue.getUrlPath()).append("\"");
             if (queue.getDeleted().booleanValue()) {
                 msg.append(" (deleted)");
             } else if (queue.getDisabled().booleanValue()) {

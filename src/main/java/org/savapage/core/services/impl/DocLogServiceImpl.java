@@ -59,6 +59,7 @@ import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.dao.enums.ExternalSupplierStatusEnum;
 import org.savapage.core.dao.enums.PrintInDeniedReasonEnum;
+import org.savapage.core.dao.helpers.IppQueueHelper;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.i18n.AdjectiveEnum;
 import org.savapage.core.i18n.PrintOutNounEnum;
@@ -1331,7 +1332,7 @@ public final class DocLogServiceImpl extends AbstractService
                     PubLevelEnum.INFO,
                     localize(msgKey, userId,
                             String.valueOf(pageProps.getNumberOfPages()),
-                            "/" + queue.getUrlPath(), originator));
+                            IppQueueHelper.uiPath(queue), originator));
 
         } else {
 
@@ -1346,7 +1347,7 @@ public final class DocLogServiceImpl extends AbstractService
             AdminPublisher.instance().publish(PubTopicEnum.USER,
                     PubLevelEnum.WARN,
                     localize("pub-user-print-in-denied", userId,
-                            "/" + queue.getUrlPath(), originator,
+                            IppQueueHelper.uiPath(queue), originator,
                             localize(reasonKey)));
 
             /*

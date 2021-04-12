@@ -33,6 +33,7 @@ import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
+import org.savapage.core.dao.helpers.IppQueueHelper;
 import org.savapage.core.ipp.IppProcessingException;
 import org.savapage.core.jpa.IppQueue;
 import org.savapage.core.util.Messages;
@@ -53,7 +54,6 @@ public final class IppValidateJobOperation extends AbstractIppOperation {
     private final IppValidateJobRsp response;
 
     private final IppQueue queue;
-    private final String requestedQueueUrlPath;
 
     /** */
     private final String authenticatedUser;
@@ -74,6 +74,7 @@ public final class IppValidateJobOperation extends AbstractIppOperation {
      * @param queue
      *            The print queue.
      * @param requestedQueueUrlPath
+     *            URL path for logging purposes only.
      * @param authUser
      *            The authenticated user id associated with the IPP client. If
      *            {@code null} there is NO authenticated user.
@@ -82,12 +83,11 @@ public final class IppValidateJobOperation extends AbstractIppOperation {
      *            user.
      */
     public IppValidateJobOperation(final String remoteAddr,
-            final IppQueue queue, final String requestedQueueUrlPath,
-            final String authUser, final boolean isAuthUserIppReq) {
+            final IppQueue queue, final String authUser,
+            final boolean isAuthUserIppReq) {
 
         this.remoteAddr = remoteAddr;
         this.queue = queue;
-        this.requestedQueueUrlPath = requestedQueueUrlPath;
 
         this.authenticatedUser = authUser;
         this.isAuthUserIppRequester = isAuthUserIppReq;
@@ -188,7 +188,7 @@ public final class IppValidateJobOperation extends AbstractIppOperation {
 
             AdminPublisher.instance().publish(PubTopicEnum.USER, pubLevel,
                     localize("pub-user-print-in-denied", userid,
-                            ("/" + requestedQueueUrlPath), remoteAddr,
+                            IppQueueHelper.uiPath(queue), this.remoteAddr,
                             pubMessage));
 
             throw request.getDeferredException();

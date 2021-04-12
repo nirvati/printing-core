@@ -88,19 +88,21 @@ public final class IppValidateJobReq extends AbstractIppRequest {
         /*
          * Then, assign user.
          */
+        final String requestingUserName = this.getRequestingUserName();
         final String assignedUserId;
 
         if (operation.isAuthUserIppRequester()) {
             assignedUserId = operation.getAuthenticatedUser();
         } else {
-            assignedUserId = this.getRequestingUserName();
+            assignedUserId = requestingUserName;
         }
 
         /*
          * Check...
          */
         this.printInReqHandler.setJobName(this.getJobName());
-        this.printInReqHandler.processAssignedUser(assignedUserId);
+        this.printInReqHandler.processAssignedUser(assignedUserId,
+                requestingUserName);
     }
 
     /**

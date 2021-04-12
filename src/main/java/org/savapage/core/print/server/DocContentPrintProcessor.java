@@ -55,6 +55,7 @@ import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.IppRoutingEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
+import org.savapage.core.dao.helpers.IppQueueHelper;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentToPdfException;
 import org.savapage.core.doc.DocContentTypeEnum;
@@ -372,9 +373,12 @@ public final class DocContentPrintProcessor {
      *
      * @param assignedUser
      *            Assigned user id. {@code null} if not available.
-     * @return {@code true} if we have a trusted uid.
+     * @param requestingUser
+     *            Requesting user id (for logging purposes only).
+     * @return {@code true} if we have a trusted assigned uid.
      */
-    public boolean processAssignedUser(final String assignedUser) {
+    public boolean processAssignedUser(final String assignedUser,
+            final String requestingUser) {
 
         final UserDao userDao = ServiceContext.getDaoContext().getUserDao();
 
@@ -384,8 +388,9 @@ public final class DocContentPrintProcessor {
 
         if (assignedUser == null) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(String.format("Assigned user [%s] is unknown.",
-                        assignedUser));
+                LOGGER.debug(
+                        String.format("Requesting user [%s] is not assigned.",
+                                requestingUser));
             }
             this.userDb = null;
             this.uidTrusted = null;
@@ -455,7 +460,7 @@ public final class DocContentPrintProcessor {
             /*
              * No (trusted WepApp) database user.
              */
-            reason = "is UNKNOWN";
+            reason = "is untrusted";
 
         } else {
 
@@ -464,14 +469,14 @@ public final class DocContentPrintProcessor {
                 final Date dateNow = new Date();
 
                 if (USER_SERVICE.isUserPrintInDisabled(this.userDb, dateNow)) {
-                    reason = "is DISABLED for printing";
+                    reason = "is disabled for printing";
                 } else {
                     isAuthorized = true;
                     reason = null;
                 }
 
             } else {
-                reason = "is NOT a Person";
+                reason = "is not a Person";
             }
         }
 
@@ -503,8 +508,11 @@ public final class DocContentPrintProcessor {
 
                 } else {
                     if (LOGGER.isWarnEnabled()) {
-                        LOGGER.warn("Requesting user [" + assignedUser + "] "
-                                + reason + ": print denied");
+                        LOGGER.warn(
+                                "Requesting user [{}] {}"
+                                        + " : access denied to queue [{}]",
+                                requestingUser, reason,
+                                IppQueueHelper.uiPath(this.queue));
                     }
                 }
             }
@@ -1760,8 +1768,11 @@ public final class DocContentPrintProcessor {
      *
      * @param isAuthorized
      *            {@code true} when requesting user is authorized.
+     * @param requestingUserId
+     *            Requesting user id (for logging purposes only).
      */
-    public void evaluateErrorState(final boolean isAuthorized) {
+    public void evaluateErrorState(final boolean isAuthorized,
+            final String requestingUserId) {
 
         final Exception exception = getDeferredException();
 
@@ -1769,14 +1780,7 @@ public final class DocContentPrintProcessor {
             return;
         }
 
-        final String urlQueue;
-
-        if (this.queue == null) {
-            urlQueue = "?";
-        } else {
-            urlQueue = "/" + this.queue.getUrlPath();
-        }
-
+        final String urlQueue = IppQueueHelper.uiPath(this.queue);
         final String userid;
 
         if (getUserDb() == null) {
@@ -1844,15 +1848,8 @@ public final class DocContentPrintProcessor {
             }
         }
 
-        //
-        String deniedUserId = userid;
-
-        if (StringUtils.isBlank(deniedUserId)) {
-            deniedUserId = this.assignedUserId;
-        }
-
         AdminPublisher.instance().publish(PubTopicEnum.USER, pubLevel,
-                localize("pub-user-print-in-denied", deniedUserId, urlQueue,
+                localize("pub-user-print-in-denied", requestingUserId, urlQueue,
                         originatorIp, pubMessage));
     }
 

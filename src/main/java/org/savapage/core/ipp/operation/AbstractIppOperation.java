@@ -198,8 +198,7 @@ public abstract class AbstractIppOperation {
 
         } else if (operationId == IppOperationId.VALIDATE_JOB.asInt()) {
             operation = new IppValidateJobOperation(ctx.getRemoteAddr(), queue,
-                    ctx.getRequestedQueueUrlPath(), authUser,
-                    isAuthUserIppRequester);
+                    authUser, isAuthUserIppRequester);
 
         } else if (operationId == IppOperationId.IDENTIFY_PRINTER.asInt()) {
             operation = new IppIdentifyPrinterOperation(queue);

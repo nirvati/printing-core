@@ -568,7 +568,7 @@ public final class QueueServiceImpl extends AbstractService
              * already exists in the database, so a lazy user insert is no issue
              * (same argument for a Web Print).
              */
-            processor.processAssignedUser(userId);
+            processor.processAssignedUser(userId, userId);
 
             isAuthorized = processor.isAuthorized();
 
@@ -635,7 +635,7 @@ public final class QueueServiceImpl extends AbstractService
         /*
          * Evaluate to trigger the message handling.
          */
-        processor.evaluateErrorState(isAuthorized);
+        processor.evaluateErrorState(isAuthorized, userId);
 
         if (printException != null) {
             throw printException;
