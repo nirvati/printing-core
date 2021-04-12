@@ -80,20 +80,9 @@ public abstract class AbstractIppPrintJobRsp extends AbstractIppResponse {
                 || request.isDrmViolationDetected()) {
 
             /*
-             * EFFECT IN CLIENT OS
-             *
-             * Windows XP : The job will NOT print, and is NOT held in the local
-             * queue.
-             *
-             * Ubuntu 11.10 : The job will NOT print, and is NOT held in the
-             * local queue. Ubuntu will show a message the "Document printed".
-             *
-             * http://localhost:631/jobs?which_jobs=completed shows the job as
-             * "completed" WITHOUT "status-message" (see below).
-             *
-             * EFFECT IN CLIENT WEBAPP
-             *
-             * Pop-up that printing failed.
+             * To be applied with HttpServletResponse.SC_INTERNAL_SERVER_ERROR.
+             * Intended effect in IPP client: job will NOT print, and is NOT
+             * held in the local queue.
              */
             requestStatus = IppStatusCode.OK;
 
@@ -114,61 +103,17 @@ public abstract class AbstractIppPrintJobRsp extends AbstractIppResponse {
 
         } else {
             /*
-             * requestStatus = IppStatusCode.CLI_FORBID
-             *
-             * ----------------------------------------------------------------
-             * EFFECT IN CLIENT OS
-             *
-             * ----- Windows XP ----------------------------------
-             *
-             * Job will show status "error" in local queue. After login to
-             * SavaPage locally, you can restart the job, and it will be
-             * printed.
-             *
-             * ----- Ubuntu 11.10 --------------------------------
-             *
-             * Job will show status "processing" for a while in local queue.
-             * Then, Ubuntu pops up an Authentication dialog (why?). After login
-             * to SavaPage locally, you can restart the job, and it will be
-             * printed.
-             *
-             * http://localhost:631/jobs?which_jobs=completed shows the job as
-             * "canceled" with "status-message" (see below).
-             *
-             * ----- iOS (iPad) ----------------------------------
-             *
-             * A pop-up message "You do not have permission to use this printer"
-             * with 'Cancel' and 'Retry' buttons.
-             *
-             * IMPORTANT: the request status of the the ValidationJob request
-             * should be OK for this to happen!
-             *
-             * ----------------------------------------------------------------
-             * EFFECT IN CLIENT WEBAPP
-             *
-             * n/a (because WebApp is not open, otherwise we would not be at
-             * this point)
+             * To be applied with HttpServletResponse.SC_OK. Intended effect in
+             * IPP client: job will NOT print, and is held in the local queue.
+             * After IP authenticated in User Web App, job can be restarted in
+             * local queue. Mantis #1181.
              */
-            final boolean askForAuthentication = false; // work in progress...
-
-            if (askForAuthentication) {
-
-                /*
-                 * Work in progress...
-                 */
-                requestStatus = IppStatusCode.CLI_NOAUTH;
-                // jobState = IppJobState.STATE_CANCELED;
-                // jobStateReasons = "aborted-by-system";
-
-            } else {
-                requestStatus = IppStatusCode.CLI_FORBID;
-                jobState = IppJobState.STATE_ABORTED;
-                jobStateReasons = "aborted-by-system";
-            }
-
+            requestStatus = IppStatusCode.CLI_NOAUTH;
+            jobState = IppJobState.STATE_CANCELED;
+            jobStateReasons = "account-authorization-failed";
         }
 
-        /**
+        /*
          * Group 1: Operation Attributes
          */
         group = this.createOperationGroup();
