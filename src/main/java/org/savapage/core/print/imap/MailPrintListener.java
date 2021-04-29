@@ -25,6 +25,7 @@
 package org.savapage.core.print.imap;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -81,6 +82,7 @@ import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.template.dto.TemplateDtoCreator;
 import org.savapage.core.template.email.MailPrintTicketReceived;
 import org.savapage.core.util.DateUtil;
+import org.savapage.core.util.InetUtils;
 import org.savapage.core.util.Messages;
 import org.savapage.core.util.NumberUtil;
 import org.savapage.lib.pgp.PGPBaseException;
@@ -344,12 +346,31 @@ public final class MailPrintListener extends MessageCountAdapter {
                 this.connectionTimeout);
         this.props.put("mail." + this.protocol + ".timeout", this.timeout);
 
-        if (this.security
-                .equalsIgnoreCase(IConfigProp.IMAP_SECURITY_V_STARTTLS)) {
+        final boolean isSTARTTLS = this.security
+                .equalsIgnoreCase(IConfigProp.IMAP_SECURITY_V_STARTTLS);
+        final boolean isSSLTLS =
+                this.security.equalsIgnoreCase(IConfigProp.SMTP_SECURITY_V_SSL);
+
+        if (isSTARTTLS) {
             props.put("mail." + this.protocol + ".starttls.enable", "true");
+        } else if (isSSLTLS) {
+            // Mantis #1184
+            props.put("mail." + this.protocol + ".socketFactory.port",
+                    this.port);
+            props.put("mail." + this.protocol + ".socketFactory.class",
+                    "javax.net.ssl.SSLSocketFactory");
         }
 
-        // mail.imap.starttls.enable
+        if (isSTARTTLS || isSSLTLS) {
+            // Mantis #1184
+            try {
+                props.put("mail." + this.protocol + ".ssl.protocols",
+                        InetUtils.getDefaultSSLProtocols());
+            } catch (NoSuchAlgorithmException e) {
+                LOGGER.warn(String.format("No SSL protocols found: %s",
+                        e.getMessage()));
+            }
+        }
 
         final Session session = Session.getInstance(this.props, null);
         session.setDebug(this.imapDebug);

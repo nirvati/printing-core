@@ -40,6 +40,7 @@ import java.util.Set;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
@@ -412,6 +413,35 @@ public final class InetUtils {
         } catch (UnknownHostException e) {
             return false;
         }
+    }
+
+    /**
+     * @return Array of SSL protocols like "TLSv1.3", "TLSv1.2", "TLSv1.1",
+     *         "TLSv1" from SSLContext default instance.
+     * @throws NoSuchAlgorithmException
+     *             If SSLContext default instance is not present.
+     */
+    public static String[] getDefaultSSLProtocolArray()
+            throws NoSuchAlgorithmException {
+        final SSLContext ctx = SSLContext.getDefault();
+        final SSLParameters params = ctx.getDefaultSSLParameters();
+        return params.getProtocols();
+    }
+
+    /**
+     * @return A space separated list of SSL protocols from SSLContext default
+     *         instance. For example: {@code "TLSv1.3 TLSv1.2"} or
+     *         {@code "TLSv1.2 TLSv1.1 TLSv1"}
+     * @throws NoSuchAlgorithmException
+     *             If SSLContext default instance is not present.
+     */
+    public static String getDefaultSSLProtocols()
+            throws NoSuchAlgorithmException {
+        final StringBuilder protocols = new StringBuilder();
+        for (final String protocol : getDefaultSSLProtocolArray()) {
+            protocols.append(" ").append(protocol);
+        }
+        return protocols.toString().trim();
     }
 
     /**

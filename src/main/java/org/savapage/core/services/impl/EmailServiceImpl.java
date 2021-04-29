@@ -49,8 +49,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
 
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpInfo;
@@ -70,6 +68,7 @@ import org.savapage.core.services.EmailService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.FileSystemHelper;
+import org.savapage.core.util.InetUtils;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
@@ -546,26 +545,15 @@ public final class EmailServiceImpl extends AbstractService
 
     @Override
     public void start() {
-
         try {
-            final SSLContext ctx = SSLContext.getDefault();
-            final SSLParameters params = ctx.getDefaultSSLParameters();
-
-            final StringBuilder protocols = new StringBuilder();
-            for (final String protocol : params.getProtocols()) {
-                protocols.append(" ").append(protocol);
-            }
-            this.smtpSSLProtocols = protocols.toString().trim();
-
+            this.smtpSSLProtocols = InetUtils.getDefaultSSLProtocols();
             SpInfo.instance().log(String.format("SSL Mail protocols [%s]",
                     this.smtpSSLProtocols));
-
         } catch (NoSuchAlgorithmException e) {
-            LOGGER.warn(String.format("No SSL Mail protocols found: %s",
+            LOGGER.warn(String.format("No SSL protocols found: %s",
                     e.getMessage()));
             this.smtpSSLProtocols = null;
         }
-
     }
 
     @Override
