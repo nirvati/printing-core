@@ -943,6 +943,8 @@ public final class MailPrintListener extends MessageCountAdapter {
              */
             final Object content = message.getContent();
 
+            final MutableInt nAttachments = new MutableInt(0);
+
             if (content instanceof Multipart) {
 
                 final int maxPrintedAllowed =
@@ -955,8 +957,7 @@ public final class MailPrintListener extends MessageCountAdapter {
                 final Multipart multipart = (Multipart) content;
                 final MutableInt nPrinted = new MutableInt(0);
 
-                for (int i = 0; i < multipart.getCount()
-                        && nPrinted.intValue() < maxPrintedAllowed; i++) {
+                for (int i = 0; i < multipart.getCount(); i++) {
 
                     final String mailPrintTicket;
                     if (isImapTicket) {
@@ -968,33 +969,20 @@ public final class MailPrintListener extends MessageCountAdapter {
 
                     // Print
                     this.printMessagePart(from, user, mailPrintTicket,
-                            multipart, i, nPrinted, maxPrintedAllowed,
-                            maxBytesAllowed);
+                            multipart, i, nAttachments, nPrinted,
+                            maxPrintedAllowed, maxBytesAllowed);
                 }
-
-                if (nPrinted.intValue() == 0) {
-                    this.sendEmailPubLog(from,
-                            localize("user-msg-subject-error",
-                                    CommunityDictEnum.SAVAPAGE.getWord(),
-                                    mailPrintWord),
-                            NounEnum.ERROR.uiText(locale),
-                            localize("user-msg-body-content-notfound"),
-                            String.format(
-                                    "Mail Print from [%s] : "
-                                            + "no content to print [%s].",
-                                    from, content.getClass().getSimpleName()));
-                }
-
-            } else {
-                this.sendEmailPubLog(from, localize("user-msg-subject-error",
-                        CommunityDictEnum.SAVAPAGE.getWord(), mailPrintWord),
-                        NounEnum.ERROR.uiText(locale),
-                        localize("user-msg-body-content-unsupported"),
-                        String.format(
-                                "Mail Print from [%s] : "
-                                        + "unsupported content [%s].",
-                                from, content.getClass().getSimpleName()));
             }
+
+            if (nAttachments.intValue() == 0) {
+                this.sendEmailPubLog(from, localize("user-msg-subject-rejected",
+                        CommunityDictEnum.SAVAPAGE.getWord(), mailPrintWord),
+                        AdjectiveEnum.REJECTED.uiText(locale),
+                        localize("user-msg-body-content-notfound"),
+                        String.format("Mail Print from [%s] rejected: "
+                                + "no file attachment.", from));
+            }
+
         }
     }
 
@@ -1035,6 +1023,8 @@ public final class MailPrintListener extends MessageCountAdapter {
      * @param multipart
      * @param iPart
      *            Zero-based index of Part to print.
+     * @param nAttachments
+     *            Running total of file attachments.
      * @param nPrinted
      *            Running total of successful prints.
      * @param maxPrintedAllowed
@@ -1047,8 +1037,9 @@ public final class MailPrintListener extends MessageCountAdapter {
     private boolean printMessagePart(final String originatorEmail,
             final User user, final String mailPrintTicket,
             final Multipart multipart, final int iPart,
-            final MutableInt nPrinted, final int maxPrintedAllowed,
-            final long maxBytesAllowed) throws MessagingException, IOException {
+            final MutableInt nAttachments, final MutableInt nPrinted,
+            final int maxPrintedAllowed, final long maxBytesAllowed)
+            throws MessagingException, IOException {
 
         final Locale locale = ConfigManager.getDefaultLocale();
 
@@ -1095,69 +1086,69 @@ public final class MailPrintListener extends MessageCountAdapter {
             LOGGER.trace(trace.toString());
         }
 
-        if (fileName == null) {
-            // No attachment, just the message body.
-            return false;
-        }
-
         String rejectedReason = null;
 
-        /*
-         * Check number of attachments.
-         */
-        if (nPrinted.intValue() < maxPrintedAllowed) {
-            /*
-             * Check attachment size
-             */
-            if (partSize < maxBytesAllowed) {
+        if (fileName == null) {
+            // No attachment, just the message body.
+            rejectedReason = null;
+        } else {
+            nAttachments.increment();
+            // Check number of attachments.
+            if (nPrinted.intValue() < maxPrintedAllowed) {
+                /*
+                 * Check attachment size
+                 */
+                if (partSize < maxBytesAllowed) {
 
-                try {
+                    try {
 
-                    final DocContentPrintReq docContentPrintReq =
-                            new DocContentPrintReq();
+                        final DocContentPrintReq docContentPrintReq =
+                                new DocContentPrintReq();
 
-                    docContentPrintReq.setContentType(
-                            DocContent.getContentTypeFromFile(fileName));
-                    docContentPrintReq.setFileName(fileName);
-                    docContentPrintReq.setOriginatorEmail(originatorEmail);
-                    docContentPrintReq.setMailPrintTicket(mailPrintTicket);
-                    docContentPrintReq.setPreferredOutputFont(null);
-                    docContentPrintReq.setProtocol(DocLogProtocolEnum.IMAP);
-                    docContentPrintReq.setTitle(fileName);
+                        docContentPrintReq.setContentType(
+                                DocContent.getContentTypeFromFile(fileName));
+                        docContentPrintReq.setFileName(fileName);
+                        docContentPrintReq.setOriginatorEmail(originatorEmail);
+                        docContentPrintReq.setMailPrintTicket(mailPrintTicket);
+                        docContentPrintReq.setPreferredOutputFont(null);
+                        docContentPrintReq.setProtocol(DocLogProtocolEnum.IMAP);
+                        docContentPrintReq.setTitle(fileName);
 
-                    final DocContentPrintRsp docContentPrintRsp = QUEUE_SERVICE
-                            .printDocContent(ReservedIppQueueEnum.MAILPRINT,
-                                    user.getUserId(), docContentPrintReq,
-                                    part.getInputStream());
+                        final DocContentPrintRsp docContentPrintRsp =
+                                QUEUE_SERVICE.printDocContent(
+                                        ReservedIppQueueEnum.MAILPRINT,
+                                        user.getUserId(), docContentPrintReq,
+                                        part.getInputStream());
 
-                    nPrinted.increment();
+                        nPrinted.increment();
 
-                    if (mailPrintTicket != null) {
-                        this.notifyMailTicketByEmail(docContentPrintReq,
-                                docContentPrintRsp, user);
+                        if (mailPrintTicket != null) {
+                            this.notifyMailTicketByEmail(docContentPrintReq,
+                                    docContentPrintRsp, user);
+                        }
+
+                    } catch (DocContentPrintException e) {
+                        rejectedReason = e.getMessage();
+                    } catch (UnavailableException e) {
+                        if (e.getState() == UnavailableException.State.TEMPORARY) {
+                            rejectedReason = localize(
+                                    "user-msg-file-denied-temp-unavailable");
+                        } else {
+                            rejectedReason = localize(
+                                    "user-msg-file-denied-unavailable");
+                        }
                     }
 
-                } catch (DocContentPrintException e) {
-                    rejectedReason = e.getMessage();
-                } catch (UnavailableException e) {
-                    if (e.getState() == UnavailableException.State.TEMPORARY) {
-                        rejectedReason = localize(
-                                "user-msg-file-denied-temp-unavailable");
-                    } else {
-                        rejectedReason =
-                                localize("user-msg-file-denied-unavailable");
-                    }
+                } else {
+                    rejectedReason = localize("user-msg-file-denied-max-size",
+                            NumberUtil.humanReadableByteCountSI(locale,
+                                    maxBytesAllowed));
                 }
 
             } else {
-                rejectedReason = localize("user-msg-file-denied-max-size",
-                        NumberUtil.humanReadableByteCountSI(locale,
-                                maxBytesAllowed));
+                rejectedReason = localize("user-msg-file-denied-max-number",
+                        String.valueOf(maxPrintedAllowed));
             }
-
-        } else {
-            rejectedReason = localize("user-msg-file-denied-max-number",
-                    String.valueOf(maxPrintedAllowed));
         }
 
         if (rejectedReason != null) {
@@ -1165,22 +1156,33 @@ public final class MailPrintListener extends MessageCountAdapter {
             final String mailPrintWord =
                     CommunityDictEnum.MAIL_PRINT.getWord(locale);
 
+            final String fileNameMsg = StringUtils.defaultString(fileName, "-");
+
             AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
                     PubLevelEnum.WARN,
                     localize("pub-file-rejected", mailPrintWord,
-                            originatorEmail, fileName, rejectedReason));
+                            originatorEmail, fileNameMsg, rejectedReason));
 
-            LOGGER.info("[{}] file [{}] rejected. Reason: {}", originatorEmail,
-                    fileName, rejectedReason);
+            LOGGER.warn("[{}] file [{}] rejected. Reason: {}", originatorEmail,
+                    fileNameMsg, rejectedReason);
 
-            this.sendEmail(originatorEmail,
-                    localize("user-msg-subject-file-rejected",
-                            CommunityDictEnum.SAVAPAGE.getWord(), mailPrintWord,
-                            fileName),
-                    AdjectiveEnum.REJECTED.uiText(locale),
-                    String.format("%s \"%s\" : %s",
-                            NounEnum.FILE.uiText(locale), fileName,
-                            rejectedReason));
+            final String mailSubject;
+            final String mailContent;
+
+            if (fileName == null) {
+                mailSubject = localize("user-msg-subject-rejected",
+                        CommunityDictEnum.SAVAPAGE.getWord(), mailPrintWord);
+                mailContent = rejectedReason;
+            } else {
+                mailSubject = localize("user-msg-subject-file-rejected",
+                        CommunityDictEnum.SAVAPAGE.getWord(), mailPrintWord,
+                        fileName);
+                mailContent = String.format("%s \"%s\" : %s",
+                        NounEnum.FILE.uiText(locale), fileName, rejectedReason);
+            }
+
+            this.sendEmail(originatorEmail, mailSubject,
+                    AdjectiveEnum.REJECTED.uiText(locale), mailContent);
         }
 
         return rejectedReason == null;
