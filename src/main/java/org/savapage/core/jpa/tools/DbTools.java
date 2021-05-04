@@ -75,6 +75,7 @@ import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaExport.Action;
 import org.hibernate.tool.schema.TargetType;
 import org.hibernate.type.descriptor.java.JdbcTimestampTypeDescriptor;
+import org.savapage.common.SystemPropertyEnum;
 import org.savapage.core.SpException;
 import org.savapage.core.SpInfo;
 import org.savapage.core.VersionInfo;
@@ -1055,9 +1056,12 @@ public final class DbTools implements ServiceEntryPoint {
             final String url;
 
             if (isDerby) {
-                url = jdbcUrl.replace(
-                        "${" + ConfigManager.SYS_PROP_SERVER_HOME + "}",
-                        ConfigManager.getServerHome()) + ";create=true";
+                url = jdbcUrl
+                        .replace(
+                                "${" + SystemPropertyEnum.SAVAPAGE_SERVER_HOME
+                                        .getKey() + "}",
+                                ConfigManager.getServerHome())
+                        + ";create=true";
             } else {
                 url = jdbcUrl;
                 /*

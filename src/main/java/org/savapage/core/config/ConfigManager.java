@@ -80,6 +80,7 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableLong;
 import org.hibernate.jpa.HibernatePersistenceProvider;
+import org.savapage.common.SystemPropertyEnum;
 import org.savapage.core.SpException;
 import org.savapage.core.SpInfo;
 import org.savapage.core.VersionInfo;
@@ -298,15 +299,6 @@ public final class ConfigManager {
             "ipp.trust.ip-user";
 
     // ========================================================================
-
-    /** */
-    public static final String SYS_PROP_JAVA_IO_TMPDIR = "java.io.tmpdir";
-
-    /** */
-    public static final String SYS_PROP_SERVER_HOME = "server.home";
-
-    /** */
-    public static final String SYS_PROP_CLIENT_HOME = "client.home";
 
     /** */
     private static final String APP_OWNER =
@@ -725,8 +717,8 @@ public final class ConfigManager {
     }
 
     /**
-     * Dynamically gets the {@code server.home} system property as passed to the
-     * JVM or set internally.
+     * Dynamically gets the {@link SystemPropertyEnum#SAVAPAGE_SERVER_HOME}
+     * system property as passed to the JVM or set internally.
      * <p>
      * IMPORTANT: do NOT cache the value because we want to have the freedom to
      * change the system property on runtime.
@@ -735,16 +727,17 @@ public final class ConfigManager {
      * @return
      */
     public static String getServerHome() {
-        return System.getProperty(SYS_PROP_SERVER_HOME);
+        return SystemPropertyEnum.SAVAPAGE_SERVER_HOME.getValue();
     }
 
     /**
-     * @return The {@code client.home} system property as passed to the JVM or
-     *         set internally. If the property is not found the "../client" path
-     *         relative to {@link #getServerHome()} is returned.
+     * @return The {@link SystemPropertyEnum#SAVAPAGE_CLIENT_HOME} system
+     *         property as passed to the JVM or set internally. If the property
+     *         is not found the "../client" path relative to
+     *         {@link #getServerHome()} is returned.
      */
     public static String getClientHome() {
-        String clientHome = System.getProperty(SYS_PROP_CLIENT_HOME);
+        String clientHome = SystemPropertyEnum.SAVAPAGE_CLIENT_HOME.getValue();
         if (clientHome == null) {
             clientHome = String.format("%s/../client", getServerHome());
         }
@@ -1100,7 +1093,7 @@ public final class ConfigManager {
      * @return
      */
     public static boolean isOsArch64Bit() {
-        return (System.getProperty("os.arch").indexOf("64") != -1);
+        return SystemPropertyEnum.OS_ARCH.getValue().indexOf("64") != -1;
     }
 
     /**
@@ -1108,7 +1101,7 @@ public final class ConfigManager {
      * @return
      */
     public static String getProcessUserName() {
-        return System.getProperty("user.name");
+        return SystemPropertyEnum.USER_NAME.getValue();
     }
 
     /**
@@ -2875,8 +2868,8 @@ public final class ConfigManager {
      * </p>
      *
      * @return The value of the server properties
-     *         {@link #SERVER_PROP_APP_DIR_TMP} (when present) or the System
-     *         property {@link #SYS_PROP_JAVA_IO_TMPDIR} appended with
+     *         {@link #SERVER_PROP_APP_DIR_TMP} (when present) or the
+     *         {@link SystemPropertyEnum#JAVA_IO_TMPDIR} property appended with
      *         {@code /savapage}.
      */
     public static String getAppTmpDir() {
@@ -2894,8 +2887,8 @@ public final class ConfigManager {
         }
 
         return String.format("%s%c%s",
-                System.getProperty(SYS_PROP_JAVA_IO_TMPDIR), File.separatorChar,
-                "savapage");
+                SystemPropertyEnum.JAVA_IO_TMPDIR.getValue(),
+                File.separatorChar, "savapage");
     }
 
     /**
@@ -2991,34 +2984,22 @@ public final class ConfigManager {
     /**
      * Sets the Hibernate and system properties for Derby.
      *
-     * @param properties
-     *            The properties.
+     * @param config
+     *            The configuration properties.
      */
     private void initHibernateDerby(final Map<String, Object> config) {
 
-        /*
-         * How to set Apache Derby properties
-         * http://docs.oracle.com/javadb/10.8.1.2/ref/crefproper22250.html : See
-         * sample code below:
-         *
-         * System.setProperty("derby.locks.deadlockTimeout", "25");
-         * System.setProperty("derby.locks.waitTimeout", "30");
-         */
         if (theServerProps != null) {
 
-            final String KEY_DERBY_DEADLOCK_TIMEOUT =
-                    "derby.locks.deadlockTimeout";
-            final String KEY_DERBY_LOCKS_WAITTIMEOUT =
-                    "derby.locks.waitTimeout";
+            for (final SystemPropertyEnum prop : new SystemPropertyEnum[] {
+                    SystemPropertyEnum.DERBY_DEADLOCK_TIMEOUT,
+                    SystemPropertyEnum.DERBY_LOCKS_WAITTIMEOUT }) {
 
-            for (String key : new String[] { KEY_DERBY_DEADLOCK_TIMEOUT,
-                    KEY_DERBY_LOCKS_WAITTIMEOUT }) {
-
-                final String value = theServerProps.getProperty(key);
+                final String value = theServerProps.getProperty(prop.getKey());
 
                 if (StringUtils.isNotBlank(value)) {
-                    System.setProperty(key, value);
-                    SpInfo.instance().log(key + "=" + value);
+                    prop.setValue(value);
+                    SpInfo.instance().log(prop + "=" + value);
                 }
             }
         }

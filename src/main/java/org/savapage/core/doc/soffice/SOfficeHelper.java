@@ -27,6 +27,7 @@ package org.savapage.core.doc.soffice;
 import java.io.File;
 import java.util.Map;
 
+import org.savapage.common.SystemPropertyEnum;
 import org.savapage.core.SpException;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
@@ -45,19 +46,8 @@ import com.sun.star.uno.UnoRuntime;
  */
 public final class SOfficeHelper {
 
-    /**
-    *
-    */
+    /** */
     private static volatile Boolean cachedInstallIndication = null;
-
-    /**
-     * Java System property with location of OpenOffice or LibreOffice package.
-     * This can be passed as VM argument, for instance:
-     * <p>
-     * {@code -Dsoffice.home=/usr/lib/libreoffice}
-     * </p>
-     */
-    private static final String SYS_PROP_OFFICE_HOME = "soffice.home";
 
     /**
      * The office binary.
@@ -104,8 +94,9 @@ public final class SOfficeHelper {
      */
     public static File getOfficeLocation() {
 
-        if (System.getProperty(SYS_PROP_OFFICE_HOME) != null) {
-            return new File(System.getProperty(SYS_PROP_OFFICE_HOME));
+        final String sysPropHome = SystemPropertyEnum.SOFFICE_HOME.getValue();
+        if (sysPropHome != null) {
+            return new File(sysPropHome);
         }
 
         for (final String candidate : OFFICE_LOCATION_CANDIDATES) {

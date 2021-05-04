@@ -26,7 +26,7 @@ package org.savapage.core.doc.soffice;
 
 import java.io.File;
 
-import org.savapage.core.config.ConfigManager;
+import org.savapage.common.SystemPropertyEnum;
 import org.savapage.core.util.DateUtil;
 
 /**
@@ -122,7 +122,7 @@ public abstract class SOfficeSettings {
      *
      */
     private File workDir =
-            new File(System.getProperty(ConfigManager.SYS_PROP_JAVA_IO_TMPDIR));
+            new File(SystemPropertyEnum.JAVA_IO_TMPDIR.getValue());
 
     /**
      * Wait time (milliseconds) for a UNO connection to become available for

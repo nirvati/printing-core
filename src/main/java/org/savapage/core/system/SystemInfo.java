@@ -26,6 +26,7 @@ package org.savapage.core.system;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
@@ -661,7 +662,8 @@ public final class SystemInfo {
                     default:
                         break;
                     }
-                } catch (Exception e) {
+                } catch (IllegalAccessException | IllegalArgumentException
+                        | InvocationTargetException e) {
                     // no code intended
                 }
             }

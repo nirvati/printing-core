@@ -26,6 +26,7 @@ package org.savapage.core;
 
 import java.util.Calendar;
 
+import org.savapage.common.SystemPropertyEnum;
 import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.community.MemberCard;
 import org.savapage.core.config.ConfigManager;
@@ -69,8 +70,8 @@ public final class SpInfo {
                 //
                 + "\n| " + VersionInfo.LICENSE_NAME
                 //
-                + "\n| " + System.getProperty("java.vm.name") + " ("
-                + System.getProperty("java.version") + ")"
+                + "\n| " + SystemPropertyEnum.JAVA_VM_NAME.getValue() + " ("
+                + SystemPropertyEnum.JAVA_VERSION.getValue() + ")"
                 //
                 + "\n| " + dbInfo.getProdName() + " " + dbInfo.getProdVersion()
                 //

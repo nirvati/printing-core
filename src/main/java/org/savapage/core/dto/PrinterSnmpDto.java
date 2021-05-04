@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.savapage.common.SystemPropertyEnum;
 import org.savapage.core.json.rpc.impl.ResultAttribute;
 import org.savapage.core.snmp.SnmpMibDict;
 import org.savapage.core.snmp.SnmpPrinterErrorStateEnum;
@@ -310,7 +311,7 @@ public final class PrinterSnmpDto extends AbstractDto {
     public String asFormattedText() {
 
         final StringBuilder writer = new StringBuilder(1024);
-        final String lineSep = System.getProperty("line.separator");
+        final String lineSep = SystemPropertyEnum.LINE_SEPARATOR.getValue();
 
         for (ResultAttribute attr : this.asAttributes()) {
             writer.append(

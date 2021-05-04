@@ -48,6 +48,7 @@ import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.simpl.PropertySettingJobFactory;
+import org.savapage.common.SystemPropertyEnum;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
@@ -111,7 +112,7 @@ public final class SpJobScheduler {
     /**
      * Gets the singleton instance.
      *
-     * @return
+     * @return the singleton.
      */
     public static SpJobScheduler instance() {
         return SingletonHolder.INSTANCE;
@@ -127,10 +128,11 @@ public final class SpJobScheduler {
      */
     public void init() {
 
-        System.setProperty("org.terracotta.quartz.skipUpdateCheck", "true");
+        SystemPropertyEnum.setValue("org.terracotta.quartz.skipUpdateCheck",
+                "true");
 
         try {
-            PropertySettingJobFactory jobFactory =
+            final PropertySettingJobFactory jobFactory =
                     new PropertySettingJobFactory();
             jobFactory.setWarnIfPropertyNotFound(false);
 

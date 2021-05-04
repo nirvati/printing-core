@@ -36,6 +36,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.log4j.PropertyConfigurator;
+import org.savapage.common.SystemPropertyEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.RunModeEnum;
 import org.savapage.core.dao.DaoContext;
@@ -243,10 +244,12 @@ public final class AppDb extends AbstractApp {
         // log4j?
         // ......................................................
         if (cmd.hasOption(CLI_SWITCH_LOG4J)) {
-            final String propKey = "log4j.configuration";
-            final String propfile = System.getProperty(propKey);
+            final SystemPropertyEnum propKey =
+                    SystemPropertyEnum.LOG4J_CONFIGURATION;
+            final String propfile = propKey.getValue();
             if (propfile == null) {
-                getDisplayStream().printf("%s property not found.\n", propKey);
+                getDisplayStream().printf("%s property not found.\n",
+                        propKey.getKey());
                 return EXIT_CODE_EXCEPTION;
             } else {
                 final File file = new File(propfile);
