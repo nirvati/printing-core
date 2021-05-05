@@ -898,6 +898,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                             .equals(optValue)) {
                 continue;
             }
+            if (IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE_COLOR
+                    .equals(optKey) && !optionMap.hasCoverType()) {
+                continue;
+            }
 
             final JsonProxyPrinterOptChoice choice =
                     new JsonProxyPrinterOptChoice();

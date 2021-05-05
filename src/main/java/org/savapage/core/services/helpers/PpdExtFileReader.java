@@ -413,7 +413,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         this.jobTicketOptMapSheet = new HashMap<>();
         this.jobTicketCostRulesSheet = new ArrayList<>();
 
-        this.jobTicketOptMapCopy = new HashMap<>();
+        this.jobTicketOptMapCopy = new TreeMap<>();
         this.jobTicketCostRulesCopy = new ArrayList<>();
 
         this.jobTicketOptMapSet = new HashMap<>();

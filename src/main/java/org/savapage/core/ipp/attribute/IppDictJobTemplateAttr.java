@@ -237,11 +237,13 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     public static final String ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180 =
             ORG_SAVAPAGE_INT_ATTR_PFX + "page-rotate180";
 
-    /**
-     * .
-     */
+    /** */
     public static final String ORG_SAVAPAGE_ATTR_COVER_TYPE =
             ORG_SAVAPAGE_ATTR_PFX + "cover-type";
+
+    /** */
+    public static final String ORG_SAVAPAGE_ATTR_COVER_TYPE_COLOR =
+            ORG_SAVAPAGE_ATTR_COVER_TYPE + "-color";
 
     /**
      * The prefix for Custom SavaPage IPP Job template finishings attributes.
@@ -284,8 +286,8 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
     /**
      * Job Tickets attributes for set of a copy.
      */
-    public static final String[] JOBTICKET_ATTR_COPY =
-            new String[] { ORG_SAVAPAGE_ATTR_COVER_TYPE };
+    public static final String[] JOBTICKET_ATTR_COPY = new String[] {
+            ORG_SAVAPAGE_ATTR_COVER_TYPE_COLOR, ORG_SAVAPAGE_ATTR_COVER_TYPE };
 
     /**
      * Job Tickets attributes for set of copies.

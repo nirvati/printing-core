@@ -156,6 +156,16 @@ public final class IppOptionMap {
 
     /**
      *
+     * @return {@code true} if requests cover-type.
+     */
+    public boolean hasCoverType() {
+        return isOptionPresentUnequal(
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_TYPE,
+                IppKeyword.ORG_SAVAPAGE_ATTR_COVER_TYPE_NO_COVER);
+    }
+
+    /**
+     *
      * @return {@code true} if requests has print scaling.
      */
     public boolean hasPrintScaling() {
