@@ -38,6 +38,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.savapage.core.SpException;
 import org.savapage.core.doc.ImageToPdf;
 import org.savapage.core.pdf.PdfPageRotateHelper;
+import org.savapage.core.pdf.facade.PdfDocumentAGPL;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
 import org.savapage.core.util.DateUtil;
@@ -203,6 +204,9 @@ public final class EcoPrintPdfTask
             PdfWriter.getInstance(targetDocument,
                     new FileOutputStream(pathPdfOutTemp.toFile()));
 
+            final PdfDocumentAGPL documentFacade =
+                    new PdfDocumentAGPL(targetDocument);
+
             for (int i = 0; i < nPagesMax; i++) {
 
                 final int nPage = i + 1;
@@ -235,16 +239,7 @@ public final class EcoPrintPdfTask
 
                 targetDocument.setMargins(0, 0, 0, 0);
 
-                /*
-                 * Open document or add new page.
-                 */
-                if (!targetDocument.isOpen()) {
-                    targetDocument.open();
-                } else {
-                    targetDocument.newPage();
-                }
-
-                imageOut = new File(String.format("%s/%s.png", pathTmpDir,
+                imageOut = new File(String.format("%s/%s.jpg", pathTmpDir,
                         UUID.randomUUID().toString()));
 
                 final Pdf2ImgCommand cmd =
@@ -286,7 +281,9 @@ public final class EcoPrintPdfTask
 
                 this.checkExecutorTerminating();
 
-                ImageToPdf.addImagePage(targetDocument, 0, 0, image);
+                ImageToPdf.addImagePage(documentFacade,
+                        documentFacade.create(image));
+
                 nPagesTot++;
                 fractionFilteredTot += filter.getFractionFiltered();
 

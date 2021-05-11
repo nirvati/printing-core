@@ -39,6 +39,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.pdf.AbstractPdfCreator;
+import org.savapage.core.pdf.facade.PdfDocumentMPL;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
 import org.savapage.core.system.SystemInfo;
@@ -216,6 +217,9 @@ public final class PsToImagePdf extends AbstractPdfConverter
 
             final Rectangle docPageSize = targetDocument.getPageSize();
 
+            final PdfDocumentMPL documentFacade =
+                    new PdfDocumentMPL(targetDocument);
+
             for (final File imgFile : imageFiles) {
 
                 final com.lowagie.text.Image image = com.lowagie.text.Image
@@ -232,16 +236,8 @@ public final class PsToImagePdf extends AbstractPdfConverter
                     targetDocument.setPageSize(docPageSize);
                 }
 
-                /*
-                 * Open document or add new page.
-                 */
-                if (!targetDocument.isOpen()) {
-                    targetDocument.open();
-                } else {
-                    targetDocument.newPage();
-                }
-
-                ImageToPdf.addImagePage(targetDocument, 0, 0, image);
+                ImageToPdf.addImagePage(documentFacade,
+                        documentFacade.create(image));
                 nPagesTot++;
             }
 

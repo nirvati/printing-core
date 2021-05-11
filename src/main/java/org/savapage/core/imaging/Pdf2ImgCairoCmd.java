@@ -51,10 +51,11 @@ public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand, ICommandStrategy {
 
     /** */
     public enum ImgType {
+
         /** */
-        PNG("-png"),
+        PNG("-png", "png"),
         /** */
-        JPEG("-jpeg");
+        JPEG("-jpeg", "jpg");
 
         /**
          * CLI option value.
@@ -62,11 +63,19 @@ public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand, ICommandStrategy {
         private final String cmdOpt;
 
         /**
+         * CLI option value.
+         */
+        private final String fileExt;
+
+        /**
          * @param opt
          *            CLI option value.
+         * @param ext
+         *            File extension.
          */
-        ImgType(final String opt) {
+        ImgType(final String opt, final String ext) {
             this.cmdOpt = opt;
+            this.fileExt = ext;
         }
 
         /**
@@ -80,7 +89,7 @@ public final class Pdf2ImgCairoCmd implements Pdf2ImgCommand, ICommandStrategy {
          * @return File extension, e.g. "png".
          */
         public String getFileExt() {
-            return this.cmdOpt.substring(1);
+            return this.fileExt;
         }
     }
 

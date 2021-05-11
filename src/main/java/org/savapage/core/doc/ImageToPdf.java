@@ -35,12 +35,14 @@ import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.pdf.ITextPdfCreator;
+import org.savapage.core.pdf.facade.PdfDocumentAGPL;
+import org.savapage.core.pdf.facade.PdfDocumentFacade;
+import org.savapage.core.pdf.facade.PdfImageFacade;
 import org.savapage.core.util.NumberUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.ImgWMF;
 import com.itextpdf.text.io.RandomAccessSourceFactory;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -59,18 +61,33 @@ public final class ImageToPdf implements IStreamConverter {
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ImageToPdf.class);
 
+    /** */
+    private static final float PDF_MARGIN_LEFT = 50;
+    /** */
+    private static final float PDF_MARGIN_RIGHT = 50;
+    /** */
+    private static final float PDF_MARGIN_TOP = 50;
+    /** */
+    private static final float PDF_MARGIN_BOTTOM = 50;
+
     /**
      * Rotation of a landscape PDF image in a portrait PDF document.
      */
     private static final float PDF_IMG_LANDSCAPE_ROTATE =
             (float) (Math.PI * .5);
 
+    /** */
+    private static final boolean LANDSCAPE_ROTATE_OF_IMAGE = false;
+    /** */
+    private static final boolean LANDSCAPE_ROTATE_OF_PAGE =
+            !LANDSCAPE_ROTATE_OF_IMAGE;
+
     @Override
     public long convert(final DocContentTypeEnum contentType,
             final DocInputStream istrDoc, final OutputStream ostrPdf)
             throws Exception {
 
-        toPdf(contentType, istrDoc, ostrPdf);
+        this.toPdf(contentType, istrDoc, ostrPdf);
         return istrDoc.getBytesRead();
     }
 
@@ -96,19 +113,24 @@ public final class ImageToPdf implements IStreamConverter {
             final InputStream istrImage, final OutputStream ostrPdf)
             throws Exception {
 
-        final float marginLeft = 50;
-        final float marginRight = 50;
-        final float marginTop = 50;
-        final float marginBottom = 50;
-
         Document document = null;
 
         try {
             document = new Document(ITextPdfCreator.getDefaultPageSize(),
-                    marginLeft, marginRight, marginTop, marginBottom);
+                    PDF_MARGIN_LEFT, PDF_MARGIN_RIGHT, PDF_MARGIN_TOP,
+                    PDF_MARGIN_BOTTOM);
 
             PdfWriter.getInstance(document, ostrPdf);
-            document.open();
+
+            final PdfDocumentAGPL documentFacade =
+                    new PdfDocumentAGPL(document);
+
+            /*
+             * At this point do NOT perform "document.open()" : it is important
+             * to wait after the page size (and margins) are set. The first page
+             * is initialized when you open() the document, all following pages
+             * are initialized when a newPage() occurs.
+             */
 
             com.itextpdf.text.Image image;
 
@@ -119,7 +141,7 @@ public final class ImageToPdf implements IStreamConverter {
             case PNG:
                 final java.awt.Image awtImage = ImageIO.read(istrImage);
                 image = com.itextpdf.text.Image.getInstance(awtImage, null);
-                addImagePage(document, marginLeft, marginRight, image);
+                addImagePage(documentFacade, documentFacade.create(image));
                 break;
 
             case GIF:
@@ -132,7 +154,7 @@ public final class ImageToPdf implements IStreamConverter {
                 for (int i = 0; i < frameCount; i++) {
                     // One-based index.
                     image = img.getImage(i + 1);
-                    addImagePage(document, marginLeft, marginRight, image);
+                    addImagePage(documentFacade, documentFacade.create(image));
                 }
                 break;
 
@@ -147,21 +169,16 @@ public final class ImageToPdf implements IStreamConverter {
                 final int pages = TiffImage.getNumberOfPages(ra);
 
                 for (int i = 0; i < pages; i++) {
-
-                    if (i > 0) {
-                        // Every page on a new PDF page.
-                        document.newPage();
-                    }
                     // One-based index.
                     image = TiffImage.getTiffImage(ra, i + 1);
-                    addImagePage(document, marginLeft, marginRight, image);
+                    addImagePage(documentFacade, documentFacade.create(image));
                 }
                 break;
 
             case WMF:
                 // UNDER CONSTRUCTION
                 final ImgWMF wmf = new ImgWMF(IOUtils.toByteArray(istrImage));
-                addImagePage(document, marginLeft, marginRight, wmf);
+                addImagePage(documentFacade, documentFacade.create(wmf));
                 break;
 
             default:
@@ -193,105 +210,106 @@ public final class ImageToPdf implements IStreamConverter {
     }
 
     /**
-     * @param image
-     *            {@link com.lowagie.text.Image}.
-     * @return {@code true} if image has landscape orientation.
-     */
-    private static boolean isLandscapeImg(final com.lowagie.text.Image image) {
-        return image.getWidth() > image.getHeight();
-    }
-
-    /**
-     * @param image
-     *            {@link com.itextpdf.text.Image}.
-     * @return {@code true} if image has landscape orientation.
-     */
-    private static boolean isLandscapeImg(final com.itextpdf.text.Image image) {
-        return image.getWidth() > image.getHeight();
-    }
-
-    /**
-     * @param document
-     *            {@link com.lowagie.text.Document}.
-     * @return {@code true} if document has landscape orientation.
-     */
-    private static boolean
-            isLandscapePdf(final com.lowagie.text.Document document) {
-        return document.getPageSize().getWidth() > document.getPageSize()
-                .getHeight();
-    }
-
-    /**
-     * @param document
-     *            {@link com.itextpdf.text.Document}.
-     * @return {@code true} if document has landscape orientation.
-     */
-    private static boolean
-            isLandscapePdf(final com.itextpdf.text.Document document) {
-        return document.getPageSize().getWidth() > document.getPageSize()
-                .getHeight();
-    }
-
-    /**
      * Calculates scaling percentage of PDF image to fit on PDF page.
      *
      * @param pageWidth
      *            PDF page width.
+     * @param pageHeight
+     *            PDF page height.
      * @param imageWidth
      *            Image width.
+     * @param imageHeight
+     *            Image height.
      * @param marginLeft
      *            Left margin on PDF page.
      * @param marginRight
      *            Right margin on PDF page.
-     * @return Scaling percentage. {@code 1.0f} if no scaling.
+     * @return Scaling percentage, or {@code null} if no scaling.
      */
-    private static float calcAddImageScalePerc(final float pageWidth,
-            final float imageWidth, final float marginLeft,
+    private static Float calcAddImageScalePerc(final float pageWidth,
+            final float pageHeight, final float imageWidth,
+            final float imageHeight, final float marginLeft,
             final float marginRight) {
 
         final float pageWidthEffective = pageWidth - marginLeft - marginRight;
-        final float scalePerc;
-
+        final Float scalePercW;
         if (imageWidth > pageWidthEffective) {
-            scalePerc =
-                    NumberUtil.INT_HUNDRED * (pageWidthEffective / imageWidth);
+            scalePercW = Float.valueOf(
+                    NumberUtil.INT_HUNDRED * (pageWidthEffective / imageWidth));
         } else {
-            scalePerc = 1.0f;
+            scalePercW = null;
         }
+
+        final float pageHeightEffective = pageHeight - marginLeft - marginRight;
+        final Float scalePercH;
+        if (imageHeight > pageHeightEffective) {
+            scalePercH = Float.valueOf(NumberUtil.INT_HUNDRED
+                    * (pageHeightEffective / imageHeight));
+        } else {
+            scalePercH = null;
+        }
+        final Float scalePerc;
+        if (scalePercW != null || scalePercH != null) {
+            if (scalePercW == null) {
+                scalePerc = scalePercH;
+            } else if (scalePercH == null) {
+                scalePerc = scalePercW;
+            } else if (scalePercH.floatValue() < scalePercW.floatValue()) {
+                scalePerc = scalePercH;
+            } else {
+                scalePerc = scalePercW;
+            }
+        } else {
+            scalePerc = null;
+        }
+
         return scalePerc;
     }
 
     /**
-     * Adds an image to the current a page of an PDF
-     * {@link com.lowagie.text.Document}: Mozilla Public License.
-     * <ul>
-     * <li>A landscape image is rotated when PDF Document page is portrait.</li>
-     * <li>The image is scaled to the document width.</li>
-     * </ul>
+     * @return {@code true} if landscape rotate is applied to the PDF page,
+     *         {@code false} if applied to the image.
+     */
+    private static boolean isRotatePageToLandscape() {
+        return LANDSCAPE_ROTATE_OF_PAGE;
+    }
+
+    /**
+     * Adds an image to the current a page of a PDF document. The page is
+     * rotated for the best image fit and the image is downscaled accordingly.
+     * The document is lazy opened or a new page is started.
      *
      * @param document
-     *            a PDF {@link com.lowagie.text.Document} to add the image to.
-     * @param marginLeft
-     *            Left margin.
-     * @param marginRight
-     *            Right margin.
+     *            PDF document to add the image to.
      * @param image
-     *            The {@link com.lowagie.text.Image} to add
-     * @throws com.lowagie.text.DocumentException
-     *             When things go wrong.
+     *            PDF image to add.
      */
-    public static void addImagePage(final com.lowagie.text.Document document,
-            final float marginLeft, final float marginRight,
-            final com.lowagie.text.Image image)
-            throws com.lowagie.text.DocumentException {
+    public static void addImagePage(final PdfDocumentFacade document,
+            final PdfImageFacade image) {
 
-        if (isLandscapeImg(image) && !isLandscapePdf(document)) {
-            image.setRotation(PDF_IMG_LANDSCAPE_ROTATE);
+        final Float[] floats = getImagePageRotateScale(document, image);
+
+        if (floats[0] != null) {
+            image.scalePercent(floats[0].floatValue());
         }
-
-        image.scalePercent(
-                calcAddImageScalePerc(document.getPageSize().getWidth(),
-                        image.getWidth(), marginLeft, marginRight));
+        if (floats[1] != null) {
+            if (isRotatePageToLandscape()) {
+                document.rotatePage();
+            } else {
+                image.setRotation(floats[1].floatValue());
+            }
+        }
+        /*
+         * It is important to change the page size (and margins) before the page
+         * is initialized. The first page is initialized when you open() the
+         * document, all following pages are initialized when a newPage()
+         * occurs.
+         */
+        if (document.isOpen()) {
+            document.newPage();
+        } else {
+            document.open();
+        }
         /*
          * A larger image that does not fit into current page's remaining space
          * will be inserted as instructed, but will insert into next page
@@ -301,41 +319,60 @@ public final class ImageToPdf implements IStreamConverter {
     }
 
     /**
-     * Adds an image to the current a page of an PDF
-     * {@link com.itextpdf.text.Document}: AGPL license.
-     * <ul>
-     * <li>A landscape image is rotated when PDF Document page is portrait.</li>
-     * <li>The image is scaled to the document width.</li>
-     * </ul>
-     *
      * @param document
-     *            a PDF {@link com.itextpdf.text.Document} to add the image to.
-     * @param marginLeft
-     *            Left margin.
-     * @param marginRight
-     *            Right margin.
+     *            PDF document to add the image to.
      * @param image
-     *            The {@link com.itextpdf.text.Image} to add
-     * @throws DocumentException
-     *             When things go wrong.
+     *            PDF image to add.
+     * @return Float[0] is image scaling, or {@code null} if not applicable.
+     *         Float[1] is image rotation, or {@code null} if not applicable.
      */
-    public static void addImagePage(final com.itextpdf.text.Document document,
-            final float marginLeft, final float marginRight,
-            final com.itextpdf.text.Image image) throws DocumentException {
+    private static Float[] getImagePageRotateScale( //
+            final PdfDocumentFacade document, final PdfImageFacade image) {
 
-        if (isLandscapeImg(image) && !isLandscapePdf(document)) {
-            image.setRotation(PDF_IMG_LANDSCAPE_ROTATE);
+        final float pdfWidth = document.getPageWidth();
+        final float pdfHeight = document.getPageHeight();
+
+        final float marginLeft = document.leftMargin();
+        final float marginRight = document.rightMargin();
+
+        final float marginTop = document.topMargin();
+        final float marginBottom = document.bottomMargin();
+
+        final float imgWidth = image.getWidth();
+        final float imgHeight = image.getHeight();
+
+        final Float scalePercentPlain = calcAddImageScalePerc(pdfWidth,
+                pdfHeight, imgWidth, imgHeight, marginLeft, marginRight);
+
+        final Float scalePercent;
+        final Float rotate;
+
+        if (scalePercentPlain == null) {
+            scalePercent = null;
+            rotate = null;
+        } else {
+            final boolean isLandscapePdf = pdfWidth > pdfHeight;
+            final boolean isLandscapeImg = imgWidth > imgHeight;
+
+            if (isLandscapeImg && !isLandscapePdf) {
+
+                final Float scalePercentRotate =
+                        calcAddImageScalePerc(pdfWidth, pdfHeight, imgHeight,
+                                imgWidth, marginBottom, marginTop);
+
+                if (scalePercentRotate == null) {
+                    scalePercent = scalePercentPlain;
+                    rotate = null;
+                } else {
+                    rotate = PDF_IMG_LANDSCAPE_ROTATE;
+                    scalePercent = scalePercentRotate;
+                }
+            } else {
+                scalePercent = scalePercentPlain;
+                rotate = null;
+            }
         }
-
-        image.scalePercent(
-                calcAddImageScalePerc(document.getPageSize().getWidth(),
-                        image.getWidth(), marginLeft, marginRight));
-        /*
-         * A larger image that does not fit into current page's remaining space
-         * will be inserted as instructed, but will insert into next page
-         * instead of current page.
-         */
-        document.add(image);
+        return new Float[] { scalePercent, rotate };
     }
 
     /**

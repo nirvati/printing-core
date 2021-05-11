@@ -39,6 +39,7 @@ import org.savapage.core.SpException;
 import org.savapage.core.imaging.Pdf2ImgCairoCmd;
 import org.savapage.core.imaging.Pdf2ImgCommand;
 import org.savapage.core.pdf.PdfPageRotateHelper;
+import org.savapage.core.pdf.facade.PdfDocumentAGPL;
 import org.savapage.core.system.CommandExecutor;
 import org.savapage.core.system.ICommandExecutor;
 import org.savapage.core.util.FileSystemHelper;
@@ -137,6 +138,9 @@ public final class PdfToImagePdf extends AbstractPdfConverter
             PdfWriter.getInstance(targetDocument,
                     new FileOutputStream(pathPdfOutTemp.toFile()));
 
+            final PdfDocumentAGPL documentFacade =
+                    new PdfDocumentAGPL(targetDocument);
+
             for (int i = 0; i < nPagesMax; i++) {
 
                 final int nPage = i + 1;
@@ -166,15 +170,6 @@ public final class PdfToImagePdf extends AbstractPdfConverter
                 }
 
                 targetDocument.setMargins(0, 0, 0, 0);
-
-                /*
-                 * Open document or add new page.
-                 */
-                if (!targetDocument.isOpen()) {
-                    targetDocument.open();
-                } else {
-                    targetDocument.newPage();
-                }
 
                 imageOut = new File(String.format("%s/%s.jpg",
                         this.tempDir.toString(), UUID.randomUUID().toString()));
@@ -213,7 +208,9 @@ public final class PdfToImagePdf extends AbstractPdfConverter
                 final com.itextpdf.text.Image image = com.itextpdf.text.Image
                         .getInstance(ImageIO.read(imageOut), Color.WHITE);
 
-                ImageToPdf.addImagePage(targetDocument, 0, 0, image);
+                ImageToPdf.addImagePage(documentFacade,
+                        documentFacade.create(image));
+
                 nPagesTot++;
 
                 imageOut.delete();
