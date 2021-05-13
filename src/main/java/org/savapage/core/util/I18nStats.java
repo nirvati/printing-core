@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -302,8 +303,8 @@ public final class I18nStats {
     /**
      * @return The {@link Locale} set of supported i18n translations.
      */
-    public static List<Locale> getI18nSupported() {
-        return new ArrayList<>(I18N_SUPPORTED_MAP.keySet());
+    public static Set<Locale> getI18nSupported() {
+        return I18N_SUPPORTED_MAP.keySet();
     }
 
     /**
@@ -778,7 +779,37 @@ public final class I18nStats {
     }
 
     /**
-     * @return Percentage translated (value) for each supported language.
+     *
+     * @param map
+     *            Unsorted map.
+     * @return Sorted by percentage (descending) + display language (ascending)
+     */
+    private static Map<Locale, Integer>
+            getI18nPercentagesSorted(final Map<Locale, Integer> map) {
+
+        final Map<String, Locale> mapSortedTmp = new TreeMap<>();
+
+        for (final Entry<Locale, Integer> entry : map.entrySet()) {
+            final Locale locale = entry.getKey();
+            final String key = String.format("%03d%s",
+                    PERC_100 - entry.getValue().intValue(),
+                    locale.getDisplayLanguage(locale).toUpperCase());
+            mapSortedTmp.put(key, entry.getKey());
+        }
+
+        final Map<Locale, Integer> mapSorted = new LinkedHashMap<>();
+
+        for (final Entry<String, Locale> entry : mapSortedTmp.entrySet()) {
+            final Locale key = entry.getValue();
+            mapSorted.put(key, map.get(key));
+        }
+
+        return mapSorted;
+    }
+
+    /**
+     * @return Percentage translated (value) for each supported language, sorted
+     *         by percentage (descending) + display language (ascending).
      */
     public static Map<Locale, Integer> getI18nPercentages() {
 
@@ -790,13 +821,14 @@ public final class I18nStats {
             percMap.put(entryLang.getKey(),
                     entryLang.getValue().getPercentage());
         }
-        return percMap;
+        return getI18nPercentagesSorted(percMap);
     }
 
     /**
      * @param jars
      *            List of i18n JAR files.
-     * @return Percentage translated (value) for each supported language.
+     * @return Percentage translated (value) for each supported language, sorted
+     *         by percentage (descending) + display language (ascending)
      */
     public static Map<Locale, Integer>
             getI18nPercentagesFromJars(final List<File> jars) {
@@ -813,7 +845,7 @@ public final class I18nStats {
         } catch (URISyntaxException | IOException e) {
             throw new SpException(e);
         }
-        return percMap;
+        return getI18nPercentagesSorted(percMap);
     }
 
     /**
@@ -827,7 +859,8 @@ public final class I18nStats {
     /**
      * Percentage translated (value) for each supported language.
      */
-    private static final Map<Locale, Integer> PERC_MAP_CACHE = new HashMap<>();
+    private static final Map<Locale, Integer> PERC_MAP_CACHE =
+            new LinkedHashMap<>();
 
     /**
      * @param scanJarFiles

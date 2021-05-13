@@ -31,10 +31,8 @@ import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -446,13 +444,13 @@ public final class LocaleHelper {
     }
 
     /**
-     * @return The {@link Locale} list of available i18n translations. Depending
-     *         on {@link IConfigProp.Key#WEBAPP_LANGUAGE_AVAILABLE}, the list
-     *         can be shorter than the list of supported translations.
+     * @return The {@link Locale} set of available i18n translations. Depending
+     *         on {@link IConfigProp.Key#WEBAPP_LANGUAGE_AVAILABLE}, the set can
+     *         be smaller than the list of supported translations.
      */
-    public static List<Locale> getI18nAvailable() {
+    public static Set<Locale> getI18nAvailable() {
 
-        final List<Locale> i18nSupported = I18nStats.getI18nSupported();
+        final Set<Locale> i18nSupported = I18nStats.getI18nSupported();
 
         final String availableConfig = ConfigManager.instance()
                 .getConfigValue(Key.WEBAPP_LANGUAGE_AVAILABLE).trim();
@@ -467,7 +465,7 @@ public final class LocaleHelper {
             availableLocaleStrings.add(lang);
         }
 
-        final List<Locale> i18nAvailable = new ArrayList<>();
+        final Set<Locale> i18nAvailable = new HashSet<>();
 
         for (final Locale locale : i18nSupported) {
             if (availableLocaleStrings.contains(locale.toString())
