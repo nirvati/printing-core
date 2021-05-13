@@ -24,6 +24,10 @@
  */
 package org.savapage.core.config;
 
+import java.io.File;
+
+import org.savapage.common.SystemPropertyEnum;
+
 /**
  * Paths relative to the {@code server} directory without leading or trailing
  * '/'.
@@ -89,6 +93,21 @@ public enum ServerPathEnum {
     EMAIL_OUTBOX("data/email-outbox"),
 
     /**
+     * Extensions.
+     */
+    EXT("ext"),
+
+    /**
+     * Extension JAR files.
+     */
+    EXT_LIB("ext/lib"),
+
+    /**
+     * Server jar files.
+     */
+    LIB_WEB("lib/web"),
+
+    /**
      * The relative path of the default SafePages folder.
      */
     SAFEPAGES_DEFAULT("data/internal/safepages"),
@@ -142,4 +161,12 @@ public enum ServerPathEnum {
         return this.path;
     }
 
+    /**
+     * @return Absolute path of server directory.
+     */
+    public File getPathAbsolute() {
+        return new File(String.format("%s%c%s",
+                SystemPropertyEnum.SAVAPAGE_SERVER_HOME.getValue(),
+                File.separatorChar, this.getPath()));
+    }
 }

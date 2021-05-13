@@ -33,15 +33,18 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 
 /**
@@ -50,19 +53,6 @@ import org.savapage.core.config.IConfigProp.Key;
  *
  */
 public final class LocaleHelper {
-
-    private static final String LOCALE_LANG_ENGLISH = "en";
-    private static final String LOCALE_LANG_DUTCH = "nl";
-    private static final String LOCALE_LANG_FRENCH = "fr";
-    private static final String LOCALE_LANG_GERMAN = "de";
-    private static final String LOCALE_LANG_POLISH = "pl";
-    private static final String LOCALE_LANG_RUSSIAN = "ru";
-    private static final String LOCALE_LANG_SPANISH = "es";
-
-    private static final String LOCALE_CTRY_NL = "NL";
-    private static final String LOCALE_CTRY_ES = "ES";
-    private static final String LOCALE_CTRY_PL = "PL";
-    private static final String LOCALE_CTRY_RU = "RU";
 
     /**
      *
@@ -456,68 +446,37 @@ public final class LocaleHelper {
     }
 
     /**
-     *
-     * @return The comma separated list of supported languages.
+     * @return The {@link Locale} list of available i18n translations. Depending
+     *         on {@link IConfigProp.Key#WEBAPP_LANGUAGE_AVAILABLE}, the list
+     *         can be shorter than the list of supported translations.
      */
-    private static String getSupportedLanguages() {
+    public static List<Locale> getI18nAvailable() {
 
-        final StringBuilder list = new StringBuilder();
+        final List<Locale> i18nSupported = I18nStats.getI18nSupported();
 
-        list.append(Locale.GERMANY.getLanguage()).append(',');
-        list.append(Locale.US.getLanguage()).append(',');
-        list.append(Locale.FRANCE.getLanguage()).append(',');
-        list.append(LOCALE_LANG_SPANISH).append(',');
-        list.append(LOCALE_LANG_POLISH).append(',');
-        list.append(LOCALE_LANG_RUSSIAN).append(',');
-        list.append(LOCALE_LANG_DUTCH);
-
-        return list.toString();
-    }
-
-    /**
-     *
-     * @return The {@link Locale} list of available languages.
-     */
-    public static List<Locale> getAvailableLanguages() {
-
-        final List<Locale> list = new ArrayList<>();
-
-        String langAvailable = ConfigManager.instance()
+        final String availableConfig = ConfigManager.instance()
                 .getConfigValue(Key.WEBAPP_LANGUAGE_AVAILABLE).trim();
 
-        if (StringUtils.isBlank(langAvailable)) {
-            langAvailable = getSupportedLanguages();
+        if (StringUtils.isBlank(availableConfig)) {
+            return i18nSupported;
         }
 
-        for (final String lang : StringUtils.split(langAvailable, " ,;:")) {
-            switch (lang.toLowerCase()) {
-            case LOCALE_LANG_DUTCH:
-                list.add(new Locale(LOCALE_LANG_DUTCH, LOCALE_CTRY_NL));
-                break;
-            case LOCALE_LANG_ENGLISH:
-                list.add(Locale.US);
-                break;
-            case LOCALE_LANG_FRENCH:
-                list.add(Locale.FRANCE);
-                break;
-            case LOCALE_LANG_GERMAN:
-                list.add(Locale.GERMANY);
-                break;
-            case LOCALE_LANG_SPANISH:
-                list.add(new Locale(LOCALE_LANG_SPANISH, LOCALE_CTRY_ES));
-                break;
-            case LOCALE_LANG_POLISH:
-                list.add(new Locale(LOCALE_LANG_POLISH, LOCALE_CTRY_PL));
-                break;
-            case LOCALE_LANG_RUSSIAN:
-                list.add(new Locale(LOCALE_LANG_RUSSIAN, LOCALE_CTRY_RU));
-                break;
-            default:
-                break;
+        final Set<String> availableLocaleStrings = new HashSet<>();
+
+        for (final String lang : StringUtils.split(availableConfig, " ,;:")) {
+            availableLocaleStrings.add(lang);
+        }
+
+        final List<Locale> i18nAvailable = new ArrayList<>();
+
+        for (final Locale locale : i18nSupported) {
+            if (availableLocaleStrings.contains(locale.toString())
+                    || availableLocaleStrings.contains(locale.getLanguage())) {
+                i18nAvailable.add(locale);
             }
         }
 
-        return list;
+        return i18nAvailable;
     }
 
 }
