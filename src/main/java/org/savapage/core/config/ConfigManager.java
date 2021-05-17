@@ -1567,14 +1567,14 @@ public final class ConfigManager {
      *
      * @return {@code true} when read-to-use.
      */
-    public boolean isAppReadyToUse() {
+    private boolean isAppReadyToUse() {
         return myConfigProp.isRunnable();
     }
 
     /**
      * @return {@code true} when application is temporarily unavailable.
      */
-    public static boolean isTempUnavailable() {
+    private static boolean isTempUnavailable() {
 
         boolean acquired = false;
 
@@ -1627,7 +1627,7 @@ public final class ConfigManager {
 
     /**
      * Checks whether the current value for a {@link Prop} key is valid.
-     * 
+     *
      * @param key
      *            The property key.
      * @return {@code true} if valid.
@@ -2677,7 +2677,7 @@ public final class ConfigManager {
     /**
      * @return {@code true} when SavaPage is in maintenance mode.
      */
-    public static boolean isSysMaintenance() {
+    private static boolean isSysMaintenance() {
         return instance().isConfigValue(IConfigProp.Key.SYS_MAINTENANCE);
     }
 
