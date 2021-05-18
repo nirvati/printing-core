@@ -531,7 +531,7 @@ public final class InboxPageMover {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace(String.format(
-                    "  move [%d-%d] is WITHIN " + "or SAME as [%d-%d]",
+                    "  move [%d-%d] is WITHIN or SAME as [%d-%d]",
                     nRelMoveBegin, nRelMoveEnd, nRelPageBegin, nRelPageEnd));
             LOGGER.trace(String.format("    -> movedJobPageRanges.add [%d:%d]",
                     pageRangeAtom.pageBegin, pageRangeAtom.pageEnd));
@@ -640,57 +640,56 @@ public final class InboxPageMover {
             bNextMoveRange = false;
             bNextPageRange = false;
 
-            String move;
+            final String move;
             if (moveRangeAtom == null) {
                 move = "[End-of-Move]";
             } else {
-                move = "Move [" + moveRangeAtom.toString() + "]";
+                move = "Move [" + moveRangeAtom.asText() + "]";
             }
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Job [" + this.curJobIndex + "] Abs ["
-                        + pageRangeAtom.toString() + "] Rel ["
+                        + pageRangeAtom.asText() + "] Rel ["
                         + this.nRelPageBegin + "-" + this.nRelPageEnd + "] "
                         + "| " + move);
             }
 
-            // ---------------------------------------------------------------
-            // NO moveRangeAtom
-            // ---------------------------------------------------------------
             if (moveRangeAtom == null) {
+                // ---------------------------------------------------------
+                // NO moveRangeAtom
+                // ---------------------------------------------------------
                 onEndOfMoveRangeAtoms();
-            }
-            // ---------------------------------------------------------------
-            // moveRangeAtom BEFORE pageRange
-            // ---------------------------------------------------------------
-            else if (nRelMoveEnd < nRelPageBegin) {
-                onMoveBeforeJob();
-            }
-            // ---------------------------------------------------------------
-            // moveRange AFTER pageRange
-            // ---------------------------------------------------------------
-            else if (nRelPageEnd < nRelMoveBegin) {
-                onMoveAfterJob();
-            }
-            // ---------------------------------------------------------------
-            // pageRange WITHIN or SAME as moveRange
-            // ---------------------------------------------------------------
-            else if (nRelMoveBegin <= nRelPageBegin
-                    && nRelPageEnd <= nRelMoveEnd) {
-                onJobWithinMove();
-            }
-            // ---------------------------------------------------------------
-            // moveRange WITHIN pageRange
-            // ---------------------------------------------------------------
-            else if (nRelPageBegin <= nRelMoveBegin
-                    && nRelMoveEnd <= nRelPageEnd) {
-                onMoveWithinJob();
-            }
-            // ---------------------------------------------------------------
-            // moveRange STARTS BEFORE or ON pageRange START
-            // ---------------------------------------------------------------
-            else if (nRelMoveBegin <= nRelPageBegin) {
 
+            } else if (nRelMoveEnd < nRelPageBegin) {
+                // ---------------------------------------------------------
+                // moveRangeAtom BEFORE pageRange
+                // ---------------------------------------------------------
+                onMoveBeforeJob();
+
+            } else if (nRelPageEnd < nRelMoveBegin) {
+                // ---------------------------------------------------------
+                // moveRange AFTER pageRange
+                // ---------------------------------------------------------
+                onMoveAfterJob();
+
+            } else if (nRelMoveBegin <= nRelPageBegin
+                    && nRelPageEnd <= nRelMoveEnd) {
+                // ---------------------------------------------------------
+                // pageRange WITHIN or SAME as moveRange
+                // ---------------------------------------------------------
+                onJobWithinMove();
+
+            } else if (nRelPageBegin <= nRelMoveBegin
+                    && nRelMoveEnd <= nRelPageEnd) {
+                // ---------------------------------------------------------
+                // moveRange WITHIN pageRange
+                // ---------------------------------------------------------
+                onMoveWithinJob();
+
+            } else if (nRelMoveBegin <= nRelPageBegin) {
+                // ---------------------------------------------------------
+                // moveRange STARTS BEFORE or ON pageRange START
+                // ---------------------------------------------------------
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace(String.format(
                             "  move [%d-%d] STARTS "
@@ -698,19 +697,16 @@ public final class InboxPageMover {
                             nRelMoveBegin, nRelMoveEnd, nRelPageBegin,
                             nRelPageEnd));
                 }
+                // --------------------------------------
+                // Chop begin of range for next cycle
+                // --------------------------------------
+                this.moveRangeAtom.pageBegin = nRelPageBegin;
+                this.nRelMoveBegin = nRelPageBegin;
 
-                // move pre-pageRange
-
-                // TODO ??
-
-                // next moveRange
-                bNextPageRange = true;
-            }
-            // ---------------------------------------------------------------
-            // moveRange ENDS AFTER or ON pageRange END
-            // ---------------------------------------------------------------
-            else if (nRelPageEnd <= nRelMoveEnd) {
-
+            } else if (nRelPageEnd <= nRelMoveEnd) {
+                // ---------------------------------------------------------
+                // moveRange ENDS AFTER or ON pageRange END
+                // ---------------------------------------------------------
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace(String.format(
                             "  move [%d-%d] ENDS " + "AFTER or ON [%d-%d] END ",
@@ -718,11 +714,40 @@ public final class InboxPageMover {
                             nRelPageEnd));
                 }
 
-                // move post-pageRange
+                // ---------------------------------------------------------
+                // Split RangeAtom
+                // ---------------------------------------------------------
 
-                // TODO ??
+                // --------------------------------------
+                // Initialize for current job
+                // --------------------------------------
+                final int nRelMoveBeginSaved = this.nRelMoveBegin;
+                final int nRelMoveEndSaved = this.nRelMoveEnd;
 
-                // next pageRange
+                this.moveRangeAtom.pageBegin = nRelMoveBegin;
+                this.moveRangeAtom.pageEnd = nRelPageEnd;
+
+                this.nRelMoveBegin = this.moveRangeAtom.pageBegin;
+                this.nRelMoveEnd = this.moveRangeAtom.pageEnd;
+
+                // --------------------------------------
+                // moveRange WITHIN pageRange
+                // --------------------------------------
+                onMoveWithinJob();
+
+                if (nRelMoveEndSaved > nRelPageEnd) {
+                    // --------------------------------------
+                    // Initialize for next job
+                    // --------------------------------------
+                    this.moveRangeAtom.pageBegin = nRelMoveBeginSaved + 1;
+                    this.moveRangeAtom.pageEnd = nRelMoveEndSaved;
+
+                    this.nRelMoveBegin = this.moveRangeAtom.pageBegin;
+                    this.nRelMoveEnd = this.moveRangeAtom.pageEnd;
+
+                    bNextMoveRange = false;
+                }
+
                 bNextPageRange = true;
             }
 
