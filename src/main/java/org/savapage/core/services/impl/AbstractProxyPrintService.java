@@ -1964,7 +1964,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
         printReq.setEcoPrintShadow(job.isEcoPrint());
         printReq.setCollate(job.isCollate());
         printReq.setLocale(ServiceContext.getLocale());
+
         printReq.setIdUser(user.getId());
+        printReq.setIdUserDocLog(user.getId());
+
         printReq.putOptionValues(job.getOptionValues());
 
         printReq.setLandscape(job.getLandscape());
@@ -2825,7 +2828,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         if (inboxService().doesHomeDirExist(user.getUserId())) {
 
-            inboxService().pruneOrphanJobs(
+            inboxService().pruneOrphanJobs(user.getUserId(),
                     ConfigManager.getUserHomeDir(user.getUserId()), user);
 
             jobs = inboxService().pruneForFastProxyPrint(user.getUserId(),
@@ -2884,7 +2887,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printReq.setRemoveGraphics(false);
                 printReq.setConvertToGrayscale(isConvertToGrayscale);
                 printReq.setLocale(ServiceContext.getLocale());
+
                 printReq.setIdUser(user.getId());
+                printReq.setIdUserDocLog(user.getId());
+
                 printReq.putOptionValues(printerOptionValues);
                 printReq.setMediaSourceOption(IppKeyword.MEDIA_SOURCE_AUTO);
                 printReq.setPrintScalingOption(PrintScalingEnum.FIT);
@@ -3082,7 +3088,10 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printInInfo.getPageProps().getNumberOfPages());
         printReq.setPrinterName(printerName);
         printReq.setLocale(ServiceContext.getLocale());
+
         printReq.setIdUser(user.getId());
+        printReq.setIdUserDocLog(user.getId());
+
         printReq.setCollate(true);
         printReq.setRemoveGraphics(false);
         printReq.setClearScope(InboxSelectScopeEnum.NONE);
@@ -3563,7 +3572,6 @@ public abstract class AbstractProxyPrintService extends AbstractService
     public final void proxyPrintInbox(final User lockedUser,
             final ProxyPrintInboxReq request)
             throws IppConnectException, EcoPrintPdfTaskPendingException {
-
         /*
          * When printing the chunks, the container request parameters are
          * replaced by chunk values. So, we save the original request parameters
@@ -3741,11 +3749,20 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             pdfFileToPrint = createInfo.getPdfFile();
 
-            docLogService().collectData4DocOut(lockedUser, docLog, createInfo,
+            final Long userDocLogDbId = request.getIdUserDocLog();
+            final User userDocLog;
+            if (userDocLogDbId == null
+                    || request.getIdUser().equals(userDocLogDbId)) {
+                userDocLog = lockedUser;
+            } else {
+                userDocLog = userDAO().findById(userDocLogDbId);
+            }
+
+            docLogService().collectData4DocOut(userDocLog, docLog, createInfo,
                     uuidPageCount);
 
             // Print
-            proxyPrint(lockedUser, request, docLog, createInfo);
+            this.proxyPrint(lockedUser, request, docLog, createInfo);
 
         } catch (LetterheadNotFoundException | PostScriptDrmException
                 | IOException | DocStoreException e) {

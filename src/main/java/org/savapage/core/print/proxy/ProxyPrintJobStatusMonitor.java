@@ -31,6 +31,7 @@ import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.SpInfo;
@@ -42,13 +43,16 @@ import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.dao.DaoContext;
 import org.savapage.core.dao.PrintOutDao;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.client.IppConnectException;
+import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMixin.StatusSource;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.MailTicketOperData;
 import org.savapage.core.util.DateUtil;
 import org.savapage.ext.papercut.PaperCutPrintMonitorPattern;
 import org.savapage.ext.papercut.services.PaperCutService;
@@ -615,13 +619,11 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
         jobStatus.setJobStateCups(jobStateCups);
 
-        final String userid =
-                printOut.getDocOut().getDocLog().getUser().getUserId();
-
         this.updatePrintOutStatus(printOut.getId(), jobStateCups,
                 jobStatus.getCupsCompletedTime());
 
-        this.evaluatePrintOutUserMsg(userid, jobStatus.getCupsCompletedTime());
+        this.evaluatePrintOutUserMsg(getUserIdToNotify(printOut),
+                jobStatus.getCupsCompletedTime());
 
         return !jobStatus.getJobStateCups().isPresentOnQueue();
     }
@@ -643,6 +645,38 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
     private static long getCupsPushPullFallback() {
         return ConfigManager.instance().getConfigLong(
                 IConfigProp.Key.CUPS_IPP_NOTIFICATION_PUSH_PULL_FALLBACK_MSEC);
+    }
+
+    /**
+     * Gets the user id to notify about a print event.
+     *
+     * @param printOut
+     *            {@link PrintOut} instance.
+     * @return The user id to notify.
+     */
+    private static String getUserIdToNotify(final PrintOut printOut) {
+
+        final DocLog docLog = printOut.getDocOut().getDocLog();
+
+        final ExternalSupplierEnum extSupplier = EnumUtils.getEnum(
+                ExternalSupplierEnum.class, docLog.getExternalSupplier());
+
+        String userid = null;
+
+        if (extSupplier == ExternalSupplierEnum.MAIL_TICKET_OPER) {
+
+            final MailTicketOperData data =
+                    MailTicketOperData.createFromData(docLog.getExternalData());
+
+            if (data != null) {
+                userid = data.getOperator();
+            }
+        }
+
+        if (userid == null) {
+            return docLog.getUser().getUserId();
+        }
+        return userid;
     }
 
     /**
@@ -785,10 +819,8 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
                                                 .getCupsJobState())
                                         .asLogText());
 
-                        final String userid = printOutPaperCut.getDocOut()
-                                .getDocLog().getUser().getUserId();
-
-                        this.evaluatePrintOutUserMsg(userid,
+                        this.evaluatePrintOutUserMsg(
+                                getUserIdToNotify(printOutPaperCut),
                                 printOutPaperCut.getCupsCompletedTime());
                     }
 
@@ -1083,11 +1115,11 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
     /**
      * Checks if CUPS completed time NEQ {@code null} and NEQ zero (0). If
-     * {@code true}, then user PrintOut message via {@link UserMsgIndicator} is
-     * written.
+     * {@code true}, the user is notified by writing a PrintOut message via
+     * {@link UserMsgIndicator} .
      *
      * @param userid
-     *            The user id.
+     *            The user id to notify.
      * @param cupsCompletedTime
      *            The CUPS complete time in seconds (can be {@code null} or zero
      *            (0)).
@@ -1100,7 +1132,6 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
 
             final Date completedDate =
                     new Date(cupsCompletedTime * DateUtil.DURATION_MSEC_SECOND);
-
             try {
                 UserMsgIndicator.write(userid, completedDate,
                         UserMsgIndicator.Msg.PRINT_OUT_COMPLETED, null);

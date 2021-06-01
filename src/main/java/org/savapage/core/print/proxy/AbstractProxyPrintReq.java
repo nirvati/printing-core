@@ -146,7 +146,9 @@ public abstract class AbstractProxyPrintReq
 
     private String userMsg;
     private String userMsgKey;
+
     private Long idUser;
+    private Long idUserDocLog;
 
     private ProxyPrintCostDto costResult;
 
@@ -380,6 +382,14 @@ public abstract class AbstractProxyPrintReq
 
     public void setIdUser(Long idUser) {
         this.idUser = idUser;
+    }
+
+    public Long getIdUserDocLog() {
+        return idUserDocLog;
+    }
+
+    public void setIdUserDocLog(Long idUserDocLog) {
+        this.idUserDocLog = idUserDocLog;
     }
 
     public ProxyPrintCostDto getCostResult() {

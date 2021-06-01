@@ -24,6 +24,8 @@
  */
 package org.savapage.core.dao.enums;
 
+import java.util.Locale;
+
 import org.savapage.core.jpa.DocLog;
 
 /**
@@ -58,6 +60,12 @@ public enum ExternalSupplierEnum {
      * <a href="https://www.keycloak.org/about">www.keycloak.org</a>.
      */
     KEYCLOAK("Keycloak", "keycloak.png"),
+
+    /**
+     * {@link ACLRoleEnum#MAIL_TICKET_OPERATOR}. Note: uiText is retrieved from
+     * {@link ACLRoleEnum} .
+     */
+    MAIL_TICKET_OPER(null, "savapage.png"),
 
     /**
      * SavaPage in role as external supplier.
@@ -95,6 +103,9 @@ public enum ExternalSupplierEnum {
      * @return Text to display in user interface.
      */
     public String getUiText() {
+        if (this == MAIL_TICKET_OPER) {
+            return ACLRoleEnum.MAIL_TICKET_OPERATOR.uiText(Locale.ENGLISH);
+        }
         return uiText;
     }
 

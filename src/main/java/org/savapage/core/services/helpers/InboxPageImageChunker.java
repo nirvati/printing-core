@@ -194,9 +194,8 @@ public final class InboxPageImageChunker {
     private int nStartNextChunkWlk;
 
     /**
-     *
-     * @param user
-     *            The unique user id to get the SafePages for.
+     * @param ctx
+     *            The {@link InboxContext}.
      * @param firstDetailPage
      *            The first page of the detail sequence: null or LT or EQ to
      *            zero indicates the default first detail page.
@@ -207,21 +206,21 @@ public final class InboxPageImageChunker {
      * @param base64
      *            {@code true}: create image URL for inline BASE64 embedding.
      */
-    private InboxPageImageChunker(final String user,
+    private InboxPageImageChunker(final InboxContext ctx,
             final Integer firstDetailPage, final String uniqueUrlValue,
             final boolean base64) {
 
         /*
          * Input parameters.
          */
-        this.user = user;
+        this.user = ctx.getUserIdInbox();
         this.uniqueUrlValue = uniqueUrlValue;
         this.base64 = base64;
 
         /*
          * Derived parameters.
          */
-        this.inboxInfo = INBOX_SERVICE.getInboxInfo(user);
+        this.inboxInfo = INBOX_SERVICE.getInboxInfo(ctx);
         this.nPagesTot = INBOX_SERVICE.calcNumberOfPagesInJobs(inboxInfo);
 
         //
@@ -676,8 +675,8 @@ public final class InboxPageImageChunker {
     /**
      * Chunks the inbox to {@link PageImages}.
      *
-     * @param user
-     *            The unique user id to get the SafePages for.
+     * @param ctx
+     *            The {@link InboxContext}.
      * @param firstDetailPage
      *            The first page of the detail sequence: null or LT or EQ to
      *            zero indicates the default first detail page.
@@ -689,10 +688,10 @@ public final class InboxPageImageChunker {
      *            {@code true}: create image URL for inline BASE64 embedding.
      * @return The {@link PageImages}.
      */
-    public static PageImages chunk(final String user,
+    public static PageImages chunk(final InboxContext ctx,
             final Integer firstDetailPage, final String uniqueUrlValue,
             final boolean base64) {
-        return new InboxPageImageChunker(user, firstDetailPage, uniqueUrlValue,
+        return new InboxPageImageChunker(ctx, firstDetailPage, uniqueUrlValue,
                 base64).process();
     }
 

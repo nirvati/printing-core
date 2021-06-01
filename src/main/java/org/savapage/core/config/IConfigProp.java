@@ -1401,6 +1401,16 @@ public interface IConfigProp {
         PRINT_IMAP_TICKET_REPLY_CONTENT_TYPE_HTML(//
                 "print.imap.ticket.reply.content-type.html", BOOLEAN_VALIDATOR,
                 V_YES, API_UPDATABLE_ON),
+
+        /** */
+        WEBAPP_INTERNET_MAILTICKETS_AUTH_MODE_ENABLE(//
+                Key.WEBAPP_INTERNET_PFX + "mailtickets.auth-mode.enable",
+                BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+        /** */
+        WEBAPP_INTERNET_MAILTICKETS_AUTH_MODES(//
+                Key.WEBAPP_INTERNET_PFX + "mailtickets.auth-modes",
+                AUTHMODE_SET_VALIDATOR, AUTH_MODE_V_NAME, API_UPDATABLE_OFF),
+
         /**
          *
          */
@@ -3191,6 +3201,13 @@ public interface IConfigProp {
                 Key.WEBAPP_THEME_PFX + "jobtickets", API_UPDATABLE_ON),
 
         /**
+         * The custom jQuery Mobile Theme CSS file for the Mail Tickets Web App
+         * as present in the {@code server/custom/web/themes/} folder.
+         */
+        WEBAPP_THEME_MAILTICKETS(//
+                Key.WEBAPP_THEME_PFX + "mailtickets", API_UPDATABLE_ON),
+
+        /**
          * The custom jQuery Mobile Theme CSS file for the POS Web App as
          * present in the {@code server/custom/web/themes/} folder.
          */
@@ -3223,6 +3240,13 @@ public interface IConfigProp {
                 Key.WEBAPP_CUSTOM_PFX + "jobtickets", API_UPDATABLE_ON),
 
         /**
+         * The custom CSS file for the Mail Tickets Web App as present in the
+         * {@code server/custom/web/} folder.
+         */
+        WEBAPP_CUSTOM_MAILTICKETS(//
+                Key.WEBAPP_CUSTOM_PFX + "mailtickets", API_UPDATABLE_ON),
+
+        /**
          * The custom CSS file for the POS Web App as present in the
          * {@code server/custom/web/} folder.
          */
@@ -3246,6 +3270,9 @@ public interface IConfigProp {
         WEBAPP_HTML_JOBTICKETS_ABOUT(//
                 Key.WEBAPP_HTML_PFX + "jobtickets.about", API_UPDATABLE_ON),
         /** */
+        WEBAPP_HTML_MAILTICKETS_ABOUT(//
+                Key.WEBAPP_HTML_PFX + "mailtickets.about", API_UPDATABLE_ON),
+        /** */
         WEBAPP_HTML_POS_ABOUT(//
                 Key.WEBAPP_HTML_PFX + "pos.about", API_UPDATABLE_ON),
         /** */
@@ -3263,6 +3290,9 @@ public interface IConfigProp {
         /** */
         WEBAPP_HTML_JOBTICKETS_LOGIN(//
                 Key.WEBAPP_HTML_PFX + "jobtickets.login", API_UPDATABLE_ON),
+        /** */
+        WEBAPP_HTML_MAILTICKETS_LOGIN(//
+                Key.WEBAPP_HTML_PFX + "mailtickets.login", API_UPDATABLE_ON),
         /** */
         WEBAPP_HTML_POS_LOGIN(//
                 Key.WEBAPP_HTML_PFX + "pos.login", API_UPDATABLE_ON),

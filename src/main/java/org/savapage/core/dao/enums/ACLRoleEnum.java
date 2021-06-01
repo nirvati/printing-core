@@ -48,6 +48,11 @@ public enum ACLRoleEnum {
     JOB_TICKET_OPERATOR,
 
     /**
+     * Handle a Mail Ticket.
+     */
+    MAIL_TICKET_OPERATOR,
+
+    /**
      * Operate a Point-of-Sale.
      */
     WEB_CASHIER,

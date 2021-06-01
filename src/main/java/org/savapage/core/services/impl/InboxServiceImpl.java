@@ -94,6 +94,8 @@ import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
 import org.savapage.core.services.EcoPrintPdfTaskService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.InboxContext;
+import org.savapage.core.services.helpers.InboxContextCommon;
 import org.savapage.core.services.helpers.InboxPageImageChunker;
 import org.savapage.core.services.helpers.InboxPageImageInfo;
 import org.savapage.core.services.helpers.InboxPageMover;
@@ -157,21 +159,21 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     /**
-     * @param user
-     *            The unique user id.
+     * @param userIdInbox
+     *            The unique user id of the inbox (SafePages).
      * @return The full File path of the user's
      *         {@link #INBOX_DESCRIPT_FILE_NAME}.
      */
-    private File getInboxInfoFile(final String user) {
-        return new File(
-                String.format("%s%c%s", ConfigManager.getUserHomeDir(user),
-                        File.separatorChar, INBOX_DESCRIPT_FILE_NAME));
+    private File getInboxInfoFile(final String userIdInbox) {
+        return new File(String.format("%s%c%s",
+                ConfigManager.getUserHomeDir(userIdInbox), File.separatorChar,
+                INBOX_DESCRIPT_FILE_NAME));
     }
 
     @Override
-    public InboxInfoDto readInboxInfo(final String user) {
+    public InboxInfoDto readInboxInfo(final String userIdInbox) {
 
-        final File file = getInboxInfoFile(user);
+        final File file = this.getInboxInfoFile(userIdInbox);
         final ObjectMapper mapper = new ObjectMapper();
 
         InboxInfoDto jobinfo = null;
@@ -198,7 +200,7 @@ public final class InboxServiceImpl implements InboxService {
                      * create a new default and store it.
                      */
                     jobinfo = new InboxInfoDto();
-                    storeInboxInfo(user, jobinfo);
+                    this.storeInboxInfo(userIdInbox, jobinfo);
                 }
             }
             if (jobinfo == null) {
@@ -215,17 +217,19 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public void storeInboxInfo(final String user, final InboxInfoDto jobinfo) {
+    public void storeInboxInfo(final String userIdInbox,
+            final InboxInfoDto jobinfo) {
 
         final boolean atomicMove = true; // Mantis #863
 
-        final File fileTarget = getInboxInfoFile(user);
+        final File fileTarget = getInboxInfoFile(userIdInbox);
         final File fileSource;
 
         if (atomicMove) {
             fileSource = new File(String.format("%s%c%s_%s.%s",
-                    ConfigManager.getAppTmpDir(), File.separatorChar, user,
-                    INBOX_DESCRIPT_FILE_NAME, UUID.randomUUID().toString()));
+                    ConfigManager.getAppTmpDir(), File.separatorChar,
+                    userIdInbox, INBOX_DESCRIPT_FILE_NAME,
+                    UUID.randomUUID().toString()));
         } else {
             fileSource = fileTarget;
         }
@@ -278,10 +282,18 @@ public final class InboxServiceImpl implements InboxService {
 
     @Override
     public InboxInfoDto getInboxInfo(final String userId) {
+        return this.getInboxInfo(new InboxContextCommon(userId, userId));
+    }
 
-        final String workdir = ConfigManager.getUserHomeDir(userId);
+    @Override
+    public InboxInfoDto getInboxInfo(final InboxContext inboxContext) {
 
-        final InboxInfoDto jobinfo = this.readInboxInfo(userId);
+        final String userIdInbox = inboxContext.getUserIdInbox();
+        final String userIdDocLog = inboxContext.getUserIdDocLog();
+
+        final String workdir = ConfigManager.getUserHomeDir(userIdInbox);
+
+        final InboxInfoDto jobinfo = this.readInboxInfo(userIdInbox);
         final int oldJobCount = jobinfo.jobCount();
 
         final FileFilter filefilter = new FileFilter() {
@@ -327,7 +339,7 @@ public final class InboxServiceImpl implements InboxService {
             }
 
             if (userObj == null) {
-                userObj = USER_DAO.findActiveUserByUserId(userId);
+                userObj = USER_DAO.findActiveUserByUserId(userIdDocLog);
             }
 
             final String fileBaseName = FilenameUtils.getBaseName(filePath);
@@ -386,7 +398,7 @@ public final class InboxServiceImpl implements InboxService {
         }
 
         if (jobinfo.jobCount() > oldJobCount) {
-            this.storeInboxInfo(userId, jobinfo);
+            this.storeInboxInfo(userIdInbox, jobinfo);
         }
 
         return jobinfo;
@@ -452,7 +464,7 @@ public final class InboxServiceImpl implements InboxService {
     public InboxPageImageInfo getPageImageInfo(final String user,
             final int iPage) {
 
-        final InboxInfoDto info = getInboxInfo(user);
+        final InboxInfoDto info = this.getInboxInfo(user);
 
         final List<InboxInfoDto.InboxJob> jobs = info.getJobs();
 
@@ -859,11 +871,11 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public PageImages getPageChunks(final String user,
+    public PageImages getPageChunks(final InboxContext ctx,
             final Integer firstDetailPage, final String uniqueUrlValue,
             final boolean base64) {
-        return InboxPageImageChunker.chunk(user, firstDetailPage,
-                uniqueUrlValue, base64);
+        return InboxPageImageChunker.chunk(ctx, firstDetailPage, uniqueUrlValue,
+                base64);
     }
 
     @Override
@@ -1692,10 +1704,11 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public void pruneOrphanJobs(final String homedir, final User user) {
+    public void pruneOrphanJobs(final String userIdInbox, final String homedir,
+            final User user) {
 
         final DocLogDao dao = ServiceContext.getDaoContext().getDocLogDao();
-        final InboxInfoDto dto = this.readInboxInfo(user.getUserId());
+        final InboxInfoDto dto = this.readInboxInfo(userIdInbox);
         final Set<Integer> docLogAbsent = new HashSet<>();
 
         int iJob = 0;
@@ -1717,7 +1730,7 @@ public final class InboxServiceImpl implements InboxService {
                 if (docLog != null) {
                     LOGGER.warn(
                             "Repaired user [{}] inbox for missing document.",
-                            user.getUserId());
+                            userIdInbox);
                 }
             }
             iJob++;
@@ -1746,15 +1759,15 @@ public final class InboxServiceImpl implements InboxService {
              * Prune the jobs (this will actually delete the job files as well).
              */
             final InboxInfoDto prunedDto =
-                    this.pruneJobs(homedir, user.getUserId(), dto);
+                    this.pruneJobs(homedir, userIdInbox, dto);
 
-            this.storeInboxInfo(user.getUserId(), prunedDto);
+            this.storeInboxInfo(userIdInbox, prunedDto);
         }
     }
 
     @Override
-    public InboxInfoDto pruneJobs(final String homedir, final String user,
-            final InboxInfoDto jobs) {
+    public InboxInfoDto pruneJobs(final String homedir,
+            final String userIdInbox, final InboxInfoDto jobs) {
 
         final InboxInfoDto pruned = new InboxInfoDto();
 
@@ -2503,11 +2516,11 @@ public final class InboxServiceImpl implements InboxService {
     }
 
     @Override
-    public InboxInfoDto touchLastPreviewTime(final String userId) {
+    public InboxInfoDto touchLastPreviewTime(final String userIdInbox) {
 
-        final InboxInfoDto dto = this.readInboxInfo(userId);
+        final InboxInfoDto dto = this.readInboxInfo(userIdInbox);
         this.touchLastPreviewTime(dto);
-        this.storeInboxInfo(userId, dto);
+        this.storeInboxInfo(userIdInbox, dto);
 
         return dto;
     }

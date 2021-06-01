@@ -44,10 +44,12 @@ import org.savapage.core.inbox.RangeAtom;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.job.DocLogClean;
 import org.savapage.core.jpa.DocIn;
+import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.User;
 import org.savapage.core.pdf.PdfDocumentFonts;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
 import org.savapage.core.print.proxy.ProxyPrintJobChunkRange;
+import org.savapage.core.services.helpers.InboxContext;
 import org.savapage.core.services.helpers.InboxPageImageInfo;
 import org.savapage.core.services.helpers.PageRangeException;
 
@@ -61,7 +63,7 @@ public interface InboxService {
     /**
      * File extension for EcoPrint shadow PDF file.
      */
-    public static final String FILENAME_EXT_ECO = "eco";
+    String FILENAME_EXT_ECO = "eco";
 
     /**
      * Checks if user home directory (SafePages) exists.
@@ -70,7 +72,7 @@ public interface InboxService {
      *            The unique user id.
      * @return {@code true} is inbox exists.
      */
-    boolean doesHomeDirExist(final String userId);
+    boolean doesHomeDirExist(String userId);
 
     /**
      * Reads and updates the {@link InboxInfoDto} JSON file from user home
@@ -88,6 +90,21 @@ public interface InboxService {
     InboxInfoDto getInboxInfo(String userId);
 
     /**
+     * Reads and updates the {@link InboxInfoDto} JSON file from user home
+     * directory.
+     * <p>
+     * The JSON file is read and updated (written) with newly arrived jobs. The
+     * order of the jobs is the result of end-user editing operations, and only
+     * initially reflects the order of production.
+     * </p>
+     *
+     * @param inboxContext
+     *            The {@link InboxContext}.
+     * @return The {@link InboxInfoDto}.
+     */
+    InboxInfoDto getInboxInfo(InboxContext inboxContext);
+
+    /**
      * Reads {@link InboxInfoDto} JSON file from user home directory.
      * <p>
      * NOTE: The JSON file is just read and NOT lazy updated with newly arrived
@@ -95,32 +112,31 @@ public interface InboxService {
      * {@link #getInboxInfo(String)}.
      * </p>
      *
-     * @param userId
-     *            The unique user id.
+     * @param userIdInbox
+     *            The unique user id of the inbox (SafePages).
      * @return {@link InboxInfoDto} object.
      */
-    InboxInfoDto readInboxInfo(final String userId);
+    InboxInfoDto readInboxInfo(String userIdInbox);
 
     /**
      * Stores {@link InboxInfoDto} as JSON file in user home directory.
      *
-     * @param userId
-     *            The unique user id.
+     * @param userIdInbox
+     *            The unique user id of the inbox (SafePages).
      * @param inboxInfo
      *            The {@link InboxInfoDto} object.
      */
-    void storeInboxInfo(final String userId, final InboxInfoDto inboxInfo);
+    void storeInboxInfo(String userIdInbox, InboxInfoDto inboxInfo);
 
     /**
      * Updates the last preview time of the {@link InboxInfoDto} JSON file in
      * the user home directory with the current date-time.
      *
-     * @since 0.9.6
-     * @param userId
-     *            The unique user id.
+     * @param userIdInbox
+     *            The unique user id of the inbox (SafePages).
      * @return The touched {@link InboxInfoDto}.
      */
-    InboxInfoDto touchLastPreviewTime(String userId);
+    InboxInfoDto touchLastPreviewTime(String userIdInbox);
 
     /**
      * Gets the number of pages in a PDF file.
@@ -134,8 +150,8 @@ public interface InboxService {
     /**
      * Gets sequence of chunked SafePages of all jobs.
      *
-     * @param userId
-     *            The unique user id to get the SafePages for.
+     * @param ctx
+     *            The {@link InboxContext}.
      * @param firstDetailPage
      *            The first page of the detail sequence: null or LT or EQ to
      *            zero indicates the default first detail page.
@@ -147,7 +163,7 @@ public interface InboxService {
      *            {@code true}: create image URL for inline BASE64 embedding.
      * @return The page images.
      */
-    PageImages getPageChunks(String userId, Integer firstDetailPage,
+    PageImages getPageChunks(InboxContext ctx, Integer firstDetailPage,
             String uniqueUrlValue, boolean base64);
 
     /**
@@ -157,7 +173,7 @@ public interface InboxService {
      * @param userId
      *            The unique user id. If {@code null} the public letterhead
      *            directory is returned.
-     * @return
+     * @return Directory path.
      */
     String getLetterheadsDir(String userId);
 
@@ -167,7 +183,7 @@ public interface InboxService {
      *
      * @param user
      *            If {@code null} the public letterhead directory is returned.
-     * @return
+     * @return Directory path.
      */
     String getLetterheadLocation(User user);
 
@@ -190,8 +206,9 @@ public interface InboxService {
      * @param userObj
      *            If specified, the public and private letterheads are returned.
      *            If {@code null} just the public letterheads are returned.
+     * @return Letterhead objects by key.
      */
-    Map<String, Object> getLetterheadList(final User userObj);
+    Map<String, Object> getLetterheadList(User userObj);
 
     /**
      * Detaches the letterhead from the SafePages.
@@ -256,8 +273,8 @@ public interface InboxService {
      *             When letterheadId not found in letterhead store, or
      *             letterhead file could not be found.
      */
-    void deleteLetterhead(final User userReq, final String letterheadId,
-            final boolean isPublic) throws LetterheadNotFoundException;
+    void deleteLetterhead(User userReq, String letterheadId, boolean isPublic)
+            throws LetterheadNotFoundException;
 
     /**
      * Creates a private letterhead PDF from the current safe pages. The newly
@@ -509,13 +526,14 @@ public interface InboxService {
      *
      * @param homedir
      *            The SafePages directory.
-     * @param userId
-     *            The unique user id.
+     * @param userIdInbox
+     *            The unique user id of the inbox (SafePages).
      * @param jobs
      *            The jobs to prune.
      * @return The pruned jobs.
      */
-    InboxInfoDto pruneJobs(String homedir, String userId, InboxInfoDto jobs);
+    InboxInfoDto pruneJobs(String homedir, String userIdInbox,
+            InboxInfoDto jobs);
 
     /**
      * Prunes the print-in jobs which are <i>orphaned</i>, i.e. jobs that are
@@ -536,12 +554,14 @@ public interface InboxService {
      * from the filesystem.
      * </p>
      *
+     * @param userIdInbox
+     *            The User ID of the Inbox (SafePages).
      * @param homedir
      *            The SafePages directory.
-     * @param user
-     *            The {@link User}.
+     * @param userDocLog
+     *            The {@link User} of the {@link DocLog} instances.
      */
-    void pruneOrphanJobs(String homedir, User user);
+    void pruneOrphanJobs(String userIdInbox, String homedir, User userDocLog);
 
     /**
      * Prunes the print-in {@link InboxJobRange} instances in

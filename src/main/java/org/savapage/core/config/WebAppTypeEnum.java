@@ -37,9 +37,14 @@ public enum WebAppTypeEnum {
     ADMIN("Admin"),
 
     /**
-     * The Point-of-Sale WebApp.
+     * Job Tickets WebApp.
      */
     JOBTICKETS("Job Tickets"),
+
+    /**
+     * Mail Tickets WebApp.
+     */
+    MAILTICKETS("Mail Tickets"),
 
     /**
      * The Point-of-Sale WebApp.
@@ -79,4 +84,13 @@ public enum WebAppTypeEnum {
     public String getUiText() {
         return uiText;
     }
+
+    /**
+     * @return {@code true} if this represents the User Web App or a subclassed
+     *         variant.
+     */
+    public boolean isUserTypeOrVariant() {
+        return this == USER || this == MAILTICKETS;
+    }
+
 }

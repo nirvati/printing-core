@@ -96,6 +96,9 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
     private static final String CLI_OPT_ROLE_JOB_TICKET_OPERATOR =
             "role-job-ticket-operator";
 
+    private static final String CLI_OPT_ROLE_MAIL_TICKET_OPERATOR =
+            "role-mail-ticket-operator";
+
     private static final String CLI_OPT_ROLE_WEB_CASHIER = "role-web-cashier";
 
     private static final String CLI_OPT_ROLE_PRINT_CREATOR =
@@ -117,6 +120,8 @@ public class CliSetUserGroupProperties extends AbstractAppApi {
                     ACLRoleEnum.JOB_TICKET_CREATOR.toString() },
             { CLI_OPT_ROLE_JOB_TICKET_OPERATOR,
                     ACLRoleEnum.JOB_TICKET_OPERATOR.toString() },
+            { CLI_OPT_ROLE_MAIL_TICKET_OPERATOR,
+                    ACLRoleEnum.MAIL_TICKET_OPERATOR.toString() },
             { CLI_OPT_ROLE_PRINT_CREATOR,
                     ACLRoleEnum.PRINT_CREATOR.toString() },
             { CLI_OPT_ROLE_PRINT_DELEGATE,

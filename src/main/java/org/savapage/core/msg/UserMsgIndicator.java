@@ -585,8 +585,8 @@ public final class UserMsgIndicator {
      *
      * @param em
      *            The JPA entity manager
-     * @param userId
-     *            The user.
+     * @param userIdDocLog
+     *            The user of the {@link DocLog}.
      * @param locale
      *            The user's locale like 'en', 'nl', 'en-EN', 'nl-NL'.
      * @param prevDate
@@ -597,8 +597,8 @@ public final class UserMsgIndicator {
      * @return The messages.
      */
     public static JsonUserMsgNotification getPrintMsgNotification(
-            final EntityManager em, final String userId, final Locale locale,
-            final Date prevDate, final Date lastDate) {
+            final EntityManager em, final String userIdDocLog,
+            final Locale locale, final Date prevDate, final Date lastDate) {
 
         final boolean singleTime = prevDate.equals(lastDate);
 
@@ -631,7 +631,7 @@ public final class UserMsgIndicator {
 
         Query query = em.createQuery(jpql.toString());
 
-        query.setParameter("userid", userId);
+        query.setParameter("userid", userIdDocLog);
         query.setParameter("lastDate", lastDate);
         query.setParameter("lastSeconds", lastSeconds);
 
