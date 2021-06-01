@@ -219,7 +219,8 @@ public final class DocContent {
 
         init(DocContentTypeEnum.GIF, "image/gif", "gif");
 
-        init(DocContentTypeEnum.HTML, "text/html", "html");
+        init(DocContentTypeEnum.HTML, new String[] { "text/html" },
+                new String[] { "htm", "html" });
 
         init(DocContentTypeEnum.JPEG,
                 new String[] { "image/jpg", "image/jpeg" },
