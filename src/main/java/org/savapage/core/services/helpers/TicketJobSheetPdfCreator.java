@@ -33,10 +33,12 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.print.attribute.standard.MediaSizeName;
 
@@ -45,6 +47,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.AccountDao;
+import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dao.enums.ExternalSupplierEnum;
 import org.savapage.core.i18n.AdjectiveEnum;
 import org.savapage.core.i18n.JobTicketNounEnum;
 import org.savapage.core.i18n.NounEnum;
@@ -56,10 +60,14 @@ import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.helpers.IppOptionMap;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
+import org.savapage.core.jpa.DocInOut;
+import org.savapage.core.jpa.DocLog;
+import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfo;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxAccountTrxInfoSet;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.pdf.ITextPdfCreator;
+import org.savapage.core.print.proxy.ProxyPrintInboxReq;
 import org.savapage.core.print.proxy.TicketJobSheetDto;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
@@ -114,6 +122,9 @@ public final class TicketJobSheetPdfCreator {
     /** */
     private final String userid;
     /** */
+    private final String useridDocLog;
+
+    /** */
     private final OutboxJobDto job;
     /** */
     private final TicketJobSheetDto jobSheet;
@@ -127,21 +138,114 @@ public final class TicketJobSheetPdfCreator {
     private int currencyDecimals;
 
     /** */
-    private Locale locale;
+    private final Locale locale;
 
     /**
      *
      * @param user
      *            The unique user id.
-     * @param jobSheetDto
-     *            Job Sheet information.
      * @param jobDto
      *            The {@link OutboxJobDto} job ticket.
+     * @param jobSheetDto
+     *            Job Sheet information.
      */
     public TicketJobSheetPdfCreator(final String user,
             final OutboxJobDto jobDto, final TicketJobSheetDto jobSheetDto) {
         this.userid = user;
+        this.useridDocLog = user;
         this.job = jobDto;
+        this.jobSheet = jobSheetDto;
+        this.locale = ServiceContext.getLocale();
+    }
+
+    /**
+     *
+     * @param user
+     *            The unique user id as {@link DocLog} owner.
+     * @param req
+     *            The {@link ProxyPrintInboxReq} request.
+     * @param docLog
+     *            {@link DocLog} parent of the {@link PrintOut}.
+     * @param jobSheetDto
+     *            Job Sheet information.
+     */
+    public TicketJobSheetPdfCreator(final String user,
+            final ProxyPrintInboxReq req, final DocLog docLog,
+            final TicketJobSheetDto jobSheetDto) {
+
+        this.useridDocLog = user;
+        this.locale = ServiceContext.getLocale();
+
+        // Capture data as outbox job.
+
+        final OutboxJobDto jobDto = new OutboxJobDto();
+        this.job = jobDto;
+
+        this.job.setCopies(req.getNumberOfCopies());
+        this.job.getAccountTransactions();
+        this.job.setJobName(req.getJobName());
+        this.job.setPages(req.getNumberOfPages());
+        this.job.setCostResult(req.getCostResult());
+        this.job.setOptionValues(req.getOptionValues());
+        this.job.setArchive(req.isArchive());
+
+        final String comment;
+        final String ticket;
+
+        if (req.getSupplierInfo() != null && req.getSupplierInfo()
+                .getSupplier() == ExternalSupplierEnum.MAIL_TICKET_OPER) {
+
+            final ExternalSupplierData operData =
+                    req.getSupplierInfo().getData();
+
+            final StringBuilder ticketTxt = new StringBuilder();
+            final Set<String> emails = new HashSet<>();
+
+            // Collect ticket numbers and email addresses
+            for (final DocInOut docInOut : docLog.getDocOut().getDocsInOut()) {
+                final DocLog docLogIn = docInOut.getDocIn().getDocLog();
+                if (ticketTxt.length() > 0) {
+                    ticketTxt.append(", ");
+                }
+                ticketTxt.append(docLogIn.getExternalId());
+
+                final MailPrintData extData = MailPrintData
+                        .createFromData(docLogIn.getExternalData());
+                if (extData != null && extData.getFromAddress() != null) {
+                    emails.add(extData.getFromAddress());
+                }
+            }
+            ticket = ticketTxt.toString();
+
+            if (operData != null && operData instanceof MailTicketOperData) {
+                final StringBuilder useridTxt = new StringBuilder();
+                for (final String email : emails) {
+                    if (useridTxt.length() > 0) {
+                        useridTxt.append(", ");
+                    }
+                    useridTxt.append(email);
+                }
+                this.userid = useridTxt.toString();
+
+                final MailTicketOperData mData = (MailTicketOperData) operData;
+                comment = String.format(
+                        "%s \"%s\"", ACLRoleEnum.MAIL_TICKET_OPERATOR
+                                .uiText(this.locale).toLowerCase(),
+                        mData.getOperator());
+            } else {
+                this.userid = user;
+                comment = req.getComment();
+            }
+
+        } else {
+            ticket = req.getJobTicketNumber();
+            comment = req.getComment();
+            this.userid = user;
+        }
+
+        this.job.setTicketNumber(ticket);
+        this.job.setComment(comment);
+
         this.jobSheet = jobSheetDto;
     }
 
@@ -153,34 +257,35 @@ public final class TicketJobSheetPdfCreator {
     public File create() {
 
         this.currencyDecimals = ConfigManager.getUserBalanceDecimals();
-        this.locale = ServiceContext.getLocale();
         this.currencySymbol = ServiceContext.getAppCurrencySymbol();
 
         //
         final MediaSizeName sizeName = MediaUtils
-                .getMediaSizeFromInboxMedia(jobSheet.getMediaOption());
+                .getMediaSizeFromInboxMedia(this.jobSheet.getMediaOption());
 
         final Document document =
                 new Document(ITextPdfCreator.getPageSize(sizeName));
 
-        final File filePdf = new File(OutputProducer
-                .createUniqueTempPdfName(userid, "ticket-job-sheet"));
+        final File filePdf = new File(OutputProducer.createUniqueTempPdfName(
+                this.useridDocLog, "ticket-job-sheet"));
 
         OutputStream ostr = null;
 
         try {
             ostr = new FileOutputStream(filePdf);
 
-            // final PdfWriter writer =
             PdfWriter.getInstance(document, ostr);
 
             document.open();
 
             final Paragraph secInfo = new Paragraph();
 
-            secInfo.add(new Paragraph(String.format("%s %s\n",
-                    JobTicketNounEnum.TICKET.uiText(locale),
-                    job.getTicketNumber()), FONT_CAT));
+            secInfo.add(new Paragraph(
+                    String.format("%s %s\n",
+                            JobTicketNounEnum.TICKET.uiText(this.locale),
+                            StringUtils.defaultIfEmpty(
+                                    this.job.getTicketNumber(), "-")),
+                    FONT_CAT));
 
             onDocumentInfo(secInfo);
             onAccountTrxInfo(secInfo);
@@ -206,25 +311,26 @@ public final class TicketJobSheetPdfCreator {
 
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("\n").append(NounEnum.USER.uiText(locale)).append(" : ")
-                .append(userid);
-        sb.append("\n").append(NounEnum.TITLE.uiText(locale)).append(" : ")
+        sb.append("\n").append(NounEnum.USER.uiText(this.locale)).append(" : ")
+                .append(this.userid);
+        sb.append("\n").append(NounEnum.TITLE.uiText(this.locale)).append(" : ")
                 .append(job.getJobName());
 
-        sb.append("\n").append(PrintOutNounEnum.PAGE.uiText(locale, true))
+        sb.append("\n").append(PrintOutNounEnum.PAGE.uiText(this.locale, true))
                 .append(" : ").append(job.getPages());
 
-        sb.append("\n").append(NounEnum.TIME.uiText(locale)).append(" : ")
+        sb.append("\n").append(NounEnum.TIME.uiText(this.locale)).append(" : ")
                 .append(DateUtil.formattedDateTime(new Date()));
 
         final ProxyPrintCostDto costResult = job.getCostResult();
         final BigDecimal costTotal = costResult.getCostTotal();
 
-        sb.append("\n").append(NounEnum.COST.uiText(locale)).append(" : ")
+        sb.append("\n").append(NounEnum.COST.uiText(this.locale)).append(" : ")
                 .append(this.currencySymbol).append(" ")
                 .append(localizedDecimal(costTotal));
 
-        sb.append("\n").append(NounEnum.REMARK.uiText(locale)).append(" : ");
+        sb.append("\n").append(NounEnum.REMARK.uiText(this.locale))
+                .append(" : ");
         if (StringUtils.isBlank(job.getComment())) {
             sb.append("-");
         } else {
@@ -240,46 +346,46 @@ public final class TicketJobSheetPdfCreator {
 
         sb.append(", ");
         if (ippMap.isLandscapeJob()) {
-            sb.append(PrintOutNounEnum.LANDSCAPE.uiText(locale));
+            sb.append(PrintOutNounEnum.LANDSCAPE.uiText(this.locale));
         } else {
-            sb.append(PrintOutNounEnum.PORTRAIT.uiText(locale));
+            sb.append(PrintOutNounEnum.PORTRAIT.uiText(this.locale));
         }
 
         sb.append(", ");
         if (ippMap.isDuplexJob()) {
-            sb.append(PrintOutNounEnum.DUPLEX.uiText(locale));
+            sb.append(PrintOutNounEnum.DUPLEX.uiText(this.locale));
         } else {
-            sb.append(PrintOutNounEnum.SIMPLEX.uiText(locale));
+            sb.append(PrintOutNounEnum.SIMPLEX.uiText(this.locale));
         }
 
         sb.append(", ");
         if (job.isMonochromeJob()) {
-            sb.append(PrintOutNounEnum.GRAYSCALE.uiText(locale));
+            sb.append(PrintOutNounEnum.GRAYSCALE.uiText(this.locale));
         } else {
-            sb.append(PrintOutNounEnum.COLOR.uiText(locale));
+            sb.append(PrintOutNounEnum.COLOR.uiText(this.locale));
         }
 
         if (ippMap.getNumberUp() != null
                 && ippMap.getNumberUp().intValue() > 1) {
             sb.append(", ");
-            sb.append(PrintOutNounEnum.N_UP.uiText(locale,
+            sb.append(PrintOutNounEnum.N_UP.uiText(this.locale,
                     ippMap.getNumberUp().toString()));
         }
 
         if (ippMap.hasPrintScaling()) {
             sb.append(", ");
-            sb.append(AdjectiveEnum.SCALED.uiText(locale));
+            sb.append(AdjectiveEnum.SCALED.uiText(this.locale));
         }
 
         sb.append(", ");
         if (job.isCollate()) {
-            sb.append(PrintOutVerbEnum.COLLATE.uiText(locale));
+            sb.append(PrintOutVerbEnum.COLLATE.uiText(this.locale));
         } else {
-            sb.append(PrintOutAdjectiveEnum.UNCOLLATED.uiText(locale));
+            sb.append(PrintOutAdjectiveEnum.UNCOLLATED.uiText(this.locale));
         }
 
         if (BooleanUtils.isTrue(job.getArchive())) {
-            sb.append(", ").append(NounEnum.ARCHIVE.uiText(locale));
+            sb.append(", ").append(NounEnum.ARCHIVE.uiText(this.locale));
         }
 
         // Finishings
@@ -320,7 +426,7 @@ public final class TicketJobSheetPdfCreator {
      */
     private String getIppValueLocale(final IppOptionMap ippMap,
             final String ippAttr) {
-        return PROXY_PRINT_SERVICE.localizePrinterOptValue(locale, ippAttr,
+        return PROXY_PRINT_SERVICE.localizePrinterOptValue(this.locale, ippAttr,
                 ippMap.getOptionValue(ippAttr));
     }
 
@@ -357,7 +463,7 @@ public final class TicketJobSheetPdfCreator {
 
         final StringBuilder sb = new StringBuilder();
 
-        sb.append("\n").append(PrintOutNounEnum.COPY.uiText(locale, true))
+        sb.append("\n").append(PrintOutNounEnum.COPY.uiText(this.locale, true))
                 .append(" : ").append(job.getCopies());
 
         final OutboxAccountTrxInfoSet trxInfoSet = job.getAccountTransactions();
@@ -428,7 +534,7 @@ public final class TicketJobSheetPdfCreator {
                 job.getCopies() - copiesDelegatorsImplicit;
 
         if (copiesDelegatorsExplicit > 0) {
-            sb.append("\n").append(NounEnum.USER.uiText(locale, true))
+            sb.append("\n").append(NounEnum.USER.uiText(this.locale, true))
                     .append(" : ").append(copiesDelegatorsExplicit);
 
             /*

@@ -377,6 +377,8 @@ public final class JobTicketServiceImpl extends AbstractService
                 submitDate, deliveryDate, createInfo);
 
         dto.setUserId(user.getId());
+        dto.setUserIdDocLog(request.getIdUserDocLog());
+
         dto.setChunkIndex(Integer.valueOf(chunkIndex));
         dto.setChunkSize(Integer.valueOf(chunkSize));
 

@@ -39,6 +39,8 @@ import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.helpers.IppOptionMap;
+import org.savapage.core.jpa.Account;
+import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
@@ -337,6 +339,12 @@ public final class OutboxInfoDto extends AbstractDto {
         private Long userId;
 
         /**
+         * The primary database key of the {@link User} that owns
+         * {@link DocLog}. If {@code null} the owner is the {@link #userId}.
+         */
+        private Long userIdDocLog;
+
+        /**
          * The primary database key of the {@link PrintOut}. Is {@code null}
          * when in User outbox.
          */
@@ -502,6 +510,25 @@ public final class OutboxInfoDto extends AbstractDto {
          */
         public void setUserId(Long userId) {
             this.userId = userId;
+        }
+
+        /**
+         * @return The primary database key of the {@link User} that owns
+         *         {@link DocLog}. If {@code null} the owner is the
+         *         {@link #userId}.
+         */
+        public Long getUserIdDocLog() {
+            return userIdDocLog;
+        }
+
+        /**
+         * @param userIdDocLog
+         *            The primary database key of the {@link User} that owns
+         *            {@link DocLog}. If {@code null} the owner is the
+         *            {@link #userId}.
+         */
+        public void setUserIdDocLog(Long userIdDocLog) {
+            this.userIdDocLog = userIdDocLog;
         }
 
         public Long getPrintOutId() {

@@ -337,6 +337,7 @@ public final class OutboxServiceImpl extends AbstractService
         // userid.
         if (job.isJobTicket()) {
             job.setUserId(request.getIdUser());
+            job.setUserIdDocLog(request.getIdUserDocLog());
         }
 
         job.setSheets(PdfPrintCollector.calcNumberOfPrintedSheets(request,
@@ -992,7 +993,8 @@ public final class OutboxServiceImpl extends AbstractService
             return;
         }
 
-        if (supplier == ExternalSupplierEnum.SAVAPAGE) {
+        if (supplier == ExternalSupplierEnum.SAVAPAGE
+                || supplier == ExternalSupplierEnum.MAIL_TICKET_OPER) {
             return;
         }
 

@@ -273,8 +273,8 @@ public interface DocLogService {
      * {@link DocLog} by the client using the PDF file.
      * </p>
      *
-     * @param user
-     *            The {@link User} to collect the data for.
+     * @param userDocLog
+     *            The {@link User} who owns the {@link DocLog}.
      * @param docLogCollect
      *            Collects data for the DocOut object using the generated PDF
      *            and the uuid page counts.
@@ -287,7 +287,7 @@ public interface DocLogService {
      * @throws IOException
      *             When error reading the pdfFile (file size).
      */
-    void collectData4DocOut(User user, DocLog docLogCollect,
+    void collectData4DocOut(User userDocLog, DocLog docLogCollect,
             PdfCreateInfo createInfo,
             LinkedHashMap<String, Integer> uuidPageCount) throws IOException;
 

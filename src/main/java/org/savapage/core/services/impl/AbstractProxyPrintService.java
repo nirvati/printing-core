@@ -170,6 +170,7 @@ import org.savapage.core.services.helpers.ProxyPrintInboxReqChunker;
 import org.savapage.core.services.helpers.ProxyPrintOutboxResult;
 import org.savapage.core.services.helpers.SnmpPrinterQueryDto;
 import org.savapage.core.services.helpers.ThirdPartyEnum;
+import org.savapage.core.services.helpers.TicketJobSheetPdfCreator;
 import org.savapage.core.snmp.SnmpClientSession;
 import org.savapage.core.snmp.SnmpConnectException;
 import org.savapage.core.util.CupsPrinterUriHelper;
@@ -1966,7 +1967,12 @@ public abstract class AbstractProxyPrintService extends AbstractService
         printReq.setLocale(ServiceContext.getLocale());
 
         printReq.setIdUser(user.getId());
-        printReq.setIdUserDocLog(user.getId());
+
+        Long userIdDocLog = job.getUserIdDocLog();
+        if (userIdDocLog == null) {
+            userIdDocLog = user.getId();
+        }
+        printReq.setIdUserDocLog(userIdDocLog);
 
         printReq.putOptionValues(job.getOptionValues());
 
@@ -2140,7 +2146,11 @@ public abstract class AbstractProxyPrintService extends AbstractService
             docLogService().collectData4DocOutCopyJob(lockedUser, docLog,
                     printReq.getNumberOfPages());
         } else {
-            docLogService().collectData4DocOut(lockedUser, docLog, createInfo,
+
+            final User userDocLog = this.getUserDocLog(lockedUser,
+                    job.getUserId(), job.getUserIdDocLog());
+
+            docLogService().collectData4DocOut(userDocLog, docLog, createInfo,
                     job.getUuidPageCount());
         }
 
@@ -2171,8 +2181,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             if (pdfTicketJobSheet != null && jobSheetDto
                     .getSheet() == TicketJobSheetDto.Sheet.START) {
-                proxyPrintJobSheet(printReq, job, lockedUser.getUserId(),
-                        jobSheetDto, pdfTicketJobSheet);
+                proxyPrintJobSheet(printReq, job.getTicketNumber(),
+                        lockedUser.getUserId(), jobSheetDto, pdfTicketJobSheet);
             }
 
             try {
@@ -2183,8 +2193,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             if (jobSheetDto != null
                     && jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.END) {
-                proxyPrintJobSheet(printReq, job, lockedUser.getUserId(),
-                        jobSheetDto, pdfTicketJobSheet);
+                proxyPrintJobSheet(printReq, job.getTicketNumber(),
+                        lockedUser.getUserId(), jobSheetDto, pdfTicketJobSheet);
             }
 
         } else {
@@ -2604,8 +2614,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         if (pdfTicketJobSheet != null
                 && jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.START) {
-            proxyPrintJobSheet(request, job, user, jobSheetDto,
-                    pdfTicketJobSheet);
+            proxyPrintJobSheet(request, job.getTicketNumber(), user,
+                    jobSheetDto, pdfTicketJobSheet);
         }
 
         final JsonProxyPrintJob printJob = proxyPrintService()
@@ -2613,8 +2623,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
         if (pdfTicketJobSheet != null
                 && jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.END) {
-            proxyPrintJobSheet(request, job, user, jobSheetDto,
-                    pdfTicketJobSheet);
+            proxyPrintJobSheet(request, job.getTicketNumber(), user,
+                    jobSheetDto, pdfTicketJobSheet);
         }
 
         return printJob;
@@ -3343,8 +3353,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *
      * @param reqMain
      *            The print request of the main job.
-     * @param job
-     *            The {@link OutboxJobDto}.
+     * @param ticketNumber
+     *            The job ticket number.
      * @param user
      *            The unique user id.
      * @param jobSheetDto
@@ -3355,7 +3365,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
      *             When printing fails.
      */
     private void proxyPrintJobSheet(final AbstractProxyPrintReq reqMain,
-            final OutboxJobDto job, final String user,
+            final String ticketNumber, final String user,
             final TicketJobSheetDto jobSheetDto, final File pdfJobSheet)
             throws IppConnectException {
 
@@ -3382,7 +3392,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             reqBanner.setNumberOfCopies(1);
 
             reqBanner.setJobName(
-                    String.format("Ticket-Banner-%s", job.getTicketNumber()));
+                    String.format("Ticket-Banner-%s", ticketNumber));
 
             final Map<String, String> options = new HashMap<>();
 
@@ -3749,20 +3759,34 @@ public abstract class AbstractProxyPrintService extends AbstractService
 
             pdfFileToPrint = createInfo.getPdfFile();
 
-            final Long userDocLogDbId = request.getIdUserDocLog();
-            final User userDocLog;
-            if (userDocLogDbId == null
-                    || request.getIdUser().equals(userDocLogDbId)) {
-                userDocLog = lockedUser;
-            } else {
-                userDocLog = userDAO().findById(userDocLogDbId);
-            }
+            final User userDocLog = this.getUserDocLog(lockedUser,
+                    request.getIdUser(), request.getIdUserDocLog());
 
             docLogService().collectData4DocOut(userDocLog, docLog, createInfo,
                     uuidPageCount);
 
+            // Job Sheet?
+            final TicketJobSheetDto jobSheetDto = jobTicketService()
+                    .getTicketJobSheet(request.createIppOptionMap());
+
+            final File pdfJobSheet = this.createProxyPrintJobSheet(lockedUser,
+                    request, docLog, jobSheetDto);
+
+            if (pdfJobSheet != null && jobSheetDto
+                    .getSheet() == TicketJobSheetDto.Sheet.START) {
+                this.proxyPrintJobSheet(request, request.getJobTicketNumber(),
+                        lockedUser.getUserId(), jobSheetDto, pdfJobSheet);
+            }
+
             // Print
             this.proxyPrint(lockedUser, request, docLog, createInfo);
+
+            // Job Sheet?
+            if (pdfJobSheet != null
+                    && jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.END) {
+                this.proxyPrintJobSheet(request, request.getJobTicketNumber(),
+                        lockedUser.getUserId(), jobSheetDto, pdfJobSheet);
+            }
 
         } catch (LetterheadNotFoundException | PostScriptDrmException
                 | IOException | DocStoreException e) {
@@ -3779,13 +3803,65 @@ public abstract class AbstractProxyPrintService extends AbstractService
                         LOGGER.trace(
                                 "deleted temp file [" + pdfFileToPrint + "]");
                     }
-
                 } else {
                     LOGGER.error("delete of temp file [" + pdfFileToPrint
                             + "] FAILED");
                 }
             }
         }
+    }
+
+    /**
+     * Creates a job sheet PDF file.
+     *
+     * @param user
+     *            {@link User}.
+     * @param printReq
+     *            Proxy Print request.
+     * @param docLog
+     *            {@link DocLog} parent of the {@link PrintOut}.
+     * @param jobSheetDto
+     *            Job sheet position and media.
+     * @return Job sheet PDF file.
+     */
+    private File createProxyPrintJobSheet(final User user,
+            final ProxyPrintInboxReq printReq, final DocLog docLog,
+            final TicketJobSheetDto jobSheetDto) {
+
+        final File file;
+
+        if (jobSheetDto.getSheet() == TicketJobSheetDto.Sheet.NONE) {
+            file = null;
+        } else {
+            jobSheetDto.setMediaSourceOption(printReq.getMediaSourceOption());
+
+            file = new TicketJobSheetPdfCreator(user.getUserId(), printReq,
+                    docLog, jobSheetDto).create();
+        }
+        return file;
+    }
+
+    /**
+     * Gets the {@link User} that owns the {@link DocLog}.
+     *
+     * @param userDefault
+     *            Default user.
+     * @param userId
+     *            Default User ID.
+     * @param userIdDocLog
+     *            User ID for {@link DocLog}. Can be {@code null}.
+     * @return {@link User} of the {@link DocLog}.
+     */
+    private User getUserDocLog(final User userDefault, final Long userId,
+            final Long userIdDocLog) {
+
+        final User userDocLog;
+        if (userIdDocLog == null || userId.equals(userIdDocLog)) {
+            userDocLog = userDefault;
+        } else {
+            userDocLog = userDAO().findById(userIdDocLog);
+        }
+        return userDocLog;
     }
 
     /**

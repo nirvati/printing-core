@@ -34,6 +34,7 @@ import org.savapage.core.PostScriptDrmException;
 import org.savapage.core.SpException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.UserHomePathEnum;
+import org.savapage.core.dao.UserDao;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.imaging.EcoPrintPdfTask;
 import org.savapage.core.imaging.EcoPrintPdfTaskPendingException;
@@ -49,6 +50,7 @@ import org.savapage.core.pdf.PdfCreateRequest;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.InboxService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.InboxContext;
 import org.savapage.core.services.helpers.InboxPageImageInfo;
 import org.savapage.core.services.impl.InboxServiceImpl;
 import org.savapage.core.system.CommandExecutor;
@@ -417,6 +419,8 @@ public final class OutputProducer {
      *
      * @see {@link #generatePdf(String, String)}
      *
+     * @param inboxCtx
+     *            {@link InboxContext}.
      * @param pdfRequest
      *            The request.
      * @param docLog
@@ -432,8 +436,8 @@ public final class OutputProducer {
      *             When {@link EcoPrintPdfTask} objects needed for this PDF are
      *             pending.
      */
-    public File generatePdfForExport(final PdfCreateRequest pdfRequest,
-            final DocLog docLog)
+    public File generatePdfForExport(final InboxContext inboxCtx,
+            final PdfCreateRequest pdfRequest, final DocLog docLog)
             throws IOException, LetterheadNotFoundException,
             PostScriptDrmException, EcoPrintPdfTaskPendingException {
 
@@ -443,8 +447,19 @@ public final class OutputProducer {
         final PdfCreateInfo createInfo =
                 this.generatePdf(pdfRequest, uuidPageCount, docLog);
 
-        DOCLOG_SERVICE.collectData4DocOut(pdfRequest.getUserObj(), docLog,
-                createInfo, uuidPageCount);
+        final UserDao userDAO = ServiceContext.getDaoContext().getUserDao();
+
+        final User userDocLog;
+        if (inboxCtx.getUserIdDocLog()
+                .equals(pdfRequest.getUserObj().getUserId())) {
+            userDocLog = pdfRequest.getUserObj();
+        } else {
+            userDocLog =
+                    userDAO.findActiveUserByUserId(inboxCtx.getUserIdDocLog());
+        }
+
+        DOCLOG_SERVICE.collectData4DocOut(userDocLog, docLog, createInfo,
+                uuidPageCount);
 
         return createInfo.getPdfFile();
     }

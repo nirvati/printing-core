@@ -388,6 +388,7 @@ public final class DocStoreServiceImpl extends AbstractService
          * Userid is not set in some cases. Therefore, explicitly set userid.
          */
         pojo.setUserId(request.getIdUser());
+        pojo.setUserIdDocLog(request.getIdUserDocLog());
 
         if (pojo.isJobTicket()) {
             pojo.setPrinter(request.getTicketPrinterName());

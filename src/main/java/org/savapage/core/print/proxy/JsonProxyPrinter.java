@@ -1139,4 +1139,23 @@ public final class JsonProxyPrinter extends JsonAbstractBase {
         return rules != null && !rules.isEmpty();
     }
 
+    /**
+     * @return {@code true} if
+     *         {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_JOB_SHEETS} is
+     *         present.
+     */
+    public boolean hasJobSheets() {
+        return this.getOptionsLookup().containsKey(
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_SHEETS);
+    }
+
+    /**
+     * @return {@code true} if
+     *         {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_JOB_SHEETS_MEDIA}
+     *         is present.
+     */
+    public boolean hasJobSheetsMedia() {
+        return this.getOptionsLookup().containsKey(
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_SHEETS_MEDIA);
+    }
 }

@@ -1612,6 +1612,21 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         //
         proxyPrinter.setInjectPpdExt(true);
 
+        if (proxyPrinter.hasJobSheets() || proxyPrinter.hasJobSheetsMedia()) {
+            final String attr;
+            if (!proxyPrinter.hasJobSheets()) {
+                attr = IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_SHEETS;
+            } else if (!proxyPrinter.hasJobSheetsMedia()) {
+                attr = IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_JOB_SHEETS_MEDIA;
+            } else {
+                attr = null;
+            }
+            if (attr != null) {
+                LOGGER.warn(String.format("%s: IPP attribute [%s] is missing.",
+                        filePpdExt, attr));
+            }
+        }
+
         return reader.ppdOptionMap;
     }
 
