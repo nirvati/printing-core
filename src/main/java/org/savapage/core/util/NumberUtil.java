@@ -52,6 +52,67 @@ public final class NumberUtil {
     }
 
     /**
+     * Returns either the passed in Long, or if the Long is {@code null}, the
+     * value of {@code defaultValue}.
+     *
+     * @param value
+     *            the Long to check, may be null.
+     * @param defaultValue
+     *            the default Long return if the input is {@code null}, may be
+     *            null.
+     * @return the passed in Long, or the default if it was {@code null}.
+     */
+    public static Long defaultValue(final Long value, final Long defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    /**
+     * Returns either the passed in Long, or if the Long is {@code null}, value
+     * zero.
+     *
+     * @param value
+     *            the Long to check, may be null.
+     * @return the passed in Long, or zero if it was {@code null}.
+     */
+    public static Long defaulValueZero(final Long value) {
+        return defaultValue(value, Long.valueOf(0));
+    }
+
+    /**
+     * Returns either the passed in Integer, or if the Integer is {@code null},
+     * the value of {@code defaultValue}.
+     *
+     * @param value
+     *            the Integer to check, may be null.
+     * @param defaultValue
+     *            the default Integer return if the input is {@code null}, may
+     *            be null.
+     * @return the passed in Integer, or the default if it was {@code null}.
+     */
+    public static Integer defaultValue(final Integer value,
+            final Integer defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    /**
+     * Returns either the passed in Integer, or if the Integer is {@code null},
+     * value zero.
+     *
+     * @param value
+     *            the Integer to check, may be null.
+     * @return the passed in Integer, or zero if it was {@code null}.
+     */
+    public static Integer defaulValueZero(final Integer value) {
+        return defaultValue(value, Integer.valueOf(0));
+    }
+
+    /**
      * Converts a BigDecimal to a BigInteger.
      *
      * @param bd
