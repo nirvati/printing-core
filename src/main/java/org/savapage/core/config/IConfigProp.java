@@ -3005,6 +3005,14 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Max number of printers shown in quick search.
+         */
+        WEBAPP_USER_PRINTERS_QUICK_SEARCH_MAX(//
+                "webapp.user.printers.quick-search.max",
+                new NumberValidator(Long.valueOf(1), Long.MAX_VALUE, false),
+                "5"),
+
+        /**
          * User WebApp: show archive scope (Boolean).
          */
         WEBAPP_USER_DOC_STORE_ARCHIVE_OUT_PRINT_PROMPT(//
