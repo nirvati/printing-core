@@ -1101,6 +1101,7 @@ public final class MailPrintListener extends MessageCountAdapter {
                 if (partSize < maxBytesAllowed) {
 
                     try {
+                        ServiceContext.resetTransactionDate();
 
                         final DocContentPrintReq docContentPrintReq =
                                 new DocContentPrintReq();
@@ -1121,6 +1122,15 @@ public final class MailPrintListener extends MessageCountAdapter {
                                         part.getInputStream());
 
                         nPrinted.increment();
+
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("{} : {}/{} processing time {}",
+                                    originatorEmail, iPart + 1, nParts,
+                                    DateUtil.formatDuration(new Date().getTime()
+                                            - ServiceContext
+                                                    .getTransactionDate()
+                                                    .getTime()));
+                        }
 
                         if (mailPrintTicket != null) {
                             this.notifyMailTicketByEmail(docContentPrintReq,
