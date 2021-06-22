@@ -367,6 +367,32 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             ORG_SAVAPAGE_ATTR_PFX_FINISHINGS + "jog-offset";
 
     /**
+     * Custom SavaPage IPP Job template attribute for front and back cover.
+     */
+    public static final String ORG_SAVAPAGE_ATTR_PFX_COVER =
+            ORG_SAVAPAGE_ATTR_PFX + "cover-";
+
+    /** */
+    private static final String ORG_SAVAPAGE_ATTR_PFX_COVER_FRONT =
+            ORG_SAVAPAGE_ATTR_PFX_COVER + "front-";
+    /** */
+    public static final String ORG_SAVAPAGE_ATTR_COVER_FRONT_TYPE =
+            ORG_SAVAPAGE_ATTR_PFX_COVER_FRONT + "type";
+    /** */
+    public static final String ORG_SAVAPAGE_ATTR_COVER_FRONT_MEDIA_SOURCE =
+            ORG_SAVAPAGE_ATTR_PFX_COVER_FRONT + ATTR_MEDIA_SOURCE;
+
+    /** */
+    private static final String ORG_SAVAPAGE_ATTR_PFX_COVER_BACK =
+            ORG_SAVAPAGE_ATTR_PFX_COVER + "back-";
+    /** */
+    public static final String ORG_SAVAPAGE_ATTR_COVER_BACK_TYPE =
+            ORG_SAVAPAGE_ATTR_PFX_COVER_BACK + "type";
+    /** */
+    public static final String ORG_SAVAPAGE_ATTR_COVER_BACK_MEDIA_SOURCE =
+            ORG_SAVAPAGE_ATTR_PFX_COVER_BACK + ATTR_MEDIA_SOURCE;
+
+    /**
      * Array of 2-element array elements, one for each finishings: the first
      * element is the IPP option key, and the second element its NONE value.
      */
@@ -408,7 +434,11 @@ public final class IppDictJobTemplateAttr extends AbstractIppDict {
             ORG_SAVAPAGE_ATTR_INT_PAGE_ROTATE180, //
             ATTR_NUMBER_UP, //
             ATTR_OUTPUT_BIN, //
-            ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET //
+            ORG_SAVAPAGE_ATTR_FINISHINGS_JOG_OFFSET, //
+            ORG_SAVAPAGE_ATTR_COVER_FRONT_TYPE, //
+            ORG_SAVAPAGE_ATTR_COVER_FRONT_MEDIA_SOURCE, //
+            ORG_SAVAPAGE_ATTR_COVER_BACK_TYPE, //
+            ORG_SAVAPAGE_ATTR_COVER_BACK_MEDIA_SOURCE //
     };
 
     /**

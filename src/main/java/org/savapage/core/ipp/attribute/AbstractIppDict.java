@@ -131,6 +131,31 @@ public abstract class AbstractIppDict {
     }
 
     /**
+     * @param keyword
+     *            The IPP attribute keyword (name).
+     * @return {@code true} when keyword is a SavaPage attribute, i.e. whose
+     *         name starts with
+     *         {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_PFX_COVER}.
+     */
+    public static boolean isJobCoverAttr(final String keyword) {
+        return keyword.startsWith(
+                IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_BACK_TYPE)
+                || keyword.startsWith(
+                        IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_FRONT_TYPE);
+    }
+
+    /**
+     * @param value
+     *            The IPP attribute value.
+     * @return {@code true} when value is a 'no-cover' value of SavaPage
+     *         attribute, i.e. whose name starts with
+     *         {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_PFX_COVER}.
+     */
+    public static boolean isJobCoverAttrValueNoCover(final String value) {
+        return value.equals(IppKeyword.ORG_SAVAPAGE_ATTR_COVER_TYPE_NO_COVER);
+    }
+
+    /**
      * Creates an {@link IppAttr} object for a PPD option.
      * <p>
      * See {@link PpdExtFileReader}.

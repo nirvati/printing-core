@@ -471,6 +471,31 @@ public interface ProxyPrintService {
             Map<String, String> optionMap);
 
     /**
+     * Composes a list with localized Job Copy Option key/value UI texts from a
+     * map of IPP options values.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param optionMap
+     *            The {@link Map} with IPP key/values.
+     * @return {@code null} when no options keys found in the map.
+     */
+    List<Pair<String, String>> getJobCopyOptionsUiText(Locale locale,
+            Map<String, String> optionMap);
+
+    /**
+     * Same as {@link #getJobCopyOptionsUiText(Locale, Map)}, but returning HTML
+     * representation.
+     *
+     * @param locale
+     *            The {@link Locale}.
+     * @param optionMap
+     *            The {@link Map} with IPP key/values.
+     * @return {@code null} when no options keys found in the map.
+     */
+    String getJobCopyOptionsHtml(Locale locale, Map<String, String> optionMap);
+
+    /**
      * Gets the valid printers for a user on a terminal (sorted on alias).
      * <ul>
      * <li>Terminal {@link Device} restriction and {@link UserGroup} Access

@@ -102,6 +102,7 @@ import org.savapage.core.inbox.OutputProducer;
 import org.savapage.core.ipp.IppJobStateEnum;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.IppSyntaxException;
+import org.savapage.core.ipp.attribute.AbstractIppDict;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.ipp.attribute.syntax.IppKeyword;
 import org.savapage.core.ipp.client.IppConnectException;
@@ -696,6 +697,48 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     /**
+     * Sets the UI text of media-source options.
+     *
+     * @param mediaSourceChoices
+     *            List of choices.
+     * @param lookup
+     *            Lookup of printer attributes.
+     */
+    private void setPrinterMediaSourcesUiText(
+            final List<JsonProxyPrinterOptChoice> mediaSourceChoices,
+            final PrinterAttrLookup lookup) {
+
+        final Iterator<JsonProxyPrinterOptChoice> iterMediaSourceChoice =
+                mediaSourceChoices.iterator();
+
+        while (iterMediaSourceChoice.hasNext()) {
+
+            final JsonProxyPrinterOptChoice optChoice =
+                    iterMediaSourceChoice.next();
+
+            final PrinterDao.MediaSourceAttr mediaSourceAttr =
+                    new PrinterDao.MediaSourceAttr(optChoice.getChoice());
+
+            final String json = lookup.get(mediaSourceAttr.getKey());
+
+            if (json != null) {
+                try {
+                    final IppMediaSourceCostDto dto =
+                            IppMediaSourceCostDto.create(json);
+
+                    if (dto.getActive()) {
+                        optChoice.setUiText(dto.getDisplay());
+                    }
+
+                } catch (IOException e) {
+                    // be forgiving
+                    LOGGER.error(e.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
      * Prunes printer media-source options according to user settings and
      * permissions and sets the
      * {@link JsonPrinterDetail#setMediaSources(ArrayList)} .
@@ -718,44 +761,56 @@ public abstract class AbstractProxyPrintService extends AbstractService
         /*
          * Find the media-source option and choices.
          */
-        JsonProxyPrinterOpt mediaSourceOption = null;
+        JsonProxyPrinterOpt mediaSourceOptionMain = null;
 
-        List<JsonProxyPrinterOptChoice> mediaSourceChoices = null;
+        List<JsonProxyPrinterOptChoice> mediaSourceChoicesMain = null;
+
+        List<List<JsonProxyPrinterOptChoice>> mediaSourceChoicesOther =
+                new ArrayList<>();
 
         for (final JsonProxyPrinterOptGroup optGroup : printerDetail
                 .getGroups()) {
 
             for (final JsonProxyPrinterOpt option : optGroup.getOptions()) {
 
-                if (option.getKeyword()
-                        .equals(IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE)) {
+                switch (option.getKeyword()) {
 
-                    mediaSourceOption = option;
-                    mediaSourceChoices = option.getChoices();
+                case IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE:
+                    mediaSourceOptionMain = option;
+                    mediaSourceChoicesMain = option.getChoices();
+                    break;
 
+                case IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_BACK_MEDIA_SOURCE:
+                case IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_FRONT_MEDIA_SOURCE:
+                    mediaSourceChoicesOther.add(option.getChoices());
+                    break;
+                default:
                     break;
                 }
             }
-
-            if (mediaSourceChoices != null) {
-                break;
-            }
         }
 
-        if (mediaSourceChoices == null) {
+        if (mediaSourceChoicesMain == null
+                && mediaSourceChoicesOther.isEmpty()) {
             return;
         }
 
         /*
          * We need a JPA "attached" printer instance to create the lookup.
          */
-
         final Printer dbPrinter = printerDAO().findById(printer.getId());
-
         final PrinterAttrLookup lookup = new PrinterAttrLookup(dbPrinter);
 
+        for (final List<JsonProxyPrinterOptChoice> choices : mediaSourceChoicesOther) {
+            this.setPrinterMediaSourcesUiText(choices, lookup);
+        }
+
+        if (mediaSourceChoicesMain == null) {
+            return;
+        }
+
         final Iterator<JsonProxyPrinterOptChoice> iterMediaSourceChoice =
-                mediaSourceChoices.iterator();
+                mediaSourceChoicesMain.iterator();
 
         while (iterMediaSourceChoice.hasNext()) {
 
@@ -811,9 +866,9 @@ public abstract class AbstractProxyPrintService extends AbstractService
         choiceAuto.setChoice(IppKeyword.MEDIA_SOURCE_AUTO);
         this.localizePrinterOptChoice(locale,
                 IppDictJobTemplateAttr.ATTR_MEDIA_SOURCE, choiceAuto);
-        mediaSourceChoices.add(0, choiceAuto);
+        mediaSourceChoicesMain.add(0, choiceAuto);
 
-        mediaSourceOption.setDefchoice(IppKeyword.MEDIA_SOURCE_AUTO);
+        mediaSourceOptionMain.setDefchoice(IppKeyword.MEDIA_SOURCE_AUTO);
     }
 
     @Override
@@ -1791,6 +1846,46 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     /**
+     * Prunes irrelevant IPP options.
+     *
+     * @param ippOptions
+     *            IPP attributes choices by key.
+     */
+    private void pruneIppOptions(final Map<String, String> ippOptions) {
+
+        final List<String> attrToRemove = new ArrayList<>();
+
+        for (final String ippKey : ippOptions.keySet()) {
+
+            switch (ippKey) {
+
+            case IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_BACK_TYPE:
+                if (AbstractIppDict
+                        .isJobCoverAttrValueNoCover(ippOptions.get(ippKey))) {
+                    attrToRemove.add(
+                            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_BACK_MEDIA_SOURCE);
+                }
+                break;
+
+            case IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_FRONT_TYPE:
+                if (AbstractIppDict
+                        .isJobCoverAttrValueNoCover(ippOptions.get(ippKey))) {
+                    attrToRemove.add(
+                            IppDictJobTemplateAttr.ORG_SAVAPAGE_ATTR_COVER_FRONT_MEDIA_SOURCE);
+                }
+                break;
+
+            default:
+                break;
+            }
+        }
+
+        for (final String ippKey : attrToRemove) {
+            ippOptions.remove(ippKey);
+        }
+    }
+
+    /**
      * Collects data of the print event in the {@link DocLog} object.
      *
      * @param request
@@ -1873,6 +1968,8 @@ public abstract class AbstractProxyPrintService extends AbstractService
                 printOut.getPaperWidth(), printOut.getPaperHeight()));
 
         printOut.setPrinter(printer.getDbPrinter());
+
+        this.pruneIppOptions(request.getOptionValues());
 
         printOut.setIppOptions(
                 JsonHelper.stringifyStringMap(request.getOptionValues()));

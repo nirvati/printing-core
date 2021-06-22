@@ -846,11 +846,63 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     @Override
+    public List<Pair<String, String>> getJobCopyOptionsUiText(
+            final Locale locale, final Map<String, String> optionMap) {
+
+        if (optionMap == null) {
+            return null;
+        }
+
+        List<Pair<String, String>> list = new ArrayList<>();
+
+        for (final Entry<String, String> entry : optionMap.entrySet()) {
+
+            if (!IppDictJobTemplateAttr.isJobCoverAttr(entry.getKey())
+                    || IppDictJobTemplateAttr
+                            .isJobCoverAttrValueNoCover(entry.getValue())) {
+                continue;
+            }
+
+            if (list == null) {
+                list = new ArrayList<>();
+            }
+
+            list.add(
+                    new ImmutablePair<String, String>(
+                            localizePrinterOpt(locale, entry.getKey()),
+                            String.format("(%s)",
+                                    localizePrinterOptValue(locale,
+                                            entry.getKey(), entry.getValue())
+                                                    .toLowerCase())));
+        }
+
+        return list;
+    }
+
+    @Override
+    public String getJobCopyOptionsHtml(final Locale locale,
+            final Map<String, String> optionMap) {
+
+        return this.getIppOptionsHtml(
+                this.getJobCopyOptionsUiText(locale, optionMap));
+    }
+
+    @Override
     public String getJobTicketOptionsExtHtml(final Locale locale,
             final Map<String, String> optionMap) {
 
-        final List<Pair<String, String>> pairs =
-                getJobTicketOptionsExtUiText(locale, optionMap);
+        return this.getIppOptionsHtml(
+                this.getJobTicketOptionsExtUiText(locale, optionMap));
+    }
+
+    /**
+     * Returns HTML representation of localized IPP key/value pairs.
+     *
+     * @param pairs
+     *            Localized IPP key/value pairs.
+     * @return {@code null} when no options keys found in the map.
+     */
+    private String getIppOptionsHtml(final List<Pair<String, String>> pairs) {
 
         if (pairs == null || pairs.isEmpty()) {
             return null;
@@ -940,7 +992,6 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     }
 
     /**
-     *
      * Localizes the text in a printer option choice.
      *
      * @param locale
@@ -948,9 +999,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @param attrKeyword
      *            The IPP option keyword.
      * @param isMedia
-     *            {@code true] when this the "media" attribute. @param choice
-     *            The {@link JsonProxyPrinterOptChoice} object. @return The
-     *            localized choice text.
+     *            {@code true} when this the "media" attribute.
+     * @param choice
+     *            The {@link JsonProxyPrinterOptChoice} object.
+     * @return The localized choice text.
      */
     private String localizePrinterOptChoice(final Locale locale,
             final String attrKeyword, final boolean isMedia,

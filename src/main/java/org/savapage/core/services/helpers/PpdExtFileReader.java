@@ -31,6 +31,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -129,6 +130,22 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             PPD_OPTION_PFX_CHAR + "SPConstraint:";
 
     /** */
+    private static final String SP_JOB_MAIN_PFX = PPD_OPTION_PFX_CHAR + "SPJob";
+
+    /** */
+    private static final String SP_JOB_COPY_SFX = "/Copy";
+    /** */
+    private static final String SP_JOB_COST_SFX = "/Cost";
+
+    /** */
+    private static final String SP_JOB_MAIN_COPY =
+            SP_JOB_MAIN_PFX + SP_JOB_COPY_SFX + ":";
+
+    /** */
+    private static final String SP_JOB_MAIN_COPY_COST =
+            SP_JOB_MAIN_PFX + SP_JOB_COPY_SFX + SP_JOB_COST_SFX + ":";
+
+    /** */
     private static final String SP_JOBTICKET_PFX =
             PPD_OPTION_PFX_CHAR + "SPJobTicket";
 
@@ -139,13 +156,13 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     private static final String SP_JOBTICKET_SHEET_SFX = "/Sheet";
 
     /** */
-    private static final String SP_JOBTICKET_COPY_SFX = "/Copy";
+    private static final String SP_JOBTICKET_COPY_SFX = SP_JOB_COPY_SFX;
 
     /** */
     private static final String SP_JOBTICKET_SET_SFX = "/Set";
 
     /** */
-    private static final String SP_JOBTICKET_COST_SFX = "/Cost";
+    private static final String SP_JOBTICKET_COST_SFX = SP_JOB_COST_SFX;
 
     /** */
     private static final String SP_JOBTICKET_MEDIA =
@@ -186,9 +203,9 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     private static final String SP_JOBTICKET_ATTR_CHOICE_NEGATE = "!";
 
     /**
-     * An SPJobTicket prefix indicating an <i>extended</i> option choice.
+     * An SPJob/SPJobTicket prefix indicating an <i>extended</i> option choice.
      */
-    private static final String SP_JOBTICKET_OPTION_CHOICE_EXTENDED = "+";
+    private static final String SP_JOB_OPTION_CHOICE_EXTENDED = "+";
 
     /**
      * Minimal number of arguments for option with
@@ -265,6 +282,19 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      * IPP Option as key to JsonProxyPrinterOpt with PPD/IPP mapping.
      */
     private Map<String, JsonProxyPrinterOpt> ppdOptionMapOnIpp;
+
+    /**
+     * SPJobMain Copy Option as key to JsonProxyPrinterOpt.
+     */
+    private Map<String, JsonProxyPrinterOpt> jobMainOptMapCopy;
+
+    /**
+     * SPJobMain Media <i>and</i> Copy Options as key to JsonProxyPrinterOpt.
+     */
+    private Map<String, JsonProxyPrinterOpt> jobMainOptMap;
+
+    /** */
+    private List<IppRuleCost> jobMainCostRulesCopy;
 
     /**
      * SpJobTicket Media Option as key to JsonProxyPrinterOpt.
@@ -405,6 +435,13 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         this.ppdOptionMap = new HashMap<>();
         this.ppdOptionMapOnIpp = new HashMap<>();
 
+        //
+        this.jobMainOptMap = new HashMap<>();
+        // keep order of insertion.
+        this.jobMainOptMapCopy = new LinkedHashMap<>();
+        this.jobMainCostRulesCopy = new ArrayList<>();
+
+        //
         this.jobTicketOptMap = new HashMap<>();
 
         this.jobTicketOptMapMedia = new HashMap<>();
@@ -413,12 +450,14 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         this.jobTicketOptMapSheet = new HashMap<>();
         this.jobTicketCostRulesSheet = new ArrayList<>();
 
+        // order by keys.
         this.jobTicketOptMapCopy = new TreeMap<>();
         this.jobTicketCostRulesCopy = new ArrayList<>();
 
         this.jobTicketOptMapSet = new HashMap<>();
         this.jobTicketCostRulesSet = new ArrayList<>();
 
+        //
         this.numberUpRules = new ArrayList<>();
         this.rulesConstraint = new ArrayList<>();
         this.rulesExtra = new ArrayList<>();
@@ -541,7 +580,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
 
             if (choice.equals(ippChoice)) {
                 ippChoice = StringUtils.stripStart(ippChoice,
-                        SP_JOBTICKET_OPTION_CHOICE_EXTENDED);
+                        SP_JOB_OPTION_CHOICE_EXTENDED);
                 extended = !choice.equals(ippChoice);
             } else {
                 opt.setDefchoice(ippChoice);
@@ -595,6 +634,37 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     }
 
     /**
+     * Notifies a {@link #SP_JOB_MAIN_COPY} line.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param words
+     *            The words.
+     */
+    private void onSpJobMainCopy(final int lineNr, final String[] words) {
+        /*
+         * Example: org.savapage-cover-front-type *no-cover print-none
+         * print-front print-back print-both
+         */
+        final JsonProxyPrinterOpt opt = onSpJobTicket(this.jobMainOptMapCopy,
+                this.getConfigFile(), lineNr, words);
+        this.jobMainOptMap.put(opt.getKeyword(), opt);
+    }
+
+    /**
+     * Notifies a {@link #SP_JOB_MAIN_COPY_COST} line.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param words
+     *            The words.
+     */
+    private void onSpJobMainCopyCost(final int lineNr, final String[] words) {
+        this.onSpJobCost(lineNr, words, this.jobMainOptMap,
+                this.jobMainCostRulesCopy);
+    }
+
+    /**
      * Notifies a {@link #SP_JOBTICKET_MEDIA} line.
      *
      * @param lineNr
@@ -629,8 +699,8 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
     }
 
     /**
-     * Notifies a {@link #SP_JOBTICKET_MEDIA_COST} or
-     * {@link #SP_JOBTICKET_COPY_COST} line.
+     * Notifies a {@link #SP_JOBTICKET_MEDIA_COST},
+     * {@link #SP_JOBTICKET_COPY_COST} or {@link #SP_JOBMAIN_COPY_COST} line.
      *
      * @param lineNr
      *            The 1-based line number.
@@ -641,7 +711,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      * @param costRules
      *            The list to append on.
      */
-    private void onSpJobTicketCost(final int lineNr, final String[] words,
+    private void onSpJobCost(final int lineNr, final String[] words,
             final Map<String, JsonProxyPrinterOpt> optMap,
             final List<IppRuleCost> costRules) {
 
@@ -749,7 +819,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      */
     private void onSpJobTicketMediaCost(final int lineNr,
             final String[] words) {
-        this.onSpJobTicketCost(lineNr, words, this.jobTicketOptMapMedia,
+        this.onSpJobCost(lineNr, words, this.jobTicketOptMapMedia,
                 this.jobTicketCostRulesMedia);
     }
 
@@ -763,7 +833,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      */
     private void onSpJobTicketSheetCost(final int lineNr,
             final String[] words) {
-        this.onSpJobTicketCost(lineNr, words, this.jobTicketOptMapSheet,
+        this.onSpJobCost(lineNr, words, this.jobTicketOptMapSheet,
                 this.jobTicketCostRulesSheet);
     }
 
@@ -776,7 +846,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      *            The words.
      */
     private void onSpJobTicketCopyCost(final int lineNr, final String[] words) {
-        this.onSpJobTicketCost(lineNr, words, this.jobTicketOptMap,
+        this.onSpJobCost(lineNr, words, this.jobTicketOptMap,
                 this.jobTicketCostRulesCopy);
     }
 
@@ -789,8 +859,35 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
      *            The words.
      */
     private void onSpJobTicketSetCost(final int lineNr, final String[] words) {
-        this.onSpJobTicketCost(lineNr, words, this.jobTicketOptMap,
+        this.onSpJobCost(lineNr, words, this.jobTicketOptMap,
                 this.jobTicketCostRulesSet);
+    }
+
+    /**
+     * Notifies an SPJob option.
+     *
+     * @param lineNr
+     *            The 1-based line number.
+     * @param firstword
+     *            The first word.
+     * @param nextwords
+     *            The next words.
+     */
+    private void onSpJobMain(final int lineNr, final String firstword,
+            final String[] nextwords) {
+
+        switch (firstword) {
+        case SP_JOB_MAIN_COPY:
+            this.onSpJobMainCopy(lineNr, nextwords);
+            break;
+        case SP_JOB_MAIN_COPY_COST:
+            this.onSpJobMainCopyCost(lineNr, nextwords);
+            break;
+        default:
+            LOGGER.warn(String.format("%s line %d [%s] is NOT handled.",
+                    this.getConfigFile().getName(), lineNr, firstword));
+            break;
+        }
     }
 
     /**
@@ -1261,10 +1358,10 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             final String ppdChoice, final String ippChoice) {
 
         final boolean extendedChoice =
-                ippChoice.startsWith(SP_JOBTICKET_OPTION_CHOICE_EXTENDED);
+                ippChoice.startsWith(SP_JOB_OPTION_CHOICE_EXTENDED);
 
         final String ippChoiceVanilla = StringUtils.stripStart(ippChoice,
-                SP_JOBTICKET_OPTION_CHOICE_EXTENDED);
+                SP_JOB_OPTION_CHOICE_EXTENDED);
 
         final JsonProxyPrinterOpt opt =
                 this.lazyCreatePpdOptionMapping(ppdOption);
@@ -1325,9 +1422,21 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             return;
         }
 
+        // Important: first.
         if (firstWord.startsWith(SP_JOBTICKET_PFX)) {
             if (words.length > 1) {
                 this.onSpJobTicket(lineNr, firstWord,
+                        ArrayUtils.remove(words, 0));
+            } else {
+                logSyntaxError(lineNr, firstWord);
+            }
+            return;
+        }
+
+        // Important: second.
+        if (firstWord.startsWith(SP_JOB_MAIN_PFX)) {
+            if (words.length > 1) {
+                this.onSpJobMain(lineNr, firstWord,
                         ArrayUtils.remove(words, 0));
             } else {
                 logSyntaxError(lineNr, firstWord);
@@ -1386,6 +1495,9 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                     words[2].trim());
             return;
         }
+
+        LOGGER.warn(String.format("%s line %d: [%s] syntax ignored.",
+                this.getConfigFile().getName(), lineNr, firstWord));
     }
 
     /**
@@ -1565,6 +1677,12 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
             }
         }
 
+        // Append main job copy options
+        for (final JsonProxyPrinterOpt opt : reader.jobMainOptMapCopy
+                .values()) {
+            optToInjectPageSetup.add(opt);
+        }
+
         // Inject page setup options in the right order.
         injectPageSetupOptions(proxyPrinter, optToInjectPageSetup);
 
@@ -1596,6 +1714,9 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
         proxyPrinter.setCustomCostRulesCopy(reader.jobTicketCostRulesCopy);
         proxyPrinter.setCustomCostRulesMedia(reader.jobTicketCostRulesMedia);
         proxyPrinter.setCustomCostRulesSheet(reader.jobTicketCostRulesSheet);
+
+        proxyPrinter.getCustomCostRulesCopy()
+                .addAll(reader.jobMainCostRulesCopy);
 
         // Other rules.
         proxyPrinter.setCustomNumberUpRules(reader.numberUpRules);
