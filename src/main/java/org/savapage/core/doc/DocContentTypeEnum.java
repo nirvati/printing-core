@@ -68,6 +68,11 @@ public enum DocContentTypeEnum {
     /** Microsoft Office Word 2007 document. */
     DOCX,
 
+    /**
+     * Electronic Mail (EML) format: RFC 5322.
+     */
+    EML,
+
     /** */
     GIF,
 

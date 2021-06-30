@@ -24,15 +24,15 @@
  */
 package org.savapage.core.doc;
 
-import java.io.OutputStream;
+import java.io.File;
 
 /**
- * Converts a document data stream to PDF stream.
+ * Converts a document data stream to PDF file.
  *
  * @author Rijk Ravestein
  *
  */
-public interface IStreamConverter extends IDocConverter {
+public interface IDocStreamConverter extends IDocConverter {
 
     /**
      * Converts a document data stream to PDF.
@@ -41,14 +41,14 @@ public interface IStreamConverter extends IDocConverter {
      *            The content type of the input stream.
      * @param istr
      *            The document input stream.
-     * @param ostr
-     *            The output stream.
+     * @param filePdf
+     *            The PDF file.
      *
      * @return The number of bytes read from the input stream.
      *
      * @throws Exception
      */
     long convert(DocContentTypeEnum contentType, DocInputStream istr,
-            OutputStream ostr) throws Exception;
+            File filePdf) throws Exception;
 
 }

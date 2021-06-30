@@ -109,6 +109,10 @@ public final class SystemInfo {
          */
         WHICH("which"),
         /**
+         * wkhtmltopdf - html to pdf converter.
+         */
+        WKHTMLTOPDF("wkhtmltopdf"),
+        /**
          * .
          */
         XPSTOPDF("xpstopdf");
@@ -272,6 +276,15 @@ public final class SystemInfo {
         private static final CommandVersionRegistry INSTANCE =
                 new SystemInfo.CommandVersionRegistry();
     }
+
+    /** */
+    private static volatile Boolean cachedQPdfInstallIndication = null;
+
+    /** */
+    private static volatile Boolean cachedRSvgConvertInstallIndication = null;
+
+    /** */
+    private static volatile Boolean cachedWkHtmlToPdfInstallIndication = null;
 
     /**
      * Utility class.
@@ -462,11 +475,46 @@ public final class SystemInfo {
         }
     }
 
-    /** */
-    private static volatile Boolean cachedQPdfInstallIndication = null;
+    /**
+     * Finds out if {@link Command#WKHTMLTOPDF} is installed using indication
+     * from cache.
+     *
+     * @return {@code true} if installed.
+     */
+    public static boolean isWkHtmlToPdfInstalled() {
 
-    /** */
-    private static volatile Boolean cachedRSvgConvertInstallIndication = null;
+        if (cachedWkHtmlToPdfInstallIndication == null) {
+            getWkHtmlToPdfVersion();
+        }
+        return cachedWkHtmlToPdfInstallIndication.booleanValue();
+    }
+
+    /**
+     * Retrieves the {@link Command#WKHTMLTOPDF} version from the system (and
+     * sets installed cache indication).
+     *
+     * @return The version string(s) or {@code null} if not installed.
+     */
+    public static String getWkHtmlToPdfVersion() {
+
+        final String cmd = Command.WKHTMLTOPDF.cmdLine("--version");
+
+        final ICommandExecutor exec = CommandExecutor.createSimple(cmd);
+
+        String version = null;
+
+        try {
+            if (exec.executeCommand() == 0) {
+                version = exec.getStandardOutput();
+            }
+        } catch (Exception e) {
+            throw new SpException(e);
+        }
+
+        cachedWkHtmlToPdfInstallIndication = Boolean.valueOf(version != null);
+
+        return version;
+    }
 
     /**
      * Finds out if {@link Command#QPDF} is installed using indication from

@@ -219,6 +219,10 @@ public final class DocContent {
 
         init(DocContentTypeEnum.GIF, "image/gif", "gif");
 
+        init(DocContentTypeEnum.EML,
+                new String[] { "message/rfc822", "application/octet-stream" },
+                new String[] { "eml" });
+
         init(DocContentTypeEnum.HTML, new String[] { "text/html" },
                 new String[] { "htm", "html" });
 
@@ -400,9 +404,9 @@ public final class DocContent {
         for (DocContentTypeEnum contentType : new DocContentTypeEnum[] {
                 DocContentTypeEnum.PDF, DocContentTypeEnum.ODT,
                 DocContentTypeEnum.RTF, DocContentTypeEnum.HTML,
-                DocContentTypeEnum.PS, DocContentTypeEnum.TXT,
-                DocContentTypeEnum.XPS, DocContentTypeEnum.DOCX,
-                DocContentTypeEnum.DOC }) {
+                DocContentTypeEnum.EML, DocContentTypeEnum.PS,
+                DocContentTypeEnum.TXT, DocContentTypeEnum.XPS,
+                DocContentTypeEnum.DOCX, DocContentTypeEnum.DOC }) {
 
             if (excludeTypes.contains(contentType)
                     || !isSupported(contentType)) {
@@ -525,6 +529,7 @@ public final class DocContent {
             return true;
 
         case TXT:
+        case EML:
         case HTML:
             return true;
 
@@ -596,6 +601,9 @@ public final class DocContent {
         if (DocContent.isImage(contentType)) {
             converter = new ImageToPdf();
 
+        } else if (contentType == DocContentTypeEnum.EML) {
+            converter = new EMLToPdf();
+
         } else if (contentType == DocContentTypeEnum.HTML) {
             converter = new HtmlToPdf();
 
@@ -627,11 +635,16 @@ public final class DocContent {
      * @return {@code null} when NO file converter is available.
      */
     public static IDocFileConverter
-            createPdfFileConverter(DocContentTypeEnum contentType) {
+            createPdfFileConverter(final DocContentTypeEnum contentType) {
 
         switch (contentType) {
         case PS:
             return new PsToPdf();
+        case HTML:
+            if (WkHtmlToPdf.isAvailable()) {
+                return new WkHtmlToPdf();
+            }
+            return null;
         case SVG:
             return new SvgToPdf();
         case XPS:

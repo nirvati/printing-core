@@ -24,31 +24,45 @@
  */
 package org.savapage.core.doc;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 
 /**
- * Converts a document data stream to PDF stream.
+ * Create a PDF file from {@link DocContentTypeEnum#EML}.
  *
  * @author Rijk Ravestein
  *
  */
-public interface IStreamConverter extends IDocConverter {
+public final class EMLToPdf implements IStreamConverter {
 
-    /**
-     * Converts a document data stream to PDF.
-     *
-     * @param contentType
-     *            The content type of the input stream.
-     * @param istr
-     *            The document input stream.
-     * @param ostr
-     *            The output stream.
-     *
-     * @return The number of bytes read from the input stream.
-     *
-     * @throws Exception
-     */
-    long convert(DocContentTypeEnum contentType, DocInputStream istr,
-            OutputStream ostr) throws Exception;
+    @Override
+    public long convert(final DocContentTypeEnum contentType,
+            final DocInputStream istrDoc, final OutputStream ostrPdf)
+            throws Exception {
+        /*
+         * Step 1 : EML to HTML.
+         */
+        final EMLToHtml toHtml = new EMLToHtml();
+        final ByteArrayOutputStream ostrHtml = new ByteArrayOutputStream();
+        final long length = toHtml.convert(contentType, istrDoc, ostrHtml);
+
+        /*
+         * Step 2 : HTML to PDF.
+         */
+        try (DocInputStream istrHtml = new DocInputStream(
+                new ByteArrayInputStream(ostrHtml.toByteArray()))) {
+
+            final IStreamConverter conv;
+
+            if (WkHtmlToPdf.isAvailable()) {
+                conv = new WkHtmlToPdf();
+            } else {
+                conv = new HtmlToPdf();
+            }
+            conv.convert(contentType, istrHtml, ostrPdf);
+        }
+        return length;
+    }
 
 }

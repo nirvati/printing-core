@@ -40,33 +40,38 @@ import org.savapage.core.util.MediaUtils;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 /**
- * 
+ * Create a PDF file from HTML using
+ * {@link org.xhtmlrenderer.pdf.ITextRenderer}.
+ *
  * @author Rijk Ravestein
  *
  */
-public class HtmlToPdf implements IStreamConverter {
+public final class HtmlToPdf implements IStreamConverter {
 
+    /** */
     private static final String HTML_PAGE_SIZE_A4 = "A4";
+    /** */
     private static final String HTML_PAGE_SIZE_LETTER = "Letter";
 
     @Override
-    public long convert(DocContentTypeEnum contentType, DocInputStream istrDoc,
-            OutputStream ostrPdf) throws Exception {
+    public long convert(final DocContentTypeEnum contentType,
+            final DocInputStream istrDoc, final OutputStream ostrPdf)
+            throws Exception {
 
         /*
          * Clean up the HTML to be well formed.
          */
-        HtmlCleaner cleaner = new HtmlCleaner();
-        CleanerProperties props = cleaner.getProperties();
+        final HtmlCleaner cleaner = new HtmlCleaner();
+        final CleanerProperties props = cleaner.getProperties();
 
-        TagNode node = cleaner.clean(istrDoc);
+        final TagNode node = cleaner.clean(istrDoc);
 
         /*
          *
          */
         final MediaSizeName mediaSizeName = MediaUtils.getDefaultMediaSize();
 
-        String pageSize;
+        final String pageSize;
 
         if (mediaSizeName == MediaSizeName.NA_LETTER) {
             pageSize = HTML_PAGE_SIZE_LETTER;
@@ -79,13 +84,13 @@ public class HtmlToPdf implements IStreamConverter {
         /*
          * Create a buffer to hold the cleaned up HTML.
          */
-        ByteArrayOutputStream bostr = new ByteArrayOutputStream();
+        final ByteArrayOutputStream bostr = new ByteArrayOutputStream();
         new PrettyXmlSerializer(props).writeToStream(node, bostr);
 
         /*
          * Create the PDF.
          */
-        ITextRenderer renderer = new ITextRenderer();
+        final ITextRenderer renderer = new ITextRenderer();
         renderer.setDocumentFromString(new String(bostr.toByteArray()));
         renderer.layout();
 
@@ -105,12 +110,11 @@ public class HtmlToPdf implements IStreamConverter {
 
     /**
      *
-     *
      * @param nodeRoot
      * @param pageSize
      *            E.g. "A4" or "Letter"
      */
-    private void addPageSize(TagNode nodeRoot, String pageSize) {
+    private void addPageSize(final TagNode nodeRoot, final String pageSize) {
 
         TagNode nodeHead = nodeRoot.findElementByName("head", false);
 

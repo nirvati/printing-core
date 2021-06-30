@@ -986,6 +986,14 @@ public final class DocContentPrintProcessor {
                 streamConverter = DocContent.createPdfStreamConverter(inputType,
                         preferredOutputFont);
 
+            } else if (inputType == DocContentTypeEnum.HTML) {
+
+                // If available, file converter is preferred.
+                fileConverter = DocContent.createPdfFileConverter(inputType);
+                if (fileConverter != null) {
+                    saveBinary(istrContent, fostrContent);
+                }
+
             } else {
 
                 if (!protocol.isDriverPrint()) {
