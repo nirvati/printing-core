@@ -36,6 +36,7 @@ import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 
+import org.savapage.core.services.helpers.email.EMailConstants;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHelper;
 import org.savapage.lib.pgp.PGPPublicKeyInfo;
@@ -109,8 +110,10 @@ public final class PGPBodyPartEncrypter extends PGPBodyPartProcessor {
 
             updateHeaders(encryptedPart);
 
-            encryptedPart.setHeader("Content-Type", String.format(
-                    "%s; name=encrypted.asc", encryptedPart.getContentType()));
+            encryptedPart.setHeader(
+                    EMailConstants.MIME_HEADER_NAME_CONTENT_TYPE,
+                    String.format("%s; name=encrypted.asc",
+                            encryptedPart.getContentType()));
 
             this.setProcessedPart(encryptedPart);
 

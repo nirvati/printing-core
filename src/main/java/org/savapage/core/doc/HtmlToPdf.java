@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -17,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -64,11 +64,9 @@ public final class HtmlToPdf implements IStreamConverter {
         final HtmlCleaner cleaner = new HtmlCleaner();
         final CleanerProperties props = cleaner.getProperties();
 
-        final TagNode node = cleaner.clean(istrDoc);
+        final TagNode nodeRoot = cleaner.clean(istrDoc);
 
-        /*
-         *
-         */
+        //
         final MediaSizeName mediaSizeName = MediaUtils.getDefaultMediaSize();
 
         final String pageSize;
@@ -79,31 +77,41 @@ public final class HtmlToPdf implements IStreamConverter {
             pageSize = HTML_PAGE_SIZE_A4;
         }
 
-        addPageSize(node, pageSize);
+        // Step 1: Remove all <style> elements.
+        for (final TagNode styleNode : nodeRoot.getElementListByName("style",
+                true)) {
+            styleNode.removeFromTree();
+        }
+
+        // Step 2: add <style> element for page size.
+        this.addPageSize(nodeRoot, pageSize);
 
         /*
          * Create a buffer to hold the cleaned up HTML.
          */
-        final ByteArrayOutputStream bostr = new ByteArrayOutputStream();
-        new PrettyXmlSerializer(props).writeToStream(node, bostr);
+        try (ByteArrayOutputStream bostr = new ByteArrayOutputStream()) {
 
-        /*
-         * Create the PDF.
-         */
-        final ITextRenderer renderer = new ITextRenderer();
-        renderer.setDocumentFromString(new String(bostr.toByteArray()));
-        renderer.layout();
+            new PrettyXmlSerializer(props).writeToStream(nodeRoot, bostr);
 
-        /*
-         *
-         */
-        renderer.createPDF(ostrPdf);
+            /*
+             * Create the PDF.
+             */
+            final ITextRenderer renderer = new ITextRenderer();
 
-        /*
-         * Finishing up.
-         */
-        renderer.finishPDF();
-        bostr.flush();
+            // Remove line feeds, to prevent extra empty lines in PDF.
+            final String content =
+                    new String(bostr.toByteArray()).replace("\n", "");
+
+            renderer.setDocumentFromString(content);
+            renderer.layout();
+            renderer.createPDF(ostrPdf);
+
+            /*
+             * Finishing up.
+             */
+            renderer.finishPDF();
+            bostr.flush();
+        }
 
         return istrDoc.getBytesRead();
     }

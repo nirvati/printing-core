@@ -24,15 +24,16 @@
  */
 package org.savapage.core.print.imap;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.SequenceInputStream;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.UUID;
 
 import javax.mail.Flags;
 import javax.mail.Folder;
@@ -46,6 +47,7 @@ import javax.mail.Store;
 import javax.mail.event.MessageCountAdapter;
 import javax.mail.event.MessageCountEvent;
 import javax.mail.event.MessageCountListener;
+import javax.mail.internet.ContentType;
 import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -62,12 +64,14 @@ import org.savapage.core.community.CommunityDictEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
+import org.savapage.core.config.OnOffEnum;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.enums.ACLOidEnum;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.doc.DocContent;
 import org.savapage.core.doc.DocContentTypeEnum;
+import org.savapage.core.doc.EMLToHtml;
 import org.savapage.core.i18n.AdjectiveEnum;
 import org.savapage.core.i18n.NounEnum;
 import org.savapage.core.job.AbstractJob;
@@ -144,9 +148,6 @@ public final class MailPrintListener extends MessageCountAdapter {
     /** */
     private static final UserDao USER_DAO =
             ServiceContext.getDaoContext().getUserDao();
-
-    /** */
-    private static final String MIME_HEADER_NAME_CONTENT_TYPE = "Content-Type";
 
     /**
      *
@@ -935,7 +936,6 @@ public final class MailPrintListener extends MessageCountAdapter {
             AdminPublisher.instance().publish(PubTopicEnum.MAILPRINT,
                     PubLevelEnum.WARN, pubMsg);
         } else {
-
             if (LOGGER.isTraceEnabled()) {
                 if (isImapTicket) {
                     LOGGER.trace("Mail Print Ticket for [{}] to operator [{}]",
@@ -945,15 +945,14 @@ public final class MailPrintListener extends MessageCountAdapter {
                             from);
                 }
             }
-            /*
-             * Iterate the attachments.
-             */
+            // Iterate the attachments.
             final long maxBytesAllowed =
                     cm.getConfigLong(Key.PRINT_IMAP_MAX_FILE_MB) * 1024 * 1024;
 
             final Object content = message.getContent();
 
             final MutableInt nAttachments = new MutableInt(0);
+            int nPrintFailures = 0;
 
             if (content instanceof Multipart) {
 
@@ -964,22 +963,29 @@ public final class MailPrintListener extends MessageCountAdapter {
                 final MutableInt nPrinted = new MutableInt(0);
 
                 for (int i = 0; i < multipart.getCount(); i++) {
-                    this.printMessageAttachment(from, user,
+                    if (!this.printMessageAttachment(from, user,
                             createMailPrintTicket(isImapTicket), multipart, i,
                             nAttachments, nPrinted, maxPrintedAllowed,
-                            maxBytesAllowed);
+                            maxBytesAllowed)) {
+                        nPrintFailures++;
+                    }
                 }
             }
 
+            final OnOffEnum detainEnum = ConfigManager.instance().getConfigEnum(
+                    OnOffEnum.class, Key.PRINT_IMAP_CONTENT_EML_DETAIN);
+
+            final boolean printBody;
+
             if (nAttachments.intValue() == 0) {
 
-                boolean printBody = true; // TODO: Configuration Property?
+                printBody = !isImapTicket || cm.isConfigValue(
+                        Key.PRINT_IMAP_TICKET_NO_FILES_CONTENT_ENABLE);
 
                 if (printBody) {
-
                     printMessageBody(from, user,
                             createMailPrintTicket(isImapTicket), message,
-                            maxBytesAllowed);
+                            maxBytesAllowed, detainEnum);
                 } else {
                     this.sendEmailPubLog(from,
                             localize("user-msg-subject-rejected",
@@ -990,8 +996,39 @@ public final class MailPrintListener extends MessageCountAdapter {
                             String.format("Mail Print from [%s] rejected: "
                                     + "no file attachment.", from));
                 }
+            } else {
+                printBody = false;
+            }
+
+            if (!printBody) {
+                if (detainEnum == OnOffEnum.ON || (nPrintFailures > 0
+                        && detainEnum == OnOffEnum.AUTO)) {
+                    createTempFileEML(message);
+                }
             }
         }
+    }
+
+    /**
+     * Creates a EML file from MIME message in the default temporary-file
+     * directory.
+     *
+     * @param message
+     *            MIME message.
+     * @return EML file.
+     * @throws IOException
+     * @throws MessagingException
+     */
+    private static File createTempFileEML(final Message message)
+            throws IOException, MessagingException {
+
+        final File fileEML = File.createTempFile(
+                "temp-".concat(UUID.randomUUID().toString()), ".eml");
+
+        try (FileOutputStream fostrEML = new FileOutputStream(fileEML)) {
+            message.writeTo(fostrEML);
+        }
+        return fileEML;
     }
 
     /**
@@ -1050,7 +1087,8 @@ public final class MailPrintListener extends MessageCountAdapter {
      * @param maxPrintedAllowed
      * @param maxBytesAllowed
      *
-     * @return {@code false} if message is rejected.
+     * @return {@code false} if printing failed due to a
+     *         {@link DocContentPrintException}.
      * @throws MessagingException
      * @throws IOException
      */
@@ -1066,10 +1104,14 @@ public final class MailPrintListener extends MessageCountAdapter {
         final int nParts = multipart.getCount();
 
         final Part part = multipart.getBodyPart(iPart);
-        final String fileName = part.getFileName();
 
         final String contentType = part.getContentType()
                 .replaceAll("\\s*[\\r\\n]+\\s*", "").trim().toLowerCase();
+
+        final ContentType contentTypeObj = new ContentType(contentType);
+        final String mimeType = contentTypeObj.getBaseType();
+
+        final String fileName = part.getFileName();
 
         /*
          * From the JavaDoc
@@ -1098,7 +1140,7 @@ public final class MailPrintListener extends MessageCountAdapter {
         if (LOGGER.isTraceEnabled()) {
             final StringBuilder trace = new StringBuilder();
             trace.append("[").append(iPart + 1).append("/").append(nParts);
-            trace.append("] [").append(contentType).append("]");
+            trace.append("] [").append(mimeType).append("]");
             if (fileName != null) {
                 trace.append(" file [").append(fileName).append("]");
             }
@@ -1106,10 +1148,11 @@ public final class MailPrintListener extends MessageCountAdapter {
             LOGGER.trace(trace.toString());
         }
 
+        boolean isDocContentPrintException = false;
         String rejectedReason = null;
 
-        if (fileName == null) {
-            // No attachment, just the message body.
+        if (fileName == null || EMLToHtml.isInlineImage(part)) {
+            // No attachment
             rejectedReason = null;
         } else {
             nAttachments.increment();
@@ -1127,7 +1170,7 @@ public final class MailPrintListener extends MessageCountAdapter {
                                 new DocContentPrintReq();
 
                         docContentPrintReq.setContentType(
-                                DocContent.getContentTypeFromFile(fileName));
+                                DocContent.getContentTypeFromMime(mimeType));
                         docContentPrintReq.setFileName(fileName);
                         docContentPrintReq.setOriginatorEmail(originatorEmail);
                         docContentPrintReq.setMailPrintTicket(mailPrintTicket);
@@ -1158,6 +1201,7 @@ public final class MailPrintListener extends MessageCountAdapter {
                         }
 
                     } catch (DocContentPrintException e) {
+                        isDocContentPrintException = true;
                         rejectedReason = e.getMessage();
                     } catch (UnavailableException e) {
                         if (e.getState() == UnavailableException.State.TEMPORARY) {
@@ -1215,11 +1259,11 @@ public final class MailPrintListener extends MessageCountAdapter {
                     AdjectiveEnum.REJECTED.uiText(locale), mailContent);
         }
 
-        return rejectedReason == null;
+        return !isDocContentPrintException;
     }
 
     /**
-     * Prints the message part attachment.
+     * Prints the message body.
      * <p>
      * When DocContentPrintException or another reason for rejection occurs an
      * email is send to the user.
@@ -1231,15 +1275,19 @@ public final class MailPrintListener extends MessageCountAdapter {
      * @param message
      *            MIME message.
      * @param maxBytesAllowed
+     * @param detainEnum
+     *            {@link OnOffEnum} value of
+     *            {@link IConfigProp.Key#PRINT_IMAP_CONTENT_EML_DETAIN}.
      *
-     * @return {@code false} if message is rejected.
+     * @return {@code false} if printing failed due to a
+     *         {@link DocContentPrintException}.
      * @throws MessagingException
      * @throws IOException
      */
     private boolean printMessageBody(final String originatorEmail,
             final User user, final String mailPrintTicket,
-            final Message message, final long maxBytesAllowed)
-            throws MessagingException, IOException {
+            final Message message, final long maxBytesAllowed,
+            final OnOffEnum detainEnum) throws MessagingException, IOException {
 
         final Locale locale = ConfigManager.getDefaultLocale();
 
@@ -1248,11 +1296,15 @@ public final class MailPrintListener extends MessageCountAdapter {
                     message.getSubject());
         }
 
+        boolean isDocContentPrintException = false;
         String rejectedReason = null;
 
         if (message.getSize() < maxBytesAllowed) {
 
-            try {
+            final File fileEMLTemp = createTempFileEML(message);
+
+            try (FileInputStream istrEML = new FileInputStream(fileEMLTemp)) {
+
                 ServiceContext.resetTransactionDate();
 
                 final DocContentPrintReq docContentPrintReq =
@@ -1265,32 +1317,6 @@ public final class MailPrintListener extends MessageCountAdapter {
                 docContentPrintReq.setPreferredOutputFont(null);
                 docContentPrintReq.setProtocol(DocLogProtocolEnum.IMAP);
                 docContentPrintReq.setTitle(message.getSubject());
-
-                final InputStream istrEMLSecond;
-                final Object objectContent = message.getContent();
-
-                if (objectContent instanceof String) {
-                    istrEMLSecond = new ByteArrayInputStream(
-                            ((String) objectContent).getBytes());
-                } else if (objectContent instanceof InputStream) {
-                    istrEMLSecond = (InputStream) objectContent;
-                } else {
-                    istrEMLSecond = message.getInputStream();
-                }
-
-                // Prepend Content-Type
-                final String contentType = message.getContentType();
-                final InputStream istrEML;
-                if (StringUtils.isBlank(contentType)) {
-                    istrEML = istrEMLSecond;
-                } else {
-                    final String headerEML = String.format(
-                            MIME_HEADER_NAME_CONTENT_TYPE + ": %s\n\n",
-                            contentType);
-                    final InputStream istrFirst =
-                            new ByteArrayInputStream(headerEML.getBytes());
-                    istrEML = new SequenceInputStream(istrFirst, istrEMLSecond);
-                }
 
                 // Print
                 final DocContentPrintRsp docContentPrintRsp = QUEUE_SERVICE
@@ -1310,7 +1336,9 @@ public final class MailPrintListener extends MessageCountAdapter {
                 }
 
             } catch (DocContentPrintException e) {
+                isDocContentPrintException = true;
                 rejectedReason = e.getMessage();
+
             } catch (UnavailableException e) {
                 if (e.getState() == UnavailableException.State.TEMPORARY) {
                     rejectedReason =
@@ -1318,6 +1346,13 @@ public final class MailPrintListener extends MessageCountAdapter {
                 } else {
                     rejectedReason =
                             localize("user-msg-file-denied-unavailable");
+                }
+            } finally {
+                final boolean detainEMLFile = (detainEnum == OnOffEnum.ON)
+                        || (isDocContentPrintException
+                                && detainEnum == OnOffEnum.AUTO);
+                if (!detainEMLFile) {
+                    fileEMLTemp.delete();
                 }
             }
 
@@ -1352,8 +1387,7 @@ public final class MailPrintListener extends MessageCountAdapter {
             this.sendEmail(originatorEmail, mailSubject,
                     AdjectiveEnum.REJECTED.uiText(locale), mailContent);
         }
-
-        return rejectedReason == null;
+        return !isDocContentPrintException;
     }
 
     /**

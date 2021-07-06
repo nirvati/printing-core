@@ -86,7 +86,7 @@ public abstract class AbstractPdfRepair extends AbstractFileConverter
 
         builder.append(File.separator)
                 .append(FilenameUtils.getBaseName(fileIn.getAbsolutePath()))
-                .append(this.getUniqueFileNamePfx())
+                .append(this.getUniqueFileNamePfx()).append(".")
                 .append(DocContent.getFileExtension(DocContentTypeEnum.PDF));
 
         return new File(builder.toString());

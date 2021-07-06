@@ -1,5 +1,5 @@
 /*
- * This file is part of the SavaPage project <http://savapage.org>.
+ * This file is part of the SavaPage project <https://www.savapage.org>.
  * Copyright (c) 2020 Datraverse B.V.
  * Author: Rijk Ravestein.
  *
@@ -17,7 +17,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
@@ -43,6 +43,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.savapage.core.services.helpers.email.EMailConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,9 +70,11 @@ public final class EMLToHtml implements IStreamConverter {
     private static final String CHARSET_NAME_UTF_8 = "utf-8";
 
     /** */
-    private static final String MIME_TYPE_TEXT_PLAIN = "text/plain";
+    private static final String MIME_TYPE_TEXT_PLAIN =
+            MimeTypeEnum.TEXT_PLAIN.getWord();
     /** */
-    private static final String MIME_TYPE_TEXT_HTML = "text/html";
+    private static final String MIME_TYPE_TEXT_HTML =
+            MimeTypeEnum.TEXT_HTML.getWord();
 
     /** */
     private static final String MIME_SUBTYPE_ALL = "*";
@@ -80,10 +83,12 @@ public final class EMLToHtml implements IStreamConverter {
     private static final String MIME_TYPE_IMAGE = "image";
 
     /** */
-    private static final String MIME_TYPE_MULTIPART = "multipart";
+    private static final String MIME_TYPE_MULTIPART =
+            EMailConstants.MIME_TYPE_MULTIPART;
 
     /** */
-    private static final String MIME_HEADER_NAME_CONTENT_ID = "Content-Id";
+    private static final String MIME_HEADER_NAME_CONTENT_ID =
+            EMailConstants.MIME_HEADER_NAME_CONTENT_ID;
 
     /** */
     private static final Pattern PATTERN_IMG_CID_HTML =
@@ -103,12 +108,13 @@ public final class EMLToHtml implements IStreamConverter {
     private static final String HTML_TEXT_PLAIN_FONT_SIZE = "12pt";
 
     /**
-     * HTML String format for text/plain.
+     * HTML String format for text/plain. "text-indent: 0px;" is needed to get
+     * straight left-side alignment in {@link HtmlToPdf}.
      */
     private static final String HTML_TEXT_PLAIN_WRAPPER_FORMAT =
             "<!DOCTYPE html>" //
                     + "<html><head>" //
-                    + "<style>body{font-size: %s;}</style>" //
+                    + "<style>body{font-size: %s;text-indent: 0px;}</style>" //
                     + "<meta charset=\"%s\">" //
                     + "<title>email</title></head>" //
                     + "<body>%s</body></html>";
@@ -208,8 +214,16 @@ public final class EMLToHtml implements IStreamConverter {
             /*
              * Embed text/plain into HTML.
              */
-            htmlBody = "<div style=\"white-space: pre-wrap\">"
-                    + htmlBody.replace("\n", "<br>").replace("\r", "")
+            htmlBody = htmlBody//
+                    // .replace("'", "&#39;").replace("\"", "&quot;")
+                    .replace("&", "&amp;").replace("<", "&lt;")
+                    .replace(">", "&gt;");
+
+            htmlBody = "<div style=\"" //
+                    + "text-indent: 0px;"
+                    // + "white-space: pre-wrap" //
+                    + "\">" //
+                    + htmlBody.replace("\n", "<br>").replace("\r", "") //
                     + "</div>";
 
             htmlBody = String.format(HTML_TEXT_PLAIN_WRAPPER_FORMAT,
@@ -252,6 +266,18 @@ public final class EMLToHtml implements IStreamConverter {
     }
 
     /**
+     * @param part
+     *            MIME part
+     * @return {@code true} if part is an inline image.
+     * @throws MessagingException
+     */
+    public static boolean isInlineImage(final Part part)
+            throws MessagingException {
+        return part.isMimeType(MIME_TYPE_IMAGE + "/" + MIME_SUBTYPE_ALL)
+                && part.getHeader(MIME_HEADER_NAME_CONTENT_ID) != null;
+    }
+
+    /**
      * Collects all inline images by Content-Id.
      *
      * @param message
@@ -260,6 +286,7 @@ public final class EMLToHtml implements IStreamConverter {
      * @throws Exception
      */
     private static Map<String, MimeObjectWrapper<String>>
+
             collectInlineImages(final MimeMessage message) throws Exception {
 
         final HashMap<String, MimeObjectWrapper<String>> result =
@@ -270,9 +297,7 @@ public final class EMLToHtml implements IStreamConverter {
             public void process(final Part part, final int depth)
                     throws Exception {
 
-                if (part.isMimeType(MIME_TYPE_IMAGE + "/" + MIME_SUBTYPE_ALL)
-                        && part.getHeader(
-                                MIME_HEADER_NAME_CONTENT_ID) != null) {
+                if (isInlineImage(part)) {
 
                     final String id =
                             part.getHeader(MIME_HEADER_NAME_CONTENT_ID)[0];
@@ -313,7 +338,8 @@ public final class EMLToHtml implements IStreamConverter {
             collectBodyPart(final MimeMessage message) throws Exception {
 
         final MimeObjectWrapper<String> result = new MimeObjectWrapper<String>(
-                "", new ContentType("text/plain; charset=\"utf-8\""));
+                "", new ContentType(MIME_TYPE_TEXT_PLAIN + "; charset=\""
+                        + CHARSET_NAME_UTF_8 + "\""));
 
         processMimePart(message, 0, new MimePartProcessor() {
 

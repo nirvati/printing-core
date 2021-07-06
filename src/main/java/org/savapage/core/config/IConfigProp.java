@@ -74,6 +74,7 @@ import org.savapage.core.services.helpers.DocLogScopeEnum;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PrintScalingEnum;
 import org.savapage.core.services.helpers.UserAuthModeEnum;
+import org.savapage.core.system.SystemInfo;
 import org.savapage.core.util.Messages;
 
 /**
@@ -1343,8 +1344,8 @@ public interface IConfigProp {
                 "print.imap.folder.trash", "Trash", API_UPDATABLE_OFF),
 
         /**
-        *
-        */
+         *
+         */
         PRINT_IMAP_TRASH_FOLDER_ENABLE(//
                 "print.imap.folder.trash.enable", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
@@ -1376,6 +1377,15 @@ public interface IConfigProp {
                 IMAP_MAX_FILES_V_DEFAULT.toString(), API_UPDATABLE_ON),
 
         /**
+         * Detain EML file of message body content in the JVM Temporary Files
+         * folder. OFF = never detain (default), ON = always detain, AUTO =
+         * detain when EML to HTML to PDF produces errors messages.
+         */
+        PRINT_IMAP_CONTENT_EML_DETAIN(//
+                "print-imap.content.eml.detain", ON_OFF_ENUM_VALIDATOR,
+                OnOffEnum.OFF.toString(), API_UPDATABLE_ON),
+
+        /**
          *
          */
         PRINT_IMAP_TICKET_ENABLE(//
@@ -1393,6 +1403,13 @@ public interface IConfigProp {
         PRINT_IMAP_TICKET_INCLUDE_KNOWN_USERS(//
                 "print.imap.ticket.include-known-users", BOOLEAN_VALIDATOR,
                 V_NO, API_UPDATABLE_ON),
+
+        /**
+         *
+         */
+        PRINT_IMAP_TICKET_NO_FILES_CONTENT_ENABLE(//
+                "print.imap.ticket.no-files-content.enable", BOOLEAN_VALIDATOR,
+                V_YES, API_UPDATABLE_ON),
 
         /**
          * Send Mail Print ticket email notification with content-type as
@@ -2638,6 +2655,13 @@ public interface IConfigProp {
                 "system.host.cmd.pdftocairo.img.strategy",
                 new EnumValidator<>(Pdf2ImgCairoCmd.Strategy.class),
                 Pdf2ImgCairoCmd.Strategy.AUTO.toString(), API_UPDATABLE_ON),
+
+        /**
+         * Enable {@link SystemInfo.Command#WKHTMLTOPDF}.
+         */
+        SYS_CMD_WKHTMLTOPDF_ENABLE("system.cmd.wkhtmltopdf.enable",
+                BOOLEAN_VALIDATOR, V_YES),
+
         /**
          *
          */

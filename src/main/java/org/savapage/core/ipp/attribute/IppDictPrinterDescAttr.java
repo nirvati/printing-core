@@ -24,6 +24,7 @@
  */
 package org.savapage.core.ipp.attribute;
 
+import org.savapage.core.doc.MimeTypeEnum;
 import org.savapage.core.ipp.attribute.syntax.IppBoolean;
 import org.savapage.core.ipp.attribute.syntax.IppCharset;
 import org.savapage.core.ipp.attribute.syntax.IppDateTime;
@@ -68,13 +69,13 @@ public final class IppDictPrinterDescAttr extends AbstractIppDict {
     /**
      * The document format is used by Linux.
      */
-    public static final String DOCUMENT_FORMAT_PDF = "application/pdf";
-
+    public static final String DOCUMENT_FORMAT_PDF =
+            MimeTypeEnum.APPLICATION_PDF.getWord();
     /**
      * The document format is used by Windows.
      */
     public static final String DOCUMENT_FORMAT_POSTSCRIPT =
-            "application/postscript";
+            MimeTypeEnum.APPLICATION_POSTSCRIPT.getWord();
 
     /**
      * 'idle': Indicates that new jobs can start processing without waiting.

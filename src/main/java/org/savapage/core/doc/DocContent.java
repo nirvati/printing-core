@@ -152,7 +152,8 @@ public final class DocContent {
     /**
      *
      */
-    public static final String MIMETYPE_PDF = "application/pdf";
+    public static final String MIMETYPE_PDF =
+            MimeTypeEnum.APPLICATION_PDF.getWord();
 
     /**
      * <b>Not</b> registered by IANA (yet): internal use for now.
@@ -161,7 +162,8 @@ public final class DocContent {
             "application/x-pdf+pgp-signature";
 
     /** */
-    public static final String MIMETYPE_POSTSCRIPT = "application/postscript";
+    public static final String MIMETYPE_POSTSCRIPT =
+            MimeTypeEnum.APPLICATION_POSTSCRIPT.getWord();
 
     /**
      * @param hex
@@ -223,7 +225,8 @@ public final class DocContent {
                 new String[] { "message/rfc822", "application/octet-stream" },
                 new String[] { "eml" });
 
-        init(DocContentTypeEnum.HTML, new String[] { "text/html" },
+        init(DocContentTypeEnum.HTML,
+                new String[] { MimeTypeEnum.TEXT_HTML.getWord() },
                 new String[] { "htm", "html" });
 
         init(DocContentTypeEnum.JPEG,
@@ -251,7 +254,7 @@ public final class DocContent {
         init(DocContentTypeEnum.TIFF, new String[] { "image/tiff" },
                 new String[] { "tiff", "tif" });
 
-        init(DocContentTypeEnum.TXT, "text/plain", "txt");
+        init(DocContentTypeEnum.TXT, MimeTypeEnum.TEXT_PLAIN.getWord(), "txt");
 
         init(DocContentTypeEnum.PWG, "image/pwg-raster", "pwg");
         init(DocContentTypeEnum.URF, "image/urf", "urf");

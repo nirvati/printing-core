@@ -990,7 +990,11 @@ public final class DocContentPrintProcessor {
 
                 // If available, file converter is preferred.
                 fileConverter = DocContent.createPdfFileConverter(inputType);
-                if (fileConverter != null) {
+
+                if (fileConverter == null) {
+                    streamConverter = DocContent.createPdfStreamConverter(
+                            inputType, preferredOutputFont);
+                } else {
                     saveBinary(istrContent, fostrContent);
                 }
 
@@ -1412,9 +1416,7 @@ public final class DocContentPrintProcessor {
         SpPdfPageProps pdfPageProps;
 
         try {
-
             pdfPageProps = SpPdfPageProps.create(tempPathPdf);
-
         } catch (PdfValidityException e) {
 
             if (ConfigManager.instance().isConfigValue(

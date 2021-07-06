@@ -28,6 +28,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.savapage.core.doc.MimeTypeEnum;
+
 /**
  *
  * @author Rijk Ravestein
@@ -72,7 +74,7 @@ public final class SOfficeDocFormatRegistryDefault
          * PDF
          */
         final SOfficeDocFormat pdf = createAddFormat("Portable Document Format",
-                "pdf", "application/pdf");
+                "pdf", MimeTypeEnum.APPLICATION_PDF.getWord());
 
         putStorePropFilterName(pdf, SOfficeDocFamilyEnum.TEXT,
                 "writer_pdf_Export");
@@ -113,8 +115,8 @@ public final class SOfficeDocFormatRegistryDefault
          * HTML is treated as Text when supplied as input, but as an output it
          * is also available for exporting Spreadsheet and Presentation formats.
          */
-        final SOfficeDocFormat html =
-                createAddFormat("HTML", "html", "text/html");
+        final SOfficeDocFormat html = createAddFormat("HTML", "html",
+                MimeTypeEnum.TEXT_HTML.getWord());
 
         html.setInputFamily(SOfficeDocFamilyEnum.TEXT);
 

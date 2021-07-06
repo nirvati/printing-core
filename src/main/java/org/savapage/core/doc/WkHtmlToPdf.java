@@ -31,6 +31,8 @@ import java.util.UUID;
 import javax.print.attribute.standard.MediaSizeName;
 
 import org.apache.commons.io.FileUtils;
+import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.system.SystemInfo;
 import org.savapage.core.system.SystemInfo.Command;
 import org.savapage.core.util.MediaUtils;
@@ -50,10 +52,11 @@ public final class WkHtmlToPdf extends AbstractDocFileConverter
     private static final String HTML_PAGE_SIZE_LETTER = "Letter";
 
     /**
-     * @return {@code true} if this convertor is available.
+     * @return {@code true} if this convertor is available and enabled.
      */
     public static boolean isAvailable() {
-        return SystemInfo.isWkHtmlToPdfInstalled();
+        return SystemInfo.isWkHtmlToPdfInstalled() && ConfigManager.instance()
+                .isConfigValue(Key.SYS_CMD_WKHTMLTOPDF_ENABLE);
     }
 
     /** */

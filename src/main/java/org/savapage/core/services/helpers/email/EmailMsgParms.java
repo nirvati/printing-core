@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.activation.DataSource;
 
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.doc.MimeTypeEnum;
 import org.savapage.core.template.email.EmailRenderResult;
 import org.savapage.core.template.email.EmailStationary;
 import org.savapage.core.template.email.EmailTemplateMixin;
@@ -48,12 +49,14 @@ public final class EmailMsgParms {
     /**
      * HTML content.
      */
-    private static final String CONTENT_TYPE_HTML = "text/html";
+    private static final String CONTENT_TYPE_HTML =
+            MimeTypeEnum.TEXT_HTML.getWord();
 
     /**
      * Plain text content.
      */
-    private static final String CONTENT_TYPE_PLAIN = "text/plain";
+    private static final String CONTENT_TYPE_PLAIN =
+            MimeTypeEnum.TEXT_PLAIN.getWord();
 
     /**
      * The email address.

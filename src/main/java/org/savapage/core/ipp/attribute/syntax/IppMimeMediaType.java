@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
+import org.savapage.core.doc.MimeTypeEnum;
 import org.savapage.core.ipp.encoding.IppValueTag;
 
 /**
@@ -45,7 +46,7 @@ public final class IppMimeMediaType extends AbstractIppAttrSyntax {
     /**
      * Portable Document Format.
      */
-    public static final String PDF = "application/pdf";
+    public static final String PDF = MimeTypeEnum.APPLICATION_PDF.getWord();
 
     /** */
     private static class SingletonHolder {

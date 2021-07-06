@@ -36,6 +36,7 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
 import javax.mail.internet.MimeUtility;
 
+import org.savapage.core.services.helpers.email.EMailConstants;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
 
 import com.sun.mail.util.CRLFOutputStream;
@@ -145,13 +146,16 @@ public abstract class PGPBodyPartProcessor {
 
                 // Now, let's update our own headers ...
                 // Content-type, but only if we don't already have one
-                if (mp.getHeader("Content-Type") == null) {
+                if (mp.getHeader(
+                        EMailConstants.MIME_HEADER_NAME_CONTENT_TYPE) == null) {
                     /*
                      * Pull out "filename" from Content-Disposition, and use
                      * that to set the "name" parameter. This is to satisfy
                      * older MUAs (DtMail, Roam and probably a bunch of others).
                      */
-                    String s = mp.getHeader("Content-Disposition", null);
+                    String s = mp.getHeader(
+                            EMailConstants.MIME_HEADER_NAME_CONTENT_DISPOSITION,
+                            null);
                     if (s != null) {
                         // Parse the header ..
                         ContentDisposition cd = new ContentDisposition(s);
@@ -161,15 +165,17 @@ public abstract class PGPBodyPartProcessor {
                             type = cType.toString();
                         }
                     }
-                    mp.setHeader("Content-Type", type);
+                    mp.setHeader(EMailConstants.MIME_HEADER_NAME_CONTENT_TYPE,
+                            type);
                 }
 
                 // Content-Transfer-Encoding, but only if we don't
                 // already have one
                 if (!composite // not allowed on composite parts
                         && (mp.getHeader(
-                                "Content-Transfer-Encoding") == null)) {
-                    mp.setHeader("Content-Transfer-Encoding",
+                                EMailConstants.MIME_HEADER_NAME_CONTENT_TRANSFER_ENCODING) == null)) {
+                    mp.setHeader(
+                            EMailConstants.MIME_HEADER_NAME_CONTENT_TRANSFER_ENCODING,
                             MimeUtility.getEncoding(dh));
                 }
             } catch (IOException e) {

@@ -66,6 +66,7 @@ import org.savapage.core.dao.UserEmailDao;
 import org.savapage.core.jpa.UserEmail;
 import org.savapage.core.services.EmailService;
 import org.savapage.core.services.ServiceContext;
+import org.savapage.core.services.helpers.email.EMailConstants;
 import org.savapage.core.services.helpers.email.EmailMsgParms;
 import org.savapage.core.util.FileSystemHelper;
 import org.savapage.core.util.InetUtils;
@@ -300,7 +301,8 @@ public final class EmailServiceImpl extends AbstractService
         // create and fill the first message part
         final MimeBodyPart mbp1 = new MimeBodyPart();
         mbp1.setText(msgParms.getBody());
-        mbp1.setHeader("Content-Type", msgParms.getContentType());
+        mbp1.setHeader(EMailConstants.MIME_HEADER_NAME_CONTENT_TYPE,
+                msgParms.getContentType());
 
         mp.addBodyPart(mbp1);
 

@@ -34,6 +34,7 @@ import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 
+import org.savapage.core.services.helpers.email.EMailConstants;
 import org.savapage.lib.pgp.PGPBaseException;
 import org.savapage.lib.pgp.PGPHashAlgorithmEnum;
 import org.savapage.lib.pgp.PGPHelper;
@@ -94,7 +95,7 @@ public final class PGPBodyPartSigner extends PGPBodyPartProcessor {
             signedPart.setContent(contentStreamSigned.toString(),
                     "application/pgp-signature");
             updateHeaders(signedPart);
-            signedPart.setHeader("Content-Type",
+            signedPart.setHeader(EMailConstants.MIME_HEADER_NAME_CONTENT_TYPE,
                     "application/pgp-signature; " + "name=signature.asc");
 
             this.setProcessedPart(signedPart);
