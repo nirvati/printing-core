@@ -173,7 +173,9 @@ public final class SystemInfo {
         /** */
         EMBED_ALL_FONTS("-dEmbedAllFonts=true"),
         /** */
-        STDOUT_TO_STDOUT("-sstdout=%stdout");
+        STDOUT_TO_STDOUT("-sstdout=%stdout"),
+        /** */
+        STDOUT_TO_DEV_NULL("-sstdout=/dev/null");
 
         /** */
         private final String arg;

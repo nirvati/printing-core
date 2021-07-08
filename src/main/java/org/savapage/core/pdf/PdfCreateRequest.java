@@ -98,6 +98,11 @@ public final class PdfCreateRequest {
      */
     private boolean grayscale;
 
+    /**
+     * {@code true} if PDF is to be rasterized.
+     */
+    private boolean rasterized;
+
     /** */
     private PdfPgpVerifyUrl verifyUrl;
 
@@ -213,6 +218,21 @@ public final class PdfCreateRequest {
      */
     public void setGrayscale(boolean grayscale) {
         this.grayscale = grayscale;
+    }
+
+    /**
+     * @return {@code true} if PDF is to be rasterized.
+     */
+    public boolean isRasterized() {
+        return rasterized;
+    }
+
+    /**
+     * @param rasterized
+     *            {@code true} if PDF is to be rasterized.
+     */
+    public void setRasterized(boolean rasterized) {
+        this.rasterized = rasterized;
     }
 
     /**

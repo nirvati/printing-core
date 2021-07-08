@@ -62,6 +62,7 @@ import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToAnnotatedURL;
 import org.savapage.core.doc.PdfToBooklet;
 import org.savapage.core.doc.PdfToGrayscale;
+import org.savapage.core.doc.PdfToRasterPdf;
 import org.savapage.core.doc.PdfToRotateAlignedPdf;
 import org.savapage.core.doc.SvgToPdf;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
@@ -188,6 +189,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
      * {@code true} if the created pdf is to be converted to grayscale onExit.
      */
     private boolean onExitConvertToGrayscale = false;
+
+    /**
+     * {@code true} if the created pdf is to be converted to rasterized PDF
+     * onExit.
+     */
+    private boolean onExitConvertToRaster = false;
 
     /**
      * {@code true} if PDF has to be repaired onExit.
@@ -506,6 +513,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     protected void onInit() {
 
         this.onExitConvertToGrayscale = this.isGrayscalePdf();
+        this.onExitConvertToRaster = this.isRasterizedPdf();
         this.onExitBookletPageOrder = this.isBookletPageOrder();
         this.onExitRepairPdf = this.isRepairPdf();
 
@@ -517,9 +525,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         this.firstPageSeenAsLandscape = null;
 
-        this.isAnnotateUrls =
-                !this.isForPrinting() && !this.onExitConvertToGrayscale
-                        && !this.onExitBookletPageOrder;
+        this.isAnnotateUrls = !this.isForPrinting()
+                && !this.onExitConvertToRaster && !this.onExitBookletPageOrder;
 
         this.onExitAnnotateUrls = false;
         this.onExitStampEncryption = false;
@@ -546,10 +553,21 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onPdfGenerated(final File pdfFile) throws Exception {
 
-        if (this.onExitConvertToGrayscale) {
+        if (this.onExitConvertToRaster && this.onExitConvertToGrayscale) {
+            replaceWithConvertedPdf(pdfFile,
+                    new PdfToRasterPdf(PdfToRasterPdf.Raster.GRAYSCALE,
+                            PdfToRasterPdf.Resolution.DPI_150)
+                                    .convert(pdfFile));
+        } else if (this.onExitConvertToRaster) {
+            replaceWithConvertedPdf(pdfFile,
+                    new PdfToRasterPdf(PdfToRasterPdf.Raster.CMYK,
+                            PdfToRasterPdf.Resolution.DPI_150)
+                                    .convert(pdfFile));
+        } else if (this.onExitConvertToGrayscale) {
             replaceWithConvertedPdf(pdfFile,
                     new PdfToGrayscale().convert(pdfFile));
         }
+
         if (this.onExitRepairPdf) {
             replaceWithConvertedPdf(pdfFile, new PdfRepair().convert(pdfFile));
         }

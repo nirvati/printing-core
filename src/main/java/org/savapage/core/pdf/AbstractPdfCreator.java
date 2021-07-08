@@ -132,6 +132,11 @@ public abstract class AbstractPdfCreator {
     private boolean isGrayscalePdf = false;
 
     /**
+     * {@code true} if PDF is to be rasterized.
+     */
+    private boolean isRasterizedPdf = false;
+
+    /**
      * {@code true} if PDF with page porder for 2-up duplex booklet is to be
      * created.
      */
@@ -191,11 +196,17 @@ public abstract class AbstractPdfCreator {
     }
 
     /**
-     *
-     * @return {@code true} when Grayscale PDF is to be created.
+     * @return {@code true} if Grayscale PDF is to be created.
      */
     protected final boolean isGrayscalePdf() {
         return this.isGrayscalePdf;
+    }
+
+    /**
+     * @return {@code true} if PDF has to be rasterized.
+     */
+    protected final boolean isRasterizedPdf() {
+        return this.isRasterizedPdf;
     }
 
     /**
@@ -449,6 +460,7 @@ public abstract class AbstractPdfCreator {
         this.printNup = createReq.getPrintNup();
 
         this.isGrayscalePdf = createReq.isGrayscale();
+        this.isRasterizedPdf = createReq.isRasterized();
         this.isBookletPageOrder = createReq.isBookletPageOrder();
 
         this.isRepairPdf = createReq.isForPrinting() && ConfigManager.instance()

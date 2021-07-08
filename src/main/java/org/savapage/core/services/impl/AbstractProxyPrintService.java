@@ -3839,6 +3839,7 @@ public abstract class AbstractProxyPrintService extends AbstractService
             pdfRequest.setRemoveGraphics(request.isRemoveGraphics());
             pdfRequest.setEcoPdfShadow(request.isEcoPrintShadow());
             pdfRequest.setGrayscale(request.isConvertToGrayscale());
+            pdfRequest.setRasterized(false);
             pdfRequest.setBookletPageOrder(request.isLocalBooklet());
 
             pdfRequest.setApplyPdfProps(false);
