@@ -45,6 +45,25 @@ public class PdfProperties extends JsonAbstractBase {
         private Boolean copyForAccess = false;
         private Boolean fillin = false;
 
+        /**
+         * @return Allowed all.
+         */
+        public static PdfAllow createAllowAll() {
+
+            final PdfAllow obj = new PdfAllow();
+
+            obj.printing = true;
+            obj.degradedPrinting = true;
+            obj.modifyContents = true;
+            obj.modifyAnnotations = true;
+            obj.assembly = true;
+            obj.copy = true;
+            obj.copyForAccess = true;
+            obj.fillin = true;
+
+            return obj;
+        }
+
         public Boolean getPrinting() {
             return printing;
         }

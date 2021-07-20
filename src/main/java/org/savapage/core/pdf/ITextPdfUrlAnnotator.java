@@ -674,6 +674,7 @@ public final class ITextPdfUrlAnnotator implements TextExtractionStrategy {
                 // TODO
                 LOGGER.warn(String.format("%s [%s]",
                         e.getClass().getSimpleName(), e.getMessage()));
+                LOGGER.debug(e.getMessage(), e);
             }
 
             // Flush remaining text

@@ -24,8 +24,6 @@
  */
 package org.savapage.core.pdf;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.io.ByteArrayInputStream;
@@ -39,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -61,6 +58,8 @@ import org.savapage.core.doc.IDocFileConverter;
 import org.savapage.core.doc.PdfRepair;
 import org.savapage.core.doc.PdfToAnnotatedURL;
 import org.savapage.core.doc.PdfToBooklet;
+import org.savapage.core.doc.PdfToEncryptedPdf;
+import org.savapage.core.doc.PdfToFilterImagePdf;
 import org.savapage.core.doc.PdfToGrayscale;
 import org.savapage.core.doc.PdfToRasterPdf;
 import org.savapage.core.doc.PdfToRotateAlignedPdf;
@@ -74,25 +73,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.itextpdf.awt.geom.AffineTransform;
-import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.exceptions.InvalidPdfException;
 import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PRIndirectReference;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfCopy;
 import com.itextpdf.text.pdf.PdfDictionary;
 import com.itextpdf.text.pdf.PdfEncryptor;
-import com.itextpdf.text.pdf.PdfException;
 import com.itextpdf.text.pdf.PdfImportedPage;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfNumber;
-import com.itextpdf.text.pdf.PdfObject;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -176,7 +170,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     private boolean onExitAnnotateUrls = false;
 
     /** */
-    private boolean onExitStampEncryption = false;
+    private boolean isStampEncryption = false;
 
     /** */
     private PdfProperties.PdfAllow pdfAllow;
@@ -529,7 +523,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
                 && !this.onExitConvertToRaster && !this.onExitBookletPageOrder;
 
         this.onExitAnnotateUrls = false;
-        this.onExitStampEncryption = false;
+        this.isStampEncryption = false;
 
         try {
             final OutputStream ostr =
@@ -594,7 +588,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
             final PdfToAnnotatedURL converter;
 
-            if (this.onExitStampEncryption) {
+            if (this.isStampEncryption) {
                 converter = new PdfToAnnotatedURL(this.pdfAllow,
                         this.pdfOwnerPass, this.pdfUserPass);
             } else {
@@ -602,6 +596,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             }
 
             replaceWithConvertedPdf(pdfFile, converter.convert(pdfFile));
+
+        } else if (this.isStampEncryption) {
+
+            replaceWithConvertedPdf(pdfFile,
+                    new PdfToEncryptedPdf(this.pdfAllow, this.pdfOwnerPass,
+                            this.pdfUserPass).convert(pdfFile));
         }
     }
 
@@ -829,6 +829,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
         }
 
         this.targetDocument = null;
+
+        if (this.isRemoveGraphics) {
+            final File generatedPdf = new File(this.targetPdfCopyFilePath);
+            replaceWithConvertedPdf(generatedPdf,
+                    new PdfToFilterImagePdf().convert(generatedPdf));
+        }
     }
 
     @Override
@@ -853,22 +859,10 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             final PdfProperties.PdfAllow allow, final String ownerPass,
             final String userPass) {
 
-        final int iPermissions = ITextHelperV5.getPermissions(allow);
-
-        this.onExitStampEncryption = this.onExitAnnotateUrls;
-
-        if (this.onExitStampEncryption) {
-            this.pdfAllow = allow;
-            this.pdfOwnerPass = ownerPass;
-            this.pdfUserPass = userPass;
-        } else {
-            try {
-                this.targetStamper.setEncryption(true, userPass, ownerPass,
-                        iPermissions);
-            } catch (DocumentException e) {
-                throw new SpException(e);
-            }
-        }
+        this.isStampEncryption = true;
+        this.pdfAllow = allow;
+        this.pdfOwnerPass = ownerPass;
+        this.pdfUserPass = userPass;
     }
 
     @Override
@@ -961,8 +955,8 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     @Override
     protected void onInitStamp() throws Exception {
         this.readerWlk = createPdfReader(this.targetPdfCopyFilePath);
-        this.targetStamper =
-                new PdfStamper(this.readerWlk, new FileOutputStream(pdfFile));
+        this.targetStamper = new PdfStamper(this.readerWlk,
+                new FileOutputStream(this.pdfFile));
     }
 
     /**
@@ -981,16 +975,12 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
     protected void onExitStamp(final Map<Integer, String> pageOverlay)
             throws Exception {
 
-        if (this.isRemoveGraphics) {
-            minifyPdfImages();
-        }
-
         if (!pageOverlay.isEmpty()) {
             this.applyOverlay(pageOverlay);
         }
 
         if (this.isApplyLetterhead()) {
-            applyLetterhead();
+            this.applyLetterhead();
         }
 
         if (this.isAnnotateUrls && !this.onExitAnnotateUrls) {
@@ -1090,7 +1080,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
 
         PdfImportedPage letterheadPage = null;
 
-        nLetterheadPageMax = myLetterheadJob.getPages();
+        nLetterheadPageMax = this.myLetterheadJob.getPages();
 
         /*
          * Iterate over document's pages.
@@ -1131,7 +1121,7 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
              */
             final PdfContentByte contentByte;
 
-            if (myLetterheadJob.getForeground()) {
+            if (this.myLetterheadJob.getForeground()) {
                 contentByte = this.targetStamper.getOverContent(nPageWlk);
             } else {
                 contentByte = this.targetStamper.getUnderContent(nPageWlk);
@@ -1215,98 +1205,6 @@ public final class ITextPdfCreator extends AbstractPdfCreator {
             // f : tY (translate, moves f pixels in y-direction)
             // ----------------------------------------------------
             contentByte.addTemplate(letterheadPage, sX, 0, 0, sY, tX, tY);
-        }
-    }
-
-    /**
-     *
-     * Creates a one-pixel white image.
-     * <p>
-     * See
-     * <a href="http://www.javamex.com/tutorials/graphics/bufferedimage.shtml">
-     * this tutorial</a<.
-     * </p>
-     *
-     * @throws IOException
-     * @throws BadElementException
-     */
-    private static Image createOnePixel()
-            throws BadElementException, IOException {
-
-        final BufferedImage img =
-                new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
-        img.setRGB(0, 0, Color.WHITE.getRGB());
-
-        final java.awt.Image awtImg = java.awt.Toolkit.getDefaultToolkit()
-                .createImage(img.getSource());
-
-        return com.itextpdf.text.Image.getInstance(awtImg, null);
-    }
-
-    /**
-     *
-     * @throws PdfException
-     * @throws DocumentException
-     * @throws IOException
-     */
-    private void minifyPdfImages()
-            throws PdfException, DocumentException, IOException {
-
-        final PdfReader pdf = this.readerWlk;
-        final int n = pdf.getNumberOfPages();
-        final PdfStamper stp = this.targetStamper;
-
-        final Image imgPixel = createOnePixel();
-
-        for (int j = 0; j < n; j++) {
-
-            final PdfWriter writer = stp.getWriter();
-
-            final PdfDictionary pg = pdf.getPageN(j + 1);
-
-            final PdfDictionary res = (PdfDictionary) PdfReader
-                    .getPdfObject(pg.get(PdfName.RESOURCES));
-
-            final PdfDictionary xobj = (PdfDictionary) PdfReader
-                    .getPdfObject(res.get(PdfName.XOBJECT));
-
-            if (xobj == null) {
-                continue;
-            }
-
-            for (final Iterator<PdfName> it = xobj.getKeys().iterator(); it
-                    .hasNext();) {
-
-                final PdfObject obj = xobj.get(it.next());
-
-                if (obj.isIndirect()) {
-
-                    final PdfDictionary tg =
-                            (PdfDictionary) PdfReader.getPdfObject(obj);
-
-                    if (tg != null) {
-
-                        final PdfName type = (PdfName) PdfReader
-                                .getPdfObject(tg.get(PdfName.SUBTYPE));
-
-                        if (PdfName.IMAGE.equals(type)) {
-
-                            PdfReader.killIndirect(obj);
-                            final Image maskImage = imgPixel.getImageMask();
-
-                            if (maskImage != null) {
-                                writer.addDirectImageSimple(maskImage);
-                            } else {
-                                // When this happens, the original image is
-                                // still visible.
-                            }
-
-                            writer.addDirectImageSimple(imgPixel,
-                                    (PRIndirectReference) obj);
-                        }
-                    }
-                }
-            }
         }
     }
 

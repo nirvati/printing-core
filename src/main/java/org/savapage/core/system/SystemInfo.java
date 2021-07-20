@@ -171,7 +171,19 @@ public final class SystemInfo {
     public enum ArgumentGS {
 
         /** */
+        BATCH("-dBATCH"),
+        /** */
+        DEVICE_PDFWRITE("-sDEVICE=pdfwrite"),
+        /** */
         EMBED_ALL_FONTS("-dEmbedAllFonts=true"),
+        /** */
+        FILTERIMAGE("-dFILTERIMAGE"),
+        /** */
+        FILTERTEXT("-dFILTERTEXT"),
+        /** */
+        FILTERVECTOR("-dFILTERVECTOR"),
+        /** */
+        NOPAUSE("-dNOPAUSE"),
         /** */
         STDOUT_TO_STDOUT("-sstdout=%stdout"),
         /** */

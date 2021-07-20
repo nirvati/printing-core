@@ -61,6 +61,7 @@ import org.savapage.core.jpa.DocOut;
 import org.savapage.core.jpa.PdfOut;
 import org.savapage.core.jpa.User;
 import org.savapage.core.json.PdfProperties;
+import org.savapage.core.json.PdfProperties.PdfAllow;
 import org.savapage.core.json.PdfProperties.PdfPasswords;
 import org.savapage.core.print.proxy.BasePrintSheetCalcParms;
 import org.savapage.core.services.AccessControlService;
@@ -402,7 +403,6 @@ public abstract class AbstractPdfCreator {
             PdfProperties propPdf);
 
     /**
-     *
      * @param propPdfAllow
      *            PDF allowed properties.
      * @param ownerPass
@@ -566,6 +566,7 @@ public abstract class AbstractPdfCreator {
         final boolean isPgpSigned;
 
         boolean hasEncryption = false;
+        PdfAllow pdfAllow = null;
         String ownerPass = null;
         String userPass = null;
 
@@ -799,6 +800,12 @@ public abstract class AbstractPdfCreator {
                     encryption = "";
                 }
 
+                if (encryption.isEmpty()) {
+                    pdfAllow = PdfAllow.createAllowAll();
+                } else {
+                    pdfAllow = propPdf.getAllow();
+                }
+
                 hasEncryption = !(ownerPass.isEmpty() && userPass.isEmpty()
                         && encryption.isEmpty());
 
@@ -810,8 +817,8 @@ public abstract class AbstractPdfCreator {
                  * PDF encryption must be part of last PDF (PGP sign) action.
                  */
                 if (hasEncryption && !isPgpSigned) {
-                    this.onStampEncryptionForExport(propPdf.getAllow(),
-                            ownerPass, userPass);
+                    this.onStampEncryptionForExport(pdfAllow, ownerPass,
+                            userPass);
                 }
 
                 if (docOut != null) {
@@ -852,13 +859,13 @@ public abstract class AbstractPdfCreator {
             this.onProcessFinally();
         }
 
-        final File generatedPdf = new File(pdfFile);
+        final File generatedPdf = new File(this.pdfFile);
 
         try {
             this.onPdfGenerated(generatedPdf);
             if (isPgpSigned) {
                 onPgpSign(generatedPdf, this.verifyUrl, this.user,
-                        hasEncryption, propPdf.getAllow(), ownerPass, userPass);
+                        hasEncryption, pdfAllow, ownerPass, userPass);
             }
         } catch (Exception e) {
             throw new SpException(e.getMessage(), e);
