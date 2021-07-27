@@ -29,8 +29,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -197,15 +199,19 @@ public final class EMLToHtml implements IStreamConverter {
                 bodyWrapper.getContentType().getParameter("charset");
 
         //
-        final Map<String, MimeObjectWrapper<String>> inlineImageMap =
-                collectInlineImages(message);
+        final Map<String, MimeObjectWrapper<String>> inlineImages =
+                new HashMap<String, MimeObjectWrapper<String>>();
+        final List<MimeObjectWrapper<String>> attachedImages =
+                new ArrayList<>();
+
+        collectImages(message, inlineImages, attachedImages);
 
         String htmlBody = bodyWrapper.getObject();
 
         if (bodyWrapper.getContentType().match(MIME_TYPE_TEXT_HTML)) {
 
-            if (inlineImageMap.size() > 0) {
-                htmlBody = applyInlineImageMapHtml(htmlBody, inlineImageMap);
+            if (!inlineImages.isEmpty()) {
+                htmlBody = applyInlineImageMapHtml(htmlBody, inlineImages);
             }
 
             htmlBody = applyCharset(htmlBody, charsetName);
@@ -229,9 +235,13 @@ public final class EMLToHtml implements IStreamConverter {
             htmlBody = String.format(HTML_TEXT_PLAIN_WRAPPER_FORMAT,
                     HTML_TEXT_PLAIN_FONT_SIZE, charsetName, htmlBody);
 
-            if (inlineImageMap.size() > 0) {
-                htmlBody = applyInlineImageMapPlain(htmlBody, inlineImageMap);
+            if (!inlineImages.isEmpty()) {
+                htmlBody = applyInlineImageMapPlain(htmlBody, inlineImages);
             }
+        }
+
+        if (!attachedImages.isEmpty()) {
+            htmlBody = applyAttachedImages(htmlBody, attachedImages);
         }
 
         ostrHtml.write(htmlBody.getBytes());
@@ -268,39 +278,63 @@ public final class EMLToHtml implements IStreamConverter {
     /**
      * @param part
      *            MIME part
+     * @return {@code true} if part is an image.
+     * @throws MessagingException
+     */
+    private static boolean isImage(final Part part) throws MessagingException {
+        return part.isMimeType(MIME_TYPE_IMAGE + "/" + MIME_SUBTYPE_ALL);
+    }
+
+    /**
+     * @param part
+     *            MIME part
      * @return {@code true} if part is an inline image.
      * @throws MessagingException
      */
     public static boolean isInlineImage(final Part part)
             throws MessagingException {
-        return part.isMimeType(MIME_TYPE_IMAGE + "/" + MIME_SUBTYPE_ALL)
-                && part.getHeader(MIME_HEADER_NAME_CONTENT_ID) != null;
+        return isImage(part)
+                && part.getHeader(MIME_HEADER_NAME_CONTENT_ID) != null
+                && !Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition());
     }
 
     /**
-     * Collects all inline images by Content-Id.
+     * @param part
+     *            MIME part
+     * @return {@code true} if part is an attached image.
+     * @throws MessagingException
+     */
+    private static boolean isAttachedImage(final Part part)
+            throws MessagingException {
+        return isImage(part)
+                && Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition());
+    }
+
+    /**
+     * Collects attached images and inline images by Content-Id.
      *
      * @param message
      *            MIME message.
-     * @return {@code HashMap<Content-Id, <Base64Image, ContentType>>}
+     * @param inlineImages
+     *            {@code Map<Content-Id, <Base64Image, ContentType>>}
+     * @param attachedImages
+     *            {@code List<<Base64Image, ContentType>>}
      * @throws Exception
      */
-    private static Map<String, MimeObjectWrapper<String>>
-
-            collectInlineImages(final MimeMessage message) throws Exception {
-
-        final HashMap<String, MimeObjectWrapper<String>> result =
-                new HashMap<String, MimeObjectWrapper<String>>();
+    private static void collectImages(final MimeMessage message,
+            final Map<String, MimeObjectWrapper<String>> inlineImages,
+            final List<MimeObjectWrapper<String>> attachedImages)
+            throws Exception {
 
         processMimePart(message, 0, new MimePartProcessor() {
             @Override
             public void process(final Part part, final int depth)
                     throws Exception {
 
-                if (isInlineImage(part)) {
+                final boolean attachedImage = isAttachedImage(part);
+                final boolean inlineImage = isInlineImage(part);
 
-                    final String id =
-                            part.getHeader(MIME_HEADER_NAME_CONTENT_ID)[0];
+                if (attachedImage || inlineImage) {
 
                     final BASE64DecoderStream b64ds =
                             (BASE64DecoderStream) part.getContent();
@@ -313,16 +347,22 @@ public final class EMLToHtml implements IStreamConverter {
                         final String imageBase64 = new String(Base64
                                 .getEncoder().encode(bostr.toByteArray()));
 
-                        result.put(id, new MimeObjectWrapper<String>(
-                                imageBase64,
-                                new ContentType(part.getContentType())));
-                    }
+                        final MimeObjectWrapper wrapper =
+                                new MimeObjectWrapper<String>(imageBase64,
+                                        new ContentType(part.getContentType()));
 
+                        if (inlineImage) {
+                            final String id = part
+                                    .getHeader(MIME_HEADER_NAME_CONTENT_ID)[0];
+                            inlineImages.put(id, wrapper);
+                        } else {
+                            attachedImages.add(wrapper);
+                        }
+                    }
                 }
             }
         });
 
-        return result;
     }
 
     /**
@@ -511,6 +551,38 @@ public final class EMLToHtml implements IStreamConverter {
                         + ";base64," + base64Wrapper.getObject() + "\" />";
             }
         });
+    }
+
+    /**
+     * Applies the attached images to the HTML wrapper of the text body, by
+     * adding each image with {@code <img src=\"data:image ...>} syntax.
+     *
+     * @param htmlBody
+     *            HTML before replacement.
+     * @param attachedImages
+     *            Attached images.
+     * @return HTML after replacement.
+     * @throws Exception
+     */
+    private static String applyAttachedImages(final String htmlBody,
+            final List<MimeObjectWrapper<String>> attachedImages)
+            throws Exception {
+
+        final StringBuilder html = new StringBuilder();
+
+        for (final MimeObjectWrapper<String> wrapper : attachedImages) {
+            if (html.length() > 0) {
+                html.append("<br/>");
+            }
+            html.append("<img style=\"width: 100%;\" src=\"data:"
+                    + wrapper.getContentType().getBaseType() + ";base64,"
+                    + wrapper.getObject() + "\" />");
+        }
+        if (html.length() > 0) {
+            html.append("</body>");
+        }
+
+        return htmlBody.replace("</body>", html.toString());
     }
 
     /**
