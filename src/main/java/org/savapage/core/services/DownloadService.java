@@ -24,7 +24,6 @@
  */
 package org.savapage.core.services;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
@@ -39,24 +38,6 @@ import org.savapage.core.jpa.User;
  *
  */
 public interface DownloadService extends StatefulService {
-
-    /**
-     * Downloads source to target.
-     *
-     * @param source
-     *            URL source.
-     * @param target
-     *            File target.
-     * @param maxMB
-     *            Max MB to download.
-     * @return The HTTP content type. {@code null} when unknown.
-     * @throws IOException
-     *             If IO error.
-     * @throws LimitExceededException
-     *             If download exceeded max MB.
-     */
-    String download(URL source, File target, int maxMB)
-            throws IOException, LimitExceededException;
 
     /**
      * Download URL source to user SafePages.

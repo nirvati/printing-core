@@ -577,6 +577,9 @@ public final class QueueServiceImpl extends AbstractService
                 if (contentType != null
                         && DocContent.isSupported(contentType)) {
 
+                    processor.setPdfProvidedIsClean(
+                            printReq.isContentTypePdfClean());
+
                     processor.process(istrContent, extSupplierInfo, protocol,
                             originatorEmail, contentType, preferredOutputFont);
 

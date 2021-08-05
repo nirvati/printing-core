@@ -30,8 +30,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.UUID;
 
+import javax.mail.internet.ContentType;
+import javax.mail.internet.ParseException;
 import javax.naming.LimitExceededException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,18 +47,23 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.savapage.core.SpException;
 import org.savapage.core.UnavailableException;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.dao.enums.ReservedIppQueueEnum;
 import org.savapage.core.doc.DocContent;
+import org.savapage.core.doc.DocContentToPdfException;
 import org.savapage.core.doc.DocContentTypeEnum;
+import org.savapage.core.doc.WkHtmlToPdf;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
+import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.print.server.DocContentPrintException;
 import org.savapage.core.print.server.DocContentPrintReq;
 import org.savapage.core.services.DownloadService;
+import org.savapage.core.services.ServiceContext;
 import org.savapage.core.util.IOHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,6 +88,7 @@ public final class DownloadServiceImpl extends AbstractService
      */
     private CloseableHttpClient httpclientApache = null;
 
+    /** */
     private PoolingHttpClientConnectionManager connManager = null;
 
     @Override
@@ -118,21 +127,47 @@ public final class DownloadServiceImpl extends AbstractService
      */
     private static RequestConfig buildRequestConfig() {
 
-        final ConfigManager cm = ConfigManager.instance();
-
-        final int connectTimeout =
-                cm.getConfigInt(IConfigProp.Key.DOWNLOAD_CONNECT_TIMEOUT_MSEC);
-        final int socketTimeout =
-                cm.getConfigInt(IConfigProp.Key.DOWNLOAD_SOCKET_TIMEOUT_MSEC);
+        final int connectTimeout = getConnectTimeout();
+        final int socketTimeout = getSocketTimeout();
 
         return RequestConfig.custom().setConnectTimeout(connectTimeout)
                 .setSocketTimeout(socketTimeout)
                 .setConnectionRequestTimeout(socketTimeout).build();
     }
 
-    @Override
-    public String download(final URL source, final File target, final int maxMB)
-            throws IOException, LimitExceededException {
+    /**
+     * @return Connect timeout in milliseconds.
+     */
+    private static int getConnectTimeout() {
+        return ConfigManager.instance()
+                .getConfigInt(IConfigProp.Key.DOWNLOAD_CONNECT_TIMEOUT_MSEC);
+    }
+
+    /**
+     * @return Socket (read) timeout in milliseconds.
+     */
+    private static int getSocketTimeout() {
+        return ConfigManager.instance()
+                .getConfigInt(IConfigProp.Key.DOWNLOAD_SOCKET_TIMEOUT_MSEC);
+    }
+
+    /**
+     * Downloads source to target.
+     *
+     * @param source
+     *            URL source.
+     * @param target
+     *            File target.
+     * @param maxMB
+     *            Max MB to download.
+     * @return The HTTP content type. {@code null} when unknown.
+     * @throws IOException
+     *             If IO error.
+     * @throws LimitExceededException
+     *             If download exceeded max MB.
+     */
+    private String download(final URL source, final File target,
+            final int maxMB) throws IOException, LimitExceededException {
 
         final HttpGet request = new HttpGet(source.toString());
         request.setConfig(buildRequestConfig());
@@ -204,28 +239,61 @@ public final class DownloadServiceImpl extends AbstractService
         final File target = createUniqueTempFile();
 
         try {
-            final StringBuilder name = new StringBuilder();
-            name.append(source.getProtocol()).append('-')
+            final StringBuilder nameBuilder = new StringBuilder();
+            nameBuilder.append(source.getProtocol()).append('-')
                     .append(source.getHost());
-            name.append(StringUtils.replaceChars(source.getPath(), '/', '-'));
-            name.append(StringUtils.replaceChars(StringUtils.replaceChars(
-                    StringUtils.defaultString(source.getQuery()), '?', '-'),
+            nameBuilder.append(
+                    StringUtils.replaceChars(source.getPath(), '/', '-'));
+            nameBuilder.append(StringUtils.replaceChars(StringUtils
+                    .replaceChars(StringUtils.defaultString(source.getQuery()),
+                            '?', '-'),
                     '&', '-'));
 
-            final String fileName = name.toString();
+            final String fileName = nameBuilder.toString();
+            final DocContentTypeEnum contentTypeFileName =
+                    DocContent.getContentTypeFromFile(fileName);
 
-            final String contentTypeReturn =
-                    this.download(source, target, maxMB);
+            boolean isWkHtmlToPdf = false;
 
-            DocContentTypeEnum contentType =
-                    DocContent.getContentTypeFromMime(contentTypeReturn);
+            if (WkHtmlToPdf.isAvailable()) {
+
+                DocContentTypeEnum contentTypeWk = contentTypeFileName;
+
+                if (contentTypeWk == null) {
+                    contentTypeWk = this.getContentType(source);
+                }
+                if (contentTypeWk == null) {
+                    throw new DocContentPrintException(PhraseEnum.NOT_FOUND
+                            .uiText(ServiceContext.getLocale()).toLowerCase());
+                }
+                if (contentTypeWk == DocContentTypeEnum.HTML) {
+                    final WkHtmlToPdf converter = new WkHtmlToPdf();
+                    try {
+                        converter.convert(source, target);
+                        isWkHtmlToPdf = true;
+                    } catch (DocContentToPdfException e) {
+                        throw new SpException(e);
+                    }
+                }
+            }
+
+            DocContentTypeEnum contentType;
+
+            if (isWkHtmlToPdf) {
+                contentType = DocContentTypeEnum.PDF;
+            } else {
+                final String contentTypeReturn =
+                        this.download(source, target, maxMB);
+                contentType =
+                        DocContent.getContentTypeFromMime(contentTypeReturn);
+            }
 
             if (contentType == null) {
-                contentType = DocContent.getContentTypeFromFile(fileName);
+                contentType = contentTypeFileName;
                 if (contentType == null) {
                     contentType = DocContentTypeEnum.HTML;
                 }
-                LOGGER.info("No content type found for [{}]: using [{}]",
+                LOGGER.info("No content type found for [{}]: asuming [{}]",
                         fileName, contentType);
             }
 
@@ -239,6 +307,8 @@ public final class DownloadServiceImpl extends AbstractService
             docContentPrintReq.setPreferredOutputFont(preferredFont);
             docContentPrintReq.setProtocol(DocLogProtocolEnum.HTTP);
             docContentPrintReq.setTitle(fileName);
+            docContentPrintReq
+                    .setContentTypePdfIsClean(Boolean.valueOf(isWkHtmlToPdf));
 
             try (InputStream fos = new FileInputStream(target)) {
                 queueService().printDocContent(ReservedIppQueueEnum.WEBPRINT,
@@ -251,6 +321,42 @@ public final class DownloadServiceImpl extends AbstractService
             target.delete();
         }
         return true;
+    }
+
+    /**
+     * Gets content type of an Web URL.
+     *
+     * @param url
+     *            URL
+     * @throws IOException
+     *             if an I/O exception occurs.
+     * @return Content Type;
+     */
+    private DocContentTypeEnum getContentType(final URL url)
+            throws IOException {
+
+        final URLConnection c = url.openConnection();
+
+        c.setConnectTimeout(getConnectTimeout());
+        c.setReadTimeout(getSocketTimeout());
+
+        DocContentTypeEnum contentTypeReturn = null;
+
+        final String contentType = c.getContentType();
+
+        if (contentType != null) {
+            try {
+                final ContentType ct = new ContentType(contentType);
+                final DocContentTypeEnum contentTypeTmp =
+                        DocContent.getContentTypeFromMime(ct.getBaseType());
+                if (contentTypeTmp != null) {
+                    contentTypeReturn = contentTypeTmp;
+                }
+            } catch (ParseException e) {
+                LOGGER.warn("[{}] : {}", url.toString(), e.getMessage());
+            }
+        }
+        return contentTypeReturn;
     }
 
     @Override

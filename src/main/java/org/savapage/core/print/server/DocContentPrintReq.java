@@ -24,6 +24,7 @@
  */
 package org.savapage.core.print.server;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.savapage.core.dao.enums.DocLogProtocolEnum;
 import org.savapage.core.doc.DocContentTypeEnum;
 import org.savapage.core.fonts.InternalFontFamilyEnum;
@@ -69,6 +70,12 @@ public class DocContentPrintReq {
      *
      */
     private DocContentTypeEnum contentType;
+
+    /**
+     * If not {@code null} and {@link Boolean#TRUE} and provided content type is
+     * {@link DocContentTypeEnum#PDF} then the provided PDF is clean.
+     */
+    private Boolean contentTypePdfIsClean;
 
     /**
      * The preferred font for the PDF output. This parameter is {@code null}
@@ -157,6 +164,27 @@ public class DocContentPrintReq {
     public void
             setPreferredOutputFont(InternalFontFamilyEnum preferredOutputFont) {
         this.preferredOutputFont = preferredOutputFont;
+    }
+
+    /**
+     * Checks if the provided PDF is clean.
+     *
+     * @return {@code true} if {@link #contentTypePdfIsClean} is
+     *         {@link Boolean#TRUE} and provided content type is
+     *         {@link DocContentTypeEnum#PDF}.
+     */
+    public boolean isContentTypePdfClean() {
+        return BooleanUtils.isTrue(this.contentTypePdfIsClean)
+                && this.getContentType() == DocContentTypeEnum.PDF;
+    }
+
+    /**
+     * @param isClean
+     *            {@link Boolean#TRUE} if provided content type
+     *            {@link DocContentTypeEnum#PDF} is clean.
+     */
+    public void setContentTypePdfIsClean(final Boolean isClean) {
+        this.contentTypePdfIsClean = isClean;
     }
 
 }

@@ -53,6 +53,9 @@ public enum PhraseEnum {
     MAIL_SENT,
 
     /** */
+    NOT_FOUND,
+
+    /** */
     PDF_INVALID,
     /** */
     PDF_ENCRYPTED_UNSUPPORTED,

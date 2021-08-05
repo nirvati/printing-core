@@ -26,6 +26,7 @@ package org.savapage.core.doc;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.UUID;
 
 import javax.print.attribute.standard.MediaSizeName;
@@ -74,10 +75,7 @@ public final class WkHtmlToPdf extends AbstractDocFileConverter
         return ExecType.ADVANCED;
     }
 
-    @Override
-    protected String getOsCommand(final DocContentTypeEnum contentType,
-            final File fileIn, final File filePdf) {
-
+    private static String getMediaSizePageName() {
         final MediaSizeName mediaSizeName = MediaUtils.getDefaultMediaSize();
         final String pageSize;
         if (mediaSizeName == MediaSizeName.NA_LETTER) {
@@ -85,11 +83,22 @@ public final class WkHtmlToPdf extends AbstractDocFileConverter
         } else {
             pageSize = HTML_PAGE_SIZE_A4;
         }
+        return pageSize;
+    }
 
+    private static String getOsCommand(final String in, final File filePdf) {
         // margins 10 mm: -B 10 -L 10 -R 10 -T 10
-        return Command.WKHTMLTOPDF.cmdLineExt("--quiet",
-                "-B 10 -L 10 -R 10 -T 10", "--page-size ".concat(pageSize),
-                fileIn.getAbsolutePath(), filePdf.getAbsolutePath());
+        return Command.WKHTMLTOPDF.cmdLineExt("--quiet", "--disable-javascript",
+                "--disable-local-file-access", "--disable-plugins",
+                "-B 10 -L 10 -R 10 -T 10",
+                "--page-size ".concat(getMediaSizePageName()), in,
+                filePdf.getAbsolutePath());
+    }
+
+    @Override
+    protected String getOsCommand(final DocContentTypeEnum contentType,
+            final File fileIn, final File filePdf) {
+        return getOsCommand(fileIn.getAbsolutePath(), filePdf);
     }
 
     @Override
@@ -110,7 +119,6 @@ public final class WkHtmlToPdf extends AbstractDocFileConverter
         } finally {
             fileHtmlTemp.delete();
         }
-
         return istr.getBytesRead();
     }
 
@@ -127,8 +135,18 @@ public final class WkHtmlToPdf extends AbstractDocFileConverter
         } finally {
             filePdfTemp.delete();
         }
-
         return istr.getBytesRead();
+    }
+
+    /**
+     * @param url
+     * @param filePdf
+     * @throws DocContentToPdfException
+     */
+    public void convert(final URL url, final File filePdf)
+            throws DocContentToPdfException {
+        final String cmd = getOsCommand(url.toString(), filePdf);
+        this.convertWithOsCommand(DocContentTypeEnum.HTML, null, filePdf, cmd);
     }
 
 }

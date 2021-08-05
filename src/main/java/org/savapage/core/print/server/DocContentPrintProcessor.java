@@ -176,6 +176,11 @@ public final class DocContentPrintProcessor {
      */
     private PdfRepairEnum pdfRepair;
 
+    /**
+     * If {@code true} the provided {@link DocContentTypeEnum#PDF} is clean.
+     */
+    private boolean pdfProvidedIsClean = false;
+
     /** */
     private boolean pdfToCairo = false;
 
@@ -1109,7 +1114,7 @@ public final class DocContentPrintProcessor {
                         && cm.isConfigValue(Key.PRINT_IN_PDF_FONTS_EMBED)) {
                     this.embedPdfFonts(fileWrk);
                 }
-                if (!this.pdfToCairo
+                if (!this.pdfToCairo && !this.pdfProvidedIsClean
                         && cm.isConfigValue(Key.PRINT_IN_PDF_CLEAN)) {
                     this.cleanPdf(fileWrk);
                 }
@@ -1861,6 +1866,15 @@ public final class DocContentPrintProcessor {
         AdminPublisher.instance().publish(PubTopicEnum.USER, pubLevel,
                 localize("pub-user-print-in-denied", requestingUserId, urlQueue,
                         originatorIp, pubMessage));
+    }
+
+    /**
+     * @param isClean
+     *            If {@code true} the provided {@link DocContentTypeEnum#PDF} is
+     *            clean.
+     */
+    public void setPdfProvidedIsClean(final boolean isClean) {
+        this.pdfProvidedIsClean = isClean;
     }
 
 }
