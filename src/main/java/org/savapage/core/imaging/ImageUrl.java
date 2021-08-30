@@ -26,6 +26,7 @@ package org.savapage.core.imaging;
 
 import java.util.StringTokenizer;
 
+import org.eclipse.jetty.util.UrlEncoded;
 import org.savapage.core.doc.DocContent;
 
 /**
@@ -301,7 +302,9 @@ public final class ImageUrl {
 
         buf.append(MOUNT_PATH);
 
-        appendParmToImageUrl(buf, PARM_USER, this.getUser());
+        appendParmToImageUrl(buf, PARM_USER,
+                UrlEncoded.encodeString(this.getUser()));
+
         appendParmToImageUrl(buf, PARM_JOB, this.getJob());
         appendParmToImageUrl(buf, PARM_PAGE_ORDINAL, this.getPage());
         appendParmToImageUrl(buf, PARM_ROTATE, this.getRotate());
