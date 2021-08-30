@@ -261,6 +261,7 @@ public final class UserGroupServiceImpl extends AbstractService
         final UserGroupMemberDao.GroupFilter filter =
                 new UserGroupMemberDao.GroupFilter();
 
+        filter.setReservedGroup(ReservedUserGroupEnum.fromDbName(groupName));
         filter.setGroupId(userGroup.getId());
 
         final List<User> list = userGroupMemberDAO().getUserChunk(filter,

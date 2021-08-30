@@ -27,6 +27,7 @@ package org.savapage.core.dao;
 import java.util.List;
 
 import org.savapage.core.dao.enums.ACLRoleEnum;
+import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroup;
 import org.savapage.core.jpa.UserGroupMember;
@@ -76,6 +77,7 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
      */
     class GroupFilter {
 
+        private ReservedUserGroupEnum reservedGroup;
         private Long groupId;
         private Boolean disabledPrintOut;
 
@@ -83,6 +85,18 @@ public interface UserGroupMemberDao extends GenericDao<UserGroupMember> {
          * Absent or Present.
          */
         private ACLRoleEnum aclRoleNotFalse;
+
+        public ReservedUserGroupEnum getReservedGroup() {
+            return reservedGroup;
+        }
+
+        public void setReservedGroup(ReservedUserGroupEnum reservedGroup) {
+            this.reservedGroup = reservedGroup;
+        }
+
+        public boolean isReservedGroup() {
+            return this.reservedGroup != null;
+        }
 
         public Long getGroupId() {
             return groupId;

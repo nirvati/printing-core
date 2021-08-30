@@ -28,7 +28,9 @@ import java.util.List;
 
 import javax.persistence.Query;
 
+import org.savapage.core.SpException;
 import org.savapage.core.dao.UserGroupMemberDao;
+import org.savapage.core.dao.enums.ReservedUserGroupEnum;
 import org.savapage.core.dao.enums.UserAttrEnum;
 import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserGroup;
@@ -41,6 +43,15 @@ import org.savapage.core.jpa.UserGroupMember;
  */
 public final class UserGroupMemberDaoImpl
         extends GenericDaoImpl<UserGroupMember> implements UserGroupMemberDao {
+
+    /**
+     * JPA user object name in {@link UserGroupMember} context.
+     */
+    private static final String JPA_USER_OBJ_GROUP_MEMBER = "U.user";
+    /**
+     * JPA user object name in {@link User} context.
+     */
+    private static final String JPA_USER_OBJ = "U";
 
     @Override
     protected String getCountQuery() {
@@ -166,12 +177,15 @@ public final class UserGroupMemberDaoImpl
      *            String to append on.
      * @param filter
      *            The filter.
+     * @param jpaUserObj
+     *            JPA user object name.
      */
-    private void applyJoin(final StringBuilder jpql, final GroupFilter filter) {
+    private void applyJoin(final StringBuilder jpql, final GroupFilter filter,
+            final String jpaUserObj) {
 
         if (filter.getAclRoleNotFalse() != null) {
-            jpql.append(" LEFT JOIN UserAttr UA ON UA.user = U.user "
-                    + "AND UA.name = :roleName");
+            jpql.append(" LEFT JOIN UserAttr UA ON UA.user = ")
+                    .append(jpaUserObj).append(" AND UA.name = :roleName");
         }
     }
 
@@ -181,10 +195,18 @@ public final class UserGroupMemberDaoImpl
         final StringBuilder jpql =
                 new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
 
-        jpql.append("SELECT COUNT(U.id) FROM UserGroupMember U");
+        final String jpaUserObj;
 
-        applyJoin(jpql, filter);
-        applyUserFilter(jpql, filter);
+        if (filter.isReservedGroup()) {
+            jpaUserObj = JPA_USER_OBJ;
+            jpql.append("SELECT COUNT(").append(JPA_USER_OBJ)
+                    .append(") FROM User ").append(JPA_USER_OBJ);
+        } else {
+            jpaUserObj = JPA_USER_OBJ_GROUP_MEMBER;
+            jpql.append("SELECT COUNT(U.id) FROM UserGroupMember U");
+        }
+        this.applyJoin(jpql, filter, jpaUserObj);
+        this.applyUserFilter(jpql, filter, jpaUserObj);
 
         final Query query = createUserQuery(jpql, filter);
 
@@ -202,26 +224,35 @@ public final class UserGroupMemberDaoImpl
         final StringBuilder jpql =
                 new StringBuilder(JPSQL_STRINGBUILDER_CAPACITY);
 
-        jpql.append("SELECT U.user FROM UserGroupMember U");
+        final String jpaUserObj;
 
-        applyJoin(jpql, filter);
-        applyUserFilter(jpql, filter);
+        if (filter.isReservedGroup()) {
+            jpaUserObj = JPA_USER_OBJ;
+            jpql.append("SELECT ").append(jpaUserObj).append(" FROM User ")
+                    .append(jpaUserObj);
+        } else {
+            jpaUserObj = JPA_USER_OBJ_GROUP_MEMBER;
+            jpql.append("SELECT ").append(jpaUserObj)
+                    .append(" FROM UserGroupMember U");
+        }
+
+        this.applyJoin(jpql, filter, jpaUserObj);
+        this.applyUserFilter(jpql, filter, jpaUserObj);
 
         //
         jpql.append(" ORDER BY ");
 
         if (orderBy == UserField.USER_NAME) {
-            jpql.append("U.user.userId");
+            jpql.append(jpaUserObj).append(".userId");
         } else {
-            jpql.append("U.user.userId");
+            jpql.append(jpaUserObj).append(".userId");
         }
-
         if (!sortAscending) {
             jpql.append(" DESC");
         }
 
         //
-        final Query query = createUserQuery(jpql, filter);
+        final Query query = this.createUserQuery(jpql, filter);
 
         //
         if (startPosition != null) {
@@ -241,25 +272,52 @@ public final class UserGroupMemberDaoImpl
      *            The {@link StringBuilder} to append to.
      * @param filter
      *            The filter.
+     * @param jpaUserObj
+     *            JPA user object name.
      */
     private void applyUserFilter(final StringBuilder jpql,
-            final GroupFilter filter) {
+            final GroupFilter filter, final String jpaUserObj) {
 
         final StringBuilder where = new StringBuilder();
 
         int nWhere = 0;
 
-        if (nWhere > 0) {
-            where.append(" AND");
+        if (filter.isReservedGroup()) {
+
+            switch (filter.getReservedGroup()) {
+            case ALL:
+                // no code intended
+                break;
+            case EXTERNAL:
+                // no break intended
+            case INTERNAL:
+                if (nWhere > 0) {
+                    where.append(" AND");
+                }
+                nWhere++;
+                where.append(" ").append(jpaUserObj)
+                        .append(".internal = :internal");
+                break;
+
+            default:
+                throw new SpException(
+                        String.format("Reserver group [%s] not handled.",
+                                filter.getReservedGroup().name()));
+            }
+
+        } else {
+            if (nWhere > 0) {
+                where.append(" AND");
+            }
+            nWhere++;
+            where.append(" U.group.id = :groupId");
         }
-        nWhere++;
-        where.append(" U.group.id = :groupId");
 
         if (nWhere > 0) {
             where.append(" AND");
         }
         nWhere++;
-        where.append(" U.user.deleted = :deleted");
+        where.append(" ").append(jpaUserObj).append(".deleted = :deleted");
 
         //
         if (filter.getDisabledPrintOut() != null) {
@@ -267,7 +325,8 @@ public final class UserGroupMemberDaoImpl
                 where.append(" AND");
             }
             nWhere++;
-            where.append(" U.user.disabledPrintOut = :disabledPrintOut");
+            where.append(" ").append(jpaUserObj)
+                    .append(".disabledPrintOut = :disabledPrintOut");
         }
 
         if (filter.getAclRoleNotFalse() != null) {
@@ -299,7 +358,28 @@ public final class UserGroupMemberDaoImpl
 
         final Query query = getEntityManager().createQuery(jpql.toString());
 
-        query.setParameter("groupId", filter.getGroupId());
+        if (filter.isReservedGroup()) {
+
+            switch (filter.getReservedGroup()) {
+            case ALL:
+                // no code intended
+                break;
+            case EXTERNAL:
+                // no break intended
+            case INTERNAL:
+                query.setParameter("internal", Boolean.valueOf(filter
+                        .getReservedGroup() == ReservedUserGroupEnum.INTERNAL));
+                break;
+
+            default:
+                throw new SpException(
+                        String.format("Reserver group [%s] not handled.",
+                                filter.getReservedGroup().name()));
+            }
+        } else {
+            query.setParameter("groupId", filter.getGroupId());
+        }
+
         query.setParameter("deleted", Boolean.FALSE);
 
         if (filter.getDisabledPrintOut() != null) {
