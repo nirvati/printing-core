@@ -381,8 +381,18 @@ public final class PaperCutServiceImpl extends AbstractService
             final BigDecimal adjustment, final String comment)
             throws PaperCutException {
 
-        papercut.adjustUserAccountBalance(username, userAccountName,
-                adjustment.doubleValue(), comment);
+        papercut.adjustUserAccountBalance(username, adjustment.doubleValue(),
+                comment, userAccountName);
+    }
+
+    @Override
+    public boolean adjustUserAccountBalanceIfAvailable(
+            final PaperCutServerProxy papercut, final String username,
+            final String userAccountName, final BigDecimal adjustment,
+            final String comment) throws PaperCutException {
+
+        return papercut.adjustUserAccountBalanceIfAvailable(username,
+                adjustment.doubleValue(), comment, userAccountName);
     }
 
     @Override

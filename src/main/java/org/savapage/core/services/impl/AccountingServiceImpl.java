@@ -65,6 +65,8 @@ import org.savapage.core.dto.MediaCostDto;
 import org.savapage.core.dto.MediaPageCostDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
+import org.savapage.core.dto.PosSalesDto;
+import org.savapage.core.dto.PosTransactionDto;
 import org.savapage.core.dto.SharedAccountDisplayInfoDto;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserCreditTransferDto;
@@ -103,7 +105,9 @@ import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 import org.savapage.core.util.BigDecimalUtil;
 import org.savapage.core.util.Messages;
+import org.savapage.ext.papercut.PaperCutException;
 import org.savapage.ext.papercut.PaperCutHelper;
+import org.savapage.ext.papercut.PaperCutServerProxy;
 
 /**
  *
@@ -2361,54 +2365,136 @@ public final class AccountingServiceImpl extends AbstractService
         methodResult.getResult().setData(resultData);
 
         return methodResult;
+    }
 
+    /**
+     * Validates POS funds.
+     *
+     * @param user
+     *            User.
+     * @param userId
+     *            User ID.
+     * @param formattedAmount
+     *            Decimal point amount.
+     * @return {@code null} if valid.
+     */
+    private JsonRpcMethodError validatePosFunds(final User user,
+            final String userId, final String formattedAmount) {
+        /*
+         * INVARIANT: User MUST exist.
+         */
+        if (user == null) {
+            return createErrorMsg(MSG_KEY_POS_USER_UNKNOWN, userId);
+        }
+        return validatePosFunds(userId, formattedAmount);
+    }
+
+    /**
+     * Validates POS funds.
+     *
+     * @param userId
+     *            User ID.
+     * @param formattedAmount
+     *            Decimal point amount.
+     * @return {@code null} if valid.
+     */
+    private JsonRpcMethodError validatePosFunds(final String userId,
+            final String formattedAmount) {
+        /*
+         * INVARIANT: Amount MUST be valid.
+         */
+        if (!BigDecimalUtil.isValid(formattedAmount)) {
+            return createError(MSG_KEY_POS_AMOUNT_ERROR);
+        }
+        /*
+         * INVARIANT: Amount MUST be GT zero.
+         */
+        if (BigDecimalUtil.valueOf(formattedAmount)
+                .compareTo(BigDecimal.ZERO) <= 0) {
+            return createError(MSG_KEY_POS_AMOUNT_INVALID);
+        }
+        return null;
     }
 
     @Override
     public AbstractJsonRpcMethodResponse depositFunds(final PosDepositDto dto) {
+        return handlePosTransaction(dto, ReceiptNumberPrefixEnum.DEPOSIT,
+                AccountTrxTypeEnum.DEPOSIT, false, dto.getPaymentType());
+    }
 
-        /*
-         * INVARIANT: User MUST exist.
-         */
+    @Override
+    public AbstractJsonRpcMethodResponse chargePosSales(final PosSalesDto dto) {
+        return handlePosTransaction(dto, ReceiptNumberPrefixEnum.PURCHASE,
+                AccountTrxTypeEnum.PURCHASE, true, null);
+    }
+
+    @Override
+    public AbstractJsonRpcMethodResponse chargePosSales(
+            final PaperCutServerProxy proxy, final PosSalesDto dto) {
+
+        final String formattedAmount = dto.formatAmount();
+
+        final JsonRpcMethodError error =
+                this.validatePosFunds(dto.getUserId(), formattedAmount);
+        if (error != null) {
+            return error;
+        }
+
+        final BigDecimal adjustment = new BigDecimal(formattedAmount).negate();
+
+        try {
+            if (!paperCutService().adjustUserAccountBalanceIfAvailable(proxy,
+                    dto.getUserId(), null, adjustment, dto.getComment())) {
+                return createErrorMsg(MSG_KEY_POS_CREDIT_INSUFFICIENT,
+                        dto.getUserId());
+            }
+        } catch (PaperCutException e) {
+            return createErrorMsg(e.getMessage());
+        }
+        return JsonRpcMethodResult.createOkResult();
+    }
+
+    /**
+     * Handles a POS transaction.
+     *
+     * @param dto
+     *            Transaction.
+     * @param receiptNumberPrefix
+     * @param accountTrxType
+     * @param withdrawal
+     * @param paymentType
+     * @return response.
+     */
+    private AbstractJsonRpcMethodResponse handlePosTransaction(
+            final PosTransactionDto dto,
+            final ReceiptNumberPrefixEnum receiptNumberPrefix,
+            final AccountTrxTypeEnum accountTrxType, final boolean withdrawal,
+            final String paymentType) {
+
         final User user = userDAO().findActiveUserByUserId(dto.getUserId());
+        final String formattedAmount = dto.formatAmount();
 
-        if (user == null) {
-            return createErrorMsg(MSG_KEY_DEPOSIT_FUNDS_USER_UNKNOWN,
-                    dto.getUserId());
+        final JsonRpcMethodError error =
+                this.validatePosFunds(user, dto.getUserId(), formattedAmount);
+        if (error != null) {
+            return error;
         }
 
-        /*
-         * INVARIANT: Amount MUST be valid.
-         */
-        final String plainAmount =
-                dto.getAmountMain() + "." + dto.getAmountCents();
-
-        if (!BigDecimalUtil.isValid(plainAmount)) {
-            return createErrorMsg(MSG_KEY_DEPOSIT_FUNDS_AMOUNT_ERROR);
+        final BigDecimal amount = BigDecimalUtil.valueOf(formattedAmount);
+        final BigDecimal amountDeposit;
+        if (withdrawal) {
+            amountDeposit = amount.negate();
+        } else {
+            amountDeposit = amount;
         }
-
-        final BigDecimal depositAmount = BigDecimalUtil.valueOf(plainAmount);
-
-        /*
-         * INVARIANT: Amount MUST be GT zero.
-         */
-        if (depositAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            return createErrorMsg(MSG_KEY_DEPOSIT_FUNDS_AMOUNT_INVALID);
-        }
-
-        /*
-         * Deposit amount into Account.
-         */
         final Account account = this
                 .lazyGetUserAccount(user, AccountTypeEnum.USER).getAccount();
 
-        final String receiptNumber = purchaseDAO()
-                .getNextReceiptNumber(ReceiptNumberPrefixEnum.DEPOSIT);
+        final String receiptNumber =
+                purchaseDAO().getNextReceiptNumber(receiptNumberPrefix);
 
-        return depositFundsToAccount(account, AccountTrxTypeEnum.DEPOSIT,
-                dto.getPaymentType(), receiptNumber, depositAmount,
-                dto.getComment());
-
+        return depositFundsToAccount(account, accountTrxType, null,
+                receiptNumber, amountDeposit, dto.getComment());
     }
 
     @Override

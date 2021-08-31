@@ -22,44 +22,49 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.services.helpers;
+package org.savapage.core.dto;
+
+import org.savapage.core.services.helpers.account.UserAccountContextEnum;
 
 /**
- * A third party related to SavaPage.
+ * A POS sales.
  *
  * @author Rijk Ravestein
  *
  */
-public enum ThirdPartyEnum {
+public final class PosSalesDto extends PosTransactionDto {
 
     /**
-     * PaperCut Print Management.
+     * User DB key of the purchaser.
      */
-    PAPERCUT("PaperCut", "papercut-logo.png");
+    private Long userKey;
 
-    private final String uiText;
-    private final String imageFileName;
+    private UserAccountContextEnum accountContext;
 
-    /**
-     *
-     * @param uiText
-     * @param imageFileName
-     */
-    ThirdPartyEnum(final String uiText, final String imageFileName) {
-        this.uiText = uiText;
-        this.imageFileName = imageFileName;
+    private DeliveryEnum invoiceDelivery;
+
+    public Long getUserKey() {
+        return userKey;
     }
 
-    public String getUiText() {
-        return uiText;
+    public void setUserKey(Long userKey) {
+        this.userKey = userKey;
     }
 
-    /**
-     *
-     * @return The image filename.
-     */
-    public String getImageFileName() {
-        return imageFileName;
+    public UserAccountContextEnum getAccountContext() {
+        return accountContext;
+    }
+
+    public void setAccountContext(UserAccountContextEnum accountContext) {
+        this.accountContext = accountContext;
+    }
+
+    public DeliveryEnum getInvoiceDelivery() {
+        return invoiceDelivery;
+    }
+
+    public void setInvoiceDelivery(DeliveryEnum invoiceDelivery) {
+        this.invoiceDelivery = invoiceDelivery;
     }
 
 }

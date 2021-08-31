@@ -123,7 +123,12 @@ public final class EnumSetValidator<E extends Enum<E>>
     public static <E extends Enum<E>> EnumSet<E>
             getEnumSet(final Class<E> enumClass, final String list) {
 
-        return EnumSet.copyOf(getEnumList(enumClass, list));
+        final List<E> enumList = getEnumList(enumClass, list);
+
+        if (enumList.isEmpty()) {
+            return EnumSet.noneOf(enumClass);
+        }
+        return EnumSet.copyOf(enumList);
     }
 
     /**

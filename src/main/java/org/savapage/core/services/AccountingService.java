@@ -40,6 +40,7 @@ import org.savapage.core.dto.AccountVoucherRedeemDto;
 import org.savapage.core.dto.FinancialDisplayInfoDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
+import org.savapage.core.dto.PosSalesDto;
 import org.savapage.core.dto.SharedAccountDisplayInfoDto;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserCreditTransferDto;
@@ -57,6 +58,7 @@ import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcMethodResult;
 import org.savapage.core.json.rpc.JsonRpcResult;
 import org.savapage.core.json.rpc.impl.ResultPosDeposit;
+import org.savapage.core.json.rpc.impl.ResultPosSales;
 import org.savapage.core.outbox.OutboxInfoDto.OutboxJobDto;
 import org.savapage.core.print.proxy.ProxyPrintException;
 import org.savapage.core.print.proxy.ProxyPrintJobChunk;
@@ -65,6 +67,7 @@ import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.AccountingException;
 import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
+import org.savapage.ext.papercut.PaperCutServerProxy;
 
 /**
  * Accounting services supporting the pay-per-print solution.
@@ -97,20 +100,22 @@ public interface AccountingService {
     /**
      * Key of entry in message.xml file.
      */
-    String MSG_KEY_DEPOSIT_FUNDS_USER_UNKNOWN =
-            "msg-deposit-funds-user-unknown";
+    String MSG_KEY_POS_USER_UNKNOWN = "msg-pos-user-unknown";
 
     /**
      * Key of entry in message.xml file.
      */
-    String MSG_KEY_DEPOSIT_FUNDS_AMOUNT_ERROR =
-            "msg-deposit-funds-amount-error";
+    String MSG_KEY_POS_AMOUNT_ERROR = "msg-pos-amount-error";
 
     /**
      * Key of entry in message.xml file.
      */
-    String MSG_KEY_DEPOSIT_FUNDS_AMOUNT_INVALID =
-            "msg-deposit-funds-amount-invalid";
+    String MSG_KEY_POS_AMOUNT_INVALID = "msg-pos-amount-invalid";
+
+    /**
+     * Key of entry in message.xml file.
+     */
+    String MSG_KEY_POS_CREDIT_INSUFFICIENT = "msg-pos-credit-insufficient";
 
     /**
      * Gets the accounting parameters for a {@link User}. A {@link UserAccount}
@@ -533,6 +538,34 @@ public interface AccountingService {
      *         {@link ResultPosDeposit} to get the result data.
      */
     AbstractJsonRpcMethodResponse depositFunds(PosDepositDto dto);
+
+    /**
+     * Charges a sale as transacted at a point of sale.
+     *
+     * @param dto
+     *            The {@link PosSalesDto}.
+     * @return Use {@link AbstractJsonRpcMethodResponse#asResult()},
+     *         {@link JsonRpcMethodResult#getResult()} and
+     *         {@link JsonRpcResult#data(Class)} with Class
+     *         {@link ResultPosSales} to get the result data.
+     */
+    AbstractJsonRpcMethodResponse chargePosSales(PosSalesDto dto);
+
+    /**
+     * Charges a sale as transacted at a point of sale to PaperCut Personal User
+     * Account.
+     *
+     * @param proxy
+     *            PaperCut server proxy.
+     * @param dto
+     *            The {@link PosSalesDto}.
+     * @return Use {@link AbstractJsonRpcMethodResponse#asResult()},
+     *         {@link JsonRpcMethodResult#getResult()} and
+     *         {@link JsonRpcResult#data(Class)} with Class
+     *         {@link ResultPosSales} to get the result data.
+     */
+    AbstractJsonRpcMethodResponse chargePosSales(PaperCutServerProxy proxy,
+            PosSalesDto dto);
 
     /**
      * Accepts funds from a Payment Gateway: an {@link AccountTrx} is created

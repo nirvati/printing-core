@@ -218,6 +218,37 @@ public interface PaperCutService extends StatefulService {
             throws PaperCutException;
 
     /**
+     * Adjusts a user's built-in/default account balance by an adjustment amount
+     * if there is sufficient credit available.
+     *
+     * An adjustment may be positive (add to the user's account) or negative
+     * (subtract from the account).
+     *
+     * @param papercut
+     *            The {@link PaperCutServerProxy}.
+     * @param username
+     *            The username associated with the user who's account is to be
+     *            adjusted.
+     * @param userAccountName
+     *            Optional name of the user's personal account. If {@code null},
+     *            the built-in default account is used. If multiple personal
+     *            accounts is enabled the account name must be provided. *
+     * @param adjustment
+     *            The adjustment amount. Positive to add credit and negative to
+     *            subtract.
+     * @param comment
+     *            A user defined comment to be associated with the transaction.
+     *            This may be a null string.
+     * @return {@code false} if there is insufficient credit available.
+     *
+     * @throws PaperCutException
+     *             When the user (account) does not exist.
+     */
+    boolean adjustUserAccountBalanceIfAvailable(PaperCutServerProxy papercut,
+            String username, String userAccountName, BigDecimal adjustment,
+            String comment) throws PaperCutException;
+
+    /**
      * Gets the {@link PaperCutPrinterUsageLog} for unique document names.
      *
      * @param papercutDb

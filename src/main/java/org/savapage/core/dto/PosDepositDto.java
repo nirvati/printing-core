@@ -24,81 +24,17 @@
  */
 package org.savapage.core.dto;
 
-import org.savapage.core.jpa.PosPurchase;
-
 /**
- * Information for an {@link PosPurchase} deposit.
+ * A POS deposit.
  *
  * @author Rijk Ravestein
  *
  */
-public class PosDepositDto extends AbstractDto {
-
-    public static enum DeliveryEnum {
-        /**
-         * NO delivery
-         */
-        NONE,
-        /**
-         * Send to primary email of User.
-         */
-        EMAIL
-    }
-
-    /**
-     * The user who deposited the amount.
-     */
-    private String userId;
-
-    /**
-     * The deposited main amount.
-     */
-    private String amountMain;
-
-    /**
-     * The deposited amount cents.
-     */
-    private String amountCents;
-
-    private String comment;
+public class PosDepositDto extends PosTransactionDto {
 
     private String paymentType;
 
     private DeliveryEnum receiptDelivery;
-
-    private String userEmail;
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getAmountMain() {
-        return amountMain;
-    }
-
-    public void setAmountMain(String amountMain) {
-        this.amountMain = amountMain;
-    }
-
-    public String getAmountCents() {
-        return amountCents;
-    }
-
-    public void setAmountCents(String amountCents) {
-        this.amountCents = amountCents;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
 
     public String getPaymentType() {
         return paymentType;
@@ -114,14 +50,6 @@ public class PosDepositDto extends AbstractDto {
 
     public void setReceiptDelivery(DeliveryEnum receiptDelivery) {
         this.receiptDelivery = receiptDelivery;
-    }
-
-    public String getUserEmail() {
-        return userEmail;
-    }
-
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
     }
 
 }

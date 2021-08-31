@@ -74,6 +74,7 @@ import org.savapage.core.services.helpers.DocLogScopeEnum;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
 import org.savapage.core.services.helpers.PrintScalingEnum;
 import org.savapage.core.services.helpers.UserAuthModeEnum;
+import org.savapage.core.services.helpers.account.UserAccountContextEnum;
 import org.savapage.core.system.SystemInfo;
 import org.savapage.core.util.Messages;
 
@@ -293,6 +294,28 @@ public interface IConfigProp {
          */
         FINANCIAL_GLOBAL_CURRENCY_CODE(//
                 "financial.global.currency-code", CURRENCY_VALIDATOR,
+                API_UPDATABLE_ON),
+
+        /**
+         * Is POS deposit enabled?
+         */
+        FINANCIAL_POS_DEPOSIT_ENABLE(//
+                "financial.pos.deposit.enable", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /**
+         * Is POS sales enabled?
+         */
+        FINANCIAL_POS_SALES_ENABLE(//
+                "financial.pos.sales.enable", BOOLEAN_VALIDATOR, V_NO,
+                API_UPDATABLE_ON),
+
+        /**
+         * Which user account context?
+         */
+        FINANCIAL_POS_SALES_ACCOUNTS(//
+                "financial.pos.sales.accounts",
+                new EnumSetValidator<>(UserAccountContextEnum.class),
                 API_UPDATABLE_ON),
 
         /**

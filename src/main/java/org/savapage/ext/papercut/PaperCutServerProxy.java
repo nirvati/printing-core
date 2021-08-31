@@ -640,39 +640,6 @@ public final class PaperCutServerProxy {
     }
 
     /**
-     * Adjusts a user's built-in/default account balance by an adjustment
-     * amount. An adjustment may be positive (add to the user's account) or
-     * negative (subtract from the account).
-     *
-     * @param username
-     *            The username associated with the user who's account is to be
-     *            adjusted.
-     * @param userAccountName
-     *            Optional name of the user's personal account. If {@code null},
-     *            the built-in default account is used. If multiple personal
-     *            accounts is enabled the account name must be provided.
-     * @param adjustment
-     *            The adjustment amount. Positive to add credit and negative to
-     *            subtract.
-     * @param comment
-     *            A user defined comment to be associated with the transaction.
-     *            This may be a null string.
-     * @throws PaperCutException
-     *             When the user (account) does not exist.
-     */
-    public void adjustUserAccountBalance(final String username,
-            final String userAccountName, final double adjustment,
-            final String comment) throws PaperCutException {
-        /*
-         * If "Multiple personal accounts" is enabled in PaperCut, the account
-         * name to adjust must be provided. The user's built-in/default
-         * accountName must be provided.
-         */
-        this.adjustUserAccountBalance(username, adjustment, comment,
-                userAccountName);
-    }
-
-    /**
      * Adjust a user's account balance by an adjustment amount. An adjustment
      * may be positive (add to the user's account) or negative (subtract from
      * the account).
@@ -697,12 +664,66 @@ public final class PaperCutServerProxy {
     public void adjustUserAccountBalance(final String username,
             final double adjustment, final String comment,
             final String accountName) throws PaperCutException {
+        this.adjustUserAccountBalanceApi("api.adjustUserAccountBalance",
+                username, adjustment, comment, accountName);
+    }
+
+    /**
+     * Adjust a user's account balance if there is enough credit available. An
+     * adjustment may be positive (add to the user's account) or negative
+     * (subtract from the account).
+     *
+     * @param username
+     *            The username associated with the user who's account is to be
+     *            adjusted.
+     * @param adjustment
+     *            The adjustment amount. Positive to add credit and negative to
+     *            subtract.
+     * @param comment
+     *            A user defined comment to be associated with the transaction.
+     *            This may be a null string.
+     * @param accountName
+     *            Optional name of the user's personal account. If {@code null}
+     *            or empty, the built-in default account is used. If multiple
+     *            personal accounts is enabled the account name must be
+     *            provided.
+     * @return {@code false} if balance was not available.
+     * @throws PaperCutException
+     *             When the user (account) does not exist.
+     */
+    public boolean adjustUserAccountBalanceIfAvailable(final String username,
+            final double adjustment, final String comment,
+            final String accountName) throws PaperCutException {
+        return this.adjustUserAccountBalanceApi(
+                "api.adjustUserAccountBalanceIfAvailable", username, adjustment,
+                comment, accountName);
+    }
+
+    /**
+     * @param method
+     *            API method.
+     * @param username
+     * @param adjustment
+     * @param comment
+     * @param accountName
+     * @throws PaperCutException
+     *
+     * @return {@code false} if balance was not adjusted.
+     */
+    public boolean adjustUserAccountBalanceApi(final String method,
+            final String username, final double adjustment,
+            final String comment, final String accountName)
+            throws PaperCutException {
         Vector<Object> params = createParams();
         params.add(username);
         params.add(adjustment);
         params.add(StringUtils.trimToEmpty(comment));
         params.add(StringUtils.trimToEmpty(accountName));
-        call("api.adjustUserAccountBalance", params);
+        final Object ret = call(method, params);
+        if (ret instanceof Boolean) {
+            return ((Boolean) ret).booleanValue();
+        }
+        throw new PaperCutException("Unexpected reurn value.");
     }
 
     /**

@@ -33,7 +33,7 @@ import org.savapage.core.jpa.PosPurchase;
  * @author Rijk Ravestein
  *
  */
-public class PosDepositReceiptDto extends PosDepositDto {
+public final class PosDepositReceiptDto extends PosDepositDto {
 
     private AccountTrx accountTrx;
 

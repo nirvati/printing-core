@@ -24,6 +24,10 @@
  */
 package org.savapage.core.services.helpers.account;
 
+import org.savapage.core.SpException;
+import org.savapage.core.community.CommunityDictEnum;
+import org.savapage.core.services.helpers.ThirdPartyEnum;
+
 /**
  *
  * @author Rijk Ravestein
@@ -33,5 +37,19 @@ public enum UserAccountContextEnum {
     /** */
     PAPERCUT,
     /** */
-    SAVAPAGE
+    SAVAPAGE;
+
+    /**
+     * @return Text to display in user interface.
+     */
+    public String getUiText() {
+        switch (this) {
+        case PAPERCUT:
+            return ThirdPartyEnum.PAPERCUT.getUiText();
+        case SAVAPAGE:
+            return CommunityDictEnum.SAVAPAGE.getWord();
+        default:
+            throw new SpException("unhandled enum");
+        }
+    }
 }

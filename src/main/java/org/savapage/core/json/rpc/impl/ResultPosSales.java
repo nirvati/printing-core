@@ -22,44 +22,25 @@
  * For more information, please contact Datraverse B.V. at this
  * address: info@datraverse.com
  */
-package org.savapage.core.services.helpers;
+package org.savapage.core.json.rpc.impl;
+
+import org.savapage.core.json.rpc.JsonRpcResultDataMixin;
 
 /**
- * A third party related to SavaPage.
  *
  * @author Rijk Ravestein
  *
  */
-public enum ThirdPartyEnum {
+public class ResultPosSales extends JsonRpcResultDataMixin {
 
-    /**
-     * PaperCut Print Management.
-     */
-    PAPERCUT("PaperCut", "papercut-logo.png");
+    private Long accountTrxDbId;
 
-    private final String uiText;
-    private final String imageFileName;
-
-    /**
-     *
-     * @param uiText
-     * @param imageFileName
-     */
-    ThirdPartyEnum(final String uiText, final String imageFileName) {
-        this.uiText = uiText;
-        this.imageFileName = imageFileName;
+    public Long getAccountTrxDbId() {
+        return accountTrxDbId;
     }
 
-    public String getUiText() {
-        return uiText;
-    }
-
-    /**
-     *
-     * @return The image filename.
-     */
-    public String getImageFileName() {
-        return imageFileName;
+    public void setAccountTrxDbId(Long accountTrxDbId) {
+        this.accountTrxDbId = accountTrxDbId;
     }
 
 }
