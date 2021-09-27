@@ -43,8 +43,7 @@ public enum PrintScalingEnum {
      * 'none' method.
      *
      */
-    // Reserved for future use.
-    // AUTO("auto"),
+    AUTO("auto"),
 
     /**
      * If the “ipp-attribute-fidelity” attribute is true or the document is

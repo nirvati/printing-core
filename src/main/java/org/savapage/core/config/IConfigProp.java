@@ -72,7 +72,8 @@ import org.savapage.core.jpa.UserNumber;
 import org.savapage.core.json.rpc.JsonRpcMethodName;
 import org.savapage.core.services.helpers.DocLogScopeEnum;
 import org.savapage.core.services.helpers.InboxSelectScopeEnum;
-import org.savapage.core.services.helpers.PrintScalingEnum;
+import org.savapage.core.services.helpers.PrintScalingClashEnum;
+import org.savapage.core.services.helpers.PrintScalingMatchEnum;
 import org.savapage.core.services.helpers.UserAuthModeEnum;
 import org.savapage.core.services.helpers.account.UserAccountContextEnum;
 import org.savapage.core.system.SystemInfo;
@@ -3035,14 +3036,14 @@ public interface IConfigProp {
         /** */
         WEBAPP_USER_PROXY_PRINT_SCALING_MEDIA_MATCH_DEFAULT(//
                 "webapp.user.proxy-print.scaling.media-match.default",
-                new EnumValidator<>(PrintScalingEnum.class),
-                PrintScalingEnum.NONE.toString(), API_UPDATABLE_ON),
+                new EnumValidator<>(PrintScalingMatchEnum.class),
+                PrintScalingMatchEnum.AUTO.toString(), API_UPDATABLE_ON),
 
         /** */
         WEBAPP_USER_PROXY_PRINT_SCALING_MEDIA_CLASH_DEFAULT(//
                 "webapp.user.proxy-print.scaling.media-clash.default",
-                new EnumValidator<>(PrintScalingEnum.class),
-                PrintScalingEnum.FIT.toString(), API_UPDATABLE_ON),
+                new EnumValidator<>(PrintScalingClashEnum.class),
+                PrintScalingClashEnum.FIT.toString(), API_UPDATABLE_ON),
 
         /**
          * User WebApp: Max. copies for proxy printing.
