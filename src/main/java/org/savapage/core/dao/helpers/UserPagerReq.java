@@ -151,6 +151,7 @@ public class UserPagerReq extends AbstractPagerReq {
 
         public static final String FLD_ID = "id";
         public static final String FLD_EMAIL = "email";
+        public static final String FLD_ACTIVITY = "activity";
 
         private String field = null;
         private Boolean ascending = true;
@@ -171,9 +172,16 @@ public class UserPagerReq extends AbstractPagerReq {
             return field != null && field.equalsIgnoreCase(FLD_EMAIL);
         }
 
+        private boolean isActivitySort() {
+            return field != null && field.equalsIgnoreCase(FLD_ACTIVITY);
+        }
+
         public UserDao.Field getSortField() {
             if (isIdSort()) {
                 return UserDao.Field.USERID;
+            }
+            if (isActivitySort()) {
+                return UserDao.Field.LAST_ACTIVITY;
             }
             return UserDao.Field.EMAIL;
         }

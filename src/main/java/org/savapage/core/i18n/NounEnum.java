@@ -37,6 +37,8 @@ import org.savapage.core.util.LocaleHelper;
 public enum NounEnum {
 
     /** */
+    ACTIVITY(true),
+    /** */
     ADDRESS(true),
     /**  */
     ADMINISTRATOR(true),

@@ -24,6 +24,7 @@
  */
 package org.savapage.core.dao.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -153,7 +154,14 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
          * NOTE: We need a DISTINCT to prevent a User/UserEmail cartesian
          * product.
          */
-        jpql.append("SELECT DISTINCT U FROM ");
+        jpql.append("SELECT DISTINCT U ");
+
+        if (orderBy == Field.LAST_ACTIVITY) {
+            jpql.append(", COALESCE(U.lastUserActivity, "
+                    + "COALESCE(U.resetDate, U.createdDate)) AS L_ACT");
+        }
+
+        jpql.append(" FROM ");
 
         if (filter.getUserGroupId() == null) {
             jpql.append("User U");
@@ -193,6 +201,8 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             jpql.append("U.userId");
         } else if (orderBy == Field.NAME) {
             jpql.append("U.fullName");
+        } else if (orderBy == Field.LAST_ACTIVITY) {
+            jpql.append("L_ACT");
         } else {
             jpql.append("E.address");
         }
@@ -201,17 +211,26 @@ public final class UserDaoImpl extends GenericDaoImpl<User> implements UserDao {
             jpql.append(" DESC");
         }
 
-        //
         final Query query = createListQuery(jpql, filter);
 
-        //
         if (startPosition != null) {
             query.setFirstResult(startPosition);
         }
         if (maxResults != null) {
             query.setMaxResults(maxResults);
         }
-        return query.getResultList();
+
+        final List<User> userList;
+        if (orderBy == Field.LAST_ACTIVITY) {
+            final List<Object[]> resultList = query.getResultList();
+            userList = new ArrayList<>();
+            for (final Object[] arr : resultList) {
+                userList.add((User) arr[0]);
+            }
+        } else {
+            userList = query.getResultList();
+        }
+        return userList;
     }
 
     /**
