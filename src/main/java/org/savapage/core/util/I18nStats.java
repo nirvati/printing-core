@@ -196,20 +196,28 @@ public final class I18nStats {
 
     private static final String LOCALE_LANG_DUTCH = "nl";
     private static final String LOCALE_LANG_POLISH = "pl";
+    private static final String LOCALE_LANG_HUNGARIAN = "hu";
     private static final String LOCALE_LANG_RUSSIAN = "ru";
     private static final String LOCALE_LANG_SPANISH = "es";
 
     private static final String LOCALE_CTRY_NL = "NL";
     private static final String LOCALE_CTRY_ES = "ES";
     private static final String LOCALE_CTRY_PL = "PL";
+    private static final String LOCALE_CTRY_HU = "HU";
     private static final String LOCALE_CTRY_RU = "RU";
 
     private static final Locale LOCALE_SPANISH_ES =
             new Locale(LOCALE_LANG_SPANISH, LOCALE_CTRY_ES);
+
     private static final Locale LOCALE_POLISH_PL =
             new Locale(LOCALE_LANG_POLISH, LOCALE_CTRY_PL);
+
+    private static final Locale LOCALE_HUNGARIAN_HU =
+            new Locale(LOCALE_LANG_HUNGARIAN, LOCALE_CTRY_HU);
+
     private static final Locale LOCALE_RUSSIAN_RU =
             new Locale(LOCALE_LANG_RUSSIAN, LOCALE_CTRY_RU);
+
     private static final Locale LOCALE_DUTCH_NL =
             new Locale(LOCALE_LANG_DUTCH, LOCALE_CTRY_NL);
 
@@ -290,6 +298,7 @@ public final class I18nStats {
         I18N_SUPPORTED_MAP.put(Locale.FRANCE, Locale.FRANCE.getLanguage());
         I18N_SUPPORTED_MAP.put(LOCALE_SPANISH_ES, LOCALE_LANG_SPANISH);
         I18N_SUPPORTED_MAP.put(LOCALE_POLISH_PL, LOCALE_LANG_POLISH);
+        I18N_SUPPORTED_MAP.put(LOCALE_HUNGARIAN_HU, LOCALE_LANG_HUNGARIAN);
         I18N_SUPPORTED_MAP.put(LOCALE_RUSSIAN_RU, LOCALE_LANG_RUSSIAN);
         I18N_SUPPORTED_MAP.put(LOCALE_DUTCH_NL, LOCALE_LANG_DUTCH);
     }
