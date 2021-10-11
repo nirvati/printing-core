@@ -29,6 +29,7 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Currency;
 import java.util.Date;
 import java.util.Iterator;
@@ -66,6 +67,10 @@ import org.savapage.core.dto.MediaPageCostDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
 import org.savapage.core.dto.PosSalesDto;
+import org.savapage.core.dto.PosSalesItemDto;
+import org.savapage.core.dto.PosSalesLocationDto;
+import org.savapage.core.dto.PosSalesPriceDto;
+import org.savapage.core.dto.PosSalesShopDto;
 import org.savapage.core.dto.PosTransactionDto;
 import org.savapage.core.dto.SharedAccountDisplayInfoDto;
 import org.savapage.core.dto.UserAccountingDto;
@@ -101,6 +106,7 @@ import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.AccountTrxInfo;
 import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.AccountingException;
+import org.savapage.core.services.helpers.PosSalesLabelCache;
 import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
 import org.savapage.core.util.BigDecimalUtil;
@@ -2444,7 +2450,7 @@ public final class AccountingServiceImpl extends AbstractService
 
         try {
             if (!paperCutService().adjustUserAccountBalanceIfAvailable(proxy,
-                    dto.getUserId(), null, adjustment, dto.getComment())) {
+                    dto.getUserId(), null, adjustment, dto.createComment())) {
                 return createErrorMsg(MSG_KEY_POS_CREDIT_INSUFFICIENT,
                         dto.getUserId());
             }
@@ -2932,6 +2938,46 @@ public final class AccountingServiceImpl extends AbstractService
         account.setCreatedDate(ServiceContext.getTransactionDate());
 
         return account;
+    }
+
+    @Override
+    public void start() {
+
+        final ConfigManager cm = ConfigManager.instance();
+
+        PosSalesLabelCache.initSalesLocations(
+                cm.getConfigValue(Key.FINANCIAL_POS_SALES_LABEL_LOCATIONS));
+        PosSalesLabelCache.initSalesShops(
+                cm.getConfigValue(Key.FINANCIAL_POS_SALES_LABEL_SHOPS));
+        PosSalesLabelCache.initSalesItems(
+                cm.getConfigValue(Key.FINANCIAL_POS_SALES_LABEL_ITEMS));
+        PosSalesLabelCache.initSalesPrices(
+                cm.getConfigValue(Key.FINANCIAL_POS_SALES_LABEL_PRICES));
+    }
+
+    @Override
+    public void shutdown() {
+        // noop
+    }
+
+    @Override
+    public Collection<PosSalesLocationDto> getPosSalesLocationsByName() {
+        return PosSalesLabelCache.getSalesLocationsByName();
+    }
+
+    @Override
+    public Collection<PosSalesShopDto> getPosSalesShopsByName() {
+        return PosSalesLabelCache.getSalesShopsByName();
+    }
+
+    @Override
+    public Collection<PosSalesItemDto> getPosSalesItemsByName() {
+        return PosSalesLabelCache.getSalesItemsByName();
+    }
+
+    @Override
+    public Collection<PosSalesPriceDto> getPosSalesPricesByName() {
+        return PosSalesLabelCache.getSalesPricesByName();
     }
 
 }

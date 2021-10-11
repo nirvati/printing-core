@@ -320,6 +320,85 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * A comma separated list of POS Sales Locations to be applied as sales
+         * invoice prefix. Each location on the list is formatted as
+         * "LOC/location/n", where "LOC" is a unique N-letter upper-case
+         * mnemonic, "/" is a fixed separator, "location" is a case-sensitive
+         * single word used in UI context, and n is a unique ID number.
+         *
+         * E.g. "A/LocationA/1,B/LocationB/2,C/LocationC/3". When "B" location
+         * is applied, a generated sales invoice looks like "B/EE1-FA3E-6596".
+         */
+        FINANCIAL_POS_SALES_LABEL_LOCATIONS(
+                "financial.pos.sales.label.locations", KeyType.MULTI_LINE),
+
+        /**
+         * Enable {@link IConfigProp.Key#FINANCIAL_POS_SALES_LABEL_LOCATIONS}
+         * (boolean).
+         */
+        FINANCIAL_POS_SALES_LABEL_LOCATIONS_ENABLE(//
+                "financial.pos.sales.label.locations.enable", BOOLEAN_VALIDATOR,
+                V_NO, API_UPDATABLE_ON),
+
+        /**
+         * A comma separated list of POS Sales Shops in a Location to be applied
+         * as invoice prefix. Each use on the list is formatted as "SHOP/shop",
+         * where "SHOP" is a unique N-letter upper-case mnemonic, "/" is a fixed
+         * separator, and "shop" is a case-sensitive single word used in UI
+         * context.
+         *
+         * E.g. "F/Frontdesk,L/Library". When "L" shop is applied, a generated
+         * invoice looks like "F/EE1-FA3E-6596".
+         */
+        FINANCIAL_POS_SALES_LABEL_SHOPS("financial.pos.sales.label.shops",
+                KeyType.MULTI_LINE),
+
+        /**
+         * Enable {@link IConfigProp.Key#FINANCIAL_POS_SALES_LABEL_SHOPS}
+         * (boolean).
+         */
+        FINANCIAL_POS_SALES_LABEL_SHOPS_ENABLE(//
+                "financial.pos.sales.label.shops.enable", BOOLEAN_VALIDATOR,
+                V_NO, API_UPDATABLE_ON),
+
+        /**
+         * A comma separated list of POS Sales Items to be applied as invoice
+         * prefix. Each item on the list is formatted as "ITEM/word", where
+         * "ITEM" is a unique N-letter upper-case mnemonic, "/" is a fixed
+         * separator, and "word" is a case-sensitive single word used in UI
+         * context.
+         *
+         * E.g. "B/Book,D/Donut". When "D" tag is applied, a generated invoice
+         * number looks like "D/EE1-FA3E-6596".
+         */
+        FINANCIAL_POS_SALES_LABEL_ITEMS("financial.pos.sales.label.items",
+                KeyType.MULTI_LINE),
+
+        /**
+         * Enable {@link IConfigProp.Key#FINANCIAL_POS_SALES_LABEL_ITEMS}
+         * (boolean).
+         */
+        FINANCIAL_POS_SALES_LABEL_ITEMS_ENABLE(//
+                "financial.pos.sales.label.items.enable", BOOLEAN_VALIDATOR,
+                V_NO, API_UPDATABLE_ON),
+
+        /**
+         * A comma separated list of POS Sales Prices. Each price on the list is
+         * formatted as "PRICE", where "PRICE" is a unique N-digit amount in
+         * cents.
+         */
+        FINANCIAL_POS_SALES_LABEL_PRICES("financial.pos.sales.label.prices",
+                KeyType.MULTI_LINE),
+
+        /**
+         * Enable {@link IConfigProp.Key#FINANCIAL_POS_SALES_LABEL_PRICES}
+         * (boolean).
+         */
+        FINANCIAL_POS_SALES_LABEL_PRICES_ENABLE(//
+                "financial.pos.sales.label.prices.enable", BOOLEAN_VALIDATOR,
+                V_NO, API_UPDATABLE_ON),
+
+        /**
          * A comma separated list of Point-of-Sale payment methods.
          */
         FINANCIAL_POS_PAYMENT_METHODS(//

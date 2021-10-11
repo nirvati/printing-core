@@ -24,6 +24,7 @@
  */
 package org.savapage.core.dto;
 
+import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.services.helpers.account.UserAccountContextEnum;
 
 /**
@@ -42,6 +43,10 @@ public final class PosSalesDto extends PosTransactionDto {
     private UserAccountContextEnum accountContext;
 
     private DeliveryEnum invoiceDelivery;
+
+    private String posLocation;
+    private String posShop;
+    private String posItem;
 
     public Long getUserKey() {
         return userKey;
@@ -65,6 +70,52 @@ public final class PosSalesDto extends PosTransactionDto {
 
     public void setInvoiceDelivery(DeliveryEnum invoiceDelivery) {
         this.invoiceDelivery = invoiceDelivery;
+    }
+
+    public String getPosLocation() {
+        return posLocation;
+    }
+
+    public void setPosLocation(String posLocation) {
+        this.posLocation = posLocation;
+    }
+
+    public String getPosShop() {
+        return posShop;
+    }
+
+    public void setPosShop(String posShop) {
+        this.posShop = posShop;
+    }
+
+    public String getPosItem() {
+        return posItem;
+    }
+
+    public void setPosItem(String posItem) {
+        this.posItem = posItem;
+    }
+
+    public String createComment() {
+
+        final StringBuilder cmt = new StringBuilder();
+
+        for (final String part : new String[] { this.posLocation, this.posShop,
+                this.posItem }) {
+            if (StringUtils.isNotBlank(part)) {
+                if (cmt.length() > 0) {
+                    cmt.append("/");
+                }
+                cmt.append(part);
+            }
+        }
+        if (StringUtils.isNotBlank(this.getComment())) {
+            if (cmt.length() > 0) {
+                cmt.append(":");
+            }
+            cmt.append(this.getComment());
+        }
+        return cmt.toString();
     }
 
 }

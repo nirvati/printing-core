@@ -123,6 +123,8 @@ public enum NounEnum {
     /** */
     INVOICING,
     /** */
+    ITEM(true),
+    /** */
     JOURNAL,
     /** */
     KEY(true),
@@ -151,7 +153,11 @@ public enum NounEnum {
     /** */
     NAME(true),
     /** */
+    NOTE(true),
+    /** */
     OPACITY,
+    /** */
+    OFFICE(true),
     /** */
     OPTION(true),
     /** */
@@ -196,6 +202,8 @@ public enum NounEnum {
     SERVER(true),
     /** */
     SHAPE(true),
+    /** */
+    SHOP(true),
     /** */
     SIZE,
     /** */

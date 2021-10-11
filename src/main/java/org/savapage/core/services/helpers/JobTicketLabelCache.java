@@ -30,9 +30,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dto.JobTicketDomainDto;
-import org.savapage.core.dto.JobTicketLabelDomainPartDto;
 import org.savapage.core.dto.JobTicketTagDto;
 import org.savapage.core.dto.JobTicketUseDto;
 
@@ -41,21 +39,7 @@ import org.savapage.core.dto.JobTicketUseDto;
  * @author Rijk Ravestein
  *
  */
-public final class JobTicketLabelCache {
-
-    /** */
-    private static final String LABEL_WORDS_SEPARATOR = "/";
-
-    /** */
-    private static final String LABEL_ID_REGEX = "^[A-Z0-9]+$";
-
-    /** */
-    private static final int LABEL_ID_MAX_LENGTH = 5;
-
-    /** */
-    private static final int LABEL_SPLIT_IDX_ID = 0;
-    /** */
-    private static final int LABEL_SPLIT_IDX_NAME = 1;
+public final class JobTicketLabelCache extends AbstractLabelCache {
 
     /** */
     private static volatile SortedMap<String, JobTicketDomainDto> domainsByID =
@@ -337,66 +321,4 @@ public final class JobTicketLabelCache {
         return list;
     }
 
-    /**
-     * Processes a formatted item.
-     *
-     * @param item
-     *            Formatted item.
-     * @param dto
-     *            {@link JobTicketLabelDomainPartDto} to put processed result
-     *            on.
-     */
-    private static void processFormattedItem(final String item,
-            final JobTicketLabelDomainPartDto dto) {
-        final String[] res = splitItem(item);
-        dto.setId(res[LABEL_SPLIT_IDX_ID]);
-        dto.setName(res[LABEL_SPLIT_IDX_NAME]);
-        for (int i = LABEL_SPLIT_IDX_NAME + 1; i < res.length; i++) {
-            dto.addDomainID(res[i]);
-        }
-    }
-
-    /**
-     *
-     * @param items
-     *            The formatted items.
-     * @return Item array.
-     */
-    private static String[] splitFormattedItems(final String items) {
-        return StringUtils.split(
-                StringUtils.remove(StringUtils.remove(items, '\n'), '\r'), ',');
-    }
-
-    /**
-     *
-     * @param item
-     *            The formatted items.
-     * @return Item word array.
-     */
-    private static String[] splitItem(final String item) {
-
-        final String[] res = StringUtils.split(item, LABEL_WORDS_SEPARATOR);
-
-        if (res.length < 2) {
-            throw new IllegalArgumentException(String
-                    .format("Job Ticket item [%s]: invalid format.", item));
-        }
-
-        final String labelID = res[LABEL_SPLIT_IDX_ID];
-
-        if (!labelID.matches(LABEL_ID_REGEX)) {
-            throw new IllegalArgumentException(String.format(
-                    "Job Ticket item [%s]: ID [%s] "
-                            + "does not match regex [%s].",
-                    item, labelID, LABEL_ID_REGEX));
-        }
-
-        if (labelID.length() > LABEL_ID_MAX_LENGTH) {
-            throw new IllegalArgumentException(String.format(
-                    "Job Ticket item [%s]: ID [%s] "
-                            + "has more then %d characters.",
-                    item, labelID, LABEL_ID_MAX_LENGTH));
-        }
-        return res;
-    }
 }

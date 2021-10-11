@@ -26,6 +26,7 @@ package org.savapage.core.services;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
@@ -41,6 +42,10 @@ import org.savapage.core.dto.FinancialDisplayInfoDto;
 import org.savapage.core.dto.PosDepositDto;
 import org.savapage.core.dto.PosDepositReceiptDto;
 import org.savapage.core.dto.PosSalesDto;
+import org.savapage.core.dto.PosSalesItemDto;
+import org.savapage.core.dto.PosSalesLocationDto;
+import org.savapage.core.dto.PosSalesPriceDto;
+import org.savapage.core.dto.PosSalesShopDto;
 import org.savapage.core.dto.SharedAccountDisplayInfoDto;
 import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserCreditTransferDto;
@@ -75,7 +80,7 @@ import org.savapage.ext.papercut.PaperCutServerProxy;
  * @author Rijk Ravestein
  *
  */
-public interface AccountingService {
+public interface AccountingService extends StatefulService {
 
     /**
      * Key of entry in message.xml file.
@@ -704,4 +709,35 @@ public interface AccountingService {
     BigDecimal calcPrintedCopies(BigDecimal cost, BigDecimal costPerCopy,
             int scale);
 
+    /**
+     * Get the Pos Sales Locations from cache, sorted by location name.
+     *
+     * @return The sorted locations, or empty when no locations are defined or
+     *         locations are disabled.
+     */
+    Collection<PosSalesLocationDto> getPosSalesLocationsByName();
+
+    /**
+     * Get the Pos Sales Shops from cache, sorted by shop name.
+     *
+     * @return The sorted shops, or empty when no shops are defined or shops are
+     *         disabled.
+     */
+    Collection<PosSalesShopDto> getPosSalesShopsByName();
+
+    /**
+     * Get the Pos Sales Items from cache, sorted by item name.
+     *
+     * @return The sorted items, or empty when no items are defined or items are
+     *         disabled.
+     */
+    Collection<PosSalesItemDto> getPosSalesItemsByName();
+
+    /**
+     * Get the Pos Sales Prices from cache, sorted by price name.
+     *
+     * @return The sorted prices, or empty when no items are defined or prices
+     *         are disabled.
+     */
+    Collection<PosSalesPriceDto> getPosSalesPricesByName();
 }
