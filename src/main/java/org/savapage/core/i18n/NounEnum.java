@@ -121,6 +121,8 @@ public enum NounEnum {
     /** */
     INPUT,
     /** */
+    INVOICE,
+    /** */
     INVOICING,
     /** */
     ITEM(true),
@@ -184,6 +186,8 @@ public enum NounEnum {
     QUEUE(true),
     /** */
     RANGE,
+    /** */
+    RECEIPT,
     /** */
     RECTANGLE(true),
     /** */

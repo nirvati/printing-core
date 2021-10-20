@@ -24,6 +24,7 @@
  */
 package org.savapage.core.reports;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
@@ -78,6 +79,16 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
      * {@link String}.
      */
     protected static final String PARM_APP_VERSION = "SP_APP_VERSION";
+
+    /**
+     * {@link String}.
+     */
+    protected static final String PARM_REPORT_TITLE = "SP_REPORT_TITLE";
+
+    /**
+     * {@link String}.
+     */
+    protected static final String PARM_REPORT_HEADER = "SP_REPORT_HEADER";
 
     /**
      * {@link java.util.Date}.
@@ -152,18 +163,36 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
 
         final LocaleHelper helper = new LocaleHelper(locale);
 
+        final ResourceBundle resourceBundle =
+                ResourceBundle.getBundle(getResourceBundleBaseName(), locale);
+
+        final BigDecimal plainAmount =
+                BigDecimalUtil.valueOf(receipt.getPlainAmount());
+        final boolean isPurchase = plainAmount.signum() < 0;
+
         final Map<String, Object> parms = new HashMap<>();
 
         parms.put("REPORT_LOCALE", locale);
 
-        parms.put("REPORT_RESOURCE_BUNDLE",
-                ResourceBundle.getBundle(getResourceBundleBaseName(), locale));
+        parms.put("REPORT_RESOURCE_BUNDLE", resourceBundle);
 
         parms.put(PARM_APP_VERSION, ConfigManager.getAppNameVersion());
 
         parms.put(PARM_REPORT_ACTOR, ServiceContext.getActor());
         parms.put(PARM_REPORT_DATE,
                 helper.getLongDate(ServiceContext.getTransactionDate()));
+
+        final String resourceKeyPfx;
+        if (isPurchase) {
+            resourceKeyPfx = "PosDepositInvoice";
+        } else {
+            resourceKeyPfx = "PosDepositReceipt";
+        }
+        parms.put(PARM_REPORT_TITLE,
+                resourceBundle.getString(resourceKeyPfx.concat(".title")));
+        parms.put(PARM_REPORT_HEADER,
+                resourceBundle.getString(resourceKeyPfx.concat(".header")));
+
         parms.put(PARM_REPORT_IMAGE, getHeaderImage());
 
         //
@@ -176,8 +205,7 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
 
         try {
             parms.put(PARM_RECEIPT_AMOUNT,
-                    helper.getCurrencyDecimal(
-                            BigDecimalUtil.valueOf(receipt.getPlainAmount()),
+                    helper.getCurrencyDecimal(plainAmount,
                             ConfigManager.getUserBalanceDecimals(),
                             CurrencyUtil.getCurrencySymbol(
                                     receipt.getAccountTrx().getCurrencyCode(),
@@ -274,10 +302,11 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
         // Parameters
         addParameters(jasperDesign,
                 new String[] { PARM_APP_VERSION, PARM_REPORT_ACTOR,
-                        PARM_REPORT_DATE, PARM_RECEIPT_DATE,
-                        PARM_RECEIPT_REF_NUMBER, PARM_RECEIPT_USERNAME,
-                        PARM_RECEIPT_AMOUNT, PARM_RECEIPT_CASHIER,
-                        PARM_RECEIPT_COMMENT, PARM_RECEIPT_PAYMENT_METHOD },
+                        PARM_REPORT_DATE, PARM_REPORT_TITLE, PARM_REPORT_HEADER,
+                        PARM_RECEIPT_DATE, PARM_RECEIPT_REF_NUMBER,
+                        PARM_RECEIPT_USERNAME, PARM_RECEIPT_AMOUNT,
+                        PARM_RECEIPT_CASHIER, PARM_RECEIPT_COMMENT,
+                        PARM_RECEIPT_PAYMENT_METHOD },
                 java.lang.String.class);
 
         addParameters(jasperDesign, new String[] { PARM_REPORT_IMAGE },
@@ -321,9 +350,11 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
 
         int width = getLayout().getColumnWidth().intValue() - posX;
 
-        textField = addDesignTextField(band, "$R{PosDepositReceipt.title}",
-                posX, 15, width, 42, HorizontalTextAlignEnum.LEFT,
-                VerticalTextAlignEnum.MIDDLE);
+        final String titleFieldExpr = "$P{" + PARM_REPORT_TITLE + "}";
+        // "$R{PosDepositReceipt.title}";
+
+        textField = addDesignTextField(band, titleFieldExpr, posX, 15, width,
+                42, HorizontalTextAlignEnum.LEFT, VerticalTextAlignEnum.MIDDLE);
 
         textField.setFontSize(FONT_SIZE_TITLE_F);
 
@@ -379,8 +410,11 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
         final int fieldWidth = getLayout().getColumnWidth() - fieldX;
 
         // Fixed Header text
-        textField = addDesignTextField(band, "$R{PosDepositReceipt.header}", 0,
-                wlkPosY, getLayout().getColumnWidth(), fieldHeight,
+        final String headerFieldExpr = "$P{" + PARM_REPORT_HEADER + "}";
+        // "$R{PosDepositReceipt.header}";
+
+        textField = addDesignTextField(band, headerFieldExpr, 0, wlkPosY,
+                getLayout().getColumnWidth(), fieldHeight,
                 HorizontalTextAlignEnum.LEFT, VerticalTextAlignEnum.MIDDLE);
         textField.setFontSize(FONT_SIZE_DETAIL_F);
 

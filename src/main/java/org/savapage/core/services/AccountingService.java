@@ -72,6 +72,7 @@ import org.savapage.core.services.helpers.AccountTrxInfoSet;
 import org.savapage.core.services.helpers.AccountingException;
 import org.savapage.core.services.helpers.ProxyPrintCostDto;
 import org.savapage.core.services.helpers.ProxyPrintCostParms;
+import org.savapage.ext.papercut.PaperCutException;
 import org.savapage.ext.papercut.PaperCutServerProxy;
 
 /**
@@ -584,10 +585,21 @@ public interface AccountingService extends StatefulService {
      * @param orphanedPaymentAccount
      *            The {@link Account} to add funds on when the requesting
      *            {@link User} of the transaction is unknown.
-     * @since 0.9.9
      */
-    void acceptFundsFromGateway(final User lockedUser,
-            UserPaymentGatewayDto dto, Account orphanedPaymentAccount);
+    void acceptFundsFromGateway(User lockedUser, UserPaymentGatewayDto dto,
+            Account orphanedPaymentAccount);
+
+    /**
+     * Accepts funds from a Payment Gateway: a PaperCut transaction is created.
+     *
+     * @param proxy
+     *            PaperCut server proxy.
+     * @param dto
+     *            The {@link UserPaymentGatewayDto}
+     * @throws PaperCutException
+     */
+    void acceptFundsFromGateway(PaperCutServerProxy proxy,
+            UserPaymentGatewayDto dto) throws PaperCutException;
 
     /**
      * Creates pending funds from a Payment Gateway: an {@link AccountTrx} is
@@ -597,7 +609,6 @@ public interface AccountingService extends StatefulService {
      *            The {@link User} as locked by the caller.
      * @param dto
      *            The {@link UserPaymentGatewayDto}
-     * @since 0.9.9
      */
     void createPendingFundsFromGateway(User lockedUser,
             UserPaymentGatewayDto dto);
@@ -617,14 +628,22 @@ public interface AccountingService extends StatefulService {
             UserPaymentGatewayDto dto) throws AccountingException;
 
     /**
-     * Creates the DTO of a {@link AccountTrx.AccountTrxTypeEnum#DEPOSIT}
-     * transaction.
+     * Creates the DTO of a {@link AccountTrxTypeEnum#DEPOSIT} transaction.
      *
      * @param accountTrxId
      *            The id of the {@link AccountTrx}.
      * @return The {@link PosDepositReceiptDto}.
      */
     PosDepositReceiptDto createPosDepositReceiptDto(Long accountTrxId);
+
+    /**
+     * Creates the DTO of a {@link AccountTrxTypeEnum#PURCHASE} transaction.
+     *
+     * @param accountTrxId
+     *            The id of the {@link AccountTrx}.
+     * @return The {@link PosDepositReceiptDto}.
+     */
+    PosDepositReceiptDto createPosDepositInvoiceDto(Long accountTrxId);
 
     /**
      * Checks if cost can be charged to account, according to account balance

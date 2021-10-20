@@ -373,11 +373,24 @@ public final class UserMsgIndicator {
      *            The unique user id.
      */
     public static void notifyAccountInfoEvent(final String userId) {
+        notifyEvent(UserMsgIndicator.Msg.ACCOUNT_INFO, userId);
+    }
+
+    /**
+     * Notifies a message.
+     *
+     * @param msg
+     *            Message.
+     * @param userId
+     *            The unique user id.
+     */
+    private static void notifyEvent(final UserMsgIndicator.Msg msg,
+            final String userId) {
 
         if (UserMsgIndicator.isSafePagesDirPresent(userId)) {
             try {
                 UserMsgIndicator.writeMsg(userId, System.currentTimeMillis(),
-                        UserMsgIndicator.Msg.ACCOUNT_INFO, null);
+                        msg, null);
             } catch (IOException e) {
                 LOGGER.error(e.getMessage(), e);
             }

@@ -2308,6 +2308,29 @@ public final class AccountingServiceImpl extends AbstractService
         accountTrxDAO().create(trx);
     }
 
+    @Override
+    public void acceptFundsFromGateway(final PaperCutServerProxy proxy,
+            final UserPaymentGatewayDto dto) throws PaperCutException {
+
+        String amount = "?";
+        String fee = "?";
+        try {
+            amount = BigDecimalUtil.localize(dto.getPaymentMethodAmount(), 2,
+                    Locale.ENGLISH, "", true);
+            fee = BigDecimalUtil.localize(dto.getPaymentMethodFee(), 2,
+                    Locale.ENGLISH, "", true);
+        } catch (ParseException e) {
+            // no code intended
+        }
+
+        final String comment = String.format("%s/%s/%s/%s/%s",
+                dto.getPaymentMethod(), amount, fee,
+                dto.getPaymentMethodAddress(), dto.getPaymentMethodDetails());
+
+        paperCutService().adjustUserAccountBalanceIfAvailable(proxy,
+                dto.getUserId(), null, dto.getAmount(), comment);
+    }
+
     /**
      * Deposits funds to an {@link Account}.
      *
@@ -2392,20 +2415,17 @@ public final class AccountingServiceImpl extends AbstractService
         if (user == null) {
             return createErrorMsg(MSG_KEY_POS_USER_UNKNOWN, userId);
         }
-        return validatePosFunds(userId, formattedAmount);
+        return this.validatePosFunds(formattedAmount);
     }
 
     /**
      * Validates POS funds.
      *
-     * @param userId
-     *            User ID.
      * @param formattedAmount
      *            Decimal point amount.
      * @return {@code null} if valid.
      */
-    private JsonRpcMethodError validatePosFunds(final String userId,
-            final String formattedAmount) {
+    private JsonRpcMethodError validatePosFunds(final String formattedAmount) {
         /*
          * INVARIANT: Amount MUST be valid.
          */
@@ -2424,14 +2444,16 @@ public final class AccountingServiceImpl extends AbstractService
 
     @Override
     public AbstractJsonRpcMethodResponse depositFunds(final PosDepositDto dto) {
-        return handlePosTransaction(dto, ReceiptNumberPrefixEnum.DEPOSIT,
-                AccountTrxTypeEnum.DEPOSIT, false, dto.getPaymentType());
+        return handlePosTransaction(dto, dto.getComment(),
+                ReceiptNumberPrefixEnum.DEPOSIT, AccountTrxTypeEnum.DEPOSIT,
+                false, dto.getPaymentType());
     }
 
     @Override
     public AbstractJsonRpcMethodResponse chargePosSales(final PosSalesDto dto) {
-        return handlePosTransaction(dto, ReceiptNumberPrefixEnum.PURCHASE,
-                AccountTrxTypeEnum.PURCHASE, true, null);
+        return handlePosTransaction(dto, dto.createComment(),
+                ReceiptNumberPrefixEnum.PURCHASE, AccountTrxTypeEnum.PURCHASE,
+                true, null);
     }
 
     @Override
@@ -2440,8 +2462,7 @@ public final class AccountingServiceImpl extends AbstractService
 
         final String formattedAmount = dto.formatAmount();
 
-        final JsonRpcMethodError error =
-                this.validatePosFunds(dto.getUserId(), formattedAmount);
+        final JsonRpcMethodError error = this.validatePosFunds(formattedAmount);
         if (error != null) {
             return error;
         }
@@ -2465,6 +2486,8 @@ public final class AccountingServiceImpl extends AbstractService
      *
      * @param dto
      *            Transaction.
+     * @param comment
+     *            Comment string.
      * @param receiptNumberPrefix
      * @param accountTrxType
      * @param withdrawal
@@ -2472,7 +2495,7 @@ public final class AccountingServiceImpl extends AbstractService
      * @return response.
      */
     private AbstractJsonRpcMethodResponse handlePosTransaction(
-            final PosTransactionDto dto,
+            final PosTransactionDto dto, final String comment,
             final ReceiptNumberPrefixEnum receiptNumberPrefix,
             final AccountTrxTypeEnum accountTrxType, final boolean withdrawal,
             final String paymentType) {
@@ -2500,12 +2523,33 @@ public final class AccountingServiceImpl extends AbstractService
                 purchaseDAO().getNextReceiptNumber(receiptNumberPrefix);
 
         return depositFundsToAccount(account, accountTrxType, null,
-                receiptNumber, amountDeposit, dto.getComment());
+                receiptNumber, amountDeposit, comment);
     }
 
     @Override
     public PosDepositReceiptDto
             createPosDepositReceiptDto(final Long accountTrxId) {
+        return this.createPosDepositReceiptDtoExt(accountTrxId,
+                AccountTrxTypeEnum.DEPOSIT);
+    }
+
+    @Override
+    public PosDepositReceiptDto
+            createPosDepositInvoiceDto(final Long accountTrxId) {
+        return this.createPosDepositReceiptDtoExt(accountTrxId,
+                AccountTrxTypeEnum.PURCHASE);
+    }
+
+    /**
+     * Creates the DTO of a {@link AccountTrx.AccountTrxTypeEnum#DEPOSIT}
+     * transaction.
+     *
+     * @param accountTrxId
+     *            The id of the {@link AccountTrx}.
+     * @return The {@link PosDepositReceiptDto}.
+     */
+    private PosDepositReceiptDto createPosDepositReceiptDtoExt(
+            final Long accountTrxId, final AccountTrxTypeEnum accountTrxType) {
 
         final AccountTrx accountTrx = accountTrxDAO().findById(accountTrxId);
 
@@ -2513,9 +2557,9 @@ public final class AccountingServiceImpl extends AbstractService
             throw new SpException("Transaction not found.");
         }
 
-        if (!accountTrx.getTrxType()
-                .equals(AccountTrxTypeEnum.DEPOSIT.toString())) {
-            throw new SpException("This is not a DEPOSIT transaction.");
+        if (!accountTrx.getTrxType().equals(accountTrxType.toString())) {
+            throw new SpException(String.format("This is not a %s transaction.",
+                    accountTrxType.name()));
         }
 
         final PosPurchase purchase = accountTrx.getPosPurchase();

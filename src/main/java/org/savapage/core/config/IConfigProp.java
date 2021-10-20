@@ -298,6 +298,14 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         * Which user account context(s) for Payment Gateway.
+         */
+        FINANCIAL_PAYMENT_GATEWAY_ACCOUNTS(//
+                "financial.payment-gateway.accounts",
+                new EnumSetValidator<>(UserAccountContextEnum.class),
+                API_UPDATABLE_ON),
+
+        /**
          * Is POS deposit enabled?
          */
         FINANCIAL_POS_DEPOSIT_ENABLE(//
@@ -312,7 +320,7 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
-         * Which user account context?
+         * Which user account context(s) for POS Sales?
          */
         FINANCIAL_POS_SALES_ACCOUNTS(//
                 "financial.pos.sales.accounts",
@@ -3275,6 +3283,13 @@ public interface IConfigProp {
          */
         WEBAPP_USER_SHOW_ENV_INFO(//
                 "webapp.user.show-env-info", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /**
+         * User WebApp: show pagometer?
+         */
+        WEBAPP_USER_SHOW_PAGOMETER(//
+                "webapp.user.show-pagometer", BOOLEAN_VALIDATOR, V_YES,
                 API_UPDATABLE_ON),
 
         /**
