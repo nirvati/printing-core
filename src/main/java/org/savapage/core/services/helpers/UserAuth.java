@@ -300,6 +300,12 @@ public final class UserAuth {
                     keyInternetAuthModes =
                             Key.WEBAPP_INTERNET_MAILTICKETS_AUTH_MODES;
                     break;
+                case PAYMENT:
+                    keyInternetAuthEnable =
+                            Key.WEBAPP_INTERNET_PAYMENT_AUTH_MODE_ENABLE;
+                    keyInternetAuthModes =
+                            Key.WEBAPP_INTERNET_PAYMENT_AUTH_MODES;
+                    break;
                 case POS:
                     keyInternetAuthEnable =
                             Key.WEBAPP_INTERNET_POS_AUTH_MODE_ENABLE;

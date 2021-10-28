@@ -238,6 +238,23 @@ public interface AccountingService extends StatefulService {
             String currencySymbol);
 
     /**
+     * Gets the PaperCut account information of a {@link User} meant for
+     * display.
+     *
+     * @param proxy
+     *            PaperCut server proxy.
+     * @param user
+     *            The {@link User}.
+     * @param locale
+     *            The {@link Locale} used for formatting financial data.
+     * @param currencySymbol
+     *            {@code null} or empty when not applicable.
+     * @return The {@link AccountDisplayInfoDto} object.
+     */
+    AccountDisplayInfoDto getAccountDisplayInfo(PaperCutServerProxy proxy,
+            User user, Locale locale, String currencySymbol);
+
+    /**
      * Gets the shared {@link Account} information of an {@link Account} meant
      * for display.
      *

@@ -47,6 +47,11 @@ public enum WebAppTypeEnum {
     MAILTICKETS("Mail Tickets"),
 
     /**
+     * The Payment WebApp.
+     */
+    PAYMENT("Payment"),
+
+    /**
      * The Point-of-Sale WebApp.
      */
     POS("POS"),
@@ -90,7 +95,7 @@ public enum WebAppTypeEnum {
      *         variant.
      */
     public boolean isUserTypeOrVariant() {
-        return this == USER || this == MAILTICKETS;
+        return this == USER || this == MAILTICKETS || this == PAYMENT;
     }
 
 }

@@ -171,6 +171,8 @@ public enum NounEnum {
     /** */
     PASSWORD(true),
     /** */
+    PAYMENT(true),
+    /** */
     PERIOD(true),
     /** */
     PERSON(true),

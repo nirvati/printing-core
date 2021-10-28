@@ -1539,6 +1539,15 @@ public interface IConfigProp {
                 Key.WEBAPP_INTERNET_PFX + "mailtickets.auth-modes",
                 AUTHMODE_SET_VALIDATOR, AUTH_MODE_V_NAME, API_UPDATABLE_OFF),
 
+        /** */
+        WEBAPP_INTERNET_PAYMENT_AUTH_MODE_ENABLE(//
+                Key.WEBAPP_INTERNET_PFX + "payment.auth-mode.enable",
+                BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
+        /** */
+        WEBAPP_INTERNET_PAYMENT_AUTH_MODES(//
+                Key.WEBAPP_INTERNET_PFX + "payment.auth-modes",
+                AUTHMODE_SET_VALIDATOR, AUTH_MODE_V_NAME, API_UPDATABLE_OFF),
+
         /**
          *
          */
@@ -3370,6 +3379,13 @@ public interface IConfigProp {
         WEBAPP_THEME_USER(Key.WEBAPP_THEME_PFX + "user", API_UPDATABLE_ON),
 
         /**
+         * The custom jQuery Mobile Theme CSS file for the Payment Web App as
+         * present in the {@code server/custom/web/themes/} folder.
+         */
+        WEBAPP_THEME_PAYMENT(Key.WEBAPP_THEME_PFX + "payment",
+                API_UPDATABLE_ON),
+
+        /**
          * The custom CSS file for the Admin Web App as present in the
          * {@code server/custom/web/} folder.
          */
@@ -3409,6 +3425,13 @@ public interface IConfigProp {
         WEBAPP_CUSTOM_USER(Key.WEBAPP_CUSTOM_PFX + "user", API_UPDATABLE_ON),
 
         /**
+         * The custom CSS file for the Payment Web App as present in the
+         * {@code server/custom/web/} folder.
+         */
+        WEBAPP_CUSTOM_PAYMENT(Key.WEBAPP_CUSTOM_PFX + "payment",
+                API_UPDATABLE_ON),
+
+        /**
          *
          */
         WEBAPP_HTML_ADMIN_ABOUT(//
@@ -3428,6 +3451,9 @@ public interface IConfigProp {
         /** */
         WEBAPP_HTML_USER_ABOUT(//
                 Key.WEBAPP_HTML_PFX + "user.about", API_UPDATABLE_ON),
+        /** */
+        WEBAPP_HTML_PAYMENT_ABOUT(//
+                Key.WEBAPP_HTML_PFX + "payment.about", API_UPDATABLE_ON),
 
         /**
          *
@@ -3449,6 +3475,9 @@ public interface IConfigProp {
         /** */
         WEBAPP_HTML_USER_LOGIN(//
                 Key.WEBAPP_HTML_PFX + "user.login", API_UPDATABLE_ON),
+        /** */
+        WEBAPP_HTML_PAYMENT_LOGIN(//
+                Key.WEBAPP_HTML_PFX + "payment.login", API_UPDATABLE_ON),
 
         /**
          * .

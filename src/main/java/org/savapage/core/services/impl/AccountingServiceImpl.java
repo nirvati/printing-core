@@ -2050,6 +2050,39 @@ public final class AccountingServiceImpl extends AbstractService
         return dto;
     }
 
+    @Override
+    public AccountDisplayInfoDto getAccountDisplayInfo(
+            final PaperCutServerProxy proxy, final User user,
+            final Locale locale, final String currencySymbol) {
+
+        final AccountDisplayInfoDto dto = new AccountDisplayInfoDto();
+
+        BigDecimal balance = BigDecimal.ZERO;
+
+        AccountDisplayInfoDto.Status status =
+                AccountDisplayInfoDto.Status.CREDIT;
+
+        try {
+            balance = proxy.getUserAccountBalance(user.getUserId(),
+                    ConfigManager.getUserBalanceDecimals());
+            dto.setBalance(
+                    this.formatUserBalance(balance, locale, currencySymbol));
+
+            if (balance.compareTo(BigDecimal.ZERO) > 0) {
+                status = AccountDisplayInfoDto.Status.DEBIT;
+            }
+            dto.setStatus(status);
+
+        } catch (PaperCutException e) {
+            // no code intended
+        }
+
+        dto.setLocaleLanguage(locale.getLanguage());
+        dto.setLocaleCountry(locale.getCountry());
+
+        return dto;
+    }
+
     /**
      * Gets the {@link Account} information meant for display.
      *
