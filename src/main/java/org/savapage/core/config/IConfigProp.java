@@ -1276,6 +1276,9 @@ public interface IConfigProp {
          */
         PAPERCUT_ENABLE("papercut.enable", BOOLEAN_VALIDATOR, V_NO),
 
+        /** */
+        PAPERCUT_DB_ENABLE("papercut.db.enable", BOOLEAN_VALIDATOR, V_YES),
+
         /**
          * PaperCut Database JDBC driver, like "org.postgresql.Driver".
          */
@@ -3060,6 +3063,15 @@ public interface IConfigProp {
          */
         WEBAPP_JOBTICKETS_LIST_SIZE_MAX(//
                 "webapp.jobtickets.list-size-max", NUMBER_VALIDATOR, "50"),
+
+        /**
+         * The maximum number of price labels that make prices show as buttons
+         * before a select list is shown. See
+         * {@link #FINANCIAL_POS_SALES_LABEL_PRICES}.
+         */
+        WEBAPP_POS_SALES_LABEL_PRICES_BUTTON_MAX(//
+                "webapp.pos.sales.label.prices.button-max", NUMBER_VALIDATOR,
+                "10"),
 
         /**
          * Trust authenticated user in Client App on same IP address as User Web
