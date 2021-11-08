@@ -2537,10 +2537,11 @@ public final class ConfigManager {
     }
 
     /**
-     * @return {@code true} if PaperCut integration is enabled.
+     * @return {@code true} if PaperCut Print integration is enabled.
      */
     public static boolean isPaperCutPrintEnabled() {
-        return instance().isConfigValue(Key.PAPERCUT_ENABLE);
+        return instance().isConfigValue(Key.PAPERCUT_ENABLE)
+                && instance().isConfigValue(Key.PAPERCUT_DB_ENABLE);
     }
 
     /**
