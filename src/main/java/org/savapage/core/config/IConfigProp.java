@@ -1533,6 +1533,13 @@ public interface IConfigProp {
                 "print.imap.ticket.reply.content-type.html", BOOLEAN_VALIDATOR,
                 V_YES, API_UPDATABLE_ON),
 
+        /**
+         * .
+         */
+        WEBAPP_INTERNET_MAILTICKETS_ENABLE(//
+                Key.WEBAPP_INTERNET_PFX + "mailtickets.enable",
+                BOOLEAN_VALIDATOR, V_YES, API_UPDATABLE_ON),
+
         /** */
         WEBAPP_INTERNET_MAILTICKETS_AUTH_MODE_ENABLE(//
                 Key.WEBAPP_INTERNET_PFX + "mailtickets.auth-mode.enable",
@@ -1541,6 +1548,13 @@ public interface IConfigProp {
         WEBAPP_INTERNET_MAILTICKETS_AUTH_MODES(//
                 Key.WEBAPP_INTERNET_PFX + "mailtickets.auth-modes",
                 AUTHMODE_SET_VALIDATOR, AUTH_MODE_V_NAME, API_UPDATABLE_OFF),
+
+        /**
+         * .
+         */
+        WEBAPP_INTERNET_PAYMENT_ENABLE(//
+                Key.WEBAPP_INTERNET_PFX + "payment.enable", BOOLEAN_VALIDATOR,
+                V_YES, API_UPDATABLE_ON),
 
         /** */
         WEBAPP_INTERNET_PAYMENT_AUTH_MODE_ENABLE(//
