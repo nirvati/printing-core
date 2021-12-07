@@ -3079,6 +3079,40 @@ public interface IConfigProp {
                 "webapp.jobtickets.list-size-max", NUMBER_VALIDATOR, "50"),
 
         /**
+         * URL with Payment WebApp help information.
+         */
+        WEBAPP_PAYMENT_HELP_URL(//
+                "webapp.payment.help.url", URL_VALIDATOR_OPT, API_UPDATABLE_ON),
+
+        /**
+         * Payment WebApp: must text of navigation buttons on main window be
+         * shown?
+         */
+        WEBAPP_PAYMENT_MAIN_NAV_BUTTON_TEXT(//
+                "webapp.payment.main.nav-button-text", ON_OFF_ENUM_VALIDATOR,
+                OnOffEnum.ON.toString(), API_UPDATABLE_ON),
+
+        /**
+         * Payment WebApp: show help URL in web app.
+         */
+        WEBAPP_PAYMENT_HELP_URL_ENABLE(//
+                "webapp.payment.help.url.enable", BOOLEAN_VALIDATOR, V_YES,
+                API_UPDATABLE_ON),
+
+        /**
+         * POS Web App: success event sound file (mp3, wav, ...) as present in
+         * the {@code server/custom/web/} folder.
+         */
+        WEBAPP_POS_SOUND_SUCCESS(//
+                "webapp.pos.sound.success", API_UPDATABLE_ON),
+
+        /**
+         * POS Web App: failure event sound file (mp3, wav, ...) as present in
+         * the {@code server/custom/web/} folder.
+         */
+        WEBAPP_POS_SOUND_FAILURE(//
+                "webapp.pos.sound.failure", API_UPDATABLE_ON),
+        /**
          * The maximum number of price labels that make prices show as buttons
          * before a select list is shown. See
          * {@link #FINANCIAL_POS_SALES_LABEL_PRICES}.
