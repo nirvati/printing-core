@@ -126,6 +126,7 @@ import org.savapage.core.util.JsonHelper;
 import org.savapage.core.util.Messages;
 import org.savapage.core.util.NumberUtil;
 import org.savapage.ext.papercut.PaperCutHelper;
+import org.savapage.ext.papercut.services.PaperCutService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,6 +140,10 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     /** */
     private static final Logger LOGGER =
             LoggerFactory.getLogger(ProxyPrintServiceImpl.class);
+
+    /** */
+    private static final PaperCutService PAPERCUT_SERVICE =
+            ServiceContext.getServiceFactory().getPaperCutService();
 
     /** */
     private static final String CUSTOM_IPP_I18N_RESOURCE_NAME = "ipp-i18n";
@@ -2449,6 +2454,14 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                     DocStoreTypeEnum.JOURNAL, printer.getId()));
         }
 
+        if (ConfigManager.instance().isConfigValue(
+                Key.PROXY_PRINT_DELEGATE_PAPERCUT_FRONTEND_ENABLE)
+                && !PAPERCUT_SERVICE
+                        .isExtPaperCutPrint(printer.getPrinterName())) {
+            dto.setPapercutFrontEnd(
+                    printerService().isPaperCutFrontEnd(printer.getId()));
+        }
+
         dto.setPpdExtFile(printerService().getAttributeValue(printer,
                 PrinterAttrEnum.CUSTOM_PPD_EXT_FILE));
 
@@ -2639,6 +2652,12 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
                 DocStoreBranchEnum.OUT_PRINT)) {
             setPrinterAttr(jpaPrinter, PrinterAttrEnum.JOURNAL_DISABLE,
                     dto.getJournalDisabled());
+        }
+
+        if (ConfigManager.instance().isConfigValue(
+                Key.PROXY_PRINT_DELEGATE_PAPERCUT_FRONTEND_ENABLE)) {
+            setPrinterAttr(jpaPrinter, PrinterAttrEnum.PAPERCUT_FRONT_END,
+                    dto.getPapercutFrontEnd());
         }
 
         setPrinterAttr(jpaPrinter, PrinterAttrEnum.CUSTOM_PPD_EXT_FILE,

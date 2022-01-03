@@ -2356,7 +2356,29 @@ public abstract class AbstractProxyPrintService extends AbstractService
     }
 
     @Override
-    public void refundProxyPrintPaperCut(final CostChange costChange)
+    public final void chargeProxyPrintPaperCut(final PrintOut printOut)
+            throws PaperCutException {
+
+        final DocLog docLog = printOut.getDocOut().getDocLog();
+
+        final int copies = printOut.getNumberOfCopies().intValue();
+        final int weightTotal = copies;
+
+        final BigDecimal cost = docLog.getCostOriginal();
+
+        final PaperCutServerProxy serverProxy =
+                PaperCutServerProxy.create(ConfigManager.instance(), true);
+
+        final PaperCutAccountAdjustPrint adjustPattern =
+                new PaperCutAccountAdjustPrint(serverProxy,
+                        PAPERCUT_ACCOUNT_RESOLVER, LOGGER);
+
+        adjustPattern.process(docLog, docLog, false, cost, weightTotal, copies,
+                true);
+    }
+
+    @Override
+    public final void refundProxyPrintPaperCut(final CostChange costChange)
             throws PaperCutException {
 
         final PaperCutServerProxy serverProxy =

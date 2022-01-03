@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.savapage.core.config.ConfigManager;
+import org.savapage.core.config.IConfigProp;
 import org.savapage.core.dao.PrinterAttrDao;
 import org.savapage.core.ipp.attribute.IppDictJobTemplateAttr;
 import org.savapage.core.jpa.PrinterAttr;
@@ -97,6 +98,13 @@ public enum PrinterAttrEnum {
      * {@link IppDictJobTemplateAttr#ORG_SAVAPAGE_ATTR_JOB_SHEETS}.
      */
     JOB_SHEETS_MEDIA_SOURCES("job-sheets.media-sources"),
+
+    /**
+     * Does printer act as front-end for PaperCut accounting transactions in a
+     * Delegated Print scenario (boolean). See
+     * {@link IConfigProp.Key#PROXY_PRINT_DELEGATE_PAPERCUT_FRONTEND_ENABLE}.
+     */
+    PAPERCUT_FRONT_END("papercut.front-end.enable"),
 
     /**
      * <i>This is a prefix for media-source parameters and is not used as such:

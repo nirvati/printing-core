@@ -901,6 +901,16 @@ public interface ProxyPrintService {
             throws PaperCutException;
 
     /**
+     * Charges a proxy print in PaperCut.
+     *
+     * @param printOut
+     *            The {@link PrintOut}.
+     * @throws PaperCutException
+     *             When logical PaperCut error.
+     */
+    void chargeProxyPrintPaperCut(PrintOut printOut) throws PaperCutException;
+
+    /**
      * Sends Print Job to the CUPS Printer, and updates {@link User},
      * {@link Printer} and global {@link IConfigProp} statistics.
      * <p>

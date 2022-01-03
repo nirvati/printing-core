@@ -59,6 +59,7 @@ import org.savapage.core.config.validator.ValidationResult;
 import org.savapage.core.config.validator.ValidationStatusEnum;
 import org.savapage.core.crypto.OneTimeAuthToken;
 import org.savapage.core.dao.enums.DeviceTypeEnum;
+import org.savapage.core.dao.enums.PrinterAttrEnum;
 import org.savapage.core.dao.impl.DaoBatchCommitterImpl;
 import org.savapage.core.dto.QuickSearchFilterUserGroupDto;
 import org.savapage.core.dto.QuickSearchUserGroupMemberFilterDto;
@@ -2276,6 +2277,16 @@ public interface IConfigProp {
         PROXY_PRINT_DELEGATE_PAPERCUT_ENABLE(//
                 "proxy-print.delegate.papercut.enable", BOOLEAN_VALIDATOR, V_NO,
                 API_UPDATABLE_ON),
+
+        /**
+         * Enable configuration option for proxy printers not technically tied
+         * to (managed by) PaperCut but acting as front-end for PaperCut
+         * accounting transactions in a Delegated Print scenario (boolean). Also
+         * see {@link PrinterAttrEnum#PAPERCUT_FRONT_END}.
+         */
+        PROXY_PRINT_DELEGATE_PAPERCUT_FRONTEND_ENABLE(//
+                "proxy-print.delegate.papercut.front-end.enable",
+                BOOLEAN_VALIDATOR, V_NO, API_UPDATABLE_ON),
 
         /**
          * The shared top-level account that must be present in PaperCut.

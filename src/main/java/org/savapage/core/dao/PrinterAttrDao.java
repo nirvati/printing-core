@@ -51,7 +51,7 @@ public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
      *            The primary key of the {@link Printer}.
      * @param name
      *            The {@link PrinterAttrEnum}.
-     * @return The {@link PrinterAttr} or {@code null} when not found.
+     * @return The {@link PrinterAttr} or {@code null} if not found.
      */
     PrinterAttr findByName(Long printerId, PrinterAttrEnum name);
 
@@ -61,7 +61,7 @@ public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
      *            The primary key of the {@link Printer}.
      * @param ippKeyword
      *            The {@link IppKeywordAttr}.
-     * @return The {@link PrinterAttr} or {@code null} when not found.
+     * @return The {@link PrinterAttr} or {@code null} if not found.
      */
     PrinterAttr findByName(Long printerId,
             PrinterDao.IppKeywordAttr ippKeyword);
@@ -77,16 +77,27 @@ public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
      * @see {@link PrinterAttrEnum#ACCESS_INTERNAL}.
      * @param lookup
      *            The {@link PrinterAttrLookup}.
-     * @return {@code true} is printer is internal printer.
+     * @return {@code true} if printer is internal printer.
      */
     boolean isInternalPrinter(PrinterAttrLookup lookup);
+
+    /**
+     * Checks if {@link PrinterAttrLookup} indicates a PaperCut front-end
+     * printer.
+     *
+     * @see {@link PrinterAttrEnum#PAPERCUT_FRONT_END}.
+     * @param lookup
+     *            The {@link PrinterAttrLookup}.
+     * @return {@code true} if PaperCut front-end printer.
+     */
+    boolean isPaperCutFrontEnd(PrinterAttrLookup lookup);
 
     /**
      * Gets the date of SNMP retrieval.
      *
      * @param printerId
      *            The primary key of the {@link Printer}.
-     * @return The date of the SNMP information, or {@code null} when not found.
+     * @return The date of the SNMP information, or {@code null} if not found.
      */
     Date getSnmpDate(Long printerId);
 
@@ -95,7 +106,7 @@ public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
      *
      * @param lookup
      *            The {@link PrinterAttrLookup}.
-     * @return The date of the SNMP information, or {@code null} when not found.
+     * @return The date of the SNMP information, or {@code null} if not found.
      */
     Date getSnmpDate(PrinterAttrLookup lookup);
 
@@ -104,7 +115,7 @@ public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
      *
      * @param lookup
      *            The {@link PrinterAttrLookup}.
-     * @return The JSON string with SNMP information, or {@code null} when not
+     * @return The JSON string with SNMP information, or {@code null} if not
      *         found.
      */
     String getSnmpJson(PrinterAttrLookup lookup);
@@ -115,7 +126,7 @@ public interface PrinterAttrDao extends GenericDao<PrinterAttr> {
      * @see {@link PrinterAttr#getValue()}.
      * @param attr
      *            The {@link PrinterAttr} ({@code null} is allowed).
-     * @return {@code true} When value is {@code true}.
+     * @return {@code true} If value is {@code true}.
      */
     boolean getBooleanValue(PrinterAttr attr);
 

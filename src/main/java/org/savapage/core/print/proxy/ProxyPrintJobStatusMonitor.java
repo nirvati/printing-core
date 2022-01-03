@@ -50,10 +50,13 @@ import org.savapage.core.jpa.DocLog;
 import org.savapage.core.jpa.PrintOut;
 import org.savapage.core.msg.UserMsgIndicator;
 import org.savapage.core.print.proxy.ProxyPrintJobStatusMixin.StatusSource;
+import org.savapage.core.services.PrinterService;
 import org.savapage.core.services.ProxyPrintService;
 import org.savapage.core.services.ServiceContext;
 import org.savapage.core.services.helpers.MailTicketOperData;
+import org.savapage.core.services.helpers.ThirdPartyEnum;
 import org.savapage.core.util.DateUtil;
+import org.savapage.ext.papercut.PaperCutException;
 import org.savapage.ext.papercut.PaperCutPrintMonitorPattern;
 import org.savapage.ext.papercut.services.PaperCutService;
 import org.slf4j.Logger;
@@ -70,6 +73,10 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
     /** */
     private static final String OBJECT_NAME_FOR_LOG =
             "Print Job Status monitor";
+
+    /** */
+    private static final PrinterService PRINTER_SERVICE =
+            ServiceContext.getServiceFactory().getPrinterService();
 
     /** */
     private static final ProxyPrintService PROXY_PRINT_SERVICE =
@@ -622,10 +629,62 @@ public final class ProxyPrintJobStatusMonitor extends Thread {
         this.updatePrintOutStatus(printOut.getId(), jobStateCups,
                 jobStatus.getCupsCompletedTime());
 
+        if (jobStateCups == IppJobStateEnum.IPP_JOB_COMPLETED) {
+            this.onJobCompleted(printOut, jobStatus);
+        }
+
         this.evaluatePrintOutUserMsg(getUserIdToNotify(printOut),
                 jobStatus.getCupsCompletedTime());
 
         return !jobStatus.getJobStateCups().isPresentOnQueue();
+    }
+
+    /**
+     * Processes a completed print job.
+     *
+     * @param printOut
+     *            {@link PrintOut} object.
+     * @param jobStatus
+     *            The {@link PrintJobStatus}.
+     */
+    private void onJobCompleted(final PrintOut printOut,
+            final PrintJobStatus jobStatus) {
+
+        if (PAPERCUT_SERVICE.isExtPaperCutPrint(jobStatus.getPrinterName())) {
+            return;
+        }
+
+        if (ConfigManager.instance().isConfigValue(
+                Key.PROXY_PRINT_DELEGATE_PAPERCUT_FRONTEND_ENABLE)
+                && PRINTER_SERVICE.isPaperCutFrontEnd(printOut.getPrinter())) {
+
+            final StringBuilder msg = new StringBuilder();
+
+            msg.append("CUPS job #").append(jobStatus.getJobId()).append(" \"")
+                    .append(StringUtils.defaultString(jobStatus.getJobName()))
+                    .append("\" on printer ")
+                    .append(jobStatus.getPrinterName());
+
+            try {
+                PROXY_PRINT_SERVICE.chargeProxyPrintPaperCut(printOut);
+                msg.append(" charged to ")
+                        .append(ThirdPartyEnum.PAPERCUT.getUiText())
+                        .append(".");
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(msg.toString());
+                }
+
+                AdminPublisher.instance().publish(PubTopicEnum.CUPS,
+                        PubLevelEnum.CLEAR, msg.toString());
+
+            } catch (PaperCutException e) {
+                msg.append(": PaperCut error: ").append(e.getMessage());
+                LOGGER.error(msg.toString());
+                AdminPublisher.instance().publish(PubTopicEnum.CUPS,
+                        PubLevelEnum.ERROR, msg.toString());
+            }
+        }
     }
 
     /**

@@ -166,6 +166,19 @@ public final class PrinterServiceImpl extends AbstractService
     }
 
     @Override
+    public boolean isPaperCutFrontEnd(final Long id) {
+        final PrinterAttr attr = printerAttrDAO().findByName(id,
+                PrinterAttrEnum.PAPERCUT_FRONT_END);
+        return printerAttrDAO().getBooleanValue(attr);
+    }
+
+    @Override
+    public boolean isPaperCutFrontEnd(final Printer printer) {
+        return isPrinterAttr(printer, PrinterAttrEnum.PAPERCUT_FRONT_END,
+                false);
+    }
+
+    @Override
     public boolean canPrinterBeUsed(final Printer printer) {
         return !(printer.getDeleted() || printer.getDisabled());
     }

@@ -78,6 +78,9 @@ public class ProxyPrinterDto extends AbstractDto {
     @JsonProperty("journalDisabled")
     Boolean journalDisabled;
 
+    @JsonProperty("papercutFrontEnd")
+    Boolean papercutFrontEnd;
+
     /**
      * Is (logically) deleted?
      */
@@ -182,6 +185,14 @@ public class ProxyPrinterDto extends AbstractDto {
 
     public void setJournalDisabled(Boolean journalDisabled) {
         this.journalDisabled = journalDisabled;
+    }
+
+    public Boolean getPapercutFrontEnd() {
+        return papercutFrontEnd;
+    }
+
+    public void setPapercutFrontEnd(Boolean papercutFrontEnd) {
+        this.papercutFrontEnd = papercutFrontEnd;
     }
 
     public Boolean getDeleted() {

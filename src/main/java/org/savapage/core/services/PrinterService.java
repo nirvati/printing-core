@@ -69,7 +69,7 @@ public interface PrinterService {
      *
      * @param id
      *            The database primary key.
-     * @return {@code true} when internal printer.
+     * @return {@code true} if internal printer.
      */
     boolean isInternalPrinter(Long id);
 
@@ -80,7 +80,7 @@ public interface PrinterService {
      *            The document store.
      * @param id
      *            The database primary key.
-     * @return {@code true} when document store is disabled.
+     * @return {@code true} if document store is disabled.
      */
     boolean isDocStoreDisabled(DocStoreTypeEnum store, Long id);
 
@@ -95,7 +95,7 @@ public interface PrinterService {
      *            The document store.
      * @param printer
      *            The {@link Printer}.
-     * @return {@code true} when document store is disabled.
+     * @return {@code true} if document store is disabled.
      */
     boolean isDocStoreDisabled(DocStoreTypeEnum store, Printer printer);
 
@@ -105,12 +105,12 @@ public interface PrinterService {
      *
      * @param id
      *            The database primary key.
-     * @return {@code true} when Job Tickets Tags is enabled.
+     * @return {@code true} if Job Tickets Tags is enabled.
      */
     boolean isJobTicketLabelsEnabled(Long id);
 
     /**
-     * Checks if if Job Tickets Labels (Domain, Use, Tags) is enabled.
+     * Checks if Job Tickets Labels (Domain, Use, Tags) is enabled.
      * <p>
      * Traverses the internal {@link PrinterAttr} list of a {@link Printer} to
      * find the {@link PrinterAttrEnum} value.
@@ -118,16 +118,36 @@ public interface PrinterService {
      *
      * @param printer
      *            The {@link Printer}.
-     * @return {@code true} when Job Tickets Tags is enabled.
+     * @return {@code true} if Job Tickets Tags is enabled.
      */
     boolean isJobTicketLabelsEnabled(Printer printer);
+
+    /**
+     * Reads the database to check if printer acts as front-end for PaperCut
+     * accounting transactions in a Delegated Print Scenario (boolean).
+     *
+     * @param id
+     *            The database primary key.
+     * @return {@code true} if printer acts as PaperCut front-end.
+     */
+    boolean isPaperCutFrontEnd(Long id);
+
+    /**
+     * Checks if printer acts as front-end for PaperCut accounting transactions
+     * in a Delegated Print Scenario (boolean).
+     *
+     * @param printer
+     *            The {@link Printer}.
+     * @return {@code true} if printer acts as PaperCut front-end.
+     */
+    boolean isPaperCutFrontEnd(Printer printer);
 
     /**
      * Reads the database to check if printer is a Job Ticket printer.
      *
      * @param id
      *            The database primary key.
-     * @return {@code true} when Job Ticket printer.
+     * @return {@code true} if Job Ticket printer.
      */
     boolean isJobTicketPrinter(Long id);
 
@@ -213,8 +233,8 @@ public interface PrinterService {
      *            expected type. If NOT an exception is thrown.
      * @param device
      *            The {@link Device}.
-     * @return {@code true} when associated Printers are present, and a match is
-     *         found. {@code false} when <i>no</i> associated Printers are
+     * @return {@code true} if associated Printers are present, and a match is
+     *         found. {@code false} if <i>no</i> associated Printers are
      *         present, or associated Printers are present, but no matching
      *         Printer is found.
      */
@@ -230,7 +250,7 @@ public interface PrinterService {
      * @param name
      *            The {@link PrinterAttrEnum}.
      *
-     * @return The {@link PrinterAttr} that was removed, or {@code null} when
+     * @return The {@link PrinterAttr} that was removed, or {@code null} if
      *         not found.
      */
     PrinterAttr removeAttribute(Printer printer, PrinterAttrEnum name);
@@ -244,7 +264,7 @@ public interface PrinterService {
      * @param name
      *            The {@link PrinterAttrEnum}.
      *
-     * @return {@code null} when not found.
+     * @return {@code null} if not found.
      */
     PrinterAttr getAttribute(Printer printer, PrinterAttrEnum name);
 
@@ -257,7 +277,7 @@ public interface PrinterService {
      * @param name
      *            The {@link PrinterAttrEnum}.
      *
-     * @return {@code null} when not found.
+     * @return {@code null} if not found.
      */
     String getAttributeValue(Printer printer, PrinterAttrEnum name);
 
@@ -269,7 +289,7 @@ public interface PrinterService {
      *
      * @param printer
      *            The {@link Printer}.
-     * @return {@code null} when no default override is found.
+     * @return {@code null} if no default override is found.
      */
     String getPrintColorModeDefault(Printer printer);
 
@@ -281,7 +301,7 @@ public interface PrinterService {
      *
      * @param id
      *            The database primary key.
-     * @return {@code null} when no default override is found.
+     * @return {@code null} if no default override is found.
      */
     String getPrintColorModeDefault(Long id);
 
@@ -398,7 +418,7 @@ public interface PrinterService {
      * @return The JSON-RPC Return message: {@link JsonRpcMethodResult} or an
      *         {@link JsonRpcMethodError} instance.
      * @throws IOException
-     *             When JSON errors.
+     *             If JSON errors.
      */
     AbstractJsonRpcMethodResponse addAccessControl(AccessControlScopeEnum scope,
             String printerName, String groupName) throws IOException;
@@ -413,7 +433,7 @@ public interface PrinterService {
      * @return The JSON-RPC Return message: {@link JsonRpcMethodResult} or an
      *         {@link JsonRpcMethodError} instance.
      * @throws IOException
-     *             When JSON errors.
+     *             If JSON errors.
      */
     AbstractJsonRpcMessage removeAccessControl(String printerName,
             String groupName) throws IOException;
@@ -453,7 +473,7 @@ public interface PrinterService {
      *            The {@link Printer}.
      * @param user
      *            The {@link User}.
-     * @return {@code true} when access is granted.
+     * @return {@code true} if access is granted.
      */
     boolean isPrinterAccessGranted(Printer printer, User user);
 
@@ -480,7 +500,7 @@ public interface PrinterService {
      *            {@link IppDictJobTemplateAttr#ATTR_MEDIA}.
      * @param preferredMediaSources
      *            A set of preferred media sources (can be {@code null}).
-     * @return The media source, or {@code null} when not found.
+     * @return The media source, or {@code null} if not found.
      */
     JsonProxyPrinterOptChoice findMediaSourceForMedia(
             PrinterAttrLookup printerAttrLookup,
@@ -509,7 +529,7 @@ public interface PrinterService {
      *
      * @param printer
      *            The printer.
-     * @return {@code null} when printer attribute is not present.
+     * @return {@code null} if printer attribute is not present.
      */
     Set<String> getJobSheetsMediaSources(Printer printer);
 
@@ -522,7 +542,7 @@ public interface PrinterService {
      *            The "raw" SNMP info. If {@code null}, no SNMP information is
      *            available.
      * @throws IOException
-     *             When JSON serialization errors.
+     *             If JSON serialization errors.
      */
     void setSnmpInfo(Printer printer, PrinterSnmpDto info) throws IOException;
 
@@ -531,7 +551,7 @@ public interface PrinterService {
      *
      * @param json
      *            JSON string.
-     * @return The object, or {@code null} when IO, parse or mapping error.
+     * @return The object, or {@code null} if IO, parse or mapping error.
      */
     ProxyPrinterSnmpInfoDto getSnmpInfo(String json);
 

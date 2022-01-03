@@ -119,6 +119,12 @@ public final class PrinterAttrDaoImpl extends GenericDaoImpl<PrinterAttr>
     }
 
     @Override
+    public boolean isPaperCutFrontEnd(final PrinterAttrLookup lookup) {
+        return lookup.get(PrinterAttrEnum.PAPERCUT_FRONT_END, V_NO)
+                .equalsIgnoreCase(V_YES);
+    }
+
+    @Override
     public Date getSnmpDate(final PrinterAttrLookup lookup) {
         return dateOrNull(lookup.get(PrinterAttrEnum.SNMP_DATE));
     }
