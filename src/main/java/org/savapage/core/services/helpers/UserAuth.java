@@ -64,6 +64,8 @@ public final class UserAuth {
     /** */
     private boolean visibleAuthName;
     /** */
+    private boolean visibleAuthEmail;
+    /** */
     private boolean visibleAuthId;
     /** */
     private boolean visibleAuthCardLocal;
@@ -89,6 +91,8 @@ public final class UserAuth {
 
     /** */
     private boolean allowAuthName;
+    /** */
+    private boolean allowAuthEmail;
     /** */
     private boolean allowAuthId;
     /** */
@@ -126,6 +130,8 @@ public final class UserAuth {
                 return "YubiKey";
             case ID:
                 return "ID";
+            case EMAIL:
+                return "Email";
             case NAME:
                 return "~";
             default:
@@ -168,6 +174,7 @@ public final class UserAuth {
          * Defaults for member variables.
          */
         this.visibleAuthName = false;
+        this.visibleAuthEmail = false;
         this.visibleAuthId = false;
         this.visibleAuthCardLocal = false;
         this.visibleAuthCardIp = false;
@@ -182,6 +189,7 @@ public final class UserAuth {
                 cm.isConfigValue(Key.AUTH_MODE_CARD_SELF_ASSOCIATION);
 
         this.allowAuthName = isAdminWebAppContext;
+        this.allowAuthEmail = false;
         this.allowAuthId = false;
         this.allowAuthCardLocal = false;
         this.allowAuthCardIp = false;
@@ -190,6 +198,7 @@ public final class UserAuth {
          * Intermediate parameters.
          */
         boolean showAuthName = false;
+        boolean showAuthEmail = false;
         boolean showAuthId = false;
         boolean showAuthCardLocal = false;
         boolean showAuthCardIp = false;
@@ -223,6 +232,8 @@ public final class UserAuth {
              */
             this.allowAuthName =
                     customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_NAME, false);
+            this.allowAuthEmail =
+                    customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_EMAIL, false);
             this.allowAuthId =
                     customAuth.isTrue(DeviceAttrEnum.AUTH_MODE_ID, false);
             this.allowAuthCardIp =
@@ -237,6 +248,7 @@ public final class UserAuth {
                             UserAuthModeEnum.NAME.toDbValue()));
 
             showAuthName = this.allowAuthName;
+            showAuthEmail = this.allowAuthEmail;
             showAuthId = this.allowAuthId;
             showAuthCardIp = this.allowAuthCardIp;
             showAuthCardLocal = this.allowAuthCardLocal;
@@ -361,6 +373,10 @@ public final class UserAuth {
                         this.allowAuthId = true;
                         showAuthId = true;
                         break;
+                    case EMAIL:
+                        this.allowAuthEmail = true;
+                        showAuthEmail = true;
+                        break;
                     case NAME:
                         this.allowAuthName = true;
                         showAuthName = true;
@@ -384,6 +400,7 @@ public final class UserAuth {
                  * Global values.
                  */
                 this.allowAuthName = cm.isConfigValue(Key.AUTH_MODE_NAME);
+                this.allowAuthEmail = cm.isConfigValue(Key.AUTH_MODE_EMAIL);
                 this.allowAuthId = cm.isConfigValue(Key.AUTH_MODE_ID);
                 this.allowAuthCardLocal =
                         cm.isConfigValue(Key.AUTH_MODE_CARD_LOCAL);
@@ -391,6 +408,7 @@ public final class UserAuth {
                 this.allowAuthCardIp = false;
 
                 showAuthName = cm.isConfigValue(Key.AUTH_MODE_NAME_SHOW);
+                showAuthEmail = cm.isConfigValue(Key.AUTH_MODE_EMAIL_SHOW);
                 showAuthId = cm.isConfigValue(Key.AUTH_MODE_ID_SHOW);
                 showAuthCardLocal =
                         cm.isConfigValue(Key.AUTH_MODE_CARD_LOCAL_SHOW);
@@ -422,6 +440,9 @@ public final class UserAuth {
                     break;
                 case ID:
                     isValidDefault = this.allowAuthId && showAuthId;
+                    break;
+                case EMAIL:
+                    isValidDefault = this.allowAuthEmail && showAuthEmail;
                     break;
                 case NAME:
                     isValidDefault = this.allowAuthName && showAuthName;
@@ -457,6 +478,7 @@ public final class UserAuth {
         if (authModeReq == null) {
 
             this.visibleAuthName = this.allowAuthName && showAuthName;
+            this.visibleAuthEmail = this.allowAuthEmail && showAuthEmail;
             this.visibleAuthId = this.allowAuthId && showAuthId;
             this.visibleAuthCardLocal =
                     this.allowAuthCardLocal && showAuthCardLocal;
@@ -476,6 +498,7 @@ public final class UserAuth {
              * Assign requested mode.
              */
             this.visibleAuthName = false;
+            this.visibleAuthEmail = false;
             this.visibleAuthId = false;
             this.visibleAuthCardLocal = false;
             this.visibleAuthCardIp = false;
@@ -490,6 +513,9 @@ public final class UserAuth {
                 break;
             case ID:
                 this.visibleAuthId = this.allowAuthId;
+                break;
+            case EMAIL:
+                this.visibleAuthEmail = this.allowAuthEmail;
                 break;
             case NAME:
                 this.visibleAuthName = this.allowAuthName;
@@ -519,6 +545,8 @@ public final class UserAuth {
         boolean incorrectDefault =
                 (this.authModeDefault == UserAuthModeEnum.NAME
                         && !this.visibleAuthName)
+                        || (this.authModeDefault == UserAuthModeEnum.EMAIL
+                                && !this.visibleAuthEmail)
                         || (this.authModeDefault == UserAuthModeEnum.ID
                                 && !this.visibleAuthId)
                         || (this.authModeDefault == UserAuthModeEnum.CARD_LOCAL
@@ -540,6 +568,8 @@ public final class UserAuth {
                 this.authModeDefault = UserAuthModeEnum.CARD_LOCAL;
             } else if (this.visibleAuthId) {
                 this.authModeDefault = UserAuthModeEnum.ID;
+            } else if (this.visibleAuthEmail) {
+                this.authModeDefault = UserAuthModeEnum.EMAIL;
             } else if (this.visibleAuthName) {
                 this.authModeDefault = UserAuthModeEnum.NAME;
             }
@@ -564,6 +594,7 @@ public final class UserAuth {
         }
 
         return (allowAuthName && mode == UserAuthModeEnum.NAME)
+                || (allowAuthEmail && mode == UserAuthModeEnum.EMAIL)
                 || (allowAuthId && mode == UserAuthModeEnum.ID)
                 || (allowAuthCardLocal && mode == UserAuthModeEnum.CARD_LOCAL)
                 || (allowAuthCardIp && mode == UserAuthModeEnum.CARD_IP)
@@ -572,6 +603,10 @@ public final class UserAuth {
 
     public boolean isVisibleAuthName() {
         return visibleAuthName;
+    }
+
+    public boolean isVisibleAuthEmail() {
+        return visibleAuthEmail;
     }
 
     public boolean isVisibleAuthId() {
@@ -616,6 +651,10 @@ public final class UserAuth {
 
     public boolean isAllowAuthName() {
         return allowAuthName;
+    }
+
+    public boolean isAllowAuthEmail() {
+        return allowAuthEmail;
     }
 
     public boolean isAllowAuthId() {

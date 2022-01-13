@@ -154,6 +154,7 @@ public interface IConfigProp {
     String AUTH_METHOD_V_NONE = "none";
 
     String AUTH_MODE_V_NAME = UserAuthModeEnum.NAME.toDbValue();
+    String AUTH_MODE_V_EMAIL = UserAuthModeEnum.EMAIL.toDbValue();
     String AUTH_MODE_V_ID = UserAuthModeEnum.ID.toDbValue();
     String AUTH_MODE_V_CARD_LOCAL = UserAuthModeEnum.CARD_LOCAL.toDbValue();
     String AUTH_MODE_V_CARD_IP = UserAuthModeEnum.CARD_IP.toDbValue();
@@ -547,6 +548,16 @@ public interface IConfigProp {
         AUTH_MODE_NAME_SHOW("auth-mode.name.show", BOOLEAN_VALIDATOR, V_YES),
 
         /**
+        *
+        */
+        AUTH_MODE_EMAIL("auth-mode.email", BOOLEAN_VALIDATOR, V_NO),
+
+        /**
+        *
+        */
+        AUTH_MODE_EMAIL_SHOW("auth-mode.email.show", BOOLEAN_VALIDATOR, V_YES),
+
+        /**
          *
          */
         AUTH_MODE_ID("auth-mode.id", BOOLEAN_VALIDATOR, V_NO),
@@ -625,8 +636,9 @@ public interface IConfigProp {
          */
         AUTH_MODE_DEFAULT(//
                 "auth-mode-default", null, AUTH_MODE_V_NAME,
-                new String[] { AUTH_MODE_V_NAME, AUTH_MODE_V_ID,
-                        AUTH_MODE_V_CARD_LOCAL, AUTH_MODE_V_YUBIKEY },
+                new String[] { AUTH_MODE_V_NAME, AUTH_MODE_V_EMAIL,
+                        AUTH_MODE_V_ID, AUTH_MODE_V_CARD_LOCAL,
+                        AUTH_MODE_V_YUBIKEY },
                 API_UPDATABLE_OFF),
 
         /**

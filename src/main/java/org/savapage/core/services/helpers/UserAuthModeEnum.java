@@ -42,6 +42,10 @@ public enum UserAuthModeEnum {
      */
     NAME("name"),
     /**
+     * Email/password.
+     */
+    EMAIL("email"),
+    /**
      * ID.
      */
     ID("id"),
@@ -102,6 +106,8 @@ public enum UserAuthModeEnum {
 
         if (dbValue.equals(UserAuthModeEnum.NAME.dbValue)) {
             return UserAuthModeEnum.NAME;
+        } else if (dbValue.equals(UserAuthModeEnum.EMAIL.dbValue)) {
+            return UserAuthModeEnum.EMAIL;
         } else if (dbValue.equals(UserAuthModeEnum.ID.dbValue)) {
             return UserAuthModeEnum.ID;
         } else if (dbValue.equals(UserAuthModeEnum.CARD_IP.dbValue)) {

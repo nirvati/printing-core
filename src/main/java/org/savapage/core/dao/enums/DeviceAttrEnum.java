@@ -43,7 +43,8 @@ public enum DeviceAttrEnum {
     /**
      * Identical to {@link IConfigProp.Key#WEBAPP_USER_MAX_IDLE_SECS}.
      */
-    WEBAPP_USER_MAX_IDLE_SECS(DeviceAttrDao.WEBAPP_USER_PREFIX + ".max-idle-secs"),
+    WEBAPP_USER_MAX_IDLE_SECS(
+            DeviceAttrDao.WEBAPP_USER_PREFIX + ".max-idle-secs"),
 
     /**
      *
@@ -54,6 +55,11 @@ public enum DeviceAttrEnum {
      * Identical to {@link IConfigProp.Key#AUTH_MODE_NAME}.
      */
     AUTH_MODE_NAME(DeviceAttrDao.AUTH_MODE_PREFIX + ".name"),
+
+    /**
+     * Identical to {@link IConfigProp.Key#AUTH_MODE_EMAIL}.
+     */
+    AUTH_MODE_EMAIL(DeviceAttrDao.AUTH_MODE_PREFIX + ".email"),
 
     /**
      * Identical to {@link IConfigProp.Key#AUTH_MODE_ID}.
@@ -83,12 +89,14 @@ public enum DeviceAttrEnum {
     /**
      * Identical to {@link IConfigProp.Key#AUTH_MODE_CARD_PIN_REQUIRED}.
      */
-    AUTH_MODE_CARD_PIN_REQ(DeviceAttrDao.AUTH_MODE_PREFIX + ".card.pin-required"),
+    AUTH_MODE_CARD_PIN_REQ(
+            DeviceAttrDao.AUTH_MODE_PREFIX + ".card.pin-required"),
 
     /**
      * Identical to {@link IConfigProp.Key#AUTH_MODE_CARD_SELF_ASSOCIATION}.
      */
-    AUTH_MODE_CARD_SELF_ASSOC(DeviceAttrDao.AUTH_MODE_PREFIX + ".card.self-association"),
+    AUTH_MODE_CARD_SELF_ASSOC(
+            DeviceAttrDao.AUTH_MODE_PREFIX + ".card.self-association"),
 
     /**
      *
@@ -130,7 +138,8 @@ public enum DeviceAttrEnum {
     /**
      * Reserved for future use.
      */
-    CARD_NUMBER_VALIDITY_REGEX(DeviceAttrDao.CARD_NUMBER_PREFIX + ".validity-regex");
+    CARD_NUMBER_VALIDITY_REGEX(
+            DeviceAttrDao.CARD_NUMBER_PREFIX + ".validity-regex");
 
     /**
      *
