@@ -331,13 +331,13 @@ public interface IConfigProp {
 
         /**
          * A comma separated list of POS Sales Locations to be applied as sales
-         * invoice prefix. Each location on the list is formatted as
-         * "LOC/location/n", where "LOC" is a unique N-letter upper-case
-         * mnemonic, "/" is a fixed separator, "location" is a case-sensitive
-         * single word used in UI context, and n is a unique ID number.
+         * label prefix. Each location on the list is formatted as
+         * "LOC/location", where "LOC" is a unique N-letter upper-case mnemonic,
+         * "/" is a fixed separator, "location" is a case-sensitive single word
+         * used in UI context.
          *
-         * E.g. "A/LocationA/1,B/LocationB/2,C/LocationC/3". When "B" location
-         * is applied, a generated sales invoice looks like "B/EE1-FA3E-6596".
+         * E.g. "A/LocationA,B/LocationB,C/LocationC". If a Web Cashier selects
+         * location "B", the sales prefix is "B".
          */
         FINANCIAL_POS_SALES_LABEL_LOCATIONS(
                 "financial.pos.sales.label.locations", KeyType.MULTI_LINE),
@@ -351,14 +351,18 @@ public interface IConfigProp {
                 V_NO, API_UPDATABLE_ON),
 
         /**
-         * A comma separated list of POS Sales Shops in a Location to be applied
-         * as invoice prefix. Each use on the list is formatted as "SHOP/shop",
-         * where "SHOP" is a unique N-letter upper-case mnemonic, "/" is a fixed
-         * separator, and "shop" is a case-sensitive single word used in UI
-         * context.
+         * A comma separated list of POS Sales Shops in a Location, to be
+         * applied as sales label after the location label. Each shop on the
+         * list is formatted as "SHOP/shop", where "SHOP" is a unique N-letter
+         * upper-case mnemonic, "/" is a fixed separator, and "shop" is a
+         * case-sensitive single word used in UI context.
          *
-         * E.g. "F/Frontdesk,L/Library". When "L" shop is applied, a generated
-         * invoice looks like "F/EE1-FA3E-6596".
+         * E.g. "F/Frontdesk,L/Library". If a Web Cashier selects shop "L" in
+         * location "B", the sales label is "B/L".
+         *
+         * A shop can be restricted to one or more locations by appending the
+         * location mnemonics. E.g. "F/Frontdesk/A/C" restricts the
+         * "F/Frontdesk" shop to "A" and "C" locations.
          */
         FINANCIAL_POS_SALES_LABEL_SHOPS("financial.pos.sales.label.shops",
                 KeyType.MULTI_LINE),
@@ -372,14 +376,18 @@ public interface IConfigProp {
                 V_NO, API_UPDATABLE_ON),
 
         /**
-         * A comma separated list of POS Sales Items to be applied as invoice
-         * prefix. Each item on the list is formatted as "ITEM/word", where
-         * "ITEM" is a unique N-letter upper-case mnemonic, "/" is a fixed
-         * separator, and "word" is a case-sensitive single word used in UI
-         * context.
+         * A comma separated list of POS Sales Items in a Shop to be applied as
+         * sales label after the shop label. Each item on the list is formatted
+         * as "ITEM/item", where "ITEM" is a unique N-letter upper-case
+         * mnemonic, "/" is a fixed separator, and "item" is a case-sensitive
+         * single word used in UI context.
          *
-         * E.g. "B/Book,D/Donut". When "D" tag is applied, a generated invoice
-         * number looks like "D/EE1-FA3E-6596".
+         * E.g. "BK/Book,CA/Cafetaria,HW/Hardware". If a Web Cashier selects
+         * item "CA" in shop "L" of location "B", the sales label is "B/L/CA".
+         *
+         * An item can be restricted for use with one or more shops by appending
+         * the shop mnemonics. E.g. "BK/Book/F/L" restricts the "BK/Book" item
+         * to "F" and "L" shops.
          */
         FINANCIAL_POS_SALES_LABEL_ITEMS("financial.pos.sales.label.items",
                 KeyType.MULTI_LINE),
@@ -393,9 +401,17 @@ public interface IConfigProp {
                 V_NO, API_UPDATABLE_ON),
 
         /**
-         * A comma separated list of POS Sales Prices. Each price on the list is
-         * formatted as "PRICE", where "PRICE" is a unique N-digit amount in
-         * cents.
+         * A comma separated list of POS Sales Prices for Items. Each price on
+         * the list is formatted as "PRICE/price", where "PRICE" is a unique
+         * N-digit amount in cents, "/" is a fixed separator, and "price" is the
+         * case-sensitive single word price in UI context. Prices are shown as
+         * preset choices.
+         *
+         * E.g. "50/0.50,100/1.00,150/1.50,850/8.50".
+         *
+         * A price can be restricted for use with one or more items by appending
+         * the item mnemonics. E.g. "850/8.50/BK/HW" restricts the "850/8.50"
+         * price to "BK" and "HW" items.
          */
         FINANCIAL_POS_SALES_LABEL_PRICES("financial.pos.sales.label.prices",
                 KeyType.MULTI_LINE),
@@ -3136,6 +3152,15 @@ public interface IConfigProp {
         WEBAPP_POS_SOUND_FAILURE(//
                 "webapp.pos.sound.failure", API_UPDATABLE_ON),
         /**
+         * The maximum number of items labels that make items show as buttons
+         * before a select list is shown. See
+         * {@link #FINANCIAL_POS_SALES_LABEL_ITEMS}.
+         */
+        WEBAPP_POS_SALES_LABEL_ITEMS_BUTTON_MAX(//
+                "webapp.pos.sales.label.items.button-max", NUMBER_VALIDATOR,
+                "7"),
+
+        /**
          * The maximum number of price labels that make prices show as buttons
          * before a select list is shown. See
          * {@link #FINANCIAL_POS_SALES_LABEL_PRICES}.
@@ -3143,7 +3168,6 @@ public interface IConfigProp {
         WEBAPP_POS_SALES_LABEL_PRICES_BUTTON_MAX(//
                 "webapp.pos.sales.label.prices.button-max", NUMBER_VALIDATOR,
                 "10"),
-
         /**
          * Trust authenticated user in Client App on same IP address as User Web
          * App (Boolean, default TRUE).
