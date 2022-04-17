@@ -24,6 +24,7 @@
  */
 package org.savapage.core.services.impl;
 
+import java.math.BigDecimal;
 import java.util.Locale;
 
 import org.savapage.core.jpa.User;
@@ -69,6 +70,12 @@ public final class UserAccountContextSavaPage implements UserAccountContext {
             final String currencySymbol) {
         return ACCOUNTING_SERVICE.getFormattedUserBalance(user, locale,
                 currencySymbol);
+    }
+
+    @Override
+    public BigDecimal getUserBalance(final User user) {
+        return BigDecimal.valueOf(Double.parseDouble(
+                this.getFormattedUserBalance(user, Locale.ENGLISH, null)));
     }
 
 }

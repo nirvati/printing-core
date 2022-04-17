@@ -68,16 +68,20 @@ public final class UserAccountContextPaperCut implements UserAccountContext {
     public String getFormattedUserBalance(final User user, final Locale locale,
             final String currencySymbol) {
 
-        BigDecimal balance;
-
-        try {
-            balance = server.getUserAccountBalance(user.getUserId(),
-                    ConfigManager.getUserBalanceDecimals());
-        } catch (PaperCutException e) {
-            balance = BigDecimal.ZERO;
-        }
-
+        final BigDecimal balance = this.getUserBalance(user);
         return ACCOUNTING_SERVICE.formatUserBalance(balance, locale,
                 currencySymbol);
+    }
+
+    @Override
+    public BigDecimal getUserBalance(final User user) {
+
+        try {
+            return server.getUserAccountBalance(user.getUserId(),
+                    ConfigManager.getUserBalanceDecimals());
+        } catch (PaperCutException e) {
+            // no code intended
+        }
+        return BigDecimal.ZERO;
     }
 }

@@ -108,6 +108,9 @@ public class AccountDisplayInfoDto extends AbstractDto {
         this.status = status;
     }
 
+    /**
+     * @return {@code null} if NO credit limit is applicable.
+     */
     public String getCreditLimit() {
         return creditLimit;
     }
@@ -115,5 +118,4 @@ public class AccountDisplayInfoDto extends AbstractDto {
     public void setCreditLimit(String creditLimit) {
         this.creditLimit = creditLimit;
     }
-
 }

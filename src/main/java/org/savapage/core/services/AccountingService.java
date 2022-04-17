@@ -119,11 +119,6 @@ public interface AccountingService extends StatefulService {
     String MSG_KEY_POS_AMOUNT_INVALID = "msg-pos-amount-invalid";
 
     /**
-     * Key of entry in message.xml file.
-     */
-    String MSG_KEY_POS_CREDIT_INSUFFICIENT = "msg-pos-credit-insufficient";
-
-    /**
      * Gets the accounting parameters for a {@link User}. A {@link UserAccount}
      * is lazy created when needed.
      *

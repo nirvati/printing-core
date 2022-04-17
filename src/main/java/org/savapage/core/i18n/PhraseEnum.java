@@ -43,11 +43,14 @@ public enum PhraseEnum {
     ACTIVATE_CARD_READER,
 
     /** */
-    CERT_EXPIRED_ON,
+    AMOUNT_EXCEEDS_CREDIT(true),
+
     /** */
-    CERT_EXPIRES_ON,
+    CERT_EXPIRED_ON(true),
     /** */
-    CERT_VALID_UNTIL,
+    CERT_EXPIRES_ON(true),
+    /** */
+    CERT_VALID_UNTIL(true),
 
     /** */
     MAIL_SENT,
@@ -104,11 +107,28 @@ public enum PhraseEnum {
     WINDOWS_DRIVER_MSG;
 
     /**
+     * {@code true} if message needs arguments.
+     */
+    private final boolean hasArguments;
+
+    PhraseEnum() {
+        this.hasArguments = false;
+    }
+
+    PhraseEnum(final boolean arg) {
+        this.hasArguments = arg;
+    }
+
+    /**
      * @param locale
      *            The {@link Locale}.
      * @return The localized text.
      */
     public String uiText(final Locale locale) {
+        if (this.hasArguments) {
+            throw new IllegalArgumentException(
+                    String.format("%s needs arguments.", this.toString()));
+        }
         return LocaleHelper.uiText(this, locale);
     }
 
@@ -124,16 +144,11 @@ public enum PhraseEnum {
      * @return The localized text.
      */
     public String uiText(final Locale locale, final String... args) {
-        switch (this) {
-        case CERT_EXPIRED_ON:
-        case CERT_EXPIRES_ON:
-        case CERT_VALID_UNTIL:
+        if (this.hasArguments) {
             return LocaleHelper.uiTextArgs(this, locale, args);
-        default:
-            throw new IllegalArgumentException(String
-                    .format("%s does not support arguments.", this.toString()));
         }
-
+        throw new IllegalArgumentException(String
+                .format("%s does not support arguments.", this.toString()));
     }
 
 }

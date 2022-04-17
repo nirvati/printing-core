@@ -322,6 +322,20 @@ public interface IConfigProp {
                 API_UPDATABLE_ON),
 
         /**
+         *
+         */
+        FINANCIAL_POS_SALES_CREDIT_LIMIT_ENABLE(//
+                "financial.pos.sales.credit-limit.enable", BOOLEAN_VALIDATOR,
+                V_YES, API_UPDATABLE_ON),
+
+        /**
+         *
+         */
+        FINANCIAL_POS_SALES_CREDIT_LIMIT(//
+                "financial.pos.sales.credit-limit", KeyType.BIG_DECIMAL,
+                "0.00"),
+
+        /**
          * Which user account context(s) for POS Sales?
          */
         FINANCIAL_POS_SALES_ACCOUNTS(//

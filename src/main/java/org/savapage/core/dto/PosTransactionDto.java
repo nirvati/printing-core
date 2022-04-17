@@ -24,6 +24,8 @@
  */
 package org.savapage.core.dto;
 
+import java.math.BigDecimal;
+
 /**
  * A POS transaction.
  *
@@ -101,4 +103,9 @@ public abstract class PosTransactionDto extends AbstractDto {
     public String formatAmount() {
         return String.format("%s.%s", this.amountMain, amountCents);
     }
+
+    public BigDecimal amountBigDecimal() {
+        return BigDecimal.valueOf(Double.parseDouble(this.formatAmount()));
+    }
+
 }

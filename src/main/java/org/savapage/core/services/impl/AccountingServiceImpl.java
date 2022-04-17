@@ -77,6 +77,7 @@ import org.savapage.core.dto.UserAccountingDto;
 import org.savapage.core.dto.UserCreditTransferDto;
 import org.savapage.core.dto.UserGroupDto;
 import org.savapage.core.dto.UserPaymentGatewayDto;
+import org.savapage.core.i18n.PhraseEnum;
 import org.savapage.core.jpa.Account;
 import org.savapage.core.jpa.Account.AccountTypeEnum;
 import org.savapage.core.jpa.AccountTrx;
@@ -1454,7 +1455,7 @@ public final class AccountingServiceImpl extends AbstractService
             balance = BigDecimal.ZERO;
         }
 
-        return formatUserBalance(balance, locale, currencySymbol);
+        return this.formatUserBalance(balance, locale, currencySymbol);
     }
 
     @Override
@@ -2505,8 +2506,8 @@ public final class AccountingServiceImpl extends AbstractService
         try {
             if (!paperCutService().adjustUserAccountBalanceIfAvailable(proxy,
                     dto.getUserId(), null, adjustment, dto.createComment())) {
-                return createErrorMsg(MSG_KEY_POS_CREDIT_INSUFFICIENT,
-                        dto.getUserId());
+                return createErrorMsg(PhraseEnum.AMOUNT_EXCEEDS_CREDIT
+                        .uiText(ServiceContext.getLocale(), dto.getUserId()));
             }
         } catch (PaperCutException e) {
             return createErrorMsg(e.getMessage());

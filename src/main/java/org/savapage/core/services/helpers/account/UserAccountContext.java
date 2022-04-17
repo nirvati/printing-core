@@ -24,6 +24,7 @@
  */
 package org.savapage.core.services.helpers.account;
 
+import java.math.BigDecimal;
 import java.util.Locale;
 
 import org.savapage.core.jpa.User;
@@ -40,6 +41,15 @@ public interface UserAccountContext {
      * @return The context as enum.
      */
     UserAccountContextEnum asEnum();
+
+    /**
+     * Gets account balance of a {@link User}.
+     *
+     * @param user
+     *            The non-null {@link User}.
+     * @return Zero balance when User Account is NOT present.
+     */
+    BigDecimal getUserBalance(User user);
 
     /**
      * Gets the formatted balance of a {@link User}.
