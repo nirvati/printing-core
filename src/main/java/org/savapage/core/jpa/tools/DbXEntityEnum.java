@@ -38,6 +38,7 @@ import org.savapage.core.jpa.xml.XPosPurchaseItemV01;
 import org.savapage.core.jpa.xml.XPosPurchaseV01;
 import org.savapage.core.jpa.xml.XPrintInV01;
 import org.savapage.core.jpa.xml.XPrintOutV01;
+import org.savapage.core.jpa.xml.XPrinterV01;
 import org.savapage.core.jpa.xml.XUserAccountV01;
 import org.savapage.core.jpa.xml.XUserV01;
 
@@ -60,6 +61,9 @@ public enum DbXEntityEnum {
     DOC_OUT(XDocOutV01.class),
     /** */
     DOC_IN_OUT(XDocInOutV01.class),
+
+    /** */
+    PRINTER(XPrinterV01.class),
 
     /** */
     PRINT_IN(XPrintInV01.class),

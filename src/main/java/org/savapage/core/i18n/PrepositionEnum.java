@@ -37,6 +37,11 @@ import org.savapage.core.util.LocaleHelper;
 public enum PrepositionEnum {
 
     /**
+     * As in "Number of users per group" or "Totals per printer/user".
+     */
+    PER,
+
+    /**
      * As in "Color changed from red to green."
      * <p>
      * Opposite of {@link #TO_STATE}.

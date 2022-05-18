@@ -30,6 +30,7 @@ import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.dto.AbstractDto;
 import org.savapage.core.i18n.AdjectiveEnum;
+import org.savapage.core.i18n.NounEnum;
 import org.savapage.core.i18n.PrintOutNounEnum;
 
 /**
@@ -38,6 +39,33 @@ import org.savapage.core.i18n.PrintOutNounEnum;
  *
  */
 public final class UserPrintOutTotalsReq extends AbstractDto {
+
+    public enum GroupBy {
+
+        /** */
+        USER,
+
+        /** */
+        PRINTER_USER;
+
+        /**
+         * @param locale
+         *            {@link Locale}.
+         * @return i18n text.
+         */
+        public String uiText(final Locale locale) {
+            switch (this) {
+            case USER:
+                return NounEnum.USER.uiText(locale);
+            case PRINTER_USER:
+                return String.format("%s, %s", NounEnum.PRINTER.uiText(locale),
+                        NounEnum.USER.uiText(locale));
+            default:
+                throw new RuntimeException(
+                        String.format("%s not supported", this.toString()));
+            }
+        }
+    }
 
     public enum Aspect {
         /** */
@@ -92,6 +120,7 @@ public final class UserPrintOutTotalsReq extends AbstractDto {
     private Long timeFrom;
     private Long timeTo;
 
+    private GroupBy groupBy;
     private Aspect aspect;
     private Pages pages;
 
@@ -124,6 +153,14 @@ public final class UserPrintOutTotalsReq extends AbstractDto {
         this.userGroups = groups;
     }
 
+    public GroupBy getGroupBy() {
+        return groupBy;
+    }
+
+    public void setGroupBy(GroupBy groupBy) {
+        this.groupBy = groupBy;
+    }
+
     public Aspect getAspect() {
         return aspect;
     }
@@ -138,6 +175,10 @@ public final class UserPrintOutTotalsReq extends AbstractDto {
 
     public void setPages(Pages pages) {
         this.pages = pages;
+    }
+
+    public boolean isGroupedByPrinterUser() {
+        return this.groupBy != null && this.groupBy == GroupBy.PRINTER_USER;
     }
 
     /**

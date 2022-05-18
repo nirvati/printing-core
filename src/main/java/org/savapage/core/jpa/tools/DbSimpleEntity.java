@@ -62,6 +62,8 @@ public final class DbSimpleEntity {
     public static final String DOC_IN_OUT = DbXEntityEnum.DOC_IN_OUT.psql();
 
     /** */
+    public static final String PRINTER = DbXEntityEnum.PRINTER.psql();
+    /** */
     public static final String PRINT_IN = DbXEntityEnum.PRINT_IN.psql();
     /** */
     public static final String PRINT_OUT = DbXEntityEnum.PRINT_OUT.psql();

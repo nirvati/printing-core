@@ -449,6 +449,9 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
             final UserPrintOutTotalsReq req, final Integer startPosition,
             final Integer maxResults) {
 
+        final boolean isGroupByPrinterUser =
+                req.getGroupBy() == UserPrintOutTotalsReq.GroupBy.PRINTER_USER;
+
         final String optionA4 = "PO.paperSize = 'iso-a4'";
         final String optionA3 = "PO.paperSize = 'iso-a3'";
         final String optionSimplex = "PO.duplex = false";
@@ -468,6 +471,11 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         final StringBuilder jpql = new StringBuilder();
 
         jpql.append("SELECT");
+
+        if (isGroupByPrinterUser) {
+            jpql.append("\n\tPR.displayName,");
+        }
+
         jpql.append("\n\tACC.nameLower");
         jpql.append(",\n\tU.fullName");
 
@@ -611,6 +619,11 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
         jpql.append("\n\tJOIN " + DbSimpleEntity.PRINT_OUT + " PO"
                 + " ON PO.id = DO.printOut");
 
+        if (isGroupByPrinterUser) {
+            jpql.append("\n\tJOIN " + DbSimpleEntity.PRINTER + " PR"
+                    + " ON PR.id = PO.printer");
+        }
+
         //
         jpql.append("\nWHERE");
         jpql.append("\n\tACC.accountType = '" + AccountTypeEnum.USER.toString()
@@ -641,10 +654,20 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
 
         //
         jpql.append("\nGROUP BY");
+
+        if (isGroupByPrinterUser) {
+            jpql.append("\n\tPR.displayName,");
+        }
+
+        //
         jpql.append("\n\tACC.nameLower");
         jpql.append(",\n\tU.fullName");
+
         //
         jpql.append("\nORDER BY");
+        if (isGroupByPrinterUser) {
+            jpql.append("\n\tPR.displayName,");
+        }
         jpql.append("\n\tACC.nameLower");
 
         final Query query = getEntityManager().createQuery(jpql.toString());
@@ -680,6 +703,11 @@ public final class AccountTrxDaoImpl extends GenericDaoImpl<AccountTrx>
             UserPrintOutTotalDto.Detail detailWlk;
 
             int i = 0;
+
+            //
+            if (isGroupByPrinterUser) {
+                dto.setPrinterName(row[i++].toString());
+            }
             //
             dto.setUserId(row[i++].toString());
             dto.setUserName(row[i++].toString());

@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.dao.helpers.UserPrintOutTotalsReq;
@@ -72,9 +73,10 @@ public final class UserPrintOutTotalsDataSource extends AbstractJrDataSource
      *
      * @param req
      * @param locale
+     * @param reportParameters
      */
     public UserPrintOutTotalsDataSource(final UserPrintOutTotalsReq req,
-            final Locale locale) {
+            final Locale locale, final Map<String, Object> reportParameters) {
 
         super(locale);
 
@@ -85,6 +87,24 @@ public final class UserPrintOutTotalsDataSource extends AbstractJrDataSource
 
         this.counter = 0;
         this.chunkCounter = CHUNK_SIZE;
+
+        switch (request.getGroupBy()) {
+        case PRINTER_USER:
+            reportParameters.put("SP_COL_HEADER_1",
+                    NounEnum.PRINTER.uiText(locale));
+            reportParameters.put("SP_COL_HEADER_2",
+                    NounEnum.USER.uiText(locale));
+            break;
+        case USER:
+            reportParameters.put("SP_COL_HEADER_1",
+                    NounEnum.USER.uiText(locale));
+            reportParameters.put("SP_COL_HEADER_2",
+                    NounEnum.NAME.uiText(locale));
+            break;
+        default:
+            throw new RuntimeException(String.format("%s not supported",
+                    request.getGroupBy().toString()));
+        }
     }
 
     /**
@@ -227,12 +247,20 @@ public final class UserPrintOutTotalsDataSource extends AbstractJrDataSource
 
         switch (jrField.getName()) {
 
-        case "USER_ID":
-            value.append(this.chunkDtoWlk.getUserId());
+        case "COL_1":
+            if (this.request.isGroupedByPrinterUser()) {
+                value.append(this.chunkDtoWlk.getPrinterName());
+            } else {
+                value.append(this.chunkDtoWlk.getUserId());
+            }
             break;
 
-        case "USER_NAME":
-            value.append(this.chunkDtoWlk.getUserName());
+        case "COL_2":
+            if (this.request.isGroupedByPrinterUser()) {
+                value.append(this.chunkDtoWlk.getUserId());
+            } else {
+                value.append(this.chunkDtoWlk.getUserName());
+            }
             break;
 
         case "KLAS":

@@ -72,7 +72,8 @@ public final class UserPrintOutTotalsReport extends ReportCreator {
         this.onUserAuthentication(null);
 
         final UserPrintOutTotalsDataSource dataSource =
-                new UserPrintOutTotalsDataSource(request, locale);
+                new UserPrintOutTotalsDataSource(request, locale,
+                        reportParameters);
 
         reportParameters.put(REPORT_PARM_DATA_SELECTION,
                 dataSource.getSelectionInfo());

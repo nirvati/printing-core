@@ -117,6 +117,9 @@ public class UserPrintOutTotalDto extends AbstractDto {
     }
 
     /** */
+    private String printerName;
+
+    /** */
     private String userId;
 
     /** */
@@ -142,6 +145,14 @@ public class UserPrintOutTotalDto extends AbstractDto {
 
     /** */
     private Date dateTo;
+
+    public String getPrinterName() {
+        return printerName;
+    }
+
+    public void setPrinterName(String printerName) {
+        this.printerName = printerName;
+    }
 
     public String getUserId() {
         return userId;

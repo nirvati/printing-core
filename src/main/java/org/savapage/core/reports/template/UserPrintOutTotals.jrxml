@@ -12,11 +12,13 @@
 	<parameter name="SP_APP_VERSION" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="SP_REPORT_IMAGE" class="java.net.URL"/>
 	<parameter name="SP_DATA_SELECTION" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SP_COL_HEADER_1" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="SP_COL_HEADER_2" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[]]>
 	</queryString>
-	<field name="USER_ID" class="java.lang.String"/>
-	<field name="USER_NAME" class="java.lang.String"/>
+	<field name="COL_1" class="java.lang.String"/>
+	<field name="COL_2" class="java.lang.String"/>
 	<field name="KLAS" class="java.lang.String"/>
 	<field name="AMOUNT" class="java.lang.String"/>
 	<field name="JOBS" class="java.lang.String"/>
@@ -82,7 +84,7 @@
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$R{user_printout_totals.userid}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{SP_COL_HEADER_1}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement mode="Opaque" x="90" y="0" width="85" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="750b353c-9ce1-4fce-bfa9-cf61c448426d"/>
@@ -90,7 +92,7 @@
 				<textElement>
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$R{user_printout_totals.username}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{SP_COL_HEADER_2}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement mode="Opaque" x="175" y="0" width="70" height="20" forecolor="#FFFFFF" backcolor="#000000" uuid="11dedaf0-23be-4167-bff0-846234cde09c"/>
@@ -206,7 +208,7 @@
 				<textElement markup="none">
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{USER_ID}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{COL_1}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight">
 				<reportElement x="90" y="0" width="85" height="20" uuid="cf9a98c6-c905-4d54-accb-ddad768217eb"/>
@@ -214,7 +216,7 @@
 				<textElement markup="none">
 					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{USER_NAME}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{COL_2}]]></textFieldExpression>
 			</textField>
 			<textField textAdjust="StretchHeight">
 				<reportElement x="175" y="0" width="70" height="20" uuid="53ab20b6-15f5-43f8-b142-23dbc80c0d82"/>
