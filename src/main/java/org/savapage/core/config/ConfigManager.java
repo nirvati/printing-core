@@ -128,6 +128,7 @@ import org.savapage.core.services.ServiceFactory;
 import org.savapage.core.services.helpers.SOfficeConfigProps;
 import org.savapage.core.system.SystemInfo;
 import org.savapage.core.users.ActiveDirectoryUserSource;
+import org.savapage.core.users.CustomUserSource;
 import org.savapage.core.users.IExternalUserAuthenticator;
 import org.savapage.core.users.IUserSource;
 import org.savapage.core.users.LdapUserSource;
@@ -2926,6 +2927,8 @@ public final class ConfigManager {
                 source = new LdapUserSource(ldapType);
                 break;
             }
+        } else if (mode.equals(IConfigProp.AUTH_METHOD_V_CUSTOM)) {
+            source = new CustomUserSource();
         } else {
             source = null;
         }
@@ -2976,6 +2979,8 @@ public final class ConfigManager {
                 auth = new LdapUserSource(ldapType);
                 break;
             }
+        } else if (mode.equals(IConfigProp.AUTH_METHOD_V_CUSTOM)) {
+            auth = new CustomUserSource();
         } else {
             auth = null;
         }

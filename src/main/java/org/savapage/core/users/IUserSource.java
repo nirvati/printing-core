@@ -44,11 +44,11 @@ public interface IUserSource {
     SortedSet<CommonUserGroup> getGroups();
 
     /**
-     * Gets details of a user from the user source.
+     * Gets details of a user group from the user source.
      *
      * @param groupName
      *            The unique group name.
-     * @return The user group details or {@code null} when the user groujp was
+     * @return The user group details or {@code null} when the user group was
      *         not found in the user source.
      */
     CommonUserGroup getGroup(String groupName);

@@ -152,6 +152,7 @@ public interface IConfigProp {
     String AUTH_METHOD_V_LDAP = "ldap";
     String AUTH_METHOD_V_UNIX = "unix";
     String AUTH_METHOD_V_NONE = "none";
+    String AUTH_METHOD_V_CUSTOM = "custom";
 
     String AUTH_MODE_V_NAME = UserAuthModeEnum.NAME.toDbValue();
     String AUTH_MODE_V_EMAIL = UserAuthModeEnum.EMAIL.toDbValue();
@@ -677,8 +678,14 @@ public interface IConfigProp {
         AUTH_METHOD(//
                 "auth.method", null, AUTH_METHOD_V_NONE,
                 new String[] { AUTH_METHOD_V_NONE, AUTH_METHOD_V_UNIX,
-                        AUTH_METHOD_V_LDAP },
+                        AUTH_METHOD_V_LDAP, AUTH_METHOD_V_CUSTOM },
                 API_UPDATABLE_ON),
+
+        /** */
+        AUTH_CUSTOM_USER_SYNC("auth.custom.user-sync", API_UPDATABLE_ON),
+
+        /** */
+        AUTH_CUSTOM_USER_AUTH("auth.custom.user-auth", API_UPDATABLE_ON),
 
         /**
          *

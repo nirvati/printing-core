@@ -223,6 +223,8 @@ public enum NounEnum {
     /** */
     SUBJECT,
     /** */
+    SYNCHRONIZATION,
+    /** */
     TERMINAL(true),
     /** */
     TEXT(true),
