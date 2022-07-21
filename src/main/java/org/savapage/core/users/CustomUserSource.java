@@ -179,11 +179,11 @@ public final class CustomUserSource extends AbstractUserSource
 
         try {
             if (exec.executeCommand() != 0) {
-                LOGGER.error("%s\n%s", cmd, exec.getStandardError());
+                LOGGER.error("{}\n{}", cmd, exec.getStandardError());
                 throw new SpException(cmd);
             }
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("%s\n%s", cmd, exec.getStandardOutput());
+                LOGGER.trace("{}\n{}", cmd, exec.getStandardOutput());
             }
         } catch (Exception e) {
             throw new SpException(e);
