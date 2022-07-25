@@ -26,6 +26,7 @@ package org.savapage.core.doc.soffice;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -188,8 +189,8 @@ public final class SOfficeProcess {
          * Run the 'ps' command.
          */
         final Process psProcess = new ProcessBuilder(PS_COMMAND).start();
-        final List<String> lines =
-                IOUtils.readLines(psProcess.getInputStream());
+        final List<String> lines = IOUtils.readLines(psProcess.getInputStream(),
+                Charset.defaultCharset());
 
         /*
          * Find the PID.

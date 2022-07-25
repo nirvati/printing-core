@@ -263,7 +263,7 @@ public final class PrintDelegationServiceImpl extends AbstractService
             Integer sharedCopies = sharedAccountCopies.get(idAccount);
 
             if (sharedCopies == null) {
-                sharedCopies = new Integer(0);
+                sharedCopies = Integer.valueOf(0);
             }
 
             sharedCopies += copiesWlk;
@@ -287,7 +287,7 @@ public final class PrintDelegationServiceImpl extends AbstractService
             Integer copiesShared = sharedAccountCopies.get(idAccount);
 
             if (copiesShared == null) {
-                copiesShared = new Integer(0);
+                copiesShared = Integer.valueOf(0);
             }
 
             copiesShared += copiesWlk;

@@ -78,6 +78,7 @@ public final class ProxyPrintJobChunkInfo {
     /**
      * .
      */
+    @SuppressWarnings("unused")
     private static final ProxyPrintService PROXY_PRINT_SERVICE =
             ServiceContext.getServiceFactory().getProxyPrintService();
 

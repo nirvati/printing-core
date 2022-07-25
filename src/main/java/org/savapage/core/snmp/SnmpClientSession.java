@@ -338,7 +338,6 @@ public final class SnmpClientSession {
 
         final TableUtils tUtils = new TableUtils(snmp, new DefaultPDUFactory());
 
-        @SuppressWarnings("unchecked")
         final List<TableEvent> events =
                 tUtils.getTable(this.target, oids, null, null);
 

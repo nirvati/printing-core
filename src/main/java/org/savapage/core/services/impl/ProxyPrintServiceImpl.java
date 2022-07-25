@@ -155,6 +155,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
     private static final String LOCALIZE_IPP_ICON_PREFIX = "ipp-icon-";
 
     /** */
+    @SuppressWarnings("unused")
     private static final String NOTIFY_PULL_METHOD = "ippget";
 
     /**
@@ -1621,6 +1622,7 @@ public final class ProxyPrintServiceImpl extends AbstractProxyPrintService {
      * @throws IppConnectException
      *             When IPP connection error.
      */
+    @SuppressWarnings("unused")
     private JsonProxyPrinter getCupsDefaultPrinter()
             throws IppConnectException {
 

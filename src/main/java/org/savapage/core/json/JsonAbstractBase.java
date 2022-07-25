@@ -84,17 +84,6 @@ public abstract class JsonAbstractBase {
     }
 
     /**
-     * Generates a "pretty printed" JSON schema of this object.
-     *
-     * @return The JSON schema.
-     * @throws IOException
-     *             When serialization fails.
-     */
-    public final String generateJsonSchema() throws IOException {
-        return prettyPrinted(mapper.generateJsonSchema(this.getClass()));
-    }
-
-    /**
      *
      * @return The pretty-printed JSON String.
      * @throws IOException

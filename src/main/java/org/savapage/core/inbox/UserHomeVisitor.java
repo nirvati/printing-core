@@ -795,6 +795,7 @@ public final class UserHomeVisitor extends SimpleFileVisitor<Path>
      *            UUID string.
      * @return {@code true} if valid.
      */
+    @SuppressWarnings("unused")
     private static boolean isUUID(final String uuid) {
         try {
             UUID.fromString(uuid);

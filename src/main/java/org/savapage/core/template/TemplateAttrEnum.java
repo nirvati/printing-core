@@ -88,6 +88,7 @@ public enum TemplateAttrEnum {
     /**
      * Reserved for future use.
      */
+    @SuppressWarnings("unused")
     private final Class<?> dtoClass;
 
     /**

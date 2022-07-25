@@ -564,7 +564,7 @@ public final class PGPHelper {
 
                 final PGPSignatureSubpacketGenerator spGen =
                         new PGPSignatureSubpacketGenerator();
-                spGen.setSignerUserID(false, userId);
+                spGen.addSignerUserID(false, userId);
 
                 signatureGenerator.setHashedSubpackets(spGen.generate());
                 break;

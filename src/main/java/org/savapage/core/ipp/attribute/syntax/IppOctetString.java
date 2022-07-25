@@ -40,6 +40,7 @@ public final class IppOctetString extends AbstractIppAttrSyntax {
     /**
      * If {@code null} maximum is unlimited.
      */
+    @SuppressWarnings("unused")
     final private Integer maxOctets;
 
     /** */

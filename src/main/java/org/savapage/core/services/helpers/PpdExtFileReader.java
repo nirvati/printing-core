@@ -1532,6 +1532,7 @@ public final class PpdExtFileReader extends AbstractConfigFileReader {
                 optOrder.length + optCurrent.size() + optToInject.size();
 
         final int[] aNotFound = new int[2];
+        @SuppressWarnings("unchecked")
         final ArrayList<JsonProxyPrinterOpt>[] aOptionLists = new ArrayList[2];
 
         // Current options that are not found in the preferred order, are

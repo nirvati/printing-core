@@ -130,6 +130,7 @@ public final class IppClient {
             return responseHeader;
         }
 
+        @SuppressWarnings("unused")
         public boolean hasResponseHeader() {
             return (responseHeader != null);
         }
@@ -138,6 +139,7 @@ public final class IppClient {
             return groups;
         }
 
+        @SuppressWarnings("unused")
         public boolean isContentEnd() {
             return contentEnd;
         }

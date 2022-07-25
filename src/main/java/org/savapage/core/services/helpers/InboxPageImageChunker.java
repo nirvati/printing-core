@@ -93,6 +93,7 @@ public final class InboxPageImageChunker {
      * The job expiration reference time in milliseconds (the current time).
      *
      */
+    @SuppressWarnings("unused")
     private long msecCurrentTime;
 
     /*

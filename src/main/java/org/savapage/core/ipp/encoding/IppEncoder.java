@@ -694,7 +694,8 @@ public final class IppEncoder {
             writeInt16(ostr, 0);
 
             //
-            if (false && traceLog != null) {
+            boolean doLogging = false;
+            if (doLogging && traceLog != null) {
                 traceLog.append("\n")
                         .append(StringUtils.repeat(INDENT_UNIT, nIndentWlk))
                         .append("[")
@@ -945,6 +946,7 @@ public final class IppEncoder {
                                 StringUtils.isNotBlank(name);
 
                         // See sample at RFC3382 Table 4
+                        @SuppressWarnings("unused")
                         boolean isNestedCollection =
                                 valueTagPrev == IppValueTag.MEMBERATTRNAME
                                         && StringUtils.isBlank(name)

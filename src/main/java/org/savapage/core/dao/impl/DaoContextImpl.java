@@ -428,15 +428,14 @@ public final class DaoContextImpl implements DaoContext {
     }
 
     /**
-     * @deprecated Gets the {@link ThreadLocal} {@link EntityManager}: a facade
-     *             for the "internal" {@link #lazyEntityManager()}.
-     *             <p>
-     *             This is a transitional solution till all services use the
-     *             full Dao setup.
-     *             </p>
+     * Gets the {@link ThreadLocal} {@link EntityManager}: a facade for the
+     * "internal" {@link #lazyEntityManager()}.
+     * <p>
+     * This is a transitional solution till all services use the full Dao setup.
+     * </p>
+     * 
      * @return The {@link EntityManager}.
      */
-    @Deprecated
     public static EntityManager peekEntityManager() {
         return lazyEntityManager();
     }

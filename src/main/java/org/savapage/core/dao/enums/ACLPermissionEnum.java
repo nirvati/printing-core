@@ -126,12 +126,19 @@ public enum ACLPermissionEnum {
     private static final int BIT_READER_SELECT = 0x8;
     private static final int BIT_READER_SIGN = 0x10;
     //
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_6 = 0x20;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_7 = 0x40;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_8 = 0x80;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_9 = 0x100;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_10 = 0x200;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_11 = 0x400;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_12 = 0x800;
 
     // --------------------------------------------
@@ -143,18 +150,31 @@ public enum ACLPermissionEnum {
     private static final int BIT_EDITOR_DELETE = 0x4000;
     private static final int BIT_EDITOR_UNDELETE = 0x8000;
     //
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_17 = 0x10000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_18 = 0x20000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_19 = 0x40000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_20 = 0x80000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_21 = 0x100000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_22 = 0x200000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_23 = 0x400000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_24 = 0x800000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_25 = 0x1000000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_26 = 0x2000000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_27 = 0x4000000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_28 = 0x8000000;
+    @SuppressWarnings("unused")
     private static final int BIT_RESERVED_29 = 0x10000000;
 
     // --------------------------------------------

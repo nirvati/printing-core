@@ -96,7 +96,7 @@ public class JsonRpcMethodParser extends JsonAbstractBase {
     public JsonRpcMethodParser(final String jsonInput) throws IOException {
 
         final JsonParser jp =
-                getMapper().getFactory().createJsonParser(jsonInput);
+                getMapper().getFactory().createParser(jsonInput);
 
         this.rootNode = getMapper().readTree(jp);
         this.id = rootNode.get(AbstractJsonRpcMessage.ATTR_ID).textValue();

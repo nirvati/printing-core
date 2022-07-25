@@ -42,6 +42,7 @@ public final class IppNotificationRecipient {
     /**
      * .
      */
+    @SuppressWarnings("unused")
     private final ProxyPrintService proxyPrintService;
 
     /**

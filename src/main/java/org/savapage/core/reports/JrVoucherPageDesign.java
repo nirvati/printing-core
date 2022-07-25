@@ -56,6 +56,7 @@ import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
 import net.sf.jasperreports.engine.type.ModeEnum;
 import net.sf.jasperreports.engine.type.PrintOrderEnum;
+import net.sf.jasperreports.engine.type.TextAdjustEnum;
 import net.sf.jasperreports.engine.type.VerticalTextAlignEnum;
 
 /**
@@ -472,7 +473,7 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
                 cardHeight - cardHeightRemainder, fieldHeighWlk);
         textField.setFontSize(fontSizeHeader);
         textField.setBold(false);
-        textField.setStretchWithOverflow(true);
+        textField.setTextAdjust(TextAdjustEnum.STRETCH_HEIGHT);
 
         cardHeightRemainder -= fieldHeighWlk;
 
@@ -493,7 +494,7 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
                 cardHeight - cardHeightRemainder, fieldHeighWlk);
         textField.setFontSize(fontSizeCardNumber);
         textField.setBold(false);
-        textField.setStretchWithOverflow(true);
+        textField.setTextAdjust(TextAdjustEnum.STRETCH_HEIGHT);
 
         cardHeightRemainder -= fieldHeighWlk;
 
@@ -504,7 +505,7 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
                 cardHeight - cardHeightRemainder, fieldHeighWlk);
         textField.setFontSize(fontSizeValidTill);
         textField.setBold(false);
-        textField.setStretchWithOverflow(true);
+        textField.setTextAdjust(TextAdjustEnum.STRETCH_HEIGHT);
 
         cardHeightRemainder -= fieldHeighWlk;
 
@@ -513,7 +514,7 @@ public class JrVoucherPageDesign extends AbstractJrDesign {
                 cardHeight - cardHeightRemainder, cardHeightRemainder);
         textField.setFontSize(fontSizeFooter);
         textField.setBold(false);
-        textField.setStretchWithOverflow(true);
+        textField.setTextAdjust(TextAdjustEnum.STRETCH_HEIGHT);
 
         //
         ((JRDesignSection) jasperDesign.getDetailSection()).addBand(band);

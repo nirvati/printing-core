@@ -51,6 +51,7 @@ public final class IppNumberUpResolver implements IppNumberUpRuleFinder {
     private static final String N_9 = IppKeyword.NUMBER_UP_9;
     private static final String N_16 = IppKeyword.NUMBER_UP_16;
 
+    @SuppressWarnings("unused")
     private static final String C___0 =
             IppKeyword.ORIENTATION_REQUESTED_0_DEGREES;
     private static final String C__90 =

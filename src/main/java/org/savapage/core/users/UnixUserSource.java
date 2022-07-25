@@ -72,14 +72,17 @@ public final class UnixUserSource extends AbstractUserSource
             return valid;
         }
 
+        @SuppressWarnings("unused")
         public void setValid(boolean valid) {
             this.valid = valid;
         }
 
+        @SuppressWarnings("unused")
         public String getError() {
             return error;
         }
 
+        @SuppressWarnings("unused")
         public void setError(String error) {
             this.error = error;
         }

@@ -479,7 +479,7 @@ public final class AccountingServiceImpl extends AbstractService
                 .getConfigInt(Key.FINANCIAL_USER_BALANCE_DECIMALS);
 
         final BigDecimal balanceDiff = balanceNew.subtract(account.getBalance())
-                .setScale(userBalanceDecimals, BigDecimal.ROUND_DOWN);
+                .setScale(userBalanceDecimals, RoundingMode.DOWN);
 
         if (balanceDiff.compareTo(BigDecimal.ZERO) != 0) {
 

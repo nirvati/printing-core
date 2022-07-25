@@ -168,6 +168,7 @@ public class UserPagerReq extends AbstractPagerReq {
             return field != null && field.equalsIgnoreCase(FLD_ID);
         }
 
+        @SuppressWarnings("unused")
         private boolean isEmailSort() {
             return field != null && field.equalsIgnoreCase(FLD_EMAIL);
         }

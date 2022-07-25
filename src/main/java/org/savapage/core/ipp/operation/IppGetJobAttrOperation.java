@@ -50,8 +50,6 @@ import org.savapage.core.ipp.helpers.IppPrintInData;
 import org.savapage.core.jpa.DocLog;
 import org.savapage.core.services.DocLogService;
 import org.savapage.core.services.ServiceContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -66,12 +64,6 @@ public final class IppGetJobAttrOperation extends AbstractIppOperation {
 
     /** */
     private static class IppGetJobAttrRequest extends AbstractIppRequest {
-
-        /**
-         * The logger.
-         */
-        private static final Logger LOGGER =
-                LoggerFactory.getLogger(IppGetJobAttrRequest.class);
 
         private String jobId;
         private String jobUri;

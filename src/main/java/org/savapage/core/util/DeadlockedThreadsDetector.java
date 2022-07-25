@@ -163,6 +163,7 @@ public final class DeadlockedThreadsDetector {
      * <i>There is no way to stop deadlocked threads.</i>
      * </p>
      */
+    @SuppressWarnings("unused")
     private void stopDeadlockThreads() {
         // noop
     }

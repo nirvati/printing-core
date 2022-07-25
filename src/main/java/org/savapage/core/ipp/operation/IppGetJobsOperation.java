@@ -99,6 +99,7 @@ public final class IppGetJobsOperation extends AbstractIppOperation {
          *
          * @return {@code null} if NO limit.
          */
+        @SuppressWarnings("unused")
         public final Integer getLimit() {
             IppAttrValue value = getAttrValue(ATTR_LIMIT);
             if (value == null) {
@@ -131,6 +132,7 @@ public final class IppGetJobsOperation extends AbstractIppOperation {
          * @return {@code true} if jobs from THIS requesting user. {@code false}
          *         if jobs from ALL users.
          */
+        @SuppressWarnings("unused")
         public final boolean isMyJobs() {
             IppAttrValue value = getAttrValue(ATTR_MY_JOBS);
             if (value == null) {

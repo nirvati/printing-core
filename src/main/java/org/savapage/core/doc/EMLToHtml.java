@@ -347,7 +347,7 @@ public final class EMLToHtml implements IStreamConverter {
                         final String imageBase64 = new String(Base64
                                 .getEncoder().encode(bostr.toByteArray()));
 
-                        final MimeObjectWrapper wrapper =
+                        final MimeObjectWrapper<String> wrapper =
                                 new MimeObjectWrapper<String>(imageBase64,
                                         new ContentType(part.getContentType()));
 

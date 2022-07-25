@@ -1714,6 +1714,8 @@ public final class SyncUsersJob extends AbstractJob {
         int nNonExist = 0;
 
         int nInternalUsers = 0;
+
+        @SuppressWarnings("unused")
         int nInternalUsersUpd = 0;
 
         final SortedSet<User> usersDb =

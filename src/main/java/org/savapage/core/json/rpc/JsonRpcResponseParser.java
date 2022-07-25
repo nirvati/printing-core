@@ -57,7 +57,7 @@ public class JsonRpcResponseParser extends JsonAbstractBase {
 
         final JsonParser jp;
         try {
-            jp = getMapper().getFactory().createJsonParser(jsonInput);
+            jp = getMapper().getFactory().createParser(jsonInput);
             rootNode = getMapper().readTree(jp);
             resultNode = rootNode.get("result");
             errorNode = rootNode.get("error");

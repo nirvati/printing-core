@@ -64,8 +64,10 @@ public final class IppNumberUpHelper implements IppNumberUpRuleFinder {
     /** Portrait. */
     private static final String _P_ = "P";
 
+    @SuppressWarnings("unused")
     private static final String C___0 =
             IppKeyword.ORIENTATION_REQUESTED_0_DEGREES;
+    @SuppressWarnings("unused")
     private static final String C__90 =
             IppKeyword.ORIENTATION_REQUESTED_90_DEGREES;
     private static final String C_180 =
@@ -74,9 +76,12 @@ public final class IppNumberUpHelper implements IppNumberUpRuleFinder {
             IppKeyword.ORIENTATION_REQUESTED_270_DEGREES;
 
     private static final String BTLR = IppKeyword.NUMBER_UP_LAYOUT_BTLR;
+    @SuppressWarnings("unused")
     private static final String BTRL = IppKeyword.NUMBER_UP_LAYOUT_BTRL;
+    @SuppressWarnings("unused")
     private static final String LRBT = IppKeyword.NUMBER_UP_LAYOUT_LRBT;
     private static final String LRTB = IppKeyword.NUMBER_UP_LAYOUT_LRTB;
+    @SuppressWarnings("unused")
     private static final String RLBT = IppKeyword.NUMBER_UP_LAYOUT_RLBT;
     private static final String RLTB = IppKeyword.NUMBER_UP_LAYOUT_RLTB;
     private static final String TBLR = IppKeyword.NUMBER_UP_LAYOUT_TBLR;

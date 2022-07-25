@@ -203,6 +203,7 @@ public final class MemberCard {
     private boolean myCardExpiring = false;
 
     /** */
+    @SuppressWarnings("unused")
     private Date myCardIssueDate = null;
 
     /**

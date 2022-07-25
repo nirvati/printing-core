@@ -60,6 +60,7 @@ public final class CustomUserSource extends AbstractUserSource
     /** */
     private static final String STDOUT_OK = "OK";
     /** */
+    @SuppressWarnings("unused")
     private static final String STDOUT_ERROR = "ERROR";
 
     /** */

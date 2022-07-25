@@ -2604,6 +2604,7 @@ public final class UserServiceImpl extends AbstractService
      * @param user
      *            The {@link User}.
      */
+    @SuppressWarnings("unused")
     private void removeAllGroupMemberShips(final User user) {
 
         final List<UserGroupMember> memberships = user.getGroupMembership();
@@ -3238,6 +3239,7 @@ public final class UserServiceImpl extends AbstractService
                         ServiceContext.getTransactionDate(),
                         ServiceContext.getActor());
 
+                @SuppressWarnings("unused")
                 final int nMemberships =
                         addUserGroupMemberships(userSource, user);
 

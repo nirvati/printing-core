@@ -29,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.lib.pgp.PGPSecretKeyInfo;
 
@@ -125,7 +126,7 @@ public final class PdfPgpVerifyUrl {
      */
     private String stripPgpMsg(final byte[] pgpMsg) {
         final String msg = new String(pgpMsg);
-        return StringUtils.removePattern(StringUtils.stripEnd(
+        return RegExUtils.removePattern(StringUtils.stripEnd(
                 StringUtils.stripStart(msg, BEGIN_PGP_MESSAGE),
                 END_PGP_MESSAGE), REGEX_PGP_VERSION);
     }

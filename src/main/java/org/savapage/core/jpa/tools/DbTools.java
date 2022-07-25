@@ -1989,8 +1989,9 @@ public final class DbTools implements ServiceEntryPoint {
         }
 
         if (count > 0) {
-            listener.onLogEvent(String.format("%20s : %d",
-                    ((XEntityVersion) entityClass.newInstance()).xmlName(),
+            listener.onLogEvent(String.format(
+                    "%20s : %d", ((XEntityVersion) entityClass
+                            .getDeclaredConstructor().newInstance()).xmlName(),
                     count));
         }
 
@@ -2043,7 +2044,8 @@ public final class DbTools implements ServiceEntryPoint {
         }
 
         final EntityManager em = DaoContextImpl.peekEntityManager();
-        final Entity objEntity = (Entity) entityClass.newInstance();
+        final Entity objEntity =
+                (Entity) entityClass.getDeclaredConstructor().newInstance();
 
         if (!properties.isEmpty()) {
             BeanUtils.populate(objEntity, properties);

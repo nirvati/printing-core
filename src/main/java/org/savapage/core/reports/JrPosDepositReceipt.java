@@ -55,6 +55,7 @@ import net.sf.jasperreports.engine.design.JRDesignSection;
 import net.sf.jasperreports.engine.design.JRDesignTextField;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
+import net.sf.jasperreports.engine.type.TextAdjustEnum;
 import net.sf.jasperreports.engine.type.VerticalTextAlignEnum;
 
 /**
@@ -525,7 +526,7 @@ public final class JrPosDepositReceipt extends AbstractJrDesign {
                 fieldX, wlkPosY, fieldWidth, fieldHeight,
                 HorizontalTextAlignEnum.LEFT, VerticalTextAlignEnum.MIDDLE);
         textField.setFontSize(FONT_SIZE_DETAIL_F);
-        textField.setStretchWithOverflow(true);
+        textField.setTextAdjust(TextAdjustEnum.STRETCH_HEIGHT);
 
         wlkPosY += posYIncrement;
 
