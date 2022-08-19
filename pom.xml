@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>savapage-core</artifactId>
     <groupId>org.savapage</groupId>
-    <version>1.4.0</version>
+    <version>1.5.0</version>
     <name>SavaPage Core Library</name>
     <properties>
         <jetty.version>9.4.48.v20220622</jetty.version>
@@ -341,12 +341,12 @@
         <dependency>
             <groupId>org.savapage</groupId>
             <artifactId>savapage-common</artifactId>
-            <version>1.4.0</version>
+            <version>1.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.savapage</groupId>
             <artifactId>savapage-i18n-en</artifactId>
-            <version>1.4.0</version>
+            <version>1.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
