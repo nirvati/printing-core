@@ -108,4 +108,9 @@ public abstract class PosTransactionDto extends AbstractDto {
         return BigDecimal.valueOf(Double.parseDouble(this.formatAmount()));
     }
 
+    public int totalAmountCents() {
+        return Integer.parseInt(this.amountMain) * 100
+                + Integer.parseInt(this.amountCents);
+    }
+
 }

@@ -260,4 +260,8 @@ public class UserPaymentGatewayDto extends AbstractDto {
         this.confirmations = confirmations;
     }
 
+    public Integer totalAmountCents() {
+        return this.amount.multiply(BigDecimal.valueOf(100)).intValue();
+    }
+
 }

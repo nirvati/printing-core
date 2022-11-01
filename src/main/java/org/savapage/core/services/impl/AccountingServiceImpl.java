@@ -90,6 +90,8 @@ import org.savapage.core.jpa.User;
 import org.savapage.core.jpa.UserAccount;
 import org.savapage.core.jpa.UserGroup;
 import org.savapage.core.jpa.UserGroupAccount;
+import org.savapage.core.json.JsonRollingTimeSeries;
+import org.savapage.core.json.TimeSeriesInterval;
 import org.savapage.core.json.rpc.AbstractJsonRpcMethodResponse;
 import org.savapage.core.json.rpc.JsonRpcError.Code;
 import org.savapage.core.json.rpc.JsonRpcMethodError;
@@ -128,6 +130,24 @@ public final class AccountingServiceImpl extends AbstractService
      * Use grouping for integer part of localized currency amount.
      */
     private static final boolean CURRENCY_AMOUNT_GROUPING_USED = true;
+
+    /**
+     * Max points for {@link TimeSeriesInterval#DAY}.
+     */
+    private static final int TIME_SERIES_INTERVAL_DAY_MAX_POINTS = 40;
+
+    /**
+     * Max points for {@link TimeSeriesInterval#WEEK}.
+     */
+    private static final int TIME_SERIES_INTERVAL_WEEK_MAX_POINTS = 5;
+
+    /**
+     * Max points for {@link TimeSeriesInterval#MONTH}.
+     */
+    private static final int TIME_SERIES_INTERVAL_MONTH_MAX_POINTS = 5;
+
+    /** */
+    private static final Integer INTEGER_ONE = Integer.valueOf(1);
 
     @Override
     public PrinterDao.CostMediaAttr getCostMediaAttr() {
@@ -2340,6 +2360,9 @@ public final class AccountingServiceImpl extends AbstractService
          */
         accountDAO().update(account);
         accountTrxDAO().create(trx);
+
+        // Statistics
+        this.updateRollingStats(dto);
     }
 
     @Override
@@ -2363,6 +2386,8 @@ public final class AccountingServiceImpl extends AbstractService
 
         paperCutService().adjustUserAccountBalanceIfAvailable(proxy,
                 dto.getUserId(), null, dto.getAmount(), comment);
+
+        this.updateRollingStats(dto);
     }
 
     /**
@@ -2478,16 +2503,26 @@ public final class AccountingServiceImpl extends AbstractService
 
     @Override
     public AbstractJsonRpcMethodResponse depositFunds(final PosDepositDto dto) {
-        return handlePosTransaction(dto, dto.getComment(),
-                ReceiptNumberPrefixEnum.DEPOSIT, AccountTrxTypeEnum.DEPOSIT,
-                false, dto.getPaymentType());
+
+        final AbstractJsonRpcMethodResponse rsp = handlePosTransaction(dto,
+                dto.getComment(), ReceiptNumberPrefixEnum.DEPOSIT,
+                AccountTrxTypeEnum.DEPOSIT, false, dto.getPaymentType());
+        if (rsp.isResult()) {
+            this.updateRollingStats(dto);
+        }
+        return rsp;
     }
 
     @Override
     public AbstractJsonRpcMethodResponse chargePosSales(final PosSalesDto dto) {
-        return handlePosTransaction(dto, dto.createComment(),
-                ReceiptNumberPrefixEnum.PURCHASE, AccountTrxTypeEnum.PURCHASE,
-                true, null);
+
+        final AbstractJsonRpcMethodResponse rsp = handlePosTransaction(dto,
+                dto.createComment(), ReceiptNumberPrefixEnum.PURCHASE,
+                AccountTrxTypeEnum.PURCHASE, true, null);
+        if (rsp.isResult()) {
+            this.updateRollingStats(dto);
+        }
+        return rsp;
     }
 
     @Override
@@ -2512,7 +2547,122 @@ public final class AccountingServiceImpl extends AbstractService
         } catch (PaperCutException e) {
             return createErrorMsg(e.getMessage());
         }
+        this.updateRollingStats(dto);
         return JsonRpcMethodResult.createOkResult();
+    }
+
+    /**
+     * Updates rolling statistics.
+     *
+     * @param dto
+     *            Sales info.
+     */
+    private void updateRollingStats(final PosSalesDto dto) {
+
+        final Date now = ServiceContext.getTransactionDate();
+        final Integer nPurchase = INTEGER_ONE;
+        final Integer nCents = Integer.valueOf(dto.totalAmountCents());
+
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.DAY,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_PURCHASE_ROLLING_DAY_COUNT, now,
+                        nPurchase);
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.DAY,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_PURCHASE_ROLLING_DAY_CENTS, now, nCents);
+
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.WEEK,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_PURCHASE_ROLLING_WEEK_COUNT, now,
+                        nPurchase);
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.WEEK,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_PURCHASE_ROLLING_WEEK_CENTS, now, nCents);
+
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.MONTH,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_PURCHASE_ROLLING_MONTH_COUNT, now,
+                        nPurchase);
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.MONTH,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_PURCHASE_ROLLING_MONTH_CENTS, now,
+                        nCents);
+    }
+
+    /**
+     * Updates rolling statistics.
+     *
+     * @param dto
+     *            Deposit info.
+     */
+    private void updateRollingStats(final PosDepositDto dto) {
+
+        final Date now = ServiceContext.getTransactionDate();
+        final Integer nDeposit = INTEGER_ONE;
+        final Integer nCents = Integer.valueOf(dto.totalAmountCents());
+
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.DAY,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_DEPOSIT_ROLLING_DAY_COUNT, now, nDeposit);
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.DAY,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_DEPOSIT_ROLLING_DAY_CENTS, now, nCents);
+
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.WEEK,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_DEPOSIT_ROLLING_WEEK_COUNT, now,
+                        nDeposit);
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.WEEK,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_DEPOSIT_ROLLING_WEEK_CENTS, now, nCents);
+
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.MONTH,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_DEPOSIT_ROLLING_MONTH_COUNT, now,
+                        nDeposit);
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.MONTH,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_POS_DEPOSIT_ROLLING_MONTH_CENTS, now, nCents);
+    }
+
+    /**
+     * Updates rolling statistics.
+     *
+     * @param dto
+     *            Payment Gateway info.
+     */
+    private void updateRollingStats(final UserPaymentGatewayDto dto) {
+
+        final Date now = ServiceContext.getTransactionDate();
+        final Integer nDeposit = INTEGER_ONE;
+        final Integer nCents = dto.totalAmountCents();
+
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.DAY,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_PAYMENT_GATEWAY_ROLLING_DAY_COUNT, now,
+                        nDeposit);
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.DAY,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_PAYMENT_GATEWAY_ROLLING_DAY_CENTS, now,
+                        nCents);
+
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.WEEK,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_PAYMENT_GATEWAY_ROLLING_WEEK_COUNT, now,
+                        nDeposit);
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.WEEK,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_PAYMENT_GATEWAY_ROLLING_WEEK_CENTS, now,
+                        nCents);
+
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.MONTH,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_PAYMENT_GATEWAY_ROLLING_MONTH_COUNT, now,
+                        nDeposit);
+        new JsonRollingTimeSeries<>(TimeSeriesInterval.MONTH,
+                TIME_SERIES_INTERVAL_DAY_MAX_POINTS, 0).addDataPoint(
+                        Key.STATS_PAYMENT_GATEWAY_ROLLING_MONTH_CENTS, now,
+                        nCents);
     }
 
     /**

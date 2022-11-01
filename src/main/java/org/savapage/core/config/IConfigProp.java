@@ -2492,6 +2492,27 @@ public interface IConfigProp {
         SCHEDULE_AUTO_SYNC_USER(//
                 "schedule.auto-sync.user", BOOLEAN_VALIDATOR, V_YES),
 
+        /** */
+        STATS_PAYMENT_GATEWAY_ROLLING_DAY_COUNT(//
+                "stats.payment-gateway.rolling-day.count", API_UPDATABLE_OFF),
+        /** */
+        STATS_PAYMENT_GATEWAY_ROLLING_DAY_CENTS(//
+                "stats.payment-gateway.rolling-day.cents", API_UPDATABLE_OFF),
+
+        /** */
+        STATS_PAYMENT_GATEWAY_ROLLING_WEEK_COUNT(//
+                "stats.payment-gateway.rolling-week.count", API_UPDATABLE_OFF),
+        /** */
+        STATS_PAYMENT_GATEWAY_ROLLING_WEEK_CENTS(//
+                "stats.payment-gateway.rolling-week.cents", API_UPDATABLE_OFF),
+
+        /** */
+        STATS_PAYMENT_GATEWAY_ROLLING_MONTH_COUNT(//
+                "stats.payment-gateway.rolling-month.count", API_UPDATABLE_OFF),
+        /** */
+        STATS_PAYMENT_GATEWAY_ROLLING_MONTH_CENTS(//
+                "stats.payment-gateway.rolling-month.cents", API_UPDATABLE_OFF),
+
         /**
          * All print-in documents (day).
          */
@@ -2621,6 +2642,47 @@ public interface IConfigProp {
         STATS_PDF_OUT_ROLLING_MONTH_BYTES(//
                 "stats.pdf-out.rolling-month.bytes", API_UPDATABLE_OFF),
 
+        /** */
+        STATS_POS_DEPOSIT_ROLLING_DAY_COUNT(//
+                "stats.pos.deposit.rolling-day.count", API_UPDATABLE_OFF),
+        /** */
+        STATS_POS_DEPOSIT_ROLLING_DAY_CENTS(//
+                "stats.pos.deposit.rolling-day.cents", API_UPDATABLE_OFF),
+
+        /** */
+        STATS_POS_DEPOSIT_ROLLING_WEEK_COUNT(//
+                "stats.pos.deposit.rolling-week.count", API_UPDATABLE_OFF),
+        /** */
+        STATS_POS_DEPOSIT_ROLLING_WEEK_CENTS(//
+                "stats.pos.deposit.rolling-week.cents", API_UPDATABLE_OFF),
+
+        /** */
+        STATS_POS_DEPOSIT_ROLLING_MONTH_COUNT(//
+                "stats.pos.deposit.rolling-month.count", API_UPDATABLE_OFF),
+        /** */
+        STATS_POS_DEPOSIT_ROLLING_MONTH_CENTS(//
+                "stats.pos.deposit.rolling-month.cents", API_UPDATABLE_OFF),
+
+        /** */
+        STATS_POS_PURCHASE_ROLLING_DAY_COUNT(//
+                "stats.pos.purchase.rolling-day.count", API_UPDATABLE_OFF),
+        /** */
+        STATS_POS_PURCHASE_ROLLING_DAY_CENTS(//
+                "stats.pos.purchase.rolling-day.cents", API_UPDATABLE_OFF),
+
+        /** */
+        STATS_POS_PURCHASE_ROLLING_WEEK_COUNT(//
+                "stats.pos.purchase.rolling-week.count", API_UPDATABLE_OFF),
+        /** */
+        STATS_POS_PURCHASE_ROLLING_WEEK_CENTS(//
+                "stats.pos.purchase.rolling-week.cents", API_UPDATABLE_OFF),
+
+        /** */
+        STATS_POS_PURCHASE_ROLLING_MONTH_COUNT(//
+                "stats.pos.purchase.rolling-month.count", API_UPDATABLE_OFF),
+        /** */
+        STATS_POS_PURCHASE_ROLLING_MONTH_CENTS(//
+                "stats.pos.purchase.rolling-month.cents", API_UPDATABLE_OFF),
         /**
          *
          */
