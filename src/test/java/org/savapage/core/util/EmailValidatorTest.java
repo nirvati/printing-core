@@ -42,8 +42,8 @@ public class EmailValidatorTest {
                 "john111@john.com", "john-100@john.net", "john.100@john.com.au",
                 "john@1.com", "john@mymail.com.com", "john+100@mymail.com",
                 "john-100@example-test.com", "john@xxx.mymail.com",
-                "john123@mymail.a", "john..2002@mymail.com", ".john@john.com",
-                "john.@mymail.com" };
+                "john123@mymail.a", "john.2002@mymail.com", "john@john.com",
+                "john@mymail.com" };
 
         for (String temp : arrayValid) {
             boolean valid = EmailValidator.validate(temp);
