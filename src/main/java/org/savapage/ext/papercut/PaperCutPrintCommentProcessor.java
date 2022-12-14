@@ -135,9 +135,22 @@ public final class PaperCutPrintCommentProcessor {
         }
 
         this.documentName = StringUtils.defaultString(docLogTrx.getTitle());
-        this.trxComment = StringUtils.defaultString(docLogTrx.getLogComment());
+
+        this.trxComment = pruneString(
+                StringUtils.defaultString(docLogTrx.getLogComment()));
 
         jobTrxComment = new StringBuilder();
+    }
+
+    /**
+     * Prunes CR+LF, CR, LF and TAB with one space.
+     *
+     * @param raw
+     *            Raw string.
+     * @return Pruned string.
+     */
+    private static String pruneString(final String raw) {
+        return StringUtils.strip(raw.replaceAll("(\\r\\n|\\n|\\r|\\t)", " "));
     }
 
     /**
@@ -160,7 +173,6 @@ public final class PaperCutPrintCommentProcessor {
         appendIndicatorFields(jobTrxComment);
 
         this.totalCopiesForKlasCounter = 0;
-
     }
 
     /**
