@@ -36,7 +36,6 @@ import java.util.Locale;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.savapage.core.community.CommunityDictEnum;
-import org.savapage.core.community.MemberCard;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.ipp.IppMediaSizeEnum;
 import org.savapage.core.ipp.IppPrinterType;
@@ -962,12 +961,13 @@ public class IppGetPrinterAttrRsp extends AbstractIppResponse {
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_ORGANIZATION:
-            value.addValue(MemberCard.instance().getMemberOrganisation());
+            // TODO(NIRVATI): This was MemberCard.instance().getMemberOrganisation()
+            value.addValue("");
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_ORGANIZATIONAL_UNIT:
-            value.addValue(
-                    MemberCard.instance().getStatusUserText(Locale.ENGLISH));
+            // TODO(NIRVATI): This was MemberCard.instance().getMemberOrganisation()
+            value.addValue("");
             break;
 
         case IppDictPrinterDescAttr.ATTR_PRINTER_SUPPLY:

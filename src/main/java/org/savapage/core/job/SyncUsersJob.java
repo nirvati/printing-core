@@ -46,9 +46,6 @@ import org.quartz.UnableToInterruptJobException;
 import org.savapage.core.cometd.AdminPublisher;
 import org.savapage.core.cometd.PubLevelEnum;
 import org.savapage.core.cometd.PubTopicEnum;
-import org.savapage.core.community.CommunityDictEnum;
-import org.savapage.core.community.MemberCard;
-import org.savapage.core.community.MemberCard.Stat;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
@@ -269,10 +266,6 @@ public final class SyncUsersJob extends AbstractJob {
             msg = AppLogHelper.logInfo(getClass(), "SyncUsersJob.success",
                     msgTestPfx);
 
-            if (!this.isTest) {
-                MemberCard.instance().init();
-            }
-
             this.syncSuccess = true;
 
         } catch (Exception e) {
@@ -295,25 +288,6 @@ public final class SyncUsersJob extends AbstractJob {
                  */
                 AdminPublisher.instance().publish(PubTopicEnum.USER_SYNC, level,
                         msg);
-
-                if (!this.isTest) {
-
-                    final MemberCard memberCard = MemberCard.instance();
-
-                    if (memberCard.getStatus() == Stat.EXCEEDED) {
-                        level = PubLevelEnum.WARN;
-                        msg = AppLogHelper.logWarning(getClass(),
-                                "Membership.exceeded",
-                                CommunityDictEnum.MEMBERSHIP.getWord());
-                    } else {
-                        // Just for now ...
-                        level = PubLevelEnum.INFO;
-                        msg = memberCard.getCommunityNotice();
-                    }
-
-                    AdminPublisher.instance().publish(PubTopicEnum.USER_SYNC,
-                            level, msg);
-                }
             } catch (Exception e) {
                 LOGGER.error(e.getMessage(), e);
             }

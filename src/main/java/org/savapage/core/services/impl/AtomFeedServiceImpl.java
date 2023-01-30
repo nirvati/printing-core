@@ -53,7 +53,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.savapage.core.community.MemberCard;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp;
 import org.savapage.core.config.IConfigProp.Key;
@@ -327,16 +326,6 @@ public final class AtomFeedServiceImpl extends AbstractService
             final StringBuilder xhtml) {
 
         final TemplateAdminFeedDto dto = new TemplateAdminFeedDto();
-
-        //
-        final MemberCard card = MemberCard.instance();
-
-        dto.setMember(card.getMemberOrganisation());
-        dto.setMembership(card.getStatusUserText(locale));
-        dto.setMembershipWarning(card.isMembershipDesirable());
-        dto.setParticipants(String.valueOf(card.getMemberParticipants()));
-        dto.setDaysTillExpiry(card.getDaysTillExpiry());
-        dto.setDaysTillExpiryWarning(card.isDaysTillExpiryWarning());
 
         dto.setUserCount(String.valueOf(userDAO().count()));
         dto.setActiveUserCount(String.valueOf(userDAO().countActiveUsers()));

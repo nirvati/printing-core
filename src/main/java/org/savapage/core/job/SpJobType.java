@@ -84,11 +84,6 @@ public enum SpJobType {
     SYNC_USER_GROUPS,
 
     /**
-     * Check community membership.
-     */
-    CHECK_MEMBERSHIP_CARD,
-
-    /**
      * Clean the Application Log.
      */
     APP_LOG_CLEAN,

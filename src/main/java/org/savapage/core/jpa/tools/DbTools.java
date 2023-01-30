@@ -877,7 +877,6 @@ public final class DbTools implements ServiceEntryPoint {
      * <li>{@link IConfigProp.Key#SYS_SCHEMA_VERSION}</li>
      * <li>{@link IConfigProp.Key#SYS_SCHEMA_VERSION_MINOR}</li>
      * <li>{@link IConfigProp.Key#SYS_SETUP_COMPLETED}</li>
-     * <li>{@link IConfigProp.Key#COMMUNITY_VISITOR_START_DATE}</li>
      * </ul>
      *
      * @param listener
@@ -933,20 +932,6 @@ public final class DbTools implements ServiceEntryPoint {
             prop.setPropertyName(
                     cm.getConfigKey(IConfigProp.Key.SYS_SETUP_COMPLETED));
             prop.setValue(IConfigProp.V_NO);
-            prop.setCreatedBy(actor);
-            prop.setModifiedBy(actor);
-            prop.setCreatedDate(now);
-            prop.setModifiedDate(now);
-            em.persist(prop);
-
-            /*
-             * TODO: content is not meaningful yet.
-             */
-            prop = new ConfigProperty();
-            prop.setPropertyName(cm.getConfigKey(
-                    IConfigProp.Key.COMMUNITY_VISITOR_START_DATE));
-            prop.setValue(cm.createInitialVisitorStartDate());
-
             prop.setCreatedBy(actor);
             prop.setModifiedBy(actor);
             prop.setCreatedDate(now);
@@ -1765,11 +1750,6 @@ public final class DbTools implements ServiceEntryPoint {
      * application server needs to be stopped first.
      * </p>
      *
-     * <p>
-     * The value of {@link Key#COMMUNITY_VISITOR_START_DATE} is saved before the
-     * import and restore after.
-     * </p>
-     *
      * @param exportedFile
      *            The exported XML file to import.
      * @param listener
@@ -1779,12 +1759,6 @@ public final class DbTools implements ServiceEntryPoint {
             final DbProcessListener listener) {
 
         final ConfigManager cm = ConfigManager.instance();
-
-        /*
-         * Save the start of any visiting period.
-         */
-        final String savedVisitorStartDate =
-                cm.readDbConfigKey(Key.COMMUNITY_VISITOR_START_DATE);
 
         /**
          * The BeanUtils.populate() method needs this converter to convert the
@@ -1931,21 +1905,6 @@ public final class DbTools implements ServiceEntryPoint {
                 } catch (IOException e) {
                     LOGGER.error(e.getMessage(), e);
                 }
-            }
-
-            /*
-             * Restore the saved start of any visiting period.
-             */
-            final DaoContext daoContext = ServiceContext.getDaoContext();
-            final String actor = ServiceContext.getActor();
-
-            try {
-                daoContext.beginTransaction();
-                cm.saveDbConfigKey(Key.COMMUNITY_VISITOR_START_DATE,
-                        savedVisitorStartDate, actor);
-                daoContext.commit();
-            } finally {
-                daoContext.rollback();
             }
         }
         listener.onLogEvent("Import finished.");

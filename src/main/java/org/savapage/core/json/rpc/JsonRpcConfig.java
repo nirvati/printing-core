@@ -24,8 +24,6 @@
  */
 package org.savapage.core.json.rpc;
 
-import org.savapage.core.community.MemberCard;
-
 /**
  *
  * @author Rijk Ravestein
@@ -65,13 +63,8 @@ public class JsonRpcConfig {
      */
     public static boolean isApiKeyValid(final String apiId,
             final String apiKey) {
-        boolean isValid = true;
-        try {
-            MemberCard.instance().validateContent(apiId, apiKey);
-        } catch (Exception e) {
-            isValid = false;
-        }
-        return isValid;
+        // TODO(NIRVATI): Check if this breaks anything
+        return false;
     }
 
 }

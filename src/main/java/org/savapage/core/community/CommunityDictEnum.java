@@ -97,24 +97,6 @@ public enum CommunityDictEnum {
     SAVAPAGE_WIKI_URL("https://wiki.savapage.org"),
 
     /** */
-    MEMBER("Member"),
-
-    /** */
-    MEMBER_CARD("Member Card"),
-
-    /** */
-    MEMBERSHIP("Membership"),
-
-    /** */
-    VISITOR("Visitor"),
-
-    /** */
-    VISITING_GUEST("Visiting Guest"),
-
-    /** */
-    CARD_HOLDER,
-
-    /** */
     WEB_PRINT,
 
     /** */
@@ -137,9 +119,6 @@ public enum CommunityDictEnum {
 
     /** */
     MAIL_PRINT,
-
-    /** */
-    PARTICIPANTS,
 
     /** */
     USERS;

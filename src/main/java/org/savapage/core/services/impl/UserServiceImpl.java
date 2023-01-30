@@ -60,7 +60,6 @@ import org.savapage.core.OutOfBoundsException;
 import org.savapage.core.PerformanceLogger;
 import org.savapage.core.SpException;
 import org.savapage.core.auth.YubiKeyOTP;
-import org.savapage.core.community.MemberCard;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.config.IConfigProp.Key;
 import org.savapage.core.crypto.CryptoUser;
@@ -1126,13 +1125,6 @@ public final class UserServiceImpl extends AbstractService
         setAclOids(userAttrDAO(), jpaUser, UserAttrEnum.ACL_OIDS_ADMIN,
                 ACLOidEnum.asMapPrivilege(userDto.getAclOidsAdmin()));
 
-        /*
-         * Re-initialize Member Card information.
-         */
-        if (isNewInternalUser) {
-            MemberCard.instance().init();
-        }
-
         return JsonRpcMethodResult.createOkResult();
     }
 
@@ -1268,9 +1260,6 @@ public final class UserServiceImpl extends AbstractService
      */
     private AbstractJsonRpcMethodResponse
             deleteUserFinalAction(final String userIdToDelete) {
-
-        MemberCard.instance().init();
-
         long nBytes = 0L;
 
         try {

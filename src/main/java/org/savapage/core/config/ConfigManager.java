@@ -89,7 +89,6 @@ import org.savapage.core.circuitbreaker.CircuitBreakerRegistry;
 import org.savapage.core.circuitbreaker.CircuitDamagingException;
 import org.savapage.core.circuitbreaker.CircuitNonTrippingException;
 import org.savapage.core.community.CommunityDictEnum;
-import org.savapage.core.community.MemberCard;
 import org.savapage.core.concurrent.ReadLockObtainFailedException;
 import org.savapage.core.concurrent.ReadWriteLockEnum;
 import org.savapage.core.config.IConfigProp.Key;
@@ -97,7 +96,6 @@ import org.savapage.core.config.IConfigProp.LdapTypeEnum;
 import org.savapage.core.config.IConfigProp.Prop;
 import org.savapage.core.config.validator.EnumSetValidator;
 import org.savapage.core.config.validator.ValidationResult;
-import org.savapage.core.crypto.CryptoApp;
 import org.savapage.core.crypto.CryptoUser;
 import org.savapage.core.dao.UserDao;
 import org.savapage.core.dao.impl.DaoContextImpl;
@@ -317,9 +315,6 @@ public final class ConfigManager {
             new HashMap<>();
 
     /** */
-    private final CryptoApp myCipher = new CryptoApp();
-
-    /** */
     private ProxyPrintService myPrintProxy;
 
     /** */
@@ -472,14 +467,6 @@ public final class ConfigManager {
      */
     public DbConfig.HibernateInfo getHibernateInfo() {
         return this.hibernateInfo;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public CryptoApp cipher() {
-        return myCipher;
     }
 
     /**
@@ -1210,13 +1197,6 @@ public final class ConfigManager {
     }
 
     /**
-     * See {@link CryptoApp#createInitialVisitorStartDate()}.
-     */
-    public String createInitialVisitorStartDate() {
-        return myCipher.createInitialVisitorStartDate();
-    }
-
-    /**
      * Calculates the runnable status of the configuration.
      *
      * @return {@code true} if runnable.
@@ -1693,7 +1673,6 @@ public final class ConfigManager {
         }
 
         myConfigProp.init(props);
-        myCipher.init();
 
         CryptoUser.init();
 
@@ -1742,8 +1721,6 @@ public final class ConfigManager {
                             + "administration needed");
                 }
             }
-
-            MemberCard.instance().init();
 
             /*
              *
@@ -1846,7 +1823,6 @@ public final class ConfigManager {
 
         initHibernate(databaseTypeDefault);
         myConfigProp.init(props);
-        myCipher.initAsBasicLibrary();
     }
 
     /**

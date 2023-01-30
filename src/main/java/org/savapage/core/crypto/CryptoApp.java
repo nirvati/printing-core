@@ -40,7 +40,6 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
 import org.savapage.core.SpException;
-import org.savapage.core.community.MemberCard;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.jpa.tools.DbTools;
 
@@ -61,12 +60,6 @@ public class CryptoApp {
      * encrypted content.
      */
     private static final String PASSPHRASE = "5958cd46c39f140056190cd4ac2323e4";
-
-    /**
-     *
-     */
-    private static final String INITIAL_VISITOR_START_DATE_VISIBLE_PART =
-            "visitor-start-date";
 
     /**
      * IMPORTANT: Do NOT change, since it will invalidate all persistent
@@ -197,77 +190,4 @@ public class CryptoApp {
             throw new SpException(ex);
         }
     }
-
-    /**
-     * Creates the (encrypted) initial value of the visitor start date, as
-     * inserted into the packaged internal database.
-     *
-     * @see DbTools#initDb()
-     * @return The encrypted string.
-     */
-    public String createInitialVisitorStartDate() {
-        return INITIAL_VISITOR_START_DATE_VISIBLE_PART + ":"
-                + encrypt(INITIAL_VISITOR_START_DATE_VISIBLE_PART);
-    }
-
-    /**
-     * Creates encrypted date string to be used as value of the visitor start
-     * date for the ConfigProperty entity.
-     * <p>
-     * To ensure this value is only valid on THIS installation, the default SSL
-     * password id is part of the encryption.
-     * </p>
-     * <p>
-     * Reason: this date is a value in the database and we do not want a value
-     * to be copied and pasted between different instantiations of the
-     * application.
-     * </p>
-     * <p>
-     * See {@link #decryptVisitorStartDate(String)} to de-crypt the output of
-     * this method.
-     * </p>
-     *
-     * @param date
-     *            The start date of the visiting period.
-     * @return
-     */
-    public String encryptVisitorStartDate(final Date date) {
-
-        if (myDefaultSslPw == null) {
-            throw new SpException("SSL password unknown");
-        }
-
-        final String visible = String.valueOf(date.getTime());
-        return visible + ":" + encrypt(visible + "|" + myDefaultSslPw);
-    }
-
-    /**
-     * This is the inverse of {@link #encryptVisitorStartDate(Date)}.
-     * <p>
-     * Note that the default SSL password id is part of the encryption, so the
-     * decryption will fail when a backed up XML file was imported on a new or
-     * other installation of the application.
-     * </p>
-     *
-     * @param str
-     *            The encrypted date string.
-     * @return The decrypted date or {@code null} when decryption failed. A new
-     *         installation can be the cause of that.
-     */
-    public Date decryptVisitorStartDate(final String str) {
-
-        if (myDefaultSslPw == null) {
-            throw new SpException("SSL password unknown");
-        }
-
-        String visible = str.substring(0, str.indexOf(':'));
-        String encrypt = str.substring(str.indexOf(':') + 1);
-
-        Date date = null;
-        if (encrypt(visible + "|" + myDefaultSslPw).equals(encrypt)) {
-            date = new Date(Long.parseLong(visible));
-        }
-        return date;
-    }
-
 }

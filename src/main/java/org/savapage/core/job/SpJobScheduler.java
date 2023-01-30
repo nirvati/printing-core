@@ -332,10 +332,6 @@ public final class SpJobScheduler {
             jobClass = org.savapage.core.job.SyncUserGroupsJob.class;
             break;
 
-        case CHECK_MEMBERSHIP_CARD:
-            jobClass = org.savapage.core.job.MemberCardCheckJob.class;
-            break;
-
         case APP_LOG_CLEAN:
             jobClass = org.savapage.core.job.AppLogClean.class;
             break;
@@ -393,8 +389,7 @@ public final class SpJobScheduler {
         myWeeklyJobs.add(createJob(SpJobType.DB_BACKUP, JOB_GROUP_SCHEDULED));
 
         for (final SpJobType jobType : EnumSet.of(SpJobType.SYNC_USERS,
-                SpJobType.DOC_STORE_CLEAN, SpJobType.CHECK_MEMBERSHIP_CARD,
-                SpJobType.PRINTER_GROUP_CLEAN)) {
+                SpJobType.DOC_STORE_CLEAN, SpJobType.PRINTER_GROUP_CLEAN)) {
             myDailyJobs.add(createJob(jobType, JOB_GROUP_SCHEDULED));
         }
 

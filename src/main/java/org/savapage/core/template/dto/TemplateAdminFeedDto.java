@@ -32,17 +32,6 @@ import java.util.List;
  *
  */
 public final class TemplateAdminFeedDto implements TemplateDto {
-
-    private String member;
-
-    private String membership;
-    private boolean membershipWarning;
-
-    private String participants;
-
-    private Long daysTillExpiry;
-    private boolean daysTillExpiryWarning;
-
     private String userCount;
     private String activeUserCount;
     private String systemMode;
@@ -65,54 +54,6 @@ public final class TemplateAdminFeedDto implements TemplateDto {
     private TemplateSslCertDto sslCert;
 
     private TemplateUserHomeStatsDto userHomeStats;
-
-    public String getMember() {
-        return member;
-    }
-
-    public void setMember(String member) {
-        this.member = member;
-    }
-
-    public String getMembership() {
-        return membership;
-    }
-
-    public void setMembership(String membership) {
-        this.membership = membership;
-    }
-
-    public boolean isMembershipWarning() {
-        return membershipWarning;
-    }
-
-    public void setMembershipWarning(boolean membershipWarning) {
-        this.membershipWarning = membershipWarning;
-    }
-
-    public String getParticipants() {
-        return participants;
-    }
-
-    public void setParticipants(String participants) {
-        this.participants = participants;
-    }
-
-    public Long getDaysTillExpiry() {
-        return daysTillExpiry;
-    }
-
-    public void setDaysTillExpiry(Long daysTillExpiry) {
-        this.daysTillExpiry = daysTillExpiry;
-    }
-
-    public boolean isDaysTillExpiryWarning() {
-        return daysTillExpiryWarning;
-    }
-
-    public void setDaysTillExpiryWarning(boolean daysTillExpiryWarning) {
-        this.daysTillExpiryWarning = daysTillExpiryWarning;
-    }
 
     public String getUserCount() {
         return userCount;

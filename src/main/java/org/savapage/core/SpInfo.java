@@ -28,7 +28,6 @@ import java.util.Calendar;
 
 import org.savapage.common.SystemPropertyEnum;
 import org.savapage.core.community.CommunityDictEnum;
-import org.savapage.core.community.MemberCard;
 import org.savapage.core.config.ConfigManager;
 import org.savapage.core.jpa.tools.DbVersionInfo;
 import org.slf4j.Logger;
@@ -79,18 +78,6 @@ public final class SpInfo {
                 + "]"
                 //
                 + "\n" + DELIM);
-    }
-
-    /**
-     * .
-     */
-    public void logCommunityNotice() {
-        try {
-            LOGGER.info(String.format("\n%s\n%s\n%s", DELIM,
-                    MemberCard.instance().getCommunityNotice("| "), DELIM));
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage());
-        }
     }
 
     /**

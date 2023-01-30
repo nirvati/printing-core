@@ -1314,14 +1314,6 @@ public interface IConfigProp {
                 "ldap.schema.user-id-number-field", API_UPDATABLE_ON),
 
         /**
-         * Date on which this SavaPage instance was first installed. The
-         * community role at this point is "Visitor", and the date defaults to
-         * the start date of the visiting period.
-         */
-        COMMUNITY_VISITOR_START_DATE(//
-                "community.visitor.start-date", API_UPDATABLE_OFF),
-
-        /**
          * Is PaperCut integration enabled?
          */
         PAPERCUT_ENABLE("papercut.enable", BOOLEAN_VALIDATOR, V_NO),
