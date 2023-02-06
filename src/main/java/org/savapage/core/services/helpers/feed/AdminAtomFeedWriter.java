@@ -127,8 +127,8 @@ public final class AdminAtomFeedWriter extends AtomFeedWriter {
 
     @Override
     protected String getFeedGenerator() {
-        return String.format("%s %s v%s", CommunityDictEnum.SAVAPAGE.getWord(),
-                CommunityDictEnum.SAVAPAGE_SLOGAN.getWord(),
+        return String.format("%s - %s v%s", CommunityDictEnum.BRAND_NAME.getWord(),
+                CommunityDictEnum.BRAND_SLOGAN.getWord(),
                 ConfigManager.getAppVersion());
     }
 

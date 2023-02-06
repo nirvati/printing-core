@@ -242,10 +242,10 @@ public abstract class AbstractPdfCreator {
      */
     public static String getCreatorString() {
         return String.format("%s %s • %s • %s",
-                CommunityDictEnum.SAVAPAGE.getWord(),
+                CommunityDictEnum.BRAND_NAME.getWord(),
                 ConfigManager.getAppVersion(),
-                CommunityDictEnum.SAVAPAGE_SLOGAN.getWord(),
-                CommunityDictEnum.SAVAPAGE_DOT_ORG.getWord());
+                CommunityDictEnum.BRAND_SLOGAN.getWord(),
+                CommunityDictEnum.BRAND_WEBSITE.getWord());
     }
 
     /**

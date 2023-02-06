@@ -121,7 +121,22 @@ public enum CommunityDictEnum {
     MAIL_PRINT,
 
     /** */
-    USERS;
+    USERS,
+    
+    /**
+     * The software brand name
+     */
+    BRAND_NAME("Nirvati Print"),
+
+    /**
+     * A short slogan.
+     */
+    BRAND_SLOGAN("FOSS Printing Managment"),
+
+    /**
+     * The software website
+     */
+    BRAND_WEBSITE("priting.nirvati.org");
 
     /**
      * .

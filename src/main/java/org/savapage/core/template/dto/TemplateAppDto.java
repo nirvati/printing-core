@@ -111,7 +111,7 @@ public class TemplateAppDto implements TemplateDto {
 
         final TemplateAppDto dto = new TemplateAppDto();
 
-        dto.name = CommunityDictEnum.SAVAPAGE.getWord(locale);
+        dto.name = CommunityDictEnum.BRAND_NAME.getWord(locale);
         dto.nameVersion = ConfigManager.getAppNameVersion();
         dto.nameVersionBuild = ConfigManager.getAppNameVersionBuild();
 
@@ -121,7 +121,7 @@ public class TemplateAppDto implements TemplateDto {
         dto.wwwSavaPageDotOrg =
                 CommunityDictEnum.SAVAPAGE_WWW_DOT_ORG.getWord(locale);
 
-        dto.slogan = CommunityDictEnum.SAVAPAGE_SLOGAN.getWord(locale);
+        dto.slogan = CommunityDictEnum.BRAND_SLOGAN.getWord(locale);
 
         return dto;
     }
